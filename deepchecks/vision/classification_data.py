@@ -60,7 +60,7 @@ class ClassificationData(VisionData):
                            'the validiation has failed with the error: %s', {str(ex)})
 
     @abstractmethod
-    def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor]:
+    def batch_to_labels(self, batch) -> torch.Tensor:
         """Extract the labels from a batch of data.
 
         Parameters
@@ -70,7 +70,7 @@ class ClassificationData(VisionData):
 
         Returns
         -------
-        Union[List[torch.Tensor], torch.Tensor]
+        torch.Tensor
             The labels extracted from the batch. The labels should be in a tensor format of shape (N,), where N is the
             number of samples in the batch. See the notes for more info.
 
@@ -87,7 +87,7 @@ class ClassificationData(VisionData):
         raise DeepchecksNotImplementedError('batch_to_labels() must be implemented in a subclass')
 
     @abstractmethod
-    def infer_on_batch(self, batch, model, device) -> Union[List[torch.Tensor], torch.Tensor]:
+    def infer_on_batch(self, batch, model, device) -> torch.Tensor:
         """Return the predictions of the model on a batch of data.
 
         Parameters
@@ -101,7 +101,7 @@ class ClassificationData(VisionData):
 
         Returns
         -------
-        Union[List[torch.Tensor], torch.Tensor]
+        torch.Tensor
             The predictions of the model on the batch. The predictions should be in a OHE tensor format of shape
             (N, n_classes), where N is the number of samples in the batch.
 
@@ -123,7 +123,7 @@ class ClassificationData(VisionData):
 
     def get_classes(self, batch_labels: Union[List[torch.Tensor], torch.Tensor]):
         """Get a labels batch and return classes inside it."""
-        return batch_labels.tolist()
+        return batch_labels.reshape(-1, 1).tolist()
 
     def validate_label(self, batch):
         """
@@ -165,5 +165,5 @@ class ClassificationData(VisionData):
         if n_classes and pred_shape[1] != n_classes:
             raise ValidationError(f'Check requires classification predictions to have {n_classes} columns')
         if any(abs(batch_predictions.sum(dim=1) - 1) > eps):
-            raise ValidationError('Check requires classification} predictions to be a probability distribution and'
+            raise ValidationError('Check requires classification predictions to be a probability distribution and'
                                   ' sum to 1 for each row')

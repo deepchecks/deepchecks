@@ -10,7 +10,7 @@
 #
 """Module containing robustness report check."""
 from collections import defaultdict
-from typing import TypeVar, List, Optional, Sized, Dict
+from typing import TypeVar, List, Optional, Sized, Dict, Sequence
 
 import imgaug
 import albumentations
@@ -331,67 +331,41 @@ def augmentation_name(aug):
 def get_random_image_pairs_from_dataset(original_dataset: VisionData,
                                         augmented_dataset: VisionData,
                                         top_affected_classes: dict):
-    """Get image pairs from 2 datasets.
-
-    We iterate the internal dataset object directly to avoid randomness
-    Dataset returns data points as processed images, making this currently not really usable
-    To avoid making more assumptions this currently stays as-is
-    Note that images return in RGB format, ond to visualize them using OpenCV the final dimension should be
-    transposed;
-    can be done via image = image[:, :, ::-1] or cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-    """
+    """Get image pairs from 2 datasets."""
     classes_to_show = {
         class_info['class']: class_info['diff']
         for classes_list in top_affected_classes.values()
         for class_info in classes_list
     }
 
-    baseline_sampler = iter(original_dataset.data_loader.dataset)
-    aug_sampler = iter(augmented_dataset.data_loader.dataset)
+    # Sorting classes by diff value
+    classes = [k for k, v in sorted(classes_to_show.items(), key=lambda item: item[1])]
     samples = []
-    # Will use the diff value to sort by highest diff first
-    sort_value = []
-    classes_set = set(classes_to_show.keys())
-    # iterate and sample
-    for (sample_base, sample_aug) in zip(baseline_sampler, aug_sampler):
-        if not classes_set:
-            break
 
+    for class_id in classes:
+        # Takes the dataset index of a sample of the given class. The order in the dataset is equal for both original
+        # and augmented dataset, so can use it on both
+        dataset_class_index = original_dataset.classes_indices[class_id][0]
+
+        sample_base = original_dataset.data_loader.dataset[dataset_class_index]
+        sample_aug = augmented_dataset.data_loader.dataset[dataset_class_index]
         batch = original_dataset.to_batch(sample_base, sample_aug)
-        batch_label: torch.Tensor = original_dataset.batch_to_labels(batch)
-        images: List[np.ndarray] = original_dataset.batch_to_images(batch)
-        base_label: torch.Tensor = batch_label[0]
-        aug_label: torch.Tensor = batch_label[1]
+        images: Sequence[np.ndarray] = original_dataset.batch_to_images(batch)
+
         if original_dataset.task_type == TaskType.OBJECT_DETECTION:
-            # Classes are the first item in the label
-            all_classes_in_label = set(
-                base_label[:, 0].tolist() if len(base_label) > 0 else []
-            )
-            # If not relevant classes continue
-            intersect = all_classes_in_label.intersection(classes_set)
-            if not intersect:
-                continue
-            # Take randomly first class which will represents the current image
-            curr_class = next(iter(intersect))
+            batch_label: torch.Tensor = original_dataset.batch_to_labels(batch)
+            base_label: torch.Tensor = batch_label[0]
+            aug_label: torch.Tensor = batch_label[1]
             # Take only bboxes of this class
-            base_class_label = [x for x in base_label if x[0] == curr_class]
-            aug_class_label = [x for x in aug_label if x[0] == curr_class]
-            samples.append((images[0], images[1], curr_class, (base_class_label, aug_class_label)))
+            base_class_label = [x for x in base_label if x[0] == class_id]
+            aug_class_label = [x for x in aug_label if x[0] == class_id]
+            samples.append((images[0], images[1], class_id, (base_class_label, aug_class_label)))
         elif original_dataset.task_type == TaskType.CLASSIFICATION:
-            curr_class = base_label.item()
-            if curr_class not in classes_set:
-                continue
-            samples.append((images[0], images[1], curr_class))
+            samples.append((images[0], images[1], class_id))
         else:
             raise DeepchecksValueError('Not implemented')
 
-        # Add the sort value to sort later images by difference
-        sort_value.append(classes_to_show[curr_class])
-        # Remove from the classes set to not take another sample of the same class
-        classes_set.remove(curr_class)
-
-    # Sort by diff but return only the tuple
-    return [s for s, _ in sorted(zip(samples, sort_value), key=lambda pair: pair[1])]
+    return samples
 
 
 HTML_TEMPLATE = """

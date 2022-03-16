@@ -70,15 +70,6 @@ class HeatmapComparison(TrainTestCheck):
         self._task_type = train_dataset.task_type
         self._class_to_string = context.train.label_id_to_name
 
-        # if self.classes_to_display is set, check that it has classes that actually exist
-        if self.classes_to_display is not None:
-            if not set(self.classes_to_display).issubset(
-                    map(self._class_to_string, train_dataset.n_of_samples_per_class.keys())
-            ):
-                raise DeepchecksValueError(
-                    f'Provided list of class ids to display {self.classes_to_display} not found in training dataset.'
-                )
-
         # State members to store the average grayscale image throughout update steps
         self._grayscale_heatmap = defaultdict(lambda: 0)
         self._shape = None
@@ -122,6 +113,14 @@ class HeatmapComparison(TrainTestCheck):
             value: The difference images. One for average image brightness, and one for bbox locations if applicable.
             display: Heatmaps for image brightness (train, test, diff) and heatmap for bbox locations if applicable.
         """
+        # if self.classes_to_display is set, check that it has classes that actually exist
+        if self.classes_to_display is not None:
+            if not set(self.classes_to_display).issubset(
+                    map(self._class_to_string, context.train.classes_indices.keys())
+            ):
+                raise DeepchecksValueError(
+                    f'Provided list of class ids to display {self.classes_to_display} not found in training dataset.'
+                )
         # Compute the average grayscale image by dividing the accumulated sum by the number of images
         train_grayscale = (np.expand_dims(self._grayscale_heatmap[DatasetKind.TRAIN], axis=2) /
                            self._counter[DatasetKind.TRAIN]).astype(np.uint8)
