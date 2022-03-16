@@ -11,7 +11,7 @@ What Are Properties Used For?
 
 A property is any single value that can be extracted from your data. This property values' distribution
 is characteristic of your data that might have hidden relation to your model performance, and therefore
-drift checks on those properties can come handy in two situations:
+several checks on those properties can come handy in a few situations:
 
 1. New unlabeled data: To approximate how your model will work on the new data, since you don't have labels
    in order to do a performance check. If the new data's properties are different by a large margin from the
@@ -19,11 +19,35 @@ drift checks on those properties can come handy in two situations:
 2. Low test performance: If your model is having low performance on your test data, a good step in debugging
    it is to check the drift of different properties between the train and the test. If there are some
    properties with a high drift it might help you pinpoint to a relevant causes of the model's low performance.
+3. Find leakage in the model: Sometimes the model training might be affected the properties we are not aware of,
+   and that aren't the core objective we are aiming to learn. For example, in a classification dataset of wolves
+   and dogs photographs, if only wolves are photographed in the snow, the brightness of the image may be used to
+   predict the label "wolf" easily. In this case, a model might not learn to discern wolf from dog by the animal's
+   characteristics, but by using the background color.
+4. Find weak segments: The properties can be used to segment the data and test for low performing segments.
+   If found, the weak segment might indicate a gap in the training data where the data quality is worse.
 
 Deepchecks' Default Properties
 ==============================
 
+We divide the data into 3 parts: images, labels and predictions. Each one have his own properties defined.
+When running checks you can either create your own properties or relay on Deepchecks' default properties.
 
+The default image properties are:
+
+- Aspect Ratio
+- Area
+- Brightness
+- RMS (Root Mean Square) Contrast
+- Normalized Red Mean
+- Normalized Blue Mean
+- Normalized Green Mean
+
+The default label & predictions properties are:
+
+- Samples Per Class (classification + object detection)
+- Bounding Box Area (object detection)
+- Number of Bounding Boxes Per Image (object detection)
 
 Property Structure
 ==================
