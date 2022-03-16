@@ -2,15 +2,17 @@
 Data Properties
 ===============
 
-Some of the Deepchecks' checks (e.g. train-test drift) uses a concept called "Properties". Properties are
-a simple one-dimension values that are extracted from your data which is either images, labels or predictions.
-The properties values' distribution is a characteristic of your data that might have hidden a relation to your
-model performance.
+Some of the Deepchecks' checks (e.g. train-test drift) use "Properties". Properties are simple one-dimension values that
+are extracted either from the images, labels or predictions of the data.
+
+For example, one image property is **brightness**, and one label property is **bounding box area** (for detection
+tasks). Each property produces a single value per image or per individual label in the image.
 
 What Are Properties Used For?
 =============================
 
-The properties might come handy in a few situations:
+The properties values' distribution is a characteristic of your data that might have hidden a relation to your
+model performance. They might come handy in a few situations:
 
 1. New unlabeled data: To approximate how your model will work on the new data, since you don't have labels
    in order to do a performance check. If the new data's properties are different by a large margin from the
