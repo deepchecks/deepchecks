@@ -75,7 +75,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
     def initialize_run(self, context: Context, dataset_kind: DatasetKind = None):
         """Initialize run by creating an empty matrix the size of the data."""
         context.assert_task_type(TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION)
-        dataset = context.train if dataset_kind == DatasetKind.TRAIN else context.test
+        dataset = context.get_dataset_by_kind(dataset_kind)
         self.task_type = dataset.task_type
         self.matrix = defaultdict(lambda: defaultdict(int))
 
