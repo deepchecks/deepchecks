@@ -278,7 +278,7 @@ class VisionData:
         new_vision_data._data_loader = copied_data_loader
         new_vision_data._sampler = copied_sampler
         # If new data is sampled, then needs to re-calculate cache
-        if n_samples and self.classes_indices is not None:
+        if n_samples and self._classes_indices is not None:
             new_vision_data.init_cache()
             for batch in new_vision_data:
                 new_vision_data.update_cache(self.batch_to_labels(batch))
