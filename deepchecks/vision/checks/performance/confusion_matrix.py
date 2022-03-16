@@ -101,10 +101,10 @@ class ConfusionMatrixReport(SingleDatasetCheck):
             key=lambda x: np.inf if isinstance(x, str) else x
         )
 
-        matrix = pd.DataFrame(matrix, index=classes, columns=classes)
+        matrix = pd.DataFrame(matrix, index=classes, columns=classes).to_numpy()
 
         confusion_matrix, categories = filter_confusion_matrix(
-            matrix.to_numpy(),
+            matrix,
             self.categories_to_display
         )
 
@@ -146,7 +146,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
             .update_yaxes(title='True value', type='category')
         )
         return CheckResult(
-            self.matrix,
+            matrix,
             header='Confusion Matrix',
             display=[*description, fig]
         )
