@@ -125,15 +125,19 @@ class ConfusionMatrixReport(SingleDatasetCheck):
                 classes_to_display.append(dataset.label_id_to_name(category))
             else:
                 raise RuntimeError(
-                    'Internall Error! categories list mmust '
+                    'Internal Error! categories list must '
                     'contain items of type - Union[int, Literal["no-overlapping"]]'
                 )
 
         # NOTE: 'no-overlapping' is at the end of the list
-        x = classes_to_display[:-1]
-        y = classes_to_display[:-1]
-        x.append('No overlapping prediction')
-        y.append('No overlapping label')
+        if 'no-overlapping' in classes_to_display: 
+            x = classes_to_display[:-1]
+            y = classes_to_display[:-1]
+            x.append('No overlapping prediction')
+            y.append('No overlapping label')
+        else:
+            x = classes_to_display
+            y = classes_to_display
 
         fig = (
             imshow(
