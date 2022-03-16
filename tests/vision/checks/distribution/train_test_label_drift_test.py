@@ -99,7 +99,7 @@ def test_with_drift_object_detection(coco_train_visiondata, coco_test_visiondata
 
 def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets):
     # Arrange
-    check = TrainTestLabelDrift().add_condition_drift_score_not_greater_than()
+    check = TrainTestLabelDrift().add_condition_drift_score_not_greater_than(max_allowed_psi_score=0.1)
     mod_train_ds, mod_test_ds = mnist_drifted_datasets
 
     # Act
@@ -110,9 +110,9 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets):
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name='PSI <= 0.15 and Earth Mover\'s Distance <= 0.075 for label drift',
+        name='PSI <= 0.1 and Earth Mover\'s Distance <= 0.075 for label drift',
         details='Found non-continues label properties with PSI drift score above threshold: {\'Samples per '
-                'class\': \'0.18\'}\n'
+                'class\': \'0.15\'}\n'
     ))
 
 

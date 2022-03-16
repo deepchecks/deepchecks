@@ -18,6 +18,7 @@ from deepchecks.vision.checks import ConfusionMatrixReport
 def test_classification(mnist_dataset_train, trained_mnist, device):
     # Arrange
     check = ConfusionMatrixReport()
+    mnist_dataset_train.n_of_samples_per_class
     # Act
     result = check.run(mnist_dataset_train, trained_mnist,
                        device=device)
