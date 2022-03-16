@@ -77,30 +77,24 @@ class ClassPerformance(TrainTestCheck):
                                            '["best", "worst"], metric_to_show_by must be specified.')
 
         self.metric_to_show_by = metric_to_show_by
-
-        self._state = {}
+        self._data_metrics = {}
 
     def initialize_run(self, context: Context):
         """Initialize run by creating the _state member with metrics for train and test."""
         context.assert_task_type(TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION)
 
-        if not self.metric_to_show_by:
-            if context.train.task_type == TaskType.CLASSIFICATION:
-                self.metric_to_show_by = list(get_default_classification_scorers().keys())[0]
-            elif context.train.task_type == TaskType.OBJECT_DETECTION:
-                self.metric_to_show_by = list(get_default_object_detection_scorers().keys())[0]
-            else:
-                raise DeepchecksValueError(f'Invalid task type: {context.train.task_type}')
+        self._data_metrics = {}
+        self._data_metrics[DatasetKind.TRAIN] = get_scorers_list(context.train, self.alternative_metrics)
+        self._data_metrics[DatasetKind.TEST] = get_scorers_list(context.train, self.alternative_metrics)
 
-        self._state = {DatasetKind.TRAIN: {}, DatasetKind.TEST: {}}
-        self._state[DatasetKind.TRAIN]['scorers'] = get_scorers_list(context.train, self.alternative_metrics)
-        self._state[DatasetKind.TEST]['scorers'] = get_scorers_list(context.train, self.alternative_metrics)
+        if not self.metric_to_show_by:
+            self.metric_to_show_by = list(self._data_metrics[DatasetKind.TRAIN].keys())[0]
 
     def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Update the metrics by passing the batch to ignite metric update method."""
         label = batch.labels
         prediction = batch.predictions
-        for _, metric in self._state[dataset_kind]['scorers'].items():
+        for _, metric in self._data_metrics[dataset_kind].items():
             metric.update((prediction, label))
 
     def compute(self, context: Context) -> CheckResult:
@@ -109,7 +103,7 @@ class ClassPerformance(TrainTestCheck):
         for dataset_kind in [DatasetKind.TRAIN, DatasetKind.TEST]:
             dataset = context.get_data_by_kind(dataset_kind)
             metrics_df = metric_results_to_df(
-                {k: m.compute() for k, m in self._state[dataset_kind]['scorers'].items()}, dataset
+                {k: m.compute() for k, m in self._data_metrics[dataset_kind].items()}, dataset
             )
             metrics_df['Dataset'] = dataset_kind.value
             metrics_df['Number of samples'] = metrics_df['Class'].map(dataset.n_of_samples_per_class.get)
@@ -127,7 +121,6 @@ class ClassPerformance(TrainTestCheck):
             results_df = results_df.loc[results_df['Class'].isin(classes_to_show)]
 
         results_df = results_df.sort_values(by=['Dataset', 'Value'], ascending=False)
-
         fig = px.histogram(
             results_df,
             x='Class Name',
