@@ -10,14 +10,17 @@
 #
 """Test functions of the VISION confusion matrix."""
 
-from hamcrest import assert_that, has_entries, close_to, equal_to, raises, calling
-
+from hamcrest import assert_that, equal_to, less_than_or_equal_to as le
 from deepchecks.vision.checks import ConfusionMatrixReport
+
+
+# TODO: more tests
 
 
 def test_classification(mnist_dataset_train, trained_mnist, device):
     # Arrange
     check = ConfusionMatrixReport()
+    mnist_dataset_train.n_of_samples_per_class
     # Act
     result = check.run(mnist_dataset_train, trained_mnist,
                        device=device)
@@ -34,4 +37,5 @@ def test_detection(coco_train_visiondata, trained_yolov5_object_detection, devic
                        device=device)
 
     # Assert
-    assert_that(result.value.shape, equal_to((61, 61)))
+    num_of_classes = coco_train_visiondata.num_classes + 1 # plus no-overlapping
+    assert_that(result.value.shape, le((num_of_classes, num_of_classes)))
