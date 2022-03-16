@@ -75,7 +75,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
     def initialize_run(self, context: Context, dataset_kind: DatasetKind = None):
         """Initialize run by creating an empty matrix the size of the data."""
         context.assert_task_type(TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION)
-        dataset = context.get_dataset_by_kind(dataset_kind)
+        dataset = context.get_data_by_kind(dataset_kind)
         self.task_type = dataset.task_type
         self.matrix = defaultdict(lambda: defaultdict(int))
 
@@ -92,10 +92,10 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         """Compute and plot confusion matrix after all batches were processed."""
         assert self.matrix is not None
 
-        dataset = context.train if dataset_kind == DatasetKind.TRAIN else context.test
-
+        dataset = context.get_data_by_kind(dataset_kind)
         matrix = pd.DataFrame(self.matrix).T
         matrix.replace(np.nan, 0, inplace=True)
+
         classes = sorted(
             set(matrix.index).union(set(matrix.columns)),
             key=lambda x: np.inf if isinstance(x, str) else x
@@ -129,17 +129,18 @@ class ConfusionMatrixReport(SingleDatasetCheck):
                     'contain items of type - Union[int, Literal["no-overlapping"]]'
                 )
 
-        # NOTE: 'no-overlapping' is at the end of the list
-        if 'no-overlapping' in classes_to_display: 
-            x = classes_to_display[:-1]
-            y = classes_to_display[:-1]
-            x.append('No overlapping prediction')
-            y.append('No overlapping label')
-        else:
-            x = classes_to_display
-            y = classes_to_display
+        x = []
+        y = []
 
-        fig = (
+        for it in classes_to_display:
+            if it != 'no-overlapping':
+                x.append(it)
+                y.append(it)
+            else:
+                x.append('No overlapping prediction')
+                y.append('No overlapping label')
+
+        description.append(
             imshow(
                 confusion_matrix,
                 x=x,
@@ -152,7 +153,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         return CheckResult(
             matrix,
             header='Confusion Matrix',
-            display=[*description, fig]
+            display=description
         )
 
     def update_object_detection(self, predictions, labels):
