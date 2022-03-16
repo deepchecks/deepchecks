@@ -128,6 +128,7 @@ def _validate_not_average_metric(metric_name: str, score: t.Any) -> bool:
     return True
 
 
+
 def metric_results_to_df(results: dict, dataset: VisionData) -> pd.DataFrame:
     """Get dict of metric name to tensor of classes scores, and convert it to dataframe."""
     per_class_result = [
