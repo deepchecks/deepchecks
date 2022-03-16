@@ -72,7 +72,6 @@ class VisionData:
         self._transform_field = transform_field
         self._warned_labels = set()
         self._has_images = False
-        self._last_index = len(self.data_loader.batch_sampler.sampler)
 
         try:
             self.validate_image_data(next(iter(self._data_loader)))
@@ -179,7 +178,7 @@ class VisionData:
             for batch in self:
                 self.update_cache(self.batch_to_labels(batch))
 
-        if self._current_index < self._last_index:
+        if self._current_index < len(self._sampler):
             raise DeepchecksValueError('Cached data loop is not completed yet')
         return self._classes_indices
 
@@ -279,12 +278,13 @@ class VisionData:
             random_state used for the psuedo-random actions (sampling and shuffling)
         """
         new_vision_data = copy(self)
-        new_vision_data._data_loader = self._get_data_loader_copy(self.data_loader,
-                                                                  shuffle=shuffle,
-                                                                  random_state=random_state,
-                                                                  n_samples=n_samples)
+        copied_data_loader, copied_sampler = self._get_data_loader_copy(
+            self.data_loader, shuffle=shuffle, random_state=random_state, n_samples=n_samples
+        )
+        new_vision_data._data_loader = copied_data_loader
+        new_vision_data._sampler = copied_sampler
         # If new data is sampled, then needs to re-calculate cache
-        if n_samples:
+        if n_samples and self.classes_indices is not None:
             new_vision_data.init_cache()
             for batch in new_vision_data:
                 new_vision_data.update_cache(self.batch_to_labels(batch))
@@ -408,7 +408,7 @@ class VisionData:
 
         props = VisionData._get_data_loader_props(data_loader)
         props['batch_sampler'] = new_batch_sampler
-        return data_loader.__class__(**props)
+        return data_loader.__class__(**props), sampler
 
     @staticmethod
     def _get_data_loader_props(data_loader: DataLoader):
