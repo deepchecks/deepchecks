@@ -104,16 +104,11 @@ class Suite(BaseSuite):
         non_single_checks = {k: check for k, check in self.checks.items() if not isinstance(check, SingleDatasetCheck)}
 
         # Initialize here all the checks that are not single dataset, since those are initialized inside the update loop
-        if non_single_checks:
-            progress_bar = ProgressBar('Initializing Checks', len(non_single_checks), unit='Check')
-            all_pbars.append(progress_bar)
-            for index, check in non_single_checks.items():
-                progress_bar.set_text(check.name())
-                try:
-                    check.initialize_run(context)
-                except Exception as exp:
-                    results[index] = CheckFailure(check, exp)
-                progress_bar.inc_progress()
+        for index, check in non_single_checks.items():
+            try:
+                check.initialize_run(context)
+            except Exception as exp:
+                results[index] = CheckFailure(check, exp)
 
         if train_dataset is not None:
             self._update_loop(
@@ -173,16 +168,11 @@ class Suite(BaseSuite):
 
         # SingleDatasetChecks have different handling, need to initialize them here (to have them ready for different
         # dataset kind)
-        if single_dataset_checks:
-            progress_bar = ProgressBar('Initializing Checks' + type_suffix, len(single_dataset_checks), unit='Check')
-            progress_bars.append(progress_bar)
-            for idx, check in single_dataset_checks.items():
-                progress_bar.set_text(check.name())
-                try:
-                    check.initialize_run(context, dataset_kind=dataset_kind)
-                except Exception as exp:
-                    results[idx] = CheckFailure(check, exp, type_suffix)
-                progress_bar.inc_progress()
+        for idx, check in single_dataset_checks.items():
+            try:
+                check.initialize_run(context, dataset_kind=dataset_kind)
+            except Exception as exp:
+                results[idx] = CheckFailure(check, exp, type_suffix)
 
         # Init cache of vision_data
         vision_data.init_cache()
