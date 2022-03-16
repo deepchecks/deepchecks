@@ -11,6 +11,7 @@
 """Module containing confusion matrix report check."""
 import pandas as pd
 import numpy as np
+import torch
 from plotly.express import imshow
 from queue import PriorityQueue
 from collections import defaultdict
@@ -217,4 +218,5 @@ class ConfusionMatrixReport(SingleDatasetCheck):
 
         for predicted_classes, image_labels in zip(predictions, labels):
             detected_class = max(range(len(predicted_classes)), key=predicted_classes.__getitem__)
-            self.matrix[image_labels][detected_class] += 1
+            label_class = image_labels.item() if isinstance(image_labels, torch.Tensor) else image_labels
+            self.matrix[label_class][detected_class] += 1
