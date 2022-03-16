@@ -121,12 +121,20 @@ def calculate_metrics(
     return state.metrics
 
 
+def _validate_not_average_metric(metric_name: str, score: t.Any) -> bool:
+    """Raise error if average metric, or return true"""
+    if isinstance(score, float):
+        raise DeepchecksValueError(f'The metric {metric_name} was set to average instead of per class')
+    return True
+
+
 def metric_results_to_df(results: dict, dataset: VisionData) -> pd.DataFrame:
     """Get dict of metric name to tensor of classes scores, and convert it to dataframe."""
     per_class_result = [
         [metric, class_id, dataset.label_id_to_name(class_id),
          class_score.item() if isinstance(class_score, torch.Tensor) else class_score]
         for metric, score in results.items()
+        if _validate_not_average_metric(metric, score)
         # scorer returns results as array, containing result per class
         for class_score, class_id in zip(score, sorted(dataset.n_of_samples_per_class.keys()))
     ]

@@ -8,15 +8,25 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks.performance.class_performance import ClassPerformance
 
 from ignite.metrics import Precision, Recall
-from hamcrest import assert_that, close_to, equal_to, is_in
+from hamcrest import assert_that, calling, close_to, equal_to, is_in, raises
 
+def test_mnist_average_error_error(mnist_dataset_train, mnist_dataset_test, trained_mnist, device):
+    # Arrange
+    check = ClassPerformance(alternative_metrics={'p': Precision(average=True)})
+    # Act
+    assert_that(
+        calling(check.run
+                ).with_args(mnist_dataset_train, mnist_dataset_test, trained_mnist,
+                            device=device),
+            raises(DeepchecksValueError, r'The metric p was set to average instead of per class')
+    )
 
 def test_mnist_largest(mnist_dataset_train, mnist_dataset_test, trained_mnist, device):
     # Arrange
-
     check = ClassPerformance(n_to_show=2, show_only='largest')
     # Act
     result = check.run(mnist_dataset_train, mnist_dataset_test, trained_mnist,
