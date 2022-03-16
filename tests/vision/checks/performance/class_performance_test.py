@@ -10,8 +10,7 @@
 #
 from deepchecks.vision.checks.performance.class_performance import ClassPerformance
 
-import torch.nn as nn
-
+from ignite.metrics import Precision, Recall
 from hamcrest import assert_that, close_to, equal_to, is_in
 
 
@@ -24,8 +23,9 @@ def test_mnist_largest(mnist_dataset_train, mnist_dataset_test, trained_mnist, d
                        device=device)
     first_row = result.value.sort_values(by='Number of samples', ascending=False).iloc[0]
     # Assert
+    assert_that(len(set(result.value['Class'])), equal_to(2))
     assert_that(len(result.value), equal_to(8))
-    assert_that(first_row['Value'], close_to(0.991532, 0.05))
+    assert_that(first_row['Value'], close_to(0.993, 0.001))
     assert_that(first_row['Number of samples'], equal_to(6742))
     assert_that(first_row['Class'], equal_to(1))
 
@@ -71,7 +71,23 @@ def test_mnist_best(mnist_dataset_train, mnist_dataset_test, trained_mnist, devi
 
     # Assert
     assert_that(len(result.value), equal_to(8))
-    assert_that(first_row['Value'], close_to(0.990854, 0.05))
+    assert_that(first_row['Value'], close_to(0.993, 0.001))
+
+
+def test_mnist_alt(mnist_dataset_train, mnist_dataset_test, trained_mnist, device):
+    # Arrange
+
+    check = ClassPerformance(n_to_show=2,
+                             alternative_metrics={'p': Precision(), 'r': Recall()})
+    # Act
+    result = check.run(mnist_dataset_train, mnist_dataset_test, trained_mnist,
+                       device=device)
+    p_row = result.value.loc[result.value['Metric'] == 'p'].sort_values(by='Value', ascending=False).iloc[0]
+    r_row = result.value.loc[result.value['Metric'] == 'r'].sort_values(by='Value', ascending=False).iloc[0]
+    # Assert
+    assert_that(len(result.value), equal_to(8))
+    assert_that(p_row['Value'], close_to(0.993, 0.001))
+    assert_that(r_row['Value'], close_to(0.99, 0.001))
 
 
 def test_coco_best(coco_train_visiondata, coco_test_visiondata, trained_yolov5_object_detection, device):
