@@ -122,7 +122,7 @@ def calculate_metrics(
 
 
 def _validate_not_average_metric(metric_name: str, score: t.Any) -> bool:
-    """Raise error if average metric, or return true"""
+    """Raise error if average metric, or return true."""
     if isinstance(score, float):
         raise DeepchecksValueError(f'The metric {metric_name} was set to average instead of per class')
     return True

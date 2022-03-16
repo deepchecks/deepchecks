@@ -21,7 +21,7 @@ from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.vision import TrainTestCheck, Context, Batch
 from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.metrics_utils.metrics import get_scorers_list, metric_results_to_df, \
-    get_default_classification_scorers, get_default_object_detection_scorers, filter_classes_for_display
+                                                    filter_classes_for_display
 
 
 __all__ = ['ClassPerformance']
