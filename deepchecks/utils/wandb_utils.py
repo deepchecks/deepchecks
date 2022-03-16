@@ -47,5 +47,5 @@ def set_wandb_run_state(dedicated_run: bool, default_config: dict, **kwargs: Any
         kwargs['project'] = kwargs.get('project', 'deepchecks')
         kwargs['config'] = kwargs.get('config', default_config)
         wandb.init(**kwargs)
-        wandb.run._label(repo="Deepchecks")
+        wandb.run._label(repo='Deepchecks')  # pylint: disable=protected-access
     return dedicated_run
