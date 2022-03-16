@@ -172,7 +172,7 @@ class VisionData:
     def classes_indices(self) -> Dict[int, List[int]]:
         """Return dict of classes as keys, and list of corresponding indices (in Dataset) of samples that include this\
         class (in the label)."""
-        if self.classes_indices is None or self._current_index < len(self._sampler):
+        if self._classes_indices is None or self._current_index < len(self._sampler):
             raise DeepchecksValueError('Cached data is not computed on all the data yet.')
         return self._classes_indices
 
