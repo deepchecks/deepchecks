@@ -23,7 +23,7 @@ import pandas as pd
 from IPython.display import display, display_html
 from IPython import get_ipython
 import ipywidgets as widgets
-from ipywidgets.embed import embed_minimal_html
+from ipywidgets.embed import embed_minimal_html, dependency_state
 
 from deepchecks.core import errors
 from deepchecks.utils.ipython import is_widgets_enabled
@@ -197,7 +197,7 @@ def _display_suite_widgets(summary: str,
             html_formatted = re.sub('}', '}}', html_formatted)
             html_formatted = re.sub('html_title', '{title}', html_formatted)
             html_formatted = re.sub('widget_snippet', '{snippet}', html_formatted)
-            embed_minimal_html(html_out, views=[page], title='Suite Output', template=html_formatted)
+            embed_minimal_html(html_out, views=[page], title='Suite Output', template=html_formatted, requirejs=False, embed_url=None, state=dependency_state(page))
     else:
         display(page)
 

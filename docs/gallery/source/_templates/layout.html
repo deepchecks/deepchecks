@@ -36,7 +36,9 @@
 {%- endblock %}
 
 {% block scripts %}
-<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js" crossorigin="anonymous"></script>
+<!-- <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed.js" crossorigin="anonymous"></script> -->
 {% endblock %}
 
 {%- block body_tag %}

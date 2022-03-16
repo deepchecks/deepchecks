@@ -14,7 +14,7 @@ from subprocess import check_output
 import plotly.io as pio
 from plotly.io._sg_scraper import plotly_sg_scraper
 
-pio.renderers.default = "sphinx_gallery_png"
+pio.renderers.default = "sphinx_gallery"
 
 # -- Path setup --------------------------------------------------------------
 
@@ -95,10 +95,13 @@ sphinx_gallery_conf = {
         "examples/tabular/checks/distribution/test_autoexamples",
         "examples/tabular/checks/overview/test_autoexamples",
         "examples/tabular/checks/integrity/test_autoexamples",
-    ],  # path to where to save gallery generated output
+    ], # path to where to save gallery generated output
     "image_scrapers": (
+        "matplotlib",
         plotly_sg_scraper,
     ),
+    "pypandoc": True,
+    'capture_repr': ('_repr_html_', '__repr__'),
 }
 
 # Add any paths that contain templates here, relative to this directory.

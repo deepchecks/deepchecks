@@ -54,6 +54,7 @@ class DatasetSizeComparison(TrainTestCheck):
         return_value = {'train_size': train_size, 'test_size': test_size}
         return CheckResult(return_value)
 
+#%%
 # Hooray! we just implemented a custom check. Now let's create two Datasets and try to run it:
 
 import pandas as pd
@@ -65,6 +66,7 @@ test_dataset = Dataset(pd.DataFrame(data={'x': [1,2,3]}), label=None)
 result = DatasetSizeComparison().run(train_dataset, test_dataset)
 result
 
+#%%
 # Our check ran successfully but we got the print "Nothing found". This is
 # because we haven't defined to the check anything to display, so the default
 # behavior is to print "Nothing found". In order to access the value that
@@ -74,6 +76,7 @@ result
 
 result.value
 
+#%%
 # To see code references for more complex checks (that can receive parameters
 # etc.), check out any of your favorite checks from our API Reference (LINK).
 
@@ -115,9 +118,8 @@ class DatasetSizeComparison(TrainTestCheck):
         
         return CheckResult(sizes, display=[sizes_df_for_display, graph_display])
 
-# Let check it out:
-
 #%%
+# Let us check it out
 
 DatasetSizeComparison().run(train_dataset, test_dataset)
 

@@ -94,7 +94,7 @@ clf = clf.fit(features, target)
 # Next, we'll run the check on the dataset and model, modifying the default value of
 # ``min_test_samples`` in order to enable us to run this check on the small dataset.
 # In this case, we'll run the check "as is", and introduce the condition in the `next
-# section<#define-a-condition>`__.
+# section <#define-a-condition>`__.
 #
 # Additional optional parameters include the maximal sample size, the random state,
 # the number of highest and lowest Trust Score samples to show and various
