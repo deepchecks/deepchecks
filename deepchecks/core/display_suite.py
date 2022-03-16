@@ -27,7 +27,7 @@ from ipywidgets.embed import embed_minimal_html
 
 from deepchecks.core import errors
 from deepchecks.utils.ipython import is_widgets_enabled
-from deepchecks.utils.strings import get_random_string
+from deepchecks.utils.strings import create_new_file_name, get_random_string
 from deepchecks.core.check_result import CheckResult, CheckFailure
 from deepchecks.core.display_pandas import (
     dataframe_to_html, get_conditions_table,
@@ -180,16 +180,7 @@ def _display_suite_widgets(summary: str,
     page.children = [widgets.HTML(summary), widgets.HTML(tab_css), tab]
     if html_out:
         if isinstance(html_out, str):
-            if '.' in html_out:
-                basename, ext = html_out.rsplit('.', 1)
-            else:
-                basename = html_out
-                ext = 'html'
-            html_out = f'{basename}.{ext}'
-            c = itertools.count()
-            next(c)
-            while os.path.exists(html_out):
-                html_out = f'{basename} ({str(next(c))}).{ext}'
+            create_new_file_name(html_out, 'html')
         curr_path = os.path.dirname(os.path.abspath(__file__))
         with open(os.path.join(curr_path, 'resources', 'suite_output.html'), 'r', encoding='utf8') as html_file:
             html_formatted = re.sub('{', '{{', html_file.read())

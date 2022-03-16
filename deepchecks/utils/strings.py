@@ -9,6 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """String functions."""
+import itertools
+import os
 import random
 import typing as t
 import re
@@ -455,3 +457,30 @@ def format_datetime(
         return datetime.fromtimestamp(value).strftime(datetime_format)
     else:
         raise ValueError(f'Unsupported value type - {type(value).__name__}')
+
+def create_new_file_name(file_name: str, default_suffix: str = 'html'):
+    """Return file name that isn't already exist (adding (X)).
+
+    Parameters
+    ----------
+    file_name : str
+        the file name we want to add a (X) suffix if it exist.
+    default_suffix : str , default: 'html'
+        the file suffix to add if it wasn't provided in the file name.
+
+    Returns
+    -------
+    str
+        a new file name if the file exists
+    """
+    if '.' in file_name:
+        basename, ext = file_name.rsplit('.', 1)
+    else:
+        basename = file_name
+        ext = default_suffix
+    file_name = f'{basename}.{ext}'
+    c = itertools.count()
+    next(c)
+    while os.path.exists(file_name):
+        file_name = f'{basename} ({str(next(c))}).{ext}'
+    return file_name
