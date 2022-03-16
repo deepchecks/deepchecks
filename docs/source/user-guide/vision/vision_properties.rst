@@ -2,9 +2,28 @@
 Data Properties
 ===============
 
-Some of the Deepchecks' checks (e.g. train-test drift) uses a concept called "Properties". Property is a value that
-is generated from the vision data which is the images, labels and predictions. In this guide you will learn how the
-properties works and how to create your own properties to use in the checks.
+Some of the Deepchecks' checks (e.g. train-test drift) uses a concept called "Properties". Property is
+a value that is extracted from your data which is either images, labels or predictions. This guide explains
+the motivation behind using the properties, how they works and how to create your own properties to use in the checks.
+
+What Are Properties Used For?
+=============================
+
+A property is any single value that can be extracted from your data. This property values' distribution
+is characteristic of your data that might have hidden relation to your model performance, and therefore
+drift checks on those properties can come handy in two situations:
+
+1. New unlabeled data: To approximate how your model will work on the new data, since you don't have labels
+   in order to do a performance check. If the new data's properties are different by a large margin from the
+   train's properties, then it might indicate the model will have harder time inferring on it.
+2. Low test performance: If your model is having low performance on your test data, a good step in debugging
+   it is to check the drift of different properties between the train and the test. If there are some
+   properties with a high drift it might help you pinpoint to a relevant causes of the model's low performance.
+
+Deepchecks' Default Properties
+==============================
+
+
 
 Property Structure
 ==================
