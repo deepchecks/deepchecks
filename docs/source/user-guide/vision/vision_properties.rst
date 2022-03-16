@@ -2,16 +2,15 @@
 Data Properties
 ===============
 
-Some of the Deepchecks' checks (e.g. train-test drift) uses a concept called "Properties". Property is
-a value that is extracted from your data which is either images, labels or predictions. This guide explains
-the motivation behind using the properties, how they works and how to create your own properties to use in the checks.
+Some of the Deepchecks' checks (e.g. train-test drift) uses a concept called "Properties". Properties are
+a simple one-dimension values that are extracted from your data which is either images, labels or predictions.
+The properties values' distribution is a characteristic of your data that might have hidden a relation to your
+model performance.
 
 What Are Properties Used For?
 =============================
 
-A property is any single value that can be extracted from your data. This property values' distribution
-is characteristic of your data that might have hidden relation to your model performance, and therefore
-several checks on those properties can come handy in a few situations:
+The properties might come handy in a few situations:
 
 1. New unlabeled data: To approximate how your model will work on the new data, since you don't have labels
    in order to do a performance check. If the new data's properties are different by a large margin from the
@@ -39,9 +38,13 @@ The default image properties are:
 - Area
 - Brightness
 - RMS (Root Mean Square) Contrast
-- Normalized Red Mean
-- Normalized Blue Mean
-- Normalized Green Mean
+- Normalized Mean RGB channels: The normalized channels are calculated by first normalizing the image's pixels (meaning, each color is normalized
+  to its relevant intensity, by dividing the color intensity by the other colors). Then, the mean for each
+  image channel is calculated.
+
+  - Normalized Red Mean
+  - Normalized Blue Mean
+  - Normalized Green Mean
 
 The default label & predictions properties are:
 
