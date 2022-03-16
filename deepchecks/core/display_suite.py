@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Handle display of suite result."""
-import itertools
 import os
 import sys
 import re

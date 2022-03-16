@@ -458,6 +458,7 @@ def format_datetime(
     else:
         raise ValueError(f'Unsupported value type - {type(value).__name__}')
 
+
 def create_new_file_name(file_name: str, default_suffix: str = 'html'):
     """Return file name that isn't already exist (adding (X)).
 

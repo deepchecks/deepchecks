@@ -73,7 +73,7 @@ def apply_to_tensor(
 
 def validate_extractors(dataset: VisionData, model, image_save_location: str = None, save_images: bool = True):
     """Validate for given data_loader and model that the extractors are valid.
-    
+
     Parameters
     ----------
     dataset : VisionData
@@ -212,7 +212,7 @@ def validate_extractors(dataset: VisionData, model, image_save_location: str = N
             display(HTML(fig.to_image('svg').decode('utf-8')))
     else:
         print(msg)
-        if fig: 
+        if fig:
             image = Image.open(BytesIO(fig.to_image('jpg')))
             if is_headless():
                 if save_images:
@@ -229,6 +229,5 @@ def validate_extractors(dataset: VisionData, model, image_save_location: str = N
                     print(full_image_path)
                     print('validate_extractors can be set to skip the image saving or change the save path')
                     print('*******************************************************************************')
-
             else:
                 image.show()

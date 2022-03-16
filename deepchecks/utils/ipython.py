@@ -44,6 +44,7 @@ def is_headless() -> bool:
     bool
         True if we cannot support GUI, False otherwise
     """
+    # pylint: disable=import-outside-toplevel
     try:
         import Tkinter as tk
     except ImportError:
@@ -53,7 +54,7 @@ def is_headless() -> bool:
             return True
     try:
         root = tk.Tk()
-    except Exception:
+    except tk.TclError:
         return True
     root.destroy()
     return False
