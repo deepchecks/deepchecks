@@ -6,10 +6,10 @@ This notebooks provides an overview for using and understanding Heatmap comparis
 
 **Structure:**
 
-* `What is a heatmap comparison? <#what-is-a-heatmap-comparison>`__
-* `Run check on a Classification task <#run-the-check-on-a-classification-task-mnist>`__
-* `Run check on an Object Detection task <#run-the-check-on-an-object-detection-task-coco>`__
-* `Limit to specific classes <#limit-to-specific-classes>`__
+* `What Is a Heatmap Comparison? <#what-is-a-heatmap-comparison>`__
+* `Run the Check on a Classification Task <#run-the-check-on-a-classification-task-mnist>`__
+* `Run the Check on an Object Detection Task <#run-the-check-on-an-object-detection-task-coco>`__
+* `Limit to Specific Classes <#limit-to-specific-classes>`__
 
 What Is a Heatmap Comparison?
 =============================
@@ -46,7 +46,7 @@ or the `Image Dataset Drift Check
 </examples/vision/checks/distribution/test_autoexamples/plot_train_test_property_drift.html>`__.
 
 
-Run the check on a Classification task (MNIST)
+Run the Check on a Classification Task (MNIST)
 ==============================================
 """
 
@@ -66,8 +66,6 @@ mnist_data_train = load_dataset(train=True, batch_size=64, object_type='VisionDa
 mnist_data_test = load_dataset(train=False, batch_size=64, object_type='VisionData')
 
 #%%
-# Running HeatmapComparison on Classification
-# -------------------------------------------
 
 from deepchecks.vision.checks.distribution import HeatmapComparison
 

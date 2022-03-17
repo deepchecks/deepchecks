@@ -8,12 +8,13 @@ test datasets.
 
 **Structure:**
 
-* `What is a dataset drift? <#what-is-a-dataset-drift>`__
-* `Loading the data <#loading-the-data>`__
-* `Run the check <#run-the-check>`__
+* `What Is Dataset Drift? <#what-is-a-dataset-drift>`__
+* 'How ImageDatasetDrift Check Works? <#how-imagedatasetdrift-check-works>'__
+* `Loading The Data <#loading-the-data>`__
+* `Run The Check <#run-the-check>`__
 
 
-What is a dataset drift?
+What Is Dataset Drift?
 ------------------------
 Data drift is simply a change in the distribution of data over time. It is also
 one of the top reasons of a machine learning model performance degrades over time.
@@ -35,7 +36,7 @@ which is not due to augmentation will likely make the model prone to error. In
 other words, if the model was trained on data that is different from the current test
 data, it will probably make more mistakes predicting the target variable.
 
-How deepchecks detects dataset drift
+How ImageDatasetDrift Check Works?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 There are many methods to detect feature drift. Some of them are statistical methods
 that aim to measure difference between distribution of 2 given sets. This methods
@@ -47,8 +48,8 @@ drift check, the multivariate drift is measured by training a classifier that de
 which samples come from a known distribution and defines the drift by the accuracy
 of this classifier.
 
-Practically, the check concatanates the train and the test sets, and assigns label 0
-to samples that come from the training set, and 1 to those who are from the test set.
+Practically, the check concatenates the train and the test sets, and assigns label 0
+to samples that come from the training set, and 1 to those from the test set.
 Then, we train a binary classifer of type `Histogram-based Gradient Boosting
 Classification Tree <https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.HistGradientBoostingClassifier.html>`_, 
 and measure the drift score from the AUC score of this classifier.
@@ -56,6 +57,21 @@ and measure the drift score from the AUC score of this classifier.
 As the classifier is a tree model, that cannot run on the images themselves, the
 check calculates properties for each image (such as brightness, aspect ratio etc.)
 and uses them as input features to the classifier.
+
+Which Image Properties Are Used?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==============================  ==========
+Property name                   What is it
+==============================  ==========
+Aspect Ratio                    Ratio between height and width of image (height / width)
+Area                            Area of image in pixels (height * width)
+Brightness                      Average intensity of image pixels. Color channels have different weights according to
+                                RGB-to-Grayscale formula
+RMS Contrast                    Contrast of image, calculated by standard deviation of pixels
+Mean Red Relative Intensity     Mean of the red channel relative intensity per-pixel [r / (r + g + b)].
+Mean Green Relative Intensity   Mean of the red channel relative intensity per-pixel [g / (r + g + b)].
+Mean Blue Relative Intensity    Mean of the red channel relative intensity per-pixel [b / (r + g + b)].
+==============================  ==========
 """
 
 #%%
