@@ -13,7 +13,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from deepchecks.tabular.checks.methodology import *
-from deepchecks.tabular.base import Dataset
+from deepchecks.tabular import Dataset
 
 #%%
 # Generating Data

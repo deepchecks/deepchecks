@@ -7,7 +7,7 @@ Date Train Validation Leakage Duplicates
 #%%
 
 from deepchecks.tabular.checks.methodology import DateTrainTestLeakageDuplicates
-from deepchecks.tabular.base import Dataset, Suite
+from deepchecks.tabular import Dataset, Suite
 from datetime import datetime
 import pandas as pd
 

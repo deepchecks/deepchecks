@@ -6,7 +6,7 @@ Index Leakage
 
 #%%
 
-from deepchecks.tabular.base import Dataset
+from deepchecks.tabular import Dataset
 from deepchecks.tabular.checks import IndexTrainTestLeakage
 import pandas as pd
 

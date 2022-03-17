@@ -85,6 +85,9 @@ sphinx_gallery_conf = {
         "examples/tabular/checks/distribution/test_examples",
         "examples/tabular/checks/overview/test_examples",
         "examples/tabular/checks/integrity/test_examples",
+        "examples/tabular/checks/methodology/test_examples",
+        "examples/tabular/checks/performance/test_examples",
+        "examples/tabular/use-cases/test_examples",
     ],  # path to your example scripts
     "gallery_dirs": [
         "examples/vision/guides/test_autoexamples",
@@ -95,13 +98,15 @@ sphinx_gallery_conf = {
         "examples/tabular/checks/distribution/test_autoexamples",
         "examples/tabular/checks/overview/test_autoexamples",
         "examples/tabular/checks/integrity/test_autoexamples",
+        "examples/tabular/checks/methodology/test_autoexamples",
+        "examples/tabular/checks/performance/test_autoexamples",
+        "examples/tabular/use-cases/test_autoexamples",
     ], # path to where to save gallery generated output
     "image_scrapers": (
         "matplotlib",
         plotly_sg_scraper,
     ),
     "pypandoc": True,
-    'capture_repr': ('_repr_html_', '__repr__'),
 }
 
 # Add any paths that contain templates here, relative to this directory.
