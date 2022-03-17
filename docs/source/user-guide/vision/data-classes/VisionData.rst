@@ -17,7 +17,7 @@ For more info, please visit the API reference page: :class:`~deepchecks.vision.V
 
 Accepted Image Format
 ---------------------
-All checks in deepchecks require images in the same format. They use the :func:`batch_to_images` function in order to get
+All checks in deepchecks require images in the same format. They use the :func:`~deepchecks.vision.VisionData.batch_to_images` function in order to get
 the images in the correct format.
 
 The accepted format is an iterable of cv2 images. Each image in the iterable must be a [H, W, C] 3D numpy array.
