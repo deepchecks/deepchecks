@@ -34,6 +34,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5, random_
 clf.fit(X_train, y_train)
 ds = Dataset(pd.concat([X_test, y_test], axis=1), 
             features=iris.feature_names,
+            label='target')
 
 #%%
 # Running ``roc_report`` Check
