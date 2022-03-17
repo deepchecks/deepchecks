@@ -41,7 +41,7 @@
 .. raw:: html
 
    <h1 align="center">
-      Testing and Validating ML Models & Data
+      Testing and Validating ML Models & Data - Computer Vision Submodule
    </h1>
 
 .. raw:: html
@@ -111,10 +111,12 @@ Performance Checks
 
 .. code:: python
 
-   from deepchecks.vision.checks import MeanAveragePrecisionReport
-   from deepchecks.vision.datasets.detection import coco
+   # load data for demo
+   from deeyolo = coco.load_model(pretrained=True)
+    test_ds = coco.load_dataset(train=False, object_type='VisionData')pchecks.vision.datasets.detection import coco
 
    # Initialize and run desired check
+   from deepchecks.vision.checks import MeanAveragePrecisionReport
    result = MeanAveragePrecisionReport().run(test_ds, yolo)
    result
 
