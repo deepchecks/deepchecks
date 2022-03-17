@@ -78,12 +78,43 @@ extensions = [
     'sphinx.ext.githubpages',
     'sphinx_search.extension',
     'sphinx.ext.autosectionlabel',
+    "sphinx.ext.imgmath",
 ]
 
+imgmath_image_format = 'svg'
+
 sphinx_gallery_conf = {
-     'examples_dirs': 'examples/vision/test_examples',   # path to your example scripts
-     'gallery_dirs': 'examples/vision/test_autoexamples',  # path to where to save gallery generated output
-     'image_scrapers': ('matplotlib', plotly_sg_scraper,)
+    "examples_dirs": [
+        "examples/vision/guides/source",
+        "examples/general/source",
+        "examples/vision/checks/distribution/source",
+        "examples/vision/checks/performance/source",
+        "examples/tabular/guides/source",
+        "examples/tabular/checks/distribution/source",
+        "examples/tabular/checks/overview/source",
+        "examples/tabular/checks/integrity/source",
+        "examples/tabular/checks/methodology/source",
+        "examples/tabular/checks/performance/source",
+        "examples/tabular/use-cases/source",
+    ],  # path to your example scripts
+    "gallery_dirs": [
+        "examples/vision/guides/examples",
+        "examples/general/examples",
+        "examples/vision/checks/distribution/examples",
+        "examples/vision/checks/performance/examples",
+        "examples/tabular/guides/examples",
+        "examples/tabular/checks/distribution/examples",
+        "examples/tabular/checks/overview/examples",
+        "examples/tabular/checks/integrity/examples",
+        "examples/tabular/checks/methodology/examples",
+        "examples/tabular/checks/performance/examples",
+        "examples/tabular/use-cases/examples",
+    ], # path to where to save gallery generated output
+    "image_scrapers": (
+        "matplotlib",
+        plotly_sg_scraper,
+    ),
+    "pypandoc": True,
 }
 
 # Add any paths that contain templates here, relative to this directory.
