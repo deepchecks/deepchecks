@@ -11,7 +11,7 @@
 """Test functions of the VISION train test prediction drift."""
 from hamcrest import assert_that, has_entries, close_to, equal_to, raises, calling
 from tests.checks.utils import equal_condition_result
-
+import torch.nn as nn
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks import TrainTestPredictionDrift
 
@@ -152,6 +152,14 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets, trained_mn
     check = TrainTestPredictionDrift().add_condition_drift_score_not_greater_than()
     mod_train_ds, mod_test_ds = mnist_drifted_datasets
 
+    def infer(batch, model, device):
+        preds = model.to(device)(batch[0].to(device))
+        preds[:, 0] = 0
+        preds = nn.Softmax(dim=1)(preds)
+        return preds
+
+    mod_test_ds.infer_on_batch = infer
+
     # Act
     result = check.run(mod_train_ds, mod_test_ds, trained_mnist, device=device)
 
@@ -162,7 +170,7 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets, trained_mn
         is_pass=False,
         name='PSI <= 0.15 and Earth Mover\'s Distance <= 0.075 for prediction drift',
         details='Found non-continues prediction properties with PSI drift score above threshold: {\'Samples per '
-                'class\': \'0.17\'}\n'
+                'class\': \'3.9\'}\n'
     ))
 
 

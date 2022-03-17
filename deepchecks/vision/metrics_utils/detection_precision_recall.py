@@ -60,7 +60,7 @@ class AveragePrecision(Metric):
         else:
             self.area_ranges_names = ["small", "medium", "large", "all"]
         self.iou_thresholds = np.linspace(.5, 0.95, int(np.round((0.95 - .5) / .05)) + 1, endpoint=True)
-        self.max_dets = max_dets
+        self.max_detections_per_class = max_dets
         self.area_range = area_range
         self.i = 0
 
@@ -95,17 +95,16 @@ class AveragePrecision(Metric):
             acc["scores"] = _dict_conc(acc["scores"])
             acc["matched"] = _dict_conc(acc["matched"])
             acc["NP"] = _dict_conc(acc["NP"])
-        reses = {}
-        reses["precision"] = -np.ones((len(self.iou_thresholds),
-                                       len(self.area_ranges_names),
-                                       len(self.max_dets),
-                                       len(self._evals.keys())))
-        reses["recall"] = -np.ones((len(self.iou_thresholds),
-                                    len(self.area_ranges_names),
-                                    len(self.max_dets),
-                                    len(self._evals.keys())))
+        reses = {"precision": -np.ones((len(self.iou_thresholds),
+                                        len(self.area_ranges_names),
+                                        len(self.max_detections_per_class),
+                                        len(self._evals.keys()))),
+                 "recall": -np.ones((len(self.iou_thresholds),
+                                     len(self.area_ranges_names),
+                                     len(self.max_detections_per_class),
+                                     len(self._evals.keys())))}
         for iou_i, min_iou in enumerate(self.iou_thresholds):
-            for dets_i, dets in enumerate(self.max_dets):
+            for dets_i, dets in enumerate(self.max_detections_per_class):
                 for area_i, area_size in enumerate(self.area_ranges_names):
                     precision_list = []
                     recall_list = []
@@ -122,12 +121,12 @@ class AveragePrecision(Metric):
                     reses["recall"][iou_i, area_i, dets_i] = np.array(recall_list)
         if self.return_option == 0:
             return torch.tensor(self.get_classes_scores_at(reses["precision"],
-                                                           max_dets=self.max_dets[0],
+                                                           max_dets=self.max_detections_per_class[0],
                                                            area=self.area_ranges_names[0],
                                                            get_mean_val=False))
         elif self.return_option == 1:
             return torch.tensor(self.get_classes_scores_at(reses["recall"],
-                                                           max_dets=self.max_dets[0],
+                                                           max_dets=self.max_detections_per_class[0],
                                                            area=self.area_ranges_names[0],
                                                            get_mean_val=False))
         return [reses]
@@ -136,86 +135,93 @@ class AveragePrecision(Metric):
         """Group gts and dts on a imageXclass basis."""
         # Calculating pairwise IoUs on classes
         bb_info = build_class_bounding_box(detected, ground_truth)
-        ious = {k: compute_pairwise_ious(**v) for k, v in bb_info.items()}
+        ious = {k: compute_pairwise_ious(v["detected"], v["ground_truth"]) for k, v in bb_info.items()}
 
         for class_id in ious.keys():
-            ev = self._evaluate_image(
+            image_evals = self._evaluate_image(
                 bb_info[class_id]["detected"],
                 bb_info[class_id]["ground_truth"],
                 ious[class_id]
             )
 
             acc = self._evals[class_id]
-            acc["scores"].append(ev["scores"])
-            acc["matched"].append(ev["matched"])
-            acc["NP"].append(ev["NP"])
+            acc["scores"].append(image_evals["scores"])
+            acc["matched"].append(image_evals["matched"])
+            acc["NP"].append(image_evals["NP"])
 
-    def _evaluate_image(self, det, gt, ious):
+    def _evaluate_image(self, detections, ground_truths, ious):
         """Det - [x, y, w, h, confidence, label], gt - [label, x, y, w, h]."""
         # Sort detections by increasing confidence
-        det = [self.Prediction(d) for d in det]
-        det_sort = np.argsort([-d.confidence for d in det], kind="stable")
+
+        detections = [self.Prediction(d) for d in detections]
+        sorted_detection_ids = np.argsort([-d.confidence for d in detections], kind="stable")
         orig_ious = ious
-        orig_gt = gt
+        orig_gt = ground_truths
+        ground_truth_area = np.array([g[3] * g[4] for g in orig_gt])
 
         scores = {}
         matched = {}
         n_gts = {}
         for min_iou in self.iou_thresholds:
-            for dets in self.max_dets:
-                for area_size in ["small", "medium", "large", "all"]:
+            for top_n_detections in self.max_detections_per_class:
+                for area_size in self.area_ranges_names:
                     # sort list of dts and chop by max dets
-                    dt = [det[idx] for idx in det_sort[:dets]]
-                    ious = orig_ious[det_sort[:dets]]
-                    gt_ignore = [self._is_ignore_area(g[3] * g[4], area_size) for g in orig_gt]
+                    dt = [detections[idx] for idx in sorted_detection_ids[:top_n_detections]]
+                    ious = orig_ious[sorted_detection_ids[:top_n_detections]]
+                    ground_truth_to_ignore = [self._is_ignore_area(gt_area, area_size) for gt_area in ground_truth_area]
 
                     # sort gts by ignore last
-                    gt_sort = np.argsort(gt_ignore, kind="stable")
-                    gt = [orig_gt[idx] for idx in gt_sort]
-                    gt_ignore = [gt_ignore[idx] for idx in gt_sort]
+                    gt_sort = np.argsort(ground_truth_to_ignore, kind="stable")
+                    ground_truths = [orig_gt[idx] for idx in gt_sort]
+                    ground_truth_to_ignore = [ground_truth_to_ignore[idx] for idx in gt_sort]
 
                     ious = ious[:, gt_sort]
 
-                    gtm = {}
-                    dtm = {}
-
-                    for d_idx, _ in enumerate(dt):
-                        # information about best match so far (m=-1 -> unmatched)
-                        iou = min(min_iou, 1 - 1e-10)
-                        m = -1
-                        for g_idx, _ in enumerate(gt):
-                            # if this gt already matched, and not a crowd, continue
-                            if g_idx in gtm:
-                                continue
-                            # if dt matched to reg gt, and on ignore gt, stop
-                            if m > -1 and not gt_ignore[m] and gt_ignore[g_idx]:
-                                break
-                            # continue to next gt unless better match made
-                            if ious[d_idx, g_idx] < iou:
-                                continue
-                            # if match successful and best so far, store appropriately
-                            iou = ious[d_idx, g_idx]
-                            m = g_idx
-                        # if match made store id of match for both dt and gt
-                        if m == -1:
-                            continue
-                        dtm[d_idx] = m
-                        gtm[m] = d_idx
+                    detection_matches = \
+                        self._get_best_matches(dt, min_iou, ground_truths, ground_truth_to_ignore, ious)
 
                     # generate ignore list for dts
-                    dt_ignore = [
-                        gt_ignore[dtm[d_idx]] if d_idx in dtm
+                    detections_to_ignore = [
+                        ground_truth_to_ignore[detection_matches[d_idx]] if d_idx in detection_matches
                         else self._is_ignore_area(d.bbox[2] * d.bbox[3], area_size)
                         for d_idx, d in enumerate(dt)
                     ]
 
                     # get score for non-ignored dts
-                    scores[(area_size, dets, min_iou)] = [dt[d_idx].confidence for d_idx in range(len(dt))
-                                                          if not dt_ignore[d_idx]]
-                    matched[(area_size, dets, min_iou)] = [d_idx in dtm for d_idx in range(len(dt))
-                                                           if not dt_ignore[d_idx]]
-                    n_gts[(area_size, dets, min_iou)] = len([g_idx for g_idx in range(len(gt)) if not gt_ignore[g_idx]])
+                    scores[(area_size, top_n_detections, min_iou)] = \
+                        [dt[d_idx].confidence for d_idx in range(len(dt))
+                         if not detections_to_ignore[d_idx]]
+                    matched[(area_size, top_n_detections, min_iou)] = \
+                        [d_idx in detection_matches for d_idx in range(len(dt))
+                         if not detections_to_ignore[d_idx]]
+                    n_gts[(area_size, top_n_detections, min_iou)] = \
+                        len([g_idx for g_idx in range(len(ground_truths)) if not ground_truth_to_ignore[g_idx]])
         return {"scores": scores, "matched": matched, "NP": n_gts}
+
+    def _get_best_matches(self, dt, min_iou, ground_truths, ground_truth_to_ignore, ious):
+        ground_truth_matched = {}
+        detection_matches = {}
+
+        for d_idx in range(len(dt)):
+            # information about best match so far (best_match=-1 -> unmatched)
+            best_iou = min(min_iou, 1 - 1e-10)
+            best_match = -1
+            for g_idx in range(len(ground_truths)):
+                # if this gt already matched, continue
+                if g_idx in ground_truth_matched:
+                    continue
+                # if dt matched and currently on ignore gt, stop
+                # this exists to allow for matching ignored ground truth, so that we ignore this detection
+                if best_match > -1 and ground_truth_to_ignore[g_idx]:
+                    break
+
+                if ious[d_idx, g_idx] >= best_iou:
+                    best_iou = ious[d_idx, g_idx]
+                    best_match = g_idx
+            if best_match != -1:
+                detection_matches[d_idx] = best_match
+                ground_truth_matched[best_match] = d_idx
+        return detection_matches
 
     def _compute_ap_recall(self, scores, matched, n_positives, recall_thresholds=None):
         if n_positives == 0:
@@ -287,7 +293,7 @@ class AveragePrecision(Metric):
             area_i = [i for i, area_name in enumerate(self.area_ranges_names) if area == area_name]
             res = res[:, area_i, :, :]
         if max_dets:
-            dets_i = [i for i, det in enumerate(self.max_dets) if max_dets == det]
+            dets_i = [i for i, det in enumerate(self.max_detections_per_class) if max_dets == det]
             res = res[:, :, dets_i, :]
         return res
 
