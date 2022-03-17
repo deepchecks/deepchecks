@@ -119,7 +119,7 @@ def verify_bbox_format_notation(notation: str) -> Tuple[bool, List[str]]:
 
 _BatchOfSamples = Iterable[
     Tuple[
-        Union[Image, np.ndarray, torch.Tensor],  # images
+        Union[Image, np.ndarray, torch.Tensor],  # image
         Sequence[Sequence[Union[int, float]]]  # bboxes
     ]
 ]
@@ -134,7 +134,7 @@ def convert_batch_of_bboxes(
 
     Parameters
     ----------
-    batch : tuple like object with two items - list if images, list of bboxes
+    batch : iterable of tuple like object with two items - image, list of bboxes
         batch of images and bboxes
     notation : str
         bboxes format notation
@@ -190,7 +190,8 @@ def convert_bbox(
     notation: str,
     image_width: Union[int, float, None] = None,
     image_height: Union[int, float, None] = None,
-    device: Union[str, torch.device, None] = None
+    device: Union[str, torch.device, None] = None,
+    _strict: bool = True
 ) -> torch.Tensor:
     """Convert bbox to the required format.
 
@@ -232,13 +233,17 @@ def convert_bbox(
         are_coordinates_normalized is False
         and (image_height is not None or image_width is not None)
     ):
-        raise ValueError(
-            'bbox format notation indicates that coordinates of the bbox '
-            'are not normalized but \'image_height\' and \'image_width\' were provided. '
-            'Those parameters are redundant in the case when bbox coordinates are not '
-            'normalized. Please remove those parameters or add \'n\' element to the format '
-            'notation to indicate that coordinates are indeed normalized.'
-        )
+        if _strict is True:
+            raise ValueError(
+                'bbox format notation indicates that coordinates of the bbox '
+                'are not normalized but \'image_height\' and \'image_width\' were provided. '
+                'Those parameters are redundant in the case when bbox coordinates are not '
+                'normalized. Please remove those parameters or add \'n\' element to the format '
+                'notation to indicate that coordinates are indeed normalized.'
+            )
+        else:
+            image_height = None
+            image_width = None
 
     return _convert_bbox(
         bbox,
