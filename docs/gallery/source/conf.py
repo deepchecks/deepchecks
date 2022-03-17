@@ -73,7 +73,10 @@ extensions = [
     "sphinx.ext.githubpages",
     "sphinx_search.extension",
     "sphinx.ext.autosectionlabel",
+    "sphinx.ext.imgmath"
 ]
+
+imgmath_image_format = 'svg'
 
 sphinx_gallery_conf = {
     "examples_dirs": [

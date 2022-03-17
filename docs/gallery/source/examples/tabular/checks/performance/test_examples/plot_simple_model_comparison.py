@@ -96,8 +96,8 @@ result.value
 # only 0.03 that takes us from 0.95 to 0.98 is highly significant (especially in an
 # imbalance scenario), but improving from 0.1 to 0.13 is not a great achievement.
 #
-# The gain is calculated as: $$gain = \frac{\text{model score} - \text{simple score}}
-# {\text{perfect score} - \text{simple score}}$$
+# The gain is calculated as: :math:`gain = \frac{\text{model score} - \text{simple score}}
+# {\text{perfect score} - \text{simple score}}`
 #
 # Let's add a condition to the check and see what happens when it fails:
 
