@@ -273,7 +273,7 @@ class AveragePrecision(Metric):
         Parameters
         ----------
         res: np.array
-            either prrecision or recall when using the '2' return option
+            either precision or recall when using the '2' return option
         iou : float, default: None
             filter by iou threshold
         area : str, default: None
@@ -304,7 +304,7 @@ class AveragePrecision(Metric):
         Parameters
         ----------
         res: np.array
-            either prrecision or recall when using the '2' return option
+            either precision or recall when using the '2' return option
         iou : float, default: None
             filter by iou threshold
         area : str, default: None

@@ -25,7 +25,7 @@ from deepchecks.core.errors import (
 )
 
 
-__all__ = ['Context']
+__all__ = ['Context', 'Batch']
 
 
 logger = logging.getLogger('deepchecks')
