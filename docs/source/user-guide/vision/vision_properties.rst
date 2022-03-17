@@ -15,12 +15,12 @@ The properties values' distribution is a characteristic of your data that might 
 model performance. They might come handy in a few situations:
 
 1. New unlabeled data: To approximate how your model will work on the new data, since you don't have labels
-   in order to do a performance check. If the new data's properties are different by a large margin from the
-   train's properties, then it might indicate the model will have harder time inferring on it.
+   in order to do a performance check. If there is a significant drift between the new data's properties and the
+   train's properties, then it might indicate the model's predictions will be less accurate.
 2. Low test performance: If your model is having low performance on your test data, a good step in debugging
    it is to check the drift of different properties between the train and the test. If there are some
    properties with a high drift it might help you pinpoint to a relevant causes of the model's low performance.
-3. Find leakage in the model: Sometimes the model training might be affected the properties we are not aware of,
+3. Find bias in the data: Sometimes the model training might be affected the properties we are not aware of,
    and that aren't the core objective we are aiming to learn. For example, in a classification dataset of wolves
    and dogs photographs, if only wolves are photographed in the snow, the brightness of the image may be used to
    predict the label "wolf" easily. In this case, a model might not learn to discern wolf from dog by the animal's
@@ -31,18 +31,18 @@ model performance. They might come handy in a few situations:
 Deepchecks' Default Properties
 ==============================
 
-We divide the data into 3 parts: images, labels and predictions. Each one have his own properties defined.
-When running checks you can either create your own properties or relay on Deepchecks' default properties.
+We divide the properties into 3 groups: image, label and prediction properties.
+When running checks you can either create your own properties or rely on Deepchecks' default properties.
 
 The default image properties are:
 
-- Aspect Ratio
+- Aspect Ratio (height / width)
 - Area
 - Brightness
 - RMS (Root Mean Square) Contrast
-- Normalized Mean RGB channels: The normalized channels are calculated by first normalizing the image's pixels (meaning, each color is normalized
-  to its relevant intensity, by dividing the color intensity by the other colors). Then, the mean for each
-  image channel is calculated.
+- Normalized RGB Mean channels: Mean color intensity for each channel. The color intensity is normalized according to
+  the other color channels per pixel. This is done in order to capture the relationships between channels and not just
+  general intensity (brightness).
 
   - Normalized Red Mean
   - Normalized Blue Mean
@@ -56,12 +56,6 @@ The default label & predictions properties are:
 
 Property Structure
 ==================
-
-There are 3 types of properties:
-
-- Image Property
-- Label Property
-- Prediction Property
 
 The structure of all properties is similar, it consists of dictionary with 3 keys:
 
@@ -89,11 +83,11 @@ Each dictionary is a single property, and the checks accepts a list of those dic
 
 The Method's Input
 ~~~~~~~~~~~~~~~~~~~~~
-The 3 types of properties gets different input and they are not interchangeable. For each check you will have
+The 3 types of properties receive different inputs and they are not interchangeable. For each check you will have
 to pass the appropriate properties.
 
-The method input is either images, labels or predictions in
-:doc:`Deepchecks' format </user-guide/vision/formatter_objects>`. We will demonstrate the 3 drift check (for
+The method's input is either images, labels or predictions in
+:doc:`Deepchecks' format </user-guide/vision/formatter_objects>`. We will demonstrate the 3 drift checks (for
 each property type) and implement the properties to pass to it.
 
 Image Property
