@@ -328,7 +328,7 @@ class AveragePrecision(Metric):
         """
         res = self.filter_res(res, iou, area, max_dets)
         with warnings.catch_warnings():
-            warnings.simplefilter(action='ignore', category=RuntimeWarning)
+            warnings.simplefilter(action="ignore", category=RuntimeWarning)
             res = np.nanmean(res[:, :, :], axis=0)
         if get_mean_val:
             return np.nanmean(res[res > -1])

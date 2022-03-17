@@ -135,7 +135,7 @@ def metric_results_to_df(results: dict, dataset: VisionData) -> pd.DataFrame:
         for metric, score in results.items()
         if _validate_metric_type(metric, score)
         # scorer returns results as array, containing result per class
-        for class_id, class_score  in enumerate(score)
+        for class_id, class_score in enumerate(score)
         if not np.isnan(class_score)
     ]
 
