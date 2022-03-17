@@ -22,7 +22,8 @@ def test_mnist_average_error_error(mnist_dataset_train, mnist_dataset_test, trai
         calling(check.run
                 ).with_args(mnist_dataset_train, mnist_dataset_test, trained_mnist,
                             device=device),
-            raises(DeepchecksValueError, r'The metric p was set to average instead of per class')
+            raises(DeepchecksValueError,
+                   r'The metric p returned a <class \'float\'> instead of an array/tensor')
     )
 
 def test_mnist_largest(mnist_dataset_train, mnist_dataset_test, trained_mnist, device):
