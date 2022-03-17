@@ -20,7 +20,7 @@ def test_default_ap_ignite_complient(coco_test_visiondata: VisionData, trained_y
                             coco_test_visiondata, trained_yolov5_object_detection,
                             device=device)
     assert_that(res.keys(), has_length(1))
-    assert_that(res['AveragePrecision'], has_length(59))
+    assert_that(res['AveragePrecision'], has_length(80))
 
 
 def test_ar_ignite_complient(coco_test_visiondata: VisionData, trained_yolov5_object_detection, device):
@@ -29,7 +29,7 @@ def test_ar_ignite_complient(coco_test_visiondata: VisionData, trained_yolov5_ob
                             device=device)
 
     assert_that(res.keys(), has_length(1))
-    assert_that(res['AveragePrecision'], has_length(59))
+    assert_that(res['AveragePrecision'], has_length(80))
 
 
 def test_equal_pycocotools(coco_test_visiondata: VisionData, trained_yolov5_object_detection, device):
