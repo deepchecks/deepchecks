@@ -11,21 +11,15 @@ This notebooks provides an overview for using and understanding Heatmap comparis
 * `Run check on an Object Detection task <#run-the-check-on-an-object-detection-task-coco>`__
 * `Limit to specific classes <#limit-to-specific-classes>`__
 
-What is a heatmap comparison?
+What Is a Heatmap Comparison?
 =============================
-Heatmap comparison is one method of detecting data drift in image data. Data drift is
+Heatmap comparison is a method of detecting data drift in image data. Data drift is
 simply a change in the distribution of data over time or between several distinct cases.
-It is also one of the top reasons of a machine learning model performance degrades
-over time and when applied to new scenarios. A traditional method to detect such drift
-would be using statistical methods. Such an approach is covered by several builtin
-check in the deepchecks.vision package, such as the `Label Drift Check
-</examples/vision/checks/distribution/test_autoexamples/plot_train_test_label_drift.html>`__
-or the `Image Dataset Drift Check
-</examples/vision/checks/distribution/test_autoexamples/plot_train_test_prediction_drift.html>`__. 
+It is also one of the top reasons that a machine learning model performance degrades
+over time, or when applied to new scenarios.
 
-An additional, more intuitive approach for visualizing and detecting drift in image
-data is simple inspecting the average images. The **Heatmap comparison** check simply
-computes an average image for all images in each dataset, train and test, and visualized
+The **Heatmap comparison** check simply
+computes an average image for all images in each dataset, train and test, and visualizes
 both the average images and the difference between the average images. That way,
 if there a significant average difference between two datasets it would be apparent in
 these average images. For example, if training data contains significantly more images
@@ -34,15 +28,23 @@ image.
 
 Comparing Labels for Object Detection
 -------------------------------------
-For object detection tasks, it is also possible to visualize Label Drift (as a complementary
-approach to the Label Drif check). This can be done by displaying the average of bounding
-box label coverage within the images in each dataset. This is done by producing label
+For object detection tasks, it is also possible to visualize Label Drift, by displaying the average of bounding
+box label coverage. This is done by producing label
 maps per image, in which each pixel inside a bounding box is white and the rest and black.
 Then, the average of all these images is displayed.
 
 In our previous example, the drift caused by more images with sky in training would also
 be visible by a lack of labels in the upper half of the average label map of the training
 data, due to lack of labels in the sky.
+
+Other Methods of Drift Detection
+--------------------------------
+Another, more traditional method to detect such drift would be to use statistical methods.
+Such an approach is covered by several builtin check in the deepchecks.vision package, such as the `Label Drift Check
+</examples/vision/checks/distribution/test_autoexamples/plot_train_test_label_drift.html>`__
+or the `Image Dataset Drift Check
+</examples/vision/checks/distribution/test_autoexamples/plot_train_test_property_drift.html>`__.
+
 
 Run the check on a Classification task (MNIST)
 ==============================================
@@ -64,7 +66,7 @@ mnist_data_train = load_dataset(train=True, batch_size=64, object_type='VisionDa
 mnist_data_test = load_dataset(train=False, batch_size=64, object_type='VisionData')
 
 #%%
-# Running HeatmapComparison on classification
+# Running HeatmapComparison on Classification
 # -------------------------------------------
 
 from deepchecks.vision.checks.distribution import HeatmapComparison
@@ -73,7 +75,7 @@ check = HeatmapComparison()
 check.run(mnist_data_train, mnist_data_test)
 
 #%%
-# Run the check on an Object Detection task (COCO) 
+# Run the Check on an Object Detection Task (Coco)
 # ================================================
 
 from deepchecks.vision.datasets.detection.coco import load_dataset
@@ -87,7 +89,7 @@ check = HeatmapComparison()
 check.run(train_ds, test_ds)
 
 #%%
-# Limit to specific classes
+# Limit to Specific Classes
 # =========================
 # The check can be limited to compare the bounding box coverage for a specific set
 # of classes. We'll use that to inspect only objects labeled as human (class_id 0)
