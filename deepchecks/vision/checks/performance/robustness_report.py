@@ -29,7 +29,7 @@ from deepchecks.vision.metrics_utils import calculate_metrics, metric_results_to
 from deepchecks.vision.utils.validation import set_seeds
 from deepchecks.vision.metrics_utils import get_scorers_list
 from deepchecks.utils.strings import format_percent, split_camel_case
-from deepchecks.vision.utils.image_functions import ImageInfo, numpy_to_html_image
+from deepchecks.vision.utils.image_functions import ImageInfo, draw_thumbnails, draw_bboxes
 
 
 __all__ = ['RobustnessReport']
@@ -247,23 +247,47 @@ class RobustnessReport(SingleDatasetCheck):
                 figures.append('<hr style="background-color:#2a3f5f; height:5px">')
         return figures
 
-    def _create_example_figure(self, dataset: VisionData, images, aug_name):
-        html_classes = ''
-        html_base_images = ''
-        html_aug_images = ''
+    def _create_example_figure(self, dataset: VisionData, images, aug_name: str):
+        classes = []
+        base_images = []
+        aug_images = []
 
         for sample in images:
+            breakpoint()
             base_image = sample[0]
             aug_image = sample[1]
             class_name = dataset.label_id_to_name(sample[2])
             bboxes = sample[3] if len(sample) == 4 else (None, None)
-
-            html_base_images += f'<div class="item image-div">{numpy_to_html_image(base_image, labels=bboxes[0])}</div>'
-            html_aug_images += f'<div class="item image-div">{numpy_to_html_image(aug_image, labels=bboxes[1])}</div>'
-            html_classes += f'<h4 class="item class-div">{class_name}</h4>'
-
-        return HTML_TEMPLATE.format(class_names=html_classes, base_images=html_base_images, aug_images=html_aug_images,
-                                    aug_name=aug_name)
+            
+            classes.append(f'<li>{class_name}</li>')
+            base_images.append(
+                draw_bboxes(base_image, bboxes[0], copy_image=True, border_width=2)
+                if bboxes[0] is not None
+                else base_image
+            )
+            aug_images.append(
+                draw_bboxes(aug_image, bboxes[1], copy_image=True, border_width=2)
+                if bboxes[1] is not None
+                else aug_image
+            )
+        
+        classes = ''.join(classes)
+        base_images_thumbnail = draw_thumbnails(
+            images=base_images,
+            size=(500, 500),
+            copy_image=False
+        )
+        aug_images_thumbnail = draw_thumbnails(
+            images=aug_images,
+            size=(500, 500),
+            copy_image=False
+        )
+        return HTML_TEMPLATE.format(
+            class_names=classes, 
+            base_images=base_images_thumbnail,
+            aug_images=aug_images_thumbnail,
+            aug_name=aug_name
+        )
 
     def _create_performance_graph(self, base_scores: dict, augmented_scores: dict):
         metrics = sorted(list(base_scores.keys()))
@@ -370,52 +394,24 @@ def get_random_image_pairs_from_dataset(original_dataset: VisionData,
 
 HTML_TEMPLATE = """
 <style>
-    .container {{
+    .deepchecks-container {{
         overflow-x: auto;
         display: flex;
         flex-direction: column;
+        padding: 2rem;
     }}
 
-    .row {{
-      display: flex;
-      flex-direction: row;
-      align-items: center;
+    .deepchecks-container > div {{
+        padding: 1em;
     }}
-
-    .item {{
-      flex: 1;
-      min-width: 200px;
-      position: relative;
-      word-wrap: break-word;
-    }}
-
-    .image-div {{
-      min-height: 200px;
-    }}
-
-    .class-div {{
-      text-align: center;
-    }}
-
-    h4 {{
-        font-family: "Open Sans", verdana, arial, sans-serif;
-        color: #2a3f5f
-    }}
-
 </style>
 <h4><b>Augmentation "{aug_name}"</b></h4>
-<div class="container">
-    <div class="row">
-        <h4 class="item">Class</h4>
-        {class_names}
-    </div>
-    <div class="row">
-        <h4 class="item">Base Image</h4>
-        {base_images}
-    </div>
-    <div class="row">
-        <h4 class="item">Augmented Image</h4>
-        {aug_images}
-    </div>
+<div class="deepchecks-container">
+    <h4>Classes</h4>
+    <ul>{class_names}</ul>
+    <h4>Base Images</h4>
+    {base_images}
+    <h4>Augmented Images</h4>
+    {aug_images}
 </div>
 """

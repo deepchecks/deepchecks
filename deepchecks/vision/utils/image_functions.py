@@ -130,7 +130,7 @@ def draw_bboxes(
     return image
 
 
-def display_thumbnails(
+def draw_thumbnails(
     images: t.Union[t.Sequence[pilimage.Image], t.Sequence[np.ndarray]],
     size: t.Optional[t.Tuple[int, int]] = None,
     columns: int = 3,
@@ -143,9 +143,9 @@ def display_thumbnails(
             style="
                 display: grid; 
                 grid-template-columns: repeat({n_of_columns}, 1fr); 
-                grid-gap: 10px;
-                align-content: space-evenly;
-                justify-content: space-evenly;">
+                grid-gap: 1rem;
+                align-content: center;
+                justify-content: center;">
             {content}
         </div>
         """)
