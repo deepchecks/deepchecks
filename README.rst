@@ -64,7 +64,7 @@ data integrity, distribution mismatches, and more.
 ==========================================
 **This README refers to the tabular version** of deepchecks.
 
-Check out the `Deepchecks for Computer Vision & Images subpackage <deepchecks/vision>` for more details about deepchecks for CV, currently in beta version.
+Check out the `Deepchecks for Computer Vision & Images subpackage <deepchecks/vision>`__ for more details about deepchecks for CV, currently in beta version.
 
 
 💻 Installation
