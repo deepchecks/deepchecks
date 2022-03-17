@@ -56,7 +56,7 @@ def test_equal_pycocotools(coco_test_visiondata: VisionData, trained_yolov5_obje
     assert_that(metric.get_classes_scores_at(res['recall'], area='medium', max_dets=100), close_to(0.423, 0.001))
     assert_that(metric.get_classes_scores_at(res['recall'], area='large', max_dets=100), close_to(0.549, 0.001))
 
-    # unrelated to coco but needed to check another param
+    # unrelated to pycoco but needed to check another param
     assert_that(metric.get_classes_scores_at(res['recall'], area='large', max_dets=100, get_mean_val=False,
                 zeroed_negative=False), has_items([-1]))
     assert_that(metric.get_classes_scores_at(res['recall'], get_mean_val=False, zeroed_negative=False), has_items([-1]))
