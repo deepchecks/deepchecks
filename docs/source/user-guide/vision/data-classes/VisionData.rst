@@ -4,7 +4,7 @@
 The Vision Data Class
 ========================
 
-The VisionData class is the base class for all computer vision datasets, and represent a base CV task in deepchecks.
+The VisionData :doc:`data class </user-guide/vision/data-classes/index>` is the base class for all computer vision datasets, and represent a base CV task in deepchecks.
 It wraps PyTorch DataLoader together with model related metadata and contains additional data and general methods
 intended for easily accessing metadata relevant for validating a computer vision ML models.
 
@@ -17,7 +17,7 @@ For more info, please visit the API reference page: :class:`~deepchecks.vision.V
 
 Accepted Image Format
 ---------------------
-All checks in deepchecks require images in the same format. They use the `batch_to_images` function in order to get
+All checks in deepchecks require images in the same format. They use the :func:`batch_to_images` function in order to get
 the images in the correct format.
 
 The accepted format is an iterable of cv2 images. Each image in the iterable must be a [H, W, C] 3D numpy array.

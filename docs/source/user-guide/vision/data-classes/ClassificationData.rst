@@ -4,7 +4,7 @@
 The Classification Data Class
 =============================
 
-The ClassificationData class represents a CV classification task in deepchecks.
+The ClassificationData :doc:`data class </user-guide/vision/data-classes/index>` represents a CV classification task in deepchecks.
 It is a subclass of the :class:`~deepchecks.vision.VisionData` class and is used to load and preprocess data for a
 classification task.
 The ClassificationData class is containing additional data and general methods intended for easily accessing metadata
@@ -14,20 +14,20 @@ For more info, please visit the API reference page: :class:`~deepchecks.vision.C
 
 Accepted Image Format
 ---------------------
-All checks in deepchecks require images in the same format. They use the `batch_to_images` function in order to get
+All checks in deepchecks require images in the same format. They use the :func:`~deepchecks.vision.VisionData.batch_to_images` function in order to get
 the images in the correct format. For more info on the accepted formats, please visit the
 `VisionData User Guide <VisionData.rst>`_.
 
 Accepted Label Format
 ---------------------
-Deepchecks' checks use the `batch_to_labels` function in order to get the labels in the correct format.
+Deepchecks' checks use the :func:`~deepchecks.vision.ClassificationData.batch_to_labels` function in order to get the labels in the correct format.
 The accepted label format for the ClassificationData is a tensor of shape (N,), when N is the number of samples.
 Each element is an integer representing the class index. For example, for a task with 3 different classes, the label
 tensor could be: ``[0, 1, 2]``.
 
 Accepted Prediction Format
 --------------------------
-Deepchecks' checks use the `infer_on_batch` function in order to get the predictions of the model in the correct format.
+Deepchecks' checks use the :func:`~deepchecks.vision.ClassificationData.infer_on_batch` function in order to get the predictions of the model in the correct format.
 The accepted prediction format for classification is a tensor of shape (N, n_classes), where N is the number of
 samples. Each element is an array of length n_classes that represent the probability of each class. For example, for a
 task with 3 different classes, the prediction tensor could be: ``[[0.1, 0.2, 0.7], [0.2, 0.3, 0.5], [0.3, 0.4, 0.1]]``.

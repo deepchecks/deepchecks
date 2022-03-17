@@ -4,9 +4,9 @@
 Data Classes
 ====================
 
-The different data classes in the deepchecks.vision module were designed to enable access to the data while making the
-formatting easy and maintainable. They are responsible for converting the data (whether these are images, labels, or
-predictions) to a format deepchecks can work with.
+The different data classes in the deepchecks.vision module were designed to enable access to the data in a unified
+format, while making the formatting code easy and maintainable. They are responsible for converting the data (whether
+these are images, labels, or predictions) to a format deepchecks can work with.
 
 .. toctree::
     :maxdepth: 2
@@ -15,7 +15,7 @@ predictions) to a format deepchecks can work with.
     ClassificationData
     DetectionData
 
-Why is This Important?
+Why Is This Important?
 ========================
 
 There is no standard when it comes to data formats in computer vision. Each model can have its own supported data format
@@ -26,8 +26,8 @@ In order to run a model and data-agnostic comprehensive testing suites, the data
 checks can work with. The data class objects provide a structured and repeatable way to do that, and are an important
 part of the vision module.
 
-What do you need to do?
-=======================
+What Do You Need to Implement?
+==============================
 
 Generally, you will need to implement a data class that inherits from one of the supported classes in the vision module,
 and implement 3 functions:
@@ -52,6 +52,5 @@ Use this function like so:
     dataset = MyDataset(my_dataloader)
     validate_extractors(dataset, model)
 
-# TODO: Change this to the correct guide.
-For more info about the formatters validating see the guide
-:doc:`formatters_validation </examples/vision/guides/formatters_validating>`
+For more info about the classes validation see the guide
+:doc:`formatters_validation </tutorials/vision/extractors_validating>`

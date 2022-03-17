@@ -4,7 +4,7 @@
 The Object Detection Data Class
 ===============================
 
-The DetectionData class represents a CV object detection task in deepchecks.
+The DetectionData is a :doc:`data class </user-guide/vision/data-classes/index>` represents a CV object detection task in deepchecks.
 It is a subclass of the :class:`~deepchecks.vision.VisionData` class and is used to load and preprocess data for an
 object detection task.
 The DetectionData class is containing additional data and general methods intended for easily accessing metadata
@@ -14,13 +14,13 @@ For more info, please visit the API reference page: :class:`~deepchecks.vision.D
 
 Accepted Image Format
 ---------------------
-All checks in deepchecks require images in the same format. They use the `batch_to_images` function in order to get
+All checks in deepchecks require images in the same format. They use the :func:`~deepchecks.vision.VisionData.batch_to_images` function in order to get
 the images in the correct format. For more info on the accepted formats, please visit the
 `VisionData User Guide <VisionData.rst>`_.
 
 Accepted Label Format
 ---------------------
-Deepchecks' checks use the `batch_to_labels` function in order to get the labels in the correct format.
+Deepchecks' checks use the :func:`~deepchecks.vision.DetectionData.batch_to_labels` function in order to get the labels in the correct format.
 The accepted label format for is a a list of length N containing tensors of shape (B, 5), where N is the number
 of samples, B is the number of bounding boxes in the sample and each bounding box is represented by 5 values:
 ``(class_id, x, y, w, h)``.
@@ -32,7 +32,7 @@ For example, for a sample with 2 bounding boxes, the label format may be:
 
 Accepted Prediction Format
 --------------------------
-Deepchecks' checks use the `infer_on_batch` function in order to get the predictions of the model in the correct format.
+Deepchecks' checks use the :func:`~deepchecks.vision.DetectionData.infer_on_batch` function in order to get the predictions of the model in the correct format.
 The accepted prediction format is a list of length N containing tensors of shape (B, 6), where N is the number
 of images, B is the number of bounding boxes detected in the sample and each bounding box is represented by 6
 values: ``[x, y, w, h, confidence, class_id]``.

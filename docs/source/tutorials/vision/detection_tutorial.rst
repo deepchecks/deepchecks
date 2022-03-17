@@ -6,6 +6,8 @@ In this tutorial, you will learn how to validate your **object detection model**
 You can read more about the different checks and suites for computer vision use cases at the
 :doc:`examples section  </examples/vision/checks/index>`
 
+If you just want to see the output of this tutorial, jump to :ref:`_observing_the_result` section.
+
 An object detection model usually consists of two parts: the object localization part, where the model predicts
 the location of an object in the image, and the object classification part, where the model predicts the class of
 the detected object. The common output of an object detection model is a list of bounding boxes around the objects, and
@@ -248,9 +250,11 @@ And we can watch the output:
 
 Implementing the DetectionData class
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-The first step is to implement a class that enables deepchecks to interact with your model and data.
-The appropriate class to implement should be selected according to you models task type. In this tutorial,
-we will implement the object detection task type by implementing a class that inherits from the
+The checks in the package calculate various quantities over the data, labels and predictions. In order to do that,
+those must be in a pre-defined format, according to the task type.
+The first step is to implement a class that enables deepchecks to interact with your model and data and transform
+them to this pre-defined format, which is set for each task type.
+In this tutorial, we will implement the object detection task type by implementing a class that inherits from the
 :class:`deepchecks.vision.detection_data.DetectionData` class.
 
 The DetectionData class is containing additional data and general methods intended for easily accessing metadata
@@ -343,9 +347,8 @@ After defining the task class, we can validate it by running the following code:
     training_data = TomatoData(data_loader=train_loader, label_map=LABEL_MAP)
     val_data = TomatoData(data_loader=val_loader, label_map=LABEL_MAP)
 
-    from deepchecks.vision.utils.validation import validate_extractors
-    validate_extractors(training_data, model)
-    validate_extractors(val_data, model)
+    training_data.validate_format(model)
+    val_data.validate_format(model)
 
 And observe the output:
 
@@ -367,6 +370,8 @@ This can be done with this simple few lines of code:
 
     suite = full_suite()
     result = suite.run(training_data, val_data, model, device)
+
+.. _observing_the_result:
 
 Observing the results:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
