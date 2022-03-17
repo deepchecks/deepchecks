@@ -105,7 +105,7 @@ Example for running a suite on given `datasets`_ and with a `supported model`_:
 
 .. code:: python
 
-   from deepchecks.suites import full_suite
+   from deepchecks.tabular.suites import full_suite
    suite = full_suite()
    suite.run(train_dataset=train_dataset, test_dataset=test_dataset, model=model)
 
@@ -157,7 +157,7 @@ can be found in our `API Reference`_.
 
 .. code:: python
 
-   from deepchecks.checks import TrainTestFeatureDrift
+   from deepchecks.tabular.checks import TrainTestFeatureDrift
    import pandas as pd
 
    train_df = pd.read_csv('train_data.csv')
@@ -217,7 +217,7 @@ return value. An example for adding a condition would be:
 
 .. code:: python
 
-   from deepchecks.checks import BoostingOverfit
+   from deepchecks.tabular.checks import BoostingOverfit
    BoostingOverfit().add_condition_test_score_percent_decline_not_greater_than(threshold=0.05)
 
 which will return a check failure when running it if there is a difference of
@@ -252,17 +252,19 @@ of checks and optional conditions.
 
 
 What Do You Need in Order to Start Validating?
-----------------------------------------------
+==============================================
 
 Environment
-~~~~~~~~~~~~
+-----------
 
 - The deepchecks package installed
 
 - JupyterLab or Jupyter Notebook
 
+
 Data / Model 
-~~~~~~~~~~~~
+------------
+
 
 Depending on your phase and what you wish to validate, you'll need a
 subset of the following:
@@ -276,14 +278,15 @@ subset of the following:
 
 -  A `supported model`_ (e.g. scikit-learn models, XGBoost, any model implementing the `predict` method in the required format)
 
-Supported Data Types
-~~~~~~~~~~~~~~~~~~~~
 
-Currently the package supports tabular data.
-Stay tuned for the upcoming Computer Vision release.
+Supported Data Types
+--------------------
+
+The package currently supports tabular data and is beta release for the computer vision submodule.
+
 
 When Should I Run Deepchecks
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+----------------------------
 
 Deepchecks validation accompanies you from the initial phase when you
 have only raw data, through the data splits, and to the final stage of
