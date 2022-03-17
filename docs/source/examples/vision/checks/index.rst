@@ -5,4 +5,5 @@ Checks Demonstrations
     :maxdepth: 2
 
     distribution/index
+    methodology/index
     performance/index

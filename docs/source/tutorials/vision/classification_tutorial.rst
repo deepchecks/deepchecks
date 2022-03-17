@@ -30,6 +30,7 @@ Defining the data and model
     from torchvision.datasets import ImageFolder
     import PIL.Image
     import cv2
+
 Load Data
 ~~~~~~~~~
 We will use torchvision and torch.utils.data packages for loading the data.
