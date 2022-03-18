@@ -51,7 +51,7 @@
    </p>
 
 
-🧐 What is Deephchecks?
+🧐 What is Deepchecks?
 ==========================
 
 Deepchecks is a Python package for comprehensively validating your
