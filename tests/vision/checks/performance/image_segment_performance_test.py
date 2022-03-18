@@ -16,26 +16,26 @@ from hamcrest import assert_that, has_length, has_entries, has_items, close_to
 from tests.vision.vision_conftest import *
 
 
-def test_mnist(mnist_dataset_train, trained_mnist):
+def test_mnist(mnist_dataset_train, mock_trained_mnist):
     # Act
-    result = ImageSegmentPerformance().run(mnist_dataset_train, trained_mnist)
+    result = ImageSegmentPerformance().run(mnist_dataset_train, mock_trained_mnist)
     # Assert
     assert_that(result.value, has_entries({
         'Brightness': has_length(5),
         'Area': has_length(1),
         'Aspect Ratio': has_items(has_entries({
             'start': 1.0, 'stop': np.inf, 'count': 60000, 'display_range': '[1, inf)',
-            'metrics': has_entries({'Precision': close_to(0.986, 0.001), 'Recall': close_to(0.987, 0.001)})
+            'metrics': has_entries({'Precision': close_to(0.984, 0.001), 'Recall': close_to(0.983, 0.001)})
         })),
     }))
 
 
-def test_coco_and_condition(coco_train_visiondata, trained_yolov5_object_detection):
+def test_coco_and_condition(coco_train_visiondata, mock_trained_yolov5_object_detection):
     # Arrange
     check = ImageSegmentPerformance().add_condition_score_from_mean_ratio_not_less_than(0.5)\
         .add_condition_score_from_mean_ratio_not_less_than(0.1)
     # Act
-    result = check.run(coco_train_visiondata, trained_yolov5_object_detection)
+    result = check.run(coco_train_visiondata, mock_trained_yolov5_object_detection)
     # Assert result
     assert_that(result.value, has_entries({
         'Normalized Blue Mean': has_length(5),

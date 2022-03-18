@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 import pathlib
+from hashlib import md5
 
 import numpy as np
 import pytest
@@ -26,6 +27,10 @@ from deepchecks.vision.datasets.classification.mnist import (
 )
 
 from tests.vision.utils_tests.mnist_imgaug import mnist_dataset_imgaug
+from tests.vision.assets.coco_detections_dict import coco_detections_dict
+from tests.vision.assets.mnist_predictions_dict import mnist_predictions_dict
+
+from PIL import Image
 
 # Fix bug with torch.hub path on windows
 PROJECT_DIR = pathlib.Path(__file__).absolute().parent.parent.parent
@@ -45,8 +50,39 @@ __all__ = ['device',
            'coco_test_dataloader',
            'coco_test_visiondata',
            'two_tuples_dataloader',
-           'mnist_drifted_datasets'
+           'mnist_drifted_datasets',
+           'mock_trained_yolov5_object_detection',
+           'mock_trained_mnist',
            ]
+
+
+def _hash_image(image):
+    if isinstance(image, np.ndarray):
+        image = Image.fromarray(image)
+    elif isinstance(image, torch.Tensor):
+        image = Image.fromarray(image.cpu().numpy().squeeze())
+
+    image = image.resize((10, 10))
+    image = image.convert("L")
+
+    pixel_data = list(image.getdata())
+    avg_pixel = sum(pixel_data) / len(pixel_data)
+
+    bits = "".join(['1' if (px >= avg_pixel) else '0' for px in pixel_data])
+    hex_representation = str(hex(int(bits, 2)))[2:][::-1].upper()
+
+    return hex_representation
+
+
+def _hash_batch(batch):
+    hash = md5()
+
+    hashes = [_hash_image(img) for img in batch]
+
+    for h in hashes:
+        hash.update(h.encode())
+
+    return hash.hexdigest()
 
 
 @pytest.fixture(scope='session')
@@ -61,24 +97,24 @@ def device():
 
 @pytest.fixture(scope='session')
 def mnist_data_loader_train():
-    return load_mnist_dataset(train=True, object_type='DataLoader')
+    return load_mnist_dataset(train=True, object_type='DataLoader', shuffle=False)
 
 
 @pytest.fixture(scope='session')
 def mnist_dataset_train():
     """Return MNist dataset as VisionData object."""
-    return load_mnist_dataset(train=True, object_type='VisionData')
+    return load_mnist_dataset(train=True, object_type='VisionData', shuffle=False)
 
 
 @pytest.fixture(scope='session')
 def mnist_data_loader_test():
-    return load_mnist_dataset(train=False, object_type='DataLoader')
+    return load_mnist_dataset(train=False, object_type='DataLoader', shuffle=False)
 
 
 @pytest.fixture(scope='session')
 def mnist_dataset_test():
     """Return MNist dataset as VisionData object."""
-    return load_mnist_dataset(train=False, object_type='VisionData')
+    return load_mnist_dataset(train=False, object_type='VisionData', shuffle=False)
 
 
 @pytest.fixture
@@ -129,6 +165,39 @@ def mnist_dataset_train_imgaug():
 def trained_yolov5_object_detection(device):  # pylint: disable=redefined-outer-name
     return load_yolov5_model(device=device)
 
+@pytest.fixture(scope='session')
+def mock_trained_mnist(device):  # pylint: disable=redefined-outer-name
+
+    class MockMnist:
+        def __call__(self, batch):
+            key = _hash_batch(batch)
+
+            return mnist_predictions_dict[key].to(device)
+
+        def to(self, device):
+            return self
+
+    return MockMnist()
+
+
+@pytest.fixture(scope='session')
+def mock_trained_yolov5_object_detection(device):  # pylint: disable=redefined-outer-name
+
+    class MockDetections:
+        def __init__(self, dets):
+            self.pred = dets
+
+    class MockYolo():
+        def __call__(self, batch):
+            key = _hash_batch(batch)
+
+            return MockDetections([x.to(device) for x in coco_detections_dict[key]])
+
+        def to(self, device):
+            return self
+
+    return MockYolo()
+
 
 @pytest.fixture(scope='session')
 def obj_detection_images():
@@ -143,22 +212,22 @@ def obj_detection_images():
 
 @pytest.fixture(scope='session')
 def coco_train_dataloader():
-    return load_coco_dataset(train=True, object_type='DataLoader')
+    return load_coco_dataset(train=True, object_type='DataLoader', shuffle=False)
 
 
 @pytest.fixture(scope='session')
 def coco_train_visiondata():
-    return load_coco_dataset(train=True, object_type='VisionData')
+    return load_coco_dataset(train=True, object_type='VisionData', shuffle=False)
 
 
 @pytest.fixture(scope='session')
 def coco_test_dataloader():
-    return load_coco_dataset(train=False, object_type='DataLoader')
+    return load_coco_dataset(train=False, object_type='DataLoader', shuffle=False)
 
 
 @pytest.fixture(scope='session')
 def coco_test_visiondata():
-    return load_coco_dataset(train=False, object_type='VisionData')
+    return load_coco_dataset(train=False, object_type='VisionData', shuffle=False)
 
 
 @pytest.fixture(scope='session')

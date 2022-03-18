@@ -15,12 +15,12 @@ import torch.nn as nn
 from hamcrest import assert_that, close_to, equal_to, is_in
 
 
-def test_mnist_largest(mnist_dataset_train, mnist_dataset_test, trained_mnist, device):
+def test_mnist_largest(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
     # Arrange
 
     check = ClassPerformance(n_to_show=2, show_only='largest')
     # Act
-    result = check.run(mnist_dataset_train, mnist_dataset_test, trained_mnist,
+    result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
                        device=device)
     first_row = result.value.sort_values(by='Number of samples', ascending=False).iloc[0]
     # Assert
@@ -30,12 +30,12 @@ def test_mnist_largest(mnist_dataset_train, mnist_dataset_test, trained_mnist, d
     assert_that(first_row['Class'], equal_to(1))
 
 
-def test_mnist_smallest(mnist_dataset_train, mnist_dataset_test, trained_mnist, device):
+def test_mnist_smallest(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
     # Arrange
 
     check = ClassPerformance(n_to_show=2, show_only='smallest')
     # Act
-    result = check.run(mnist_dataset_train, mnist_dataset_test, trained_mnist,
+    result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
                        device=device)
     first_row = result.value.sort_values(by='Number of samples', ascending=True).iloc[0]
 
@@ -46,12 +46,12 @@ def test_mnist_smallest(mnist_dataset_train, mnist_dataset_test, trained_mnist, 
     assert_that(first_row['Class'], equal_to(5))
 
 
-def test_mnist_worst(mnist_dataset_train, mnist_dataset_test, trained_mnist, device):
+def test_mnist_worst(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
     # Arrange
 
     check = ClassPerformance(n_to_show=2, show_only='worst')
     # Act
-    result = check.run(mnist_dataset_train, mnist_dataset_test, trained_mnist,
+    result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
                        device=device)
     first_row = result.value.loc[result.value['Metric'] == 'Precision'].sort_values(by='Value', ascending=True).iloc[0]
 
@@ -60,12 +60,12 @@ def test_mnist_worst(mnist_dataset_train, mnist_dataset_test, trained_mnist, dev
     assert_that(first_row['Value'], close_to(0.977713, 0.05))
 
 
-def test_mnist_best(mnist_dataset_train, mnist_dataset_test, trained_mnist, device):
+def test_mnist_best(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
     # Arrange
 
     check = ClassPerformance(n_to_show=2, show_only='best')
     # Act
-    result = check.run(mnist_dataset_train, mnist_dataset_test, trained_mnist,
+    result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
                        device=device)
     first_row = result.value.loc[result.value['Metric'] == 'Precision'].sort_values(by='Value', ascending=False).iloc[0]
 
@@ -74,12 +74,12 @@ def test_mnist_best(mnist_dataset_train, mnist_dataset_test, trained_mnist, devi
     assert_that(first_row['Value'], close_to(0.990854, 0.05))
 
 
-def test_coco_best(coco_train_visiondata, coco_test_visiondata, trained_yolov5_object_detection, device):
+def test_coco_best(coco_train_visiondata, coco_test_visiondata, mock_trained_yolov5_object_detection, device):
     # Arrange
     check = ClassPerformance(n_to_show=2, show_only='best')
     # Act
     result = check.run(coco_train_visiondata, coco_test_visiondata,
-                       trained_yolov5_object_detection, device=device)
+                       mock_trained_yolov5_object_detection, device=device)
 
     # Assert
     assert_that(len(result.value), equal_to(8))
@@ -95,12 +95,12 @@ def test_coco_best(coco_train_visiondata, coco_test_visiondata, trained_yolov5_o
     assert_that(first_row['Class'], is_in([29]))
 
 
-def test_class_list(mnist_dataset_train, mnist_dataset_test, trained_mnist, device):
+def test_class_list(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
     # Arrange
 
     check = ClassPerformance(class_list_to_show=[1])
     # Act
-    result = check.run(mnist_dataset_train, mnist_dataset_test, trained_mnist,
+    result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
                        device=device)
 
     # Assert
