@@ -29,7 +29,7 @@ from deepchecks.vision.metrics_utils import calculate_metrics, metric_results_to
 from deepchecks.vision.utils.validation import set_seeds
 from deepchecks.vision.metrics_utils import get_scorers_list
 from deepchecks.utils.strings import format_percent, split_camel_case
-from deepchecks.vision.utils.image_functions import ImageInfo, draw_thumbnails, draw_bboxes
+from deepchecks.vision.utils.image_functions import ImageInfo, prepare_thumbnail, draw_bboxes
 
 
 __all__ = ['RobustnessReport']
@@ -50,6 +50,8 @@ class RobustnessReport(SingleDatasetCheck):
         A list of augmentations to test on the data. If none are given default augmentations are used.
         Supported augmentations are of albumentations and imgaug.
     """
+
+    _THUMBNAIL_SIZE = (200, 200)
 
     def __init__(self,
                  alternative_metrics: Optional[Dict[str, Metric]] = None,
@@ -253,40 +255,37 @@ class RobustnessReport(SingleDatasetCheck):
         aug_images = []
 
         for sample in images:
-            breakpoint()
             base_image = sample[0]
             aug_image = sample[1]
             class_name = dataset.label_id_to_name(sample[2])
-            bboxes = sample[3] if len(sample) == 4 else (None, None)
-            
-            classes.append(f'<li>{class_name}</li>')
-            base_images.append(
-                draw_bboxes(base_image, bboxes[0], copy_image=True, border_width=2)
-                if bboxes[0] is not None
-                else base_image
-            )
-            aug_images.append(
-                draw_bboxes(aug_image, bboxes[1], copy_image=True, border_width=2)
-                if bboxes[1] is not None
-                else aug_image
-            )
-        
+            classes.append(f'<h4>{class_name}</h4>')
+
+            if len(sample) == 4:
+                base_image_bboxes, aug_image_bboxes = sample[3]
+                base_image = draw_bboxes(base_image, base_image_bboxes, copy_image=True, border_width=2)
+                aug_image = draw_bboxes(aug_image, aug_image_bboxes, copy_image=True, border_width=2)
+
+            base_images.append(prepare_thumbnail(
+                image=base_image,
+                size=self._THUMBNAIL_SIZE,
+                copy_image=False
+            ))
+            aug_images.append(prepare_thumbnail(
+                image=aug_image,
+                size=self._THUMBNAIL_SIZE,
+                copy_image=False
+            ))
+
         classes = ''.join(classes)
-        base_images_thumbnail = draw_thumbnails(
-            images=base_images,
-            size=(500, 500),
-            copy_image=False
-        )
-        aug_images_thumbnail = draw_thumbnails(
-            images=aug_images,
-            size=(500, 500),
-            copy_image=False
-        )
+        base_images_thumbnails = ''.join(base_images)
+        aug_images_thumbnails = ''.join(aug_images)
+
         return HTML_TEMPLATE.format(
-            class_names=classes, 
-            base_images=base_images_thumbnail,
-            aug_images=aug_images_thumbnail,
-            aug_name=aug_name
+            aug_name=aug_name,
+            classes=classes,
+            n_of_images=len(base_images),
+            base_images=base_images_thumbnails,
+            aug_images=aug_images_thumbnails,
         )
 
     def _create_performance_graph(self, base_scores: dict, augmented_scores: dict):
@@ -393,25 +392,23 @@ def get_random_image_pairs_from_dataset(original_dataset: VisionData,
 
 
 HTML_TEMPLATE = """
-<style>
-    .deepchecks-container {{
+<h3><b>Augmentation "{aug_name}"</b></h3>
+<div
+    style="
         overflow-x: auto;
-        display: flex;
-        flex-direction: column;
+        display: grid;
+        grid-template-rows: auto 1fr 1fr;
+        grid-template-columns: auto repeat({n_of_images}, 1fr);
+        grid-gap: 1.5rem;
+        justify-items: center;
+        align-items: center;
         padding: 2rem;
-    }}
-
-    .deepchecks-container > div {{
-        padding: 1em;
-    }}
-</style>
-<h4><b>Augmentation "{aug_name}"</b></h4>
-<div class="deepchecks-container">
-    <h4>Classes</h4>
-    <ul>{class_names}</ul>
-    <h4>Base Images</h4>
+        width: max-content;">
+    <h4>Class</h4>
+    {classes}
+    <h4>Base Image</h4>
     {base_images}
-    <h4>Augmented Images</h4>
+    <h4>Augmented Image</h4>
     {aug_images}
 </div>
 """

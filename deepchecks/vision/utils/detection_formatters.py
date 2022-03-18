@@ -191,7 +191,7 @@ def convert_bbox(
     image_width: Union[int, float, None] = None,
     image_height: Union[int, float, None] = None,
     device: Union[str, torch.device, None] = None,
-    _strict: bool = True
+    _strict: bool = True  # pylint: disable=invalid-name
 ) -> torch.Tensor:
     """Convert bbox to the required format.
 
