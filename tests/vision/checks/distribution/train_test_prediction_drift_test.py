@@ -161,7 +161,7 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets, trained_mn
     mod_test_ds.infer_on_batch = infer
 
     # Act
-    result = check.run(mod_train_ds, mod_test_ds, mock_trained_mnist, device=device)
+    result = check.run(mod_train_ds, mod_test_ds, trained_mnist, device=device)
 
     condition_result, *_ = result.conditions_results
 
