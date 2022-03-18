@@ -9,6 +9,6 @@ Here you can find the key concepts, structure, recommended flow, and dive in to 
 .. toctree::
     :maxdepth: 2
 
-    concepts/index
+    structure/index
     tabular/index
     vision/index

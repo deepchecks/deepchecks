@@ -55,3 +55,9 @@ Simply run the following command in a notebook cell
 Start Working with the Package
 =================================
 Now it's time to :doc:`get started </index>` with deepchecks!
+
+
+.. toctree::
+    :maxdepth: 2
+
+    when_should_you_use
