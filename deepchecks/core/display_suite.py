@@ -198,7 +198,7 @@ def _display_suite_widgets(summary: str,
             html_formatted = re.sub('html_title', '{title}', html_formatted)
             html_formatted = re.sub('widget_snippet', '{snippet}', html_formatted)
             embed_minimal_html(html_out, views=[page], title='Suite Output', template=html_formatted,
-                                requirejs=False, embed_url=None, state=dependency_state(page))
+                               requirejs=False, embed_url=None, state=dependency_state(page))
     else:
         display(page)
 
