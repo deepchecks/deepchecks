@@ -31,7 +31,6 @@ import ipywidgets as widgets
 import plotly.graph_objects as go
 import plotly
 from ipywidgets.embed import embed_minimal_html, dependency_state
-from plotly.io import to_html
 from plotly.basedatatypes import BaseFigure
 from matplotlib import pyplot as plt
 from IPython.display import display_html
