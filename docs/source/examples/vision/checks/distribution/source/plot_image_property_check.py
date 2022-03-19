@@ -83,9 +83,9 @@ check_result.show(show_additional_outputs=False)
 # * `aspect_ratio`
 # * `area`
 # * `brightness`
-# * `normalized_red_mean`
-# * `normalized_green_mean`
-# * `normalized_blue_mean`
+# * `mean_red_relative_intensity`
+# * `mean_green_relative_intensity`
+# * `mean_blue_relative_intensity`
 
 from typing import List
 import numpy as np

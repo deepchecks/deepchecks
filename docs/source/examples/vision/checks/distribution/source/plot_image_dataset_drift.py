@@ -68,9 +68,12 @@ Area                            Area of image in pixels (height * width)
 Brightness                      Average intensity of image pixels. Color channels have different weights according to
                                 RGB-to-Grayscale formula
 RMS Contrast                    Contrast of image, calculated by standard deviation of pixels
-Mean Red Relative Intensity     Mean of the red channel relative intensity per-pixel [r / (r + g + b)].
-Mean Green Relative Intensity   Mean of the red channel relative intensity per-pixel [g / (r + g + b)].
-Mean Blue Relative Intensity    Mean of the red channel relative intensity per-pixel [b / (r + g + b)].
+Mean Red Relative Intensity     Mean over all pixels of the red channel, scaled to their relative intensity in
+                                comparison to the other channels [r / (r + g + b)].
+Mean Green Relative Intensity   Mean over all pixels of the green channel, scaled to their relative intensity in
+                                comparison to the other channels [g / (r + g + b)].
+Mean Blue Relative Intensity    Mean over all pixels of the blue channel, scaled to their relative intensity in
+                                comparison to the other channels [b / (r + g + b)].
 ==============================  ==========
 """
 

@@ -195,7 +195,7 @@ def test_normalized_mean_red():
 
     batch = next(iter(numpy_shape_dataloader(value=value)))
 
-    res = image_properties.normalized_red_mean(batch)
+    res = image_properties.mean_red_relative_intensity(batch)
 
     assert_that(res[0], close_to(expected_result, 0.0000001))
 
@@ -209,7 +209,7 @@ def test_normalized_mean_green():
 
     batch = next(iter(numpy_shape_dataloader(value=value)))
 
-    res = image_properties.normalized_green_mean(batch)
+    res = image_properties.mean_green_relative_intensity(batch)
 
     assert_that(res[0], close_to(expected_result, 0.0000001))
 
@@ -223,7 +223,7 @@ def test_normalized_mean_blue():
 
     batch = next(iter(numpy_shape_dataloader(value=value)))
 
-    res = image_properties.normalized_blue_mean(batch)
+    res = image_properties.mean_blue_relative_intensity(batch)
 
     assert_that(res[0], close_to(expected_result, 0.0000001))
 
