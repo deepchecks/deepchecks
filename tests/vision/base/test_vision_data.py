@@ -27,7 +27,7 @@ from hamcrest import (
 import albumentations as A
 import imgaug.augmenters as iaa
 
-from deepchecks.core.errors import ValidationError, DeepchecksValueError
+from deepchecks.core.errors import ValidationError, DeepchecksValueError, DeepchecksNotImplementedError
 from deepchecks.vision.classification_data import ClassificationData
 from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.datasets.classification.mnist import MNISTData
@@ -287,3 +287,75 @@ def test_data_at_batch_of_index(mnist_dataset_train):
     # Assert
     assert torch.equal(batch[0], single_batch[0])
     assert torch.equal(batch[1], single_batch[1])
+
+
+def test_detection_data():
+    coco_dataset = coco.load_dataset()
+    batch = None
+    model = None
+    device = None
+    detection_data = DetectionData(coco_dataset)
+    assert_that(calling(detection_data.batch_to_labels).with_args(batch),
+                raises(DeepchecksNotImplementedError, 'batch_to_labels\(\) must be implemented in a subclass'))
+    assert_that(calling(detection_data.infer_on_batch).with_args(batch, model, device),
+                raises(DeepchecksNotImplementedError, 'infer_on_batch\(\) must be implemented in a subclass'))
+
+
+def test_detection_data_bad_implementation():
+    coco_dataset = coco.load_dataset()
+
+    class DummyDetectionData(DetectionData):
+        def batch_to_labels(self, batch):
+            if batch == 'not_list':
+                return 7
+            elif batch == 'empty':
+                return []
+            elif batch == 'not tensor':
+                return [8]
+            elif batch =='bad tensor':
+                return [torch.Tensor([])]
+            elif batch == 'short tensor':
+                return [torch.Tensor([[1,2], [1,2]])]
+
+            raise DeepchecksNotImplementedError('batch_to_labels() must be implemented in a subclass')
+
+        def infer_on_batch(self, batch, model, device):
+            if batch == 'not_list':
+                return 7
+            elif batch == 'empty':
+                return []
+            elif batch == 'not tensor':
+                return [8]
+            elif batch =='bad tensor':
+                return [torch.Tensor([])]
+            elif batch == 'short tensor':
+                return [torch.Tensor([[1,2], [1,2]])]
+
+            raise DeepchecksNotImplementedError('infer_on_batch() must be implemented in a subclass')
+
+    detection_data = DummyDetectionData(coco_dataset)
+    assert_that(calling(detection_data.validate_label).with_args('not_list'),
+                raises(DeepchecksValueError,
+                       'Check requires object detection label to be a list with an entry for each sample'))
+    assert_that(calling(detection_data.validate_label).with_args('empty'),
+                raises(DeepchecksValueError,
+                       'Check requires object detection label to be a non-empty list'))
+    assert_that(calling(detection_data.validate_label).with_args('not tensor'),
+                raises(DeepchecksValueError,
+                       'Check requires object detection label to be a list of torch.Tensor'))
+    assert_that(calling(detection_data.validate_label).with_args('bad tensor'),
+                raises(DeepchecksValueError,
+                       'Check requires object detection label to be a list of 2D tensors'))
+
+    assert_that(calling(detection_data.validate_prediction).with_args('not_list', None, None),
+                raises(ValidationError,
+                       'Check requires detection predictions to be a list with an entry for each sample'))
+    assert_that(calling(detection_data.validate_prediction).with_args('empty', None, None),
+                raises(ValidationError,
+                       'Check requires detection predictions to be a non-empty list'))
+    assert_that(calling(detection_data.validate_prediction).with_args('not tensor', None, None),
+                raises(ValidationError,
+                       'Check requires detection predictions to be a list of torch.Tensor'))
+    assert_that(calling(detection_data.validate_prediction).with_args('bad tensor', None, None),
+                raises(ValidationError,
+                       'Check requires detection predictions to be a list of 2D tensors'))
