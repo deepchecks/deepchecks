@@ -7,6 +7,6 @@ Vision
 .. toctree::
     :maxdepth: 2
 
-    formatter_objects
+    data-classes/index
     classification_tutorial
     vision_properties
