@@ -156,6 +156,8 @@ $(ENV):
 requirements: $(ENV)
 	@echo "####  installing dependencies, it could take some time, please wait! #### "
 
+	@$(PIP) install -U pip
+
 	@if [ -x "$$(command -v nvidia-smi)" ]; \
 	then \
 		$(PIP) install -q\
@@ -170,7 +172,7 @@ requirements: $(ENV)
 		$(PIP) install -q torch torchvision torchaudio; \
 	fi;
 
-	@$(PIP) install -U pip
+
 	@$(PIP) install -q \
 		wheel setuptools \
 		-r ./requirements/requirements.txt \
@@ -368,7 +370,7 @@ test-release: dist test-upload
 .PHONY: docs website dev-docs gen-static-notebooks license-check links-check
 
 
-docs: requirements doc-requirements dev-requirements $(DOCS_SRC)
+docs: requirements doc-requirements $(DOCS_SRC)
 	cd $(DOCS) && make html SPHINXBUILD=$(SPHINX_BUILD) SPHINXOPTS=$(SPHINXOPTS) 2> docs.error.log
 	@echo ""
 	@echo "++++++++++++++++++++++++"
