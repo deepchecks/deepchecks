@@ -2,67 +2,70 @@
 Data Properties
 ===============
 
-Some of the Deepchecks' checks (e.g. train-test drift) use "Properties". Properties are simple one-dimension values that
-are extracted either from the images, labels or predictions of the data.
-
-For example, one image property is **brightness**, and one label property is **bounding box area** (for detection
-tasks). Each property produces a single value per image or per individual label in the image.
+Properties are one-dimension values that are extracted from either the images, labels or predictions. For example, an
+image property is **brightness**, and a label property is **bounding box area** (for detection tasks).
+Deepchecks includes :ref:`built-in properties<Deepchecks' Built-in Properties>` and supports implementing your own
+properties.
 
 What Are Properties Used For?
 =============================
 
-The properties values' distribution is a characteristic of your data that might have hidden a relation to your
-model performance. They might come handy in a few situations:
+Properties are used by some of the Deepchecks' checks (e.g. train-test drift), in order to extract meaningful
+features from the data, since some computations are difficult to compute directly on the images (for example drift).
+Inspecting the distribution of the property's values (e.g. to notice some images are extremely dark,
+or that the aspect ratio of images is different between the train and test sets) can help uncover potential problems
+in the way that the datasets were built, or hint about the model's expected performance on unseen data.
 
-1. New unlabeled data: To approximate how your model will work on the new data, since you don't have labels
-   in order to do a performance check. If there is a significant drift between the new data's properties and the
-   train's properties, then it might indicate the model's predictions will be less accurate.
-2. Low test performance: If your model is having low performance on your test data, a good step in debugging
-   it is to check the drift of different properties between the train and the test. If there are some
-   properties with a high drift it might help you pinpoint to a relevant causes of the model's low performance.
-3. Find bias in the data: Sometimes the model training might be affected the properties we are not aware of,
-   and that aren't the core objective we are aiming to learn. For example, in a classification dataset of wolves
-   and dogs photographs, if only wolves are photographed in the snow, the brightness of the image may be used to
-   predict the label "wolf" easily. In this case, a model might not learn to discern wolf from dog by the animal's
-   characteristics, but by using the background color.
-4. Find weak segments: The properties can be used to segment the data and test for low performing segments.
-   If found, the weak segment might indicate a gap in the training data where the data quality is worse.
+Example for specific scenarios which these may come in handy:
 
-Deepchecks' Default Properties
-==============================
+#. **Investigating low test performance** - a high drift in certain properties may help you pinpoint the causes of
+   the model's lower performance on the test data.
+#. **Generalizability on new data** - a drift in significant data properties,
+   may indicate lower ability of the model to accurately predict on the new (different) data.
+#. **Find weak segments** - The properties can be used to segment the data and test for low performing segments.
+   If found, the weak segment may indicate a underrepresented segment or an area where the data quality is worse.
+#. **Find obscure relations between the data and the targets** - the model training might be affected
+   by properties we are not aware of, and that aren't the core attributes of what we are aiming for it to learn.
+   For example, in a classification dataset of wolves and dogs photographs, if only wolves are photographed in
+   the snow, the brightness of the image may be used to predict the label "wolf" easily. In this case, a model
+   might not learn to discern wolf from dog by the animal's characteristics, but by using the background color.
 
-We divide the properties into 3 groups: image, label and prediction properties.
-When running checks you can either create your own properties or rely on Deepchecks' default properties.
 
-The default image properties are:
+Deepchecks' Built-in Properties
+===============================
+
+We divide the properties by the data that they are based on: images, labels or predictions.
+You can either use the built-in properties or implement your own ones and pass them to the relevant checks.
+
+The built-in image properties are:
 
 - Aspect Ratio (height / width)
 - Area
 - Brightness
 - RMS (Root Mean Square) Contrast
-- Normalized RGB Mean channels: Mean color intensity for each channel. The color intensity is normalized according to
+- RGB Mean Relative Intensity: Mean color intensity for each channel. The color intensity is normalized according to
   the other color channels per pixel. This is done in order to capture the relationships between channels and not just
   general intensity (brightness).
 
-  - Normalized Red Mean
-  - Normalized Blue Mean
-  - Normalized Green Mean
+  - Mean Red Relative Intensity
+  - Mean Green Relative Intensity
+  - Mean Blue Relative Intensity
 
-The default label & predictions properties are:
+The built-in label & predictions properties are:
 
 - Samples Per Class (classification + object detection)
 - Bounding Box Area (object detection)
 - Number of Bounding Boxes Per Image (object detection)
 
 Property Structure
-==================
+====================
 
-The structure of all properties is similar, it consists of dictionary with 3 keys:
+All property types have a similar structure, which is a dictionary with 3 keys:
 
 - `name` - The name of the property
-- `method` - A callable function which accepts data (see elaboration bellow), and returns a list of
-  values.
-- `output_type` - One of the following options:
+- `method` - The callable function that calculates the property's value. It accepts the relevant data and returns
+the values list.
+- `output_type` - Relates to the method's return values list, and is one of the following:
 
   - `continuous` - For numeric values with continuous nature
   - `discrete` - For numeric values with discrete nature or non-numeric values
@@ -81,13 +84,18 @@ Each dictionary is a single property, and the checks accepts a list of those dic
   ]
 
 
-The Method's Input
-~~~~~~~~~~~~~~~~~~~~~
-The 3 types of properties receive different inputs and they are not interchangeable. For each check you will have
-to pass the appropriate properties.
 
-The method's input is either images, labels or predictions in
-:doc:`Deepchecks' format </user-guide/vision/formatter_objects>`. We will demonstrate the 3 drift checks (for
+The Method's Input
+~~~~~~~~~~~~~~~~~~
+Each property is built for the specific data type that it runs on, and receives its deepchecks-expected format,
+as demonstrated in :doc:`Deepchecks' format </user-guide/vision/formatter_objects>`.
+Note that prediction and label-based properties are not interchangeable, even if they calculate similar values.
+
+
+Properties Demonstration
+========================
+
+We will demonstrate the 3 drift checks (for
 each property type) and implement the properties to pass to it.
 
 Image Property
