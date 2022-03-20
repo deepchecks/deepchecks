@@ -38,7 +38,7 @@ def load_dataset(
 ) -> t.Union[DataLoader, vision.ClassificationData]:
     """Load a simple classification dataset.
 
-    The function expects that data within root folder
+    The function expects that the data within the root folder
     to be structured in the following way:
 
         - root/
