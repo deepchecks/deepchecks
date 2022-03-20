@@ -275,6 +275,7 @@ class CocoDataset(VisionDataset):
 
     @classmethod
     def download_coco128(cls, root: t.Union[str, Path]) -> t.Tuple[Path, str]:
+        """Download coco128 and returns the root path and folder name."""
         root = root if isinstance(root, Path) else Path(root)
         coco_dir = root / 'coco128'
         images_dir = coco_dir / 'images' / 'train2017'
