@@ -72,7 +72,7 @@ def load_dataset(
     -------
     Union[DataLoader, VisionDataset]
 
-        A DataLoader or VisionDataset instance representing COCO128 dataset
+        A DataLoader or VisionDataset instance representing the dataset
     """
 
     def batch_collate(batch):
