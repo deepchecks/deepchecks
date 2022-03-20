@@ -18,7 +18,7 @@ in the way that the datasets were built, or hint about the model's expected perf
 
 Example for specific scenarios in which measuring properties may come in handy:
 
-#. **Investigating low test performance** - a high drift in certain properties may help you pinpoint the causes of
+#. **Investigating low test performance** - detecting high drift in certain properties may help you pinpoint the causes of
    the model's lower performance on the test data.
 #. **Generalizability on new data** - a drift in significant data properties,
    may indicate lower ability of the model to accurately predict on the new (different) data.
