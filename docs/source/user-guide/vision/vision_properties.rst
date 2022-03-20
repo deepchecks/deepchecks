@@ -89,7 +89,7 @@ The Method's Input
 ~~~~~~~~~~~~~~~~~~
 Each property is built for the specific data type that it runs on, and receives its deepchecks-expected format,
 as demonstrated in :doc:`Deepchecks' format </user-guide/vision/formatter_objects>`.
-Note that prediction and label-based properties are not interchangeable, even if they calculate similar values.
+Note that prediction and label-based properties are not interchangeable due to their slightly different format, even if they calculate similar values.
 
 
 Properties Demonstration
