@@ -63,26 +63,26 @@ def _hash_image(image):
         image = Image.fromarray(image.cpu().numpy().squeeze())
 
     image = image.resize((10, 10))
-    image = image.convert("L")
+    image = image.convert('L')
 
     pixel_data = list(image.getdata())
     avg_pixel = sum(pixel_data) / len(pixel_data)
 
-    bits = "".join(['1' if (px >= avg_pixel) else '0' for px in pixel_data])
+    bits = ''.join(['1' if (px >= avg_pixel) else '0' for px in pixel_data])
     hex_representation = str(hex(int(bits, 2)))[2:][::-1].upper()
 
     return hex_representation
 
 
 def _hash_batch(batch):
-    hash = md5()
+    md5_hash = md5()
 
     hashes = [_hash_image(img) for img in batch]
 
     for h in hashes:
-        hash.update(h.encode())
+        md5_hash.update(h.encode())
 
-    return hash.hexdigest()
+    return md5_hash.hexdigest()
 
 
 @pytest.fixture(scope='session')
@@ -174,7 +174,7 @@ def mock_trained_mnist(device):  # pylint: disable=redefined-outer-name
 
             return mnist_predictions_dict[key].to(device)
 
-        def to(self, device):
+        def to(self, device):  # pylint: disable=redefined-outer-name,unused-argument
             return self
 
     return MockMnist()
@@ -193,7 +193,7 @@ def mock_trained_yolov5_object_detection(device):  # pylint: disable=redefined-o
 
             return MockDetections([x.to(device) for x in coco_detections_dict[key]])
 
-        def to(self, device):
+        def to(self, device):  # pylint: disable=redefined-outer-name,unused-argument
             return self
 
     return MockYolo()

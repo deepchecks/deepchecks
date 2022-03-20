@@ -8,7 +8,8 @@ flake8-eradicate
 flake8-rst
 
 pytest 
-pytest-cov 
+pytest-cov
+pytest-xdist
 pyhamcrest 
 nbval 
 coveralls
