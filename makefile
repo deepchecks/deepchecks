@@ -156,7 +156,7 @@ $(ENV):
 requirements: $(ENV)
 	@echo "####  installing dependencies, it could take some time, please wait! #### "
 
-	@$(PIP) install -U pip
+	@$(PIP) install -U pip setuptools wheel
 
 	@if [ -x "$$(command -v nvidia-smi)" ]; \
 	then \
