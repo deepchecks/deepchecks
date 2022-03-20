@@ -18,6 +18,7 @@ a pythonic value. Then, a condition can be defined on that value to determine if
 #. :ref:`Vision Checks Structure`_
 #. :ref:`Write a Basic Check`_
 #. :ref:`Check Display`_
+#. :ref:`Defining a Condition`_
 
 Vision Checks Structure
 ========================
@@ -100,7 +101,7 @@ class ColorAveragesCheck(TrainTestCheck):
         return CheckResult(return_value)
 
 #%%
-# Hooray! we just implemented a custom check. Let's run it and see what happens:
+# Hooray! we just implemented a custom check. To read more about the internal objects  Let's run it and see what happens:
 
 from deepchecks.vision.datasets.detection.coco import load_dataset
 
@@ -159,8 +160,50 @@ class ColorAveragesHistCheck(ColorAveragesCheck):
 #%%
 # Let check it out:
 
-result = ColorAveragesCheck().run(train_ds, test_ds)
+result = ColorAveragesHistCheck().run(train_ds, test_ds)
+result
 
 # %%
-# Voila! ======================== Now we have a check that prints a graph and has a value. We can add this check
+# Voilà! Now we have a check that prints a graph and has a value. We can add this check
 # to any Suite, and it will run within it.
+
+# %%
+# Defining a Condition
+# ========================
+#
+# Finally, we can add a condition to our check. A condition is a function that receives the result of the check and
+# returns a condition result object. To read more on conditions, check out user guide (LINK). # TODO: how to link to configure a check condition user guide?
+# In this case, we'll define a condition verifying that the color averages haven't changed by more than 10%.
+
+from deepchecks.core import ConditionResult
+
+
+class ColorAveragesHistConditionCheck(ColorAveragesHistCheck):
+
+    def add_condition_color_average_change_not_greater_than(self, change_ratio: float = 0.1) -> ConditionResult:
+        """Add a condition verifying that the color averages haven't changed by more than change_ratio%."""
+
+        def condition(check_result: CheckResult) -> ConditionResult:
+            failing_channels = []
+            # Iterate over the color averages and verify that they haven't changed by more than change_ratio
+            for channel in check_result.value[DatasetKind.TRAIN.value].keys():
+                if abs(check_result.value[DatasetKind.TRAIN.value][channel] -
+                       check_result.value[DatasetKind.TEST.value][channel]) > change_ratio:
+                    failing_channels.append(channel)
+
+            # If there are failing channels, return a condition result with the failing channels
+            if failing_channels:
+                return ConditionResult(False, f'The color averages have changes by more than threshold in the channels'
+                                              f' {failing_channels}.')
+            else:
+                return ConditionResult(True)
+
+        return self.add_condition(f'Change in color averages not greater than {change_ratio:.2%}', condition)
+
+#%%
+# Let check it out:
+result = ColorAveragesHistConditionCheck().run(train_ds, test_ds)
+result
+
+#%%
+# And now our check we will alert us automatically if the color averages have changed by more than 10%!
