@@ -155,7 +155,8 @@ def mock_trained_mnist(device):  # pylint: disable=redefined-outer-name
             for img in batch:
                 hash_key = _hash_image(img)
                 if hash_key in mnist_predictions_dict:
-                    results.append(mnist_predictions_dict[hash_key])
+                    # Predictions are saved as numpy
+                    results.append(torch.Tensor(mnist_predictions_dict[hash_key]))
                 else:
                     results.append(self.real_model(torch.stack([img]))[0])
 

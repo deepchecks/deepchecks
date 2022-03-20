@@ -14,13 +14,13 @@ from deepchecks.vision.checks.performance.class_performance import ClassPerforma
 from ignite.metrics import Precision, Recall
 from hamcrest import assert_that, calling, close_to, equal_to, is_in, raises
 
-def test_mnist_average_error_error(mnist_dataset_train, mnist_dataset_test, trained_mnist, device):
+def test_mnist_average_error_error(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
     # Arrange
     check = ClassPerformance(alternative_metrics={'p': Precision(average=True)})
     # Act
     assert_that(
         calling(check.run
-                ).with_args(mnist_dataset_train, mnist_dataset_test, trained_mnist,
+                ).with_args(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
                             device=device),
             raises(DeepchecksValueError,
                    r'The metric p returned a <class \'float\'> instead of an array/tensor')
@@ -36,7 +36,7 @@ def test_mnist_largest(mnist_dataset_train, mnist_dataset_test, mock_trained_mni
     # Assert
     assert_that(len(set(result.value['Class'])), equal_to(2))
     assert_that(len(result.value), equal_to(8))
-    assert_that(first_row['Value'], close_to(0.993, 0.001))
+    assert_that(first_row['Value'], close_to(0.977, 0.001))
     assert_that(first_row['Number of samples'], equal_to(6742))
     assert_that(first_row['Class'], equal_to(1))
 
@@ -82,23 +82,23 @@ def test_mnist_best(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
 
     # Assert
     assert_that(len(result.value), equal_to(8))
-    assert_that(first_row['Value'], close_to(0.993, 0.001))
+    assert_that(first_row['Value'], close_to(0.990, 0.001))
 
 
-def test_mnist_alt(mnist_dataset_train, mnist_dataset_test, trained_mnist, device):
+def test_mnist_alt(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
     # Arrange
 
     check = ClassPerformance(n_to_show=2,
                              alternative_metrics={'p': Precision(), 'r': Recall()})
     # Act
-    result = check.run(mnist_dataset_train, mnist_dataset_test, trained_mnist,
+    result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
                        device=device)
     p_row = result.value.loc[result.value['Metric'] == 'p'].sort_values(by='Value', ascending=False).iloc[0]
     r_row = result.value.loc[result.value['Metric'] == 'r'].sort_values(by='Value', ascending=False).iloc[0]
     # Assert
     assert_that(len(result.value), equal_to(8))
-    assert_that(p_row['Value'], close_to(0.993, 0.001))
-    assert_that(r_row['Value'], close_to(0.99, 0.001))
+    assert_that(p_row['Value'], close_to(0.975, 0.001))
+    assert_that(r_row['Value'], close_to(0.985, 0.001))
 
 
 def test_coco_best(coco_train_visiondata, coco_test_visiondata, mock_trained_yolov5_object_detection, device):

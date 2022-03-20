@@ -140,8 +140,8 @@ def test_context_initialization_with_model_only(mock_trained_mnist):
     Context(model_name="Name", model=mock_trained_mnist)
 
 
-def test_context_initialization_with_training_model(trained_mnist):
-    trained_mnist = copy.deepcopy(trained_mnist)
+def test_context_initialization_with_training_model(mock_trained_mnist):
+    trained_mnist = copy.deepcopy(mock_trained_mnist.real_model)
     trained_mnist.train()
     assert_that(
         calling(Context).with_args(model_name="Name", model=trained_mnist),
