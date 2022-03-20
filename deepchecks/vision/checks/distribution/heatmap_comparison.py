@@ -158,7 +158,7 @@ class HeatmapComparison(TrainTestCheck):
     @staticmethod
     def plot_row_of_heatmaps(train_img: np.ndarray, test_img: np.ndarray, title: str) -> go.Figure:
         """Plot a row of heatmaps for train and test images."""
-        fig = make_subplots(rows=1, cols=3, column_titles=['Train', 'Test', 'Test - Train'])
+        fig = make_subplots(rows=1, cols=3, column_titles=['Train', 'Test', 'Test To Train Diffrence'])
         fig.add_trace(numpy_grayscale_to_heatmap_figure(train_img), row=1, col=1)
         fig.add_trace(numpy_grayscale_to_heatmap_figure(test_img), row=1, col=2)
         fig.add_trace(numpy_grayscale_to_heatmap_figure(HeatmapComparison._image_diff(test_img, train_img)),

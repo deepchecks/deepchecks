@@ -132,9 +132,6 @@ class ClassPerformance(TrainTestCheck):
             hover_data=['Number of samples']
         )
 
-        if context.train.task_type == TaskType.CLASSIFICATION:
-            fig.update_xaxes(tickprefix='Class Name', tickangle=60)
-
         fig = (
             fig.update_xaxes(title=None, type='category')
                .update_yaxes(title=None, matches=None)
