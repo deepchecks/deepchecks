@@ -7,8 +7,8 @@ The Classification Data Class
 The ClassificationData :doc:`data class </user-guide/vision/data-classes/index>` represents a CV classification task in deepchecks.
 It is a subclass of the :class:`~deepchecks.vision.VisionData` class and is used to load and preprocess data for a
 classification task.
-The ClassificationData class is containing additional data and general methods intended for easily accessing metadata
-relevant for validating a computer vision classification ML models.
+The ClassificationData class contains additional data and general methods intended for easy access to relevant metadata
+for classification ML models validation.
 
 For more info, please visit the API reference page: :class:`~deepchecks.vision.ClassificationData`
 

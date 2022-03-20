@@ -8,9 +8,12 @@ You can read more about the different checks and suites for computer vision use 
 
 If you just want to see the output of this tutorial, jump to :ref:`_observing_the_result` section.
 
-An object detection model usually consists of two parts: the object localization part, where the model predicts
-the location of an object in the image, and the object classification part, where the model predicts the class of
-the detected object. The common output of an object detection model is a list of bounding boxes around the objects, and
+An object detection tasks usually consists of two parts:
+
+- Object Localization, where the model predicts the location of an object in the image,
+- Object Classification, where the model predicts the class of the detected object.
+
+The common output of an object detection model is a list of bounding boxes around the objects, and
 their classes.
 
 Defining the data and model
@@ -40,12 +43,11 @@ Defining the data and model
 
 Load Data
 ~~~~~~~~~
-The model in this tutorial is used to detect tomatoes in images. The model is trained on a dataset of tomatoes.
-This dataset contains 895 images with bounding box annotations provided in PASCAL VOC format for the creation of
-detection models. All annotations belong to a single class: tomato.
+The model in this tutorial is used to detect tomatoes in images. The model is trained on a dataset consisted of
+895 images of tomatoes, with bounding box annotations provided in PASCAL VOC format.
+All annotations belong to a single class: tomato.
 
 .. note::
-    The dataset is composed of images of tomatoes, and annotations of the bounding boxes around the tomatoes.
     The dataset is available at the following link:
     https://www.kaggle.com/andrewmvd/tomato-detection
 
@@ -158,14 +160,14 @@ Let's visualize a few training images so as to understand the data augmentation.
 .. image :: /_static/tomatoes.png
 :alt: Tomatoes with bbox
 
-Downloading a pre-trained model
+Downloading a Pre-trained Model
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In this tutorial, we will download a pre-trained SSDlite model and a MobileNetV3 Large backbone
 from the official PyTorch repository. For more details, please refer to the
 `official documentation <https://pytorch.org/vision/stable/generated/torchvision.models.detection.ssdlite320_mobilenet_v3_large.html#torchvision.models.detection.ssdlite320_mobilenet_v3_large>`_.
 
 After downloading the model, we will fine-tune it for our particular classes. We will do it by replacing the pre-trained
-head with a new one that match our needs.
+head with a new one that matches our needs.
 
 .. code-block:: python
 
@@ -180,7 +182,7 @@ head with a new one that match our needs.
     model.head.classification_head = SSDLiteClassificationHead(in_channels, num_anchors, 2, norm_layer)
     model.to(device)
 
-Loading pre-trained weights
+Loading Pre-trained Weights
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 For this tutorial we will not include the training code itself, but will download and load pre-trained weights.
 
@@ -189,12 +191,12 @@ For this tutorial we will not include the training code itself, but will downloa
     model.load_state_dict(torch.load('tomatoes_ ssd_model.pth'))
     _ = model.eval()
 
-Validating the Model with Deepchecks
+Validating the Model With Deepchecks
 =====================================
 Now, after we have the training data, validation data and the model, we can validate the model with
 deepchecks test suites.
 
-Visualize the data loader and the model outputs
+Visualize the Data Loader and the Model Outputs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 First we'll make sure we are familiar with the data loader and the model outputs.
 
@@ -250,15 +252,15 @@ And we can watch the output:
 
 Implementing the DetectionData class
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-The checks in the package calculate various quantities over the data, labels and predictions. In order to do that,
-those must be in a pre-defined format, according to the task type.
+The checks in the package validate the model & data by calculating various quantities over the data, labels and
+predictions. In order to do that, those must be in a pre-defined format, according to the task type.
 The first step is to implement a class that enables deepchecks to interact with your model and data and transform
 them to this pre-defined format, which is set for each task type.
 In this tutorial, we will implement the object detection task type by implementing a class that inherits from the
 :class:`deepchecks.vision.detection_data.DetectionData` class.
 
-The DetectionData class is containing additional data and general methods intended for easily accessing metadata
-relevant for validating a computer vision object detection ML models.
+The DetectionData class contains additional data and general methods intended for easy access to relevant metadata
+for object detection ML models validation.
 To learn more about the expected format please visit the API reference for the
 :class:`deepchecks.vision.detection_data.DetectionData` class.
 
@@ -275,7 +277,7 @@ To learn more about the expected format please visit the API reference for the
         """
         Convert a batch of data to images in the expected format. The expected format is an iterable of cv2 images,
         where each image is a numpy array of shape (height, width, channels). The numbers in the array should be in the
-        range [0, 255]
+        range [0, 255] in a uint8 format.
         """
             inp = torch.stack(list(batch[0])).numpy().transpose((0, 2, 3, 1))
             mean = [0.485, 0.456, 0.406]
@@ -340,7 +342,7 @@ After defining the task class, we can validate it by running the following code:
 .. code-block:: python
 
     # We have a single label here, which is the tomato class
-    # The label_map is a dictionary that maps the class id to the class name.
+    # The label_map is a dictionary that maps the class id to the class name, for display purposes.
     LABEL_MAP = {
       1: 'Tomato'
     }

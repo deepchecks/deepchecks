@@ -22,15 +22,15 @@ There is no standard when it comes to data formats in computer vision. Each mode
 for the output predictions, and each new benchmark dataset can propose a new labeling format. Even the images formats
 can be different from each other (PIL, OpenCV, etc.).
 
-In order to run a model and data-agnostic comprehensive testing suites, the data should be in an accepted format the
+In order to run a model and data-agnostic comprehensive testing suites, the data must be in an accepted format the
 checks can work with. The data class objects provide a structured and repeatable way to do that, and are an important
 part of the vision module.
 
 What Do You Need to Implement?
 ==============================
 
-Generally, you will need to implement a data class that inherits from one of the supported classes in the vision module,
-and implement 3 functions:
+Generally, all you need to do is to implement a data class that inherits from one of the supported classes in the
+vision module, and just implement there 3 functions:
 
     - `batch_to_images`: Returns a list of images in the correct format from a batch of data.
     - `batch_to_labels`: Returns a list of labels in the correct format from a batch of data.
@@ -39,10 +39,10 @@ and implement 3 functions:
 Please see specific examples in the `VisionData <VisionData.rst>`_, `ClassificationData <ClassificationData.rst>`_,
 and `DetectionData <DetectionData.rst>`_ classes.
 
-Validating The Correctness of Your Data Class
-=============================================
+Validating Your Data Class Implementation
+=========================================
 While implementing the data class, you may need a way to test your work is correct.
-For this purpose deepchecks contains an helper function which tests your implementation and prints its outputs,
+For this purpose, deepchecks contains an helper function which tests your implementation and prints its outputs,
 which you can inspect to make sure everything works correctly.
 Use this function like so:
 

@@ -20,10 +20,10 @@ Accepted Image Format
 All checks in deepchecks require images in the same format. They use the :func:`~deepchecks.vision.VisionData.batch_to_images` function in order to get
 the images in the correct format.
 
-The accepted format is an iterable of cv2 images. Each image in the iterable must be a [H, W, C] 3D numpy array.
-The first dimension must be the image height (y axis), the second being the image width (x axis), and the third being
+The accepted format for a batch of images is an iterable of cv2 images. Each image in the iterable must be a [H, W, C] 3D numpy array.
+The first dimension must be the image y axis, the second being the image x axis, and the third being
 the number of channels. The numbers in the array should be in the range [0, 255]. Color images should be in RGB format
-and have 3 channels, while grayscale images should have 1 channel.
+and have 3 channels, while grayscale images should have 1 channel. The dtype of the array should be uint8.
 
 Examples
 --------
