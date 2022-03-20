@@ -9,6 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 #
+import copy
+
 import torch
 from torch import nn
 from hamcrest import (
@@ -135,6 +137,18 @@ def test_context_initialization_with_train_dataset_only(coco_train_visiondata):
 
 def test_context_initialization_with_model_only(trained_mnist):
     Context(model_name="Name", model=trained_mnist)
+
+
+def test_context_initialization_with_training_model(trained_mnist):
+    trained_mnist = copy.deepcopy(trained_mnist)
+    trained_mnist.train()
+    assert_that(
+        calling(Context).with_args(model_name="Name", model=trained_mnist),
+        raises(
+            DatasetValidationError,
+            r'Model is not in evaluation state. Please set model training '
+            r'parameter to False or run model.eval\(\) before passing it.')
+    )
 
 
 def test_context_initialization_with_broken_model(mnist_dataset_train, mnist_dataset_test):

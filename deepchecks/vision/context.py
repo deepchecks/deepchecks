@@ -126,9 +126,9 @@ class Context:
                 logger.warning('Model is not a torch.nn.Module. Deepchecks can\'t validate that model is in '
                                'evaluation state.')
             else:
-                if not model.training:
-                    raise DeepchecksValueError('Model is not in evaluation state. Please set model training parameter '
-                                               'to False or run model.eval() before passing it.')
+                if model.training:
+                    raise DatasetValidationError('Model is not in evaluation state. Please set model training '
+                                                 'parameter to False or run model.eval() before passing it.')
             for dataset, dataset_type in zip([train, test], ['train', 'test']):
                 if dataset is not None:
                     try:
