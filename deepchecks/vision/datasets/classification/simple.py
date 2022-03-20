@@ -39,7 +39,7 @@ def load_dataset(
     """Load a simple classification dataset.
 
     The function expects that data within root folder
-    will be structured in a next way:
+    to be structured in the following way:
 
         - root/
             - train/
