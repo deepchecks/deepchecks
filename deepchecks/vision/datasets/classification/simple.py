@@ -36,7 +36,7 @@ def load_dataset(
     object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader',
     **kwargs
 ) -> t.Union[DataLoader, vision.ClassificationData]:
-    """Load simple classification dataset.
+    """Load a simple classification dataset.
 
     The function expects that data within root folder
     will be structured in a next way:
