@@ -291,7 +291,7 @@ result
 # - :class:`~deepchecks.vision.base_checks.ModelOnlyCheck` - Check that runs on only a model .
 #
 # All three classes inherit from the :class:`~deepchecks.core.checks.BaseCheck` BaseCheck, same as checks in any other
-# deepchecks subpackage. Each has its own run signature, according to the objects
+# deepchecks subpackage. Each has its own run signature, according to the objects on which it will run.
 #
 # The first two classes of checks run some logic on the image data, and so the check structure is designed to enable
 # accumulating and computation on batches outputted by the dataloader.
