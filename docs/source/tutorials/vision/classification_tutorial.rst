@@ -30,6 +30,7 @@ Defining the data and model
     from torchvision.datasets import ImageFolder
     import PIL.Image
     import cv2
+
 Load Data
 ~~~~~~~~~
 We will use torchvision and torch.utils.data packages for loading the data.
@@ -277,9 +278,8 @@ After defining the task class, we can validate it by running the following code:
   training_data = AntsBeesData(data_loader=dataloaders["train"], label_map=LABEL_MAP)
   val_data = AntsBeesData(data_loader=dataloaders["val"], label_map=LABEL_MAP)
 
-  from deepchecks.vision.utils.validation import validate_extractors
-  validate_extractors(training_data, model)
-  validate_extractors(val_data, model)
+  training_data.validate_format(model)
+  val_data.validate_format(model)
 
 And observe the output:
 

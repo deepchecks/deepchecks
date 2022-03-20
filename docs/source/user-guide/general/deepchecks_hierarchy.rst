@@ -1,6 +1,6 @@
-=====================
-Deepchecks Structure
-=====================
+====================
+Deepchecks Hierarchy
+====================
 
 A Suite runs a collection of Checks with optional Conditions added to them.
 
@@ -28,7 +28,7 @@ See Also
 
 - :ref:`Checks Demonstrations` - example notebooks demonstrating all of the checks implemented in the package.
 - :doc:`Checks API Reference </api/deepchecks.tabular.checks>` - where all the check parameters and implemented conditions can be found.
-- :doc:`/examples/tabular/guides/add_a_custom_check` - for a tutorial of how to implement your own check
+- :doc:`/tutorials/tabular/add_a_custom_check` - for a tutorial of how to implement your own check
 
 
 Condition
@@ -51,7 +51,7 @@ Each condition has a ``ConditionCategory`` type, which indicates whether an unme
 See Also
 ---------
 
-- :doc:`/examples/general/configure_check_conditions` - for a tutorial demonstrating how to modify a checks' conditions
+- :doc:`/user-guide/general/customizations/configure_check_conditions` - for a tutorial demonstrating how to modify a checks' conditions
 - :doc:`Check Base Classes API Reference </api/deepchecks.core>` - where all of the check and condition related base objects can be found.
 
 
@@ -70,7 +70,7 @@ See Also
 ---------
 
 - `List of Existing Suites`_ - to learn more about the suites you can work with directly
-- :doc:`/examples/general/create_a_custom_suite` - for a demonstration about creating your own suite
+- :doc:`/user-guide/general/customizations/create_a_custom_suite` - for a demonstration about creating your own suite
 
 
 .. _List of Existing Suites: https://github.com/deepchecks/deepchecks/tree/main/deepchecks/suites

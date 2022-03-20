@@ -22,7 +22,7 @@ from hamcrest import (
     has_entries,
     instance_of,
     all_of,
-    contains_exactly
+    contains_exactly, not_
 )
 import albumentations as A
 import imgaug.augmenters as iaa
@@ -67,7 +67,7 @@ def test_vision_data_task_type_inference():
     # Assert
     assert_that(second_classification_dataset.task_type == TaskType.CLASSIFICATION)
     assert_that(detection_dataset.task_type == TaskType.OBJECT_DETECTION)
-    assert_that(base_dataset.task_type is None)
+    assert_that(base_dataset.task_type == TaskType.OTHER)
 
 
 def test_initialization_of_vision_data_with_classification_dataset_that_contains_incorrect_labels():
@@ -108,11 +108,13 @@ def test_vision_data_n_of_samples_per_class_inference_for_classification_dataset
         real_n_of_samples[y] = 1 + real_n_of_samples.get(y, 0)
 
     # Act
-    infered_n_of_samples = dataset.n_of_samples_per_class
+    dataset.init_cache()
+    for batch in dataset:
+        dataset.update_cache(dataset.batch_to_labels(batch))
 
     # Assert
     assert_that(
-        infered_n_of_samples,
+        dataset.n_of_samples_per_class,
         all_of(instance_of(dict), has_entries(real_n_of_samples))
     )
 
@@ -130,11 +132,13 @@ def test_vision_data_n_of_samples_per_class_inference_for_detection_dataset():
 
     # Act
     dataset = coco.COCOData(loader)
-    infered_n_of_samples = dataset.n_of_samples_per_class
+    dataset.init_cache()
+    for batch in dataset:
+        dataset.update_cache(dataset.batch_to_labels(batch))
 
     # Assert
     assert_that(
-        infered_n_of_samples,
+        dataset.n_of_samples_per_class,
         all_of(instance_of(dict), has_entries(real_n_of_samples))
     )
 
@@ -359,3 +363,10 @@ def test_detection_data_bad_implementation():
     assert_that(calling(detection_data.validate_prediction).with_args('bad tensor', None, None),
                 raises(ValidationError,
                        'Check requires detection predictions to be a list of 2D tensors'))
+
+
+def test_validate_format(mnist_dataset_train, trained_mnist):
+
+    # Act & Assert
+    assert_that(calling(mnist_dataset_train.validate_format).with_args(trained_mnist),
+                not_(raises(DeepchecksValueError)))
