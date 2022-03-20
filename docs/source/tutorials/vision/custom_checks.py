@@ -19,22 +19,14 @@ a pythonic value. Then, a condition can be defined on that value to determine if
 #. :ref:`Write a Basic Check`_
 #. :ref:`Check Display`_
 #. :ref:`Defining a Condition`_
+#. :ref:`Base Checks Types`_
 
 Vision Checks Structure
 ========================
 
-Vision checks all inherit from one of the following classes:
-
-- :class:`~deepchecks.vision.base_checks.SingleDatasetCheck` - Check that runs on a single dataset and model.
-- :class:`~deepchecks.vision.base_checks.TrainTestCheck` - Check that runs on a train and test dataset and model.
-- :class:`~deepchecks.vision.base_checks.ModelOnlyCheck` - Check that runs on only a model .
-
-All three classes inherit from the :class:`~deepchecks.core.checks.BaseCheck` BaseCheck, same as checks in any other
-deepchecks subpackage.
-
-The first two classes of checks run some logic on the image data, and so the check structure is designed to enable
-accumulating and computation on batches outputted by the dataloader. These first two types of checks must implement
-the following three methods:
+The first step when writing a vision check is to decide what check base class to use. You can read more in the
+:ref:`Base Checks Types` section. In this case, we wish to compare train and test dataset, so we select the
+``TrainTestBaseCheck``. This type of check must implement the following three methods:
 
 - initialize_run - Actions to be performed before starting to iterate over the dataloader batches.
 - update - Actions to be performed on each batch.
@@ -50,9 +42,10 @@ Write a Basic Check
 
 Let's implement a simple check, comparing the average of each color channel between the train and the test dataset.
 
-We'll start by writing the simplest possible example, returning only a dict of the color averages.
+We'll start by writing the simplest possible example, returning only a dict of the color averages. We'll use external
+functions when implementing the check in order to be able to reuse them later.
 
-*Good to know: the return value of a check can be any object, a number, dictionary, string, etc…*
+**Good to know: the return value of a check can be any object, a number, dictionary, string, etc…**
 """
 from deepchecks.vision.base_checks import TrainTestCheck
 from deepchecks.vision.context import Context, Batch
@@ -60,6 +53,33 @@ from deepchecks.core.checks import DatasetKind
 from deepchecks.core.check_result import CheckResult
 import typing as t
 import numpy as np
+
+
+def init_color_averages_dict() -> t.Dict[str, np.array]:
+    """Initialize the color averages dicts."""
+    return {
+            DatasetKind.TRAIN.value: np.zeros((3,), dtype=np.float64),
+            DatasetKind.TEST.value: np.zeros((3,), dtype=np.float64),
+    }
+
+
+def init_pixel_counts_dict() -> t.Dict[str, int]:
+    """Initialize the pixel counts dicts."""
+    return {
+            DatasetKind.TRAIN.value: 0,
+            DatasetKind.TEST.value: 0,
+    }
+
+
+def sum_pixel_values(batch: Batch) -> np.array:
+    """Sum the values of all the pixels in the batch, returning a numpy array with an entry per channel."""
+    images = batch.images
+    return sum(image.sum(axis=(0, 1)) for image in images)  # sum over the batch and pixels
+
+
+def count_pixels_in_batch(batch: Batch) -> int:
+    """Count the pixels in the batch."""
+    return sum((image.shape[0] * image.shape[1] for image in batch.images))
 
 
 class ColorAveragesCheck(TrainTestCheck):
@@ -73,22 +93,15 @@ class ColorAveragesCheck(TrainTestCheck):
 
     def initialize_run(self, context: Context):
         """Initialize the color_averages dict and pixel counter dict."""
-        self._color_averages = {
-            DatasetKind.TRAIN.value: np.zeros((3,), dtype=np.float64),
-            DatasetKind.TEST.value: np.zeros((3,), dtype=np.float64),
-        }
-        self._pixel_count = {
-            DatasetKind.TRAIN.value: 0,
-            DatasetKind.TEST.value: 0,
-        }
+        self._color_averages = init_color_averages_dict()
+        self._pixel_count = init_pixel_counts_dict()
 
     def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Add the batch color counts to the color_averages dict, and update counter."""
-        images = batch.images
-        color_sums = sum(image.sum(axis=(0, 1)) for image in images)  # sum over the batch and pixels
-        self._color_averages[dataset_kind.value] += color_sums  # add to the color_averages dict
+
+        self._color_averages[dataset_kind.value] += sum_pixel_values(batch)  # add to the color_averages dict
         # count the number of pixels we have summed
-        self._pixel_count[dataset_kind.value] += sum((image.shape[0] * image.shape[1] for image in images))
+        self._pixel_count[dataset_kind.value] += count_pixels_in_batch(batch)
 
     def compute(self, context: Context):
         """Compute the color averages and return them."""
@@ -118,10 +131,9 @@ result
 
 result.value
 
-#TODO: how does this LINK work?
 
 # %% To see code references for more complex checks (that can receive parameters etc.), check out any of your
-# favorite checks from our API Reference (LINK).
+# favorite checks from our `API ref <../../api/deepchecks.vision>`_.
 
 #%%
 # Check Display
@@ -132,13 +144,94 @@ result.value
 # function that plots a graph. Let’s define a graph that will be displayed using `Plotly <https://plotly.com/>`_. We
 # will inherit from the original check to shorten the code an update only the compute method.
 #
-# *Good to know: ``display`` can receive a single object to display or a list of objects*
+# **Good to know: ``display`` can receive a single object to display or a list of objects**
 
 import pandas as pd
 import plotly.express as px
 
 
-class ColorAveragesHistCheck(ColorAveragesCheck):
+class ColorAveragesCheck(TrainTestCheck):
+    """Check if the average of each color channel is the same between the train and test dataset."""
+
+    def __init__(self, channel_names: t.Tuple[str] = None):
+        """Init the check and enable customization of the channel_names."""
+        super().__init__()
+        if channel_names is None:
+            self.channel_names = ('R', 'G', 'B')
+
+    def initialize_run(self, context: Context):
+        """Initialize the color_averages dict and pixel counter dict."""
+        self._color_averages = init_color_averages_dict()
+        self._pixel_count = init_pixel_counts_dict()
+
+    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
+        """Add the batch color counts to the color_averages dict, and update counter."""
+
+        self._color_averages[dataset_kind.value] += sum_pixel_values(batch)  # add to the color_averages dict
+        # count the number of pixels we have summed
+        self._pixel_count[dataset_kind.value] += count_pixels_in_batch(batch)
+
+    def compute(self, context: Context):
+        """Compute the color averages and return them. Also display a histogram comparing train and test."""
+        # Divide by the number of pixels to get the average pixel value per color channel
+        for dataset_kind in DatasetKind:
+            self._color_averages[dataset_kind.value] /= self._pixel_count[dataset_kind.value]
+        # Return the color averages in a dict by channel name
+        return_value = {d_kind: dict(zip(self.channel_names, color_averages))
+                        for d_kind, color_averages in self._color_averages.items()}
+
+        # **New Code Here**!!!
+        # ========================
+        # Display a histogram comparing train and test
+        color_averages_df = pd.DataFrame(return_value).unstack().reset_index()
+        color_averages_df.columns = ['Dataset', 'Channel', 'Pixel Value']
+        fig = px.histogram(color_averages_df, x='Dataset', y='Pixel Value', color='Channel', barmode='group',
+                           histfunc='avg', color_discrete_sequence=['rgb(255,0,0)', 'rgb(0,255,0)', 'rgb(0,0,255)'],
+                           title='Color Averages Histogram')
+        return CheckResult(return_value, display=[fig])
+
+#%%
+# Let check it out:
+
+result = ColorAveragesCheck().run(train_ds, test_ds)
+result
+
+# %%
+# Voilà! Now we have a check that prints a graph and has a value. We can add this check
+# to any Suite, and it will run within it.
+
+# %%
+# Defining a Condition
+# ========================
+#
+# Finally, we can add a condition to our check. A condition is a function that receives the result of the check and
+# returns a condition result object. To read more on conditions, check out the condition `user guide
+# <../../user-guide/general/customizations/configure_check_conditions>`_. In this case, we'll define a condition
+# verifying that the color averages haven't changed by more than 10%.
+
+from deepchecks.core import ConditionResult
+
+
+class ColorAveragesCheck(TrainTestCheck):
+    """Check if the average of each color channel is the same between the train and test dataset."""
+
+    def __init__(self, channel_names: t.Tuple[str] = None):
+        """Init the check and enable customization of the channel_names."""
+        super().__init__()
+        if channel_names is None:
+            self.channel_names = ('R', 'G', 'B')
+
+    def initialize_run(self, context: Context):
+        """Initialize the color_averages dict and pixel counter dict."""
+        self._color_averages = init_color_averages_dict()
+        self._pixel_count = init_pixel_counts_dict()
+
+    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
+        """Add the batch color counts to the color_averages dict, and update counter."""
+
+        self._color_averages[dataset_kind.value] += sum_pixel_values(batch)  # add to the color_averages dict
+        # count the number of pixels we have summed
+        self._pixel_count[dataset_kind.value] += count_pixels_in_batch(batch)
 
     def compute(self, context: Context):
         """Compute the color averages and return them. Also display a histogram comparing train and test."""
@@ -157,29 +250,8 @@ class ColorAveragesHistCheck(ColorAveragesCheck):
                            title='Color Averages Histogram')
         return CheckResult(return_value, display=[fig])
 
-#%%
-# Let check it out:
-
-result = ColorAveragesHistCheck().run(train_ds, test_ds)
-result
-
-# %%
-# Voilà! Now we have a check that prints a graph and has a value. We can add this check
-# to any Suite, and it will run within it.
-
-# %%
-# Defining a Condition
-# ========================
-#
-# Finally, we can add a condition to our check. A condition is a function that receives the result of the check and
-# returns a condition result object. To read more on conditions, check out user guide (LINK). # TODO: how to link to configure a check condition user guide?
-# In this case, we'll define a condition verifying that the color averages haven't changed by more than 10%.
-
-from deepchecks.core import ConditionResult
-
-
-class ColorAveragesHistConditionCheck(ColorAveragesHistCheck):
-
+    # **New Code Here**!!!
+    # ========================
     def add_condition_color_average_change_not_greater_than(self, change_ratio: float = 0.1) -> ConditionResult:
         """Add a condition verifying that the color averages haven't changed by more than change_ratio%."""
 
@@ -202,8 +274,24 @@ class ColorAveragesHistConditionCheck(ColorAveragesHistCheck):
 
 #%%
 # Let check it out:
-result = ColorAveragesHistConditionCheck().run(train_ds, test_ds)
+result = ColorAveragesCheck().run(train_ds, test_ds)
 result
 
 #%%
 # And now our check we will alert us automatically if the color averages have changed by more than 10%!
+
+
+#%%
+# Base Checks Types
+# ==================
+# Vision checks all inherit from one of the following classes:
+#
+# - :class:`~deepchecks.vision.base_checks.SingleDatasetCheck` - Check that runs on a single dataset and model.
+# - :class:`~deepchecks.vision.base_checks.TrainTestCheck` - Check that runs on a train and test dataset and model.
+# - :class:`~deepchecks.vision.base_checks.ModelOnlyCheck` - Check that runs on only a model .
+#
+# All three classes inherit from the :class:`~deepchecks.core.checks.BaseCheck` BaseCheck, same as checks in any other
+# deepchecks subpackage. Each has its own run signature, according to the objects
+#
+# The first two classes of checks run some logic on the image data, and so the check structure is designed to enable
+# accumulating and computation on batches outputted by the dataloader.
