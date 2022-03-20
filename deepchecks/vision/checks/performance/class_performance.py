@@ -110,7 +110,7 @@ class ClassPerformance(TrainTestCheck):
             results.append(metrics_df)
 
         results_df = pd.concat(results)
-
+        results_df = results_df[['Dataset', 'Metric', 'Class', 'Class Name', 'Number of samples', 'Value']]
         if self.class_list_to_show is not None:
             results_df = results_df.loc[results_df['Class'].isin(self.class_list_to_show)]
         elif self.n_to_show is not None:

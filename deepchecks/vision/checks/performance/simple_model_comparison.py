@@ -143,6 +143,7 @@ class SimpleModelComparison(TrainTestCheck):
             results.append(metrics_df)
 
         results_df = pd.concat(results)
+        results_df = results_df[['Model', 'Metric', 'Class', 'Class Name', 'Number of samples', 'Value']]
 
         if not self.metric_to_show_by:
             self.metric_to_show_by = list(self._test_metrics.keys())[0]
