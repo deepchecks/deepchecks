@@ -155,9 +155,10 @@ def test_context_initialization_with_broken_model(mnist_dataset_train, mnist_dat
     # Arrange
     class BrokenModel(nn.Module):
         def __call__(self, *args, **kwargs):
-            raise Exception("Unvalid arguments")
+            raise Exception("Invalid arguments")
 
     model = BrokenModel()
+    model.eval()
 
     # Act & Assert
     assert_that(
@@ -167,5 +168,5 @@ def test_context_initialization_with_broken_model(mnist_dataset_train, mnist_dat
                             model=model),
         raises(
             Exception,
-            r'Unvalid arguments')
+            r'Invalid arguments')
     )
