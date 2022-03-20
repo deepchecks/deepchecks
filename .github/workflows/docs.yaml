@@ -22,7 +22,8 @@ jobs:
 
       - name: Setup Python
         uses: actions/setup-python@v2
-
+      - name: Set Up Env
+        run: make env
       - name: Build documentation
         run: make docs
 
