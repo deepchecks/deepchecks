@@ -13,12 +13,12 @@ from deepchecks.vision.checks.performance.simple_model_comparison import SimpleM
 from hamcrest import assert_that, close_to, equal_to, is_in, calling, raises
 
 
-def test_mnist_prior_strategy(mnist_dataset_train, mnist_dataset_test, trained_mnist, device):
+def test_mnist_prior_strategy(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
     # Arrange
 
     check = SimpleModelComparison(strategy='prior', n_to_show=2, show_only='largest')
     # Act
-    result = check.run(mnist_dataset_train, mnist_dataset_test, trained_mnist,
+    result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
                        device=device)
     first_row = result.value.sort_values(by='Number of samples', ascending=False).iloc[0]
     # Assert
@@ -28,7 +28,7 @@ def test_mnist_prior_strategy(mnist_dataset_train, mnist_dataset_test, trained_m
     assert_that(first_row['Class'], equal_to(1))
 
 
-def test_mnist_not_exist_strategy(mnist_dataset_train, mnist_dataset_test, trained_mnist):
+def test_mnist_not_exist_strategy(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist):
     check = SimpleModelComparison()
     # Act
     assert_that(
@@ -37,11 +37,11 @@ def test_mnist_not_exist_strategy(mnist_dataset_train, mnist_dataset_test, train
     )
 
 
-def test_mnist_most_frequent(mnist_dataset_train, mnist_dataset_test, trained_mnist, device):
+def test_mnist_most_frequent(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
     # Arrange
     check = SimpleModelComparison(strategy='most_frequent', n_to_show=2, show_only='largest')
     # Act
-    result = check.run(mnist_dataset_train, mnist_dataset_test, trained_mnist,
+    result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
                        device=device)
     first_row = result.value.sort_values(by='Number of samples', ascending=False).iloc[0]
     # Assert
@@ -51,21 +51,21 @@ def test_mnist_most_frequent(mnist_dataset_train, mnist_dataset_test, trained_mn
     assert_that(first_row['Class'], equal_to(1))
 
 
-def test_mnist_uniform(mnist_dataset_train, mnist_dataset_test, trained_mnist, device):
+def test_mnist_uniform(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
     # Arrange
     check = SimpleModelComparison(strategy='uniform', n_to_show=2, show_only='largest')
     # Act
-    result = check.run(mnist_dataset_train, mnist_dataset_test, trained_mnist,
+    result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
                        device=device)
     # Assert
     assert_that(len(result.value), equal_to(8))
 
 
-def test_mnist_stratified(mnist_dataset_train, mnist_dataset_test, trained_mnist, device):
+def test_mnist_stratified(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
     # Arrange
     check = SimpleModelComparison(strategy='stratified', n_to_show=2, show_only='largest')
     # Act
-    result = check.run(mnist_dataset_train, mnist_dataset_test, trained_mnist,
+    result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
                        device=device)
     # Assert
     assert_that(len(result.value), equal_to(8))
