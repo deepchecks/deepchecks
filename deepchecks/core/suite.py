@@ -74,6 +74,12 @@ class SuiteResult:
             warnings.warn('You are running in a non-interactive python shell. in order to show result you have to use '
                           'an IPython shell (etc Jupyter)')
 
+    def _repr_html_(self):
+        """Return html representation of check result."""
+        html_out = io.StringIO()
+        self.save_as_html(html_out)
+        return html_out.getvalue()
+
     def save_as_html(self, file=None):
         """Save output as html file.
 
