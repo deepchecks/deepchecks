@@ -64,6 +64,7 @@ class ImagePropertyDrift(TrainTestCheck):
         self.test_properties = defaultdict(list)
 
     def initialize_run(self, context: Context):
+        """Initialize self state, and validate the run context."""
         context.train.assert_image_formatter_valid()
         context.test.assert_image_formatter_valid()
 

@@ -365,6 +365,7 @@ class VisionData:
         return len(self._data_loader)
 
     def assert_image_formatter_valid(self):
+        """Assert the image formatter defined is valid. Else raise exception."""
         if self._image_formatter_error is not None:
             raise DeepchecksValueError(self._image_formatter_error)
 
