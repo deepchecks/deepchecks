@@ -131,7 +131,7 @@ Image Property
 
 Label Property
 ~~~~~~~~~~~~~~
-For label property the input is also differed by the task type you are running. In this example we implement
+For label property the input varies according to the task type you are running. In this example we implement
 properties which are valid for Detection task type.
 
 .. code-block:: python
