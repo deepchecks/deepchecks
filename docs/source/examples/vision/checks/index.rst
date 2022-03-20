@@ -6,3 +6,4 @@ Checks Demonstrations
 
     distribution/examples/index
     performance/examples/index
+    methodology/examples/index

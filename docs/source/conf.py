@@ -61,7 +61,7 @@ except Exception as error:
 # ones.
 #
 extensions = [
-    'nbsphinx',
+    # 'nbsphinx',
 
     # by itself sphinx_gallery is not able to work with jupyter notebooks
     # but nbsphinx extension is able to use some of it functionality to create

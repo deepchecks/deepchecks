@@ -33,3 +33,4 @@ Computer Vision Examples
 
     vision/guides/index
     vision/checks/index
+    vision/methodology/index

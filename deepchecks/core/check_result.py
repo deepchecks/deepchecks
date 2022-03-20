@@ -31,7 +31,6 @@ import ipywidgets as widgets
 import plotly.graph_objects as go
 import plotly
 from ipywidgets.embed import embed_minimal_html, dependency_state
-from plotly.io import to_html
 from plotly.basedatatypes import BaseFigure
 from matplotlib import pyplot as plt
 from IPython.display import display_html
@@ -187,9 +186,9 @@ class CheckResult:
         """Return html representation of check result."""
         html_out = io.StringIO()
         widgeted_output = self.display_check(as_widget=True)
-        embed_minimal_html(html_out, views=[widgeted_output], requirejs=False, embed_url=None, state=dependency_state(widgeted_output))
+        embed_minimal_html(html_out, views=[widgeted_output], requirejs=False,
+                           embed_url=None, state=dependency_state(widgeted_output))
         return html_out.getvalue()
-
 
     def _display_to_json(self) -> List[Tuple[str, str]]:
         displays = []
