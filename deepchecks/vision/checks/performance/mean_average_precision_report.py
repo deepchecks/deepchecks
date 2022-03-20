@@ -81,7 +81,7 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
         filtered_res = np.reshape(filtered_res, (filtered_res_shape[0], filtered_res_shape[3]))
         mean_res = np.zeros(filtered_res_shape[0])
         for i in range(filtered_res_shape[0]):
-            mean_res[i] = np.mean(filtered_res[i][filtered_res[i] > -1])
+            mean_res[i] = np.nanmean(filtered_res[i][filtered_res[i] > -1])
 
         data = {
             'IoU': self._ap_metric.iou_thresholds,
