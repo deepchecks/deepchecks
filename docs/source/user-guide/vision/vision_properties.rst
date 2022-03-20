@@ -162,7 +162,7 @@ properties which apply to the Detection task type.
 Prediction Property
 ~~~~~~~~~~~~~~~~~~~
 Prediction property's input, like label property, also varies by the task type you are running. In this example we
-implement properties which are valid for Detection task type.
+implement properties which apply to the Detection task type.
 
 .. code-block:: python
 
