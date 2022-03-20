@@ -62,6 +62,7 @@ jobs:
         with:
           repository: deepchecks/deepchecks.github.io
           path: deepchecks.github.io
+          token: ${{ secrets.DEEPCHECKS_CI_TOKEN }}
 
       - name: Push documentation
         run: deepchecks/.github/scripts/push_docs.sh
