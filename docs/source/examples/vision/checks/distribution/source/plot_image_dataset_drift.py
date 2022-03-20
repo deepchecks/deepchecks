@@ -9,7 +9,8 @@ test datasets.
 **Structure:**
 
 * `What Is Dataset Drift? <#what-is-a-dataset-drift>`__
-* 'How ImageDatasetDrift Check Works? <#how-imagedatasetdrift-check-works>'__
+* `How Does the ImageDatasetDrift Check Work? <#how-does-the-imagedatasetdrift-check-work>`__
+* `Which Image Properties Are Used? <#which-image-properties-are-used>`__
 * `Loading The Data <#loading-the-data>`__
 * `Run The Check <#run-the-check>`__
 
@@ -17,7 +18,7 @@ test datasets.
 What Is Dataset Drift?
 ------------------------
 Data drift is simply a change in the distribution of data over time. It is also
-one of the top reasons of a machine learning model performance degrades over time.
+one of the top reasons that a machine learning model performance degrades over time.
 
 Specifically, a whole dataset drift, or a multivariate dataset drift, occurs when
 there is a change in the relation between input features.
@@ -32,12 +33,12 @@ Causes of data drift include:
 * Data pipeline errors, such as a change in image augmentations done in preprocessing.
 
 In the context of machine learning, drift between the training set and the test set
-which is not due to augmentation will likely make the model prone to error. In
+(which is not due to augmentation) will likely make the model prone to errors. In
 other words, if the model was trained on data that is different from the current test
 data, it will probably make more mistakes predicting the target variable.
 
-How ImageDatasetDrift Check Works?
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+How Does the ImageDatasetDrift Check Work?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 There are many methods to detect feature drift. Some of them are statistical methods
 that aim to measure difference between distribution of 2 given sets. This methods
 are more suited to univariate distributions and are primarily used to detect drift
