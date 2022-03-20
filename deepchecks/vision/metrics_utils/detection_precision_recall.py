@@ -11,11 +11,13 @@
 """Module for calculating detection precision and recall."""
 from collections import defaultdict
 from typing import List, Tuple, Union
+import warnings
 
 from ignite.metrics import Metric
 from ignite.metrics.metric import sync_all_reduce, reinit__is_reduced
 import torch
 import numpy as np
+
 from .iou_utils import compute_pairwise_ious, build_class_bounding_box
 
 
@@ -89,7 +91,8 @@ class AveragePrecision(Metric):
     def compute(self):
         """Compute metric value."""
         # now reduce accumulations
-        sorted_classes = sorted(self._evals.keys())
+        sorted_classes = [int(class_id) for class_id in sorted(self._evals.keys())]
+        max_class = max(sorted_classes)
         for class_id in sorted_classes:
             acc = self._evals[class_id]
             acc["scores"] = _dict_conc(acc["scores"])
@@ -98,16 +101,18 @@ class AveragePrecision(Metric):
         reses = {"precision": -np.ones((len(self.iou_thresholds),
                                         len(self.area_ranges_names),
                                         len(self.max_detections_per_class),
-                                        len(self._evals.keys()))),
+                                        max_class + 1)),
                  "recall": -np.ones((len(self.iou_thresholds),
                                      len(self.area_ranges_names),
                                      len(self.max_detections_per_class),
-                                     len(self._evals.keys())))}
+                                     max_class + 1))}
         for iou_i, min_iou in enumerate(self.iou_thresholds):
             for dets_i, dets in enumerate(self.max_detections_per_class):
                 for area_i, area_size in enumerate(self.area_ranges_names):
-                    precision_list = []
-                    recall_list = []
+                    precision_list = np.empty(max_class + 1)
+                    precision_list.fill(np.nan)
+                    recall_list = np.empty(max_class + 1)
+                    recall_list.fill(np.nan)
                     # run ap calculation per-class
                     for class_id in sorted_classes:
                         ev = self._evals[class_id]
@@ -115,10 +120,10 @@ class AveragePrecision(Metric):
                             self._compute_ap_recall(np.array(ev["scores"][(area_size, dets, min_iou)]),
                                                     np.array(ev["matched"][(area_size, dets, min_iou)]),
                                                     np.sum(np.array(ev["NP"][(area_size, dets, min_iou)])))
-                        precision_list.append(precision)
-                        recall_list.append(recall)
-                    reses["precision"][iou_i, area_i, dets_i] = np.array(precision_list)
-                    reses["recall"][iou_i, area_i, dets_i] = np.array(recall_list)
+                        precision_list[class_id] = precision
+                        recall_list[class_id] = recall
+                    reses["precision"][iou_i, area_i, dets_i] = precision_list
+                    reses["recall"][iou_i, area_i, dets_i] = recall_list
         if self.return_option == 0:
             return torch.tensor(self.get_classes_scores_at(reses["precision"],
                                                            max_dets=self.max_detections_per_class[0],
@@ -267,7 +272,7 @@ class AveragePrecision(Metric):
             return not area_bb > self.area_range[1]
         return False
 
-    def filter_res(self, res: np.array, iou: float = None, area: str = None, max_dets: int = None):
+    def filter_res(self, res: np.ndarray, iou: float = None, area: str = None, max_dets: int = None):
         """Get the value of a result by the filtering values.
 
         Parameters
@@ -297,7 +302,7 @@ class AveragePrecision(Metric):
             res = res[:, :, dets_i, :]
         return res
 
-    def get_classes_scores_at(self, res: np.array, iou: float = None, area: str = None, max_dets: int = None,
+    def get_classes_scores_at(self, res: np.ndarray, iou: float = None, area: str = None, max_dets: int = None,
                               get_mean_val: bool = True, zeroed_negative: bool = True):
         """Get the mean value of the classes scores and the result values.
 
@@ -322,9 +327,11 @@ class AveragePrecision(Metric):
            The mean value of the classes scores or the scores list.
         """
         res = self.filter_res(res, iou, area, max_dets)
-        res = np.mean(res[:, :, :], axis=0)
+        with warnings.catch_warnings():
+            warnings.simplefilter(action="ignore", category=RuntimeWarning)
+            res = np.nanmean(res[:, :, :], axis=0)
         if get_mean_val:
-            return np.mean(res[res > -1])
+            return np.nanmean(res[res > -1])
         if zeroed_negative:
             res = res.clip(min=0)
         return res[0][0]

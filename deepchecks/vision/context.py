@@ -122,6 +122,13 @@ class Context:
         self._device = torch.device(device) if isinstance(device, str) else (device if device else torch.device('cpu'))
 
         if model is not None:
+            if not isinstance(model, nn.Module):
+                logger.warning('Model is not a torch.nn.Module. Deepchecks can\'t validate that model is in '
+                               'evaluation state.')
+            else:
+                if model.training:
+                    raise DatasetValidationError('Model is not in evaluation state. Please set model training '
+                                                 'parameter to False or run model.eval() before passing it.')
             for dataset, dataset_type in zip([train, test], ['train', 'test']):
                 if dataset is not None:
                     try:

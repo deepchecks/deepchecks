@@ -69,7 +69,7 @@ subset** of the following:
 -  **Test data** (which the model isn't exposed to) with labels
 -  | A **supported model** that you wish to validate.
    | For tabular data, see :doc:`supported models </user-guide/tabular/supported_models>`.
-   | For computer vision, we currently support the pytorch framework. See :doc:`formatters </user-guide/vision/formatter_objects>` to understand how to integrate with a custom prediciton and label format.
+   | For computer vision, we currently support the pytorch framework. See :doc:`formatters </user-guide/vision/data-classes/index>` to understand how to integrate with a custom prediciton and label format.
 
 Supported Data Types
 ---------------------
