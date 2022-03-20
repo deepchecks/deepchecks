@@ -156,19 +156,19 @@ def mock_trained_mnist(device):  # pylint: disable=redefined-outer-name
                 hash_key = _hash_image(img)
                 if hash_key in mnist_predictions_dict:
                     # Predictions are saved as numpy
-                    results.append(torch.Tensor(mnist_predictions_dict[hash_key]))
+                    cache_pred = mnist_predictions_dict[hash_key]
+                    results.append(torch.Tensor(cache_pred).to(device))
                 else:
                     results.append(self.real_model(torch.stack([img]))[0])
 
             return torch.stack(results).to(device)
 
         def to(self, device):  # pylint: disable=redefined-outer-name,unused-argument
-            self.real_model.to(device)
             return self
 
     # The MNIST model training is not deterministic, so loading a saved version of it for the tests.
     path = pathlib.Path(__file__).absolute().parent / 'models' / 'mnist.pth'
-    loaded_model = load_mnist_net_model(pretrained=True, path=path)
+    loaded_model = load_mnist_net_model(pretrained=True, path=path).to(device)
     return MockMnist(loaded_model)
 
 
@@ -197,7 +197,6 @@ def mock_trained_yolov5_object_detection(device):  # pylint: disable=redefined-o
             return MockDetections([x.to(device) for x in results])
 
         def to(self, device):  # pylint: disable=redefined-outer-name,unused-argument
-            self.real_model.to(device)
             return self
 
     loaded_model = load_yolov5_model(device=device)
