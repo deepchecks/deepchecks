@@ -145,6 +145,8 @@ def mnist_dataset_train_imgaug():
 @pytest.fixture(scope='session')
 def mock_trained_mnist(device):  # pylint: disable=redefined-outer-name
     class MockMnist:
+        """Class of MNIST model that returns cached predictions."""
+
         def __init__(self, real_model):
             self.real_model = real_model
 
@@ -173,10 +175,12 @@ def mock_trained_mnist(device):  # pylint: disable=redefined-outer-name
 def mock_trained_yolov5_object_detection(device):  # pylint: disable=redefined-outer-name
 
     class MockDetections:
+        """Class which mocks YOLOv5 predictions object."""
         def __init__(self, dets):
             self.pred = dets
 
-    class MockYolo():
+    class MockYolo:
+        """Class of YOLOv5 that returns cached predictions."""
         def __init__(self, real_model):
             self.real_model = real_model
 
