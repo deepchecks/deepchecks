@@ -29,6 +29,19 @@ should be implemented using the `torch.ignite.Metric
 <https://pytorch.org/ignite/metrics.html#how-to-create-a-custom-metric>`__.
 These can be passed as a list using the alternative_metrics parameter of the
 check, which will override the default metrics.
+
+
+Which Metrics Are Used?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+=================  ====================
+Task Type          Property name
+=================  ====================
+Classification     Precision
+Classification     Recall
+Object Detection   `Average Precision <https://manalelaidouni.github.io/Evaluating-Object-Detection-Models-Guide-to-Performance-Metrics.html>`__
+Object Detection   `Average Recall <https://manalelaidouni.github.io/Evaluating-Object-Detection-Models-Guide-to-Performance-Metrics.html>`__
+=================  ====================
+
 """
 
 #%%
