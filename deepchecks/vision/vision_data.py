@@ -356,18 +356,6 @@ class VisionData:
             raise ValidationError(f'Image data found to be in range [{sample_min}, {sample_max}] instead of expected '
                                   f'range [0, 255].')
 
-    def validate_format(self, model):
-        """Validate the correctness of the data class implementation according to the expected format.
-
-        Parameters
-        ----------
-        model : Model
-            Model to validate the data class implementation against.
-
-        """
-        from deepchecks.vision.utils.validation import validate_extractors  # pylint: disable=import-outside-toplevel
-        validate_extractors(self, model)
-
     def __iter__(self):
         """Return an iterator over the dataset."""
         return iter(self._data_loader)
