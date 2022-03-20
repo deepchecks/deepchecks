@@ -84,12 +84,12 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
             mean_res[i] = np.nanmean(filtered_res[i][filtered_res[i] > -1])
 
         data = {
-            'IoU': self._ap_metric.iou_thresholds,
+            'IoU threshold': self._ap_metric.iou_thresholds,
             'AP (%)': mean_res
         }
         df = pd.DataFrame.from_dict(data)
 
-        fig = px.line(df, x='IoU', y='AP (%)', title='Mean Average Precision over increasing IoU thresholds')
+        fig = px.line(df, x='IoU threshold', y='AP (%)', title='Mean Average Precision over increasing IoU thresholds')
 
         return CheckResult(value=results, display=[results, fig])
 
