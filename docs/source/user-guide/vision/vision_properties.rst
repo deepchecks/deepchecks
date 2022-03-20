@@ -16,12 +16,12 @@ Inspecting the distribution of the property's values (e.g. to notice some images
 or that the aspect ratio of images is different between the train and test sets) can help uncover potential problems
 in the way that the datasets were built, or hint about the model's expected performance on unseen data.
 
-Example for specific scenarios which these may come in handy:
+Example for specific scenarios in which measuring properties may come in handy:
 
-#. **Investigating low test performance** - a high drift in certain properties may help you pinpoint the causes of
+#. **Investigating low test performance** - detecting high drift in certain properties may help you pinpoint the causes of
    the model's lower performance on the test data.
 #. **Generalizability on new data** - a drift in significant data properties,
-   may indicate lower ability of the model to accurately predict on the new (different) data.
+   may indicate lower ability of the model to accurately predict on the new (different) unlabeled data.
 #. **Find weak segments** - The properties can be used to segment the data and test for low performing segments.
    If found, the weak segment may indicate a underrepresented segment or an area where the data quality is worse.
 #. **Find obscure relations between the data and the targets** - the model training might be affected
@@ -89,7 +89,7 @@ The Method's Input
 ~~~~~~~~~~~~~~~~~~
 Each property is built for the specific data type that it runs on, and receives its deepchecks-expected format,
 as demonstrated in :doc:`Deepchecks' format </user-guide/vision/formatter_objects>`.
-Note that prediction and label-based properties are not interchangeable, even if they calculate similar values.
+Note that prediction and label-based properties are not interchangeable due to their slightly different format, even if they calculate similar values.
 
 
 Properties Demonstration
@@ -131,8 +131,8 @@ Image Property
 
 Label Property
 ~~~~~~~~~~~~~~
-For label property the input is also differed by the task type you are running. In this example we implement
-properties which are valid for Detection task type.
+For label property the input varies according to the task type you are running. In this example we implement
+properties which apply to the Detection task type.
 
 .. code-block:: python
 
@@ -161,8 +161,8 @@ properties which are valid for Detection task type.
 
 Prediction Property
 ~~~~~~~~~~~~~~~~~~~
-Prediction property's input, like label property, is also differed by the task type you are running. In this example we
-implement properties which are valid for Detection task type.
+Prediction property's input, like label property, also varies by the task type you are running. In this example we
+implement properties which apply to the Detection task type.
 
 .. code-block:: python
 
