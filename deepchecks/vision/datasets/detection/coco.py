@@ -32,7 +32,7 @@ from deepchecks import vision
 from deepchecks.vision import DetectionData
 
 
-__all__ = ['load_dataset', 'load_model', 'COCOData']
+__all__ = ['load_dataset', 'load_model', 'COCOData', 'CocoDataset']
 
 
 DATA_DIR = Path(__file__).absolute().parent

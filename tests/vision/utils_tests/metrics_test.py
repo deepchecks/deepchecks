@@ -20,7 +20,7 @@ def test_default_ap_ignite_complient(coco_test_visiondata: VisionData, mock_trai
                             coco_test_visiondata, mock_trained_yolov5_object_detection,
                             device=device)
     assert_that(res.keys(), has_length(1))
-    assert_that(res['AveragePrecision'], has_length(59))
+    assert_that(res['AveragePrecision'], has_length(80))
 
 
 def test_ar_ignite_complient(coco_test_visiondata: VisionData, mock_trained_yolov5_object_detection, device):
@@ -29,7 +29,7 @@ def test_ar_ignite_complient(coco_test_visiondata: VisionData, mock_trained_yolo
                             device=device)
 
     assert_that(res.keys(), has_length(1))
-    assert_that(res['AveragePrecision'], has_length(59))
+    assert_that(res['AveragePrecision'], has_length(80))
 
 
 def test_equal_pycocotools(coco_test_visiondata: VisionData, mock_trained_yolov5_object_detection, device):
@@ -56,7 +56,7 @@ def test_equal_pycocotools(coco_test_visiondata: VisionData, mock_trained_yolov5
     assert_that(metric.get_classes_scores_at(res['recall'], area='medium', max_dets=100), close_to(0.423, 0.001))
     assert_that(metric.get_classes_scores_at(res['recall'], area='large', max_dets=100), close_to(0.549, 0.001))
 
-    # unrelated to coco but needed to check another param
+    # unrelated to pycoco but needed to check another param
     assert_that(metric.get_classes_scores_at(res['recall'], area='large', max_dets=100, get_mean_val=False,
                 zeroed_negative=False), has_items([-1]))
     assert_that(metric.get_classes_scores_at(res['recall'], get_mean_val=False, zeroed_negative=False), has_items([-1]))
