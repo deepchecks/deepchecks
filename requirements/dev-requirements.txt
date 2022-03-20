@@ -9,8 +9,7 @@ flake8-rst
 
 pytest 
 pytest-cov
-pytest-xdist
-pyhamcrest 
+pyhamcrest
 nbval 
 coveralls
 tox
