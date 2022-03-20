@@ -12,18 +12,21 @@ on:
   # Manual run
   workflow_dispatch:
 
+env:
+  DEEPCHECKS_DISABLE_LATEST: "true"
+
 jobs:
   # Build the documentation
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout deepchecks
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
 
       - name: Setup Python
         uses: actions/setup-python@v2
-      - name: Set Up Env
-        run: make env
+        with:
+          python-version: "3.9"
       - name: Build documentation
         run: make docs
 
