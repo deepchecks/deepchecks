@@ -2,10 +2,10 @@
 Custom Task Tutorial
 ====================
 
-Computer vision is consists of different objectives models are trained for. The desired objective reflects
+Computer vision is an umbrella term for a wide spectrum of objectives models are trained for. These objective reflect
 on the structure of the data and the possible actions on it.
 
-In Deepchecks the first step before running checks is to create an implementation of `VisionData` which
+The first step before running any Deepchecks checks is to create an implementation of `VisionData`, which
 standardize the structure of the data for a given computer vision task.
 
 Some of the checks are agnostic to the specific task and will work on all of them, and some are tied to the
@@ -237,8 +237,8 @@ of `VisionData` class.
           """Convert the batch to a list of images as (H, W, C) 3D numpy array per image."""
           return [tensor.numpy().transpose((1, 2, 0)) for tensor in batch[0]]
 
-Now we are able to run checks that are working only on the image data, since it's in the standard format of
-Deepchecks. For more checks we'll need to define custom properties or metrics.
+Now we are able to run checks that use only the image data, since it's in the standard Deepchecks format
+Deepchecks. In order for additional check types to run, we'll need to define custom properties or metrics.
 
 Implement Custom Properties
 ===========================
@@ -273,8 +273,8 @@ a custom property. For a more in-depth explanation on properties see
 Implement Custom Metric
 =======================
 
-Some checks requires a metric in order to run. When using a custom task you will also have to create a custom
-metric in order for those checks to work, since the built-in metrics does not know to handle your data structure.
+Some checks test the model performance and requires a metric in order to run. When using a custom task you will also have to create a custom
+metric in order for those checks to work, since the built-in metrics don't know to handle your data structure.
 The metrics need to conform to the API of
 `pytorch-ignite <https://pytorch.org/ignite/metrics.html>`_.
 
