@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Class Performance Check
+Class Performance
 ***********************
 This notebooks provides an overview for using and understanding the class performance check.
 
@@ -17,22 +17,12 @@ This notebooks provides an overview for using and understanding the class perfor
   - `Generate data & model <#id1>`__
   - `Run the check <#id2>`__
 
-What is the purpose of the check?
+What Is the Purpose of the Check?
 =================================
 The class performance check evaluates several metrics on the given model and data
-and returns all of the results in a single check. For each task type it has
-default metrics (e.g. precision and recall per class for classification, and AP per
-class for object detection).
+and returns all of the results in a single check.
+The check uses the following default metrics:
 
-In addition to the default metrics, the check supports custom metrics that
-should be implemented using the `torch.ignite.Metric
-<https://pytorch.org/ignite/metrics.html#how-to-create-a-custom-metric>`__.
-These can be passed as a list using the alternative_metrics parameter of the
-check, which will override the default metrics.
-
-
-Which Metrics Are Used?
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 =================  ====================
 Task Type          Property name
 =================  ====================
@@ -41,6 +31,12 @@ Classification     Recall
 Object Detection   `Average Precision <https://manalelaidouni.github.io/Evaluating-Object-Detection-Models-Guide-to-Performance-Metrics.html>`__
 Object Detection   `Average Recall <https://manalelaidouni.github.io/Evaluating-Object-Detection-Models-Guide-to-Performance-Metrics.html>`__
 =================  ====================
+
+In addition to the default metrics, the check supports custom metrics that
+should be implemented using the `torch.ignite.Metric
+<https://pytorch.org/ignite/metrics.html#how-to-create-a-custom-metric>`__ format.
+These can be passed as a list using the alternative_metrics parameter of the
+check, which will override the default metrics.
 
 """
 

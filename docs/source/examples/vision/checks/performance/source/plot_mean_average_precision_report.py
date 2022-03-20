@@ -11,11 +11,14 @@ This notebooks provides an overview for using and understanding the mean average
 * `Run the check <#run-the-check>`__
 * `Define a condition <#define-a-condition>`__
 
-What is the purpose of the check?
+What Is the Purpose of the Check?
 =================================
-The mean average precision report evaluates the mean average precision metric on the
-given model and data. The check only works on object detection as it computes the
-value with the IoU and Area size.
+The Mean Average Precision Report evaluates the
+`mAP metric <https://manalelaidouni.github.io/Evaluating-Object-Detection-Models-Guide-to-Performance-Metrics.html>`__
+on the given model and data, plots the AP on graph, and returns the mAP values per bounding box size category
+(small, medium, large).
+This check only works on the Object Detection task.
+
 """
 
 #%%
@@ -58,7 +61,7 @@ result.value
 #%%
 # Define a condition 
 # ==================
-# We can define a condition that enforce our model's average precision score is not less than
+# We can define a condition that checks whether our model's average precision score is not less than
 # a given threshold
 
 check = MeanAveragePrecisionReport().add_condition_test_average_precision_not_less_than(0.4)
