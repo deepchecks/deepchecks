@@ -369,7 +369,7 @@ test-release: dist test-upload
 
 
 docs: requirements doc-requirements $(DOCS_SRC)
-	cd $(DOCS) && make html SPHINXBUILD=$(SPHINX_BUILD) SPHINXOPTS=$(SPHINXOPTS)
+	cd $(DOCS) && make html SPHINXBUILD=$(SPHINX_BUILD) SPHINXOPTS=$(SPHINXOPTS) 2> docs.error.log
 	@echo ""
 	@echo "++++++++++++++++++++++++"
 	@echo "++++ Build Finished ++++"
