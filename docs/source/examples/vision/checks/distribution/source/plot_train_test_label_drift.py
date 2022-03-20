@@ -125,17 +125,21 @@ import numpy as np
 
 np.random.seed(42)
 
+
 def collate_test(batch):
     modified_batch = []
     for item in batch:
         image, label = item
         if label == 0:
-            if np.random.randint(10) == 0:
+            if np.random.randint(5) == 0:
                 modified_batch.append(item)
+            else:
+                modified_batch.append((image, 1))
         else:
             modified_batch.append(item)
-            
+
     return default_collate(modified_batch)
+
 
 mod_train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=64)
 mod_test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=64, collate_fn=collate_test)
