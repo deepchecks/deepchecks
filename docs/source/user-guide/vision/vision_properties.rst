@@ -16,7 +16,7 @@ Inspecting the distribution of the property's values (e.g. to notice some images
 or that the aspect ratio of images is different between the train and test sets) can help uncover potential problems
 in the way that the datasets were built, or hint about the model's expected performance on unseen data.
 
-Example for specific scenarios which these may come in handy:
+Example for specific scenarios in which measuring properties may come in handy:
 
 #. **Investigating low test performance** - a high drift in certain properties may help you pinpoint the causes of
    the model's lower performance on the test data.
