@@ -63,6 +63,10 @@ class ImagePropertyDrift(TrainTestCheck):
         self.train_properties = defaultdict(list)
         self.test_properties = defaultdict(list)
 
+    def initialize_run(self, context: Context):
+        context.train.assert_image_formatter_valid()
+        context.test.assert_image_formatter_valid()
+
     def update(
         self,
         context: Context,

@@ -361,6 +361,10 @@ class VisionData:
         """Return the number of batches in the dataset dataloader."""
         return len(self._data_loader)
 
+    def assert_image_formatter_valid(self):
+        if not self._has_images:
+            raise DeepchecksValueError('Can\'t run since batch_to_images() was not implemented correctly')
+
     @staticmethod
     def _get_data_loader_copy(data_loader: DataLoader, n_samples: int = None, shuffle: bool = False,
                               random_state: int = None):
