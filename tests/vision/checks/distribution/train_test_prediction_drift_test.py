@@ -147,7 +147,7 @@ def test_with_drift_object_detection_alternative_measurements(coco_train_visiond
     ))
 
 
-def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets, trained_mnist, device):
+def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets, mock_trained_mnist, device):
     # Arrange
     check = TrainTestPredictionDrift().add_condition_drift_score_not_greater_than()
     mod_train_ds, mod_test_ds = mnist_drifted_datasets
@@ -161,7 +161,7 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets, trained_mn
     mod_test_ds.infer_on_batch = infer
 
     # Act
-    result = check.run(mod_train_ds, mod_test_ds, trained_mnist, device=device)
+    result = check.run(mod_train_ds, mod_test_ds, mock_trained_mnist, device=device)
 
     condition_result, *_ = result.conditions_results
 

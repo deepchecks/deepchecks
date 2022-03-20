@@ -29,13 +29,14 @@ from deepchecks.core.errors import DatasetValidationError
 from deepchecks.vision.base_checks import Context
 from deepchecks.vision import ClassificationData, DetectionData
 
+
 def test_vision_context_initialization_for_classification_task(mnist_dataset_train, mnist_dataset_test,
-                                                               trained_mnist, device):
+                                                               mock_trained_mnist, device):
     # Act
     context = Context(
         train=mnist_dataset_train,
         test=mnist_dataset_test,
-        model=trained_mnist,
+        model=mock_trained_mnist,
         model_name='MNIST',
         device=device
     )
@@ -44,7 +45,7 @@ def test_vision_context_initialization_for_classification_task(mnist_dataset_tra
     assert_that(context, has_properties({
         'train': instance_of(ClassificationData),
         'test': instance_of(ClassificationData),
-        'model': same_instance(trained_mnist),
+        'model': same_instance(mock_trained_mnist),
         'model_name': equal_to('MNIST'),
         'device': all_of(
             instance_of(torch.device),
@@ -54,12 +55,12 @@ def test_vision_context_initialization_for_classification_task(mnist_dataset_tra
 
 
 def test_vision_context_initialization_for_object_detection_task(coco_train_visiondata, coco_test_visiondata,
-                                                                 trained_yolov5_object_detection, device):
+                                                                 mock_trained_yolov5_object_detection, device):
     # Act
     context = Context(
         train=coco_train_visiondata,
         test=coco_test_visiondata,
-        model=trained_yolov5_object_detection,
+        model=mock_trained_yolov5_object_detection,
         model_name='COCO',
         device=device
     )
@@ -68,7 +69,7 @@ def test_vision_context_initialization_for_object_detection_task(coco_train_visi
     assert_that(context, has_properties({
         'train': instance_of(DetectionData),
         'test': instance_of(DetectionData),
-        'model': same_instance(trained_yolov5_object_detection),
+        'model': same_instance(mock_trained_yolov5_object_detection),
         'model_name': equal_to('COCO'),
         'device': all_of(
             instance_of(torch.device),
@@ -133,8 +134,8 @@ def test_context_initialization_with_train_dataset_only(coco_train_visiondata):
     Context(model_name="Name", train=coco_train_visiondata)
 
 
-def test_context_initialization_with_model_only(trained_mnist):
-    Context(model_name="Name", model=trained_mnist)
+def test_context_initialization_with_model_only(mock_trained_mnist):
+    Context(model_name="Name", model=mock_trained_mnist)
 
 
 def test_context_initialization_with_broken_model(mnist_dataset_train, mnist_dataset_test):

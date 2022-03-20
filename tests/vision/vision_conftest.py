@@ -42,8 +42,6 @@ __all__ = ['device',
            'mnist_data_loader_test',
            'mnist_dataset_train_imgaug',
            'mnist_dataset_test',
-           'trained_mnist',
-           'trained_yolov5_object_detection',
            'obj_detection_images',
            'coco_train_dataloader',
            'coco_train_visiondata',
@@ -70,19 +68,9 @@ def _hash_image(image):
 
     bits = ''.join(['1' if (px >= avg_pixel) else '0' for px in pixel_data])
     hex_representation = str(hex(int(bits, 2)))[2:][::-1].upper()
-
-    return hex_representation
-
-
-def _hash_batch(batch):
-    md5_hash = md5()
-
-    hashes = [_hash_image(img) for img in batch]
-
-    for h in hashes:
-        md5_hash.update(h.encode())
-
-    return md5_hash.hexdigest()
+    md_5hash = md5()
+    md_5hash.update(hex_representation.encode())
+    return md_5hash.hexdigest()
 
 
 @pytest.fixture(scope='session')
@@ -149,35 +137,36 @@ def mnist_drifted_datasets(mnist_dataset_train, mnist_dataset_test):  # pylint: 
 
 
 @pytest.fixture(scope='session')
-def trained_mnist():
-    # The MNIST model training is not deterministic, so loading a saved version of it for the tests.
-    path = pathlib.Path(__file__).absolute().parent / 'models' / 'mnist.pth'
-    return load_mnist_net_model(pretrained=True, path=path)
-
-
-@pytest.fixture(scope='session')
 def mnist_dataset_train_imgaug():
     """Return MNist dataset as VisionData object."""
     return mnist_dataset_imgaug(train=True)
 
 
 @pytest.fixture(scope='session')
-def trained_yolov5_object_detection(device):  # pylint: disable=redefined-outer-name
-    return load_yolov5_model(device=device)
-
-@pytest.fixture(scope='session')
 def mock_trained_mnist(device):  # pylint: disable=redefined-outer-name
-
     class MockMnist:
-        def __call__(self, batch):
-            key = _hash_batch(batch)
+        def __init__(self, real_model):
+            self.real_model = real_model
 
-            return mnist_predictions_dict[key].to(device)
+        def __call__(self, batch):
+            results = []
+            for img in batch:
+                hash_key = _hash_image(img)
+                if hash_key in mnist_predictions_dict:
+                    results.append(mnist_predictions_dict[hash_key])
+                else:
+                    results.append(self.real_model(torch.stack([img]))[0])
+
+            return torch.stack(results).to(device)
 
         def to(self, device):  # pylint: disable=redefined-outer-name,unused-argument
+            self.real_model.to(device)
             return self
 
-    return MockMnist()
+    # The MNIST model training is not deterministic, so loading a saved version of it for the tests.
+    path = pathlib.Path(__file__).absolute().parent / 'models' / 'mnist.pth'
+    loaded_model = load_mnist_net_model(pretrained=True, path=path)
+    return MockMnist(loaded_model)
 
 
 @pytest.fixture(scope='session')
@@ -188,15 +177,26 @@ def mock_trained_yolov5_object_detection(device):  # pylint: disable=redefined-o
             self.pred = dets
 
     class MockYolo():
-        def __call__(self, batch):
-            key = _hash_batch(batch)
+        def __init__(self, real_model):
+            self.real_model = real_model
 
-            return MockDetections([x.to(device) for x in coco_detections_dict[key]])
+        def __call__(self, batch):
+            results = []
+            for img in batch:
+                hash_key = _hash_image(img)
+                if hash_key in coco_detections_dict:
+                    results.append(coco_detections_dict[hash_key])
+                else:
+                    results.append(self.real_model([img]).pred[0])
+
+            return MockDetections([x.to(device) for x in results])
 
         def to(self, device):  # pylint: disable=redefined-outer-name,unused-argument
+            self.real_model.to(device)
             return self
 
-    return MockYolo()
+    loaded_model = load_yolov5_model(device=device)
+    return MockYolo(loaded_model)
 
 
 @pytest.fixture(scope='session')
