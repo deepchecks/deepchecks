@@ -65,9 +65,9 @@ class SimpleFeatureContribution(TrainTestCheck):
         List of properties. Replaces the default deepchecks properties.
         Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
         representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'
-    per_class : bool, default: False
+    per_class : bool, default: True
         boolean that indicates whether the results of this check should be calculated for all classes or per class in
-        label
+        label. If True, the conditions will be run per class as well.
     n_top_properties: int, default: 5
         Number of features to show, sorted by the magnitude of difference in PPS
     ppscore_params: dict, default: None
@@ -78,7 +78,7 @@ class SimpleFeatureContribution(TrainTestCheck):
             self,
             alternative_image_properties: Dict[str, Callable] = None,
             n_top_properties: int = 3,
-            per_class: bool = False,
+            per_class: bool = True,
             ppscore_params: dict = None
     ):
         super().__init__()
@@ -183,7 +183,9 @@ class SimpleFeatureContribution(TrainTestCheck):
         """Add new condition.
 
         Add condition that will check that difference between train
-        dataset property pps and test dataset property pps is not greater than X.
+        dataset property pps and test dataset property pps is not greater than X. If per_class is True, the condition
+        will apply per class, and a single class with pps difference greater than X will be enough to fail the
+        condition.
 
         Parameters
         ----------
@@ -223,7 +225,9 @@ class SimpleFeatureContribution(TrainTestCheck):
     def add_condition_feature_pps_in_train_not_greater_than(self: SFC, threshold: float = 0.2) -> SFC:
         """Add new condition.
 
-        Add condition that will check that train dataset property pps is not greater than X.
+        Add condition that will check that train dataset property pps is not greater than X. If per_class is True, the
+        condition will apply per class, and a single class with pps greater than X will be enough to fail the
+        condition.
 
         Parameters
         ----------

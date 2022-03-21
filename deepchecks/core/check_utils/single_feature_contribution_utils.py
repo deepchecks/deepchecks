@@ -105,7 +105,8 @@ def get_single_feature_contribution(train_df: pd.DataFrame, train_label_name: Op
 def get_single_feature_contribution_per_class(train_df: pd.DataFrame, train_label_name: Optional[Hashable],
                                               test_df: pd.DataFrame,
                                               test_label_name: Optional[Hashable], ppscore_params: dict,
-                                              n_show_top: int):
+                                              n_show_top: int,
+                                              min_pps_to_show: float = 0.05):
     """
     Calculate the PPS for train, test and difference for single feature contribution checks per class.
 
@@ -127,6 +128,8 @@ def get_single_feature_contribution_per_class(train_df: pd.DataFrame, train_labe
             dictionary of additional parameters for the ppscore predictor function
         n_show_top: int
             Number of features to show, sorted by the magnitude of difference in PPS
+        min_pps_to_show: float, default 0.05
+            Minimum PPS to show a class in the graph
 
     Returns:
         CheckResult
@@ -173,8 +176,10 @@ def get_single_feature_contribution_per_class(train_df: pd.DataFrame, train_labe
                               'train-test difference': s_difference.to_dict()}
 
         # If not all results are 0, plot add to display:
-        if any(s_train > 0.05) or any(s_test > 0.05):
-            s_difference_to_display = np.abs(s_difference).apply(lambda x: 0 if x < 0 else x)
+        if any(s_train > min_pps_to_show) or any(s_test > min_pps_to_show):
+            s_train_to_display = s_train.apply(lambda x: 0 if x < min_pps_to_show else x)
+            s_test_to_display = s_test.apply(lambda x: 0 if x < min_pps_to_show else x)
+            s_difference_to_display = s_difference[s_train_to_display.value | s_test_to_display.value]
             s_difference_to_display = s_difference_to_display.sort_values(ascending=False).head(n_show_top)
 
             s_train_to_display = s_train[s_difference_to_display.index]
