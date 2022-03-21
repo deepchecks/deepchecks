@@ -102,5 +102,7 @@ def test_base_check_raise_not_implemented():
 
 
 def test_initialize_run():
+    # Act Assert
     assert_that(SingleDatasetCheck().initialize_run(None, None), is_(None))
+    assert_that(TrainTestCheck().initialize_run(None), is_(None))
     assert_that(ModelOnlyCheck().initialize_run(None), is_(None))

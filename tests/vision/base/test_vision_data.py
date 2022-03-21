@@ -339,6 +339,11 @@ def test_detection_data_bad_implementation():
     assert_that(calling(detection_data.validate_label).with_args([torch.Tensor([])]),
                 raises(DeepchecksValueError,
                        'Check requires object detection label to be a list of 2D tensors'))
+    assert_that(calling(detection_data.validate_label).with_args([torch.Tensor([[1,2],[1,2]])]),
+                raises(DeepchecksValueError,
+                       'Check requires object detection label to be a list of 2D tensors, when '
+                       'each row has 5 columns: \[class_id, x, y, width, height\]'))
+
 
     assert_that(calling(detection_data.validate_prediction).with_args(7, None, None),
                 raises(ValidationError,
@@ -352,3 +357,8 @@ def test_detection_data_bad_implementation():
     assert_that(calling(detection_data.validate_prediction).with_args([torch.Tensor([])], None, None),
                 raises(ValidationError,
                        'Check requires detection predictions to be a list of 2D tensors'))
+    assert_that(calling(detection_data.validate_prediction).with_args([torch.Tensor([[1,2],[1,2]])], None, None),
+                raises(ValidationError,
+                       'Check requires detection predictions to be a list of 2D tensors, when '
+                       'each row has 6 columns: \[x, y, width, height, class_probability, class_id\]'))
+
