@@ -144,7 +144,8 @@ def calc_drift_and_plot(train_column: pd.Series, test_column: pd.Series, value_n
         score = psi(expected_percents=expected_percents, actual_percents=actual_percents)
 
         bar_traces, bar_x_axis, bar_y_axis = drift_score_bar_traces(score, bar_max=1)
-        dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(train_dist, test_dist, value_name, is_categorical=True,
+        dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(train_dist, test_dist, value_name,
+                                                                            is_categorical=True,
                                                                             max_num_categories=max_num_categories)
     else:
         # Should never reach here
