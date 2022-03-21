@@ -291,10 +291,3 @@ def test_data_at_batch_of_index(mnist_dataset_train):
     # Assert
     assert torch.equal(batch[0], single_batch[0])
     assert torch.equal(batch[1], single_batch[1])
-
-
-def test_validate_format(mnist_dataset_train, mock_trained_mnist):
-
-    # Act & Assert
-    assert_that(calling(mnist_dataset_train.validate_format).with_args(mock_trained_mnist),
-                not_(raises(DeepchecksValueError)))
