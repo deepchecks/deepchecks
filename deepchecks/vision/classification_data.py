@@ -11,10 +11,8 @@
 """The vision/dataset module containing the vision Dataset class and its functions."""
 from abc import abstractmethod
 import logging
-from typing import List, Optional, Dict, Union
-
+from typing import List, Union
 import torch
-from torch.utils.data import DataLoader
 
 from deepchecks.core.errors import DeepchecksNotImplementedError, ValidationError
 from deepchecks.vision.vision_data import VisionData, TaskType
