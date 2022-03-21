@@ -7,15 +7,18 @@ This notebooks provides an overview for using and understanding the vision predi
 **Structure:**
 
 * `What is a prediction drift? <#what-is-a-prediction-drift>`__
+* `Which Prediction Properties Are Used? <#which-prediction-properties-are-used>`__
 * `Run check on a Classification task <#run-the-check-on-a-classification-task-mnist>`__
 * `Run check on an Object Detection task <#run-the-check-on-an-object-detection-task-coco>`__
 
-What is a prediction drift?
+What Is a Prediction Drift?
 ===========================
 The term drift (and all it's derivatives) is used to describe any change in the data compared
 to the data the model was trained on. Prediction drift refers to the case in which a change
 in the data (data/feature drift) has happened and as a result, the distribution of the
-models' prediction has changed. Calculating prediction drift is especially useful in cases
+models' prediction has changed.
+
+Calculating prediction drift is especially useful in cases
 in which labels are not available for the test dataset, and so a drift in the predictions
 is out only indication that a changed has happened in the data that actually affects model
 predictions. If labels are available, it's also recommended to run the `Label Drift Check
@@ -23,49 +26,47 @@ predictions. If labels are available, it's also recommended to run the `Label Dr
 
 There are two main causes for prediction drift:
 
-* Change in the sample population. In this case, the underline phenomenon we're trying
-  to predict behaves the same, but we're not getting the same types of samples. An example
-  for that is seasonal changes that cause a changes in the brightness of the images we're
-  receiving for inference. In extreme, this kind of change may take us into domains that
-  the model was not trained to function in and may degrade model performance. Even if
-  that is not the case, just changing the population can result in a prediction drift if
-  the different population receive different model predictions.
-* Concept drift, which is a case in which the underline relation between the data and 
-  the label has changed. That case, also of greater interest to us, won't necessarily
-  result in prediction drift but it may be accompanied with a multivariate change in
-  the data distribution which will affect model predictions.
+* A change in the sample population. In this case, the underline phenomenon we're trying
+  to predict behaves the same, but we're not getting the same types of samples. For example,
+  cronuts becoming more popular in a food classification dataset.
+* Concept drift, which means that the underline relation between the data and
+  the label has changed.
+  For example, the arctic hare changes its fur color during the winter. A dataset that was trained on summertime hares,
+  would have difficulty identifying them in winter.
+  Important to note that concept drift won't necessarily result in prediction drift, unless it affects features that
+  are of high importance to the model.
 
-In the context of machine learning, drift between the training set and the test set will
-likely make the model to be prone to errors. In other words, this means that the model
-was trained on data that is different from the current test data, thus it will probably
-make more mistakes predicting the target variable.
+How Does the TrainTestPredictionDrift Check Work?
+=================================================
+There are many methods to detect drift, that usually include statistical methods
+that aim to measure difference between 2 distributions.
+We experimented with various approaches and found that for detecting drift between 2
+one-dimensional distributions, the following 2 methods give the best results:
 
-How deepchecks detects prediction drift
----------------------------------------
-There are many methods to detect drift between two distributions, that usually include
-statistical methods that aim to measure difference between distribution of 2 given
-sets of predictions. We experimented with various approaches and found that for
-detecting drift between 2 one-dimensional distribution, the following 2 methods give
-the best results:
+* For numerical features, the `Population Stability Index (PSI) <https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf>`__
+* For categorical features, the `Wasserstein Distance (Earth Mover's Distance) <https://en.wikipedia.org/wiki/Wasserstein_metric>`__
 
-* `Population Stability Index (PSI) <https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf>`__
-* `Wasserstein metric (Earth Movers Distance) <https://en.wikipedia.org/wiki/Wasserstein_metric>`__
-
-For numerical features, the check uses the Earth Movers Distance method and for the categorical
-features it uses the PSI. The check calculates drift between train dataset and test dataset
-per feature, using these 2 statistical measures.
+However, one does not simply measure drift on a prediction, as they may be complex structures. These methods are
+implemented on label properties, as described in the next section.
 
 Different measurement on predictions
 ====================================
-In computer vision specifically, our predictions may be complex, and measuring their
-drift is not a straightforward task (for example, object detection predictions are
-bounding boxes). Therefore, we calculate drift on different measures on labels. For now,
-in deepchecks, we support these measurements (on which we calculate drift):
+In computer vision specifically, our predictions may be complex, and measuring their drift
+is not a straightforward task. Therefore, we calculate drift on different properties of the
+labels, on which we can directly measure drift.
 
-* For both classification and object detection tasks, we calculate drift in the
-  distribution of classes.
-* For object detection tasks, we also calculate drift in the distribution of bounding box
-  areas and distribution of number of bounding boxes per image.
+
+Which Prediction Properties Are Used?
+=================================
+================  ===================================  ==========
+Task Type         Property name                        What is it
+================  ===================================  ==========
+Classification    Samples Per Class                    Number of images per class
+Object Detection  Samples Per Class                    Number of bounding boxes per class
+Object Detection  Bounding Box Area                    Area of bounding box (height * width)
+Object Detection  Number of Bounding Boxes Per Image   Number of bounding box objects in each image
+================  ===================================  ==========
+
 
 Run the check on a Classification task (MNIST)
 ==============================================

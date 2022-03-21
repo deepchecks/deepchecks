@@ -21,9 +21,9 @@ __all__ = ['default_image_properties',
            'area',
            'brightness',
            'rms_contrast',
-           'normalized_red_mean',
-           'normalized_blue_mean',
-           'normalized_green_mean',
+           'mean_red_relative_intensity',
+           'mean_blue_relative_intensity',
+           'mean_green_relative_intensity',
            'get_size',
            'get_dimension',
            'validate_properties',
@@ -56,19 +56,19 @@ def rms_contrast(batch: List[np.array]) -> List[float]:
     return [img.std() for img in batch]
 
 
-def normalized_red_mean(batch: List[np.ndarray]) -> List[float]:
-    """Return the normalized mean of the red channel."""
-    return [x[0] for x in _normalized_rgb_mean(batch)]
+def mean_red_relative_intensity(batch: List[np.ndarray]) -> List[float]:
+    """Return the mean of the red channel relative intensity."""
+    return [x[0] for x in _rgb_relative_intensity_mean(batch)]
 
 
-def normalized_green_mean(batch: List[np.ndarray]) -> List[float]:
-    """Return the normalized mean of the green channel."""
-    return [x[1] for x in _normalized_rgb_mean(batch)]
+def mean_green_relative_intensity(batch: List[np.ndarray]) -> List[float]:
+    """Return the mean of the green channel relative intensity."""
+    return [x[1] for x in _rgb_relative_intensity_mean(batch)]
 
 
-def normalized_blue_mean(batch: List[np.ndarray]) -> List[float]:
-    """Return the normalized mean of the blue channel."""
-    return [x[2] for x in _normalized_rgb_mean(batch)]
+def mean_blue_relative_intensity(batch: List[np.ndarray]) -> List[float]:
+    """Return the mean of the blue channel relative intensity."""
+    return [x[2] for x in _rgb_relative_intensity_mean(batch)]
 
 
 def _sizes(batch: List[np.ndarray]):
@@ -76,7 +76,7 @@ def _sizes(batch: List[np.ndarray]):
     return [get_size(img) for img in batch]
 
 
-def _normalized_rgb_mean(batch: List[np.ndarray]) -> List[Tuple[float, float, float]]:
+def _rgb_relative_intensity_mean(batch: List[np.ndarray]) -> List[Tuple[float, float, float]]:
     """Calculate normalized mean for each channel (rgb) in image.
 
     The normalized mean of each channel is calculated by first normalizing the image's pixels (meaning, each color
@@ -139,9 +139,9 @@ default_image_properties = [
     {'name': 'Area', 'method': area, 'output_type': 'continuous'},
     {'name': 'Brightness', 'method': brightness, 'output_type': 'continuous'},
     {'name': 'RMS Contrast', 'method': rms_contrast, 'output_type': 'continuous'},
-    {'name': 'Normalized Red Mean', 'method': normalized_red_mean, 'output_type': 'continuous'},
-    {'name': 'Normalized Blue Mean', 'method': normalized_blue_mean, 'output_type': 'continuous'},
-    {'name': 'Normalized Green Mean', 'method': normalized_green_mean, 'output_type': 'continuous'}
+    {'name': 'Mean Red Relative Intensity', 'method': mean_red_relative_intensity, 'output_type': 'continuous'},
+    {'name': 'Mean Green Relative Intensity', 'method': mean_blue_relative_intensity, 'output_type': 'continuous'},
+    {'name': 'Mean Blue Relative Intensity', 'method': mean_green_relative_intensity, 'output_type': 'continuous'}
 ]
 
 

@@ -57,4 +57,4 @@ check.run(coco_data, model)
 
 #%%
 # In this case the condition identified under-performing segments in the
-# properties: normalized_blue_mean, brightness, aspect_ratio, normalized_red_mean
+# properties: mean_blue_relative_intensity, brightness, aspect_ratio, mean_red_relative_intensity

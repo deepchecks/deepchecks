@@ -7,6 +7,7 @@ This notebooks provides an overview for using and understanding the vision label
 **Structure:**
 
 * `What is a label drift? <#what-is-a-label-drift>`__
+* `Which Label Properties Are Used? <#which-label-properties-are-used>`__
 * `Run check on a Classification task <#run-the-check-on-a-classification-task-mnist>`__
 * `Run check on an Object Detection task <#run-the-check-on-an-object-detection-task-coco>`__
 
@@ -18,48 +19,41 @@ changes in the label we are trying to predict.
 
 Causes of label drift include:
 
-* Natural drift in the data, such as lighting (brightness) changes between summer and winter.
+* Natural drift in the data, such as a certain class becoming more prevalent in the test set.
+  For example, cronuts becoming more popular in a food classification dataset.
 * Labeling issues, such as an analyst drawing incorrect bounding boxes for an object
   detection task.
 
-It may be the case that the change in the distribution of the label is due solely
-to a change in the type of samples we're receiving (for example, we're now getting
-more images of bright days) or it could be due to concept drift, which is a term used
-to describe a situation in which the relation between the data and the target has
-changed (for example, Covid has caused less people to be outside even in bright images).
-The latter type of drift between the training set and the test set will likely make the
-model to be prone to errors because the function that the model is trying to approximate
-has changed, and the first may also lead to a change in the performance due to different
-populations of samples being present in the data or due to trying to predict on outlier
-samples for which the model was not fitted. For both cases, checking for drift in the
-label variable between the train and test datasets may serve to notify us that such a
-phenomenon is occurring.
+How Does the TrainTestLabelDrift Check Work?
+============================================
+There are many methods to detect drift, that usually include statistical methods
+that aim to measure difference between 2 distributions.
+We experimented with various approaches and found that for detecting drift between 2
+one-dimensional distributions, the following 2 methods give the best results:
 
-How deepchecks detects label drift
-----------------------------------
-There are many methods to detect label drift, that usually include statistical methods
-that aim to measure difference between distribution of 2 given label sets. We
-experimented with various approaches and found that for detecting drift between 2
-one-dimensional distribution, the following 2 methods give the best results:
+* For numerical features, the `Population Stability Index (PSI) <https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf>`__
+* For categorical features, the `Wasserstein Distance (Earth Mover's Distance) <https://en.wikipedia.org/wiki/Wasserstein_metric>`__
 
-* `Population Stability Index (PSI) <https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf>`__
-* `Wasserstein metric (Earth Movers Distance) <https://en.wikipedia.org/wiki/Wasserstein_metric>`__
+However, one does not simply measure drift on a label, as they may be complex structures. These methods are implemented
+on label properties, as described in the next section.
 
-For numerical features, the check uses the Earth Movers Distance method and for the
-categorical features it uses the PSI. The check calculates drift between train dataset
-and test dataset per feature, using these 2 statistical measures.
-
-Different measurement on label
-==============================
+Using Label Properties to Detect Label Drift
+--------------------------------------------
 In computer vision specifically, our labels may be complex, and measuring their drift
-is not a straightforward task. Therefore, we calculate drift on different measures on
-labels. For now, in deepchecks, we support these measurements (on which we calculate
-drift):
+is not a straightforward task. Therefore, we calculate drift on different properties of the
+labels, on which we can directly measure drift.
 
-* For both classification and object detection tasks, we calculate drift in the
-  distribution of classes.
-* For object detection tasks, we also calculate drift in the distribution of bounding
-  box areas and distribution of number of bounding boxes per image.
+Which Label Properties Are Used?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+================  ===================================  ==========
+Task Type         Property name                        What is it
+================  ===================================  ==========
+Classification    Samples Per Class                    Number of images per class
+Object Detection  Samples Per Class                    Number of bounding boxes per class
+Object Detection  Bounding Box Area                    Area of bounding box (height * width)
+Object Detection  Number of Bounding Boxes Per Image   Number of bounding box objects in each image
+================  ===================================  ==========
+
 
 Run the check on a Classification task (MNIST)
 ==============================================

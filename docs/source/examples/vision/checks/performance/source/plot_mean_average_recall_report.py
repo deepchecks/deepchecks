@@ -13,9 +13,10 @@ This notebooks provides an overview for using and understanding the mean average
 
 What is the purpose of the check?
 =================================
-The mean average recall report evaluates the mean average recall metric on the given model
-and data. The check only works on object detection as it computes the value with the
-detections per image amount and Area size.
+The Mean Average Recall Report evaluates the
+`mAR metric <https://manalelaidouni.github.io/Evaluating-Object-Detection-Models-Guide-to-Performance-Metrics.html>`__
+on the given model and data, and returns the mAR values per bounding box size category (small, medium, large).
+This check only works on the Object Detection task.
 """
 
 #%%
@@ -58,7 +59,7 @@ result.value
 #%%
 # Define a condition 
 # ==================
-# We can define a condition that enforce our model's average recall score is not less than
+# We can define a condition that checks whether our model's average recall score is not less than
 # a given threshold
 
 check = MeanAverageRecallReport().add_condition_test_average_recall_not_less_than(0.4)
