@@ -100,7 +100,7 @@ def load_dataset(
 class SimpleClassificationDataset(VisionDataset):
     """Simple VisionDataset type for the classification tasks.
 
-    Current class expects that data within root folder
+    The current class expects that data within the root folder
     will be structured in a next way:
 
         - root/
@@ -167,13 +167,24 @@ class SimpleClassificationDataset(VisionDataset):
             v: k
             for k, v in self.classes_map.items()
         })
-
+    
     def __getitem__(self, index: int) -> t.Tuple[pilimage.Image, int]:
         """Get the image and label at the given index."""
         image_file = self.images[index]
         image = cv2.imread(str(image_file))
-        image = pilimage.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
-        return image, self.classes_map[image_file.parent.name]
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        target = self.classes_map[image_file.parent.name]
+
+        if self.transforms is not None:
+            transformed = self.transforms(image=image, target=target)
+            sample, target = transformed["image"], transformed["target"]
+        else:
+            if self.transform is not None:
+                sample = self.transform(image=image)['image']
+            if self.target_transform is not None:
+                target = self.target_transform(target)
+
+        return image, target
 
     def __len__(self) -> int:
         """Return the number of images in the dataset."""
@@ -198,8 +209,3 @@ class SimpleClassificationData(vision.ClassificationData):
         """Extract the labels from a batch of data."""
         _, labels = batch
         return torch.Tensor([l for l in labels])
-
-    def infer_on_batch(self, batch, model, device) -> torch.Tensor:
-        """Return the predictions of the model on a batch of data."""
-        labels = self.batch_to_labels(batch)
-        return model.to(device)(labels.to(device))
