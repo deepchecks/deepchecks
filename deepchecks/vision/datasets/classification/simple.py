@@ -181,7 +181,7 @@ class SimpleClassificationDataset(VisionDataset):
 
 
 class SimpleClassificationData(vision.ClassificationData):
-    """Simple ClassificationData type."""
+    """Simple ClassificationData type, matches the data returned by SimpleClassificationDataset getitem."""
 
     def batch_to_images(
         self,
