@@ -162,12 +162,12 @@ class SimpleClassificationDataset(VisionDataset):
             img.parent.name: index
             for index, img in enumerate(self.images)
         })
-        # class index -> class label
-        self.reverse_classes_map = t.cast(t.Dict[int, str],{
+        # class index -> class  label
+        self.reverse_classes_map = t.cast(t.Dict[int, str], {
             v: k
             for k, v in self.classes_map.items()
         })
-    
+
     def __getitem__(self, index: int) -> t.Tuple[np.ndarray, int]:
         """Get the image and label at the given index."""
         image_file = self.images[index]
@@ -177,10 +177,10 @@ class SimpleClassificationDataset(VisionDataset):
 
         if self.transforms is not None:
             transformed = self.transforms(image=image, target=target)
-            sample, target = transformed["image"], transformed["target"]
+            image, target = transformed['image'], transformed['target']
         else:
             if self.transform is not None:
-                sample = self.transform(image=image)['image']
+                image = self.transform(image=image)['image']
             if self.target_transform is not None:
                 target = self.target_transform(target)
 
@@ -208,4 +208,4 @@ class SimpleClassificationData(vision.ClassificationData):
     ) -> torch.Tensor:
         """Extract the labels from a batch of data."""
         _, labels = batch
-        return torch.Tensor([l for l in labels])
+        return torch.Tensor(list(labels))
