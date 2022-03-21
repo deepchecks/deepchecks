@@ -15,9 +15,9 @@ This notebooks provides an overview for using and understanding robustness repor
 
 How Does the RobustnessReport Check Work?
 ===============================================
-This check performs augmentations on images in the test dataset, and measures the change
+This check performs augmentations on images in the dataset, and measures the change
 in model performance for each augmentation. This is done in order to estimate how well
-the model generalizes on the test dataset.
+the model generalizes on the data.
 
 What Are Image Augmentations?
 ===========================================
