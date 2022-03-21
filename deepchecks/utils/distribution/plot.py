@@ -126,6 +126,8 @@ def feature_distribution_traces(train_column,
         Train data used to trace distribution.
     test_column
         Test data used to trace distribution.
+    column_name
+        The name of the column values on the x axis.
     is_categorical : bool , default: False
         State if column is categorical.
     max_num_categories : int , default: 10

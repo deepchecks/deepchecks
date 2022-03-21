@@ -109,7 +109,7 @@ def calc_drift_and_plot(train_column: pd.Series, test_column: pd.Series, value_n
     test_column : pd.Series
         same column from test dataset
     value_name : Hashable
-        title of plot
+        title of the x axis, if plot_title is None then also the title of the whole plot.
     column_type : str
         type of column (either "numerical" or "categorical")
     plot_title : str or None
