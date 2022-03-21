@@ -70,8 +70,8 @@ class ImagePropertyDrift(TrainTestCheck):
         self.max_num_categories = max_num_categories
         self.classes_to_display = classes_to_display
         self.min_samples = min_samples
-        self.train_properties = defaultdict(list)
-        self.test_properties = defaultdict(list)
+        self._train_properties = defaultdict(list)
+        self._test_properties = defaultdict(list)
 
     def initialize_run(self, context: Context):
         """Initialize self state, and validate the run context."""
@@ -87,9 +87,9 @@ class ImagePropertyDrift(TrainTestCheck):
     ):
         """Calculate image properties for train or test batch."""
         if dataset_kind == DatasetKind.TRAIN:
-            properties = self.train_properties
+            properties = self._train_properties
         elif dataset_kind == DatasetKind.TEST:
-            properties = self.test_properties
+            properties = self._test_properties
         else:
             raise RuntimeError(
                 f'Internal Error - Should not reach here! unknown dataset_kind: {dataset_kind}'
@@ -120,7 +120,7 @@ class ImagePropertyDrift(TrainTestCheck):
             value: dictionary containing drift score for each image property.
             display: distribution graph for each image property.
         """
-        if sorted(self.train_properties.keys()) != sorted(self.test_properties.keys()):
+        if sorted(self._train_properties.keys()) != sorted(self._test_properties.keys()):
             raise RuntimeError('Internal Error! Vision check was used improperly.')
 
         # if self.classes_to_display is set, check that it has classes that actually exist
@@ -132,9 +132,9 @@ class ImagePropertyDrift(TrainTestCheck):
                     f'Provided list of class ids to display {self.classes_to_display} not found in training dataset.'
                 )
 
-        properties = sorted(self.train_properties.keys())
-        df_train = pd.DataFrame(self.train_properties)
-        df_test = pd.DataFrame(self.test_properties)
+        properties = sorted(self._train_properties.keys())
+        df_train = pd.DataFrame(self._train_properties)
+        df_test = pd.DataFrame(self._test_properties)
         if len(df_train) < self.min_samples or len(df_test) < self.min_samples:
             return CheckResult(
                 value=None,
