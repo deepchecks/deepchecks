@@ -10,7 +10,7 @@
 #
 """Module containing robustness report check."""
 from collections import defaultdict
-from typing import TypeVar, List, Optional, Sized, Dict
+from typing import TypeVar, List, Optional, Sized, Dict, Sequence
 
 import imgaug
 import albumentations
@@ -29,7 +29,7 @@ from deepchecks.vision.metrics_utils import calculate_metrics, metric_results_to
 from deepchecks.vision.utils.validation import set_seeds
 from deepchecks.vision.metrics_utils import get_scorers_list
 from deepchecks.utils.strings import format_percent, split_camel_case
-from deepchecks.vision.utils.image_functions import ImageInfo, numpy_to_html_image
+from deepchecks.vision.utils.image_functions import ImageInfo, prepare_thumbnail, draw_bboxes
 
 
 __all__ = ['RobustnessReport']
@@ -50,6 +50,8 @@ class RobustnessReport(SingleDatasetCheck):
         A list of augmentations to test on the data. If none are given default augmentations are used.
         Supported augmentations are of albumentations and imgaug.
     """
+
+    _THUMBNAIL_SIZE = (200, 200)
 
     def __init__(self,
                  alternative_metrics: Optional[Dict[str, Metric]] = None,
@@ -93,7 +95,7 @@ class RobustnessReport(SingleDatasetCheck):
         # TODO: update later the way we handle average metrics
 
         # Return dict of metric to value
-        base_mean_results: dict = self._calc_median_metrics(base_results)
+        base_mean_results: dict = self._calc_mean_metrics(base_results)
         # Get augmentations
         augmentations = self.augmentations or transforms_handler.get_robustness_augmentations(dataset.data_dimension)
         aug_all_data = {}
@@ -217,13 +219,13 @@ class RobustnessReport(SingleDatasetCheck):
             return (aug_score - base_score) / base_score
 
         diff_dict = {}
-        for metric, score in self._calc_median_metrics(augmented_metrics).items():
+        for metric, score in self._calc_mean_metrics(augmented_metrics).items():
             diff_dict[metric] = {'score': score, 'diff': difference(score, mean_base[metric])}
 
         return diff_dict
 
-    def _calc_median_metrics(self, metrics_df) -> dict:
-        metrics_df = metrics_df[['Metric', 'Value']].groupby(['Metric']).median()
+    def _calc_mean_metrics(self, metrics_df: pd.DataFrame) -> dict:
+        metrics_df = metrics_df[['Metric', 'Value']].groupby(['Metric']).mean()
         return metrics_df.to_dict()['Value']
 
     def _create_augmentation_figures(self, dataset, base_mean_results, aug_all_data):
@@ -247,23 +249,44 @@ class RobustnessReport(SingleDatasetCheck):
                 figures.append('<hr style="background-color:#2a3f5f; height:5px">')
         return figures
 
-    def _create_example_figure(self, dataset: VisionData, images, aug_name):
-        html_classes = ''
-        html_base_images = ''
-        html_aug_images = ''
+    def _create_example_figure(self, dataset: VisionData, images, aug_name: str):
+        classes = []
+        base_images = []
+        aug_images = []
 
         for sample in images:
             base_image = sample[0]
             aug_image = sample[1]
             class_name = dataset.label_id_to_name(sample[2])
-            bboxes = sample[3] if len(sample) == 4 else (None, None)
+            classes.append(f'<h4>{class_name}</h4>')
 
-            html_base_images += f'<div class="item image-div">{numpy_to_html_image(base_image, labels=bboxes[0])}</div>'
-            html_aug_images += f'<div class="item image-div">{numpy_to_html_image(aug_image, labels=bboxes[1])}</div>'
-            html_classes += f'<h4 class="item class-div">{class_name}</h4>'
+            if len(sample) == 4:
+                base_image_bboxes, aug_image_bboxes = sample[3]
+                base_image = draw_bboxes(base_image, base_image_bboxes, copy_image=True, border_width=2)
+                aug_image = draw_bboxes(aug_image, aug_image_bboxes, copy_image=True, border_width=2)
 
-        return HTML_TEMPLATE.format(class_names=html_classes, base_images=html_base_images, aug_images=html_aug_images,
-                                    aug_name=aug_name)
+            base_images.append(prepare_thumbnail(
+                image=base_image,
+                size=self._THUMBNAIL_SIZE,
+                copy_image=False
+            ))
+            aug_images.append(prepare_thumbnail(
+                image=aug_image,
+                size=self._THUMBNAIL_SIZE,
+                copy_image=False
+            ))
+
+        classes = ''.join(classes)
+        base_images_thumbnails = ''.join(base_images)
+        aug_images_thumbnails = ''.join(aug_images)
+
+        return HTML_TEMPLATE.format(
+            aug_name=aug_name,
+            classes=classes,
+            n_of_images=len(base_images),
+            base_images=base_images_thumbnails,
+            aug_images=aug_images_thumbnails,
+        )
 
     def _create_performance_graph(self, base_scores: dict, augmented_scores: dict):
         metrics = sorted(list(base_scores.keys()))
@@ -331,117 +354,61 @@ def augmentation_name(aug):
 def get_random_image_pairs_from_dataset(original_dataset: VisionData,
                                         augmented_dataset: VisionData,
                                         top_affected_classes: dict):
-    """Get image pairs from 2 datasets.
-
-    We iterate the internal dataset object directly to avoid randomness
-    Dataset returns data points as processed images, making this currently not really usable
-    To avoid making more assumptions this currently stays as-is
-    Note that images return in RGB format, ond to visualize them using OpenCV the final dimension should be
-    transposed;
-    can be done via image = image[:, :, ::-1] or cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-    """
+    """Get image pairs from 2 datasets."""
     classes_to_show = {
         class_info['class']: class_info['diff']
         for classes_list in top_affected_classes.values()
         for class_info in classes_list
     }
 
-    baseline_sampler = iter(original_dataset.data_loader.dataset)
-    aug_sampler = iter(augmented_dataset.data_loader.dataset)
+    # Sorting classes by diff value
+    classes = [k for k, v in sorted(classes_to_show.items(), key=lambda item: item[1])]
     samples = []
-    # Will use the diff value to sort by highest diff first
-    sort_value = []
-    classes_set = set(classes_to_show.keys())
-    # iterate and sample
-    for (sample_base, sample_aug) in zip(baseline_sampler, aug_sampler):
-        if not classes_set:
-            break
 
+    for class_id in classes:
+        # Takes the dataset index of a sample of the given class. The order in the dataset is equal for both original
+        # and augmented dataset, so can use it on both
+        dataset_class_index = original_dataset.classes_indices[class_id][0]
+
+        sample_base = original_dataset.data_loader.dataset[dataset_class_index]
+        sample_aug = augmented_dataset.data_loader.dataset[dataset_class_index]
         batch = original_dataset.to_batch(sample_base, sample_aug)
-        batch_label: torch.Tensor = original_dataset.batch_to_labels(batch)
-        images: List[np.ndarray] = original_dataset.batch_to_images(batch)
-        base_label: torch.Tensor = batch_label[0]
-        aug_label: torch.Tensor = batch_label[1]
+        images: Sequence[np.ndarray] = original_dataset.batch_to_images(batch)
+
         if original_dataset.task_type == TaskType.OBJECT_DETECTION:
-            # Classes are the first item in the label
-            all_classes_in_label = set(
-                base_label[:, 0].tolist() if len(base_label) > 0 else []
-            )
-            # If not relevant classes continue
-            intersect = all_classes_in_label.intersection(classes_set)
-            if not intersect:
-                continue
-            # Take randomly first class which will represents the current image
-            curr_class = next(iter(intersect))
+            batch_label: torch.Tensor = original_dataset.batch_to_labels(batch)
+            base_label: torch.Tensor = batch_label[0]
+            aug_label: torch.Tensor = batch_label[1]
             # Take only bboxes of this class
-            base_class_label = [x for x in base_label if x[0] == curr_class]
-            aug_class_label = [x for x in aug_label if x[0] == curr_class]
-            samples.append((images[0], images[1], curr_class, (base_class_label, aug_class_label)))
+            base_class_label = [x for x in base_label if x[0] == class_id]
+            aug_class_label = [x for x in aug_label if x[0] == class_id]
+            samples.append((images[0], images[1], class_id, (base_class_label, aug_class_label)))
         elif original_dataset.task_type == TaskType.CLASSIFICATION:
-            curr_class = base_label.item()
-            if curr_class not in classes_set:
-                continue
-            samples.append((images[0], images[1], curr_class))
+            samples.append((images[0], images[1], class_id))
         else:
             raise DeepchecksValueError('Not implemented')
 
-        # Add the sort value to sort later images by difference
-        sort_value.append(classes_to_show[curr_class])
-        # Remove from the classes set to not take another sample of the same class
-        classes_set.remove(curr_class)
-
-    # Sort by diff but return only the tuple
-    return [s for s, _ in sorted(zip(samples, sort_value), key=lambda pair: pair[1])]
+    return samples
 
 
 HTML_TEMPLATE = """
-<style>
-    .container {{
+<h3><b>Augmentation "{aug_name}"</b></h3>
+<div
+    style="
         overflow-x: auto;
-        display: flex;
-        flex-direction: column;
-    }}
-
-    .row {{
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-    }}
-
-    .item {{
-      flex: 1;
-      min-width: 200px;
-      position: relative;
-      word-wrap: break-word;
-    }}
-
-    .image-div {{
-      min-height: 200px;
-    }}
-
-    .class-div {{
-      text-align: center;
-    }}
-
-    h4 {{
-        font-family: "Open Sans", verdana, arial, sans-serif;
-        color: #2a3f5f
-    }}
-
-</style>
-<h4><b>Augmentation "{aug_name}"</b></h4>
-<div class="container">
-    <div class="row">
-        <h4 class="item">Class</h4>
-        {class_names}
-    </div>
-    <div class="row">
-        <h4 class="item">Base Image</h4>
-        {base_images}
-    </div>
-    <div class="row">
-        <h4 class="item">Augmented Image</h4>
-        {aug_images}
-    </div>
+        display: grid;
+        grid-template-rows: auto 1fr 1fr;
+        grid-template-columns: auto repeat({n_of_images}, 1fr);
+        grid-gap: 1.5rem;
+        justify-items: center;
+        align-items: center;
+        padding: 2rem;
+        width: max-content;">
+    <h4>Class</h4>
+    {classes}
+    <h4>Base Image</h4>
+    {base_images}
+    <h4>Augmented Image</h4>
+    {aug_images}
 </div>
 """

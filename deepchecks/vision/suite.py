@@ -104,16 +104,11 @@ class Suite(BaseSuite):
         non_single_checks = {k: check for k, check in self.checks.items() if not isinstance(check, SingleDatasetCheck)}
 
         # Initialize here all the checks that are not single dataset, since those are initialized inside the update loop
-        if non_single_checks:
-            progress_bar = ProgressBar('Initializing Checks', len(non_single_checks), unit='Check')
-            all_pbars.append(progress_bar)
-            for index, check in non_single_checks.items():
-                progress_bar.set_text(check.name())
-                try:
-                    check.initialize_run(context)
-                except Exception as exp:
-                    results[index] = CheckFailure(check, exp)
-                progress_bar.inc_progress()
+        for index, check in non_single_checks.items():
+            try:
+                check.initialize_run(context)
+            except Exception as exp:
+                results[index] = CheckFailure(check, exp)
 
         if train_dataset is not None:
             self._update_loop(
@@ -167,28 +162,29 @@ class Suite(BaseSuite):
         progress_bars: List
     ):
         type_suffix = ' - Test Dataset' if dataset_kind == DatasetKind.TEST else ' - Train Dataset'
-        data_loader = context.get_data_by_kind(dataset_kind)
-        n_batches = len(data_loader)
+        vision_data = context.get_data_by_kind(dataset_kind)
+        n_batches = len(vision_data)
         single_dataset_checks = {k: check for k, check in self.checks.items() if isinstance(check, SingleDatasetCheck)}
 
         # SingleDatasetChecks have different handling, need to initialize them here (to have them ready for different
         # dataset kind)
-        if single_dataset_checks:
-            progress_bar = ProgressBar('Initializing Checks' + type_suffix, len(single_dataset_checks), unit='Check')
-            progress_bars.append(progress_bar)
-            for idx, check in single_dataset_checks.items():
-                progress_bar.set_text(check.name())
-                try:
-                    check.initialize_run(context, dataset_kind=dataset_kind)
-                except Exception as exp:
-                    results[idx] = CheckFailure(check, exp, type_suffix)
-                progress_bar.inc_progress()
+        for idx, check in single_dataset_checks.items():
+            try:
+                check.initialize_run(context, dataset_kind=dataset_kind)
+            except Exception as exp:
+                results[idx] = CheckFailure(check, exp, type_suffix)
+
+        # Init cache of vision_data
+        vision_data.init_cache()
 
         progress_bar = ProgressBar('Ingesting Batches' + type_suffix, n_batches, unit='Batch')
         progress_bars.append(progress_bar)
-        for batch_id, batch in enumerate(data_loader):
+
+        # Run on all the batches
+        for batch_id, batch in enumerate(vision_data):
             progress_bar.set_text(f'{100 * batch_id / (1. * n_batches):.0f}%')
             batch = Batch(batch, context, dataset_kind)
+            vision_data.update_cache(batch.labels)
             for check_idx, check in self.checks.items():
                 # If index in results the check already failed before
                 if check_idx in results:

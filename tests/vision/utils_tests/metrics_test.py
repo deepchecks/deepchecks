@@ -15,28 +15,28 @@ from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePr
 from deepchecks.vision import VisionData
 
 
-def test_default_ap_ignite_complient(coco_test_visiondata: VisionData, trained_yolov5_object_detection, device):
+def test_default_ap_ignite_complient(coco_test_visiondata: VisionData, mock_trained_yolov5_object_detection, device):
     res = calculate_metrics({'AveragePrecision': AveragePrecision()},
-                            coco_test_visiondata, trained_yolov5_object_detection,
+                            coco_test_visiondata, mock_trained_yolov5_object_detection,
                             device=device)
     assert_that(res.keys(), has_length(1))
-    assert_that(res['AveragePrecision'], has_length(59))
+    assert_that(res['AveragePrecision'], has_length(80))
 
 
-def test_ar_ignite_complient(coco_test_visiondata: VisionData, trained_yolov5_object_detection, device):
+def test_ar_ignite_complient(coco_test_visiondata: VisionData, mock_trained_yolov5_object_detection, device):
     res = calculate_metrics({'AveragePrecision': AveragePrecision(return_option=1)},
-                            coco_test_visiondata, trained_yolov5_object_detection,
+                            coco_test_visiondata, mock_trained_yolov5_object_detection,
                             device=device)
 
     assert_that(res.keys(), has_length(1))
-    assert_that(res['AveragePrecision'], has_length(59))
+    assert_that(res['AveragePrecision'], has_length(80))
 
 
-def test_equal_pycocotools(coco_test_visiondata: VisionData, trained_yolov5_object_detection, device):
+def test_equal_pycocotools(coco_test_visiondata: VisionData, mock_trained_yolov5_object_detection, device):
     metric = AveragePrecision(return_option=None)
     for batch in coco_test_visiondata:
         label = coco_test_visiondata.batch_to_labels(batch)
-        prediction = coco_test_visiondata.infer_on_batch(batch, trained_yolov5_object_detection, device)
+        prediction = coco_test_visiondata.infer_on_batch(batch, mock_trained_yolov5_object_detection, device)
         metric.update((prediction, label))
     res = metric.compute()[0]
 
@@ -56,7 +56,7 @@ def test_equal_pycocotools(coco_test_visiondata: VisionData, trained_yolov5_obje
     assert_that(metric.get_classes_scores_at(res['recall'], area='medium', max_dets=100), close_to(0.423, 0.001))
     assert_that(metric.get_classes_scores_at(res['recall'], area='large', max_dets=100), close_to(0.549, 0.001))
 
-    # unrelated to coco but needed to check another param
+    # unrelated to pycoco but needed to check another param
     assert_that(metric.get_classes_scores_at(res['recall'], area='large', max_dets=100, get_mean_val=False,
                 zeroed_negative=False), has_items([-1]))
     assert_that(metric.get_classes_scores_at(res['recall'], get_mean_val=False, zeroed_negative=False), has_items([-1]))

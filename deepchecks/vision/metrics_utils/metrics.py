@@ -11,11 +11,11 @@
 """Module for defining metrics for the vision module."""
 import typing as t
 
+import numpy as np
 import pandas as pd
 import torch
 from ignite.engine import Engine
 from ignite.metrics import Precision, Recall, Metric
-from torch import nn
 
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
@@ -76,8 +76,6 @@ def get_scorers_list(
         scorers = get_default_classification_scorers()
     elif task_type == TaskType.OBJECT_DETECTION:
         scorers = get_default_object_detection_scorers()
-    elif task_type == TaskType.SEMANTIC_SEGMENTATION:
-        scorers = get_default_object_detection_scorers()
     else:
         raise DeepchecksNotSupportedError(f'No scorers match task_type {task_type}')
 
@@ -87,7 +85,7 @@ def get_scorers_list(
 def calculate_metrics(
     metrics: t.Dict[str, Metric],
     dataset: VisionData,
-    model: nn.Module,
+    model: torch.nn.Module,
     device: torch.device
 ) -> t.Dict[str, float]:
     """Calculate a list of ignite metrics on a given model and dataset.
@@ -121,14 +119,24 @@ def calculate_metrics(
     return state.metrics
 
 
+def _validate_metric_type(metric_name: str, score: t.Any) -> bool:
+    """Raise error if metric has incorrect type, or return true."""
+    if not isinstance(score, (torch.Tensor, list, np.ndarray)):
+        raise DeepchecksValueError(f'The metric {metric_name} returned a '
+                                   f'{type(score)} instead of an array/tensor')
+    return True
+
+
 def metric_results_to_df(results: dict, dataset: VisionData) -> pd.DataFrame:
     """Get dict of metric name to tensor of classes scores, and convert it to dataframe."""
     per_class_result = [
         [metric, class_id, dataset.label_id_to_name(class_id),
          class_score.item() if isinstance(class_score, torch.Tensor) else class_score]
         for metric, score in results.items()
+        if _validate_metric_type(metric, score)
         # scorer returns results as array, containing result per class
-        for class_score, class_id in zip(score, sorted(dataset.n_of_samples_per_class.keys()))
+        for class_id, class_score in enumerate(score)
+        if not np.isnan(class_score)
     ]
 
     return pd.DataFrame(per_class_result, columns=['Metric',
