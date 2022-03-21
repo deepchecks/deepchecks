@@ -146,7 +146,7 @@ class TrainTestPredictionDrift(TrainTestCheck):
             value, method, display = calc_drift_and_plot(
                 train_column=pd.Series(self._train_prediction_properties[name]),
                 test_column=pd.Series(self._test_prediction_properties[name]),
-                plot_title=name,
+                value_name=name,
                 column_type=get_column_type(output_type),
                 max_num_categories=self.max_num_categories
             )

@@ -169,6 +169,7 @@ def display_dist(train_column: pd.Series, test_column: pd.Series, fi_ser: pd.Ser
     traces, xaxis_layout, yaxis_layout = \
         feature_distribution_traces(train_column.dropna(),
                                     test_column.dropna(),
+                                    column_name,
                                     is_categorical=column_name in cat_features,
                                     max_num_categories=max_num_categories)
 

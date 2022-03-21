@@ -224,9 +224,8 @@ def _validate_parameters(k_filter, alpha, max_number_categories, min_test_sample
 
 def _display_plot(train_trust_scores, test_trust_scores, percent_to_cut):
     """Display a distribution comparison plot for the given columns."""
-    traces, xaxis, yaxis = feature_distribution_traces(train_trust_scores, test_trust_scores,
+    traces, xaxis, yaxis = feature_distribution_traces(train_trust_scores, test_trust_scores, 'Trust Score',
                                                        quantile_cut=percent_to_cut)
-    xaxis['title'] = 'Trust Score'
 
     figure = go.Figure(layout=go.Layout(
         title='Trust Score Distribution',

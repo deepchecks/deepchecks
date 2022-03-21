@@ -114,6 +114,7 @@ def drift_score_bar_traces(drift_score: float, bar_max: float = None) -> Tuple[L
 
 def feature_distribution_traces(train_column,
                                 test_column,
+                                column_name,
                                 is_categorical: bool = False,
                                 max_num_categories: int = 10,
                                 quantile_cut: float = 0.02) -> Tuple[List[Union[go.Bar, go.Scatter]], Dict, Dict]:
@@ -125,6 +126,8 @@ def feature_distribution_traces(train_column,
         Train data used to trace distribution.
     test_column
         Test data used to trace distribution.
+    column_name
+        The name of the column values on the x axis.
     is_categorical : bool , default: False
         State if column is categorical.
     max_num_categories : int , default: 10
@@ -208,7 +211,7 @@ def feature_distribution_traces(train_column,
 
         xaxis_layout = dict(fixedrange=False,
                             range=x_range_to_show,
-                            title='Value')
+                            title=column_name)
         yaxis_layout = dict(title='Probability Density', fixedrange=True)
 
     return traces, xaxis_layout, yaxis_layout
