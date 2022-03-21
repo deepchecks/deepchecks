@@ -11,7 +11,7 @@
 """The vision/dataset module containing the vision Dataset class and its functions."""
 from abc import abstractmethod
 import logging
-from typing import List, Optional
+from typing import List
 
 import torch
 
