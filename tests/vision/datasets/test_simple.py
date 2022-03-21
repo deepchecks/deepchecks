@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 import pathlib
 from shutil import rmtree
 
@@ -17,7 +27,7 @@ PARENT_FOLDER = pathlib.Path(__file__).absolute().parent
 @pytest.fixture
 def correct_images_folder():
     image = pilimage.fromarray(np.zeros((10, 10, 3), dtype=np.uint8))
-    
+
     images_folder = PARENT_FOLDER / get_random_string()
     images_folder.mkdir()
     (images_folder / "train").mkdir()
@@ -36,7 +46,7 @@ def correct_images_folder():
 @pytest.fixture
 def incorrect_images_folder():
     image = pilimage.fromarray(np.zeros((10, 10, 3), dtype=np.uint8))
-    
+
     images_folder = PARENT_FOLDER / get_random_string()
     images_folder.mkdir()
     (images_folder / "train").mkdir()
@@ -87,7 +97,7 @@ def test_load_simple_classification_vision_data(correct_images_folder):
     images = vision_data.batch_to_images(batches[0])
     labels = vision_data.batch_to_labels(batches[0])
     assert_that(len(images) == 1 and len(labels) == 1)
-    
+
     assert_that(images[0], all_of(
         instance_of(np.ndarray),
         has_property("shape", equal_to((10, 10, 3)))
@@ -101,7 +111,5 @@ def test_load_simple_classification_dataset_from_broken_folder(incorrect_images_
             root=str(incorrect_images_folder),
             object_type="DataLoader",
             image_extension="PNG"),
-        raises(
-            ValueError, 
-            fr'{incorrect_images_folder} - is empty or has incorrect structure')
+        raises(ValueError)
     )
