@@ -99,15 +99,16 @@ class ImagePropertyDrift(TrainTestCheck):
         labels = batch.labels
         classes = context.train.get_classes(labels)
 
+        if self.classes_to_display:
+            # use only images belonging (or containing an annotation belonging) to one of the classes in
+            # classes_to_display
+            images = [
+                image for idx, image in enumerate(images) if
+                any(cls in map(self._class_to_string, classes[idx]) for cls in self.classes_to_display)
+            ]
+
         for single_property in self.image_properties:
             property_list = single_property['method'](images)
-            if self.classes_to_display:
-                # use only samples belonging (or containing an annotation belonging) to one of the classes in
-                # classes_to_display
-                property_list = [
-                    property_result for idx, property_result in enumerate(property_list) if
-                    any(cls in map(self._class_to_string, classes[idx]) for cls in self.classes_to_display)
-                ]
             properties[single_property['name']].extend(property_list)
 
     def compute(self, context: Context) -> CheckResult:
