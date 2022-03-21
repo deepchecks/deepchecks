@@ -132,8 +132,8 @@ default_image_properties = [
     {'name': 'Brightness', 'method': brightness, 'output_type': 'continuous'},
     {'name': 'RMS Contrast', 'method': rms_contrast, 'output_type': 'continuous'},
     {'name': 'Mean Red Relative Intensity', 'method': mean_red_relative_intensity, 'output_type': 'continuous'},
-    {'name': 'Mean Green Relative Intensity', 'method': mean_blue_relative_intensity, 'output_type': 'continuous'},
-    {'name': 'Mean Blue Relative Intensity', 'method': mean_green_relative_intensity, 'output_type': 'continuous'}
+    {'name': 'Mean Green Relative Intensity', 'method': mean_green_relative_intensity, 'output_type': 'continuous'},
+    {'name': 'Mean Blue Relative Intensity', 'method': mean_blue_relative_intensity, 'output_type': 'continuous'}
 ]
 
 
