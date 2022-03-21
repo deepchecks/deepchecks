@@ -37,6 +37,25 @@ def test_image_property_drift_check(device):
     assert_that(result, is_correct_image_property_drift_result())
 
 
+def test_image_property_drift_check_limit_classes(device):
+    train_dataset = coco.load_dataset(train=True, object_type='VisionData')
+    test_dataset = coco.load_dataset(train=False, object_type='VisionData')
+    result = ImagePropertyDrift(classes_to_display=['person', 'cat', 'cell phone', 'car'], min_samples=5
+                                ).run(train_dataset, test_dataset, device=device)
+    assert_that(result, is_correct_image_property_drift_result())
+
+
+def test_image_property_drift_check_limit_classes_illegal(device):
+    train_dataset = coco.load_dataset(train=True, object_type='VisionData')
+    test_dataset = coco.load_dataset(train=False, object_type='VisionData')
+    check = ImagePropertyDrift(classes_to_display=['phone'])
+    assert_that(
+        calling(check.run).with_args(train_dataset, test_dataset, device=device),
+        raises(DeepchecksValueError,  r'Provided list of class ids to display \[\'phone\'\] not found in training '
+                                      r'dataset.')
+    )
+
+
 def test_image_property_drift_initialization_with_empty_list_of_image_properties():
     assert_that(
         calling(ImagePropertyDrift).with_args(alternative_image_properties=[]),
