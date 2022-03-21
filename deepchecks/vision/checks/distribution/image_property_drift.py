@@ -14,18 +14,24 @@ from textwrap import dedent
 from collections import defaultdict
 
 import pandas as pd
+<<<<<<< HEAD
 import PIL.Image as pilimage
 from deepchecks.vision.utils.image_functions import prepare_thumbnail
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.utils.strings import format_number
 from deepchecks.core import DatasetKind
+=======
+
+>>>>>>> main
 from deepchecks.core import CheckResult
 from deepchecks.core import ConditionResult
-from deepchecks.vision import TrainTestCheck
-from deepchecks.vision import Context
+from deepchecks.core import DatasetKind
+from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.vision import Batch
+from deepchecks.vision import Context
+from deepchecks.vision import TrainTestCheck
 from deepchecks.vision.utils import image_properties
-
 
 __all__ = ['ImagePropertyDrift']
 
@@ -49,6 +55,11 @@ class ImagePropertyDrift(TrainTestCheck):
         Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
         representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'
     max_num_categories: int, default: 10
+    classes_to_display : Optional[List[float]], default: None
+        List of classes to display. The distribution of the properties would include only samples belonging (or
+        containing an annotation belonging) to one of these classes. If None, samples from all classes are displayed.
+    min_samples: int, default: 10
+        Minimum number of samples needed in each dataset needed to calculate the drift.
     """
 
     _IMAGE_THUMBNAIL_SIZE = (200, 200)
@@ -56,7 +67,9 @@ class ImagePropertyDrift(TrainTestCheck):
     def __init__(
         self,
         alternative_image_properties: t.List[t.Dict[str, t.Any]] = None,
-        max_num_categories: int = 10
+        max_num_categories: int = 10,
+        classes_to_display: t.Optional[t.List[str]] = None,
+        min_samples: int = 30
     ):
         super().__init__()
         if alternative_image_properties is not None:
@@ -66,15 +79,18 @@ class ImagePropertyDrift(TrainTestCheck):
             self.image_properties = image_properties.default_image_properties
 
         self.max_num_categories = max_num_categories
-        self.train_properties = defaultdict(list)
-        self.test_properties = defaultdict(list)
+        self.classes_to_display = classes_to_display
+        self.min_samples = min_samples
+        self._train_properties = defaultdict(list)
+        self._test_properties = defaultdict(list)
 
     def initialize_run(self, context: Context):
         """Initialize self state, and validate the run context."""
         context.train.assert_image_formatter_valid()
         context.test.assert_image_formatter_valid()
-        self.train_properties = defaultdict(list)
-        self.test_properties = defaultdict(list)
+        self._class_to_string = context.train.label_id_to_name
+        self._train_properties = defaultdict(list)
+        self._test_properties = defaultdict(list)
 
     def update(
         self,
@@ -84,18 +100,28 @@ class ImagePropertyDrift(TrainTestCheck):
     ):
         """Calculate image properties for train or test batch."""
         if dataset_kind == DatasetKind.TRAIN:
-            properties = self.train_properties
+            properties = self._train_properties
         elif dataset_kind == DatasetKind.TEST:
-            properties = self.test_properties
+            properties = self._test_properties
         else:
             raise RuntimeError(
                 f'Internal Error - Should not reach here! unknown dataset_kind: {dataset_kind}'
             )
 
-        batch_of_images = batch.images
+        images = batch.images
+        labels = batch.labels
+        classes = context.train.get_classes(labels)
+
+        if self.classes_to_display:
+            # use only images belonging (or containing an annotation belonging) to one of the classes in
+            # classes_to_display
+            images = [
+                image for idx, image in enumerate(images) if
+                any(cls in map(self._class_to_string, classes[idx]) for cls in self.classes_to_display)
+            ]
 
         for single_property in self.image_properties:
-            calculated_properties = single_property['method'](batch_of_images)
+            calculated_properties = single_property['method'](images)
             properties[single_property['name']].extend(calculated_properties)
 
     def compute(self, context: Context) -> CheckResult:
@@ -107,12 +133,27 @@ class ImagePropertyDrift(TrainTestCheck):
             value: dictionary containing drift score for each image property.
             display: distribution graph for each image property.
         """
-        if sorted(self.train_properties.keys()) != sorted(self.test_properties.keys()):
+        if sorted(self._train_properties.keys()) != sorted(self._test_properties.keys()):
             raise RuntimeError('Internal Error! Vision check was used improperly.')
 
-        properties = sorted(self.train_properties.keys())
-        df_train = pd.DataFrame(self.train_properties)
-        df_test = pd.DataFrame(self.test_properties)
+        # if self.classes_to_display is set, check that it has classes that actually exist
+        if self.classes_to_display is not None:
+            if not set(self.classes_to_display).issubset(
+                    map(self._class_to_string, context.train.classes_indices.keys())
+            ):
+                raise DeepchecksValueError(
+                    f'Provided list of class ids to display {self.classes_to_display} not found in training dataset.'
+                )
+
+        properties = sorted(self._train_properties.keys())
+        df_train = pd.DataFrame(self._train_properties)
+        df_test = pd.DataFrame(self._test_properties)
+        if len(df_train) < self.min_samples or len(df_test) < self.min_samples:
+            return CheckResult(
+                value=None,
+                display=f'Not enough samples to calculate drift score, min {self.min_samples} samples required.',
+                header='Image Property Drift'
+            )
 
         figures = {}
         drifts = {}
