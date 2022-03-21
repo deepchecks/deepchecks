@@ -16,7 +16,7 @@ import warnings
 import numpy as np
 import pandas as pd
 
-from deepchecks import Dataset  # TODO: Remove?
+from deepchecks.tabular import Dataset  # TODO: Remove?
 from deepchecks.utils.distribution.plot import feature_distribution_traces, drift_score_bar_traces
 from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none
 from deepchecks.utils.strings import format_percent
