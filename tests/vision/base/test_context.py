@@ -22,14 +22,18 @@ from hamcrest import (
     has_property,
     instance_of,
     same_instance,
-    all_of
+    all_of,
+    is_
 )
 
-from deepchecks.core.errors import DeepchecksValueError, ValidationError
+from deepchecks.core import DatasetKind
+from deepchecks.core.errors import DeepchecksValueError, ValidationError, ModelValidationError
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.core.errors import DatasetValidationError
 from deepchecks.vision.base_checks import Context
 from deepchecks.vision import ClassificationData, DetectionData
+from deepchecks.vision.vision_data import TaskType, VisionData
+
 
 
 def test_vision_context_initialization_for_classification_task(mnist_dataset_train, mnist_dataset_test,
@@ -78,10 +82,6 @@ def test_vision_context_initialization_for_object_detection_task(coco_train_visi
             has_property('type', device.type)
         )
     }))
-
-
-# def test_vision_context_initialization_for_segmentation_task():
-#   pass
 
 
 def test_vision_context_initialization_with_datasets_from_different_tasks(mnist_dataset_train, coco_train_visiondata):
@@ -171,3 +171,18 @@ def test_context_initialization_with_broken_model(mnist_dataset_train, mnist_dat
             Exception,
             r'Invalid arguments')
     )
+
+
+def test_vision_context_helper_functions(mnist_dataset_train):
+    # Arrange
+    context = Context(train=mnist_dataset_train)
+
+    # Act & Assert
+    assert_that(context.have_test(), is_(False))
+    assert_that(context.assert_task_type(TaskType.CLASSIFICATION), is_(True))
+    assert_that(calling(context.assert_task_type).with_args(TaskType.OBJECT_DETECTION),
+                raises(ModelValidationError, 'Check is irrelevant for task of type TaskType.CLASSIFICATION'))
+
+    assert_that(context.get_data_by_kind(DatasetKind.TRAIN), instance_of(ClassificationData))
+    assert_that(calling(context.get_data_by_kind).with_args(DatasetKind.TEST), raises(DeepchecksNotSupportedError,
+                r'Check is irrelevant for Datasets without test dataset'))
