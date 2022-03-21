@@ -165,7 +165,7 @@ def test_suite_execution_with_missing_train():
     assert_that(executions, is_({}))
 
 
-def test_suite_execution_with_missing_train():
+def test_suite_execution_with_missing_test():
     coco_dataset = coco.load_dataset(object_type='VisionData')
     executions = defaultdict(int)
 
@@ -182,8 +182,8 @@ def test_suite_execution_with_missing_train():
 
     suite = Suite("test",
                   DummyTrainTestCheck())
-    suite.run(train_dataset=coco_dataset)
-
+    r = suite.run(train_dataset=coco_dataset)
+    print(r.to_json())
     assert_that(executions, is_({'initialize_run': 1}))
 
 

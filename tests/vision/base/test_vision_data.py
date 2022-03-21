@@ -262,7 +262,7 @@ def test_sampler(mnist_dataset_train):
     sampled = mnist_dataset_train.copy(n_samples=10, random_state=0)
     # Assert
     classes = list(itertools.chain(*[b[1].tolist() for b in sampled]))
-    assert_that(classes, contains_exactly(7, 7, 9, 6, 3, 2, 3, 7, 2, 7))
+    assert_that(classes, contains_exactly(4, 9, 3, 3, 8, 7, 9, 4, 8, 1))
 
     # Act
     sampled = mnist_dataset_train.copy(n_samples=500, random_state=0)
@@ -309,58 +309,47 @@ def test_detection_data_bad_implementation():
     coco_dataset = coco.load_dataset()
 
     class DummyDetectionData(DetectionData):
+        dummy_batch = False
+
         def batch_to_labels(self, batch):
-            if batch == 'not_list':
-                return 7
-            elif batch == 'empty':
-                return []
-            elif batch == 'not tensor':
-                return [8]
-            elif batch =='bad tensor':
-                return [torch.Tensor([])]
-            elif batch == 'short tensor':
-                return [torch.Tensor([[1,2], [1,2]])]
+            if self.dummy_batch:
+                return batch
 
             raise DeepchecksNotImplementedError('batch_to_labels() must be implemented in a subclass')
 
         def infer_on_batch(self, batch, model, device):
-            if batch == 'not_list':
-                return 7
-            elif batch == 'empty':
-                return []
-            elif batch == 'not tensor':
-                return [8]
-            elif batch =='bad tensor':
-                return [torch.Tensor([])]
-            elif batch == 'short tensor':
-                return [torch.Tensor([[1,2], [1,2]])]
+            if self.dummy_batch:
+                return batch
 
             raise DeepchecksNotImplementedError('infer_on_batch() must be implemented in a subclass')
 
     detection_data = DummyDetectionData(coco_dataset)
-    assert_that(calling(detection_data.validate_label).with_args('not_list'),
+
+    detection_data.dummy_batch = True
+
+    assert_that(calling(detection_data.validate_label).with_args(7),
                 raises(DeepchecksValueError,
                        'Check requires object detection label to be a list with an entry for each sample'))
-    assert_that(calling(detection_data.validate_label).with_args('empty'),
+    assert_that(calling(detection_data.validate_label).with_args([]),
                 raises(DeepchecksValueError,
                        'Check requires object detection label to be a non-empty list'))
-    assert_that(calling(detection_data.validate_label).with_args('not tensor'),
+    assert_that(calling(detection_data.validate_label).with_args([8]),
                 raises(DeepchecksValueError,
                        'Check requires object detection label to be a list of torch.Tensor'))
-    assert_that(calling(detection_data.validate_label).with_args('bad tensor'),
+    assert_that(calling(detection_data.validate_label).with_args([torch.Tensor([])]),
                 raises(DeepchecksValueError,
                        'Check requires object detection label to be a list of 2D tensors'))
 
-    assert_that(calling(detection_data.validate_prediction).with_args('not_list', None, None),
+    assert_that(calling(detection_data.validate_prediction).with_args(7, None, None),
                 raises(ValidationError,
                        'Check requires detection predictions to be a list with an entry for each sample'))
-    assert_that(calling(detection_data.validate_prediction).with_args('empty', None, None),
+    assert_that(calling(detection_data.validate_prediction).with_args([], None, None),
                 raises(ValidationError,
                        'Check requires detection predictions to be a non-empty list'))
-    assert_that(calling(detection_data.validate_prediction).with_args('not tensor', None, None),
+    assert_that(calling(detection_data.validate_prediction).with_args([8], None, None),
                 raises(ValidationError,
                        'Check requires detection predictions to be a list of torch.Tensor'))
-    assert_that(calling(detection_data.validate_prediction).with_args('bad tensor', None, None),
+    assert_that(calling(detection_data.validate_prediction).with_args([torch.Tensor([])], None, None),
                 raises(ValidationError,
                        'Check requires detection predictions to be a list of 2D tensors'))
 
@@ -370,3 +359,4 @@ def test_validate_format(mnist_dataset_train, trained_mnist):
     # Act & Assert
     assert_that(calling(mnist_dataset_train.validate_format).with_args(trained_mnist),
                 not_(raises(DeepchecksValueError)))
+

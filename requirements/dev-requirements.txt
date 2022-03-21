@@ -8,8 +8,8 @@ flake8-eradicate
 flake8-rst
 
 pytest 
-pytest-cov 
-pyhamcrest 
+pytest-cov
+pyhamcrest
 nbval 
 coveralls
 tox
