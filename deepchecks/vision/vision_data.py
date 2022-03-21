@@ -380,6 +380,11 @@ class VisionData:
         if self._image_formatter_error is not None:
             raise DeepchecksValueError(self._image_formatter_error)
 
+    def assert_label_formatter_valid(self):
+        """Assert the label formatter defined is valid. Else raise exception."""
+        if self._label_formatter_error is not None:
+            raise DeepchecksValueError(self._label_formatter_error)
+
     @staticmethod
     def _get_data_loader_copy(data_loader: DataLoader, n_samples: int = None, shuffle: bool = False,
                               random_state: int = None):
