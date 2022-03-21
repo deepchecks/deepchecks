@@ -345,7 +345,7 @@ class VisionData:
         if self.has_label != other.has_label:
             raise ValidationError('Datasets required to both either have or don\'t have labels')
 
-        if self._task_type != other.task_type:
+        if self.task_type != other.task_type:
             raise ValidationError('Datasets required to have same label type')
 
     def validate_image_data(self, batch):
