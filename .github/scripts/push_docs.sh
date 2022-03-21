@@ -27,7 +27,7 @@ GENERATED_DOC_DIR=$(readlink -f "$GENERATED_DOC_DIR")
 
 if [[ -z "$GITHUB_BASE_REF" ]]
 then
-	REF="$GITHUB_REF"
+	REF="$GITHUB_REF_NAME"
 else
 	REF="$GITHUB_BASE_REF"
 fi
