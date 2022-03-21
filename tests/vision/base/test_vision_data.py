@@ -262,7 +262,7 @@ def test_sampler(mnist_dataset_train):
     sampled = mnist_dataset_train.copy(n_samples=10, random_state=0)
     # Assert
     classes = list(itertools.chain(*[b[1].tolist() for b in sampled]))
-    assert_that(classes, contains_exactly(7, 7, 9, 6, 3, 2, 3, 7, 2, 7))
+    assert_that(classes, contains_exactly(4, 9, 3, 3, 8, 7, 9, 4, 8, 1))
 
     # Act
     sampled = mnist_dataset_train.copy(n_samples=500, random_state=0)
@@ -291,10 +291,3 @@ def test_data_at_batch_of_index(mnist_dataset_train):
     # Assert
     assert torch.equal(batch[0], single_batch[0])
     assert torch.equal(batch[1], single_batch[1])
-
-
-def test_validate_format(mnist_dataset_train, trained_mnist):
-
-    # Act & Assert
-    assert_that(calling(mnist_dataset_train.validate_format).with_args(trained_mnist),
-                not_(raises(DeepchecksValueError)))
