@@ -263,7 +263,8 @@ def test_train_test_condition_pps_train_fail_per_class(coco_train_visiondata, co
     # Arrange
     train, test = coco_train_visiondata, coco_test_visiondata
     condition_value = 0.3
-    check = SimpleFeatureContribution(per_class=True).add_condition_feature_pps_in_train_not_greater_than(condition_value)
+    check = SimpleFeatureContribution(per_class=True
+                                      ).add_condition_feature_pps_in_train_not_greater_than(condition_value)
     train = copy(train)
     train.batch_to_images = get_coco_batch_to_images_with_bias_one_class(train.batch_to_labels)
 

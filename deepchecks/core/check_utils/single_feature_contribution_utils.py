@@ -177,9 +177,7 @@ def get_single_feature_contribution_per_class(train_df: pd.DataFrame, train_labe
 
         # If not all results are 0, plot add to display:
         if any(s_train > min_pps_to_show) or any(s_test > min_pps_to_show):
-            s_train_to_display = s_train.apply(lambda x: x < min_pps_to_show)
-            s_test_to_display = s_test.apply(lambda x: x < min_pps_to_show)
-            s_difference_to_display = s_difference[s_train_to_display.values | s_test_to_display.values]
+            s_difference_to_display = np.abs(s_difference).apply(lambda x: 0 if x < 0 else x)
             s_difference_to_display = s_difference_to_display.sort_values(ascending=False).head(n_show_top)
 
             s_train_to_display = s_train[s_difference_to_display.index]
