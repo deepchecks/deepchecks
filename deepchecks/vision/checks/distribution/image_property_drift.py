@@ -151,7 +151,7 @@ class ImagePropertyDrift(TrainTestCheck):
             score, _, figure = calc_drift_and_plot(
                 train_column=df_train[property_name],
                 test_column=df_test[property_name],
-                plot_title=property_name,
+                value_name=property_name,
                 column_type=image_properties.get_column_type(single_property['output_type']),
                 max_num_categories=self.max_num_categories
             )
