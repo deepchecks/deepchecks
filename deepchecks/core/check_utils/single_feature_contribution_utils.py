@@ -106,9 +106,8 @@ def get_single_feature_contribution_per_class(train_df: pd.DataFrame, train_labe
                                               test_df: pd.DataFrame,
                                               test_label_name: Optional[Hashable], ppscore_params: dict,
                                               n_show_top: int):
-    # TODO Update doc
     """
-    Calculate the PPS for train, test and difference for single feature contribution checks.
+    Calculate the PPS for train, test and difference for single feature contribution checks per class.
 
     The PPS represents the ability of a feature to single-handedly predict another feature or label.
     This function calculates the PPS per feature for both train and test, and returns the data and display graph.
@@ -131,8 +130,9 @@ def get_single_feature_contribution_per_class(train_df: pd.DataFrame, train_labe
 
     Returns:
         CheckResult
-            value: dictionaries of PPS values for train, test and train-test difference.
-            display: bar graph of the PPS of each feature.
+            value: dictionaries of features, each value is 3 dictionaries of PPS values for train, test and
+            train-test difference.
+            display: bar graphs of the PPS for each feature.
     """
     df_pps_train_all = pd.DataFrame()
     df_pps_test_all = pd.DataFrame()
@@ -191,12 +191,6 @@ def get_single_feature_contribution_per_class(train_df: pd.DataFrame, train_labe
                                  name='Test',
                                  marker_color=colors['Test'], text=s_test_to_display.round(2), textposition='outside'
                                  ))
-            # fig.add_trace(go.Scatter(x=s_difference_to_display.index,
-            #                          y=s_difference_to_display,
-            #                          name='Train-Test Difference (abs)',
-            #                          marker=dict(symbol='circle', size=15),
-            #                          line=dict(color='#aa57b5', width=5)
-            #                          ))
 
             fig.update_layout(
                 title=f'{feature}: Predictive Power Score (PPS) Per Class',
