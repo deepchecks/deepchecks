@@ -31,9 +31,9 @@ In this guide we will implement a custom instance segmentation task and run chec
 
 #%%
 # Defining the Data
-# =========================
+# =================
 # First we will define a `PyTorch Dataset <https://pytorch.org/tutorials/beginner/basics/data_tutorial.html>`_.
-# of COCO-128 segmentation task.
+# of COCO-128 segmentation task. This part represents your own code, and is not yet Deepchecks related.
 
 import os
 import contextlib

@@ -153,7 +153,7 @@ def feature_distribution_traces(train_column,
         # Creating sorting function which works on both numbers and strings
         def sort_int_and_strings(a, b):
             # If both numbers or both same type using regular operator
-            if type(a) == type(b) or (isinstance(a, Number) and isinstance(b, Number)):
+            if a.__class__ == b.__class__ or (isinstance(a, Number) and isinstance(b, Number)):
                 return -1 if a < b else 1
             # Sort numbers before strings
             return -1 if isinstance(a, Number) else 1
