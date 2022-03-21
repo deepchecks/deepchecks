@@ -168,7 +168,7 @@ class SimpleClassificationDataset(VisionDataset):
             for k, v in self.classes_map.items()
         })
     
-    def __getitem__(self, index: int) -> t.Tuple[pilimage.Image, int]:
+    def __getitem__(self, index: int) -> t.Tuple[np.ndarray, int]:
         """Get the image and label at the given index."""
         image_file = self.images[index]
         image = cv2.imread(str(image_file))
@@ -196,11 +196,11 @@ class SimpleClassificationData(vision.ClassificationData):
 
     def batch_to_images(
         self,
-        batch: t.Tuple[t.Sequence[pilimage.Image], t.Sequence[int]]
+        batch: t.Tuple[t.Sequence[np.ndarray], t.Sequence[int]]
     ) -> t.Sequence[np.ndarray]:
         """Extract the images from a batch of data."""
         images, _ = batch
-        return [np.array(img) for img in images]
+        return images
 
     def batch_to_labels(
         self,
