@@ -352,11 +352,3 @@ def test_detection_data_bad_implementation():
     assert_that(calling(detection_data.validate_prediction).with_args([torch.Tensor([])], None, None),
                 raises(ValidationError,
                        'Check requires detection predictions to be a list of 2D tensors'))
-
-
-def test_validate_format(mnist_dataset_train, trained_mnist):
-
-    # Act & Assert
-    assert_that(calling(mnist_dataset_train.validate_format).with_args(trained_mnist),
-                not_(raises(DeepchecksValueError)))
-
