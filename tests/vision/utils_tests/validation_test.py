@@ -19,30 +19,26 @@ from deepchecks.utils.ipython import is_headless
 FILE_NAME = 'deepchecks_formatted_image.jpg'
 
 def test_mnist_validation(mnist_dataset_train, mock_trained_mnist):
-    # Arrange
-    validate_extractors(mnist_dataset_train, mock_trained_mnist)
     if is_headless():
+        validate_extractors(mnist_dataset_train, mock_trained_mnist)
         assert_that(os.path.exists(FILE_NAME), True)
         assert_that(os.path.isfile(FILE_NAME), True)
 
 
 def test_mnist_validation_no_save(mnist_dataset_train, mock_trained_mnist):
-    # Arrange
-    validate_extractors(mnist_dataset_train, mock_trained_mnist, save_images=False)
     if is_headless():
+        validate_extractors(mnist_dataset_train, mock_trained_mnist, save_images=False)
         assert_that(os.path.exists(FILE_NAME), False)
 
 
 def test_coco_validation(coco_test_visiondata, mock_trained_yolov5_object_detection):
-    # Arrange
-    validate_extractors(coco_test_visiondata, mock_trained_yolov5_object_detection)
     if is_headless():
+        validate_extractors(coco_test_visiondata, mock_trained_yolov5_object_detection)
         assert_that(os.path.exists(FILE_NAME), True)
         assert_that(os.path.isfile(FILE_NAME), True)
 
 
 def test_coco_validation_no_save(coco_test_visiondata, mock_trained_yolov5_object_detection):
-    # Arrange
-    validate_extractors(coco_test_visiondata, mock_trained_yolov5_object_detection, save_images=False)
     if is_headless():
+        validate_extractors(coco_test_visiondata, mock_trained_yolov5_object_detection, save_images=False)
         assert_that(os.path.exists(FILE_NAME), False)
