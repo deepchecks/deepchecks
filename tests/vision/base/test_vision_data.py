@@ -291,3 +291,60 @@ def test_data_at_batch_of_index(mnist_dataset_train):
     # Assert
     assert torch.equal(batch[0], single_batch[0])
     assert torch.equal(batch[1], single_batch[1])
+
+
+def test_get_classes_validation_not_sequence(mnist_data_loader_train):
+    # Arrange
+    class TestData(MNISTData):
+        def get_classes(self, batch_labels):
+            return 88
+
+    # Act
+    data = TestData(mnist_data_loader_train)
+
+    # Assert
+    assert_that(
+        calling(data.assert_label_formatter_valid).with_args(),
+        raises(DeepchecksValueError,
+               r'get_classes\(\) was not implemented correctly, the validation has failed with the error: "The classes '
+               r'must be a sequence\."\. '
+               r'To test your formatting use the function `validate_get_classes\(batch\)`')
+    )
+
+
+def test_get_classes_validation_not_contain_sequence(mnist_data_loader_train):
+    # Arrange
+    class TestData(MNISTData):
+        def get_classes(self, batch_labels):
+            return [88, [1]]
+
+    # Act
+    data = TestData(mnist_data_loader_train)
+
+    # Assert
+    assert_that(
+        calling(data.assert_label_formatter_valid).with_args(),
+        raises(DeepchecksValueError,
+               r'get_classes\(\) was not implemented correctly, the validation has failed with the error: "The '
+               r'classes sequence contain also sequences of ints as values \(sequence per sample\).". To test your '
+               r'formatting use the function `validate_get_classes\(batch\)`')
+    )
+
+
+def test_get_classes_validation_not_contain_contain_int(mnist_data_loader_train):
+    # Arrange
+    class TestData(MNISTData):
+        def get_classes(self, batch_labels):
+            return [['ss'], [1]]
+
+    # Act
+    data = TestData(mnist_data_loader_train)
+
+    # Assert
+    assert_that(
+        calling(data.assert_label_formatter_valid).with_args(),
+        raises(DeepchecksValueError,
+               r'get_classes\(\) was not implemented correctly, the validation has failed with the error: "The '
+               r'samples sequence most contain only int values.". To test your formatting use the function '
+               r'`validate_get_classes\(batch\)`')
+    )

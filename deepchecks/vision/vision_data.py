@@ -74,6 +74,7 @@ class VisionData:
         self._warned_labels = set()
         self._image_formatter_error = None
         self._label_formatter_error = None
+        self._get_classes_error = None
 
         batch = next(iter(self._data_loader))
         try:
@@ -97,6 +98,20 @@ class VisionData:
                                           f'failed with the error: "{ex}". To test your label formatting use the ' \
                                           f'function `validate_label(batch)`'
             logger.warning(self._label_formatter_error)
+
+        try:
+            if self._label_formatter_error is None:
+                self.validate_get_classes(batch)
+            else:
+                self._get_classes_error = 'Must have valid labels formatter to use `get_classes`'
+        except DeepchecksNotImplementedError:
+            self._get_classes_error = 'get_classes() was not implemented, some checks will not run'
+            logger.warning(self._get_classes_error)
+        except ValidationError as ex:
+            self._get_classes_error = f'get_classes() was not implemented correctly, the validation has ' \
+                                      f'failed with the error: "{ex}". To test your formatting use the ' \
+                                      f'function `validate_get_classes(batch)`'
+            logger.warning(self._get_classes_error)
 
         self._task_type = TaskType.OTHER
         self._classes_indices = None
@@ -160,8 +175,7 @@ class VisionData:
     def validate_label(self, batch):
         """Validate a batch of labels."""
         # default implementation just calling the function to see if it runs
-        labels = self.batch_to_labels(batch)
-        self.get_classes(labels)
+        self.batch_to_labels(batch)
 
     def validate_prediction(self, batch, model, device):
         """Validate a batch of predictions."""
@@ -361,11 +375,32 @@ class VisionData:
             raise ValidationError('The data inside the iterable must be a 3D array.')
         if sample.shape[2] not in [1, 3]:
             raise ValidationError('The data inside the iterable must have 1 or 3 channels.')
-        sample_min = sample.min()
-        sample_max = sample.max()
+        sample_min = np.min(sample)
+        sample_max = np.max(sample)
         if sample_min < 0 or sample_max > 255 or sample_max <= 1:
             raise ValidationError(f'Image data found to be in range [{sample_min}, {sample_max}] instead of expected '
                                   f'range [0, 255].')
+
+    def validate_get_classes(self, batch):
+        """Validate that the get_classes function returns data in the correct format.
+
+        Parameters
+        ----------
+        batch
+
+        Raises
+        -------
+        ValidationError
+            If the classes data doesn't fit the format after being transformed.
+        """
+        class_ids = self.get_classes(self.batch_to_labels(batch))
+        if not isinstance(class_ids, Sequence):
+            raise ValidationError('The classes must be a sequence.')
+        if not all([isinstance(x, Sequence) for x in class_ids]):
+            raise ValidationError('The classes sequence contain also sequences of ints as values '
+                                  '(sequence per sample).')
+        if not all([all([isinstance(x, int) for x in inner_ids]) for inner_ids in class_ids]):
+            raise ValidationError('The samples sequence most contain only int values.')
 
     def __iter__(self):
         """Return an iterator over the dataset."""
@@ -384,6 +419,8 @@ class VisionData:
         """Assert the label formatter defined is valid. Else raise exception."""
         if self._label_formatter_error is not None:
             raise DeepchecksValueError(self._label_formatter_error)
+        if self._get_classes_error is not None:
+            raise DeepchecksValueError(self._get_classes_error)
 
     @staticmethod
     def _get_data_loader_copy(data_loader: DataLoader, n_samples: int = None, shuffle: bool = False,
