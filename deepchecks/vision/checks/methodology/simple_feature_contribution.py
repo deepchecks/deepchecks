@@ -17,7 +17,6 @@ import pandas as pd
 from deepchecks import ConditionResult
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.check_utils.single_feature_contribution_utils import get_single_feature_contribution
-from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Context, TrainTestCheck
 from deepchecks.vision.utils import image_properties
@@ -103,25 +102,16 @@ class SimpleFeatureContribution(TrainTestCheck):
             dataset = context.test
             properties = self._test_properties
 
-        if dataset.task_type == TaskType.CLASSIFICATION:
-            imgs = batch.images
-            properties['target'] += batch.labels.tolist()
-        elif dataset.task_type == TaskType.OBJECT_DETECTION:
-            labels = batch.labels
-            orig_imgs = batch.images
-
-            classes = []
+        if dataset.task_type == TaskType.OBJECT_DETECTION:
             imgs = []
-            for img, label in zip(orig_imgs, labels):
-                classes += [int(x[0]) for x in label]
-
+            for img, label in zip(batch.images, batch.labels):
                 bboxes = [np.array(x[1:]) for x in label]
                 imgs += [crop_image(img, *bbox) for bbox in bboxes]
-
-            properties['target'] += classes
         else:
-            raise DeepchecksValueError(
-                f'Check {self.__class__.__name__} does not support task type {dataset.task_type}')
+            imgs = batch.images
+
+        for class_ids in dataset.get_classes(batch.labels):
+            properties['target'] += class_ids
 
         for single_property in self.image_properties:
             properties[single_property['name']].extend(single_property['method'](imgs))

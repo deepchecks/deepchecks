@@ -130,7 +130,7 @@ class SimpleModelComparison(TrainTestCheck):
         results = []
 
         metrics_to_eval = {
-            DatasetKind.TEST.value: self._test_metrics,
+            'Given Model': self._test_metrics,
             'Simple Model': self._generate_simple_model_metrics(context.train, context.test)
         }
         for name, metrics in metrics_to_eval.items():
@@ -138,11 +138,12 @@ class SimpleModelComparison(TrainTestCheck):
             metrics_df = metric_results_to_df(
                 {k: m.compute() for k, m in metrics.items()}, dataset
             )
-            metrics_df['Dataset'] = name
+            metrics_df['Model'] = name
             metrics_df['Number of samples'] = metrics_df['Class'].map(dataset.n_of_samples_per_class.get)
             results.append(metrics_df)
 
         results_df = pd.concat(results)
+        results_df = results_df[['Model', 'Metric', 'Class', 'Class Name', 'Number of samples', 'Value']]
 
         if not self.metric_to_show_by:
             self.metric_to_show_by = list(self._test_metrics.keys())[0]
@@ -153,24 +154,23 @@ class SimpleModelComparison(TrainTestCheck):
             classes_to_show = filter_classes_for_display(results_df,
                                                          self.metric_to_show_by,
                                                          self.n_to_show,
-                                                         self.show_only)
+                                                         self.show_only,
+                                                         column_to_filter_by='Model',
+                                                         column_filter_value='Given Model')
             results_df = results_df.loc[results_df['Class'].isin(classes_to_show)]
 
-        results_df = results_df.sort_values(by=['Dataset', 'Value'], ascending=False)
+        results_df = results_df.sort_values(by=['Model', 'Value'], ascending=False).reset_index(drop=True)
 
         fig = px.histogram(
             results_df,
             x='Class Name',
             y='Value',
-            color='Dataset',
+            color='Model',
             barmode='group',
             facet_col='Metric',
             facet_col_spacing=0.05,
             hover_data=['Number of samples']
         )
-
-        if context.train.task_type == TaskType.CLASSIFICATION:
-            fig.update_xaxes(tickprefix='Class ', tickangle=60)
 
         fig = (
             fig.update_xaxes(title=None, type='category')

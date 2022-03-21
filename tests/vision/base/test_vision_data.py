@@ -293,6 +293,63 @@ def test_data_at_batch_of_index(mnist_dataset_train):
     assert torch.equal(batch[1], single_batch[1])
 
 
+def test_get_classes_validation_not_sequence(mnist_data_loader_train):
+    # Arrange
+    class TestData(MNISTData):
+        def get_classes(self, batch_labels):
+            return 88
+
+    # Act
+    data = TestData(mnist_data_loader_train)
+
+    # Assert
+    assert_that(
+        calling(data.assert_label_formatter_valid).with_args(),
+        raises(DeepchecksValueError,
+               r'get_classes\(\) was not implemented correctly, the validation has failed with the error: "The classes '
+               r'must be a sequence\."\. '
+               r'To test your formatting use the function `validate_get_classes\(batch\)`')
+    )
+
+
+def test_get_classes_validation_not_contain_sequence(mnist_data_loader_train):
+    # Arrange
+    class TestData(MNISTData):
+        def get_classes(self, batch_labels):
+            return [88, [1]]
+
+    # Act
+    data = TestData(mnist_data_loader_train)
+
+    # Assert
+    assert_that(
+        calling(data.assert_label_formatter_valid).with_args(),
+        raises(DeepchecksValueError,
+               r'get_classes\(\) was not implemented correctly, the validation has failed with the error: "The '
+               r'classes sequence must contain as values sequences of ints \(sequence per sample\).". To test your '
+               r'formatting use the function `validate_get_classes\(batch\)`')
+    )
+
+
+def test_get_classes_validation_not_contain_contain_int(mnist_data_loader_train):
+    # Arrange
+    class TestData(MNISTData):
+        def get_classes(self, batch_labels):
+            return [['ss'], [1]]
+
+    # Act
+    data = TestData(mnist_data_loader_train)
+
+    # Assert
+    assert_that(
+        calling(data.assert_label_formatter_valid).with_args(),
+        raises(DeepchecksValueError,
+               r'get_classes\(\) was not implemented correctly, the validation has failed with the error: "The '
+               r'samples sequence must contain only int values.". To test your formatting use the function '
+               r'`validate_get_classes\(batch\)`')
+    )
+
+
 def test_detection_data():
     coco_dataset = coco.load_dataset()
     batch = None
@@ -344,7 +401,6 @@ def test_detection_data_bad_implementation():
                        'Check requires object detection label to be a list of 2D tensors, when '
                        'each row has 5 columns: \[class_id, x, y, width, height\]'))
 
-
     assert_that(calling(detection_data.validate_prediction).with_args(7, None, None),
                 raises(ValidationError,
                        'Check requires detection predictions to be a list with an entry for each sample'))
@@ -361,4 +417,3 @@ def test_detection_data_bad_implementation():
                 raises(ValidationError,
                        'Check requires detection predictions to be a list of 2D tensors, when '
                        'each row has 6 columns: \[x, y, width, height, class_probability, class_id\]'))
-

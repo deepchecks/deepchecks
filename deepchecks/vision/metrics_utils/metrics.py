@@ -148,7 +148,9 @@ def metric_results_to_df(results: dict, dataset: VisionData) -> pd.DataFrame:
 def filter_classes_for_display(metrics_df: pd.DataFrame,
                                metric_to_show_by: str,
                                n_to_show: int,
-                               show_only: str) -> list:
+                               show_only: str,
+                               column_to_filter_by: str = 'Dataset',
+                               column_filter_value: str = None) -> list:
     """Filter the metrics dataframe for display purposes.
 
     Parameters
@@ -157,7 +159,7 @@ def filter_classes_for_display(metrics_df: pd.DataFrame,
         Dataframe containing the metrics.
     n_to_show : int
         Number of classes to show in the report.
-    show_only : str, default: 'largest'
+    show_only : str
         Specify which classes to show in the report. Can be one of the following:
         - 'largest': Show the largest classes.
         - 'smallest': Show the smallest classes.
@@ -166,14 +168,21 @@ def filter_classes_for_display(metrics_df: pd.DataFrame,
         - 'worst': Show the classes with the lowest score.
     metric_to_show_by : str
         Specify the metric to sort the results by. Relevant only when show_only is 'best' or 'worst'.
+    column_to_filter_by : str , default: 'Dataset'
+        Specify the name of the column to filter by.
+    column_filter_value : str , default: None
+        Specify the value of the column to filter by, if None will be set to test dataset name.
 
     Returns
     -------
     list
         List of classes to show in the report.
     """
-    # working only on the test set
-    tests_metrics_df = metrics_df[(metrics_df['Dataset'] == DatasetKind.TEST.value) &
+    # working on the test dataset on default
+    if column_filter_value is None:
+        column_filter_value = DatasetKind.TEST.value
+
+    tests_metrics_df = metrics_df[(metrics_df[column_to_filter_by] == column_filter_value) &
                                   (metrics_df['Metric'] == metric_to_show_by)]
     if show_only == 'largest':
         tests_metrics_df = tests_metrics_df.sort_values(by='Number of samples', ascending=False)
