@@ -27,28 +27,12 @@ class DetectionData(VisionData):
 
     It is a subclass of the VisionData class. The DetectionData class is containing additional data and general
     methods intended for easily accessing metadata relevant for validating a computer vision object detection ML models.
-
-    Parameters
-    ----------
-    data_loader : DataLoader
-        PyTorch DataLoader object. This is the data loader object that will be used to load the data.
-    num_classes : int, optional
-        Number of classes in the dataset. If not provided, will be inferred from the dataset.
-    label_map : Dict[int, str], optional
-        A dictionary mapping class ids to their names.
-    transform_field : str, default: 'transforms'
-        Name of transforms field in the dataset which holds transformations of both data and label.
     """
 
-    def __init__(self,
-                 data_loader: DataLoader,
-                 num_classes: Optional[int] = None,
-                 label_map: Optional[Dict[int, str]] = None,
-                 transform_field: Optional[str] = 'transforms'):
-
-        super().__init__(data_loader, num_classes, label_map, transform_field)
-
-        self._task_type = TaskType.OBJECT_DETECTION
+    @property
+    def task_type(self) -> TaskType:
+        """Return the task type."""
+        return TaskType.OBJECT_DETECTION
 
     @abstractmethod
     def batch_to_labels(self, batch) -> List[torch.Tensor]:

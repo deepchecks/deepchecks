@@ -113,7 +113,6 @@ class VisionData:
                                       f'function `validate_get_classes(batch)`'
             logger.warning(self._get_classes_error)
 
-        self._task_type = TaskType.OTHER
         self._classes_indices = None
         self._current_index = None
 
@@ -227,7 +226,7 @@ class VisionData:
     @property
     def task_type(self) -> TaskType:
         """Return the task type."""
-        return self._task_type
+        return TaskType.OTHER
 
     @property
     def num_classes(self) -> int:
