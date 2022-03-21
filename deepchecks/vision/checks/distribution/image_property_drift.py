@@ -14,24 +14,20 @@ from textwrap import dedent
 from collections import defaultdict
 
 import pandas as pd
-<<<<<<< HEAD
 import PIL.Image as pilimage
+
 from deepchecks.vision.utils.image_functions import prepare_thumbnail
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.utils.strings import format_number
 from deepchecks.core import DatasetKind
-=======
-
->>>>>>> main
 from deepchecks.core import CheckResult
 from deepchecks.core import ConditionResult
-from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.vision import Batch
 from deepchecks.vision import Context
 from deepchecks.vision import TrainTestCheck
 from deepchecks.vision.utils import image_properties
+
 
 __all__ = ['ImagePropertyDrift']
 
@@ -66,7 +62,7 @@ class ImagePropertyDrift(TrainTestCheck):
 
     def __init__(
         self,
-        alternative_image_properties: t.List[t.Dict[str, t.Any]] = None,
+        alternative_image_properties: t.Optional[t.List[t.Dict[str, t.Any]]] = None,
         max_num_categories: int = 10,
         classes_to_display: t.Optional[t.List[str]] = None,
         min_samples: int = 30
@@ -231,7 +227,7 @@ class ImagePropertyDrift(TrainTestCheck):
         thumbnail_size = self._IMAGE_THUMBNAIL_SIZE
         tables = []
 
-        for images, properties in ((train_images, train_properties),(test_images, test_properties),):
+        for images, properties in ((train_images, train_properties), (test_images, test_properties),):
             thumbnails = ''.join([
                 prepare_thumbnail(img, size=thumbnail_size)
                 for img in images
@@ -239,9 +235,9 @@ class ImagePropertyDrift(TrainTestCheck):
 
             properties_rows = []
             for name, values in properties.iterrows():
-                properties_rows.append(f"<h4>{name}</h4>")
+                properties_rows.append(f'<h4>{name}</h4>')
                 for v in values:
-                    properties_rows.append(f"<h4>{format_number(v)}</h4>")
+                    properties_rows.append(f'<h4>{format_number(v)}</h4>')
 
             tables.append(table_template.format(
                 n_of_images=len(images),
