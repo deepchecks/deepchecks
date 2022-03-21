@@ -10,10 +10,14 @@
 #
 """Module contains Image Property Drift check."""
 import typing as t
+from textwrap import dedent
 from collections import defaultdict
 
 import pandas as pd
+import PIL.Image as pilimage
+from deepchecks.vision.utils.image_functions import prepare_thumbnail
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
+from deepchecks.utils.strings import format_number
 from deepchecks.core import DatasetKind
 from deepchecks.core import CheckResult
 from deepchecks.core import ConditionResult
@@ -47,6 +51,8 @@ class ImagePropertyDrift(TrainTestCheck):
     max_num_categories: int, default: 10
     """
 
+    _IMAGE_THUMBNAIL_SIZE = (200, 200)
+
     def __init__(
         self,
         alternative_image_properties: t.List[t.Dict[str, t.Any]] = None,
@@ -67,6 +73,8 @@ class ImagePropertyDrift(TrainTestCheck):
         """Initialize self state, and validate the run context."""
         context.train.assert_image_formatter_valid()
         context.test.assert_image_formatter_valid()
+        self.train_properties = defaultdict(list)
+        self.test_properties = defaultdict(list)
 
     def update(
         self,
@@ -84,10 +92,11 @@ class ImagePropertyDrift(TrainTestCheck):
                 f'Internal Error - Should not reach here! unknown dataset_kind: {dataset_kind}'
             )
 
-        images = batch.images
+        batch_of_images = batch.images
 
         for single_property in self.image_properties:
-            properties[single_property['name']].extend(single_property['method'](images))
+            calculated_properties = single_property['method'](batch_of_images)
+            properties[single_property['name']].extend(calculated_properties)
 
     def compute(self, context: Context) -> CheckResult:
         """Calculate drift score between train and test datasets for the collected image properties.
@@ -122,7 +131,10 @@ class ImagePropertyDrift(TrainTestCheck):
             figures[property_name] = figure
             drifts[property_name] = score
 
-        if drifts:
+        if len(drifts) == 0:
+            drifts = None
+            displays = []
+        else:
             columns_order = sorted(properties, key=lambda col: drifts[col], reverse=True)
 
             headnote = '<span>' \
@@ -131,15 +143,85 @@ class ImagePropertyDrift(TrainTestCheck):
                        f'for the distribution of the following image properties: {properties}.' \
                        '</span>'
 
-            displays = [headnote] + [figures[col] for col in columns_order]
-        else:
-            drifts = None
-            displays = []
+            train_samples = df_train.sample(10)
+            test_samples = df_test.sample(10)
+            train_thumbnail_images, *_ = context.train.batch_of_index(*list(train_samples.index))
+            test_thumbnail_images, *_ = context.test.batch_of_index(*list(train_samples.index))
+
+            thumbnails = self._prepare_thumbnails_block(
+                train_properties=train_samples.T,
+                test_properties=test_samples.T,
+                train_images=train_thumbnail_images,
+                test_images=test_thumbnail_images
+            )
+            displays = [headnote] + [figures[col] for col in columns_order] + [thumbnails]
 
         return CheckResult(
             value=drifts,
             display=displays,
             header='Image Property Drift'
+        )
+
+    def _prepare_thumbnails_block(
+        self,
+        train_properties: pd.DataFrame,
+        test_properties: pd.DataFrame,
+        train_images: t.Sequence[pilimage.Image],
+        test_images: t.Sequence[pilimage.Image]
+    ) -> str:
+        table_template = dedent("""
+        <div
+            style="
+                overflow-x: auto;
+                display: grid;
+                grid-template-rows: auto 1fr 1fr;
+                grid-template-columns: auto repeat({n_of_images}, 1fr);
+                grid-gap: 1.5rem;
+                justify-items: center;
+                align-items: center;
+                padding: 2rem;
+                width: max-content;">
+            <h4>Image</h4>
+            {images}
+            {properties}
+        </div>
+        """)
+
+        thumbnail_size = self._IMAGE_THUMBNAIL_SIZE
+        tables = []
+
+        for images, properties in ((train_images, train_properties),(test_images, test_properties),):
+            thumbnails = ''.join([
+                prepare_thumbnail(img, size=thumbnail_size)
+                for img in images
+            ])
+
+            properties_rows = []
+            for name, values in properties.iterrows():
+                properties_rows.append(f"<h4>{name}</h4>")
+                for v in values:
+                    properties_rows.append(f"<h4>{format_number(v)}</h4>")
+
+            tables.append(table_template.format(
+                n_of_images=len(images),
+                images=thumbnails,
+                properties=''.join(properties_rows)
+            ))
+
+        train_table, test_table = tables
+
+        template = dedent("""
+        <h4>Train Images</h3>
+        <hr>
+        {train_thumbnails}
+        <h4>Test Images</h4>
+        <hr>
+        {test_thumbnails}
+        """)
+
+        return template.format(
+            train_thumbnails=train_table,
+            test_thumbnails=test_table,
         )
 
     def add_condition_drift_score_not_greater_than(

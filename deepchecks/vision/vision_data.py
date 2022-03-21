@@ -299,7 +299,7 @@ class VisionData:
             samples.append(self.data_loader.dataset[index_in_dataset])
         return self.to_batch(*samples)
 
-    def validate_shared_label(self, other: VD):
+    def validate_shared_label(self: VD, other: VD):
         """Verify presence of shared labels.
 
         Validates whether the 2 datasets share the same label shape
