@@ -396,7 +396,7 @@ class VisionData:
         if not isinstance(class_ids, Sequence):
             raise ValidationError('The classes must be a sequence.')
         if not all((isinstance(x, Sequence) for x in class_ids)):
-            raise ValidationError('The classes sequence must contain as values sequences of ints'
+            raise ValidationError('The classes sequence must contain as values sequences of ints '
                                   '(sequence per sample).')
         if not all((all((isinstance(x, int) for x in inner_ids)) for inner_ids in class_ids)):
             raise ValidationError('The samples sequence must contain only int values.')

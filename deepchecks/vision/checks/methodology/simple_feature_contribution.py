@@ -110,7 +110,8 @@ class SimpleFeatureContribution(TrainTestCheck):
         else:
             imgs = batch.images
 
-        properties['target'] += dataset.get_classes(batch.labels)
+        for class_ids in dataset.get_classes(batch.labels):
+            properties['target'] += class_ids
 
         for single_property in self.image_properties:
             properties[single_property['name']].extend(single_property['method'](imgs))
