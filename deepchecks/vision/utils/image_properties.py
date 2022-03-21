@@ -42,18 +42,14 @@ def area(batch: List[np.ndarray]) -> List[int]:
 
 def brightness(batch: List[np.ndarray]) -> List[float]:
     """Calculate brightness on each image in the batch."""
-    if _is_grayscale(batch) is True:
-        return [img.mean() for img in batch]
-    else:
-        return [rgb2gray(img).mean() for img in batch]
+    return [img.mean() if _is_grayscale(img) else rgb2gray(img).mean()
+            for img in batch]
 
 
 def rms_contrast(batch: List[np.array]) -> List[float]:
     """Return RMS contrast of image."""
-    if _is_grayscale(batch) is False:
-        batch = [rgb2gray(img) for img in batch]
-
-    return [img.std() for img in batch]
+    return [img.std() if _is_grayscale(img) else rgb2gray(img).std()
+            for img in batch]
 
 
 def mean_red_relative_intensity(batch: List[np.ndarray]) -> List[float]:
@@ -87,8 +83,6 @@ def _rgb_relative_intensity_mean(batch: List[np.ndarray]) -> List[Tuple[float, f
     ----------
     batch: List[np.ndarray]
         A list of arrays, each arrays represents an image in the required deepchecks format.
-    sample_size_for_image_properties: int
-        The number of pixels to sample from each image.
 
     Returns
     -------
@@ -96,10 +90,8 @@ def _rgb_relative_intensity_mean(batch: List[np.ndarray]) -> List[Tuple[float, f
         List of 3-dimensional arrays, each dimension is the normalized mean of the color channel. An array is
         returned for each image.
     """
-    if _is_grayscale(batch) is True:
-        return [(None, None, None)] * len(batch)
-
-    return [_normalize_pixelwise(img).mean(axis=(1, 2)) for img in batch]
+    return [_normalize_pixelwise(img).mean(axis=(1, 2)) if not _is_grayscale(img) else (None, None, None)
+            for img in batch]
 
 
 def _normalize_pixelwise(img: np.ndarray) -> np.ndarray:
@@ -120,8 +112,8 @@ def _normalize_pixelwise(img: np.ndarray) -> np.ndarray:
                      for i in range(3)])
 
 
-def _is_grayscale(batch):
-    return get_dimension(batch[0]) == 1
+def _is_grayscale(img):
+    return get_dimension(img) == 1
 
 
 def get_size(img) -> Tuple[int, int]:

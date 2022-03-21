@@ -25,7 +25,7 @@ from deepchecks.core.errors import (
 )
 
 
-__all__ = ['Context']
+__all__ = ['Context', 'Batch']
 
 
 logger = logging.getLogger('deepchecks')
@@ -49,6 +49,7 @@ class Batch:
 
     @property
     def labels(self):
+        """Return labels for the batch, formatted in deepchecks format."""
         if self._labels is None:
             dataset = self._context.get_data_by_kind(self._dataset_kind)
             self._labels = dataset.batch_to_labels(self._batch)
@@ -56,6 +57,7 @@ class Batch:
 
     @property
     def predictions(self):
+        """Return predictions for the batch, formatted in deepchecks format."""
         if self._predictions is None:
             dataset = self._context.get_data_by_kind(self._dataset_kind)
             self._predictions = dataset.infer_on_batch(self._batch, self._context.model, self._context.device)
@@ -63,12 +65,14 @@ class Batch:
 
     @property
     def images(self):
+        """Return images for the batch, formatted in deepchecks format."""
         if self._images is None:
             dataset = self._context.get_data_by_kind(self._dataset_kind)
             self._images = dataset.batch_to_images(self._batch)
         return self._images
 
     def __getitem__(self, index):
+        """Return batch item by index."""
         return self._batch[index]
 
 
@@ -122,6 +126,13 @@ class Context:
         self._device = torch.device(device) if isinstance(device, str) else (device if device else torch.device('cpu'))
 
         if model is not None:
+            if not isinstance(model, nn.Module):
+                logger.warning('Model is not a torch.nn.Module. Deepchecks can\'t validate that model is in '
+                               'evaluation state.')
+            else:
+                if model.training:
+                    raise DatasetValidationError('Model is not in evaluation state. Please set model training '
+                                                 'parameter to False or run model.eval() before passing it.')
             for dataset, dataset_type in zip([train, test], ['train', 'test']):
                 if dataset is not None:
                     try:

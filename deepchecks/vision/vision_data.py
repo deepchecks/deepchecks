@@ -72,16 +72,18 @@ class VisionData:
         self._label_map = label_map
         self._transform_field = transform_field
         self._warned_labels = set()
-        self._has_images = False
+        self._image_formatter_error = None
 
         try:
             self.validate_image_data(next(iter(self._data_loader)))
-            self._has_images = True
         except DeepchecksNotImplementedError:
-            logger.warning('batch_to_images() was not implemented, some checks will not run')
+            self._image_formatter_error = 'batch_to_images() was not implemented, some checks will not run'
+            logger.warning(self._image_formatter_error)
         except ValidationError as ex:
-            logger.warning('batch_to_images() was not implemented correctly, '
-                           'the validation has failed with the error: %s', {str(ex)})
+            self._image_formatter_error = f'batch_to_images() was not implemented correctly, the validation has ' \
+                                          f'failed with the error: "{ex}". To test your image formatting use the ' \
+                                          f'function `validate_image_data(batch)`'
+            logger.warning(self._image_formatter_error)
 
         self._task_type = TaskType.OTHER
         self._has_label = None
@@ -354,6 +356,18 @@ class VisionData:
             raise ValidationError(f'Image data found to be in range [{sample_min}, {sample_max}] instead of expected '
                                   f'range [0, 255].')
 
+    def validate_format(self, model):
+        """Validate the correctness of the data class implementation according to the expected format.
+
+        Parameters
+        ----------
+        model : Model
+            Model to validate the data class implementation against.
+
+        """
+        from deepchecks.vision.utils.validation import validate_extractors  # pylint: disable=import-outside-toplevel
+        validate_extractors(self, model)
+
     def __iter__(self):
         """Return an iterator over the dataset."""
         return iter(self._data_loader)
@@ -361,6 +375,11 @@ class VisionData:
     def __len__(self):
         """Return the number of batches in the dataset dataloader."""
         return len(self._data_loader)
+
+    def assert_image_formatter_valid(self):
+        """Assert the image formatter defined is valid. Else raise exception."""
+        if self._image_formatter_error is not None:
+            raise DeepchecksValueError(self._image_formatter_error)
 
     @staticmethod
     def _get_data_loader_copy(data_loader: DataLoader, n_samples: int = None, shuffle: bool = False,

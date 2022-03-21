@@ -8,4 +8,5 @@ Computer Vision Tutorials
     :maxdepth: 2
 
     classification_tutorial
+    detection_tutorial
     examples/index
