@@ -8,5 +8,6 @@ Computer Vision Tutorials
     :maxdepth: 2
 
     classification_tutorial
-    extractors_validating
+    detection_tutorial
     custom_task_tutorial
+    extractors_validating
