@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module for validation of the vision module."""
+import os
 import random
 import traceback
 import typing as t
@@ -17,7 +18,8 @@ import torch
 import imgaug
 
 from deepchecks.core.errors import DeepchecksValueError, ValidationError
-from deepchecks.utils.ipython import is_notebook
+from deepchecks.utils.ipython import is_headless, is_notebook
+from deepchecks.utils.strings import create_new_file_name
 from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.utils.image_functions import numpy_to_image_figure, label_bbox_add_to_figure
 from deepchecks.vision.vision_data import VisionData
@@ -69,8 +71,22 @@ def apply_to_tensor(
     return x
 
 
-def validate_extractors(dataset: VisionData, model):
-    """Validate for given data_loader and model that the extractors are valid."""
+def validate_extractors(dataset: VisionData, model, image_save_location: str = None, save_images: bool = True):
+    """Validate for given data_loader and model that the extractors are valid.
+
+    Parameters
+    ----------
+    dataset : VisionData
+        the dataset to validate.
+    model :
+        the model to validate.
+    image_save_location : str , default: None
+        if location is given and the machine doesn't support GUI,
+        the images will be saved there.
+    save_images : bool , default: True
+        if the machine doesn't support GUI the displayed images will be saved
+        if the value is True.
+    """
     print('Deepchecks will try to validate the extractors given...')
     batch = next(iter(dataset.data_loader))
     images = None
@@ -198,4 +214,20 @@ def validate_extractors(dataset: VisionData, model):
         print(msg)
         if fig:
             image = Image.open(BytesIO(fig.to_image('jpg')))
-            image.show()
+            if is_headless():
+                if save_images:
+                    if image_save_location is None:
+                        save_loc = os.getcwd()
+                    else:
+                        save_loc = image_save_location
+                    full_image_path = os.path.join(save_loc, 'deepchecks_formatted_image.jpg')
+                    full_image_path = create_new_file_name(full_image_path)
+                    image.save(full_image_path)
+                    print('*******************************************************************************')
+                    print('This machine does not support GUI')
+                    print('The formatted image was saved in:')
+                    print(full_image_path)
+                    print('validate_extractors can be set to skip the image saving or change the save path')
+                    print('*******************************************************************************')
+            else:
+                image.show()
