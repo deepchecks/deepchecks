@@ -73,9 +73,11 @@ class VisionData:
         self._transform_field = transform_field
         self._warned_labels = set()
         self._image_formatter_error = None
+        self._label_formatter_error = None
 
+        batch = next(iter(self._data_loader))
         try:
-            self.validate_image_data(next(iter(self._data_loader)))
+            self.validate_image_data(batch)
         except DeepchecksNotImplementedError:
             self._image_formatter_error = 'batch_to_images() was not implemented, some checks will not run'
             logger.warning(self._image_formatter_error)
@@ -85,15 +87,25 @@ class VisionData:
                                           f'function `validate_image_data(batch)`'
             logger.warning(self._image_formatter_error)
 
+        try:
+            self.validate_label(batch)
+        except DeepchecksNotImplementedError:
+            self._label_formatter_error = 'batch_to_labels() was not implemented, some checks will not run'
+            logger.warning(self._image_formatter_error)
+        except ValidationError as ex:
+            self._label_formatter_error = f'batch_to_labels() was not implemented correctly, the validation has ' \
+                                          f'failed with the error: "{ex}". To test your label formatting use the ' \
+                                          f'function `validate_label(batch)`'
+            logger.warning(self._label_formatter_error)
+
         self._task_type = TaskType.OTHER
-        self._has_label = None
         self._classes_indices = None
         self._current_index = None
 
     @abstractmethod
     def get_classes(self, batch_labels: Union[List[torch.Tensor], torch.Tensor]) -> List[List[int]]:
         """Get a labels batch and return classes inside it."""
-        raise NotImplementedError('get_classes() must be implemented in a subclass')
+        raise DeepchecksNotImplementedError('get_classes() must be implemented in a subclass')
 
     @abstractmethod
     def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor]:
@@ -104,18 +116,6 @@ class VisionData:
     def infer_on_batch(self, batch, model, device) -> Union[List[torch.Tensor], torch.Tensor]:
         """Infer on a batch of data."""
         raise DeepchecksNotImplementedError('infer_on_batch() must be implemented in a subclass')
-
-    @abstractmethod
-    def validate_label(self, batch):
-        """Validate a batch of labels."""
-        raise NotImplementedError('validate_label() must be implemented in a subclass')
-
-    @abstractmethod
-    def validate_prediction(self, batch, model, device):
-        """Validate a batch of predictions."""
-        raise DeepchecksValueError(
-            'validate_prediction() must be implemented in a subclass'
-        )
 
     @abstractmethod
     def batch_to_images(self, batch) -> Sequence[np.ndarray]:
@@ -157,6 +157,17 @@ class VisionData:
         """
         raise DeepchecksNotImplementedError('batch_to_images() must be implemented in a subclass')
 
+    def validate_label(self, batch):
+        """Validate a batch of labels."""
+        # default implementation just calling the function to see if it runs
+        labels = self.batch_to_labels(batch)
+        self.get_classes(labels)
+
+    def validate_prediction(self, batch, model, device):
+        """Validate a batch of predictions."""
+        # default implementation just calling the function to see it runs
+        self.infer_on_batch(batch, model, device)
+
     def update_cache(self, labels):
         """Get labels and update the classes' metadata info."""
         classes_per_label = self.get_classes(labels)
@@ -197,7 +208,7 @@ class VisionData:
     @property
     def has_label(self) -> bool:
         """Return True if the data loader has labels."""
-        return self._has_label
+        return self._label_formatter_error is None
 
     @property
     def task_type(self) -> TaskType:
@@ -318,7 +329,7 @@ class VisionData:
             raise ValidationError('Check requires dataset to be of type VisionTask. instead got: '
                                   f'{type(other).__name__}')
 
-        if self._has_label != other.has_label:
+        if self.has_label != other.has_label:
             raise ValidationError('Datasets required to both either have or don\'t have labels')
 
         if self._task_type != other.task_type:

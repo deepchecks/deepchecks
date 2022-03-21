@@ -49,16 +49,6 @@ class DetectionData(VisionData):
         super().__init__(data_loader, num_classes, label_map, transform_field)
 
         self._task_type = TaskType.OBJECT_DETECTION
-        self._has_label = False
-
-        try:
-            self.validate_label(next(iter(self._data_loader)))
-            self._has_label = True
-        except DeepchecksNotImplementedError:
-            logger.warning('batch_to_labels() was not implemented, some checks will not run')
-        except ValidationError as ex:
-            logger.warning('batch_to_labels() was not implemented correctly, '
-                           'the validiation has failed with the error: %s', {str(ex)})
 
     @abstractmethod
     def batch_to_labels(self, batch) -> List[torch.Tensor]:
