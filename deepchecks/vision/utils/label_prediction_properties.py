@@ -75,14 +75,14 @@ def _get_predicted_bbox_area(predictions: List[torch.Tensor]) -> List[int]:
 
 
 DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES = [
-    {'name': 'Samples per class', 'method': _get_samples_per_predicted_class_classification, 'output_type': 'class_id'}
+    {'name': 'Samples Per Class', 'method': _get_samples_per_predicted_class_classification, 'output_type': 'class_id'}
 ]
 
 DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES = [
-    {'name': 'Samples per class', 'method': _get_samples_per_predicted_class_object_detection,
+    {'name': 'Samples Per Class', 'method': _get_samples_per_predicted_class_object_detection,
      'output_type': 'class_id'},
-    {'name': 'Bounding box area (in pixels)', 'method': _get_predicted_bbox_area, 'output_type': 'continuous'},
-    {'name': 'Number of bounding boxes per image', 'method': _count_num_bboxes, 'output_type': 'continuous'},
+    {'name': 'Bounding Box Area (in pixels)', 'method': _get_predicted_bbox_area, 'output_type': 'continuous'},
+    {'name': 'Number of Bounding Boxes Per Image', 'method': _count_num_bboxes, 'output_type': 'continuous'},
 ]
 
 

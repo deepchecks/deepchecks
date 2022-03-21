@@ -69,7 +69,7 @@ def test_with_drift_classification(mnist_dataset_train, mnist_dataset_test, trai
 
     # Assert
     assert_that(result.value, has_entries(
-        {'Samples per class': has_entries(
+        {'Samples Per Class': has_entries(
             {'Drift score': close_to(0, 0.001),
              'Method': equal_to('PSI')}
         )
