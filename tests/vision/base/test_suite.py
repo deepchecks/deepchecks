@@ -26,7 +26,7 @@ from hamcrest import (
 )
 
 from deepchecks.core import CheckResult, DatasetKind
-from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError
+from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError, DeepchecksNotSupportedError
 from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.base_checks import SingleDatasetCheck, TrainTestCheck, ModelOnlyCheck
 from deepchecks.vision.suite import Suite
@@ -99,7 +99,13 @@ def test_suite_execution_with_initalize_exeption():
     suite = Suite("test",
                   DummyCheck(),
                   DummyTrainTestCheck())
-    suite.run(train_dataset=coco_dataset, test_dataset=coco_dataset)
+    result = suite.run(train_dataset=coco_dataset, test_dataset=coco_dataset)
+
+    assert_that(result.results[0].exception, instance_of(DeepchecksValueError))
+    assert_that(result.results[0].exception.message, is_('bad init'))
+
+    assert_that(result.results[1].exception, instance_of(DeepchecksValueError))
+    assert_that(result.results[1].exception.message, is_('bad init'))
 
     assert_that(executions, is_({'initialize_run': 3}))
 
@@ -130,12 +136,17 @@ def test_suite_execution_with_exception_on_compute():
         def compute(self, context) -> CheckResult:
             executions["compute"] += 1
             raise DeepchecksValueError('bad compute')
-            return CheckResult(None)
 
     suite = Suite("test",
                   DummyCheck(),
                   DummyTrainTestCheck())
-    suite.run(train_dataset=coco_dataset, test_dataset=coco_dataset)
+    result = suite.run(train_dataset=coco_dataset, test_dataset=coco_dataset)
+
+    assert_that(result.results[0].exception, instance_of(DeepchecksValueError))
+    assert_that(result.results[0].exception.message, is_('bad compute'))
+
+    assert_that(result.results[1].exception, instance_of(DeepchecksValueError))
+    assert_that(result.results[1].exception.message, is_('bad compute'))
 
     assert_that(executions, is_({'initialize_run': 3, 'update': 8, 'compute': 3}))
 
@@ -154,7 +165,6 @@ def test_suite_execution_with_missing_train():
         def compute(self, context) -> CheckResult:
             executions["compute"] += 1
             raise DeepchecksValueError('bad compute')
-            return CheckResult(None)
 
     suite = Suite("test",
                   DummyTrainTestCheck())
@@ -183,7 +193,11 @@ def test_suite_execution_with_missing_test():
     suite = Suite("test",
                   DummyTrainTestCheck())
     r = suite.run(train_dataset=coco_dataset)
-    print(r.to_json())
+
+    assert_that(r.results[0].exception, instance_of(DeepchecksNotSupportedError))
+    assert_that(r.results[0].exception.message,
+                is_('Check is irrelevant if not supplied with both train and test datasets'))
+
     assert_that(executions, is_({'initialize_run': 1}))
 
 
