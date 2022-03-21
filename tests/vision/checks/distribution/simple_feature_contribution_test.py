@@ -74,8 +74,8 @@ def test_drift_classification(mnist_dataset_train, mnist_dataset_test):
     # Assert
     assert_that(result.value, has_entries({
         'train': has_entries({'Brightness': equal_to(0)}),
-        'test': has_entries({'Brightness': close_to(0.462, 0.001)}),
-        'train-test difference': has_entries({'Brightness': close_to(-0.462, 0.001)})
+        'test': has_entries({'Brightness': close_to(0.458, 0.001)}),
+        'train-test difference': has_entries({'Brightness': close_to(-0.458, 0.001)})
     }))
 
 
@@ -107,9 +107,9 @@ def test_drift_object_detection(coco_train_visiondata, coco_test_visiondata):
 
     # Assert
     assert_that(result.value, has_entries({
-        'train': has_entries({'Brightness': close_to(0.35, 0.01)}),
+        'train': has_entries({'Brightness': close_to(0.38, 0.01)}),
         'test': has_entries({'Brightness': equal_to(0)}),
-        'train-test difference': has_entries({'Brightness': close_to(0.35, 0.01)}),
+        'train-test difference': has_entries({'Brightness': close_to(0.38, 0.01)}),
     })
                 )
 
@@ -150,6 +150,6 @@ def test_train_test_condition_pps_train_fail(coco_train_visiondata, coco_test_vi
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name=f'Train properties\' Predictive Power Score is not greater than {condition_value}',
-        details='Features in train dataset with PPS above threshold: {\'Brightness\': \'0.36\', '
+        details='Features in train dataset with PPS above threshold: {\'Brightness\': \'0.38\', '
                 '\'RMS Contrast\': \'0.34\'}'
     ))

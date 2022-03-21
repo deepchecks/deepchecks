@@ -36,10 +36,10 @@ def load_dataset(
     object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader',
     **kwargs
 ) -> t.Union[DataLoader, vision.ClassificationData]:
-    """Load simple classification dataset.
+    """Load a simple classification dataset.
 
-    The function expects that data within root folder
-    will be structured in a next way:
+    The function expects that the data within the root folder
+    to be structured in the following way:
 
         - root/
             - train/
@@ -54,7 +54,7 @@ def load_dataset(
     root : str
         path to the data
     train : bool
-        if `True` train dataset, otherwise test dataset
+        if `True` load the train dataset, otherwise load the test dataset
     batch_size : int, default: 32
         Batch size for the dataloader.
     num_workers : int, default: 0
@@ -72,7 +72,7 @@ def load_dataset(
     -------
     Union[DataLoader, VisionDataset]
 
-        A DataLoader or VisionDataset instance representing COCO128 dataset
+        A DataLoader or VisionDataset instance representing the dataset
     """
 
     def batch_collate(batch):
@@ -192,7 +192,7 @@ class SimpleClassificationDataset(VisionDataset):
 
 
 class SimpleClassificationData(vision.ClassificationData):
-    """Simple ClassificationData type."""
+    """Simple ClassificationData type, matches the data returned by SimpleClassificationDataset getitem."""
 
     def batch_to_images(
         self,
