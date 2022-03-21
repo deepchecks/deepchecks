@@ -47,7 +47,7 @@ def test_suite_execution():
 
         def compute(self, context, dataset_kind: DatasetKind) -> CheckResult:
             executions["compute"] += 1
-            return CheckResult(None)
+            return CheckResult(0)
 
     class DummyTrainTestCheck(TrainTestCheck):
         def initialize_run(self, context):
@@ -58,13 +58,15 @@ def test_suite_execution():
 
         def compute(self, context) -> CheckResult:
             executions["compute"] += 1
-            return CheckResult(None)
+            return CheckResult(1)
 
     suite = Suite("test",
-                  DummyCheck(),
-                  DummyTrainTestCheck())
-    suite.run(train_dataset=coco_dataset, test_dataset=coco_dataset)
+                           DummyCheck(),
+                           DummyTrainTestCheck())
+    result = suite.run(train_dataset=coco_dataset, test_dataset=coco_dataset)
 
+    assert_that(result.results[0].value, is_(0))
+    assert_that(result.results[2].value, is_(1))
     assert_that(executions, is_({'initialize_run': 3, 'update': 8, 'compute': 3}))
 
 
