@@ -17,23 +17,22 @@ from deepchecks.vision.checks import ConfusionMatrixReport
 # TODO: more tests
 
 
-def test_classification(mnist_dataset_train, trained_mnist, device):
+def test_classification(mnist_dataset_train, mock_trained_mnist, device):
     # Arrange
     check = ConfusionMatrixReport()
-    mnist_dataset_train.n_of_samples_per_class
     # Act
-    result = check.run(mnist_dataset_train, trained_mnist,
+    result = check.run(mnist_dataset_train, mock_trained_mnist,
                        device=device)
     # Assert
     assert_that(result.value.shape, equal_to((10, 10)))
 
 
-def test_detection(coco_train_visiondata, trained_yolov5_object_detection, device):
+def test_detection(coco_train_visiondata, mock_trained_yolov5_object_detection, device):
     # Arrange
     check = ConfusionMatrixReport()
     # Act
     result = check.run(coco_train_visiondata,
-                       trained_yolov5_object_detection,
+                       mock_trained_yolov5_object_detection,
                        device=device)
 
     # Assert

@@ -38,6 +38,7 @@ class TaskType(Enum):
 
     CLASSIFICATION = 'classification'
     OBJECT_DETECTION = 'object_detection'
+    OTHER = 'other'
 
 
 class VisionData:
@@ -71,18 +72,20 @@ class VisionData:
         self._label_map = label_map
         self._transform_field = transform_field
         self._warned_labels = set()
-        self._has_images = False
+        self._image_formatter_error = None
 
         try:
             self.validate_image_data(next(iter(self._data_loader)))
-            self._has_images = True
         except DeepchecksNotImplementedError:
-            logger.warning('batch_to_images() was not implemented, some checks will not run')
+            self._image_formatter_error = 'batch_to_images() was not implemented, some checks will not run'
+            logger.warning(self._image_formatter_error)
         except ValidationError as ex:
-            logger.warning('batch_to_images() was not implemented correctly, '
-                           'the validiation has failed with the error: %s', {str(ex)})
+            self._image_formatter_error = f'batch_to_images() was not implemented correctly, the validation has ' \
+                                          f'failed with the error: "{ex}". To test your image formatting use the ' \
+                                          f'function `validate_image_data(batch)`'
+            logger.warning(self._image_formatter_error)
 
-        self._task_type = None
+        self._task_type = TaskType.OTHER
         self._has_label = None
         self._classes_indices = None
         self._current_index = None
@@ -172,14 +175,8 @@ class VisionData:
     def classes_indices(self) -> Dict[int, List[int]]:
         """Return dict of classes as keys, and list of corresponding indices (in Dataset) of samples that include this\
         class (in the label)."""
-        if self._classes_indices is None:
-            # TODO remove this from here after removing the usage from init_run of checks, and raise error instead
-            self.init_cache()
-            for batch in self:
-                self.update_cache(self.batch_to_labels(batch))
-
-        if self._current_index < len(self._sampler):
-            raise DeepchecksValueError('Cached data loop is not completed yet')
+        if self._classes_indices is None or self._current_index < len(self._sampler):
+            raise DeepchecksValueError('Cached data is not computed on all the data yet.')
         return self._classes_indices
 
     @property
@@ -203,7 +200,7 @@ class VisionData:
         return self._has_label
 
     @property
-    def task_type(self) -> int:
+    def task_type(self) -> TaskType:
         """Return the task type."""
         return self._task_type
 
@@ -284,7 +281,7 @@ class VisionData:
         new_vision_data._data_loader = copied_data_loader
         new_vision_data._sampler = copied_sampler
         # If new data is sampled, then needs to re-calculate cache
-        if n_samples and self.classes_indices is not None:
+        if n_samples and self._classes_indices is not None:
             new_vision_data.init_cache()
             for batch in new_vision_data:
                 new_vision_data.update_cache(self.batch_to_labels(batch))
@@ -366,6 +363,11 @@ class VisionData:
     def __len__(self):
         """Return the number of batches in the dataset dataloader."""
         return len(self._data_loader)
+
+    def assert_image_formatter_valid(self):
+        """Assert the image formatter defined is valid. Else raise exception."""
+        if self._image_formatter_error is not None:
+            raise DeepchecksValueError(self._image_formatter_error)
 
     @staticmethod
     def _get_data_loader_copy(data_loader: DataLoader, n_samples: int = None, shuffle: bool = False,

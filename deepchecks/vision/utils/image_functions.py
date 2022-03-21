@@ -9,19 +9,24 @@
 # ----------------------------------------------------------------------------
 #
 """Module for defining functions related to image data."""
+import typing as t
+import io
 import base64
-from typing import Tuple
 
 import cv2
 import numpy as np
-import plotly.graph_objects as go
 import torch
+import PIL.Image as pilimage
+import PIL.ImageDraw as pildraw
+import PIL.ImageOps as pilops
+import plotly.graph_objects as go
 
 from deepchecks.core.errors import DeepchecksValueError
+from .detection_formatters import convert_bbox
 
 
 __all__ = ['ImageInfo', 'numpy_to_image_figure', 'label_bbox_add_to_figure', 'numpy_grayscale_to_heatmap_figure',
-           'apply_heatmap_image_properties', 'numpy_to_html_image', 'crop_image']
+           'apply_heatmap_image_properties', 'draw_bboxes', 'prepare_thumbnail', 'crop_image']
 
 
 class ImageInfo:
@@ -32,7 +37,7 @@ class ImageInfo:
             raise DeepchecksValueError('Expect image to be numpy array')
         self.img = img
 
-    def get_size(self) -> Tuple[int, int]:
+    def get_size(self) -> t.Tuple[int, int]:
         """Get size of image as (width, height) tuple."""
         return self.img.shape[1], self.img.shape[0]
 
@@ -56,33 +61,143 @@ def numpy_to_image_figure(data: np.ndarray):
     return go.Image(z=data, hoverinfo='skip')
 
 
-def numpy_to_html_image(data: np.ndarray, labels=None):
-    """Use plotly to create PNG image out of numpy data.
+def ensure_image(
+    image: t.Union[pilimage.Image, np.ndarray, torch.Tensor],
+    copy: bool = True
+) -> pilimage.Image:
+    """Transform to `PIL.Image.Image` if possible.
+
+    Parameters
+    ----------
+    image : Union[PIL.Image.Image, numpy.ndarray, torch.Tensor]
+    copy : bool, default True
+        if `image` is an instance of the `PIL.Image.Image` return
+        it as it is or copy it.
 
     Returns
-    ------
-    str
-        HTML img tag with the embedded picture
+    -------
+    `PIL.Image.Image`
     """
-    dimension = data.shape[2]
-    if dimension == 1:
-        fig = go.Figure(go.Heatmap(z=data.squeeze(), colorscale='gray', hoverinfo='skip'))
-        apply_heatmap_image_properties(fig)
-        fig.update_traces(showscale=False)
-    elif dimension == 3:
-        fig = go.Figure(go.Image(z=data, hoverinfo='skip'))
+    if isinstance(image, pilimage.Image):
+        return image.copy() if copy is True else image
+    if isinstance(image, torch.Tensor):
+        image = t.cast(np.ndarray, image.numpy())
+    if isinstance(image, np.ndarray):
+        image = image.squeeze()
+        if image.ndim == 3:
+            return pilimage.fromarray(image)
+        elif image.ndim == 2:
+            image = image.astype(np.uint8)
+            return pilops.colorize(
+                pilimage.fromarray(image),
+                black='black',
+                white='white',
+                blackpoint=image.min(),
+                whitepoint=image.max(),
+            )
+        else:
+            raise ValueError(f'Do not know how to work with {image.ndim} dimensional images')
     else:
-        raise DeepchecksValueError(f'Don\'t know to plot images with {dimension} dimensions')
+        raise TypeError(f'cannot convert {type(image)} to the PIL.Image.Image')
 
-    if labels:
-        label_bbox_add_to_figure(labels, fig)
 
-    fig.update_yaxes(showticklabels=False, visible=True, fixedrange=True, automargin=True)
-    fig.update_xaxes(showticklabels=False, visible=True, fixedrange=True, automargin=True)
-    fig.update_layout(margin={'l': 0, 'r': 0, 't': 0, 'b': 0})
-    png = base64.b64encode(fig.to_image('png')).decode('ascii')
-    style = 'position: absolute;margin: auto;top: 0;bottom: 0;left: 0; right: 0;max-width:100%;max-height:100%;'
-    return f'<img style="{style}" src="data:image/png;base64, {png}">'
+def draw_bboxes(
+    image: t.Union[pilimage.Image, np.ndarray, torch.Tensor],
+    bboxes: np.ndarray,
+    bbox_notation: t.Optional[str] = None,
+    copy_image: bool = True,
+    border_width: int = 1,
+    color: t.Union[str, t.Dict[np.number, str]] = 'red',
+) -> pilimage.Image:
+    """Draw bboxes on the image.
+
+    Parameters
+    ----------
+    image : Union[PIL.Image.Image, numpy.ndarray, torch.Tensor]
+        image to draw on
+    bboxes : numpy.ndarray
+        array of bboxes
+    bbox_notation : Optional[str], default None
+        format of the provided bboxes
+    copy_image : bool, default True
+        copy imagge before drawing or not
+    border_width : int, default 1
+        width of the bbox outline
+    color: Union[str, Dict[number, str]], default "red"
+        color of the bbox outline. It could be a map mapping class id to the color
+
+    Returns
+    -------
+    PIL.Image.Image : image instance with drawen bboxes on it
+    """
+    image = ensure_image(image, copy=copy_image)
+
+    if bbox_notation is not None:
+        bboxes = np.array([
+            convert_bbox(
+                bbox,
+                notation=bbox_notation,
+                image_width=image.width,
+                image_height=image.height,
+                _strict=False
+            ).tolist()
+            for bbox in bboxes
+        ])
+
+    draw = pildraw.ImageDraw(image)
+
+    for bbox in bboxes:
+        clazz, x0, y0, w, h = bbox
+        x1, y1 = x0 + w, y0 + h
+
+        if isinstance(color, str):
+            color_to_use = color
+        elif isinstance(color, dict):
+            color_to_use = color[clazz]
+        else:
+            raise TypeError('color must be of type - Union[str, Dict[int, str]]')
+
+        draw.rectangle(xy=(x0, y0, x1, y1), width=border_width, outline=color_to_use)
+        draw.text(xy=(x0 + (w * 0.5), y0 + (h * 0.2)), text=str(clazz), fill=color_to_use)
+
+    return image
+
+
+def prepare_thumbnail(
+    image: t.Union[pilimage.Image, np.ndarray, torch.Tensor],
+    size: t.Optional[t.Tuple[int, int]] = None,
+    copy_image: bool = True,
+) -> str:
+    """Prepare html image tag with the provided image.
+
+    Parameters
+    ----------
+    image : Union[PIL.Image.Image, numpy.ndarray, torch.Tensor]
+        image to use
+    size : Optional[Tuple[int, int]], default None
+        size to which image should be rescaled
+    copy_image : bool, default True
+        to rescale the image to the provided size this function uses
+        `PIL.Image.Image.thumbnail` method that modified image instance
+        in-place. If `copy_image` is set to True image will be copied
+        before rescaling.
+
+    Returns
+    -------
+    str : html '<img>' tag with embedded image
+    """
+    if size is not None:
+        image = ensure_image(image, copy=copy_image)
+        image.thumbnail(size=size)
+    else:
+        image = ensure_image(image, copy=False)
+
+    img_bytes = io.BytesIO()
+    image.save(fp=img_bytes, format='PNG')
+    img_bytes.seek(0)
+    png = base64.b64encode(img_bytes.read()).decode('ascii')
+    img_bytes.close()
+    return f'<img src="data:image/png;base64,{png}"/>'
 
 
 def numpy_grayscale_to_heatmap_figure(data: np.ndarray):
@@ -114,7 +229,7 @@ def label_bbox_add_to_figure(labels: torch.Tensor, figure, row=None, col=None, c
                               font=dict(color=color))
 
 
-def crop_image(img: np.array, x, y, w, h) -> np.array:
+def crop_image(img: np.ndarray, x, y, w, h) -> np.ndarray:
     """Return the cropped numpy array image by x, y, w, h coordinates (top left corner, width and height."""
     # Convert x, y, w, h to integers if not integers already:
     x, y, w, h = [round(n) for n in [x, y, w, h]]

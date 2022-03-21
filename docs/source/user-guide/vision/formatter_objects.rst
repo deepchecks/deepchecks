@@ -156,4 +156,4 @@ Use this function like so:
     validate_formatters(data_loader, model, label_formatter, image_formatter, pred_formatter)
 
 
-For more info about the formatters validating see the guide :doc:`formatters_validation </examples/vision/guides/formatters_validating>`
+For more info about the formatters validating see the guide :doc:`formatters_validation </tutorials/vision/extractors_validating>`
