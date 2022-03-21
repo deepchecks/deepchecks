@@ -16,7 +16,7 @@ from functools import lru_cache
 from IPython import get_ipython  # TODO: I think we should remove ipython from mandatory dependencies
 
 
-__all__ = ['is_notebook', 'is_widgets_enabled']
+__all__ = ['is_notebook', 'is_widgets_enabled', 'is_headless']
 
 
 @lru_cache(maxsize=None)
@@ -33,6 +33,31 @@ def is_notebook() -> bool:
         return hasattr(shell, 'config')
     except NameError:
         return False  # Probably standard Python interpreter
+
+
+@lru_cache(maxsize=None)
+def is_headless() -> bool:
+    """Check if the system can support GUI.
+
+    Returns
+    -------
+    bool
+        True if we cannot support GUI, False otherwise
+    """
+    # pylint: disable=import-outside-toplevel
+    try:
+        import Tkinter as tk
+    except ImportError:
+        try:
+            import tkinter as tk
+        except ImportError:
+            return True
+    try:
+        root = tk.Tk()
+    except tk.TclError:
+        return True
+    root.destroy()
+    return False
 
 
 @lru_cache(maxsize=None)
