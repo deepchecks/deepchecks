@@ -145,9 +145,9 @@ def get_single_feature_contribution_per_class(train_df: pd.DataFrame, train_labe
         test_df_all_vs_one = test_df.copy()
 
         train_df_all_vs_one[train_label_name] = train_df_all_vs_one[train_label_name].apply(
-            lambda x: 1 if x == c else 0)
+            lambda x: 1 if x == c else 0)  # pylint: disable=cell-var-from-loop
         test_df_all_vs_one[test_label_name] = test_df_all_vs_one[test_label_name].apply(
-            lambda x: 1 if x == c else 0)
+            lambda x: 1 if x == c else 0)  # pylint: disable=cell-var-from-loop
 
         df_pps_train = pps.predictors(df=train_df_all_vs_one, y=train_label_name,
                                       random_seed=42,
