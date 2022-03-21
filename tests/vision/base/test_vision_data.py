@@ -262,7 +262,7 @@ def test_sampler(mnist_dataset_train):
     sampled = mnist_dataset_train.copy(n_samples=10, random_state=0)
     # Assert
     classes = list(itertools.chain(*[b[1].tolist() for b in sampled]))
-    assert_that(classes, contains_exactly(7, 7, 9, 6, 3, 2, 3, 7, 2, 7))
+    assert_that(classes, contains_exactly(4, 9, 3, 3, 8, 7, 9, 4, 8, 1))
 
     # Act
     sampled = mnist_dataset_train.copy(n_samples=500, random_state=0)
