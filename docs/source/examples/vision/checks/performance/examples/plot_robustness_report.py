@@ -27,9 +27,9 @@ time for 2 reasons:
 
 How does model robustness on images is checked?
 ===============================================
-This check performs augmentations on images in the test dataset, and measures the change
+This check performs augmentations on images in the train and test datasets, and measures the change
 in model performance for each augmentation. This is done in order to estimate how well
-the model generalizes on the test dataset.
+the model generalizes on the data.
 
 If performance decreases significantly on augmented images, this could mean that:
 ---------------------------------------------------------------------------------
