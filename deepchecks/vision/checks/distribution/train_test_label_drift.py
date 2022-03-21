@@ -14,7 +14,7 @@ from typing import Dict, List, Any
 import pandas as pd
 from collections import OrderedDict, defaultdict
 
-from deepchecks import ConditionResult
+from deepchecks.core import ConditionResult
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.core import DatasetKind, CheckResult
 from deepchecks.core.errors import DeepchecksNotSupportedError
