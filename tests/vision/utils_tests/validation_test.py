@@ -10,10 +10,9 @@
 #
 import os
 
-from hamcrest import has_items, assert_that, has_length, close_to, raises
+from hamcrest import assert_that
 
 from deepchecks.vision.utils.validation import validate_extractors
-from deepchecks.vision.detection_data import DetectionData
 from deepchecks.utils.ipython import is_headless
 
 FILE_NAME = 'deepchecks_formatted_image.jpg'
