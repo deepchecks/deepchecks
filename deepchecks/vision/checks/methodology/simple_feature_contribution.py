@@ -103,10 +103,7 @@ class SimpleFeatureContribution(TrainTestCheck):
             dataset = context.test
             properties = self._test_properties
 
-        if dataset.task_type == TaskType.CLASSIFICATION:
-            imgs = batch.images
-            properties['target'] += batch.labels.tolist()
-        elif dataset.task_type == TaskType.OBJECT_DETECTION:
+        if dataset.task_type == TaskType.OBJECT_DETECTION:
             labels = batch.labels
             orig_imgs = batch.images
 
@@ -120,8 +117,8 @@ class SimpleFeatureContribution(TrainTestCheck):
 
             properties['target'] += classes
         else:
-            raise DeepchecksValueError(
-                f'Check {self.__class__.__name__} does not support task type {dataset.task_type}')
+            imgs = batch.images
+            properties['target'] += dataset.get_classes(batch.labels)
 
         for single_property in self.image_properties:
             properties[single_property['name']].extend(single_property['method'](imgs))
