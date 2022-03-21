@@ -375,10 +375,13 @@ html_copy_source = True
 html_theme_options = {
     "collapse_navigation": False,
     "navigation_depth": 6,
-    "navbar_end": ["search-field", "navbar-icon-links", "menu-dropdown", ],
+    "navbar_end": ["version-switcher", "search-field", "navbar-icon-links", "menu-dropdown", ],
     # "page_sidebar_items": ["page-toc", "create-issue", "show-page-source"],
     "page_sidebar_items": ["page-toc", ],
     "icon_links_label": "Quick Links",
+    "switcher": {
+      "json_url": "https://deepchecks.github.io/dev/_static/switcher.json",
+    },
     "icon_links": [
         {
             "name": "GitHub",
