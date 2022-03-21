@@ -326,7 +326,7 @@ def test_get_classes_validation_not_contain_sequence(mnist_data_loader_train):
         calling(data.assert_label_formatter_valid).with_args(),
         raises(DeepchecksValueError,
                r'get_classes\(\) was not implemented correctly, the validation has failed with the error: "The '
-               r'classes sequence contain also sequences of ints as values \(sequence per sample\).". To test your '
+               r'classes sequence must contain as values sequences of ints \(sequence per sample\).". To test your '
                r'formatting use the function `validate_get_classes\(batch\)`')
     )
 
@@ -345,6 +345,6 @@ def test_get_classes_validation_not_contain_contain_int(mnist_data_loader_train)
         calling(data.assert_label_formatter_valid).with_args(),
         raises(DeepchecksValueError,
                r'get_classes\(\) was not implemented correctly, the validation has failed with the error: "The '
-               r'samples sequence most contain only int values.". To test your formatting use the function '
+               r'samples sequence must contain only int values.". To test your formatting use the function '
                r'`validate_get_classes\(batch\)`')
     )

@@ -396,11 +396,11 @@ class VisionData:
         class_ids = self.get_classes(self.batch_to_labels(batch))
         if not isinstance(class_ids, Sequence):
             raise ValidationError('The classes must be a sequence.')
-        if not all([isinstance(x, Sequence) for x in class_ids]):
-            raise ValidationError('The classes sequence contain also sequences of ints as values '
+        if not all((isinstance(x, Sequence) for x in class_ids)):
+            raise ValidationError('The classes sequence must contain as values sequences of ints'
                                   '(sequence per sample).')
-        if not all([all([isinstance(x, int) for x in inner_ids]) for inner_ids in class_ids]):
-            raise ValidationError('The samples sequence most contain only int values.')
+        if not all((all((isinstance(x, int) for x in inner_ids)) for inner_ids in class_ids)):
+            raise ValidationError('The samples sequence must contain only int values.')
 
     def validate_format(self, model):
         """Validate the correctness of the data class implementation according to the expected format.
