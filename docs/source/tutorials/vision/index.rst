@@ -9,3 +9,4 @@ Computer Vision Tutorials
 
     classification_tutorial
     extractors_validating
+    custom_task_tutorial
