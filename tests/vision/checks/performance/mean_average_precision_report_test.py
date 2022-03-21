@@ -15,19 +15,19 @@ from deepchecks.core.errors import ModelValidationError
 from deepchecks.vision.checks.performance import MeanAveragePrecisionReport
 
 
-def test_mnist_error(mnist_dataset_test, trained_mnist, device):
+def test_mnist_error(mnist_dataset_test, mock_trained_mnist, device):
     # Arrange
     check = MeanAveragePrecisionReport()
     # Act
     assert_that(
         calling(check.run
-                ).with_args(mnist_dataset_test, trained_mnist,
+                ).with_args(mnist_dataset_test, mock_trained_mnist,
                             device=device),
         raises(ModelValidationError, r'Check is irrelevant for task of type TaskType.CLASSIFICATION')
     )
 
 
-def test_coco(coco_test_visiondata, trained_yolov5_object_detection, device):
+def test_coco(coco_test_visiondata, mock_trained_yolov5_object_detection, device):
     # Arrange
     check = MeanAveragePrecisionReport() \
             .add_condition_test_average_precision_not_less_than(0.1) \
@@ -37,7 +37,7 @@ def test_coco(coco_test_visiondata, trained_yolov5_object_detection, device):
 
     # Act
     result = check.run(coco_test_visiondata,
-                       trained_yolov5_object_detection, device=device)
+                       mock_trained_yolov5_object_detection, device=device)
 
     # Assert
     df = result.value
@@ -83,13 +83,13 @@ def test_coco(coco_test_visiondata, trained_yolov5_object_detection, device):
     ))
 
 
-def test_coco_area_param(coco_test_visiondata, trained_yolov5_object_detection, device):
+def test_coco_area_param(coco_test_visiondata, mock_trained_yolov5_object_detection, device):
     # Arrange
     check = MeanAveragePrecisionReport(area_range=(40**2, 100**2))
 
     # Act
     result = check.run(coco_test_visiondata,
-                       trained_yolov5_object_detection,
+                       mock_trained_yolov5_object_detection,
                        device=device)
 
     # Assert

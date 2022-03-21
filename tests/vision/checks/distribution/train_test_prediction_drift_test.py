@@ -16,13 +16,13 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks import TrainTestPredictionDrift
 
 
-def test_no_drift_classification(mnist_dataset_train, trained_mnist, device):
+def test_no_drift_classification(mnist_dataset_train, mock_trained_mnist, device):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_train
     check = TrainTestPredictionDrift()
 
     # Act
-    result = check.run(train, test, trained_mnist,
+    result = check.run(train, test, mock_trained_mnist,
                        device=device)
 
     # Assert
@@ -34,12 +34,12 @@ def test_no_drift_classification(mnist_dataset_train, trained_mnist, device):
     ))
 
 
-def test_no_drift_object_detection(coco_train_visiondata, trained_yolov5_object_detection, device):
+def test_no_drift_object_detection(coco_train_visiondata, mock_trained_yolov5_object_detection, device):
     # Arrange
     check = TrainTestPredictionDrift()
 
     # Act
-    result = check.run(coco_train_visiondata, coco_train_visiondata, trained_yolov5_object_detection,
+    result = check.run(coco_train_visiondata, coco_train_visiondata, mock_trained_yolov5_object_detection,
                        device=device)
 
     # Assert
@@ -58,13 +58,13 @@ def test_no_drift_object_detection(coco_train_visiondata, trained_yolov5_object_
     ))
 
 
-def test_with_drift_classification(mnist_dataset_train, mnist_dataset_test, trained_mnist, device):
+def test_with_drift_classification(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_test
     check = TrainTestPredictionDrift()
 
     # Act
-    result = check.run(train, test, trained_mnist,
+    result = check.run(train, test, mock_trained_mnist,
                        device=device)
 
     # Assert
@@ -77,13 +77,13 @@ def test_with_drift_classification(mnist_dataset_train, mnist_dataset_test, trai
     ))
 
 
-def test_with_drift_object_detection(coco_train_visiondata, coco_test_visiondata, trained_yolov5_object_detection,
+def test_with_drift_object_detection(coco_train_visiondata, coco_test_visiondata, mock_trained_yolov5_object_detection,
                                      device):
     # Arrange
     check = TrainTestPredictionDrift()
 
     # Act
-    result = check.run(coco_train_visiondata, coco_test_visiondata, trained_yolov5_object_detection, device=device)
+    result = check.run(coco_train_visiondata, coco_test_visiondata, mock_trained_yolov5_object_detection, device=device)
 
     # Assert
     assert_that(result.value, has_entries(
@@ -102,12 +102,12 @@ def test_with_drift_object_detection(coco_train_visiondata, coco_test_visiondata
 
 
 def test_with_drift_object_detection_change_max_cat(coco_train_visiondata, coco_test_visiondata,
-                                                    trained_yolov5_object_detection, device):
+                                                    mock_trained_yolov5_object_detection, device):
     # Arrange
     check = TrainTestPredictionDrift(max_num_categories=100)
 
     # Act
-    result = check.run(coco_train_visiondata, coco_test_visiondata, trained_yolov5_object_detection, device=device)
+    result = check.run(coco_train_visiondata, coco_test_visiondata, mock_trained_yolov5_object_detection, device=device)
 
     # Assert
     assert_that(result.value, has_entries(
@@ -126,7 +126,7 @@ def test_with_drift_object_detection_change_max_cat(coco_train_visiondata, coco_
 
 
 def test_with_drift_object_detection_alternative_measurements(coco_train_visiondata, coco_test_visiondata,
-                                                              trained_yolov5_object_detection, device):
+                                                              mock_trained_yolov5_object_detection, device):
     # Arrange
     def prop(predictions):
         return [int(x[0][0]) if len(x) != 0 else 0 for x in predictions]
@@ -135,7 +135,7 @@ def test_with_drift_object_detection_alternative_measurements(coco_train_visiond
     check = TrainTestPredictionDrift(alternative_prediction_properties=alternative_measurements)
 
     # Act
-    result = check.run(coco_train_visiondata, coco_test_visiondata, trained_yolov5_object_detection, device=device)
+    result = check.run(coco_train_visiondata, coco_test_visiondata, mock_trained_yolov5_object_detection, device=device)
 
     # Assert
     assert_that(result.value, has_entries(
@@ -147,7 +147,7 @@ def test_with_drift_object_detection_alternative_measurements(coco_train_visiond
     ))
 
 
-def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets, trained_mnist, device):
+def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets, mock_trained_mnist, device):
     # Arrange
     check = TrainTestPredictionDrift().add_condition_drift_score_not_greater_than()
     mod_train_ds, mod_test_ds = mnist_drifted_datasets
@@ -161,7 +161,7 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets, trained_mn
     mod_test_ds.infer_on_batch = infer
 
     # Act
-    result = check.run(mod_train_ds, mod_test_ds, trained_mnist, device=device)
+    result = check.run(mod_train_ds, mod_test_ds, mock_trained_mnist, device=device)
 
     condition_result, *_ = result.conditions_results
 
@@ -170,7 +170,7 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets, trained_mn
         is_pass=False,
         name='PSI <= 0.15 and Earth Mover\'s Distance <= 0.075 for prediction drift',
         details='Found non-continues prediction properties with PSI drift score above threshold: {\'Samples per '
-                'class\': \'3.9\'}\n'
+                'class\': \'4.0\'}\n'
     ))
 
 
