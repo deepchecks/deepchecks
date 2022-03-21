@@ -368,7 +368,7 @@ test-release: dist test-upload
 .PHONY: docs website dev-docs gen-static-notebooks license-check links-check
 
 
-docs: requirements doc-requirements $(DOCS_SRC)
+docs: requirements doc-requirements dev-requirements $(DOCS_SRC)
 	cd $(DOCS) && make html SPHINXBUILD=$(SPHINX_BUILD) SPHINXOPTS=$(SPHINXOPTS)
 	@echo ""
 	@echo "++++++++++++++++++++++++"
