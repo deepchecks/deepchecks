@@ -24,6 +24,7 @@ on:
 
 env:
   DEEPCHECKS_DISABLE_LATEST: "true"
+  WANDB_MODE: "offline"
 
 jobs:
   # Build the documentation
