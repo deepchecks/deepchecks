@@ -9,6 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """A module containing utils for plotting distributions."""
+from numbers import Number
+from functools import cmp_to_key
+
 import numpy as np
 import pandas as pd
 from scipy.stats import gaussian_kde
@@ -146,7 +149,16 @@ def feature_distribution_traces(train_column,
         categories_list = [un_numpy(cat) for cat in categories_list]
         cat_df = pd.DataFrame({'Train dataset': expected_percents, 'Test dataset': actual_percents},
                               index=categories_list)
-        cat_df.sort_index(inplace=True)
+
+        # Creating sorting function which works on both numbers and strings
+        def sort_int_and_strings(a, b):
+            # If both numbers or both same type using regular operator
+            if type(a) == type(b) or (isinstance(a, Number) and isinstance(b, Number)):
+                return -1 if a < b else 1
+            # Sort numbers before strings
+            return -1 if isinstance(a, Number) else 1
+        cat_df = cat_df.reindex(sorted(cat_df.index, key=cmp_to_key(sort_int_and_strings)))
+
         train_bar = go.Bar(
             x=cat_df.index,
             y=cat_df['Train dataset'],
