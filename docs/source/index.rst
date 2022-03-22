@@ -23,19 +23,36 @@ Deepchecks currently supports Tabular Data (:mod:`deepchecks.tabular`) and is in
 
 Get Started
 ============
-Head over to our quickstart tutorial notebook:
 
-- :doc:`Quickstart for Tabular Data </tutorials/tabular/quickstart_in_5_minutes>`
-- :doc:`Quickstart for Classification Computer Vision </tutorials/vision/classification_tutorial>`
+For a quickstart, check out the following in the tutorials section:
 
-and click on  |binder badge|  or on  |colab badge|  to launch it and see it in action,
-or see our :doc:`/getting-started/index` to install it locally and continue from there.
+**Tabular Data**: 
+
+:doc:`Quickstart in 5 minutes </tutorials/tabular/quickstart_in_5_minutes>` 
+and use |binder badge|  or  |colab badge|  to launch it and see it in action.
+
+**Computer Vision**
+
 
 .. note:: 
-   The package's output is suited for running in any Python environment.
-   The output can be conveniently viewed inline in Jupyter Notebooks (or JupyterLab),
-   and it can also be :doc:`exported as an HTML report </user-guide/general/exporting_results/save_suite_result_as_html>`,
-   to run it from any IDE.
+   Deepchecks' Computer Vision subpackage is in beta release.
+   It is `available for installation </getting-started/index>`` from PyPi, use at your own discretion.
+   `Github Issues <https://github.com/deepchecks/deepchecks/issues>`_ are welcome!
+
+
+- :doc:`Tutorial for Classification </tutorials/vision/classification_tutorial>`
+- :doc:`Tutorial for Object Detection </tutorials/vision/detection_tutorial>`
+
+
+Installation
+------------
+Check out our :doc:`Installation Instructions </getting-started/index>` to install it locally and continue from there.
+
+.. note:: 
+   The package's output can be consumed in many formats:
+   - Viewed inline in Jupyter (default behavior)
+   - :doc:`Exported as an HTML Report / JSON / Sent to W&B </user-guide/general/exporting_results/index>`
+
 
 When Should You Use Deepchecks?
 ================================
@@ -69,7 +86,7 @@ subset** of the following:
 -  **Test data** (which the model isn't exposed to) with labels
 -  | A **supported model** that you wish to validate.
    | For tabular data, see :doc:`supported models </user-guide/tabular/supported_models>`.
-   | For computer vision, we currently support the pytorch framework. See :doc:`formatters </user-guide/vision/data-classes/index>` to understand how to integrate with a custom prediciton and label format.
+   | For computer vision, we currently support the pytorch framework. See :doc:`/user-guide/vision/data-classes/index` to understand how to integrate your data.
 
 Supported Data Types
 ---------------------
