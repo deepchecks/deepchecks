@@ -25,7 +25,7 @@ Get Started
 ============
 Head over to our quickstart tutorial notebook:
 
-- :doc:`Quickstart for Tabular Data </tutorials/tabular/quickstart_in_5_minutes>`
+- :doc:`Quickstart for Tabular Data </tutorials/tabular/examples/plot_quickstart_in_5_minutes>`
 - :doc:`Quickstart for Classification Computer Vision </tutorials/vision/classification_tutorial>`
 
 and click on  |binder badge|  or on  |colab badge|  to launch it and see it in action,
@@ -34,7 +34,7 @@ or see our :doc:`/getting-started/index` to install it locally and continue from
 .. note:: 
    The package's output is suited for running in any Python environment.
    The output can be conveniently viewed inline in Jupyter Notebooks (or JupyterLab),
-   and it can also be :doc:`exported as an HTML report </user-guide/general/exporting_results/save_suite_result_as_html>`,
+   and it can also be :doc:`exported as an HTML report </user-guide/general/exporting_results/examples/plot_export_suite_result_as_html>`,
    to run it from any IDE.
 
 When Should You Use Deepchecks?

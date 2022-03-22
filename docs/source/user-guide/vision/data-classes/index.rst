@@ -53,4 +53,4 @@ Use this function like so:
     validate_extractors(dataset, model)
 
 For more info about the classes validation see the guide
-:doc:`formatters_validation </tutorials/vision/extractors_validating>`
+:doc:`formatters_validation </tutorials/vision/examples/plot_extractors_validating>`
