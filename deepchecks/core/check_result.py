@@ -25,8 +25,6 @@ from typing import Any, Callable, List, Tuple, Union, TYPE_CHECKING
 
 import jsonpickle
 import jsonpickle.ext.pandas as jsonpickle_pd
-jsonpickle_pd.register_handlers()
-
 import matplotlib
 import pandas as pd
 import numpy as np
@@ -39,6 +37,7 @@ from IPython.display import display_html
 from pandas.io.formats.style import Styler
 
 
+jsonpickle_pd.register_handlers()
 if TYPE_CHECKING:
     from deepchecks.core.checks import BaseCheck
 
