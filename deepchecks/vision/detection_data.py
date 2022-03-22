@@ -122,7 +122,7 @@ class DetectionData(VisionData):
     def get_classes(self, batch_labels: List[torch.Tensor]):
         """Get a labels batch and return classes inside it."""
         def get_classes_from_single_label(tensor: torch.Tensor):
-            return list(tensor[:, 0].tolist()) if len(tensor) > 0 else []
+            return list(tensor[:, 0].type(torch.IntTensor).tolist()) if len(tensor) > 0 else []
 
         return [get_classes_from_single_label(x) for x in batch_labels]
 
@@ -134,11 +134,12 @@ class DetectionData(VisionData):
         ----------
         batch
 
-        Returns
+        Raises
         -------
-        Optional[str]
-            None if the label is valid, otherwise a string containing the error message.
-
+        DeepchecksValueError
+            If labels format is invalid
+        DeepchecksNotImplementedError
+            If batch_to_labels not implemented
         """
         labels = self.batch_to_labels(batch)
         if not isinstance(labels, list):
@@ -164,6 +165,13 @@ class DetectionData(VisionData):
             Batch from DataLoader
         model : t.Any
         device : torch.Device
+
+        Raises
+        ------
+        DeepchecksValueError
+            If predictions format is invalid
+        DeepchecksNotImplementedError
+            If infer_on_batch not implemented
         """
         batch_predictions = self.infer_on_batch(batch, model, device)
         if not isinstance(batch_predictions, list):
