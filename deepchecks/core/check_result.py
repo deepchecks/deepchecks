@@ -24,6 +24,9 @@ import warnings
 from typing import Any, Callable, List, Tuple, Union, TYPE_CHECKING
 
 import jsonpickle
+import jsonpickle.ext.pandas as jsonpickle_pd
+jsonpickle_pd.register_handlers()
+
 import matplotlib
 import pandas as pd
 import numpy as np
@@ -289,12 +292,12 @@ class CheckResult:
         """
         result_json = self._get_metadata()
         if self.conditions_results:
-            cond_df = get_conditions_table(self)
+            cond_df = get_conditions_table(self, icon_html=False)
             result_json['conditions_table'] = cond_df.data.to_json(orient='records')
         if isinstance(self.value, pd.DataFrame):
-            result_json['value'] = self.value.to_json()
+            result_json['value'] = self.value.reset_index().to_json()
         elif isinstance(self.value, Styler):
-            result_json['value'] = self.value.data.to_json()
+            result_json['value'] = self.value.data.reset_index().to_json()
         elif isinstance(self.value, np.ndarray):
             result_json['value'] = self.value.tolist()
         else:
