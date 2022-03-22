@@ -37,6 +37,7 @@ author = 'Deepchecks'
 os.environ['DEEPCHECKS_DISABLE_LATEST'] = 'true'
 is_readthedocs = os.environ.get("READTHEDOCS")
 
+version = None
 if os.environ.get("GITHUB_REF_NAME"):
     if os.environ.get("GITHUB_REF_NAME") == 'main':
         version = 'dev'
