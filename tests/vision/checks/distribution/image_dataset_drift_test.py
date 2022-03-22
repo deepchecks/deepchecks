@@ -90,8 +90,8 @@ def test_no_drift_rgb(coco_train_dataloader, coco_test_dataloader, device):
             'Aspect Ratio': close_to(0, 0.01),
             'Area': close_to(0, 0.001),
             'Mean Red Relative Intensity': equal_to(0),
-            'Mean Green Relative Intensity': close_to(0, 0.001),
-            'Mean Blue Relative Intensity': close_to(1, 0.001),
+            'Mean Blue Relative Intensity': close_to(0, 0.001),
+            'Mean Green Relative Intensity': close_to(1, 0.001),
         })
     }))
 
