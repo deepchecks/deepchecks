@@ -304,7 +304,7 @@ def test_get_classes_validation_not_sequence(mnist_data_loader_train):
 
     # Assert
     assert_that(
-        calling(data.assert_label_formatter_valid).with_args(),
+        calling(data.assert_labels_valid).with_args(),
         raises(DeepchecksValueError,
                r'get_classes\(\) was not implemented correctly, the validation has failed with the error: "The classes '
                r'must be a sequence\."\. '
@@ -323,7 +323,7 @@ def test_get_classes_validation_not_contain_sequence(mnist_data_loader_train):
 
     # Assert
     assert_that(
-        calling(data.assert_label_formatter_valid).with_args(),
+        calling(data.assert_labels_valid).with_args(),
         raises(DeepchecksValueError,
                r'get_classes\(\) was not implemented correctly, the validation has failed with the error: "The '
                r'classes sequence must contain as values sequences of ints \(sequence per sample\).". To test your '
@@ -342,7 +342,7 @@ def test_get_classes_validation_not_contain_contain_int(mnist_data_loader_train)
 
     # Assert
     assert_that(
-        calling(data.assert_label_formatter_valid).with_args(),
+        calling(data.assert_labels_valid).with_args(),
         raises(DeepchecksValueError,
                r'get_classes\(\) was not implemented correctly, the validation has failed with the error: "The '
                r'samples sequence must contain only int values.". To test your formatting use the function '

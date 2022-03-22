@@ -58,7 +58,7 @@ T = t.TypeVar('T')
 def apply_to_tensor(
     x: T,
     fn: t.Callable[[torch.Tensor], torch.Tensor]
-) -> T:
+) -> t.Any:
     """Apply provided function to tensor instances recursivly."""
     if isinstance(x, torch.Tensor):
         return t.cast(T, fn(x))

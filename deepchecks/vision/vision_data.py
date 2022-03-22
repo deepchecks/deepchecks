@@ -421,12 +421,12 @@ class VisionData:
         """Return the number of batches in the dataset dataloader."""
         return len(self._data_loader)
 
-    def assert_image_formatter_valid(self):
+    def assert_images_valid(self):
         """Assert the image formatter defined is valid. Else raise exception."""
         if self._image_formatter_error is not None:
             raise DeepchecksValueError(self._image_formatter_error)
 
-    def assert_label_formatter_valid(self):
+    def assert_labels_valid(self):
         """Assert the label formatter defined is valid. Else raise exception."""
         if self._label_formatter_error is not None:
             raise DeepchecksValueError(self._label_formatter_error)
