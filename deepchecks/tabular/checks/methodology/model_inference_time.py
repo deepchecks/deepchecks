@@ -31,16 +31,16 @@ class ModelInferenceTime(SingleDatasetCheck):
 
     Parameters
     ----------
-    number_of_samples : int , default: 1000
+    n_samples : int , default: 1000
         number of samples to use for inference, but if actual
         dataset is smaller then all samples will be used
     """
 
-    def __init__(self, number_of_samples: int = 1000, **kwargs):
+    def __init__(self, n_samples: int = 1000, **kwargs):
         super().__init__(**kwargs)
-        self.number_of_samples = number_of_samples
-        if number_of_samples == 0 or number_of_samples < 0:
-            raise DeepchecksValueError('number_of_samples cannot be le than 0!')
+        self.n_samples = n_samples
+        if n_samples == 0 or n_samples < 0:
+            raise DeepchecksValueError('n_samples cannot be le than 0!')
 
     def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
         """Run check.
@@ -66,8 +66,8 @@ class ModelInferenceTime(SingleDatasetCheck):
 
         prediction_method = model.predict  # type: ignore
 
-        number_of_samples = len(df) if len(df) < self.number_of_samples else self.number_of_samples
-        df = df.sample(n=number_of_samples, random_state=np.random.randint(number_of_samples))
+        n_samples = len(df) if len(df) < self.n_samples else self.n_samples
+        df = df.sample(n=n_samples, random_state=np.random.randint(n_samples))
 
         result = timeit.timeit(
             'predict(*args)',
@@ -75,7 +75,7 @@ class ModelInferenceTime(SingleDatasetCheck):
             number=1
         )
 
-        result = result / number_of_samples
+        result = result / n_samples
 
         return CheckResult(value=result, display=(
             'Average model inference time for one sample (in seconds): '

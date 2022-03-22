@@ -49,7 +49,7 @@ class ModelErrorAnalysis(TrainTestCheck):
         number of samples to use for this check.
     n_display_samples : int , default: 5_000
         number of samples to display in scatter plot.
-    random_seed : int, default: 42
+    random_state : int, default: 42
         random seed for all check internals.
 
     Notes
@@ -83,16 +83,16 @@ class ModelErrorAnalysis(TrainTestCheck):
     """
 
     def __init__(
-        self,
-        max_features_to_show: int = 3,
-        min_feature_contribution: float = 0.15,
-        min_error_model_score: float = 0.5,
-        min_segment_size: float = 0.05,
-        alternative_scorer: Tuple[str, Union[str, Callable]] = None,
-        n_samples: int = 50_000,
-        n_display_samples: int = 5_000,
-        random_seed: int = 42,
-        **kwargs
+            self,
+            max_features_to_show: int = 3,
+            min_feature_contribution: float = 0.15,
+            min_error_model_score: float = 0.5,
+            min_segment_size: float = 0.05,
+            alternative_scorer: Tuple[str, Union[str, Callable]] = None,
+            n_samples: int = 50_000,
+            n_display_samples: int = 5_000,
+            random_state: int = 42,
+            **kwargs
     ):
         super().__init__(**kwargs)
         self.max_features_to_show = max_features_to_show
@@ -102,7 +102,7 @@ class ModelErrorAnalysis(TrainTestCheck):
         self.user_scorer = dict([alternative_scorer]) if alternative_scorer else None
         self.n_samples = n_samples
         self.n_display_samples = n_display_samples
-        self.random_state = random_seed
+        self.random_state = random_state
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check."""
