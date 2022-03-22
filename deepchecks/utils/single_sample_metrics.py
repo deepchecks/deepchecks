@@ -12,8 +12,8 @@
 import numpy as np
 
 
-def per_sample_binary_cross_entropy(y_true: np.array, y_pred: np.array):
-    """Calculate binary cross entropy on a single sample."""
+def per_sample_cross_entropy(y_true: np.array, y_pred: np.array):
+    """Calculate cross entropy on a single sample."""
     y_true = np.array(y_true)
     return - (np.tile(y_true.reshape((-1, 1)), (1, y_pred.shape[1])) *
               np.log(y_pred + np.finfo(float).eps)).sum(axis=1)

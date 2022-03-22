@@ -56,7 +56,7 @@ def model_error_contribution(train_dataset: pd.DataFrame,
 
     error_fi, _ = calculate_feature_importance(error_model,
                                                test_dataset,
-                                               random_state=random_state)
+                                               permutation_kwargs={'random_state': random_state})
     error_fi.index = new_feature_order
     error_fi.sort_values(ascending=False, inplace=True)
 
