@@ -112,7 +112,6 @@ class ModelErrorAnalysis(TrainTestCheck):
         model = context.model
 
         scorer = context.get_single_scorer(self.user_scorer)
-
         train_dataset = train_dataset.sample(self.n_samples, random_state=self.random_state, drop_na_label=True)
         test_dataset = test_dataset.sample(self.n_samples, random_state=self.random_state, drop_na_label=True)
 
