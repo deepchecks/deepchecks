@@ -94,7 +94,6 @@ imgmath_image_format = 'svg'
 
 sphinx_gallery_conf = {
     "examples_dirs": [
-        "examples/vision/guides/source",
         "examples/general/source",
         "examples/vision/checks/distribution/source",
         "examples/vision/checks/performance/source",
@@ -107,10 +106,11 @@ sphinx_gallery_conf = {
         "examples/tabular/checks/performance/source",
         "tutorials/tabular",
         "tutorials/vision",
+        "user-guide/general/customizations",
+        "user-guide/general/exporting_results",
         # "examples/tabular/use-cases/source",
     ],  # path to your example scripts
     "gallery_dirs": [
-        "examples/vision/guides/examples",
         "examples/general/examples",
         "examples/vision/checks/distribution/examples",
         "examples/vision/checks/performance/examples",
@@ -123,6 +123,8 @@ sphinx_gallery_conf = {
         "examples/tabular/checks/performance/examples",
         "tutorials/tabular/examples",
         "tutorials/vision/examples",
+        "user-guide/general/customizations/examples",
+        "user-guide/general/exporting_results/examples",
         # "examples/tabular/use-cases/examples",
     ], # path to where to save gallery generated output
     "image_scrapers": (

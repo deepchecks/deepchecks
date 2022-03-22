@@ -3,8 +3,5 @@ Customizations
 ======================
 
 .. toctree::
-    :maxdepth: 1
-    :titlesonly:
-    :glob:
-
-    *
+    
+    examples/index

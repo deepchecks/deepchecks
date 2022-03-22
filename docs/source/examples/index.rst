@@ -1,16 +1,6 @@
 Examples
 ========
 
-General Guides
---------------
-
-.. toctree::
-    :maxdepth: 3
-    :titlesonly:
-    :caption: General Guides
-
-    general/index
-
 Tabular Examples
 -----------------
 
@@ -19,8 +9,6 @@ Tabular Examples
     :caption: Tabular
     :titlesonly:
 
-    tabular/guides/index
-    tabular/use-cases/index
     tabular/checks/index
 
 Computer Vision Examples
@@ -31,6 +19,4 @@ Computer Vision Examples
     :caption: Vision
     :titlesonly:
 
-    vision/guides/index
     vision/checks/index
-    vision/methodology/index
