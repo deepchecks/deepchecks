@@ -36,7 +36,16 @@ copyright = '2021, Deepchecks'
 author = 'Deepchecks'
 os.environ['DEEPCHECKS_DISABLE_LATEST'] = 'true'
 is_readthedocs = os.environ.get("READTHEDOCS")
-version = os.environ.get("READTHEDOCS_VERSION") or VERSION
+
+version = None
+if os.environ.get("GITHUB_REF_NAME"):
+    if os.environ.get("GITHUB_REF_NAME") == 'main':
+        version = 'dev'
+    else:
+        # Taking the major and minor version from the branch name
+        version = os.environ.get("GITHUB_REF_NAME")[:3]
+
+version = version or VERSION
 language = os.environ.get("READTHEDOCS_LANGUAGE")
 
 GIT = {
@@ -356,7 +365,7 @@ html_css_files = ['css/custom.css',]
 
 #
 html_sidebars = {
-    "**": ["sidebar-nav-bs"]
+    "**": ["search-field.html", "sidebar-nav-bs"]
 }
 
 # Path to logo and favicon
@@ -375,12 +384,14 @@ html_copy_source = True
 html_theme_options = {
     "collapse_navigation": False,
     "navigation_depth": 6,
-    "navbar_end": ["version-switcher", "search-field", "navbar-icon-links", "menu-dropdown", ],
+    "navbar_end": ["version-switcher", "navbar-icon-links", "menu-dropdown", ],
     # "page_sidebar_items": ["page-toc", "create-issue", "show-page-source"],
     "page_sidebar_items": ["page-toc", ],
     "icon_links_label": "Quick Links",
     "switcher": {
-      "json_url": "https://deepchecks.github.io/dev/_static/switcher.json",
+        "json_url": "https://deepchecks.github.io/dev/_static/switcher.json",
+        "version_match": version,
+        "url_template": "https://deepchecks.github.io/{version}/",
     },
     "icon_links": [
         {
