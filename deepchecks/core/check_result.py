@@ -295,9 +295,9 @@ class CheckResult:
             cond_df = get_conditions_table(self, icon_html=False)
             result_json['conditions_table'] = cond_df.data.to_json(orient='records')
         if isinstance(self.value, pd.DataFrame):
-            result_json['value'] = self.value.reset_index().to_json()
+            result_json['value'] = self.value.to_json()
         elif isinstance(self.value, Styler):
-            result_json['value'] = self.value.data.reset_index().to_json()
+            result_json['value'] = self.value.data.to_json()
         elif isinstance(self.value, np.ndarray):
             result_json['value'] = self.value.tolist()
         else:
