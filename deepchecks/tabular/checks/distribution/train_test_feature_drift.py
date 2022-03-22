@@ -124,8 +124,9 @@ class TrainTestFeatureDrift(TrainTestCheck):
             value, method, display = calc_drift_and_plot(
                 train_column=train_dataset.data[column],
                 test_column=test_dataset.data[column],
-                plot_title=plot_title,
+                value_name=column,
                 column_type='categorical' if column in train_dataset.cat_features else 'numerical',
+                plot_title=plot_title,
                 max_num_categories=self.max_num_categories
             )
             values_dict[column] = {

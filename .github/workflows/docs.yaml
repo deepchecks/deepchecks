@@ -47,6 +47,7 @@ jobs:
         run: make docs
 
       - name: Upload documentation
+        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v2
         with:
           name: docs
