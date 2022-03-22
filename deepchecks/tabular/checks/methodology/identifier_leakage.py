@@ -32,8 +32,8 @@ class IdentifierLeakage(SingleDatasetCheck):
         dictionary containing params to pass to ppscore predictor
     """
 
-    def __init__(self, ppscore_params=None):
-        super().__init__()
+    def __init__(self, ppscore_params=None, **kwargs):
+        super().__init__(**kwargs)
         self.ppscore_params = ppscore_params or {}
 
     def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:

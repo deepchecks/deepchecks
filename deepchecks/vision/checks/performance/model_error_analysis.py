@@ -63,8 +63,9 @@ class ModelErrorAnalysis(TrainTestCheck):
                  min_error_model_score: float = 0.5,
                  min_segment_size: float = 0.05,
                  n_display_samples: int = 5_000,
-                 random_seed: int = 42):
-        super().__init__()
+                 random_seed: int = 42,
+                 **kwargs):
+        super().__init__(**kwargs)
         self.random_state = random_seed
         self.min_error_model_score = min_error_model_score
         self.min_segment_size = min_segment_size

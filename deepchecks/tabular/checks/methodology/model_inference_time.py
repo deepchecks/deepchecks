@@ -36,11 +36,11 @@ class ModelInferenceTime(SingleDatasetCheck):
         dataset is smaller then all samples will be used
     """
 
-    def __init__(self, number_of_samples: int = 1000):
+    def __init__(self, number_of_samples: int = 1000, **kwargs):
+        super().__init__(**kwargs)
         self.number_of_samples = number_of_samples
         if number_of_samples == 0 or number_of_samples < 0:
             raise DeepchecksValueError('number_of_samples cannot be le than 0!')
-        super().__init__()
 
     def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
         """Run check.

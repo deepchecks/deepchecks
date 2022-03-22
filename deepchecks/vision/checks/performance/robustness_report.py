@@ -55,8 +55,9 @@ class RobustnessReport(SingleDatasetCheck):
 
     def __init__(self,
                  alternative_metrics: Optional[Dict[str, Metric]] = None,
-                 augmentations: List = None):
-        super().__init__()
+                 augmentations: List = None,
+                 **kwargs):
+        super().__init__(**kwargs)
         self.alternative_metrics = alternative_metrics
         self.augmentations = augmentations
         self._state = None

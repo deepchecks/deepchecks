@@ -37,8 +37,8 @@ class RegressionErrorDistribution(SingleDatasetCheck):
         number of bins to use for the histogram.
     """
 
-    def __init__(self, n_top_samples: int = 3, n_bins: int = 40):
-        super().__init__()
+    def __init__(self, n_top_samples: int = 3, n_bins: int = 40, **kwargs):
+        super().__init__(**kwargs)
         self.n_top_samples = n_top_samples
         self.n_bins = n_bins
 

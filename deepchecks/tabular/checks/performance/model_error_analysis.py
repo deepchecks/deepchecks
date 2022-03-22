@@ -83,17 +83,18 @@ class ModelErrorAnalysis(TrainTestCheck):
     """
 
     def __init__(
-            self,
-            max_features_to_show: int = 3,
-            min_feature_contribution: float = 0.15,
-            min_error_model_score: float = 0.5,
-            min_segment_size: float = 0.05,
-            alternative_scorer: Tuple[str, Union[str, Callable]] = None,
-            n_samples: int = 50_000,
-            n_display_samples: int = 5_000,
-            random_seed: int = 42
+        self,
+        max_features_to_show: int = 3,
+        min_feature_contribution: float = 0.15,
+        min_error_model_score: float = 0.5,
+        min_segment_size: float = 0.05,
+        alternative_scorer: Tuple[str, Union[str, Callable]] = None,
+        n_samples: int = 50_000,
+        n_display_samples: int = 5_000,
+        random_seed: int = 42,
+        **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
         self.max_features_to_show = max_features_to_show
         self.min_feature_contribution = min_feature_contribution
         self.min_error_model_score = min_error_model_score

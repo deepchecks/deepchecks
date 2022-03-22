@@ -81,9 +81,16 @@ class SimpleModelComparison(TrainTestCheck):
         my_mse_scorer = make_scorer(my_mse, greater_is_better=False)
     """
 
-    def __init__(self, simple_model_type: str = 'constant', alternative_scorers: Dict[str, Callable] = None,
-                 max_gain: float = 50, max_depth: int = 3, random_state: int = 42):
-        super().__init__()
+    def __init__(
+        self,
+        simple_model_type: str = 'constant',
+        alternative_scorers: Dict[str, Callable] = None,
+        max_gain: float = 50,
+        max_depth: int = 3,
+        random_state: int = 42,
+        **kwargs
+    ):
+        super().__init__(**kwargs)
         self.simple_model_type = simple_model_type
         self.user_scorers = alternative_scorers
         self.max_gain = max_gain

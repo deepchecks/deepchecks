@@ -45,14 +45,14 @@ class SingleFeatureContributionTrainTest(TrainTestCheck):
     ----------
     ppscore_params : dict , default: None
         dictionary of additional parameters for the ppscore predictor function
-    n_show_top : int , default: 5
+    n_top_features : int , default: 5
         Number of features to show, sorted by the magnitude of difference in PPS
     """
 
-    def __init__(self, ppscore_params=None, n_show_top: int = 5):
-        super().__init__()
+    def __init__(self, ppscore_params=None, n_top_features: int = 5, **kwargs):
+        super().__init__(**kwargs)
         self.ppscore_params = ppscore_params or {}
-        self.n_show_top = n_show_top
+        self.n_top_features = n_top_features
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check.
@@ -97,7 +97,7 @@ class SingleFeatureContributionTrainTest(TrainTestCheck):
                                                              train_dataset.label_name,
                                                              test_dataset.data[relevant_columns],
                                                              test_dataset.label_name, self.ppscore_params,
-                                                             self.n_show_top)
+                                                             self.n_top_features)
 
         if display:
             display += text

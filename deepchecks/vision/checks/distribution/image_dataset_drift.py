@@ -66,9 +66,10 @@ class ImageDatasetDrift(TrainTestCheck):
             min_feature_importance: float = 0.05,
             sample_size: int = 10_000,
             test_size: float = 0.3,
-            min_meaningful_drift_score: float = 0.05
+            min_meaningful_drift_score: float = 0.05,
+            **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
         if alternative_image_properties:
             image_properties.validate_properties(alternative_image_properties)
             self.image_properties = alternative_image_properties

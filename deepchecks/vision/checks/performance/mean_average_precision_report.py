@@ -38,8 +38,8 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
         Slices for small/medium/large buckets.
     """
 
-    def __init__(self, area_range: Tuple = (32**2, 96**2)):
-        super().__init__()
+    def __init__(self, area_range: Tuple = (32**2, 96**2), **kwargs):
+        super().__init__(**kwargs)
         self._area_range = area_range
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind = None):

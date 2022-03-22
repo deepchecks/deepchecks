@@ -41,10 +41,11 @@ class TrainTestLabelDrift(TrainTestCheck):
     """
 
     def __init__(
-            self,
-            max_num_categories: int = 10
+        self,
+        max_num_categories: int = 10,
+        **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
         self.max_num_categories = max_num_categories
 
     def run_logic(self, context: Context) -> CheckResult:
