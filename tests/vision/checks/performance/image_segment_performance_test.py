@@ -38,9 +38,9 @@ def test_coco_and_condition(coco_train_visiondata, mock_trained_yolov5_object_de
     result = check.run(coco_train_visiondata, mock_trained_yolov5_object_detection)
     # Assert result
     assert_that(result.value, has_entries({
-        'Normalized Blue Mean': has_length(5),
-        'Normalized Green Mean': has_length(5),
-        'Normalized Red Mean': has_length(5),
+        'Mean Blue Relative Intensity': has_length(5),
+        'Mean Green Relative Intensity': has_length(5),
+        'Mean Red Relative Intensity': has_length(5),
         'Brightness': has_length(5),
         'Area': has_length(4),
         'Aspect Ratio': has_items(
@@ -71,7 +71,7 @@ def test_coco_and_condition(coco_train_visiondata, mock_trained_yolov5_object_de
         equal_condition_result(
             is_pass=False,
             name='No segment with ratio between score to mean less than 50%',
-            details="Properties with failed segments: Normalized Green Mean: "
+            details="Properties with failed segments: Mean Green Relative Intensity: "
                     "{'Range': '[0.34, 0.366)', 'Metric': 'AP', 'Ratio': 0.44}"
         )
     ))

@@ -278,5 +278,5 @@ def test_train_test_condition_pps_train_fail_per_class(coco_train_visiondata, co
         is_pass=False,
         name=f'Train properties\' Predictive Power Score is not greater than {condition_value}',
         details='Features in train dataset with PPS above threshold: {\'RMS Contrast\': \'0.83\', '
-                '\'Brightness\': \'0.5\', \'Normalized Blue Mean\': \'0.33\'}'
+                '\'Brightness\': \'0.5\', \'Mean Blue Relative Intensity\': \'0.33\'}'
     ))
