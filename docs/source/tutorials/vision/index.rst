@@ -9,5 +9,4 @@ Computer Vision Tutorials
 
     classification_tutorial
     detection_tutorial
-    custom_task_tutorial
     examples/index
