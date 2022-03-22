@@ -58,6 +58,7 @@ class ConditionCategory(enum.Enum):
 
     FAIL = 'FAIL'
     WARN = 'WARN'
+    PASS = 'PASS'
 
 
 class ConditionResult:
@@ -122,15 +123,6 @@ class ConditionResult:
             return '<div style="color: red;text-align: center">\U00002716</div>'
         else:
             return '<div style="color: orange;text-align: center;font-weight:bold">\U00000021</div>'
-
-    def get_icon_char(self):
-        """Return icon char of the result to display."""
-        if self.is_pass:
-            return 'V'
-        elif self.category == ConditionCategory.FAIL:
-            return 'X'
-        else:
-            return '!'
 
     def __repr__(self):
         """Return string representation for printing."""

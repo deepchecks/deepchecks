@@ -73,7 +73,7 @@ def get_conditions_table(check_results: Union['CheckResult', List['CheckResult']
     max_info_len : int
         max length of the additional info.
     icon_html : bool , default: True
-        if to show the html condition result icon or a char
+        if to show the html condition result icon or the enum
     Returns
     -------
     pd.Dataframe:
@@ -89,7 +89,7 @@ def get_conditions_table(check_results: Union['CheckResult', List['CheckResult']
     for check_result in check_results:
         for cond_result in check_result.conditions_results:
             sort_value = cond_result.priority
-            icon = cond_result.get_icon() if icon_html else cond_result.get_icon_char()
+            icon = cond_result.get_icon() if icon_html else cond_result.category.value
             check_header = check_result.get_header()
             if unique_id and check_result.have_display():
                 check_id = f'{check_result.check.__class__.__name__}_{unique_id}'
