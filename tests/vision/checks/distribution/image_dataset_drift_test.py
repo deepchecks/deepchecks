@@ -42,9 +42,9 @@ def test_no_drift_grayscale(mnist_dataset_train, device):
             'Brightness': equal_to(0),
             'Aspect Ratio': equal_to(0),
             'Area': equal_to(0),
-            'Normalized Red Mean': equal_to(0),
-            'Normalized Blue Mean': equal_to(0),
-            'Normalized Green Mean': equal_to(0),
+            'Mean Red Relative Intensity': equal_to(0),
+            'Mean Blue Relative Intensity': equal_to(0),
+            'Mean Green Relative Intensity': equal_to(0),
         })
     }))
 
@@ -65,9 +65,9 @@ def test_drift_grayscale(mnist_dataset_train, mnist_dataset_test, device):
             'Brightness': close_to(0.034, 0.001),
             'Aspect Ratio': equal_to(0),
             'Area': equal_to(0),
-            'Normalized Red Mean': equal_to(0),
-            'Normalized Green Mean': equal_to(0),
-            'Normalized Blue Mean': equal_to(0),
+            'Mean Red Relative Intensity': equal_to(0),
+            'Mean Green Relative Intensity': equal_to(0),
+            'Mean Blue Relative Intensity': equal_to(0),
         })
     }))
 
@@ -89,9 +89,9 @@ def test_no_drift_rgb(coco_train_dataloader, coco_test_dataloader, device):
             'Brightness': close_to(0, 0.01),
             'Aspect Ratio': close_to(0, 0.01),
             'Area': close_to(0, 0.001),
-            'Normalized Red Mean': equal_to(0),
-            'Normalized Green Mean': close_to(1, 0.001),
-            'Normalized Blue Mean': close_to(0, 0.001),
+            'Mean Red Relative Intensity': equal_to(0),
+            'Mean Blue Relative Intensity': close_to(0, 0.001),
+            'Mean Green Relative Intensity': close_to(1, 0.001),
         })
     }))
 
@@ -116,8 +116,8 @@ def test_with_drift_rgb(coco_train_dataloader, coco_test_dataloader, device):
             'Brightness': close_to(1, 0.001),
             'Aspect Ratio': equal_to(0),
             'Area': equal_to(0),
-            'Normalized Red Mean': close_to(0, 0.01),
-            'Normalized Green Mean': close_to(0, 0.01),
-            'Normalized Blue Mean': close_to(0, 0.01),
+            'Mean Red Relative Intensity': close_to(0, 0.01),
+            'Mean Green Relative Intensity': close_to(0, 0.01),
+            'Mean Blue Relative Intensity': close_to(0, 0.01),
         })
     }))

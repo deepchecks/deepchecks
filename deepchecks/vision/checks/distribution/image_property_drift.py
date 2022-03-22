@@ -77,13 +77,12 @@ class ImagePropertyDrift(TrainTestCheck):
         self.max_num_categories = max_num_categories
         self.classes_to_display = classes_to_display
         self.min_samples = min_samples
-        self._train_properties = defaultdict(list)
-        self._test_properties = defaultdict(list)
+        self._train_properties = None
+        self._test_properties = None
+        self._class_to_string = None
 
     def initialize_run(self, context: Context):
         """Initialize self state, and validate the run context."""
-        context.train.assert_image_formatter_valid()
-        context.test.assert_image_formatter_valid()
         self._class_to_string = context.train.label_id_to_name
         self._train_properties = defaultdict(list)
         self._test_properties = defaultdict(list)
@@ -160,7 +159,7 @@ class ImagePropertyDrift(TrainTestCheck):
             score, _, figure = calc_drift_and_plot(
                 train_column=df_train[property_name],
                 test_column=df_test[property_name],
-                plot_title=property_name,
+                value_name=property_name,
                 column_type=image_properties.get_column_type(single_property['output_type']),
                 max_num_categories=self.max_num_categories
             )

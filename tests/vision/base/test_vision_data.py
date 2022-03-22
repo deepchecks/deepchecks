@@ -27,7 +27,7 @@ from hamcrest import (
 import albumentations as A
 import imgaug.augmenters as iaa
 
-from deepchecks.core.errors import ValidationError, DeepchecksValueError
+from deepchecks.core.errors import ValidationError, DeepchecksValueError, DeepchecksNotImplementedError
 from deepchecks.vision.classification_data import ClassificationData
 from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.datasets.classification.mnist import MNISTData
@@ -291,3 +291,129 @@ def test_data_at_batch_of_index(mnist_dataset_train):
     # Assert
     assert torch.equal(batch[0], single_batch[0])
     assert torch.equal(batch[1], single_batch[1])
+
+
+def test_get_classes_validation_not_sequence(mnist_data_loader_train):
+    # Arrange
+    class TestData(MNISTData):
+        def get_classes(self, batch_labels):
+            return 88
+
+    # Act
+    data = TestData(mnist_data_loader_train)
+
+    # Assert
+    assert_that(
+        calling(data.assert_labels_valid).with_args(),
+        raises(DeepchecksValueError,
+               r'get_classes\(\) was not implemented correctly, the validation has failed with the error: "The classes '
+               r'must be a sequence\."\. '
+               r'To test your formatting use the function `validate_get_classes\(batch\)`')
+    )
+
+
+def test_get_classes_validation_not_contain_sequence(mnist_data_loader_train):
+    # Arrange
+    class TestData(MNISTData):
+        def get_classes(self, batch_labels):
+            return [88, [1]]
+
+    # Act
+    data = TestData(mnist_data_loader_train)
+
+    # Assert
+    assert_that(
+        calling(data.assert_labels_valid).with_args(),
+        raises(DeepchecksValueError,
+               r'get_classes\(\) was not implemented correctly, the validation has failed with the error: "The '
+               r'classes sequence must contain as values sequences of ints \(sequence per sample\).". To test your '
+               r'formatting use the function `validate_get_classes\(batch\)`')
+    )
+
+
+def test_get_classes_validation_not_contain_contain_int(mnist_data_loader_train):
+    # Arrange
+    class TestData(MNISTData):
+        def get_classes(self, batch_labels):
+            return [['ss'], [1]]
+
+    # Act
+    data = TestData(mnist_data_loader_train)
+
+    # Assert
+    assert_that(
+        calling(data.assert_labels_valid).with_args(),
+        raises(DeepchecksValueError,
+               r'get_classes\(\) was not implemented correctly, the validation has failed with the error: "The '
+               r'samples sequence must contain only int values.". To test your formatting use the function '
+               r'`validate_get_classes\(batch\)`')
+    )
+
+
+def test_detection_data():
+    coco_dataset = coco.load_dataset()
+    batch = None
+    model = None
+    device = None
+    detection_data = DetectionData(coco_dataset)
+    assert_that(calling(detection_data.batch_to_labels).with_args(batch),
+                raises(DeepchecksNotImplementedError, 'batch_to_labels\(\) must be implemented in a subclass'))
+    assert_that(calling(detection_data.infer_on_batch).with_args(batch, model, device),
+                raises(DeepchecksNotImplementedError, 'infer_on_batch\(\) must be implemented in a subclass'))
+
+
+def test_detection_data_bad_implementation():
+    coco_dataset = coco.load_dataset()
+
+    class DummyDetectionData(DetectionData):
+        dummy_batch = False
+
+        def batch_to_labels(self, batch):
+            if self.dummy_batch:
+                return batch
+
+            raise DeepchecksNotImplementedError('batch_to_labels() must be implemented in a subclass')
+
+        def infer_on_batch(self, batch, model, device):
+            if self.dummy_batch:
+                return batch
+
+            raise DeepchecksNotImplementedError('infer_on_batch() must be implemented in a subclass')
+
+    detection_data = DummyDetectionData(coco_dataset)
+
+    detection_data.dummy_batch = True
+
+    assert_that(calling(detection_data.validate_label).with_args(7),
+                raises(DeepchecksValueError,
+                       'Check requires object detection label to be a list with an entry for each sample'))
+    assert_that(calling(detection_data.validate_label).with_args([]),
+                raises(DeepchecksValueError,
+                       'Check requires object detection label to be a non-empty list'))
+    assert_that(calling(detection_data.validate_label).with_args([8]),
+                raises(DeepchecksValueError,
+                       'Check requires object detection label to be a list of torch.Tensor'))
+    assert_that(calling(detection_data.validate_label).with_args([torch.Tensor([])]),
+                raises(DeepchecksValueError,
+                       'Check requires object detection label to be a list of 2D tensors'))
+    assert_that(calling(detection_data.validate_label).with_args([torch.Tensor([[1,2],[1,2]])]),
+                raises(DeepchecksValueError,
+                       'Check requires object detection label to be a list of 2D tensors, when '
+                       'each row has 5 columns: \[class_id, x, y, width, height\]'))
+
+    assert_that(calling(detection_data.validate_prediction).with_args(7, None, None),
+                raises(ValidationError,
+                       'Check requires detection predictions to be a list with an entry for each sample'))
+    assert_that(calling(detection_data.validate_prediction).with_args([], None, None),
+                raises(ValidationError,
+                       'Check requires detection predictions to be a non-empty list'))
+    assert_that(calling(detection_data.validate_prediction).with_args([8], None, None),
+                raises(ValidationError,
+                       'Check requires detection predictions to be a list of torch.Tensor'))
+    assert_that(calling(detection_data.validate_prediction).with_args([torch.Tensor([])], None, None),
+                raises(ValidationError,
+                       'Check requires detection predictions to be a list of 2D tensors'))
+    assert_that(calling(detection_data.validate_prediction).with_args([torch.Tensor([[1,2],[1,2]])], None, None),
+                raises(ValidationError,
+                       'Check requires detection predictions to be a list of 2D tensors, when '
+                       'each row has 6 columns: \[x, y, width, height, class_probability, class_id\]'))

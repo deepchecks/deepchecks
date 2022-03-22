@@ -110,7 +110,7 @@ class ClassPerformance(TrainTestCheck):
             results.append(metrics_df)
 
         results_df = pd.concat(results)
-
+        results_df = results_df[['Dataset', 'Metric', 'Class', 'Class Name', 'Number of samples', 'Value']]
         if self.class_list_to_show is not None:
             results_df = results_df.loc[results_df['Class'].isin(self.class_list_to_show)]
         elif self.n_to_show is not None:
@@ -131,9 +131,6 @@ class ClassPerformance(TrainTestCheck):
             facet_col_spacing=0.05,
             hover_data=['Number of samples']
         )
-
-        if context.train.task_type == TaskType.CLASSIFICATION:
-            fig.update_xaxes(tickprefix='Class Name', tickangle=60)
 
         fig = (
             fig.update_xaxes(title=None, type='category')

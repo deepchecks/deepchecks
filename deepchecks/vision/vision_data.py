@@ -73,9 +73,12 @@ class VisionData:
         self._transform_field = transform_field
         self._warned_labels = set()
         self._image_formatter_error = None
+        self._label_formatter_error = None
+        self._get_classes_error = None
 
+        batch = next(iter(self._data_loader))
         try:
-            self.validate_image_data(next(iter(self._data_loader)))
+            self.validate_image_data(batch)
         except DeepchecksNotImplementedError:
             self._image_formatter_error = 'batch_to_images() was not implemented, some checks will not run'
             logger.warning(self._image_formatter_error)
@@ -85,15 +88,38 @@ class VisionData:
                                           f'function `validate_image_data(batch)`'
             logger.warning(self._image_formatter_error)
 
-        self._task_type = TaskType.OTHER
-        self._has_label = None
+        try:
+            self.validate_label(batch)
+        except DeepchecksNotImplementedError:
+            self._label_formatter_error = 'batch_to_labels() was not implemented, some checks will not run'
+            logger.warning(self._image_formatter_error)
+        except ValidationError as ex:
+            self._label_formatter_error = f'batch_to_labels() was not implemented correctly, the validation has ' \
+                                          f'failed with the error: "{ex}". To test your label formatting use the ' \
+                                          f'function `validate_label(batch)`'
+            logger.warning(self._label_formatter_error)
+
+        try:
+            if self._label_formatter_error is None:
+                self.validate_get_classes(batch)
+            else:
+                self._get_classes_error = 'Must have valid labels formatter to use `get_classes`'
+        except DeepchecksNotImplementedError:
+            self._get_classes_error = 'get_classes() was not implemented, some checks will not run'
+            logger.warning(self._get_classes_error)
+        except ValidationError as ex:
+            self._get_classes_error = f'get_classes() was not implemented correctly, the validation has ' \
+                                      f'failed with the error: "{ex}". To test your formatting use the ' \
+                                      f'function `validate_get_classes(batch)`'
+            logger.warning(self._get_classes_error)
+
         self._classes_indices = None
         self._current_index = None
 
     @abstractmethod
     def get_classes(self, batch_labels: Union[List[torch.Tensor], torch.Tensor]) -> List[List[int]]:
         """Get a labels batch and return classes inside it."""
-        raise NotImplementedError('get_classes() must be implemented in a subclass')
+        raise DeepchecksNotImplementedError('get_classes() must be implemented in a subclass')
 
     @abstractmethod
     def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor]:
@@ -104,18 +130,6 @@ class VisionData:
     def infer_on_batch(self, batch, model, device) -> Union[List[torch.Tensor], torch.Tensor]:
         """Infer on a batch of data."""
         raise DeepchecksNotImplementedError('infer_on_batch() must be implemented in a subclass')
-
-    @abstractmethod
-    def validate_label(self, batch):
-        """Validate a batch of labels."""
-        raise NotImplementedError('validate_label() must be implemented in a subclass')
-
-    @abstractmethod
-    def validate_prediction(self, batch, model, device):
-        """Validate a batch of predictions."""
-        raise DeepchecksValueError(
-            'validate_prediction() must be implemented in a subclass'
-        )
 
     @abstractmethod
     def batch_to_images(self, batch) -> Sequence[np.ndarray]:
@@ -157,6 +171,16 @@ class VisionData:
         """
         raise DeepchecksNotImplementedError('batch_to_images() must be implemented in a subclass')
 
+    def validate_label(self, batch):
+        """Validate a batch of labels."""
+        # default implementation just calling the function to see if it runs
+        self.batch_to_labels(batch)
+
+    def validate_prediction(self, batch, model, device):
+        """Validate a batch of predictions."""
+        # default implementation just calling the function to see it runs
+        self.infer_on_batch(batch, model, device)
+
     def update_cache(self, labels):
         """Get labels and update the classes' metadata info."""
         classes_per_label = self.get_classes(labels)
@@ -197,12 +221,12 @@ class VisionData:
     @property
     def has_label(self) -> bool:
         """Return True if the data loader has labels."""
-        return self._has_label
+        return self._label_formatter_error is None
 
     @property
     def task_type(self) -> TaskType:
         """Return the task type."""
-        return self._task_type
+        return TaskType.OTHER
 
     @property
     def num_classes(self) -> int:
@@ -318,10 +342,10 @@ class VisionData:
             raise ValidationError('Check requires dataset to be of type VisionTask. instead got: '
                                   f'{type(other).__name__}')
 
-        if self._has_label != other.has_label:
+        if self.has_label != other.has_label:
             raise ValidationError('Datasets required to both either have or don\'t have labels')
 
-        if self._task_type != other.task_type:
+        if self.task_type != other.task_type:
             raise ValidationError('Datasets required to have same label type')
 
     def validate_image_data(self, batch):
@@ -350,11 +374,32 @@ class VisionData:
             raise ValidationError('The data inside the iterable must be a 3D array.')
         if sample.shape[2] not in [1, 3]:
             raise ValidationError('The data inside the iterable must have 1 or 3 channels.')
-        sample_min = sample.min()
-        sample_max = sample.max()
+        sample_min = np.min(sample)
+        sample_max = np.max(sample)
         if sample_min < 0 or sample_max > 255 or sample_max <= 1:
             raise ValidationError(f'Image data found to be in range [{sample_min}, {sample_max}] instead of expected '
                                   f'range [0, 255].')
+
+    def validate_get_classes(self, batch):
+        """Validate that the get_classes function returns data in the correct format.
+
+        Parameters
+        ----------
+        batch
+
+        Raises
+        -------
+        ValidationError
+            If the classes data doesn't fit the format after being transformed.
+        """
+        class_ids = self.get_classes(self.batch_to_labels(batch))
+        if not isinstance(class_ids, Sequence):
+            raise ValidationError('The classes must be a sequence.')
+        if not all((isinstance(x, Sequence) for x in class_ids)):
+            raise ValidationError('The classes sequence must contain as values sequences of ints '
+                                  '(sequence per sample).')
+        if not all((all((isinstance(x, int) for x in inner_ids)) for inner_ids in class_ids)):
+            raise ValidationError('The samples sequence must contain only int values.')
 
     def validate_format(self, model):
         """Validate the correctness of the data class implementation according to the expected format.
@@ -376,10 +421,17 @@ class VisionData:
         """Return the number of batches in the dataset dataloader."""
         return len(self._data_loader)
 
-    def assert_image_formatter_valid(self):
+    def assert_images_valid(self):
         """Assert the image formatter defined is valid. Else raise exception."""
         if self._image_formatter_error is not None:
             raise DeepchecksValueError(self._image_formatter_error)
+
+    def assert_labels_valid(self):
+        """Assert the label formatter defined is valid. Else raise exception."""
+        if self._label_formatter_error is not None:
+            raise DeepchecksValueError(self._label_formatter_error)
+        if self._get_classes_error is not None:
+            raise DeepchecksValueError(self._get_classes_error)
 
     @staticmethod
     def _get_data_loader_copy(data_loader: DataLoader, n_samples: int = None, shuffle: bool = False,

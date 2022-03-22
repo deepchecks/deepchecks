@@ -9,4 +9,4 @@ Computer Vision Tutorials
 
     classification_tutorial
     detection_tutorial
-    extractors_validating
+    examples/index

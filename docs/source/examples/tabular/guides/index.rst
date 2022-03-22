@@ -1,7 +1,7 @@
-Use Cases
+How-to Guides Tabular
 ======================
 
 .. toctree::
     :maxdepth: 2
 
-    phishing_urls
+    examples/index

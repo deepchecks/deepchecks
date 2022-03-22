@@ -40,7 +40,7 @@ def test_detection(coco_train_visiondata, coco_test_visiondata, mock_trained_yol
                        device=device)
     # Assert
     assert_that(len(result.value['feature_segments']), equal_to(3))
-    assert_that(result.value['feature_segments']['Normalized Green Mean']['segment1']['n_samples'],
+    assert_that(result.value['feature_segments']['Mean Green Relative Intensity']['segment1']['n_samples'],
                 equal_to(21))
 
 
