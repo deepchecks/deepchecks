@@ -25,12 +25,12 @@ def test_empty_vision_data(mnist_data_loader_train):
 
     # Assert
     assert_that(
-        calling(data.assert_image_formatter_valid).with_args(),
+        calling(data.assert_images_valid).with_args(),
         raises(DeepchecksValueError, r'batch_to_images\(\) was not implemented, some checks will not run')
     )
 
     assert_that(
-        calling(data.assert_label_formatter_valid).with_args(),
+        calling(data.assert_labels_valid).with_args(),
         raises(DeepchecksValueError, r'batch_to_labels\(\) was not implemented, some checks will not run')
     )
 
