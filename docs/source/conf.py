@@ -390,7 +390,8 @@ html_theme_options = {
     "icon_links_label": "Quick Links",
     "switcher": {
         "json_url": "https://deepchecks.github.io/dev/_static/switcher.json",
-        "version_match": version
+        "version_match": version,
+        "url_template": "https://deepchecks.github.io/{version}/",
     },
     "icon_links": [
         {
