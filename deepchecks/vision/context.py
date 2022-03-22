@@ -61,8 +61,10 @@ class Batch:
         """Return predictions for the batch, formatted in deepchecks format."""
         if self._predictions is None:
             dataset = self._context.get_data_by_kind(self._dataset_kind)
+            # Calling model will raise error if model was not given
+            model = self._context.model
             self._context.assert_predictions_valid(self._dataset_kind)
-            self._predictions = dataset.infer_on_batch(self._batch, self._context.model, self._context.device)
+            self._predictions = dataset.infer_on_batch(self._batch, model, self._context.device)
         return self._predictions
 
     @property
@@ -217,6 +219,7 @@ class Context:
         return True
 
     def assert_predictions_valid(self, kind: DatasetKind = None):
+        """Assert that for given DatasetKind the model & dataset infer_on_batch return predictions in right format."""
         error = self._prediction_formatter_error.get(kind)
         if error:
             raise DeepchecksValueError(error)
