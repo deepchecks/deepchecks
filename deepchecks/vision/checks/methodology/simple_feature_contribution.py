@@ -107,16 +107,20 @@ class SimpleFeatureContribution(TrainTestCheck):
             dataset = context.test
             properties = self._test_properties
 
+        imgs = []
+        target = []
+
         if dataset.task_type == TaskType.OBJECT_DETECTION:
-            imgs = []
-            for img, label in zip(batch.images, batch.labels):
+            for img, label, classes_ids in zip(batch.images, batch.labels, dataset.get_classes(batch.labels)):
                 bboxes = [np.array(x[1:]) for x in label]
                 imgs += [crop_image(img, *bbox) for bbox in bboxes]
+                target += classes_ids
         else:
-            imgs = batch.images
+            for img, classes_ids in zip(batch.images, dataset.get_classes(batch.labels)):
+                imgs += [img] * len(classes_ids)
+                target += classes_ids
 
-        for class_ids in dataset.get_classes(batch.labels):
-            properties['target'] += class_ids
+        properties['target'] += target
 
         for single_property in self.image_properties:
             properties[single_property['name']].extend(single_property['method'](imgs))

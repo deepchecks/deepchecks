@@ -114,7 +114,7 @@ class CocoSegmentDataset(VisionDataset):
         if label_file is not None:
             for label_str in label_file.open('r').read().strip().splitlines():
                 label = np.array(label_str.split(), dtype=np.float32)
-                class_id = label[0]
+                class_id = int(label[0])
                 # Transform normalized coordinates to un-normalized
                 coordinates = (label[1:].reshape(-1, 2) * np.array([image.width, image.height])).reshape(-1).tolist()
                 # Create mask image

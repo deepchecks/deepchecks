@@ -13,6 +13,10 @@ from subprocess import check_output
 import deepchecks
 from deepchecks import vision
 
+import plotly.io as pio
+from plotly.io._sg_scraper import plotly_sg_scraper
+
+pio.renderers.default = 'sphinx_gallery'
 
 # -- Path setup --------------------------------------------------------------
 
@@ -32,7 +36,7 @@ with open(os.path.join(PROJECT_DIR, 'VERSION')) as version_file:
 
 
 project = 'Deepchecks'
-copyright = '2021, Deepchecks'
+copyright = '2021-2022, Deepchecks'
 author = 'Deepchecks'
 os.environ['DEEPCHECKS_DISABLE_LATEST'] = 'true'
 is_readthedocs = os.environ.get("READTHEDOCS")
@@ -66,7 +70,7 @@ except Exception as error:
 # ones.
 #
 extensions = [
-    'nbsphinx',
+    # 'nbsphinx',
 
     # by itself sphinx_gallery is not able to work with jupyter notebooks
     # but nbsphinx extension is able to use some of it functionality to create
@@ -74,7 +78,7 @@ extensions = [
     #
     'sphinx_gallery.load_style',
     #
-
+    'sphinx_gallery.gen_gallery',
     'numpydoc',
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
@@ -83,7 +87,52 @@ extensions = [
     'sphinx.ext.githubpages',
     'sphinx_search.extension',
     'sphinx.ext.autosectionlabel',
+    "sphinx.ext.imgmath",
 ]
+
+imgmath_image_format = 'svg'
+
+sphinx_gallery_conf = {
+    "examples_dirs": [
+        "examples/general/source",
+        "examples/vision/checks/distribution/source",
+        "examples/vision/checks/performance/source",
+        "examples/vision/checks/methodology/source",
+        # "examples/tabular/guides/source",
+        "examples/tabular/checks/distribution/source",
+        "examples/tabular/checks/overview/source",
+        "examples/tabular/checks/integrity/source",
+        "examples/tabular/checks/methodology/source",
+        "examples/tabular/checks/performance/source",
+        "tutorials/tabular",
+        "tutorials/vision",
+        "user-guide/general/customizations",
+        "user-guide/general/exporting_results",
+        # "examples/tabular/use-cases/source",
+    ],  # path to your example scripts
+    "gallery_dirs": [
+        "examples/general/examples",
+        "examples/vision/checks/distribution/examples",
+        "examples/vision/checks/performance/examples",
+        "examples/vision/checks/methodology/examples",
+        # "examples/tabular/guides/examples",
+        "examples/tabular/checks/distribution/examples",
+        "examples/tabular/checks/overview/examples",
+        "examples/tabular/checks/integrity/examples",
+        "examples/tabular/checks/methodology/examples",
+        "examples/tabular/checks/performance/examples",
+        "tutorials/tabular/examples",
+        "tutorials/vision/examples",
+        "user-guide/general/customizations/examples",
+        "user-guide/general/exporting_results/examples",
+        # "examples/tabular/use-cases/examples",
+    ], # path to where to save gallery generated output
+    "image_scrapers": (
+        "matplotlib",
+        plotly_sg_scraper,
+    ),
+    "pypandoc": True,
+}
 
 # Add any paths that contain templates here, relative to this directory.
 #

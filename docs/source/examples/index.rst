@@ -1,7 +1,7 @@
-Checks Gallery
-==============
+Examples
+========
 
-Tabular Checks
+Tabular Examples
 -----------------
 
 .. toctree::
@@ -11,7 +11,7 @@ Tabular Checks
 
     tabular/checks/index
 
-Computer Vision Checks
+Computer Vision Examples
 ------------------------
 
 .. toctree::
@@ -19,5 +19,4 @@ Computer Vision Checks
     :caption: Vision
     :titlesonly:
 
-    vision/guides/index
     vision/checks/index
