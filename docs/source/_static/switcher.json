@@ -1,12 +1,10 @@
 [
   {
     "version": "dev",
-    "url": "https://deepchecks.github.io/dev/",
     "name": "dev"
   },
   {
     "version": "stable",
-    "url": "https://deepchecks.github.io/stable/",
     "name": "v0.5.0 (stable)"
   },
   {
