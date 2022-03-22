@@ -158,7 +158,7 @@ setuptools.setup(
     },
     
     # -- dependencies --------------------------------
-    packages=setuptools.find_packages(),
+    packages=setuptools.find_packages(exclude=['tests', 'tests.*']),
     install_requires=main_requirements,
     extras_require=extra_requirements,
     dependency_links=dependency_links,
