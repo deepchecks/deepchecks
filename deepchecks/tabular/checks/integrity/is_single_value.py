@@ -36,9 +36,10 @@ class IsSingleValue(SingleDatasetCheck):
     def __init__(
         self,
         columns: Union[Hashable, List[Hashable], None] = None,
-        ignore_columns: Union[Hashable, List[Hashable], None] = None
+        ignore_columns: Union[Hashable, List[Hashable], None] = None,
+        **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
         self.columns = columns
         self.ignore_columns = ignore_columns
 

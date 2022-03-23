@@ -53,9 +53,10 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         alternative_image_properties: t.List[t.Dict[str, t.Any]] = None,
         alternative_metrics: t.Optional[t.Dict[str, Metric]] = None,
         number_of_bins: int = 5,
-        number_of_samples_to_infer_bins: int = 1000
+        number_of_samples_to_infer_bins: int = 1000,
+        **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
 
         if alternative_image_properties:
             image_properties.validate_properties(alternative_image_properties)
