@@ -149,7 +149,7 @@ class CategoryMismatchTrainTest(TrainTestCheck):
                                   condition)
 
     def add_condition_new_category_ratio_not_greater_than(self, max_ratio: float = 0):
-        """Add condition - require column not to have greater than given number of different new categories.
+        """Add condition - require column not to have greater than given ratio of instances with new categories.
 
         Parameters
         ----------
