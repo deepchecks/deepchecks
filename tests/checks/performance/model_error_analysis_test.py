@@ -9,11 +9,15 @@
 # ----------------------------------------------------------------------------
 #
 """Tests for segment performance check."""
-from hamcrest import assert_that, calling, raises, has_length, has_items
+import numpy as np
+from hamcrest import assert_that, calling, raises, has_length, has_items, close_to
+from scipy.special import softmax
+from sklearn.metrics import log_loss
 
 from deepchecks.core import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError, DeepchecksProcessError, DeepchecksNotSupportedError
 from deepchecks.tabular.checks.performance.model_error_analysis import ModelErrorAnalysis
+from deepchecks.utils.single_sample_metrics import per_sample_cross_entropy
 from tests.checks.utils import equal_condition_result
 
 
@@ -99,3 +103,21 @@ def test_condition_pass(iris_labeled_dataset, iris_adaboost):
             category=ConditionCategory.WARN
         )
     ))
+
+
+def test_per_sample_log_loss():
+    np.random.seed(0)
+    n_classes = 2
+    n_samples = 1000
+    y_true = np.random.randint(0, n_classes, n_samples)
+    y_pred = np.random.randn(n_samples, n_classes)
+    y_pred = softmax(y_pred, axis=1)
+
+    assert_that(per_sample_cross_entropy(y_true, y_pred).mean(), close_to(log_loss(y_true, y_pred), 1e-10))
+
+    n_classes = 10
+    y_true = np.random.randint(0, n_classes, n_samples)
+    y_pred = np.random.randn(n_samples, n_classes)
+    y_pred = softmax(y_pred, axis=1)
+
+    assert_that(per_sample_cross_entropy(y_true, y_pred).mean(), close_to(log_loss(y_true, y_pred), 1e-10))
