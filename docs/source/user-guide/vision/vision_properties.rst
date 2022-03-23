@@ -87,16 +87,26 @@ Each dictionary is a single property, and the checks accepts a list of those dic
 
 The Method's Input
 ~~~~~~~~~~~~~~~~~~
+
 Each property is built for the specific data type that it runs on, and receives its deepchecks-expected format,
 as demonstrated in :doc:`Deepchecks' format </user-guide/vision/data-classes/index>`.
-Note that prediction and label-based properties are not interchangeable due to their slightly different format, even if they calculate similar values.
+Note that prediction and label-based properties are not interchangeable due to their slightly different format, even if
+they calculate similar values.
 
+The Method's Output
+~~~~~~~~~~~~~~~~~~~
+
+Each property function must return a sequence in the same length as the length of the input object. This is used later
+in order to couple each sample to its right properties values. In image properties we expect each image to generate a
+single property value, which results in a list of primitives types in the same length as the number of images. On the
+other hand for label & predictions we allow each one to have multiple primitive values (for example area of bounding
+box), which means the returned list may contain either primitives values or a lists of primitive values per
+label/prediction.
 
 Properties Demonstration
 ========================
 
-We will demonstrate the 3 drift checks (for
-each property type) and implement the properties to pass to it.
+We will demonstrate the 3 drift checks (for each property type) and implement the properties to pass to it.
 
 Image Property
 ~~~~~~~~~~~~~~
@@ -137,18 +147,15 @@ properties which apply to the Detection task type.
 .. code-block:: python
 
   from deepchecks.vision.checks.distribution import TrainTestLabelDrift
-  from itertools import chain
   import torch
-
 
   def number_of_labels(labels: List[torch.Tensor]) -> List[int]:
     """Return a list containing the number of detections per sample in batch."""
     return [label.shape[0] for label in labels]
 
-  def classes_in_labels(labels: List[torch.Tensor]) -> List[int]:
+  def classes_in_labels(labels: List[torch.Tensor]) -> List[List[int]]:
     """Return a list containing the classes in batch."""
-    classes = [label.reshape((-1, 5))[:, 0].tolist() for label in labels]
-    return list(chain.from_iterable(classes))
+    return [label.reshape((-1, 5))[:, 0].tolist() for label in labels]
 
 
     properties = [
@@ -167,19 +174,16 @@ implement properties which apply to the Detection task type.
 .. code-block:: python
 
   from deepchecks.vision.checks.distribution import TrainTestPredictionDrift
-  from itertools import chain
   import torch
 
-  def classes_of_predictions(predictions: List[torch.Tensor]) -> List[int]:
+  def classes_of_predictions(predictions: List[torch.Tensor]) -> List[List[int]]:
     """Return a list containing the classes in batch."""
-    classes = [tensor.reshape((-1, 6))[:, -1].tolist() for tensor in predictions]
-    return list(chain.from_iterable(classes))
+    return [tensor.reshape((-1, 6))[:, -1].tolist() for tensor in predictions]
 
-  def bbox_area(predictions: List[torch.Tensor]) -> List[int]:
+  def bbox_area(predictions: List[torch.Tensor]) -> List[List[float]]:
     """Return a list containing the area of bboxes per image in batch."""
-    areas = [(prediction.reshape((-1, 6))[:, 2] * prediction.reshape((-1, 6))[:, 3]).tolist()
+    return [(prediction.reshape((-1, 6))[:, 2] * prediction.reshape((-1, 6))[:, 3]).tolist()
              for prediction in predictions]
-    return list(chain.from_iterable(areas))
 
 
   properties = [

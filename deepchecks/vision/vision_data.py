@@ -23,7 +23,9 @@ import torch
 from torch.utils.data import DataLoader, BatchSampler, Sampler
 
 
-from deepchecks.core.errors import DeepchecksNotImplementedError, DeepchecksValueError, ValidationError
+from deepchecks.core.errors import DeepchecksNotImplementedError, DeepchecksValueError, ValidationError, \
+    DeepchecksBaseError
+from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.utils.image_functions import ImageInfo
 from deepchecks.vision.utils.transformations import add_augmentation_in_start, get_transforms_handler
 
@@ -181,13 +183,19 @@ class VisionData:
         # default implementation just calling the function to see it runs
         self.infer_on_batch(batch, model, device)
 
-    def update_cache(self, labels):
+    def update_cache(self, batch: Batch):
         """Get labels and update the classes' metadata info."""
-        classes_per_label = self.get_classes(labels)
+        try:
+            # In case there are no labels or there is an invalid formatter function, this call will raise exception
+            classes_per_label = self.get_classes(batch.labels)
+        except DeepchecksBaseError:
+            self._classes_indices = None
+            return
+
         for batch_index, classes in enumerate(classes_per_label):
             for single_class in classes:
-                real_index_in_dataset = self._sampler.index_at(self._current_index + batch_index)
-                self._classes_indices[single_class].append(real_index_in_dataset)
+                dataset_index = self.batch_index_to_dataset_index(self._current_index + batch_index)
+                self._classes_indices[single_class].append(dataset_index)
         self._current_index += len(classes_per_label)
 
     def init_cache(self):
@@ -199,7 +207,9 @@ class VisionData:
     def classes_indices(self) -> Dict[int, List[int]]:
         """Return dict of classes as keys, and list of corresponding indices (in Dataset) of samples that include this\
         class (in the label)."""
-        if self._classes_indices is None or self._current_index < len(self._sampler):
+        if self._classes_indices is None:
+            raise DeepchecksValueError('Could not process labels.')
+        if self._current_index < len(self._sampler):
             raise DeepchecksValueError('Cached data is not computed on all the data yet.')
         return self._classes_indices
 
@@ -315,13 +325,9 @@ class VisionData:
         """Use the defined collate_fn to transform a few data items to batch format."""
         return self._data_loader.collate_fn(list(samples))
 
-    def batch_of_index(self, *indices):
-        """Return batch samples of the given batch indices."""
-        samples = []
-        for i in indices:
-            index_in_dataset = self._sampler.index_at(i)
-            samples.append(self.data_loader.dataset[index_in_dataset])
-        return self.to_batch(*samples)
+    def batch_index_to_dataset_index(self, batch_index):
+        """Return for the given batch_index the sample index in the dataset object."""
+        return self._sampler.index_at(batch_index)
 
     def validate_shared_label(self, other: VD):
         """Verify presence of shared labels.
