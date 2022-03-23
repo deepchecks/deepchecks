@@ -1,0 +1,18 @@
+# This is a comment.
+# Each line is a file pattern followed by one or more owners.
+
+# These owners will be the default owners for everything in
+# the repo.
+
+*       @deepchecks/deepchecks-team
+
+/docs/ @ItayGabbay @shir22
+
+.github @ItayGabbay
+
+README.rst @shir22
+
+requirements/ @ItayGabbay
+deepchecks/core/ @deepchecks/dev-team
+tests/ @deepchecks/dev-team
+
