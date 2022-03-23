@@ -29,7 +29,7 @@ def equal_condition_result(
     details: Union[str, Pattern] = '',
     category: ConditionCategory = None
 ) -> Matcher[Matcher[object]]:
-    if category is None:    
+    if category is None:
         category = ConditionCategory.PASS if is_pass else ConditionCategory.FAIL
 
     # Check if details is a regex class
