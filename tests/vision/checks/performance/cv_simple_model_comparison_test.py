@@ -10,7 +10,9 @@
 #
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks.performance.simple_model_comparison import SimpleModelComparison
-from hamcrest import assert_that, close_to, equal_to, is_in, calling, raises
+from hamcrest import assert_that, close_to, equal_to, is_in, calling, raises, has_items
+
+from tests.checks.utils import equal_condition_result
 
 
 def test_mnist_prior_strategy(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
@@ -69,3 +71,50 @@ def test_mnist_stratified(mnist_dataset_train, mnist_dataset_test, mock_trained_
                        device=device)
     # Assert
     assert_that(len(result.value), equal_to(8))
+
+
+def test_condition_failed_for_multiclass(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
+    train_ds, test_ds, clf = mnist_dataset_train, mnist_dataset_test, mock_trained_mnist
+    # Arrange
+    check = SimpleModelComparison().add_condition_gain_not_less_than(0.8)
+    # Act X
+    result = check.run(train_ds, test_ds, clf)
+    # Assert
+    assert_that(result.conditions_results, has_items(
+        equal_condition_result(
+            is_pass=False,
+            name='Model performance gain over simple model is not less than 80%',
+            details='Found metrics with gain below threshold: {\'Recall\': {1: \'-5000%\'}}')
+
+    ))
+
+
+def test_condition_pass_for_multiclass_avg(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
+    train_ds, test_ds, clf = mnist_dataset_train, mnist_dataset_test, mock_trained_mnist
+    # Arrange
+    check = SimpleModelComparison().add_condition_gain_not_less_than(0.43, average=True)
+    # Act X
+    result = check.run(train_ds, test_ds, clf)
+    # Assert
+    assert_that(result.conditions_results, has_items(
+        equal_condition_result(
+            is_pass=True,
+            name='Model performance gain over simple model is not less than 43%')
+    ))
+
+
+def test_condition_pass_for_multiclass_avg_with_classes(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
+                                                        device):
+    train_ds, test_ds, clf = mnist_dataset_train, mnist_dataset_test, mock_trained_mnist
+    # Arrange
+    check = SimpleModelComparison().add_condition_gain_not_less_than(1, average=True, classes=[0])
+    # Act X
+    result = check.run(train_ds, test_ds, clf)
+    # Assert
+    assert_that(result.conditions_results, has_items(
+        equal_condition_result(
+            is_pass=False,
+            name='Model performance gain over simple model is not less than 100% for classes [0]',
+            details='Found metrics with gain below threshold: {\'Recall\': \'99.39%\', \'Precision\': \'97.89%\'}'
+        )
+    ))
