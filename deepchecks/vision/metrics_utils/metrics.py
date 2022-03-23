@@ -11,18 +11,17 @@
 """Module for defining metrics for the vision module."""
 import typing as t
 
+import numpy as np
 import pandas as pd
 import torch
 from ignite.engine import Engine
 from ignite.metrics import Precision, Recall, Metric
-from torch import nn
 
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 
-from deepchecks.vision.dataset import TaskType
-from deepchecks.vision.utils.base_formatters import BasePredictionFormatter
-from deepchecks.vision import VisionData
+from deepchecks.vision.vision_data import TaskType
+from deepchecks.vision.vision_data import VisionData
 from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePrecision
 
 
@@ -77,8 +76,6 @@ def get_scorers_list(
         scorers = get_default_classification_scorers()
     elif task_type == TaskType.OBJECT_DETECTION:
         scorers = get_default_object_detection_scorers()
-    elif task_type == TaskType.SEMANTIC_SEGMENTATION:
-        scorers = get_default_object_detection_scorers()
     else:
         raise DeepchecksNotSupportedError(f'No scorers match task_type {task_type}')
 
@@ -88,8 +85,7 @@ def get_scorers_list(
 def calculate_metrics(
     metrics: t.Dict[str, Metric],
     dataset: VisionData,
-    model: nn.Module,
-    prediction_formatter: BasePredictionFormatter,
+    model: torch.nn.Module,
     device: torch.device
 ) -> t.Dict[str, float]:
     """Calculate a list of ignite metrics on a given model and dataset.
@@ -102,8 +98,6 @@ def calculate_metrics(
         Dataset object
     model : nn.Module
         Model object
-    prediction_formatter : Union[ClassificationPredictionFormatter, DetectionPredictionFormatter]
-        Function to convert the model output to the appropriate format for the label type
     device : Union[str, torch.device, None]
 
     Returns
@@ -113,7 +107,7 @@ def calculate_metrics(
     """
 
     def process_function(_, batch):
-        return prediction_formatter(batch, model, device), dataset.label_formatter(batch)
+        return dataset.infer_on_batch(batch, model, device), dataset.batch_to_labels(batch)
 
     engine = Engine(process_function)
 
@@ -121,8 +115,16 @@ def calculate_metrics(
         metric.reset()
         metric.attach(engine, name)
 
-    state = engine.run(dataset.get_data_loader())
+    state = engine.run(dataset.data_loader)
     return state.metrics
+
+
+def _validate_metric_type(metric_name: str, score: t.Any) -> bool:
+    """Raise error if metric has incorrect type, or return true."""
+    if not isinstance(score, (torch.Tensor, list, np.ndarray)):
+        raise DeepchecksValueError(f'The metric {metric_name} returned a '
+                                   f'{type(score)} instead of an array/tensor')
+    return True
 
 
 def metric_results_to_df(results: dict, dataset: VisionData) -> pd.DataFrame:
@@ -131,8 +133,10 @@ def metric_results_to_df(results: dict, dataset: VisionData) -> pd.DataFrame:
         [metric, class_id, dataset.label_id_to_name(class_id),
          class_score.item() if isinstance(class_score, torch.Tensor) else class_score]
         for metric, score in results.items()
+        if _validate_metric_type(metric, score)
         # scorer returns results as array, containing result per class
-        for class_score, class_id in zip(score, sorted(dataset.n_of_samples_per_class.keys()))
+        for class_id, class_score in enumerate(score)
+        if not np.isnan(class_score)
     ]
 
     return pd.DataFrame(per_class_result, columns=['Metric',
@@ -144,7 +148,9 @@ def metric_results_to_df(results: dict, dataset: VisionData) -> pd.DataFrame:
 def filter_classes_for_display(metrics_df: pd.DataFrame,
                                metric_to_show_by: str,
                                n_to_show: int,
-                               show_only: str) -> list:
+                               show_only: str,
+                               column_to_filter_by: str = 'Dataset',
+                               column_filter_value: str = None) -> list:
     """Filter the metrics dataframe for display purposes.
 
     Parameters
@@ -153,7 +159,7 @@ def filter_classes_for_display(metrics_df: pd.DataFrame,
         Dataframe containing the metrics.
     n_to_show : int
         Number of classes to show in the report.
-    show_only : str, default: 'largest'
+    show_only : str
         Specify which classes to show in the report. Can be one of the following:
         - 'largest': Show the largest classes.
         - 'smallest': Show the smallest classes.
@@ -162,16 +168,22 @@ def filter_classes_for_display(metrics_df: pd.DataFrame,
         - 'worst': Show the classes with the lowest score.
     metric_to_show_by : str
         Specify the metric to sort the results by. Relevant only when show_only is 'best' or 'worst'.
+    column_to_filter_by : str , default: 'Dataset'
+        Specify the name of the column to filter by.
+    column_filter_value : str , default: None
+        Specify the value of the column to filter by, if None will be set to test dataset name.
 
     Returns
     -------
     list
         List of classes to show in the report.
     """
-    # working only on the test set
-    tests_metrics_df = metrics_df[(metrics_df['Dataset'] == DatasetKind.TEST.value) &
+    # working on the test dataset on default
+    if column_filter_value is None:
+        column_filter_value = DatasetKind.TEST.value
+
+    tests_metrics_df = metrics_df[(metrics_df[column_to_filter_by] == column_filter_value) &
                                   (metrics_df['Metric'] == metric_to_show_by)]
-    print(tests_metrics_df)
     if show_only == 'largest':
         tests_metrics_df = tests_metrics_df.sort_values(by='Number of samples', ascending=False)
     elif show_only == 'smallest':

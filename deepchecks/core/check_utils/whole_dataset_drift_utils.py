@@ -10,13 +10,13 @@
 #
 """Module containing common WholeDatasetDriftCheck (domain classifier drift) utils."""
 
-from typing import List
+from typing import List, Optional
 import warnings
 
 import numpy as np
 import pandas as pd
 
-from deepchecks import Dataset  # TODO: Remove?
+from deepchecks.tabular import Dataset
 from deepchecks.utils.distribution.plot import feature_distribution_traces, drift_score_bar_traces
 from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none
 from deepchecks.utils.strings import format_percent
@@ -39,7 +39,7 @@ import plotly.graph_objects as go
 def run_whole_dataset_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.DataFrame,
                             numerical_features: List[Hashable], cat_features: List[Hashable], sample_size: int,
                             random_state: int, test_size: float, n_top_columns: int, min_feature_importance: float,
-                            max_num_categories: int, min_meaningful_drift_score: float):
+                            max_num_categories: Optional[int], min_meaningful_drift_score: float):
     """Calculate whole dataset drift."""
     domain_classifier = generate_model(numerical_features, cat_features, random_state)
 
@@ -88,7 +88,7 @@ def run_whole_dataset_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
     </span><br><br>
     """
 
-    if fi is not None and drift_score < min_meaningful_drift_score:
+    if fi is not None and drift_score > min_meaningful_drift_score:
         top_fi = fi.head(n_top_columns)
         top_fi = top_fi.loc[top_fi > min_feature_importance]
     else:
@@ -169,6 +169,7 @@ def display_dist(train_column: pd.Series, test_column: pd.Series, fi_ser: pd.Ser
     traces, xaxis_layout, yaxis_layout = \
         feature_distribution_traces(train_column.dropna(),
                                     test_column.dropna(),
+                                    column_name,
                                     is_categorical=column_name in cat_features,
                                     max_num_categories=max_num_categories)
 

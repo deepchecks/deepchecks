@@ -33,7 +33,8 @@ TDataset = t.TypeVar('TDataset', bound='Dataset')
 
 
 class Dataset:
-    """Dataset wraps pandas DataFrame together with ML related metadata.
+    """
+    Dataset wraps pandas DataFrame together with ML related metadata.
 
     The Dataset class is containing additional data and methods intended for easily accessing
     metadata relevant for the training or validating of an ML models.
@@ -320,7 +321,7 @@ class Dataset:
         Examples
         --------
         >>> import numpy
-        >>> from deepchecks import Dataset
+        >>> from deepchecks.tabular import Dataset
 
         >>> features = numpy.array([[0.25, 0.3, 0.3],
         ...                        [0.14, 0.75, 0.3],

@@ -51,9 +51,10 @@ class SegmentPerformance(SingleDatasetCheck):
         feature_1: Optional[Hashable] = None,
         feature_2: Optional[Hashable] = None,
         alternative_scorer: Tuple[str, Union[str, Callable]] = None,
-        max_segments: int = 10
+        max_segments: int = 10,
+        **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
 
         # if they're both none it's ok
         if feature_1 and feature_1 == feature_2:

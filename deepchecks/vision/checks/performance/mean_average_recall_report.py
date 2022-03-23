@@ -9,17 +9,18 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing mean average recall report check."""
-from collections import defaultdict
 import math
-from typing import TypeVar, Tuple, Any
+from collections import defaultdict
+from typing import TypeVar, Tuple
 
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.utils.strings import format_number
-from deepchecks.vision import SingleDatasetCheck, Context
-from deepchecks.vision.dataset import TaskType
+from deepchecks.vision import SingleDatasetCheck, Context, Batch
+from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePrecision
+
 
 __all__ = ['MeanAverageRecallReport']
 
@@ -35,8 +36,8 @@ class MeanAverageRecallReport(SingleDatasetCheck):
         Slices for small/medium/large buckets.
     """
 
-    def __init__(self, area_range: Tuple = (32**2, 96**2)):
-        super().__init__()
+    def __init__(self, area_range: Tuple = (32**2, 96**2), **kwargs):
+        super().__init__(**kwargs)
         self._area_range = area_range
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind = None):
@@ -44,11 +45,10 @@ class MeanAverageRecallReport(SingleDatasetCheck):
         self._ap_metric = AveragePrecision(return_option=None, area_range=self._area_range)
         context.assert_task_type(TaskType.OBJECT_DETECTION)
 
-    def update(self, context: Context, batch: Any, dataset_kind: DatasetKind):
+    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Update the metrics by passing the batch to ignite metric update method."""
-        dataset = context.get_data_by_kind(dataset_kind)
-        label = dataset.label_formatter(batch)
-        prediction = context.infer(batch)
+        label = batch.labels
+        prediction = batch.predictions
         self._ap_metric.update((prediction, label))
 
     def compute(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:

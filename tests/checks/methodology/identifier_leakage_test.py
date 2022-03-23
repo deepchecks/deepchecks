@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 from hamcrest import assert_that, is_in, close_to, calling, raises, has_items
 
-from deepchecks.tabular import Dataset
+from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.checks.methodology.identifier_leakage import IdentifierLeakage
 from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError, DeepchecksNotSupportedError
 
@@ -31,7 +31,6 @@ def util_generate_dataframe_and_expected():
 def test_assert_identifier_leakage():
     df, expected = util_generate_dataframe_and_expected()
     result = IdentifierLeakage().run(dataset=Dataset(df, label='label', datetime_name='x2', index_name='x3'))
-    print(result.value)
     for key, value in result.value.items():
         assert_that(key, is_in(expected.keys()))
         assert_that(value, close_to(expected[key], 0.1))
@@ -72,7 +71,6 @@ def test_assert_identifier_leakage_class():
     df, expected = util_generate_dataframe_and_expected()
     identifier_leakage_check = IdentifierLeakage()
     result = identifier_leakage_check.run(dataset=Dataset(df, label='label', datetime_name='x2', index_name='x3'))
-    print(result.value)
     for key, value in result.value.items():
         assert_that(key, is_in(expected.keys()))
         assert_that(value, close_to(expected[key], 0.1))

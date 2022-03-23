@@ -10,30 +10,33 @@
 #
 """Package for vision functionality."""
 import logging
-from .dataset import VisionData
-from .base import (
-    Context,
-    Suite,
-    SingleDatasetCheck,
-    TrainTestCheck,
-    ModelOnlyCheck,
-)
+from .vision_data import VisionData
+from .classification_data import ClassificationData
+from .detection_data import DetectionData
+from .context import Context
+from .suite import Suite, Batch
+from .base_checks import SingleDatasetCheck, TrainTestCheck, ModelOnlyCheck
+
 
 logger = logging.getLogger("deepchecks")
+
 
 try:
     import torch  # noqa: F401
     import torchvision  # noqa: F401
-
 except ImportError as error:
     raise ImportError("PyTorch is not installed. Please install torch and torchvision "
                       "in order to use deepchecks.vision functionalities.") from error
 
+
 __all__ = [
     "VisionData",
+    "ClassificationData",
+    "DetectionData",
     "Context",
     "SingleDatasetCheck",
     "TrainTestCheck",
     "ModelOnlyCheck",
     "Suite",
+    "Batch"
 ]

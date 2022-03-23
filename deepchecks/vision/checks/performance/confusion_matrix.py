@@ -9,16 +9,18 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing confusion matrix report check."""
-from typing import Any
-
+import pandas as pd
 import numpy as np
+import torch
 from plotly.express import imshow
 from queue import PriorityQueue
+from collections import defaultdict
 
 from deepchecks.core import CheckResult, DatasetKind
-from deepchecks.vision import SingleDatasetCheck, Context
-from deepchecks.vision.dataset import TaskType
+from deepchecks.vision import SingleDatasetCheck, Context, Batch
+from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.metrics_utils.iou_utils import jaccard_iou
+
 
 __all__ = ['ConfusionMatrixReport']
 
@@ -60,40 +62,29 @@ class ConfusionMatrixReport(SingleDatasetCheck):
     def __init__(self,
                  categories_to_display: int = 10,
                  confidence_threshold: float = 0.3,
-                 iou_threshold: float = 0.5):
-        super().__init__()
+                 iou_threshold: float = 0.5,
+                 **kwargs):
+        super().__init__(**kwargs)
         self.confidence_threshold = confidence_threshold
         self.categories_to_display = categories_to_display
         self.iou_threshold = iou_threshold
         self.matrix = None
-        self.num_classes = 0
+        self.classes_list = None
+        self.not_found_idx = None
+        self.unseen_class_idx = None
         self.task_type = None
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind = None):
         """Initialize run by creating an empty matrix the size of the data."""
         context.assert_task_type(TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION)
-
-        if dataset_kind == DatasetKind.TRAIN:
-            dataset = context.train
-        else:
-            dataset = context.test
+        dataset = context.get_data_by_kind(dataset_kind)
         self.task_type = dataset.task_type
-        self.num_classes = dataset.n_of_classes
+        self.matrix = defaultdict(lambda: defaultdict(int))
 
-        matrix_size = self.num_classes if self.task_type == TaskType.CLASSIFICATION else self.num_classes + 1
-
-        self.matrix = np.zeros((matrix_size, matrix_size))
-
-    def update(self, context: Context, batch: Any, dataset_kind: DatasetKind = DatasetKind.TRAIN):
+    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind = DatasetKind.TRAIN):
         """Add batch to confusion matrix."""
-        if dataset_kind == DatasetKind.TRAIN:
-            dataset = context.train
-        else:
-            dataset = context.test
-
-        labels = dataset.label_formatter(batch)
-        predictions = context.infer(batch)
-
+        labels = batch.labels
+        predictions = batch.predictions
         if self.task_type == TaskType.CLASSIFICATION:
             self.update_classification(predictions, labels)
         elif self.task_type == TaskType.OBJECT_DETECTION:
@@ -101,91 +92,132 @@ class ConfusionMatrixReport(SingleDatasetCheck):
 
     def compute(self, context: Context, dataset_kind: DatasetKind = None) -> CheckResult:
         """Compute and plot confusion matrix after all batches were processed."""
-        if dataset_kind == DatasetKind.TRAIN:
-            dataset = context.train
-        else:
-            dataset = context.test
-        display_confusion_matrix, categories = filter_confusion_matrix(self.matrix, self.categories_to_display)
+        assert self.matrix is not None
 
-        description = ''
+        dataset = context.get_data_by_kind(dataset_kind)
+        matrix = pd.DataFrame(self.matrix).T
+        matrix.replace(np.nan, 0, inplace=True)
 
-        display_categories = []
+        classes = sorted(
+            set(matrix.index).union(set(matrix.columns)),
+            key=lambda x: np.inf if isinstance(x, str) else x
+        )
+
+        matrix = pd.DataFrame(matrix, index=classes, columns=classes).to_numpy()
+
+        confusion_matrix, categories = filter_confusion_matrix(
+            matrix,
+            self.categories_to_display
+        )
+
+        description = [f'Showing {self.categories_to_display} of {dataset.num_classes} classes:']
+        classes_to_display = []
+        classes_map = dict(enumerate(classes))  # class index -> class label
+
         for category in categories:
-            if self.num_classes == category:
-                description += ('last category are detections that do not overlap with labeled data'
-                                ' and labels that have not been detected. ')
-                display_categories.append('not found')
+            category = classes_map[category]
+            if category == 'no-overlapping':
+                description.append(
+                    '"No overlapping" categories are labels and prediction which did not have a matching '
+                    'label/prediction. For example a predictions that did not have a sufficiently overlapping '
+                    'label bounding box will appear under the "No overlapping label" category'
+                )
+                classes_to_display.append('no-overlapping')
+            elif isinstance(category, int):
+                classes_to_display.append(dataset.label_id_to_name(category))
             else:
-                display_categories.append(dataset.label_id_to_name(category))
+                raise RuntimeError(
+                    'Internal Error! categories list must '
+                    'contain items of type - Union[int, Literal["no-overlapping"]]'
+                )
 
-        description += f'Showing {self.categories_to_display} of {self.num_classes} classes:'
+        x = []
+        y = []
 
-        fig = imshow(display_confusion_matrix,
-                     x=display_categories,
-                     y=display_categories,
-                     text_auto=True)
+        for it in classes_to_display:
+            if it != 'no-overlapping':
+                x.append(it)
+                y.append(it)
+            else:
+                x.append('No overlapping prediction')
+                y.append('No overlapping label')
 
-        fig.update_layout(width=600, height=600)
-        fig.update_xaxes(title='Predicted Value', type='category')
-        fig.update_yaxes(title='True value', type='category')
-
+        description.append(
+            imshow(
+                confusion_matrix,
+                x=x,
+                y=y,
+                text_auto=True)
+            .update_layout(width=600, height=600)
+            .update_xaxes(title='Predicted Value', type='category')
+            .update_yaxes(title='True value', type='category')
+        )
         return CheckResult(
-            self.matrix,
+            matrix,
             header='Confusion Matrix',
-            display=[description, fig]
+            display=description
         )
 
     def update_object_detection(self, predictions, labels):
         """Update the confusion matrix by batch for object detection task."""
+        assert self.matrix is not None
+
         for image_detections, image_labels in zip(predictions, labels):
             detections_passed_threshold = [
-                detection for detection in image_detections if detection[4] > self.confidence_threshold
+                detection for detection in image_detections
+                if detection[4] > self.confidence_threshold
             ]
+
             if len(detections_passed_threshold) == 0:
                 # detections are empty, update matrix for labels
                 for label in image_labels:
-                    gt_class = int(label[0].item())
-                    self.matrix[self.num_classes, gt_class] += 1
+                    label_class = int(label[0].item())
+                    self.matrix[label_class]['no-overlapping'] += 1
                 continue
 
-            all_ious = np.zeros((len(image_labels), len(detections_passed_threshold)))
-
-            for label_index, label in enumerate(image_labels):
-                for detected_index, detected in enumerate(detections_passed_threshold):
-                    all_ious[label_index, detected_index] = jaccard_iou(detected, label)
-
-            want_idx = np.where(all_ious > self.iou_threshold)
-
-            all_matches = [[want_idx[0][i], want_idx[1][i], all_ious[want_idx[0][i], want_idx[1][i]]]
-                           for i in range(want_idx[0].shape[0])]
-            all_matches = np.array(all_matches)
+            list_of_ious = (
+                (label_index, detected_index, jaccard_iou(detected, label))
+                for label_index, label in enumerate(image_labels)
+                for detected_index, detected in enumerate(detections_passed_threshold)
+            )
+            matches = np.array([
+                [label_index, detected_index, ious]
+                for label_index, detected_index, ious in list_of_ious
+                if ious > self.iou_threshold
+            ])
 
             # remove duplicate matches
-            if all_matches.shape[0] > 0:
-                all_matches = all_matches[all_matches[:, 2].argsort()[::-1]]
+            if len(matches) > 0:
+                # sort by ious, in descend order
+                matches = matches[matches[:, 2].argsort()[::-1]]
+                # leave matches with unique prediction and the highest ious
+                matches = matches[np.unique(matches[:, 1], return_index=True)[1]]
+                # sort by ious, in descend order
+                matches = matches[matches[:, 2].argsort()[::-1]]
+                # leave matches with unique label and the highest ious
+                matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
 
-                all_matches = all_matches[np.unique(all_matches[:, 1], return_index=True)[1]]
+            n_of_matches = len(matches)
 
-                all_matches = all_matches[all_matches[:, 2].argsort()[::-1]]
-
-                all_matches = all_matches[np.unique(all_matches[:, 0], return_index=True)[1]]
-
-            for i, label in enumerate(image_labels):
-                gt_class = int(label[0])
-                if all_matches.shape[0] > 0 and all_matches[all_matches[:, 0] == i].shape[0] == 1:
-                    detection_class = int(image_detections[int(all_matches[all_matches[:, 0] == i, 1][0])][5])
-                    self.matrix[detection_class, gt_class] += 1
+            for label_index, label in enumerate(image_labels):
+                label_class = int(label[0])
+                if n_of_matches > 0 and (matches[:, 0] == label_index).any():
+                    detection_index = int(matches[matches[:, 0] == label_index, 1][0])
+                    detected_class = int(image_detections[detection_index][5])
+                    self.matrix[label_class][detected_class] += 1
                 else:
-                    self.matrix[self.num_classes, gt_class] += 1
+                    self.matrix[label_class]['no-overlapping'] += 1
 
-            for i, detection in enumerate(image_detections):
-                if all_matches.shape[0] and all_matches[all_matches[:, 1] == i].shape[0] == 0:
-                    detection_class = int(detection[5])
-                    self.matrix[detection_class, self.num_classes] += 1
+            for detection_index, detection in enumerate(detections_passed_threshold):
+                if n_of_matches > 0 and not (matches[:, 1] == detection_index).any():
+                    detected_class = int(detection[5])
+                    self.matrix['no-overlapping'][detected_class] += 1
 
     def update_classification(self, predictions, labels):
         """Update the confusion matrix by batch for classification task."""
+        assert self.matrix is not None
+
         for predicted_classes, image_labels in zip(predictions, labels):
             detected_class = max(range(len(predicted_classes)), key=predicted_classes.__getitem__)
-
-            self.matrix[detected_class, image_labels] += 1
+            label_class = image_labels.item() if isinstance(image_labels, torch.Tensor) else image_labels
+            self.matrix[label_class][detected_class] += 1

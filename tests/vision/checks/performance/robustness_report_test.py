@@ -10,17 +10,13 @@
 #
 import types
 
-
 import albumentations
 import numpy as np
+from deepchecks.vision.datasets.detection.coco import COCOData, CocoDataset
 
 from tests.checks.utils import equal_condition_result
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks.performance.robustness_report import RobustnessReport
-from deepchecks.vision.utils.classification_formatters import ClassificationPredictionFormatter
-from deepchecks.vision.datasets.classification.mnist import mnist_prediction_formatter
-from deepchecks.vision.utils import DetectionPredictionFormatter
-from deepchecks.vision.datasets.detection.coco import yolo_prediction_formatter
 from PIL import Image
 from hamcrest import assert_that, has_entries, close_to, calling, raises, has_items
 
@@ -28,7 +24,7 @@ from hamcrest import assert_that, has_entries, close_to, calling, raises, has_it
 from tests.vision.vision_conftest import *
 
 
-def test_mnist(mnist_dataset_train, trained_mnist):
+def test_mnist(mnist_dataset_train, mock_trained_mnist, device):
     # Arrange
     # Create augmentations without randomness to get fixed metrics results
     augmentations = [
@@ -37,22 +33,21 @@ def test_mnist(mnist_dataset_train, trained_mnist):
     ]
     check = RobustnessReport(augmentations=augmentations)
     # Act
-    result = check.run(mnist_dataset_train, trained_mnist,
-                       prediction_formatter=ClassificationPredictionFormatter(mnist_prediction_formatter))
+    result = check.run(mnist_dataset_train, mock_trained_mnist, device=device)
     # Assert
     assert_that(result.value, has_entries({
-        'RandomBrightnessContrast': has_entries({
-            'Precision': has_entries(score=close_to(0.984, 0.001), diff=close_to(-0.001, 0.001)),
-            'Recall': has_entries(score=close_to(0.986, 0.001), diff=close_to(-0.001, 0.001))
+        'Random Brightness Contrast': has_entries({
+            'Precision': has_entries(score=close_to(0.964, 0.001), diff=close_to(-0.014, 0.001)),
+            'Recall': has_entries(score=close_to(0.965, 0.001), diff=close_to(-0.013, 0.001))
         }),
-        'ShiftScaleRotate': has_entries({
-            'Precision': has_entries(score=close_to(0.799, 0.001), diff=close_to(-0.189, 0.001)),
-            'Recall': has_entries(score=close_to(0.783, 0.001), diff=close_to(-0.206, 0.001))
+        'Shift Scale Rotate': has_entries({
+            'Precision': has_entries(score=close_to(0.780, 0.001), diff=close_to(-0.202, 0.001)),
+            'Recall': has_entries(score=close_to(0.775, 0.001), diff=close_to(-0.207, 0.001))
         }),
     }))
 
 
-def test_coco_and_condition(coco_train_visiondata, trained_yolov5_object_detection):
+def test_coco_and_condition(coco_train_visiondata, mock_trained_yolov5_object_detection, device):
     """Because of the large running time, instead of checking the conditions in separated tests, combining a few
     tests into one."""
     # Arrange
@@ -60,19 +55,18 @@ def test_coco_and_condition(coco_train_visiondata, trained_yolov5_object_detecti
     augmentations = [
         albumentations.HueSaturationValue(p=1.0),
     ]
-    pred_formatter = DetectionPredictionFormatter(yolo_prediction_formatter)
     check = RobustnessReport(augmentations=augmentations)
 
     check.add_condition_degradation_not_greater_than(0.5)
     check.add_condition_degradation_not_greater_than(0.01)
 
     # Act
-    result = check.run(coco_train_visiondata, trained_yolov5_object_detection, prediction_formatter=pred_formatter)
+    result = check.run(coco_train_visiondata, mock_trained_yolov5_object_detection, device=device)
     # Assert
     assert_that(result.value, has_entries({
-        'HueSaturationValue': has_entries({
-            'AP': has_entries(score=close_to(0.308, 0.001), diff=close_to(-0.051, 0.001)),
-            'AR': has_entries(score=close_to(0.344, 0.001), diff=close_to(-0.060, 0.001))
+        'Hue Saturation Value': has_entries({
+            'AP': has_entries(score=close_to(0.348, 0.001), diff=close_to(-0.107, 0.001)),
+            'AR': has_entries(score=close_to(0.376, 0.001), diff=close_to(-0.092, 0.001))
         }),
     }))
     assert_that(result.conditions_results, has_items(
@@ -83,49 +77,42 @@ def test_coco_and_condition(coco_train_visiondata, trained_yolov5_object_detecti
         equal_condition_result(
             is_pass=False,
             name='Metrics degrade by not more than 1%',
-            details='Augmentations not passing: {\'HueSaturationValue\'}'
+            details='Augmentations not passing: {\'Hue Saturation Value\'}'
         )
     ))
 
 
-def test_dataset_not_augmenting_labels(coco_train_visiondata, trained_yolov5_object_detection):
+def test_dataset_not_augmenting_labels(coco_train_visiondata: COCOData, mock_trained_yolov5_object_detection, device):
     # Arrange
-    vision_data = coco_train_visiondata.copy()
-    dataset = vision_data.get_data_loader().dataset
-
     def new_apply(self, img, bboxes):
         if self.transforms is not None:
             transformed = self.transforms(image=np.array(img), bboxes=bboxes)
             img = Image.fromarray(transformed['image'])
         return img, bboxes
+    vision_data = coco_train_visiondata.get_augmented_dataset(albumentations.ShiftScaleRotate(p=1))
+    dataset: CocoDataset = vision_data.data_loader.dataset
     dataset.apply_transform = types.MethodType(new_apply, dataset)
-
-    vision_data.add_augmentation(albumentations.ShiftScaleRotate(p=1))
     # Act & Assert
-    pred_formatter = DetectionPredictionFormatter(yolo_prediction_formatter)
     check = RobustnessReport()
     msg = r'Found that labels have not been affected by adding augmentation to field "transforms". This might be ' \
           r'a problem with the implementation of `Dataset.__getitem__`. label value: .*'
-    assert_that(calling(check.run).with_args(vision_data, trained_yolov5_object_detection,
-                                             prediction_formatter=pred_formatter),
+    assert_that(calling(check.run).with_args(vision_data, mock_trained_yolov5_object_detection,
+                                             device=device),
                 raises(DeepchecksValueError, msg))
 
 
-def test_dataset_not_augmenting_data(coco_train_visiondata, trained_yolov5_object_detection):
+def test_dataset_not_augmenting_data(coco_train_visiondata: COCOData, mock_trained_yolov5_object_detection, device):
     # Arrange
-    vision_data = coco_train_visiondata.copy()
-    dataset = vision_data.get_data_loader().dataset
-
     def new_apply(self, img, bboxes):
         return img, bboxes
+    vision_data = coco_train_visiondata.get_augmented_dataset(albumentations.ShiftScaleRotate(p=1))
+    dataset: CocoDataset = vision_data.data_loader.dataset
     dataset.apply_transform = types.MethodType(new_apply, dataset)
-    vision_data.add_augmentation(albumentations.ShiftScaleRotate(p=1))
 
     # Act & Assert
-    pred_formatter = DetectionPredictionFormatter(yolo_prediction_formatter)
     check = RobustnessReport()
     msg = r'Found that images have not been affected by adding augmentation to field "transforms". This might be a ' \
           r'problem with the implementation of Dataset.__getitem__'
-    assert_that(calling(check.run).with_args(vision_data, trained_yolov5_object_detection,
-                                             prediction_formatter=pred_formatter),
+    assert_that(calling(check.run).with_args(vision_data, mock_trained_yolov5_object_detection,
+                                             device=device),
                 raises(DeepchecksValueError, msg))

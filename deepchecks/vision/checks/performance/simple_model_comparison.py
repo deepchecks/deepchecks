@@ -19,13 +19,14 @@ from ignite.metrics import Metric
 
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.vision import Context, TrainTestCheck
-from deepchecks.vision.dataset import TaskType
+from deepchecks.vision import Context, TrainTestCheck, Batch
+from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.metrics_utils import get_scorers_list, metric_results_to_df
+from deepchecks.vision.metrics_utils.metrics import filter_classes_for_display
+
 
 __all__ = ['SimpleModelComparison']
 
-from deepchecks.vision.metrics_utils.metrics import filter_classes_for_display
 
 _allowed_strategies = (
     'most_frequent',
@@ -45,6 +46,7 @@ class SimpleModelComparison(TrainTestCheck):
     ----------
     strategy : str, default='prior'
         Strategy to use to generate the predictions of the simple model.
+
         * 'most_frequent' : The most frequent label in the training set is predicted.
           The probability vector is 1 for the most frequent label and 0 for the other predictions.
         * 'prior' : The probability vector always contains the empirical class prior distribution (i.e. the class
@@ -82,9 +84,9 @@ class SimpleModelComparison(TrainTestCheck):
                  n_to_show: int = 20,
                  show_only: str = 'largest',
                  metric_to_show_by: str = None,
-                 class_list_to_show: List[int] = None
-                 ):
-        super().__init__()
+                 class_list_to_show: List[int] = None,
+                 **kwargs):
+        super().__init__(**kwargs)
         self.strategy = strategy
 
         if self.strategy not in _allowed_strategies:
@@ -107,70 +109,44 @@ class SimpleModelComparison(TrainTestCheck):
                                            '["best", "worst"], metric_to_show_by must be specified.')
 
         self.metric_to_show_by = metric_to_show_by
-        self._state = {}
+        self._test_metrics = None
 
     def initialize_run(self, context: Context):
         """Initialize the metrics for the check, and validate task type is relevant."""
         context.assert_task_type(TaskType.CLASSIFICATION)
 
-        self._state[DatasetKind.TEST.value] = get_scorers_list(context.train, self.alternative_metrics)
-        self._state['Simple Model'] = get_scorers_list(context.train, self.alternative_metrics)
+        self._test_metrics = get_scorers_list(context.train, self.alternative_metrics)
 
-        if context.train.task_type == TaskType.CLASSIFICATION:
-            class_prior = np.zeros(context.train.n_of_classes)
-            n_samples = 0
-            for label, total in context.train.n_of_samples_per_class.items():
-                class_prior[label] = total
-                n_samples += total
-            class_prior /= n_samples
-
-            if self.strategy == 'most_frequent':
-                dummy_prediction = np.zeros(context.train.n_of_classes)
-                dummy_prediction[np.argmax(class_prior)] = 1
-                self._state['dummy_prediction_generator'] = lambda: torch.from_numpy(dummy_prediction)
-            elif self.strategy == 'prior':
-                self._state['dummy_prediction_generator'] = lambda: torch.from_numpy(class_prior)
-            elif self.strategy == 'stratified':
-                self._state['dummy_prediction_generator'] = \
-                    lambda: torch.from_numpy(np.random.multinomial(1, class_prior))
-            elif self.strategy == 'uniform':
-                self._state['dummy_prediction_generator'] = \
-                    lambda: torch.from_numpy(np.ones(context.train.n_of_classes) / context.train.n_of_classes)
-            else:
-                raise DeepchecksValueError(
-                    f'Unknown strategy type: {self.strategy}, expected one of {_allowed_strategies}.'
-                )
-
-        if not self.metric_to_show_by:
-            self.metric_to_show_by = list(self._state[DatasetKind.TEST.value].keys())[0]
-
-    def update(self, context: Context, batch: Any, dataset_kind: DatasetKind):
+    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Update the metrics for the check."""
         if dataset_kind == DatasetKind.TEST:
-            dataset = context.get_data_by_kind(dataset_kind)
-            label = dataset.label_formatter(batch)
-            prediction = context.infer(batch)
-            for _, metric in self._state[DatasetKind.TEST.value].items():
+            label = batch.labels
+            prediction = batch.predictions
+            for _, metric in self._test_metrics.items():
                 metric.update((prediction, label))
-            for _, metric in self._state['Simple Model'].items():
-                pred = []
-                for _ in range(len(label)):
-                    pred.append(self._state['dummy_prediction_generator']())
-                metric.update((torch.stack(pred), label))
 
     def compute(self, context: Context) -> CheckResult:
         """Compute the metrics for the check."""
         results = []
-        for eval_kind in [DatasetKind.TEST.value, 'Simple Model']:
+
+        metrics_to_eval = {
+            'Given Model': self._test_metrics,
+            'Simple Model': self._generate_simple_model_metrics(context.train, context.test)
+        }
+        for name, metrics in metrics_to_eval.items():
             dataset = context.get_data_by_kind(DatasetKind.TEST)
             metrics_df = metric_results_to_df(
-                {k: m.compute() for k, m in self._state[eval_kind].items()}, dataset
+                {k: m.compute() for k, m in metrics.items()}, dataset
             )
-            metrics_df['Dataset'] = eval_kind
+            metrics_df['Model'] = name
             metrics_df['Number of samples'] = metrics_df['Class'].map(dataset.n_of_samples_per_class.get)
             results.append(metrics_df)
 
         results_df = pd.concat(results)
+        results_df = results_df[['Model', 'Metric', 'Class', 'Class Name', 'Number of samples', 'Value']]
+
+        if not self.metric_to_show_by:
+            self.metric_to_show_by = list(self._test_metrics.keys())[0]
 
         if self.class_list_to_show is not None:
             results_df = results_df.loc[results_df['Class'].isin(self.class_list_to_show)]
@@ -178,24 +154,23 @@ class SimpleModelComparison(TrainTestCheck):
             classes_to_show = filter_classes_for_display(results_df,
                                                          self.metric_to_show_by,
                                                          self.n_to_show,
-                                                         self.show_only)
+                                                         self.show_only,
+                                                         column_to_filter_by='Model',
+                                                         column_filter_value='Given Model')
             results_df = results_df.loc[results_df['Class'].isin(classes_to_show)]
 
-        results_df = results_df.sort_values(by=['Dataset', 'Value'], ascending=False)
+        results_df = results_df.sort_values(by=['Model', 'Value'], ascending=False).reset_index(drop=True)
 
         fig = px.histogram(
             results_df,
             x='Class Name',
             y='Value',
-            color='Dataset',
+            color='Model',
             barmode='group',
             facet_col='Metric',
             facet_col_spacing=0.05,
             hover_data=['Number of samples']
         )
-
-        if context.train.task_type == TaskType.CLASSIFICATION:
-            fig.update_xaxes(tickprefix='Class ', tickangle=60)
 
         fig = (
             fig.update_xaxes(title=None, type='category')
@@ -209,3 +184,40 @@ class SimpleModelComparison(TrainTestCheck):
             header='Simple Model Comparison',
             display=fig
         )
+
+    def _generate_simple_model_metrics(self, train, test):
+        class_prior = np.zeros(train.num_classes)
+        n_samples = 0
+        for label, total in train.n_of_samples_per_class.items():
+            class_prior[label] = total
+            n_samples += total
+        class_prior /= n_samples
+
+        if self.strategy == 'most_frequent':
+            dummy_prediction = np.zeros(train.num_classes)
+            dummy_prediction[np.argmax(class_prior)] = 1
+            dummy_predictor = lambda: torch.from_numpy(dummy_prediction)
+        elif self.strategy == 'prior':
+            dummy_predictor = lambda: torch.from_numpy(class_prior)
+        elif self.strategy == 'stratified':
+            dummy_predictor = lambda: torch.from_numpy(np.random.multinomial(1, class_prior))
+        elif self.strategy == 'uniform':
+            dummy_predictor = lambda: torch.from_numpy(np.ones(train.num_classes) / train.num_classes)
+        else:
+            raise DeepchecksValueError(
+                f'Unknown strategy type: {self.strategy}, expected one of {_allowed_strategies}.'
+            )
+
+        # Create dummy predictions
+        dummy_predictions = []
+        labels = []
+        for label, count in test.n_of_samples_per_class.items():
+            labels += [label] * count
+            for _ in range(count):
+                dummy_predictions.append(dummy_predictor())
+
+        # Get scorers
+        metrics = get_scorers_list(train, self.alternative_metrics)
+        for _, metric in metrics.items():
+            metric.update((torch.stack(dummy_predictions), torch.LongTensor(labels)))
+        return metrics

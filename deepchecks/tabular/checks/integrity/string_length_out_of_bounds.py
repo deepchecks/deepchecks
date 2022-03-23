@@ -76,9 +76,10 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
         min_unique_values: int = 100,
         n_top_columns: int = 10,
         outlier_length_to_show: int = 50,
-        samples_per_range_to_show: int = 3
+        samples_per_range_to_show: int = 3,
+        **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
         self.columns = columns
         self.ignore_columns = ignore_columns
         self.num_percentiles = num_percentiles

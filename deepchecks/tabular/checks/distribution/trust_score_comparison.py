@@ -60,10 +60,19 @@ class TrustScoreComparison(TrainTestCheck):
     percent_top_scores_to_hide : float  , default: 0.05
     """
 
-    def __init__(self, k_filter: int = 10, alpha: float = 0.001,
-                 max_number_categories: int = 10, min_test_samples: int = 300, sample_size: int = 10_000,
-                 random_state: int = 42, n_to_show: int = 5, percent_top_scores_to_hide: float = 0.05):
-        super().__init__()
+    def __init__(
+        self,
+        k_filter: int = 10,
+        alpha: float = 0.001,
+        max_number_categories: int = 10,
+        min_test_samples: int = 300,
+        sample_size: int = 10_000,
+        random_state: int = 42,
+        n_to_show: int = 5,
+        percent_top_scores_to_hide: float = 0.05,
+        **kwargs
+    ):
+        super().__init__(**kwargs)
         _validate_parameters(k_filter, alpha, max_number_categories, min_test_samples, sample_size, n_to_show,
                              percent_top_scores_to_hide)
         self.k_filter = k_filter
@@ -224,9 +233,8 @@ def _validate_parameters(k_filter, alpha, max_number_categories, min_test_sample
 
 def _display_plot(train_trust_scores, test_trust_scores, percent_to_cut):
     """Display a distribution comparison plot for the given columns."""
-    traces, xaxis, yaxis = feature_distribution_traces(train_trust_scores, test_trust_scores,
+    traces, xaxis, yaxis = feature_distribution_traces(train_trust_scores, test_trust_scores, 'Trust Score',
                                                        quantile_cut=percent_to_cut)
-    xaxis['title'] = 'Trust Score'
 
     figure = go.Figure(layout=go.Layout(
         title='Trust Score Distribution',

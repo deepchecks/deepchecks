@@ -1,8 +1,7 @@
-How-to Guides
+How-to Guides Tabular
 ======================
 
 .. toctree::
     :maxdepth: 2
 
-    add_a_custom_check
-    quickstart_in_5_minutes
+    examples/index

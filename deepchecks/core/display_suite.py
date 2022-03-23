@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Handle display of suite result."""
-import itertools
 import os
 import sys
 import re
@@ -23,12 +22,12 @@ import pandas as pd
 from IPython.display import display, display_html
 from IPython import get_ipython
 import ipywidgets as widgets
-from ipywidgets.embed import embed_minimal_html
+from ipywidgets.embed import embed_minimal_html, dependency_state
 
 from deepchecks.core import errors
 from deepchecks.utils.ipython import is_widgets_enabled
-from deepchecks.utils.strings import get_random_string
-from deepchecks.core.check import CheckResult, CheckFailure
+from deepchecks.utils.strings import create_new_file_name, get_random_string
+from deepchecks.core.check_result import CheckResult, CheckFailure
 from deepchecks.core.display_pandas import (
     dataframe_to_html, get_conditions_table,
     get_result_navigation_display
@@ -76,9 +75,10 @@ class ProgressBar:
 
     """
 
-    def __init__(self, name, length):
+    def __init__(self, name, length, unit):
         """Initialize progress bar."""
-        shared_args = {'total': length, 'desc': name, 'unit': ' Check', 'leave': False, 'file': sys.stdout}
+        self.unit = unit
+        shared_args = {'total': length, 'desc': name, 'unit': f' {unit}', 'leave': False, 'file': sys.stdout}
         if is_widgets_enabled():
             self.pbar = tqdm_notebook(**shared_args, colour='#9d60fb')
         else:
@@ -93,7 +93,7 @@ class ProgressBar:
         ----------
         text
         """
-        self.pbar.set_postfix(Check=text)
+        self.pbar.set_postfix({self.unit: text})
 
     def close(self):
         """Close the progress bar."""
@@ -119,6 +119,7 @@ def _display_suite_widgets(summary: str,
                            light_hr: str,
                            html_out):  # pragma: no cover
     """Display results of suite in as Tab widget."""
+    widgets.Widget.close_all()
     tab = widgets.Tab()
     condition_tab = widgets.VBox()
     _add_widget_classes(condition_tab)
@@ -179,25 +180,19 @@ def _display_suite_widgets(summary: str,
     page.children = [widgets.HTML(summary), widgets.HTML(tab_css), tab]
     if html_out:
         if isinstance(html_out, str):
-            if '.' in html_out:
-                basename, ext = html_out.rsplit('.', 1)
-            else:
-                basename = html_out
-                ext = 'html'
-            html_out = f'{basename}.{ext}'
-            c = itertools.count()
-            next(c)
-            while os.path.exists(html_out):
-                html_out = f'{basename} ({str(next(c))}).{ext}'
+            create_new_file_name(html_out, 'html')
         curr_path = os.path.dirname(os.path.abspath(__file__))
         with open(os.path.join(curr_path, 'resources', 'suite_output.html'), 'r', encoding='utf8') as html_file:
             html_formatted = re.sub('{', '{{', html_file.read())
             html_formatted = re.sub('}', '}}', html_formatted)
             html_formatted = re.sub('html_title', '{title}', html_formatted)
             html_formatted = re.sub('widget_snippet', '{snippet}', html_formatted)
-            embed_minimal_html(html_out, views=[page], title='Suite Output', template=html_formatted)
+            embed_minimal_html(html_out, views=[page], title='Suite Output', template=html_formatted,
+                               requirejs=False, embed_url=None, state=dependency_state(page))
     else:
         display(page)
+
+    page.close_all()
 
 
 def _display_suite_no_widgets(summary: str,

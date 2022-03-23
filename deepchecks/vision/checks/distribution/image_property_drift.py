@@ -10,27 +10,21 @@
 #
 """Module contains Image Property Drift check."""
 import typing as t
-from numbers import Number
 from collections import defaultdict
 
-import numpy as np
 import pandas as pd
 
-from deepchecks.core import DatasetKind
 from deepchecks.core import CheckResult
 from deepchecks.core import ConditionResult
+from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.vision import TrainTestCheck
+from deepchecks.utils.distribution.drift import calc_drift_and_plot
+from deepchecks.vision import Batch
 from deepchecks.vision import Context
-from deepchecks.vision.utils import ImageFormatter
-
-from .train_test_label_drift import calc_drift_and_plot
-
+from deepchecks.vision import TrainTestCheck
+from deepchecks.vision.utils import image_properties
 
 __all__ = ['ImagePropertyDrift']
-
-
-ImageProperty = t.Union[str, t.Callable[..., t.List[Number]]]
 
 
 TImagePropertyDrift = t.TypeVar('TImagePropertyDrift', bound='ImagePropertyDrift')
@@ -45,74 +39,79 @@ class ImagePropertyDrift(TrainTestCheck):
 
     See https://en.wikipedia.org/wiki/Wasserstein_metric
 
-    Pramaters
-    ---------
-    image_properties : Optional[List[Union[str, Callable[..., Number]]]]
-    default_number_of_bins: int, default: 100
+    Parameters
+    ----------
+    alternative_image_properties : List[Dict[str, Any]], default: None
+        List of properties. Replaces the default deepchecks properties.
+        Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
+        representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'
+    max_num_categories: int, default: 10
+    classes_to_display : Optional[List[float]], default: None
+        List of classes to display. The distribution of the properties would include only samples belonging (or
+        containing an annotation belonging) to one of these classes. If None, samples from all classes are displayed.
+    min_samples: int, default: 10
+        Minimum number of samples needed in each dataset needed to calculate the drift.
     """
 
     def __init__(
         self,
-        image_properties: t.Optional[t.List[ImageProperty]] = None,
-        default_number_of_bins: int = 100
+        alternative_image_properties: t.List[t.Dict[str, t.Any]] = None,
+        max_num_categories: int = 10,
+        classes_to_display: t.Optional[t.List[str]] = None,
+        min_samples: int = 30,
+        **kwargs
     ):
-        super().__init__()
-
-        if image_properties is None:
-            self.image_properties = ImageFormatter.IMAGE_PROPERTIES
+        super().__init__(**kwargs)
+        if alternative_image_properties is not None:
+            image_properties.validate_properties(alternative_image_properties)
+            self.image_properties = alternative_image_properties
         else:
-            if len(image_properties) == 0:
-                raise DeepchecksValueError('image_properties list cannot be empty')
+            self.image_properties = image_properties.default_image_properties
 
-            received_properties = {p for p in image_properties if isinstance(p, str)}
-            unknown_properties = received_properties.difference(ImageFormatter.IMAGE_PROPERTIES)
+        self.max_num_categories = max_num_categories
+        self.classes_to_display = classes_to_display
+        self.min_samples = min_samples
+        self._train_properties = None
+        self._test_properties = None
+        self._class_to_string = None
 
-            if len(unknown_properties) > 0:
-                raise DeepchecksValueError(
-                    'receivedd list of unknown image properties '
-                    f'- {sorted(unknown_properties)}'
-                )
-
-            self.image_properties = image_properties
-
-        self.default_number_of_bins = default_number_of_bins
-        self.train_properties = defaultdict(list)
-        self.test_properties = defaultdict(list)
+    def initialize_run(self, context: Context):
+        """Initialize self state, and validate the run context."""
+        self._class_to_string = context.train.label_id_to_name
+        self._train_properties = defaultdict(list)
+        self._test_properties = defaultdict(list)
 
     def update(
         self,
         context: Context,
-        batch: t.Any,
+        batch: Batch,
         dataset_kind: DatasetKind
     ):
         """Calculate image properties for train or test batch."""
         if dataset_kind == DatasetKind.TRAIN:
-            dataset = context.train
-            properties = self.train_properties
+            properties = self._train_properties
         elif dataset_kind == DatasetKind.TEST:
-            dataset = context.test
-            properties = self.test_properties
+            properties = self._test_properties
         else:
             raise RuntimeError(
-                'Internal Error! Part of code that must '
-                'be unreacheable was reached.'
+                f'Internal Error - Should not reach here! unknown dataset_kind: {dataset_kind}'
             )
 
-        images = dataset.image_formatter(batch)
+        images = batch.images
+        labels = batch.labels
+        classes = context.train.get_classes(labels)
 
-        for image_property in self.image_properties:
-            if isinstance(image_property, str):
-                properties[image_property].extend(
-                    getattr(dataset.image_formatter, image_property)(images)
-                )
-            elif callable(image_property):
-                # TODO: if it is a lambda it will have a name - <lambda>, that is a problem/
-                properties[image_property.__name__].extend(image_property(images))
-            else:
-                raise DeepchecksValueError(
-                    'Do not know how to work with image'
-                    f'property of type - {type(image_property).__name__}'
-                )
+        if self.classes_to_display:
+            # use only images belonging (or containing an annotation belonging) to one of the classes in
+            # classes_to_display
+            images = [
+                image for idx, image in enumerate(images) if
+                any(cls in map(self._class_to_string, classes[idx]) for cls in self.classes_to_display)
+            ]
+
+        for single_property in self.image_properties:
+            property_list = single_property['method'](images)
+            properties[single_property['name']].extend(property_list)
 
     def compute(self, context: Context) -> CheckResult:
         """Calculate drift score between train and test datasets for the collected image properties.
@@ -123,56 +122,62 @@ class ImagePropertyDrift(TrainTestCheck):
             value: dictionary containing drift score for each image property.
             display: distribution graph for each image property.
         """
-        if sorted(self.train_properties.keys()) != sorted(self.test_properties.keys()):
+        if sorted(self._train_properties.keys()) != sorted(self._test_properties.keys()):
             raise RuntimeError('Internal Error! Vision check was used improperly.')
 
-        properties = sorted(self.train_properties.keys())
-        df_train = pd.DataFrame(self.train_properties)
-        df_test = pd.DataFrame(self.test_properties)
+        # if self.classes_to_display is set, check that it has classes that actually exist
+        if self.classes_to_display is not None:
+            if not set(self.classes_to_display).issubset(
+                    map(self._class_to_string, context.train.classes_indices.keys())
+            ):
+                raise DeepchecksValueError(
+                    f'Provided list of class ids to display {self.classes_to_display} not found in training dataset.'
+                )
 
-        figures = []
+        properties = sorted(self._train_properties.keys())
+        df_train = pd.DataFrame(self._train_properties)
+        df_test = pd.DataFrame(self._test_properties)
+        if len(df_train) < self.min_samples or len(df_test) < self.min_samples:
+            return CheckResult(
+                value=None,
+                display=f'Not enough samples to calculate drift score, min {self.min_samples} samples required.',
+                header='Image Property Drift'
+            )
+
+        figures = {}
         drifts = {}
 
-        for property_name in properties:
-            lower_bound = min(df_train[property_name].min(), df_test[property_name].min())
-            upper_bound = max(df_train[property_name].max(), df_test[property_name].max())
-            bounds = (lower_bound, upper_bound)
-
-            train_hist, train_edges = np.histogram(
-                df_train[property_name],
-                range=bounds,
-                bins=self.default_number_of_bins
-            )
-            test_hist, test_edges = np.histogram(
-                df_test[property_name],
-                range=bounds,
-                bins=self.default_number_of_bins
-            )
-
-            train_histogram = dict(zip(train_edges, train_hist))
-            test_histogram = dict(zip(test_edges, test_hist))
+        for single_property in self.image_properties:
+            property_name = single_property['name']
 
             score, _, figure = calc_drift_and_plot(
-                train_distribution=train_histogram,
-                test_distribution=test_histogram,
-                column_type='numerical',
-                plot_title=property_name
+                train_column=df_train[property_name],
+                test_column=df_test[property_name],
+                value_name=property_name,
+                column_type=image_properties.get_column_type(single_property['output_type']),
+                max_num_categories=self.max_num_categories
             )
 
-            figures.append(figure)
-            drifts[property_name] = {'Drift score': score}
+            figures[property_name] = figure
+            drifts[property_name] = score
 
         if drifts:
-            value = pd.DataFrame(drifts).T
-            headnote = ''  # TODO:
-            display = [headnote, *figures]
+            columns_order = sorted(properties, key=lambda col: drifts[col], reverse=True)
+
+            headnote = '<span>' \
+                       'The Drift score is a measure for the difference between two distributions. ' \
+                       'In this check, drift is measured ' \
+                       f'for the distribution of the following image properties: {properties}.' \
+                       '</span>'
+
+            displays = [headnote] + [figures[col] for col in columns_order]
         else:
-            value = None
-            display = []
+            drifts = None
+            displays = []
 
         return CheckResult(
-            value=value,
-            display=display,
+            value=drifts,
+            display=displays,
             header='Image Property Drift'
         )
 
@@ -194,10 +199,10 @@ class ImagePropertyDrift(TrainTestCheck):
             False if any column has passed the max threshold, True otherwise
         """
 
-        def condition(result: pd.DataFrame) -> ConditionResult:
+        def condition(result: t.Dict[str, float]) -> ConditionResult:
             failed_properties = [
                 (property_name, drift_score)
-                for property_name, drift_score in result.itertuples()
+                for property_name, drift_score in result.items()
                 if drift_score > max_allowed_drift_score
             ]
             if len(failed_properties) > 0:

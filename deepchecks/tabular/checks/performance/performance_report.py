@@ -65,8 +65,8 @@ class PerformanceReport(TrainTestCheck):
         my_mse_scorer = make_scorer(my_mse, greater_is_better=False)
     """
 
-    def __init__(self, alternative_scorers: Dict[str, Callable] = None):
-        super().__init__()
+    def __init__(self, alternative_scorers: Dict[str, Callable] = None, **kwargs):
+        super().__init__(**kwargs)
         self.user_scorers = alternative_scorers
 
     def run_logic(self, context: Context) -> CheckResult:
@@ -307,8 +307,8 @@ class MultiModelPerformanceReport(ModelComparisonCheck):
         If none given, using default scorers
     """
 
-    def __init__(self, alternative_scorers: Dict[str, Callable] = None):
-        super().__init__()
+    def __init__(self, alternative_scorers: Dict[str, Callable] = None, **kwargs):
+        super().__init__(**kwargs)
         self.user_scorers = alternative_scorers
 
     def run_logic(self, multi_context: ModelComparisonContext):

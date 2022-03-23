@@ -15,6 +15,8 @@ from .mean_average_recall_report import MeanAverageRecallReport
 from .robustness_report import RobustnessReport
 from .confusion_matrix import ConfusionMatrixReport
 from .simple_model_comparison import SimpleModelComparison
+from .model_error_analysis import ModelErrorAnalysis
+from .image_segment_performance import ImageSegmentPerformance
 
 __all__ = [
     "ClassPerformance",
@@ -23,4 +25,6 @@ __all__ = [
     "RobustnessReport",
     "SimpleModelComparison",
     "ConfusionMatrixReport",
+    "ModelErrorAnalysis",
+    "ImageSegmentPerformance",
 ]

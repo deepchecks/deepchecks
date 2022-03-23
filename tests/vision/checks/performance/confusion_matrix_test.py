@@ -10,32 +10,31 @@
 #
 """Test functions of the VISION confusion matrix."""
 
-from hamcrest import assert_that, has_entries, close_to, equal_to, raises, calling
-
+from hamcrest import assert_that, equal_to, less_than_or_equal_to as le
 from deepchecks.vision.checks import ConfusionMatrixReport
-from deepchecks.vision.datasets.classification.mnist import mnist_prediction_formatter
-from deepchecks.vision.datasets.detection.coco import yolo_prediction_formatter
-from deepchecks.vision.utils import ClassificationPredictionFormatter, DetectionPredictionFormatter
 
 
-def test_classification(mnist_dataset_train, trained_mnist):
+# TODO: more tests
+
+
+def test_classification(mnist_dataset_train, mock_trained_mnist, device):
     # Arrange
     check = ConfusionMatrixReport()
     # Act
-    result = check.run(mnist_dataset_train, trained_mnist,
-                       prediction_formatter=ClassificationPredictionFormatter(mnist_prediction_formatter))
+    result = check.run(mnist_dataset_train, mock_trained_mnist,
+                       device=device)
     # Assert
     assert_that(result.value.shape, equal_to((10, 10)))
 
 
-def test_detection(coco_train_visiondata, trained_yolov5_object_detection):
+def test_detection(coco_train_visiondata, mock_trained_yolov5_object_detection, device):
     # Arrange
-    pred_formatter = DetectionPredictionFormatter(yolo_prediction_formatter)
     check = ConfusionMatrixReport()
     # Act
     result = check.run(coco_train_visiondata,
-                       trained_yolov5_object_detection,
-                       prediction_formatter=pred_formatter)
+                       mock_trained_yolov5_object_detection,
+                       device=device)
 
     # Assert
-    assert_that(result.value.shape, equal_to((81, 81)))
+    num_of_classes = coco_train_visiondata.num_classes + 1 # plus no-overlapping
+    assert_that(result.value.shape, le((num_of_classes, num_of_classes)))

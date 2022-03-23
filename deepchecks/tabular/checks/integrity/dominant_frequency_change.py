@@ -38,9 +38,14 @@ class DominantFrequencyChange(TrainTestCheck):
         amount of columns to show ordered by feature importance (date, index, label are first).
     """
 
-    def __init__(self, dominance_ratio: float = 2, ratio_change_thres: float = 1.5,
-                 n_top_columns: int = 10):
-        super().__init__()
+    def __init__(
+        self,
+        dominance_ratio: float = 2,
+        ratio_change_thres: float = 1.5,
+        n_top_columns: int = 10,
+        **kwargs
+    ):
+        super().__init__(**kwargs)
         self.dominance_ratio = dominance_ratio
         self.ratio_change_thres = ratio_change_thres
         self.n_top_columns = n_top_columns

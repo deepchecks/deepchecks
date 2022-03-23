@@ -1,10 +1,7 @@
-======================
 General Guides
-======================
+==============
 
 .. toctree::
-    :maxdepth: 1
-    :titlesonly:
-    :glob:
+    :maxdepth: 2
 
-    *
+    examples/index

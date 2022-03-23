@@ -9,6 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """A module containing utils for plotting distributions."""
+from numbers import Number
+from functools import cmp_to_key
+
 import numpy as np
 import pandas as pd
 from scipy.stats import gaussian_kde
@@ -111,6 +114,7 @@ def drift_score_bar_traces(drift_score: float, bar_max: float = None) -> Tuple[L
 
 def feature_distribution_traces(train_column,
                                 test_column,
+                                column_name,
                                 is_categorical: bool = False,
                                 max_num_categories: int = 10,
                                 quantile_cut: float = 0.02) -> Tuple[List[Union[go.Bar, go.Scatter]], Dict, Dict]:
@@ -122,6 +126,8 @@ def feature_distribution_traces(train_column,
         Train data used to trace distribution.
     test_column
         Test data used to trace distribution.
+    column_name
+        The name of the column values on the x axis.
     is_categorical : bool , default: False
         State if column is categorical.
     max_num_categories : int , default: 10
@@ -146,6 +152,16 @@ def feature_distribution_traces(train_column,
         categories_list = [un_numpy(cat) for cat in categories_list]
         cat_df = pd.DataFrame({'Train dataset': expected_percents, 'Test dataset': actual_percents},
                               index=categories_list)
+
+        # Creating sorting function which works on both numbers and strings
+        def sort_int_and_strings(a, b):
+            # If both numbers or both same type using regular operator
+            if a.__class__ == b.__class__ or (isinstance(a, Number) and isinstance(b, Number)):
+                return -1 if a < b else 1
+            # Sort numbers before strings
+            return -1 if isinstance(a, Number) else 1
+        cat_df = cat_df.reindex(sorted(cat_df.index, key=cmp_to_key(sort_int_and_strings)))
+
         train_bar = go.Bar(
             x=cat_df.index,
             y=cat_df['Train dataset'],
@@ -166,9 +182,12 @@ def feature_distribution_traces(train_column,
 
         traces = [train_bar, test_bar]
 
+        max_y = max(*expected_percents, *actual_percents)
+        y_lim = 1 if max_y > 0.5 else max_y * 1.1
+
         xaxis_layout = dict(type='category')
         yaxis_layout = dict(fixedrange=True,
-                            range=(0, 1),
+                            range=(0, y_lim),
                             title='Percentage')
 
     else:
@@ -192,7 +211,7 @@ def feature_distribution_traces(train_column,
 
         xaxis_layout = dict(fixedrange=False,
                             range=x_range_to_show,
-                            title='Value')
+                            title=column_name)
         yaxis_layout = dict(title='Probability Density', fixedrange=True)
 
     return traces, xaxis_layout, yaxis_layout

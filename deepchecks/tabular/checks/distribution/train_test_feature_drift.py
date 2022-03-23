@@ -67,8 +67,9 @@ class TrainTestFeatureDrift(TrainTestCheck):
         max_num_categories: int = 10,
         n_samples: int = 100_000,
         random_state: int = 42,
+        **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
         self.columns = columns
         self.ignore_columns = ignore_columns
         self.max_num_categories = max_num_categories
@@ -124,8 +125,9 @@ class TrainTestFeatureDrift(TrainTestCheck):
             value, method, display = calc_drift_and_plot(
                 train_column=train_dataset.data[column],
                 test_column=test_dataset.data[column],
-                plot_title=plot_title,
+                value_name=column,
                 column_type='categorical' if column in train_dataset.cat_features else 'numerical',
+                plot_title=plot_title,
                 max_num_categories=self.max_num_categories
             )
             values_dict[column] = {

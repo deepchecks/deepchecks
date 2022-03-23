@@ -1,0 +1,22 @@
+[
+  {
+    "version": "dev",
+    "name": "dev"
+  },
+  {
+    "version": "stable",
+    "name": "v0.5.0 (stable)"
+  },
+  {
+    "version": "0.5",
+    "url": "https://docs.deepchecks.com/0.5/"
+  },
+  {
+    "version": "0.4",
+    "url": "https://docs.deepchecks.com/0.4/"
+  },
+  {
+    "version": "0.3",
+    "url": "https://docs.deepchecks.com/0.3/"
+  }
+]

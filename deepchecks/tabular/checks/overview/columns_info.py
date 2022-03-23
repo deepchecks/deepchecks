@@ -28,8 +28,8 @@ class ColumnsInfo(SingleDatasetCheck):
         amount of columns to show ordered by feature importance (date, index, label are first)
     """
 
-    def __init__(self, n_top_columns: int = 10):
-        super().__init__()
+    def __init__(self, n_top_columns: int = 10, **kwargs):
+        super().__init__(**kwargs)
         self.n_top_columns = n_top_columns
 
     def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:

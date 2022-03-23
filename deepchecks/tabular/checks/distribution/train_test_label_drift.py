@@ -41,10 +41,11 @@ class TrainTestLabelDrift(TrainTestCheck):
     """
 
     def __init__(
-            self,
-            max_num_categories: int = 10
+        self,
+        max_num_categories: int = 10,
+        **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
         self.max_num_categories = max_num_categories
 
     def run_logic(self, context: Context) -> CheckResult:
@@ -62,7 +63,7 @@ class TrainTestLabelDrift(TrainTestCheck):
         drift_score, method, display = calc_drift_and_plot(
             train_column=train_dataset.label_col,
             test_column=test_dataset.label_col,
-            plot_title=train_dataset.label_name,
+            value_name=train_dataset.label_name,
             column_type='categorical' if train_dataset.label_type == 'classification_label' else 'numerical',
             max_num_categories=self.max_num_categories
         )

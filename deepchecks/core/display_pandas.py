@@ -9,15 +9,17 @@
 # ----------------------------------------------------------------------------
 #
 """Handle displays of pandas objects."""
-from typing import List, Union
+from deepchecks.utils.strings import get_docs_summary, get_ellipsis
+
+from typing import List, Union, TYPE_CHECKING
 import warnings
 
 import pandas as pd
 from pandas.io.formats.style import Styler
 
-from deepchecks.utils.strings import get_docs_summary, get_ellipsis
 
-from . import check  # pylint: disable=unused-import
+if TYPE_CHECKING:
+    from deepchecks.core.check_result import CheckResult
 
 
 __all__ = ['dataframe_to_html', 'get_conditions_table']
@@ -58,8 +60,8 @@ def dataframe_to_html(df: Union[pd.DataFrame, Styler]):
         return df.to_html()
 
 
-def get_conditions_table(check_results: Union['check.CheckResult', List['check.CheckResult']],
-                         unique_id=None, max_info_len: int = 3000):
+def get_conditions_table(check_results: Union['CheckResult', List['CheckResult']],
+                         unique_id: str = None, max_info_len: int = 3000, icon_html: bool = True) -> Styler:
     """Return the conditions table as DataFrame.
 
     Parameters
@@ -70,7 +72,8 @@ def get_conditions_table(check_results: Union['check.CheckResult', List['check.C
         the unique id to append for the check names to create links (won't create links if None/empty).
     max_info_len : int
         max length of the additional info.
-
+    icon_html : bool , default: True
+        if to show the html condition result icon or a char
     Returns
     -------
     pd.Dataframe:
@@ -86,7 +89,7 @@ def get_conditions_table(check_results: Union['check.CheckResult', List['check.C
     for check_result in check_results:
         for cond_result in check_result.conditions_results:
             sort_value = cond_result.priority
-            icon = cond_result.get_icon()
+            icon = cond_result.get_icon() if icon_html else cond_result.get_icon_char()
             check_header = check_result.get_header()
             if unique_id and check_result.have_display():
                 check_id = f'{check_result.check.__class__.__name__}_{unique_id}'
@@ -109,8 +112,7 @@ def get_conditions_table(check_results: Union['check.CheckResult', List['check.C
         return conditions_table.style.hide_index()
 
 
-def get_result_navigation_display(check_results: Union['check.CheckResult', List['check.CheckResult']],
-                                  unique_id: str):
+def get_result_navigation_display(check_results: List['CheckResult'], unique_id: str):
     """Display the results as a table with links for navigation.
 
     Parameters

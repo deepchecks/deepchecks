@@ -15,7 +15,7 @@ It is possible to customize these suites by editing the checks and conditions in
 """
 from deepchecks.vision.checks import ClassPerformance, TrainTestLabelDrift, MeanAveragePrecisionReport, \
     MeanAverageRecallReport, ImagePropertyDrift, ImageDatasetDrift, SimpleModelComparison, ConfusionMatrixReport, \
-    RobustnessReport
+    TrainTestPredictionDrift, ImageSegmentPerformance, SimpleFeatureContribution
 from deepchecks.vision import Suite
 
 
@@ -30,9 +30,11 @@ def train_test_validation() -> Suite:
     return Suite(
         'Train Test Validation Suite',
         HeatmapComparison(),
-        TrainTestLabelDrift(),
+        TrainTestLabelDrift().add_condition_drift_score_not_greater_than(),
+        TrainTestPredictionDrift().add_condition_drift_score_not_greater_than(),
         ImagePropertyDrift().add_condition_drift_score_not_greater_than(),
-        ImageDatasetDrift()
+        ImageDatasetDrift(),
+        SimpleFeatureContribution().add_condition_feature_pps_difference_not_greater_than()
     )
 
 
@@ -40,12 +42,12 @@ def model_evaluation() -> Suite:
     """Create a suite that is meant to test model performance and overfit."""
     return Suite(
         'Model Evaluation Suite',
-        ClassPerformance(),
-        MeanAveragePrecisionReport(),
+        ClassPerformance().add_condition_train_test_relative_degradation_not_greater_than(),
+        MeanAveragePrecisionReport().add_condition_test_mean_average_precision_not_less_than(),
         MeanAverageRecallReport(),
         SimpleModelComparison(),
         ConfusionMatrixReport(),
-        RobustnessReport().add_condition_degradation_not_greater_than()
+        ImageSegmentPerformance().add_condition_score_from_mean_ratio_not_less_than()
     )
 
 
@@ -54,5 +56,5 @@ def full_suite() -> Suite:
     return Suite(
         'Full Suite',
         model_evaluation(),
-        train_test_validation(),
+        train_test_validation()
     )

@@ -4,5 +4,6 @@ Checks Demonstrations
 .. toctree::
     :maxdepth: 2
 
-    distribution/index
-    performance/index
+    distribution/examples/index
+    performance/examples/index
+    methodology/examples/index

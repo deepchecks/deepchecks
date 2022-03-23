@@ -6,4 +6,4 @@ include LICENSE
 include VERSION
 include README.rst
 include DESCRIPTION.rst
-recursive-include deepchecks/base/resources *
+recursive-include deepchecks/core/resources *

@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 from hamcrest import assert_that, has_length, has_entry, has_entries, has_items
 
-from deepchecks.tabular import Dataset
+from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.checks import StringMismatchComparison
 
 from tests.checks.utils import equal_condition_result
