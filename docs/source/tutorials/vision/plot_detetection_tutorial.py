@@ -40,6 +40,10 @@ from torchvision.models.detection.ssdlite import SSDLiteClassificationHead
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 import deepchecks
+from deepchecks.vision.detection_data import DetectionData
+import urllib.request
+import zipfile
+import matplotlib.pyplot as plt
 
 #%%
 # Load Data
@@ -53,6 +57,12 @@ import deepchecks
 #     https://www.kaggle.com/andrewmvd/tomato-detection
 #
 #     We thank the authors of the dataset for providing the dataset.
+
+url = 'https://figshare.com/ndownloader/files/34488599'
+urllib.request.urlretrieve(url, 'tomato-detection.zip')
+
+with zipfile.ZipFile('tomato-detection.zip', 'r') as zip_ref:
+    zip_ref.extractall('.')
 
 class TomatoDataset(Dataset):
     def __init__(self, root, transforms):
@@ -92,10 +102,10 @@ class TomatoDataset(Dataset):
         if self.transforms is not None:
             res = self.transforms(image=np.array(img), bboxes=bboxes, class_labels=labels)
 
-            target = {
-                'boxes': [torch.Tensor(x) for x in res['bboxes']],
-                'labels': res['class_labels']
-            }
+        target = {
+            'boxes': [torch.Tensor(x) for x in res['bboxes']],
+            'labels': res['class_labels']
+        }
 
         img = res['image']
 
@@ -109,9 +119,10 @@ data_transforms = A.Compose([
     A.CenterCrop(height=224, width=224),
     A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
     ToTensorV2(),
-])
-dataset = TomatoDataset(root='/Users/itaygabbay/Deepchecks/deepchecks/docs/source/user-guide/vision/tomato-detection/data',
-                    transforms=data_transforms)
+], bbox_params=A.BboxParams(format='pascal_voc', label_fields=['class_labels']))
+
+dataset = TomatoDataset(root=os.path.join(os.path.curdir, 'tomato-detection/data'),
+                        transforms=data_transforms)
 train_set, val_set = torch.utils.data.random_split(dataset,
                                                     [int(len(dataset)*0.9), len(dataset)-int(len(dataset)*0.9)],
                                                     generator=torch.Generator().manual_seed(42))
@@ -148,11 +159,12 @@ def show(imgs):
 from torchvision.utils import draw_bounding_boxes
 
 data = next(iter(train_loader))
-inp, targets = data
+inp, targets = data[0][:4], data[1][:4]
 
 
 result = [draw_bounding_boxes(prepare(inp[i]), torch.stack(targets[i]['boxes']),
-                                colors=['yellow'] * torch.stack(targets[i]['boxes']).shape[0], width=5) for i in range(len(targets))]
+                              colors=['yellow'] * torch.stack(targets[i]['boxes']).shape[0], width=5)
+          for i in range(len(targets))]
 show(result)
 
 #%%
@@ -184,7 +196,7 @@ model.to(device)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # For this tutorial we will not include the training code itself, but will download and load pre-trained weights.
 
-model.load_state_dict(torch.load('tomatoes_ ssd_model.pth'))
+model.load_state_dict(torch.load('tomato-detection/ssd_model.pth'))
 _ = model.eval()
 
 #%%
@@ -206,8 +218,7 @@ print("Image values", batch[0][0])
 print("-"*80)
 
 print("Second element is: ", type(batch[1]), "with len of ", len(batch[1]))
-print("Example output of a label shape from the dataloader ", batch[1][0].shape)
-print("Image values", batch[1][0])
+print("Example output of a label shape from the dataloader ", batch[1][0])
 
 # And we can watch the output:
 
@@ -303,7 +314,7 @@ class TomatoData(DetectionData):
 # We have a single label here, which is the tomato class
 # The label_map is a dictionary that maps the class id to the class name, for display purposes.
 LABEL_MAP = {
-    1: 'Tomato'
+    0: 'Tomato'
 }
 training_data = TomatoData(data_loader=train_loader, label_map=LABEL_MAP)
 val_data = TomatoData(data_loader=val_loader, label_map=LABEL_MAP)

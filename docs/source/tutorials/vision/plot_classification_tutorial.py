@@ -23,6 +23,7 @@ import torch
 from torch import nn
 import os
 import deepchecks
+from deepchecks.vision.classification_data import ClassificationData
 import matplotlib.pyplot as plt
 import numpy as np
 import albumentations as A
@@ -30,7 +31,18 @@ from albumentations.pytorch import ToTensorV2
 from torchvision.datasets import ImageFolder
 import PIL.Image
 import cv2
+import urllib.request
+import zipfile
+#%%
+# Downloading the dataset
+# ~~~~~~~~~~~~~~~~~~~~~~~
+# The data is available from the torch library. We will download and extract it to the current directory.
 
+url = 'https://download.pytorch.org/tutorial/hymenoptera_data.zip'
+urllib.request.urlretrieve(url, 'hymenoptera_data.zip')
+
+with zipfile.ZipFile('hymenoptera_data.zip', 'r') as zip_ref:
+    zip_ref.extractall('.')
 #%%
 # Load Data
 # ~~~~~~~~~
@@ -190,7 +202,7 @@ print("Image values", batch[1][0])
 # To learn more about the expected format please visit the API reference for the
 # :class:`deepchecks.vision.classification_data.ClassificationData` class.
 
-class AntsBeesData(deepchecks.vision.classification_data.ClassificationData):
+class AntsBeesData(ClassificationData):
 
     def __init__(self, *args, **kwargs):
       super().__init__(*args, **kwargs)
