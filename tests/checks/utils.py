@@ -27,8 +27,11 @@ def equal_condition_result(
     is_pass: bool,
     name: str,
     details: Union[str, Pattern] = '',
-    category: ConditionCategory = ConditionCategory.FAIL
+    category: ConditionCategory = None
 ) -> Matcher[Matcher[object]]:
+    if category is None:    
+        category = ConditionCategory.PASS if is_pass else ConditionCategory.FAIL
+
     # Check if details is a regex class
     if hasattr(details, 'match'):
         details_matcher = matches_regexp(details)
