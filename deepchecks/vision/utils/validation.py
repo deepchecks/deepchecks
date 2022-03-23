@@ -59,7 +59,7 @@ def apply_to_tensor(
     x: T,
     fn: t.Callable[[torch.Tensor], torch.Tensor]
 ) -> t.Any:
-    """Apply provided function to tensor instances recursivly."""
+    """Apply provided function to tensor instances recursively."""
     if isinstance(x, torch.Tensor):
         return t.cast(T, fn(x))
     elif isinstance(x, (str, bytes, bytearray)):
