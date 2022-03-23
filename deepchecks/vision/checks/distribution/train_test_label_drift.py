@@ -24,7 +24,8 @@ from deepchecks.vision.utils.label_prediction_properties import (
     DEFAULT_CLASSIFICATION_LABEL_PROPERTIES,
     DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES,
     validate_properties,
-    get_column_type
+    get_column_type,
+    properties_flatten
 )
 
 
@@ -127,7 +128,8 @@ class TrainTestLabelDrift(TrainTestCheck):
             raise DeepchecksNotSupportedError(f'Unsupported dataset kind {dataset_kind}')
 
         for label_property in self._label_properties:
-            properties[label_property['name']] += label_property['method'](batch.labels)
+            # Flatten the properties since I don't care in this check about the property-per-sample coupling
+            properties[label_property['name']] += properties_flatten(label_property['method'](batch.labels))
 
     def compute(self, context: Context) -> CheckResult:
         """Calculate drift on label properties samples that were collected during update() calls.

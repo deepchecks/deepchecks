@@ -42,7 +42,8 @@ __all__ = [
     'format_datetime',
     'get_docs_summary',
     'get_ellipsis',
-    'to_snake_case'
+    'to_snake_case',
+    'create_new_file_name'
 ]
 
 
