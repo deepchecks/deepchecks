@@ -28,13 +28,20 @@ from hamcrest import (
 
 from deepchecks import CheckResult
 from deepchecks.core import DatasetKind
-from deepchecks.core.errors import DeepchecksValueError, ValidationError, ModelValidationError
-from deepchecks.core.errors import DeepchecksNotSupportedError
-from deepchecks.core.errors import DatasetValidationError
+
 from deepchecks.vision.base_checks import SingleDatasetCheck, TrainTestCheck, ModelOnlyCheck
-from deepchecks.vision import ClassificationData, DetectionData
+from deepchecks.vision import ClassificationData, DetectionData, Context, Batch
 from deepchecks.vision.datasets.detection import coco
-from deepchecks.vision.vision_data import TaskType, VisionData
+
+
+def run_update_loop(dataset):
+    context: Context = Context(dataset, random_state=0)
+    dataset.init_cache()
+    batch_start_index = 0
+    for batch in context.train:
+        batch = Batch(batch, context, DatasetKind.TRAIN, batch_start_index)
+        dataset.update_cache(batch)
+        batch_start_index += len(batch)
 
 
 def test_run_base_checks():
