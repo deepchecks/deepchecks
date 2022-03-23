@@ -22,7 +22,7 @@ from hamcrest import (
     has_entries,
     instance_of,
     all_of,
-    contains_exactly, not_
+    contains_exactly
 )
 import albumentations as A
 import imgaug.augmenters as iaa
@@ -37,7 +37,7 @@ from deepchecks.vision.datasets.detection.coco import COCOData
 from deepchecks.vision.detection_data import DetectionData
 from deepchecks.vision.vision_data import VisionData
 from deepchecks.vision.utils.transformations import AlbumentationsTransformations, ImgaugTransformations
-from vision.base.test_base_checks import run_update_loop
+from tests.vision.base.test_base_checks import run_update_loop
 
 
 class SimpleDetectionData(DetectionData):
