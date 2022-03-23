@@ -126,7 +126,7 @@ class ModelErrorAnalysis(TrainTestCheck):
             def scoring_func(dataset: Dataset):
                 encoded_label = le.transform(dataset.label_col)
                 return per_sample_cross_entropy(encoded_label,
-                                                       model.predict_proba(dataset.features_columns))
+                                                model.predict_proba(dataset.features_columns))
 
         train_scores = scoring_func(train_dataset)
         test_scores = scoring_func(test_dataset)

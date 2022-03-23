@@ -18,7 +18,7 @@ import torch
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.performance.error_model import error_model_display_dataframe, model_error_contribution
-from deepchecks.utils.single_sample_metrics import per_sample_binary_cross_entropy
+from deepchecks.utils.single_sample_metrics import per_sample_cross_entropy
 from deepchecks.vision.utils import image_properties
 from deepchecks.vision import TrainTestCheck, Context, Batch
 from deepchecks.vision.vision_data import TaskType
@@ -114,7 +114,7 @@ class ModelErrorAnalysis(TrainTestCheck):
 
         if dataset.task_type == TaskType.CLASSIFICATION:
             def scoring_func(predictions, labels):
-                return per_sample_binary_cross_entropy(labels, predictions)
+                return per_sample_cross_entropy(labels, predictions)
         elif dataset.task_type == TaskType.OBJECT_DETECTION:
             def scoring_func(predictions, labels):
                 return per_sample_mean_iou(predictions, labels)
