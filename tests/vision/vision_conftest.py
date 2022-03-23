@@ -54,6 +54,7 @@ __all__ = ['device',
            'mnist_drifted_datasets',
            'mock_trained_yolov5_object_detection',
            'mock_trained_mnist',
+           'run_update_loop'
            ]
 
 
