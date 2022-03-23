@@ -53,9 +53,10 @@ class MixedNulls(SingleDatasetCheck):
         check_nan: bool = True,
         columns: Union[Hashable, List[Hashable], None] = None,
         ignore_columns: Union[Hashable, List[Hashable], None] = None,
-        n_top_columns: int = 10
+        n_top_columns: int = 10,
+        **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
         self.null_string_list = null_string_list
         self.check_nan = check_nan
         self.columns = columns

@@ -22,7 +22,7 @@ import pandas as pd
 from IPython.display import display, display_html
 from IPython import get_ipython
 import ipywidgets as widgets
-from ipywidgets.embed import embed_minimal_html
+from ipywidgets.embed import embed_minimal_html, dependency_state
 
 from deepchecks.core import errors
 from deepchecks.utils.ipython import is_widgets_enabled
@@ -117,7 +117,8 @@ def _display_suite_widgets(summary: str,
                            checks_w_condition_display: List[CheckResult],
                            others_table: List,
                            light_hr: str,
-                           html_out):  # pragma: no cover
+                           html_out,
+                           requirejs: bool = True):  # pragma: no cover
     """Display results of suite in as Tab widget."""
     tab = widgets.Tab()
     condition_tab = widgets.VBox()
@@ -179,14 +180,15 @@ def _display_suite_widgets(summary: str,
     page.children = [widgets.HTML(summary), widgets.HTML(tab_css), tab]
     if html_out:
         if isinstance(html_out, str):
-            create_new_file_name(html_out, 'html')
+            html_out = create_new_file_name(html_out, 'html')
         curr_path = os.path.dirname(os.path.abspath(__file__))
         with open(os.path.join(curr_path, 'resources', 'suite_output.html'), 'r', encoding='utf8') as html_file:
             html_formatted = re.sub('{', '{{', html_file.read())
             html_formatted = re.sub('}', '}}', html_formatted)
             html_formatted = re.sub('html_title', '{title}', html_formatted)
             html_formatted = re.sub('widget_snippet', '{snippet}', html_formatted)
-            embed_minimal_html(html_out, views=[page], title='Suite Output', template=html_formatted)
+            embed_minimal_html(html_out, views=[page], title='Suite Output', template=html_formatted,
+                               requirejs=requirejs, embed_url=None, state=dependency_state(page))
     else:
         display(page)
 
@@ -244,7 +246,7 @@ def _display_suite_no_widgets(summary: str,
 
 
 def display_suite_result(suite_name: str, results: List[Union[CheckResult, CheckFailure]],
-                         html_out=None):  # pragma: no cover
+                         html_out=None, requirejs: bool = True):  # pragma: no cover
     """Display results of suite in IPython."""
     if len(results) == 0:
         display_html(f"""<h1>{suite_name}</h1><p>Suite is empty.</p>""", raw=True)
@@ -330,7 +332,8 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
                                checks_w_condition_display,
                                others_table,
                                light_hr,
-                               html_out)
+                               html_out,
+                               requirejs)
     else:
         _display_suite_no_widgets(summ,
                                   unique_id,

@@ -31,10 +31,16 @@
     -->
     <link rel="apple-touch-icon" href="/_static/favicons/apple-touch-icon.png" sizes="32x32">
     <link rel="apple-touch-icon" href="/_static/favicons/apple-touch-icon.png" sizes="192x192">
+    <!-- <script src="https://cdn.plot.ly/plotly-latest.min.js"></script> -->
 
     {{ super() }}
 {%- endblock %}
 
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"
+    crossorigin="anonymous"></script>
+{% endblock %}
 
 {%- block body_tag %}
     <body>

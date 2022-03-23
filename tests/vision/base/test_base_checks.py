@@ -11,30 +11,18 @@
 #
 from collections import defaultdict
 
-import torch
-from torch import nn
 from hamcrest import (
     assert_that,
     calling,
     raises,
-    equal_to,
-    has_properties,
-    has_property,
-    instance_of,
-    same_instance,
-    all_of,
     is_
 )
 
 from deepchecks import CheckResult
 from deepchecks.core import DatasetKind
-from deepchecks.core.errors import DeepchecksValueError, ValidationError, ModelValidationError
-from deepchecks.core.errors import DeepchecksNotSupportedError
-from deepchecks.core.errors import DatasetValidationError
+
 from deepchecks.vision.base_checks import SingleDatasetCheck, TrainTestCheck, ModelOnlyCheck
-from deepchecks.vision import ClassificationData, DetectionData
 from deepchecks.vision.datasets.detection import coco
-from deepchecks.vision.vision_data import TaskType, VisionData
 
 
 def test_run_base_checks():

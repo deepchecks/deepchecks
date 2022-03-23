@@ -44,14 +44,19 @@ class SingleFeatureContribution(SingleDatasetCheck):
     ----------
     ppscore_params : dict , default: None
         dictionary of additional parameters for the ppscore.predictors function
-    n_show_top : int , default: 5
+    n_top_features : int , default: 5
         Number of features to show, sorted by the magnitude of difference in PPS
     """
 
-    def __init__(self, ppscore_params=None, n_show_top: int = 5):
+    def __init__(
+        self,
+        ppscore_params=None,
+        n_top_features: int = 5,
+        **kwargs
+    ):
         super().__init__()
         self.ppscore_params = ppscore_params or {}
-        self.n_show_top = n_show_top
+        self.n_top_features = n_top_features
 
     def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
         """Run check.
@@ -81,8 +86,8 @@ class SingleFeatureContribution(SingleDatasetCheck):
         df_pps = df_pps.set_index('x', drop=True)
         s_ppscore = df_pps['ppscore']
 
-        def plot(n_show_top=self.n_show_top):
-            top_to_show = s_ppscore.head(n_show_top)
+        def plot(n_top_features=self.n_top_features):
+            top_to_show = s_ppscore.head(n_top_features)
             # Create graph:
             create_colorbar_barchart_for_check(x=top_to_show.index, y=top_to_show.values)
 

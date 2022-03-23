@@ -56,9 +56,16 @@ class UnusedFeatures(TrainTestCheck):
         The random state to use for permutation feature importance and PCA.
     """
 
-    def __init__(self, feature_importance_threshold: float = 0.2, feature_variance_threshold: float = 0.4,
-                 n_top_fi_to_show: int = 5, n_top_unused_to_show: int = 15, random_state: int = 42):
-        super().__init__()
+    def __init__(
+        self,
+        feature_importance_threshold: float = 0.2,
+        feature_variance_threshold: float = 0.4,
+        n_top_fi_to_show: int = 5,
+        n_top_unused_to_show: int = 15,
+        random_state: int = 42,
+        **kwargs
+    ):
+        super().__init__(**kwargs)
         self.feature_importance_threshold = feature_importance_threshold
         self.feature_variance_threshold = feature_variance_threshold
         self.n_top_fi_to_show = n_top_fi_to_show

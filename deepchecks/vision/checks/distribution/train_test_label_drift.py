@@ -20,12 +20,16 @@ from deepchecks.core import DatasetKind, CheckResult
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.vision import Context, TrainTestCheck, Batch
 from deepchecks.vision.vision_data import TaskType
+from deepchecks.vision.utils.label_prediction_properties import (
+    DEFAULT_CLASSIFICATION_LABEL_PROPERTIES,
+    DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES,
+    validate_properties,
+    get_column_type,
+    properties_flatten
+)
 
 
 __all__ = ['TrainTestLabelDrift']
-
-from deepchecks.vision.utils.label_prediction_properties import DEFAULT_CLASSIFICATION_LABEL_PROPERTIES, \
-    DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES, validate_properties, get_column_type
 
 
 class TrainTestLabelDrift(TrainTestCheck):
@@ -63,14 +67,16 @@ class TrainTestLabelDrift(TrainTestCheck):
         Only for non-continues properties. Max number of allowed categories. If there are more,
         they are binned into an "Other" category. If max_num_categories=None, there is no limit. This limit applies
         for both drift calculation and for distribution plots.
+
     """
 
     def __init__(
             self,
             alternative_label_properties: List[Dict[str, Any]] = None,
-            max_num_categories: int = 10
+            max_num_categories: int = 10,
+            **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
         # validate alternative_label_properties:
         if alternative_label_properties is not None:
             validate_properties(alternative_label_properties)
@@ -122,7 +128,8 @@ class TrainTestLabelDrift(TrainTestCheck):
             raise DeepchecksNotSupportedError(f'Unsupported dataset kind {dataset_kind}')
 
         for label_property in self._label_properties:
-            properties[label_property['name']] += label_property['method'](batch.labels)
+            # Flatten the properties since I don't care in this check about the property-per-sample coupling
+            properties[label_property['name']] += properties_flatten(label_property['method'](batch.labels))
 
     def compute(self, context: Context) -> CheckResult:
         """Calculate drift on label properties samples that were collected during update() calls.

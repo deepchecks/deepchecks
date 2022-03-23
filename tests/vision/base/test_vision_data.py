@@ -22,7 +22,7 @@ from hamcrest import (
     has_entries,
     instance_of,
     all_of,
-    contains_exactly, not_
+    contains_exactly
 )
 import albumentations as A
 import imgaug.augmenters as iaa
@@ -37,6 +37,7 @@ from deepchecks.vision.datasets.detection.coco import COCOData
 from deepchecks.vision.detection_data import DetectionData
 from deepchecks.vision.vision_data import VisionData
 from deepchecks.vision.utils.transformations import AlbumentationsTransformations, ImgaugTransformations
+from tests.vision.vision_conftest import run_update_loop
 
 
 class SimpleDetectionData(DetectionData):
@@ -108,9 +109,7 @@ def test_vision_data_n_of_samples_per_class_inference_for_classification_dataset
         real_n_of_samples[y] = 1 + real_n_of_samples.get(y, 0)
 
     # Act
-    dataset.init_cache()
-    for batch in dataset:
-        dataset.update_cache(dataset.batch_to_labels(batch))
+    run_update_loop(dataset)
 
     # Assert
     assert_that(
@@ -132,9 +131,7 @@ def test_vision_data_n_of_samples_per_class_inference_for_detection_dataset():
 
     # Act
     dataset = coco.COCOData(loader)
-    dataset.init_cache()
-    for batch in dataset:
-        dataset.update_cache(dataset.batch_to_labels(batch))
+    run_update_loop(dataset)
 
     # Assert
     assert_that(
@@ -271,26 +268,28 @@ def test_sampler(mnist_dataset_train):
     assert_that(total, equal_to(500))
 
 
-def test_data_at_batch_of_index(mnist_dataset_train):
+def test_data_at_batch_index_to_dataset_index(mnist_dataset_train):
     # Arrange
-    samples_index = 100
+    sample_index = 100
 
     i = 0
+    single_data = None
+    single_label = None
     for data, labels in mnist_dataset_train.data_loader:
-        if i + len(data) >= samples_index:
-            single_data = data[samples_index - i]
-            single_label = labels[samples_index - i]
-            single_batch = mnist_dataset_train.to_batch((single_data, single_label))
+        if i + len(data) >= sample_index:
+            single_data = data[sample_index - i]
+            single_label = labels[sample_index - i]
             break
         else:
             i += len(data)
 
     # Act
-    batch = mnist_dataset_train.batch_of_index(samples_index)
+    dataset_index = mnist_dataset_train.batch_index_to_dataset_index(sample_index)
+    sample = mnist_dataset_train.data_loader.dataset[dataset_index]
 
     # Assert
-    assert torch.equal(batch[0], single_batch[0])
-    assert torch.equal(batch[1], single_batch[1])
+    assert torch.equal(sample[0], single_data)
+    assert sample[1] == single_label.item()
 
 
 def test_get_classes_validation_not_sequence(mnist_data_loader_train):
@@ -304,7 +303,7 @@ def test_get_classes_validation_not_sequence(mnist_data_loader_train):
 
     # Assert
     assert_that(
-        calling(data.assert_label_formatter_valid).with_args(),
+        calling(data.assert_labels_valid).with_args(),
         raises(DeepchecksValueError,
                r'get_classes\(\) was not implemented correctly, the validation has failed with the error: "The classes '
                r'must be a sequence\."\. '
@@ -323,7 +322,7 @@ def test_get_classes_validation_not_contain_sequence(mnist_data_loader_train):
 
     # Assert
     assert_that(
-        calling(data.assert_label_formatter_valid).with_args(),
+        calling(data.assert_labels_valid).with_args(),
         raises(DeepchecksValueError,
                r'get_classes\(\) was not implemented correctly, the validation has failed with the error: "The '
                r'classes sequence must contain as values sequences of ints \(sequence per sample\).". To test your '
@@ -342,7 +341,7 @@ def test_get_classes_validation_not_contain_contain_int(mnist_data_loader_train)
 
     # Assert
     assert_that(
-        calling(data.assert_label_formatter_valid).with_args(),
+        calling(data.assert_labels_valid).with_args(),
         raises(DeepchecksValueError,
                r'get_classes\(\) was not implemented correctly, the validation has failed with the error: "The '
                r'samples sequence must contain only int values.". To test your formatting use the function '

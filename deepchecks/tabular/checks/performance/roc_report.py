@@ -34,8 +34,8 @@ class RocReport(SingleDatasetCheck):
         List of classes to exclude from the condition.
     """
 
-    def __init__(self, excluded_classes: List = None):
-        super().__init__()
+    def __init__(self, excluded_classes: List = None, **kwargs):
+        super().__init__(**kwargs)
         self.excluded_classes = excluded_classes or []
 
     def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:

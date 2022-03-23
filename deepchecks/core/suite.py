@@ -18,6 +18,7 @@ from typing import Any, Union, List, Tuple
 from IPython.core.display import display_html
 from IPython.core.getipython import get_ipython
 import jsonpickle
+import ipywidgets as widgets
 
 from deepchecks.core.display_suite import ProgressBar, display_suite_result
 from deepchecks.core.errors import DeepchecksValueError
@@ -74,17 +75,28 @@ class SuiteResult:
             warnings.warn('You are running in a non-interactive python shell. in order to show result you have to use '
                           'an IPython shell (etc Jupyter)')
 
-    def save_as_html(self, file=None):
+    def _repr_html_(self):
+        """Return html representation of check result."""
+        widgets.Widget.close_all()
+        html_out = io.StringIO()
+        self.save_as_html(html_out, requirejs=False)
+        html_page = html_out.getvalue()
+        widgets.Widget.close_all()
+        return html_page
+
+    def save_as_html(self, file=None, requirejs: bool = True):
         """Save output as html file.
 
         Parameters
         ----------
         file : filename or file-like object
             The file to write the HTML output to. If None writes to output.html
+        requirejs: bool , default: True
+            If to save with all javascript dependencies
         """
         if file is None:
             file = 'output.html'
-        display_suite_result(self.name, self.results, html_out=file)
+        display_suite_result(self.name, self.results, html_out=file, requirejs=requirejs)
 
     def to_json(self, with_display: bool = True):
         """Return check result as json.

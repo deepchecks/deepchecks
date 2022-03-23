@@ -19,7 +19,8 @@ __all__ = [
     'DatasetValidationError',
     'ModelValidationError',
     'DeepchecksNotImplementedError',
-    'ValidationError'
+    'ValidationError',
+    'DeepchecksBaseError'
 ]
 
 
