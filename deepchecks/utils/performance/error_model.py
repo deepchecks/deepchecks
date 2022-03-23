@@ -212,7 +212,7 @@ def error_model_display(error_fi: pd.Series,
 
             # Display
             display.append(px.violin(
-                data, y=error_col_name, x=feature, title=f'Segmentation of error by {feature}', box=False,
+                data, y=error_col_name, x=feature, title=f'Segmentation of error by feature: {feature}', box=False,
                 labels={error_col_name: 'model error'}, color=color_col,
                 color_discrete_map=color_map
             ))
