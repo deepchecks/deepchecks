@@ -52,8 +52,8 @@ class ConfusionMatrixReport(SingleDatasetCheck):
     """
 
     _IMAGE_THUMBNAIL_SIZE = (400, 400)
-    _LABEL_COLOR = "red"
-    _DETECTION_COLOR = "blue"
+    _LABEL_COLOR = 'red'
+    _DETECTION_COLOR = 'blue'
 
     def __init__(
         self,
@@ -156,7 +156,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
             matrix.loc[classes_to_display_ids, classes_to_display_ids],
             dataset
         ))
-        
+
         del self.misclassified_images
         del self.matrix
 
@@ -220,13 +220,12 @@ class ConfusionMatrixReport(SingleDatasetCheck):
                     detected_class = int(detected_bbox[5])
                     self.matrix[bbox_class][detected_class] += 1
                     if bbox_class != detected_class:
-                        # NOTE: 
+                        # NOTE:
                         # not all misclassified images will be displayed
-                        # therefore to omit unneeded work at current stage 
+                        # therefore to omit unneeded work at current stage
                         # we will wrap bbox drawing step into callable
-                        breakpoint()
                         img = partial(
-                            self._draw_bboxes, 
+                            self._draw_bboxes,
                             image=image,
                             label=np.array([
                                 bbox.numpy()
@@ -234,7 +233,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
                                 else bbox]),
                             detected=np.array([
                                 detected_bbox.numpy()
-                                if isinstance(detected_bbox, torch.Tensor) 
+                                if isinstance(detected_bbox, torch.Tensor)
                                 else detected_bbox])
                         )
                         self.misclassified_images.append((bbox_class, detected_class, img))
@@ -312,8 +311,8 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         )
         misclassified_images = [
             (
-                (dataset.label_id_to_name(x_label), x_label), 
-                (dataset.label_id_to_name(x_detected), x_detected), 
+                (dataset.label_id_to_name(x_label), x_label),
+                (dataset.label_id_to_name(x_detected), x_detected),
                 img
             )
             for x_label, x_detected, _ in misclassifications
@@ -338,7 +337,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
             # NOTE: take a look at the update_object_detection method
             # to understand why 'img' might be a callable
             grid.append(prepare_thumbnail(
-                image=img() if callable(img) else img, 
+                image=img() if callable(img) else img,
                 size=self._IMAGE_THUMBNAIL_SIZE
             ))
 
@@ -346,7 +345,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
             n_of_images=len(misclassified_images),
             data=''.join(grid)
         )
-    
+
     def _draw_bboxes(self, image, label, detected):
         img = draw_bboxes(
             image=image,
@@ -365,7 +364,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
 
 
 def filter_confusion_matrix(
-    confusion_matrix: np.ndarray, 
+    confusion_matrix: np.ndarray,
     number_of_categories: int
 ) -> t.Tuple[np.ndarray, t.List[int]]:
     pq = PriorityQueue()

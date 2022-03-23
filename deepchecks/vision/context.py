@@ -35,13 +35,13 @@ class Batch:
     """Represents dataset batch returned by the dataloader during iteration."""
 
     __slots__ = (
-        "_context",
-        "_dataset_kind",
-        "_batch_index",
-        "_batch",
-        "_labels",
-        "_predictions",
-        "_images",
+        '_context',
+        '_dataset_kind',
+        '_batch_index',
+        '_batch',
+        '_labels',
+        '_predictions',
+        '_images',
     )
 
     def __init__(
@@ -96,7 +96,7 @@ class Batch:
     def __getitem__(self, index):
         """Return batch item by index."""
         return self._batch[index]
-    
+
     def __len__(self) -> int:
         return len(self._batch)
 
