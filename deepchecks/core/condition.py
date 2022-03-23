@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing all the base classes for checks."""
+from ast import Raise
 import enum
 from typing import Callable, Dict, cast
 from deepchecks.core.errors import DeepchecksValueError
@@ -66,12 +67,11 @@ class ConditionResult:
 
     Parameters
     ----------
-    is_pass : bool
-        Whether the condition functions passed the given value or not.
+    category : ConditionCategory
+        The category to which the condition result belongs.
     details : str
         What actually happened in the condition.
-    category : ConditionCategory , default: ConditionCategory.FAIL
-        The category to which the condition result belongs.
+
 
     """
 
@@ -80,12 +80,8 @@ class ConditionResult:
     details: str
     name: str
 
-    def __init__(self, is_pass: bool, details: str = '',
-                 category: ConditionCategory = None):
-        self.is_pass = is_pass
+    def __init__(self, category: ConditionCategory, details: str = ''):
         self.details = details
-        if category is None:
-            category = ConditionCategory.PASS if is_pass else ConditionCategory.FAIL
         self.category = category
 
     def set_name(self, name: str):
@@ -110,16 +106,21 @@ class ConditionResult:
         int
             condition priority value.
         """
-        if self.is_pass is True:
+        if self.category == ConditionCategory.PASS:
             return 3
         elif self.category == ConditionCategory.FAIL:
             return 1
         else:
             return 2
 
+    @property
+    def is_pass(self) -> bool:
+        """Return true if the category is PASS."""
+        return self.category == ConditionCategory.PASS
+
     def get_icon(self):
         """Return icon of the result to display."""
-        if self.is_pass:
+        if self.category == ConditionCategory.PASS:
             return '<div style="color: green;text-align: center">\U00002713</div>'
         elif self.category == ConditionCategory.FAIL:
             return '<div style="color: red;text-align: center">\U00002716</div>'

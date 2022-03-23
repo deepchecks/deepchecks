@@ -13,6 +13,7 @@ import plotly.graph_objects as go
 from sklearn.metrics import mean_squared_error
 
 from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.strings import format_number
 
@@ -86,9 +87,9 @@ class RegressionSystematicError(SingleDatasetCheck):
             mean_error = result['mean_error']
             ratio = abs(mean_error) / rmse
             if ratio > max_ratio:
-                return ConditionResult(False, f'Found bias ratio above threshold: {format_number(ratio)}')
+                return ConditionResult(ConditionCategory.FAIL, f'Found bias ratio above threshold: {format_number(ratio)}')
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Bias ratio is not greater than {format_number(max_ratio)}',
                                   max_bias_condition)

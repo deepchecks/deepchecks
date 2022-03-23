@@ -114,9 +114,8 @@ class SpecialCharacters(SingleDatasetCheck):
                         not_passed[column_name] = format_percent(ratio)
 
             if not_passed:
-                return ConditionResult(False, f'Found columns with ratio above threshold: {not_passed}',
-                                       category=ConditionCategory.WARN)
-            return ConditionResult(True)
+                return ConditionResult(ConditionCategory.WARN, f'Found columns with ratio above threshold: {not_passed}')
+            return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(name, condition)
 

@@ -14,6 +14,7 @@ import pandas as pd
 import plotly.express as px
 
 from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, ModelComparisonContext, TrainTestCheck, ModelComparisonCheck
 from deepchecks.utils.strings import format_percent, format_number
@@ -156,8 +157,8 @@ class PerformanceReport(TrainTestCheck):
             if len(not_passed):
                 details = f'Found metrics with scores below threshold:\n' \
                           f'{not_passed_test[["Class", "Metric", "Value"]].to_dict("records")}'
-                return ConditionResult(False, details)
-            return ConditionResult(True)
+                return ConditionResult(ConditionCategory.FAIL, details)
+            return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Scores are not less than {min_score}', condition)
 
@@ -218,9 +219,9 @@ class PerformanceReport(TrainTestCheck):
                                                   f'test={format_number(test_scores_dict[score_name])}')
             if explained_failures:
                 message = '\n'.join(explained_failures)
-                return ConditionResult(False, message)
+                return ConditionResult(ConditionCategory.FAIL, message)
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Train-Test scores relative degradation is not greater than {threshold}',
                                   condition)
@@ -284,9 +285,9 @@ class PerformanceReport(TrainTestCheck):
                     )
                     datasets_details.append(details)
             if datasets_details:
-                return ConditionResult(False, details='\n'.join(datasets_details))
+                return ConditionResult(ConditionCategory.FAIL, details='\n'.join(datasets_details))
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(
             name=(

@@ -14,6 +14,7 @@ from collections import OrderedDict
 from typing import Union, List, Dict
 
 from deepchecks.core import ConditionResult, CheckResult
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck, Dataset
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.core.errors import DeepchecksValueError
@@ -205,9 +206,9 @@ class TrainTestFeatureDrift(TrainTestCheck):
                               f'{not_passing_numeric_columns}'
 
             if return_str:
-                return ConditionResult(False, return_str)
+                return ConditionResult(ConditionCategory.FAIL, return_str)
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'PSI <= {max_allowed_psi_score} and Earth Mover\'s Distance <= '
                                   f'{max_allowed_earth_movers_score}',

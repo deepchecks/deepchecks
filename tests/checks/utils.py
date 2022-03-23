@@ -11,8 +11,10 @@
 """Utils functions for testing."""
 import re
 from typing import Union, Pattern
+
 from hamcrest import all_of, has_property, matches_regexp
 from hamcrest.core.matcher import Matcher
+
 from deepchecks.core import ConditionCategory
 
 
