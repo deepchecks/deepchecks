@@ -46,9 +46,10 @@ class SpecialCharacters(SingleDatasetCheck):
         columns: Union[Hashable, List[Hashable], None] = None,
         ignore_columns: Union[Hashable, List[Hashable], None] = None,
         n_most_common: int = 2,
-        n_top_columns: int = 10
+        n_top_columns: int = 10,
+        **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
         self.columns = columns
         self.ignore_columns = ignore_columns
         self.n_most_common = n_most_common

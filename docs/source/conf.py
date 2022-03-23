@@ -13,6 +13,10 @@ from subprocess import check_output
 import deepchecks
 from deepchecks import vision
 
+import plotly.io as pio
+from plotly.io._sg_scraper import plotly_sg_scraper
+
+pio.renderers.default = 'sphinx_gallery'
 
 # -- Path setup --------------------------------------------------------------
 
@@ -32,7 +36,7 @@ with open(os.path.join(PROJECT_DIR, 'VERSION')) as version_file:
 
 
 project = 'Deepchecks'
-copyright = '2021, Deepchecks'
+copyright = '2021-2022, Deepchecks'
 author = 'Deepchecks'
 os.environ['DEEPCHECKS_DISABLE_LATEST'] = 'true'
 is_readthedocs = os.environ.get("READTHEDOCS")
@@ -66,15 +70,13 @@ except Exception as error:
 # ones.
 #
 extensions = [
-    'nbsphinx',
-
     # by itself sphinx_gallery is not able to work with jupyter notebooks
     # but nbsphinx extension is able to use some of it functionality to create
     # thumbnail galleries. Link to the doc - https://nbsphinx.readthedocs.io/en/0.8.7/subdir/gallery.html
     #
     'sphinx_gallery.load_style',
     #
-
+    'sphinx_gallery.gen_gallery',
     'numpydoc',
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
@@ -83,7 +85,52 @@ extensions = [
     'sphinx.ext.githubpages',
     'sphinx_search.extension',
     'sphinx.ext.autosectionlabel',
+    "sphinx.ext.imgmath",
 ]
+
+imgmath_image_format = 'svg'
+
+sphinx_gallery_conf = {
+    "examples_dirs": [
+        "examples/general/source",
+        "examples/vision/checks/distribution/source",
+        "examples/vision/checks/performance/source",
+        "examples/vision/checks/methodology/source",
+        # "examples/tabular/guides/source",
+        "examples/tabular/checks/distribution/source",
+        "examples/tabular/checks/overview/source",
+        "examples/tabular/checks/integrity/source",
+        "examples/tabular/checks/methodology/source",
+        "examples/tabular/checks/performance/source",
+        "tutorials/tabular",
+        "tutorials/vision",
+        "user-guide/general/customizations",
+        "user-guide/general/exporting_results",
+        # "examples/tabular/use-cases/source",
+    ],  # path to your example scripts
+    "gallery_dirs": [
+        "examples/general/examples",
+        "examples/vision/checks/distribution/examples",
+        "examples/vision/checks/performance/examples",
+        "examples/vision/checks/methodology/examples",
+        # "examples/tabular/guides/examples",
+        "examples/tabular/checks/distribution/examples",
+        "examples/tabular/checks/overview/examples",
+        "examples/tabular/checks/integrity/examples",
+        "examples/tabular/checks/methodology/examples",
+        "examples/tabular/checks/performance/examples",
+        "tutorials/tabular/examples",
+        "tutorials/vision/examples",
+        "user-guide/general/customizations/examples",
+        "user-guide/general/exporting_results/examples",
+        # "examples/tabular/use-cases/examples",
+    ], # path to where to save gallery generated output
+    "image_scrapers": (
+        "matplotlib",
+        plotly_sg_scraper,
+    ),
+    "pypandoc": True,
+}
 
 # Add any paths that contain templates here, relative to this directory.
 #
@@ -151,7 +198,7 @@ autosummary_ignore_module_all = False
 # A dictionary of values to pass into the template engine’s context
 # for autosummary stubs files.
 #
-autosummary_context = {'to_snake_case': to_snake_case}
+# autosummary_context = {'to_snake_case': to_snake_case}
 
 # TODO: explaine
 autosummary_filename_map = {
@@ -190,66 +237,6 @@ napoleon_preprocess_types = False
 
 # Report warnings for all validation checks
 numpydoc_validation_checks = {"PR01", "PR02", "PR03", "RT03"}
-
-# -- nbsphinx extension settings --------------------------------------------------
-
-nbsphinx_prolog = r"""
-
-.. raw:: html
-
-    <div style="
-        width: 100%;
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: flex-end;
-    ">
-        <span style="white-space: nowrap; margin-right: 10px;">
-            <a
-                href="{{  env.config.generate_binder_url(env.docname) }}"
-                style="vertical-align:text-bottom"
-                target="_blank" rel="noopener noreferrer">
-                <img
-                    alt="Binder badge"
-                    {% if env.config.html_context["is_readthedocs"] %}
-                    src="/{{ env.config.html_context["language"] }}/{{ env.config.html_context["version"] }}/_static/binder-badge.svg"
-                    {% else %}
-                    src="/_static/binder-badge.svg"
-                    {% endif %}
-                    style="vertical-align:text-bottom">
-            </a>
-        </span>
-        <span style="white-space: nowrap; margin-right: 10px;">
-            <a
-                href="{{  env.config.generate_colab_url(env.docname) }}"
-                style="vertical-align:text-bottom"
-                target="_blank" rel="noopener noreferrer">
-                <img
-                    alt="Colab badge"
-                    {% if env.config.html_context["is_readthedocs"] %}
-                    src="/{{ env.config.html_context["language"] }}/{{ env.config.html_context["version"] }}/_static/colab-badge.svg"
-                    {% else %}
-                    src="/_static/colab-badge.svg"
-                    {% endif %}
-                    style="vertical-align:text-bottom">
-            </a>
-        </span>
-    </div>
-
-{% set apipath = env.config.get_check_example_api_reference(env.docname) %}
-
-{% if apipath %}
-{{ apipath }}
-{% endif %}
-
-"""
-
-nbsphinx_requirejs_options = {
-    "src": "https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js",
-    "integrity": "sha512-VCK7oF67GXNc+J7zsu5o57jtxhLA75nSMHGaq8Q8TCOxDj4nMDw5dhQZvm9Cd9RN+3zgcodqbKcRc9gyPP8a2w==",
-    "crossorigin": "anonymous"
-}
-nbsphinx_assume_equations = False
 
 
 # -- Copybutton settings --------------------------------------------------
@@ -389,9 +376,9 @@ html_theme_options = {
     "page_sidebar_items": ["page-toc", ],
     "icon_links_label": "Quick Links",
     "switcher": {
-        "json_url": "https://deepchecks.github.io/dev/_static/switcher.json",
+        "json_url": "https://docs.deepchecks.com/dev/_static/switcher.json",
         "version_match": version,
-        "url_template": "https://deepchecks.github.io/{version}/",
+        "url_template": "https://docs.deepchecks.com/{version}/",
     },
     "icon_links": [
         {
@@ -443,100 +430,9 @@ def get_report_issue_url(pagename: str) -> str:
         labels="labels=chore/documentation",
     )
 
-
-def generate_colab_url(notebook_path: str) -> t.Optional[str]:
-    notebook_path = notebook_path.replace(".txt", "")
-    notebook_path = notebook_path if notebook_path.endswith(".ipynb") else notebook_path + ".ipynb"
-    notebook_name = notebook_path.split("/")[-1]
-
-    if not is_example_notebook(notebook_name):
-        return
-
-    template = (
-        "https://colab.research.google.com/github/{user}/{repo}/blob/{branch}/{notebook_path}"
-    )
-
-    return template.format(
-        user=GIT['user'],
-        repo=GIT['repo'],
-        branch=GIT['release'],
-        notebook_path=f"docs/source/{notebook_path}"
-    )
-
-
-def generate_binder_url(notebook_path: str) -> t.Optional[str]:
-    notebook_path = notebook_path.replace(".txt", "")
-    notebook_path = notebook_path if notebook_path.endswith(".ipynb") else notebook_path + ".ipynb"
-    notebook_name = notebook_path.split("/")[-1]
-
-    if not is_example_notebook(notebook_name):
-        return
-
-    template = (
-        "https://mybinder.org/v2/gh/{user}/{repo}/{branch}?labpath={filepath}"
-    )
-
-    return template.format(
-        user=GIT['user'],
-        repo=GIT['repo'],
-        branch=GIT['release'],
-        filepath=f"docs/source/{notebook_path}"
-    )
-
-
-@functools.lru_cache(maxsize=None)
-def get_example_notebooks() -> t.Tuple[pathlib.Path, ...]:
-    examples_folder = PROJECT_DIR / "docs/source/examples"
-
-    if not examples_folder.exists() or not examples_folder.is_dir():
-        raise RuntimeError("Did not find the folder with the example notebooks.")
-
-    return tuple(examples_folder.glob("**/*.ipynb"))
-
-
 @functools.lru_cache(maxsize=None)
 def snake_case_to_camel_case(val: str) -> str:
     return "".join(it.capitalize() for it in val.split("_") if it)
-
-
-def is_example_notebook(filepath: str) -> bool:
-    notebook_name = filepath.split("/")[-1].replace(".txt", "")
-    notebooks = {it.name for it in get_example_notebooks()}
-    return notebook_name in notebooks
-
-
-def get_check_example_api_reference(filepath: str) -> t.Optional[str]:
-    if not (
-        filepath.startswith("docs/source/examples/checks/")
-        or filepath.startswith("examples/checks/")
-    ):
-        return
-
-    notebook_name = snake_case_to_camel_case(
-        filepath.split("/")[-1]
-            .replace(".txt", "")
-            .replace(".ipynb", "")
-            .replace(".py", "")
-    )
-    type = filepath.split("/")[2]
-
-    import deepchecks.tabular.checks
-    import deepchecks.vision.checks
-    tabular_check_clazz = getattr(deepchecks.tabular.checks, notebook_name, None)
-    vision_check_clazz = getattr(deepchecks.vision.checks, notebook_name, None)
-
-    mapping = {
-        'tabular': tabular_check_clazz,
-        'vision': vision_check_clazz
-    }
-    if type not in mapping or mapping[type] is None or not hasattr(mapping[type], "__module__"):
-        return
-
-    clazz_module = ".".join(mapping[type].__module__.split("."))
-
-    apipath = f"/api/generated/{clazz_module}.{notebook_name}"
-    result = f"* :doc:`API Reference - {notebook_name} <{apipath}>`"
-    return result
 
 
 # -- Registration of hooks ---------
@@ -546,18 +442,9 @@ def setup(app):
 
     def add_custom_routines(app, pagename, templatename, context, doctree):
         context["get_report_issue_url"] = get_report_issue_url
-        context["generate_colab_url"] = generate_colab_url
-        context["generate_binder_url"] = generate_binder_url
-        context["is_example_notebook"] = is_example_notebook
-        context["get_example_notebooks"] = get_example_notebooks
 
     # make custom routines available within html templates
     app.connect("html-page-context", add_custom_routines)
-
-    # make next functions available within nbsphinx prolog/epilog templates
-    app.config.generate_binder_url = generate_binder_url
-    app.config.generate_colab_url = generate_colab_url
-    app.config.get_check_example_api_reference = get_check_example_api_reference
 
     return {
         "parallel_read_safe": True,

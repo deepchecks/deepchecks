@@ -52,7 +52,7 @@ class ModelErrorAnalysis(TrainTestCheck):
         minimal fraction of data that can comprise a weak segment.
     n_display_samples : int , default: 5_000
         number of samples to display in scatter plot.
-    random_seed : int, default: 42
+    random_state : int, default: 42
         random seed for all check internals.
     """
 
@@ -63,9 +63,10 @@ class ModelErrorAnalysis(TrainTestCheck):
                  min_error_model_score: float = 0.5,
                  min_segment_size: float = 0.05,
                  n_display_samples: int = 5_000,
-                 random_seed: int = 42):
-        super().__init__()
-        self.random_state = random_seed
+                 random_state: int = 42,
+                 **kwargs):
+        super().__init__(**kwargs)
+        self.random_state = random_state
         self.min_error_model_score = min_error_model_score
         self.min_segment_size = min_segment_size
         self.max_properties_to_show = max_properties_to_show

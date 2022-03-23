@@ -50,7 +50,7 @@ class BaseCheck(abc.ABC):
     _conditions: OrderedDict
     _conditions_index: int
 
-    def __init__(self):
+    def __init__(self, **kwargs):  # pylint: disable=unused-argument
         self._conditions = OrderedDict()
         self._conditions_index = 0
 

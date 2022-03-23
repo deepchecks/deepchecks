@@ -88,7 +88,7 @@ Each dictionary is a single property, and the checks accepts a list of those dic
 The Method's Input
 ~~~~~~~~~~~~~~~~~~
 Each property is built for the specific data type that it runs on, and receives its deepchecks-expected format,
-as demonstrated in :doc:`Deepchecks' format </user-guide/vision/formatter_objects>`.
+as demonstrated in :doc:`Deepchecks' format </user-guide/vision/data-classes/index>`.
 Note that prediction and label-based properties are not interchangeable due to their slightly different format, even if they calculate similar values.
 
 

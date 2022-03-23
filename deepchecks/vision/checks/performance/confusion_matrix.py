@@ -62,8 +62,9 @@ class ConfusionMatrixReport(SingleDatasetCheck):
     def __init__(self,
                  categories_to_display: int = 10,
                  confidence_threshold: float = 0.3,
-                 iou_threshold: float = 0.5):
-        super().__init__()
+                 iou_threshold: float = 0.5,
+                 **kwargs):
+        super().__init__(**kwargs)
         self.confidence_threshold = confidence_threshold
         self.categories_to_display = categories_to_display
         self.iou_threshold = iou_threshold

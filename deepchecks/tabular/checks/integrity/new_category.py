@@ -42,9 +42,10 @@ class CategoryMismatchTrainTest(TrainTestCheck):
         columns: Union[Hashable, List[Hashable], None] = None,
         ignore_columns: Union[Hashable, List[Hashable], None] = None,
         max_features_to_show: int = 5,
-        max_new_categories_to_show: int = 5
+        max_new_categories_to_show: int = 5,
+        **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
         self.columns = columns
         self.ignore_columns = ignore_columns
         self.max_features_to_show = max_features_to_show
