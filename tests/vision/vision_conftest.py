@@ -17,6 +17,9 @@ import torch
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.dataloader import default_collate
 
+from deepchecks.core import DatasetKind
+from deepchecks.vision import VisionData, Context, Batch
+
 from deepchecks.vision.datasets.detection.coco import (
     load_model as load_yolov5_model,
     load_dataset as load_coco_dataset
@@ -51,6 +54,7 @@ __all__ = ['device',
            'mnist_drifted_datasets',
            'mock_trained_yolov5_object_detection',
            'mock_trained_mnist',
+           'run_update_loop'
            ]
 
 
@@ -244,3 +248,13 @@ def two_tuples_dataloader():
             return 8
 
     return DataLoader(TwoTupleDataset(), batch_size=4)
+
+
+def run_update_loop(dataset: VisionData):
+    context: Context = Context(dataset, random_state=0)
+    dataset.init_cache()
+    batch_start_index = 0
+    for batch in context.train:
+        batch = Batch(batch, context, DatasetKind.TRAIN, batch_start_index)
+        dataset.update_cache(batch)
+        batch_start_index += len(batch)

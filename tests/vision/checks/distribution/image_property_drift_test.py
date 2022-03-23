@@ -24,18 +24,15 @@ from hamcrest import (
 )
 
 from deepchecks.core import CheckResult
-from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.core.errors import DeepchecksValueError, DeepchecksNotImplementedError
+from deepchecks.vision.datasets.classification.mnist import MNISTData
 from deepchecks.vision.utils.image_properties import default_image_properties
 from deepchecks.vision.checks.distribution import ImagePropertyDrift
-from deepchecks.vision.datasets.detection import coco
 
 
-def test_image_property_drift_check(device):
-    train_dataset = coco.load_dataset(train=True, object_type='VisionData')
-    test_dataset = coco.load_dataset(train=False, object_type='VisionData')
-
+def test_image_property_drift_check(coco_train_visiondata, coco_test_visiondata, device):
     # Run
-    result = ImagePropertyDrift().run(train_dataset, test_dataset, device=device)
+    result = ImagePropertyDrift().run(coco_train_visiondata, coco_test_visiondata, device=device)
 
     # Assert
     assert_that(result, is_correct_image_property_drift_result())
@@ -45,13 +42,10 @@ def test_image_property_drift_check(device):
     ))
 
 
-def test_image_property_drift_check_limit_classes(device):
-    train_dataset = coco.load_dataset(train=True, object_type='VisionData')
-    test_dataset = coco.load_dataset(train=False, object_type='VisionData')
-
+def test_image_property_drift_check_limit_classes(coco_train_visiondata, coco_test_visiondata, device):
     # Run
     result = ImagePropertyDrift(classes_to_display=['person', 'cat', 'cell phone', 'car'], min_samples=5
-                                ).run(train_dataset, test_dataset, device=device)
+                                ).run(coco_train_visiondata, coco_test_visiondata, device=device)
 
     # Assert
     assert_that(result, is_correct_image_property_drift_result())
@@ -61,12 +55,10 @@ def test_image_property_drift_check_limit_classes(device):
     ))
 
 
-def test_image_property_drift_check_limit_classes_illegal(device):
-    train_dataset = coco.load_dataset(train=True, object_type='VisionData')
-    test_dataset = coco.load_dataset(train=False, object_type='VisionData')
+def test_image_property_drift_check_limit_classes_illegal(coco_train_visiondata, coco_test_visiondata, device):
     check = ImagePropertyDrift(classes_to_display=['phone'])
     assert_that(
-        calling(check.run).with_args(train_dataset, test_dataset, device=device),
+        calling(check.run).with_args(coco_train_visiondata, coco_test_visiondata, device=device),
         raises(DeepchecksValueError,  r'Provided list of class ids to display \[\'phone\'\] not found in training '
                                       r'dataset.')
     )
@@ -87,14 +79,11 @@ def test_image_property_drift_initialization_with_list_of_invalid_image_properti
     )
 
 
-def test_image_property_drift_condition(device):
-    train_dataset = coco.load_dataset(train=True, object_type='VisionData')
-    test_dataset = coco.load_dataset(train=False, object_type='VisionData')
-
+def test_image_property_drift_condition(coco_train_visiondata, coco_test_visiondata, device):
     result = (
         ImagePropertyDrift()
         .add_condition_drift_score_not_greater_than()
-        .run(train_dataset, test_dataset, device=device)
+        .run(coco_train_visiondata, coco_test_visiondata, device=device)
     )
 
     assert_that(result, all_of(
@@ -145,3 +134,21 @@ def is_correct_image_property_drift_result():
             'display': display_assertion
         })
     )
+
+
+def test_run_on_data_with_only_images(mnist_data_loader_train, mnist_data_loader_test, device):
+    # Arrange
+    class CustomData(MNISTData):
+        def get_classes(self, labels):
+            raise DeepchecksNotImplementedError('not implemented')
+
+        def batch_to_labels(self, batch):
+            raise DeepchecksNotImplementedError('not implemented')
+
+    train = CustomData(mnist_data_loader_train)
+    test = CustomData(mnist_data_loader_test)
+
+    # Act
+    # TODO enable the test when ImagePropertyDrift is fixed to support data without labels
+    #ImagePropertyDrift().run(train, test, device=device)
+
