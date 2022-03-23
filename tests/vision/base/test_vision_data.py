@@ -37,7 +37,7 @@ from deepchecks.vision.datasets.detection.coco import COCOData
 from deepchecks.vision.detection_data import DetectionData
 from deepchecks.vision.vision_data import VisionData
 from deepchecks.vision.utils.transformations import AlbumentationsTransformations, ImgaugTransformations
-from tests.vision.base.test_base_checks import run_update_loop
+from vision.vision_conftest import run_update_loop
 
 
 class SimpleDetectionData(DetectionData):

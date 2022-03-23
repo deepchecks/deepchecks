@@ -11,18 +11,10 @@
 #
 from collections import defaultdict
 
-import torch
-from torch import nn
 from hamcrest import (
     assert_that,
     calling,
     raises,
-    equal_to,
-    has_properties,
-    has_property,
-    instance_of,
-    same_instance,
-    all_of,
     is_
 )
 
@@ -30,18 +22,7 @@ from deepchecks import CheckResult
 from deepchecks.core import DatasetKind
 
 from deepchecks.vision.base_checks import SingleDatasetCheck, TrainTestCheck, ModelOnlyCheck
-from deepchecks.vision import ClassificationData, DetectionData, Context, Batch
 from deepchecks.vision.datasets.detection import coco
-
-
-def run_update_loop(dataset):
-    context: Context = Context(dataset, random_state=0)
-    dataset.init_cache()
-    batch_start_index = 0
-    for batch in context.train:
-        batch = Batch(batch, context, DatasetKind.TRAIN, batch_start_index)
-        dataset.update_cache(batch)
-        batch_start_index += len(batch)
 
 
 def test_run_base_checks():
