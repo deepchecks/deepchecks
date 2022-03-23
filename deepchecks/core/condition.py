@@ -81,9 +81,11 @@ class ConditionResult:
     name: str
 
     def __init__(self, is_pass: bool, details: str = '',
-                 category: ConditionCategory = ConditionCategory.FAIL):
+                 category: ConditionCategory = None):
         self.is_pass = is_pass
         self.details = details
+        if category is None:
+            category = ConditionCategory.PASS if is_pass else ConditionCategory.FAIL
         self.category = category
 
     def set_name(self, name: str):
