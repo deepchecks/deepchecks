@@ -9,34 +9,33 @@
 
 |
 
-=======================
+======================
 Welcome to Deepchecks!
-=======================
+======================
 
 Deepchecks is the leading tool for validating your machine learning models
 and data, and it enables doing so with minimal effort. Deepchecks accompanies you through
 various validation needs such as verifying your data's integrity, inspecting its distributions,
 validating data splits, evaluating your model and comparing between different models.
 
-Deepchecks currently supports Tabular Data (:mod:`deepchecks.tabular`) and is in alpha version for Computer Vision (:mod:`deepchecks.vision`).
+Deepchecks currently supports Tabular Data (:mod:`deepchecks.tabular`) and is in beta release for Computer Vision (:mod:`deepchecks.vision`).
 
 
-Get Started
-============
+See It in Action
+================
 
 For a quickstart, check out the following in the tutorials section:
 
 **Tabular Data**:
 
-:doc:`Quickstart in 5 minutes </tutorials/tabular/examples/quickstart_in_5_minutes>`
-and use |binder badge|  or  |colab badge|  to launch it and see it in action.
+- :doc:`Quickstart in 5 minutes </tutorials/tabular/examples/plot_quickstart_in_5_minutes>`
 
 **Computer Vision**
 
 
 .. note:: 
    Deepchecks' Computer Vision subpackage is in beta release.
-   It is `available for installation </getting-started/index>`` from PyPi, use at your own discretion.
+   It is :doc:`available for installation </getting-started/index>` from PyPi, use at your own discretion.
    `Github Issues <https://github.com/deepchecks/deepchecks/issues>`_ are welcome!
 
 
@@ -44,14 +43,17 @@ and use |binder badge|  or  |colab badge|  to launch it and see it in action.
 - :doc:`Tutorial for Object Detection </tutorials/vision/detection_tutorial>`
 
 
+Viewing Check and Suite Results
+--------------------------------
+
+The package's output can be consumed in various formats:
+   - Viewed inline in Jupyter (default behavior)
+   - :doc:`Exported as an HTML Report / JSON / Sent to W&B </user-guide/general/exporting_results/index>`
+
+
 Installation
 ------------
 Check out our :doc:`Installation Instructions </getting-started/index>` to install it locally and continue from there.
-
-.. note::
-   The package's output can be consumed in many formats:
-   - Viewed inline in Jupyter (default behavior)
-   - :doc:`Exported as an HTML Report / JSON / Sent to W&B </user-guide/general/exporting_results/index>`
 
 
 When Should You Use Deepchecks?
@@ -64,7 +66,7 @@ problems, and/or validate your model and evaluate it.
    :alt: When To Validate - ML Pipeline Schema
    :align: center
 
-See the :doc:`When Should You Use </getting-started/when_should_you_use>` Section in the User Guide for an elaborate explanation of the typical scenarios.
+See the :doc:`When Should You Use </getting-started/when_should_you_use>` Section for an elaborate explanation of the typical scenarios.
 
 
 
@@ -88,9 +90,7 @@ subset** of the following:
    | For tabular data, see :doc:`supported models </user-guide/tabular/supported_models>`.
    | For computer vision, we currently support the pytorch framework. See :doc:`/user-guide/vision/data-classes/index` to understand how to integrate your data.
 
-Supported Data Types
----------------------
-Currently the package supports Tabular Data, and is in alpha version for Computer Vision support.
+
 
 See More
 =========
