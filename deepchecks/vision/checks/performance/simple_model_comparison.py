@@ -89,9 +89,9 @@ class SimpleModelComparison(TrainTestCheck):
                  show_only: str = 'largest',
                  metric_to_show_by: str = None,
                  class_list_to_show: List[int] = None,
-                 max_gain: float = 50
-                 ):
-        super().__init__()
+                 max_gain: float = 50,
+                 **kwargs):
+        super().__init__(**kwargs)
         self.strategy = strategy
         self.max_gain = max_gain
 

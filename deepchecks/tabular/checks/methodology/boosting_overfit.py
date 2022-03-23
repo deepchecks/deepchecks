@@ -143,8 +143,13 @@ class BoostingOverfit(TrainTestCheck):
         Number of splits of the model iterations to check.
     """
 
-    def __init__(self, alternative_scorer: Tuple[str, Union[str, Callable]] = None, num_steps: int = 20):
-        super().__init__()
+    def __init__(
+        self,
+        alternative_scorer: Tuple[str, Union[str, Callable]] = None,
+        num_steps: int = 20,
+        **kwargs
+    ):
+        super().__init__(**kwargs)
         self.user_scorer = dict([alternative_scorer]) if alternative_scorer else None
         self.num_steps = num_steps
         if not isinstance(self.num_steps, int) or self.num_steps < 2:
