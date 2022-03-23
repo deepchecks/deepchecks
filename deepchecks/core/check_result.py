@@ -37,7 +37,7 @@ from IPython.display import display_html
 from pandas.io.formats.style import Styler
 
 
-# registers jsonpickle pandas extention for pandas support in the to_json function
+# registers jsonpickle pandas extension for pandas support in the to_json function
 jsonpickle_pd.register_handlers()
 
 if TYPE_CHECKING:
