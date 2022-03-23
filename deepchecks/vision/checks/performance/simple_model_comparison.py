@@ -137,7 +137,7 @@ class SimpleModelComparison(TrainTestCheck):
             n_of_classes = batch.predictions.shape[1]
             perfect_predictions = np.eye(n_of_classes)[label]
             for _, metric in self._perfect_metrics.items():
-                metric.update((torch.from_numpy(perfect_predictions).to(context.device), label))
+                metric.update((torch.Tensor(perfect_predictions).to(context.device), label))
 
     def compute(self, context: Context) -> CheckResult:
         """Compute the metrics for the check."""
