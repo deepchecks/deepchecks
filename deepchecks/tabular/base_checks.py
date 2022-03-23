@@ -52,8 +52,8 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
 
     context_type = Context
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         # Replace the run_logic function with wrapped run function
         setattr(self, 'run_logic', wrap_run(getattr(self, 'run_logic'), self))
 
@@ -79,8 +79,8 @@ class TrainTestCheck(TrainTestBaseCheck):
 
     context_type = Context
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         # Replace the run_logic function with wrapped run function
         setattr(self, 'run_logic', wrap_run(getattr(self, 'run_logic'), self))
 
@@ -104,9 +104,9 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
 
     context_type = Context
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         """Initialize the class."""
-        super().__init__()
+        super().__init__(**kwargs)
         # Replace the run_logic function with wrapped run function
         setattr(self, 'run_logic', wrap_run(getattr(self, 'run_logic'), self))
 
@@ -128,9 +128,9 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
 class ModelComparisonCheck(BaseCheck):
     """Parent class for check that compares between two or more models."""
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         """Initialize the class."""
-        super().__init__()
+        super().__init__(**kwargs)
         # Replace the run_logic function with wrapped run function
         setattr(self, 'run_logic', wrap_run(getattr(self, 'run_logic'), self))
 

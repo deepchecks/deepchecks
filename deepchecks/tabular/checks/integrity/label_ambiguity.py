@@ -38,12 +38,13 @@ class LabelAmbiguity(SingleDatasetCheck):
     """
 
     def __init__(
-            self,
-            columns: Union[Hashable, List[Hashable], None] = None,
-            ignore_columns: Union[Hashable, List[Hashable], None] = None,
-            n_to_show: int = 5
+        self,
+        columns: Union[Hashable, List[Hashable], None] = None,
+        ignore_columns: Union[Hashable, List[Hashable], None] = None,
+        n_to_show: int = 5,
+        **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
         self.columns = columns
         self.ignore_columns = ignore_columns
         self.n_to_show = n_to_show

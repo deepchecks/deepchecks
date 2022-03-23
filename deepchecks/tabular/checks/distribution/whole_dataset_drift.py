@@ -60,9 +60,10 @@ class WholeDatasetDrift(TrainTestCheck):
             sample_size: int = 10_000,
             random_state: int = 42,
             test_size: float = 0.3,
-            min_meaningful_drift_score: float = 0.05
+            min_meaningful_drift_score: float = 0.05,
+            **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
 
         self.n_top_columns = n_top_columns
         self.min_feature_importance = min_feature_importance

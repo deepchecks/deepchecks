@@ -78,9 +78,10 @@ class SimpleFeatureContribution(TrainTestCheck):
             alternative_image_properties: Dict[str, Callable] = None,
             n_top_properties: int = 3,
             per_class: bool = True,
-            ppscore_params: dict = None
+            ppscore_params: dict = None,
+            **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
 
         if alternative_image_properties:
             image_properties.validate_properties(alternative_image_properties)

@@ -60,8 +60,9 @@ class ClassPerformance(TrainTestCheck):
                  n_to_show: int = 20,
                  show_only: str = 'largest',
                  metric_to_show_by: str = None,
-                 class_list_to_show: List[int] = None):
-        super().__init__()
+                 class_list_to_show: List[int] = None,
+                 **kwargs):
+        super().__init__(**kwargs)
         self.alternative_metrics = alternative_metrics
         self.n_to_show = n_to_show
         self.class_list_to_show = class_list_to_show

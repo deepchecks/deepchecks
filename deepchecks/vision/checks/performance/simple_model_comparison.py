@@ -84,9 +84,9 @@ class SimpleModelComparison(TrainTestCheck):
                  n_to_show: int = 20,
                  show_only: str = 'largest',
                  metric_to_show_by: str = None,
-                 class_list_to_show: List[int] = None
-                 ):
-        super().__init__()
+                 class_list_to_show: List[int] = None,
+                 **kwargs):
+        super().__init__(**kwargs)
         self.strategy = strategy
 
         if self.strategy not in _allowed_strategies:

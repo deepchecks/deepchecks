@@ -54,18 +54,3 @@ jobs:
         python-version: 3.9
     - name: Run License eye
       run: make license-check
- 
-    
-  notebook:
-    runs-on: ubuntu-latest
-
-    needs: pylint #rather consuming task, run only after linting succeed
-
-    steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.9
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.9
-    - name: Run notebook lint
-      run: make notebook

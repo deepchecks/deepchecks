@@ -65,9 +65,10 @@ class ImagePropertyDrift(TrainTestCheck):
         alternative_image_properties: t.Optional[t.List[t.Dict[str, t.Any]]] = None,
         max_num_categories: int = 10,
         classes_to_display: t.Optional[t.List[str]] = None,
-        min_samples: int = 30
+        min_samples: int = 30,
+        **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
         if alternative_image_properties is not None:
             image_properties.validate_properties(alternative_image_properties)
             self.image_properties = alternative_image_properties

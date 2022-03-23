@@ -68,9 +68,10 @@ class TrainTestPredictionDrift(TrainTestCheck):
     def __init__(
             self,
             alternative_prediction_properties: List[Dict[str, Any]] = None,
-            max_num_categories: int = 10
+            max_num_categories: int = 10,
+            **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
         # validate alternative_prediction_properties:
         if alternative_prediction_properties is not None:
             validate_properties(alternative_prediction_properties)
