@@ -51,7 +51,8 @@ def per_sample_cross_entropy(y_true: np.array, y_pred: np.array, eps=1e-15):
 
     # Make y_true into one-hot
     lb = LabelBinarizer()
-    transformed_labels = lb.fit_transform(y_true)
+    lb.fit(list(range(y_pred.shape[1])))  # We assume that y_true is a list of corresponding indices in y_pred
+    transformed_labels = lb.transform(y_true)
 
     if transformed_labels.shape[1] == 1:
         transformed_labels = np.append(

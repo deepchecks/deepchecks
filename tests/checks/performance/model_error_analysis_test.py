@@ -62,11 +62,11 @@ def test_model_error_analysis_classification(iris_labeled_dataset, iris_adaboost
 def test_binary_string_model_info_object(iris_binary_string_split_dataset_and_model):
     # Arrange
     train_ds, test_ds, clf = iris_binary_string_split_dataset_and_model
-    check = ModelErrorAnalysis()
-    # Act X
-    result_value = check.run(train_ds, test_ds, clf).value
+
     # Assert
-    assert_that(result_value['feature_segments']['petal length (cm)'], has_length(2))
+    assert_that(calling(ModelErrorAnalysis().run).with_args(train_ds, test_ds, clf),
+                raises(DeepchecksProcessError,
+                       'Unable to train meaningful error model'))
 
 
 def test_condition_fail(iris_labeled_dataset, iris_adaboost):
@@ -80,7 +80,8 @@ def test_condition_fail(iris_labeled_dataset, iris_adaboost):
         equal_condition_result(
             is_pass=False,
             name='The performance difference of the detected segments must not be greater than 5%',
-            details='Found change in Accuracy in features above threshold: {\'petal length (cm)\': \'10.91%\'}',
+            details='Found change in Accuracy in features above threshold: {\'petal length (cm)\': \'10.91%\', '
+                    '\'petal width (cm)\': \'8.33%\', \'sepal length (cm)\': \'8.57%\'}',
             category=ConditionCategory.WARN
         )
     ))
