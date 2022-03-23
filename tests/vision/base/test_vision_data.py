@@ -289,7 +289,7 @@ def test_data_at_batch_index_to_dataset_index(mnist_dataset_train):
 
     # Assert
     assert torch.equal(sample[0], single_data)
-    assert torch.equal(sample[1], single_label)
+    assert sample[1] == single_label.item()
 
 
 def test_get_classes_validation_not_sequence(mnist_data_loader_train):
