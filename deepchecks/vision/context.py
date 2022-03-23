@@ -34,18 +34,35 @@ logger = logging.getLogger('deepchecks')
 class Batch:
     """Represents dataset batch returned by the dataloader during iteration."""
 
+    __slots__ = (
+        "_context",
+        "_dataset_kind",
+        "_batch_index",
+        "_batch",
+        "_labels",
+        "_predictions",
+        "_images",
+    )
+
     def __init__(
         self,
+        batch_index: int,
         batch: Tuple[Iterable[Any], Iterable[Any]],
         context: 'Context',
         dataset_kind: DatasetKind
     ):
         self._context = context
         self._dataset_kind = dataset_kind
+        self._batch_index = batch_index
         self._batch = apply_to_tensor(batch, lambda it: it.to(self._context.device))
         self._labels = None
         self._predictions = None
         self._images = None
+
+    @property
+    def index(self) -> int:
+        """Return batch index."""
+        return self._batch_index
 
     @property
     def labels(self):
@@ -79,6 +96,9 @@ class Batch:
     def __getitem__(self, index):
         """Return batch item by index."""
         return self._batch[index]
+    
+    def __len__(self) -> int:
+        return len(self._batch)
 
 
 class Context:

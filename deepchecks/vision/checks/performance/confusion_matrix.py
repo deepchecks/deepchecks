@@ -9,6 +9,11 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing confusion matrix report check."""
+import typing as t
+from functools import partial
+from itertools import product
+from textwrap import dedent
+
 import pandas as pd
 import numpy as np
 import torch
@@ -16,30 +21,15 @@ from plotly.express import imshow
 from queue import PriorityQueue
 from collections import defaultdict
 
+from deepchecks.vision.utils.image_functions import prepare_thumbnail
+from deepchecks.vision.utils.image_functions import draw_bboxes
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.vision import SingleDatasetCheck, Context, Batch
-from deepchecks.vision.vision_data import TaskType
+from deepchecks.vision.vision_data import TaskType, VisionData
 from deepchecks.vision.metrics_utils.iou_utils import jaccard_iou
 
 
 __all__ = ['ConfusionMatrixReport']
-
-
-def filter_confusion_matrix(confusion_matrix, number_of_categories):
-    pq = PriorityQueue()
-    for row, values in enumerate(confusion_matrix):
-        for col, value in enumerate(values):
-            if row != col:
-                pq.put((-value, (row, col)))
-    categories = set()
-    while not pq.empty():
-        if len(categories) >= number_of_categories:
-            break
-        _, (row, col) = pq.get()
-        categories.add(row)
-        categories.add(col)
-    categories = sorted(categories)
-    return confusion_matrix[np.ix_(categories, categories)], categories
 
 
 class ConfusionMatrixReport(SingleDatasetCheck):
@@ -57,39 +47,46 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         Threshold to consider bounding box as detected.
     iou_threshold (float, default 0.5):
         Threshold to consider detected bounding box as labeled bounding box.
+    n_of_images_to_show : int, default 5
+        Number of misclassified images to show.
     """
 
-    def __init__(self,
-                 categories_to_display: int = 10,
-                 confidence_threshold: float = 0.3,
-                 iou_threshold: float = 0.5):
+    _IMAGE_THUMBNAIL_SIZE = (400, 400)
+    _LABEL_COLOR = "red"
+    _DETECTION_COLOR = "blue"
+
+    def __init__(
+        self,
+        categories_to_display: int = 10,
+        confidence_threshold: float = 0.3,
+        iou_threshold: float = 0.5,
+        n_of_images_to_show: int = 10
+    ):
         super().__init__()
         self.confidence_threshold = confidence_threshold
         self.categories_to_display = categories_to_display
         self.iou_threshold = iou_threshold
         self.matrix = None
-        self.classes_list = None
-        self.not_found_idx = None
-        self.unseen_class_idx = None
         self.task_type = None
+        self.misclassified_images = None
+        self.n_of_images_to_show = n_of_images_to_show
 
-    def initialize_run(self, context: Context, dataset_kind: DatasetKind = None):
+    def initialize_run(self, context: Context, dataset_kind: DatasetKind):
         """Initialize run by creating an empty matrix the size of the data."""
         context.assert_task_type(TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION)
         dataset = context.get_data_by_kind(dataset_kind)
         self.task_type = dataset.task_type
         self.matrix = defaultdict(lambda: defaultdict(int))
+        self.misclassified_images = []
 
     def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind = DatasetKind.TRAIN):
         """Add batch to confusion matrix."""
-        labels = batch.labels
-        predictions = batch.predictions
         if self.task_type == TaskType.CLASSIFICATION:
-            self.update_classification(predictions, labels)
+            self.update_classification(batch)
         elif self.task_type == TaskType.OBJECT_DETECTION:
-            self.update_object_detection(predictions, labels)
+            self.update_object_detection(batch)
 
-    def compute(self, context: Context, dataset_kind: DatasetKind = None) -> CheckResult:
+    def compute(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
         """Compute and plot confusion matrix after all batches were processed."""
         assert self.matrix is not None
 
@@ -102,14 +99,15 @@ class ConfusionMatrixReport(SingleDatasetCheck):
             key=lambda x: np.inf if isinstance(x, str) else x
         )
 
-        matrix = pd.DataFrame(matrix, index=classes, columns=classes).to_numpy()
+        matrix = pd.DataFrame(matrix, index=classes, columns=classes)
 
         confusion_matrix, categories = filter_confusion_matrix(
-            matrix,
+            matrix.to_numpy(),
             self.categories_to_display
         )
 
         description = [f'Showing {self.categories_to_display} of {dataset.num_classes} classes:']
+        classes_to_display_ids = []
         classes_to_display = []
         classes_map = dict(enumerate(classes))  # class index -> class label
 
@@ -121,8 +119,10 @@ class ConfusionMatrixReport(SingleDatasetCheck):
                     'label/prediction. For example a predictions that did not have a sufficiently overlapping '
                     'label bounding box will appear under the "No overlapping label" category'
                 )
+                classes_to_display_ids.append('no-overlapping')
                 classes_to_display.append('no-overlapping')
             elif isinstance(category, int):
+                classes_to_display_ids.append(category)
                 classes_to_display.append(dataset.label_id_to_name(category))
             else:
                 raise RuntimeError(
@@ -151,32 +151,45 @@ class ConfusionMatrixReport(SingleDatasetCheck):
             .update_xaxes(title='Predicted Value', type='category')
             .update_yaxes(title='True value', type='category')
         )
+        description.append(self._misclassified_images_thumbnails(
+            matrix.loc[classes_to_display_ids, classes_to_display_ids],
+            dataset
+        ))
+        
+        del self.misclassified_images
+        del self.matrix
+
         return CheckResult(
             matrix,
             header='Confusion Matrix',
             display=description
         )
 
-    def update_object_detection(self, predictions, labels):
+    def update_object_detection(self, batch: Batch):
         """Update the confusion matrix by batch for object detection task."""
         assert self.matrix is not None
+        assert self.misclassified_images is not None
 
-        for image_detections, image_labels in zip(predictions, labels):
+        labels = batch.labels
+        predictions = batch.predictions
+        images = batch.images
+
+        for image, detected_bboxes, label_bboxes in zip(images, predictions, labels):
             detections_passed_threshold = [
-                detection for detection in image_detections
+                detection for detection in detected_bboxes
                 if detection[4] > self.confidence_threshold
             ]
 
             if len(detections_passed_threshold) == 0:
                 # detections are empty, update matrix for labels
-                for label in image_labels:
+                for label in label_bboxes:
                     label_class = int(label[0].item())
                     self.matrix[label_class]['no-overlapping'] += 1
                 continue
 
             list_of_ious = (
                 (label_index, detected_index, jaccard_iou(detected, label))
-                for label_index, label in enumerate(image_labels)
+                for label_index, label in enumerate(label_bboxes)
                 for detected_index, detected in enumerate(detections_passed_threshold)
             )
             matches = np.array([
@@ -198,25 +211,178 @@ class ConfusionMatrixReport(SingleDatasetCheck):
 
             n_of_matches = len(matches)
 
-            for label_index, label in enumerate(image_labels):
-                label_class = int(label[0])
-                if n_of_matches > 0 and (matches[:, 0] == label_index).any():
-                    detection_index = int(matches[matches[:, 0] == label_index, 1][0])
-                    detected_class = int(image_detections[detection_index][5])
-                    self.matrix[label_class][detected_class] += 1
+            for index, bbox in enumerate(label_bboxes):
+                bbox_class = int(bbox[0])
+                if n_of_matches > 0 and (matches[:, 0] == index).any():
+                    detection_index = int(matches[matches[:, 0] == index, 1][0])
+                    detected_bbox = detected_bboxes[detection_index]
+                    detected_class = int(detected_bbox[5])
+                    self.matrix[bbox_class][detected_class] += 1
+                    if bbox_class != detected_class:
+                        # NOTE: 
+                        # not all misclassified images will be displayed
+                        # therefore to omit unneeded work at current stage 
+                        # we will wrap bbox drawing step into callable
+                        breakpoint()
+                        img = partial(
+                            self._draw_bboxes, 
+                            image=image,
+                            label=np.array([
+                                bbox.numpy()
+                                if isinstance(bbox, torch.Tensor)
+                                else bbox]),
+                            detected=np.array([
+                                detected_bbox.numpy()
+                                if isinstance(detected_bbox, torch.Tensor) 
+                                else detected_bbox])
+                        )
+                        self.misclassified_images.append((bbox_class, detected_class, img))
                 else:
-                    self.matrix[label_class]['no-overlapping'] += 1
+                    self.matrix[bbox_class]['no-overlapping'] += 1
 
-            for detection_index, detection in enumerate(detections_passed_threshold):
-                if n_of_matches > 0 and not (matches[:, 1] == detection_index).any():
-                    detected_class = int(detection[5])
+            for index, detected_bbox in enumerate(detections_passed_threshold):
+                if n_of_matches > 0 and not (matches[:, 1] == index).any():
+                    detected_class = int(detected_bbox[5])
                     self.matrix['no-overlapping'][detected_class] += 1
 
-    def update_classification(self, predictions, labels):
+    def update_classification(self, batch: Batch):
         """Update the confusion matrix by batch for classification task."""
         assert self.matrix is not None
+        assert self.misclassified_images is not None
 
-        for predicted_classes, image_labels in zip(predictions, labels):
+        labels = batch.labels
+        predictions = batch.predictions
+        images = batch.images
+
+        for image, predicted_classes, image_labels in zip(images, predictions, labels):
             detected_class = max(range(len(predicted_classes)), key=predicted_classes.__getitem__)
             label_class = image_labels.item() if isinstance(image_labels, torch.Tensor) else image_labels
             self.matrix[label_class][detected_class] += 1
+            if label_class != detected_class:
+                self.misclassified_images.append((label_class, detected_class, image))
+
+    def _misclassified_images_thumbnails(
+        self,
+        matrix: pd.DataFrame,
+        dataset: VisionData
+    ) -> str:
+        assert self.misclassified_images is not None
+
+        if self.n_of_images_to_show == 0:
+            return ''
+
+        template = dedent(f"""
+            <h4>Misclassified Images</h4>
+            <p><b>NOTE:</b> in case of object detection task the next colors
+            are used for bbox identification:</p>
+            <ul>
+                <li>{self._LABEL_COLOR} - ground truth</li>
+                <li>{self._DETECTION_COLOR} - detected truth</li>
+            </ul>
+            <p>Showing {self.n_of_images_to_show} of {{n_of_images}} images:</p>
+            <div
+                style="
+                    overflow-x: auto;
+                    display: grid;
+                    grid-template-rows: auto;
+                    grid-template-columns: auto auto 1fr;
+                    grid-gap: 1.5rem;
+                    justify-items: center;
+                    align-items: center;
+                    padding: 2rem;
+                    width: max-content;">
+                {{data}}
+            </div>
+        """)
+
+        misclassifications = (
+            (
+                label_class,
+                detected_class,
+                matrix.at[label_class, detected_class]  # count
+            )
+            for label_class, detected_class in product(list(matrix.index), repeat=2)
+            if label_class != detected_class
+        )
+        misclassifications = sorted(
+            misclassifications,
+            key=lambda it: it[2],
+            reverse=True
+        )
+        misclassified_images = [
+            (
+                (dataset.label_id_to_name(x_label), x_label), 
+                (dataset.label_id_to_name(x_detected), x_detected), 
+                img
+            )
+            for x_label, x_detected, _ in misclassifications
+            for (y_label, y_detected, img) in self.misclassified_images
+            if x_label == y_label and x_detected == y_detected
+        ]
+
+        if len(misclassified_images) == 0:
+            return ''
+
+        grid = [
+            '<span><b>Ground Truth</b></span>',
+            '<span><b>Detected Truth</b></span>',
+            '<span><b>Image</b></span>',
+        ]
+
+        for label, detected, img in misclassified_images[:self.n_of_images_to_show]:
+            label_name, label_id = label
+            detection_name, detection_id = detected
+            grid.append(f'<span>{label_name} (id: {label_id})</span>')
+            grid.append(f'<span>{detection_name} (id: {detection_id})</span>')
+            # NOTE: take a look at the update_object_detection method
+            # to understand why 'img' might be a callable
+            grid.append(prepare_thumbnail(
+                image=img() if callable(img) else img, 
+                size=self._IMAGE_THUMBNAIL_SIZE
+            ))
+
+        return template.format(
+            n_of_images=len(misclassified_images),
+            data=''.join(grid)
+        )
+    
+    def _draw_bboxes(self, image, label, detected):
+        img = draw_bboxes(
+            image=image,
+            bboxes=label,
+            border_width=2,
+            color=self._LABEL_COLOR
+        )
+        return draw_bboxes(
+            image=img,
+            bboxes=detected,
+            bbox_notation='xywhl',
+            border_width=2,
+            color=self._DETECTION_COLOR,
+            copy_image=False
+        )
+
+
+def filter_confusion_matrix(
+    confusion_matrix: np.ndarray, 
+    number_of_categories: int
+) -> t.Tuple[np.ndarray, t.List[int]]:
+    pq = PriorityQueue()
+    for row_index, column_index, value in flatten_matrix(confusion_matrix):
+        if row_index != column_index:
+            pq.put((-value, (row_index, column_index)))
+    categories = set()
+    while not pq.empty():
+        if len(categories) >= number_of_categories:
+            break
+        _, (row, col) = pq.get()
+        categories.add(row)
+        categories.add(col)
+    categories = sorted(categories)
+    return confusion_matrix[np.ix_(categories, categories)], categories
+
+
+def flatten_matrix(matrix: np.ndarray) -> t.Iterator[t.Tuple[int, int, t.Any]]:
+    for row_index, row in enumerate(matrix):
+        for column_index, cell in enumerate(row):
+            yield row_index, column_index, cell
