@@ -98,12 +98,11 @@ class ImagePropertyDrift(TrainTestCheck):
             )
 
         images = batch.images
-        labels = batch.labels
-        classes = context.train.get_classes(labels)
 
         if self.classes_to_display:
             # use only images belonging (or containing an annotation belonging) to one of the classes in
             # classes_to_display
+            classes = context.train.get_classes(batch.labels)
             images = [
                 image for idx, image in enumerate(images) if
                 any(cls in map(self._class_to_string, classes[idx]) for cls in self.classes_to_display)
