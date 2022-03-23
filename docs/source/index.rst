@@ -26,9 +26,9 @@ Get Started
 
 For a quickstart, check out the following in the tutorials section:
 
-**Tabular Data**: 
+**Tabular Data**:
 
-:doc:`Quickstart in 5 minutes </tutorials/tabular/quickstart_in_5_minutes>` 
+:doc:`Quickstart in 5 minutes </tutorials/tabular/examples/quickstart_in_5_minutes>`
 and use |binder badge|  or  |colab badge|  to launch it and see it in action.
 
 **Computer Vision**
@@ -48,7 +48,7 @@ Installation
 ------------
 Check out our :doc:`Installation Instructions </getting-started/index>` to install it locally and continue from there.
 
-.. note:: 
+.. note::
    The package's output can be consumed in many formats:
    - Viewed inline in Jupyter (default behavior)
    - :doc:`Exported as an HTML Report / JSON / Sent to W&B </user-guide/general/exporting_results/index>`
