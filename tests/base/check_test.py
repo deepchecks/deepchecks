@@ -122,7 +122,7 @@ def test_condition_decision():
         all_of(
             has_property('name', 'condition A'),
             has_property('is_pass', equal_to(True)),
-            has_property('category', ConditionCategory.FAIL),
+            has_property('category', ConditionCategory.PASS),
             has_property('details', '')
         ),
         all_of(
