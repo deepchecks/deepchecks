@@ -14,6 +14,7 @@ import timeit
 
 import numpy as np
 
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
@@ -95,12 +96,12 @@ class ModelInferenceTime(SingleDatasetCheck):
         """
         def condition(avarage_time: float) -> ConditionResult:
             if avarage_time >= value:
-                return ConditionResult(False, details=(
+                return ConditionResult(ConditionCategory.FAIL, details=(
                     'Found average inference time (in seconds) above threshold: '
                     f'{format_number(avarage_time, floating_point=8)}'
                 ))
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(condition_func=condition, name=(
             'Average model inference time for one sample is not '

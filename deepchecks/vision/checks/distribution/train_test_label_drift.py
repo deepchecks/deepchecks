@@ -15,6 +15,7 @@ import pandas as pd
 from collections import OrderedDict, defaultdict
 
 from deepchecks.core import ConditionResult
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.core import DatasetKind, CheckResult
 from deepchecks.core.errors import DeepchecksNotSupportedError
@@ -24,7 +25,8 @@ from deepchecks.vision.utils.label_prediction_properties import (
     DEFAULT_CLASSIFICATION_LABEL_PROPERTIES,
     DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES,
     validate_properties,
-    get_column_type
+    get_column_type,
+    properties_flatten
 )
 
 
@@ -127,7 +129,8 @@ class TrainTestLabelDrift(TrainTestCheck):
             raise DeepchecksNotSupportedError(f'Unsupported dataset kind {dataset_kind}')
 
         for label_property in self._label_properties:
-            properties[label_property['name']] += label_property['method'](batch.labels)
+            # Flatten the properties since I don't care in this check about the property-per-sample coupling
+            properties[label_property['name']] += properties_flatten(label_property['method'](batch.labels))
 
     def compute(self, context: Context) -> CheckResult:
         """Calculate drift on label properties samples that were collected during update() calls.
@@ -213,9 +216,9 @@ class TrainTestLabelDrift(TrainTestCheck):
                               f' threshold: {not_passing_numeric_columns}\n'
 
             if return_str:
-                return ConditionResult(False, return_str)
+                return ConditionResult(ConditionCategory.FAIL, return_str)
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'PSI <= {max_allowed_psi_score} and Earth Mover\'s Distance <= '
                                   f'{max_allowed_earth_movers_score} for label drift',

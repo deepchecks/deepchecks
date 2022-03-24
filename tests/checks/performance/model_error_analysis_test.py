@@ -96,6 +96,5 @@ def test_condition_pass(iris_labeled_dataset, iris_adaboost):
         equal_condition_result(
             is_pass=True,
             name='The performance difference of the detected segments must not be greater than 200%',
-            category=ConditionCategory.WARN
         )
     ))

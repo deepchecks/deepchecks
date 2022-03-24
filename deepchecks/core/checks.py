@@ -68,9 +68,9 @@ class BaseCheck(abc.ABC):
                 output = condition.function(result.value, **condition.params)
             except Exception as e:
                 msg = f'Exception in condition: {e.__class__.__name__}: {str(e)}'
-                output = ConditionResult(False, msg, ConditionCategory.WARN)
+                output = ConditionResult(ConditionCategory.WARN, msg)
             if isinstance(output, bool):
-                output = ConditionResult(output)
+                output = ConditionResult(ConditionCategory.PASS if output else ConditionCategory.FAIL)
             elif not isinstance(output, ConditionResult):
                 raise DeepchecksValueError(f'Invalid return type from condition {condition.name}, got: {type(output)}')
             output.set_name(condition.name)

@@ -10,7 +10,9 @@
 #
 """The single_feature_contribution check module."""
 import typing as t
+
 from deepchecks.core.check_utils.single_feature_contribution_utils import get_single_feature_contribution
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.utils.typing import Hashable
@@ -125,9 +127,9 @@ class SingleFeatureContributionTrainTest(TrainTestCheck):
 
             if failed_features:
                 message = f'Features with PPS difference above threshold: {failed_features}'
-                return ConditionResult(False, message)
+                return ConditionResult(ConditionCategory.FAIL, message)
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Train-Test features\' Predictive Power Score difference is not greater than '
                                   f'{format_number(threshold)}', condition)
@@ -156,9 +158,9 @@ class SingleFeatureContributionTrainTest(TrainTestCheck):
 
             if failed_features:
                 message = f'Features in train dataset with PPS above threshold: {failed_features}'
-                return ConditionResult(False, message)
+                return ConditionResult(ConditionCategory.FAIL, message)
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Train features\' Predictive Power Score is not greater than '
                                   f'{format_number(threshold)}', condition)

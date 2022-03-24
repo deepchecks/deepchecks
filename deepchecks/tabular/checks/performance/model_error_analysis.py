@@ -189,9 +189,9 @@ class ModelErrorAnalysis(TrainTestCheck):
             if fails:
                 sorted_fails = dict(sorted(fails.items(), key=lambda item: item[1]))
                 msg = f'Found change in {result["scorer_name"]} in features above threshold: {sorted_fails}'
-                return ConditionResult(False, msg, category=ConditionCategory.WARN)
+                return ConditionResult(ConditionCategory.WARN, msg)
             else:
-                return ConditionResult(True, category=ConditionCategory.WARN)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'The performance difference of the detected segments must'
                                   f' not be greater than {format_percent(max_ratio_change)}', condition)

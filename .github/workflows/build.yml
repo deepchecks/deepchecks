@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.6", "3.7", "3.8", "3.9"] #TODO: add 3.10 when scikit-learn have a wheel https://github.com/scikit-learn/scikit-learn/pull/21232
+        python-version: ["3.6", "3.7", "3.8", "3.9"] #TODO: add 3.10 when upgrading torch to 1.11
 
     steps:
     - uses: actions/checkout@v2
@@ -38,7 +38,6 @@ jobs:
       run: make test
   coverage:
     runs-on: ubuntu-latest
-    needs: tests
     name: coveralls
     steps:
     - uses: actions/checkout@v2
@@ -92,7 +91,7 @@ jobs:
       with:
         requirements: 'requirements-all.txt'
         fail: 'Copyleft,Other,Error'
-        exclude: '(pyzmq.*22\.3\.0|debugpy.*1\.5\.1|certifi.*2021\.10\.8|tqdm.*4\.63\.0|webencodings.*0\.5\.1|torch.*1\.10\.2.*|torchaudio.*0\.10\.2.*|torchvision.*0\.11\.3.*)'
+        exclude: '(pyzmq.*22\.3\.0|debugpy.*1\.5\.1|certifi.*2021\.10\.8|tqdm.*4\.63\.1|webencodings.*0\.5\.1|torch.*1\.10\.2.*|torchaudio.*0\.10\.2.*|torchvision.*0\.11\.3.*)'
         # pyzmq is Revised BSD https://github.com/zeromq/pyzmq/blob/main/examples/LICENSE
         # debugpy is MIT https://github.com/microsoft/debugpy/blob/main/LICENSE
         # certifi is MPL-2.0 https://github.com/certifi/python-certifi/blob/master/LICENSE

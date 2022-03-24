@@ -12,7 +12,7 @@
 from typing import Union, List, Dict
 import pandas as pd
 
-from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
@@ -139,11 +139,11 @@ class CategoryMismatchTrainTest(TrainTestCheck):
                 if num_categories > max_new:
                     not_passing_columns[column_name] = num_categories
             if not_passing_columns:
-                return ConditionResult(False,
+                return ConditionResult(ConditionCategory.FAIL,
                                        f'Found columns with number of new categories above threshold: '
                                        f'{not_passing_columns}')
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Number of new category values is not greater than {max_new}',
                                   condition)
@@ -164,11 +164,11 @@ class CategoryMismatchTrainTest(TrainTestCheck):
                 if n_new_samples > max_ratio:
                     not_passing_columns[column_name] = format_percent(n_new_samples)
             if not_passing_columns:
-                return ConditionResult(False,
+                return ConditionResult(ConditionCategory.FAIL,
                                        f'Found columns with ratio of new category samples above threshold: '
                                        f'{not_passing_columns}')
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(
             f'Ratio of samples with a new category is not greater than {format_percent(max_ratio)}',

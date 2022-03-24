@@ -24,8 +24,7 @@ from deepchecks.core.checks import (
 )
 from deepchecks.vision.context import Context
 from deepchecks.vision.vision_data import VisionData
-
-from .context import Batch
+from deepchecks.vision.batch_wrapper import Batch
 
 
 logger = logging.getLogger('deepchecks')
@@ -61,10 +60,12 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         self.initialize_run(context, DatasetKind.TRAIN)
 
         context.train.init_cache()
+        batch_start_index = 0
         for batch in context.train:
-            batch = Batch(batch, context, DatasetKind.TRAIN)
-            context.train.update_cache(batch.labels)
+            batch = Batch(batch, context, DatasetKind.TRAIN, batch_start_index)
+            context.train.update_cache(batch)
             self.update(context, batch, DatasetKind.TRAIN)
+            batch_start_index += len(batch)
 
         return self.finalize_check_result(self.compute(context, DatasetKind.TRAIN))
 
@@ -109,16 +110,20 @@ class TrainTestCheck(TrainTestBaseCheck):
         self.initialize_run(context)
 
         context.train.init_cache()
+        batch_start_index = 0
         for batch in context.train:
-            batch = Batch(batch, context, DatasetKind.TRAIN)
-            context.train.update_cache(batch.labels)
+            batch = Batch(batch, context, DatasetKind.TRAIN, batch_start_index)
+            context.train.update_cache(batch)
             self.update(context, batch, DatasetKind.TRAIN)
+            batch_start_index += len(batch)
 
         context.test.init_cache()
+        batch_start_index = 0
         for batch in context.test:
-            batch = Batch(batch, context, DatasetKind.TEST)
-            context.test.update_cache(batch.labels)
+            batch = Batch(batch, context, DatasetKind.TEST, batch_start_index)
+            context.test.update_cache(batch)
             self.update(context, batch, DatasetKind.TEST)
+            batch_start_index += len(batch)
 
         return self.finalize_check_result(self.compute(context))
 

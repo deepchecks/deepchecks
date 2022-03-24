@@ -15,13 +15,15 @@ from collections import OrderedDict, defaultdict
 import pandas as pd
 
 from deepchecks import ConditionResult
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.core import DatasetKind, CheckResult
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.vision import Context, TrainTestCheck, Batch
 from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.utils.label_prediction_properties import validate_properties, \
-    DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES, DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES, get_column_type
+    DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES, DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES, get_column_type, \
+    properties_flatten
 
 __all__ = ['TrainTestPredictionDrift']
 
@@ -120,7 +122,10 @@ class TrainTestPredictionDrift(TrainTestCheck):
             raise DeepchecksNotSupportedError(f'Unsupported dataset kind {dataset_kind}')
 
         for prediction_property in self._prediction_properties:
-            properties[prediction_property['name']] += prediction_property['method'](batch.predictions)
+            # Flatten the properties since I don't care in this check about the property-per-sample coupling
+            properties[prediction_property['name']] += properties_flatten(
+                prediction_property['method'](batch.predictions)
+            )
 
     def compute(self, context: Context) -> CheckResult:
         """Calculate drift on prediction properties samples that were collected during update() calls.
@@ -208,9 +213,9 @@ class TrainTestPredictionDrift(TrainTestCheck):
                               f' threshold: {not_passing_numeric_columns}\n'
 
             if return_str:
-                return ConditionResult(False, return_str)
+                return ConditionResult(ConditionCategory.FAIL, return_str)
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'PSI <= {max_allowed_psi_score} and Earth Mover\'s Distance <= '
                                   f'{max_allowed_earth_movers_score} for prediction drift',

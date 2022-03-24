@@ -40,7 +40,7 @@ def test_test_dataset_size_check_with_condition_that_should_pass(iris_split_data
         is_pass=True,
         name='Test dataset size is not smaller than 10',
         details='',
-        category=ConditionCategory.FAIL
+        category=ConditionCategory.PASS
     ))
 
 
@@ -70,7 +70,7 @@ def test_test_dataset_size_check_with_size_ratio_condition_that_should_pass(iris
         is_pass=True,
         name='Test-Train size ratio is not smaller than 0.2',
         details='',
-        category=ConditionCategory.FAIL
+        category=ConditionCategory.PASS
     ))
 
 
