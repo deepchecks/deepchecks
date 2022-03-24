@@ -131,7 +131,7 @@ class SimpleModelComparison(TrainTestCheck):
 
             # calculating perfect scores
             n_of_classes = batch.predictions.to('cpu').shape[1]
-            perfect_predictions = np.eye(n_of_classes)[label]
+            perfect_predictions = np.eye(n_of_classes)[label.to('cpu').numpy()]
             for _, metric in self._perfect_metrics.items():
                 metric.update((torch.Tensor(perfect_predictions).to(context.device), label))
 
