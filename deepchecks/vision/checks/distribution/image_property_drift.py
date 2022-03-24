@@ -156,13 +156,14 @@ class ImagePropertyDrift(TrainTestCheck):
                     test_column=df_test[property_name],
                     value_name=property_name,
                     column_type=image_properties.get_column_type(single_property['output_type']),
-                    max_num_categories=self.max_num_categories
+                    max_num_categories=self.max_num_categories,
+                    min_samples=self.min_samples
                 )
 
                 figures[property_name] = figure
                 drifts[property_name] = score
             except NotEnoughSamplesError:
-                figures[property_name] = '<p>Not enough samples to calculate drift</p>'
+                figures[property_name] = '<p>Not enough non-null samples to calculate drift</p>'
                 drifts[property_name] = 0
 
         if drifts:
