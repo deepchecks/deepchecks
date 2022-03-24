@@ -181,7 +181,7 @@ check = SimpleFeatureContribution()
 check.run(train_ds, test_ds)
 
 #%%
-# Insert bais
+# Insert bias
 # -----------
 # Let's now see what happens when we insert bias into the dataset.
 #
