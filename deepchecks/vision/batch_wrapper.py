@@ -14,7 +14,7 @@ from typing import Tuple, Iterable, Any, TypeVar, Callable, cast
 import torch
 
 from deepchecks.core import DatasetKind
-from deepchecks.vision.context import Context
+from deepchecks.vision.context import Context  # pylint: disable=unused-import, it is used as annotation
 
 
 __all__ = ['Batch']
@@ -26,7 +26,7 @@ class Batch:
     def __init__(
         self,
         batch: Tuple[Iterable[Any], Iterable[Any]],
-        context: 'Context',  # noqa
+        context: 'Context',
         dataset_kind: DatasetKind,
         batch_start_index: int
     ):

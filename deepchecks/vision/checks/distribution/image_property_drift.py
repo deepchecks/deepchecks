@@ -76,7 +76,7 @@ class ImagePropertyDrift(TrainTestCheck):
             self.image_properties = image_properties.default_image_properties
 
         self.max_num_categories = max_num_categories
-        self.classes_to_display = classes_to_display
+        self.classes_to_display = set(classes_to_display) if classes_to_display else None
         self.min_samples = min_samples
         self._train_properties = None
         self._test_properties = None
@@ -84,7 +84,6 @@ class ImagePropertyDrift(TrainTestCheck):
 
     def initialize_run(self, context: Context):
         """Initialize self state, and validate the run context."""
-        self._class_to_string = context.train.label_id_to_name
         self._train_properties = defaultdict(list)
         self._test_properties = defaultdict(list)
 
@@ -96,8 +95,10 @@ class ImagePropertyDrift(TrainTestCheck):
     ):
         """Calculate image properties for train or test batch."""
         if dataset_kind == DatasetKind.TRAIN:
+            assert self._train_properties is not None
             properties = self._train_properties
         elif dataset_kind == DatasetKind.TEST:
+            assert self._test_properties is not None
             properties = self._test_properties
         else:
             raise RuntimeError(
@@ -106,16 +107,23 @@ class ImagePropertyDrift(TrainTestCheck):
 
         images = batch.images
         labels = batch.labels
-        classes = context.train.get_classes(labels)
+        class_to_string = context.train.label_id_to_name
 
-        if self.classes_to_display:
-            # use only images belonging (or containing an annotation belonging) to one of the classes in
-            # classes_to_display
+        if self.classes_to_display is not None:
+            # use only images belonging (or containing an annotation belonging) 
+            # to one of the classes in classes_to_display
+            #
+            # Iterator[tuple[image-index, set[image-classes]]]
+            images_classes = (
+                (index, set(map(class_to_string, image_classes)))
+                for index, image_classes in enumerate(context.train.get_classes(labels))
+            )
             images = [
-                image for idx, image in enumerate(images) if
-                any(cls in map(self._class_to_string, classes[idx]) for cls in self.classes_to_display)
+                images[index]
+                for index, classes in images_classes
+                if len(classes & self.classes_to_display) > 0
             ]
-
+            
         for single_property in self.image_properties:
             calculated_properties = single_property['method'](images)
             properties[single_property['name']].extend(calculated_properties)
@@ -129,21 +137,25 @@ class ImagePropertyDrift(TrainTestCheck):
             value: dictionary containing drift score for each image property.
             display: distribution graph for each image property.
         """
+        assert self._train_properties is not None
+        assert self._test_properties is not None
+
         if sorted(self._train_properties.keys()) != sorted(self._test_properties.keys()):
             raise RuntimeError('Internal Error! Vision check was used improperly.')
-
+        
         # if self.classes_to_display is set, check that it has classes that actually exist
         if self.classes_to_display is not None:
-            if not set(self.classes_to_display).issubset(
-                    map(self._class_to_string, context.train.classes_indices.keys())
-            ):
+            class_to_string = context.train.label_id_to_name
+            train_classes = set(map(class_to_string, context.train.classes_indices.keys()))
+            if not self.classes_to_display.issubset(train_classes):
                 raise DeepchecksValueError(
-                    f'Provided list of class ids to display {self.classes_to_display} not found in training dataset.'
+                    'Provided list of class ids to display '
+                    f'{list(self.classes_to_display)} not found in training dataset.'
                 )
 
-        properties = sorted(self._train_properties.keys())
         df_train = pd.DataFrame(self._train_properties)
         df_test = pd.DataFrame(self._test_properties)
+        
         if len(df_train) < self.min_samples or len(df_test) < self.min_samples:
             return CheckResult(
                 value=None,
@@ -151,6 +163,7 @@ class ImagePropertyDrift(TrainTestCheck):
                 header='Image Property Drift'
             )
 
+        properties = sorted(self._train_properties.keys())
         figures = {}
         drifts = {}
 
@@ -182,8 +195,8 @@ class ImagePropertyDrift(TrainTestCheck):
 
             train_samples = df_train.sample(10)
             test_samples = df_test.sample(10)
-            train_thumbnail_images, *_ = context.train.batch_of_index(*list(train_samples.index))
-            test_thumbnail_images, *_ = context.test.batch_of_index(*list(train_samples.index))
+            train_thumbnail_images, *_ = context.train.sample(*list(train_samples.index))
+            test_thumbnail_images, *_ = context.test.sample(*list(train_samples.index))
 
             thumbnails = self._prepare_thumbnails_block(
                 train_properties=train_samples.T,
@@ -191,6 +204,7 @@ class ImagePropertyDrift(TrainTestCheck):
                 train_images=train_thumbnail_images,
                 test_images=test_thumbnail_images
             )
+            
             displays = [headnote] + [figures[col] for col in columns_order] + [thumbnails]
 
         return CheckResult(

@@ -22,15 +22,20 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader, BatchSampler, Sampler
 
-
-from deepchecks.core.errors import DeepchecksNotImplementedError, DeepchecksValueError, ValidationError, \
-    DeepchecksBaseError
-from deepchecks.vision.batch_wrapper import Batch
+from deepchecks.vision import batch_wrapper
 from deepchecks.vision.utils.image_functions import ImageInfo
 from deepchecks.vision.utils.transformations import add_augmentation_in_start, get_transforms_handler
+from deepchecks.core.errors import (
+    DeepchecksNotImplementedError, 
+    DeepchecksValueError, 
+    ValidationError, 
+    DeepchecksBaseError
+)
+
 
 logger = logging.getLogger('deepchecks')
 VD = TypeVar('VD', bound='VisionData')
+
 
 __all__ = ['TaskType', 'VisionData']
 
@@ -183,7 +188,7 @@ class VisionData:
         # default implementation just calling the function to see it runs
         self.infer_on_batch(batch, model, device)
 
-    def update_cache(self, batch: Batch):
+    def update_cache(self, batch: 'batch_wrapper.Batch'):
         """Get labels and update the classes' metadata info."""
         try:
             # In case there are no labels or there is an invalid formatter function, this call will raise exception
@@ -328,6 +333,14 @@ class VisionData:
     def batch_index_to_dataset_index(self, batch_index):
         """Return for the given batch_index the sample index in the dataset object."""
         return self._sampler.index_at(batch_index)
+    
+    def sample(self, *indices: int):
+        """Return batch of the given batch indices."""
+        samples = []
+        for i in indices:
+            index_in_dataset = self._sampler.index_at(i)
+            samples.append(self.data_loader.dataset[index_in_dataset])
+        return self.to_batch(*samples)
 
     def validate_shared_label(self: VD, other: VD):
         """Verify presence of shared labels.
