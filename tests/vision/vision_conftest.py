@@ -18,6 +18,7 @@ from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.dataloader import default_collate
 
 from deepchecks.core import DatasetKind
+from deepchecks.core.errors import DeepchecksNotImplementedError
 from deepchecks.vision import VisionData, Context, Batch
 
 from deepchecks.vision.datasets.detection.coco import (
@@ -54,7 +55,9 @@ __all__ = ['device',
            'mnist_drifted_datasets',
            'mock_trained_yolov5_object_detection',
            'mock_trained_mnist',
-           'run_update_loop'
+           'run_update_loop',
+           'mnist_train_only_images',
+           'mnist_test_only_images'
            ]
 
 
@@ -248,6 +251,32 @@ def two_tuples_dataloader():
             return 8
 
     return DataLoader(TwoTupleDataset(), batch_size=4)
+
+
+@pytest.fixture(scope='session')
+def mnist_train_only_images(mnist_data_loader_train):
+    # Arrange
+    class CustomData(MNISTData):
+        def get_classes(self, labels):
+            raise DeepchecksNotImplementedError('not implemented')
+
+        def batch_to_labels(self, batch):
+            raise DeepchecksNotImplementedError('not implemented')
+
+    return CustomData(mnist_data_loader_train)
+
+
+@pytest.fixture(scope='session')
+def mnist_test_only_images(mnist_data_loader_test):
+    # Arrange
+    class CustomData(MNISTData):
+        def get_classes(self, labels):
+            raise DeepchecksNotImplementedError('not implemented')
+
+        def batch_to_labels(self, batch):
+            raise DeepchecksNotImplementedError('not implemented')
+
+    return CustomData(mnist_data_loader_test)
 
 
 def run_update_loop(dataset: VisionData):

@@ -17,8 +17,8 @@ import numpy as np
 
 from deepchecks import CheckResult
 from deepchecks.core import DatasetKind
-from deepchecks.core.errors import DeepchecksProcessError
-from deepchecks.utils.outliers import one_dimension_iqr
+from deepchecks.core.errors import DeepchecksProcessError, NotEnoughSamplesError
+from deepchecks.utils.outliers import iqr_outliers_range
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import SingleDatasetCheck, Context, Batch
 from deepchecks.vision.utils import image_properties
@@ -30,7 +30,10 @@ from deepchecks.vision.utils.image_functions import prepare_thumbnail
 
 
 class ImagePropertyOutliers(SingleDatasetCheck):
-    """
+    """Find images without outliers for the given image properties.
+
+    The check uses `IQR <https://en.wikipedia.org/wiki/Interquartile_range#Outliers>`_ to detect outliers out of the
+    single dimension properties.
 
     Parameters
     ----------
@@ -40,6 +43,10 @@ class ImagePropertyOutliers(SingleDatasetCheck):
         representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'
     n_show_top : int , default: 5
         number of outliers to show from each direction (upper limit and bottom limit)
+    iqr_percentiles: Tuple[int], default: (25, 75)
+        Two percentiles which define the IQR range
+    iqr_scale: float, default: 1.5
+        The scale to multiply the IQR range for the outliers detection
     """
 
     _THUMBNAIL_SIZE = (200, 200)
@@ -47,6 +54,8 @@ class ImagePropertyOutliers(SingleDatasetCheck):
     def __init__(self,
                  alternative_image_properties: t.List[t.Dict[str, t.Any]] = None,
                  n_show_top: int = 5,
+                 iqr_percentiles: t.Tuple[int] = (25, 75),
+                 iqr_scale: float = 1.5,
                  **kwargs):
         super().__init__(**kwargs)
         if alternative_image_properties is not None:
@@ -55,6 +64,8 @@ class ImagePropertyOutliers(SingleDatasetCheck):
         else:
             self.image_properties = image_properties.default_image_properties
 
+        self.iqr_percentiles = iqr_percentiles
+        self.iqr_scale = iqr_scale
         self.n_show_top = n_show_top
         self._properties = None
 
@@ -71,7 +82,7 @@ class ImagePropertyOutliers(SingleDatasetCheck):
                 raise DeepchecksProcessError(f'Properties are expected to return value per image but instead got'
                                              f'{len(property_list)} values for {len(images)} images for property '
                                              f'{prop_name}')
-            if any((not isinstance(x, Number) for x in property_list)):
+            if any((x is not None and not isinstance(x, Number) for x in property_list)):
                 raise DeepchecksProcessError(f'For outlier check properties are expected to be only numeric types but'
                                              f' found non-numeric value for property {prop_name}')
             self._properties[prop_name].extend(property_list)
@@ -86,7 +97,13 @@ class ImagePropertyOutliers(SingleDatasetCheck):
             # The values are in the same order as the batch order, so always keeps the same order in order to access
             # the original sample at this index location
             values = np.array(self._properties[name])
-            outliers = one_dimension_iqr(values)
+            try:
+                lower_limit, upper_limit = iqr_outliers_range(values, self.iqr_percentiles, self.iqr_scale)
+            except NotEnoughSamplesError:
+                result[name] = 'Not enough non-null samples to calculate outliers.'
+                continue
+
+            outliers = (values < lower_limit) | (values > upper_limit)
 
             # sort indices by value size
             sorted_indices = values.argsort()
@@ -97,10 +114,10 @@ class ImagePropertyOutliers(SingleDatasetCheck):
             outliers_samples = []
             for index in top_and_bottom:
                 # If not an outlier then skip
-                if outliers[index] is False:
+                if not outliers[index]:
                     continue
 
-                outliers_samples.append(values[index])
+                outliers_samples.append(values[index].item())
                 batch = data.batch_of_index(index)
                 image = data.batch_to_images(batch)[0]
                 images[name].append(prepare_thumbnail(
@@ -111,30 +128,52 @@ class ImagePropertyOutliers(SingleDatasetCheck):
 
             result[name] = {
                 'sample_values': outliers_samples,
-                'count': outliers.sum()
+                'count': outliers.sum(),
+                'lower_limit': lower_limit,
+                'upper_limit': upper_limit
             }
 
         # Create display
         display = []
         for property_name, info in result.items():
-            values_combine = ''.join([f'<p>{format_number(x)}</p>' for x in info['sample_values']])
-            images_combine = ''.join(images[property_name])
+            # If info is string it means there was error
+            if isinstance(info, str):
+                html = NO_IMAGES_TEMPLATE.format(prop_name=property_name, message=info)
+            elif info['count'] == 0:
+                html = NO_IMAGES_TEMPLATE.format(prop_name=property_name,
+                                                 message='No outliers found.')
+            else:
+                values_combine = ''.join([f'<p>{format_number(x)}</p>' for x in info['sample_values']])
+                images_combine = ''.join(images[property_name])
 
-            display.append(HTML_TEMPLATE.format(
-                prop_name=property_name,
-                values=values_combine,
-                images=images_combine,
-                count=info['count'],
-                n_of_images=len(images[property_name])
-            ))
+                html = HTML_TEMPLATE.format(
+                    prop_name=property_name,
+                    values=values_combine,
+                    images=images_combine,
+                    count=info['count'],
+                    n_of_images=len(images[property_name]),
+                    lower_limit=format_number(info['lower_limit']),
+                    upper_limit=format_number(info['upper_limit'])
+                )
+
+            display.append(html)
 
         return CheckResult(result, display=''.join(display))
+
+
+NO_IMAGES_TEMPLATE = """
+<h3><b>Property "{prop_name}"</b></h3>
+<div>{message}</div>
+"""
 
 
 HTML_TEMPLATE = """
 <h3><b>Property "{prop_name}"</b></h3>
 <div>
 Total number of outliers: {count}
+</div>
+<div>
+Non-outliers range: {lower_limit} to {upper_limit}
 </div>
 <h4>Samples</h4>
 <div
