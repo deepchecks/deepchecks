@@ -1,3 +1,14 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
+"""Module containing all outliers algorithms used in the library."""
 from typing import Tuple
 
 import numpy as np
@@ -26,8 +37,8 @@ def iqr_outliers_range(data: np.ndarray,
     Tuple[float, float]
         Tuple of lower limit and upper limit of outliers range
     """
-    if len(iqr_range) != 2 or any([x < 0 or x > 100 for x in iqr_range]):
-        raise DeepchecksValueError(f'IQR range must contain two numbers between 0 to 100')
+    if len(iqr_range) != 2 or any((x < 0 or x > 100 for x in iqr_range)):
+        raise DeepchecksValueError('IQR range must contain two numbers between 0 to 100')
 
     data = data.squeeze()
     if data.ndim > 1:

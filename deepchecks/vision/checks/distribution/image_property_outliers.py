@@ -70,9 +70,11 @@ class ImagePropertyOutliers(SingleDatasetCheck):
         self._properties = None
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
+        """Initialize the properties state."""
         self._properties = defaultdict(list)
 
     def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
+        """Aggregate image properties from batch."""
         images = batch.images
 
         for single_property in self.image_properties:
@@ -88,6 +90,7 @@ class ImagePropertyOutliers(SingleDatasetCheck):
             self._properties[prop_name].extend(property_list)
 
     def compute(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
+        """Compute final result."""
         data = context.get_data_by_kind(dataset_kind)
         result = {}
         images = defaultdict(list)

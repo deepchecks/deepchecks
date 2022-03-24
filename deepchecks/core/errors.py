@@ -96,6 +96,6 @@ class ModelValidationError(DeepchecksBaseError):
 
 
 class NotEnoughSamplesError(DeepchecksBaseError):
-    """Represents a failure in calculation due to insufficient amount of samples"""
+    """Represents a failure in calculation due to insufficient amount of samples."""
 
     pass

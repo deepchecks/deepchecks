@@ -34,7 +34,10 @@ from tests.vision.utils_tests.mnist_imgaug import mnist_dataset_imgaug
 from tests.vision.assets.coco_detections_dict import coco_detections_dict
 from tests.vision.assets.mnist_predictions_dict import mnist_predictions_dict
 
+
 from PIL import Image
+
+
 
 # Fix bug with torch.hub path on windows
 PROJECT_DIR = pathlib.Path(__file__).absolute().parent.parent.parent
@@ -254,10 +257,10 @@ def two_tuples_dataloader():
 
 
 @pytest.fixture(scope='session')
-def mnist_train_only_images(mnist_data_loader_train):
+def mnist_train_only_images(mnist_data_loader_train):  # pylint: disable=redefined-outer-name
     # Arrange
     class CustomData(MNISTData):
-        def get_classes(self, labels):
+        def get_classes(self, batch_labels):
             raise DeepchecksNotImplementedError('not implemented')
 
         def batch_to_labels(self, batch):
@@ -267,10 +270,10 @@ def mnist_train_only_images(mnist_data_loader_train):
 
 
 @pytest.fixture(scope='session')
-def mnist_test_only_images(mnist_data_loader_test):
+def mnist_test_only_images(mnist_data_loader_test):  # pylint: disable=redefined-outer-name
     # Arrange
     class CustomData(MNISTData):
-        def get_classes(self, labels):
+        def get_classes(self, batch_labels):
             raise DeepchecksNotImplementedError('not implemented')
 
         def batch_to_labels(self, batch):
