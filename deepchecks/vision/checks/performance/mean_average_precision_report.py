@@ -18,6 +18,7 @@ import plotly.express as px
 import numpy as np
 
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import SingleDatasetCheck, Context, Batch
 from deepchecks.vision.vision_data import TaskType
@@ -38,8 +39,8 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
         Slices for small/medium/large buckets.
     """
 
-    def __init__(self, area_range: Tuple = (32**2, 96**2)):
-        super().__init__()
+    def __init__(self, area_range: Tuple = (32**2, 96**2), **kwargs):
+        super().__init__(**kwargs)
         self._area_range = area_range
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind = None):
@@ -110,8 +111,8 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
             if len(not_passed):
                 details = f'Found scores below threshold:\n' \
                           f'{dict(not_passed)}'
-                return ConditionResult(False, details)
-            return ConditionResult(True)
+                return ConditionResult(ConditionCategory.FAIL, details)
+            return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Scores are not less than {min_score}', condition)
 
@@ -128,7 +129,7 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
             value = df.loc[df['Area size'] == 'All', :]['mAP@0.5..0.95 (%)'][0]
             if value < min_score:
                 details = f'mAP score is: {format_number(value)}'
-                return ConditionResult(False, details)
-            return ConditionResult(True)
+                return ConditionResult(ConditionCategory.FAIL, details)
+            return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'mAP score is not less than {min_score}', condition)

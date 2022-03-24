@@ -10,7 +10,9 @@
 #
 """The single_feature_contribution check module."""
 import typing as t
+
 from deepchecks.core.check_utils.single_feature_contribution_utils import get_single_feature_contribution
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.utils.typing import Hashable
@@ -45,14 +47,14 @@ class SingleFeatureContributionTrainTest(TrainTestCheck):
     ----------
     ppscore_params : dict , default: None
         dictionary of additional parameters for the ppscore predictor function
-    n_show_top : int , default: 5
+    n_top_features : int , default: 5
         Number of features to show, sorted by the magnitude of difference in PPS
     """
 
-    def __init__(self, ppscore_params=None, n_show_top: int = 5):
-        super().__init__()
+    def __init__(self, ppscore_params=None, n_top_features: int = 5, **kwargs):
+        super().__init__(**kwargs)
         self.ppscore_params = ppscore_params or {}
-        self.n_show_top = n_show_top
+        self.n_top_features = n_top_features
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check.
@@ -97,7 +99,7 @@ class SingleFeatureContributionTrainTest(TrainTestCheck):
                                                              train_dataset.label_name,
                                                              test_dataset.data[relevant_columns],
                                                              test_dataset.label_name, self.ppscore_params,
-                                                             self.n_show_top)
+                                                             self.n_top_features)
 
         if display:
             display += text
@@ -125,9 +127,9 @@ class SingleFeatureContributionTrainTest(TrainTestCheck):
 
             if failed_features:
                 message = f'Features with PPS difference above threshold: {failed_features}'
-                return ConditionResult(False, message)
+                return ConditionResult(ConditionCategory.FAIL, message)
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Train-Test features\' Predictive Power Score difference is not greater than '
                                   f'{format_number(threshold)}', condition)
@@ -156,9 +158,9 @@ class SingleFeatureContributionTrainTest(TrainTestCheck):
 
             if failed_features:
                 message = f'Features in train dataset with PPS above threshold: {failed_features}'
-                return ConditionResult(False, message)
+                return ConditionResult(ConditionCategory.FAIL, message)
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Train features\' Predictive Power Score is not greater than '
                                   f'{format_number(threshold)}', condition)

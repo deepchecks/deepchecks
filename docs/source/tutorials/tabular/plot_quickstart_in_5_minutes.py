@@ -6,7 +6,7 @@ In order to run your first Deepchecks Suite all you need to have is the data
 and model that you wish to validate. More specifically, you need:
 
 * Your train and test data (in Pandas DataFrames or Numpy Arrays)
-* (optional) A `supported model </user-guide/tabular/supported_models.rst>`__ (including XGBoost,
+* (optional) A `supported model </user-guide/tabular/supported_models.html>`__ (including XGBoost,
   scikit-learn models, and many more). Required for running checks that need the
   model's predictions for running.
 
@@ -43,7 +43,7 @@ label_col = 'target'
 df_train, df_test = train_test_split(iris_df, stratify=iris_df[label_col], random_state=0)
 
 # Train Model
-rf_clf = RandomForestClassifier()
+rf_clf = RandomForestClassifier(random_state=0)
 rf_clf.fit(df_train.drop(label_col, axis=1), df_train[label_col]);
 
 #%%
@@ -70,7 +70,7 @@ ds_test =  Dataset(df_test,  label=label_col, cat_features=[])
 # ------------------
 # Use the ``full_suite`` that is a collection of (most of) the prebuilt checks.
 #
-# Check out the `when should you use </user-guide/concepts/when_should_you_use.rst>`__
+# Check out the `when should you use </getting-started/when_should_you_use.html>`__
 # deepchecks guide for some more info about the existing suites and when to use them.
 
 from deepchecks.tabular.suites import full_suite
@@ -97,8 +97,8 @@ integ_suite.run(ds_train)
 # ======================
 # If you want to run a specific check, you can just import it and run it directly.
 #
-# Check out the `Check Demonstrations </examples/tabular/checks/index.rst>`__ in
-# the examples or the `API Reference </api/index.rst>`__ for more info about the
+# Check out the `Check tabular examples </examples/index.html>`__ in
+# the examples or the `API Reference </api/index.html>`__ for more info about the
 # existing checks and their parameters.
 
 from deepchecks.tabular.checks import TrainTestLabelDrift

@@ -15,7 +15,7 @@ from scipy.stats import chi2_contingency, fisher_exact
 import numpy as np
 import pandas as pd
 
-from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
@@ -38,9 +38,14 @@ class DominantFrequencyChange(TrainTestCheck):
         amount of columns to show ordered by feature importance (date, index, label are first).
     """
 
-    def __init__(self, dominance_ratio: float = 2, ratio_change_thres: float = 1.5,
-                 n_top_columns: int = 10):
-        super().__init__()
+    def __init__(
+        self,
+        dominance_ratio: float = 2,
+        ratio_change_thres: float = 1.5,
+        n_top_columns: int = 10,
+        **kwargs
+    ):
+        super().__init__(**kwargs)
         self.dominance_ratio = dominance_ratio
         self.ratio_change_thres = ratio_change_thres
         self.n_top_columns = n_top_columns
@@ -184,10 +189,10 @@ class DominantFrequencyChange(TrainTestCheck):
                 if p_val < p_value_threshold:
                     failed_columns[column] = format_number(p_val)
             if failed_columns:
-                return ConditionResult(False,
+                return ConditionResult(ConditionCategory.FAIL,
                                        f'Found columns with p-value below threshold: {failed_columns}')
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'P value is not less than {p_value_threshold}',
                                   condition)
@@ -212,11 +217,11 @@ class DominantFrequencyChange(TrainTestCheck):
                 if diff > percent_change_threshold:
                     failed_columns[column] = format_percent(diff, 2)
             if failed_columns:
-                return ConditionResult(False,
+                return ConditionResult(ConditionCategory.FAIL,
                                        'Found columns with % difference in dominant value above threshold: '
                                        f'{failed_columns}')
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Change in ratio of dominant value in data is not greater'
                                   f' than {format_percent(percent_change_threshold)}',

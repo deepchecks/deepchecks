@@ -56,9 +56,16 @@ class UnusedFeatures(TrainTestCheck):
         The random state to use for permutation feature importance and PCA.
     """
 
-    def __init__(self, feature_importance_threshold: float = 0.2, feature_variance_threshold: float = 0.4,
-                 n_top_fi_to_show: int = 5, n_top_unused_to_show: int = 15, random_state: int = 42):
-        super().__init__()
+    def __init__(
+        self,
+        feature_importance_threshold: float = 0.2,
+        feature_variance_threshold: float = 0.4,
+        n_top_fi_to_show: int = 5,
+        n_top_unused_to_show: int = 15,
+        random_state: int = 42,
+        **kwargs
+    ):
+        super().__init__(**kwargs)
         self.feature_importance_threshold = feature_importance_threshold
         self.feature_variance_threshold = feature_variance_threshold
         self.n_top_fi_to_show = n_top_fi_to_show
@@ -221,11 +228,10 @@ class UnusedFeatures(TrainTestCheck):
             high_var_features = result['unused features']['high variance']
             if len(high_var_features) > max_high_variance_unused_features:
                 return ConditionResult(
-                    False,
-                    f'Found number of unused high variance features above threshold: {high_var_features}',
-                    category=ConditionCategory.WARN)
+                    ConditionCategory.WARN,
+                    f'Found number of unused high variance features above threshold: {high_var_features}')
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Number of high variance unused features is not greater than'
                                   f' {max_high_variance_unused_features}',

@@ -49,7 +49,7 @@ class ModelErrorAnalysis(TrainTestCheck):
         number of samples to use for this check.
     n_display_samples : int , default: 5_000
         number of samples to display in scatter plot.
-    random_seed : int, default: 42
+    random_state : int, default: 42
         random seed for all check internals.
 
     Notes
@@ -91,9 +91,10 @@ class ModelErrorAnalysis(TrainTestCheck):
             alternative_scorer: Tuple[str, Union[str, Callable]] = None,
             n_samples: int = 50_000,
             n_display_samples: int = 5_000,
-            random_seed: int = 42
+            random_state: int = 42,
+            **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
         self.max_features_to_show = max_features_to_show
         self.min_feature_contribution = min_feature_contribution
         self.min_error_model_score = min_error_model_score
@@ -101,7 +102,7 @@ class ModelErrorAnalysis(TrainTestCheck):
         self.user_scorer = dict([alternative_scorer]) if alternative_scorer else None
         self.n_samples = n_samples
         self.n_display_samples = n_display_samples
-        self.random_state = random_seed
+        self.random_state = random_state
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check."""
@@ -188,9 +189,9 @@ class ModelErrorAnalysis(TrainTestCheck):
             if fails:
                 sorted_fails = dict(sorted(fails.items(), key=lambda item: item[1]))
                 msg = f'Found change in {result["scorer_name"]} in features above threshold: {sorted_fails}'
-                return ConditionResult(False, msg, category=ConditionCategory.WARN)
+                return ConditionResult(ConditionCategory.WARN, msg)
             else:
-                return ConditionResult(True, category=ConditionCategory.WARN)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'The performance difference of the detected segments must'
                                   f' not be greater than {format_percent(max_ratio_change)}', condition)

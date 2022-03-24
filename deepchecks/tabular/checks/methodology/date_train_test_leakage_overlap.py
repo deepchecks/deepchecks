@@ -10,7 +10,7 @@
 #
 """The date_leakage check module."""
 from deepchecks.tabular import Context, TrainTestCheck
-from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.utils.strings import format_percent, format_datetime
 
 
@@ -65,9 +65,9 @@ class DateTrainTestLeakageOverlap(TrainTestCheck):
         """
         def max_ratio_condition(result: float) -> ConditionResult:
             if result > max_ratio:
-                return ConditionResult(False, f'Found {format_percent(result)} leaked dates')
+                return ConditionResult(ConditionCategory.FAIL, f'Found {format_percent(result)} leaked dates')
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Date leakage ratio is not greater than {format_percent(max_ratio)}',
                                   max_ratio_condition)

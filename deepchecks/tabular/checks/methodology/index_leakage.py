@@ -11,6 +11,7 @@
 """The index_leakage check module."""
 import pandas as pd
 
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.utils.strings import format_percent
@@ -28,8 +29,8 @@ class IndexTrainTestLeakage(TrainTestCheck):
         Number of common indexes to show.
     """
 
-    def __init__(self, n_index_to_show: int = 5):
-        super().__init__()
+    def __init__(self, n_index_to_show: int = 5, **kwargs):
+        super().__init__(**kwargs)
         self.n_index_to_show = n_index_to_show
 
     def run_logic(self, context: Context) -> CheckResult:
@@ -76,9 +77,9 @@ class IndexTrainTestLeakage(TrainTestCheck):
         """
         def max_ratio_condition(result: float) -> ConditionResult:
             if result > max_ratio:
-                return ConditionResult(False, f'Found {format_percent(result)} of index leakage')
+                return ConditionResult(ConditionCategory.FAIL, f'Found {format_percent(result)} of index leakage')
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Ratio of leaking indices is not greater than {format_percent(max_ratio)}',
                                   max_ratio_condition)

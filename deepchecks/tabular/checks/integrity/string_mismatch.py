@@ -47,9 +47,10 @@ class StringMismatch(SingleDatasetCheck):
         self,
         columns: Union[Hashable, List[Hashable], None] = None,
         ignore_columns: Union[Hashable, List[Hashable], None] = None,
-        n_top_columns: int = 10
+        n_top_columns: int = 10,
+        **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
         self.columns = columns
         self.ignore_columns = ignore_columns
         self.n_top_columns = n_top_columns
@@ -132,8 +133,8 @@ class StringMismatch(SingleDatasetCheck):
 
             if not_passing_columns:
                 details = f'Found columns with variants ratio above threshold: {not_passing_columns}'
-                return ConditionResult(False, details)
-            return ConditionResult(True)
+                return ConditionResult(ConditionCategory.FAIL, details)
+            return ConditionResult(ConditionCategory.PASS)
 
         name = f'Ratio of variants is not greater than {format_percent(max_ratio)}'
         return self.add_condition(name, condition, max_ratio=max_ratio)
@@ -149,5 +150,5 @@ def _condition_variants_number(result, num_max_variants: int, max_cols_to_show: 
     if not_passing_variants:
         variants_to_show = dict(itertools.islice(not_passing_variants.items(), max_cols_to_show))
         details = f'Found columns with amount of variants above threshold: {variants_to_show}'
-        return ConditionResult(False, details, ConditionCategory.WARN)
-    return ConditionResult(True)
+        return ConditionResult(ConditionCategory.WARN, details)
+    return ConditionResult(ConditionCategory.PASS)

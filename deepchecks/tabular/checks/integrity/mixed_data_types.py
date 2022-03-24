@@ -44,9 +44,10 @@ class MixedDataTypes(SingleDatasetCheck):
         self,
         columns: Union[Hashable, List[Hashable], None] = None,
         ignore_columns: Union[Hashable, List[Hashable], None] = None,
-        n_top_columns: int = 10
+        n_top_columns: int = 10,
+        **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
         self.columns = columns
         self.ignore_columns = ignore_columns
         self.n_top_columns = n_top_columns
@@ -141,8 +142,8 @@ class MixedDataTypes(SingleDatasetCheck):
             if failing_columns:
                 details = f'Found columns with non-negligible quantities of samples with a different data type from ' \
                           f'the majority of samples: {failing_columns}'
-                return ConditionResult(False, details, category=ConditionCategory.WARN)
-            return ConditionResult(True)
+                return ConditionResult(ConditionCategory.WARN, details)
+            return ConditionResult(ConditionCategory.PASS)
 
         name = f'Rare data types in column are either more than {format_percent(ratio_range[1])} or less ' \
                f'than {format_percent(ratio_range[0])} of the data'

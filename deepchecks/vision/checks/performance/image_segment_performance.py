@@ -21,6 +21,7 @@ import plotly.express as px
 
 from deepchecks import ConditionResult
 from deepchecks.core import DatasetKind, CheckResult
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.vision import SingleDatasetCheck, Context, Batch
 from deepchecks.vision.utils import image_properties
@@ -53,9 +54,10 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         alternative_image_properties: t.List[t.Dict[str, t.Any]] = None,
         alternative_metrics: t.Optional[t.Dict[str, Metric]] = None,
         number_of_bins: int = 5,
-        number_of_samples_to_infer_bins: int = 1000
+        number_of_samples_to_infer_bins: int = 1000,
+        **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
 
         if alternative_image_properties:
             image_properties.validate_properties(alternative_image_properties)
@@ -236,11 +238,11 @@ class ImageSegmentPerformance(SingleDatasetCheck):
                     failed_props[prop_name] = absolutely_min_bin
 
             if not failed_props:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
             else:
                 props = ', '.join(sorted([f'{p}: {m}' for p, m in failed_props.items()]))
                 msg = f'Properties with failed segments: {props}'
-                return ConditionResult(False, details=msg)
+                return ConditionResult(ConditionCategory.FAIL, details=msg)
 
         name = f'No segment with ratio between score to mean less than {format_percent(ratio)}'
         return self.add_condition(name, condition)

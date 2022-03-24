@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains the domain classifier drift check."""
-from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.core.check_utils.whole_dataset_drift_utils import run_whole_dataset_drift
 from deepchecks.utils.strings import format_number
@@ -60,9 +60,10 @@ class WholeDatasetDrift(TrainTestCheck):
             sample_size: int = 10_000,
             random_state: int = 42,
             test_size: float = 0.3,
-            min_meaningful_drift_score: float = 0.05
+            min_meaningful_drift_score: float = 0.05,
+            **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
 
         self.n_top_columns = n_top_columns
         self.min_feature_importance = min_feature_importance
@@ -137,9 +138,9 @@ class WholeDatasetDrift(TrainTestCheck):
             if drift_score > max_drift_value:
                 message = f'Found drift value of: {format_number(drift_score)}, corresponding to a domain classifier ' \
                           f'AUC of: {format_number(result["domain_classifier_auc"])}'
-                return ConditionResult(False, message)
+                return ConditionResult(ConditionCategory.FAIL, message)
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Drift value is not greater than {format_number(max_drift_value)}',
                                   condition)

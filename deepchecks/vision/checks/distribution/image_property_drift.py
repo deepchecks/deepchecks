@@ -17,6 +17,7 @@ import pandas as pd
 from deepchecks.core import CheckResult
 from deepchecks.core import ConditionResult
 from deepchecks.core import DatasetKind
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.vision import Batch
@@ -58,9 +59,10 @@ class ImagePropertyDrift(TrainTestCheck):
         alternative_image_properties: t.List[t.Dict[str, t.Any]] = None,
         max_num_categories: int = 10,
         classes_to_display: t.Optional[t.List[str]] = None,
-        min_samples: int = 30
+        min_samples: int = 30,
+        **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
         if alternative_image_properties is not None:
             image_properties.validate_properties(alternative_image_properties)
             self.image_properties = alternative_image_properties
@@ -211,7 +213,7 @@ class ImagePropertyDrift(TrainTestCheck):
                     'Earth Mover\'s Distance is above the threshold '
                     f'for the next properties:\n{failed_properties}'
                 )
-            return ConditionResult(True)
+            return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(
             f'Earth Mover\'s Distance <= {max_allowed_drift_score} for image properties drift',

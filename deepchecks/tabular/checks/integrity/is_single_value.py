@@ -12,7 +12,7 @@
 from typing import Union, List
 
 from deepchecks.tabular import Context, SingleDatasetCheck
-from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.typing import Hashable
 
@@ -36,9 +36,10 @@ class IsSingleValue(SingleDatasetCheck):
     def __init__(
         self,
         columns: Union[Hashable, List[Hashable], None] = None,
-        ignore_columns: Union[Hashable, List[Hashable], None] = None
+        ignore_columns: Union[Hashable, List[Hashable], None] = None,
+        **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
         self.columns = columns
         self.ignore_columns = ignore_columns
 
@@ -81,7 +82,7 @@ class IsSingleValue(SingleDatasetCheck):
 
         def condition(result):
             if result:
-                return ConditionResult(False, f'Found columns with a single value: {result}')
-            return ConditionResult(True)
+                return ConditionResult(ConditionCategory.FAIL, f'Found columns with a single value: {result}')
+            return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(name, condition)

@@ -14,7 +14,7 @@ from typing import Union, List
 
 import pandas as pd
 
-from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
@@ -56,9 +56,10 @@ class StringMismatchComparison(TrainTestCheck):
         self,
         columns: Union[Hashable, List[Hashable], None] = None,
         ignore_columns: Union[Hashable, List[Hashable], None] = None,
-        n_top_columns: int = 10
+        n_top_columns: int = 10,
+        **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
         self.columns = columns
         self.ignore_columns = ignore_columns
         self.n_top_columns = n_top_columns
@@ -166,8 +167,8 @@ def _condition_percent_limit(result, ratio: float):
 
     if not_passing_columns:
         details = f'Found columns with ratio of variants above threshold: {not_passing_columns}'
-        return ConditionResult(False, details)
-    return ConditionResult(True)
+        return ConditionResult(ConditionCategory.FAIL, details)
+    return ConditionResult(ConditionCategory.PASS)
 
 
 def _percentage_in_series(series, values):

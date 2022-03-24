@@ -43,9 +43,10 @@ class DataDuplicates(SingleDatasetCheck):
         self,
         columns: Union[Hashable, List[Hashable], None] = None,
         ignore_columns: Union[Hashable, List[Hashable], None] = None,
-        n_to_show: int = 5
+        n_to_show: int = 5,
+        **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
         self.columns = columns
         self.ignore_columns = ignore_columns
         self.n_to_show = n_to_show
@@ -124,10 +125,9 @@ class DataDuplicates(SingleDatasetCheck):
         """
         def max_ratio_condition(result: float) -> ConditionResult:
             if result > max_ratio:
-                return ConditionResult(False, f'Found {format_percent(result)} duplicate data',
-                                       category=ConditionCategory.WARN)
+                return ConditionResult(ConditionCategory.WARN, f'Found {format_percent(result)} duplicate data')
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Duplicate data ratio is not greater than {format_percent(max_ratio)}',
                                   max_ratio_condition)

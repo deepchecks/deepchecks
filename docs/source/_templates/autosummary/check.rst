@@ -17,6 +17,6 @@ Example
    :name: rst-gallery
    :glob:
 
-   {{objname}} Example Notebook </examples/{{ submoduletype }}/checks/{{ checktype }}/{{ to_snake_case(objname).lower() }}>
+   {{objname}} Example Notebook </examples/{{ submoduletype }}/checks/examples/{{ checktype }}/{{ objname.lower() }}>
 
 {% endblock %}

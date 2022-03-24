@@ -18,6 +18,7 @@ from deepchecks import ConditionResult
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.check_utils.single_feature_contribution_utils import get_single_feature_contribution, \
     get_single_feature_contribution_per_class
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Context, TrainTestCheck
 from deepchecks.vision.utils import image_properties
@@ -78,9 +79,10 @@ class SimpleFeatureContribution(TrainTestCheck):
             alternative_image_properties: Dict[str, Callable] = None,
             n_top_properties: int = 3,
             per_class: bool = True,
-            ppscore_params: dict = None
+            ppscore_params: dict = None,
+            **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
 
         if alternative_image_properties:
             image_properties.validate_properties(alternative_image_properties)
@@ -209,9 +211,9 @@ class SimpleFeatureContribution(TrainTestCheck):
 
             if failed_features:
                 message = f'Features with PPS difference above threshold: {failed_features}'
-                return ConditionResult(False, message)
+                return ConditionResult(ConditionCategory.FAIL, message)
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Train-Test properties\' Predictive Power Score difference is not greater than '
                                   f'{format_number(threshold)}', condition)
@@ -252,9 +254,9 @@ class SimpleFeatureContribution(TrainTestCheck):
 
             if failed_features:
                 message = f'Features in train dataset with PPS above threshold: {failed_features}'
-                return ConditionResult(False, message)
+                return ConditionResult(ConditionCategory.FAIL, message)
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Train properties\' Predictive Power Score is not greater than '
                                   f'{format_number(threshold)}', condition)

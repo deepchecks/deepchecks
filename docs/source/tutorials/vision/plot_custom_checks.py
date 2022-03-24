@@ -47,12 +47,15 @@ functions when implementing the check in order to be able to reuse them later.
 
 **Good to know: the return value of a check can be any object, a number, dictionary, string, etc…**
 """
-from deepchecks.vision.base_checks import TrainTestCheck
-from deepchecks.vision.context import Context, Batch
-from deepchecks.core.checks import DatasetKind
-from deepchecks.core.check_result import CheckResult
 import typing as t
 import numpy as np
+
+from deepchecks.core.condition import ConditionCategory
+from deepchecks.vision.base_checks import TrainTestCheck
+from deepchecks.vision.context import Context
+from deepchecks.vision.batch_wrapper import Batch
+from deepchecks.core.checks import DatasetKind
+from deepchecks.core.check_result import CheckResult
 
 
 def init_color_averages_dict() -> t.Dict[str, np.array]:
@@ -265,10 +268,10 @@ class ColorAveragesCheck(TrainTestCheck):
 
             # If there are failing channels, return a condition result with the failing channels
             if failing_channels:
-                return ConditionResult(False, f'The color averages have changes by more than threshold in the channels'
+                return ConditionResult(ConditionCategory.FAIL, f'The color averages have changes by more than threshold in the channels'
                                               f' {failing_channels}.')
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Change in color averages not greater than {change_ratio:.2%}', condition)
 

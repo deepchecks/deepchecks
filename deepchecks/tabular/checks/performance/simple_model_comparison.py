@@ -20,6 +20,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
 from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, TrainTestCheck, Dataset
 from deepchecks.utils.distribution.preprocessing import ScaledNumerics
@@ -81,9 +82,16 @@ class SimpleModelComparison(TrainTestCheck):
         my_mse_scorer = make_scorer(my_mse, greater_is_better=False)
     """
 
-    def __init__(self, simple_model_type: str = 'constant', alternative_scorers: Dict[str, Callable] = None,
-                 max_gain: float = 50, max_depth: int = 3, random_state: int = 42):
-        super().__init__()
+    def __init__(
+        self,
+        simple_model_type: str = 'constant',
+        alternative_scorers: Dict[str, Callable] = None,
+        max_gain: float = 50,
+        max_depth: int = 3,
+        random_state: int = 42,
+        **kwargs
+    ):
+        super().__init__(**kwargs)
         self.simple_model_type = simple_model_type
         self.user_scorers = alternative_scorers
         self.max_gain = max_gain
@@ -347,9 +355,9 @@ def condition(result: Dict, include_classes=None, average=False, max_gain=None, 
 
     if fails:
         msg = f'Found metrics with gain below threshold: {fails}'
-        return ConditionResult(False, msg)
+        return ConditionResult(ConditionCategory.FAIL, msg)
     else:
-        return ConditionResult(True)
+        return ConditionResult(ConditionCategory.PASS)
 
 
 def average_scores(scores, include_classes):

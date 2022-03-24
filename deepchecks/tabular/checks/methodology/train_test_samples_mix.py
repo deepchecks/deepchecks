@@ -13,6 +13,7 @@ from typing import List
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
@@ -78,11 +79,11 @@ class TrainTestSamplesMix(TrainTestCheck):
         def condition(result: dict) -> ConditionResult:
             ratio = result['ratio']
             if ratio > max_ratio:
-                return ConditionResult(False,
+                return ConditionResult(ConditionCategory.FAIL,
                                        f'Percent of test data samples that appear in train data: '
                                        f'{format_percent(ratio)}')
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Percentage of test data samples that appear in train data '
                                   f'not greater than {format_percent(max_ratio)}',
