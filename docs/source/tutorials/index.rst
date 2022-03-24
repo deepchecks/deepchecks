@@ -8,4 +8,4 @@ Tutorials
     :maxdepth: 2
 
     tabular/index
-    vision/index
+    vision/examples/index
