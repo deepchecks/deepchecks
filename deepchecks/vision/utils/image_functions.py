@@ -200,6 +200,46 @@ def prepare_thumbnail(
     return f'<img src="data:image/png;base64,{png}"/>'
 
 
+def prepare_grid(
+    content: t.Union[str, t.Sequence[t.Any]],
+    *,
+    n_of_rows: t.Optional[int] = None,
+    n_of_columns: t.Optional[int] = None,
+    style: t.Optional[t.Dict[str, t.Any]] = None
+) -> str:
+    default_style = {
+        'overflow-x': 'auto',
+        'display': 'grid',
+        'grid-gap': '1.5rem',
+        'justify-items': 'center',
+        'align-items': 'center',
+        'padding': '2rem',
+        'width': 'max-content'
+    }
+
+    if n_of_rows is not None:
+        default_style['grid-template-rows'] = f'repeat({n_of_rows}, 1fr)'
+    if n_of_columns is not None:
+        default_style['grid-template-columns'] = f'repeat({n_of_rows}, 1fr)'
+
+    if style is not None:
+        default_style.update(**style)
+
+    css = ';'.join([
+        f'{k}: {v}'
+        for k, v in default_style.items()
+    ])
+
+    if isinstance(content, str):
+        pass
+    elif isinstance(content, (list, tuple)):
+        content = ''.join([str(it) for it in content])
+    else:
+        raise TypeError(f'Unsupported data type - {type(content)}')
+
+    return f"""<div class="deepchecks-grid" style="{css}">{content}</div>"""
+
+
 def numpy_grayscale_to_heatmap_figure(data: np.ndarray):
     """Create heatmap graph object from given numpy array data."""
     dimension = data.shape[2]

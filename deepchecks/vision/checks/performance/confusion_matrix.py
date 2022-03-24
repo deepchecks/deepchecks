@@ -21,8 +21,7 @@ from plotly.express import imshow
 from queue import PriorityQueue
 from collections import defaultdict
 
-from deepchecks.vision.utils.image_functions import prepare_thumbnail
-from deepchecks.vision.utils.image_functions import draw_bboxes
+from deepchecks.vision.utils.image_functions import prepare_thumbnail, draw_bboxes, prepare_grid
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.vision import SingleDatasetCheck, Context, Batch
 from deepchecks.vision.vision_data import TaskType, VisionData
@@ -279,20 +278,8 @@ class ConfusionMatrixReport(SingleDatasetCheck):
                 <li>{self._LABEL_COLOR} - ground truth</li>
                 <li>{self._DETECTION_COLOR} - detected truth</li>
             </ul>
-            <p>Showing {self.n_of_images_to_show} of {{n_of_images}} images:</p>
-            <div
-                style="
-                    overflow-x: auto;
-                    display: grid;
-                    grid-template-rows: auto;
-                    grid-template-columns: auto auto 1fr;
-                    grid-gap: 1.5rem;
-                    justify-items: center;
-                    align-items: center;
-                    padding: 2rem;
-                    width: max-content;">
-                {{data}}
-            </div>
+            {{note}}
+            {{grid}}
         """)
 
         misclassifications = (
@@ -323,7 +310,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         if len(misclassified_images) == 0:
             return ''
 
-        grid = [
+        grid_content = [
             '<span><b>Ground Truth</b></span>',
             '<span><b>Detected Truth</b></span>',
             '<span><b>Image</b></span>',
@@ -332,18 +319,31 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         for label, detected, img in misclassified_images[:self.n_of_images_to_show]:
             label_name, label_id = label
             detection_name, detection_id = detected
-            grid.append(f'<span>{label_name} (id: {label_id})</span>')
-            grid.append(f'<span>{detection_name} (id: {detection_id})</span>')
+            grid_content.append(f'<span>{label_name} (id: {label_id})</span>')
+            grid_content.append(f'<span>{detection_name} (id: {detection_id})</span>')
             # NOTE: take a look at the update_object_detection method
             # to understand why 'img' might be a callable
-            grid.append(prepare_thumbnail(
+            grid_content.append(prepare_thumbnail(
                 image=img() if callable(img) else img,
                 size=self._IMAGE_THUMBNAIL_SIZE
             ))
 
+        grid = prepare_grid(
+            content=grid_content,
+            style={
+                'grid-template-rows': 'auto',
+                'grid-template-columns': 'auto auto 1fr',
+            }
+        )
+        note = (
+            f'<p>Showing {self.n_of_images_to_show} of {len(misclassified_images)} images:</p>'
+            if len(misclassified_images) > self.n_of_images_to_show
+            else ''
+        )
         return template.format(
             n_of_images=len(misclassified_images),
-            data=''.join(grid)
+            note=note,
+            grid=grid
         )
 
     def _draw_bboxes(self, image, label, detected):

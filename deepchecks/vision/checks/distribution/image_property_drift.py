@@ -17,6 +17,7 @@ import pandas as pd
 import PIL.Image as pilimage
 
 from deepchecks.vision.utils.image_functions import prepare_thumbnail
+from deepchecks.vision.utils.image_functions import prepare_grid
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.utils.strings import format_number
 from deepchecks.core import DatasetKind
@@ -220,43 +221,28 @@ class ImagePropertyDrift(TrainTestCheck):
         train_images: t.Sequence[pilimage.Image],
         test_images: t.Sequence[pilimage.Image]
     ) -> str:
-        table_template = dedent("""
-        <div
-            style="
-                overflow-x: auto;
-                display: grid;
-                grid-template-rows: auto 1fr 1fr;
-                grid-template-columns: auto repeat({n_of_images}, 1fr);
-                grid-gap: 1.5rem;
-                justify-items: center;
-                align-items: center;
-                padding: 2rem;
-                width: max-content;">
-            <h4>Image</h4>
-            {images}
-            {properties}
-        </div>
-        """)
-
         thumbnail_size = self._IMAGE_THUMBNAIL_SIZE
         tables = []
 
         for images, properties in ((train_images, train_properties), (test_images, test_properties),):
-            thumbnails = ''.join([
-                prepare_thumbnail(img, size=thumbnail_size)
-                for img in images
-            ])
-
             properties_rows = []
             for name, values in properties.iterrows():
                 properties_rows.append(f'<h4>{name}</h4>')
                 for v in values:
                     properties_rows.append(f'<h4>{format_number(v)}</h4>')
 
-            tables.append(table_template.format(
-                n_of_images=len(images),
-                images=thumbnails,
-                properties=''.join(properties_rows)
+            properties = ''.join(properties_rows)
+            thumbnails = ''.join([
+                prepare_thumbnail(img, size=thumbnail_size)
+                for img in images
+            ])
+
+            tables.append(prepare_grid(
+                content=f'<h4>Image</h4>{thumbnails}{properties}',
+                style={
+                    'grid-template-rows': 'auto 1fr 1fr',
+                    'grid-template-columns': f'auto repeat({len(images)}, 1fr)'
+                }
             ))
 
         train_table, test_table = tables
