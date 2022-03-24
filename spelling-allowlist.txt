@@ -69,3 +69,4 @@ quantile
 quantiles
 toplevel
 ious
+jsonpickle

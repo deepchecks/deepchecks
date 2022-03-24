@@ -15,6 +15,7 @@ from collections import OrderedDict, defaultdict
 import pandas as pd
 
 from deepchecks import ConditionResult
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.core import DatasetKind, CheckResult
 from deepchecks.core.errors import DeepchecksNotSupportedError
@@ -212,9 +213,9 @@ class TrainTestPredictionDrift(TrainTestCheck):
                               f' threshold: {not_passing_numeric_columns}\n'
 
             if return_str:
-                return ConditionResult(False, return_str)
+                return ConditionResult(ConditionCategory.FAIL, return_str)
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'PSI <= {max_allowed_psi_score} and Earth Mover\'s Distance <= '
                                   f'{max_allowed_earth_movers_score} for prediction drift',
