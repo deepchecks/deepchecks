@@ -263,7 +263,7 @@ class ClassPerformance(TrainTestCheck):
 
             datasets_details = []
             for dataset in ['Test', 'Train']:
-                data = check_result.loc[check_result['Dataset'] == dataset].loc[check_result['Metric'] == score]
+                data = check_result.loc[(check_result['Dataset'] == dataset) & (check_result['Metric'] == score)]
 
                 min_value_index = data['Value'].idxmin()
                 min_row = data.loc[min_value_index]
