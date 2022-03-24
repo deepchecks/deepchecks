@@ -13,7 +13,7 @@ from typing import Union, List
 
 import pandas as pd
 
-from deepchecks.core import ConditionResult, CheckResult
+from deepchecks.core import ConditionResult, CheckResult, ConditionCategory
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
@@ -119,10 +119,11 @@ class LabelAmbiguity(SingleDatasetCheck):
 
         def max_ratio_condition(result: float) -> ConditionResult:
             if result > max_ratio:
-                return ConditionResult(False, f'Found ratio of samples with multiple labels above threshold: '
-                                              f'{format_percent(result)}')
+                return ConditionResult(ConditionCategory.FAIL,
+                                       f'Found ratio of samples with multiple labels above threshold: '
+                                       f'{format_percent(result)}')
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Ambiguous sample ratio is not greater than {format_percent(max_ratio)}',
                                   max_ratio_condition)

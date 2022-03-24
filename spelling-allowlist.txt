@@ -70,3 +70,4 @@ quantiles
 toplevel
 ious
 renormalization
+jsonpickle

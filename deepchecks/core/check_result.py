@@ -24,6 +24,7 @@ import warnings
 from typing import Any, Callable, List, Tuple, Union, TYPE_CHECKING
 
 import jsonpickle
+import jsonpickle.ext.pandas as jsonpickle_pd
 import matplotlib
 import pandas as pd
 import numpy as np
@@ -36,6 +37,9 @@ from matplotlib import pyplot as plt
 from IPython.display import display_html
 from pandas.io.formats.style import Styler
 
+
+# registers jsonpickle pandas extension for pandas support in the to_json function
+jsonpickle_pd.register_handlers()
 
 if TYPE_CHECKING:
     from deepchecks.core.checks import BaseCheck

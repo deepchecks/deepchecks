@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 
 from deepchecks.tabular import Context, SingleDatasetCheck
-from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
@@ -162,11 +162,11 @@ class MixedNulls(SingleDatasetCheck):
                 if num_nulls > max_allowed_null_types:
                     not_passing_columns[column] = num_nulls
             if not_passing_columns:
-                return ConditionResult(False,
+                return ConditionResult(ConditionCategory.FAIL,
                                        'Found columns with amount of null types above threshold: '
                                        f'{not_passing_columns}')
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Not more than {max_allowed_null_types} different null types',
                                   condition)

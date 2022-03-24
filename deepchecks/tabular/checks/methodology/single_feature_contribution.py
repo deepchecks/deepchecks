@@ -12,7 +12,7 @@
 import typing as t
 
 import deepchecks.ppscore as pps
-from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.plot import create_colorbar_barchart_for_check
 from deepchecks.utils.typing import Hashable
@@ -124,9 +124,9 @@ class SingleFeatureContribution(SingleDatasetCheck):
 
             if failed_features:
                 message = f'Features with PPS above threshold: {failed_features}'
-                return ConditionResult(False, message)
+                return ConditionResult(ConditionCategory.FAIL, message)
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Features\' Predictive Power Score is not greater than {format_number(threshold)}',
                                   condition)
