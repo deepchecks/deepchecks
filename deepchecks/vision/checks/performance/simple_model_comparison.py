@@ -318,7 +318,7 @@ def calculate_condition_logic(result, include_classes=None, average=False, max_g
 
 def average_scores(scores, simple_model_scores, include_classes):
     """
-    Calculate the average of the scores for each metric for all classes
+    Calculate the average of the scores for each metric for all classes.
 
     Parameters
     ----------
