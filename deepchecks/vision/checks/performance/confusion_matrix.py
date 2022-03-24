@@ -227,11 +227,11 @@ class ConfusionMatrixReport(SingleDatasetCheck):
                             self._draw_bboxes,
                             image=image,
                             label=np.array([
-                                bbox.numpy()
+                                bbox.cpu().numpy()
                                 if isinstance(bbox, torch.Tensor)
                                 else bbox]),
                             detected=np.array([
-                                detected_bbox.numpy()
+                                detected_bbox.cpu().numpy()
                                 if isinstance(detected_bbox, torch.Tensor)
                                 else detected_bbox])
                         )
