@@ -75,8 +75,6 @@ class SimpleModelComparison(TrainTestCheck):
     class_list_to_show: List[int], default: None
         Specify the list of classes to show in the report. If specified, n_to_show, show_only and metric_to_show_by
         are ignored.
-    max_gain : float , default: 50
-        the maximum value for the gain value, limits from both sides [-max_gain, max_gain]
 
     """
 
@@ -89,11 +87,9 @@ class SimpleModelComparison(TrainTestCheck):
                  show_only: str = 'largest',
                  metric_to_show_by: str = None,
                  class_list_to_show: List[int] = None,
-                 max_gain: float = 50,
                  **kwargs):
         super().__init__(**kwargs)
         self.strategy = strategy
-        self.max_gain = max_gain
 
         if self.strategy not in _allowed_strategies:
             raise DeepchecksValueError(
@@ -134,7 +130,7 @@ class SimpleModelComparison(TrainTestCheck):
                 metric.update((prediction, label))
 
             # calculating perfect scores
-            n_of_classes = batch.predictions.shape[1]
+            n_of_classes = batch.predictions.to('cpu').shape[1]
             perfect_predictions = np.eye(n_of_classes)[label]
             for _, metric in self._perfect_metrics.items():
                 metric.update((torch.Tensor(perfect_predictions).to(context.device), label))
@@ -239,6 +235,7 @@ class SimpleModelComparison(TrainTestCheck):
 
     def add_condition_gain_not_less_than(self,
                                          min_allowed_gain: float = 0.1,
+                                         max_gain: float = 50,
                                          classes: List[Hashable] = None,
                                          average: bool = False):
         """Add condition - require minimum allowed gain between the model and the simple model.
@@ -248,6 +245,8 @@ class SimpleModelComparison(TrainTestCheck):
         min_allowed_gain : float , default: 0.1
             Minimum allowed gain between the model and the simple model -
             gain is: difference in performance / (perfect score - simple score)
+        max_gain : float , default: 50
+            the maximum value for the gain value, limits from both sides [-max_gain, max_gain]
         classes : List[Hashable] , default: None
             Used in classification models to limit condition only to given classes.
         average : bool , default: False
@@ -258,15 +257,15 @@ class SimpleModelComparison(TrainTestCheck):
         if classes:
             name = name + f' for classes {str(classes)}'
         return self.add_condition(name,
-                                  condition,
+                                  calculate_condition_logic,
                                   include_classes=classes,
                                   min_allowed_gain=min_allowed_gain,
-                                  max_gain=self.max_gain,
+                                  max_gain=max_gain,
                                   average=average)
 
 
-def condition(result, include_classes=None, average=False, max_gain=None,
-              min_allowed_gain=0) -> ConditionResult:
+def calculate_condition_logic(result, include_classes=None, average=False, max_gain=None,
+                              min_allowed_gain=0) -> ConditionResult:
     scores = result.loc[result['Model'] == 'Given Model']
     perfect_scores = result.loc[result['Model'] == 'Perfect Model']
     simple_scores = result.loc[result['Model'] == 'Simple Model']
@@ -277,22 +276,22 @@ def condition(result, include_classes=None, average=False, max_gain=None,
     if not average:
         for metric in metrics:
             failed_classes = {}
-            for _, row in scores.loc[scores['Metric'] == metric].iterrows():
-                if include_classes and row['Class'] not in include_classes:
+            for _, scores_row in scores.loc[scores['Metric'] == metric].iterrows():
+                if include_classes and scores_row['Class'] not in include_classes:
                     continue
                 perfect = perfect_scores.loc[(perfect_scores['Metric'] == metric) &
-                                             (perfect_scores['Class'] == row['Class'])]['Value'].values[0]
-                if row['Value'] == perfect:
+                                             (perfect_scores['Class'] == scores_row['Class'])]['Value'].values[0]
+                if scores_row['Value'] == perfect:
                     continue
 
-                simple_score_value = simple_scores.loc[(simple_scores['Class'] == row['Class']) &
+                simple_score_value = simple_scores.loc[(simple_scores['Class'] == scores_row['Class']) &
                                                        (simple_scores['Metric'] == metric)]['Value'].values[0]
                 gain = get_gain(simple_score_value,
-                                row['Value'],
+                                scores_row['Value'],
                                 perfect,
                                 max_gain)
                 if gain < min_allowed_gain:
-                    failed_classes[row['Class']] = format_percent(gain)
+                    failed_classes[scores_row['Class']] = format_percent(gain)
 
             if failed_classes:
                 fails[metric] = failed_classes
@@ -318,6 +317,24 @@ def condition(result, include_classes=None, average=False, max_gain=None,
 
 
 def average_scores(scores, simple_model_scores, include_classes):
+    """
+    Calculate the average of the scores for each metric for all classes
+
+    Parameters
+    ----------
+    scores : pd.DataFrame
+        the scores for the given model
+    simple_model_scores : pd.DataFrame
+        the scores for the simple model
+    include_classes : List[Hashable]
+        the classes to include in the calculation
+
+    Returns
+    -------
+    Dictionary[str, Dictionary[str, float]]
+        the average scores for each metric. The keys are the metric names, and the values are a dictionary
+        with the keys being Origin and Simple and the values being the average score.
+    """
     result = {}
     metrics = scores['Metric'].unique()
     for metric in metrics:
