@@ -14,6 +14,7 @@ from typing import Dict
 
 import pandas as pd
 
+from deepchecks import ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
@@ -112,12 +113,12 @@ class TrainTestPredictionDrift(TrainTestCheck):
 
             if method == 'PSI' and has_failed:
                 return_str = f'Found model prediction PSI above threshold: {drift_score:.2f}'
-                return ConditionResult(False, return_str)
+                return ConditionResult(ConditionCategory.FAIL, return_str)
             elif method == "Earth Mover's Distance" and has_failed:
                 return_str = f'Model Prediction\'s Earth Mover\'s Distance above threshold: {drift_score:.2f}'
-                return ConditionResult(False, return_str)
+                return ConditionResult(ConditionCategory.FAIL, return_str)
 
-            return ConditionResult(True)
+            return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'PSI <= {max_allowed_psi_score} and Earth Mover\'s Distance <= '
                                   f'{max_allowed_earth_movers_score} for model prediction drift',

@@ -15,18 +15,18 @@ from deepchecks.tabular.checks import TrainTestPredictionDrift
 from tests.checks.utils import equal_condition_result
 
 
-def test_no_drift_classification_label(non_drifted_classification_label):
+def test_no_drift_classification_label(diabetes, diabetes_model):
     # Arrange
-    train, test = non_drifted_classification_label
+    train, test = diabetes
     check = TrainTestPredictionDrift()
 
     # Act
-    result = check.run(train, test)
+    result = check.run(train, test, diabetes_model)
 
     # Assert
     assert_that(result.value, has_entries(
-            {'Drift score': close_to(0.003, 0.001),
-             'Method': equal_to('PSI')}
+            {'Drift score': close_to(0.03, 0.002),
+             'Method': equal_to('Earth Mover\'s Distance')}
     ))
 
 
@@ -71,6 +71,9 @@ def test_drift_max_drift_score_condition_pass_threshold(drifted_data_and_model):
     # Act
     result = check.run(train, test, model)
     condition_result, *_ = check.conditions_decision(result)
+    print(result.value)
+    print(condition_result)
+
 
     # Assert
     assert_that(condition_result, equal_condition_result(
