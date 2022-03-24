@@ -27,7 +27,7 @@ Let's implement a check for comparing the sizes of the test and the train datase
 
 The first step is to create check class, which inherits from a base check class.
 Each base check is differed by its run method signature, read more about all
-`types <#basic-checks-types>`__. In this case we will use ``TrainTestBaseCheck``,
+`types <#base-checks-types>`__. In this case we will use ``TrainTestBaseCheck``,
 which is used to compare between the test and the train datasets. After
 creating the basic class with the run_logic function we will write our check
 logic inside it.
