@@ -43,7 +43,7 @@ class ImagePropertyOutliers(SingleDatasetCheck):
         representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'
     n_show_top : int , default: 5
         number of outliers to show from each direction (upper limit and bottom limit)
-    iqr_percentiles: Tuple[int], default: (25, 75)
+    iqr_percentiles: Tuple[int, int], default: (25, 75)
         Two percentiles which define the IQR range
     iqr_scale: float, default: 1.5
         The scale to multiply the IQR range for the outliers detection
@@ -54,7 +54,7 @@ class ImagePropertyOutliers(SingleDatasetCheck):
     def __init__(self,
                  alternative_image_properties: t.List[t.Dict[str, t.Any]] = None,
                  n_show_top: int = 5,
-                 iqr_percentiles: t.Tuple[int] = (25, 75),
+                 iqr_percentiles: t.Tuple[int, int] = (25, 75),
                  iqr_scale: float = 1.5,
                  **kwargs):
         super().__init__(**kwargs)
