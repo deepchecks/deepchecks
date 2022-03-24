@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing all the base classes for checks."""
-from ast import Raise
 import enum
 from typing import Callable, Dict, cast
 from deepchecks.core.errors import DeepchecksValueError
