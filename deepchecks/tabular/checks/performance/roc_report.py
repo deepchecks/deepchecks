@@ -15,6 +15,7 @@ import plotly.graph_objects as go
 import numpy as np
 import sklearn
 
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.utils.strings import format_number
@@ -135,10 +136,10 @@ class RocReport(SingleDatasetCheck):
                 if score < min_auc:
                     failed_classes[class_name] = format_number(score)
             if failed_classes:
-                return ConditionResult(False,
+                return ConditionResult(ConditionCategory.FAIL,
                                        f'Found classes with AUC below threshold: {failed_classes}')
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         if self.excluded_classes:
             suffix = f' except: {self.excluded_classes}'

@@ -17,7 +17,8 @@ import pandas as pd
 from deepchecks.core import CheckResult
 from deepchecks.core import ConditionResult
 from deepchecks.core import DatasetKind
-from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
+from deepchecks.core.errors import NotEnoughSamplesError, DeepchecksValueError
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.vision import Batch
 from deepchecks.vision import Context
@@ -215,7 +216,7 @@ class ImagePropertyDrift(TrainTestCheck):
                     'Earth Mover\'s Distance is above the threshold '
                     f'for the next properties:\n{failed_properties}'
                 )
-            return ConditionResult(True)
+            return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(
             f'Earth Mover\'s Distance <= {max_allowed_drift_score} for image properties drift',

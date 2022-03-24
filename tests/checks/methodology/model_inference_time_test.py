@@ -61,7 +61,7 @@ def test_model_inference_time_check_with_condition_that_should_pass(
     )
     assert_that(condition_result, equal_condition_result( # type: ignore
         is_pass=True,
-        category=ConditionCategory.FAIL,
+        category=ConditionCategory.PASS,
         name=name,
         details=''
     ))
