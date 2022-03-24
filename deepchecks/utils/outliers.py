@@ -5,14 +5,17 @@ import numpy as np
 from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
 
 
-def iqr_outliers_range(data: np.ndarray, iqr_range: Tuple[int], scale: float, min_samples: int = 10):
-    """Calculate outliers on the data given using IQR.
+def iqr_outliers_range(data: np.ndarray,
+                       iqr_range: Tuple[int, int],
+                       scale: float,
+                       min_samples: int = 10) -> Tuple[float, float]:
+    """Calculate outliers range on the data given using IQR.
 
     Parameters
     ----------
     data: np.ndarray
-        Data to calculate outliers range for
-    iqr_range: Tuple[int]
+        Data to calculate outliers range for.
+    iqr_range: Tuple[int, int]
         Two percentiles which define the IQR range
     scale: float
         The scale to multiply the IQR range for the outliers detection
@@ -20,8 +23,8 @@ def iqr_outliers_range(data: np.ndarray, iqr_range: Tuple[int], scale: float, mi
         Minimum number of samples needed to calculate outliers
     Returns
     -------
-    np.array
-        2D numpy array with data given as first column and boolean value of "is outlier" as second column
+    Tuple[float, float]
+        Tuple of lower limit and upper limit of outliers range
     """
     if len(iqr_range) != 2 or any([x < 0 or x > 100 for x in iqr_range]):
         raise DeepchecksValueError(f'IQR range must contain two numbers between 0 to 100')
