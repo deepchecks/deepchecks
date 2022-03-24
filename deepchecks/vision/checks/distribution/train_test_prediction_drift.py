@@ -21,7 +21,8 @@ from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.vision import Context, TrainTestCheck, Batch
 from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.utils.label_prediction_properties import validate_properties, \
-    DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES, DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES, get_column_type
+    DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES, DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES, get_column_type, \
+    properties_flatten
 
 __all__ = ['TrainTestPredictionDrift']
 
@@ -120,7 +121,10 @@ class TrainTestPredictionDrift(TrainTestCheck):
             raise DeepchecksNotSupportedError(f'Unsupported dataset kind {dataset_kind}')
 
         for prediction_property in self._prediction_properties:
-            properties[prediction_property['name']] += prediction_property['method'](batch.predictions)
+            # Flatten the properties since I don't care in this check about the property-per-sample coupling
+            properties[prediction_property['name']] += properties_flatten(
+                prediction_property['method'](batch.predictions)
+            )
 
     def compute(self, context: Context) -> CheckResult:
         """Calculate drift on prediction properties samples that were collected during update() calls.

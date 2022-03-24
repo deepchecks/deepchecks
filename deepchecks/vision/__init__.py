@@ -10,11 +10,12 @@
 #
 """Package for vision functionality."""
 import logging
+from .batch_wrapper import Batch
 from .vision_data import VisionData
+from .context import Context
+from .suite import Suite
 from .classification_data import ClassificationData
 from .detection_data import DetectionData
-from .context import Context
-from .suite import Suite, Batch
 from .base_checks import SingleDatasetCheck, TrainTestCheck, ModelOnlyCheck
 
 

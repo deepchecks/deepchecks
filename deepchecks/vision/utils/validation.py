@@ -12,7 +12,6 @@
 import os
 import random
 import traceback
-import typing as t
 import numpy as np
 import torch
 import imgaug
@@ -31,7 +30,7 @@ from io import BytesIO
 from IPython.display import display, HTML
 
 
-__all__ = ['set_seeds', 'apply_to_tensor', 'validate_extractors']
+__all__ = ['set_seeds', 'validate_extractors']
 
 
 def set_seeds(seed: int):
@@ -50,25 +49,6 @@ def set_seeds(seed: int):
         random.seed(seed)
         torch.manual_seed(seed)
         imgaug.seed(seed)
-
-
-T = t.TypeVar('T')
-
-
-def apply_to_tensor(
-    x: T,
-    fn: t.Callable[[torch.Tensor], torch.Tensor]
-) -> t.Any:
-    """Apply provided function to tensor instances recursivly."""
-    if isinstance(x, torch.Tensor):
-        return t.cast(T, fn(x))
-    elif isinstance(x, (str, bytes, bytearray)):
-        return x
-    elif isinstance(x, (list, tuple, set)):
-        return type(x)(apply_to_tensor(it, fn) for it in x)
-    elif isinstance(x, dict):
-        return type(x)((k, apply_to_tensor(v, fn)) for k, v in x.items())
-    return x
 
 
 def validate_extractors(dataset: VisionData, model, image_save_location: str = None, save_images: bool = True):
