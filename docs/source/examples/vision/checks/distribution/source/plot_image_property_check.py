@@ -77,6 +77,17 @@ check_result
 check_result.value
 
 #%%
+# We can also pass the check a list of classes we wish to inspect, and the check will calculate the properties only
+# for images either belonging to the classes or containing annotations belonging to the classes. (We'll lower the
+# min_samples to 5 to tell the check to calculate drift despite having only a few images left after the class
+# filtration)
+
+check_result = ImagePropertyDrift(classes_to_display=['person', 'cat', 'cell phone', 'car'], min_samples=5
+                                  ).run(train_dataset, test_dataset)
+check_result
+
+
+#%%
 # Define a condition
 # ==================
 # We can define a condition that make sure that image properties drift scores do not
