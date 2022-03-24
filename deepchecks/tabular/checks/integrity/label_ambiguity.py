@@ -119,8 +119,9 @@ class LabelAmbiguity(SingleDatasetCheck):
 
         def max_ratio_condition(result: float) -> ConditionResult:
             if result > max_ratio:
-                return ConditionResult(ConditionCategory.FAIL, f'Found ratio of samples with multiple labels above threshold: '
-                                              f'{format_percent(result)}')
+                return ConditionResult(ConditionCategory.FAIL,
+                                       f'Found ratio of samples with multiple labels above threshold: '
+                                       f'{format_percent(result)}')
             else:
                 return ConditionResult(ConditionCategory.PASS)
 

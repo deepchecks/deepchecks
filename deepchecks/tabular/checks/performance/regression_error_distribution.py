@@ -106,7 +106,8 @@ class RegressionErrorDistribution(SingleDatasetCheck):
         """
         def min_kurtosis_condition(result: float) -> ConditionResult:
             if result < min_kurtosis:
-                return ConditionResult(ConditionCategory.WARN, f'Found kurtosis below threshold: {format_number(result, 5)}')
+                return ConditionResult(ConditionCategory.WARN,
+                                       f'Found kurtosis below threshold: {format_number(result, 5)}')
             else:
                 return ConditionResult(ConditionCategory.PASS)
 
