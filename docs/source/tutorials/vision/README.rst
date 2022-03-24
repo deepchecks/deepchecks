@@ -1,2 +1,5 @@
-Notebooks
-=========
+.. _vision_tutorials:
+
+=========================
+Computer Vision Tutorials
+=========================

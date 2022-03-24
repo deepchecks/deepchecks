@@ -39,7 +39,7 @@ function. The danger with relying on the values produced by the model itself is
 that they are often un-calibrated - which means that predicted probabilities
 don't correspond to the actual percent of correct predictions (check the
 `calibration score
-</examples/tabular/checks/performance/test_autoexamples/plot_calibration_score.html>`__
+</examples/tabular/checks/performance/examples/plot_calibration_score.html>`__
 ). This is because the methods and loss functions used by these models are
 often not designed to produce actual probabilities. Additionally, most common
 classification metrics (such as precision, recall, accuracy etc.) measure only

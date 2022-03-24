@@ -304,6 +304,12 @@ def download_coco128_from_ultralytics(path: Path):
             md5=md5
         )
 
+    # Removing the README.txt file if it exists since it causes issues with sphinx-gallery
+    try:
+        os.remove(str(coco_dir / 'README.txt'))
+    except FileNotFoundError:
+        pass
+
     return coco_dir, 'train2017'
 
 
