@@ -130,10 +130,10 @@ high_threshold = 0.6
 def custom_condition(value: dict, low=low_threshold, high=high_threshold): 
     ratio = value['Test'] / value['Train']
     if low <= ratio <= high:
-        return ConditionResult(True)
+        return ConditionResult(ConditionCategory.PASS)
     else:
         # Note: if you doesn't care about the extra info, you can return directly a boolean
-        return ConditionResult(False, f'Test-Train ratio is {ratio:.2}')
+        return ConditionResult(ConditionCategory.FAIL, f'Test-Train ratio is {ratio:.2}')
 
 # Create the condition name
 condition_name = f'Test-Train ratio is between {low_threshold} to {high_threshold}'
@@ -172,8 +172,8 @@ high_threshold = 0.7
 def custom_condition(value: dict): 
     ratio = value['Test'] / value['Train']
     if low_threshold <= ratio <= high_threshold:
-        return ConditionResult(True)
+        return ConditionResult(ConditionCategory.PASS)
     elif ratio < low_threshold:
-        return ConditionResult(False, f'Test-Train ratio is {ratio:.2}', ConditionCategory.FAIL)
+        return ConditionResult(ConditionCategory.FAIL, f'Test-Train ratio is {ratio:.2}', ConditionCategory.FAIL)
     else:
-        return ConditionResult(False, f'Test-Train ratio is {ratio:.2}', ConditionCategory.WARN)
+        return ConditionResult(ConditionCategory.FAIL, f'Test-Train ratio is {ratio:.2}', ConditionCategory.WARN)

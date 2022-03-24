@@ -14,7 +14,7 @@ from typing import Dict
 import plotly.express as px
 
 import deepchecks.ppscore as pps
-from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.core.errors import DatasetValidationError
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.strings import format_number
@@ -121,10 +121,10 @@ class IdentifierLeakage(SingleDatasetCheck):
                 if score > max_pps:
                     not_passing_columns[column_name] = format_number(score)
             if not_passing_columns:
-                return ConditionResult(False,
+                return ConditionResult(ConditionCategory.FAIL,
                                        f'Found columns with PPS above threshold: {not_passing_columns}')
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(
             f'Identifier columns PPS is not greater than {format_number(max_pps)}', compare_pps)

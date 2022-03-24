@@ -16,6 +16,7 @@ from typing import TypeVar, Tuple
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import SingleDatasetCheck, Context, Batch
 from deepchecks.vision.vision_data import TaskType
@@ -92,7 +93,7 @@ class MeanAverageRecallReport(SingleDatasetCheck):
             if len(not_passed):
                 details = f'Found scores below threshold:\n' \
                           f'{dict(not_passed)}'
-                return ConditionResult(False, details)
-            return ConditionResult(True)
+                return ConditionResult(ConditionCategory.FAIL, details)
+            return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Scores are not less than {min_score}', condition)
