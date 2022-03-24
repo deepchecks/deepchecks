@@ -16,7 +16,7 @@ from sklearn.pipeline import Pipeline
 import plotly.graph_objects as go
 import numpy as np
 
-from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError, ModelValidationError
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.strings import format_percent
@@ -218,9 +218,9 @@ class BoostingOverfit(TrainTestCheck):
 
             if pct_diff > threshold:
                 message = f'Found score decline above threshold: -{format_percent(pct_diff)}'
-                return ConditionResult(False, message)
+                return ConditionResult(ConditionCategory.FAIL, message)
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         name = f'Test score over iterations doesn\'t decline by more than {format_percent(threshold)} ' \
                f'from the best score'

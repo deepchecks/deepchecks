@@ -12,7 +12,7 @@
 from typing import Dict
 import pandas as pd
 
-from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.strings import format_percent
 
@@ -89,9 +89,9 @@ class NewLabelTrainTest(TrainTestCheck):
                 new_labels = result['new_labels']
                 num_new_labels = len(new_labels)
                 if num_new_labels > max_new:
-                    return ConditionResult(False,
+                    return ConditionResult(ConditionCategory.FAIL,
                                            f'Found {num_new_labels} new labels: {new_labels}')
-            return ConditionResult(True)
+            return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Number of new label values is not greater than {max_new}',
                                   condition)
@@ -109,10 +109,10 @@ class NewLabelTrainTest(TrainTestCheck):
                 new_labels = result['new_labels']
                 new_label_ratio = result['n_new_labels_samples'] / result['n_samples']
                 if new_label_ratio > max_ratio:
-                    return ConditionResult(False,
+                    return ConditionResult(ConditionCategory.FAIL,
                                            f'Found new labels in test data: {new_labels}\n'
                                            f'making {format_percent(new_label_ratio)} of samples.')
-            return ConditionResult(True)
+            return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(
             f'Ratio of samples with new label is not greater than {format_percent(max_ratio)}',

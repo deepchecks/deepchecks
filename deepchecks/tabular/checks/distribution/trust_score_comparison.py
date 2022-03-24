@@ -194,9 +194,9 @@ class TrustScoreComparison(TrainTestCheck):
 
             if pct_diff > threshold:
                 message = f'Found decline of: {format_percent(-pct_diff)}'
-                return ConditionResult(False, message, category=ConditionCategory.WARN)
+                return ConditionResult(ConditionCategory.WARN, message)
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Mean trust score decline is not greater than {format_percent(threshold)}',
                                   condition)

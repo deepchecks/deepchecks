@@ -16,6 +16,7 @@ import plotly.express as px
 from ignite.metrics import Metric
 
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.vision import TrainTestCheck, Context, Batch
@@ -160,8 +161,8 @@ class ClassPerformance(TrainTestCheck):
             if len(not_passed):
                 details = f'Found metrics with scores below threshold:\n' \
                           f'{not_passed_test[["Class", "Metric", "Value"]].to_dict("records")}'
-                return ConditionResult(False, details)
-            return ConditionResult(True)
+                return ConditionResult(ConditionCategory.FAIL, details)
+            return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Scores are not less than {min_score}', condition)
 
@@ -218,9 +219,9 @@ class ClassPerformance(TrainTestCheck):
                                                   f'test={format_number(test_scores_dict[score_name])}')
             if explained_failures:
                 message = '\n'.join(explained_failures)
-                return ConditionResult(False, message)
+                return ConditionResult(ConditionCategory.FAIL, message)
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Train-Test scores relative degradation is not greater than {threshold}',
                                   condition)
@@ -285,9 +286,9 @@ class ClassPerformance(TrainTestCheck):
                     )
                     datasets_details.append(details)
             if datasets_details:
-                return ConditionResult(False, details='\n'.join(datasets_details))
+                return ConditionResult(ConditionCategory.FAIL, details='\n'.join(datasets_details))
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(
             name=(

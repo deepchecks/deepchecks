@@ -142,8 +142,8 @@ class MixedDataTypes(SingleDatasetCheck):
             if failing_columns:
                 details = f'Found columns with non-negligible quantities of samples with a different data type from ' \
                           f'the majority of samples: {failing_columns}'
-                return ConditionResult(False, details, category=ConditionCategory.WARN)
-            return ConditionResult(True)
+                return ConditionResult(ConditionCategory.WARN, details)
+            return ConditionResult(ConditionCategory.PASS)
 
         name = f'Rare data types in column are either more than {format_percent(ratio_range[1])} or less ' \
                f'than {format_percent(ratio_range[0])} of the data'

@@ -22,6 +22,7 @@ from plotly.subplots import make_subplots
 from ignite.metrics import Metric
 
 from deepchecks import CheckResult, ConditionResult
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision import VisionData, SingleDatasetCheck, Context, Batch
 from deepchecks.vision.vision_data import TaskType
@@ -151,10 +152,10 @@ class RobustnessReport(SingleDatasetCheck):
             ]
 
             if not failed:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
             else:
                 details = f'Augmentations not passing: {set(failed)}'
-                return ConditionResult(False, details)
+                return ConditionResult(ConditionCategory.FAIL, details)
 
         return self.add_condition(f'Metrics degrade by not more than {format_percent(ratio)}', condition)
 

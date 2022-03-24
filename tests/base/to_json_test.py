@@ -19,9 +19,11 @@ from deepchecks.tabular.checks import ColumnsInfo
 def test_check_full_suite_not_failing(iris_split_dataset_and_model):
     train, test, model = iris_split_dataset_and_model
     suite_res = full_suite().run(train, test, model)
-    json_res = jsonpickle.loads(suite_res.to_json())
-    assert_that(json_res['name'], equal_to('Full Suite'))
-    assert isinstance(json_res['results'], list)
+    json_suite_res = jsonpickle.loads(suite_res.to_json())
+    assert_that(json_suite_res['name'], equal_to('Full Suite'))
+    assert_that(isinstance(json_suite_res['results'], list))
+    for json_res in json_suite_res['results']:
+        assert_that(isinstance(jsonpickle.loads(json_res), dict))
 
 
 def test_check_metadata(iris_dataset):

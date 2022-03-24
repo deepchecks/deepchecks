@@ -20,6 +20,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
 from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, TrainTestCheck, Dataset
 from deepchecks.utils.distribution.preprocessing import ScaledNumerics
@@ -354,9 +355,9 @@ def condition(result: Dict, include_classes=None, average=False, max_gain=None, 
 
     if fails:
         msg = f'Found metrics with gain below threshold: {fails}'
-        return ConditionResult(False, msg)
+        return ConditionResult(ConditionCategory.FAIL, msg)
     else:
-        return ConditionResult(True)
+        return ConditionResult(ConditionCategory.PASS)
 
 
 def average_scores(scores, include_classes):
