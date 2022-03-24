@@ -26,8 +26,7 @@ from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.vision.base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
 from deepchecks.vision.context import Context
 from deepchecks.vision.vision_data import VisionData
-
-from .context import Batch
+from deepchecks.vision.batch_wrapper import Batch
 
 
 __all__ = ['Suite']
@@ -181,10 +180,11 @@ class Suite(BaseSuite):
         progress_bars.append(progress_bar)
 
         # Run on all the batches
+        batch_start_index = 0
         for batch_id, batch in enumerate(vision_data):
             progress_bar.set_text(f'{100 * batch_id / (1. * n_batches):.0f}%')
-            batch = Batch(batch_id, batch, context, dataset_kind)
-            vision_data.update_cache(batch.labels)
+            batch = Batch(batch, context, dataset_kind, batch_start_index)
+            vision_data.update_cache(batch)
             for check_idx, check in self.checks.items():
                 # If index in results the check already failed before
                 if check_idx in results:
@@ -204,6 +204,8 @@ class Suite(BaseSuite):
                         raise TypeError(f'Don\'t know how to handle type {check.__class__.__name__} in suite.')
                 except Exception as exp:
                     results[check_idx] = CheckFailure(check, exp, type_suffix)
+
+            batch_start_index += len(batch)
             progress_bar.inc_progress()
 
         # SingleDatasetChecks have different handling. If we had failure in them need to add suffix to the index of

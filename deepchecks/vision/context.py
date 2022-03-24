@@ -10,7 +10,7 @@
 #
 """Module for base vision context."""
 import logging
-from typing import Mapping, Union, Iterable, Any, Tuple
+from typing import Mapping, Union
 
 import torch
 from torch import nn
@@ -18,87 +18,16 @@ from ignite.metrics import Metric
 
 from deepchecks.core import DatasetKind
 from deepchecks.vision.vision_data import VisionData, TaskType
-from deepchecks.vision.utils.validation import apply_to_tensor
 from deepchecks.core.errors import (
     DatasetValidationError, DeepchecksNotImplementedError, ModelValidationError,
     DeepchecksNotSupportedError, DeepchecksValueError, ValidationError
 )
 
 
-__all__ = ['Context', 'Batch']
+__all__ = ['Context']
 
 
 logger = logging.getLogger('deepchecks')
-
-
-class Batch:
-    """Represents dataset batch returned by the dataloader during iteration."""
-
-    __slots__ = (
-        '_context',
-        '_dataset_kind',
-        '_batch_index',
-        '_batch',
-        '_labels',
-        '_predictions',
-        '_images',
-    )
-
-    def __init__(
-        self,
-        batch_index: int,
-        batch: Tuple[Iterable[Any], Iterable[Any]],
-        context: 'Context',
-        dataset_kind: DatasetKind
-    ):
-        self._context = context
-        self._dataset_kind = dataset_kind
-        self._batch_index = batch_index
-        self._batch = apply_to_tensor(batch, lambda it: it.to(self._context.device))
-        self._labels = None
-        self._predictions = None
-        self._images = None
-
-    @property
-    def index(self) -> int:
-        """Return batch index."""
-        return self._batch_index
-
-    @property
-    def labels(self):
-        """Return labels for the batch, formatted in deepchecks format."""
-        if self._labels is None:
-            dataset = self._context.get_data_by_kind(self._dataset_kind)
-            dataset.assert_labels_valid()
-            self._labels = dataset.batch_to_labels(self._batch)
-        return self._labels
-
-    @property
-    def predictions(self):
-        """Return predictions for the batch, formatted in deepchecks format."""
-        if self._predictions is None:
-            dataset = self._context.get_data_by_kind(self._dataset_kind)
-            # Calling model will raise error if model was not given
-            model = self._context.model
-            self._context.assert_predictions_valid(self._dataset_kind)
-            self._predictions = dataset.infer_on_batch(self._batch, model, self._context.device)
-        return self._predictions
-
-    @property
-    def images(self):
-        """Return images for the batch, formatted in deepchecks format."""
-        if self._images is None:
-            dataset = self._context.get_data_by_kind(self._dataset_kind)
-            dataset.assert_images_valid()
-            self._images = dataset.batch_to_images(self._batch)
-        return self._images
-
-    def __getitem__(self, index):
-        """Return batch item by index."""
-        return self._batch[index]
-
-    def __len__(self) -> int:
-        return len(self._batch)
 
 
 class Context:
