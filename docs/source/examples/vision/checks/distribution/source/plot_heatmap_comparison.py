@@ -43,7 +43,7 @@ Another, more traditional method to detect such drift would be to use statistica
 Such an approach is covered by several builtin check in the deepchecks.vision package, such as the `Label Drift Check
 </examples/vision/checks/distribution/test_autoexamples/plot_train_test_label_drift.html>`__
 or the `Image Dataset Drift Check
-</examples/vision/checks/distribution/test_autoexamples/plot_train_test_property_drift.html>`__.
+</examples/vision/checks/distribution/examples/plot_image_dataset_drift.html>`__.
 
 
 Run the Check on a Classification Task (MNIST)
