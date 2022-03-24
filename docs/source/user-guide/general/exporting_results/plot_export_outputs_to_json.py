@@ -30,10 +30,10 @@ model = iris.load_fitted_model()
 # Run a Check
 # ===========
 
-from deepchecks.tabular.checks import ModelErrorAnalysis
+from deepchecks.tabular.checks import WholeDatasetDrift
 
-result = ModelErrorAnalysis().add_condition_segments_performance_relative_difference_not_greater_than(\
-                                ).run(train_dataset, test_dataset, model)
+result = WholeDatasetDrift().add_condition_overall_drift_value_not_greater_than(
+).run(train_dataset, test_dataset, model)
 
 #%%
 # Observe CheckResult Display and Value
@@ -49,7 +49,7 @@ result.value
 # Serialization of the output to a JSON format is possible using the ``to_json`` function.
 # This function takes the check outputs and serializes it to a JSON string.
 #
-# The format of the check's output json includes all of the info required to reconstruct
+# The format of the check's output json includes all the info required to reconstruct
 # the check run and it's output: it's name, the parameters the check receives, one
 # sentence summary of the check's purpose, it's result value and a json of the data
 # relevant for displaying the check's outputs.
