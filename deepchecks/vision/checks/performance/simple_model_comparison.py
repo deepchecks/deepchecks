@@ -17,7 +17,7 @@ import plotly.express as px
 import torch
 from ignite.metrics import Metric
 
-from deepchecks.core import CheckResult, DatasetKind, ConditionResult
+from deepchecks.core import CheckResult, DatasetKind, ConditionResult, ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.metrics import get_gain
 from deepchecks.utils.strings import format_percent
@@ -311,9 +311,9 @@ def calculate_condition_logic(result, include_classes=None, average=False, max_g
 
     if fails:
         msg = f'Found metrics with gain below threshold: {fails}'
-        return ConditionResult(False, msg)
+        return ConditionResult(ConditionCategory.FAIL, msg)
     else:
-        return ConditionResult(True)
+        return ConditionResult(ConditionCategory.PASS)
 
 
 def average_scores(scores, simple_model_scores, include_classes):
