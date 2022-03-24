@@ -22,13 +22,13 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader, BatchSampler, Sampler
 
-from deepchecks.vision import batch_wrapper
+from deepchecks.vision import batch_wrapper  # pylint: disable=unused-import, is used as type annotation
 from deepchecks.vision.utils.image_functions import ImageInfo
 from deepchecks.vision.utils.transformations import add_augmentation_in_start, get_transforms_handler
 from deepchecks.core.errors import (
-    DeepchecksNotImplementedError, 
-    DeepchecksValueError, 
-    ValidationError, 
+    DeepchecksNotImplementedError,
+    DeepchecksValueError,
+    ValidationError,
     DeepchecksBaseError
 )
 
@@ -333,7 +333,7 @@ class VisionData:
     def batch_index_to_dataset_index(self, batch_index):
         """Return for the given batch_index the sample index in the dataset object."""
         return self._sampler.index_at(batch_index)
-    
+
     def sample(self, *indices: int):
         """Return batch of the given batch indices."""
         samples = []

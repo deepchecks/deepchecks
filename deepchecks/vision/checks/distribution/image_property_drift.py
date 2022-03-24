@@ -110,7 +110,7 @@ class ImagePropertyDrift(TrainTestCheck):
         class_to_string = context.train.label_id_to_name
 
         if self.classes_to_display is not None:
-            # use only images belonging (or containing an annotation belonging) 
+            # use only images belonging (or containing an annotation belonging)
             # to one of the classes in classes_to_display
             #
             # Iterator[tuple[image-index, set[image-classes]]]
@@ -123,7 +123,7 @@ class ImagePropertyDrift(TrainTestCheck):
                 for index, classes in images_classes
                 if len(classes & self.classes_to_display) > 0
             ]
-            
+
         for single_property in self.image_properties:
             calculated_properties = single_property['method'](images)
             properties[single_property['name']].extend(calculated_properties)
@@ -142,7 +142,7 @@ class ImagePropertyDrift(TrainTestCheck):
 
         if sorted(self._train_properties.keys()) != sorted(self._test_properties.keys()):
             raise RuntimeError('Internal Error! Vision check was used improperly.')
-        
+
         # if self.classes_to_display is set, check that it has classes that actually exist
         if self.classes_to_display is not None:
             class_to_string = context.train.label_id_to_name
@@ -155,7 +155,7 @@ class ImagePropertyDrift(TrainTestCheck):
 
         df_train = pd.DataFrame(self._train_properties)
         df_test = pd.DataFrame(self._test_properties)
-        
+
         if len(df_train) < self.min_samples or len(df_test) < self.min_samples:
             return CheckResult(
                 value=None,
@@ -204,7 +204,7 @@ class ImagePropertyDrift(TrainTestCheck):
                 train_images=train_thumbnail_images,
                 test_images=test_thumbnail_images
             )
-            
+
             displays = [headnote] + [figures[col] for col in columns_order] + [thumbnails]
 
         return CheckResult(
