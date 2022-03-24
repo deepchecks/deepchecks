@@ -43,7 +43,7 @@ label_col = 'target'
 df_train, df_test = train_test_split(iris_df, stratify=iris_df[label_col], random_state=0)
 
 # Train Model
-rf_clf = RandomForestClassifier()
+rf_clf = RandomForestClassifier(random_state=0)
 rf_clf.fit(df_train.drop(label_col, axis=1), df_train[label_col]);
 
 #%%
