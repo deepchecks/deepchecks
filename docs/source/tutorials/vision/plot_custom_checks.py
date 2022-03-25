@@ -1,8 +1,4 @@
 """
-.. custom_checks:
-
-.. currentmodule:: deepchecks.vision.base_checks
-
 =============================================
 Writing Custom Computer Vision Checks
 =============================================
@@ -15,23 +11,23 @@ We recommend writing a single check for each aspect of the model or data you wou
 :doc:`/user-guide/general/deepchecks_hierarchy`, the role of the check is to run the logic and output a display and
 a pythonic value. Then, a condition can be defined on that value to determine if the check is successful or not.
 
-#. :ref:`Vision Checks Structure`_
-#. :ref:`Write a Basic Check`_
-#. :ref:`Check Display`_
-#. :ref:`Defining a Condition`_
-#. :ref:`Base Checks Types`_
+# 1. `Vision Checks Structure <#vision-checks-structure>`__
+# 2. `Write a Basic Check <#write-a-basic-check>`__
+# 3. `Check Display <#check-display>`__
+# 4. `Defining a Condition <#defining-a-condition>`__
+# 5. `Base Checks Types <#base-checks-types>`__
 
 Vision Checks Structure
 ========================
 
 The first step when writing a vision check is to decide what check base class to use. You can read more in the
-:ref:`Base Checks Types` section. In this case, we wish to compare train and test dataset, so we select the
+`Base Checks Types <#base-checks-types>`__ section. In this case, we wish to compare train and test dataset, so we select the
 ``TrainTestBaseCheck``. This type of check must implement the following three methods:
 
 - initialize_run - Actions to be performed before starting to iterate over the dataloader batches.
 - update - Actions to be performed on each batch.
 - compute - Actions to be performed after iterating over all the batches. Returns the check display and the return
-value.
+  value.
 
 While `ModelOnlyCheck` alone do not implement the update method. Apart from that, the check init should recipient and
 handle check parameters.
@@ -117,7 +113,7 @@ class ColorAveragesCheck(TrainTestCheck):
         return CheckResult(return_value)
 
 #%%
-# Hooray! we just implemented a custom check. To read more about the internal objects  Let's run it and see what happens:
+# Hooray! test we just implemented a custom check. To read more about the internal objects  Let's run it and see what happens:
 
 from deepchecks.vision.datasets.detection.coco import load_dataset
 

@@ -101,11 +101,6 @@ See More
     or to post a issue or start a discussion on `Github <https://github.com/deepchecks/deepchecks/>`_.
 
 .. toctree::
-    :maxdepth: 2
-
-    getting-started/index
-
-.. toctree::
     :maxdepth: 3
 
     tutorials/index
