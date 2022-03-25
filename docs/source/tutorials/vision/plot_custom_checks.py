@@ -113,7 +113,7 @@ class ColorAveragesCheck(TrainTestCheck):
         return CheckResult(return_value)
 
 #%%
-# Hooray! test we just implemented a custom check. To read more about the internal objects  Let's run it and see what happens:
+# Hooray! we just implemented a custom check. To read more about the internal objects  Let's run it and see what happens:
 
 from deepchecks.vision.datasets.detection.coco import load_dataset
 

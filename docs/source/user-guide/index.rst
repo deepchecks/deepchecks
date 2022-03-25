@@ -6,9 +6,33 @@ User Guide
 
 Here you can find the key concepts, structure, recommended flow, and dive in to many of the deepchecks functionalities.
 
+General
+-------
+
 .. toctree::
     :maxdepth: 2
+    :caption: General
 
-    general/index
-    tabular/index
-    vision/index
+    general/deepchecks_hierarchy
+    general/customizations/index
+    general/exporting_results/index
+
+Tabular
+-------
+
+.. toctree::
+    :maxdepth: 2
+    :caption: Tabular
+
+    tabular/dataset_object
+    tabular/supported_models
+
+Vision
+-------
+
+.. toctree::
+    :maxdepth: 2
+    :caption: Vision
+
+    vision/data-classes/index
+    vision/vision_properties
