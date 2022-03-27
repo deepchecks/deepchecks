@@ -16,7 +16,7 @@ from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck, Dataset
 from deepchecks.utils.metrics import ModelType
 from deepchecks.utils.performance.error_model import model_error_contribution, error_model_display
-from deepchecks.utils.single_sample_metrics import per_sample_binary_cross_entropy, per_sample_mse
+from deepchecks.utils.single_sample_metrics import per_sample_cross_entropy, per_sample_mse
 from deepchecks.utils.strings import format_percent
 
 
@@ -113,7 +113,6 @@ class ModelErrorAnalysis(TrainTestCheck):
         model = context.model
 
         scorer = context.get_single_scorer(self.user_scorer)
-
         train_dataset = train_dataset.sample(self.n_samples, random_state=self.random_state, drop_na_label=True)
         test_dataset = test_dataset.sample(self.n_samples, random_state=self.random_state, drop_na_label=True)
 
@@ -127,8 +126,8 @@ class ModelErrorAnalysis(TrainTestCheck):
 
             def scoring_func(dataset: Dataset):
                 encoded_label = le.transform(dataset.label_col)
-                return per_sample_binary_cross_entropy(encoded_label,
-                                                       model.predict_proba(dataset.features_columns))
+                return per_sample_cross_entropy(encoded_label,
+                                                model.predict_proba(dataset.features_columns))
 
         train_scores = scoring_func(train_dataset)
         test_scores = scoring_func(test_dataset)
