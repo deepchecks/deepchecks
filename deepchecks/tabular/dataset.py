@@ -286,7 +286,7 @@ class Dataset:
             self._label_type = None
 
         unassigned_cols = [col for col in self._features if col not in self._cat_features]
-        self._numerical_features = infer_numeric_features(self._data[unassigned_cols])
+        self._numerical_features = infer_numerical_features(self._data[unassigned_cols])
 
     @classmethod
     def from_numpy(
