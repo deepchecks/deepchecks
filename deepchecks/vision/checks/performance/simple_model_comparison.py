@@ -19,6 +19,7 @@ from ignite.metrics import Metric
 
 from deepchecks.core import CheckResult, DatasetKind, ConditionResult, ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.utils import plot
 from deepchecks.utils.metrics import get_gain
 from deepchecks.utils.strings import format_percent
 from deepchecks.vision import Context, TrainTestCheck, Batch
@@ -177,6 +178,7 @@ class SimpleModelComparison(TrainTestCheck):
             x='Class Name',
             y='Value',
             color='Model',
+            color_discrete_sequence=(plot.colors['Generated'], plot.colors['Baseline']),
             barmode='group',
             facet_col='Metric',
             facet_col_spacing=0.05,
