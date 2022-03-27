@@ -14,13 +14,12 @@ from urllib.request import urlopen
 import sklearn
 from category_encoders import OrdinalEncoder
 from sklearn.compose import ColumnTransformer
-from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
-import joblib
-import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder
-
+import joblib
+import pandas as pd
 from deepchecks.tabular.dataset import Dataset
 
 __all__ = ['load_data', 'load_fitted_model']
@@ -205,20 +204,20 @@ def _build_model():
     """Build the model to fit."""
     numeric_transformer = SimpleImputer()
     categorical_transformer = Pipeline(
-        steps=[("imputer", SimpleImputer(strategy="most_frequent")), ("encoder", OrdinalEncoder())]
+        steps=[('imputer', SimpleImputer(strategy='most_frequent')), ('encoder', OrdinalEncoder())]
     )
 
     preprocessor = ColumnTransformer(
         transformers=[
-            ("num", numeric_transformer, _NUM_FEATURES),
-            ("cat", categorical_transformer, _CAT_FEATURES),
+            ('num', numeric_transformer, _NUM_FEATURES),
+            ('cat', categorical_transformer, _CAT_FEATURES),
         ]
     )
 
     model = Pipeline(
         steps=[
-            ("preprocessing", preprocessor),
-            ("model", RandomForestClassifier(max_depth=5, n_jobs=-1, random_state=0))
+            ('preprocessing', preprocessor),
+            ('model', RandomForestClassifier(max_depth=5, n_jobs=-1, random_state=0))
         ]
     )
 
