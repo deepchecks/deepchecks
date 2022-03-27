@@ -97,8 +97,6 @@ class WholeDatasetDrift(TrainTestCheck):
 
         sample_size = min(self.sample_size, train_dataset.n_samples, test_dataset.n_samples)
 
-
-
         headnote = """
         <span>
         The shown features are the features that are most important for the domain classifier - the
