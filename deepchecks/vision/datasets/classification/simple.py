@@ -53,7 +53,7 @@ def load_dataset(
     ----------
     root : str
         path to the data
-    train : bool
+    train : bool, default: True
         if `True` load the train dataset, otherwise load the test dataset
     batch_size : int, default: 32
         Batch size for the dataloader.
