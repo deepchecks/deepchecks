@@ -27,7 +27,7 @@ class TrainTestPredictionDrift(TrainTestCheck):
     """
     Calculate prediction drift between train dataset and test dataset, using statistical measures.
 
-    Check calculates a drift score for the prediction in test dataset, by comparing its distribution to the train
+    Check calculates a drift score for the prediction in the test dataset, by comparing its distribution to the train
     dataset.
     For numerical columns, we use the Earth Movers Distance.
     See https://en.wikipedia.org/wiki/Wasserstein_metric
@@ -85,13 +85,15 @@ class TrainTestPredictionDrift(TrainTestCheck):
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Prediction Drift')
 
-    def add_condition_drift_score_not_greater_than(self, max_allowed_psi_score: float = 0.2,
-                                                   max_allowed_earth_movers_score: float = 0.1):
+    def add_condition_drift_score_not_greater_than(self, max_allowed_psi_score: float = 0.15,
+                                                   max_allowed_earth_movers_score: float = 0.075):
         """
         Add condition - require drift score to not be more than a certain threshold.
 
         The industry standard for PSI limit is above 0.2.
         Earth movers does not have a common industry standard.
+        The threshold was lowered by 25% compared to feature drift defaults due to the higher importance of prediction
+        drift.
 
         Parameters
         ----------

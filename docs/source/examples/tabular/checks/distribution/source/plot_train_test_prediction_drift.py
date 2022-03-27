@@ -6,11 +6,12 @@ This notebooks provides an overview for using and understanding the tabular pred
 
 **Structure:**
 
-* `What is a prediction drift? <#what-is-a-prediction-drift>`__
-* `Run check on a Classification task <#run-the-check-on-a-classification-task-mnist>`__
-* `Run check on an Object Detection task <#run-the-check-on-an-object-detection-task-coco>`__
+* `What is prediction drift? <#what-is-prediction-drift>`__
+* `Generate Data <#generate-data>`__
+* `Build Model <#build-model>`__
+* `Run check <#run-check>`__
 
-What Is a Prediction Drift?
+What Is Prediction Drift?
 ===========================
 The term drift (and all it's derivatives) is used to describe any change in the data compared
 to the data the model was trained on. Prediction drift refers to the case in which a change
@@ -27,11 +28,11 @@ There are two main causes for prediction drift:
 
 * A change in the sample population. In this case, the underline phenomenon we're trying
   to predict behaves the same, but we're not getting the same types of samples. For example,
-  Iris Virginica stops growing and not be predicted by a model that classifies Iris.
+  Iris Virginica stops growing and is not being predicted by the model trained to classify Iris species.
 * Concept drift, which means that the underline relation between the data and
   the label has changed.
-  For example, inflation effect prices on data that predicts a income based on food spending.
-  Important to note that concept drift won't necessarily result in prediction drift, unless it affects features that
+  For example, we're trying to predict income based on food spending, but ongoing inflation effect prices.
+  It's important to note that concept drift won't necessarily result in prediction drift, unless it affects features that
   are of high importance to the model.
 
 How Does the TrainTestPredictionDrift Check Work?
@@ -41,8 +42,8 @@ that aim to measure difference between 2 distributions.
 We experimented with various approaches and found that for detecting drift between 2
 one-dimensional distributions, the following 2 methods give the best results:
 
-* For numerical features, the `Population Stability Index (PSI) <https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf>`__
-* For categorical features, the `Wasserstein Distance (Earth Mover's Distance) <https://en.wikipedia.org/wiki/Wasserstein_metric>`__
+* For regression problems, the `Population Stability Index (PSI) <https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf>`__
+* For classification problems, the `Wasserstein Distance (Earth Mover's Distance) <https://en.wikipedia.org/wiki/Wasserstein_metric>`__
 
 """
 
@@ -81,8 +82,8 @@ df_test['categorical_with_drift'] = np.random.choice(a=['apple', 'orange', 'bana
 
 
 #%%
-# Model
-# =====
+# Build Model
+# ===========
 
 
 from sklearn.compose import ColumnTransformer

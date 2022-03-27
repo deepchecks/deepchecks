@@ -71,9 +71,6 @@ def test_drift_max_drift_score_condition_pass_threshold(drifted_data_and_model):
     # Act
     result = check.run(train, test, model)
     condition_result, *_ = check.conditions_decision(result)
-    print(result.value)
-    print(condition_result)
-
 
     # Assert
     assert_that(condition_result, equal_condition_result(
