@@ -20,7 +20,7 @@ from pandas.core.dtypes.common import is_numeric_dtype
 from sklearn.model_selection import train_test_split
 
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.features import infer_numeric_features, is_categorical, infer_categorical_features
+from deepchecks.utils.features import infer_numerical_features, is_categorical, infer_categorical_features
 from deepchecks.utils.typing import Hashable
 from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError, DeepchecksNotSupportedError
 
