@@ -46,7 +46,7 @@ class BasicModel(Protocol):
 
     def predict(self, X) -> List[Hashable]:
         """Predict on given X."""
-        ...
+        ...  # pylint: disable=unnecessary-ellipsis
 
 
 @runtime_checkable
@@ -55,4 +55,4 @@ class ClassificationModel(BasicModel, Protocol):
 
     def predict_proba(self, X) -> List[Hashable]:
         """Predict probabilities on given X."""
-        ...
+        ...  # pylint: disable=unnecessary-ellipsis
