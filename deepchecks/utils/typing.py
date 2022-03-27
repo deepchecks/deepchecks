@@ -46,7 +46,6 @@ class BasicModel(Protocol):
 
     def predict(self, X) -> List[Hashable]:
         """Predict on given X."""
-        ...
 
 
 @runtime_checkable
@@ -55,4 +54,3 @@ class ClassificationModel(BasicModel, Protocol):
 
     def predict_proba(self, X) -> List[Hashable]:
         """Predict probabilities on given X."""
-        ...
