@@ -57,7 +57,7 @@ def test_drift_max_drift_score_condition_fail_psi(drifted_data_and_model):
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name='PSI <= 0.2 and Earth Mover\'s Distance <= 0.1 for model prediction drift',
+        name='PSI <= 0.15 and Earth Mover\'s Distance <= 0.075 for model prediction drift',
         details='Found model prediction PSI above threshold: 0.79'
     ))
 
