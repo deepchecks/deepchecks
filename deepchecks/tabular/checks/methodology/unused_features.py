@@ -254,15 +254,13 @@ def naive_encoder(dataset: Dataset) -> Tuple[TransformerMixin, list]:
     Tuple[TransformerMixin, list]
         A transformer object, a list of columns returned
     """
-    numeric_features = [col for col in dataset.features if col not in dataset.cat_features]
-
     return ColumnTransformer(
         transformers=[
             ('num', Pipeline([
                 ('nan_handling', SimpleImputer()),
                 ('norm', RobustScaler())
             ]),
-             numeric_features),
+             dataset.numerical_features),
             ('cat',
              Pipeline([
                  ('nan_handling', SimpleImputer(strategy='most_frequent')),
@@ -271,4 +269,4 @@ def naive_encoder(dataset: Dataset) -> Tuple[TransformerMixin, list]:
              ]),
              dataset.cat_features)
         ]
-    ), numeric_features + dataset.cat_features
+    ), dataset.numerical_features + dataset.cat_features

@@ -93,10 +93,11 @@ class WholeDatasetDrift(TrainTestCheck):
         test_dataset = context.test
         features = train_dataset.features
         cat_features = train_dataset.cat_features
+        numerical_features = train_dataset.numerical_features
 
         sample_size = min(self.sample_size, train_dataset.n_samples, test_dataset.n_samples)
 
-        numerical_features = list(set(features) - set(cat_features))
+
 
         headnote = """
         <span>

@@ -20,7 +20,7 @@ from pandas.core.dtypes.common import is_numeric_dtype
 from sklearn.model_selection import train_test_split
 
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.features import is_categorical, infer_categorical_features
+from deepchecks.utils.features import infer_numeric_features, is_categorical, infer_categorical_features
 from deepchecks.utils.typing import Hashable
 from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError, DeepchecksNotSupportedError
 
@@ -285,6 +285,9 @@ class Dataset:
         else:
             self._label_type = None
 
+        unassigned_cols = [col for col in self._features if col not in self._cat_features]
+        self._numerical_features = infer_numeric_features(self._data[unassigned_cols])
+
     @classmethod
     def from_numpy(
             cls: t.Type[TDataset],
@@ -463,15 +466,6 @@ class Dataset:
         """
         return self.data.shape[0]
 
-    def __len__(self) -> int:
-        """Return number of samples in the member dataframe.
-
-        Returns
-        -------
-        int
-
-        """
-        return self.n_samples
 
     @property
     def label_type(self) -> t.Optional[str]:
@@ -735,6 +729,17 @@ class Dataset:
            List of categorical feature names.
         """
         return list(self._cat_features)
+
+    @property
+    def numerical_features(self) -> t.List[Hashable]:
+        """Return list of numerical feature names.
+
+         Returns
+        -------
+        t.List[Hashable]
+           List of categorical feature names.
+        """
+        return list(self._numerical_features)
 
     @property
     @lru_cache(maxsize=128)
@@ -1043,3 +1048,13 @@ class Dataset:
                 return False
 
         return True
+
+    def __len__(self) -> int:
+        """Return number of samples in the member dataframe.
+
+        Returns
+        -------
+        int
+
+        """
+        return self.n_samples

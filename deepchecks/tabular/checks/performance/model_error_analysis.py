@@ -133,7 +133,7 @@ class ModelErrorAnalysis(TrainTestCheck):
         test_scores = scoring_func(test_dataset)
 
         cat_features = train_dataset.cat_features
-        numeric_features = [num_feature for num_feature in train_dataset.features if num_feature not in cat_features]
+        numeric_features = train_dataset.numerical_features
 
         error_fi, error_model_predicted = model_error_contribution(train_dataset.features_columns,
                                                                    train_scores,

@@ -47,7 +47,7 @@ cat_features = ['workclass', 'education', 'marital-status', 'occupation', 'relat
 train_ds = Dataset(train_df, label=label_name, cat_features=cat_features)
 test_ds = Dataset(test_df, label=label_name, cat_features=cat_features)
 
-numeric_features = [feat_name for feat_name in train_ds.features if feat_name not in train_ds.cat_features]
+numerical_features = train_ds.numerical_features
 
 #%%
 # Classification Model
@@ -67,7 +67,7 @@ categorical_transformer = Pipeline(
 train_ds.features
 preprocessor = ColumnTransformer(
     transformers=[
-        ("num", numeric_transformer, numeric_features),
+        ("num", numeric_transformer, numerical_features),
         ("cat", categorical_transformer, cat_features),
     ]
 )
