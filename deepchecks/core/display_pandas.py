@@ -96,7 +96,7 @@ def get_conditions_table(check_results: Union['CheckResult', List['CheckResult']
                 link = f'<a href=#{check_id}>{check_header}</a>'
             else:
                 link = check_header
-                # if it has no display show on bottom for the category
+                # if it has no display show on bottom for the category (lower priority)
                 sort_value += 0.1
             table.append([icon, link, cond_result.name,
                          cond_result.details, sort_value])
