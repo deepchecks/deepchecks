@@ -14,8 +14,8 @@ General
     :caption: General
 
     general/deepchecks_hierarchy
-    general/customizations/index
-    general/exporting_results/index
+    general/customizations/examples/index
+    general/exporting_results/examples/index
 
 Tabular
 -------

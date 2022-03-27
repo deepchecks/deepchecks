@@ -12,7 +12,6 @@ Tabular Tutorials
     :caption: Tabular Tutorials
 
     tabular/examples/index
-    tabular/examples/use-cases/plot_phishing_urls
 
 Vision Tutorials
 ----------------
