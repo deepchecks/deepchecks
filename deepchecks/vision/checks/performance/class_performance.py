@@ -18,6 +18,7 @@ from ignite.metrics import Metric
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.utils import plot
 from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.vision import TrainTestCheck, Context, Batch
 from deepchecks.vision.vision_data import TaskType
@@ -128,6 +129,7 @@ class ClassPerformance(TrainTestCheck):
             x='Class Name',
             y='Value',
             color='Dataset',
+            color_discrete_sequence=(plot.colors['Train'], plot.colors['Test']),
             barmode='group',
             facet_col='Metric',
             facet_col_spacing=0.05,
