@@ -194,7 +194,7 @@ class VisionData:
 
         for batch_index, classes in enumerate(classes_per_label):
             for single_class in classes:
-                dataset_index = self.batch_index_to_dataset_index(self._current_index + batch_index)
+                dataset_index = self.to_dataset_index(self._current_index + batch_index)[0]
                 self._classes_indices[single_class].append(dataset_index)
         self._current_index += len(classes_per_label)
 
@@ -325,9 +325,15 @@ class VisionData:
         """Use the defined collate_fn to transform a few data items to batch format."""
         return self._data_loader.collate_fn(list(samples))
 
-    def batch_index_to_dataset_index(self, batch_index):
+    def to_dataset_index(self, *batch_indices):
         """Return for the given batch_index the sample index in the dataset object."""
-        return self._sampler.index_at(batch_index)
+        return [self._sampler.index_at(i) for i in batch_indices]
+
+    def batch_of_index(self, *indices):
+        """Return batch samples of the given batch indices."""
+        dataset_indices = self.to_dataset_index(*indices)
+        samples = [self._data_loader.dataset[i] for i in dataset_indices]
+        return self.to_batch(*samples)
 
     def validate_shared_label(self, other: VD):
         """Verify presence of shared labels.
