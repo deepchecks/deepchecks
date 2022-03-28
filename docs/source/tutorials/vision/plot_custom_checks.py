@@ -132,7 +132,7 @@ result.value
 
 
 # %% To see code references for more complex checks (that can receive parameters etc.), check out any of your
-# favorite checks from our `API ref <../../../api/deepchecks.vision.html>`__.
+# favorite checks from our :doc:`API ref <../../../api/deepchecks.vision>`.
 
 #%%
 # Check Display
