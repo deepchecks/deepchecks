@@ -58,7 +58,7 @@ class DeepchecksProcessError(DeepchecksBaseError):
 
 
 class NumberOfFeaturesLimitError(DeepchecksBaseError):
-    """Represents a situation when a dataset contains too much features to be used for calculation."""
+    """Represents a situation when a dataset contains too many features to be used for calculation."""
 
     pass
 

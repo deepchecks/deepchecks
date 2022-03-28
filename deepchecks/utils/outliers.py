@@ -12,6 +12,7 @@
 from typing import Tuple
 
 import numpy as np
+import pandas as pd
 
 from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
 
@@ -44,9 +45,9 @@ def iqr_outliers_range(data: np.ndarray,
     if data.ndim > 1:
         raise DeepchecksValueError(f'IQR outlier method must receive one dimensional data but got {data.ndim} dims.')
     # Filter nulls
-    data = [x for x in data if x is not None and not np.isnan(x)]
+    data = [x for x in data if pd.notnull(x)]
     if len(data) < min_samples:
-        raise NotEnoughSamplesError(f'Need {min_samples} non-null samples to calculate IQR outliers, but got '
+        raise NotEnoughSamplesError(f'Need at least {min_samples} non-null samples to calculate IQR outliers, but got '
                                     f'{len(data)}')
 
     q1, q3 = np.percentile(data, sorted(iqr_range))

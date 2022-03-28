@@ -30,8 +30,9 @@ from deepchecks.vision.utils.image_functions import prepare_thumbnail
 
 
 class ImagePropertyOutliers(SingleDatasetCheck):
-    """Find images without outliers for the given image properties.
+    """Find outliers images with respect to the given image properties.
 
+    The check computes several image properties and then computes the number of outliers for each property.
     The check uses `IQR <https://en.wikipedia.org/wiki/Interquartile_range#Outliers>`_ to detect outliers out of the
     single dimension properties.
 
@@ -79,15 +80,15 @@ class ImagePropertyOutliers(SingleDatasetCheck):
 
         for single_property in self.image_properties:
             prop_name = single_property['name']
-            property_list = single_property['method'](images)
-            if len(property_list) != len(images):
-                raise DeepchecksProcessError(f'Properties are expected to return value per image but instead got'
-                                             f'{len(property_list)} values for {len(images)} images for property '
+            property_values = single_property['method'](images)
+            if len(property_values) != len(images):
+                raise DeepchecksProcessError(f'Image properties are expected to return value per image but instead got'
+                                             f'{len(property_values)} values for {len(images)} images for property '
                                              f'{prop_name}')
-            if any((x is not None and not isinstance(x, Number) for x in property_list)):
-                raise DeepchecksProcessError(f'For outlier check properties are expected to be only numeric types but'
+            if any((x is not None and not isinstance(x, Number) for x in property_values)):
+                raise DeepchecksProcessError(f'For outliers, properties are expected to be only numeric types but'
                                              f' found non-numeric value for property {prop_name}')
-            self._properties[prop_name].extend(property_list)
+            self._properties[prop_name].extend(property_values)
 
     def compute(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
         """Compute final result."""
