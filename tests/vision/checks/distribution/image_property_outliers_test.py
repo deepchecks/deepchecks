@@ -81,6 +81,7 @@ def test_run_on_data_with_only_images(mnist_train_only_images, device):
     # Assert
     assert_that(result, is_correct_image_property_outliers_result())
 
+
 def test_run_on_custom_task(mnist_train_custom_task, device):
     # Act - Assert check runs without exception
     result = ImagePropertyOutliers().run(mnist_train_custom_task, device=device)

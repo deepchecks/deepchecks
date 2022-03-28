@@ -287,7 +287,7 @@ def mnist_test_only_images(mnist_data_loader_test):  # pylint: disable=redefined
 @pytest.fixture(scope='session')
 def mnist_train_custom_task(mnist_data_loader_test):  # pylint: disable=redefined-outer-name
     vision_data = MNISTData(mnist_data_loader_test)
-    vision_data._task_type = TaskType.OTHER
+    vision_data._task_type = TaskType.OTHER  # pylint: disable=protected-access
     return vision_data
 
 
