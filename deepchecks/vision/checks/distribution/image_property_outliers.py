@@ -83,7 +83,7 @@ class ImagePropertyOutliers(SingleDatasetCheck):
             property_values = single_property['method'](images)
             if len(property_values) != len(images):
                 raise DeepchecksProcessError(f'Image properties are expected to return value per image but instead got'
-                                             f'{len(property_values)} values for {len(images)} images for property '
+                                             f' {len(property_values)} values for {len(images)} images for property '
                                              f'{prop_name}')
             if any((x is not None and not isinstance(x, Number) for x in property_values)):
                 raise DeepchecksProcessError(f'For outliers, properties are expected to be only numeric types but'

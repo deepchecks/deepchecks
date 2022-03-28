@@ -38,7 +38,7 @@ def iqr_outliers_range(data: np.ndarray,
     Tuple[float, float]
         Tuple of lower limit and upper limit of outliers range
     """
-    if len(iqr_range) != 2 or any((x < 0 or x > 100 for x in iqr_range)):
+    if len(iqr_range) != 2 or any((x < 0 or x > 100 for x in iqr_range)) or all(x < 1 for x in iqr_range):
         raise DeepchecksValueError('IQR range must contain two numbers between 0 to 100')
 
     data = data.squeeze()
