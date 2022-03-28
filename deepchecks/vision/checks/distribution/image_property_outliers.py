@@ -111,7 +111,7 @@ class ImagePropertyOutliers(SingleDatasetCheck):
             outlier_indices = np.argwhere((values < lower_limit) | (values > upper_limit)).squeeze()
             # Sort the indices of the outliers by the original values
             outlier_indices = outlier_indices[
-                np.apply_along_axis(lambda i: values[i], axis=0, arr=outlier_indices).argsort()
+                np.apply_along_axis(lambda i, sort_arr=values: sort_arr[i], axis=0, arr=outlier_indices).argsort()
             ]
 
             # Take the indices to show images from the top and bottom
