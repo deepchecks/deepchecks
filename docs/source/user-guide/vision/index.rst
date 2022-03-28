@@ -8,5 +8,4 @@ Vision
     :maxdepth: 2
 
     data-classes/index
-    classification_tutorial
     vision_properties

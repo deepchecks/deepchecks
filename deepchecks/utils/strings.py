@@ -114,7 +114,7 @@ def _generate_check_docs_link_html(check):
         return ''
 
     link_template = (
-        'https://docs.deepchecks.com/en/{version}/examples/{path}.html'
+        'https://docs.deepchecks.com/{version}/examples/{path}.html'
         '?utm_source=display_output&utm_medium=referral'
         '&utm_campaign=check_link'
     )
@@ -123,12 +123,15 @@ def _generate_check_docs_link_html(check):
     # understand how link is formatted:
     #
     # - deepchecks.tabular.checks.integrity.new_category.CategoryMismatchTrainTest
-    # - docs.deepchecks.com/en/{version}/examples/tabular/checks/integrity/category_mismatch_train_test.html # noqa: E501 # pylint: disable=line-too-long
+    # - docs.deepchecks.com/{version}/examples/tabular/checks/integrity/category_mismatch_train_test.html # noqa: E501 # pylint: disable=line-too-long
 
-    module_path = module_path.split('.')
-    check_name = to_snake_case(type(check).__name__).lower()
-    path_parts = [it for it in module_path if it != 'deepchecks']
-    url = '/'.join([*path_parts[:-1], check_name])
+    # Remove deepchecks from the start
+    module_path = module_path[len('deepchecks.'):]
+    # There is a bug in doc rendering where the "tabular" is omitted, so do it for now
+    if module_path.startswith('tabular.'):
+        module_path = module_path[len('tabular.'):]
+
+    url = '/'.join([*module_path.split('.')])
     version = deepchecks.__version__ or 'stable'
     link = link_template.format(version=version, path=url)
     return f' <a href="{link}" target="_blank">Read More...</a>'

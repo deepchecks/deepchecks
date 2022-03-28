@@ -1,8 +1,4 @@
 """
-.. custom_task:
-
-.. currentmodule:: deepchecks.vision
-
 ====================
 Custom Task Tutorial
 ====================
@@ -23,10 +19,10 @@ the exact bounding box format in order to run, while other checks that uses
 
 In this guide we will implement a custom instance segmentation task and run checks on it.
 
-#. :ref:`Defining the Data`_
-#. :ref:`Implement Custom Task`_
-#. :ref:`Implement Custom Properties`_
-#. :ref:`Implement Custom Metric`_
+# 1. `Defining the Data <#defining-the-data>`__
+# 2. `Implement Custom Task <#implement-custom-task>`__
+# 3. `Implement Custom Properties <#implement-custom-properties>`__
+# 4. `Implement Custom Metric <#implement-custom-metric>`__
 """
 
 #%%
@@ -156,6 +152,12 @@ class CocoSegmentDataset(VisionDataset):
                     extract_root=str(root),
                     md5=md5
                 )
+            
+            try:
+                # remove coco128's README.txt so that it does not come in docs
+                os.remove("coco128/README.txt")
+            except:
+                pass
         return CocoSegmentDataset(coco_dir, folder, train=train, transforms=A.Compose([ToTensorV2()]))
 
 

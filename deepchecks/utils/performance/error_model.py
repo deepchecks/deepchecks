@@ -55,7 +55,8 @@ def model_error_contribution(train_dataset: pd.DataFrame,
                                      f'(r^2 score: {format_number(error_model_score)})')
 
     error_fi, _ = calculate_feature_importance(error_model,
-                                               test_dataset)
+                                               test_dataset,
+                                               permutation_kwargs={'random_state': random_state})
     error_fi.index = new_feature_order
     error_fi.sort_values(ascending=False, inplace=True)
 
@@ -211,7 +212,7 @@ def error_model_display(error_fi: pd.Series,
 
             # Display
             display.append(px.violin(
-                data, y=error_col_name, x=feature, title=f'Segmentation of error by {feature}', box=False,
+                data, y=error_col_name, x=feature, title=f'Segmentation of error by feature: {feature}', box=False,
                 labels={error_col_name: 'model error'}, color=color_col,
                 color_discrete_map=color_map
             ))
@@ -255,7 +256,7 @@ def error_model_display(error_fi: pd.Series,
                 color_col = data[error_col_name]
                 color_map = None
             display.append(px.scatter(data, x=feature, y=error_col_name, color=color_col,
-                                      title=f'Segmentation of error by {feature}',
+                                      title=f'Segmentation of error by the feature: {feature}',
                                       labels={error_col_name: 'model error'},
                                       color_discrete_map=color_map))
 
@@ -263,8 +264,6 @@ def error_model_display(error_fi: pd.Series,
             value['feature_segments'][feature]['segment1'] = segment1_details
         if segment2_details:
             value['feature_segments'][feature]['segment2'] = segment2_details
-
-        display[-1].update_layout(width=1200, height=400)
 
     return display, value
 
@@ -292,7 +291,7 @@ def get_segment_details_using_error(error_column_name, dataset: pd.DataFrame,
     performance = dataset[segment_condition_col][error_column_name].sum() / n_samples
     segment_label = \
         f'Error: {format_number(performance)}, ' \
-        f'Samples: {n_samples} ({format_percent(n_samples / len(dataset))})'
+        f'({n_samples} samples - {format_percent(n_samples / len(dataset))} of the dataset)'
 
     segment_details = {'score': performance, 'n_samples': n_samples, 'frac_samples': n_samples / len(dataset)}
 

@@ -24,6 +24,7 @@ from ignite.metrics import Metric
 from deepchecks import CheckResult, ConditionResult
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.utils import plot
 from deepchecks.vision import VisionData, SingleDatasetCheck, Context, Batch
 from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.metrics_utils import calculate_metrics, metric_results_to_df
@@ -52,7 +53,7 @@ class RobustnessReport(SingleDatasetCheck):
         Supported augmentations are of albumentations and imgaug.
     """
 
-    _THUMBNAIL_SIZE = (200, 200)
+    _THUMBNAIL_SIZE = (150, 150)
 
     def __init__(self,
                  alternative_metrics: Optional[Dict[str, Metric]] = None,
@@ -301,7 +302,8 @@ class RobustnessReport(SingleDatasetCheck):
             diff = ['', format_percent(curr_aug['diff'])]
 
             fig.add_trace(go.Bar(x=x, y=y, customdata=diff, texttemplate='%{customdata}',
-                                 textposition='auto'), col=index + 1, row=1)
+                                 textposition='auto', marker=dict(color=plot.metric_colors[index])),
+                          col=index + 1, row=1)
 
         title = 'Performance Comparison'
         (fig.update_layout(font=dict(size=12), height=300, width=400 * len(metrics), autosize=False,
@@ -329,7 +331,8 @@ class RobustnessReport(SingleDatasetCheck):
             textposition = 'outside' if sum(y) == 0 else 'auto'
             hover = 'Metric value: %{y:.2f}<br>Number of samples: %{customdata[1]}'
             fig.add_trace(go.Bar(name=metric, x=x, y=y, customdata=custom_data, texttemplate='%{customdata[0]}',
-                                 textposition=textposition, hovertemplate=hover),
+                                 textposition=textposition, hovertemplate=hover,
+                                 marker=dict(color=plot.metric_colors[index])),
                           row=1, col=index + 1)
 
         title = 'Top Affected Classes'

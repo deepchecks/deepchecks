@@ -92,7 +92,6 @@ imgmath_image_format = 'svg'
 
 sphinx_gallery_conf = {
     "examples_dirs": [
-        "examples/general/source",
         "examples/vision/checks/distribution/source",
         "examples/vision/checks/performance/source",
         "examples/vision/checks/methodology/source",
@@ -109,7 +108,6 @@ sphinx_gallery_conf = {
         # "examples/tabular/use-cases/source",
     ],  # path to your example scripts
     "gallery_dirs": [
-        "examples/general/examples",
         "examples/vision/checks/distribution/examples",
         "examples/vision/checks/performance/examples",
         "examples/vision/checks/methodology/examples",

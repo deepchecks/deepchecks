@@ -22,6 +22,7 @@ import plotly.express as px
 from deepchecks import ConditionResult
 from deepchecks.core import DatasetKind, CheckResult
 from deepchecks.core.condition import ConditionCategory
+from deepchecks.utils import plot
 from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.vision import SingleDatasetCheck, Context, Batch
 from deepchecks.vision.utils import image_properties
@@ -141,7 +142,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
                 bin_data = {
                     'Range': display_range,
                     'Number of samples': single_bin['count'],
-                    'Property': f'Property: {property_name}'
+                    'Property': f'{property_name}'
                 }
                 # Update the metrics and range in the single bin from the metrics objects to metric mean results,
                 # in order to return the bins object as the check result value
@@ -160,6 +161,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
             x='Range',
             y='Value',
             color='Metric',
+            color_discrete_sequence=plot.metric_colors,
             barmode='group',
             facet_col='Property',
             facet_row='Metric',
@@ -173,7 +175,8 @@ class ImageSegmentPerformance(SingleDatasetCheck):
             .update_yaxes(title=None)
             .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
             .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
-            .update_traces(width=bar_width))
+            .update_traces(width=bar_width)
+         )
 
         return CheckResult(value=dict(result_value), display=fig)
 
