@@ -63,11 +63,11 @@ def city_arrogance_split_dataset_and_model():
         {
             'sex': [0, 1, 1, 0, 0, 1],
             'city': ['ahhh', 'no', 'weeee', 'arg', 'eh', 'E'],
-            'arogance': [3, 1, 5, 2, 1, 1],
+            'arrogance': [3, 1, 5, 2, 1, 1],
         })
     train, test = train_test_split(df, test_size=0.33, random_state=42)
-    train_ds = Dataset(train, label='arogance', cat_features=['sex'])
-    test_ds = Dataset(test, label='arogance', cat_features=['sex'])
+    train_ds = Dataset(train, label='arrogance', cat_features=['sex'])
+    test_ds = Dataset(test, label='arrogance', cat_features=['sex'])
     clf = Pipeline([('lengthifier', FunctionTransformer(city_leng)),
                 ('clf', AdaBoostClassifier(random_state=0))])
     clf.fit(train_ds.features_columns, train_ds.label_col)
