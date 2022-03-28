@@ -77,7 +77,15 @@ def test_image_property_outliers_check_mnist(mnist_dataset_train, device):
 
 def test_run_on_data_with_only_images(mnist_train_only_images, device):
     # Act - Assert check runs without exception
-    ImagePropertyOutliers().run(mnist_train_only_images, device=device)
+    result = ImagePropertyOutliers().run(mnist_train_only_images, device=device)
+    # Assert
+    assert_that(result, is_correct_image_property_outliers_result())
+
+def test_run_on_custom_task(mnist_train_custom_task, device):
+    # Act - Assert check runs without exception
+    result = ImagePropertyOutliers().run(mnist_train_custom_task, device=device)
+    # Assert
+    assert_that(result, is_correct_image_property_outliers_result())
 
 
 def test_not_enough_samples_for_iqr(mnist_dataset_train, device):

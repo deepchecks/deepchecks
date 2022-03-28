@@ -29,6 +29,7 @@ from deepchecks.vision.datasets.classification.mnist import (
     load_model as load_mnist_net_model,
     load_dataset as load_mnist_dataset, MNISTData
 )
+from deepchecks.vision.vision_data import TaskType
 
 from tests.vision.utils_tests.mnist_imgaug import mnist_dataset_imgaug
 from tests.vision.assets.coco_detections_dict import coco_detections_dict
@@ -60,7 +61,8 @@ __all__ = ['device',
            'mock_trained_mnist',
            'run_update_loop',
            'mnist_train_only_images',
-           'mnist_test_only_images'
+           'mnist_test_only_images',
+           'mnist_train_custom_task'
            ]
 
 
@@ -280,6 +282,13 @@ def mnist_test_only_images(mnist_data_loader_test):  # pylint: disable=redefined
             raise DeepchecksNotImplementedError('not implemented')
 
     return CustomData(mnist_data_loader_test)
+
+
+@pytest.fixture(scope='session')
+def mnist_train_custom_task(mnist_data_loader_test):  # pylint: disable=redefined-outer-name
+    vision_data = MNISTData(mnist_data_loader_test)
+    vision_data._task_type = TaskType.OTHER
+    return vision_data
 
 
 def run_update_loop(dataset: VisionData):
