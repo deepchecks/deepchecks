@@ -48,7 +48,10 @@ class PerformanceReport(TrainTestCheck):
     .. code-block:: python
 
         from sklearn.metrics import roc_auc_score, make_scorer
-        auc_scorer = make_scorer(roc_auc_score)
+        auc_scorer = make_scorer(roc_auc_score, labels=training_labels, multi_class='ovr')
+        # Note that the labels parameter is required for multi-class classification in metrics like roc_auc_score or
+        # log_loss that use the predict_proba function of the model, in case that not all labels are present in the test
+        # set.
 
     Or you can implement your own:
 
