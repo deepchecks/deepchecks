@@ -159,7 +159,8 @@ class TrainTestFeatureDrift(TrainTestCheck):
             <br>If available, the plot titles also show the feature importance (FI) rank.
         </span>"""
 
-        displays = [headnote] + [displays_dict[col] for col in columns_order]
+        displays = [headnote] + [displays_dict[col] for col in columns_order \
+            if col in train_dataset.cat_features + train_dataset.numerical_features]
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Drift')
 

@@ -775,8 +775,10 @@ class Dataset:
             elif column in self._features:
                 if column in self.cat_features:
                     value = 'categorical feature'
-                else:
+                elif column in self.numerical_features:
                     value = 'numerical feature'
+                else:
+                    value = 'other feature'
             else:
                 value = 'other'
             columns[column] = value

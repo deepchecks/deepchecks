@@ -115,7 +115,7 @@ class SimpleModelComparison(TrainTestCheck):
         """
         train_dataset = context.train
         test_dataset = context.test
-        test_label = test_dataset.label_col
+        train_label = train_dataset.label_col
         task_type = context.task_type
         model = context.model
 
@@ -134,7 +134,7 @@ class SimpleModelComparison(TrainTestCheck):
 
         # Multiclass have different return type from the scorer, list of score per class instead of single score
         if task_type in [ModelType.MULTICLASS, ModelType.BINARY]:
-            n_samples = test_label.groupby(test_label).count()
+            n_samples = train_label.groupby(train_label).count()
             classes = train_dataset.classes
 
             results_array = []
@@ -191,7 +191,7 @@ class SimpleModelComparison(TrainTestCheck):
                                           model_type,
                                           score,
                                           scorer.name,
-                                          test_label.count()
+                                          train_label.count()
                                           ])
                 results_dict[scorer.name] = model_dict
 
