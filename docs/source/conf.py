@@ -395,7 +395,6 @@ html_theme_options = {
             "icon": "fab fa-python",
         }
     ],
-    "version": VERSION
 }
 
 # vars that will be passed to the jinja templates during build
