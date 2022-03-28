@@ -32,7 +32,7 @@ def train_test_validation() -> Suite:
         HeatmapComparison(),
         TrainTestLabelDrift().add_condition_drift_score_not_greater_than(),
         TrainTestPredictionDrift().add_condition_drift_score_not_greater_than(),
-        ImagePropertyDrift().add_condition_drift_score_not_greater_than(),
+        # ImagePropertyDrift().add_condition_drift_score_not_greater_than(),
         ImageDatasetDrift(),
         SimpleFeatureContribution().add_condition_feature_pps_difference_not_greater_than()
     )
@@ -47,7 +47,7 @@ def model_evaluation() -> Suite:
         MeanAverageRecallReport(),
         SimpleModelComparison(),
         ConfusionMatrixReport(),
-        ImageSegmentPerformance().add_condition_score_from_mean_ratio_not_less_than()
+        # ImageSegmentPerformance().add_condition_score_from_mean_ratio_not_less_than()
     )
 
 
