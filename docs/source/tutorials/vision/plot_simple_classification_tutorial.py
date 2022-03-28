@@ -55,7 +55,7 @@ train_ds = load_dataset('hymenoptera_data', train=True, object_type='VisionData'
 test_ds = load_dataset('hymenoptera_data', train=False, object_type='VisionData', image_extension='jpg')
 
 # Running Deepchecks' full suite
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ==============================
 # That's it, we have just defined the classification data object and are ready to run the train_test_validation suite:
 
 from deepchecks.vision.suites import train_test_validation
@@ -65,7 +65,7 @@ result = suite.run(train_ds, test_ds)
 
 #%%
 # Observing the results:
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ===========================
 # The results can be saved as a html file with the following code:
 
 result.save_as_html('output.html')
