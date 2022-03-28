@@ -50,35 +50,26 @@ one-dimensional distributions, the following 2 methods give the best results:
 #%%
 
 
-import numpy as np
-import pandas as pd
-
-from deepchecks.tabular import Dataset
 from deepchecks.tabular.checks import TrainTestPredictionDrift
-import pprint
+from deepchecks.tabular.datasets.classification import adult
+from sklearn.preprocessing import LabelEncoder
 
 
 #%%
 # Generate data
 # =============
 
-np.random.seed(42)
-
-train_data = np.concatenate([np.random.randn(1000,2), np.random.choice(a=['apple', 'orange', 'banana'], p=[0.5, 0.3, 0.2], size=(1000, 2))], axis=1)
-test_data = np.concatenate([np.random.randn(1000,2), np.random.choice(a=['apple', 'orange', 'banana'], p=[0.5, 0.3, 0.2], size=(1000, 2))], axis=1)
-
-df_train = pd.DataFrame(train_data, columns=['numeric_without_drift', 'numeric_with_drift', 'categorical_without_drift', 'categorical_with_drift'])
-df_test = pd.DataFrame(test_data, columns=df_train.columns)
-
-df_train = df_train.astype({'numeric_without_drift': 'float', 'numeric_with_drift': 'float'})
-df_test = df_test.astype({'numeric_without_drift': 'float', 'numeric_with_drift': 'float'})
-
+label_name = 'income'
+train_ds, test_ds = adult.load_data()
+encoder = LabelEncoder()
+train_ds.data[label_name] = encoder.fit_transform(train_ds.data[label_name])
+test_ds.data[label_name] = encoder.transform(test_ds.data[label_name])
 
 #%%
+# Introducing drift:
 
-
-df_test['numeric_with_drift'] = df_test['numeric_with_drift'].astype('float') + abs(np.random.randn(1000)) + np.arange(0, 1, 0.001) * 4
-df_test['categorical_with_drift'] = np.random.choice(a=['apple', 'orange', 'banana', 'lemon'], p=[0.5, 0.25, 0.15, 0.1], size=(1000, 1))
+test_ds.data['education-num'] = 13
+test_ds.data['education'] = ' Bachelors'
 
 
 #%%
@@ -86,54 +77,36 @@ df_test['categorical_with_drift'] = np.random.choice(a=['apple', 'orange', 'bana
 # ===========
 
 
-from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
+from sklearn.impute import SimpleImputer
+from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OrdinalEncoder
-from sklearn.tree import DecisionTreeClassifier
-
-from deepchecks.tabular import Dataset
+from sklearn.ensemble import RandomForestClassifier
 
 
 #%%
 
 
-model = Pipeline([
-    ('handle_cat', ColumnTransformer(
-        transformers=[
-            ('num', 'passthrough',
-             ['numeric_with_drift', 'numeric_without_drift']),
-            ('cat',
-             Pipeline([
-                 ('encode', OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1)),
-             ]),
-             ['categorical_with_drift', 'categorical_without_drift'])
-        ]
-    )),
-    ('model', DecisionTreeClassifier(random_state=0, max_depth=2))]
+numeric_transformer = SimpleImputer()
+categorical_transformer = Pipeline(
+    steps=[("imputer", SimpleImputer(strategy="most_frequent")), ("encoder", OrdinalEncoder())]
 )
 
+train_ds.features
+preprocessor = ColumnTransformer(
+    transformers=[
+        ("num", numeric_transformer, train_ds.numerical_features),
+        ("cat", categorical_transformer, train_ds.cat_features),
+    ]
+)
 
-#%%
-
-
-label = np.random.randint(0, 2, size=(df_train.shape[0],))
-cat_features = ['categorical_without_drift', 'categorical_with_drift']
-df_train['target'] = label
-train_dataset = Dataset(df_train, label='target', cat_features=cat_features)
-
-model.fit(train_dataset.data[train_dataset.features], label)
-
-label = np.random.randint(0, 2, size=(df_test.shape[0],))
-df_test['target'] = label
-test_dataset = Dataset(df_test, label='target', cat_features=cat_features)
-
+model = Pipeline(steps=[("preprocessing", preprocessor), ("model", RandomForestClassifier(max_depth=5, n_jobs=-1))])
+model = model.fit(train_ds.data[train_ds.features], train_ds.data[train_ds.label_name])
 
 #%%
 # Run check
 # =========
 
-
 check = TrainTestPredictionDrift()
-result = check.run(train_dataset=train_dataset, test_dataset=test_dataset, model=model)
+result = check.run(train_dataset=train_ds, test_dataset=test_ds, model=model)
 result
-
