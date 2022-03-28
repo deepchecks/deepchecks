@@ -71,5 +71,5 @@ def test_other_feature(city_arrogance_split_dataset_and_model):
     result_value = check.run(train, clf).value
     # Assert
     assert_that(result_value,  equal_to(
-        {'sex': 'categorical feature', 'city': 'other feature', 'arogance': 'label'}
+        {'sex': 'categorical feature', 'city': 'other feature', 'arrogance': 'label'}
         ))
