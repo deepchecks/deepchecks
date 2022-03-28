@@ -18,7 +18,7 @@ from torch.utils.data import DataLoader
 from hamcrest import assert_that, instance_of, has_length, all_of, has_property, equal_to, calling, raises
 
 from deepchecks.utils.strings import get_random_string
-from deepchecks.vision.datasets.classification import simple_classification_data
+from deepchecks.vision import simple_classification_data as simple
 
 
 PARENT_FOLDER = pathlib.Path(__file__).absolute().parent
