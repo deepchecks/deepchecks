@@ -5,7 +5,7 @@ Export Outputs to Weights & Biases (wandb)
 In this guide, we will demonstrate how to export the Check's and the Suite's output to wandb.
 
 This enables to view the exported results in wandb and compare the results you
-receive with diffrent parameters or model/data.
+receive with different parameters or model/data.
 
 **Structure:**
 
@@ -28,10 +28,10 @@ model = iris.load_fitted_model()
 # Run a Check
 # -----------
 
-from deepchecks.tabular.checks import ModelErrorAnalysis
+from deepchecks.tabular.checks import WholeDatasetDrift
 
-result = ModelErrorAnalysis().add_condition_segments_performance_relative_difference_not_greater_than(\
-                                ).run(train_dataset, test_dataset, model)
+result = WholeDatasetDrift().add_condition_overall_drift_value_not_greater_than(
+).run(train_dataset, test_dataset, model)
 
 #%%
 # Observe CheckResult Display and Value
@@ -49,7 +49,7 @@ result.value
 # Exporting the output to wandb is possible using the ``to_wandb`` function. This function
 # exports the check outputs to a wandb project.
 #
-# The output display that will be export will be a bit diffrent from what you usually
+# The output display that will be export will be a bit different from what you usually
 # see. Only the tables and the plots are being exported.
 #
 # On default if you export a single check to wandb without a wandb run active it will

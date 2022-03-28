@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Classifying Malicious URLs
-**************************
+Use Cases - Classifying Malicious URLs
+**************************************
 This notebook demonstrates how the ``deepchecks`` package can help you validate
 your basic data science workflow right out of the box!
 
