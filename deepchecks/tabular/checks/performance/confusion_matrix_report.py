@@ -47,7 +47,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         model = context.model
 
         y_pred = model.predict(ds_x)
-        total_classes = list(set(pd.concat([ds_y, pd.Series(y_pred)]).to_list()))
+        total_classes = sorted(list(set(pd.concat([ds_y, pd.Series(y_pred)]).to_list())))
         confusion_matrix = sklearn.metrics.confusion_matrix(ds_y, y_pred)
 
         # Figure
