@@ -34,7 +34,7 @@ _FEATURES = ['age', 'workclass', 'fnlwgt', 'education', 'education-num', 'marita
 _target = 'income'
 _CAT_FEATURES = ['workclass', 'education', 'marital-status', 'occupation', 'relationship', 'race', 'sex',
                  'native-country']
-_NUM_FEATURES = set(_FEATURES) - set(_CAT_FEATURES)
+_NUM_FEATURES = list(set(_FEATURES) - set(_CAT_FEATURES))
 
 
 def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
