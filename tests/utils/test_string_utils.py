@@ -75,9 +75,9 @@ def test_generate_check_docs_link_html():
     # Act
     html = _generate_check_docs_link_html(check)
     # Assert
-    assert_that(html, equal_to(f' <a href="https://docs.deepchecks.com/en/{version}/examples/tabular/checks/overview/'
-                               'model_info.html?utm_source=display_output&utm_medium=referral&utm_campaign=check_link" '
-                               'target="_blank">Read More...</a>'))
+    assert_that(html, equal_to(f' <a href="https://docs.deepchecks.com/{version}/examples/checks/overview/model_info'
+                               f'.html?utm_source=display_output&utm_medium=referral&utm_campaign=check_link" '
+                               f'target="_blank">Read More...</a>'))
 
 
 def test_generate_check_docs_link_html_not_a_check():
