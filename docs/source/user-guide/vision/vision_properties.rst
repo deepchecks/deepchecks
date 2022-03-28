@@ -39,23 +39,31 @@ You can either use the built-in properties or implement your own ones and pass t
 
 The built-in image properties are:
 
-- Aspect Ratio (height / width)
-- Area
-- Brightness
-- RMS (Root Mean Square) Contrast
-- RGB Mean Relative Intensity: Mean color intensity for each channel. The color intensity is normalized according to
-  the other color channels per pixel. This is done in order to capture the relationships between channels and not just
-  general intensity (brightness).
-
-  - Mean Red Relative Intensity
-  - Mean Green Relative Intensity
-  - Mean Blue Relative Intensity
+==============================  ==========
+Property name                   What is it
+==============================  ==========
+Aspect Ratio                    Ratio between height and width of image (height / width)
+Area                            Area of image in pixels (height * width)
+Brightness                      Average intensity of image pixels. Color channels have different weights according to
+                                RGB-to-Grayscale formula
+RMS Contrast                    Contrast of image, calculated by standard deviation of pixels
+Mean Red Relative Intensity     Mean over all pixels of the red channel, scaled to their relative intensity in
+                                comparison to the other channels [r / (r + g + b)].
+Mean Green Relative Intensity   Mean over all pixels of the green channel, scaled to their relative intensity in
+                                comparison to the other channels [g / (r + g + b)].
+Mean Blue Relative Intensity    Mean over all pixels of the blue channel, scaled to their relative intensity in
+                                comparison to the other channels [b / (r + g + b)].
+==============================  ==========
 
 The built-in label & predictions properties are:
 
-- Samples Per Class (classification + object detection)
-- Bounding Box Area (object detection)
-- Number of Bounding Boxes Per Image (object detection)
+===================================  ==========
+Property name                        What is it
+===================================  ==========
+Samples Per Class                    The classes abundance in the data
+Bounding Box Area                    Area of bounding boxes in pixels (height * width) for object detection
+Number of Bounding Boxes Per Image   Number of bounding boxes in a single image for object detection
+===================================  ==========
 
 Property Structure
 ====================

@@ -21,7 +21,7 @@ from functools import lru_cache
 
 import numpy as np
 import pandas as pd
-from pandas.core.dtypes.common import is_float_dtype
+from pandas.core.dtypes.common import is_float_dtype, is_numeric_dtype
 from sklearn.inspection import permutation_importance
 
 from deepchecks import tabular
@@ -38,6 +38,7 @@ __all__ = [
     'column_importance_sorter_dict',
     'column_importance_sorter_df',
     'infer_categorical_features',
+    'infer_numerical_features',
     'is_categorical',
     'N_TOP_MESSAGE'
 ]
@@ -378,6 +379,31 @@ def column_importance_sorter_df(
     if n_top:
         return df.head(n_top)
     return df
+
+
+def infer_numerical_features(df: pd.DataFrame) -> t.List[Hashable]:
+    """Infers which features are numerical.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        dataframe for which to infer numerical features
+
+    Returns
+    -------
+    List[Hashable]
+        list of numerical features
+    """
+    columns = df.columns
+    numerical_columns = []
+    for col in columns:
+        col_data = df[col]
+        if col_data.dtype == 'object':
+            # object might still be only floats, so we rest the dtype
+            col_data = pd.Series(col_data.to_list())
+        if is_numeric_dtype(col_data):
+            numerical_columns.append(col)
+    return numerical_columns
 
 
 def infer_categorical_features(

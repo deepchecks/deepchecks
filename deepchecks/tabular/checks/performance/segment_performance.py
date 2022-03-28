@@ -14,7 +14,7 @@ from typing import Callable, Union, Optional, List, cast, Tuple
 import numpy as np
 import plotly.figure_factory as ff
 
-from deepchecks.tabular import Context, SingleDatasetCheck, Dataset
+from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError
 from deepchecks.utils.performance.partition import partition_column
@@ -111,9 +111,7 @@ class SegmentPerformance(SingleDatasetCheck):
                 if feature_2_df.empty:
                     score = np.NaN
                 else:
-                    score = scorer(model,
-                                   Dataset(feature_2_df, features=dataset.features,
-                                           label=dataset.label_name, cat_features=dataset.cat_features))
+                    score = scorer(model, dataset.copy(feature_2_df))
                 scores[i, j] = score
                 counts[i, j] = len(feature_2_df)
 

@@ -116,6 +116,12 @@ class TrainTestFeatureDrift(TrainTestCheck):
         values_dict = OrderedDict()
         displays_dict = OrderedDict()
         for column in train_dataset.features:
+            if column in train_dataset.numerical_features:
+                column_type = 'numerical'
+            elif column in train_dataset.cat_features:
+                column_type = 'categorical'
+            else:
+                continue  # we only support categorical or numerical features
             if features_importance is not None:
                 fi_rank_series = features_importance.rank(method='first', ascending=False)
                 fi_rank = fi_rank_series[column]
@@ -127,7 +133,7 @@ class TrainTestFeatureDrift(TrainTestCheck):
                 train_column=train_dataset.data[column],
                 test_column=test_dataset.data[column],
                 value_name=column,
-                column_type='categorical' if column in train_dataset.cat_features else 'numerical',
+                column_type=column_type,
                 plot_title=plot_title,
                 max_num_categories=self.max_num_categories
             )
@@ -153,7 +159,8 @@ class TrainTestFeatureDrift(TrainTestCheck):
             <br>If available, the plot titles also show the feature importance (FI) rank.
         </span>"""
 
-        displays = [headnote] + [displays_dict[col] for col in columns_order]
+        displays = [headnote] + [displays_dict[col] for col in columns_order
+                                 if col in train_dataset.cat_features + train_dataset.numerical_features]
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Drift')
 
