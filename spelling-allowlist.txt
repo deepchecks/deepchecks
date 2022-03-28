@@ -73,3 +73,5 @@ misclassified
 'img'
 img
 jsonpickle
+renormalization
+jsonpickle

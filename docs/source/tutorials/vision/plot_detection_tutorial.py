@@ -169,7 +169,7 @@ show(result)
 
 #%%
 # .. image :: /_static/tomatoes.png
-# :alt: Tomatoes with bbox
+#     :alt: Tomatoes with bbox
 #
 # Downloading a Pre-trained Model
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
