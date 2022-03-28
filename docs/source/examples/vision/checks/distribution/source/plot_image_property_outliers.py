@@ -7,13 +7,13 @@ outliers check, used to detect outliers in simple image properties in a dataset.
 
 **Structure:**
 
-* `Why Check For Outliers? <#why-check-for-outliers>`__
+* `Why Check for Outliers? <#why-check-for-outliers>`__
 * `How Does the Check Work? <#how-does-the-check-work>`__
 * `Which Image Properties Are Used? <#which-image-properties-are-used>`__
-* `Run The Check <#run-the-check>`__
+* `Run the Check <#run-the-check>`__
 
 
-Why Check For Outliers?
+Why Check for Outliers?
 -----------------------
 Examining outliers may help you gain insights that you couldn't have reached from taking an aggregate look or by
 inspecting random samples. For example, it may help you understand you have some corrupt samples (e.g.
@@ -42,7 +42,7 @@ with custom ones. For the list of the built-in image properties and explanation 
 """
 
 #%%
-# Run the check
+# Run the Check
 # -------------
 # For the example we will load COCO object detection data, and will run the check with the default properties.
 
