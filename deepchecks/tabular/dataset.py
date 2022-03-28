@@ -466,7 +466,6 @@ class Dataset:
         """
         return self.data.shape[0]
 
-
     @property
     def label_type(self) -> t.Optional[str]:
         """Return the label type.
