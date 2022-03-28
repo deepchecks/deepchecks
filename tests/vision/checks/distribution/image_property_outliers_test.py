@@ -13,7 +13,7 @@ from hamcrest import assert_that, all_of, instance_of, has_key, has_length, has_
 from hamcrest.core.matcher import Matcher
 
 from deepchecks import CheckResult
-from deepchecks.core.errors import NotEnoughSamplesError, DeepchecksProcessError
+from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.vision.checks import ImagePropertyOutliers
 from deepchecks.vision.utils.image_properties import default_image_properties
 
@@ -47,9 +47,7 @@ def test_image_property_outliers_check_coco(coco_train_visiondata, device):
     assert_that(result, is_correct_image_property_outliers_result())
     assert_that(result.value, has_entries({
         'Area': has_entries({
-            'sample_values': contains_exactly(139520, 166000, 166500, 187000, 187500, 360000, 361600, 366720, 374544,
-                                              378240),
-            'count': is_(13),
+            'indices': contains_exactly(60, 61, 44, 25, 62, 13, 6, 58, 50, 11, 26, 14, 45),
             'lower_limit': is_(220800),
             'upper_limit': is_(359040)
         }),
@@ -67,8 +65,7 @@ def test_image_property_outliers_check_mnist(mnist_dataset_train, device):
     assert_that(result, is_correct_image_property_outliers_result())
     assert_that(result.value, has_entries({
         'Brightness': has_entries({
-            'sample_values': has_length(5),
-            'count': is_(610),
+            'indices': has_length(610),
             'lower_limit': close_to(2.936, .001),
             'upper_limit': close_to(62.650, .001)
         }),

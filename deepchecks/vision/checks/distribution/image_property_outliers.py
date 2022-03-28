@@ -107,32 +107,31 @@ class ImagePropertyOutliers(SingleDatasetCheck):
                 result[name] = 'Not enough non-null samples to calculate outliers.'
                 continue
 
-            outliers = (values < lower_limit) | (values > upper_limit)
+            # Get the indices of the outliers
+            outlier_indices = np.argwhere((values < lower_limit) | (values > upper_limit)).squeeze()
+            # Sort the indices of the outliers by the original values
+            outlier_indices = outlier_indices[
+                np.apply_along_axis(lambda i: values[i], axis=0, arr=outlier_indices).argsort()
+            ]
 
-            # sort indices by value size
-            sorted_indices = values.argsort()
-            bottom_n_indices = sorted_indices[:self.n_show_top]
-            top_n_indices = sorted_indices[-self.n_show_top:]
-            top_and_bottom = np.concatenate((bottom_n_indices, top_n_indices))
+            # Take the indices to show images from the top and bottom
+            if outlier_indices.size <= self.n_show_top * 2:
+                show_indices = outlier_indices
+            else:
+                show_indices = np.concatenate((outlier_indices[:self.n_show_top], outlier_indices[-self.n_show_top:]))
 
-            outliers_samples = []
-            for index in top_and_bottom:
-                # If not an outlier then skip
-                if not outliers[index]:
-                    continue
-
-                outliers_samples.append(values[index].item())
-                batch = data.batch_of_index(index)
-                image = data.batch_to_images(batch)[0]
-                images[name].append(prepare_thumbnail(
+            for outlier_index in show_indices:
+                value = values[outlier_index].item()
+                image = data.batch_to_images(data.batch_of_index(outlier_index))[0]
+                image_thumbnail = prepare_thumbnail(
                     image=image,
                     size=self._THUMBNAIL_SIZE,
                     copy_image=False
-                ))
+                )
+                images[name].append((value, image_thumbnail))
 
             result[name] = {
-                'sample_values': outliers_samples,
-                'count': outliers.sum(),
+                'indices': data.to_dataset_index(*outlier_indices.tolist()),
                 'lower_limit': lower_limit,
                 'upper_limit': upper_limit
             }
@@ -143,18 +142,17 @@ class ImagePropertyOutliers(SingleDatasetCheck):
             # If info is string it means there was error
             if isinstance(info, str):
                 html = NO_IMAGES_TEMPLATE.format(prop_name=property_name, message=info)
-            elif info['count'] == 0:
-                html = NO_IMAGES_TEMPLATE.format(prop_name=property_name,
-                                                 message='No outliers found.')
+            elif len(info['indices']) == 0:
+                html = NO_IMAGES_TEMPLATE.format(prop_name=property_name, message='No outliers found.')
             else:
-                values_combine = ''.join([f'<p>{format_number(x)}</p>' for x in info['sample_values']])
-                images_combine = ''.join(images[property_name])
+                values_combine = ''.join([f'<p>{format_number(x[0])}</p>' for x in images[property_name]])
+                images_combine = ''.join([x[1] for x in images[property_name]])
 
                 html = HTML_TEMPLATE.format(
                     prop_name=property_name,
                     values=values_combine,
                     images=images_combine,
-                    count=info['count'],
+                    count=len(info['indices']),
                     n_of_images=len(images[property_name]),
                     lower_limit=format_number(info['lower_limit']),
                     upper_limit=format_number(info['upper_limit'])
@@ -191,7 +189,7 @@ Non-outliers range: {lower_limit} to {upper_limit}
         align-items: center;
         padding: 2rem;
         width: max-content;">
-    <h5>Value</h5>
+    <h5>{prop_name}</h5>
     {values}
     <h5>Image</h5>
     {images}
