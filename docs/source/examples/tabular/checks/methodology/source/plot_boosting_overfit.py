@@ -16,12 +16,9 @@ Irvine, CA: University of California, School of Information and Computer Science
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
-names = [*(f'col_{i}' for i in range(1,14)), 'target']
-train_df = pd.read_csv('http://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data', 
-                       header=None, names=names)
-val_df = pd.read_csv('http://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.test', 
-                     skiprows=1, header=None, names=names)
-val_df['target'] = val_df['target'].str[:-1]
+from deepchecks.tabular.datasets.classification import adult
+
+train_df, val_df = adult.load_data(data_format='Dataframe')
 
 # Run label encoder on all categorical columns
 for column in train_df.columns:
@@ -38,8 +35,8 @@ for column in train_df.columns:
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.checks.methodology.boosting_overfit import BoostingOverfit
 
-train_ds = Dataset(train_df, label='target')
-validation_ds = Dataset(val_df, label='target')
+train_ds = Dataset(train_df, label='income')
+validation_ds = Dataset(val_df, label='income')
 
 #%%
 # Classification model

@@ -83,7 +83,6 @@ class PerformanceReport(TrainTestCheck):
 
         model = context.model
         task_type = context.task_type
-        
 
         scorers = context.get_scorers(self.user_scorers, class_avg=False)
         datasets = {'Train': train_dataset, 'Test': test_dataset}

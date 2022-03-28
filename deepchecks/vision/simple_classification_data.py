@@ -23,7 +23,7 @@ from typing_extensions import Literal
 from deepchecks import vision
 
 
-__all__ = ['load_dataset', 'SimpleClassificationDataset']
+__all__ = ['load_dataset', 'SimpleClassificationDataset', 'SimpleClassificationData']
 
 
 def load_dataset(
@@ -79,8 +79,10 @@ def load_dataset(
         imgs, labels = zip(*batch)
         return list(imgs), list(labels)
 
+    dataset = SimpleClassificationDataset(root=root, train=train, **kwargs)
+
     dataloader = DataLoader(
-        dataset=SimpleClassificationDataset(root=root, train=train, **kwargs),
+        dataset=dataset,
         batch_size=batch_size,
         shuffle=shuffle,
         num_workers=num_workers,
@@ -92,7 +94,7 @@ def load_dataset(
     if object_type == 'DataLoader':
         return dataloader
     elif object_type == 'VisionData':
-        return SimpleClassificationData(data_loader=dataloader)
+        return SimpleClassificationData(data_loader=dataloader, label_map=dataset.reverse_classes_map)
     else:
         raise TypeError(f'Unknown value of object_type - {object_type}')
 
@@ -128,7 +130,7 @@ class SimpleClassificationDataset(VisionDataset):
         E.g, ``transforms.Rotate``
     target_transform : Callable, optional
         A function/transform that takes in the target and transforms it.
-    image_extension : str, default 'JPEG'
+    image_extension : str, default 'jpg'
         images format
     """
 
@@ -139,7 +141,7 @@ class SimpleClassificationDataset(VisionDataset):
         transforms: t.Optional[t.Callable] = None,
         transform: t.Optional[t.Callable] = None,
         target_transform: t.Optional[t.Callable] = None,
-        image_extension: str = 'JPEG'
+        image_extension: str = 'jpg'
     ) -> None:
         self.root_path = Path(root).absolute()
 
@@ -157,11 +159,11 @@ class SimpleClassificationDataset(VisionDataset):
         if len(self.images) == 0:
             raise ValueError(f'{self.root_path} - is empty or has incorrect structure')
 
+        classes = {img.parent.name for img in self.images}
+        classes = sorted(list(classes))
+
         # class label -> class index
-        self.classes_map = t.cast(t.Dict[str, int], {
-            img.parent.name: index
-            for index, img in enumerate(self.images)
-        })
+        self.classes_map = t.cast(t.Dict[str, int], dict(zip(classes, range(len(classes)))))
         # class index -> class  label
         self.reverse_classes_map = t.cast(t.Dict[int, str], {
             v: k
@@ -208,4 +210,8 @@ class SimpleClassificationData(vision.ClassificationData):
     ) -> torch.Tensor:
         """Extract the labels from a batch of data."""
         _, labels = batch
-        return torch.Tensor(list(labels))
+        return torch.Tensor(labels).long()
+
+    def get_classes(self, batch_labels: t.Union[t.List[torch.Tensor], torch.Tensor]):
+        """Get a labels batch and return classes inside it."""
+        return batch_labels.reshape(-1, 1).tolist()
