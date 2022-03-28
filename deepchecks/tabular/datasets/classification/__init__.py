@@ -12,5 +12,6 @@
 from . import breast_cancer
 from . import iris
 from . import phishing
+from . import adult
 
-__all__ = ['breast_cancer', 'iris', 'phishing']
+__all__ = ['breast_cancer', 'iris', 'phishing', 'adult']

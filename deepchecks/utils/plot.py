@@ -18,7 +18,18 @@ from matplotlib.colors import LinearSegmentedColormap
 __all__ = ['create_colorbar_barchart_for_check', 'shifted_color_map', 'colors']
 
 colors = {'Train': 'darkblue',
-          'Test': '#69b3a2'}
+          'Test': '#69b3a2',
+          'Baseline': '#b287a3',
+          'Generated': '#2191FB'}
+# iterable for displaying colors on metrics
+metric_colors = ['rgb(102, 197, 204)',
+                 'rgb(220, 176, 242)',
+                 'rgb(135, 197, 95)',
+                 'rgb(158, 185, 243)',
+                 'rgb(254, 136, 177)',
+                 'rgb(201, 219, 116)',
+                 'rgb(139, 224, 164)',
+                 'rgb(180, 151, 231)']
 
 
 def create_colorbar_barchart_for_check(
