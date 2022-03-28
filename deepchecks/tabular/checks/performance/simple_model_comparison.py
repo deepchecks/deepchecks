@@ -64,6 +64,8 @@ class SimpleModelComparison(TrainTestCheck):
     .. code-block:: python
 
         from sklearn.metrics import roc_auc_score, make_scorer
+
+        training_labels = [1, 2, 3]
         auc_scorer = make_scorer(roc_auc_score, labels=training_labels, multi_class='ovr')
         # Note that the labels parameter is required for multi-class classification in metrics like roc_auc_score or
         # log_loss that use the predict_proba function of the model, in case that not all labels are present in the test
