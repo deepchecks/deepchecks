@@ -6,11 +6,11 @@ This notebooks provides an overview for using and understanding robustness repor
 
 **Structure:**
 
-* `How Does the RobustnessReport Check Work? <#how-does-the-robustness-report-check-work>`__
+* `How Does the RobustnessReport Check Work? <#how-does-the-robustnessreport-check-work>`__
 * `What Are Image Augmentations? <#what-are-image-augmentations>`__
 * `Check requirements <#check-requirements>`__
 * `Generate data and model <#generate-data-and-model>`__
-* `Run the check <#run-the-checkl>`__
+* `Run the check <#run-the-check>`__
 * `Define a condition <#define-a-condition>`__
 
 How Does the RobustnessReport Check Work?

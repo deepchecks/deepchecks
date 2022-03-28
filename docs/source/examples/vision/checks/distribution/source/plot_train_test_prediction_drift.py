@@ -22,7 +22,7 @@ Calculating prediction drift is especially useful in cases
 in which labels are not available for the test dataset, and so a drift in the predictions
 is out only indication that a changed has happened in the data that actually affects model
 predictions. If labels are available, it's also recommended to run the `Label Drift Check
-</examples/vision/checks/distribution/test_autoexamples/plot_train_test_label_drift.html>`__.
+</examples/vision/checks/distribution/examples/plot_train_test_label_drift.html>`__.
 
 There are two main causes for prediction drift:
 

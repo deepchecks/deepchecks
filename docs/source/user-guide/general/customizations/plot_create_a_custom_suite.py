@@ -21,8 +21,8 @@ For assistance in understanding which checks are implemented and can be included
 we suggest using any of:
 
 * `API Reference </api/index.html>`__
-* `Tabular checks demonstration notebooks </examples/tabular/checks/test_autoexamples/index.html>`__
-* `Computer vision checks demonstration notebooks </examples/vision/checks/test_autoexamples/index.html>`__
+* `Tabular checks demonstration notebooks </examples/index.html#tabular-examples>`__
+* `Computer vision checks demonstration notebooks </examples/index.html#computer-vision-examples>`__
 * Built-in suites (by printing them to see which checks they include)
 """
 

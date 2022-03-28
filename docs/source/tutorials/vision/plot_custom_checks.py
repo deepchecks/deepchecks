@@ -11,11 +11,11 @@ We recommend writing a single check for each aspect of the model or data you wou
 :doc:`/user-guide/general/deepchecks_hierarchy`, the role of the check is to run the logic and output a display and
 a pythonic value. Then, a condition can be defined on that value to determine if the check is successful or not.
 
-# 1. `Vision Checks Structure <#vision-checks-structure>`__
-# 2. `Write a Basic Check <#write-a-basic-check>`__
-# 3. `Check Display <#check-display>`__
-# 4. `Defining a Condition <#defining-a-condition>`__
-# 5. `Base Checks Types <#base-checks-types>`__
+1. `Vision Checks Structure <#vision-checks-structure>`__
+2. `Write a Basic Check <#write-a-basic-check>`__
+3. `Check Display <#check-display>`__
+4. `Defining a Condition <#defining-a-condition>`__
+5. `Base Checks Types <#base-checks-types>`__
 
 Vision Checks Structure
 ========================
@@ -132,7 +132,7 @@ result.value
 
 
 # %% To see code references for more complex checks (that can receive parameters etc.), check out any of your
-# favorite checks from our `API ref <../../api/deepchecks.vision>`_.
+# favorite checks from our `API ref <../../../api/deepchecks.vision.html>`__.
 
 #%%
 # Check Display

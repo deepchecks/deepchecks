@@ -8,7 +8,7 @@ test datasets.
 
 **Structure:**
 
-* `What Is Dataset Drift? <#what-is-a-dataset-drift>`__
+* `What Is Dataset Drift? <#what-is-dataset-drift>`__
 * `How Does the ImageDatasetDrift Check Work? <#how-does-the-imagedatasetdrift-check-work>`__
 * `Which Image Properties Are Used? <#which-image-properties-are-used>`__
 * `Loading The Data <#loading-the-data>`__
