@@ -8,5 +8,5 @@ General
     :maxdepth: 2
 
     deepchecks_hierarchy
-    customizations/index
-    exporting_results/index
+    general/customizations/examples/index
+    general/exporting_results/examples/index
