@@ -3,10 +3,10 @@
 Using Deepchecks Vision With a Few Lines of Code
 ================================================
 
-Deepchecks Vision is built to enable validate your data and model, however complex your model and data may be. That
+Deepchecks Vision is built to validate your data and model, however complex your model and data may be. That
 being said, sometime there is no need to write a full-blown
-:doc:`**ClassificationData** </tutorials/vision/classification_tutorial>` or
-:doc:`**DetectionData** </tutorials/vision/detection_tutorial>`. In the case of a simple classification task,
+`**ClassificationData** </tutorials/vision/classification_tutorial>` or
+`**DetectionData** </tutorials/vision/detection_tutorial>`. In the case of a simple classification task,
 there is quite a few checks that can be run writing only a few lines of code. In this tutorial, we will show you how
 to run all checks that do not require a model on a simple classification task.
 
