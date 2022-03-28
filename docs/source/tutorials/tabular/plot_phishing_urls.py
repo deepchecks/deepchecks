@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Classifying Malicious URLs
-**************************
+Use Cases - Classifying Malicious URLs
+**************************************
 This notebook demonstrates how the ``deepchecks`` package can help you validate
 your basic data science workflow right out of the box!
 
@@ -231,9 +231,8 @@ vsuite = train_test_validation()
 # ``set_datetime_from_dataframe_index=True``), or any categorical features (we have
 # none after one-hot encoding them, so we'll set ``cate_features=[]`` explicitly).
 
-ds_train = deepchecks.tabular.Dataset(df=train_X, label=train_y, set_datetime_from_dataframe_index=True,
-                                      cat_features=[])
-ds_test = deepchecks.tabular.Dataset(df=test_X, label=test_y, set_datetime_from_dataframe_index=True, cat_features=[])
+ds_train = deepchecks.Dataset(df=train_X, label=train_y, set_datetime_from_dataframe_index=True, cat_features=[])
+ds_test = deepchecks.Dataset(df=test_X, label=test_y, set_datetime_from_dataframe_index=True, cat_features=[])
 
 #%%
 # Now we just have to provide the ``run`` method of the suite object with both the

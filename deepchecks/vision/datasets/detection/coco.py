@@ -101,7 +101,7 @@ def load_dataset(
 
     Parameters
     ----------
-    train : bool
+    train : bool, default: True
         if `True` train dataset, otherwise test dataset
     batch_size : int, default: 32
         Batch size for the dataloader.
