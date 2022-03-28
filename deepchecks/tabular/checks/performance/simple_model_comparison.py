@@ -332,7 +332,7 @@ def condition(result: Dict, include_classes=None, average=False, max_gain=None, 
                     continue
 
                 gain = get_gain(models_scores.get('Simple', 0),
-                                models_scores.get('Origin', 0),
+                                models_scores['Origin'],
                                 scorers_perfect[metric],
                                 max_gain)
                 if gain < min_allowed_gain:
@@ -347,7 +347,7 @@ def condition(result: Dict, include_classes=None, average=False, max_gain=None, 
             if models_scores['Origin'] == scorers_perfect[metric]:
                 continue
             gain = get_gain(models_scores.get('Simple', 0),
-                            models_scores.get('Origin', 0),
+                            models_scores['Origin'],
                             scorers_perfect[metric],
                             max_gain)
             if gain < min_allowed_gain:
