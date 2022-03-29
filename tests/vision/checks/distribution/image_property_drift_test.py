@@ -138,7 +138,7 @@ def is_correct_image_property_drift_result():
         })
     )
 
-
-def test_run_on_data_with_only_images(mnist_train_only_images, mnist_test_only_images, device):
-    # Act - Assert check runs without exception
-    ImagePropertyDrift().run(mnist_train_only_images, mnist_test_only_images, device=device)
+# NOTE: not actual anymore
+# def test_run_on_data_with_only_images(mnist_train_only_images, mnist_test_only_images, device):
+#     # Act - Assert check runs without exception
+#     ImagePropertyDrift().run(mnist_train_only_images, mnist_test_only_images, device=device)

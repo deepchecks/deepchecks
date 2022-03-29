@@ -313,7 +313,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         ground_truth = ['<span><b>Ground Truth</b></span>']
         detected_truth = ['<span><b>Detected Truth</b></span>']
         images = ['<span><b>Images</b></span>']
-        
+
         for label, detected, img in misclassified_images[:self.n_of_images_to_show]:
             label_name, label_id = label
             detection_name, detection_id = detected
