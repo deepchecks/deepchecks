@@ -243,7 +243,7 @@ class ImagePropertyDrift(TrainTestCheck):
                 content=f'<h4>Image</h4>{thumbnails}{properties}',
                 style={
                     'grid-template-rows': 'auto 1fr 1fr',
-                    'grid-template-columns': f'auto repeat({len(images)}, 1fr)',}
+                    'grid-template-columns': f'auto repeat({len(images)}, 1fr)'}
             ))
 
         train_table, test_table = tables
