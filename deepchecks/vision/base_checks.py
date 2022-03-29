@@ -73,7 +73,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         """Initialize run before starting updating on batches. Optional."""
         pass
 
-    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
+    def update(self, context: Context, batch: Any, dataset_kind: DatasetKind):
         """Update internal check state with given batch."""
         raise NotImplementedError()
 
@@ -131,7 +131,7 @@ class TrainTestCheck(TrainTestBaseCheck):
         """Initialize run before starting updating on batches. Optional."""
         pass
 
-    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
+    def update(self, context: Context, batch: Any, dataset_kind: DatasetKind):
         """Update internal check state with given batch for either train or test."""
         raise NotImplementedError()
 

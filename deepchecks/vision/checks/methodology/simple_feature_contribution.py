@@ -10,7 +10,7 @@
 #
 """Module contains the simple feature distribution check."""
 from collections import defaultdict
-from typing import Any, Callable, TypeVar, Hashable, Dict, Union
+from typing import Callable, TypeVar, Hashable, Dict, Union
 
 import numpy as np
 import pandas as pd
