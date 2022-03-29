@@ -11,6 +11,7 @@
 """Module contains the simple feature distribution check."""
 from collections import defaultdict
 from typing import Any, Callable, TypeVar, Hashable, Dict, Union
+
 import pandas as pd
 
 from deepchecks import ConditionResult
