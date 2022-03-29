@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module for defining functions related to image data."""
+import math
 import typing as t
 import io
 import base64
@@ -188,7 +189,7 @@ def prepare_thumbnail(
     """
     if size is not None:
         image = ensure_image(image, copy=copy_image)
-        image.thumbnail(size=size)
+        scale_resize_image(image, size)
     else:
         image = ensure_image(image, copy=False)
 
@@ -198,6 +199,48 @@ def prepare_thumbnail(
     png = base64.b64encode(img_bytes.read()).decode('ascii')
     img_bytes.close()
     return f'<img src="data:image/png;base64,{png}"/>'
+
+
+def scale_resize_image(
+    image: pilimage.Image,
+    size: t.Optional[t.Tuple[int, int]] = None,
+):
+    """Resize PIL image.
+
+    Parameters
+    ----------
+    image : PIL.Image.Image
+        image to use
+    size : Optional[Tuple[int, int]], default None
+        size to which image should be rescaled
+    """
+    x, y = map(math.floor, size)
+
+    def round_aspect(number, key):
+        return max(min(math.floor(number), math.ceil(number), key=key), 1)
+
+    # preserve aspect ratio
+    aspect = image.width / image.height
+    if x / y >= aspect:
+        x = round_aspect(y * aspect, key=lambda n: abs(aspect - n / y))
+    else:
+        y = round_aspect(
+            x / aspect, key=lambda n: 0 if n == 0 else abs(aspect - x / n)
+        )
+    size = (x, y)
+
+    box = None
+    reducing_gap = 2.0
+    res = image.draft(None, (size[0] * reducing_gap, size[1] * reducing_gap))
+    if res is not None:
+        box = res[1]
+
+    if image.size != size:
+        im = image.resize(size, 3, box=box, reducing_gap=reducing_gap)
+
+        image.im = im.im
+        image._size = size
+        image.mode = image.im.mode
 
 
 def numpy_grayscale_to_heatmap_figure(data: np.ndarray):
