@@ -112,10 +112,16 @@ class SimpleFeatureContribution(TrainTestCheck):
         target = []
 
         if dataset.task_type == TaskType.OBJECT_DETECTION:
-            for img, label, classes_ids in zip(batch.images, batch.labels, dataset.get_classes(batch.labels)):
-                bboxes = [np.array(x[1:]) for x in label]
-                imgs += [crop_image(img, *bbox) for bbox in bboxes]
-                target += classes_ids
+            for img, labels in zip(batch.images, batch.labels):
+                for label in labels:
+                    label = label.tolist()
+                    bbox = label[1:]
+                    img = crop_image(img, *bbox)
+                    if img.shape[0] == 0 or img.shape[1] == 0:
+                        continue
+                    class_id = label[0]
+                    imgs += [img]
+                    target += [class_id]
         else:
             for img, classes_ids in zip(batch.images, dataset.get_classes(batch.labels)):
                 imgs += [img] * len(classes_ids)
