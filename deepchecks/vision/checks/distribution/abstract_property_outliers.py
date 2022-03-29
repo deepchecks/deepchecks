@@ -277,7 +277,7 @@ def _ensure_property_shape(property_values, data, prop_name):
 
 
 def _is_list_of_numbers(l):
-    return any(i is not None and not isinstance(i, Number) for i in l)
+    return not any(i is not None and not isinstance(i, Number) for i in l)
 
 
 def _sample_index_from_flatten_index(cumsum_lengths, flatten_index) -> int:
