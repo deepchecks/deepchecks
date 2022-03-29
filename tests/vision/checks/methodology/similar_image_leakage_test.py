@@ -11,32 +11,43 @@
 """Test functions of the VISION train test label drift."""
 from copy import copy
 
-import torch
-from hamcrest import assert_that, has_entries, close_to, equal_to
+from hamcrest import assert_that, equal_to
 
 import numpy as np
-from deepchecks.vision.checks import SimpleFeatureContribution, SimilarImageLeakage
+from deepchecks.vision.checks import SimilarImageLeakage
 from tests.checks.utils import equal_condition_result
-from tests.vision.vision_conftest import *
 
-from deepchecks.vision.utils.transformations import un_normalize_batch
+from torch.utils.data import DataLoader
+from PIL import Image
 
 
-def get_coco_batch_to_images_with_similar_first_images(other_batch):
-    other_batch = [np.array(x) for x in other_batch[0]]
+def mock_dataloader(vision_data, other_dataset, shuffle=False):
+    """Create a mock dataloader that replaces several images with brighter images from other_dataset."""
 
-    def ret_func(batch):
-        ret = [np.array(x) for x in batch[0]]
+    class MockDataset:
+        """A Mock dataset object that replaces several images with brighter images from other_dataset."""
 
-        # 5 first images will be images from another batch, but slightly different:
-        # The ret[0][0][0][0] condition is so this will run only on the first batch
-        if ret[0][0][0][0] == 107:
-            for i in range(5):
-                ret[i] = other_batch[i] + 10
+        def __init__(self, orig_dataset):
+            self._orig_dataset = orig_dataset
 
-        return ret
+        def __getitem__(self, idx):
+            if idx in range(5):
+                data, label = other_dataset[idx]
+                return Image.fromarray(np.clip(np.array(data, dtype=np.uint16) + 50, 0, 255).astype(np.uint8)), label
+            else:
+                data, label = self._orig_dataset[idx]
+            return data, label
 
-    return ret_func
+        def __len__(self):
+            return len(self._orig_dataset)
+
+    # Create a copy of the original dataloader, using the new dataset
+    props = vision_data._get_data_loader_props(vision_data.data_loader)
+    props['dataset'] = MockDataset(vision_data.data_loader.dataset)
+    props['shuffle'] = shuffle
+    data_loader = DataLoader(**props)
+    data_loader, _ = vision_data._get_data_loader_sequential(data_loader)
+    return data_loader
 
 
 def test_no_similars_object_detection(coco_train_visiondata, coco_test_visiondata):
@@ -60,21 +71,21 @@ def test_all_identical_object_detection(coco_train_visiondata):
     result = check.run(train, test)
 
     # Assert
-    assert_that(result.value, equal_to(list(zip(range(64), range(64)))))
+    assert_that(set(result.value), equal_to(set(list(zip(range(64), range(64))))))
 
 
-def test_similars_object_detection(coco_train_visiondata, coco_test_visiondata):
+def test_similar_object_detection(coco_train_visiondata, coco_test_visiondata):
     # Arrange
     train, test = coco_train_visiondata, coco_test_visiondata
     check = SimilarImageLeakage()
     test = copy(test)
-    test.batch_to_images = get_coco_batch_to_images_with_similar_first_images(next(iter(train.data_loader)))
+    test._data_loader = mock_dataloader(test, train.data_loader.dataset)
 
     # Act
     result = check.run(train, test)
 
     # Assert
-    assert_that(result.value, equal_to(list(zip(range(5), range(5)))))
+    assert_that(set(result.value), equal_to(set(zip(range(5), range(5)))))
 
 
 def test_train_test_condition_pass(coco_train_visiondata, coco_test_visiondata):

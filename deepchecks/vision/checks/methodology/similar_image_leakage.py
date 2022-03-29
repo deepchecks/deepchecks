@@ -113,7 +113,7 @@ class SimilarImageLeakage(TrainTestCheck):
         }
 
         display = []
-        similar_pairs = None
+        similar_pairs = []
         if similar_indices['test']:
             for similar_index in display_indices:
                 for dataset in ('train', 'test'):
