@@ -115,12 +115,12 @@ def test_generic_boost(
         validate_suite_result(result, length)
 
 
-def test_generic_mini(
-    iris_split_dataset_and_model_mini: t.Tuple[Dataset, Dataset, t.Any],
-    diabetes_split_dataset_and_model_mini: t.Tuple[Dataset, Dataset, t.Any],
+def test_generic_custom(
+    iris_split_dataset_and_model_custom: t.Tuple[Dataset, Dataset, t.Any],
+    diabetes_split_dataset_and_model_custom: t.Tuple[Dataset, Dataset, t.Any],
 ):
-    iris_train, iris_test, iris_model = iris_split_dataset_and_model_mini
-    diabetes_train, diabetes_test, diabetes_model = diabetes_split_dataset_and_model_mini
+    iris_train, iris_test, iris_model = iris_split_dataset_and_model_custom
+    diabetes_train, diabetes_test, diabetes_model = diabetes_split_dataset_and_model_custom
 
     suite = suites.full_suite()
 

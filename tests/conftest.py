@@ -113,7 +113,7 @@ def diabetes_split_dataset_and_model(diabetes, diabetes_model):
 
 
 @pytest.fixture(scope='session')
-def diabetes_split_dataset_and_model_mini(diabetes, diabetes_model):
+def diabetes_split_dataset_and_model_custom(diabetes, diabetes_model):
     train, test = diabetes
     class MyModel:
         def predict(self, *args, **kwargs):
@@ -245,7 +245,7 @@ def iris_split_dataset_and_model(iris_split_dataset) -> Tuple[Dataset, Dataset, 
 
 
 @pytest.fixture(scope='session')
-def iris_split_dataset_and_model_mini(iris_split_dataset_and_model) -> Tuple[Dataset, Dataset, Any]:
+def iris_split_dataset_and_model_custom(iris_split_dataset_and_model) -> Tuple[Dataset, Dataset, Any]:
     """Return Iris train and val datasets and trained AdaBoostClassifier model."""
     train_ds, test_ds, clf = iris_split_dataset_and_model
     class MyModel:
