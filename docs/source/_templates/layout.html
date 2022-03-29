@@ -64,7 +64,10 @@
         );
         require(["docsearchLib"], function (docsearch) {
             docsearch({
-                appId: "3UQ0BSGJ1N", apiKey: "83d250f88e29e9906a50ddf40a1871ce", indexName: "deepchecks", container: '#algolia-search', debug: false
+                appId: "3UQ0BSGJ1N", apiKey: "83d250f88e29e9906a50ddf40a1871ce", indexName: "deepchecks", container: '#algolia-search', debug: false,
+                searchParameters: {
+                    facetFilters: ["version:{{ version }}"]
+                }
             });
         });
     </script>

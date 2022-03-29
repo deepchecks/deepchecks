@@ -16,7 +16,7 @@ conditions for that check. The naming convention for the methods that add the
 condition is ``add_condition_...``.
 
 If you want to create and add your custom condition logic for parsing the check's
-result value, see `Add a Custom Condition <add-a-custom-condition>`__.
+result value, see `Add a Custom Condition <#add-a-custom-condition>`__.
 """
 
 #%%

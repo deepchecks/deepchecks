@@ -20,9 +20,9 @@ including ``PerformanceReport(), TrainTestDifferenceOverfit()`` and several more
 For assistance in understanding which checks are implemented and can be included,
 we suggest using any of:
 
-* `API Reference </api/index.html>`__
-* `Tabular checks demonstration notebooks </examples/tabular/checks/test_autoexamples/index.html>`__
-* `Computer vision checks demonstration notebooks </examples/vision/checks/test_autoexamples/index.html>`__
+* :doc:`API Reference </api/index>`
+* `Tabular checks demonstration notebooks </examples/index.html#tabular-examples>`__
+* `Computer vision checks demonstration notebooks </examples/index.html#computer-vision-examples>`__
 * Built-in suites (by printing them to see which checks they include)
 """
 
@@ -72,8 +72,8 @@ new_custom_suite
 # * The pass (✓) / fail (✖) / insight (!) status of the conditions, along with the
 #   condition's name and extra info will be displayed in the suite's Conditions Summary.
 # * Most conditions have configurable arguments that can be passed to the condition while adding it.
-# * For more info about conditions, check out `Configure a Condition
-#   <plot_configure_check_conditions.html>`__.
+# * For more info about conditions, check out :doc:`Configure a Condition
+#   <plot_configure_check_conditions>`.
 #
 # Run the Suite
 # =============

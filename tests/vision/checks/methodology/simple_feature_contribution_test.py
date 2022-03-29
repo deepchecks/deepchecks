@@ -11,15 +11,14 @@
 """Test functions of the VISION train test label drift."""
 from copy import copy
 
-import torch
 from hamcrest import assert_that, has_entries, close_to, equal_to
-
 import numpy as np
+
 from deepchecks.vision.checks import SimpleFeatureContribution
+from deepchecks.vision.utils.transformations import un_normalize_batch
+
 from tests.checks.utils import equal_condition_result
 from tests.vision.vision_conftest import *
-
-from deepchecks.vision.utils.transformations import un_normalize_batch
 
 
 def mnist_batch_to_images_with_bias(batch):
