@@ -29,8 +29,7 @@ __all__ = ['HeatmapComparison']
 
 
 class HeatmapComparison(TrainTestCheck):
-    """
-    Check if the average image brightness (or bbox location if applicable) is similar between train and test set.
+    """Check if the average image brightness (or bbox location if applicable) is similar between train and test set.
 
     The check computes the average grayscale image per dataset (train and test) and compares the resulting images.
     This comparison may serve to visualize differences in the statistics of the datasets. Additionally, in case of an
