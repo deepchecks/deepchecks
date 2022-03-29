@@ -64,7 +64,12 @@ class SimpleModelComparison(TrainTestCheck):
     .. code-block:: python
 
         from sklearn.metrics import roc_auc_score, make_scorer
-        auc_scorer = make_scorer(roc_auc_score)
+
+        training_labels = [1, 2, 3]
+        auc_scorer = make_scorer(roc_auc_score, labels=training_labels, multi_class='ovr')
+        # Note that the labels parameter is required for multi-class classification in metrics like roc_auc_score or
+        # log_loss that use the predict_proba function of the model, in case that not all labels are present in the test
+        # set.
 
     Or you can implement your own:
 
@@ -135,7 +140,7 @@ class SimpleModelComparison(TrainTestCheck):
         # Multiclass have different return type from the scorer, list of score per class instead of single score
         if task_type in [ModelType.MULTICLASS, ModelType.BINARY]:
             n_samples = test_label.groupby(test_label).count()
-            classes = train_dataset.classes
+            classes = test_dataset.classes
 
             results_array = []
             # Dict in format { Scorer : Dict { Class : Dict { Origin/Simple : score } } }

@@ -17,8 +17,8 @@ import pandas as pd
 from deepchecks.core import CheckResult
 from deepchecks.core import ConditionResult
 from deepchecks.core import DatasetKind
+from deepchecks.core.errors import NotEnoughSamplesError, DeepchecksValueError
 from deepchecks.core.condition import ConditionCategory
-from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.vision import Batch
 from deepchecks.vision import Context
@@ -99,12 +99,11 @@ class ImagePropertyDrift(TrainTestCheck):
             )
 
         images = batch.images
-        labels = batch.labels
-        classes = context.train.get_classes(labels)
 
         if self.classes_to_display:
             # use only images belonging (or containing an annotation belonging) to one of the classes in
             # classes_to_display
+            classes = context.train.get_classes(batch.labels)
             images = [
                 image for idx, image in enumerate(images) if
                 any(cls in map(self._class_to_string, classes[idx]) for cls in self.classes_to_display)
@@ -151,16 +150,21 @@ class ImagePropertyDrift(TrainTestCheck):
         for single_property in self.image_properties:
             property_name = single_property['name']
 
-            score, _, figure = calc_drift_and_plot(
-                train_column=df_train[property_name],
-                test_column=df_test[property_name],
-                value_name=property_name,
-                column_type=image_properties.get_column_type(single_property['output_type']),
-                max_num_categories=self.max_num_categories
-            )
+            try:
+                score, _, figure = calc_drift_and_plot(
+                    train_column=df_train[property_name],
+                    test_column=df_test[property_name],
+                    value_name=property_name,
+                    column_type=image_properties.get_column_type(single_property['output_type']),
+                    max_num_categories=self.max_num_categories,
+                    min_samples=self.min_samples
+                )
 
-            figures[property_name] = figure
-            drifts[property_name] = score
+                figures[property_name] = figure
+                drifts[property_name] = score
+            except NotEnoughSamplesError:
+                figures[property_name] = '<p>Not enough non-null samples to calculate drift</p>'
+                drifts[property_name] = 0
 
         if drifts:
             columns_order = sorted(properties, key=lambda col: drifts[col], reverse=True)
