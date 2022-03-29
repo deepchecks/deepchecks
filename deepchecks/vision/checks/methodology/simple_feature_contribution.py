@@ -22,6 +22,7 @@ from deepchecks.core.check_utils.single_feature_contribution_utils import get_si
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Context, TrainTestCheck
+from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.utils import image_properties
 from deepchecks.vision.utils.image_functions import crop_image
 from deepchecks.vision.vision_data import TaskType
@@ -100,7 +101,7 @@ class SimpleFeatureContribution(TrainTestCheck):
         self._train_properties['target'] = []
         self._test_properties['target'] = []
 
-    def update(self, context: Context, batch: Any, dataset_kind: DatasetKind):
+    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Calculate image properties for train or test batches."""
         if dataset_kind == DatasetKind.TRAIN:
             dataset = context.train
