@@ -18,7 +18,7 @@ overlap on any label and can be classified as not found in the confusion matrix.
 """
 
 #%%
-# Genearate Data and Model
+# Generate Data and Model
 # ------------------------
 # We generate a sample dataset of 128 images from the `COCO dataset <https://cocodataset.org/#home>`__,
 # and using the `YOLOv5 model <https://github.com/ultralytics/yolov5>`__.
