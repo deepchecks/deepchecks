@@ -15,65 +15,23 @@ Model Error Analysis
 import pandas as pd
 from urllib.request import urlopen
 from sklearn.preprocessing import LabelEncoder
-
-name_data = urlopen('http://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.names')
-lines = [l.decode("utf-8") for l in name_data if ':' in l.decode("utf-8") and '|' not in l.decode("utf-8")]
-
-features = [l.split(':')[0] for l in lines]
-label_name = 'income'
-
-cat_features = [l.split(':')[0] for l in lines if 'continuous' not in l]
-
-train_df = pd.read_csv('http://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data',
-                       names=features + [label_name])
-test_df = pd.read_csv('http://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.test',
-                      names=features + [label_name], skiprows=1)
-
-test_df[label_name] = test_df [label_name].str[:-1]
-
-encoder = LabelEncoder()
-encoder.fit(train_df[label_name])
-train_df[label_name] = encoder.transform(train_df[label_name])
-test_df[label_name] = encoder.transform(test_df[label_name])
+from deepchecks.tabular.datasets.classification import adult
 
 #%%
 # Create Dataset
 # ==============
 
-from deepchecks.tabular import Dataset
-
-cat_features = ['workclass', 'education', 'marital-status', 'occupation', 'relationship', 
-                'race', 'sex', 'native-country']
-train_ds = Dataset(train_df, label=label_name, cat_features=cat_features)
-test_ds = Dataset(test_df, label=label_name, cat_features=cat_features)
-
-numeric_features = [feat_name for feat_name in train_ds.features if feat_name not in train_ds.cat_features]
+label_name = 'income'
+train_ds, test_ds = adult.load_data()
+encoder = LabelEncoder()
+train_ds.data[label_name] = encoder.fit_transform(train_ds.data[label_name])
+test_ds.data[label_name] = encoder.transform(test_ds.data[label_name])
 
 #%%
 # Classification Model
 # ====================
 
-from sklearn.pipeline import Pipeline
-from sklearn.impute import SimpleImputer
-from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import OrdinalEncoder
-from sklearn.ensemble import RandomForestClassifier
-
-numeric_transformer = SimpleImputer()
-categorical_transformer = Pipeline(
-    steps=[("imputer", SimpleImputer(strategy="most_frequent")), ("encoder", OrdinalEncoder())]
-)
-
-train_ds.features
-preprocessor = ColumnTransformer(
-    transformers=[
-        ("num", numeric_transformer, numeric_features),
-        ("cat", categorical_transformer, cat_features),
-    ]
-)
-
-model = Pipeline(steps=[("preprocessing", preprocessor), ("model", RandomForestClassifier(max_depth=5, n_jobs=-1, random_state=0))])
-model.fit(train_ds.data[train_ds.features], train_ds.data[train_ds.label_name]);
+model = adult.load_fitted_model()
 
 #%%
 # Run Check

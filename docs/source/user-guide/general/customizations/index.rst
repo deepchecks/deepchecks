@@ -1,7 +1,0 @@
-======================
-Customizations
-======================
-
-.. toctree::
-    
-    examples/index

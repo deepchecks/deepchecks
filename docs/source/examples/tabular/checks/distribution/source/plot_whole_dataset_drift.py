@@ -69,38 +69,18 @@ from urllib.request import urlopen
 from sklearn.preprocessing import LabelEncoder
 import numpy as np
 
-name_data = urlopen('http://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.names')
-lines = [l.decode("utf-8") for l in name_data if ':' in l.decode("utf-8") and '|' not in l.decode("utf-8")]
-
-features = [l.split(':')[0] for l in lines]
-label_name = 'income'
-
-cat_features = [l.split(':')[0] for l in lines if 'continuous' not in l]
-
-train_df = pd.read_csv('http://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data',
-                       names=features + [label_name])
-test_df = pd.read_csv('http://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.test',
-                      names=features + [label_name], skiprows=1)
-
-test_df[label_name] = test_df [label_name].str[:-1]
-
-encoder = LabelEncoder()
-encoder.fit(train_df[label_name])
-train_df[label_name] = encoder.transform(train_df[label_name])
-test_df[label_name] = encoder.transform(test_df[label_name])
+from deepchecks.tabular import Dataset
+from deepchecks.tabular.datasets.classification import adult
 
 #%%
-# Process into dataset
-# --------------------
+# Create Dataset
+# ==============
 
-from deepchecks.tabular import Dataset
-
-cat_features = ['workclass', 'education', 'marital-status', 'occupation', 'relationship', 
-                'race', 'sex', 'native-country']
-train_ds = Dataset(train_df, label=label_name, cat_features=cat_features)
-test_ds = Dataset(test_df, label=label_name, cat_features=cat_features)
-
-numeric_features = list(set(train_ds.features) - set(cat_features))
+label_name = 'income'
+train_ds, test_ds = adult.load_data()
+encoder = LabelEncoder()
+train_ds.data[label_name] = encoder.fit_transform(train_ds.data[label_name])
+test_ds.data[label_name] = encoder.transform(test_ds.data[label_name])
 
 #%%
 
@@ -133,8 +113,8 @@ train_drifted_df = pd.concat([train_ds.data.sample(min(sample_size, train_ds.n_s
                              train_ds.data[train_ds.data['sex'] == ' Female'].sample(5000, random_state=random_seed)])
 test_drifted_df = test_ds.data.sample(min(sample_size, test_ds.n_samples), random_state=random_seed)
 
-train_drifted_ds = Dataset(train_drifted_df, label=label_name, cat_features=cat_features)
-test_drifted_ds = Dataset(test_drifted_df, label=label_name, cat_features=cat_features)
+train_drifted_ds = Dataset(train_drifted_df, label=label_name, cat_features=train_ds.cat_features)
+test_drifted_ds = Dataset(test_drifted_df, label=label_name, cat_features=test_ds.cat_features)
 
 #%%
 

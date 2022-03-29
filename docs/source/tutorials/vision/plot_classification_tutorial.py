@@ -4,7 +4,7 @@ Classification Model Validation Tutorial
 ==============================================
 In this tutorial, you will learn how to validate your **classification model** using deepchecks test suites.
 You can read more about the different checks and suites for computer vision use cases at the
-:doc:`examples section  </examples/vision/checks/index>`
+:doc:`examples section  </examples/vision/checks/examples/index.html>`
 
 A classification model is usually used to classify an image into one of a number of classes. Although there are
 multi label use-cases, in which the model is used to classify an image into multiple classes, most use-cases
@@ -156,6 +156,7 @@ imshow(out, title=[class_names[x] for x in classes])
 # .. image :: /_static/ants-bees.png
 #   :width: 400
 #   :alt: Ants and Bees
+#
 # Downloading a pre-trained model
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Now, we will download a pre-trained model from torchvision, that was trained on the ImageNet dataset.
