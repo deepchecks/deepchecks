@@ -174,7 +174,6 @@ def test_train_test_condition_pps_difference_pass():
     result = SingleFeatureContributionTrainTest().run(train_dataset=Dataset(df, label='label'),
                                                       test_dataset=Dataset(df2, label='label'))
     condition_result, *_ = check.conditions_decision(result)
-    print(result)
 
     # Assert
     assert_that(condition_result, equal_condition_result(
@@ -212,7 +211,6 @@ def test_train_test_condition_pps_train_pass():
     result = SingleFeatureContributionTrainTest().run(train_dataset=Dataset(df, label='label'),
                                                       test_dataset=Dataset(df2, label='label'))
     condition_result, *_ = check.conditions_decision(result)
-    print(result)
 
     # Assert
     assert_that(condition_result, equal_condition_result(
