@@ -11,7 +11,7 @@
 """Represents fixtures for unit testing using pytest."""
 # Disable this pylint check since we use this convention in pytest fixtures
 #pylint: disable=redefined-outer-name
-from typing import Tuple
+from typing import Any, Tuple
 
 import numpy as np
 import pytest
@@ -110,6 +110,16 @@ def diabetes_split_dataset_and_model(diabetes, diabetes_model):
     train, test = diabetes
     clf = diabetes_model
     return train, test, clf
+
+
+@pytest.fixture(scope='session')
+def diabetes_split_dataset_and_model_mini(diabetes, diabetes_model):
+    train, test = diabetes
+    class MyModel:
+        def predict(self, *args, **kwargs):
+            return diabetes_model.predict(*args, **kwargs)
+    return train, test, MyModel()
+
 
 @pytest.fixture(scope='session')
 def diabetes_split_dataset_and_model_xgb(diabetes):
@@ -232,6 +242,18 @@ def iris_split_dataset_and_model(iris_split_dataset) -> Tuple[Dataset, Dataset, 
     clf = AdaBoostClassifier(random_state=0)
     clf.fit(train_ds.features_columns, train_ds.label_col)
     return train_ds, test_ds, clf
+
+
+@pytest.fixture(scope='session')
+def iris_split_dataset_and_model_mini(iris_split_dataset_and_model) -> Tuple[Dataset, Dataset, Any]:
+    """Return Iris train and val datasets and trained AdaBoostClassifier model."""
+    train_ds, test_ds, clf = iris_split_dataset_and_model
+    class MyModel:
+        def predict(self, *args, **kwargs):
+            return clf.predict(*args, **kwargs)
+        def predict_proba(self, *args, **kwargs):
+            return clf.predict_proba(*args, **kwargs)
+    return train_ds, test_ds, MyModel()
 
 
 @pytest.fixture(scope='session')

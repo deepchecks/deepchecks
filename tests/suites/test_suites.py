@@ -115,6 +115,26 @@ def test_generic_boost(
         validate_suite_result(result, length)
 
 
+def test_generic_mini(
+    iris_split_dataset_and_model_mini: t.Tuple[Dataset, Dataset, t.Any],
+    diabetes_split_dataset_and_model_mini: t.Tuple[Dataset, Dataset, t.Any],
+):
+    iris_train, iris_test, iris_model = iris_split_dataset_and_model_mini
+    diabetes_train, diabetes_test, diabetes_model = diabetes_split_dataset_and_model_mini
+
+    suite = suites.full_suite()
+
+    arguments = (
+        dict(train_dataset=iris_train, test_dataset=iris_test, model=iris_model),
+        dict(train_dataset=diabetes_train, test_dataset=diabetes_test, model=diabetes_model),
+    )
+
+    for args in arguments:
+        result = suite.run(**args)
+        length = get_expected_results_length(suite, args)
+        validate_suite_result(result, length)
+
+
 def validate_suite_result(
     result: SuiteResult,
     min_length: int,
