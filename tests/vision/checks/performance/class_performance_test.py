@@ -210,8 +210,6 @@ def test_condition_class_performance_imbalance_ratio_not_greater_than(mnist_data
     # Act
     result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
                        device=device)
-    print(result.value)
-    print(result.conditions_results)
 
     assert_that(result.conditions_results[0].is_pass, is_(True))
 
@@ -229,5 +227,3 @@ def test_condition_class_performance_imbalance_ratio_not_greater_than_fail(mnist
                        device=device)
 
     assert_that(result.conditions_results[0].is_pass, is_(False))
-
-
