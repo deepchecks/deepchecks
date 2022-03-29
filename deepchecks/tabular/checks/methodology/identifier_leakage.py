@@ -11,6 +11,7 @@
 """module contains Identifier Leakage check."""
 from typing import Dict
 
+import pandas as pd
 import plotly.express as px
 
 import deepchecks.ppscore as pps
@@ -58,15 +59,24 @@ class IdentifierLeakage(SingleDatasetCheck):
         dataset.assert_label()
         label_name = dataset.label_name
 
-        relevant_columns = list(filter(None, [dataset.datetime_name, dataset.index_name, label_name]))
+        relevant_data = pd.DataFrame({
+            it.name: it
+            for it in (dataset.index_col, dataset.datetime_col, dataset.label_col)
+            if it is not None
+        })
 
-        if len(relevant_columns) == 1:
+        if len(relevant_data.columns) == 1:
             raise DatasetValidationError(
                 'Check is irrelevant for Datasets without index or date column'
             )
 
-        df_pps = pps.predictors(df=dataset.data[relevant_columns], y=label_name, random_seed=42,
-                                **self.ppscore_params)
+        df_pps = pps.predictors(
+            df=relevant_data,
+            y=label_name,
+            random_seed=42,
+            **self.ppscore_params
+        )
+
         df_pps = df_pps.set_index('x', drop=True)
         s_ppscore = df_pps['ppscore']
 
