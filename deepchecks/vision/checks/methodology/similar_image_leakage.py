@@ -9,16 +9,20 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains the similar image leakage check."""
-from typing import Any, TypeVar, List, Tuple
+import random
+from typing import TypeVar, List, Tuple
 import numpy as np
 from PIL.Image import fromarray
 from imagehash import average_hash
 
 from deepchecks import ConditionResult, ConditionCategory
 from deepchecks.core import CheckResult, DatasetKind
-from deepchecks.vision import Context, TrainTestCheck
+from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.vision import Context, TrainTestCheck, Batch
 
 __all__ = ['SimilarImageLeakage']
+
+from deepchecks.vision.utils.image_functions import prepare_thumbnail
 
 SIL = TypeVar('SIL', bound='SimilarImageLeakage')
 
@@ -36,6 +40,8 @@ class SimilarImageLeakage(TrainTestCheck):
         range (0,1) #TODO: Improve
     """
 
+    _THUMBNAIL_SIZE = (200, 200)
+
     def __init__(
             self,
             n_top_show: int = 10,
@@ -43,8 +49,15 @@ class SimilarImageLeakage(TrainTestCheck):
             similarity_threshold: float = 0.05
     ):
         super().__init__()
+        if not (isinstance(n_top_show, int) and (n_top_show >= 0)):
+            raise DeepchecksValueError('n_top_show must be a positive integer')
         self.n_top_show = n_top_show
+        if not (isinstance(hash_size, int) and (hash_size >= 0)):
+            raise DeepchecksValueError('hash_size must be a positive integer')
         self.hash_size = hash_size
+        if not (isinstance(similarity_threshold, float) and (similarity_threshold >= 0) and
+                (similarity_threshold <= 1)):
+            raise DeepchecksValueError('similarity_threshold must be a float in range (0,1)')
         self.similarity_threshold = similarity_threshold
         self.min_pixel_diff = int(np.ceil(similarity_threshold * (hash_size**2 / 2)))
 
@@ -52,7 +65,7 @@ class SimilarImageLeakage(TrainTestCheck):
         self._hashed_train_images = []
         self._hashed_test_images = []
 
-    def update(self, context: Context, batch: Any, dataset_kind: DatasetKind):
+    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Calculate image hashes for train and test."""
         hashed_images = [average_hash(fromarray(img), hash_size=self.hash_size) for img in batch.images]
 
@@ -72,22 +85,66 @@ class SimilarImageLeakage(TrainTestCheck):
             display: pairs of similar images
         """
 
-        test_hashes = np.array(self._hashed_test_images)
+        train_hashes = np.array(self._hashed_train_images)
 
-        similar_images = []
+        similar_indices = {
+            'train': [],
+            'test': []
+        }
 
-        for i, h in enumerate(self._hashed_train_images):
-            is_similar = (test_hashes - h) < self.min_pixel_diff
+        for i, h in enumerate(self._hashed_test_images):
+            is_similar = (train_hashes - h) < self.min_pixel_diff
             if any(is_similar):
                 for j in np.argwhere(is_similar):  # Return indices where True
-                    similar_images.append((i, j[0]))
+                    similar_indices['train'].append(j[0])  # append only the first similar image in train
+                    similar_indices['test'].append(i)
 
-        ret_value = similar_images
+        display_indices = random.sample(range(len(similar_indices['test'])),
+                                        min(self.n_top_show, len(similar_indices['test'])))
+
+        display_images = {
+            'train': [],
+            'test': []
+        }
+
+        data_obj = {
+            'train': context.train,
+            'test': context.test
+        }
+
         display = []
+        similar_pairs = None
+        if similar_indices['test']:
+            for similar_index in display_indices:
+                for dataset in ('train', 'test'):
+                    image = data_obj[dataset].batch_to_images(
+                        data_obj[dataset].batch_of_index(similar_indices[dataset][similar_index])
+                    )[0]
+                    image_thumbnail = prepare_thumbnail(
+                        image=image,
+                        size=self._THUMBNAIL_SIZE,
+                        copy_image=False
+                    )
+                    display_images[dataset].append(image_thumbnail)
 
-        return CheckResult(value=ret_value, display=display, header='Similar Image Leakage')
+            html = HTML_TEMPLATE.format(
+                count=len(similar_indices['test']),
+                n_of_images=len(display_indices),
+                train_images=''.join(display_images['train']),
+                test_images=''.join(display_images['test']),
+            )
 
-    def add_condition_similar_images_not_more_than(self: SIL, threshold: int = 10) -> SIL:
+            display.append(html)
+
+            # return tuples of indices in original respective dataset objects
+            similar_pairs = list(zip(
+                context.train.to_dataset_index(*similar_indices['train']),
+                context.test.to_dataset_index(*similar_indices['test'])
+            ))
+
+        return CheckResult(value=similar_pairs, display=display, header='Similar Image Leakage')
+
+    def add_condition_similar_images_not_more_than(self: SIL, threshold: int = 0) -> SIL:
         """Add new condition.
 
         Add condition that will check the number of similar images is not greater than X.
@@ -95,8 +152,8 @@ class SimilarImageLeakage(TrainTestCheck):
 
         Parameters
         ----------
-        threshold : int , default: 10
-            number of unique images in test that are similar to train
+        threshold : int , default: 0
+            Number of allowed unique images in test that are similar to train
 
         Returns
         -------
@@ -104,9 +161,9 @@ class SimilarImageLeakage(TrainTestCheck):
         """
 
         def condition(value: List[Tuple[int, int]]) -> ConditionResult:
-            num_similar_images = len(set([t[0] for t in value]))
+            num_similar_images = len(set([t[1] for t in value]))
 
-            if num_similar_images:
+            if num_similar_images > threshold:
                 message = f'Number of similar images between train and test datasets: {num_similar_images}'
                 return ConditionResult(ConditionCategory.FAIL, message)
             else:
@@ -114,4 +171,27 @@ class SimilarImageLeakage(TrainTestCheck):
 
         return self.add_condition(f'Number of similar images between train and test is not greater than '
                                   f'{threshold}', condition)
+
+
+HTML_TEMPLATE = """
+<h3><b>Similar Images</b></h3>
+<div>
+Total number of test samples with similar images in train: {count}
+</div>
+<h4>Samples</h4>
+<div
+    style="
+        overflow-x: auto;
+        display: grid;
+        grid-template-rows: auto 1fr 1fr;
+        grid-template-columns: auto repeat({n_of_images}, 1fr);
+        grid-gap: 1.5rem;
+        justify-items: center;
+        align-items: center;
+        padding: 2rem;
+        width: max-content;">
+    <h5>Train</h5>{train_images}
+    <h5>Test</h5>{test_images}
+</div>
+"""
 
