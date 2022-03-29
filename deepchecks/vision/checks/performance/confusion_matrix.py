@@ -9,6 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing confusion matrix report check."""
+import typing as t
+
 import pandas as pd
 import numpy as np
 import torch
@@ -25,7 +27,8 @@ from deepchecks.vision.metrics_utils.iou_utils import jaccard_iou
 __all__ = ['ConfusionMatrixReport']
 
 
-def filter_confusion_matrix(confusion_matrix, number_of_categories):
+def filter_confusion_matrix(confusion_matrix: pd.DataFrame, number_of_categories: int) -> \
+                            t.Tuple[np.ndarray, int]:
     pq = PriorityQueue()
     for row, values in enumerate(confusion_matrix):
         for col, value in enumerate(values):
@@ -109,6 +112,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
             matrix,
             self.categories_to_display
         )
+        confusion_matrix = np.nan_to_num(confusion_matrix)
 
         description = [f'Showing {self.categories_to_display} of {dataset.num_classes} classes:']
         classes_to_display = []

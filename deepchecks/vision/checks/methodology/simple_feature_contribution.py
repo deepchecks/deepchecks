@@ -10,7 +10,8 @@
 #
 """Module contains the simple feature distribution check."""
 from collections import defaultdict
-from typing import Any, Callable, TypeVar, Hashable, Dict, Union
+from typing import Callable, TypeVar, Hashable, Dict, Union
+
 import numpy as np
 import pandas as pd
 
@@ -21,6 +22,7 @@ from deepchecks.core.check_utils.single_feature_contribution_utils import get_si
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Context, TrainTestCheck
+from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.utils import image_properties
 from deepchecks.vision.utils.image_functions import crop_image
 from deepchecks.vision.vision_data import TaskType
@@ -99,7 +101,7 @@ class SimpleFeatureContribution(TrainTestCheck):
         self._train_properties['target'] = []
         self._test_properties['target'] = []
 
-    def update(self, context: Context, batch: Any, dataset_kind: DatasetKind):
+    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Calculate image properties for train or test batches."""
         if dataset_kind == DatasetKind.TRAIN:
             dataset = context.train
@@ -112,10 +114,16 @@ class SimpleFeatureContribution(TrainTestCheck):
         target = []
 
         if dataset.task_type == TaskType.OBJECT_DETECTION:
-            for img, label, classes_ids in zip(batch.images, batch.labels, dataset.get_classes(batch.labels)):
-                bboxes = [np.array(x[1:]) for x in label]
-                imgs += [crop_image(img, *bbox) for bbox in bboxes]
-                target += classes_ids
+            for img, labels in zip(batch.images, batch.labels):
+                for label in labels:
+                    label = np.array(label)
+                    bbox = label[1:]
+                    cropped_img = crop_image(img, *bbox)
+                    if cropped_img.shape[0] == 0 or cropped_img.shape[1] == 0:
+                        continue
+                    class_id = label[0]
+                    imgs += [cropped_img]
+                    target += [class_id]
         else:
             for img, classes_ids in zip(batch.images, dataset.get_classes(batch.labels)):
                 imgs += [img] * len(classes_ids)
