@@ -118,9 +118,6 @@ def _is_grayscale(img):
 
 def get_size(img) -> Tuple[int, int]:
     """Get size of image as (height, width) tuple."""
-    if img.shape[0] == 0 or img.shape[1] == 0:
-        raise Exception
-    # print(img.shape[0], img.shape[1])
     return img.shape[0], img.shape[1]
 
 
