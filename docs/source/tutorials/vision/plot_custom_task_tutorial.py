@@ -19,10 +19,10 @@ the exact bounding box format in order to run, while other checks that uses
 
 In this guide we will implement a custom instance segmentation task and run checks on it.
 
-# 1. `Defining the Data <#defining-the-data>`__
-# 2. `Implement Custom Task <#implement-custom-task>`__
-# 3. `Implement Custom Properties <#implement-custom-properties>`__
-# 4. `Implement Custom Metric <#implement-custom-metric>`__
+1. `Defining the Data <#defining-the-data>`__
+2. `Implement Custom Task <#implement-custom-task>`__
+3. `Implement Custom Properties <#implement-custom-properties>`__
+4. `Implement Custom Metric <#implement-custom-metric>`__
 """
 
 #%%
