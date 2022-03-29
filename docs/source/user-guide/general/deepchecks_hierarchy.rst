@@ -26,7 +26,7 @@ Each check can have two types of results:
 See Also
 ---------
 
-- :ref:`Checks Demonstrations` - example notebooks demonstrating all of the checks implemented in the package.
+- :doc:`Checks Demonstrations </examples/index>` - example notebooks demonstrating all of the checks implemented in the package.
 - :doc:`Checks API Reference </api/deepchecks.tabular.checks>` - where all the check parameters and implemented conditions can be found.
 - :doc:`/tutorials/tabular/examples/plot_add_a_custom_check` - for a tutorial of how to implement your own check
 
@@ -69,11 +69,13 @@ of checks and optional conditions.
 See Also
 ---------
 
-- `List of Existing Suites`_ - to learn more about the suites you can work with directly
+- `List of Tabular Suites`_ - to learn more about the tabular suites you can work with directly
+- `List of Vision Suites`_ - to learn more about the vision suites you can work with directly
 - :doc:`/user-guide/general/customizations/examples/plot_create_a_custom_suite` - for a demonstration about creating your own suite
 
 
-.. _List of Existing Suites: https://github.com/deepchecks/deepchecks/tree/main/deepchecks/suites
+.. _List of Tabular Suites: https://github.com/deepchecks/deepchecks/tree/main/deepchecks/tabular/suites
+.. _List of Vision Suites: https://github.com/deepchecks/deepchecks/tree/main/deepchecks/vision/suites
 
 .. image:: /_static/diagram.svg
    :alt: Deepchecks Diagram

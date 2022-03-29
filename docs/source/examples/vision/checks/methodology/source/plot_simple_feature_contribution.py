@@ -8,8 +8,8 @@ Contribution Train Test" check.
 **Structure:**
 
 * `What is the purpose of the check? <#what-is-the-purpose-of-the-check>`__
-* `Run check on a classification task <#run-check-on-a-classification-task-mnist>`__
-* `Run check on an Object Detection task <#run-check-on-an-object-detection-task-coco>`__
+* `Run check on a classification task <#run-the-check-on-a-classification-task-mnist>`__
+* `Run check on an Object Detection task <#run-the-check-on-an-object-detection-task-coco>`__
 * `Define a condition <#define-a-condition>`__
 
 What is the purpose of the check?
