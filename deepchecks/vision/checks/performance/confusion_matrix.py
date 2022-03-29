@@ -276,7 +276,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
             are used for bbox identification:</p>
             <ul>
                 <li>{self._LABEL_COLOR} - ground truth</li>
-                <li>{self._DETECTION_COLOR} - detected truth</li>
+                <li>{self._DETECTION_COLOR} - detected class</li>
             </ul>
             {{note}}
             {{grid}}
