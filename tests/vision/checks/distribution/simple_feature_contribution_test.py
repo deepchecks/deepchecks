@@ -207,7 +207,6 @@ def test_train_test_condition_pps_train_pass(coco_train_visiondata):
     result = check.run(train_dataset=train,
                        test_dataset=test)
     condition_result, *_ = check.conditions_decision(result)
-    print(result)
 
     # Assert
     assert_that(condition_result, equal_condition_result(
@@ -250,7 +249,6 @@ def test_train_test_condition_pps_train_pass_per_class(mnist_dataset_train):
     result = check.run(train_dataset=train,
                        test_dataset=test)
     condition_result, *_ = check.conditions_decision(result)
-    print(result)
 
     # Assert
     assert_that(condition_result, equal_condition_result(

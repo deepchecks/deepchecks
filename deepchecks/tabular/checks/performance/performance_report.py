@@ -48,7 +48,12 @@ class PerformanceReport(TrainTestCheck):
     .. code-block:: python
 
         from sklearn.metrics import roc_auc_score, make_scorer
-        auc_scorer = make_scorer(roc_auc_score)
+
+        training_labels = [1, 2, 3]
+        auc_scorer = make_scorer(roc_auc_score, labels=training_labels, multi_class='ovr')
+        # Note that the labels parameter is required for multi-class classification in metrics like roc_auc_score or
+        # log_loss that use the predict_proba function of the model, in case that not all labels are present in the test
+        # set.
 
     Or you can implement your own:
 
@@ -83,7 +88,6 @@ class PerformanceReport(TrainTestCheck):
 
         model = context.model
         task_type = context.task_type
-        classes = train_dataset.classes
 
         scorers = context.get_scorers(self.user_scorers, class_avg=False)
         datasets = {'Train': train_dataset, 'Test': test_dataset}
@@ -93,6 +97,7 @@ class PerformanceReport(TrainTestCheck):
             results = []
 
             for dataset_name, dataset in datasets.items():
+                classes = dataset.classes
                 label = cast(pd.Series, dataset.label_col)
                 n_samples = label.groupby(label).count()
                 results.extend(
@@ -197,14 +202,14 @@ class PerformanceReport(TrainTestCheck):
                     test_scores_dict = dict(zip(test_scores_class['Metric'], test_scores_class['Value']))
                     train_scores_dict = dict(zip(train_scores_class['Metric'], train_scores_class['Value']))
                     # Calculate percentage of change from train to test
-                    diff = {score_name: _ratio_of_change_calc(score, test_scores_dict[score_name])
+                    diff = {score_name: _ratio_of_change_calc(score, test_scores_dict.get(score_name, 0))
                             for score_name, score in train_scores_dict.items()}
                     failed_scores = [k for k, v in diff.items() if v > threshold]
                     if failed_scores:
                         for score_name in failed_scores:
                             explained_failures.append(f'{score_name} for class {class_name} '
-                                                      f'(train={format_number(train_scores_dict[score_name])} '
-                                                      f'test={format_number(test_scores_dict[score_name])})')
+                                                      f'(train={format_number(train_scores_dict.get(score_name, 0))} '
+                                                      f'test={format_number(test_scores_dict.get(score_name, 0))})')
             else:
                 test_scores_dict = dict(zip(test_scores['Metric'], test_scores['Value']))
                 train_scores_dict = dict(zip(train_scores['Metric'], train_scores['Value']))
