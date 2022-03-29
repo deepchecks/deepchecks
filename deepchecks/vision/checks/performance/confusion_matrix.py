@@ -28,7 +28,7 @@ __all__ = ['ConfusionMatrixReport']
 
 
 def filter_confusion_matrix(confusion_matrix: pd.DataFrame, number_of_categories: int) -> \
-    t.Tuple[np.ndarray, int]:
+                            t.Tuple[np.ndarray, int]:
     pq = PriorityQueue()
     for row, values in enumerate(confusion_matrix):
         for col, value in enumerate(values):
