@@ -31,12 +31,6 @@ test_ds.data[label_name] = encoder.transform(test_ds.data[label_name])
 # Classification Model
 # ====================
 
-from sklearn.pipeline import Pipeline
-from sklearn.impute import SimpleImputer
-from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import OrdinalEncoder
-from sklearn.ensemble import RandomForestClassifier
-
 model = adult.load_fitted_model()
 
 #%%

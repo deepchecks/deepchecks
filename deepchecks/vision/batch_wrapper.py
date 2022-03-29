@@ -75,7 +75,7 @@ class Batch:
         """Return length of batch."""
         return len(self._batch)
 
-    def get_index_in_dataset(self, index: int):
+    def get_index_in_dataset(self, index: int) -> int:
         """For given index in this batch returns the real index in the underlying dataset object. Can be used to \
         later get samples for display."""
         dataset = self._context.get_data_by_kind(self._dataset_kind)

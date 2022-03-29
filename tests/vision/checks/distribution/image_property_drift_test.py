@@ -139,19 +139,6 @@ def is_correct_image_property_drift_result():
     )
 
 
-def test_run_on_data_with_only_images(mnist_data_loader_train, mnist_data_loader_test, device):
-    # Arrange
-    class CustomData(MNISTData):
-        def get_classes(self, labels):
-            raise DeepchecksNotImplementedError('not implemented')
-
-        def batch_to_labels(self, batch):
-            raise DeepchecksNotImplementedError('not implemented')
-
-    train = CustomData(mnist_data_loader_train)
-    test = CustomData(mnist_data_loader_test)
-
-    # Act
-    # TODO enable the test when ImagePropertyDrift is fixed to support data without labels
-    #ImagePropertyDrift().run(train, test, device=device)
-
+def test_run_on_data_with_only_images(mnist_train_only_images, mnist_test_only_images, device):
+    # Act - Assert check runs without exception
+    ImagePropertyDrift().run(mnist_train_only_images, mnist_test_only_images, device=device)

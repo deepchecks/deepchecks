@@ -16,18 +16,12 @@ from collections import defaultdict
 import pandas as pd
 import PIL.Image as pilimage
 
-from deepchecks.vision.utils.image_functions import prepare_thumbnail
-from deepchecks.vision.utils.image_functions import prepare_grid
+from deepchecks.vision.utils.image_functions import prepare_thumbnail, prepare_grid
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.utils.strings import format_number
-from deepchecks.core import DatasetKind
-from deepchecks.core import CheckResult
-from deepchecks.core import ConditionResult
-from deepchecks.core.condition import ConditionCategory
-from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.vision import Batch
-from deepchecks.vision import Context
-from deepchecks.vision import TrainTestCheck
+from deepchecks.core import DatasetKind, CheckResult, ConditionResult, ConditionCategory
+from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError, DeepchecksValueError
+from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.utils import image_properties
 
 
@@ -109,12 +103,14 @@ class ImagePropertyDrift(TrainTestCheck):
 
         images = batch.images
         labels = batch.labels
-        class_to_string = context.train.label_id_to_name
+        dataset = context.get_data_by_kind(dataset_kind)
 
-        if self.classes_to_display is not None:
-            # use only images belonging (or containing an annotation belonging)
-            # to one of the classes in classes_to_display
-            #
+        if self.classes_to_display:
+            # use only images belonging (or containing an annotation belonging) to one of the classes in
+            # classes_to_display
+            class_to_string = dataset.label_id_to_name
+            images_classes = dataset.get_classes(batch.labels)
+
             # Iterator[tuple[image-index, set[image-classes]]]
             images_classes = (
                 (index, set(map(class_to_string, image_classes)))
@@ -172,16 +168,21 @@ class ImagePropertyDrift(TrainTestCheck):
         for single_property in self.image_properties:
             property_name = single_property['name']
 
-            score, _, figure = calc_drift_and_plot(
-                train_column=df_train[property_name],
-                test_column=df_test[property_name],
-                value_name=property_name,
-                column_type=image_properties.get_column_type(single_property['output_type']),
-                max_num_categories=self.max_num_categories
-            )
+            try:
+                score, _, figure = calc_drift_and_plot(
+                    train_column=df_train[property_name],
+                    test_column=df_test[property_name],
+                    value_name=property_name,
+                    column_type=image_properties.get_column_type(single_property['output_type']),
+                    max_num_categories=self.max_num_categories,
+                    min_samples=self.min_samples
+                )
 
-            figures[property_name] = figure
-            drifts[property_name] = score
+                figures[property_name] = figure
+                drifts[property_name] = score
+            except NotEnoughSamplesError:
+                figures[property_name] = '<p>Not enough non-null samples to calculate drift</p>'
+                drifts[property_name] = 0
 
         if len(drifts) == 0:
             drifts = None
