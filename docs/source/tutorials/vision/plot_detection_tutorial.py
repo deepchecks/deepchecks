@@ -89,7 +89,7 @@ class TomatoDataset(Dataset):
                 difficult = obj.find('difficult').text
                 if int(difficult) == 1:
                     continue
-                cls_id = 0
+                cls_id = 1
                 xmlbox = obj.find('bndbox')
                 b = [float(xmlbox.find('xmin').text), float(xmlbox.find('ymin').text), float(xmlbox.find('xmax').text),
                         float(xmlbox.find('ymax').text)]
