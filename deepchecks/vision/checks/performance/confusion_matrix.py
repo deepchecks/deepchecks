@@ -53,6 +53,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
     _IMAGE_THUMBNAIL_SIZE = (400, 400)
     _LABEL_COLOR = 'red'
     _DETECTION_COLOR = 'blue'
+    _IMAGES_PER_MISCLASSIFICATION = 2
 
     _THUMBNAILS_TEMPLATE = dedent(f"""
         <h4>Misclassified Images</h4>
@@ -230,7 +231,10 @@ class ConfusionMatrixReport(SingleDatasetCheck):
                     detected_bbox = detected_bboxes[detection_index]
                     detected_class = int(detected_bbox[5])
                     self.matrix[bbox_class][detected_class] += 1
-                    if bbox_class != detected_class:
+                    if (
+                        bbox_class != detected_class
+                        and self.matrix[bbox_class][detected_class] <= self._IMAGES_PER_MISCLASSIFICATION
+                    ):
                         # NOTE:
                         # not all misclassified images will be displayed
                         # therefore to omit unneeded work at current stage
@@ -269,7 +273,10 @@ class ConfusionMatrixReport(SingleDatasetCheck):
             detected_class = max(range(len(predicted_classes)), key=predicted_classes.__getitem__)
             label_class = image_labels.item() if isinstance(image_labels, torch.Tensor) else image_labels
             self.matrix[label_class][detected_class] += 1
-            if label_class != detected_class:
+            if (
+                label_class != detected_class
+                and self.matrix[label_class][detected_class] <= self._IMAGES_PER_MISCLASSIFICATION
+            ):
                 self.misclassified_images.append((label_class, detected_class, image))
 
     def _misclassified_images_thumbnails(
