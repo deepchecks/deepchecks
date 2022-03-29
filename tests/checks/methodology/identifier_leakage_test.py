@@ -20,7 +20,7 @@ from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError,
 from tests.checks.utils import equal_condition_result
 
 
-def util_generate_dataframe_and_expected():
+def generate_dataframe_and_expected():
     np.random.seed(42)
     df = pd.DataFrame(np.random.randn(100, 3), columns=['x1', 'x2', 'x3'])
     df['label'] = df['x2'] + 0.1 * df['x1']
@@ -29,8 +29,28 @@ def util_generate_dataframe_and_expected():
 
 
 def test_assert_identifier_leakage():
-    df, expected = util_generate_dataframe_and_expected()
+    df, expected = generate_dataframe_and_expected()
     result = IdentifierLeakage().run(dataset=Dataset(df, label='label', datetime_name='x2', index_name='x3'))
+    for key, value in result.value.items():
+        assert_that(key, is_in(expected.keys()))
+        assert_that(value, close_to(expected[key], 0.1))
+
+
+def test_identifier_leakage_with_extracted_from_dataframe_index():
+    df, expected = generate_dataframe_and_expected()
+    df.set_index('x3', inplace=True)
+    dataset = Dataset(df=df, label='label', set_index_from_dataframe_index=True)
+    result = IdentifierLeakage().run(dataset=dataset)
+    for key, value in result.value.items():
+        assert_that(key, is_in(expected.keys()))
+        assert_that(value, close_to(expected[key], 0.1))
+
+
+def test_identifier_leakage_with_extracted_from_dataframe_datatime_index():
+    df, expected = generate_dataframe_and_expected()
+    df.set_index('x2', inplace=True)
+    dataset = Dataset(df=df, label='label', set_datetime_from_dataframe_index=True)
+    result = IdentifierLeakage().run(dataset=dataset)
     for key, value in result.value.items():
         assert_that(key, is_in(expected.keys()))
         assert_that(value, close_to(expected[key], 0.1))
@@ -47,7 +67,7 @@ def test_dataset_wrong_input():
 
 
 def test_dataset_no_label():
-    df, _ = util_generate_dataframe_and_expected()
+    df, _ = generate_dataframe_and_expected()
     df = Dataset(df)
     assert_that(
         calling(IdentifierLeakage().run).with_args(dataset=df),
@@ -57,7 +77,7 @@ def test_dataset_no_label():
 
 
 def test_dataset_only_label():
-    df, _ = util_generate_dataframe_and_expected()
+    df, _ = generate_dataframe_and_expected()
     df = Dataset(df, label='label')
     assert_that(
         calling(IdentifierLeakage().run).with_args(dataset=df),
@@ -68,7 +88,7 @@ def test_dataset_only_label():
 
 
 def test_assert_identifier_leakage_class():
-    df, expected = util_generate_dataframe_and_expected()
+    df, expected = generate_dataframe_and_expected()
     identifier_leakage_check = IdentifierLeakage()
     result = identifier_leakage_check.run(dataset=Dataset(df, label='label', datetime_name='x2', index_name='x3'))
     for key, value in result.value.items():
@@ -77,7 +97,7 @@ def test_assert_identifier_leakage_class():
 
 
 def test_nan():
-    df, expected = util_generate_dataframe_and_expected()
+    df, expected = generate_dataframe_and_expected()
     nan_df = df.append(pd.DataFrame({'x1': [np.nan],
                                      'x2': [np.nan],
                                      'x3': [np.nan],
@@ -90,7 +110,7 @@ def test_nan():
 
 
 def test_condition_pps_pass():
-    df, expected = util_generate_dataframe_and_expected()
+    df, expected = generate_dataframe_and_expected()
 
     check = IdentifierLeakage().add_condition_pps_not_greater_than(0.5)
 
@@ -104,7 +124,7 @@ def test_condition_pps_pass():
 
 
 def test_condition_pps_fail():
-    df, expected = util_generate_dataframe_and_expected()
+    df, expected = generate_dataframe_and_expected()
 
     check = IdentifierLeakage().add_condition_pps_not_greater_than(0.2)
 
