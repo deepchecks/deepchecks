@@ -14,7 +14,7 @@
 <!-- End Google Tag Manager -->
 <meta name="title" content="{{ title }} | Deepchecks Documentation">
 <meta name="description" content="{{ title }} | Deepchecks Documentation">
-<meta name="version" content="{{ version }}">
+<meta name="docsearch:version" content="{{ version }}">
 
 <!-- Warning: 
         The 'shortcut link' type is often seen before icon, but this link type is non-conforming, 
@@ -64,7 +64,10 @@
         );
         require(["docsearchLib"], function (docsearch) {
             docsearch({
-                appId: "3UQ0BSGJ1N", apiKey: "83d250f88e29e9906a50ddf40a1871ce", indexName: "deepchecks", container: '#algolia-search', debug: false
+                appId: "3UQ0BSGJ1N", apiKey: "83d250f88e29e9906a50ddf40a1871ce", indexName: "deepchecks", container: '#algolia-search', debug: false,
+                searchParameters: {
+                    facetFilters: ["version:{{ version }}"]
+                }
             });
         });
     </script>

@@ -39,8 +39,8 @@ For a quickstart, check out the following in the tutorials section:
    `Github Issues <https://github.com/deepchecks/deepchecks/issues>`_ are welcome!
 
 
-- :doc:`Tutorial for Classification </tutorials/vision/classification_tutorial>`
-- :doc:`Tutorial for Object Detection </tutorials/vision/detection_tutorial>`
+- :doc:`Tutorial for Classification </tutorials/vision/examples/plot_classification_tutorial>`
+- :doc:`Tutorial for Object Detection </tutorials/vision/examples/plot_detection_tutorial>`
 
 
 Viewing Check and Suite Results
@@ -48,7 +48,7 @@ Viewing Check and Suite Results
 
 The package's output can be consumed in various formats:
    - Viewed inline in Jupyter (default behavior)
-   - :doc:`Exported as an HTML Report / JSON / Sent to W&B </user-guide/general/exporting_results/index>`
+   - :doc:`Exported as an HTML Report / JSON / Sent to W&B </user-guide/general/exporting_results/examples/index>`
 
 
 Installation

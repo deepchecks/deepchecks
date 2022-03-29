@@ -47,7 +47,8 @@ from .distribution import (
     TrustScoreComparison,
     TrainTestFeatureDrift,
     TrainTestLabelDrift,
-    WholeDatasetDrift
+    WholeDatasetDrift,
+    TrainTestPredictionDrift
 )
 
 from .performance import (
@@ -101,6 +102,7 @@ __all__ = [
     'TrainTestFeatureDrift',
     'TrainTestLabelDrift',
     'WholeDatasetDrift',
+    'TrainTestPredictionDrift',
 
     # performance checks
     'PerformanceReport',
