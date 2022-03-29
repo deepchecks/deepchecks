@@ -20,7 +20,7 @@ from deepchecks.vision.utils.image_functions import prepare_thumbnail, prepare_g
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.utils.strings import format_number
 from deepchecks.core import DatasetKind, CheckResult, ConditionResult, ConditionCategory
-from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError, DeepchecksValueError
+from deepchecks.core.errors import NotEnoughSamplesError, DeepchecksValueError
 from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.utils import image_properties
 
@@ -243,8 +243,7 @@ class ImagePropertyDrift(TrainTestCheck):
                 content=f'<h4>Image</h4>{thumbnails}{properties}',
                 style={
                     'grid-template-rows': 'auto 1fr 1fr',
-                    'grid-template-columns': f'auto repeat({len(images)}, 1fr)'
-                }
+                    'grid-template-columns': f'auto repeat({len(images)}, 1fr)',}
             ))
 
         train_table, test_table = tables

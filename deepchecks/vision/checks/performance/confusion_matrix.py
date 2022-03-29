@@ -54,6 +54,18 @@ class ConfusionMatrixReport(SingleDatasetCheck):
     _LABEL_COLOR = 'red'
     _DETECTION_COLOR = 'blue'
 
+    _THUMBNAILS_TEMPLATE = dedent(f"""
+        <h4>Misclassified Images</h4>
+        <p><b>NOTE:</b> in case of object detection task the next colors
+        are used for bbox identification:</p>
+        <ul>
+            <li>{_LABEL_COLOR} - ground truth</li>
+            <li>{_DETECTION_COLOR} - detected class</li>
+        </ul>
+        {{note}}
+        {{grid}}
+    """)
+
     def __init__(
         self,
         categories_to_display: int = 10,
@@ -270,18 +282,6 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         if self.n_of_images_to_show == 0:
             return ''
 
-        template = dedent(f"""
-            <h4>Misclassified Images</h4>
-            <p><b>NOTE:</b> in case of object detection task the next colors
-            are used for bbox identification:</p>
-            <ul>
-                <li>{self._LABEL_COLOR} - ground truth</li>
-                <li>{self._DETECTION_COLOR} - detected class</li>
-            </ul>
-            {{note}}
-            {{grid}}
-        """)
-
         misclassifications = (
             (
                 label_class,
@@ -310,37 +310,37 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         if len(misclassified_images) == 0:
             return ''
 
-        grid_content = [
-            '<span><b>Ground Truth</b></span>',
-            '<span><b>Detected Truth</b></span>',
-            '<span><b>Image</b></span>',
-        ]
-
+        ground_truth = ['<span><b>Ground Truth</b></span>']
+        detected_truth = ['<span><b>Detected Truth</b></span>']
+        images = ['<span><b>Images</b></span>']
+        
         for label, detected, img in misclassified_images[:self.n_of_images_to_show]:
             label_name, label_id = label
             detection_name, detection_id = detected
-            grid_content.append(f'<span>{label_name} (id: {label_id})</span>')
-            grid_content.append(f'<span>{detection_name} (id: {detection_id})</span>')
+            ground_truth.append(f'<span>{label_name} (id: {label_id})</span>')
+            detected_truth.append(f'<span>{detection_name} (id: {detection_id})</span>')
             # NOTE: take a look at the update_object_detection method
             # to understand why 'img' might be a callable
-            grid_content.append(prepare_thumbnail(
+            images.append(prepare_thumbnail(
                 image=img() if callable(img) else img,
                 size=self._IMAGE_THUMBNAIL_SIZE
             ))
 
         grid = prepare_grid(
-            content=grid_content,
+            content=[*images, *ground_truth, *detected_truth],
+            n_of_columns=len(images),
+            n_of_rows=3,
             style={
-                'grid-template-rows': 'auto',
-                'grid-template-columns': 'auto auto 1fr',
-            }
+                'grid-template-rows': '1fr auto auto',
+                'grid-template-columns': f'auto repeat({len(images) - 1}, 1fr)',
+                'grid-gap': '2rem'}
         )
         note = (
             f'<p>Showing {self.n_of_images_to_show} of {len(misclassified_images)} images:</p>'
             if len(misclassified_images) > self.n_of_images_to_show
             else ''
         )
-        return template.format(
+        return self._THUMBNAILS_TEMPLATE.format(
             n_of_images=len(misclassified_images),
             note=note,
             grid=grid

@@ -210,7 +210,7 @@ def prepare_grid(
     default_style = {
         'overflow-x': 'auto',
         'display': 'grid',
-        'grid-gap': '1.5rem',
+        'grid-gap': '0.5rem',
         'justify-items': 'center',
         'align-items': 'center',
         'padding': '2rem',
