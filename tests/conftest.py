@@ -111,6 +111,29 @@ def diabetes_split_dataset_and_model(diabetes, diabetes_model):
     clf = diabetes_model
     return train, test, clf
 
+@pytest.fixture(scope='session')
+def diabetes_split_dataset_and_model_xgb(diabetes):
+    train, test = diabetes
+    clf = XGBRegressor(random_state=0)
+    clf.fit(train.data[train.features], train.data[train.label_name])
+    return train, test, clf
+
+
+@pytest.fixture(scope='session')
+def diabetes_split_dataset_and_model_lgbm(diabetes):
+    train, test = diabetes
+    clf = LGBMRegressor(random_state=0)
+    clf.fit(train.data[train.features], train.data[train.label_name])
+    return train, test, clf
+
+
+@pytest.fixture(scope='session')
+def diabetes_split_dataset_and_model_cat(diabetes):
+    train, test = diabetes
+    clf = CatBoostRegressor(random_state=0)
+    clf.fit(train.data[train.features], train.data[train.label_name])
+    return train, test, clf
+
 
 @pytest.fixture(scope='session')
 def iris_clean():

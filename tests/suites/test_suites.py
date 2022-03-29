@@ -11,8 +11,8 @@
 """builtin suites tests"""
 #pylint: disable=redefined-outer-name
 import typing as t
-from catboost import CatBoostClassifier
-from lightgbm import LGBMClassifier
+from catboost import CatBoostClassifier, CatBoostRegressor
+from lightgbm import LGBMClassifier, LGBMRegressor
 import pytest
 from datetime import datetime
 
@@ -21,7 +21,7 @@ from sklearn.ensemble import AdaBoostClassifier
 from sklearn.model_selection import train_test_split
 from hamcrest.core.matcher import Matcher
 from hamcrest import assert_that, instance_of, only_contains, any_of
-from xgboost import XGBClassifier
+from xgboost import XGBClassifier, XGBRegressor
 
 from deepchecks.core import SuiteResult, CheckResult, CheckFailure
 from deepchecks.tabular import suites, Dataset, SingleDatasetCheck, Suite
@@ -86,12 +86,17 @@ def test_generic_boost(
     iris_split_dataset_and_model_cat: t.Tuple[Dataset, Dataset, CatBoostClassifier],
     iris_split_dataset_and_model_xgb: t.Tuple[Dataset, Dataset, XGBClassifier],
     iris_split_dataset_and_model_lgbm : t.Tuple[Dataset, Dataset, LGBMClassifier],
+    diabetes_split_dataset_and_model_xgb: t.Tuple[Dataset, Dataset, CatBoostRegressor],
+    diabetes_split_dataset_and_model_lgbm: t.Tuple[Dataset, Dataset, XGBRegressor],
+    diabetes_split_dataset_and_model_cat : t.Tuple[Dataset, Dataset, LGBMRegressor],
 ):
     iris_cat_train, iris_cat_test, iris_cat_model = iris_split_dataset_and_model_cat
     iris_xgb_train, iris_xgb_test, iris_xgb_model = iris_split_dataset_and_model_xgb
     iris_lgbm_train, iris_lgbm_test, iris_lgbm_model = iris_split_dataset_and_model_lgbm
 
-    # diabetes_train, diabetes_test, diabetes_model = diabetes_split_dataset_and_model
+    diabetes_cat_train, diabetes_cat_test, diabetes_cat_model = diabetes_split_dataset_and_model_cat
+    diabetes_xgb_train, diabetes_xgb_test, diabetes_xgb_model = diabetes_split_dataset_and_model_xgb
+    diabetes_lgbm_train, diabetes_lgbm_test, diabetes_lgbm_model = diabetes_split_dataset_and_model_lgbm
 
     suite = suites.full_suite()
 
@@ -99,6 +104,9 @@ def test_generic_boost(
         dict(train_dataset=iris_cat_train, test_dataset=iris_cat_test, model=iris_cat_model),
         dict(train_dataset=iris_xgb_train, test_dataset=iris_xgb_test, model=iris_xgb_model),
         dict(train_dataset=iris_lgbm_train, test_dataset=iris_lgbm_test, model=iris_lgbm_model),
+        dict(train_dataset=diabetes_cat_train, test_dataset=diabetes_cat_test, model=diabetes_cat_model),
+        dict(train_dataset=diabetes_xgb_train, test_dataset=diabetes_xgb_test, model=diabetes_xgb_model),
+        dict(train_dataset=diabetes_lgbm_train, test_dataset=diabetes_lgbm_test, model=diabetes_lgbm_model),
     )
 
     for args in arguments:
