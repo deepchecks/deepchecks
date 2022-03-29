@@ -141,7 +141,7 @@ def diabetes_split_dataset_and_model_lgbm(diabetes):
 def diabetes_split_dataset_and_model_cat(diabetes):
     train, test = diabetes
     clf = CatBoostRegressor(random_state=0)
-    clf.fit(train.data[train.features], train.data[train.label_name])
+    clf.fit(train.data[train.features], train.data[train.label_name], verbose=False)
     return train, test, clf
 
 
