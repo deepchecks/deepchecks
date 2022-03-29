@@ -216,7 +216,7 @@ def error_model_display(error_fi: pd.Series,
                 labels={error_col_name: 'model error'}, color=color_col,
                 color_discrete_map=color_map
             ))
-        else:
+        elif feature in dataset.numerical_features:
             # sample data for display
             np.random.seed(random_state)
             sampling_idx = np.random.choice(range(len(data)), size=n_samples_display, replace=False)

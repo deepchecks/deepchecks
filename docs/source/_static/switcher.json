@@ -1,11 +1,13 @@
 [
   {
     "version": "dev",
-    "name": "dev"
+    "name": "dev",
+    "url": "https://docs.deepchecks.com/dev/"
   },
   {
     "version": "stable",
-    "name": "v0.5.0 (stable)"
+    "name": "v0.5.0 (stable)",
+    "url": "https://docs.deepchecks.com/stable/"
   },
   {
     "version": "0.5",

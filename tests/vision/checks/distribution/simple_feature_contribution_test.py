@@ -11,15 +11,14 @@
 """Test functions of the VISION train test label drift."""
 from copy import copy
 
-import torch
 from hamcrest import assert_that, has_entries, close_to, equal_to
-
 import numpy as np
+
 from deepchecks.vision.checks import SimpleFeatureContribution
+from deepchecks.vision.utils.transformations import un_normalize_batch
+
 from tests.checks.utils import equal_condition_result
 from tests.vision.vision_conftest import *
-
-from deepchecks.vision.utils.transformations import un_normalize_batch
 
 
 def mnist_batch_to_images_with_bias(batch):
@@ -207,7 +206,6 @@ def test_train_test_condition_pps_train_pass(coco_train_visiondata):
     result = check.run(train_dataset=train,
                        test_dataset=test)
     condition_result, *_ = check.conditions_decision(result)
-    print(result)
 
     # Assert
     assert_that(condition_result, equal_condition_result(
@@ -250,7 +248,6 @@ def test_train_test_condition_pps_train_pass_per_class(mnist_dataset_train):
     result = check.run(train_dataset=train,
                        test_dataset=test)
     condition_result, *_ = check.conditions_decision(result)
-    print(result)
 
     # Assert
     assert_that(condition_result, equal_condition_result(

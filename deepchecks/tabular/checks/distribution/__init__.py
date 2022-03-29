@@ -13,11 +13,13 @@ from .trust_score_comparison import TrustScoreComparison
 from .train_test_feature_drift import TrainTestFeatureDrift
 from .whole_dataset_drift import WholeDatasetDrift
 from .train_test_label_drift import TrainTestLabelDrift
+from .train_test_prediction_drift import TrainTestPredictionDrift
 
 
 __all__ = [
     'TrustScoreComparison',
     'TrainTestFeatureDrift',
     'WholeDatasetDrift',
-    'TrainTestLabelDrift'
+    'TrainTestLabelDrift',
+    'TrainTestPredictionDrift'
 ]

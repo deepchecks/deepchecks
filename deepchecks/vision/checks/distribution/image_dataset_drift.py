@@ -24,8 +24,7 @@ __all__ = ['ImageDatasetDrift']
 
 
 class ImageDatasetDrift(TrainTestCheck):
-    """
-    Calculate drift between the entire train and test datasets (based on image properties) using a trained model.
+    """Calculate drift between the entire train and test datasets (based on image properties) using a trained model.
 
     Check fits a new model to distinguish between train and test datasets, called a Domain Classifier.
     The Domain Classifier is a tabular model, that cannot run on the images themselves. Therefore, the check calculates

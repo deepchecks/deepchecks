@@ -20,7 +20,7 @@ from pandas.core.dtypes.common import is_numeric_dtype
 from sklearn.model_selection import train_test_split
 
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.features import is_categorical, infer_categorical_features
+from deepchecks.utils.features import infer_numerical_features, is_categorical, infer_categorical_features
 from deepchecks.utils.typing import Hashable
 from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError, DeepchecksNotSupportedError
 
@@ -285,6 +285,9 @@ class Dataset:
         else:
             self._label_type = None
 
+        unassigned_cols = [col for col in self._features if col not in self._cat_features]
+        self._numerical_features = infer_numerical_features(self._data[unassigned_cols])
+
     @classmethod
     def from_numpy(
             cls: t.Type[TDataset],
@@ -463,16 +466,6 @@ class Dataset:
         """
         return self.data.shape[0]
 
-    def __len__(self) -> int:
-        """Return number of samples in the member dataframe.
-
-        Returns
-        -------
-        int
-
-        """
-        return self.n_samples
-
     @property
     def label_type(self) -> t.Optional[str]:
         """Return the label type.
@@ -631,11 +624,12 @@ class Dataset:
            If index column exists, returns a pandas Series of the index column.
         """
         if self._set_index_from_dataframe_index is True:
+            index_name = self.data.index.name or 'index'
             if self._index_name is None:
-                return pd.Series(self.data.index.get_level_values(0), name=self.data.index.name,
+                return pd.Series(self.data.index.get_level_values(0), name=index_name,
                                  index=self.data.index)
             elif isinstance(self._index_name, (str, int)):
-                return pd.Series(self.data.index.get_level_values(self._index_name), name=self.data.index.name,
+                return pd.Series(self.data.index.get_level_values(self._index_name), name=index_name,
                                  index=self.data.index)
             else:
                 raise DeepchecksValueError(f'Don\'t know to handle index_name of type {type(self._index_name)}')
@@ -657,11 +651,12 @@ class Dataset:
 
     def get_datetime_column_from_index(self, datetime_name):
         """Retrieve the datetime info from the index if _set_datetime_from_dataframe_index is True."""
+        index_name = self.data.index.name or 'datetime'
         if datetime_name is None:
-            return pd.Series(self.data.index.get_level_values(0), name='datetime',
+            return pd.Series(self.data.index.get_level_values(0), name=index_name,
                              index=self.data.index)
         elif isinstance(datetime_name, (str, int)):
-            return pd.Series(self.data.index.get_level_values(datetime_name), name='datetime',
+            return pd.Series(self.data.index.get_level_values(datetime_name), name=index_name,
                              index=self.data.index)
 
     @property
@@ -737,6 +732,17 @@ class Dataset:
         return list(self._cat_features)
 
     @property
+    def numerical_features(self) -> t.List[Hashable]:
+        """Return list of numerical feature names.
+
+         Returns
+        -------
+        t.List[Hashable]
+           List of categorical feature names.
+        """
+        return list(self._numerical_features)
+
+    @property
     @lru_cache(maxsize=128)
     def classes(self) -> t.Tuple[str, ...]:
         """Return the classes from label column in sorted list. if no label column defined, return empty list.
@@ -770,8 +776,10 @@ class Dataset:
             elif column in self._features:
                 if column in self.cat_features:
                     value = 'categorical feature'
-                else:
+                elif column in self.numerical_features:
                     value = 'numerical feature'
+                else:
+                    value = 'other feature'
             else:
                 value = 'other'
             columns[column] = value
@@ -1043,3 +1051,13 @@ class Dataset:
                 return False
 
         return True
+
+    def __len__(self) -> int:
+        """Return number of samples in the member dataframe.
+
+        Returns
+        -------
+        int
+
+        """
+        return self.n_samples

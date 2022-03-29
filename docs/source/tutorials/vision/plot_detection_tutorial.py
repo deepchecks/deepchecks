@@ -4,7 +4,7 @@ Object Detection Tutorial
 ==========================
 In this tutorial, you will learn how to validate your **object detection model** using deepchecks test suites.
 You can read more about the different checks and suites for computer vision use cases at the
-:doc:`examples section  </examples/vision/checks/index>`
+:doc:`examples section  </examples/index>`
 
 If you just want to see the output of this tutorial, jump to :ref:`_observing_the_result` section.
 
@@ -89,7 +89,7 @@ class TomatoDataset(Dataset):
                 difficult = obj.find('difficult').text
                 if int(difficult) == 1:
                     continue
-                cls_id = 0
+                cls_id = 1
                 xmlbox = obj.find('bndbox')
                 b = [float(xmlbox.find('xmin').text), float(xmlbox.find('ymin').text), float(xmlbox.find('xmax').text),
                         float(xmlbox.find('ymax').text)]
