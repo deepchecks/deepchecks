@@ -97,8 +97,8 @@ def test_generic_boost(
 
     arguments = (
         dict(train_dataset=iris_cat_train, test_dataset=iris_cat_test, model=iris_cat_model),
-        # dict(train_dataset=iris_xgb_train, test_dataset=iris_xgb_test, model=iris_xgb_model),
-        # dict(train_dataset=iris_lgbm_train, test_dataset=iris_lgbm_test, model=iris_lgbm_model),
+        dict(train_dataset=iris_xgb_train, test_dataset=iris_xgb_test, model=iris_xgb_model),
+        dict(train_dataset=iris_lgbm_train, test_dataset=iris_lgbm_test, model=iris_lgbm_model),
     )
 
     for args in arguments:
