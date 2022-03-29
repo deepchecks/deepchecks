@@ -12,6 +12,7 @@
 from collections import defaultdict
 from typing import Any, Callable, TypeVar, Hashable, Dict, Union
 
+import numpy as np
 import pandas as pd
 
 from deepchecks import ConditionResult
@@ -114,13 +115,13 @@ class SimpleFeatureContribution(TrainTestCheck):
         if dataset.task_type == TaskType.OBJECT_DETECTION:
             for img, labels in zip(batch.images, batch.labels):
                 for label in labels:
-                    label = label.tolist()
+                    label = np.array(label)
                     bbox = label[1:]
-                    img = crop_image(img, *bbox)
-                    if img.shape[0] == 0 or img.shape[1] == 0:
+                    cropped_img = crop_image(img, *bbox)
+                    if cropped_img.shape[0] == 0 or cropped_img.shape[1] == 0:
                         continue
                     class_id = label[0]
-                    imgs += [img]
+                    imgs += [cropped_img]
                     target += [class_id]
         else:
             for img, classes_ids in zip(batch.images, dataset.get_classes(batch.labels)):
