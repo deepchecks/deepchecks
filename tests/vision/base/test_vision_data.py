@@ -284,12 +284,11 @@ def test_data_at_batch_index_to_dataset_index(mnist_dataset_train):
             i += len(data)
 
     # Act
-    dataset_index = mnist_dataset_train.batch_index_to_dataset_index(sample_index)
-    sample = mnist_dataset_train.data_loader.dataset[dataset_index]
+    sample = mnist_dataset_train.batch_of_index(sample_index)
 
     # Assert
-    assert torch.equal(sample[0], single_data)
-    assert sample[1] == single_label.item()
+    assert torch.equal(sample[0][0], single_data)
+    assert sample[1][0] == single_label
 
 
 def test_get_classes_validation_not_sequence(mnist_data_loader_train):

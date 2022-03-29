@@ -111,7 +111,7 @@ def partition_column(
     List[DeepchecksFilter]
     """
     column = dataset.data[column_name]
-    if column_name not in dataset.cat_features:
+    if column_name in dataset.numerical_features:
         percentile_values = numeric_segmentation_edges(column, max_segments)
         # If for some reason only single value in the column (and column not categorical) we will get single item
         if len(percentile_values) == 1:
@@ -131,7 +131,7 @@ def partition_column(
 
             filters.append(DeepchecksFilter(f, label))
         return filters
-    else:
+    elif column_name in dataset.cat_features:
         # Get sorted histogram
         cat_hist_dict = column.value_counts()
         # Get index of last value in histogram to show
