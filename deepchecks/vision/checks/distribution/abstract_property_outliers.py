@@ -23,12 +23,11 @@ from deepchecks.core.errors import DeepchecksProcessError, NotEnoughSamplesError
 from deepchecks.utils.outliers import iqr_outliers_range
 from deepchecks.vision import SingleDatasetCheck, Context, Batch
 from deepchecks.vision.utils import label_prediction_properties
+from deepchecks.vision.utils.image_functions import prepare_thumbnail
+from deepchecks.vision.vision_data import VisionData
+
 
 __all__ = ['AbstractPropertyOutliers']
-
-from deepchecks.vision.utils.image_functions import prepare_thumbnail
-
-from deepchecks.vision.vision_data import VisionData
 
 
 class AbstractPropertyOutliers(SingleDatasetCheck):
