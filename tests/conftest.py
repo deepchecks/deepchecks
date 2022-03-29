@@ -210,6 +210,7 @@ def iris_split_dataset_and_model(iris_split_dataset) -> Tuple[Dataset, Dataset, 
     clf.fit(train_ds.features_columns, train_ds.label_col)
     return train_ds, test_ds, clf
 
+
 @pytest.fixture(scope='session')
 def iris_split_dataset_and_model_single_feature(iris_clean) -> Tuple[Dataset, Dataset, AdaBoostClassifier]:
     """Return Iris train and val datasets and trained AdaBoostClassifier model."""
@@ -219,6 +220,33 @@ def iris_split_dataset_and_model_single_feature(iris_clean) -> Tuple[Dataset, Da
     clf = Pipeline([('bin', KBinsDiscretizer()),
                     ('clf', AdaBoostClassifier(random_state=0))])
     clf.fit(train_ds.features_columns, train_ds.label_col)
+    return train_ds, test_ds, clf
+
+
+@pytest.fixture(scope='session')
+def iris_split_dataset_and_model_xgb(iris_split_dataset) -> Tuple[Dataset, Dataset, XGBClassifier]:
+    """Return Iris train and val datasets and trained AdaBoostClassifier model."""
+    train_ds, test_ds = iris_split_dataset
+    clf = XGBClassifier(random_state=0)
+    clf.fit(train_ds.features_columns, train_ds.label_col)
+    return train_ds, test_ds, clf
+
+
+@pytest.fixture(scope='session')
+def iris_split_dataset_and_model_lgbm(iris_split_dataset) -> Tuple[Dataset, Dataset, LGBMClassifier]:
+    """Return Iris train and val datasets and trained AdaBoostClassifier model."""
+    train_ds, test_ds = iris_split_dataset
+    clf = LGBMClassifier(random_state=0)
+    clf.fit(train_ds.features_columns, train_ds.label_col)
+    return train_ds, test_ds, clf
+
+
+@pytest.fixture(scope='session')
+def iris_split_dataset_and_model_cat(iris_split_dataset) -> Tuple[Dataset, Dataset, CatBoostClassifier]:
+    """Return Iris train and val datasets and trained AdaBoostClassifier model."""
+    train_ds, test_ds = iris_split_dataset
+    clf = CatBoostClassifier(random_state=0)
+    clf.fit(train_ds.features_columns, train_ds.label_col, verbose=False)
     return train_ds, test_ds, clf
 
 
