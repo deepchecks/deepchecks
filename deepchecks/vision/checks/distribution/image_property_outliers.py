@@ -20,6 +20,25 @@ __all__ = ['ImagePropertyOutliers']
 
 
 class ImagePropertyOutliers(AbstractPropertyOutliers):
+    """Find outliers images with respect to the given properties.
+
+    The check computes several properties and then computes the number of outliers for each property.
+    The check uses `IQR <https://en.wikipedia.org/wiki/Interquartile_range#Outliers>`_ to detect outliers out of the
+    single dimension properties.
+
+    Parameters
+    ----------
+    alternative_properties : List[Dict[str, Any]], default: None
+        List of properties. Replaces the default deepchecks properties.
+        Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
+        representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'
+    n_show_top : int , default: 5
+        number of outliers to show from each direction (upper limit and bottom limit)
+    iqr_percentiles: Tuple[int, int], default: (25, 75)
+        Two percentiles which define the IQR range
+    iqr_scale: float, default: 1.5
+        The scale to multiply the IQR range for the outliers detection
+    """
 
     def get_relevant_data(self, batch: Batch):
         """Get the data on which the check calculates outliers for."""

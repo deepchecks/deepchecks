@@ -262,21 +262,21 @@ def two_tuples_dataloader():
 @pytest.fixture(scope='session')
 def mnist_train_only_images(mnist_data_loader_train):  # pylint: disable=redefined-outer-name
     data = MNISTData(mnist_data_loader_train)
-    data._label_formatter_error = 'fake error'
+    data._label_formatter_error = 'fake error'  # pylint: disable=protected-access
     return data
 
 
 @pytest.fixture(scope='session')
 def mnist_train_only_labels(mnist_data_loader_train):  # pylint: disable=redefined-outer-name
     data = MNISTData(mnist_data_loader_train)
-    data._image_formatter_error = 'fake error'
+    data._image_formatter_error = 'fake error'  # pylint: disable=protected-access
     return data
 
 
 @pytest.fixture(scope='session')
 def mnist_test_only_images(mnist_data_loader_test):  # pylint: disable=redefined-outer-name
     data = MNISTData(mnist_data_loader_test)
-    data._label_formatter_error = 'fake error'
+    data._label_formatter_error = 'fake error'  # pylint: disable=protected-access
     return data
 
 

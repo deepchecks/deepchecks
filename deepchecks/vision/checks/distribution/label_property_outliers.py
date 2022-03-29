@@ -1,3 +1,14 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
+"""Module contains LabelPropertyOutliers check."""
 import numpy as np
 
 from deepchecks.core.errors import DeepchecksProcessError
@@ -11,12 +22,31 @@ __all__ = ['LabelPropertyOutliers']
 
 
 class LabelPropertyOutliers(AbstractPropertyOutliers):
+    """Find outliers labels with respect to the given properties.
+
+    The check computes several properties and then computes the number of outliers for each property.
+    The check uses `IQR <https://en.wikipedia.org/wiki/Interquartile_range#Outliers>`_ to detect outliers out of the
+    single dimension properties.
+
+    Parameters
+    ----------
+    alternative_properties : List[Dict[str, Any]], default: None
+        List of properties. Replaces the default deepchecks properties.
+        Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
+        representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'
+    n_show_top : int , default: 5
+        number of outliers to show from each direction (upper limit and bottom limit)
+    iqr_percentiles: Tuple[int, int], default: (25, 75)
+        Two percentiles which define the IQR range
+    iqr_scale: float, default: 1.5
+        The scale to multiply the IQR range for the outliers detection
+    """
 
     def get_default_properties(self, data: VisionData):
         """Return default properties to run in the check."""
         if data.task_type == TaskType.CLASSIFICATION:
-            raise DeepchecksProcessError(f'task type classification does not have default label '
-                                         f'properties for label outliers.')
+            raise DeepchecksProcessError('task type classification does not have default label '
+                                         'properties for label outliers.')
         elif data.task_type == TaskType.OBJECT_DETECTION:
             return label_prediction_properties.DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES
         else:

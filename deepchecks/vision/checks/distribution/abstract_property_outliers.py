@@ -1,3 +1,14 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
+"""Module contains AbstractPropertyOutliers check."""
 import typing as t
 from abc import abstractmethod
 from collections import defaultdict
@@ -254,10 +265,10 @@ def _ensure_property_shape(property_values, data, prop_name):
 
     # If the first item is list validate all items are list of numbers
     if isinstance(property_values[0], t.Sequence):
-        if not all([isinstance(x, t.Sequence) for x in property_values]):
+        if any((not isinstance(x, t.Sequence) for x in property_values)):
             raise DeepchecksProcessError(f'Property result is expected to be either all lists or all scalars but'
                                          f' got mix for property {prop_name}')
-        if not all([_is_list_of_numbers(x) for x in property_values]):
+        if any((not _is_list_of_numbers(x) for x in property_values)):
             raise DeepchecksProcessError(f'For outliers, properties are expected to be only numeric types but'
                                          f' found non-numeric value for property {prop_name}')
     # If first value is not list, validate all items are numeric
@@ -267,12 +278,12 @@ def _ensure_property_shape(property_values, data, prop_name):
 
 
 def _is_list_of_numbers(l):
-    return all(i is None or isinstance(i, Number) for i in l)
+    return any(i is not None and not isinstance(i, Number) for i in l)
 
 
 def _sample_index_from_flatten_index(cumsum_lengths, flatten_index) -> int:
-    # The cumsum lengths is holding the cumulative sum properties per image, so the first index which value is greater
-    # than the flatten index is the image index.
-    # for example if the cumsum lengths is [1, 6, 11, 13, 16, 20] and the flatten index = 6, it means this property
+    # The cumulative sum lengths is holding the cumulative sum of properties per image, so the first index which value
+    # is greater than the flatten index, is the image index.
+    # for example if the sums lengths is [1, 6, 11, 13, 16, 20] and the flatten index = 6, it means this property
     # belong to the third image which is index = 2.
     return np.argwhere(cumsum_lengths > flatten_index)[0][0]
