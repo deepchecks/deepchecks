@@ -16,7 +16,7 @@ from numbers import Number
 
 import numpy as np
 
-from build.lib.deepchecks.utils.strings import format_number
+from deepchecks.utils.strings import format_number
 from deepchecks import CheckResult
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksProcessError, NotEnoughSamplesError, DeepchecksValueError
