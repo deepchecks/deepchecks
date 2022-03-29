@@ -229,9 +229,14 @@ class VisionData:
         return self._transform_field
 
     @property
-    def has_label(self) -> bool:
+    def has_labels(self) -> bool:
         """Return True if the data loader has labels."""
         return self._label_formatter_error is None
+
+    @property
+    def has_images(self) -> bool:
+        """Return True if the data loader has images."""
+        return self._image_formatter_error is None
 
     @property
     def task_type(self) -> TaskType:
@@ -354,7 +359,7 @@ class VisionData:
             raise ValidationError('Check requires dataset to be of type VisionTask. instead got: '
                                   f'{type(other).__name__}')
 
-        if self.has_label != other.has_label:
+        if self.has_labels != other.has_labels:
             raise ValidationError('Datasets required to both either have or don\'t have labels')
 
         if self.task_type != other.task_type:
