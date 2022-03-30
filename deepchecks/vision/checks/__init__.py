@@ -31,5 +31,5 @@ __all__ = [
     'SimpleFeatureContribution',
     'ImagePropertyOutliers',
     'LabelPropertyOutliers',
-     'SimilarImageLeakage'
+    'SimilarImageLeakage'
 ]
