@@ -85,3 +85,16 @@ def test_limit_classes_nonexistant_class(coco_train_visiondata, coco_test_vision
         raises(DeepchecksValueError,
                r'Provided list of class ids to display \[\'1000\'\] not found in training dataset.')
     )
+
+
+def test_custom_task(mnist_train_custom_task, mnist_test_custom_task, device):
+    # Arrange
+    check = HeatmapComparison()
+
+    # Act
+    result = check.run(mnist_train_custom_task, mnist_test_custom_task, device=device)
+
+    # Assert
+    brightness_diff = result.value["diff"]
+    assert_that(brightness_diff.mean(), close_to(1.095, 0.001))
+    assert_that(brightness_diff.max(), close_to(9, 0.001))

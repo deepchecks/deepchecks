@@ -63,6 +63,7 @@ __all__ = ['device',
            'mnist_train_only_labels',
            'mnist_test_only_images',
            'mnist_train_custom_task',
+           'mnist_test_custom_task',
            'coco_train_custom_task'
            ]
 
@@ -281,7 +282,17 @@ def mnist_test_only_images(mnist_data_loader_test):  # pylint: disable=redefined
 
 
 @pytest.fixture(scope='session')
-def mnist_train_custom_task(mnist_data_loader_test):  # pylint: disable=redefined-outer-name
+def mnist_train_custom_task(mnist_data_loader_train):  # pylint: disable=redefined-outer-name
+    class CustomTask(MNISTData):
+        @property
+        def task_type(self) -> TaskType:
+            return TaskType.OTHER
+
+    return CustomTask(mnist_data_loader_train)
+
+
+@pytest.fixture(scope='session')
+def mnist_test_custom_task(mnist_data_loader_test):  # pylint: disable=redefined-outer-name
     class CustomTask(MNISTData):
         @property
         def task_type(self) -> TaskType:

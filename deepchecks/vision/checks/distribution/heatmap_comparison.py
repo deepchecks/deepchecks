@@ -183,6 +183,8 @@ class HeatmapComparison(TrainTestCheck):
         for image, label, classes in zip(*samples):
             class_names = set([self._class_to_string(c) for c in classes])
             # If there is empty label, (if no classes) then skip this sample
+            # TODO: update code to not filter samples with empty labels. Need to think what to do later
+            # when cropping the images for object detection (_label_to_image_batch)
             if not class_names:
                 continue
             if self.classes_to_display is None or \
