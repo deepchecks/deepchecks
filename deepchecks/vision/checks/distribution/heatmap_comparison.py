@@ -119,7 +119,7 @@ class HeatmapComparison(TrainTestCheck):
                     f'Provided list of class ids to display {list(self.classes_to_display)} not found in training '
                     f'dataset.'
                 )
-        # Compute the average grayscale image by dividing the accumulated sum by the number of images
+        # Compute the average grayscale im  age by dividing the accumulated sum by the number of images
         train_grayscale = (np.expand_dims(self._grayscale_heatmap[DatasetKind.TRAIN], axis=2) /
                            self._counter[DatasetKind.TRAIN]).astype(np.uint8)
         test_grayscale = (np.expand_dims(self._grayscale_heatmap[DatasetKind.TEST], axis=2) /
@@ -182,11 +182,6 @@ class HeatmapComparison(TrainTestCheck):
         samples = batch.images, batch.labels, data.get_classes(batch.labels)
         for image, label, classes in zip(*samples):
             class_names = set([self._class_to_string(c) for c in classes])
-            # If there is empty label, (if no classes) then skip this sample
-            # TODO: update code to not filter samples with empty labels. Need to think what to do later
-            # when cropping the images for object detection (_label_to_image_batch)
-            if not class_names:
-                continue
             if self.classes_to_display is None or \
                     len(class_names.intersection(self.classes_to_display)) > 0:
                 valid_labels.append(label)
