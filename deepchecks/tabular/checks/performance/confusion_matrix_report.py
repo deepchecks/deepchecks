@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """The confusion_matrix_report check module."""
+import numpy as np
 import pandas as pd
 import sklearn
 import plotly.express as px
@@ -46,7 +47,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         ds_x = dataset.features_columns
         model = context.model
 
-        y_pred = model.predict(ds_x)
+        y_pred = np.array(model.predict(ds_x)).reshape(len(ds_y), )
         total_classes = sorted(list(set(pd.concat([ds_y, pd.Series(y_pred)]).to_list())))
         confusion_matrix = sklearn.metrics.confusion_matrix(ds_y, y_pred)
 

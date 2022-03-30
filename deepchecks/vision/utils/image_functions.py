@@ -120,7 +120,7 @@ def draw_bboxes(
     bbox_notation : Optional[str], default None
         format of the provided bboxes
     copy_image : bool, default True
-        copy imagge before drawing or not
+        copy image before drawing or not
     border_width : int, default 1
         width of the bbox outline
     color: Union[str, Dict[number, str]], default "red"
@@ -147,7 +147,7 @@ def draw_bboxes(
     draw = pildraw.ImageDraw(image)
 
     for bbox in bboxes:
-        clazz, x0, y0, w, h = bbox
+        clazz, x0, y0, w, h = bbox.tolist()
         x1, y1 = x0 + w, y0 + h
 
         if isinstance(color, str):

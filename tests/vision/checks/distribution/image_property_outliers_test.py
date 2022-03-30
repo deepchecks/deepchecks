@@ -66,7 +66,7 @@ def test_image_property_outliers_check_mnist(mnist_dataset_train, device):
     assert_that(result.value, has_entries({
         'Brightness': has_entries({
             'indices': has_length(610),
-            'lower_limit': close_to(2.936, .001),
+            'lower_limit': close_to(6.487, .001),
             'upper_limit': close_to(62.650, .001)
         }),
         'Mean Red Relative Intensity': instance_of(str),
@@ -111,7 +111,7 @@ def test_string_property_exception(mnist_dataset_train, device):
         'method': string_property,
         'output_type': 'discrete'
     }]
-    check = ImagePropertyOutliers(alternative_image_properties=image_properties)
+    check = ImagePropertyOutliers(alternative_properties=image_properties)
     # Act - Assert check raise exception
     assert_that(calling(check.run).with_args(mnist_dataset_train, device=device),
                 raises(DeepchecksProcessError, 'For outliers, properties are expected to be only numeric types but '
@@ -127,8 +127,8 @@ def test_incorrect_properties_count_exception(mnist_dataset_train, device):
         'method': too_many_property,
         'output_type': 'discrete'
     }]
-    check = ImagePropertyOutliers(alternative_image_properties=image_properties)
+    check = ImagePropertyOutliers(alternative_properties=image_properties)
     # Act - Assert check raise exception
     assert_that(calling(check.run).with_args(mnist_dataset_train, device=device),
-                raises(DeepchecksProcessError, 'Image properties are expected to return value per image but instead '
-                                               'got 65 values for 64 images for property test'))
+                raises(DeepchecksProcessError, 'Properties are expected to return value per image but instead got 65 '
+                                               'values for 64 images for property test'))
