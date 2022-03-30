@@ -40,8 +40,56 @@ def test_boosting_classifier(iris):
     test_scores = result.value['test']
     assert_that(train_scores, has_length(20))
     assert_that(test_scores, has_length(20))
-    assert_that(mean(train_scores), close_to(0.999, 0.01))
-    assert_that(mean(test_scores), close_to(0.961, 0.01))
+    assert_that(mean(train_scores), close_to(0.999, 0.001))
+    assert_that(mean(test_scores), close_to(0.961, 0.001))
+
+
+def test_boosting_xgb_classifier(iris_split_dataset_and_model_xgb):
+    # Arrange
+    train, test, clf = iris_split_dataset_and_model_xgb
+
+    # Act
+    result = BoostingOverfit().run(train, test, clf)
+
+    # Assert
+    train_scores = result.value['train']
+    test_scores = result.value['test']
+    assert_that(train_scores, has_length(20))
+    assert_that(test_scores, has_length(20))
+    assert_that(mean(train_scores), close_to(0.99, 0.001))
+    assert_that(mean(test_scores), close_to(0.985, 0.001))
+
+
+def test_boosting_lgbm_classifier(iris_split_dataset_and_model_lgbm):
+    # Arrange
+    train, test, clf = iris_split_dataset_and_model_lgbm
+
+    # Act
+    result = BoostingOverfit().run(train, test, clf)
+
+    # Assert
+    train_scores = result.value['train']
+    test_scores = result.value['test']
+    assert_that(train_scores, has_length(20))
+    assert_that(test_scores, has_length(20))
+    assert_that(mean(train_scores), close_to(0.972, 0.001))
+    assert_that(mean(test_scores), close_to(0.974, 0.001))
+
+
+def test_boosting_cat_classifier(iris_split_dataset_and_model_cat):
+    # Arrange
+    train, test, clf = iris_split_dataset_and_model_cat
+
+    # Act
+    result = BoostingOverfit().run(train, test, clf)
+
+    # Assert
+    train_scores = result.value['train']
+    test_scores = result.value['test']
+    assert_that(train_scores, has_length(20))
+    assert_that(test_scores, has_length(20))
+    assert_that(mean(train_scores), close_to(0.991, 0.001))
+    assert_that(mean(test_scores), close_to(0.979, 0.001))
 
 
 def test_boosting_model_is_pipeline(iris):
@@ -62,16 +110,16 @@ def test_boosting_model_is_pipeline(iris):
 
     assert_that(train_scores, has_length(20))
     assert_that(test_scores, has_length(20))
-    assert_that(mean(train_scores), close_to(0.999, 0.01))
-    assert_that(mean(test_scores), close_to(0.976, 0.01))
+    assert_that(mean(train_scores), close_to(0.999, 0.001))
+    assert_that(mean(test_scores), close_to(0.976, 0.001))
 
 
 def test_boosting_regressor(diabetes, diabetes_model):
     # Arrange
-    train, validation = diabetes
+    train, test = diabetes
 
     # Act
-    result = BoostingOverfit().run(train, validation, diabetes_model)
+    result = BoostingOverfit().run(train, test, diabetes_model)
 
     # Assert
     train_scores = result.value['train']
@@ -80,6 +128,54 @@ def test_boosting_regressor(diabetes, diabetes_model):
     assert_that(test_scores, has_length(20))
     assert_that(mean(train_scores), close_to(-44.52, 0.01))
     assert_that(mean(test_scores), close_to(-59.35, 0.01))
+
+def test_boosting_regressor_xgb(diabetes_split_dataset_and_model_xgb):
+    # Arrange
+    train, test, model = diabetes_split_dataset_and_model_xgb
+
+    # Act
+    result = BoostingOverfit().run(train, test, model)
+
+    # Assert
+    train_scores = result.value['train']
+    test_scores = result.value['test']
+    assert_that(train_scores, has_length(20))
+    assert_that(test_scores, has_length(20))
+    assert_that(mean(train_scores), close_to(-22.67, 0.01))
+    assert_that(mean(test_scores), close_to(-66.99, 0.01))
+
+
+def test_boosting_regressor_lgbm(diabetes_split_dataset_and_model_lgbm):
+    # Arrange
+    train, test, model = diabetes_split_dataset_and_model_lgbm
+
+    # Act
+    result = BoostingOverfit().run(train, test, model)
+
+    # Assert
+    train_scores = result.value['train']
+    test_scores = result.value['test']
+    assert_that(train_scores, has_length(20))
+    assert_that(test_scores, has_length(20))
+    assert_that(mean(train_scores), close_to(-41.46, 0.01))
+    assert_that(mean(test_scores), close_to(-59.87, 0.01))
+
+
+def test_boosting_regressor_cat(diabetes_split_dataset_and_model_cat):
+    # Arrange
+    train, test, model = diabetes_split_dataset_and_model_cat
+
+    # Act
+    result = BoostingOverfit().run(train, test, model)
+
+    # Assert
+    train_scores = result.value['train']
+    test_scores = result.value['test']
+    assert_that(train_scores, has_length(20))
+    assert_that(test_scores, has_length(20))
+    assert_that(mean(train_scores), close_to(-35.49, 0.01))
+    assert_that(mean(test_scores), close_to(-59.04, 0.01))
+
 
 
 def test_boosting_classifier_with_metric(iris):
@@ -99,8 +195,8 @@ def test_boosting_classifier_with_metric(iris):
     test_scores = result.value['test']
     assert_that(train_scores, has_length(20))
     assert_that(test_scores, has_length(20))
-    assert_that(mean(train_scores), close_to(0.999, 0.01))
-    assert_that(mean(test_scores), close_to(0.96, 0.01))
+    assert_that(mean(train_scores), close_to(0.999, 0.001))
+    assert_that(mean(test_scores), close_to(0.961, 0.001))
 
 
 def test_condition_score_decline_not_greater_than_pass(diabetes, diabetes_model):
