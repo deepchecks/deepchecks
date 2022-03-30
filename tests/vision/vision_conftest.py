@@ -18,12 +18,11 @@ from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.dataloader import default_collate
 
 from deepchecks.core import DatasetKind
-from deepchecks.core.errors import DeepchecksNotImplementedError
 from deepchecks.vision import VisionData, Context, Batch
 
 from deepchecks.vision.datasets.detection.coco import (
     load_model as load_yolov5_model,
-    load_dataset as load_coco_dataset
+    load_dataset as load_coco_dataset, COCOData
 )
 from deepchecks.vision.datasets.classification.mnist import (
     load_model as load_mnist_net_model,
@@ -61,8 +60,10 @@ __all__ = ['device',
            'mock_trained_mnist',
            'run_update_loop',
            'mnist_train_only_images',
+           'mnist_train_only_labels',
            'mnist_test_only_images',
-           'mnist_train_custom_task'
+           'mnist_train_custom_task',
+           'coco_train_custom_task'
            ]
 
 
@@ -260,35 +261,43 @@ def two_tuples_dataloader():
 
 @pytest.fixture(scope='session')
 def mnist_train_only_images(mnist_data_loader_train):  # pylint: disable=redefined-outer-name
-    # Arrange
-    class CustomData(MNISTData):
-        def get_classes(self, batch_labels):
-            raise DeepchecksNotImplementedError('not implemented')
+    data = MNISTData(mnist_data_loader_train)
+    data._label_formatter_error = 'fake error'  # pylint: disable=protected-access
+    return data
 
-        def batch_to_labels(self, batch):
-            raise DeepchecksNotImplementedError('not implemented')
 
-    return CustomData(mnist_data_loader_train)
+@pytest.fixture(scope='session')
+def mnist_train_only_labels(mnist_data_loader_train):  # pylint: disable=redefined-outer-name
+    data = MNISTData(mnist_data_loader_train)
+    data._image_formatter_error = 'fake error'  # pylint: disable=protected-access
+    return data
 
 
 @pytest.fixture(scope='session')
 def mnist_test_only_images(mnist_data_loader_test):  # pylint: disable=redefined-outer-name
-    # Arrange
-    class CustomData(MNISTData):
-        def get_classes(self, batch_labels):
-            raise DeepchecksNotImplementedError('not implemented')
-
-        def batch_to_labels(self, batch):
-            raise DeepchecksNotImplementedError('not implemented')
-
-    return CustomData(mnist_data_loader_test)
+    data = MNISTData(mnist_data_loader_test)
+    data._label_formatter_error = 'fake error'  # pylint: disable=protected-access
+    return data
 
 
 @pytest.fixture(scope='session')
 def mnist_train_custom_task(mnist_data_loader_test):  # pylint: disable=redefined-outer-name
-    vision_data = MNISTData(mnist_data_loader_test)
-    vision_data._task_type = TaskType.OTHER  # pylint: disable=protected-access
-    return vision_data
+    class CustomTask(MNISTData):
+        @property
+        def task_type(self) -> TaskType:
+            return TaskType.OTHER
+
+    return CustomTask(mnist_data_loader_test)
+
+
+@pytest.fixture(scope='session')
+def coco_train_custom_task(coco_train_dataloader):  # pylint: disable=redefined-outer-name
+    class CustomTask(COCOData):
+        @property
+        def task_type(self) -> TaskType:
+            return TaskType.OTHER
+
+    return CustomTask(coco_train_dataloader)
 
 
 def run_update_loop(dataset: VisionData):

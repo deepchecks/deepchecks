@@ -42,8 +42,6 @@ def iqr_outliers_range(data: np.ndarray,
         raise DeepchecksValueError('IQR range must contain two numbers between 0 to 100')
 
     data = data.squeeze()
-    if data.ndim > 1:
-        raise DeepchecksValueError(f'IQR outlier method must receive one dimensional data but got {data.ndim} dims.')
     # Filter nulls
     data = [x for x in data if pd.notnull(x)]
     if len(data) < min_samples:
