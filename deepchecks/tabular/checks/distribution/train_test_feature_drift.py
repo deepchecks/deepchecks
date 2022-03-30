@@ -147,8 +147,8 @@ class TrainTestFeatureDrift(TrainTestCheck):
         if self.sort_feature_by == 'feature importance' and features_importance is not None:
             columns_order = features_importance.sort_values(ascending=False).head(self.n_top_columns).index
         else:
-            columns_order = sorted(list(values_dict.keys()), key=lambda col: values_dict[col]['Drift score'], reverse=True
-                                   )[:self.n_top_columns]
+            columns_order = sorted(list(values_dict.keys()), key=lambda col: values_dict[col]['Drift score'],
+                                   reverse=True)[:self.n_top_columns]
 
         sorted_by = self.sort_feature_by if features_importance is not None else 'drift score'
 

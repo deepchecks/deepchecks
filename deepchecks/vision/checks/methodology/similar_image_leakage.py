@@ -28,16 +28,23 @@ SIL = TypeVar('SIL', bound='SimilarImageLeakage')
 
 
 class SimilarImageLeakage(TrainTestCheck):
-    """
+    """Check for images in training that are similar to images in test.
 
     Parameters
     ----------
     n_top_show: int, default: 5
         Number of images to show, sorted by the similarity score between them
     hash_size: int, default: 8
-        Size of hashed image. Algorithm will hash the image to a hash_size*hash_size binary image. #TODO: Improve
-    similarity_threshold: float, default: 0.1
-        range (0,1) #TODO: Improve
+        Size of hashed image. Algorithm will hash the image to a hash_size*hash_size binary image. Increasing this
+        value will increase the accuracy of the algorithm, but will also increase the time and memory requirements.
+    similarity_threshold: float, default: 0.05
+        Similarity threshold (0,1). The similarity score defines what is the ratio of pixels that are different between
+        the two images. If the similarity score is below the threshold, the images are considered similar.
+        Note: The score is defined such that setting it to 1 will result in similarity being detected for all images
+        with up to half their pixels differing from each other. For a value of 1, random images (which on average
+        differ from each other by half their pixels) will be detected as similar half the time. To further illustrate,
+        for a hash of 8X8, setting the score to 1 will result with all images with up to 32 different pixels being
+        considered similar.
     """
 
     _THUMBNAIL_SIZE = (200, 200)
@@ -55,13 +62,13 @@ class SimilarImageLeakage(TrainTestCheck):
         if not (isinstance(hash_size, int) and (hash_size >= 0)):
             raise DeepchecksValueError('hash_size must be a positive integer')
         self.hash_size = hash_size
-        if not (isinstance(similarity_threshold, float) and (similarity_threshold >= 0) and
-                (similarity_threshold <= 1)):
+        if not (isinstance(similarity_threshold, float) and (0 <= similarity_threshold <= 1)):
             raise DeepchecksValueError('similarity_threshold must be a float in range (0,1)')
         self.similarity_threshold = similarity_threshold
         self.min_pixel_diff = int(np.ceil(similarity_threshold * (hash_size**2 / 2)))
 
     def initialize_run(self, context: Context):
+        """Initialize the run by initializing the lists of image hashes."""
         self._hashed_train_images = []
         self._hashed_test_images = []
 
@@ -84,7 +91,6 @@ class SimilarImageLeakage(TrainTestCheck):
                 order of the images deepchecks received the images.
             display: pairs of similar images
         """
-
         train_hashes = np.array(self._hashed_train_images)
 
         similar_indices = {
@@ -161,7 +167,7 @@ class SimilarImageLeakage(TrainTestCheck):
         """
 
         def condition(value: List[Tuple[int, int]]) -> ConditionResult:
-            num_similar_images = len(set([t[1] for t in value]))
+            num_similar_images = len(set(t[1] for t in value))
 
             if num_similar_images > threshold:
                 message = f'Number of similar images between train and test datasets: {num_similar_images}'
@@ -194,4 +200,3 @@ Total number of test samples with similar images in train: {count}
     <h5>Test</h5>{test_images}
 </div>
 """
-

@@ -15,39 +15,11 @@ from hamcrest import assert_that, equal_to
 
 import numpy as np
 from deepchecks.vision.checks import SimilarImageLeakage
+from deepchecks.vision.utils.test_utils import get_modified_dataloader
 from tests.checks.utils import equal_condition_result
 
 from torch.utils.data import DataLoader
 from PIL import Image
-
-
-def mock_dataloader(vision_data, other_dataset, shuffle=False):
-    """Create a mock dataloader that replaces several images with brighter images from other_dataset."""
-
-    class MockDataset:
-        """A Mock dataset object that replaces several images with brighter images from other_dataset."""
-
-        def __init__(self, orig_dataset):
-            self._orig_dataset = orig_dataset
-
-        def __getitem__(self, idx):
-            if idx in range(5):
-                data, label = other_dataset[idx]
-                return Image.fromarray(np.clip(np.array(data, dtype=np.uint16) + 50, 0, 255).astype(np.uint8)), label
-            else:
-                data, label = self._orig_dataset[idx]
-            return data, label
-
-        def __len__(self):
-            return len(self._orig_dataset)
-
-    # Create a copy of the original dataloader, using the new dataset
-    props = vision_data._get_data_loader_props(vision_data.data_loader)
-    props['dataset'] = MockDataset(vision_data.data_loader.dataset)
-    props['shuffle'] = shuffle
-    data_loader = DataLoader(**props)
-    data_loader, _ = vision_data._get_data_loader_sequential(data_loader)
-    return data_loader
 
 
 def test_no_similars_object_detection(coco_train_visiondata, coco_test_visiondata):
@@ -79,7 +51,20 @@ def test_similar_object_detection(coco_train_visiondata, coco_test_visiondata):
     train, test = coco_train_visiondata, coco_test_visiondata
     check = SimilarImageLeakage()
     test = copy(test)
-    test._data_loader = mock_dataloader(test, train.data_loader.dataset)
+
+    def get_modification_func():
+        other_dataset = train.data_loader.dataset
+
+        def mod_func(orig_dataset, idx):
+            if idx in range(5):
+                data, label = other_dataset[idx]
+                return Image.fromarray(np.clip(np.array(data, dtype=np.uint16) + 50, 0, 255).astype(np.uint8)), label
+            else:
+                return orig_dataset[idx]
+
+        return mod_func
+
+    test._data_loader = get_modified_dataloader(test, get_modification_func())
 
     # Act
     result = check.run(train, test)
