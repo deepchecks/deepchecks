@@ -44,7 +44,7 @@ class HeatmapComparison(TrainTestCheck):
     def __init__(self,
                  classes_to_display: Optional[List[str]] = None):
         super().__init__()
-        self.classes_to_display = set(classes_to_display) if classes_to_display else None
+        self.classes_to_display = {str(x) for x in classes_to_display} if classes_to_display else None
 
     def initialize_run(self, context: Context):
         """Initialize run.
