@@ -132,3 +132,24 @@ def test_incorrect_properties_count_exception(mnist_dataset_train, device):
     assert_that(calling(check.run).with_args(mnist_dataset_train, device=device),
                 raises(DeepchecksProcessError, 'Properties are expected to return value per image but instead got 65 '
                                                'values for 64 images for property test'))
+
+
+def test_property_with_nones(mnist_dataset_train, device):
+    # Arrange
+    def property_with_none(images):
+        return [[1, None]] * (len(images))
+    image_properties = [{
+        'name': 'test',
+        'method': property_with_none,
+        'output_type': 'discrete'
+    }]
+    check = ImagePropertyOutliers(alternative_properties=image_properties)
+    # Act
+    result = check.run(mnist_dataset_train, device=device)
+    assert_that(result.value, has_entries({
+        'test': has_entries({
+            'indices': has_length(0),
+            'lower_limit': is_(1),
+            'upper_limit': is_(1)
+        })
+    }))
