@@ -11,7 +11,7 @@
 """Represents fixtures for unit testing using pytest."""
 # Disable this pylint check since we use this convention in pytest fixtures
 #pylint: disable=redefined-outer-name
-from typing import Tuple
+from typing import Any, Tuple
 
 import numpy as np
 import pytest
@@ -24,6 +24,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import KBinsDiscretizer, OrdinalEncoder, FunctionTransformer
 from sklearn.tree import DecisionTreeClassifier
+from xgboost import XGBClassifier, XGBRegressor
+from catboost import CatBoostClassifier, CatBoostRegressor
+from lightgbm import LGBMClassifier, LGBMRegressor
 
 from deepchecks.tabular import Dataset, TrainTestCheck, Context
 from deepchecks.core.check_result import CheckResult
@@ -110,6 +113,42 @@ def diabetes_split_dataset_and_model(diabetes, diabetes_model):
 
 
 @pytest.fixture(scope='session')
+def diabetes_split_dataset_and_model_custom(diabetes, diabetes_model):
+    train, test = diabetes
+    class MyModel:
+        def predict(self, *args, **kwargs):
+            return diabetes_model.predict(*args, **kwargs)
+        # sklearn scorers in python 3.6 check fit attr
+        def fit(self, *args, **kwargs):
+            return diabetes_model.fit(*args, **kwargs)
+    return train, test, MyModel()
+
+
+@pytest.fixture(scope='session')
+def diabetes_split_dataset_and_model_xgb(diabetes):
+    train, test = diabetes
+    clf = XGBRegressor(random_state=0)
+    clf.fit(train.data[train.features], train.data[train.label_name])
+    return train, test, clf
+
+
+@pytest.fixture(scope='session')
+def diabetes_split_dataset_and_model_lgbm(diabetes):
+    train, test = diabetes
+    clf = LGBMRegressor(random_state=0)
+    clf.fit(train.data[train.features], train.data[train.label_name])
+    return train, test, clf
+
+
+@pytest.fixture(scope='session')
+def diabetes_split_dataset_and_model_cat(diabetes):
+    train, test = diabetes
+    clf = CatBoostRegressor(random_state=0)
+    clf.fit(train.data[train.features], train.data[train.label_name], verbose=False)
+    return train, test, clf
+
+
+@pytest.fixture(scope='session')
 def iris_clean():
     """Return Iris dataset as DataFrame."""
     iris = load_iris(return_X_y=False, as_frame=True)
@@ -190,17 +229,40 @@ def iris_dataset_single_class_labeled(iris):
     return dataset
 
 
-@pytest.fixture
-def iris_split_dataset_and_model(iris_clean) -> Tuple[Dataset, Dataset, AdaBoostClassifier]:
+@pytest.fixture(scope='session')
+def iris_split_dataset(iris_clean) -> Tuple[Dataset, Dataset]:
     """Return Iris train and val datasets and trained AdaBoostClassifier model."""
     train, test = train_test_split(iris_clean.frame, test_size=0.33, random_state=42)
     train_ds = Dataset(train, label='target')
     test_ds = Dataset(test, label='target')
+    return train_ds, test_ds
+
+
+@pytest.fixture(scope='session')
+def iris_split_dataset_and_model(iris_split_dataset) -> Tuple[Dataset, Dataset, AdaBoostClassifier]:
+    """Return Iris train and val datasets and trained AdaBoostClassifier model."""
+    train_ds, test_ds = iris_split_dataset
     clf = AdaBoostClassifier(random_state=0)
     clf.fit(train_ds.features_columns, train_ds.label_col)
     return train_ds, test_ds, clf
 
-@pytest.fixture
+
+@pytest.fixture(scope='session')
+def iris_split_dataset_and_model_custom(iris_split_dataset_and_model) -> Tuple[Dataset, Dataset, Any]:
+    """Return Iris train and val datasets and trained AdaBoostClassifier model."""
+    train_ds, test_ds, clf = iris_split_dataset_and_model
+    class MyModel:
+        def predict(self, *args, **kwargs):
+            return clf.predict(*args, **kwargs)
+        def predict_proba(self, *args, **kwargs):
+            return clf.predict_proba(*args, **kwargs)
+        # sklearn scorers in python 3.6 check fit attr
+        def fit(self, *args, **kwargs):
+            return clf.fit(*args, **kwargs)
+    return train_ds, test_ds, MyModel()
+
+
+@pytest.fixture(scope='session')
 def iris_split_dataset_and_model_single_feature(iris_clean) -> Tuple[Dataset, Dataset, AdaBoostClassifier]:
     """Return Iris train and val datasets and trained AdaBoostClassifier model."""
     train, test = train_test_split(iris_clean.frame, test_size=0.33, random_state=42)
@@ -213,17 +275,42 @@ def iris_split_dataset_and_model_single_feature(iris_clean) -> Tuple[Dataset, Da
 
 
 @pytest.fixture(scope='session')
-def iris_split_dataset_and_model_rf(iris) -> Tuple[Dataset, Dataset, RandomForestClassifier]:
+def iris_split_dataset_and_model_xgb(iris_split_dataset) -> Tuple[Dataset, Dataset, XGBClassifier]:
+    """Return Iris train and val datasets and trained AdaBoostClassifier model."""
+    train_ds, test_ds = iris_split_dataset
+    clf = XGBClassifier(random_state=0)
+    clf.fit(train_ds.features_columns, train_ds.label_col)
+    return train_ds, test_ds, clf
+
+
+@pytest.fixture(scope='session')
+def iris_split_dataset_and_model_lgbm(iris_split_dataset) -> Tuple[Dataset, Dataset, LGBMClassifier]:
+    """Return Iris train and val datasets and trained AdaBoostClassifier model."""
+    train_ds, test_ds = iris_split_dataset
+    clf = LGBMClassifier(random_state=0)
+    clf.fit(train_ds.features_columns, train_ds.label_col)
+    return train_ds, test_ds, clf
+
+
+@pytest.fixture(scope='session')
+def iris_split_dataset_and_model_cat(iris_split_dataset) -> Tuple[Dataset, Dataset, CatBoostClassifier]:
+    """Return Iris train and val datasets and trained AdaBoostClassifier model."""
+    train_ds, test_ds = iris_split_dataset
+    clf = CatBoostClassifier(random_state=0)
+    clf.fit(train_ds.features_columns, train_ds.label_col, verbose=False)
+    return train_ds, test_ds, clf
+
+
+@pytest.fixture(scope='session')
+def iris_split_dataset_and_model_rf(iris_split_dataset) -> Tuple[Dataset, Dataset, RandomForestClassifier]:
     """Return Iris train and val datasets and trained RF model."""
-    train, test = train_test_split(iris, test_size=0.33, random_state=0)
-    train_ds = Dataset(train, label='target')
-    test_ds = Dataset(test, label='target')
+    train_ds, test_ds = iris_split_dataset
     clf = RandomForestClassifier(random_state=0, n_estimators=10, max_depth=2)
     clf.fit(train_ds.features_columns, train_ds.label_col)
     return train_ds, test_ds, clf
 
 
-@pytest.fixture
+@pytest.fixture(scope='session')
 def iris_binary_string_split_dataset_and_model(iris) -> Tuple[Dataset, Dataset, DecisionTreeClassifier]:
     """Return Iris train and test datasets and trained DecisionTreeClassifier model."""
     iris = iris.copy()
