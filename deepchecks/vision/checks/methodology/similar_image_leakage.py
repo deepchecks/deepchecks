@@ -37,7 +37,7 @@ class SimilarImageLeakage(TrainTestCheck):
     hash_size: int, default: 8
         Size of hashed image. Algorithm will hash the image to a hash_size*hash_size binary image. Increasing this
         value will increase the accuracy of the algorithm, but will also increase the time and memory requirements.
-    similarity_threshold: float, default: 0.05
+    similarity_threshold: float, default: 0.1
         Similarity threshold (0,1). The similarity score defines what is the ratio of pixels that are different between
         the two images. If the similarity score is below the threshold, the images are considered similar.
         Note: The score is defined such that setting it to 1 will result in similarity being detected for all images
@@ -53,7 +53,7 @@ class SimilarImageLeakage(TrainTestCheck):
             self,
             n_top_show: int = 10,
             hash_size: int = 8,
-            similarity_threshold: float = 0.05
+            similarity_threshold: float = 0.1
     ):
         super().__init__()
         if not (isinstance(n_top_show, int) and (n_top_show >= 0)):
@@ -62,7 +62,7 @@ class SimilarImageLeakage(TrainTestCheck):
         if not (isinstance(hash_size, int) and (hash_size >= 0)):
             raise DeepchecksValueError('hash_size must be a positive integer')
         self.hash_size = hash_size
-        if not (isinstance(similarity_threshold, float) and (0 <= similarity_threshold <= 1)):
+        if not (isinstance(similarity_threshold, (float, int)) and (0 <= similarity_threshold <= 1)):
             raise DeepchecksValueError('similarity_threshold must be a float in range (0,1)')
         self.similarity_threshold = similarity_threshold
         self.min_pixel_diff = int(np.ceil(similarity_threshold * (hash_size**2 / 2)))
