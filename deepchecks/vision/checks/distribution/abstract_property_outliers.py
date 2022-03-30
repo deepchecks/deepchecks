@@ -78,7 +78,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         self._properties_results = defaultdict(list)
         data = context.get_data_by_kind(dataset_kind)
 
-        # Take either alternative properties if defined or default properties by the task type
+        # Take either alternative properties if defined or default properties defined by the child class
         if self.alternative_properties is not None:
             self._properties_funcs = self.alternative_properties
         else:
@@ -195,7 +195,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
 
     @abstractmethod
     def get_relevant_data(self, batch: Batch):
-        """Get the data on which the check calculates outliers for."""
+        """Get the data on which the check calculates outliers."""
         pass
 
     @abstractmethod

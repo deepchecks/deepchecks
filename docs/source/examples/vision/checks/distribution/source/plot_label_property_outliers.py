@@ -2,18 +2,18 @@
 """
 Label Property Outliers
 =======================
-This notebooks provides an overview for using and understanding the image property
-outliers check, used to detect outliers in simple image properties in a dataset.
+This notebooks provides an overview for using and understanding the label property
+outliers check, used to detect outliers in simple label properties in a dataset.
 
 **Structure:**
 
-* `Why Check for Outliers? <#why-check-for-outliers>`__
+* `Why Check for Label Outliers? <#why-check-for-label-outliers>`__
 * `How Does the Check Work? <#how-does-the-check-work>`__
 * `Which Label Properties Are Used? <#which-label-properties-are-used>`__
 * `Run the Check <#run-the-check>`__
 
 
-Why Check for Outliers?
+Why Check for Label Outliers?
 -----------------------
 Examining outliers may help you gain insights that you couldn't have reached from taking an aggregate look or by
 inspecting random samples. For example, it may help you understand you have some corrupt samples (e.g.
@@ -56,9 +56,9 @@ result
 #%%
 # Observe Graphic Result
 # ^^^^^^^^^^^^^^^^^^^^^^
-# The check shows a section for each property. In each section we show the number of outliers and the non-outlier
+# The check displays a section for each property. In each section we show the number of outliers and the non-outlier
 # property range, and also the images with the lowest and highest values for the property. In addition, if the property
-# returns a value per bounding box, then we show only the relevant bounding box which resulted in the outlier result.
+# returns a value per bounding box, we then show only the relevant bounding box which resulted in the outlier result.
 #
 # For example in property "Bounding Box Area (in pixels)" we can see that 80 outliers were found. Now we can inspect
 # the samples and decide if we wish to ignore these kinds of samples or if we would

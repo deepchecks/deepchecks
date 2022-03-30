@@ -24,7 +24,7 @@ __all__ = ['LabelPropertyOutliers']
 class LabelPropertyOutliers(AbstractPropertyOutliers):
     """Find outliers labels with respect to the given properties.
 
-    The check computes several properties and then computes the number of outliers for each property.
+    The check computes several label properties and then computes the number of outliers for each property.
     The check uses `IQR <https://en.wikipedia.org/wiki/Interquartile_range#Outliers>`_ to detect outliers out of the
     single dimension properties.
 

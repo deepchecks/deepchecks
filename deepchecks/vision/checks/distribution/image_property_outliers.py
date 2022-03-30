@@ -22,7 +22,7 @@ __all__ = ['ImagePropertyOutliers']
 class ImagePropertyOutliers(AbstractPropertyOutliers):
     """Find outliers images with respect to the given properties.
 
-    The check computes several properties and then computes the number of outliers for each property.
+    The check computes several image properties and then computes the number of outliers for each property.
     The check uses `IQR <https://en.wikipedia.org/wiki/Interquartile_range#Outliers>`_ to detect outliers out of the
     single dimension properties.
 
