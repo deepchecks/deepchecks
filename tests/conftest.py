@@ -118,6 +118,9 @@ def diabetes_split_dataset_and_model_custom(diabetes, diabetes_model):
     class MyModel:
         def predict(self, *args, **kwargs):
             return diabetes_model.predict(*args, **kwargs)
+        # sklearn scorers in python 3.6 check fit attr
+        def fit(self, *args, **kwargs):
+            return diabetes_model.fit(*args, **kwargs)
     return train, test, MyModel()
 
 
@@ -253,6 +256,9 @@ def iris_split_dataset_and_model_custom(iris_split_dataset_and_model) -> Tuple[D
             return clf.predict(*args, **kwargs)
         def predict_proba(self, *args, **kwargs):
             return clf.predict_proba(*args, **kwargs)
+        # sklearn scorers in python 3.6 check fit attr
+        def fit(self, *args, **kwargs):
+            return clf.fit(*args, **kwargs)
     return train_ds, test_ds, MyModel()
 
 
