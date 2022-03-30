@@ -58,7 +58,6 @@ __all__ = [
     'ColumnsInfo',
 
     # distribution checks
-    'TrustScoreComparison',
     'TrainTestFeatureDrift',
     'TrainTestLabelDrift',
     'WholeDatasetDrift',
