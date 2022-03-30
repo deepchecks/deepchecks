@@ -102,10 +102,10 @@ try:
     disable = os.environ.get('DEEPCHECKS_DISABLE_LATEST', 'false').lower() == 'true'
     if not disable:
         conn = http.client.HTTPSConnection('api.deepchecks.com', timeout=3)
-        conn.request('GET', f'/latest?version={__version__}')
+        conn.request('GET', f'/v2/latest?version={__version__}')
         response = conn.getresponse()
-        latest_version = response.read().decode('utf-8')
-        if __version__ and parse_version(__version__) < parse_version(latest_version):
+        result = response.read().decode('utf-8') == "True"
+        if result:
             warnings.warn('Looks like you are using outdated version of deepchecks. consider upgrading using'
                           ' pip install -U deepchecks')
 except:  # pylint: disable=bare-except # noqa
