@@ -16,7 +16,7 @@ import numpy as np
 import torch
 import imgaug
 
-from deepchecks.core.errors import DeepchecksValueError, ValidationError
+from deepchecks.core.errors import ValidationError
 from deepchecks.utils.ipython import is_headless, is_notebook
 from deepchecks.utils.strings import create_new_file_name
 from deepchecks.vision.vision_data import TaskType
