@@ -21,4 +21,4 @@ def test_not_error():
     assert_that(run_available_kwargs(aaa, a=2, b=3, c=5, d=10), equal_to(20))
     assert_that(run_available_kwargs(aaa, a=1, b=1, c=5, f=0), equal_to(7))
     assert_that(run_available_kwargs(aaa, a=4, b=0, c=3, f=1), equal_to(8))
-    assert_that(run_available_kwargs(aaa, a=4, b=0, c=3, f=1, m=None), equal_to(5))
+    assert_that(run_available_kwargs(aaa, a=4, b=0, c=3, f=1, m=None), equal_to(99))
