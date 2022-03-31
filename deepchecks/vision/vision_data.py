@@ -497,12 +497,12 @@ class VisionData:
     def _get_data_loader_props(data_loader: DataLoader):
         """Get properties relevant for the copy of a DataLoader."""
         attr_list = ['num_workers', 
-                    'collate_fn',
-                    'pin_memory',
-                    'timeout',
-                    'worker_init_fn',
-                    'prefetch_factor',
-                    'persistent_workers']
+                     'collate_fn',
+                     'pin_memory',
+                     'timeout',
+                     'worker_init_fn',
+                     'prefetch_factor',
+                     'persistent_workers']
         aval_attr = {}
         for attr in attr_list:
             if hasattr(data_loader, attr):
