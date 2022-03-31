@@ -34,7 +34,10 @@ div.sphx-glr-download a:hover {
 
 /*
  * Delete the double caption from the toc display. (see: https://bit.ly/3IPt8Ud)
+ * Currently disabled as it deletes also the caption text from the sidebar
  */
+
+/* 
 span.caption-text {
     display: none;
-}
+} */

@@ -46,7 +46,7 @@ Computer Vision Quickstart
 
 **CV Beta Release**
 
-- :doc:`Deepchecks Tutorial for Simple Classification Example </tutorials/vision/examples/plot_simple_classification_tutorial>`
+- :doc:`Deepchecks Example - Simple Image Classification Tutorial </tutorials/vision/examples/plot_simple_classification_tutorial>`
 - :doc:`Deepchecks for Object Detection Tutorial </tutorials/vision/examples/plot_detection_tutorial>`
 - :doc:`Deepchecks for Classification Tutorial</tutorials/vision/examples/plot_classification_tutorial>`
 
@@ -76,7 +76,7 @@ See the :doc:`When Should You Use </getting-started/when_should_you_use>` Sectio
     :maxdepth: 2
 
     getting-started/index
-    
+
 
 .. toctree::
     :maxdepth: 3

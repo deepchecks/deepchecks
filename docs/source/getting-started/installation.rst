@@ -72,7 +72,7 @@ Deepchecks For Computer Vision
 
 Istallation of deepchecks for CV should be stated explicitly and it includes
 both the installation of the tabular version and of the computer vision subpackage.
-Example commands from above should be altered to install `"deepchecks[vision]"`.
+Example commands from above should be altered to install `deepchecks[vision]`.
 
 
 Using Pip

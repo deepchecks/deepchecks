@@ -23,15 +23,17 @@ Tabular Data
 Computer Vision
 ----------------
 
+**Beta Release**
+
+- :doc:`Deepchecks Example - Simple Image Classification Tutorial </tutorials/vision/examples/plot_simple_classification_tutorial>`
+- :doc:`Deepchecks for Object Detection Tutorial </tutorials/vision/examples/plot_detection_tutorial>`
+- :doc:`Deepchecks for Classification Tutorial</tutorials/vision/examples/plot_classification_tutorial>`
+
+
 .. note:: 
    Deepchecks' Computer Vision subpackage is in beta release.
    It is :doc:`available for installation </getting-started/installation>` from PyPi, use at your own discretion.
    `Github Issues <https://github.com/deepchecks/deepchecks/issues>`_ are welcome!
-
-- :doc:`Deepchecks Tutorial for Simple Classification Example </tutorials/vision/examples/plot_simple_classification_tutorial>`
-- :doc:`Deepchecks for Object Detection Tutorial </tutorials/vision/examples/plot_detection_tutorial>`
-- :doc:`Deepchecks for Classification Tutorial</tutorials/vision/examples/plot_classification_tutorial>`
-
 
 
 🧐 How Does it Work?
@@ -106,6 +108,5 @@ Deepchecks currently supports Tabular Data (:mod:`deepchecks.tabular`) and is in
     :titlesonly:
     :maxdepth: 1
 
-    index
     installation
     when_should_you_use
