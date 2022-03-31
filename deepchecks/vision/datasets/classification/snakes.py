@@ -9,13 +9,12 @@ from torchvision.datasets.utils import download_and_extract_archive
 from deepchecks.vision.nir_mixed.snake_lit_module import SnakeLitModule
 from deepchecks.vision.utils.image_utils import AlbumentationImageFolder
 
-NUM_SNAKES = 5
-DATASET_ROOT = os.path.expanduser("~/code/DeepChecks/Datasets/snakes/")
-SNAKE_CKPT = os.path.expanduser("~/code/DeepChecks/Datasets/snakes.ckpt")
+DATASET_ROOT = os.path.join(os.path.dirname(__file__), 'snakes')
+SNAKE_CKPT = os.path.join(DATASET_ROOT, 'snakes.ckpt')
 
 
 def load_val_data(transformed=False):
-    data_dir = os.path.join(DATASET_ROOT, "val")
+    data_dir = os.path.join(DATASET_ROOT, "test")
     dataset = AlbumentationImageFolder(root=data_dir)
     if transformed:
         transforms = A.Compose([
@@ -50,12 +49,11 @@ def load_train_data(transformed=False):
 
 
 def load_model(pretrained: bool = True, device: str = "cpu") -> nn.Module:
-    model = SnakeLitModule(num_classes=NUM_SNAKES,
-                           optimizer="adam",
+    model = SnakeLitModule(optimizer="adam",
                            finetune_last=True,
                            )
     if pretrained:
-        model = model.load_from_checkpoint(checkpoint_path=SNAKE_CKPT, num_classes=NUM_SNAKES)
+        model = model.load_from_checkpoint(checkpoint_path=SNAKE_CKPT)
     model = model.eval()
     model = model.to(device)
     return model
