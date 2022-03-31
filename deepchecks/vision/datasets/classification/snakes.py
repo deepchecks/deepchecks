@@ -9,7 +9,7 @@ from torchvision.datasets.utils import download_and_extract_archive
 from deepchecks.vision.nir_mixed.snake_lit_module import SnakeLitModule
 from deepchecks.vision.utils.image_utils import AlbumentationImageFolder
 
-DATASET_ROOT = os.path.join(os.path.dirname(__file__), 'snakes')
+DATASET_ROOT = os.path.join(os.path.dirnam(__file__), 'snakes')
 SNAKE_CKPT = os.path.join(DATASET_ROOT, 'snakes.ckpt')
 
 
