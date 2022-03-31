@@ -1,2 +1,3 @@
-Data integrity
-**************
+==============
+Data Integrity
+==============

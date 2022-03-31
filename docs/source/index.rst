@@ -13,41 +13,48 @@
 Welcome to Deepchecks!
 ======================
 
-Deepchecks is the leading tool for validating your machine learning models
+Deepchecks is the leading tool for testing and for validating your machine learning models
 and data, and it enables doing so with minimal effort. Deepchecks accompanies you through
-various validation needs such as verifying your data's integrity, inspecting its distributions,
+various validation and testing needs such as verifying your data's integrity, inspecting its distributions,
 validating data splits, evaluating your model and comparing between different models.
 
 
-⏩ See It in Action
+.. note::
+    In addition to perusing the documentation, please feel free to
+    to ask questions on our `Slack Community <https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg>`_,
+    or to post a issue or start a discussion on `Github <https://github.com/deepchecks/deepchecks/>`_.
+
+
+⏩ Getting Started
+===================
+
+Head over to the :doc:`Getting Started </getting-started/index>` section to learn how to get up and running with deepchecks in 5 minutes.
+
+
+🏃‍♀️ See It in Action
 ====================
 
-For a quick start, check out the following in the tutorials section:
+For a quick start, check out the following pages in the tutorials section:
 
-**Tabular Data**:
+Tabular Data
+-------------
 
 - :doc:`Quickstart in 5 minutes </tutorials/tabular/examples/plot_quickstart_in_5_minutes>`
 
-**Computer Vision**
-
+Computer Vision
+---------------
 
 .. note:: 
    Deepchecks' Computer Vision subpackage is in beta release.
    It is :doc:`available for installation </getting-started/installation>` from PyPi, use at your own discretion.
    `Github Issues <https://github.com/deepchecks/deepchecks/issues>`_ are welcome!
 
-
-- :doc:`Tutorial for Classification </tutorials/vision/examples/plot_classification_tutorial>`
-- :doc:`Tutorial for Object Detection </tutorials/vision/examples/plot_detection_tutorial>`
-
-
-💻 Installation
-=================
-
-Check out our :doc:`Installation </getting-started/installation>` instructions to install it locally and continue from there.
+- :doc:`Deepchecks Tutorial for Simple Classification Example </tutorials/vision/examples/plot_simple_classification_tutorial>`
+- :doc:`Deepchecks for Object Detection Tutorial </tutorials/vision/examples/plot_detection_tutorial>`
+- :doc:`Deepchecks for Classification Tutorial</tutorials/vision/examples/plot_classification_tutorial>`
 
 
-⏱️ When Should You Use Deepchecks?
+🙋🏼 When Should You Use Deepchecks?
 ===================================
 
 While you're in the research phase, and want to validate your data, find potential methodological 
@@ -60,38 +67,8 @@ problems, and/or validate your model and evaluate it.
 See the :doc:`When Should You Use </getting-started/when_should_you_use>` Section for an elaborate explanation of the typical scenarios.
 
 
-🧐 How Does it Work?
-======================
-
-Deepchecks is built of checks, each designated to help to identify a specific issue.
-Some checks relate only to the data and labels and some require also the model.
-Suites are composed of checks. Each check contains outputs to display in a notebook and/or conditions with a pass/fail/warning output.
-For more information head over to our :doc:`/user-guide/general/deepchecks_hierarchy` in the User Guide.
-
-
-Viewing Check and Suite Results
-===============================
-
-The package's output can be consumed in various formats:
-
-- Viewed inline in Jupyter (default behavior)
-- :doc:`Exported as an HTML Report / JSON / Sent to W&B </user-guide/general/exporting_results/examples/index>`
-
-
-Suported Data Types
-===================
-
-Deepchecks currently supports Tabular Data (:mod:`deepchecks.tabular`) and is in beta release for Computer Vision (:mod:`deepchecks.vision`).
-
-
-
-See More
-=========
-
-.. note::
-    In addition to perusing the documentation, please feel free to
-    to ask questions on our `Slack Community <https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg>`_,
-    or to post a issue or start a discussion on `Github <https://github.com/deepchecks/deepchecks/>`_.
+🔎 See More
+=============
 
 .. toctree::
     :maxdepth: 2
@@ -123,10 +100,3 @@ See More
 
 For additional usage examples and for understanding the best practices of how to use the package, stay tuned,
 as this package is in active development!
-
-
-.. |binder badge| image:: /_static/binder-badge.svg
-   :target: tutorials/tabular/quickstart_in_5_minutes.html
-
-.. |colab badge| image:: /_static/colab-badge.svg
-   :target: tutorials/tabular/quickstart_in_5_minutes.html

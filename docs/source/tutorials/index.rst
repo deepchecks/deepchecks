@@ -20,5 +20,6 @@ Vision Tutorials
 .. toctree::
     :maxdepth: 2
     :caption: Vision Tutorials
+    :glob:
 
     vision/examples/*

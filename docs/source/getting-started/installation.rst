@@ -15,11 +15,12 @@ and with `a conda environment`_ for conda.
     https://docs.python.org/3/library/venv.html
 
 
+
 Deepchecks For Tabular Data
 ============================
 
 
-Local Installation Using Pip
+Local Installation With Pip
 -----------------------------
 
 The deepchecks package can be installed from `PyPi <https://pypi.org/project/deepchecks/>`__ using the following command:
@@ -33,7 +34,7 @@ The deepchecks package can be installed from `PyPi <https://pypi.org/project/dee
     If you experience any unexpected behavior from deepchecks, the first step to troubleshoot is to upgrade to the latest version.
 
 
-Local Installation Using Conda
+Local Installation With Conda
 --------------------------------
 
 To install the deepchecks package from the conda package manager run
@@ -49,8 +50,8 @@ or, if you already have deepchecks installed and want to update then run
     conda update -c conda-forge deepchecks
 
 
-Installing From Within a Jupyter Notebook
-------------------------------------------
+Installing Within a Jupyter Notebook
+--------------------------------------
 
 Simply run the following command in a notebook cell
 
@@ -71,7 +72,7 @@ Deepchecks For Computer Vision
 
 Istallation of deepchecks for CV should be stated explicitly and it includes
 both the installation of the tabular version and of the computer vision subpackage.
-Example commands from above should be altered to install `"deepchecks[vision]""`.
+Example commands from above should be altered to install `"deepchecks[vision]"`.
 
 
 Using Pip
@@ -86,6 +87,6 @@ Using Pip
 Start Working with the Package
 =================================
 
-Now it's time to :doc:`get started </index>` with deepchecks!
+Now it's time to :doc:`check out </index>` deepchecks!
 
 

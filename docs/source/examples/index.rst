@@ -1,8 +1,8 @@
-Examples
-========
+Checks Gallery
+==============
 
-Tabular Examples
------------------
+Tabular Checks
+--------------
 
 .. toctree::
     :maxdepth: 3
@@ -15,8 +15,8 @@ Tabular Examples
     tabular/checks/performance/examples/index
     tabular/checks/overview/examples/index
 
-Computer Vision Examples
-------------------------
+Computer Vision Checks
+----------------------
 
 .. toctree::
     :maxdepth: 3
