@@ -44,7 +44,6 @@ from .overview import (
 )
 
 from .distribution import (
-    TrustScoreComparison,
     TrainTestFeatureDrift,
     TrainTestLabelDrift,
     WholeDatasetDrift,
@@ -98,7 +97,6 @@ __all__ = [
     'ColumnsInfo',
 
     # distribution checks
-    'TrustScoreComparison',
     'TrainTestFeatureDrift',
     'TrainTestLabelDrift',
     'WholeDatasetDrift',
