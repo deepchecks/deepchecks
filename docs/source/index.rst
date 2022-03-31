@@ -76,8 +76,7 @@ See the :doc:`When Should You Use </getting-started/when_should_you_use>` Sectio
     :maxdepth: 2
 
     getting-started/index
-    getting-started/installation
-    getting-started/when_should_you_use
+    
 
 .. toctree::
     :maxdepth: 3

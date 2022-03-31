@@ -103,7 +103,8 @@ Deepchecks currently supports Tabular Data (:mod:`deepchecks.tabular`) and is in
 
 .. toctree::
     :hidden:
-    :maxdepth: 2
+    :titlesonly:
+    :maxdepth: 1
 
     index
     installation

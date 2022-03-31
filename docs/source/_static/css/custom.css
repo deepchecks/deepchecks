@@ -35,6 +35,6 @@ div.sphx-glr-download a:hover {
 /*
  * Delete the double caption from the toc display. (see: https://bit.ly/3IPt8Ud)
  */
-section#setup span.caption-text {
+span.caption-text {
     display: none;
 }

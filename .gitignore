@@ -117,7 +117,7 @@ docs/source/tutorials/tabular/examples/
 
 # build artifacts from running docs (vision and wandb export)
 docs/source/tutorials/vision/*.html
-docs/source/tutorials/vision/deepchecks_formatted_image*).jpg
+docs/source/tutorials/vision/deepchecks_formatted_image*.jpg
 docs/source/tutorials/vision/tomato-detection/
 docs/source/tutorials/vision/hymenoptera_data/
 docs/source/user-guide/general/exporting_results/wandb
