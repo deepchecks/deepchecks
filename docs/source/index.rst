@@ -18,13 +18,11 @@ and data, and it enables doing so with minimal effort. Deepchecks accompanies yo
 various validation needs such as verifying your data's integrity, inspecting its distributions,
 validating data splits, evaluating your model and comparing between different models.
 
-Deepchecks currently supports Tabular Data (:mod:`deepchecks.tabular`) and is in beta release for Computer Vision (:mod:`deepchecks.vision`).
 
+⏩ See It in Action
+====================
 
-See It in Action
-================
-
-For a quickstart, check out the following in the tutorials section:
+For a quick start, check out the following in the tutorials section:
 
 **Tabular Data**:
 
@@ -35,7 +33,7 @@ For a quickstart, check out the following in the tutorials section:
 
 .. note:: 
    Deepchecks' Computer Vision subpackage is in beta release.
-   It is :doc:`available for installation </getting-started/index>` from PyPi, use at your own discretion.
+   It is :doc:`available for installation </getting-started/installation>` from PyPi, use at your own discretion.
    `Github Issues <https://github.com/deepchecks/deepchecks/issues>`_ are welcome!
 
 
@@ -43,21 +41,14 @@ For a quickstart, check out the following in the tutorials section:
 - :doc:`Tutorial for Object Detection </tutorials/vision/examples/plot_detection_tutorial>`
 
 
-Viewing Check and Suite Results
---------------------------------
+💻 Installation
+=================
 
-The package's output can be consumed in various formats:
-   - Viewed inline in Jupyter (default behavior)
-   - :doc:`Exported as an HTML Report / JSON / Sent to W&B </user-guide/general/exporting_results/examples/index>`
+Check out our :doc:`Installation </getting-started/installation>` instructions to install it locally and continue from there.
 
 
-Installation
-------------
-Check out our :doc:`Installation Instructions </getting-started/index>` to install it locally and continue from there.
-
-
-When Should You Use Deepchecks?
-================================
+⏱️ When Should You Use Deepchecks?
+===================================
 
 While you're in the research phase, and want to validate your data, find potential methodological 
 problems, and/or validate your model and evaluate it.
@@ -69,26 +60,28 @@ problems, and/or validate your model and evaluate it.
 See the :doc:`When Should You Use </getting-started/when_should_you_use>` Section for an elaborate explanation of the typical scenarios.
 
 
+🧐 How Does it Work?
+======================
 
-How Does it Work?
-===================
-
+Deepchecks is built of checks, each designated to help to identify a specific issue.
+Some checks relate only to the data and labels and some require also the model.
 Suites are composed of checks. Each check contains outputs to display in a notebook and/or conditions with a pass/fail/warning output.
 For more information head over to our :doc:`/user-guide/general/deepchecks_hierarchy` in the User Guide.
 
-What Do You Need in Order to Start?
-=====================================
 
-Depending on your phase and what you wish to validate, you'll need **a
-subset** of the following:
+Viewing Check and Suite Results
+===============================
 
--  **Raw data** (before pre-processing such as OHE, string processing,
-   etc.), with optional labels
--  The model's **training data with labels**
--  **Test data** (which the model isn't exposed to) with labels
--  | A **supported model** that you wish to validate.
-   | For tabular data, see :doc:`supported models </user-guide/tabular/supported_models>`.
-   | For computer vision, we currently support the pytorch framework. See :doc:`/user-guide/vision/data-classes/index` to understand how to integrate your data.
+The package's output can be consumed in various formats:
+
+- Viewed inline in Jupyter (default behavior)
+- :doc:`Exported as an HTML Report / JSON / Sent to W&B </user-guide/general/exporting_results/examples/index>`
+
+
+Suported Data Types
+===================
+
+Deepchecks currently supports Tabular Data (:mod:`deepchecks.tabular`) and is in beta release for Computer Vision (:mod:`deepchecks.vision`).
 
 
 
