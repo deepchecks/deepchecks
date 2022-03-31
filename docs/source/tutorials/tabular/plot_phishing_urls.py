@@ -327,12 +327,6 @@ msuite.run(model=logreg, train_dataset=ds_train, test_dataset=ds_test)
 #   way to segment our data in a way that is informative to error analysis. It seems
 #   that it found a valuable way to segment our data, error-wise, using the ``urlLength``
 #   feature. We'll look into it soon enough.
-# * ``Trust Score Comparison``: Found a very significant decline in the trust score
-#   between test and train sets. This means that test samples are more likely to
-#   disagree with their counterparts (or neighbours) in the train set than we would
-#   want or expect, and thus our predictions on them are expected to be erroneous.
-#   (*see more in the `paper introducing the trust score
-#   <https://proceedings.neurips.cc/paper/2018/file/7180cffd6a8e829dacfc2a31b3f72ece-Paper.pdf>`__*).
 #
 # Looking at the metric plots for F1 for both our model and a simple one we see their
 # performance are almost identical! How can this be? Fortunately the confusion
@@ -341,17 +335,12 @@ msuite.run(model=logreg, train_dataset=ds_train, test_dataset=ds_test)
 #
 # Our evidently over-regularized classifier was over-impressed by the majority class
 # (0, or non-malicious URL), and predicted a value of 0 for almost all samples in
-# both the train and the test set, which yielded an seemingly-impressive 97% accuracy
+# both the train and the test set, which yielded a seemingly-impressive 97% accuracy
 # on the test set just due to the imbalanced nature of the problem.
 #
 # ``deepchecks`` also generated plots for F1, precision and recall on both the train
 # and test set, as part of the performance report, and these also help us see
-# recall scores are almost zero for both sets and understad what happaned.
-#
-# Additionally, the best and worst trust score sample tables can help us on which
-# samples the classifier should possibly not be trusted. In this case, the worst true
-# score table is dominated by samplers with ``target=1``, also pointing us at a
-# problem in generalizing the notion of malicisiousness from the train to the test set.
+# recall scores are almost zero for both sets and understand what happened.
 #
 # Trying out a different classifier
 # =================================
