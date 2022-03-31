@@ -104,7 +104,7 @@ try:
         conn = http.client.HTTPSConnection('api.deepchecks.com', timeout=3)
         conn.request('GET', f'/v2/latest?version={__version__}')
         response = conn.getresponse()
-        result = response.read().decode('utf-8') == "True"
+        result = response.read().decode('utf-8') == 'True'
         if not result:
             warnings.warn('Looks like you are using outdated version of deepchecks. consider upgrading using'
                           ' pip install -U deepchecks')
