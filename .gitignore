@@ -114,3 +114,11 @@ docs/source/examples/vision/checks/methodology/examples/
 docs/source/user-guide/general/customizations/examples/
 docs/source/user-guide/general/exporting_results/examples/
 docs/source/tutorials/tabular/examples/
+
+# build artifacts from running vision docs
+docs/source/tutorials/vision/*.html
+docs/source/tutorials/vision/deepchecks_formatted_image*).jpg
+docs/source/tutorials/vision/tomato-detection/
+docs/source/tutorials/vision/hymenoptera_data/
+
+deepchecks/vision/datasets/classification/models/
