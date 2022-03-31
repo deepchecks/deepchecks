@@ -17,7 +17,6 @@ import http.client
 import matplotlib
 import plotly.io as pio
 import warnings
-from pkg_resources import parse_version
 from importlib._bootstrap import _init_module_attrs
 
 from deepchecks.utils.ipython import is_notebook
@@ -102,10 +101,10 @@ try:
     disable = os.environ.get('DEEPCHECKS_DISABLE_LATEST', 'false').lower() == 'true'
     if not disable:
         conn = http.client.HTTPSConnection('api.deepchecks.com', timeout=3)
-        conn.request('GET', '/latest')
+        conn.request('GET', f'/v2/latest?version={__version__}')
         response = conn.getresponse()
-        latest_version = response.read().decode('utf-8')
-        if __version__ and parse_version(__version__) < parse_version(latest_version):
+        result = response.read().decode('utf-8') == 'True'
+        if not result:
             warnings.warn('Looks like you are using outdated version of deepchecks. consider upgrading using'
                           ' pip install -U deepchecks')
 except:  # pylint: disable=bare-except # noqa

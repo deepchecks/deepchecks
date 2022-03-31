@@ -86,8 +86,26 @@ extensions = [
     'sphinx_search.extension',
     'sphinx.ext.autosectionlabel',
     "sphinx.ext.imgmath",
+    'sphinx_reredirects',
 ]
 
+redirects = {
+    "examples/guides/quickstart_in_5_minutes": "../../tutorials/tabular/examples/plot_quickstart_in_5_minutes.html",
+    "user-guide/key_concepts": "../user-guide/general/deepchecks_hierarchy.html",
+    "user-guide/when_should_you_use": "../getting-started/when_should_you_use.html",
+    "examples/checks/distribution/index": "../../../examples/tabular/checks/distribution/examples/index.html",
+    "examples/checks/distribution/train_test_feature_drift": "../../../examples/tabular/checks/distribution/examples/plot_train_test_feature_drift.html",
+    "examples/checks/integrity/index": "../../../examples/tabular/checks/integrity/examples/index.html",
+    "examples/checks/methodology/index": "../../../examples/tabular/checks/methodology/examples/index.html",
+    "examples/checks/overview/index": "../../../examples/tabular/checks/overview/examples/index.html",
+    "examples/checks/performance/index": "../../../examples/tabular/checks/performance/examples/index.html",
+    "user-guide/supported_models": "..//user-guide/tabular/supported_models.html",
+    "examples/guides/create_a_custom_suite": "../../user-guide/general/customizations/examples/plot_create_a_custom_suite.html",
+    "examples/guides/export_outputs_to_wandb": "../..//user-guide/general/exporting_results/examples/plot_export_output_to_wandb.html",
+    "examples/guides/save_suite_result_as_html": "../../user-guide/general/exporting_results/examples/plot_save_suite_results_as_html.html",
+
+
+}
 imgmath_image_format = 'svg'
 
 sphinx_gallery_conf = {
