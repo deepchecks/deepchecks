@@ -496,16 +496,19 @@ class VisionData:
     @staticmethod
     def _get_data_loader_props(data_loader: DataLoader):
         """Get properties relevant for the copy of a DataLoader."""
-        return {
-            'num_workers': data_loader.num_workers,
-            'collate_fn': data_loader.collate_fn,
-            'pin_memory': data_loader.pin_memory,
-            'timeout': data_loader.timeout,
-            'worker_init_fn': data_loader.worker_init_fn,
-            'prefetch_factor': data_loader.prefetch_factor,
-            'persistent_workers': data_loader.persistent_workers,
-            'dataset': copy(data_loader.dataset)
-        }
+        attr_list = ['num_workers', 
+                    'collate_fn',
+                    'pin_memory',
+                    'timeout',
+                    'worker_init_fn',
+                    'prefetch_factor',
+                    'persistent_workers']
+        aval_attr = {}
+        for attr in attr_list:
+            if hasattr(data_loader, attr):
+                aval_attr[attr] = getattr(data_loader, attr)
+        aval_attr['dataset'] = copy(data_loader.dataset)
+        return aval_attr
 
     @staticmethod
     def _get_data_loader_sequential(data_loader: DataLoader):
