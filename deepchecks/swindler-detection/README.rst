@@ -34,6 +34,9 @@
 🎉 Happy April Fools’ Day! 🎉
 ================================
 
+
+.. raw:: html
+    
    <p align="center">
       <img src="../../docs/images/april-fools-swindler-detection.png">
    </p>
@@ -46,9 +49,9 @@ However, jokes aside - online scams are a real thing, and can happen to any one 
 
 For more resources about how to avoid the different types of online scams, checks out:
 
-- `https://staysafeonline.org/resource/from-tinder-to-venmo/`__
-- `https://staysafeonline.org/resource/scam-alert-how-to-avoid-online-scams-and-fraud/`__
-- `https://www.today.com/popculture/movies/tindler-swindler-romance-scams-how-to-avoid-rcna17153`__
+- `https://staysafeonline.org/resource/from-tinder-to-venmo/`_
+- `https://staysafeonline.org/resource/scam-alert-how-to-avoid-online-scams-and-fraud/`_
+- `https://www.today.com/popculture/movies/tindler-swindler-romance-scams-how-to-avoid-rcna17153`_
 
 
 If you have experienced or learned about online fraud incidents, please report them
