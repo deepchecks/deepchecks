@@ -112,7 +112,7 @@ class TrainTestLabelDrift(TrainTestCheck):
         elif task_type == TaskType.OBJECT_DETECTION:
             self._label_properties = DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES
         else:
-            raise NotImplementedError('TrainTestLabelDrift must receive either alternative_label_properties or run '
+            raise NotImplementedError('Check must receive either label_properties or run '
                                       'on Classification or Object Detection class')
 
         self._train_label_properties = defaultdict(list)
