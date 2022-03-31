@@ -97,7 +97,7 @@ class Context:
                         msg = f'infer_on_batch() was not implemented in {dataset_type} ' \
                            f'dataset, some checks will not run'
                     except ValidationError as ex:
-                        msg = f'batch_to_images() was not implemented correctly in {dataset_type}, the ' \
+                        msg = f'infer_on_batch() was not implemented correctly in {dataset_type}, the ' \
                            f'validation has failed with the error: {ex}. To test your prediction formatting use the ' \
                            f'function `vision_data.validate_prediction(batch, model, device)`'
 
