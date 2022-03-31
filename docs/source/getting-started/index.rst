@@ -1,6 +1,6 @@
-===============
+================
 Getting Started
-===============
+================
 
 
 💻 Installation
@@ -15,13 +15,13 @@ Check out our :doc:`Installation </getting-started/installation>` instructions t
 For a quick start, check out the following examples in the tutorials section:
 
 Tabular Data
-------------
+-------------
 
 - :doc:`Quickstart in 5 minutes </tutorials/tabular/examples/plot_quickstart_in_5_minutes>`
 
 
 Computer Vision
----------------
+----------------
 
 .. note:: 
    Deepchecks' Computer Vision subpackage is in beta release.
@@ -35,7 +35,7 @@ Computer Vision
 
 
 🧐 How Does it Work?
-======================
+========================
 
 Deepchecks is built of checks, each designated to help to identify a specific issue.
 Some checks relate only to the data and labels and some require also the model.
@@ -44,7 +44,7 @@ For more information about deepchecks structure and components head over to our 
 
 
 📊 Which Types of Checks Exist?
-===============================
+=================================
 
 Check out our :doc:`/examples/index` to see all the available checks for Tabular and for CV.
 
@@ -53,7 +53,7 @@ They are divided in the following categories:
 - Data Integrity
 - Data Distribution
 - Methodology
-- Evaluation
+- Model Evaluation
 
 
 ❓ What Do You Need in Order to Start?
@@ -72,7 +72,7 @@ subset** of the following:
 
 
 🙋🏼 When Should You Use Deepchecks?
-===================================
+=====================================
 
 While you're in the research phase, and want to validate your data, find potential methodological 
 problems, and/or validate your model and evaluate it.
@@ -85,7 +85,7 @@ See the :doc:`When Should You Use </getting-started/when_should_you_use>` Sectio
 
 
 👀 Viewing Check and Suite Results
-===================================
+=====================================
 
 The package's output can be consumed in various formats:
 
@@ -95,7 +95,7 @@ The package's output can be consumed in various formats:
 
 
 🔢 Suported Data Types
-=======================
+=========================
 
 Deepchecks currently supports Tabular Data (:mod:`deepchecks.tabular`) and is in beta release for Computer Vision (:mod:`deepchecks.vision`).
 
@@ -105,5 +105,6 @@ Deepchecks currently supports Tabular Data (:mod:`deepchecks.tabular`) and is in
     :hidden:
     :maxdepth: 2
 
+    index
     installation
     when_should_you_use

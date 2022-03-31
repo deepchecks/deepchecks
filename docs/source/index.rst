@@ -26,36 +26,38 @@ validating data splits, evaluating your model and comparing between different mo
 
 
 ⏩ Getting Started
-===================
+====================
 
 Head over to the :doc:`Getting Started </getting-started/index>` section to learn how to get up and running with deepchecks in 5 minutes.
 
 
 🏃‍♀️ See It in Action
-====================
+=====================
 
 For a quick start, check out the following pages in the tutorials section:
 
-Tabular Data
--------------
+Tabular Data Quickstart
+-------------------------
 
 - :doc:`Quickstart in 5 minutes </tutorials/tabular/examples/plot_quickstart_in_5_minutes>`
 
-Computer Vision
----------------
+Computer Vision Quickstart
+-----------------------------
+
+**CV Beta Release**
+
+- :doc:`Deepchecks Tutorial for Simple Classification Example </tutorials/vision/examples/plot_simple_classification_tutorial>`
+- :doc:`Deepchecks for Object Detection Tutorial </tutorials/vision/examples/plot_detection_tutorial>`
+- :doc:`Deepchecks for Classification Tutorial</tutorials/vision/examples/plot_classification_tutorial>`
 
 .. note:: 
    Deepchecks' Computer Vision subpackage is in beta release.
    It is :doc:`available for installation </getting-started/installation>` from PyPi, use at your own discretion.
    `Github Issues <https://github.com/deepchecks/deepchecks/issues>`_ are welcome!
 
-- :doc:`Deepchecks Tutorial for Simple Classification Example </tutorials/vision/examples/plot_simple_classification_tutorial>`
-- :doc:`Deepchecks for Object Detection Tutorial </tutorials/vision/examples/plot_detection_tutorial>`
-- :doc:`Deepchecks for Classification Tutorial</tutorials/vision/examples/plot_classification_tutorial>`
-
 
 🙋🏼 When Should You Use Deepchecks?
-===================================
+====================================
 
 While you're in the research phase, and want to validate your data, find potential methodological 
 problems, and/or validate your model and evaluate it.
@@ -74,6 +76,8 @@ See the :doc:`When Should You Use </getting-started/when_should_you_use>` Sectio
     :maxdepth: 2
 
     getting-started/index
+    getting-started/installation
+    getting-started/when_should_you_use
 
 .. toctree::
     :maxdepth: 3
