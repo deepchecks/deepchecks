@@ -9,12 +9,13 @@
 # ----------------------------------------------------------------------------
 #
 """Module of ImagePropertyOutliers check."""
+import typing as t
 
 import numpy as np
 
 from deepchecks.vision import Batch, VisionData
 from deepchecks.vision.checks.distribution.abstract_property_outliers import AbstractPropertyOutliers
-from deepchecks.vision.utils import image_properties
+from deepchecks.vision.utils.image_properties import default_image_properties
 
 __all__ = ['ImagePropertyOutliers']
 
@@ -28,7 +29,7 @@ class ImagePropertyOutliers(AbstractPropertyOutliers):
 
     Parameters
     ----------
-    alternative_properties : List[Dict[str, Any]], default: None
+    image_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
         Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
         representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'
@@ -39,6 +40,15 @@ class ImagePropertyOutliers(AbstractPropertyOutliers):
     iqr_scale: float, default: 1.5
         The scale to multiply the IQR range for the outliers detection
     """
+
+    def __init__(self,
+                 image_properties: t.List[t.Dict[str, t.Any]] = None,
+                 n_show_top: int = 5,
+                 iqr_percentiles: t.Tuple[int, int] = (25, 75),
+                 iqr_scale: float = 1.5,
+                 **kwargs):
+        super().__init__(properties=image_properties, n_show_top=n_show_top, iqr_percentiles=iqr_percentiles,
+                         iqr_scale=iqr_scale, **kwargs)
 
     def get_relevant_data(self, batch: Batch):
         """Get the data on which the check calculates outliers for."""
@@ -63,4 +73,4 @@ class ImagePropertyOutliers(AbstractPropertyOutliers):
 
     def get_default_properties(self, data: VisionData):
         """Return default properties to run in the check."""
-        return image_properties.default_image_properties
+        return default_image_properties
