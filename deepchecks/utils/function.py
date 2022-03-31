@@ -10,17 +10,17 @@
 #
 """Contain functions for handling function in checks."""
 from inspect import signature
-from typing import Callable
+from typing import Callable, Dict
 
 
 __all__ = ['run_available_kwargs']
 
 
-def run_available_kwargs(func: Callable, **kwargs):
+def run_available_kwargs(func: Callable, **kwargs: Dict):
     """Run the passed object only with available kwargs."""
     avail_kwargs = list(signature(func).parameters.keys())
     pass_kwargs = {}
     for kwarg_name in avail_kwargs:
-        if kwargs.get(kwarg_name) is not None:
+        if kwarg_name in kwargs:
             pass_kwargs[kwarg_name] = kwargs[kwarg_name]
     return func(**pass_kwargs)
