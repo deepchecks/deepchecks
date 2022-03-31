@@ -16,7 +16,7 @@ import numpy as np
 import torch
 import imgaug
 
-from deepchecks.core.errors import DeepchecksValueError, ValidationError
+from deepchecks.core.errors import ValidationError
 from deepchecks.utils.ipython import is_headless, is_notebook
 from deepchecks.utils.strings import create_new_file_name
 from deepchecks.vision.vision_data import TaskType
@@ -151,7 +151,8 @@ def validate_extractors(dataset: VisionData, model, image_save_location: str = N
             fig.update_layout(title=title)
             fig.update_xaxes(title=', '.join(x_title))
         else:
-            raise DeepchecksValueError(f'Not implemented for task type: {dataset.task_type}')
+            fig = go.Figure(numpy_to_image_figure(sample_image))
+            fig.update_layout(title='Visual example of an image')
 
         fig.update_yaxes(showticklabels=False, visible=True, fixedrange=True, automargin=True)
         fig.update_xaxes(showticklabels=False, visible=True, fixedrange=True, automargin=True)

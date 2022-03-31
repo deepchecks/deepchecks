@@ -60,7 +60,7 @@ class TrainTestLabelDrift(TrainTestCheck):
 
     Parameters
     ----------
-    alternative_label_properties : List[Dict[str, Any]], default: None
+    label_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
         Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
         representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'/'class_id'
@@ -73,15 +73,15 @@ class TrainTestLabelDrift(TrainTestCheck):
 
     def __init__(
             self,
-            alternative_label_properties: List[Dict[str, Any]] = None,
+            label_properties: List[Dict[str, Any]] = None,
             max_num_categories: int = 10,
             **kwargs
     ):
         super().__init__(**kwargs)
-        # validate alternative_label_properties:
-        if alternative_label_properties is not None:
-            validate_properties(alternative_label_properties)
-        self.alternative_label_properties = alternative_label_properties
+        # validate label properties:
+        if label_properties is not None:
+            validate_properties(label_properties)
+        self.user_label_properties = label_properties
         self.max_num_categories = max_num_categories
 
         self._label_properties = None
@@ -105,8 +105,8 @@ class TrainTestLabelDrift(TrainTestCheck):
 
         task_type = train_dataset.task_type
 
-        if self.alternative_label_properties is not None:
-            self._label_properties = self.alternative_label_properties
+        if self.user_label_properties is not None:
+            self._label_properties = self.user_label_properties
         elif task_type == TaskType.CLASSIFICATION:
             self._label_properties = DEFAULT_CLASSIFICATION_LABEL_PROPERTIES
         elif task_type == TaskType.OBJECT_DETECTION:

@@ -19,7 +19,7 @@ from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.performance.error_model import error_model_display_dataframe, model_error_contribution
 from deepchecks.utils.single_sample_metrics import per_sample_cross_entropy
-from deepchecks.vision.utils import image_properties
+from deepchecks.vision.utils.image_properties import default_image_properties, validate_properties
 from deepchecks.vision import TrainTestCheck, Context, Batch
 from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.metrics_utils.iou_utils import per_sample_mean_iou
@@ -37,7 +37,7 @@ class ModelErrorAnalysis(TrainTestCheck):
 
     Parameters
     ----------
-    alternative_image_properties : List[Dict[str, Any]], default: None
+    image_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
         Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
         representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'
@@ -57,7 +57,7 @@ class ModelErrorAnalysis(TrainTestCheck):
     """
 
     def __init__(self,
-                 alternative_image_properties: t.List[t.Dict[str, t.Any]] = None,
+                 image_properties: t.List[t.Dict[str, t.Any]] = None,
                  max_properties_to_show: int = 20,
                  min_property_contribution: float = 0.15,
                  min_error_model_score: float = 0.5,
@@ -77,11 +77,11 @@ class ModelErrorAnalysis(TrainTestCheck):
         self._train_scores = None
         self._test_scores = None
 
-        if alternative_image_properties is None:
-            self.image_properties = image_properties.default_image_properties
+        if image_properties is None:
+            self.image_properties = default_image_properties
         else:
-            image_properties.validate_properties(alternative_image_properties)
-            self.image_properties = alternative_image_properties
+            validate_properties(image_properties)
+            self.image_properties = image_properties
 
     def initialize_run(self, context: Context):
         """Initialize property and score lists."""

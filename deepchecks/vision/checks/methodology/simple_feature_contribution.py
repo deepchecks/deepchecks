@@ -23,7 +23,7 @@ from deepchecks.core.condition import ConditionCategory
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Context, TrainTestCheck
 from deepchecks.vision.batch_wrapper import Batch
-from deepchecks.vision.utils import image_properties
+from deepchecks.vision.utils.image_properties import default_image_properties, validate_properties
 from deepchecks.vision.utils.image_functions import crop_image
 from deepchecks.vision.vision_data import TaskType
 
@@ -63,7 +63,7 @@ class SimpleFeatureContribution(TrainTestCheck):
 
     Parameters
     ----------
-    alternative_image_properties : List[Dict[str, Any]], default: None
+    image_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
         Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
         representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'
@@ -78,7 +78,7 @@ class SimpleFeatureContribution(TrainTestCheck):
 
     def __init__(
             self,
-            alternative_image_properties: Dict[str, Callable] = None,
+            image_properties: Dict[str, Callable] = None,
             n_top_properties: int = 3,
             per_class: bool = True,
             ppscore_params: dict = None,
@@ -86,11 +86,11 @@ class SimpleFeatureContribution(TrainTestCheck):
     ):
         super().__init__(**kwargs)
 
-        if alternative_image_properties:
-            image_properties.validate_properties(alternative_image_properties)
-            self.image_properties = alternative_image_properties
+        if image_properties:
+            validate_properties(image_properties)
+            self.image_properties = image_properties
         else:
-            self.image_properties = image_properties.default_image_properties
+            self.image_properties = default_image_properties
 
         self.per_class = per_class
         self.n_top_properties = n_top_properties

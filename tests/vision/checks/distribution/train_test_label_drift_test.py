@@ -145,7 +145,7 @@ def test_with_drift_object_detection_alternative_properties(coco_train_visiondat
         return [int(x[0][0]) if len(x) != 0 else 0 for x in labels]
     alternative_properties = [
         {'name': 'test', 'method': prop, 'output_type': 'continuous'}]
-    check = TrainTestLabelDrift(alternative_label_properties=alternative_properties)
+    check = TrainTestLabelDrift(label_properties=alternative_properties)
 
     # Act
     result = check.run(coco_train_visiondata, coco_test_visiondata, device=device)

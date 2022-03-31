@@ -171,7 +171,7 @@ properties which apply to the Detection task type.
     {'name': 'Classes Appearance', 'method': classes_in_labels, 'output_type': 'class_id'}
   ]
 
-  check = TrainTestLabelDrift(alternative_label_properties=properties)
+  check = TrainTestLabelDrift(label_properties=properties)
 
 
 Prediction Property
@@ -199,4 +199,4 @@ implement properties which apply to the Detection task type.
     {'name': 'Bounding Box Area', 'method': bbox_area, 'output_type': 'continuous'}
   ]
 
-  check = TrainTestPredictionDrift(alternative_prediction_properties=properties)
+  check = TrainTestPredictionDrift(prediction_properties=properties)

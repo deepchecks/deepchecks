@@ -23,7 +23,8 @@ from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.vision import Batch
 from deepchecks.vision import Context
 from deepchecks.vision import TrainTestCheck
-from deepchecks.vision.utils import image_properties
+from deepchecks.vision.utils.image_properties import validate_properties, default_image_properties, get_column_type
+
 
 __all__ = ['ImagePropertyDrift']
 
@@ -42,7 +43,7 @@ class ImagePropertyDrift(TrainTestCheck):
 
     Parameters
     ----------
-    alternative_image_properties : List[Dict[str, Any]], default: None
+    image_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
         Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
         representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'
@@ -56,18 +57,18 @@ class ImagePropertyDrift(TrainTestCheck):
 
     def __init__(
         self,
-        alternative_image_properties: t.List[t.Dict[str, t.Any]] = None,
+        image_properties: t.List[t.Dict[str, t.Any]] = None,
         max_num_categories: int = 10,
         classes_to_display: t.Optional[t.List[str]] = None,
         min_samples: int = 30,
         **kwargs
     ):
         super().__init__(**kwargs)
-        if alternative_image_properties is not None:
-            image_properties.validate_properties(alternative_image_properties)
-            self.image_properties = alternative_image_properties
+        if image_properties is not None:
+            validate_properties(image_properties)
+            self.image_properties = image_properties
         else:
-            self.image_properties = image_properties.default_image_properties
+            self.image_properties = default_image_properties
 
         self.max_num_categories = max_num_categories
         self.classes_to_display = classes_to_display
@@ -155,7 +156,7 @@ class ImagePropertyDrift(TrainTestCheck):
                     train_column=df_train[property_name],
                     test_column=df_test[property_name],
                     value_name=property_name,
-                    column_type=image_properties.get_column_type(single_property['output_type']),
+                    column_type=get_column_type(single_property['output_type']),
                     max_num_categories=self.max_num_categories,
                     min_samples=self.min_samples
                 )
