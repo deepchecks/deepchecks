@@ -15,6 +15,7 @@ from typing import Callable
 
 __all__ = ['run_available_kwargs']
 
+
 def run_available_kwargs(func: Callable, **kwargs):
     """Run the passed object only with available kwargs."""
     avail_kwargs = list(signature(func).parameters.keys())
