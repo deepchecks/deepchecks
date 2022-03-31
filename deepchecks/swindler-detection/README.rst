@@ -28,18 +28,20 @@
       Deepchecks for Swindler Detection - April 1st Release
    </h1>
 
-|
-
-
-🎉 Happy April Fools’ Day! 🎉
-================================
-
 
 .. raw:: html
-    
+
    <p align="center">
       <img src="../../docs/images/april-fools-swindler-detection.png">
    </p>
+   
+
+   <h2 align="center">
+      🎉 Happy April Fools’ Day! 🎉
+   </h2>
+|
+
+
 
 
 
