@@ -529,7 +529,7 @@ class VisionData:
         return data_loader.__class__(**props), sampler
 
 
-class IndicesSequentialSampler(Sampler[int]):
+class IndicesSequentialSampler(Sampler):
     """Samples elements sequentially from a given list of indices, without replacement.
 
     Args:
