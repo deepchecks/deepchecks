@@ -43,7 +43,7 @@ PYTHON_VERSIONING_RE = re.compile(
 @lru_cache(maxsize=None)
 def is_correct_version_string(value: str) -> bool:
     match = PYTHON_VERSIONING_RE.match(value)
-    return match is not None
+    return value == "dev" or match is not None
 
 
 @lru_cache(maxsize=None)

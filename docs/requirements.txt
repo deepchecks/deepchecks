@@ -12,3 +12,4 @@ sphinxcontrib-serializinghtml>=1.1.5
 readthedocs-sphinx-search
 numpydoc>=1.1.0
 pypandoc>=1.7.2
+sphinx-reredirects>=0.0.1
