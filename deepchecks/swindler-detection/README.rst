@@ -36,9 +36,9 @@
    </p>
 
 
-   <h2 align="center">
+   <h1 align="center">
       🎉 Happy April Fools’ Day! 🎉
-   </h2>
+   </h1>
 |
 
 
