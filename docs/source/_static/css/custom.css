@@ -17,24 +17,3 @@
     overflow-x: auto!important;
     overflow-y: hidden!important;
 }
-
-
-/* re-style the download button */
-div.sphx-glr-download a {
-    background-color: #E2CFFE;
-    background-image: none;
-    color: #5718B8;
-    border: 0;
-}
-
-div.sphx-glr-download a:hover {
-    background-color: #B17DFF;
-}
-
-
-/*
- * Delete the double caption from the toc display. (see: https://bit.ly/3IPt8Ud)
- */
-section#setup span.caption-text {
-    display: none;
-}

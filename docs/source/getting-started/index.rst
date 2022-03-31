@@ -1,110 +1,53 @@
 ================
-Getting Started
+Installation
 ================
 
+Deepchecks requires Python 3 and can be installed using pip or conda, depending on the package manager you're working with for most of your packages.
 
-💻 Installation
-=================
-
-Check out our :doc:`Installation </getting-started/installation>` instructions to install it locally and continue from there.
-
-
-🏃‍♀️ See It in Action
+Local Installation
 ====================
 
-For a quick start, check out the following examples in the tutorials section:
+Using Pip
+-----------
+As a best practice we recommend working on a `virtual environment <https://docs.python.org/3/library/venv.html>`__. 
 
-Tabular Data
--------------
+The deepchecks package can be installed from `PyPi <https://pypi.org/project/deepchecks/>`__ using the following command:
 
-- :doc:`Quickstart in 5 minutes </tutorials/tabular/examples/plot_quickstart_in_5_minutes>`
-
-
-Computer Vision
-----------------
-
-.. note:: 
-   Deepchecks' Computer Vision subpackage is in beta release.
-   It is :doc:`available for installation </getting-started/installation>` from PyPi, use at your own discretion.
-   `Github Issues <https://github.com/deepchecks/deepchecks/issues>`_ are welcome!
-
-- :doc:`Deepchecks Tutorial for Simple Classification Example </tutorials/vision/examples/plot_simple_classification_tutorial>`
-- :doc:`Deepchecks for Object Detection Tutorial </tutorials/vision/examples/plot_detection_tutorial>`
-- :doc:`Deepchecks for Classification Tutorial</tutorials/vision/examples/plot_classification_tutorial>`
+.. code-block:: bash
+    pip install deepchecks --upgrade
+.. note::
+    Deepchecks is in alpha development, which means that new versions are released on a weekly basis and new features are frequently added.
+    If you experience any unexpected behavior from deepchecks, the first step to troubleshoot is to upgrade to the latest version.
 
 
+Using Conda
+------------
+As a best practice we recommend `creating a conda environment`_.
 
-🧐 How Does it Work?
-========================
+.. _creating a conda environment:
+   https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#creating-an-environment-with-commands
 
-Deepchecks is built of checks, each designated to help to identify a specific issue.
-Some checks relate only to the data and labels and some require also the model.
-Suites are composed of checks. Each check contains outputs to display in a notebook and/or conditions with a pass/fail/warning output.
-For more information about deepchecks structure and components head over to our :doc:`/user-guide/general/deepchecks_hierarchy` in the User Guide.
+To install the deepchecks package from the conda package manager run
 
+.. code-block:: bash
+    conda install -c conda-forge deepchecks
+or, if you already have deepchecks installed and want to update then run
 
-📊 Which Types of Checks Exist?
+.. code-block:: bash
+    conda update -c conda-forge deepchecks
+Installing On Google Colab or on a Kaggle Kernel
+==================================================
+
+Simply run the following command in a notebook cell
+
+.. code-block:: bash
+    !pip install deepchecks --user
+Start Working with the Package
 =================================
-
-Check out our :doc:`/examples/index` to see all the available checks for Tabular and for CV.
-
-They are divided in the following categories:
-
-- Data Integrity
-- Data Distribution
-- Methodology
-- Model Evaluation
-
-
-❓ What Do You Need in Order to Start?
-=======================================
-
-Depending on your phase and what you wish to validate, you'll need **a
-subset** of the following:
-
--  **Raw data** (before pre-processing such as OHE, string processing,
-   etc.), with optional labels
--  The model's **training data with labels**
--  **Test data** (which the model isn't exposed to) with labels
--  | A **supported model** that you wish to validate.
-   | For tabular data, see :doc:`supported models </user-guide/tabular/supported_models>`.
-   | For computer vision, we currently support the pytorch framework. See :doc:`/user-guide/vision/data-classes/index` to understand how to integrate your data.
-
-
-🙋🏼 When Should You Use Deepchecks?
-=====================================
-
-While you're in the research phase, and want to validate your data, find potential methodological 
-problems, and/or validate your model and evaluate it.
-
-.. image:: /_static/pipeline_when_to_validate.svg
-   :alt: When To Validate - ML Pipeline Schema
-   :align: center
-
-See the :doc:`When Should You Use </getting-started/when_should_you_use>` Section for an elaborate explanation of the typical scenarios.
-
-
-👀 Viewing Check and Suite Results
-=====================================
-
-The package's output can be consumed in various formats:
-
-- Viewed inline in Jupyter (default behavior)
-- :doc:`Exported as an HTML Report / JSON / Sent to W&B </user-guide/general/exporting_results/examples/index>`
-
-
-
-🔢 Suported Data Types
-=========================
-
-Deepchecks currently supports Tabular Data (:mod:`deepchecks.tabular`) and is in beta release for Computer Vision (:mod:`deepchecks.vision`).
-
+Now it's time to :doc:`get started </index>` with deepchecks!
 
 
 .. toctree::
-    :hidden:
     :maxdepth: 2
 
-    index
-    installation
     when_should_you_use

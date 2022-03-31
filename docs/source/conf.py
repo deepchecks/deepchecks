@@ -146,7 +146,6 @@ sphinx_gallery_conf = {
         plotly_sg_scraper,
     ),
     "pypandoc": True,
-    'default_thumb_file': '_static/sphx_glr_deepchecks_icon.png',
 }
 
 # Add any paths that contain templates here, relative to this directory.
