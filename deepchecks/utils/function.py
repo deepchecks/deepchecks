@@ -16,7 +16,7 @@ from typing import Callable, Dict
 __all__ = ['run_available_kwargs']
 
 
-def run_available_kwargs(func: Callable, **kwargs: Dict):
+def run_available_kwargs(func: Callable, **kwargs):
     """Run the passed object only with available kwargs."""
     avail_kwargs = list(signature(func).parameters.keys())
     pass_kwargs = {}
