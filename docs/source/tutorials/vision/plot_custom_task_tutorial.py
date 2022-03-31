@@ -289,7 +289,7 @@ label_properties = [
 ]
 
 
-result = TrainTestLabelDrift(alternative_label_properties=label_properties).run(train_task, test_task)
+result = TrainTestLabelDrift(label_properties=label_properties).run(train_task, test_task)
 result
 
 #%%

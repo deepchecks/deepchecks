@@ -151,7 +151,8 @@ def validate_extractors(dataset: VisionData, model, image_save_location: str = N
             fig.update_layout(title=title)
             fig.update_xaxes(title=', '.join(x_title))
         else:
-            raise DeepchecksValueError(f'Not implemented for task type: {dataset.task_type}')
+            fig = go.Figure(numpy_to_image_figure(sample_image))
+            fig.update_layout(title='Visual example of an image')
 
         fig.update_yaxes(showticklabels=False, visible=True, fixedrange=True, automargin=True)
         fig.update_xaxes(showticklabels=False, visible=True, fixedrange=True, automargin=True)
