@@ -23,6 +23,7 @@ from sklearn.preprocessing import RobustScaler, OrdinalEncoder
 
 from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck, Dataset
+from deepchecks.utils.function import run_available_kwargs
 from deepchecks.utils.typing import BasicModel
 
 
@@ -264,7 +265,7 @@ def naive_encoder(dataset: Dataset) -> Tuple[TransformerMixin, list]:
             ('cat',
              Pipeline([
                  ('nan_handling', SimpleImputer(strategy='most_frequent')),
-                 ('encode', OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1)),
+                 ('encode', run_available_kwargs(OrdinalEncoder, handle_unknown='use_encoded_value', unknown_value=-1)),
                  ('norm', RobustScaler())
              ]),
              dataset.cat_features)
