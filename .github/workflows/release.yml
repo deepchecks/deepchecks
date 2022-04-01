@@ -46,7 +46,6 @@ jobs:
 #          github-token: ${{ secrets.CI_GH_TOKEN }}
   Create-Release:
     runs-on: ubuntu-latest
-    needs: Update-Version
     steps:
     - uses: actions/checkout@v2
 
