@@ -310,6 +310,7 @@ authors:
 
 
 dist: $(ENV)
+	$(PIP) install wheel twine
 	$(PYTHON) setup.py sdist
 	$(PYTHON) setup.py bdist_wheel
 
