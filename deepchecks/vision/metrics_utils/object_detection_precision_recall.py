@@ -21,13 +21,14 @@ class ObjectDetectionAveragePrecision(AveragePrecision):
     """We are expecting to receive the predictions in the following format: [x, y, w, h, confidence, label]."""
 
     def get_labels_areas(self, labels) -> List[int]:
-        return [d[3].item() * d[4].item() for d in labels]
+        """Get labels object of single image and should return area for each label."""
+        return [bbox[3].item() * bbox[4].item() for bbox in labels]
 
-    def group_class_detection_label(self, detection, labels) -> dict:
+    def group_class_detection_label(self, detections, labels) -> dict:
         """Group detection and labels in dict of format {class_id: {'detected' [...], 'ground_truth': [...] }}."""
         class_bounding_boxes = defaultdict(lambda: {"detected": [], "ground_truth": []})
 
-        for single_detection in detection:
+        for single_detection in detections:
             class_id = untorchify(single_detection[5])
             class_bounding_boxes[class_id]["detected"].append(single_detection)
         for single_ground_truth in labels:
@@ -36,14 +37,14 @@ class ObjectDetectionAveragePrecision(AveragePrecision):
 
         return class_bounding_boxes
 
-    def get_confidences(self, detection) -> List[float]:
+    def get_confidences(self, detections) -> List[float]:
         """Get detections object of single image and should return confidence for each detection."""
-        return [d[4].item() for d in detection]
+        return [d[4].item() for d in detections]
 
-    def calc_pairwise_ious(self, detection, labels) -> np.ndarray:
+    def calc_pairwise_ious(self, detections, labels) -> np.ndarray:
         """Expect detection and labels of a single image and single class."""
-        return compute_pairwise_ious(detection, labels, jaccard_iou)
+        return compute_pairwise_ious(detections, labels, jaccard_iou)
 
-    def get_detection_areas(self, detection) -> List[int]:
+    def get_detection_areas(self, detections) -> List[int]:
         """Get detection object of single image and should return area for each detection."""
-        return [d[2].item() * d[3].item() for d in detection]
+        return [d[2].item() * d[3].item() for d in detections]

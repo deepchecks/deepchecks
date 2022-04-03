@@ -19,6 +19,7 @@ from ignite.metrics.metric import sync_all_reduce, reinit__is_reduced
 import torch
 import numpy as np
 
+
 def _dict_conc(test_list):
     result = defaultdict(list)
 
@@ -335,25 +336,26 @@ class AveragePrecision(Metric):
         return res[0][0]
 
     @abstractmethod
-    def get_confidences(self, detection) -> List[float]:
+    def get_confidences(self, detections) -> List[float]:
         """Get detections object of single image and should return confidence for each detection."""
         pass
 
     @abstractmethod
-    def calc_pairwise_ious(self, detection, label) -> Dict[int, np.ndarray]:
+    def calc_pairwise_ious(self, detections, labels) -> Dict[int, np.ndarray]:
         """Get single result from group_class_detection_label and return matrix of IOUs."""
         pass
 
     @abstractmethod
-    def group_class_detection_label(self, detection, label) -> dict:
+    def group_class_detection_label(self, detections, labels) -> dict:
         """Group detection and labels in dict of format {class_id: {'detected' [...], 'ground_truth': [...]}}."""
         pass
 
     @abstractmethod
-    def get_detection_areas(self, detection) -> List[int]:
+    def get_detection_areas(self, detections) -> List[int]:
         """Get detection object of single image and should return area for each detection."""
         pass
 
     @abstractmethod
-    def get_labels_areas(self, label) -> List[int]:
+    def get_labels_areas(self, labels) -> List[int]:
+        """Get labels object of single image and should return area for each label."""
         pass
