@@ -7,6 +7,7 @@ from deepchecks.vision.metrics_utils.iou_utils import compute_pairwise_ious, jac
 
 
 class ObjectDetectionAveragePrecision(AveragePrecision):
+    """We are expecting to receive the predictions in the following format: [x, y, w, h, confidence, label]."""
 
     def get_confidences(self, detection) -> List[float]:
         """Get detections object of single image and should return confidence for each detection."""

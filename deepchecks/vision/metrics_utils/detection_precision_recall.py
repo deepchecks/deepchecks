@@ -11,7 +11,7 @@
 """Module for calculating detection precision and recall."""
 from abc import abstractmethod
 from collections import defaultdict
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Optional
 import warnings
 
 from ignite.metrics import Metric
@@ -38,7 +38,7 @@ def _dict_conc(test_list):
 
 
 class AveragePrecision(Metric):
-    """We are expecting to receive the predictions in the following format: [x, y, w, h, confidence, label].
+    """Abstract class to calculate average precision and recall for various vision tasks.
 
     Parameters
     ----------
@@ -50,9 +50,9 @@ class AveragePrecision(Metric):
         0: ap only, 1: ar only, None: all (not ignite complient)
     """
 
-    def __init__(self, max_dets: Union[List[int], Tuple[int]] = (1, 10, 100),
+    def __init__(self, *args, max_dets: Union[List[int], Tuple[int]] = (1, 10, 100),
                  area_range: Tuple = (32**2, 96**2),
-                 return_option: int = 0, *args, **kwargs):
+                 return_option: Optional[int] = 0, **kwargs):
         super().__init__(*args, **kwargs)
 
         self._evals = defaultdict(lambda: {"scores": [], "matched": [], "NP": []})

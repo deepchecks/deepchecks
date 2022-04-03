@@ -68,7 +68,7 @@ def compute_bounding_box_class_ious(detected, ground_truth):
     bb_info = group_class_detection_label(detected, ground_truth, detection_classes, ground_truth_classes)
 
     # Calculating pairwise IoUs per class
-    return {class_id: compute_pairwise_ious(info['detected'], info['ground_truth'], jaccard_iou)
+    return {class_id: compute_pairwise_ious(info["detected"], info["ground_truth"], jaccard_iou)
             for class_id, info in bb_info.items()}
 
 
