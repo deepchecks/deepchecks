@@ -11,16 +11,13 @@
 """Module for calculating detection precision and recall."""
 from abc import abstractmethod
 from collections import defaultdict
-from typing import List, Tuple, Union, Optional
+from typing import List, Tuple, Union, Optional, Dict
 import warnings
 
 from ignite.metrics import Metric
 from ignite.metrics.metric import sync_all_reduce, reinit__is_reduced
 import torch
 import numpy as np
-
-from .iou_utils import group_class_detection_label
-
 
 def _dict_conc(test_list):
     result = defaultdict(list)
@@ -140,9 +137,7 @@ class AveragePrecision(Metric):
     def _group_detections(self, detected, ground_truth):
         """Group gts and dts on a imageXclass basis."""
         # Calculating pairwise IoUs on classes
-        det_classes = self.get_detections_classes(detected)
-        label_classes = self.get_labels_classes(ground_truth)
-        bb_info = group_class_detection_label(detected, ground_truth, det_classes, label_classes)
+        bb_info = self.group_class_detection_label(detected, ground_truth)
         ious = {k: self.calc_pairwise_ious(v["detected"], v["ground_truth"]) for k, v in bb_info.items()}
 
         for class_id in ious.keys():
@@ -345,18 +340,13 @@ class AveragePrecision(Metric):
         pass
 
     @abstractmethod
-    def calc_pairwise_ious(self, detection, ground_truth) -> np.ndarray:
-        """Get detection and labels of a single image and single class and return matrix of IOUs."""
+    def calc_pairwise_ious(self, detection, ground_truth) -> Dict[int, np.ndarray]:
+        """Get single result from group_class_detection_label and return matrix of IOUs."""
         pass
 
     @abstractmethod
-    def get_detections_classes(self, detection) -> List[int]:
-        """Get detections object of single image and should return a class for each detection."""
-        pass
-
-    @abstractmethod
-    def get_labels_classes(self, labels) -> List[int]:
-        """Get labels of a single image and should return class for each label."""
+    def group_class_detection_label(self, detection, ground_truth) -> dict:
+        """Group detection and labels in dict of format {class_id: {'detected' [...], 'ground_truth': [...]}}."""
         pass
 
     @abstractmethod
