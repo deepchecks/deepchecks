@@ -13,3 +13,4 @@ readthedocs-sphinx-search
 numpydoc>=1.1.0
 pypandoc>=1.7.2
 sphinx-reredirects>=0.0.1
+git+https://github.com/deepchecks/ipywidgets.git@88103e83e8dd5a550774bcbeb5dac90c110ccff9#egg=ipywidgets&subdirectory=python/ipywidgets
