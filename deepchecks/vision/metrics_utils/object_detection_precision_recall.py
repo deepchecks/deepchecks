@@ -20,14 +20,17 @@ from deepchecks.vision.metrics_utils.iou_utils import compute_pairwise_ious, jac
 class ObjectDetectionAveragePrecision(AveragePrecision):
     """We are expecting to receive the predictions in the following format: [x, y, w, h, confidence, label]."""
 
-    def group_class_detection_label(self, detection, ground_truth) -> dict:
+    def get_labels_areas(self, labels) -> List[int]:
+        return [d[3].item() * d[4].item() for d in labels]
+
+    def group_class_detection_label(self, detection, labels) -> dict:
         """Group detection and labels in dict of format {class_id: {'detected' [...], 'ground_truth': [...] }}."""
         class_bounding_boxes = defaultdict(lambda: {"detected": [], "ground_truth": []})
 
         for single_detection in detection:
             class_id = untorchify(single_detection[5])
             class_bounding_boxes[class_id]["detected"].append(single_detection)
-        for single_ground_truth in ground_truth:
+        for single_ground_truth in labels:
             class_id = untorchify(single_ground_truth[0])
             class_bounding_boxes[class_id]["ground_truth"].append(single_ground_truth)
 
@@ -37,9 +40,9 @@ class ObjectDetectionAveragePrecision(AveragePrecision):
         """Get detections object of single image and should return confidence for each detection."""
         return [d[4].item() for d in detection]
 
-    def calc_pairwise_ious(self, detection, ground_truth) -> np.ndarray:
+    def calc_pairwise_ious(self, detection, labels) -> np.ndarray:
         """Expect detection and labels of a single image and single class."""
-        return compute_pairwise_ious(detection, ground_truth, jaccard_iou)
+        return compute_pairwise_ious(detection, labels, jaccard_iou)
 
     def get_detection_areas(self, detection) -> List[int]:
         """Get detection object of single image and should return area for each detection."""

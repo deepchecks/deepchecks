@@ -160,7 +160,7 @@ class AveragePrecision(Metric):
         sorted_confidence_ids = np.argsort(confidences, kind="stable")[::-1]
         orig_ious = ious
         orig_gt = ground_truths
-        ground_truth_area = np.array([g[3] * g[4] for g in orig_gt])
+        ground_truth_area = np.array(self.get_labels_areas(ground_truths))
 
         scores = {}
         matched = {}
@@ -340,16 +340,20 @@ class AveragePrecision(Metric):
         pass
 
     @abstractmethod
-    def calc_pairwise_ious(self, detection, ground_truth) -> Dict[int, np.ndarray]:
+    def calc_pairwise_ious(self, detection, label) -> Dict[int, np.ndarray]:
         """Get single result from group_class_detection_label and return matrix of IOUs."""
         pass
 
     @abstractmethod
-    def group_class_detection_label(self, detection, ground_truth) -> dict:
+    def group_class_detection_label(self, detection, label) -> dict:
         """Group detection and labels in dict of format {class_id: {'detected' [...], 'ground_truth': [...]}}."""
         pass
 
     @abstractmethod
     def get_detection_areas(self, detection) -> List[int]:
         """Get detection object of single image and should return area for each detection."""
+        pass
+
+    @abstractmethod
+    def get_labels_areas(self, label) -> List[int]:
         pass
