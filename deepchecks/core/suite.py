@@ -97,7 +97,7 @@ class SuiteResult:
         if file is None:
             file = 'output.html'
         display_suite_result(self.name, self.results, html_out=file, requirejs=requirejs,\
-                             minimize_json=True, load_template="")
+                             minimize_json=True, load_template='empty-template')
 
     def to_json(self, with_display: bool = True):
         """Return check result as json.
