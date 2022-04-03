@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module for calculating detection precision and recall."""
+from abc import abstractmethod
 from collections import defaultdict
 from typing import List, Tuple, Union
 import warnings
@@ -18,7 +19,7 @@ from ignite.metrics.metric import sync_all_reduce, reinit__is_reduced
 import torch
 import numpy as np
 
-from .iou_utils import compute_pairwise_ious, build_class_bounding_box
+from .iou_utils import group_class_detection_label
 
 
 def _dict_conc(test_list):
@@ -49,9 +50,9 @@ class AveragePrecision(Metric):
         0: ap only, 1: ar only, None: all (not ignite complient)
     """
 
-    def __init__(self, *args, max_dets: Union[List[int], Tuple[int]] = (1, 10, 100),
+    def __init__(self, max_dets: Union[List[int], Tuple[int]] = (1, 10, 100),
                  area_range: Tuple = (32**2, 96**2),
-                 return_option: int = 0, **kwargs):
+                 return_option: int = 0, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self._evals = defaultdict(lambda: {"scores": [], "matched": [], "NP": []})
@@ -139,8 +140,10 @@ class AveragePrecision(Metric):
     def _group_detections(self, detected, ground_truth):
         """Group gts and dts on a imageXclass basis."""
         # Calculating pairwise IoUs on classes
-        bb_info = build_class_bounding_box(detected, ground_truth)
-        ious = {k: compute_pairwise_ious(v["detected"], v["ground_truth"]) for k, v in bb_info.items()}
+        det_classes = self.get_detections_classes(detected)
+        label_classes = self.get_labels_classes(ground_truth)
+        bb_info = group_class_detection_label(detected, ground_truth, det_classes, label_classes)
+        ious = {k: self.calc_pairwise_ious(v["detected"], v["ground_truth"]) for k, v in bb_info.items()}
 
         for class_id in ious.keys():
             image_evals = self._evaluate_image(
@@ -155,11 +158,11 @@ class AveragePrecision(Metric):
             acc["NP"].append(image_evals["NP"])
 
     def _evaluate_image(self, detections, ground_truths, ious):
-        """Det - [x, y, w, h, confidence, label], gt - [label, x, y, w, h]."""
-        # Sort detections by increasing confidence
-
-        detections = [self.Prediction(d) for d in detections]
-        sorted_detection_ids = np.argsort([-d.confidence for d in detections], kind="stable")
+        """Evaluate image."""
+        # Sort detections by decreasing confidence
+        confidences = self.get_confidences(detections)
+        areas = self.get_detection_areas(detections)
+        sorted_confidence_ids = np.argsort(confidences, kind="stable")[::-1]
         orig_ious = ious
         orig_gt = ground_truths
         ground_truth_area = np.array([g[3] * g[4] for g in orig_gt])
@@ -171,8 +174,8 @@ class AveragePrecision(Metric):
             for top_n_detections in self.max_detections_per_class:
                 for area_size in self.area_ranges_names:
                     # sort list of dts and chop by max dets
-                    dt = [detections[idx] for idx in sorted_detection_ids[:top_n_detections]]
-                    ious = orig_ious[sorted_detection_ids[:top_n_detections]]
+                    top_detections_idx = sorted_confidence_ids[:top_n_detections]
+                    ious = orig_ious[top_detections_idx]
                     ground_truth_to_ignore = [self._is_ignore_area(gt_area, area_size) for gt_area in ground_truth_area]
 
                     # sort gts by ignore last
@@ -183,21 +186,21 @@ class AveragePrecision(Metric):
                     ious = ious[:, gt_sort]
 
                     detection_matches = \
-                        self._get_best_matches(dt, min_iou, ground_truths, ground_truth_to_ignore, ious)
+                        self._get_best_matches(top_detections_idx, min_iou, ground_truths, ground_truth_to_ignore, ious)
 
                     # generate ignore list for dts
                     detections_to_ignore = [
                         ground_truth_to_ignore[detection_matches[d_idx]] if d_idx in detection_matches
-                        else self._is_ignore_area(d.bbox[2] * d.bbox[3], area_size)
-                        for d_idx, d in enumerate(dt)
+                        else self._is_ignore_area(areas[real_index], area_size)
+                        for d_idx, real_index in enumerate(top_detections_idx)
                     ]
 
                     # get score for non-ignored dts
                     scores[(area_size, top_n_detections, min_iou)] = \
-                        [dt[d_idx].confidence for d_idx in range(len(dt))
+                        [confidences[real_index] for d_idx, real_index in enumerate(top_detections_idx)
                          if not detections_to_ignore[d_idx]]
                     matched[(area_size, top_n_detections, min_iou)] = \
-                        [d_idx in detection_matches for d_idx in range(len(dt))
+                        [d_idx in detection_matches for d_idx, real_index in enumerate(top_detections_idx)
                          if not detections_to_ignore[d_idx]]
                     n_gts[(area_size, top_n_detections, min_iou)] = \
                         len([g_idx for g_idx in range(len(ground_truths)) if not ground_truth_to_ignore[g_idx]])
@@ -336,11 +339,27 @@ class AveragePrecision(Metric):
             res = res.clip(min=0)
         return res[0][0]
 
-    class Prediction:
-        """A class defining the prediction of a single image in an object detection task."""
+    @abstractmethod
+    def get_confidences(self, detection) -> List[float]:
+        """Get detections object of single image and should return confidence for each detection."""
+        pass
 
-        def __init__(self, det):
-            det_cpu = det.cpu()
-            self.bbox = det_cpu[:4]
-            self.confidence = det_cpu[4]
-            self.label = det_cpu[5]
+    @abstractmethod
+    def calc_pairwise_ious(self, detection, ground_truth) -> np.ndarray:
+        """Get detection and labels of a single image and single class and return matrix of IOUs."""
+        pass
+
+    @abstractmethod
+    def get_detections_classes(self, detection) -> List[int]:
+        """Get detections object of single image and should return a class for each detection."""
+        pass
+
+    @abstractmethod
+    def get_labels_classes(self, labels) -> List[int]:
+        """Get labels of a single image and should return class for each label."""
+        pass
+
+    @abstractmethod
+    def get_detection_areas(self, detection) -> List[int]:
+        """Get detection object of single image and should return area for each detection."""
+        pass
