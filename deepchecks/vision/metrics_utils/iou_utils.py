@@ -41,40 +41,35 @@ def jaccard_iou(dt, gt):
     return float(intersection / (dt_area + gt_area - intersection))
 
 
-def compute_pairwise_ious(detected, ground_truth):
+def compute_pairwise_ious(detected, ground_truth, iou_func):
     """Compute pairwise ious between detections and ground truth."""
     ious = np.zeros((len(detected), len(ground_truth)))
     for g_idx, g in enumerate(ground_truth):
         for d_idx, d in enumerate(detected):
-            ious[d_idx, g_idx] = jaccard_iou(d, g)
+            ious[d_idx, g_idx] = iou_func(d, g)
     return ious
 
 
-def build_class_bounding_box(detected, ground_truth):
-    """Group bounding box by class."""
+def group_class_detection_label(detected, ground_truth, detection_classes, ground_truth_classes):
+    """Group bounding detection and labels by class."""
     class_bounding_boxes = defaultdict(lambda: {"detected": [], "ground_truth": []})
 
-    for d in detected:
-        if isinstance(d[5], torch.Tensor):
-            class_id = d[5].item()
-        else:
-            class_id = d[5]
-        class_bounding_boxes[class_id]["detected"].append(d)
-    for g in ground_truth:
-        if isinstance(g[0], torch.Tensor):
-            class_id = g[0].item()
-        else:
-            class_id = g[0]
-        class_bounding_boxes[class_id]["ground_truth"].append(g)
+    for single_detection, class_id in zip(detected, detection_classes):
+        class_bounding_boxes[class_id]["detected"].append(single_detection)
+    for single_ground_truth, class_id in zip(ground_truth, ground_truth_classes):
+        class_bounding_boxes[class_id]["ground_truth"].append(single_ground_truth)
     return class_bounding_boxes
 
 
-def compute_class_ious(detected, ground_truth):
+def compute_bounding_box_class_ious(detected, ground_truth):
     """Compute ious between bounding boxes of the same class."""
-    bb_info = build_class_bounding_box(detected, ground_truth)
+    detection_classes = [untorchify(d[5]) for d in detected]
+    ground_truth_classes = [untorchify(g[0]) for g in ground_truth]
+    bb_info = group_class_detection_label(detected, ground_truth, detection_classes, ground_truth_classes)
 
     # Calculating pairwise IoUs per class
-    return {class_id: compute_pairwise_ious(**bounding_boxes) for class_id, bounding_boxes in bb_info.items()}
+    return {class_id: compute_pairwise_ious(info["detected"], info["ground_truth"], jaccard_iou)
+            for class_id, info in bb_info.items()}
 
 
 def per_sample_mean_iou(predictions, labels):
@@ -91,7 +86,7 @@ def per_sample_mean_iou(predictions, labels):
             mean_ious.append(0)
             continue
 
-        ious = compute_class_ious(detected, ground_truth)
+        ious = compute_bounding_box_class_ious(detected, ground_truth)
         count = 0
         sum_iou = 0
 
@@ -107,3 +102,10 @@ def per_sample_mean_iou(predictions, labels):
             mean_ious.append(0)
 
     return mean_ious
+
+
+def untorchify(item):
+    """If item is torch tensor do `.item()` else return item itself."""
+    if isinstance(item, torch.Tensor):
+        return item.cpu().item()
+    return item
