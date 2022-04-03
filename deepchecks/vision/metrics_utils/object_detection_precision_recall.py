@@ -1,3 +1,13 @@
+# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
+"""Module for average precision for object detection."""
 from typing import List
 
 import numpy as np
@@ -18,7 +28,7 @@ class ObjectDetectionAveragePrecision(AveragePrecision):
         return compute_pairwise_ious(detection, ground_truth, jaccard_iou)
 
     def get_detections_classes(self, detection) -> List[int]:
-        """Expect torch.Tensor of shape (N, 6) represents detections on single image"""
+        """Expect torch.Tensor of shape (N, 6) represents detections on single image."""
         return [untorchify(d[5]) for d in detection]
 
     def get_labels_classes(self, labels) -> List[int]:
