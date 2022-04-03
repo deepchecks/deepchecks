@@ -192,7 +192,7 @@ class CheckResult:
         widgeted_output = self.display_check(as_widget=True)
         embed_minimal_html(html_out, views=[widgeted_output], requirejs=False,
                            embed_url=None, state=dependency_state(widgeted_output),
-                           minimize_json=True, load_template='empty-template')
+                           minimize_json=True, load_template='')
         return html_out.getvalue()
 
     def _display_to_json(self) -> List[Tuple[str, str]]:
