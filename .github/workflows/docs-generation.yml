@@ -25,12 +25,13 @@ jobs:
           python-version: 3.9
       - name: Set Up Env
         run: make env
-      - name: Regenerate Notebooks
-        run: make regenerate-examples
+      # target does not exist
+      # - name: Regenerate Notebooks
+      #   run: make regenerate-examples
       - name: Install pandoc
         run: |
           sudo apt-get update
-          sudo apt-get install pandoc firefox-geckodriver nginx
+          sudo apt-get install pandoc dvisvgm texlive firefox-geckodriver nginx
       - name: Generating Docs
         run: make docs
       - name: Start nginx
@@ -39,37 +40,37 @@ jobs:
         run: cp -r docs/build/html/* /var/www/html/
       - name: Generating thumbnails
         run: python sel.py
-      - name: Link Checker
-        env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-        run: |
-          set -uxo pipefail
+      # - name: Link Checker
+      #   env:
+      #     GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      #   run: |
+      #     set -uxo pipefail
 
-          curl \
-            -L --output lychee-v0.8.2-x86_64-unknown-linux-gnu.tar.gz \
-            https://github.com/lycheeverse/lychee/releases/download/v0.8.2/lychee-v0.8.2-x86_64-unknown-linux-gnu.tar.gz
+      #     curl \
+      #       -L --output lychee-v0.8.2-x86_64-unknown-linux-gnu.tar.gz \
+      #       https://github.com/lycheeverse/lychee/releases/download/v0.8.2/lychee-v0.8.2-x86_64-unknown-linux-gnu.tar.gz
 
-          tar -xvzf lychee-v0.8.2-x86_64-unknown-linux-gnu.tar.gz
+      #     tar -xvzf lychee-v0.8.2-x86_64-unknown-linux-gnu.tar.gz
 
-          ./lychee \
-            "./**/*.rst" "./docs/build/html/**/*.html" \
-            --base ./docs/build/html \
-            --accept=200,403,429 \
-            --format markdown \
-            --output .lychee.output \
-            --exclude-loopback \
-            --exclude-mail \
-            --no-progress \
-            --exclude-file docs/.lycheeignore
+      #     ./lychee \
+      #       "./**/*.rst" "./docs/build/html/**/*.html" \
+      #       --base ./docs/build/html \
+      #       --accept=200,403,429 \
+      #       --format markdown \
+      #       --output .lychee.output \
+      #       --exclude-loopback \
+      #       --exclude-mail \
+      #       --no-progress \
+      #       --exclude-file docs/.lycheeignore
 
-          exit_code=$?
+      #     exit_code=$?
 
-          echo
-          echo "===== Lychee Output Report ====="
-          cat .lychee.output
-          echo
+      #     echo
+      #     echo "===== Lychee Output Report ====="
+      #     cat .lychee.output
+      #     echo
 
-          exit ${exit_code}
+      #     exit ${exit_code}
 #      - name: Commit and Push notebooks
 #        run: |
 #          git add docs/source/examples/*.ipynb
