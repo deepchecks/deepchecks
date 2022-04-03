@@ -17,3 +17,27 @@
     overflow-x: auto!important;
     overflow-y: hidden!important;
 }
+
+
+/* re-style the download button */
+div.sphx-glr-download a {
+    background-color: #F1E9FE;
+    background-image: none;
+    color: #5718B8;
+    border: 0;
+}
+
+div.sphx-glr-download a:hover {
+    background-color: #B17DFF;
+}
+
+
+/*
+ * Delete the double caption from the toc display. (see: https://bit.ly/3IPt8Ud)
+ * Currently disabled as it deletes also the caption text from the sidebar
+ */
+
+/* 
+span.caption-text {
+    display: none;
+} */
