@@ -30,9 +30,15 @@ jobs:
       - name: Install pandoc
         run: |
           sudo apt-get update
-          sudo apt-get install pandoc
+          sudo apt-get install pandoc firefox-geckodriver nginx
       - name: Generating Docs
         run: make docs
+      - name: Start nginx
+        run: service nginx start
+      - name: Copy geenrated docs to nginx
+        run: cp -r docs/build/html/* /var/www/html/
+      - name: Generating thumbnails
+        run: python sel.py
       - name: Link Checker
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
