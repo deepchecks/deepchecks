@@ -12,6 +12,10 @@ name: Docs Generation
 
 on: [workflow_dispatch]
 
+env:
+  DEEPCHECKS_DISABLE_LATEST: "true"
+  WANDB_MODE: "offline"
+
 jobs:
   docs-generation:
     runs-on: ubuntu-latest
