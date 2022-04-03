@@ -12,6 +12,7 @@ ipywidgets>=7.6.5; python_version >= '3.8'
 ipython>=5.5.0,<8; python_version < '3.8'
 ipykernel>=4.10.1; python_version < '3.8'
 # ipywidgets>=7.5.0; python_version < '3.8'
+git+https://github.com/deepchecks/ipywidgets.git@88103e83e8dd5a550774bcbeb5dac90c110ccff9#egg=ipywidgets&subdirectory=python/ipywidgets
 
 typing_extensions>=3.7.4.3
 tqdm>=4.62.3
