@@ -51,7 +51,7 @@ def fetch_thumbnails(links, crawled_urls):
                     download_png_link.click()
                     source = os.path.expanduser('~') + '/Downloads/newplot.png'
                     filename = 'sphx_glr_' + l.rsplit('/', 1).pop().split('.')[0] + '_thumb.png'
-                    destination = 'build/html/_images/' + filename
+                    destination = 'docs/build/html/_images/' + filename
                     shutil.move(source, destination)
                 except selenium.common.exceptions.TimeoutException as e:
                     # we ignore this as not all plots have figures so it will cause
