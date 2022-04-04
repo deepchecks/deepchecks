@@ -44,7 +44,7 @@ jobs:
       - name: Copy geenrated docs to nginx
         run: sudo cp -r docs/build/html/* /var/www/html/
       - name: Generating thumbnails
-        run: python docs/sel.py
+        run: python3 docs/sel.py
       # - name: Link Checker
       #   env:
       #     GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}

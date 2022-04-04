@@ -177,7 +177,7 @@ requirements: $(ENV)
 
 doc-requirements: $(ENV)
 	@echo "####  installing documentation dependencies, it could take some time, please wait! #### "
-	@$(PIP) install -r ./docs/requirements.txt
+	@$(PIP) install -q -r ./docs/requirements.txt
 
 
 dev-requirements: $(ENV)
