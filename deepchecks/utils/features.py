@@ -145,7 +145,7 @@ def calculate_feature_importance(
     # TODO: maybe it is better to split it into two functions, one for dataframe instances
     # second for dataset instances
     permutation_kwargs = permutation_kwargs or {}
-    permutation_kwargs['random_state'] = permutation_kwargs.get('random_state') is None or 42
+    permutation_kwargs['random_state'] = permutation_kwargs.get('random_state', 42)
     validation.validate_model(dataset, model)
     permutation_failure = None
     calc_type = None
