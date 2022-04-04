@@ -19,10 +19,10 @@ from ignite.metrics import Precision, Recall, Metric
 
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
+from deepchecks.vision.metrics_utils.object_detection_precision_recall import ObjectDetectionAveragePrecision
 
 from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.vision_data import VisionData
-from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePrecision
 
 
 __all__ = [
@@ -42,8 +42,8 @@ def get_default_classification_scorers():
 
 def get_default_object_detection_scorers():
     return {
-        'AP': AveragePrecision(),
-        'AR': AveragePrecision(return_option=1)
+        'AP': ObjectDetectionAveragePrecision(),
+        'AR': ObjectDetectionAveragePrecision(return_option=1)
     }
 
 
