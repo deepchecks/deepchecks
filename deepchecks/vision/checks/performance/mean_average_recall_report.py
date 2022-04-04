@@ -19,8 +19,8 @@ from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import SingleDatasetCheck, Context, Batch
+from deepchecks.vision.metrics_utils.object_detection_precision_recall import ObjectDetectionAveragePrecision
 from deepchecks.vision.vision_data import TaskType
-from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePrecision
 
 
 __all__ = ['MeanAverageRecallReport']
@@ -43,8 +43,8 @@ class MeanAverageRecallReport(SingleDatasetCheck):
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind = None):
         """Initialize run by asserting task type and initializing metric."""
-        self._ap_metric = AveragePrecision(return_option=None, area_range=self._area_range)
         context.assert_task_type(TaskType.OBJECT_DETECTION)
+        self._ap_metric = ObjectDetectionAveragePrecision(return_option=None, area_range=self._area_range)
 
     def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Update the metrics by passing the batch to ignite metric update method."""
