@@ -77,8 +77,6 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         # First we will aggregate samples up to defined amount (number_of_samples_to_infer_bins), when we reach
         # the amount we will define the bins and populate them
         self._state = {'samples_for_binning': [], 'bins': None}
-        dataset = context.get_data_by_kind(dataset_kind)
-        self._metrics = get_scorers_list(dataset, self.alternative_metrics)
 
     def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Update the bins by the image properties."""
@@ -105,7 +103,8 @@ class ImageSegmentPerformance(SingleDatasetCheck):
             # Check if enough data to infer bins
             if len(samples_for_bin) >= self.number_of_samples_to_infer_bins:
                 # Create the bins and metrics, and divide all cached data into the bins
-                self._state['bins'] = self._create_bins_and_metrics(samples_for_bin)
+                self._state['bins'] = self._create_bins_and_metrics(samples_for_bin,
+                                                                    context.get_data_by_kind(dataset_kind))
                 # Remove the samples cache which are no longer needed (free the memory)
                 del samples_for_bin
 
@@ -122,7 +121,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         # In case there are fewer samples than 'number_of_samples_to_infer_bins' then bins were not calculated
         if self._state['bins'] is None:
             # Create the bins and metrics
-            bins = self._create_bins_and_metrics(self._state['samples_for_binning'])
+            bins = self._create_bins_and_metrics(self._state['samples_for_binning'], dataset)
         else:
             bins = self._state['bins']
 
@@ -182,7 +181,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
 
         return CheckResult(value=dict(result_value), display=fig)
 
-    def _create_bins_and_metrics(self, batch_data: t.List[t.Tuple]):
+    def _create_bins_and_metrics(self, batch_data: t.List[t.Tuple], dataset):
         """Return dict of bins for each property in format \
         {property_name: [{start: val, stop: val, count: x, metrics: {name: metric...}}, ...], ...}."""
         # For X bins we need to have (X - 1) quantile bounds (open bounds from left and right)
@@ -201,7 +200,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
             # Get quantiles without duplicates
             quantile_values = list(set(df[prop].quantile(quantiles).tolist()))
             bins[prop] = [{'start': start, 'stop': stop, 'count': 0,
-                          'metrics': _copy_metrics(self._metrics)}
+                          'metrics': get_scorers_list(dataset, self.alternative_metrics)}
                           for start, stop in _create_open_bins_ranges(quantile_values)]
 
         # Divide the data into the bins
@@ -264,14 +263,6 @@ def _divide_to_bins(bins, batch_data: t.List[t.Tuple]):
     for property_name, bins_values in bins.items():
         for label, prediction, properties in batch_data:
             _add_to_fitting_bin(bins_values, properties[property_name], label, prediction)
-
-
-def _copy_metrics(metrics):
-    """Return a reset-ed copy of metrics."""
-    copy_metrics = {name: copy(value) for name, value in metrics.items()}
-    for metric in copy_metrics.values():
-        metric.reset()
-    return copy_metrics
 
 
 def _create_open_bins_ranges(quantiles):
