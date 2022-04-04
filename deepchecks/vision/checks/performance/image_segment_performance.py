@@ -12,7 +12,6 @@
 import math
 import typing as t
 from collections import defaultdict, Counter
-from copy import copy
 
 import numpy as np
 import pandas as pd
