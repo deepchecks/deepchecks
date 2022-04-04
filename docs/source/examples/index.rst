@@ -16,8 +16,6 @@ Tabular Checks
     tabular/checks/performance/examples/index
     tabular/checks/overview/examples/index
 
-.. minigallery: tabular.checks.distribution.source.plot_whole_dataset_drift
-
 Computer Vision Checks
 ----------------------
 

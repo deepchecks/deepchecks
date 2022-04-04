@@ -108,6 +108,5 @@ Deepchecks currently supports Tabular Data (:mod:`deepchecks.tabular`) and is in
     :titlesonly:
     :maxdepth: 1
 
-    index
     installation
     when_should_you_use
