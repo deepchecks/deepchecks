@@ -42,7 +42,7 @@ jobs:
       # - name: Start nginx
       #   run: service nginx start
       - name: Copy geenrated docs to nginx
-        run: cp -r docs/build/html/* /var/www/html/
+        run: sudo cp -r docs/build/html/* /var/www/html/
       - name: Generating thumbnails
         run: python sel.py
       # - name: Link Checker

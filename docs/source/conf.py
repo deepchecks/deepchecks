@@ -70,12 +70,7 @@ except Exception as error:
 # ones.
 #
 extensions = [
-    # by itself sphinx_gallery is not able to work with jupyter notebooks
-    # but nbsphinx extension is able to use some of it functionality to create
-    # thumbnail galleries. Link to the doc - https://nbsphinx.readthedocs.io/en/0.8.7/subdir/gallery.html
-    #
     'sphinx_gallery.load_style',
-    #
     'sphinx_gallery.gen_gallery',
     'numpydoc',
     'sphinx.ext.autodoc',
@@ -113,7 +108,6 @@ sphinx_gallery_conf = {
         "examples/vision/checks/distribution/source",
         "examples/vision/checks/performance/source",
         "examples/vision/checks/methodology/source",
-        # "examples/tabular/guides/source",
         "examples/tabular/checks/distribution/source",
         "examples/tabular/checks/overview/source",
         "examples/tabular/checks/integrity/source",
@@ -123,13 +117,11 @@ sphinx_gallery_conf = {
         "tutorials/vision",
         "user-guide/general/customizations",
         "user-guide/general/exporting_results",
-        # "examples/tabular/use-cases/source",
     ],  # path to your example scripts
     "gallery_dirs": [
         "examples/vision/checks/distribution/examples",
         "examples/vision/checks/performance/examples",
         "examples/vision/checks/methodology/examples",
-        # "examples/tabular/guides/examples",
         "examples/tabular/checks/distribution/examples",
         "examples/tabular/checks/overview/examples",
         "examples/tabular/checks/integrity/examples",
@@ -139,7 +131,6 @@ sphinx_gallery_conf = {
         "tutorials/vision/examples",
         "user-guide/general/customizations/examples",
         "user-guide/general/exporting_results/examples",
-        # "examples/tabular/use-cases/examples",
     ], # path to where to save gallery generated output
     "image_scrapers": (
         "matplotlib",
