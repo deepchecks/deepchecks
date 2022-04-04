@@ -82,7 +82,6 @@ class ImageSegmentPerformance(SingleDatasetCheck):
 
     def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Update the bins by the image properties."""
-        dataset = context.get_data_by_kind(dataset_kind)
         images = batch.images
         predictions = batch.predictions
         labels = batch.labels
@@ -106,7 +105,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
             # Check if enough data to infer bins
             if len(samples_for_bin) >= self.number_of_samples_to_infer_bins:
                 # Create the bins and metrics, and divide all cached data into the bins
-                self._state['bins'] = self._create_bins_and_metrics(samples_for_bin, dataset)
+                self._state['bins'] = self._create_bins_and_metrics(samples_for_bin)
                 # Remove the samples cache which are no longer needed (free the memory)
                 del samples_for_bin
 
@@ -123,7 +122,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         # In case there are fewer samples than 'number_of_samples_to_infer_bins' then bins were not calculated
         if self._state['bins'] is None:
             # Create the bins and metrics
-            bins = self._create_bins_and_metrics(self._state['samples_for_binning'], dataset)
+            bins = self._create_bins_and_metrics(self._state['samples_for_binning'])
         else:
             bins = self._state['bins']
 
@@ -183,7 +182,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
 
         return CheckResult(value=dict(result_value), display=fig)
 
-    def _create_bins_and_metrics(self, batch_data: t.List[t.Tuple], dataset):
+    def _create_bins_and_metrics(self, batch_data: t.List[t.Tuple]):
         """Return dict of bins for each property in format \
         {property_name: [{start: val, stop: val, count: x, metrics: {name: metric...}}, ...], ...}."""
         # For X bins we need to have (X - 1) quantile bounds (open bounds from left and right)
