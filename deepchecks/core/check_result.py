@@ -369,7 +369,7 @@ class CheckResult:
         """Return header for display. if header was defined return it, else extract name of check class."""
         return self.header or self.check.name()
 
-    def get_check_id(self, unique_id: str='') -> str:
+    def get_check_id(self, unique_id: str = '') -> str:
         """Return check id (used for href)."""
         header = self.get_header().replace(' ', '')
         return f'{header}_{unique_id}'
