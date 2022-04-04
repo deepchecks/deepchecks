@@ -99,8 +99,8 @@ def test_mnist_alt(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, 
     r_row = result.value.loc[result.value['Metric'] == 'r'].sort_values(by='Value', ascending=False).iloc[0]
     # Assert
     assert_that(len(result.value), equal_to(8))
-    assert_that(p_row['Value'], close_to(0.975, 0.001))
-    assert_that(r_row['Value'], close_to(0.985, 0.001))
+    assert_that(p_row['Value'], close_to(.984, 0.001))
+    assert_that(r_row['Value'], close_to(0.988, 0.001))
 
 
 def test_coco_best(coco_train_visiondata, coco_test_visiondata, mock_trained_yolov5_object_detection, device):
