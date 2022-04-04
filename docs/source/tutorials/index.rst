@@ -8,16 +8,18 @@ Tabular Tutorials
 -----------------
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
     :caption: Tabular Tutorials
+    :glob:
 
-    tabular/examples/index
+    tabular/examples/plot*
 
 Vision Tutorials
 ----------------
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
     :caption: Vision Tutorials
+    :glob:
 
-    vision/examples/index
+    vision/examples/plot*

@@ -66,14 +66,14 @@ def test_image_property_drift_check_limit_classes_illegal(coco_train_visiondata,
 
 def test_image_property_drift_initialization_with_empty_list_of_image_properties():
     assert_that(
-        calling(ImagePropertyDrift).with_args(alternative_image_properties=[]),
+        calling(ImagePropertyDrift).with_args(image_properties=[]),
         raises(DeepchecksValueError, 'Properties list can\'t be empty')
     )
 
 
 def test_image_property_drift_initialization_with_list_of_invalid_image_properties():
     assert_that(
-        calling(ImagePropertyDrift).with_args(alternative_image_properties=[{'hello': 'string'}]),
+        calling(ImagePropertyDrift).with_args(image_properties=[{'hello': 'string'}]),
         raises(DeepchecksValueError,
                r"Property must be of type dict, and include keys \['name', 'method', 'output_type'\]")
     )

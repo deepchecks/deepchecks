@@ -63,7 +63,7 @@ def test_property_outliers_check_mnist(mnist_dataset_train, device):
         'method': lambda labels: labels.tolist(),
         'output_type': 'discrete'
     }]
-    check = LabelPropertyOutliers(alternative_properties=properties)
+    check = LabelPropertyOutliers(label_properties=properties)
     # Act
     result = check.run(mnist_dataset_train, device=device)
 
@@ -109,7 +109,7 @@ def test_run_on_custom_task_with_custom_properties(coco_train_custom_task, devic
     }]
 
     # Act - Assert check runs without exception
-    result = LabelPropertyOutliers(alternative_properties=properties).run(coco_train_custom_task, device=device)
+    result = LabelPropertyOutliers(label_properties=properties).run(coco_train_custom_task, device=device)
     # Assert
     assert_that(result, is_correct_label_property_outliers_result(properties))
 
@@ -137,7 +137,7 @@ def test_string_property_exception(mnist_dataset_train, device):
         'method': string_property,
         'output_type': 'discrete'
     }]
-    check = LabelPropertyOutliers(alternative_properties=image_properties)
+    check = LabelPropertyOutliers(label_properties=image_properties)
     # Act - Assert check raise exception
     assert_that(calling(check.run).with_args(mnist_dataset_train, device=device),
                 raises(DeepchecksProcessError, 'For outliers, properties are expected to be only numeric types but '
@@ -153,7 +153,7 @@ def test_incorrect_properties_count_exception(mnist_dataset_train, device):
         'method': too_many_property,
         'output_type': 'discrete'
     }]
-    check = LabelPropertyOutliers(alternative_properties=image_properties)
+    check = LabelPropertyOutliers(label_properties=image_properties)
     # Act - Assert check raise exception
     assert_that(calling(check.run).with_args(mnist_dataset_train, device=device),
                 raises(DeepchecksProcessError, 'Properties are expected to return value per image but instead got 65 '

@@ -111,7 +111,7 @@ def test_string_property_exception(mnist_dataset_train, device):
         'method': string_property,
         'output_type': 'discrete'
     }]
-    check = ImagePropertyOutliers(alternative_properties=image_properties)
+    check = ImagePropertyOutliers(image_properties=image_properties)
     # Act - Assert check raise exception
     assert_that(calling(check.run).with_args(mnist_dataset_train, device=device),
                 raises(DeepchecksProcessError, 'For outliers, properties are expected to be only numeric types but '
@@ -127,7 +127,7 @@ def test_incorrect_properties_count_exception(mnist_dataset_train, device):
         'method': too_many_property,
         'output_type': 'discrete'
     }]
-    check = ImagePropertyOutliers(alternative_properties=image_properties)
+    check = ImagePropertyOutliers(image_properties=image_properties)
     # Act - Assert check raise exception
     assert_that(calling(check.run).with_args(mnist_dataset_train, device=device),
                 raises(DeepchecksProcessError, 'Properties are expected to return value per image but instead got 65 '
@@ -143,7 +143,7 @@ def test_property_with_nones(mnist_dataset_train, device):
         'method': property_with_none,
         'output_type': 'discrete'
     }]
-    check = ImagePropertyOutliers(alternative_properties=image_properties)
+    check = ImagePropertyOutliers(image_properties=image_properties)
     # Act
     result = check.run(mnist_dataset_train, device=device)
     assert_that(result.value, has_entries({

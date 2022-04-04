@@ -8,16 +8,19 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module containing all data distribution checks."""
-from .train_test_feature_drift import TrainTestFeatureDrift
-from .whole_dataset_drift import WholeDatasetDrift
-from .train_test_label_drift import TrainTestLabelDrift
-from .train_test_prediction_drift import TrainTestPredictionDrift
+"""Contain functions for handling function in checks."""
+from inspect import signature
+from typing import Callable
 
 
-__all__ = [
-    'TrainTestFeatureDrift',
-    'WholeDatasetDrift',
-    'TrainTestLabelDrift',
-    'TrainTestPredictionDrift'
-]
+__all__ = ['run_available_kwargs']
+
+
+def run_available_kwargs(func: Callable, **kwargs):
+    """Run the passed object only with available kwargs."""
+    avail_kwargs = list(signature(func).parameters.keys())
+    pass_kwargs = {}
+    for kwarg_name in avail_kwargs:
+        if kwarg_name in kwargs:
+            pass_kwargs[kwarg_name] = kwargs[kwarg_name]
+    return func(**pass_kwargs)

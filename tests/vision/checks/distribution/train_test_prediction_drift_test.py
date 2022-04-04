@@ -132,7 +132,7 @@ def test_with_drift_object_detection_alternative_measurements(coco_train_visiond
         return [int(x[0][0]) if len(x) != 0 else 0 for x in predictions]
     alternative_measurements = [
         {'name': 'test', 'method': prop, 'output_type': 'continuous'}]
-    check = TrainTestPredictionDrift(alternative_prediction_properties=alternative_measurements)
+    check = TrainTestPredictionDrift(prediction_properties=alternative_measurements)
 
     # Act
     result = check.run(coco_train_visiondata, coco_test_visiondata, mock_trained_yolov5_object_detection, device=device)

@@ -12,7 +12,7 @@
 from .performance import ClassPerformance, MeanAveragePrecisionReport, MeanAverageRecallReport, ModelErrorAnalysis, \
                          RobustnessReport, ConfusionMatrixReport, SimpleModelComparison, ImageSegmentPerformance
 from .distribution import TrainTestLabelDrift, ImageDatasetDrift, ImagePropertyDrift, TrainTestPredictionDrift, \
-    ImagePropertyOutliers, LabelPropertyOutliers
+    ImagePropertyOutliers, LabelPropertyOutliers, HeatmapComparison
 from .methodology import SimpleFeatureContribution, SimilarImageLeakage
 
 __all__ = [
@@ -31,5 +31,6 @@ __all__ = [
     'SimpleFeatureContribution',
     'ImagePropertyOutliers',
     'LabelPropertyOutliers',
+    'HeatmapComparison',
     'SimilarImageLeakage'
 ]

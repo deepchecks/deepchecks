@@ -16,7 +16,7 @@ import numpy as np
 import torch
 import imgaug
 
-from deepchecks.core.errors import DeepchecksValueError, ValidationError
+from deepchecks.core.errors import ValidationError
 from deepchecks.utils.ipython import is_headless, is_notebook
 from deepchecks.utils.strings import create_new_file_name
 from deepchecks.vision.vision_data import TaskType
@@ -51,7 +51,8 @@ def set_seeds(seed: int):
         imgaug.seed(seed)
 
 
-def validate_extractors(dataset: VisionData, model, image_save_location: str = None, save_images: bool = True):
+def validate_extractors(dataset: VisionData, model, device=None, image_save_location: str = None,
+                        save_images: bool = True):
     """Validate for given data_loader and model that the extractors are valid.
 
     Parameters
@@ -60,6 +61,8 @@ def validate_extractors(dataset: VisionData, model, image_save_location: str = N
         the dataset to validate.
     model :
         the model to validate.
+    device : torch.device
+        device to run model on
     image_save_location : str , default: None
         if location is given and the machine doesn't support GUI,
         the images will be saved there.
@@ -75,6 +78,7 @@ def validate_extractors(dataset: VisionData, model, image_save_location: str = N
     label_formatter_error = None
     image_formatter_error = None
     prediction_formatter_error = None
+    device = device or torch.device('cpu')
 
     try:
         dataset.validate_label(batch)
@@ -93,8 +97,8 @@ def validate_extractors(dataset: VisionData, model, image_save_location: str = N
         image_formatter_error = 'Got exception \n' + traceback.format_exc()
 
     try:
-        dataset.validate_prediction(batch, model, torch.device('cpu'))
-        predictions = dataset.infer_on_batch(batch, model, torch.device('cpu'))
+        dataset.validate_prediction(batch, model, device)
+        predictions = dataset.infer_on_batch(batch, model, device)
     except ValidationError as ex:
         prediction_formatter_error = str(ex)
     except Exception:  # pylint: disable=broad-except
@@ -151,7 +155,8 @@ def validate_extractors(dataset: VisionData, model, image_save_location: str = N
             fig.update_layout(title=title)
             fig.update_xaxes(title=', '.join(x_title))
         else:
-            raise DeepchecksValueError(f'Not implemented for task type: {dataset.task_type}')
+            fig = go.Figure(numpy_to_image_figure(sample_image))
+            fig.update_layout(title='Visual example of an image')
 
         fig.update_yaxes(showticklabels=False, visible=True, fixedrange=True, automargin=True)
         fig.update_xaxes(showticklabels=False, visible=True, fixedrange=True, automargin=True)

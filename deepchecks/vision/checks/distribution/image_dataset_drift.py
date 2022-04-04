@@ -16,7 +16,7 @@ import pandas as pd
 
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.vision import Context, TrainTestCheck, Batch
-from deepchecks.vision.utils import image_properties
+from deepchecks.vision.utils.image_properties import default_image_properties, validate_properties, get_column_type
 from deepchecks.core.check_utils.whole_dataset_drift_utils import run_whole_dataset_drift
 
 
@@ -37,7 +37,7 @@ class ImageDatasetDrift(TrainTestCheck):
 
     Parameters
     ----------
-    alternative_image_properties : List[Dict[str, Any]], default: None
+    image_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
         Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
         representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'
@@ -60,7 +60,7 @@ class ImageDatasetDrift(TrainTestCheck):
 
     def __init__(
             self,
-            alternative_image_properties: List[Dict[str, Any]] = None,
+            image_properties: List[Dict[str, Any]] = None,
             n_top_properties: int = 3,
             min_feature_importance: float = 0.05,
             sample_size: int = 10_000,
@@ -69,11 +69,11 @@ class ImageDatasetDrift(TrainTestCheck):
             **kwargs
     ):
         super().__init__(**kwargs)
-        if alternative_image_properties:
-            image_properties.validate_properties(alternative_image_properties)
-            self.image_properties = alternative_image_properties
+        if image_properties:
+            validate_properties(image_properties)
+            self.image_properties = image_properties
         else:
-            self.image_properties = image_properties.default_image_properties
+            self.image_properties = default_image_properties
 
         self.n_top_properties = n_top_properties
         self.min_feature_importance = min_feature_importance
@@ -121,7 +121,7 @@ class ImageDatasetDrift(TrainTestCheck):
         numeric_features = []
         categorical_features = []
         for prop in self.image_properties:
-            col_type = image_properties.get_column_type(prop['output_type'])
+            col_type = get_column_type(prop['output_type'])
             if col_type == 'numerical':
                 numeric_features.append(prop['name'])
             else:

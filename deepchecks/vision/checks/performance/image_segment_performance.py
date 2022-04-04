@@ -25,7 +25,7 @@ from deepchecks.core.condition import ConditionCategory
 from deepchecks.utils import plot
 from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.vision import SingleDatasetCheck, Context, Batch
-from deepchecks.vision.utils import image_properties
+from deepchecks.vision.utils.image_properties import default_image_properties, validate_properties
 from deepchecks.vision.metrics_utils import get_scorers_list, metric_results_to_df
 
 
@@ -37,7 +37,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
 
     Parameters
     ----------
-    alternative_image_properties : List[Dict[str, Any]], default: None
+    image_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
         Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
         representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'
@@ -52,19 +52,18 @@ class ImageSegmentPerformance(SingleDatasetCheck):
 
     def __init__(
         self,
-        alternative_image_properties: t.List[t.Dict[str, t.Any]] = None,
+        image_properties: t.List[t.Dict[str, t.Any]] = None,
         alternative_metrics: t.Optional[t.Dict[str, Metric]] = None,
         number_of_bins: int = 5,
         number_of_samples_to_infer_bins: int = 1000,
         **kwargs
     ):
         super().__init__(**kwargs)
-
-        if alternative_image_properties:
-            image_properties.validate_properties(alternative_image_properties)
-            self.image_properties = alternative_image_properties
+        if image_properties:
+            validate_properties(image_properties)
+            self.image_properties = image_properties
         else:
-            self.image_properties = image_properties.default_image_properties
+            self.image_properties = default_image_properties
 
         self.alternative_metrics = alternative_metrics
         self.number_of_bins = number_of_bins

@@ -17,7 +17,7 @@
                 {% if is_readthedocs %}
                     href="/{{ language }}/{{ version }}/_sources/{{sourcename}}" 
                 {% else %}
-                    href="/_sources/{{sourcename}}" 
+                    href="/{{ version }}/_sources/{{sourcename}}"
                 {% endif %}
                 
                 class="dropdown-item" 

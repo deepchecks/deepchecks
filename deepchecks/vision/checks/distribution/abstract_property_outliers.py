@@ -38,7 +38,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
 
     Parameters
     ----------
-    alternative_properties : List[Dict[str, Any]], default: None
+    properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
         Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
         representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'
@@ -51,20 +51,20 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
     """
 
     def __init__(self,
-                 alternative_properties: t.List[t.Dict[str, t.Any]] = None,
+                 properties: t.List[t.Dict[str, t.Any]] = None,
                  n_show_top: int = 5,
                  iqr_percentiles: t.Tuple[int, int] = (25, 75),
                  iqr_scale: float = 1.5,
                  **kwargs):
         super().__init__(**kwargs)
-        if alternative_properties is not None:
-            label_prediction_properties.validate_properties(alternative_properties)
+        if properties is not None:
+            label_prediction_properties.validate_properties(properties)
             # Validate no property have class_id as output_type
-            if any(p['output_type'] == 'class_id' for p in alternative_properties):
+            if any(p['output_type'] == 'class_id' for p in properties):
                 raise DeepchecksValueError('Properties cannot have class_id as output_type for outliers checks')
-            self.alternative_properties = alternative_properties
+            self.user_properties = properties
         else:
-            self.alternative_properties = None
+            self.user_properties = None
 
         self.iqr_percentiles = iqr_percentiles
         self.iqr_scale = iqr_scale
@@ -78,8 +78,8 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         data = context.get_data_by_kind(dataset_kind)
 
         # Take either alternative properties if defined or default properties defined by the child class
-        if self.alternative_properties is not None:
-            self._properties_funcs = self.alternative_properties
+        if self.user_properties is not None:
+            self._properties_funcs = self.user_properties
         else:
             self._properties_funcs = self.get_default_properties(data)
             # Filter out properties that have class_id as output_type
