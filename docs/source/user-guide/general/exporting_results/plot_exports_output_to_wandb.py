@@ -2,6 +2,7 @@
 """
 Export Outputs to Weights & Biases (wandb)
 ******************************************
+
 In this guide, we will demonstrate how to export the Check's and the Suite's output to wandb.
 
 This enables to view the exported results in wandb and compare the results you

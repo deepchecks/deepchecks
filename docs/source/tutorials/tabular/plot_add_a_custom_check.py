@@ -2,6 +2,7 @@
 """
 Add a Custom Check
 ******************
+
 It is possible to extend deepchecks by implementing custom checks. This
 enables you to have your own logic of metrics or validation, or even just
 to display your own graph using deepchecks' suite.
