@@ -133,8 +133,7 @@ class CheckResult:
             box_children = []
         check_html = ''
         if unique_id:
-            check_id = f'{self.check.__class__.__name__}_{unique_id}'
-            check_html += f'<h4 id="{check_id}">{self.get_header()}</h4>'
+            check_html += f'<h4 id="{self.get_check_id(unique_id)}">{self.get_header()}</h4>'
         else:
             check_html += f'<h4>{self.get_header()}</h4>'
         if hasattr(self.check.__class__, '__doc__'):
@@ -369,6 +368,11 @@ class CheckResult:
     def get_header(self) -> str:
         """Return header for display. if header was defined return it, else extract name of check class."""
         return self.header or self.check.name()
+
+    def get_check_id(self, unique_id: str='') -> str:
+        """Return check id (used for href)."""
+        header = self.get_header().replace(' ', '')
+        return f'{header}_{unique_id}'
 
     def process_conditions(self) -> List[Condition]:
         """Process the conditions results from current result and check."""
