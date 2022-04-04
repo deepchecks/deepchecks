@@ -38,8 +38,9 @@ jobs:
           sudo apt-get install pandoc dvisvgm texlive firefox-geckodriver nginx
       - name: Generating Docs
         run: make docs
-      - name: Start nginx
-        run: service nginx start
+      # nginx should have started by default
+      # - name: Start nginx
+      #   run: service nginx start
       - name: Copy geenrated docs to nginx
         run: cp -r docs/build/html/* /var/www/html/
       - name: Generating thumbnails
