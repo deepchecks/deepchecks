@@ -10,7 +10,6 @@
 #
 """Module for defining metrics for the vision module."""
 import typing as t
-from copy import copy
 
 import numpy as np
 import pandas as pd
@@ -68,13 +67,12 @@ def get_scorers_list(
     task_type = dataset.task_type
 
     if alternative_scorers:
-        scorers = {}
-        for name, met in alternative_scorers.items():
+        for _, met in alternative_scorers.items():
             # Validate that each alternative scorer is a correct type
             if not isinstance(met, Metric):
                 raise DeepchecksValueError('alternative_scorers should contain metrics of type ignite.Metric')
             met.reset()
-            scorers[name] = copy(met)
+        return alternative_scorers
     elif task_type == TaskType.CLASSIFICATION:
         scorers = get_default_classification_scorers()
     elif task_type == TaskType.OBJECT_DETECTION:

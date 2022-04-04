@@ -12,6 +12,7 @@
 import math
 import typing as t
 from collections import defaultdict, Counter
+from copy import copy
 
 import numpy as np
 import pandas as pd
@@ -69,12 +70,15 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         self.number_of_bins = number_of_bins
         self.number_of_samples_to_infer_bins = number_of_samples_to_infer_bins
         self._state = None
+        self._metrics = None
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
         """Initialize run before starting updating on batches."""
         # First we will aggregate samples up to defined amount (number_of_samples_to_infer_bins), when we reach
         # the amount we will define the bins and populate them
         self._state = {'samples_for_binning': [], 'bins': None}
+        dataset = context.get_data_by_kind(dataset_kind)
+        self._metrics = get_scorers_list(dataset, self.alternative_metrics)
 
     def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Update the bins by the image properties."""
@@ -198,7 +202,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
             # Get quantiles without duplicates
             quantile_values = list(set(df[prop].quantile(quantiles).tolist()))
             bins[prop] = [{'start': start, 'stop': stop, 'count': 0,
-                          'metrics': get_scorers_list(dataset, self.alternative_metrics)}
+                          'metrics': _copy_metrics(self._metrics)}
                           for start, stop in _create_open_bins_ranges(quantile_values)]
 
         # Divide the data into the bins
@@ -261,6 +265,14 @@ def _divide_to_bins(bins, batch_data: t.List[t.Tuple]):
     for property_name, bins_values in bins.items():
         for label, prediction, properties in batch_data:
             _add_to_fitting_bin(bins_values, properties[property_name], label, prediction)
+
+
+def _copy_metrics(metrics):
+    """Return a reset-ed copy of metrics."""
+    copy_metrics = {name: copy(value) for name, value in metrics.items()}
+    for metric in copy_metrics.values():
+        metric.reset()
+    return copy_metrics
 
 
 def _create_open_bins_ranges(quantiles):
