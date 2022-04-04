@@ -59,6 +59,9 @@ def test_similar_object_detection(coco_train_visiondata, coco_test_visiondata):
             if idx in range(5):
                 data, label = other_dataset[idx]
                 return Image.fromarray(np.clip(np.array(data, dtype=np.uint16) + 50, 0, 255).astype(np.uint8)), label
+            if idx == 30:  # Also test something that is not in the same order
+                data, label = other_dataset[0]
+                return Image.fromarray(np.clip(np.array(data, dtype=np.uint16) + 50, 0, 255).astype(np.uint8)), label
             else:
                 return orig_dataset[idx]
 
@@ -70,7 +73,7 @@ def test_similar_object_detection(coco_train_visiondata, coco_test_visiondata):
     result = check.run(train, test)
 
     # Assert
-    assert_that(set(result.value), equal_to(set(zip(range(5), range(5)))))
+    assert_that(set(result.value), equal_to(set(zip(range(5), range(5))).union({(0, 30)})))
 
 
 def test_train_test_condition_pass(coco_train_visiondata, coco_test_visiondata):
