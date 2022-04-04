@@ -278,9 +278,17 @@ def _add_to_fitting_bin(bins: t.List[t.Dict], property_value, label, prediction)
         if single_bin['start'] <= property_value < single_bin['stop']:
             single_bin['count'] += 1
             for metric in single_bin['metrics'].values():
-                # Since this is a single prediction and label need to wrap in tensor
-                metric.update((torch.unsqueeze(prediction, 0), torch.unsqueeze(label, 0)))
+                # Since this is a single prediction and label need to wrap in tensor/label, in order to pass the
+                # expected shape to the metric
+                metric.update((_wrap_torch_or_list(prediction), _wrap_torch_or_list(label)))
             return
+
+
+def _wrap_torch_or_list(value):
+    """Unsqueeze the value if it is a tensor or wrap in list otherwise."""
+    if isinstance(value, torch.Tensor):
+        return torch.unsqueeze(value, 0)
+    return [value]
 
 
 def _range_string(start, stop, precision):
