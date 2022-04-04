@@ -42,7 +42,7 @@ jobs:
       - name: Install pandoc
         run: |
           sudo apt-get update
-          sudo apt-get install pandoc dvisvgm texlive
+          sudo apt-get install pandoc dvisvgm texlive texlive-latex-extra
       - name: Build documentation
         run: make docs
 
