@@ -35,7 +35,7 @@ jobs:
       - name: Install pandoc
         run: |
           sudo apt-get update
-          sudo apt-get install pandoc dvisvgm texlive firefox-geckodriver nginx
+          sudo apt-get install pandoc dvisvgm texlive firefox-geckodriver nginx texlive-latex-extra
       - name: Generating Docs
         run: make docs
       # nginx should have started by default
