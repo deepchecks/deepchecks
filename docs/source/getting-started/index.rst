@@ -1,3 +1,6 @@
+.. meta::
+    :http-equiv=refresh: 0; url=get-started.html
+
 Getting Started
 ***************
 
