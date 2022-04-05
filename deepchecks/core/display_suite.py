@@ -297,7 +297,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
     <span style="color: green;display:inline-block">\U00002713</span> /
     <span style="color: red;display:inline-block">\U00002716</span> /
     <span style="color: orange;font-weight:bold;display:inline-block">\U00000021</span> /
-    <span style="color: orange;font-weight:bold;display:inline-block">\U00002048</span>'
+    <span style="color: orange;font-weight:bold;display:inline-block">\U00002048</span>
     """
 
     check_names = list(set(it.check.name() for it in results))

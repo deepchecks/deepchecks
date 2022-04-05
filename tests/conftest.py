@@ -30,6 +30,7 @@ from xgboost import XGBClassifier, XGBRegressor
 from catboost import CatBoostClassifier, CatBoostRegressor
 from lightgbm import LGBMClassifier, LGBMRegressor
 from deepchecks.core.checks import SingleDatasetBaseCheck
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksBaseError
 from deepchecks.core.suite import BaseSuite, SuiteResult
 
@@ -76,6 +77,13 @@ def validate_suite_result(
 
     if len(failures) != 0:
         assert_that(actual=failures, matcher=exception_matcher) # type: ignore
+
+    for check_result in result.results:
+        if isinstance(check_result, CheckResult) and check_result.have_conditions():
+            for cond in check_result.conditions_results:
+                assert_that(cond.category, any_of(ConditionCategory.PASS,
+                                                  ConditionCategory.WARN,
+                                                  ConditionCategory.FAIL,))
 
 @pytest.fixture(scope='session')
 def multi_index_dataframe():
