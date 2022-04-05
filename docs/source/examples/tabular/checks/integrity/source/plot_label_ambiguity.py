@@ -2,6 +2,7 @@
 """
 Label Ambiguity
 ***************
+
 This notebooks provides an overview for using and understanding the label ambiguity check.
 
 **Structure:**

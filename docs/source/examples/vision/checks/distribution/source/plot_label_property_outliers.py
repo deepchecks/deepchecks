@@ -2,6 +2,7 @@
 """
 Label Property Outliers
 =======================
+
 This notebooks provides an overview for using and understanding the label property
 outliers check, used to detect outliers in simple label properties in a dataset.
 
