@@ -113,7 +113,7 @@ class ConditionResult:
             return 1
         elif self.category == ConditionCategory.WARN:
             return 2
-        return 3 # if error
+        return 3  # if error
 
     @property
     def is_pass(self) -> bool:
