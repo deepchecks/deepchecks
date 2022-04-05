@@ -69,6 +69,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         self.number_of_bins = number_of_bins
         self.number_of_samples_to_infer_bins = number_of_samples_to_infer_bins
         self._state = None
+        self._metrics = None
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
         """Initialize run before starting updating on batches."""
@@ -78,7 +79,6 @@ class ImageSegmentPerformance(SingleDatasetCheck):
 
     def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Update the bins by the image properties."""
-        dataset = context.get_data_by_kind(dataset_kind)
         images = batch.images
         predictions = batch.predictions
         labels = batch.labels
@@ -102,7 +102,8 @@ class ImageSegmentPerformance(SingleDatasetCheck):
             # Check if enough data to infer bins
             if len(samples_for_bin) >= self.number_of_samples_to_infer_bins:
                 # Create the bins and metrics, and divide all cached data into the bins
-                self._state['bins'] = self._create_bins_and_metrics(samples_for_bin, dataset)
+                self._state['bins'] = self._create_bins_and_metrics(samples_for_bin,
+                                                                    context.get_data_by_kind(dataset_kind))
                 # Remove the samples cache which are no longer needed (free the memory)
                 del samples_for_bin
 
@@ -278,9 +279,17 @@ def _add_to_fitting_bin(bins: t.List[t.Dict], property_value, label, prediction)
         if single_bin['start'] <= property_value < single_bin['stop']:
             single_bin['count'] += 1
             for metric in single_bin['metrics'].values():
-                # Since this is a single prediction and label need to wrap in tensor
-                metric.update((torch.unsqueeze(prediction, 0), torch.unsqueeze(label, 0)))
+                # Since this is a single prediction and label need to wrap in tensor/label, in order to pass the
+                # expected shape to the metric
+                metric.update((_wrap_torch_or_list(prediction), _wrap_torch_or_list(label)))
             return
+
+
+def _wrap_torch_or_list(value):
+    """Unsqueeze the value if it is a tensor or wrap in list otherwise."""
+    if isinstance(value, torch.Tensor):
+        return torch.unsqueeze(value, 0)
+    return [value]
 
 
 def _range_string(start, stop, precision):
