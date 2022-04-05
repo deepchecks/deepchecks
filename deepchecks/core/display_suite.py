@@ -296,7 +296,8 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
     icons = """
     <span style="color: green;display:inline-block">\U00002713</span> /
     <span style="color: red;display:inline-block">\U00002716</span> /
-    <span style="color: orange;font-weight:bold;display:inline-block">\U00000021</span>
+    <span style="color: orange;font-weight:bold;display:inline-block">\U00000021</span> /
+    <span style="color: orange;font-weight:bold;display:inline-block">\U00002048</span>'
     """
 
     check_names = list(set(it.check.name() for it in results))
@@ -316,7 +317,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
         <h1 id="summary_{unique_id}">{suite_name}</h1>
         <p>
             {prologue}<br>
-            Each check may contain conditions (which will result in pass / fail / warning, represented by {icons})
+            Each check may contain conditions (which will result in pass / fail / warning / error, represented by {icons})
             as well as other outputs such as plots or tables.<br>
             Suites, checks and conditions can all be modified. Read more about
             <a href={suite_creation_example_link} target="_blank">custom suites</a>.

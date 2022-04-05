@@ -11,8 +11,10 @@
 """Represents fixtures for unit testing using pytest."""
 # Disable this pylint check since we use this convention in pytest fixtures
 #pylint: disable=redefined-outer-name
-from typing import Any, Tuple
+from typing import Any, Dict, Tuple, Optional
 
+from hamcrest import assert_that, instance_of, only_contains, any_of
+from hamcrest.core.matcher import Matcher
 import numpy as np
 import pytest
 import pandas as pd
@@ -27,11 +29,53 @@ from sklearn.tree import DecisionTreeClassifier
 from xgboost import XGBClassifier, XGBRegressor
 from catboost import CatBoostClassifier, CatBoostRegressor
 from lightgbm import LGBMClassifier, LGBMRegressor
+from deepchecks.core.checks import SingleDatasetBaseCheck
+from deepchecks.core.errors import DeepchecksBaseError
+from deepchecks.core.suite import BaseSuite, SuiteResult
 
 from deepchecks.tabular import Dataset, TrainTestCheck, Context
-from deepchecks.core.check_result import CheckResult
+from deepchecks.core.check_result import CheckFailure, CheckResult
 
 from .vision.vision_conftest import * #pylint: disable=wildcard-import, unused-wildcard-import
+
+def get_expected_results_length(suite: BaseSuite, args: Dict):
+    num_single = len([c for c in suite.checks.values() if isinstance(c, SingleDatasetBaseCheck)])
+    num_others = len(suite.checks.values()) - num_single
+    multiply = 0
+    if 'train_dataset' in args:
+        multiply += 1
+    if 'test_dataset' in args:
+        multiply += 1
+    # If no train and no test (only model) there will be single result of check failure
+    if multiply == 0:
+        multiply = 1
+
+    return num_single * multiply + num_others
+
+def validate_suite_result(
+    result: SuiteResult,
+    min_length: int,
+    exception_matcher: Optional[Matcher] = None
+):
+    assert_that(result, instance_of(SuiteResult))
+    assert_that(result.results, instance_of(list))
+    assert_that(len(result.results) >= min_length)
+
+    exception_matcher = exception_matcher or only_contains(instance_of(DeepchecksBaseError))
+
+    assert_that(result.results, only_contains(any_of( # type: ignore
+        instance_of(CheckFailure),
+        instance_of(CheckResult),
+    )))
+
+    failures = [
+        it.exception
+        for it in result.results
+        if isinstance(it, CheckFailure)
+    ]
+
+    if len(failures) != 0:
+        assert_that(actual=failures, matcher=exception_matcher) # type: ignore
 
 @pytest.fixture(scope='session')
 def multi_index_dataframe():

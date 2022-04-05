@@ -9,8 +9,11 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing all the base classes for checks."""
+from distutils.log import ERROR
 import enum
 from typing import Callable, Dict, cast
+
+from sklearn.metrics import jaccard_score
 from deepchecks.core.errors import DeepchecksValueError
 
 
@@ -59,6 +62,7 @@ class ConditionCategory(enum.Enum):
     FAIL = 'FAIL'
     WARN = 'WARN'
     PASS = 'PASS'
+    ERROR = 'ERROR'
 
 
 class ConditionResult:
@@ -123,8 +127,10 @@ class ConditionResult:
             return '<div style="color: green;text-align: center">\U00002713</div>'
         elif self.category == ConditionCategory.FAIL:
             return '<div style="color: red;text-align: center">\U00002716</div>'
-        else:
+        elif self.category == ConditionCategory.WARN:
             return '<div style="color: orange;text-align: center;font-weight:bold">\U00000021</div>'
+        else:
+            return '<div style="color: orange;text-align: center;font-weight:bold">\U00002048</div>'
 
     def __repr__(self):
         """Return string representation for printing."""
