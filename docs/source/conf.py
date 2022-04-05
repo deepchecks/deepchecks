@@ -87,6 +87,7 @@ extensions = [
     'sphinx.ext.autosectionlabel',
     "sphinx.ext.imgmath",
     'sphinx_reredirects',
+    "nbsphinx"
 ]
 
 redirects = {
@@ -103,6 +104,7 @@ redirects = {
     "examples/guides/create_a_custom_suite": "../../user-guide/general/customizations/examples/plot_create_a_custom_suite.html",
     "examples/guides/export_outputs_to_wandb": "../..//user-guide/general/exporting_results/examples/plot_export_output_to_wandb.html",
     "examples/guides/save_suite_result_as_html": "../../user-guide/general/exporting_results/examples/plot_save_suite_results_as_html.html",
+    "getting-started": "getting-started/getting-started.html"
 
 
 }
