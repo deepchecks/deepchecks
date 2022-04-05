@@ -363,7 +363,7 @@ docs: requirements doc-requirements dev-requirements $(DOCS_SRC)
 	@echo "- ERRORs: $$(grep "ERROR" $(DOCS)/docs.error.log | wc -l)"
 	@echo "- WARNINGs: $$(grep "WARNING" $(DOCS)/docs.error.log | wc -l)"
 
-thumbnails: docs
+thumbnails: $(ENV)
 	echo "generating thumbnails"
 	$(PYTHON) docs/sel.py
 
