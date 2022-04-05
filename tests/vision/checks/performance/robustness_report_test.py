@@ -65,8 +65,8 @@ def test_coco_and_condition(coco_train_visiondata, mock_trained_yolov5_object_de
     # Assert
     assert_that(result.value, has_entries({
         'Hue Saturation Value': has_entries({
-            'AP': has_entries(score=close_to(0.348, 0.001), diff=close_to(-0.107, 0.001)),
-            'AR': has_entries(score=close_to(0.376, 0.001), diff=close_to(-0.092, 0.001))
+            'AP': has_entries(score=close_to(0.348, 0.1), diff=close_to(-0.104, 0.1)),
+            'AR': has_entries(score=close_to(0.376, 0.1), diff=close_to(-0.092, 0.1))
         }),
     }))
     assert_that(result.conditions_results, has_items(

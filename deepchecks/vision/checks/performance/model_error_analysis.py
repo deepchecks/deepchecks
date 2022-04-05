@@ -85,6 +85,7 @@ class ModelErrorAnalysis(TrainTestCheck):
 
     def initialize_run(self, context: Context):
         """Initialize property and score lists."""
+        context.assert_task_type(TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION)
         self._train_properties = defaultdict(list)
         self._test_properties = defaultdict(list)
         self._train_scores = []
@@ -120,7 +121,7 @@ class ModelErrorAnalysis(TrainTestCheck):
             def scoring_func(predictions, labels):
                 return per_sample_mean_iou(predictions, labels)
         else:
-            raise DeepchecksValueError(f'Unsupported task type {dataset.task_type}')
+            raise DeepchecksValueError(f'Should not reach here! Unsupported task type {dataset.task_type}')
 
         if isinstance(predictions, torch.Tensor):
             predictions = predictions.cpu().detach().numpy()
