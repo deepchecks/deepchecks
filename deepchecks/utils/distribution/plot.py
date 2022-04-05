@@ -22,7 +22,7 @@ __all__ = ['feature_distribution_traces', 'drift_score_bar_traces', 'get_density
 from typing import List, Union, Dict, Tuple
 
 from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
-from deepchecks.utils.plot import colors
+from deepchecks.utils.plot import colors, hex_to_rgba
 from deepchecks.utils.dataframes import un_numpy
 
 
@@ -117,7 +117,7 @@ def feature_distribution_traces(train_column,
                                 column_name,
                                 is_categorical: bool = False,
                                 max_num_categories: int = 10,
-                                quantile_cut: float = 0.02) -> Tuple[List[Union[go.Bar, go.Scatter]], Dict, Dict]:
+                                quantile_cut: float = 0.02) -> Tuple[List[go.Trace], Dict, Dict]:
     """Create traces for comparison between train and test column.
 
     Parameters
@@ -191,6 +191,14 @@ def feature_distribution_traces(train_column,
                             title='Percentage')
 
     else:
+        is_train_single_value = train_column.min() == train_column.max()
+        is_test_single_value = test_column.min() == test_column.max()
+        # If both columns are single value, then return a table instead of graph
+        if is_train_single_value and is_test_single_value:
+            table = go.Table(header=dict(values=['Train Dataset', 'Test Dataset']),
+                             cells=dict(values=[[train_column[0]], [test_column[0]]]))
+            return [table], {}, {}
+
         x_range = (min(train_column.min(), test_column.min()), max(train_column.max(), test_column.max()))
         x_range_to_show = (
             min(np.quantile(train_column, quantile_cut), np.quantile(test_column, quantile_cut)),
@@ -204,10 +212,37 @@ def feature_distribution_traces(train_column,
             np.quantile(test_column, q=np.arange(0.02, 1, 0.02))
         )))
 
-        traces = [go.Scatter(x=xs, y=get_density(train_column, xs), fill='tozeroy', name='Train Dataset',
-                             line_color=colors['Train']),
-                  go.Scatter(x=xs, y=get_density(test_column, xs), fill='tozeroy', name='Test Dataset',
-                             line_color=colors['Test'])]
+        train_density = get_density(train_column, xs)
+        test_density = get_density(test_column, xs)
+
+        traces = []
+        if is_train_single_value:
+            traces.append(go.Scatter(
+                x=[train_column.min()] * 2,
+                y=[0, np.max(train_density)],
+                line=dict(
+                    color=hex_to_rgba(colors['Train'], 0.7),
+                ),
+                name='Train Dataset',
+                mode='lines'
+            ))
+        else:
+            traces.append(go.Scatter(x=xs, y=train_density, fill='tozeroy', name='Train Dataset',
+                          line_color=colors['Train']))
+
+        if is_test_single_value:
+            traces.append(go.Scatter(
+                x=[test_column.min()] * 2,
+                y=[0, np.max(test_density)],
+                line=dict(
+                    color=hex_to_rgba(colors['Test'], 0.7),
+                ),
+                name='Test Dataset',
+                mode='lines'
+            ))
+        else:
+            traces.append(go.Scatter(x=xs, y=test_density, fill='tozeroy', name='Test Dataset',
+                          line_color=colors['Test']))
 
         xaxis_layout = dict(fixedrange=False,
                             range=x_range_to_show,

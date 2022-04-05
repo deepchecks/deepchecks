@@ -142,8 +142,8 @@ def calc_drift_and_plot(train_column: pd.Series,
         test_dist = test_dist.astype('float')
 
         score = earth_movers_distance(dist1=train_dist, dist2=test_dist)
-
         bar_traces, bar_x_axis, bar_y_axis = drift_score_bar_traces(score)
+
         dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(train_dist, test_dist, value_name)
 
     elif column_type == 'categorical':
@@ -160,9 +160,13 @@ def calc_drift_and_plot(train_column: pd.Series,
         # Should never reach here
         raise DeepchecksValueError(f'Unsupported column type for drift: {column_type}')
 
+    dist_trace_type = 'table' if dist_traces[0].type == 'table' else 'xy'
+    dist_trace_title = 'Single Value In Datasets' if dist_trace_type == 'table' else 'Distribution Plot'
+
     fig = make_subplots(rows=2, cols=1, vertical_spacing=0.2, shared_yaxes=False, shared_xaxes=False,
                         row_heights=[0.1, 0.9],
-                        subplot_titles=[f'Drift Score ({scorer_name})', 'Distribution Plot'])
+                        subplot_titles=[f'Drift Score ({scorer_name})', dist_trace_title],
+                        specs=[[{'type': 'xy'}], [{'type': dist_trace_type}]])
 
     fig.add_traces(bar_traces, rows=[1] * len(bar_traces), cols=[1] * len(bar_traces))
     fig.add_traces(dist_traces, rows=[2] * len(dist_traces), cols=[1] * len(dist_traces))

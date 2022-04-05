@@ -147,6 +147,7 @@ class ImagePropertyDrift(TrainTestCheck):
 
         figures = {}
         drifts = {}
+        not_enough_samples = []
 
         for single_property in self.image_properties:
             property_name = single_property['name']
@@ -164,19 +165,22 @@ class ImagePropertyDrift(TrainTestCheck):
                 figures[property_name] = figure
                 drifts[property_name] = score
             except NotEnoughSamplesError:
-                figures[property_name] = '<p>Not enough non-null samples to calculate drift</p>'
-                drifts[property_name] = 0
+                not_enough_samples.append(property_name)
 
         if drifts:
-            columns_order = sorted(properties, key=lambda col: drifts[col], reverse=True)
+            columns_order = sorted(properties, key=lambda col: drifts.get(col, 0), reverse=True)
+            properties_to_display = [p for p in properties if p in drifts]
 
             headnote = '<span>' \
                        'The Drift score is a measure for the difference between two distributions. ' \
                        'In this check, drift is measured ' \
-                       f'for the distribution of the following image properties: {properties}.' \
+                       f'for the distribution of the following image properties: {properties_to_display}.<br>' \
                        '</span>'
+            if not_enough_samples:
+                headnote += f'<span>The following image properties do not have enough samples to calculate drift ' \
+                            f'score: {not_enough_samples}</span>'
 
-            displays = [headnote] + [figures[col] for col in columns_order]
+            displays = [headnote] + [figures[col] for col in columns_order if col in figures]
         else:
             drifts = None
             displays = []
