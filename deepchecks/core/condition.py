@@ -108,11 +108,12 @@ class ConditionResult:
             condition priority value.
         """
         if self.category == ConditionCategory.PASS:
-            return 3
+            return 4
         elif self.category == ConditionCategory.FAIL:
             return 1
-        else:
+        elif self.category == ConditionCategory.WARN:
             return 2
+        return 3 # if error
 
     @property
     def is_pass(self) -> bool:
@@ -128,7 +129,7 @@ class ConditionResult:
         elif self.category == ConditionCategory.WARN:
             return '<div style="color: orange;text-align: center;font-weight:bold">\U00000021</div>'
         else:
-            return '<div style="color: orange;text-align: center;font-weight:bold">\U00002048</div>'
+            return '<div style="color: firebrick;text-align: center;font-weight:bold">\U00002048</div>'
 
     def __repr__(self):
         """Return string representation for printing."""
