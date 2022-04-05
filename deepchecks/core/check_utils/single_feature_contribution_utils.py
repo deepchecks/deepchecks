@@ -163,9 +163,9 @@ def get_single_feature_contribution_per_class(train_df: pd.DataFrame, train_labe
         s_pps_test = df_pps_test.set_index('x', drop=True)['ppscore']
         s_difference = s_pps_train - s_pps_test
 
-        df_pps_train_all[c] = s_pps_train
-        df_pps_test_all[c] = s_pps_test
-        df_pps_difference_all[c] = s_difference
+        df_pps_train_all[c] = np.array(s_pps_train, dtype=np.float32)
+        df_pps_test_all[c] = np.array(s_pps_test, dtype=np.float32)
+        df_pps_difference_all[c] = np.array(s_difference, dtype=np.float32)
 
     for feature in df_pps_train_all.index:
         s_train = df_pps_train_all.loc[feature]
