@@ -9,11 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing all the base classes for checks."""
-from distutils.log import ERROR
 import enum
 from typing import Callable, Dict, cast
 
-from sklearn.metrics import jaccard_score
 from deepchecks.core.errors import DeepchecksValueError
 
 
