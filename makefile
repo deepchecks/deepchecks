@@ -363,6 +363,9 @@ docs: requirements doc-requirements dev-requirements $(DOCS_SRC)
 	@echo "- ERRORs: $$(grep "ERROR" $(DOCS)/docs.error.log | wc -l)"
 	@echo "- WARNINGs: $$(grep "WARNING" $(DOCS)/docs.error.log | wc -l)"
 
+thumbnails: docs
+	echo "generating thumbnails"
+	$(PYTHON) docs/sel.py
 
 show-docs: $(DOCS_BUILD)/html
 	@cd $(DOCS_BUILD)/html && $(PYTHON) -m http.server

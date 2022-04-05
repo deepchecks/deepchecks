@@ -41,10 +41,10 @@ jobs:
       # nginx should have started by default
       # - name: Start nginx
       #   run: service nginx start
-      - name: Copy geenrated docs to nginx
+      - name: Copy generated docs to nginx
         run: sudo cp -r docs/build/html/* /var/www/html/
       - name: Generating thumbnails
-        run: python3 docs/sel.py
+        run: make thumbnails
       # - name: Link Checker
       #   env:
       #     GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
