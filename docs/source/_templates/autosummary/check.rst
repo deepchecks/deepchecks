@@ -10,13 +10,13 @@
 {# submoduletype = tabular|vision... #}
 {% set submoduletype = splitname[1] %}
 
-Example {{ objname }}
-~~~~~~~~~~~~~~~~~~~~~
+Example
+~~~~~~~
 
 .. nbgallery::
    :name: rst-gallery
    :glob:
 
-   {{objname}} Example Notebook </examples/{{ submoduletype }}/checks/{{ checktype }}/examples/{{ objname.lower() }}>
+   {{objname}} Example Notebook </examples/{{ submoduletype }}/checks/examples/{{ checktype }}/{{ objname.lower() }}>
 
 {% endblock %}
