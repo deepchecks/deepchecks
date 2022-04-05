@@ -51,7 +51,8 @@ class Suite(BaseSuite):
             scorers: Mapping[str, Metric] = None,
             scorers_per_class: Mapping[str, Metric] = None,
             device: Union[str, torch.device, None] = 'cpu',
-            random_state: int = 42
+            random_state: int = 42,
+            n_samples: int = 10_000,
     ) -> SuiteResult:
         """Run all checks.
 
@@ -74,7 +75,8 @@ class Suite(BaseSuite):
             processing unit for use
         random_state : int
             A seed to set for pseudo-random functions
-
+        n_samples : int, default: 10,000
+            number of samples to draw from the dataset.
         Returns
         -------
         SuiteResult
@@ -90,7 +92,8 @@ class Suite(BaseSuite):
             scorers=scorers,
             scorers_per_class=scorers_per_class,
             device=device,
-            random_state=random_state
+            random_state=random_state,
+            n_samples=n_samples
         )
         progress_bar.inc_progress()
 
@@ -137,6 +140,9 @@ class Suite(BaseSuite):
                     # if check index in results we had failure
                     if check_idx not in results:
                         result = check.compute(context)
+                        # Don't want to add the footnote to Model only checks.
+                        if isinstance(check, TrainTestCheck):
+                            context.add_is_sampled_footnote(result)
                         result = check.finalize_check_result(result)
                         results[check_idx] = result
                 except Exception as exp:
@@ -223,6 +229,7 @@ class Suite(BaseSuite):
                     continue
                 try:
                     result = check.compute(context, dataset_kind=dataset_kind)
+                    context.add_is_sampled_footnote(result, dataset_kind)
                     result = check.finalize_check_result(result)
                     # Update header with dataset type only if both train and test ran
                     if run_train_test_checks:

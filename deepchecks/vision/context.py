@@ -181,3 +181,24 @@ class Context:
             return self.test
         else:
             raise DeepchecksValueError(f'Unexpected dataset kind {kind}')
+
+    def add_is_sampled_footnote(self, check_result: 'CheckResult', kind: DatasetKind = None):
+        message = ''
+        if kind:
+            v_data = self.get_data_by_kind(kind)
+            if v_data.is_sampled():
+                message = f'Data is sampled from the original dataset, running on {v_data.num_samples} samples out of' \
+                          f' {v_data.original_num_samples}.'
+        else:
+            if self.train.is_sampled():
+                message += f'Train data is sampled from the original dataset, running on {self.train.num_samples} ' \
+                           f'samples out of {self.train.original_num_samples}.'
+            if self.test.is_sampled():
+                if message:
+                    message += '<br>'
+                message += f'Test data is sampled from the original dataset, running on {self.test.num_samples} ' \
+                           f'samples out of {self.test.original_num_samples}.'
+
+        if message:
+            message += '<br>The sampling is controlled by the "n_samples" parameter.'
+            check_result.display.append(f'<span style="font-size:0.9em"><b><i>{message}</i></b></span>')
