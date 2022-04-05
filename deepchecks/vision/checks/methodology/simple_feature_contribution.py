@@ -116,7 +116,7 @@ class SimpleFeatureContribution(TrainTestCheck):
         if dataset.task_type == TaskType.OBJECT_DETECTION:
             for img, labels in zip(batch.images, batch.labels):
                 for label in labels:
-                    label = np.array(label)
+                    label = label.cpu().detach().numpy()
                     bbox = label[1:]
                     cropped_img = crop_image(img, *bbox)
                     if cropped_img.shape[0] == 0 or cropped_img.shape[1] == 0:
