@@ -139,11 +139,8 @@ class ImagePropertyDrift(TrainTestCheck):
         df_train = pd.DataFrame(self._train_properties)
         df_test = pd.DataFrame(self._test_properties)
         if len(df_train) < self.min_samples or len(df_test) < self.min_samples:
-            return CheckResult(
-                value=None,
-                display=f'Not enough samples to calculate drift score, min {self.min_samples} samples required.',
-                header='Image Property Drift'
-            )
+            raise NotEnoughSamplesError(f'Not enough samples to calculate drift score, min {self.min_samples} samples required'
+                                        f', but got {len(df_train)}')
 
         figures = {}
         drifts = {}
