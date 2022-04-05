@@ -120,7 +120,7 @@ class SimpleFeatureContribution(TrainTestCheck):
                     cropped_img = crop_image(img, *bbox)
                     if cropped_img.shape[0] == 0 or cropped_img.shape[1] == 0:
                         continue
-                    class_id = label[0]
+                    class_id = int(label[0])
                     imgs += [cropped_img]
                     target += [class_id]
         else:
