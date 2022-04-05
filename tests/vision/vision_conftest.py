@@ -72,7 +72,7 @@ def _hash_image(image):
     if isinstance(image, np.ndarray):
         image = Image.fromarray(image)
     elif isinstance(image, torch.Tensor):
-        image = Image.fromarray(image.cpu().numpy().squeeze())
+        image = Image.fromarray(image.cpu().detach().numpy().squeeze())
 
     image = image.resize((10, 10))
     image = image.convert('L')
