@@ -87,7 +87,6 @@ extensions = [
     'sphinx.ext.autosectionlabel',
     "sphinx.ext.imgmath",
     'sphinx_reredirects',
-    "nbsphinx"
 ]
 
 redirects = {
