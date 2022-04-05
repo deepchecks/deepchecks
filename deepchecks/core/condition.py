@@ -128,8 +128,7 @@ class ConditionResult:
             return '<div style="color: red;text-align: center">\U00002716</div>'
         elif self.category == ConditionCategory.WARN:
             return '<div style="color: orange;text-align: center;font-weight:bold">\U00000021</div>'
-        else:
-            return '<div style="color: firebrick;text-align: center;font-weight:bold">\U00002048</div>'
+        return '<div style="color: firebrick;text-align: center;font-weight:bold">\U00002048</div>'
 
     def __repr__(self):
         """Return string representation for printing."""
