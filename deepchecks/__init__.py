@@ -97,18 +97,12 @@ except:  # pylint: disable=bare-except # noqa
     __version__ = ''
 
 
-# Check for latest version
+# Send an import event
 try:
-    send_anonymous_import_event()
-    disable = os.environ.get('DEEPCHECKS_DISABLE_LATEST', 'false').lower() == 'true'
+    disable = not os.environ.get("DEEPCHECKS_ANONYMOUS_TRACKING", True)
+
     if not disable:
-        conn = http.client.HTTPSConnection('api.deepchecks.com', timeout=3)
-        conn.request('GET', f'/v2/latest?version={__version__}')
-        response = conn.getresponse()
-        result = response.read().decode('utf-8') == 'True'
-        if not result:
-            warnings.warn('Looks like you are using outdated version of deepchecks. consider upgrading using'
-                          ' pip install -U deepchecks')
+        send_anonymous_import_event()
 except:  # pylint: disable=bare-except # noqa
     pass
 

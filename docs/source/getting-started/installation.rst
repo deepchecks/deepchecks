@@ -90,3 +90,17 @@ Start Working with the Package
 Now it's time to :doc:`check out </index>` deepchecks!
 
 
+Anonymous tracking
+------------------
+We want to keep building and improving the package, so we'd like to know how many people are using it.
+For that we added an anonymous tracking system to the package, that sends a single anonymous event on the first
+import of the package.
+
+No credentials, data, personal information or anything private is collected (and will never be).
+
+By default, the anonymous tracking mechanism is turned on. You can opt-out at any time by setting the
+``DEEPCHECKS_ANONYMOUS_TRACKING`` environment variable to ``False``.
+
+.. code-block:: bash
+
+    export DEEPCHECKS_ANONYMOUS_TRACKING=False
