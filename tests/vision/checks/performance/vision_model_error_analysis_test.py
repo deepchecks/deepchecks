@@ -23,7 +23,7 @@ def test_classification(mnist_dataset_train, mock_trained_mnist, device):
 
     # Act
     result = check.run(train, test, mock_trained_mnist,
-                       device=device)
+                       device=device, n_samples=None)
     # Assert
     assert_that(len(result.value['feature_segments']), equal_to(2))
     assert_that(result.value['feature_segments']['Brightness']['segment1']['n_samples'], equal_to(254))

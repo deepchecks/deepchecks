@@ -251,6 +251,16 @@ class VisionData:
         return self._num_classes
 
     @property
+    def num_samples(self) -> int:
+        """Return the number of samples in the dataset."""
+        return len(self._sampler)
+
+    @property
+    def original_num_samples(self) -> int:
+        """Return the number of samples in the original dataset."""
+        return len(self._data_loader.dataset)
+
+    @property
     def data_dimension(self):
         """Return how many dimensions the image data have."""
         image = self.batch_to_images(next(iter(self)))[0]  # pylint: disable=not-callable
@@ -439,6 +449,10 @@ class VisionData:
         """Return the number of batches in the dataset dataloader."""
         return len(self._data_loader)
 
+    def is_sampled(self):
+        """Return whether the vision data is running on sample of the data."""
+        return self.num_samples < self.original_num_samples
+
     def assert_images_valid(self):
         """Assert the image formatter defined is valid. Else raise exception."""
         if self._image_formatter_error is not None:
@@ -474,9 +488,10 @@ class VisionData:
         if isinstance(batch_sampler.sampler, IndicesSequentialSampler):
             indices = batch_sampler.sampler.indices
         else:
-            raise DeepchecksValueError('Expected data loader with sample of type IndicesSequentialSampler')
-        # If got number of samples than take random sample
-        if n_samples:
+            raise DeepchecksValueError('Expected data loader with sampler of type IndicesSequentialSampler')
+        # If got number of samples which is smaller than the number of samples we currently have,
+        # then take random sample
+        if n_samples and n_samples < len(batch_sampler.sampler):
             size = min(n_samples, len(indices))
             if random_state is not None:
                 random.seed(random_state)
