@@ -105,6 +105,8 @@ class TrainTestFeatureDrift(TrainTestCheck):
         train_dataset: Dataset = context.train
         test_dataset: Dataset = context.test
         features_importance = context.features_importance
+        train_dataset.assert_features()
+        test_dataset.assert_features()
 
         train_dataset = train_dataset.select(
                 self.columns, self.ignore_columns
