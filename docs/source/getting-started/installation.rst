@@ -99,8 +99,8 @@ import of the package.
 No credentials, data, personal information or anything private is collected (and will never be).
 
 By default, the anonymous tracking mechanism is turned on. You can opt-out at any time by setting the
-``DISABLE_DEEPCHECKS_ANONYMOUS_TRACKING`` environment variable to ``False``.
+``DISABLE_DEEPCHECKS_ANONYMOUS_TRACKING`` environment variable to ``True``.
 
 .. code-block:: bash
 
-    export DISABLE_DEEPCHECKS_ANONYMOUS_TRACKING=False
+    export DISABLE_DEEPCHECKS_ANONYMOUS_TRACKING=True
