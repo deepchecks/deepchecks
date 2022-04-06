@@ -83,11 +83,10 @@ def ensure_image(
     if isinstance(image, torch.Tensor):
         image = t.cast(np.ndarray, image.numpy())
     if isinstance(image, np.ndarray):
-        image = image.squeeze()
+        image = image.squeeze().astype(np.uint8)
         if image.ndim == 3:
             return pilimage.fromarray(image)
         elif image.ndim == 2:
-            image = image.astype(np.uint8)
             return pilops.colorize(
                 pilimage.fromarray(image),
                 black='black',

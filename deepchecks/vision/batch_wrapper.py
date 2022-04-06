@@ -9,11 +9,14 @@
 # ----------------------------------------------------------------------------
 #
 """Contains code for BatchWrapper."""
-from typing import Tuple, Iterable, Any, TypeVar, Callable, cast
+from typing import Tuple, Iterable, Any, TypeVar, Callable, cast, TYPE_CHECKING
 
 import torch
 
 from deepchecks.core import DatasetKind
+
+if TYPE_CHECKING:
+    from deepchecks.vision.context import Context
 
 
 __all__ = ['Batch']
