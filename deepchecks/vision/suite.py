@@ -52,7 +52,7 @@ class Suite(BaseSuite):
             scorers_per_class: Mapping[str, Metric] = None,
             device: Union[str, torch.device, None] = 'cpu',
             random_state: int = 42,
-            n_samples: int = 10_000,
+            n_samples: Optional[int] = 10_000,
     ) -> SuiteResult:
         """Run all checks.
 
@@ -139,11 +139,7 @@ class Suite(BaseSuite):
                 try:
                     # if check index in results we had failure
                     if check_idx not in results:
-                        result = check.compute(context)
-                        # Don't want to add the footnote to Model only checks.
-                        if isinstance(check, TrainTestCheck):
-                            context.add_is_sampled_footnote(result)
-                        result = check.finalize_check_result(result)
+                        result = check.finalize_check_result(check.compute(context))
                         results[check_idx] = result
                 except Exception as exp:
                     results[check_idx] = CheckFailure(check, exp)
@@ -156,7 +152,9 @@ class Suite(BaseSuite):
         for pbar in all_pbars:
             pbar.close()
 
-        return SuiteResult(self.name, sorted_result_values)
+        footnote = context.get_is_sampled_footnote()
+        extra_info = [footnote] if footnote else []
+        return SuiteResult(self.name, sorted_result_values, extra_info)
 
     def _update_loop(
         self,
@@ -229,7 +227,6 @@ class Suite(BaseSuite):
                     continue
                 try:
                     result = check.compute(context, dataset_kind=dataset_kind)
-                    context.add_is_sampled_footnote(result, dataset_kind)
                     result = check.finalize_check_result(result)
                     # Update header with dataset type only if both train and test ran
                     if run_train_test_checks:

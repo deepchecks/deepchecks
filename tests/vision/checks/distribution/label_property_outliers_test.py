@@ -65,7 +65,7 @@ def test_property_outliers_check_mnist(mnist_dataset_train, device):
     }]
     check = LabelPropertyOutliers(label_properties=properties)
     # Act
-    result = check.run(mnist_dataset_train, device=device)
+    result = check.run(mnist_dataset_train, device=device, n_samples=None)
 
     # Assert
     assert_that(result, is_correct_label_property_outliers_result(properties))

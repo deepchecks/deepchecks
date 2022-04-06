@@ -48,7 +48,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         model: Optional[nn.Module] = None,
         device: Union[str, torch.device, None] = 'cpu',
         random_state: int = 42,
-        n_samples: int = 10_000
+        n_samples: Optional[int] = 10_000
     ) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
@@ -70,7 +70,9 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
             batch_start_index += len(batch)
 
         result = self.compute(context, DatasetKind.TRAIN)
-        context.add_is_sampled_footnote(result, DatasetKind.TRAIN)
+        footnote = context.get_is_sampled_footnote(DatasetKind.TRAIN)
+        if footnote:
+            result.display.append(footnote)
         return self.finalize_check_result(result)
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
@@ -101,7 +103,7 @@ class TrainTestCheck(TrainTestBaseCheck):
         model: Optional[nn.Module] = None,
         device: Union[str, torch.device, None] = 'cpu',
         random_state: int = 42,
-        n_samples: int = 10_000
+        n_samples: Optional[int] = 10_000
     ) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
@@ -132,7 +134,9 @@ class TrainTestCheck(TrainTestBaseCheck):
             batch_start_index += len(batch)
 
         result = self.compute(context)
-        context.add_is_sampled_footnote(result)
+        footnote = context.get_is_sampled_footnote()
+        if footnote:
+            result.display.append(footnote)
         return self.finalize_check_result(result)
 
     def initialize_run(self, context: Context):

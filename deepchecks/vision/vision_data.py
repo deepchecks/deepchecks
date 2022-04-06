@@ -488,8 +488,9 @@ class VisionData:
             indices = batch_sampler.sampler.indices
         else:
             raise DeepchecksValueError('Expected data loader with sampler of type IndicesSequentialSampler')
-        # If got number of samples than take random sample
-        if n_samples:
+        # If got number of samples which is smaller than the number of samples we currently have,
+        # then take random sample
+        if n_samples and n_samples < len(batch_sampler.sampler):
             size = min(n_samples, len(indices))
             if random_state is not None:
                 random.seed(random_state)

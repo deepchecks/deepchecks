@@ -132,7 +132,7 @@ def test_no_drift_classification_per_class(mnist_dataset_train):
     check = SimpleFeatureContribution(per_class=True)
 
     # Act
-    result = check.run(train, test)
+    result = check.run(train, test, n_samples=None)
 
     # Assert
     assert_that(result.value, has_entries({
@@ -150,9 +150,8 @@ def test_drift_classification_per_class(mnist_dataset_train, mnist_dataset_test)
     check = SimpleFeatureContribution(per_class=True)
 
     # Act
-    result = check.run(train, test)
+    result = check.run(train, test, n_samples=None)
 
-    0.64
     # Assert
     assert_that(result.value, has_entries({
         'Brightness': has_entries({'train':  has_entries({1: equal_to(0)}),
