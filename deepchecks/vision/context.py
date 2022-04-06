@@ -183,6 +183,7 @@ class Context:
             raise DeepchecksValueError(f'Unexpected dataset kind {kind}')
 
     def get_is_sampled_footnote(self, kind: DatasetKind = None):
+        """Get footnote to display when the datasets are sampled."""
         message = ''
         if kind:
             v_data = self.get_data_by_kind(kind)
@@ -191,13 +192,13 @@ class Context:
                           f' {v_data.original_num_samples}.'
         else:
             if self._train is not None and self._train.is_sampled():
-                message += f'Train data is sampled from the supplied dataset, running on {self._train.num_samples} ' \
-                           f'samples out of {self._train.original_num_samples}.'
+                message += f'Running on {self._train.num_samples} <b>train</b> data samples out of ' \
+                           f'{self._train.original_num_samples} total samples.'
             if self._test is not None and self._test.is_sampled():
                 if message:
                     message += ' '
-                message += f'Test data is sampled from the supplied dataset, running on {self._test.num_samples} ' \
-                           f'samples out of {self._test.original_num_samples}.'
+                message += f'Running on {self._test.num_samples} <b>test</b> data samples out of ' \
+                           f'{self._test.original_num_samples} total samples.'
 
         if message:
             message = f'Note - data sampling: {message} Sample size can be controlled with the "n_samples" parameter.'

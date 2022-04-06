@@ -450,6 +450,7 @@ class VisionData:
         return len(self._data_loader)
 
     def is_sampled(self):
+        """Return whether the vision data is running on sample of the data."""
         return self.num_samples < self.original_num_samples
 
     def assert_images_valid(self):
