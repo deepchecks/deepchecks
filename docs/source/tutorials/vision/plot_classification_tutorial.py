@@ -2,6 +2,7 @@
 ==============================================
 Classification Model Validation Tutorial
 ==============================================
+
 In this tutorial, you will learn how to validate your **classification model** using deepchecks test suites.
 You can read more about the different checks and suites for computer vision use cases at the
 :doc:`examples section  </examples/index>`

@@ -2,6 +2,7 @@
 """
 Mean Average Precision Report
 *****************************
+
 This notebooks provides an overview for using and understanding the mean average precision report check.
 
 **Structure:**

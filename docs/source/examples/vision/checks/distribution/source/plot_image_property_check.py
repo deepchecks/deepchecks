@@ -2,6 +2,7 @@
 """
 Image Property Drift Check
 **************************
+
 This notebooks provides an overview for using and understanding the image property drift check.
 
 **Structure:**
