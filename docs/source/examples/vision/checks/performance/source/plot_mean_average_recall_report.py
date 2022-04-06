@@ -2,6 +2,7 @@
 """
 Mean Average Recall Report
 **************************
+
 This notebooks provides an overview for using and understanding the mean average recall report check.
 
 **Structure:**

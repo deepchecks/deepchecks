@@ -27,11 +27,13 @@ from hamcrest import (
 
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError, DeepchecksNotSupportedError
+from deepchecks.vision.suites.default_suites import full_suite
 from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.base_checks import SingleDatasetCheck, TrainTestCheck, ModelOnlyCheck
 from deepchecks.vision.suite import Suite
 from deepchecks.vision.datasets.detection import coco
 from deepchecks.vision.datasets.classification import mnist
+from tests.conftest import get_expected_results_length, validate_suite_result
 
 
 def test_suite_execution():
@@ -61,9 +63,12 @@ def test_suite_execution():
             return CheckResult(1)
 
     suite = Suite("test",
-                           DummyCheck(),
-                           DummyTrainTestCheck())
-    result = suite.run(train_dataset=coco_dataset, test_dataset=coco_dataset)
+                  DummyCheck(),
+                  DummyTrainTestCheck())
+    args = {'train_dataset': coco_dataset, 'test_dataset': coco_dataset}
+    result = suite.run(**args)
+    length = get_expected_results_length(suite, args)
+    validate_suite_result(result, length)
 
     assert_that(result.results[0].value, is_(0))
     assert_that(result.results[2].value, is_(1))
@@ -101,7 +106,11 @@ def test_suite_execution_with_initalize_exeption():
     suite = Suite("test",
                   DummyCheck(),
                   DummyTrainTestCheck())
-    result = suite.run(train_dataset=coco_dataset, test_dataset=coco_dataset)
+
+    args = {'train_dataset': coco_dataset, 'test_dataset': coco_dataset}
+    result = suite.run(**args)
+    length = get_expected_results_length(suite, args)
+    validate_suite_result(result, length)
 
     assert_that(result.results[0].exception, instance_of(DeepchecksValueError))
     assert_that(result.results[0].exception.message, is_('bad init'))
@@ -142,7 +151,11 @@ def test_suite_execution_with_exception_on_compute():
     suite = Suite("test",
                   DummyCheck(),
                   DummyTrainTestCheck())
-    result = suite.run(train_dataset=coco_dataset, test_dataset=coco_dataset)
+
+    args = {'train_dataset': coco_dataset, 'test_dataset': coco_dataset}
+    result = suite.run(**args)
+    length = get_expected_results_length(suite, args)
+    validate_suite_result(result, length)
 
     assert_that(result.results[0].exception, instance_of(DeepchecksValueError))
     assert_that(result.results[0].exception.message, is_('bad compute'))
@@ -194,10 +207,14 @@ def test_suite_execution_with_missing_test():
 
     suite = Suite("test",
                   DummyTrainTestCheck())
-    r = suite.run(train_dataset=coco_dataset)
 
-    assert_that(r.results[0].exception, instance_of(DeepchecksNotSupportedError))
-    assert_that(r.results[0].exception.message,
+    args = {'train_dataset': coco_dataset}
+    result = suite.run(**args)
+    length = get_expected_results_length(suite, args)
+    validate_suite_result(result, length)
+
+    assert_that(result.results[0].exception, instance_of(DeepchecksNotSupportedError))
+    assert_that(result.results[0].exception.message,
                 is_('Check is irrelevant if not supplied with both train and test datasets'))
 
     assert_that(executions, is_({'initialize_run': 1}))
@@ -216,6 +233,27 @@ def test_suite_model_only_check():
 
     suite = Suite("test",
                   DummyModelOnlyCheck())
-    suite.run(model="some model")
+
+    args = {'model': "some model"}
+    result = suite.run(**args)
+    length = get_expected_results_length(suite, args)
+    validate_suite_result(result, length)
 
     assert_that(executions, is_({'initialize_run': 1, 'compute': 1}))
+
+def test_full_suite_execution_mnist(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
+    suite = full_suite()
+    args = {'train_dataset': mnist_dataset_train, 'test_dataset': mnist_dataset_test,
+            'model':mock_trained_mnist, 'device': device}
+    result = suite.run(**args)
+    length = get_expected_results_length(suite, args)
+    validate_suite_result(result, length)
+
+def test_full_suite_execution_coco(coco_train_visiondata, coco_test_visiondata,
+                                   mock_trained_yolov5_object_detection, device):
+    suite = full_suite()
+    args = {'train_dataset': coco_train_visiondata, 'test_dataset': coco_test_visiondata,
+            'model':mock_trained_yolov5_object_detection, 'device': device}
+    result = suite.run(**args)
+    length = get_expected_results_length(suite, args)
+    validate_suite_result(result, length)
