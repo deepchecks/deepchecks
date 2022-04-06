@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 from hamcrest import assert_that, all_of, instance_of, has_key, has_length, has_properties, has_entries, is_, \
-    contains_exactly, calling, raises, equal_to
+    contains_exactly, calling, raises, equal_to, any_of
 from hamcrest.core.matcher import Matcher
 
 from deepchecks import CheckResult
@@ -28,7 +28,7 @@ def is_correct_label_property_outliers_result(props) -> Matcher:
 
     display_assertion = all_of(
         instance_of(list),
-        has_length(1),
+        any_of(has_length(1), has_length(2)),
     )
 
     return all_of(
