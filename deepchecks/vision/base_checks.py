@@ -47,7 +47,8 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         dataset: VisionData,
         model: Optional[nn.Module] = None,
         device: Union[str, torch.device, None] = 'cpu',
-        random_state: int = 42
+        random_state: int = 42,
+        n_samples: Optional[int] = 10_000
     ) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
@@ -55,7 +56,8 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         context: Context = self.context_type(dataset,
                                              model=model,
                                              device=device,
-                                             random_state=random_state)
+                                             random_state=random_state,
+                                             n_samples=n_samples)
 
         self.initialize_run(context, DatasetKind.TRAIN)
 
@@ -67,7 +69,11 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
             self.update(context, batch, DatasetKind.TRAIN)
             batch_start_index += len(batch)
 
-        return self.finalize_check_result(self.compute(context, DatasetKind.TRAIN))
+        result = self.compute(context, DatasetKind.TRAIN)
+        footnote = context.get_is_sampled_footnote(DatasetKind.TRAIN)
+        if footnote:
+            result.display.append(footnote)
+        return self.finalize_check_result(result)
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
         """Initialize run before starting updating on batches. Optional."""
@@ -96,7 +102,8 @@ class TrainTestCheck(TrainTestBaseCheck):
         test_dataset: VisionData,
         model: Optional[nn.Module] = None,
         device: Union[str, torch.device, None] = 'cpu',
-        random_state: int = 42
+        random_state: int = 42,
+        n_samples: Optional[int] = 10_000
     ) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
@@ -105,7 +112,8 @@ class TrainTestCheck(TrainTestBaseCheck):
                                              test_dataset,
                                              model=model,
                                              device=device,
-                                             random_state=random_state)
+                                             random_state=random_state,
+                                             n_samples=n_samples)
 
         self.initialize_run(context)
 
@@ -125,7 +133,11 @@ class TrainTestCheck(TrainTestBaseCheck):
             self.update(context, batch, DatasetKind.TEST)
             batch_start_index += len(batch)
 
-        return self.finalize_check_result(self.compute(context))
+        result = self.compute(context)
+        footnote = context.get_is_sampled_footnote()
+        if footnote:
+            result.display.append(footnote)
+        return self.finalize_check_result(result)
 
     def initialize_run(self, context: Context):
         """Initialize run before starting updating on batches. Optional."""
