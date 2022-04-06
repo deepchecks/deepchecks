@@ -127,7 +127,9 @@ def _display_suite_widgets(summary: str,
     _add_widget_classes(checks_wo_tab)
     others_tab = widgets.VBox()
     tab.children = [condition_tab, checks_wo_tab, others_tab]
-    tab.set_trait('titles', ('Checks With Conditions', 'Checks Without Conditions', 'Checks Without Output'))
+    tab.set_title(0, 'Checks With Conditions')
+    tab.set_title(1, 'Checks Without Conditions')
+    tab.set_title(2, 'Checks Without Output')
 
     if checks_with_conditions:
         cond_html_table = dataframe_to_html(get_conditions_table(checks_with_conditions, unique_id, 300))
