@@ -8,7 +8,11 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module for anonymous analytics tracking."""
+"""
+Module for anonymous analytics collection.
+
+No credentials, data, personal information or anything private is collected (and will never be).
+"""
 import http.client
 import os
 import pathlib
@@ -20,9 +24,7 @@ ANALYTICS_DISABLED = os.environ.get('DISABLE_DEEPCHECKS_ANONYMOUS_TRACKING', Fal
 
 
 def send_anonymous_import_event():
-    """
-    Send an anonymous import event to PostHog.
-    """
+    """Send an anonymous import event to PostHog."""
     if not ANALYTICS_DISABLED:
         try:
             if os.path.exists(os.path.join(MODULE_DIR, '.user_id')):
