@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 from hamcrest import assert_that, all_of, instance_of, has_key, has_length, has_properties, has_entries, is_, \
-    contains_exactly, close_to, calling, raises, equal_to
+    contains_exactly, close_to, calling, raises, equal_to, any_of
 from hamcrest.core.matcher import Matcher
 
 from deepchecks import CheckResult
@@ -27,7 +27,7 @@ def is_correct_image_property_outliers_result() -> Matcher:
 
     display_assertion = all_of(
         instance_of(list),
-        has_length(1),
+        any_of(has_length(1), has_length(2)),
     )
 
     return all_of(
@@ -59,7 +59,7 @@ def test_image_property_outliers_check_coco(coco_train_visiondata, device):
 
 def test_image_property_outliers_check_mnist(mnist_dataset_train, device):
     # Act
-    result = ImagePropertyOutliers().run(mnist_dataset_train, device=device)
+    result = ImagePropertyOutliers().run(mnist_dataset_train, device=device, n_samples=None)
 
     # Assert
     assert_that(result, is_correct_image_property_outliers_result())
@@ -77,14 +77,14 @@ def test_image_property_outliers_check_mnist(mnist_dataset_train, device):
 
 def test_run_on_data_with_only_images(mnist_train_only_images, device):
     # Act - Assert check runs without exception
-    result = ImagePropertyOutliers().run(mnist_train_only_images, device=device)
+    result = ImagePropertyOutliers().run(mnist_train_only_images, device=device, n_samples=None)
     # Assert
     assert_that(result, is_correct_image_property_outliers_result())
 
 
 def test_run_on_custom_task(mnist_train_custom_task, device):
     # Act - Assert check runs without exception
-    result = ImagePropertyOutliers().run(mnist_train_custom_task, device=device)
+    result = ImagePropertyOutliers().run(mnist_train_custom_task, device=device, n_samples=None)
     # Assert
     assert_that(result, is_correct_image_property_outliers_result())
 
