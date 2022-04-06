@@ -45,6 +45,7 @@ from deepchecks.tabular import (
     ModelComparisonSuite,
 )
 
+from deepchecks.analytics.anonymous_analytics_tracking import send_anonymous_import_event
 
 __all__ = [
     # core
@@ -98,6 +99,7 @@ except:  # pylint: disable=bare-except # noqa
 
 # Check for latest version
 try:
+    send_anonymous_import_event()
     disable = os.environ.get('DEEPCHECKS_DISABLE_LATEST', 'false').lower() == 'true'
     if not disable:
         conn = http.client.HTTPSConnection('api.deepchecks.com', timeout=3)
