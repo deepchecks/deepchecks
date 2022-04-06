@@ -161,7 +161,7 @@ def calc_drift_and_plot(train_column: pd.Series,
         raise DeepchecksValueError(f'Unsupported column type for drift: {column_type}')
 
     dist_trace_type = 'table' if dist_traces[0].type == 'table' else 'xy'
-    dist_trace_title = 'Single Value In Datasets' if dist_trace_type == 'table' else 'Distribution Plot'
+    dist_trace_title = 'Single Value in Datasets' if dist_trace_type == 'table' else 'Distribution Plot'
 
     fig = make_subplots(rows=2, cols=1, vertical_spacing=0.2, shared_yaxes=False, shared_xaxes=False,
                         row_heights=[0.1, 0.9],

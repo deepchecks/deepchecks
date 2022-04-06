@@ -17,7 +17,7 @@ from matplotlib.colors import LinearSegmentedColormap
 
 __all__ = ['create_colorbar_barchart_for_check', 'shifted_color_map', 'colors', 'hex_to_rgba']
 
-colors = {'Train': '#00008b',  # darkblue
+colors = {'Train': '#00008b',  # dark blue
           'Test': '#69b3a2',
           'Baseline': '#b287a3',
           'Generated': '#2191FB'}

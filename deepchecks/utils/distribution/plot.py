@@ -19,7 +19,7 @@ import plotly.graph_objs as go
 
 __all__ = ['feature_distribution_traces', 'drift_score_bar_traces', 'get_density']
 
-from typing import List, Union, Dict, Tuple
+from typing import List, Dict, Tuple
 
 from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
 from deepchecks.utils.plot import colors, hex_to_rgba
@@ -195,7 +195,7 @@ def feature_distribution_traces(train_column,
         is_test_single_value = test_column.min() == test_column.max()
         # If both columns are single value, then return a table instead of graph
         if is_train_single_value and is_test_single_value:
-            table = go.Table(header=dict(values=['Train Dataset', 'Test Dataset']),
+            table = go.Table(header=dict(values=['Train Dataset Value', 'Test Dataset Value']),
                              cells=dict(values=[[train_column[0]], [test_column[0]]]))
             return [table], {}, {}
 
@@ -219,7 +219,8 @@ def feature_distribution_traces(train_column,
         if is_train_single_value:
             traces.append(go.Scatter(
                 x=[train_column.min()] * 2,
-                y=[0, np.max(train_density)],
+                # Draw the line a bit higher than the max value of test density
+                y=[0, np.max(test_density) * 1.1],
                 line=dict(
                     color=hex_to_rgba(colors['Train'], 0.7),
                 ),
@@ -233,7 +234,8 @@ def feature_distribution_traces(train_column,
         if is_test_single_value:
             traces.append(go.Scatter(
                 x=[test_column.min()] * 2,
-                y=[0, np.max(test_density)],
+                # Draw the line a bit higher than the max value of train density
+                y=[0, np.max(train_density) * 1.1],
                 line=dict(
                     color=hex_to_rgba(colors['Test'], 0.7),
                 ),
