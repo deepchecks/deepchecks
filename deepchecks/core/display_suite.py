@@ -245,7 +245,7 @@ def _display_suite_no_widgets(summary: str,
         display_html(f'<br><a href="#summary_{unique_id}" style="font-size: 14px">Go to top</a>', raw=True)
 
 
-def display_suite_result(suite_name: str, results: List[Union[CheckResult, CheckFailure]],
+def display_suite_result(suite_name: str, results: List[Union[CheckResult, CheckFailure]], extra_info: List[str],
                          html_out=None, requirejs: bool = True):  # pragma: no cover
     """Display results of suite in IPython."""
     if len(results) == 0:
@@ -323,6 +323,11 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
             <a href={suite_creation_example_link} target="_blank">custom suites</a>.
         </p>
         """
+
+    if extra_info:
+        summ += '<br>'
+        for info in extra_info:
+            summ += '<div>' + info + '</div>'
 
     # can't display plotly widgets in kaggle notebooks
     if html_out or (is_widgets_enabled() and os.environ.get('KAGGLE_KERNEL_RUN_TYPE') is None):

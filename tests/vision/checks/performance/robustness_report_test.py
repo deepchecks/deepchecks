@@ -33,7 +33,7 @@ def test_mnist(mnist_dataset_train, mock_trained_mnist, device):
     ]
     check = RobustnessReport(augmentations=augmentations)
     # Act
-    result = check.run(mnist_dataset_train, mock_trained_mnist, device=device)
+    result = check.run(mnist_dataset_train, mock_trained_mnist, device=device, n_samples=None)
     # Assert
     assert_that(result.value, has_entries({
         'Random Brightness Contrast': has_entries({
