@@ -157,5 +157,5 @@ def shifted_color_map(cmap, start=0, midpoint=0.5, stop=1.0, name: str = 'shifte
 
 
 def hex_to_rgba(h, alpha):
-    """converts color value in hex format to rgba format with alpha transparency"""
+    """Convert color value in hex format to rgba format with alpha transparency."""
     return 'rgba' + str(tuple([int(h.lstrip('#')[i:i+2], 16) for i in (0, 2, 4)] + [alpha]))
