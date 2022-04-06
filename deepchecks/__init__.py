@@ -13,7 +13,6 @@ import sys
 import types
 import os
 import pathlib
-import http.client
 import matplotlib
 import plotly.io as pio
 import warnings
@@ -99,7 +98,7 @@ except:  # pylint: disable=bare-except # noqa
 
 # Send an import event
 try:
-    disable = not os.environ.get("DEEPCHECKS_ANONYMOUS_TRACKING", True)
+    disable = os.environ.get("DISABLE_DEEPCHECKS_ANONYMOUS_TRACKING", False)
 
     if not disable:
         send_anonymous_import_event()
