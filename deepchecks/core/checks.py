@@ -68,7 +68,7 @@ class BaseCheck(abc.ABC):
                 output = condition.function(result.value, **condition.params)
             except Exception as e:
                 msg = f'Exception in condition: {e.__class__.__name__}: {str(e)}'
-                output = ConditionResult(ConditionCategory.WARN, msg)
+                output = ConditionResult(ConditionCategory.ERROR, msg)
             if isinstance(output, bool):
                 output = ConditionResult(ConditionCategory.PASS if output else ConditionCategory.FAIL)
             elif not isinstance(output, ConditionResult):

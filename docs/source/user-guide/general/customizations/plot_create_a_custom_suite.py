@@ -2,6 +2,7 @@
 """
 Create a Custom Suite
 *********************
+
 A suite is a list of checks that will run one after the other, and its results will be
 displayed together.
 

@@ -2,6 +2,7 @@
 """
 Configure Check Conditions
 **************************
+
 The following guide includes different options for configuring a check's condition(s):
 
 * `Add Condition <#add-condition>`__
