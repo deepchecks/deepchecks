@@ -193,12 +193,12 @@ class Context:
         else:
             if self._train is not None and self._train.is_sampled():
                 message += f'Running on {self._train.num_samples} <b>train</b> data samples out of ' \
-                           f'{self._train.original_num_samples} total samples.'
+                           f'{self._train.original_num_samples}.'
             if self._test is not None and self._test.is_sampled():
                 if message:
                     message += ' '
                 message += f'Running on {self._test.num_samples} <b>test</b> data samples out of ' \
-                           f'{self._test.original_num_samples} total samples.'
+                           f'{self._test.original_num_samples}.'
 
         if message:
             message = f'Note - data sampling: {message} Sample size can be controlled with the "n_samples" parameter.'
