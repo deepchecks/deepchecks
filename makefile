@@ -155,8 +155,7 @@ requirements: $(ENV)
 	@if [ -x "$$(command -v nvidia-smi)" ]; \
 	then \
 		$(PIP) install -q\
-		 	"torch==1.7.1+cu110" "torchvision==0.8.2+cu110" "torchaudio==0.8.1" \
-		 	 -f https://s3.amazonaws.com/pytorch/whl/torch_stable.html; \
+		 	"torch" "torchvision" "torchaudio" --extra-index-url https://download.pytorch.org/whl/cu113; \
 	elif [ $(OS) = "Linux" ]; \
 	then \
 		$(PIP) install -q\
