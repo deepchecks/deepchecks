@@ -13,6 +13,7 @@
 from deepchecks.core.condition import Condition, ConditionCategory, ConditionResult
 from deepchecks.core.display_pandas import dataframe_to_html, get_conditions_table
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.utils.dataframes import un_numpy
 from deepchecks.utils.strings import get_docs_summary
 from deepchecks.utils.ipython import is_notebook
 from deepchecks.utils.wandb_utils import set_wandb_run_state
@@ -231,8 +232,7 @@ class CheckResult:
                 Default config is the check metadata (params, train/test/ name etc.).
         """
         check_metadata = self._get_metadata()
-        dedicated_run = set_wandb_run_state(dedicated_run, check_metadata, **kwargs)
-        section_suffix = check_metadata['name'] + '/'
+        section_suffix = check_metadata['header'] + '/'
         if self.conditions_results:
             cond_df = get_conditions_table([self], icon_html=False)
             cond_table = wandb.Table(dataframe=cond_df.data, allow_mixed_types=True)
@@ -243,8 +243,12 @@ class CheckResult:
             value = self.value.data.to_json()
         elif isinstance(self.value, np.ndarray):
             value = self.value.tolist()
+        elif isinstance(self.value, (np.ndarray, np.generic)):
+            value = un_numpy(self.value)
         else:
-            value = jsonpickle.dumps(self.value)
+            value = jsonpickle.dumps(self.value, unpicklable=False)
+        check_metadata['value'] = value
+        dedicated_run = set_wandb_run_state(dedicated_run, check_metadata, **kwargs)
         table_i = 0
         plot_i = 0
         old_backend = matplotlib.get_backend()
@@ -309,12 +313,14 @@ class CheckResult:
             result_json['value'] = self.value.data.to_json()
         elif isinstance(self.value, np.ndarray):
             result_json['value'] = self.value.tolist()
+        elif isinstance(self.value, (np.ndarray, np.generic)):
+            result_json['value'] = un_numpy(self.value)
         else:
             result_json['value'] = self.value
         if with_display:
             display_json = self._display_to_json()
             result_json['display'] = display_json
-        return jsonpickle.dumps(result_json)
+        return jsonpickle.dumps(result_json, unpicklable=False)
 
     @staticmethod
     def display_from_json(json_data):
@@ -460,7 +466,7 @@ class CheckFailure:
         result_json = self._get_metadata()
         if with_display:
             result_json['display'] = [('str', str(self.exception))]
-        return jsonpickle.dumps(result_json)
+        return jsonpickle.dumps(result_json, unpicklable=False)
 
     def to_wandb(self, dedicated_run: bool = True, **kwargs: Any):
         """Export check result to wandb.
@@ -475,12 +481,13 @@ class CheckFailure:
                 Default config is the check metadata (params, train/test/ name etc.).
         """
         check_metadata = self._get_metadata()
-        dedicated_run = set_wandb_run_state(dedicated_run, check_metadata, **kwargs)
-        section_suffix = check_metadata['name'] + '/'
+        section_suffix = check_metadata['header'] + '/'
         data = [check_metadata['header'],
                 str(check_metadata['params']),
                 check_metadata['summary'],
                 str(self.exception)]
+        check_metadata['value'] = str(self.exception)
+        dedicated_run = set_wandb_run_state(dedicated_run, check_metadata, **kwargs)
         final_table = wandb.Table(columns=['header', 'params', 'summary', 'value'])
         final_table.add_data(*data)
         wandb.log({f'{section_suffix}results': final_table}, commit=False)
