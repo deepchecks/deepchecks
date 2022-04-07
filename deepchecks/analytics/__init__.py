@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """
-Module for anonymous analytics collection.
+Module for anonymous telemetry.
 
 No credentials, data, personal information or anything private is collected (and will never be).
 """

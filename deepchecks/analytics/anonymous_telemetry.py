@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """
-Module for anonymous analytics collection.
+Module for anonymous telemetry.
 
 No credentials, data, personal information or anything private is collected (and will never be).
 """
@@ -20,7 +20,7 @@ import uuid
 import deepchecks
 
 MODULE_DIR = pathlib.Path(__file__).absolute().parent.parent
-ANALYTICS_DISABLED = os.environ.get('DISABLE_DEEPCHECKS_ANONYMOUS_TRACKING', False)
+ANALYTICS_DISABLED = os.environ.get('DISABLE_DEEPCHECKS_ANONYMOUS_TELEMETRY', False)
 
 
 def send_anonymous_import_event():

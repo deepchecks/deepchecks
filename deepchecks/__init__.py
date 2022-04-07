@@ -44,7 +44,7 @@ from deepchecks.tabular import (
     ModelComparisonSuite,
 )
 
-from deepchecks.analytics.anonymous_analytics_tracking import send_anonymous_import_event
+from deepchecks.analytics.anonymous_telemetry import send_anonymous_import_event
 
 __all__ = [
     # core
