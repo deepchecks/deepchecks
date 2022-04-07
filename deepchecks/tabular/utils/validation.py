@@ -87,6 +87,7 @@ def validate_model(
             f'Got error when trying to predict with model on dataset: {str(exc)}'
         )
 
+
 def ensure_dataframe_type(obj: t.Any) -> pd.DataFrame:
     """Ensure that given object is of type DataFrame or Dataset and return it as DataFrame. else raise error.
 
