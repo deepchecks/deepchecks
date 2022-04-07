@@ -12,7 +12,6 @@
 from collections import defaultdict
 from typing import Union, Dict, List, Iterable
 
-import numpy as np
 import pandas as pd
 
 from deepchecks.tabular import Context, SingleDatasetCheck
@@ -31,7 +30,7 @@ DEFAULT_NULL_VALUES = {'none', 'null', 'nan', 'na', '', '\x00', '\x00\x00'}
 
 
 class MixedNulls(SingleDatasetCheck):
-    """Search for various types of null values in a string column(s), including string representations of null.
+    """Search for various types of null values, including string representations of null.
 
     Parameters
     ----------
@@ -79,7 +78,7 @@ class MixedNulls(SingleDatasetCheck):
         df = dataset.data
 
         df = select_from_dataframe(df, self.columns, self.ignore_columns)
-        null_string_list: set = self._validate_null_string_list(self.null_string_list, self.check_nan)
+        null_string_list: set = self._validate_null_string_list(self.null_string_list)
 
         # Result value
         display_array = []
@@ -87,14 +86,11 @@ class MixedNulls(SingleDatasetCheck):
 
         for column_name in list(df.columns):
             column_data = df[column_name]
-            # TODO: Modify this once Dataset type casting mechanism is done
-            if column_data.dtype != pd.StringDtype:
-                continue
             # Get counts of all values in series including NaNs, in sorted order of count
             column_counts: pd.Series = column_data.value_counts(dropna=False)
             # Filter out values not in the nulls list
             null_counts = {value: count for value, count in column_counts.items()
-                           if string_baseform(value) in null_string_list}
+                           if (self.check_nan and pd.isnull(value)) or (string_baseform(value) in null_string_list)}
             if len(null_counts) < 2:
                 continue
             # Save the column info
@@ -115,15 +111,14 @@ class MixedNulls(SingleDatasetCheck):
 
         return CheckResult(result_dict, display=display)
 
-    def _validate_null_string_list(self, nsl, check_nan: bool) -> set:
+    def _validate_null_string_list(self, nsl) -> set:
         """Validate the object given is a list of strings. If null is given return default list of null values.
 
         Parameters
         ----------
         nsl
             Object to validate
-        check_nan : bool
-            Whether to add to null list to check also NaN values
+
         Returns
         -------
         set
@@ -141,8 +136,6 @@ class MixedNulls(SingleDatasetCheck):
         else:
             # Default values
             result = set(DEFAULT_NULL_VALUES)
-        if check_nan is None or check_nan is True:
-            result.add(np.NaN)
 
         return result
 
