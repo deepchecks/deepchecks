@@ -181,6 +181,7 @@ def calc_drift_and_plot(train_column: pd.Series,
         width=700,
         height=400,
         title=dict(text=plot_title, x=0.5, xanchor='center'),
+        bargroupgap=0
     )
 
     fig.update_layout(shared_layout)

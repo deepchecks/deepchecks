@@ -152,15 +152,22 @@ def feature_distribution_traces(train_column,
     else:
         train_uniques, train_uniques_counts = np.unique(train_column, return_counts=True)
         test_uniques, test_uniques_counts = np.unique(test_column, return_counts=True)
+        x_range = (min(train_column.min(), test_column.min()), max(train_column.max(), test_column.max()))
 
         # If there are less than 20 total unique values, draw bar graph
         train_test_uniques = np.unique(np.concatenate([train_uniques, test_uniques]))
         if train_test_uniques.size < 20:
-            traces, y_layout = _create_distribution_bar_graphs(train_column, test_column, 20, bars_ratio=0.05)
-            xaxis_layout = dict(ticks='outside', tickmode='array', tickvals=train_test_uniques)
+            traces, y_layout = _create_distribution_bar_graphs(train_column, test_column, 20)
+            # In case of single value widen the range, else plotly draw the bars really wide.
+            if x_range[0] == x_range[1]:
+                x_range = (x_range[0] * 0.8, x_range[0] * 1.2)
+            # In case of multi values still widen the range, else plotly hide the bars in the edges.
+            else:
+                diff = x_range[1] - x_range[0]
+                x_range = (x_range[0] - diff * 0.1, x_range[1] + diff * 0.1)
+            xaxis_layout = dict(ticks='outside', tickmode='array', tickvals=train_test_uniques, range=x_range)
             return traces, xaxis_layout, y_layout
 
-        x_range = (min(train_column.min(), test_column.min()), max(train_column.max(), test_column.max()))
         x_range_to_show = (
             min(np.quantile(train_column, quantile_cut), np.quantile(test_column, quantile_cut)),
             max(np.quantile(train_column, 1 - quantile_cut), np.quantile(test_column, 1 - quantile_cut))
@@ -220,7 +227,7 @@ def _create_bars_data_for_mixed_kde_plot(counts: np.ndarray, max_kde_value: floa
     return counts * normalize_factor
 
 
-def _create_distribution_bar_graphs(train_column, test_column, max_num_categories: int, bars_ratio: float = None):
+def _create_distribution_bar_graphs(train_column, test_column, max_num_categories: int):
     expected_percents, actual_percents, categories_list = \
         preprocess_2_cat_cols_to_same_bins(dist1=train_column, dist2=test_column,
                                            max_num_categories=max_num_categories)
@@ -240,13 +247,6 @@ def _create_distribution_bar_graphs(train_column, test_column, max_num_categorie
 
     cat_df = cat_df.reindex(sorted(cat_df.index, key=cmp_to_key(sort_int_and_strings)))
 
-    if bars_ratio:
-        bounds = np.max(cat_df.index) - np.min(cat_df.index)
-        bars_width = bars_ratio * bounds
-        widths = [bars_width] * len(cat_df)
-    else:
-        widths = None
-
     train_bar = go.Bar(
         x=cat_df.index,
         y=cat_df['Train dataset'],
@@ -254,7 +254,6 @@ def _create_distribution_bar_graphs(train_column, test_column, max_num_categorie
             color=colors['Train'],
         ),
         name='Train Dataset',
-        width=widths,
     )
 
     test_bar = go.Bar(
@@ -264,7 +263,6 @@ def _create_distribution_bar_graphs(train_column, test_column, max_num_categorie
             color=colors['Test'],
         ),
         name='Test Dataset',
-        width=widths,
     )
 
     traces = [train_bar, test_bar]
