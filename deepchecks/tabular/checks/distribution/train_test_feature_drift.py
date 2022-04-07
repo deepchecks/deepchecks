@@ -13,7 +13,8 @@
 from collections import OrderedDict
 from typing import Union, List, Dict
 
-from deepchecks.core import ConditionResult, CheckResult
+from deepchecks.core.condition import ConditionResult
+from deepchecks.core.check_result import CheckResult
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck, Dataset
 from deepchecks.utils.distribution.drift import calc_drift_and_plot

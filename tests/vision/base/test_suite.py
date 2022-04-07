@@ -25,14 +25,13 @@ from hamcrest import (
     is_,
 )
 
-from deepchecks.core import CheckResult, DatasetKind
+from deepchecks.core.checks import DatasetKind
+from deepchecks.core.check_result import CheckResult
 from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError, DeepchecksNotSupportedError
 from deepchecks.vision.suites.default_suites import full_suite
-from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.base_checks import SingleDatasetCheck, TrainTestCheck, ModelOnlyCheck
 from deepchecks.vision.suite import Suite
 from deepchecks.vision.datasets.detection import coco
-from deepchecks.vision.datasets.classification import mnist
 from tests.conftest import get_expected_results_length, validate_suite_result
 
 

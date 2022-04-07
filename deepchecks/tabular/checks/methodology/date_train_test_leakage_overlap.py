@@ -10,7 +10,8 @@
 #
 """The date_leakage check module."""
 from deepchecks.tabular import Context, TrainTestCheck
-from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
+from deepchecks.core.check_result import CheckResult
+from deepchecks.core.condition import ConditionResult, ConditionCategory
 from deepchecks.utils.strings import format_percent, format_datetime
 
 

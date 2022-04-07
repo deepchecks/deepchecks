@@ -12,7 +12,7 @@
 import pandas as pd
 
 from deepchecks.tabular import Context, SingleDatasetCheck
-from deepchecks.core import CheckResult
+from deepchecks.core.check_result import CheckResult
 from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_dict
 
 

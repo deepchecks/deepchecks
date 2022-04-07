@@ -18,7 +18,8 @@ from plotly.express import imshow
 from queue import PriorityQueue
 from collections import defaultdict
 
-from deepchecks.core import CheckResult, DatasetKind
+from deepchecks.core.checks import DatasetKind
+from deepchecks.core.check_result import CheckResult
 from deepchecks.vision import SingleDatasetCheck, Context, Batch
 from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.metrics_utils.iou_utils import jaccard_iou

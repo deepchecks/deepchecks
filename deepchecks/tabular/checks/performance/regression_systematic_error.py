@@ -12,8 +12,8 @@
 import plotly.graph_objects as go
 from sklearn.metrics import mean_squared_error
 
-from deepchecks.core import CheckResult, ConditionResult
-from deepchecks.core.condition import ConditionCategory
+from deepchecks.core.check_result import CheckResult
+from deepchecks.core.condition import ConditionResult, ConditionCategory
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.strings import format_number
 

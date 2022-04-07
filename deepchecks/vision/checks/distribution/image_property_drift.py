@@ -14,9 +14,9 @@ from collections import defaultdict
 
 import pandas as pd
 
-from deepchecks.core import CheckResult
-from deepchecks.core import ConditionResult
-from deepchecks.core import DatasetKind
+from deepchecks.core.check_result import CheckResult
+from deepchecks.core.condition import ConditionResult
+from deepchecks.core.checks import DatasetKind
 from deepchecks.core.errors import NotEnoughSamplesError, DeepchecksValueError
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.utils.distribution.drift import calc_drift_and_plot

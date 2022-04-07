@@ -18,7 +18,7 @@ import torch
 from ignite.engine import Engine
 from ignite.metrics import Precision, Recall, Metric
 
-from deepchecks.core import DatasetKind
+from deepchecks.core.checks import DatasetKind
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.vision.metrics_utils.object_detection_precision_recall import ObjectDetectionAveragePrecision
 

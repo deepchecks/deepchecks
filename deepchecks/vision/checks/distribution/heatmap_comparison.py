@@ -19,7 +19,8 @@ import numpy as np
 import plotly.graph_objs as go
 
 from deepchecks.vision.utils.image_functions import numpy_grayscale_to_heatmap_figure, apply_heatmap_image_properties
-from deepchecks.core import DatasetKind, CheckResult
+from deepchecks.core.checks import DatasetKind
+from deepchecks.core.check_result import CheckResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision import Context, TrainTestCheck, Batch
 from deepchecks.vision.vision_data import TaskType, VisionData

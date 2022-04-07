@@ -17,8 +17,8 @@ from numbers import Number
 import numpy as np
 
 from deepchecks.utils.strings import format_number
-from deepchecks import CheckResult
-from deepchecks.core import DatasetKind
+from deepchecks.core.check_result import CheckResult
+from deepchecks.core.checks import DatasetKind
 from deepchecks.core.errors import DeepchecksProcessError, NotEnoughSamplesError, DeepchecksValueError
 from deepchecks.utils.outliers import iqr_outliers_range
 from deepchecks.vision import SingleDatasetCheck, Context, Batch

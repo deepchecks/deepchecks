@@ -13,7 +13,8 @@ from typing import Union, List
 
 import pandas as pd
 
-from deepchecks.core import ConditionResult, CheckResult, ConditionCategory
+from deepchecks.core.check_result import CheckResult
+from deepchecks.core.condition import ConditionResult, ConditionCategory
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable

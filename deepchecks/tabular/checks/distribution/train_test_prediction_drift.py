@@ -14,9 +14,9 @@ from typing import Dict
 
 import pandas as pd
 
-from deepchecks import ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck
-from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.core.check_result import CheckResult
+from deepchecks.core.condition import ConditionCategory, ConditionResult
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 
 

@@ -15,8 +15,9 @@ from typing import TypeVar, Tuple
 
 import pandas as pd
 
-from deepchecks.core import CheckResult, ConditionResult, DatasetKind
-from deepchecks.core.condition import ConditionCategory
+from deepchecks.core.condition import ConditionCategory, ConditionResult
+from deepchecks.core.checks import DatasetKind
+from deepchecks.core.check_result import CheckResult
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import SingleDatasetCheck, Context, Batch
 from deepchecks.vision.metrics_utils.object_detection_precision_recall import ObjectDetectionAveragePrecision

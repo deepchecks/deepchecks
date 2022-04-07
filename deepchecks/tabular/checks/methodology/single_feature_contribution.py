@@ -12,7 +12,8 @@
 import typing as t
 
 import deepchecks.ppscore as pps
-from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
+from deepchecks.core.check_result import CheckResult
+from deepchecks.core.condition import ConditionResult, ConditionCategory
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.plot import create_colorbar_barchart_for_check
 from deepchecks.utils.typing import Hashable

@@ -25,6 +25,7 @@ from pandas.core.dtypes.common import is_numeric_dtype
 
 import deepchecks
 from deepchecks import core
+from deepchecks.core.checks import BaseCheck
 from deepchecks.utils.typing import Hashable
 
 
@@ -94,7 +95,7 @@ def get_docs_summary(obj, with_doc_link: bool = True):
 
 def _generate_check_docs_link_html(check):
     """Create from check object a link to its example page in the docs."""
-    if not isinstance(check, core.BaseCheck):
+    if not isinstance(check, BaseCheck):
         return ''
 
     module_path = type(check).__module__

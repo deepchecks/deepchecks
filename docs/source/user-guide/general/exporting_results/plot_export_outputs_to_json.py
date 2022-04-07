@@ -58,7 +58,7 @@ result.value
 # See Check JSON Structure
 # ------------------------
 
-from deepchecks.core import CheckResult
+from deepchecks.core.check_result import CheckResult
 
 help(CheckResult.to_json)
 
@@ -107,7 +107,7 @@ suite_json = suite_result.to_json()
 # Observe Suite's JSON Strucutre
 # ------------------------------
 
-from deepchecks.core import SuiteResult
+from deepchecks.core.suite import SuiteResult
 
 help(SuiteResult.to_json)
 

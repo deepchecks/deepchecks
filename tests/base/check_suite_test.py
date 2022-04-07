@@ -12,7 +12,7 @@
 import random
 from hamcrest import assert_that, calling, raises, equal_to, is_
 
-from deepchecks.core import CheckResult
+from deepchecks.core.check_result import CheckResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Suite, SingleDatasetCheck, TrainTestCheck
 from deepchecks.tabular import checks as tabular_checks

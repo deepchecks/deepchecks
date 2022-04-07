@@ -10,14 +10,6 @@
 #
 """Module containing the check results classes."""
 # pylint: disable=broad-except
-from deepchecks.core.condition import Condition, ConditionCategory, ConditionResult
-from deepchecks.core.display_pandas import dataframe_to_html, get_conditions_table
-from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.utils.dataframes import un_numpy
-from deepchecks.utils.strings import get_docs_summary
-from deepchecks.utils.ipython import is_notebook
-from deepchecks.utils.wandb_utils import set_wandb_run_state
-
 import base64
 import io
 import traceback
@@ -38,6 +30,13 @@ from matplotlib import pyplot as plt
 from IPython.display import display_html
 from pandas.io.formats.style import Styler
 
+from deepchecks.core.condition import Condition, ConditionCategory, ConditionResult
+from deepchecks.core.display_pandas import dataframe_to_html, get_conditions_table
+from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.utils.dataframes import un_numpy
+from deepchecks.utils.strings import get_docs_summary
+from deepchecks.utils.ipython import is_notebook
+from deepchecks.utils.wandb_utils import set_wandb_run_state
 
 # registers jsonpickle pandas extension for pandas support in the to_json function
 jsonpickle_pd.register_handlers()

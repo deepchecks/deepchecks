@@ -14,7 +14,7 @@ from sklearn.calibration import calibration_curve
 from sklearn.metrics import brier_score_loss
 import plotly.graph_objects as go
 
-from deepchecks.core import CheckResult
+from deepchecks.core.check_result import CheckResult
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.typing import ClassificationModel
 

@@ -17,7 +17,9 @@ import plotly.express as px
 import torch
 from ignite.metrics import Metric
 
-from deepchecks.core import CheckResult, DatasetKind, ConditionResult, ConditionCategory
+from deepchecks.core.condition import ConditionCategory, ConditionResult
+from deepchecks.core.checks import DatasetKind
+from deepchecks.core.check_result import CheckResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils import plot
 from deepchecks.utils.metrics import get_gain

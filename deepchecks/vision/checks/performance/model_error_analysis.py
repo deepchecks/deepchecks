@@ -15,7 +15,8 @@ from collections import defaultdict
 import pandas as pd
 import torch
 
-from deepchecks.core import CheckResult, DatasetKind
+from deepchecks.core.checks import DatasetKind
+from deepchecks.core.check_result import CheckResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.performance.error_model import error_model_display_dataframe, model_error_contribution
 from deepchecks.utils.single_sample_metrics import per_sample_cross_entropy

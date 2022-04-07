@@ -8,35 +8,5 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module for base classes.
-
-Import objects to be available in parent deepchecks module.
-"""
-from .suite import BaseSuite, SuiteResult
-from .condition import Condition, ConditionResult, ConditionCategory
-from .check_result import (
-    CheckResult,
-    CheckFailure,
-)
-from .checks import (
-    DatasetKind,
-    BaseCheck,
-    SingleDatasetBaseCheck,
-    TrainTestBaseCheck,
-    ModelOnlyBaseCheck,
-)
-
-__all__ = [
-    'BaseCheck',
-    'CheckResult',
-    'CheckFailure',
-    'Condition',
-    'ConditionResult',
-    'ConditionCategory',
-    'BaseSuite',
-    'SuiteResult',
-    'SingleDatasetBaseCheck',
-    'TrainTestBaseCheck',
-    'ModelOnlyBaseCheck',
-    'DatasetKind'
-]
+"""Module for base classes."""
+__all__ = []

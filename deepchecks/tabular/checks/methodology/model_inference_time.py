@@ -14,9 +14,9 @@ import timeit
 
 import numpy as np
 
-from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular import Context, SingleDatasetCheck
-from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.core.check_result import CheckResult
+from deepchecks.core.condition import ConditionResult, ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_number
 

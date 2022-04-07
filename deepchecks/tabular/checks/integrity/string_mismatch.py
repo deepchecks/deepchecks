@@ -16,7 +16,8 @@ from typing import Union, List
 import pandas as pd
 
 from deepchecks.tabular import Context, SingleDatasetCheck
-from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
+from deepchecks.core.check_result import CheckResult
+from deepchecks.core.condition import ConditionResult, ConditionCategory
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.utils.typing import Hashable

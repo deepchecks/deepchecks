@@ -13,7 +13,8 @@ import plotly.express as px
 import pandas as pd
 from scipy.stats import kurtosis
 
-from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
+from deepchecks.core.check_result import CheckResult
+from deepchecks.core.condition import ConditionResult, ConditionCategory
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.strings import format_number
 

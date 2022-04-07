@@ -13,7 +13,7 @@ from typing import Tuple, Iterable, Any, TypeVar, Callable, cast, TYPE_CHECKING
 
 import torch
 
-from deepchecks.core import DatasetKind
+from deepchecks.core.checks import DatasetKind
 
 if TYPE_CHECKING:
     from deepchecks.vision.context import Context

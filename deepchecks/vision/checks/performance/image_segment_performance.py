@@ -19,9 +19,9 @@ import torch
 from ignite.metrics import Metric
 import plotly.express as px
 
-from deepchecks import ConditionResult
-from deepchecks.core import DatasetKind, CheckResult
-from deepchecks.core.condition import ConditionCategory
+from deepchecks.core.condition import ConditionCategory, ConditionResult
+from deepchecks.core.checks import DatasetKind
+from deepchecks.core.check_result import CheckResult
 from deepchecks.utils import plot
 from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.vision import SingleDatasetCheck, Context, Batch

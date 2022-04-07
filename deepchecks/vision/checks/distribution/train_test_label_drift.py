@@ -14,10 +14,11 @@ from typing import Dict, List, Any
 import pandas as pd
 from collections import OrderedDict, defaultdict
 
-from deepchecks.core import ConditionResult
+from deepchecks.core.condition import ConditionResult
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
-from deepchecks.core import DatasetKind, CheckResult
+from deepchecks.core.checks import DatasetKind
+from deepchecks.core.check_result import CheckResult
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.vision import Context, TrainTestCheck, Batch
 from deepchecks.vision.vision_data import TaskType

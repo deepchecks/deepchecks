@@ -21,7 +21,8 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import RobustScaler, OrdinalEncoder
 
-from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
+from deepchecks.core.check_result import CheckResult
+from deepchecks.core.condition import ConditionResult, ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck, Dataset
 from deepchecks.utils.function import run_available_kwargs
 from deepchecks.utils.typing import BasicModel

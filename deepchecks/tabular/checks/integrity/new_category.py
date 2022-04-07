@@ -12,7 +12,8 @@
 from typing import Union, List, Dict
 import pandas as pd
 
-from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
+from deepchecks.core.check_result import CheckResult
+from deepchecks.core.condition import ConditionResult, ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
