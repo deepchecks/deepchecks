@@ -122,16 +122,15 @@ def _generate_check_docs_link_html(check):
     # compare check full name and link to the notebook to
     # understand how link is formatted:
     #
-    # - deepchecks.tabular.checks.integrity.new_category.CategoryMismatchTrainTest
-    # - docs.deepchecks.com/{version}/examples/tabular/checks/integrity/category_mismatch_train_test.html # noqa: E501 # pylint: disable=line-too-long
+    # - deepchecks.tabular.checks.integrity.StringMismatchComparison
+    # - https://docs.deepchecks.com/{version}/examples/tabular/checks/integrity/examples/plot_string_mismatch_comparison.html # noqa: E501 # pylint: disable=line-too-long
 
     # Remove deepchecks from the start
     module_path = module_path[len('deepchecks.'):]
-    # There is a bug in doc rendering where the "tabular" is omitted, so do it for now
-    if module_path.startswith('tabular.'):
-        module_path = module_path[len('tabular.'):]
-
-    url = '/'.join([*module_path.split('.')])
+    module_parts = module_path.split('.')
+    module_parts[-1] = f'plot_{module_parts[-1]}'
+    module_parts.insert(len(module_parts) - 1, 'examples')
+    url = '/'.join([*module_parts])
     version = deepchecks.__version__ or 'stable'
     link = link_template.format(version=version, path=url)
     return f' <a href="{link}" target="_blank">Read More...</a>'
