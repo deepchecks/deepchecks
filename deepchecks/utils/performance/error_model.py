@@ -128,7 +128,7 @@ def error_model_display(error_fi: pd.Series,
     dataset : tabular.Dataset
         Dataset to create display from
     model : Optional[Any]
-        Originial model for calculating the score on tabular data (Must come with scorer)
+        Original model for calculating the score on tabular data (Must come with scorer)
     scorer : Optional[Callable]
         Scorer to calculate the output values of the segments (Must come with model)
     max_features_to_show : int
@@ -179,9 +179,14 @@ def error_model_display(error_fi: pd.Series,
 
             # Partition data into two groups - weak and ok:
 
-            in_segment_indicis = cum_sum_ratio <= min_segment_size
-            weak_categories = error_per_segment_ser.index[in_segment_indicis]
-            ok_categories = error_per_segment_ser.index[~in_segment_indicis]
+            # In cum_sum_ratio the index is the categories sorted from "weakest" (the highest model error) to
+            # strongest, and the value is the cumulative fraction of all data.
+            # The weak segment contains all the weakest categories until they reach together a fraction of data of at
+            # least min_segment_size.
+            first_weakest_category_to_pass_min_segment_size = np.where(cum_sum_ratio.values >= min_segment_size)[0][0]
+            in_segment_indices = np.arange(len(cum_sum_ratio)) <= first_weakest_category_to_pass_min_segment_size
+            weak_categories = error_per_segment_ser.index[in_segment_indices]
+            ok_categories = error_per_segment_ser.index[~in_segment_indices]
 
             # Calculate score for each group and assign label and color
             if scorer:
