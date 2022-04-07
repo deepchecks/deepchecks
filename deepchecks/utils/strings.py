@@ -94,8 +94,7 @@ def get_docs_summary(obj, with_doc_link: bool = True):
 
 def _generate_check_docs_link_html(check):
     """Create from check object a link to its example page in the docs."""
-    if not isinstance(check, core.checks.BaseCheck
-):
+    if not isinstance(check, core.checks.BaseCheck):
         return ''
 
     module_path = type(check).__module__
