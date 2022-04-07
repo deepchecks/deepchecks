@@ -181,7 +181,8 @@ def error_model_display(error_fi: pd.Series,
 
             # The weak segment is all the weakest categories accumulated together until they comprise at least
             # min_segment_size of the total data.
-            in_segment_indicis = np.arange((cum_sum_ratio >= min_segment_size)[0])
+            first_weakest_category_to_pass_min_segment_size = np.where(cum_sum_ratio.values >= min_segment_size)[0][0]
+            in_segment_indicis = np.arange(len(cum_sum_ratio)) <= first_weakest_category_to_pass_min_segment_size
             weak_categories = error_per_segment_ser.index[in_segment_indicis]
             ok_categories = error_per_segment_ser.index[~in_segment_indicis]
 
