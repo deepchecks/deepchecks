@@ -20,6 +20,7 @@ from deepchecks.core.errors import ValidationError
 from deepchecks.utils.ipython import is_headless, is_notebook
 from deepchecks.utils.strings import create_new_file_name
 from deepchecks.vision.utils.detection_formatters import DEFAULT_PREDICTION_FORMAT
+from deepchecks.vision.batch_wrapper import apply_to_tensor
 from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.utils.image_functions import ensure_image, draw_bboxes, prepare_thumbnail
 from deepchecks.vision.vision_data import VisionData
@@ -68,7 +69,7 @@ def validate_extractors(dataset: VisionData, model, device=None, image_save_loca
         if the value is True.
     """
     print('Deepchecks will try to validate the extractors given...')
-    batch = next(iter(dataset.data_loader))
+    batch = apply_to_tensor(next(iter(dataset.data_loader)), lambda it: it.to(device))
     images = None
     labels = None
     predictions = None
