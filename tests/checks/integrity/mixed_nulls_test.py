@@ -109,15 +109,25 @@ def test_numeric_column_nulls():
     assert_that(result.value, has_entry('col1', has_length(3)))
 
 
+def test_numeric_column_nulls_with_none():
+    # Arrange
+    data = {'col1': [1, 2, np.NaN, pd.NA, pd.NaT, None]}
+    dataframe = pd.DataFrame(data=data)
+    # Act
+    result = MixedNulls().run(dataframe)
+    # Assert
+    assert_that(result.value, has_entry('col1', has_length(4)))
+
+
 def test_mix_value_columns():
     # Arrange
-    data = {'col1': [1, 2, np.NaN, pd.NA, pd.NaT], 'col2': ['foo', 'bar', 'Nan', 'nan', 'NaN']}
+    data = {'col1': [1, 2, np.NaN, pd.NA, pd.NaT, 3], 'col2': ['foo', 'bar', 'Nan', 'nan', 'NaN', None]}
     dataframe = pd.DataFrame(data=data)
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
     assert_that(result.value, has_entry('col1', has_length(3)))
-    assert_that(result.value, has_entry('col2', has_length(3)))
+    assert_that(result.value, has_entry('col2', has_length(4)))
 
 
 def test_single_column_nulls_with_special_characters():
