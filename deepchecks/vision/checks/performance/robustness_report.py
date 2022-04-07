@@ -21,8 +21,8 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from ignite.metrics import Metric
 
-from deepchecks.core.check_result import CheckResult
-from deepchecks.core.condition import ConditionCategory, ConditionResult
+from deepchecks import CheckResult, ConditionResult
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils import plot
 from deepchecks.vision import VisionData, SingleDatasetCheck, Context, Batch
