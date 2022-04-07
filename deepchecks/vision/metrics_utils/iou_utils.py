@@ -27,18 +27,21 @@ def jaccard_iou(dt, gt):
     x2_gt, y2_gt = x_gt + w_gt, y_gt + h_gt
 
     # innermost left x
-    xi = max(x_dt, x_gt)
+    xi = x_dt if x_dt > x_gt else x_gt
     # innermost right x
-    x2i = min(x2_dt, x2_gt)
+    x2i = x2_dt if x2_dt < x2_gt else x2_gt
     # same for y
-    yi = max(y_dt, y_gt)
-    y2i = min(y2_dt, y2_gt)
+    yi = y_dt if y_dt > y_gt else y_gt
+    y2i = y2_dt if y2_dt < y2_gt else y2_gt
 
     # calculate areas
-    dt_area = float(w_dt * h_dt)
-    gt_area = float(w_gt * h_gt)
-    intersection = float(max(x2i - xi, 0)) * float(max(y2i - yi, 0))
-    return float(intersection / (dt_area + gt_area - intersection))
+    dt_area = w_dt * h_dt
+    gt_area = w_gt * h_gt
+    iwidth = x2i - xi if x2i > xi else 0
+    ihight = y2i - yi if y2i > yi else 0
+    intersection = iwidth * ihight
+    return intersection / (dt_area + gt_area - intersection)
+
 
 
 def compute_pairwise_ious(detected, ground_truth, iou_func):
