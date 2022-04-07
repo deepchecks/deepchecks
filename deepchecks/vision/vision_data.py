@@ -316,7 +316,7 @@ class VisionData:
         ----------
         n_samples : int , default: None
             take only this number of samples to the copied DataLoader. The samples which will be chosen are affected
-            by random_state (fixed random state will return consistent sampels).
+            by random_state (fixed random state will return consistent samples).
         shuffle : bool, default: False
             Whether to shuffle the samples order. The shuffle is affected random_state (fixed random state will return
             consistent order)
