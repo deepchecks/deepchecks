@@ -21,11 +21,11 @@ deepchecks.core
     :caption: Classes
     :toctree: generated
 
-    checks.BaseCheck
-    check_result.CheckResult
-    check_result.CheckFailure
-    condition.Condition
-    condition.ConditionResult
-    condition.ConditionCategory
-    suite.BaseSuite
-    suite.SuiteResult
+    BaseCheck
+    CheckResult
+    CheckFailure
+    Condition
+    ConditionResult
+    ConditionCategory
+    BaseSuite
+    SuiteResult
