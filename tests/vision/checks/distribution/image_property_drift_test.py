@@ -24,6 +24,7 @@ from hamcrest import (
 )
 
 from deepchecks.core.check_result import CheckResult
+from deepchecks.core.errors import DeepchecksValueError
 
 from deepchecks.vision.utils.image_properties import default_image_properties
 from deepchecks.vision.checks.distribution import ImagePropertyDrift
