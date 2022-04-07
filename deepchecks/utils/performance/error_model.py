@@ -179,12 +179,14 @@ def error_model_display(error_fi: pd.Series,
 
             # Partition data into two groups - weak and ok:
 
-            # The weak segment is all the weakest categories accumulated together until they comprise at least
-            # min_segment_size of the total data.
+            # In cum_sum_ratio the index is the categories sorted from "weakest" (the highest model error) to
+            # strongest, and the value is the cumulative fraction of all data.
+            # The weak segment contains all the weakest categories until they reach together a fraction of data of at
+            # least min_segment_size.
             first_weakest_category_to_pass_min_segment_size = np.where(cum_sum_ratio.values >= min_segment_size)[0][0]
-            in_segment_indicis = np.arange(len(cum_sum_ratio)) <= first_weakest_category_to_pass_min_segment_size
-            weak_categories = error_per_segment_ser.index[in_segment_indicis]
-            ok_categories = error_per_segment_ser.index[~in_segment_indicis]
+            in_segment_indices = np.arange(len(cum_sum_ratio)) <= first_weakest_category_to_pass_min_segment_size
+            weak_categories = error_per_segment_ser.index[in_segment_indices]
+            ok_categories = error_per_segment_ser.index[~in_segment_indices]
 
             # Calculate score for each group and assign label and color
             if scorer:
