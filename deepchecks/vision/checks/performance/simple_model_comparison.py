@@ -183,7 +183,7 @@ class SimpleModelComparison(TrainTestCheck):
             facet_col='Metric',
             facet_col_spacing=0.05,
             hover_data=['Number of samples'],
-            title=f"Simple Model (Strategy: {self.strategy}) vs. Given Model",
+            title=f'Simple Model (Strategy: {self.strategy}) vs. Given Model',
         )
 
         fig = (
