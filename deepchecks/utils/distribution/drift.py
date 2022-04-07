@@ -145,7 +145,6 @@ def calc_drift_and_plot(train_column: pd.Series,
         bar_traces, bar_x_axis, bar_y_axis = drift_score_bar_traces(score)
 
         dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(train_dist, test_dist, value_name)
-
     elif column_type == 'categorical':
         scorer_name = 'PSI'
         expected_percents, actual_percents, _ = \
@@ -153,20 +152,16 @@ def calc_drift_and_plot(train_column: pd.Series,
         score = psi(expected_percents=expected_percents, actual_percents=actual_percents)
 
         bar_traces, bar_x_axis, bar_y_axis = drift_score_bar_traces(score, bar_max=1)
-        dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(train_dist, test_dist, value_name,
-                                                                            is_categorical=True,
-                                                                            max_num_categories=max_num_categories)
+        dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(
+            train_dist, test_dist, value_name, is_categorical=True, max_num_categories=max_num_categories
+        )
     else:
         # Should never reach here
         raise DeepchecksValueError(f'Unsupported column type for drift: {column_type}')
 
-    dist_trace_type = 'table' if dist_traces[0].type == 'table' else 'xy'
-    dist_trace_title = 'Single Value in Datasets' if dist_trace_type == 'table' else 'Distribution Plot'
-
     fig = make_subplots(rows=2, cols=1, vertical_spacing=0.2, shared_yaxes=False, shared_xaxes=False,
                         row_heights=[0.1, 0.9],
-                        subplot_titles=[f'Drift Score ({scorer_name})', dist_trace_title],
-                        specs=[[{'type': 'xy'}], [{'type': dist_trace_type}]])
+                        subplot_titles=[f'Drift Score ({scorer_name})', 'Distribution Plot'])
 
     fig.add_traces(bar_traces, rows=[1] * len(bar_traces), cols=[1] * len(bar_traces))
     fig.add_traces(dist_traces, rows=[2] * len(dist_traces), cols=[1] * len(dist_traces))
@@ -185,7 +180,7 @@ def calc_drift_and_plot(train_column: pd.Series,
             y=0.6),
         width=700,
         height=400,
-        title=dict(text=plot_title, x=0.5, xanchor='center')
+        title=dict(text=plot_title, x=0.5, xanchor='center'),
     )
 
     fig.update_layout(shared_layout)

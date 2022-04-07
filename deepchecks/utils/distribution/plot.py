@@ -142,62 +142,23 @@ def feature_distribution_traces(train_column,
         layout of x axis
     Dict
         layout of y axis
+    Dict
+        general layout
     """
     if is_categorical:
-        expected_percents, actual_percents, categories_list = \
-            preprocess_2_cat_cols_to_same_bins(dist1=train_column, dist2=test_column,
-                                               max_num_categories=max_num_categories)
-        # fixes plotly widget bug with numpy values by converting them to native values
-        # https://github.com/plotly/plotly.py/issues/3470
-        categories_list = [un_numpy(cat) for cat in categories_list]
-        cat_df = pd.DataFrame({'Train dataset': expected_percents, 'Test dataset': actual_percents},
-                              index=categories_list)
-
-        # Creating sorting function which works on both numbers and strings
-        def sort_int_and_strings(a, b):
-            # If both numbers or both same type using regular operator
-            if a.__class__ == b.__class__ or (isinstance(a, Number) and isinstance(b, Number)):
-                return -1 if a < b else 1
-            # Sort numbers before strings
-            return -1 if isinstance(a, Number) else 1
-        cat_df = cat_df.reindex(sorted(cat_df.index, key=cmp_to_key(sort_int_and_strings)))
-
-        train_bar = go.Bar(
-            x=cat_df.index,
-            y=cat_df['Train dataset'],
-            marker=dict(
-                color=colors['Train'],
-            ),
-            name='Train Dataset',
-        )
-
-        test_bar = go.Bar(
-            x=cat_df.index,
-            y=cat_df['Test dataset'],
-            marker=dict(
-                color=colors['Test'],
-            ),
-            name='Test Dataset',
-        )
-
-        traces = [train_bar, test_bar]
-
-        max_y = max(*expected_percents, *actual_percents)
-        y_lim = 1 if max_y > 0.5 else max_y * 1.1
-
+        traces, y_layout = _create_bar_graphs(train_column, test_column, max_num_categories)
         xaxis_layout = dict(type='category')
-        yaxis_layout = dict(fixedrange=True,
-                            range=(0, y_lim),
-                            title='Percentage')
-
+        return traces, xaxis_layout, y_layout
     else:
-        is_train_single_value = train_column.min() == train_column.max()
-        is_test_single_value = test_column.min() == test_column.max()
-        # If both columns are single value, then return a table instead of graph
-        if is_train_single_value and is_test_single_value:
-            table = go.Table(header=dict(values=['Train Dataset Value', 'Test Dataset Value']),
-                             cells=dict(values=[[train_column[0]], [test_column[0]]]))
-            return [table], {}, {}
+        train_uniques, train_uniques_counts = np.unique(train_column, return_counts=True)
+        test_uniques, test_uniques_counts = np.unique(test_column, return_counts=True)
+
+        # If there are less than 20 uniques total draw bar graph
+        train_test_uniques = np.unique(np.concatenate([train_uniques, test_uniques]))
+        if train_test_uniques.size < 20:
+            traces, y_layout = _create_bar_graphs(train_column, test_column, 20, bars_ratio=0.05)
+            xaxis_layout = dict(ticks="outside", tickmode='array', tickvals=train_test_uniques)
+            return traces, xaxis_layout, y_layout
 
         x_range = (min(train_column.min(), test_column.min()), max(train_column.max(), test_column.max()))
         x_range_to_show = (
@@ -214,33 +175,32 @@ def feature_distribution_traces(train_column,
 
         train_density = get_density(train_column, xs)
         test_density = get_density(test_column, xs)
+        bars_width = (x_range_to_show[1] - x_range_to_show[0]) / 100
 
         traces = []
-        if is_train_single_value:
-            traces.append(go.Scatter(
-                x=[train_column.min()] * 2,
-                # Draw the line a bit higher than the max value of test density
-                y=[0, np.max(test_density) * 1.1],
-                line=dict(
-                    color=hex_to_rgba(colors['Train'], 0.7),
+        if train_uniques.size <= 5:
+            traces.append(go.Bar(
+                x=train_uniques,
+                y=_create_bars_data_for_mixed_kde_plot(train_uniques_counts, np.max(test_density)),
+                width=[bars_width] * train_uniques.size,
+                marker=dict(
+                    color=colors['Train'],
                 ),
                 name='Train Dataset',
-                mode='lines'
             ))
         else:
             traces.append(go.Scatter(x=xs, y=train_density, fill='tozeroy', name='Train Dataset',
                           line_color=colors['Train']))
 
-        if is_test_single_value:
-            traces.append(go.Scatter(
-                x=[test_column.min()] * 2,
-                # Draw the line a bit higher than the max value of train density
-                y=[0, np.max(train_density) * 1.1],
-                line=dict(
-                    color=hex_to_rgba(colors['Test'], 0.7),
+        if test_uniques.size <= 5:
+            traces.append(go.Bar(
+                x=test_uniques,
+                y=_create_bars_data_for_mixed_kde_plot(test_uniques_counts, np.max(train_density)),
+                width=[bars_width] * test_uniques.size,
+                marker=dict(
+                    color=colors['Test']
                 ),
                 name='Test Dataset',
-                mode='lines'
             ))
         else:
             traces.append(go.Scatter(x=xs, y=test_density, fill='tozeroy', name='Test Dataset',
@@ -250,5 +210,70 @@ def feature_distribution_traces(train_column,
                             range=x_range_to_show,
                             title=column_name)
         yaxis_layout = dict(title='Probability Density', fixedrange=True)
+        return traces, xaxis_layout, yaxis_layout
 
-    return traces, xaxis_layout, yaxis_layout
+
+def _create_bars_data_for_mixed_kde_plot(counts: np.ndarray, max_kde_value: float):
+    """When showing a mixed KDE and bar plot, we want the bars to be on the same scale of y-values as the KDE values,
+    so we normalize the counts to sum to 4 times the max KDE value."""
+    normalize_factor = 4 * max_kde_value / np.sum(counts)
+    return counts * normalize_factor
+
+
+def _create_bar_graphs(train_column, test_column, max_num_categories: int, bars_ratio: float = None):
+    expected_percents, actual_percents, categories_list = \
+        preprocess_2_cat_cols_to_same_bins(dist1=train_column, dist2=test_column,
+                                           max_num_categories=max_num_categories)
+    # fixes plotly widget bug with numpy values by converting them to native values
+    # https://github.com/plotly/plotly.py/issues/3470
+    categories_list = [un_numpy(cat) for cat in categories_list]
+    cat_df = pd.DataFrame({'Train dataset': expected_percents, 'Test dataset': actual_percents},
+                          index=categories_list)
+
+    # Creating sorting function which works on both numbers and strings
+    def sort_int_and_strings(a, b):
+        # If both numbers or both same type using regular operator
+        if a.__class__ == b.__class__ or (isinstance(a, Number) and isinstance(b, Number)):
+            return -1 if a < b else 1
+        # Sort numbers before strings
+        return -1 if isinstance(a, Number) else 1
+
+    cat_df = cat_df.reindex(sorted(cat_df.index, key=cmp_to_key(sort_int_and_strings)))
+
+    if bars_ratio:
+        bounds = np.max(cat_df.index) - np.min(cat_df.index)
+        bars_width = bars_ratio * bounds
+        widths = [bars_width] * len(cat_df)
+    else:
+        widths = None
+
+    train_bar = go.Bar(
+        x=cat_df.index,
+        y=cat_df['Train dataset'],
+        marker=dict(
+            color=colors['Train'],
+        ),
+        name='Train Dataset',
+        width=widths,
+    )
+
+    test_bar = go.Bar(
+        x=cat_df.index,
+        y=cat_df['Test dataset'],
+        marker=dict(
+            color=colors['Test'],
+        ),
+        name='Test Dataset',
+        width=widths,
+    )
+
+    traces = [train_bar, test_bar]
+
+    max_y = max(*expected_percents, *actual_percents)
+    y_lim = 1 if max_y > 0.5 else max_y * 1.1
+
+    yaxis_layout = dict(fixedrange=True,
+                        range=(0, y_lim),
+                        title='Percentage')
+
+    return traces, yaxis_layout
