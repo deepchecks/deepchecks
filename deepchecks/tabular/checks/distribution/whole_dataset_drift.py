@@ -91,7 +91,6 @@ class WholeDatasetDrift(TrainTestCheck):
         """
         train_dataset = context.train
         test_dataset = context.test
-        features = train_dataset.features
         cat_features = train_dataset.cat_features
         numerical_features = train_dataset.numerical_features
 
@@ -104,8 +103,8 @@ class WholeDatasetDrift(TrainTestCheck):
         </span>
         """
 
-        values_dict, displays = run_whole_dataset_drift(train_dataframe=train_dataset.data[features],
-                                                        test_dataframe=test_dataset.data[features],
+        values_dict, displays = run_whole_dataset_drift(train_dataframe=train_dataset.features_columns,
+                                                        test_dataframe=test_dataset.features_columns,
                                                         numerical_features=numerical_features,
                                                         cat_features=cat_features,
                                                         sample_size=sample_size, random_state=self.random_state,

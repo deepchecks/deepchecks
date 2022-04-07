@@ -37,7 +37,7 @@ def test_classification(mnist_dataset_train, mnist_dataset_test, device):
     check = HeatmapComparison()
 
     # Act
-    result = check.run(mnist_dataset_train, mnist_dataset_test, device=device)
+    result = check.run(mnist_dataset_train, mnist_dataset_test, device=device, n_samples=None)
 
     # Assert
     brightness_diff = result.value["diff"]
@@ -50,7 +50,7 @@ def test_classification_limit_classes(mnist_dataset_train, mnist_dataset_test, d
     check = HeatmapComparison(classes_to_display=['9'])
 
     # Act
-    result = check.run(mnist_dataset_train, mnist_dataset_test, device=device)
+    result = check.run(mnist_dataset_train, mnist_dataset_test, device=device, n_samples=None)
 
     # Assert
     brightness_diff = result.value["diff"]
@@ -92,7 +92,7 @@ def test_custom_task(mnist_train_custom_task, mnist_test_custom_task, device):
     check = HeatmapComparison()
 
     # Act
-    result = check.run(mnist_train_custom_task, mnist_test_custom_task, device=device)
+    result = check.run(mnist_train_custom_task, mnist_test_custom_task, device=device, n_samples=None)
 
     # Assert
     brightness_diff = result.value["diff"]

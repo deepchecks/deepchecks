@@ -156,7 +156,7 @@ can be found in our `API Reference`_.
    train_df = pd.read_csv('train_data.csv')
    test_df = pd.read_csv('test_data.csv')
    # Initialize and run desired check
-   TrainTestFeatureDrift().run(train_data, test_data)
+   TrainTestFeatureDrift().run(train_df, test_df)
 
 Will produce output of the type:
 

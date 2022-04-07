@@ -2,6 +2,7 @@
 """
 Simple Feature Contribution
 ***************************
+
 This notebook provides an overview for using and understanding the "Single Feature
 Contribution Train Test" check.
 
@@ -181,7 +182,7 @@ check = SimpleFeatureContribution()
 check.run(train_ds, test_ds)
 
 #%%
-# Insert bais
+# Insert bias
 # -----------
 # Let's now see what happens when we insert bias into the dataset.
 #

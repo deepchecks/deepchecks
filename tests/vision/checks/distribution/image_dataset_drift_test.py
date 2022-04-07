@@ -33,7 +33,7 @@ def test_no_drift_grayscale(mnist_dataset_train, device):
     check = ImageDatasetDrift()
 
     # Act
-    result = check.run(train, test, random_state=42, device=device)
+    result = check.run(train, test, random_state=42, device=device, n_samples=None)
     # Assert
     assert_that(result.value, has_entries({
         'domain_classifier_auc': close_to(0.479, 0.001),
@@ -55,7 +55,7 @@ def test_drift_grayscale(mnist_dataset_train, mnist_dataset_test, device):
     check = ImageDatasetDrift()
 
     # Act
-    result = check.run(train, test, random_state=42, device=device)
+    result = check.run(train, test, random_state=42, device=device, n_samples=None)
     # Assert
     assert_that(result.value, has_entries({
         'domain_classifier_auc': close_to(0.516, 0.001),

@@ -256,17 +256,25 @@ def test_transforms_field_not_exists(mnist_data_loader_train):
 
 def test_sampler(mnist_dataset_train):
     # Act
+    sampled = mnist_dataset_train.copy(n_samples=len(mnist_dataset_train._data_loader.dataset), random_state=0)
+    # Assert
+    assert_that(sampled.is_sampled(), equal_to(False))
+
+    # Act
     sampled = mnist_dataset_train.copy(n_samples=10, random_state=0)
     # Assert
     classes = list(itertools.chain(*[b[1].tolist() for b in sampled]))
     assert_that(classes, contains_exactly(4, 9, 3, 3, 8, 7, 9, 4, 8, 1))
+    assert_that(sampled.num_samples, equal_to(10))
+    assert_that(sampled.is_sampled(), equal_to(True))
 
     # Act
     sampled = mnist_dataset_train.copy(n_samples=500, random_state=0)
     # Assert
     total = sum([len(b[0]) for b in sampled])
     assert_that(total, equal_to(500))
-
+    assert_that(sampled.num_samples, equal_to(500))
+    assert_that(sampled.is_sampled(), equal_to(True))
 
 def test_data_at_batch_index_to_dataset_index(mnist_dataset_train):
     # Arrange
