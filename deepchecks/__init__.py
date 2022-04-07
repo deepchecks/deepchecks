@@ -96,15 +96,8 @@ except:  # pylint: disable=bare-except # noqa
     __version__ = ''
 
 
-# Send an import event
-try:
-    disable = os.environ.get('DISABLE_DEEPCHECKS_ANONYMOUS_TRACKING', False)
-
-    if not disable:
-        send_anonymous_import_event()
-except:  # pylint: disable=bare-except # noqa
-    pass
-
+# Send an import event if not disabled
+send_anonymous_import_event()
 
 # ================================================================
 

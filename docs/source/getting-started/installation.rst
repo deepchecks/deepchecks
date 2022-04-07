@@ -90,9 +90,9 @@ Start Working with the Package
 Now it's time to :doc:`check out </index>` deepchecks!
 
 
-Anonymous Usage Metrics
------------------------
-We want to keep building and improving the package, so we'd like to know how many people are using it.
+Anonymous Usage Telemetry
+-------------------------
+We want to keep building and improving deepchecks, so we'd like to know how many people are using it.
 For that we added an anonymous usage metrics collection system to the package, that sends a single anonymous event on
 the first import of the package.
 
