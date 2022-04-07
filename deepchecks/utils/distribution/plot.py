@@ -22,7 +22,7 @@ __all__ = ['feature_distribution_traces', 'drift_score_bar_traces', 'get_density
 from typing import List, Dict, Tuple
 
 from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
-from deepchecks.utils.plot import colors, hex_to_rgba
+from deepchecks.utils.plot import colors
 from deepchecks.utils.dataframes import un_numpy
 
 
@@ -146,18 +146,18 @@ def feature_distribution_traces(train_column,
         general layout
     """
     if is_categorical:
-        traces, y_layout = _create_bar_graphs(train_column, test_column, max_num_categories)
+        traces, y_layout = _create_distribution_bar_graphs(train_column, test_column, max_num_categories)
         xaxis_layout = dict(type='category')
         return traces, xaxis_layout, y_layout
     else:
         train_uniques, train_uniques_counts = np.unique(train_column, return_counts=True)
         test_uniques, test_uniques_counts = np.unique(test_column, return_counts=True)
 
-        # If there are less than 20 uniques total draw bar graph
+        # If there are less than 20 total unique values, draw bar graph
         train_test_uniques = np.unique(np.concatenate([train_uniques, test_uniques]))
         if train_test_uniques.size < 20:
-            traces, y_layout = _create_bar_graphs(train_column, test_column, 20, bars_ratio=0.05)
-            xaxis_layout = dict(ticks="outside", tickmode='array', tickvals=train_test_uniques)
+            traces, y_layout = _create_distribution_bar_graphs(train_column, test_column, 20, bars_ratio=0.05)
+            xaxis_layout = dict(ticks='outside', tickmode='array', tickvals=train_test_uniques)
             return traces, xaxis_layout, y_layout
 
         x_range = (min(train_column.min(), test_column.min()), max(train_column.max(), test_column.max()))
@@ -220,7 +220,7 @@ def _create_bars_data_for_mixed_kde_plot(counts: np.ndarray, max_kde_value: floa
     return counts * normalize_factor
 
 
-def _create_bar_graphs(train_column, test_column, max_num_categories: int, bars_ratio: float = None):
+def _create_distribution_bar_graphs(train_column, test_column, max_num_categories: int, bars_ratio: float = None):
     expected_percents, actual_percents, categories_list = \
         preprocess_2_cat_cols_to_same_bins(dist1=train_column, dist2=test_column,
                                            max_num_categories=max_num_categories)
