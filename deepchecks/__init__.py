@@ -88,7 +88,7 @@ if 'notebook_connected' in pio_backends:
 
 # Set version info
 try:
-    MODULE_DIR = pathlib.Path(__file__).absolute().parent.parent
+    MODULE_DIR = pathlib.Path(__file__).absolute().parent
     with open(os.path.join(MODULE_DIR, 'VERSION'), 'r', encoding='utf-8') as f:
         __version__ = f.read().strip()
 except:  # pylint: disable=bare-except # noqa

@@ -29,7 +29,7 @@ sys.path.insert(0, VISION_DIR)
 
 from deepchecks.utils.strings import to_snake_case
 
-with open(os.path.join(PROJECT_DIR, 'VERSION')) as version_file:
+with open(os.path.join(PROJECT_DIR, 'deepchecks', 'VERSION')) as version_file:
     VERSION = version_file.read().strip()
 
 # -- Project information -----------------------------------------------------

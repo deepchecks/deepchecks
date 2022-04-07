@@ -41,7 +41,7 @@ jobs:
       - name: Update version
         uses: test-room-7/action-update-file@v1
         with:
-          file-path: VERSION
+          file-path: deepchecks/VERSION
           commit-msg: New version release
           github-token: ${{ secrets.CI_GH_TOKEN }}
   Create-Release:

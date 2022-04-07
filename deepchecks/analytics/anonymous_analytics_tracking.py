@@ -19,7 +19,7 @@ import pathlib
 import uuid
 import deepchecks
 
-MODULE_DIR = pathlib.Path(__file__).absolute().parent.parent.parent
+MODULE_DIR = pathlib.Path(__file__).absolute().parent.parent
 ANALYTICS_DISABLED = os.environ.get('DISABLE_DEEPCHECKS_ANONYMOUS_TRACKING', False)
 
 
