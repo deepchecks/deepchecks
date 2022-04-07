@@ -214,7 +214,7 @@ autosummary_ignore_module_all = False
 # A dictionary of values to pass into the template engine’s context
 # for autosummary stubs files.
 #
-# autosummary_context = {'to_snake_case': to_snake_case}
+autosummary_context = {'to_snake_case': to_snake_case}
 
 # TODO: explaine
 autosummary_filename_map = {

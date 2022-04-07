@@ -10,13 +10,21 @@
 {# submoduletype = tabular|vision... #}
 {% set submoduletype = splitname[1] %}
 
-Example
-~~~~~~~
+Examples
+~~~~~~~~
 
-.. nbgallery::
-   :name: rst-gallery
-   :glob:
+.. raw:: html
 
-   {{objname}} Example Notebook </examples/{{ submoduletype }}/checks/examples/{{ checktype }}/{{ objname.lower() }}>
+    <div class="sphx-glr-thumbcontainer">
 
+.. only:: html
+
+ .. figure:: /examples/{{ submoduletype }}/checks/{{ checktype}}/examples/images/thumb/sphx_glr_plot_{{ to_snake_case(objname).lower() }}_thumb.png
+     :alt: {{ objname }}
+
+     :ref:`sphx_glr_examples_{{submoduletype}}_checks_{{ checktype }}_examples_plot_{{ to_snake_case(objname).lower() }}.py`
+
+.. raw:: html
+
+    </div>
 {% endblock %}
