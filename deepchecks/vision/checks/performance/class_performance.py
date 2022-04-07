@@ -138,8 +138,8 @@ class ClassPerformance(TrainTestCheck):
         )
 
         fig = (
-            fig.update_xaxes(title="Class", type='category')
-               .update_yaxes(title="Value", matches=None)
+            fig.update_xaxes(title='Class', type='category')
+               .update_yaxes(title='Value', matches=None)
                .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
                .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
         )
