@@ -13,8 +13,8 @@ from typing import Callable, TypeVar, Dict, cast
 import pandas as pd
 import plotly.express as px
 
-from deepchecks.core.check_result import CheckResult
-from deepchecks.core.condition import ConditionResult, ConditionCategory
+from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, ModelComparisonContext, TrainTestCheck, ModelComparisonCheck
 from deepchecks.utils.strings import format_percent, format_number

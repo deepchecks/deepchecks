@@ -14,7 +14,7 @@ import pandas as pd
 import sklearn
 import plotly.express as px
 
-from deepchecks.core.check_result import CheckResult
+from deepchecks.core import CheckResult
 from deepchecks.tabular import Context, SingleDatasetCheck
 
 

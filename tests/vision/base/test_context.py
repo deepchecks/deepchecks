@@ -26,7 +26,7 @@ from hamcrest import (
     is_
 )
 
-from deepchecks.core.checks import DatasetKind
+from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksValueError, ValidationError, ModelValidationError
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.core.errors import DatasetValidationError

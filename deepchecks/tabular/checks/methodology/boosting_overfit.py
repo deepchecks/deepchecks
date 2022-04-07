@@ -16,8 +16,7 @@ from sklearn.pipeline import Pipeline
 import plotly.graph_objects as go
 import numpy as np
 
-from deepchecks.core.check_result import CheckResult
-from deepchecks.core.condition import ConditionResult, ConditionCategory
+from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError, ModelValidationError
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.strings import format_percent

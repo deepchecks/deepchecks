@@ -23,9 +23,9 @@ from hamcrest import (
     equal_to, has_key, has_entries, close_to
 )
 
-from deepchecks.core.check_result import CheckResult
-from deepchecks.core.errors import DeepchecksValueError
-
+from deepchecks.core import CheckResult
+from deepchecks.core.errors import DeepchecksValueError, DeepchecksNotImplementedError
+from deepchecks.vision.datasets.classification.mnist import MNISTData
 from deepchecks.vision.utils.image_properties import default_image_properties
 from deepchecks.vision.checks.distribution import ImagePropertyDrift
 

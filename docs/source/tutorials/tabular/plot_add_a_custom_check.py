@@ -40,7 +40,7 @@ dictionary, string, etc...*
 #%%
 
 from deepchecks.tabular import TrainTestCheck, Dataset, Context
-from deepchecks.core.check_result import CheckResult
+from deepchecks.core import CheckResult
 
 
 class DatasetSizeComparison(TrainTestCheck):
@@ -95,7 +95,7 @@ result.value
 # *Good to know: ``display`` can receive a single object to display or a list of objects*
 
 from deepchecks.tabular import Dataset, TrainTestCheck, Context
-from deepchecks.core.check_result import CheckResult
+from deepchecks.core import CheckResult
 import matplotlib.pyplot as plt
 
 class DatasetSizeComparison(TrainTestCheck):

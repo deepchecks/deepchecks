@@ -14,11 +14,11 @@ from typing import Callable, TypeVar, Hashable, Dict, Union
 
 import pandas as pd
 
-from deepchecks.core.checks import DatasetKind
-from deepchecks.core.check_result import CheckResult
+from deepchecks import ConditionResult
+from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.check_utils.single_feature_contribution_utils import get_single_feature_contribution, \
     get_single_feature_contribution_per_class
-from deepchecks.core.condition import ConditionCategory, ConditionResult
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Context, TrainTestCheck
 from deepchecks.vision.batch_wrapper import Batch

@@ -17,7 +17,7 @@ import torch
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.dataloader import default_collate
 
-from deepchecks.core.checks import DatasetKind
+from deepchecks.core import DatasetKind
 from deepchecks.vision import VisionData, Context, Batch
 
 from deepchecks.vision.datasets.detection.coco import (

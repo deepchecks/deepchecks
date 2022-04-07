@@ -15,9 +15,8 @@ import pandas as pd
 import plotly.express as px
 from ignite.metrics import Metric
 
-from deepchecks.core.condition import ConditionCategory, ConditionResult
-from deepchecks.core.checks import DatasetKind
-from deepchecks.core.check_result import CheckResult
+from deepchecks.core import CheckResult, ConditionResult, DatasetKind
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils import plot
 from deepchecks.utils.strings import format_percent, format_number

@@ -19,8 +19,8 @@ from sklearn.dummy import DummyRegressor, DummyClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
-from deepchecks.core.check_result import CheckResult
-from deepchecks.core.condition import ConditionResult, ConditionCategory
+from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, TrainTestCheck, Dataset
 from deepchecks.utils.distribution.preprocessing import ScaledNumerics

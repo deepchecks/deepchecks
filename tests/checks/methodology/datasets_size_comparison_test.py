@@ -10,8 +10,7 @@
 #
 from hamcrest import assert_that, has_entries, instance_of
 
-from deepchecks.core.condition import ConditionCategory
-from deepchecks.core.check_result import CheckResult
+from deepchecks.core import CheckResult, ConditionCategory
 from deepchecks.tabular.checks import DatasetsSizeComparison
 
 from tests.checks.utils import equal_condition_result

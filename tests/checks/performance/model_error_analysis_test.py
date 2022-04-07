@@ -14,7 +14,7 @@ from hamcrest import assert_that, calling, raises, has_length, has_items, close_
 from scipy.special import softmax
 from sklearn.metrics import log_loss
 
-from deepchecks.core.condition import ConditionCategory
+from deepchecks.core import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError, DeepchecksProcessError, DeepchecksNotSupportedError
 from deepchecks.tabular.checks.performance.model_error_analysis import ModelErrorAnalysis
 from deepchecks.utils.single_sample_metrics import per_sample_cross_entropy

@@ -12,8 +12,7 @@ import typing as t
 import re
 from hamcrest import assert_that, instance_of, only_contains, matches_regexp
 
-from deepchecks.core.condition import ConditionCategory
-from deepchecks.core.check_result import CheckResult
+from deepchecks.core import CheckResult, ConditionCategory
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.checks.methodology import ModelInferenceTime
 

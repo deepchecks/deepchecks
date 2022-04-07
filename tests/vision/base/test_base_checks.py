@@ -18,8 +18,8 @@ from hamcrest import (
     is_
 )
 
-from deepchecks.core.checks import DatasetKind
-from deepchecks.core.check_result import CheckResult
+from deepchecks import CheckResult
+from deepchecks.core import DatasetKind
 
 from deepchecks.vision.base_checks import SingleDatasetCheck, TrainTestCheck, ModelOnlyCheck
 from deepchecks.vision.datasets.detection import coco

@@ -208,7 +208,7 @@ result
 # <../../user-guide/general/customizations/configure_check_conditions>`_. In this case, we'll define a condition
 # verifying that the color averages haven't changed by more than 10%.
 
-from deepchecks.core.condition import ConditionResult
+from deepchecks.core import ConditionResult
 
 
 class ColorAveragesCheck(TrainTestCheck):

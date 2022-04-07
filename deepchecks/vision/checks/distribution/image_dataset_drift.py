@@ -14,8 +14,7 @@ from typing import Dict, List, Any
 
 import pandas as pd
 
-from deepchecks.core.check_result import CheckResult
-from deepchecks.core.checks import DatasetKind
+from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.vision import Context, TrainTestCheck, Batch
 from deepchecks.vision.utils.image_properties import default_image_properties, validate_properties, get_column_type
 from deepchecks.core.check_utils.whole_dataset_drift_utils import run_whole_dataset_drift

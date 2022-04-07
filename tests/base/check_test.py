@@ -13,8 +13,7 @@
 from hamcrest import assert_that, has_property, contains_exactly, calling, raises, has_length, \
     all_of, equal_to, has_items
 
-from deepchecks.core.condition import ConditionCategory, ConditionResult
-from deepchecks.core.check_result import CheckResult
+from deepchecks.core import ConditionResult, CheckResult, ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import TrainTestCheck
 

@@ -20,6 +20,19 @@ import warnings
 from importlib._bootstrap import _init_module_attrs
 
 from deepchecks.utils.ipython import is_notebook
+from deepchecks.core import (
+    BaseCheck,
+    BaseSuite,
+    CheckResult,
+    CheckFailure,
+    SuiteResult,
+    Condition,
+    ConditionResult,
+    ConditionCategory,
+    SingleDatasetBaseCheck,
+    TrainTestBaseCheck,
+    ModelOnlyBaseCheck
+)
 # TODO: remove in further versions
 from deepchecks.tabular import (
     Dataset,
@@ -34,6 +47,18 @@ from deepchecks.tabular import (
 
 
 __all__ = [
+    # core
+    'BaseCheck',
+    'SingleDatasetBaseCheck',
+    'TrainTestBaseCheck',
+    'ModelOnlyBaseCheck',
+    'CheckResult',
+    'CheckFailure',
+    'Condition',
+    'ConditionResult',
+    'ConditionCategory',
+    'BaseSuite',
+    'SuiteResult',
     # tabular
     'Dataset',
     'Suite',

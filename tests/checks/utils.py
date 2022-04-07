@@ -15,7 +15,7 @@ from typing import Union, Pattern
 from hamcrest import all_of, has_property, matches_regexp
 from hamcrest.core.matcher import Matcher
 
-from deepchecks.core.condition import ConditionCategory
+from deepchecks.core import ConditionCategory
 
 
 __all__ = ['ANY_FLOAT_REGEXP', 'equal_condition_result']

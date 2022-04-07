@@ -16,7 +16,7 @@ from hamcrest import assert_that, calling, raises, close_to, has_items, instance
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.model_selection import train_test_split
 
-from deepchecks.core.condition import ConditionResult
+from deepchecks.core import ConditionResult
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.checks.performance import PerformanceReport
 from deepchecks.utils.metrics import MULTICLASS_SCORERS_NON_AVERAGE, DEFAULT_REGRESSION_SCORERS

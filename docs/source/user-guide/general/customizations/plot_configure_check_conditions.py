@@ -121,7 +121,7 @@ result.value
 # ``add_condition_x()`` to allow any consumer of your check to apply the condition
 # (possibly with given parameters). For examples look at implemented Checks' source code*
 
-from deepchecks.core.condition import ConditionResult
+from deepchecks.core import ConditionResult
 
 # Our parameters for the condition
 low_threshold = 0.4
@@ -163,7 +163,7 @@ suite.run(train_dataset, test_dataset)
 # as either fail or warn, by passing the category to the ConditionResult object.
 # For example we can even write condition which sets the category based on severity of the result:
 
-from deepchecks.core.condition import ConditionResult, ConditionCategory
+from deepchecks.core import ConditionResult, ConditionCategory
 
 # Our parameters for the condition
 low_threshold = 0.3

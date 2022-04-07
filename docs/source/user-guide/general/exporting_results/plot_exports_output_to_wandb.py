@@ -60,7 +60,7 @@ result.value
 # See Check to_wandb options
 # --------------------------
 
-from deepchecks.core.check_result import CheckResult
+from deepchecks.core import CheckResult
 
 help(CheckResult.to_wandb)
 

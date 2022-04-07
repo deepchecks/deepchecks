@@ -12,8 +12,7 @@
 from typing import Callable, Dict, Tuple, Union
 from sklearn import preprocessing
 
-from deepchecks.core.check_result import CheckResult
-from deepchecks.core.condition import ConditionResult, ConditionCategory
+from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck, Dataset
 from deepchecks.utils.metrics import ModelType
 from deepchecks.utils.performance.error_model import model_error_contribution, error_model_display

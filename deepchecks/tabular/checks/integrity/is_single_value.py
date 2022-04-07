@@ -12,8 +12,7 @@
 from typing import Union, List
 
 from deepchecks.tabular import Context, SingleDatasetCheck
-from deepchecks.core.check_result import CheckResult
-from deepchecks.core.condition import ConditionResult, ConditionCategory
+from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.typing import Hashable
 
