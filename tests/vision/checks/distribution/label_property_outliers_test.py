@@ -12,7 +12,7 @@ from hamcrest import assert_that, all_of, instance_of, has_key, has_length, has_
     contains_exactly, calling, raises, equal_to, any_of
 from hamcrest.core.matcher import Matcher
 
-from deepchecks import CheckResult
+from deepchecks.core.check_result import CheckResult
 from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.vision.checks import LabelPropertyOutliers
 from deepchecks.vision.utils.label_prediction_properties import DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES
