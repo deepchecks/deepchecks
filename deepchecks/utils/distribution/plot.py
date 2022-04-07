@@ -221,7 +221,7 @@ def feature_distribution_traces(train_column,
 
 
 def _create_bars_data_for_mixed_kde_plot(counts: np.ndarray, max_kde_value: float):
-    """When showing a mixed KDE and bar plot, we want the bars to be on the same scale of y-values as the KDE values,
+    """When showing a mixed KDE and bar plot, we want the bars to be on the same scale of y-values as the KDE values, \
     so we normalize the counts to sum to 4 times the max KDE value."""
     normalize_factor = 4 * max_kde_value / np.sum(counts)
     return counts * normalize_factor
