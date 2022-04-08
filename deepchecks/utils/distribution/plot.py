@@ -25,6 +25,13 @@ from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to
 from deepchecks.utils.plot import colors
 from deepchecks.utils.dataframes import un_numpy
 
+# For numerical plots, below this number of unique values we draw bar plots, else KDE
+MAX_NUMERICAL_UNIQUE_FOR_BARS = 20
+# For numerical plots, where the total uniques is above MAX_NUMERICAL_UNIQUE_FOR_BARS, if any of the single
+# datasets have uniques above this number, we draw KDE, else we draw bar plots. Should be less than half of
+# MAX_NUMERICAL_UNIQUE_FOR_BARS
+MAX_NUMERICAL_UNIQUES_FOR_SINGLE_DIST_BARS = 5
+
 
 def get_density(data, xs) -> np.ndarray:
     """Get gaussian kde density to plot.
@@ -156,7 +163,7 @@ def feature_distribution_traces(train_column,
 
         # If there are less than 20 total unique values, draw bar graph
         train_test_uniques = np.unique(np.concatenate([train_uniques, test_uniques]))
-        if train_test_uniques.size < 20:
+        if train_test_uniques.size < MAX_NUMERICAL_UNIQUE_FOR_BARS:
             traces, y_layout = _create_distribution_bar_graphs(train_column, test_column, 20)
             # In case of single value widen the range, else plotly draw the bars really wide.
             if x_range[0] == x_range[1]:
@@ -185,7 +192,7 @@ def feature_distribution_traces(train_column,
         bars_width = (x_range_to_show[1] - x_range_to_show[0]) / 100
 
         traces = []
-        if train_uniques.size <= 5:
+        if train_uniques.size <= MAX_NUMERICAL_UNIQUES_FOR_SINGLE_DIST_BARS:
             traces.append(go.Bar(
                 x=train_uniques,
                 y=_create_bars_data_for_mixed_kde_plot(train_uniques_counts, np.max(test_density)),
@@ -199,7 +206,7 @@ def feature_distribution_traces(train_column,
             traces.append(go.Scatter(x=xs, y=train_density, fill='tozeroy', name='Train Dataset',
                           line_color=colors['Train']))
 
-        if test_uniques.size <= 5:
+        if test_uniques.size <= MAX_NUMERICAL_UNIQUES_FOR_SINGLE_DIST_BARS:
             traces.append(go.Bar(
                 x=test_uniques,
                 y=_create_bars_data_for_mixed_kde_plot(test_uniques_counts, np.max(train_density)),
