@@ -9,7 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains checks of model performance metrics."""
-from .performance_report import PerformanceReport, MultiModelPerformanceReport
+from .performance_report import PerformanceReport
+from .multi_model_performance_report import MultiModelPerformanceReport
 from .confusion_matrix_report import ConfusionMatrixReport
 from .roc_report import RocReport
 from .simple_model_comparison import SimpleModelComparison
