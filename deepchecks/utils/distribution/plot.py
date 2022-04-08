@@ -27,8 +27,8 @@ from deepchecks.utils.dataframes import un_numpy
 
 # For numerical plots, below this number of unique values we draw bar plots, else KDE
 MAX_NUMERICAL_UNIQUE_FOR_BARS = 20
-# For numerical plots, where the total uniques is above MAX_NUMERICAL_UNIQUE_FOR_BARS, if any of the single
-# datasets have uniques above this number, we draw KDE, else we draw bar plots. Should be less than half of
+# For numerical plots, where the total unique is above MAX_NUMERICAL_UNIQUE_FOR_BARS, if any of the single
+# datasets have unique values above this number, we draw KDE, else we draw bar plots. Should be less than half of
 # MAX_NUMERICAL_UNIQUE_FOR_BARS
 MAX_NUMERICAL_UNIQUES_FOR_SINGLE_DIST_BARS = 5
 
