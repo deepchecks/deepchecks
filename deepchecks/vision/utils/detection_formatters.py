@@ -17,7 +17,10 @@ import torch
 from PIL.Image import Image
 
 
-__all__ = ['verify_bbox_format_notation', 'convert_batch_of_bboxes', 'convert_bbox', ]
+__all__ = ['verify_bbox_format_notation', 'convert_batch_of_bboxes', 'convert_bbox', 'DEFAULT_PREDICTION_FORMAT']
+
+
+DEFAULT_PREDICTION_FORMAT = 'xywhsl'
 
 
 def verify_bbox_format_notation(notation: str) -> Tuple[bool, List[str]]:
@@ -32,7 +35,7 @@ def verify_bbox_format_notation(notation: str) -> Tuple[bool, List[str]]:
     -------
     Tuple[
         bool,
-        List[Literal['label', 'width', 'height', 'xmin', 'ymin', 'xmax', 'ymax', 'xcenter', 'ycenter']]
+        List[Literal['label', 'score', 'width', 'height', 'xmin', 'ymin', 'xmax', 'ymax', 'xcenter', 'ycenter']]
     ]
         first item indicates whether coordinates are normalized or not,
         second represents format of the bbox
@@ -45,6 +48,10 @@ def verify_bbox_format_notation(notation: str) -> Tuple[bool, List[str]]:
     while current:
         if current.startswith('l'):
             tokens.append('l')
+            current = current[1:]
+            current_pos = current_pos + 1
+        elif current.startswith('s'):
+            tokens.append('s')
             current = current[1:]
             current_pos = current_pos + 1
         elif current.startswith('wh'):
@@ -75,11 +82,13 @@ def verify_bbox_format_notation(notation: str) -> Tuple[bool, List[str]]:
             )
 
     received_combination = Counter(tokens)
-    allowed_combinations = (
+    allowed_combinations = [
         {'l': 1, 'xy': 2},
         {'l': 1, 'xy': 1, 'wh': 1},
         {'l': 1, 'cxcy': 1, 'wh': 1}
-    )
+    ]
+    # All allowed combinations are also allowed with or without score to support both label and prediction
+    allowed_combinations += [{**c, 's': 1} for c in allowed_combinations]
 
     if sum(c == received_combination for c in allowed_combinations) != 1:
         raise ValueError(
@@ -102,6 +111,8 @@ def verify_bbox_format_notation(notation: str) -> Tuple[bool, List[str]]:
     for t in tokens:
         if t == 'l':
             normalized_tokens.append('label')
+        elif t == 's':
+            normalized_tokens.append('score')
         elif t == 'wh':
             normalized_tokens.extend(('width', 'height'))
         elif t == 'cxcy':
@@ -265,7 +276,7 @@ def _convert_bbox(
         (image_width is not None and image_height is not None) \
         or (image_width is None and image_height is None)
 
-    data = dict(zip(notation_tokens, bbox[:5]))
+    data = dict(zip(notation_tokens, bbox))
 
     if 'xcenter' in data and 'ycenter' in data:
         if image_width is not None and image_height is not None:

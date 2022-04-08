@@ -18,7 +18,7 @@ header:
     - '**/*.ipynb'
     - '.pylintrc'
     - 'LICENSE'
-    - 'VERSION'
+    - 'deepchecks/VERSION'
     - 'deepchecks.egg-info/PKG-INFO'
     - 'makefile'
     - 'examples/'

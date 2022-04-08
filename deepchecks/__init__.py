@@ -13,7 +13,6 @@ import sys
 import types
 import os
 import pathlib
-import http.client
 import matplotlib
 import plotly.io as pio
 import warnings
@@ -45,6 +44,7 @@ from deepchecks.tabular import (
     ModelComparisonSuite,
 )
 
+from deepchecks.analytics.anonymous_telemetry import send_anonymous_import_event
 
 __all__ = [
     # core
@@ -88,7 +88,7 @@ if 'notebook_connected' in pio_backends:
 
 # Set version info
 try:
-    MODULE_DIR = pathlib.Path(__file__).absolute().parent.parent
+    MODULE_DIR = pathlib.Path(__file__).absolute().parent
     with open(os.path.join(MODULE_DIR, 'VERSION'), 'r', encoding='utf-8') as f:
         __version__ = f.read().strip()
 except:  # pylint: disable=bare-except # noqa
@@ -96,20 +96,8 @@ except:  # pylint: disable=bare-except # noqa
     __version__ = ''
 
 
-# Check for latest version
-try:
-    disable = os.environ.get('DEEPCHECKS_DISABLE_LATEST', 'false').lower() == 'true'
-    if not disable:
-        conn = http.client.HTTPSConnection('api.deepchecks.com', timeout=3)
-        conn.request('GET', f'/v2/latest?version={__version__}')
-        response = conn.getresponse()
-        result = response.read().decode('utf-8') == 'True'
-        if not result:
-            warnings.warn('Looks like you are using outdated version of deepchecks. consider upgrading using'
-                          ' pip install -U deepchecks')
-except:  # pylint: disable=bare-except # noqa
-    pass
-
+# Send an import event if not disabled
+send_anonymous_import_event()
 
 # ================================================================
 

@@ -51,7 +51,8 @@ class Suite(BaseSuite):
             scorers: Mapping[str, Metric] = None,
             scorers_per_class: Mapping[str, Metric] = None,
             device: Union[str, torch.device, None] = 'cpu',
-            random_state: int = 42
+            random_state: int = 42,
+            n_samples: Optional[int] = 10_000,
     ) -> SuiteResult:
         """Run all checks.
 
@@ -74,7 +75,8 @@ class Suite(BaseSuite):
             processing unit for use
         random_state : int
             A seed to set for pseudo-random functions
-
+        n_samples : int, default: 10,000
+            number of samples to draw from the dataset.
         Returns
         -------
         SuiteResult
@@ -90,7 +92,8 @@ class Suite(BaseSuite):
             scorers=scorers,
             scorers_per_class=scorers_per_class,
             device=device,
-            random_state=random_state
+            random_state=random_state,
+            n_samples=n_samples
         )
         progress_bar.inc_progress()
 
@@ -136,8 +139,7 @@ class Suite(BaseSuite):
                 try:
                     # if check index in results we had failure
                     if check_idx not in results:
-                        result = check.compute(context)
-                        result = check.finalize_check_result(result)
+                        result = check.finalize_check_result(check.compute(context))
                         results[check_idx] = result
                 except Exception as exp:
                     results[check_idx] = CheckFailure(check, exp)
@@ -150,7 +152,9 @@ class Suite(BaseSuite):
         for pbar in all_pbars:
             pbar.close()
 
-        return SuiteResult(self.name, sorted_result_values)
+        footnote = context.get_is_sampled_footnote()
+        extra_info = [footnote] if footnote else []
+        return SuiteResult(self.name, sorted_result_values, extra_info)
 
     def _update_loop(
         self,

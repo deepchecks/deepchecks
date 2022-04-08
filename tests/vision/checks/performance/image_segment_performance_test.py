@@ -18,7 +18,7 @@ from tests.vision.vision_conftest import *
 
 def test_mnist(mnist_dataset_train, mock_trained_mnist):
     # Act
-    result = ImageSegmentPerformance().run(mnist_dataset_train, mock_trained_mnist)
+    result = ImageSegmentPerformance().run(mnist_dataset_train, mock_trained_mnist, n_samples=None)
     # Assert
     assert_that(result.value, has_entries({
         'Brightness': has_length(5),

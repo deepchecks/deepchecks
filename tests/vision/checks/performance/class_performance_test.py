@@ -33,7 +33,7 @@ def test_mnist_largest(mnist_dataset_train, mnist_dataset_test, mock_trained_mni
     check = ClassPerformance(n_to_show=2, show_only='largest')
     # Act
     result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
-                       device=device)
+                       device=device, n_samples=None)
     first_row = result.value.sort_values(by='Number of samples', ascending=False).iloc[0]
     # Assert
     assert_that(len(set(result.value['Class'])), equal_to(2))
@@ -79,7 +79,7 @@ def test_mnist_best(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
     check = ClassPerformance(n_to_show=2, show_only='best')
     # Act
     result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
-                       device=device)
+                       device=device, n_samples=None)
     first_row = result.value.loc[result.value['Metric'] == 'Precision'].sort_values(by='Value', ascending=False).iloc[0]
 
     # Assert
