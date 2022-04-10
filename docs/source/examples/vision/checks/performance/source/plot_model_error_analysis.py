@@ -21,7 +21,7 @@ model error analysis check.
 
 What is the purpose of the check?
 ---------------------------------
-TODO
+
 """
 
 #%%
