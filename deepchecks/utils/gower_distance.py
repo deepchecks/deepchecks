@@ -17,6 +17,7 @@ import pandas as pd
 def gower_matrix(data: np.ndarray, cat_features: np.array) -> np.ndarray:
     """
     Calculate distance matrix for a dataset using Gower's method.
+
     Can deal with missing values.
     Requires each two samples to have at least one sheared non-null value.
     Parameters
@@ -43,6 +44,7 @@ def gower_matrix(data: np.ndarray, cat_features: np.array) -> np.ndarray:
 
 def calculate_ranges(data: np.ndarray, cat_features: np.array) -> np.array:
     """Calculate ranges for each numeric feature and returns -1 for other features.
+
     Parameters
     ----------
     data: numpy.ndarray
@@ -64,15 +66,14 @@ def calculate_ranges(data: np.ndarray, cat_features: np.array) -> np.array:
 def calculate_distance(vec1: np.array, vec2: np.array, ranges: np.array) -> float:
     """Calculate distance between two vectors using Gower's method.
 
-    Args:
+    Parameters
+    ----------
         vec1: First vector.
         vec2: Second vector.
         ranges: Ranges of each numeric feature or -1 for categorical.
 
-    Returns:
-        float: Gower's distance between two vectors.
+    Returns float representing Gower's distance between two vectors.
     """
-
     sum_dist = 0
     num_features = 0
     for col_index in range(len(vec1)):

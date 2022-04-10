@@ -57,9 +57,9 @@ class OutlierDetection(SingleDatasetCheck):
             **kwargs
     ):
         super().__init__(**kwargs)
-        if type(extend_parameter) is not int or extend_parameter <= 0:
+        if not isinstance(extend_parameter, int) or extend_parameter <= 0:
             raise ValueError('extend_parameter must be a positive integer')
-        if type(num_nearest_neighbors) is not int or num_nearest_neighbors <= 0:
+        if not isinstance(num_nearest_neighbors, int) or num_nearest_neighbors <= 0:
             raise ValueError('num_nearest_neighbors must be a positive integer')
         self.columns = columns
         self.ignore_columns = ignore_columns
@@ -81,7 +81,7 @@ class OutlierDetection(SingleDatasetCheck):
         # Calculate distances matrix and retrieve nearest neighbors based on distance matrix.
         cat_features = df.columns.map(lambda x: x in dataset.cat_features)
         dist_matrix = gower_distance.gower_matrix(np.asarray(df), cat_features=np.array(cat_features))
-        knn_distance_based = NearestNeighbors(n_neighbors=self.num_nearest_neighbors, metric="precomputed").fit(
+        knn_distance_based = NearestNeighbors(n_neighbors=self.num_nearest_neighbors, metric='precomputed').fit(
             dist_matrix)
         nn_matrix = knn_distance_based.kneighbors(return_distance=False)
 
@@ -105,16 +105,14 @@ class OutlierDetection(SingleDatasetCheck):
                        for more information.<br><br>
                 </span>"""
 
-        quantiles_vector = np.quantile(prob_vector, np.array(range(1000)) / 1000, method="closest_observation")
+        quantiles_vector = np.quantile(prob_vector, np.array(range(1000)) / 1000, method='closest_observation')
         return CheckResult([quantiles_vector, df.shape[0]], display=[headnote, dataset_outliers])
 
     def add_condition_not_more_outliers_than(self, max_outliers_ratio: float = 0.005,
                                              outlier_score_threshold: float = 0.8):
         """Add condition - no more than given ratio of elements over outlier threshold are allowed.
-
         Parameters
         ----------
-
         max_outliers_ratio : float , default: 0.005
             Maximum ratio of outliers allowed in dataset.
         outlier_score_threshold : float, default: 0.8

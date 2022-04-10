@@ -20,8 +20,8 @@ from deepchecks.tabular.checks import (
     CategoryMismatchTrainTest, NewLabelTrainTest, StringMismatchComparison, TrainTestFeatureDrift, WholeDatasetDrift,
     ConfusionMatrixReport, RocReport, CalibrationScore,
     RegressionErrorDistribution, RegressionSystematicError, PerformanceReport, SimpleModelComparison, BoostingOverfit,
-    ModelInfo, ColumnsInfo, DataDuplicates, IsSingleValue, LabelAmbiguity,
-    DatasetsSizeComparison, UnusedFeatures, ModelInferenceTime, ModelErrorAnalysis, TrainTestLabelDrift, OutlierDetection
+    ModelInfo, ColumnsInfo, DataDuplicates, IsSingleValue, LabelAmbiguity, DatasetsSizeComparison,
+    UnusedFeatures, ModelInferenceTime, ModelErrorAnalysis, TrainTestLabelDrift, OutlierDetection
 )
 from deepchecks.tabular import Suite
 

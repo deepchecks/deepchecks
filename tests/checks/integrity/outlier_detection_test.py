@@ -20,9 +20,9 @@ from deepchecks.tabular.dataset import Dataset
 
 def test_condition_input_validation():
     # Assert
-    assert_that(calling(OutlierDetection().add_condition_not_more_outliers_than).with_args(num_max_outliers=-1),
+    assert_that(calling(OutlierDetection().add_condition_not_more_outliers_than).with_args(max_outliers_ratio=-1),
                 raises(ValueError,
-                       'num_max_outliers must be a positive integer'))
+                       'max_outliers_ratio must be between 0 and 1'))
 
 
 def test_integer_single_column_no_nulls():
