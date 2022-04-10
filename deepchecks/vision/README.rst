@@ -41,9 +41,13 @@
 .. raw:: html
 
    <h1 align="center">
-      Testing and Validating ML Models & Data - Computer Vision Submodule
+      Testing and Validating ML Models & Data
    </h1>
 
+   <h2 align="center">
+      Compute Vision Submodule (Beta Release)
+   </h2>
+ 
 .. raw:: html
 
    <p align="center">
@@ -51,7 +55,7 @@
    </p>
 
 
-🧐 What is Deephchecks?
+🧐 What is Deepchecks?
 ==========================
 
 Deepchecks is a Python package for comprehensively validating your
@@ -133,7 +137,7 @@ Example for a model evaluation check calculating mAP:
    result = MeanAveragePrecisionReport().run(test_ds, yolo)
    result
 
-Will produce output of the type:
+|
 
    .. raw:: html
 
@@ -195,13 +199,13 @@ Property Distribution Checks
 
 Image Properties are one-dimension values that are extracted from either the images, labels or predictions. For example, an
 image property is **brightness**, and a label property is **bounding box area** (for detection tasks).
-Deepchecks includes `built-in properties<https://docs.deepchecks.com/en/stable/user-guide/vision/vision_properties.html#deepchecks-built-in-properties
+Deepchecks includes `built-in properties <https://docs.deepchecks.com/en/stable/user-guide/vision/vision_properties.html#deepchecks-built-in-properties \
 ?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=documentation>`_ and supports implementing your own
 properties.
 
 Example of a property distribution check and its output:
 
-.. code::python
+.. code:: python
 
    from deepchecks.vision.datasets.detection.coco import load_dataset
    from deepchecks.vision.checks import ImagePropertyOutliers
@@ -211,12 +215,12 @@ Example of a property distribution check and its output:
    result = check.run(train_data)
    result
 
-Will produce output of the type:
+|
 
-   .. raw:: html
+ .. raw:: html
 
       <h4>Image Property Outliers</h4>
-         <p>Find outliers images with respect to the given properties. <a href="https://docs.deepchecks.com/dev/examples/vision/checks/distribution/image_property_outliers.html?utm_source=display_output&amp;utm_medium=referral&amp;utm_campaign=check_link" target="_blank">Read More...</a></p>
+         <p>Find outliers images with respect to the given properties. <a           href="https://docs.deepchecks.com/dev/examples/vision/checks/distribution/image_property_outliers.html?utm_source=display_output&amp;utm_medium=referral&amp;utm_campaign=check_link" target="_blank">Read More...</a></p>
          <h5>Additional Outputs</h5>
       <h3><b>Property "Brightness"</b></h3>
       <div>
