@@ -171,6 +171,7 @@ class SimpleModelComparison(TrainTestCheck):
                                                          column_filter_value='Given Model')
             results_df = results_df.loc[results_df['Class'].isin(classes_to_show)]
 
+        results_df = results_df.dropna()
         results_df = results_df.sort_values(by=['Model', 'Value'], ascending=False).reset_index(drop=True)
 
         fig = px.histogram(
