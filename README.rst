@@ -62,13 +62,14 @@ data integrity, distribution mismatches, and more.
 
 🖼️ Computer Vision & 🔢 Tabular Support
 ==========================================
-**This README refers to the tabular version** of deepchecks.
+**This README refers to the Tabular version** of deepchecks.
 
-Check out the `Deepchecks for Computer Vision & Images subpackage <deepchecks/vision>`__ for more details about deepchecks for CV, currently in beta version.
+Check out the `Deepchecks for Computer Vision & Images subpackage <deepchecks/vision>`__ for more details about deepchecks for CV, currently in *beta release*.
 
 
 💻 Installation
 =================
+
 
 Using pip
 ----------
@@ -76,6 +77,16 @@ Using pip
 .. code:: bash
 
    pip install deepchecks -U --user
+
+.. note::
+
+   To install deepchecks together with the **Computer Vision Submodule** that is currently in *beta release*, replace ``deepchecks`` with ``"deepchecks[vision]"`` as follows.
+   
+   .. code:: bash
+   
+      pip install "deepchecks[vision]" -U --user
+   
+   
 
 Using conda
 ------------
@@ -91,7 +102,7 @@ Using conda
 Head over to the `Quickstart Notebook <https://docs.deepchecks.com/en/stable/
 examples/guides/quickstart_in_5_minutes.html?
 utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`__
-and see deepchecks output on a built-in dataset, or runi t yourself to apply it on your own data and models.
+and see deepchecks output on a built-in dataset, or run it yourself to apply it on your own data and models.
 
 
 📊 Usage Examples
