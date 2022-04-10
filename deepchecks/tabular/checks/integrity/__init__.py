@@ -21,6 +21,7 @@ from .data_duplicates import DataDuplicates
 from .new_category import CategoryMismatchTrainTest
 from .new_label import NewLabelTrainTest
 from .label_ambiguity import LabelAmbiguity
+from .outlier_detection import OutlierDetection
 
 
 __all__ = [
@@ -36,4 +37,5 @@ __all__ = [
     'CategoryMismatchTrainTest',
     'NewLabelTrainTest',
     'LabelAmbiguity',
+    'OutlierDetection'
 ]
