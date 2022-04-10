@@ -52,22 +52,23 @@ def compute_pairwise_ious(detected, ground_truth, iou_func):
     return ious
 
 
-def group_class_detection_label(detected, ground_truth, detection_classes, ground_truth_classes):
+def group_class_detection_label(detected, ground_truth):
     """Group bounding detection and labels by class."""
     class_bounding_boxes = defaultdict(lambda: {"detected": [], "ground_truth": []})
 
-    for single_detection, class_id in zip(detected, detection_classes):
+    for single_detection in detected:
+        class_id = untorchify(single_detection[5])
         class_bounding_boxes[class_id]["detected"].append(single_detection)
-    for single_ground_truth, class_id in zip(ground_truth, ground_truth_classes):
+    for single_ground_truth in ground_truth:
+        class_id = untorchify(single_ground_truth[0])
         class_bounding_boxes[class_id]["ground_truth"].append(single_ground_truth)
+
     return class_bounding_boxes
 
 
 def compute_bounding_box_class_ious(detected, ground_truth):
     """Compute ious between bounding boxes of the same class."""
-    detection_classes = [untorchify(d[5]) for d in detected]
-    ground_truth_classes = [untorchify(g[0]) for g in ground_truth]
-    bb_info = group_class_detection_label(detected, ground_truth, detection_classes, ground_truth_classes)
+    bb_info = group_class_detection_label(detected, ground_truth)
 
     # Calculating pairwise IoUs per class
     return {class_id: compute_pairwise_ious(info["detected"], info["ground_truth"], jaccard_iou)
