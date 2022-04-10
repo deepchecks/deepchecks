@@ -243,11 +243,11 @@ class CheckResult:
         else:
             value = jsonpickle.dumps(self.value, unpicklable=False)
         check_metadata['value'] = value
+        dedicated_run = set_wandb_run_state(dedicated_run, check_metadata, **kwargs)
         if self.conditions_results:
             cond_df = get_conditions_table([self], icon_html=False)
             cond_table = wandb.Table(dataframe=cond_df.data, allow_mixed_types=True)
             wandb.log({f'{section_suffix}conditions_table': cond_table}, commit=False)
-        dedicated_run = set_wandb_run_state(dedicated_run, check_metadata, **kwargs)
         table_i = 0
         plot_i = 0
         old_backend = matplotlib.get_backend()
