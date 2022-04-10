@@ -167,7 +167,7 @@ def feature_distribution_traces(train_column,
             traces, y_layout = _create_distribution_bar_graphs(train_column, test_column, 20)
             # In case of single value widen the range, else plotly draw the bars really wide.
             if x_range[0] == x_range[1]:
-                x_range = (x_range[0] * 0.8, x_range[0] * 1.2)
+                x_range = (x_range[0] - 5, x_range[0] + 5)
             # In case of multi values still widen the range, else plotly hide the bars in the edges.
             else:
                 diff = x_range[1] - x_range[0]
