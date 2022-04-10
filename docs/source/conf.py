@@ -213,8 +213,18 @@ autosummary_ignore_module_all = False
 
 # A dictionary of values to pass into the template engine’s context
 # for autosummary stubs files.
-#
-autosummary_context = {'to_snake_case': to_snake_case}
+
+def path_exists(path: str):
+    return os.path.exists(path)
+
+def getswd(pth: str):
+    return os.getcwd()
+
+autosummary_context = {
+    'to_snake_case': to_snake_case, 
+    'path_exists': path_exists, 
+    'getcwd': os.getcwd
+}
 
 # TODO: explaine
 autosummary_filename_map = {

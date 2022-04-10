@@ -10,6 +10,9 @@
 {# submoduletype = tabular|vision... #}
 {% set submoduletype = splitname[1] %}
 
+{% set path = getcwd() + '/source/examples/' + submoduletype + '/checks/' + checktype + '/source/plot_' + to_snake_case(objname).lower() + '.py' %}
+
+{%- if path_exists(path) %}
 Examples
 ~~~~~~~~
 
@@ -27,4 +30,6 @@ Examples
 .. raw:: html
 
     </div>
+    <div style="clear:both"></div>
+{%- endif %}
 {% endblock %}
