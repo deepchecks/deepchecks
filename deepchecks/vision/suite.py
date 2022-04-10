@@ -213,13 +213,9 @@ class Suite(BaseSuite):
 
         # SingleDatasetChecks have different handling. If we had failure in them need to add suffix to the index of
         # the results, else need to compute it.
-        single_dataset_amount = \
-            int(len(single_dataset_checks) / 2) \
-            if run_train_test_checks \
-            else len(single_dataset_checks)
         if single_dataset_checks:
             progress_bar = ProgressBar('Computing Single Dataset Checks' + type_suffix,
-                                       single_dataset_amount,
+                                       int(len(single_dataset_checks) / 2),
                                        unit='Check')
             progress_bars.append(progress_bar)
             for idx, check in single_dataset_checks.items():
