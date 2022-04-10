@@ -280,7 +280,7 @@ class VisionData:
                 logger.warning('Class id %s is not in the label map.', class_id)
             return str(class_id)
         else:
-            return f'{self._label_map[class_id]} (id={class_id})'
+            return self._label_map[class_id]
 
     def get_transform_type(self):
         """Return transforms handler created from the transform field."""
