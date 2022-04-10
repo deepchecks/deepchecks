@@ -1,4 +1,3 @@
-#!/bin/sh
 # ----------------------------------------------------------------------------
 # Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
 #
@@ -9,5 +8,8 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+"""
+Module for anonymous telemetry.
 
-git describe --tags > deepchecks/VERSION
+No credentials, data, personal information or anything private is collected (and will never be).
+"""
