@@ -232,10 +232,6 @@ class CheckResult:
         """
         check_metadata = self._get_metadata()
         section_suffix = check_metadata['header'] + '/'
-        if self.conditions_results:
-            cond_df = get_conditions_table([self], icon_html=False)
-            cond_table = wandb.Table(dataframe=cond_df.data, allow_mixed_types=True)
-            wandb.log({f'{section_suffix}conditions_table': cond_table}, commit=False)
         if isinstance(self.value, pd.DataFrame):
             value = self.value.to_json()
         elif isinstance(self.value, Styler):
@@ -247,6 +243,10 @@ class CheckResult:
         else:
             value = jsonpickle.dumps(self.value, unpicklable=False)
         check_metadata['value'] = value
+        if self.conditions_results:
+            cond_df = get_conditions_table([self], icon_html=False)
+            cond_table = wandb.Table(dataframe=cond_df.data, allow_mixed_types=True)
+            wandb.log({f'{section_suffix}conditions_table': cond_table}, commit=False)
         dedicated_run = set_wandb_run_state(dedicated_run, check_metadata, **kwargs)
         table_i = 0
         plot_i = 0
