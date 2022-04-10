@@ -89,12 +89,14 @@ Using conda
 
 Check out the following tutorials for a quick start with deepchecks for CV:
 
-- `Deepchecks Example - Simple Image Classification Tutorial <https://docs.deepchecks.com/en/stable/tutorials/vision/examples/
-plot_simple_classification_tutorial.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`
-- `Deepchecks for Object Detection Tutorial <https://docs.deepchecks.com/en/stable/tutorials/vision/examples/plot_detection_tutorial.html
-?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`
-- `Deepchecks for Classification Tutorial<https://docs.deepchecks.com/en/stable/tutorials/vision/examples/plot_classification_tutorial.html
-?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`
+- `Deepchecks Example - Simple Image Classification Tutorial <https://docs.deepchecks.com/en/stable/tutorials/vision/examples/plot_simple_classification_tutorial.html\
+  ?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`_
+
+- `Deepchecks for Object Detection Tutorial <https://docs.deepchecks.com/en/stable/tutorials/vision/examples/plot_detection_tutorial.html \
+  ?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`_
+
+- `Deepchecks for Classification Tutorial <https://docs.deepchecks.com/en/stable/tutorials/vision/examples/plot_classification_tutorial.html \
+  ?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`_
 
 
 📊 Check Examples
@@ -224,26 +226,26 @@ Will produce output of the type:
       Non-outliers range: 0.24 to 0.69
       </div>
          <h4>Samples</h4>
-            <div style="
-                  overflow-x: auto;
-                  display: grid;
-                  grid-template-rows: auto 1fr 1fr;
-                  grid-template-columns: auto repeat(6, 1fr);
-                  grid-gap: 1.5rem;
-                  justify-items: center;
-                  align-items: center;
-                  padding: 2rem;
-                  width: max-content;">
-               <h5>Brightness</h5>
-                  <p>0.11</p><p>0.12</p><p>0.22</p><p>0.71</p><p>0.72</p><p>0.78</p>
-               <h5>Image</h5>
-                  <img src="/docs/images/vision-checks/brightness-outlier-1.png">
-                  <img src="/docs/images/vision-checks/brightness-outlier-2.png">
-                  <img src="/docs/images/vision-checks/brightness-outlier-3.png">
-                  <img src="/docs/images/vision-checks/brightness-outlier-4.png">
-                  <img src="/docs/images/vision-checks/brightness-outlier-5.png">
-                  <img src="/docs/images/vision-checks/brightness-outlier-6.png">
-            </div>
+               <table>
+                 <tr>
+                   <th><h5>Brightness</h5></th>
+                   <td>0.11</td>
+                   <td>0.12</td>
+                   <td>0.22</td>
+                   <td>0.71</td>
+                   <td>0.72</td>
+                   <td>0.78</td>
+                 </tr>
+                 <tr>
+                   <th><h5>Image</h5></th>
+                   <td><img src="/docs/images/vision-checks/brightness-outlier-1.png"></td>
+                   <td><img src="/docs/images/vision-checks/brightness-outlier-2.png"></td>
+                   <td><img src="/docs/images/vision-checks/brightness-outlier-3.png"></td>
+                   <td><img src="/docs/images/vision-checks/brightness-outlier-4.png"></td>
+                   <td><img src="/docs/images/vision-checks/brightness-outlier-5.png"></td>
+                   <td><img src="/docs/images/vision-checks/brightness-outlier-6.png"></td>
+                 </tr>
+                 </table>
 
 What Do You Need in Order To Start Validating?
 ================================================
