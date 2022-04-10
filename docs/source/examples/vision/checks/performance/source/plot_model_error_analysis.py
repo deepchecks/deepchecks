@@ -49,7 +49,7 @@ test_ds = mnist.load_dataset(train=False, object_type='VisionData')
 #
 # Run the check:
 # ~~~~~~~~~~~~~~~~
-check = ModelErrorAnalysis(min_error_model_score=0)
+check = ModelErrorAnalysis(min_error_model_score=-0.1)
 check.run(train_ds, test_ds, mnist_model)
 
 #%%

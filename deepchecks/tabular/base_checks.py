@@ -12,6 +12,7 @@
 import abc
 from functools import wraps
 from typing import Union, Mapping, List, Any
+from warnings import warn
 
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.context import Context
@@ -25,7 +26,7 @@ from deepchecks.core.checks import (
     TrainTestBaseCheck,
     ModelOnlyBaseCheck
 )
-from deepchecks.core.errors import DeepchecksNotSupportedError
+from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksProcessError
 from deepchecks.tabular.model_base import ModelComparisonContext
 
 
@@ -47,6 +48,15 @@ def wrap_run(func, check_instance: BaseCheck):
     return wrapped
 
 
+def single_check_runner(check, run_logic_func, context):
+    """Run a single check, and warn on process error."""
+    try:
+        return run_logic_func(context)
+    except DeepchecksProcessError as e:
+        warn(e.message)
+        return check.finalize_check_result(CheckResult(None, display=[e.message]))
+
+
 class SingleDatasetCheck(SingleDatasetBaseCheck):
     """Parent class for checks that only use one dataset."""
 
@@ -60,7 +70,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
     def run(self, dataset, model=None) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
-        return self.run_logic(self.context_type(  # pylint: disable=not-callable
+        return single_check_runner(self, self.run_logic, self.context_type(  # pylint: disable=not-callable
             dataset,
             model=model
         ))
@@ -87,7 +97,7 @@ class TrainTestCheck(TrainTestBaseCheck):
     def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
-        return self.run_logic(self.context_type(  # pylint: disable=not-callable
+        return single_check_runner(self, self.run_logic, self.context_type(  # pylint: disable=not-callable
             train_dataset,
             test_dataset,
             model=model
@@ -113,7 +123,7 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
     def run(self, model) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
-        return self.run_logic(self.context_type(model=model))  # pylint: disable=not-callable
+        return single_check_runner(self, self.run_logic, self.context_type(model=model))  # pylint: disable=not-callable
 
     @abc.abstractmethod
     def run_logic(self, context) -> CheckResult:
@@ -140,7 +150,7 @@ class ModelComparisonCheck(BaseCheck):
             models: Union[List[Any], Mapping[str, Any]]
             ) -> CheckResult:
         """Initialize context and pass to check logic."""
-        return self.run_logic(ModelComparisonContext(train_datasets, test_datasets, models))
+        return single_check_runner(self, self.run_logic, ModelComparisonContext(train_datasets, test_datasets, models))
 
     @abc.abstractmethod
     def run_logic(self, multi_context: ModelComparisonContext) -> CheckResult:

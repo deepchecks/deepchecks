@@ -9,8 +9,10 @@
 # ----------------------------------------------------------------------------
 #
 """Tests for segment performance check."""
+import warnings
+
 import numpy as np
-from hamcrest import assert_that, calling, raises, has_length, has_items, close_to
+from hamcrest import assert_that, calling, raises, has_length, has_items, close_to, equal_to, is_
 from scipy.special import softmax
 from sklearn.metrics import log_loss
 
@@ -46,9 +48,11 @@ def test_model_error_analysis_regression_not_meaningful(diabetes_split_dataset_a
     train, val, model = diabetes_split_dataset_and_model
 
     # Assert
-    assert_that(calling(ModelErrorAnalysis().run).with_args(train, val, model),
-                raises(DeepchecksProcessError,
-                       'Unable to train meaningful error model'))
+    with warnings.catch_warnings(record=True) as w:
+        r = ModelErrorAnalysis().run(train, val, model)
+        assert_that(r.value, is_(None))
+        assert_that(w, has_length(1))
+        assert_that(str(w[0].message), equal_to('Unable to train meaningful error model (r^2 score: -0.25)'))
 
 
 def test_model_error_analysis_classification(iris_labeled_dataset, iris_adaboost):
@@ -64,9 +68,11 @@ def test_binary_string_model_info_object(iris_binary_string_split_dataset_and_mo
     train_ds, test_ds, clf = iris_binary_string_split_dataset_and_model
 
     # Assert
-    assert_that(calling(ModelErrorAnalysis().run).with_args(train_ds, test_ds, clf),
-                raises(DeepchecksProcessError,
-                       'Unable to train meaningful error model'))
+    with warnings.catch_warnings(record=True) as w:
+        r = ModelErrorAnalysis().run(train_ds, test_ds, clf)
+        assert_that(r.value, is_(None))
+        assert_that(w, has_length(1))
+        assert_that(str(w[0].message), equal_to('Unable to train meaningful error model (r^2 score: -0.04)'))
 
 
 def test_condition_fail(iris_labeled_dataset, iris_adaboost):
