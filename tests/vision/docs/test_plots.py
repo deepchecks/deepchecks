@@ -23,7 +23,7 @@ DOCS_COMPILED_DIR = 'examples'
 def test_plots_on_gpu():
     """If there is GPU available running all the docs plot files. Only makes sure the plots don't crash, and not \
     testing any other display or functionality."""
-    if torch.cuda.is_available() or True:
+    if torch.cuda.is_available():
         path = Path(__file__).parent.parent.parent.parent / "docs" / "source"
 
         # Take only source file and excluding compiled files
