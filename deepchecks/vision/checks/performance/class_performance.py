@@ -21,7 +21,6 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils import plot
 from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.vision import TrainTestCheck, Context, Batch
-from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.metrics_utils.metrics import get_scorers_list, metric_results_to_df, \
                                                     filter_classes_for_display
 
