@@ -81,7 +81,7 @@ test_ds = coco.load_dataset(train=False, object_type='VisionData')
 
 #%%
 # .. _run_check_o:
-
+#
 # Run the check:
 # ~~~~~~~~~~~~~~~~
 
