@@ -283,7 +283,7 @@ subset of the following:
 Supported Data Types
 --------------------
 
-The package currently supports tabular data and is beta release for the computer vision submodule.
+The package currently supports tabular data and is in *beta release* for the computer vision submodule.
 
 
 When Should I Run Deepchecks
