@@ -185,8 +185,7 @@ class Suite(BaseSuite):
 
         # Run on all the batches
         batch_start_index = 0
-        for batch_id, batch in enumerate(vision_data):
-            progress_bar.set_text(f'{100 * batch_id / (1. * n_batches):.0f}%')
+        for batch in vision_data:
             batch = Batch(batch, context, dataset_kind, batch_start_index)
             vision_data.update_cache(batch)
             for check_idx, check in self.checks.items():
