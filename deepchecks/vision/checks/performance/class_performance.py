@@ -21,7 +21,6 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils import plot
 from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.vision import TrainTestCheck, Context, Batch
-from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.metrics_utils.metrics import get_scorers_list, metric_results_to_df, \
                                                     filter_classes_for_display
 
@@ -84,8 +83,6 @@ class ClassPerformance(TrainTestCheck):
 
     def initialize_run(self, context: Context):
         """Initialize run by creating the _state member with metrics for train and test."""
-        context.assert_task_type(TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION)
-
         self._data_metrics = {}
         self._data_metrics[DatasetKind.TRAIN] = get_scorers_list(context.train, self.alternative_metrics)
         self._data_metrics[DatasetKind.TEST] = get_scorers_list(context.train, self.alternative_metrics)

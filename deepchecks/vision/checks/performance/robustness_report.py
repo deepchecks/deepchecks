@@ -66,7 +66,6 @@ class RobustnessReport(SingleDatasetCheck):
 
     def initialize_run(self, context: Context, dataset_kind):
         """Initialize the metrics for the check, and validate task type is relevant."""
-        context.assert_task_type(TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION)
         dataset = context.get_data_by_kind(dataset_kind)
         # Set empty version of metrics
         self._state = {'metrics': get_scorers_list(dataset, self.alternative_metrics)}
@@ -182,8 +181,8 @@ class RobustnessReport(SingleDatasetCheck):
                       f'Dataset.__getitem__'
                 raise DeepchecksValueError(msg)
 
-            # For classification does not check label for difference
-            if dataset.task_type != TaskType.CLASSIFICATION:
+            # For object detection check that the label is affected
+            if dataset.task_type == TaskType.OBJECT_DETECTION:
                 labels = dataset.batch_to_labels(batch)
                 if torch.equal(labels[0], labels[1]):
                     msg = f'Found that labels have not been affected by adding augmentation to field ' \
@@ -210,7 +209,7 @@ class RobustnessReport(SingleDatasetCheck):
                 aug_top_affected[metric].append({'class': index_class,
                                                  'value': single_metric_scores.at[index_class, 'Value'],
                                                  'diff': diff_value,
-                                                 'samples': dataset.n_of_samples_per_class[index_class]})
+                                                 'samples': dataset.n_of_samples_per_class.get(index_class, 0)})
         return aug_top_affected
 
     def _calc_performance_diff(self, mean_base, augmented_metrics):
@@ -388,10 +387,8 @@ def get_random_image_pairs_from_dataset(original_dataset: VisionData,
             base_class_label = [x for x in base_label if x[0] == class_id]
             aug_class_label = [x for x in aug_label if x[0] == class_id]
             samples.append((images[0], images[1], class_id, (base_class_label, aug_class_label)))
-        elif original_dataset.task_type == TaskType.CLASSIFICATION:
-            samples.append((images[0], images[1], class_id))
         else:
-            raise DeepchecksValueError('Not implemented')
+            samples.append((images[0], images[1], class_id))
 
     return samples
 
