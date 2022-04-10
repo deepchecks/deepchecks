@@ -15,10 +15,17 @@ import numpy as np
 import torch
 
 
-def jaccard_iou(dt, gt):
+def jaccard_iou(dt: np.array, gt: np.array):
     """Calculate the jaccard IoU.
 
     See https://en.wikipedia.org/wiki/Jaccard_index
+
+    Parameters
+    ----------
+    dt: np.array
+        Single Detection in the shape of [x, y, width, height, confidence, class]
+    gt: np.array
+        Single Ground Truth in the shape of [class, x, y, width, height]
     """
     x_dt, y_dt, w_dt, h_dt = dt[:4]
     x_gt, y_gt, w_gt, h_gt = gt[1:]
@@ -58,10 +65,10 @@ def group_class_detection_label(detected, ground_truth):
 
     for single_detection in detected:
         class_id = untorchify(single_detection[5])
-        class_bounding_boxes[class_id]["detected"].append(single_detection)
+        class_bounding_boxes[class_id]["detected"].append(single_detection.cpu().numpy())
     for single_ground_truth in ground_truth:
         class_id = untorchify(single_ground_truth[0])
-        class_bounding_boxes[class_id]["ground_truth"].append(single_ground_truth)
+        class_bounding_boxes[class_id]["ground_truth"].append(single_ground_truth.cpu().numpy())
 
     return class_bounding_boxes
 

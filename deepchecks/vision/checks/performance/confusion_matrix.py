@@ -181,7 +181,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
                 continue
 
             list_of_ious = (
-                (label_index, detected_index, jaccard_iou(detected, label))
+                (label_index, detected_index, jaccard_iou(detected.cpu().numpy(), label.cpu().numpy()))
                 for label_index, label in enumerate(image_labels)
                 for detected_index, detected in enumerate(detections_passed_threshold)
             )
