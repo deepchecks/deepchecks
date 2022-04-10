@@ -19,11 +19,18 @@ import plotly.graph_objs as go
 
 __all__ = ['feature_distribution_traces', 'drift_score_bar_traces', 'get_density']
 
-from typing import List, Union, Dict, Tuple
+from typing import List, Dict, Tuple
 
 from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
 from deepchecks.utils.plot import colors
 from deepchecks.utils.dataframes import un_numpy
+
+# For numerical plots, below this number of unique values we draw bar plots, else KDE
+MAX_NUMERICAL_UNIQUE_FOR_BARS = 20
+# For numerical plots, where the total unique is above MAX_NUMERICAL_UNIQUE_FOR_BARS, if any of the single
+# datasets have unique values above this number, we draw KDE, else we draw bar plots. Should be less than half of
+# MAX_NUMERICAL_UNIQUE_FOR_BARS
+MAX_NUMERICAL_UNIQUES_FOR_SINGLE_DIST_BARS = 5
 
 
 def get_density(data, xs) -> np.ndarray:
@@ -117,7 +124,7 @@ def feature_distribution_traces(train_column,
                                 column_name,
                                 is_categorical: bool = False,
                                 max_num_categories: int = 10,
-                                quantile_cut: float = 0.02) -> Tuple[List[Union[go.Bar, go.Scatter]], Dict, Dict]:
+                                quantile_cut: float = 0.02) -> Tuple[List[go.Trace], Dict, Dict]:
     """Create traces for comparison between train and test column.
 
     Parameters
@@ -142,56 +149,31 @@ def feature_distribution_traces(train_column,
         layout of x axis
     Dict
         layout of y axis
+    Dict
+        general layout
     """
     if is_categorical:
-        expected_percents, actual_percents, categories_list = \
-            preprocess_2_cat_cols_to_same_bins(dist1=train_column, dist2=test_column,
-                                               max_num_categories=max_num_categories)
-        # fixes plotly widget bug with numpy values by converting them to native values
-        # https://github.com/plotly/plotly.py/issues/3470
-        categories_list = [un_numpy(cat) for cat in categories_list]
-        cat_df = pd.DataFrame({'Train dataset': expected_percents, 'Test dataset': actual_percents},
-                              index=categories_list)
-
-        # Creating sorting function which works on both numbers and strings
-        def sort_int_and_strings(a, b):
-            # If both numbers or both same type using regular operator
-            if a.__class__ == b.__class__ or (isinstance(a, Number) and isinstance(b, Number)):
-                return -1 if a < b else 1
-            # Sort numbers before strings
-            return -1 if isinstance(a, Number) else 1
-        cat_df = cat_df.reindex(sorted(cat_df.index, key=cmp_to_key(sort_int_and_strings)))
-
-        train_bar = go.Bar(
-            x=cat_df.index,
-            y=cat_df['Train dataset'],
-            marker=dict(
-                color=colors['Train'],
-            ),
-            name='Train Dataset',
-        )
-
-        test_bar = go.Bar(
-            x=cat_df.index,
-            y=cat_df['Test dataset'],
-            marker=dict(
-                color=colors['Test'],
-            ),
-            name='Test Dataset',
-        )
-
-        traces = [train_bar, test_bar]
-
-        max_y = max(*expected_percents, *actual_percents)
-        y_lim = 1 if max_y > 0.5 else max_y * 1.1
-
+        traces, y_layout = _create_distribution_bar_graphs(train_column, test_column, max_num_categories)
         xaxis_layout = dict(type='category')
-        yaxis_layout = dict(fixedrange=True,
-                            range=(0, y_lim),
-                            title='Percentage')
-
+        return traces, xaxis_layout, y_layout
     else:
+        train_uniques, train_uniques_counts = np.unique(train_column, return_counts=True)
+        test_uniques, test_uniques_counts = np.unique(test_column, return_counts=True)
         x_range = (min(train_column.min(), test_column.min()), max(train_column.max(), test_column.max()))
+
+        # If there are less than 20 total unique values, draw bar graph
+        train_test_uniques = np.unique(np.concatenate([train_uniques, test_uniques]))
+        if train_test_uniques.size < MAX_NUMERICAL_UNIQUE_FOR_BARS:
+            traces, y_layout = _create_distribution_bar_graphs(train_column, test_column, 20)
+            # In case of single value widen the range, else plotly draw the bars really wide.
+            if x_range[0] == x_range[1]:
+                x_range = (x_range[0] - 5, x_range[0] + 5)
+            # In case of multi values still widen the range, else plotly hide the bars in the edges.
+            else:
+                x_range = None
+            xaxis_layout = dict(ticks='outside', tickmode='array', tickvals=train_test_uniques, range=x_range)
+            return traces, xaxis_layout, y_layout
+
         x_range_to_show = (
             min(np.quantile(train_column, quantile_cut), np.quantile(test_column, quantile_cut)),
             max(np.quantile(train_column, 1 - quantile_cut), np.quantile(test_column, 1 - quantile_cut))
@@ -204,14 +186,98 @@ def feature_distribution_traces(train_column,
             np.quantile(test_column, q=np.arange(0.02, 1, 0.02))
         )))
 
-        traces = [go.Scatter(x=xs, y=get_density(train_column, xs), fill='tozeroy', name='Train Dataset',
-                             line_color=colors['Train']),
-                  go.Scatter(x=xs, y=get_density(test_column, xs), fill='tozeroy', name='Test Dataset',
-                             line_color=colors['Test'])]
+        train_density = get_density(train_column, xs)
+        test_density = get_density(test_column, xs)
+        bars_width = (x_range_to_show[1] - x_range_to_show[0]) / 100
+
+        traces = []
+        if train_uniques.size <= MAX_NUMERICAL_UNIQUES_FOR_SINGLE_DIST_BARS:
+            traces.append(go.Bar(
+                x=train_uniques,
+                y=_create_bars_data_for_mixed_kde_plot(train_uniques_counts, np.max(test_density)),
+                width=[bars_width] * train_uniques.size,
+                marker=dict(
+                    color=colors['Train'],
+                ),
+                name='Train Dataset',
+            ))
+        else:
+            traces.append(go.Scatter(x=xs, y=train_density, fill='tozeroy', name='Train Dataset',
+                          line_color=colors['Train']))
+
+        if test_uniques.size <= MAX_NUMERICAL_UNIQUES_FOR_SINGLE_DIST_BARS:
+            traces.append(go.Bar(
+                x=test_uniques,
+                y=_create_bars_data_for_mixed_kde_plot(test_uniques_counts, np.max(train_density)),
+                width=[bars_width] * test_uniques.size,
+                marker=dict(
+                    color=colors['Test']
+                ),
+                name='Test Dataset',
+            ))
+        else:
+            traces.append(go.Scatter(x=xs, y=test_density, fill='tozeroy', name='Test Dataset',
+                          line_color=colors['Test']))
 
         xaxis_layout = dict(fixedrange=False,
                             range=x_range_to_show,
                             title=column_name)
         yaxis_layout = dict(title='Probability Density', fixedrange=True)
+        return traces, xaxis_layout, yaxis_layout
 
-    return traces, xaxis_layout, yaxis_layout
+
+def _create_bars_data_for_mixed_kde_plot(counts: np.ndarray, max_kde_value: float):
+    """When showing a mixed KDE and bar plot, we want the bars to be on the same scale of y-values as the KDE values, \
+    so we normalize the counts to sum to 4 times the max KDE value."""
+    normalize_factor = 4 * max_kde_value / np.sum(counts)
+    return counts * normalize_factor
+
+
+def _create_distribution_bar_graphs(train_column, test_column, max_num_categories: int):
+    expected_percents, actual_percents, categories_list = \
+        preprocess_2_cat_cols_to_same_bins(dist1=train_column, dist2=test_column,
+                                           max_num_categories=max_num_categories)
+    # fixes plotly widget bug with numpy values by converting them to native values
+    # https://github.com/plotly/plotly.py/issues/3470
+    categories_list = [un_numpy(cat) for cat in categories_list]
+    cat_df = pd.DataFrame({'Train dataset': expected_percents, 'Test dataset': actual_percents},
+                          index=categories_list)
+
+    # Creating sorting function which works on both numbers and strings
+    def sort_int_and_strings(a, b):
+        # If both numbers or both same type using regular operator
+        if a.__class__ == b.__class__ or (isinstance(a, Number) and isinstance(b, Number)):
+            return -1 if a < b else 1
+        # Sort numbers before strings
+        return -1 if isinstance(a, Number) else 1
+
+    cat_df = cat_df.reindex(sorted(cat_df.index, key=cmp_to_key(sort_int_and_strings)))
+
+    train_bar = go.Bar(
+        x=cat_df.index,
+        y=cat_df['Train dataset'],
+        marker=dict(
+            color=colors['Train'],
+        ),
+        name='Train Dataset',
+    )
+
+    test_bar = go.Bar(
+        x=cat_df.index,
+        y=cat_df['Test dataset'],
+        marker=dict(
+            color=colors['Test'],
+        ),
+        name='Test Dataset',
+    )
+
+    traces = [train_bar, test_bar]
+
+    max_y = max(*expected_percents, *actual_percents)
+    y_lim = 1 if max_y > 0.5 else max_y * 1.1
+
+    yaxis_layout = dict(fixedrange=True,
+                        range=(0, y_lim),
+                        title='Percentage')
+
+    return traces, yaxis_layout

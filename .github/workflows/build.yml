@@ -17,7 +17,7 @@ on:
     branches: [ main ]
 
 env:
-  DEEPCHECKS_DISABLE_LATEST: "true"
+  DISABLE_DEEPCHECKS_ANONYMOUS_TELEMETRY: "true"
 
 jobs:
   tests:
