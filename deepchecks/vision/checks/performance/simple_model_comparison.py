@@ -160,14 +160,9 @@ class SimpleModelComparison(TrainTestCheck):
         if not self.metric_to_show_by:
             self.metric_to_show_by = list(self._test_metrics.keys())[0]
 
-        train_classes = context.train.n_of_samples_per_class.keys()
-        is_given_class_list_to_show = self.class_list_to_show is not None
-        if self.class_list_to_show is None:
-            self.class_list_to_show = train_classes
-        else:
-            self.class_list_to_show = [clazz for clazz in self.class_list_to_show if clazz in train_classes]
-        results_df = results_df.loc[results_df['Class'].isin(self.class_list_to_show)]
-        if not is_given_class_list_to_show and self.n_to_show is not None:
+        if self.class_list_to_show is not None:
+            results_df = results_df.loc[results_df['Class'].isin(self.class_list_to_show)]
+        elif self.n_to_show is not None:
             classes_to_show = filter_classes_for_display(results_df.loc[results_df['Model'] != 'Perfect Model'],
                                                          self.metric_to_show_by,
                                                          self.n_to_show,
