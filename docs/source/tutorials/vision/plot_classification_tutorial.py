@@ -262,7 +262,7 @@ val_data.validate_format(model)
 from deepchecks.vision.suites import full_suite
 
 suite = full_suite()
-result = suite.run(training_data, val_data, model, device)
+result = suite.run(training_data, val_data, model, device=device)
 
 #%%
 # Observing the results:
