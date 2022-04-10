@@ -241,19 +241,35 @@ def test_suite_model_only_check():
 
     assert_that(executions, is_({'initialize_run': 1, 'compute': 1}))
 
+
 def test_full_suite_execution_mnist(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
     suite = full_suite()
-    args = {'train_dataset': mnist_dataset_train, 'test_dataset': mnist_dataset_test,
-            'model':mock_trained_mnist, 'device': device}
-    result = suite.run(**args)
-    length = get_expected_results_length(suite, args)
-    validate_suite_result(result, length)
+    arguments = (
+        dict(train_dataset=mnist_dataset_train, test_dataset=mnist_dataset_test,
+            model=mock_trained_mnist, device=device),
+        dict(train_dataset=mnist_dataset_train,
+             model=mock_trained_mnist, device=device),
+    )
+
+    for args in arguments:
+        result = suite.run(**args)
+        length = get_expected_results_length(suite, args)
+        validate_suite_result(result, length)
+
 
 def test_full_suite_execution_coco(coco_train_visiondata, coco_test_visiondata,
                                    mock_trained_yolov5_object_detection, device):
     suite = full_suite()
     args = {'train_dataset': coco_train_visiondata, 'test_dataset': coco_test_visiondata,
             'model':mock_trained_yolov5_object_detection, 'device': device}
-    result = suite.run(**args)
-    length = get_expected_results_length(suite, args)
-    validate_suite_result(result, length)
+    arguments = (
+        dict(train_dataset=coco_train_visiondata, test_dataset=coco_test_visiondata,
+            model=mock_trained_yolov5_object_detection, device=device),
+        dict(train_dataset=coco_train_visiondata,
+             model=mock_trained_yolov5_object_detection, device=device),
+    )
+
+    for args in arguments:
+        result = suite.run(**args)
+        length = get_expected_results_length(suite, args)
+        validate_suite_result(result, length)
