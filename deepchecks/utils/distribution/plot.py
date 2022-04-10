@@ -170,8 +170,7 @@ def feature_distribution_traces(train_column,
                 x_range = (x_range[0] - 5, x_range[0] + 5)
             # In case of multi values still widen the range, else plotly hide the bars in the edges.
             else:
-                diff = x_range[1] - x_range[0]
-                x_range = (x_range[0] - diff * 0.1, x_range[1] + diff * 0.1)
+                x_range = None
             xaxis_layout = dict(ticks='outside', tickmode='array', tickvals=train_test_uniques, range=x_range)
             return traces, xaxis_layout, y_layout
 
