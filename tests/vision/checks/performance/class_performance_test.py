@@ -227,3 +227,12 @@ def test_condition_class_performance_imbalance_ratio_not_greater_than_fail(mnist
                        device=device)
 
     assert_that(result.conditions_results[0].is_pass, is_(False))
+
+
+def test_custom_task(mnist_train_custom_task, mnist_test_custom_task, device, mock_trained_mnist):
+    # Arrange
+    metrics = {'metric': Precision()}
+    check = ClassPerformance(alternative_metrics=metrics)
+
+    # Act & Assert - check runs without errors
+    check.run(mnist_train_custom_task, mnist_test_custom_task, model=mock_trained_mnist, device=device)
