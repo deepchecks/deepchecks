@@ -9,6 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing confusion matrix report check."""
+import typing as t
+
 import pandas as pd
 import numpy as np
 import torch
@@ -25,7 +27,8 @@ from deepchecks.vision.metrics_utils.iou_utils import jaccard_iou
 __all__ = ['ConfusionMatrixReport']
 
 
-def filter_confusion_matrix(confusion_matrix, number_of_categories):
+def filter_confusion_matrix(confusion_matrix: pd.DataFrame, number_of_categories: int) -> \
+                            t.Tuple[np.ndarray, int]:
     pq = PriorityQueue()
     for row, values in enumerate(confusion_matrix):
         for col, value in enumerate(values):
@@ -62,8 +65,9 @@ class ConfusionMatrixReport(SingleDatasetCheck):
     def __init__(self,
                  categories_to_display: int = 10,
                  confidence_threshold: float = 0.3,
-                 iou_threshold: float = 0.5):
-        super().__init__()
+                 iou_threshold: float = 0.5,
+                 **kwargs):
+        super().__init__(**kwargs)
         self.confidence_threshold = confidence_threshold
         self.categories_to_display = categories_to_display
         self.iou_threshold = iou_threshold
@@ -95,6 +99,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
 
         dataset = context.get_data_by_kind(dataset_kind)
         matrix = pd.DataFrame(self.matrix).T
+        matrix = matrix.rename(index={-1: 'no-overlapping'}, columns={-1: 'no-overlapping'})
         matrix.replace(np.nan, 0, inplace=True)
 
         classes = sorted(
@@ -108,6 +113,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
             matrix,
             self.categories_to_display
         )
+        confusion_matrix = np.nan_to_num(confusion_matrix)
 
         description = [f'Showing {self.categories_to_display} of {dataset.num_classes} classes:']
         classes_to_display = []
@@ -171,7 +177,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
                 # detections are empty, update matrix for labels
                 for label in image_labels:
                     label_class = int(label[0].item())
-                    self.matrix[label_class]['no-overlapping'] += 1
+                    self.matrix[label_class][-1] += 1
                 continue
 
             list_of_ious = (
@@ -205,12 +211,12 @@ class ConfusionMatrixReport(SingleDatasetCheck):
                     detected_class = int(image_detections[detection_index][5])
                     self.matrix[label_class][detected_class] += 1
                 else:
-                    self.matrix[label_class]['no-overlapping'] += 1
+                    self.matrix[label_class][-1] += 1
 
             for detection_index, detection in enumerate(detections_passed_threshold):
                 if n_of_matches > 0 and not (matches[:, 1] == detection_index).any():
                     detected_class = int(detection[5])
-                    self.matrix['no-overlapping'][detected_class] += 1
+                    self.matrix[-1][detected_class] += 1
 
     def update_classification(self, predictions, labels):
         """Update the confusion matrix by batch for classification task."""

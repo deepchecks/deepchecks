@@ -18,10 +18,11 @@ import plotly.express as px
 import numpy as np
 
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import SingleDatasetCheck, Context, Batch
+from deepchecks.vision.metrics_utils.object_detection_precision_recall import ObjectDetectionAveragePrecision
 from deepchecks.vision.vision_data import TaskType
-from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePrecision
 
 
 __all__ = ['MeanAveragePrecisionReport']
@@ -38,14 +39,14 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
         Slices for small/medium/large buckets.
     """
 
-    def __init__(self, area_range: Tuple = (32**2, 96**2)):
-        super().__init__()
+    def __init__(self, area_range: Tuple = (32**2, 96**2), **kwargs):
+        super().__init__(**kwargs)
         self._area_range = area_range
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind = None):
         """Initialize run by asserting task type and initializing metric."""
-        self._ap_metric = AveragePrecision(return_option=None, area_range=self._area_range)
         context.assert_task_type(TaskType.OBJECT_DETECTION)
+        self._ap_metric = ObjectDetectionAveragePrecision(return_option=None, area_range=self._area_range)
 
     def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Update the metrics by passing the batch to ignite metric update method."""
@@ -84,12 +85,13 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
             mean_res[i] = np.nanmean(filtered_res[i][filtered_res[i] > -1])
 
         data = {
-            'IoU': self._ap_metric.iou_thresholds,
+            'IoU threshold': self._ap_metric.iou_thresholds,
             'AP (%)': mean_res
         }
         df = pd.DataFrame.from_dict(data)
 
-        fig = px.line(df, x='IoU', y='AP (%)', title='Mean Average Precision over increasing IoU thresholds')
+        fig = px.line(df, x='IoU threshold', y='AP (%)',
+                      title='Mean Average Precision over increasing IoU thresholds')
 
         return CheckResult(value=results, display=[results, fig])
 
@@ -109,8 +111,8 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
             if len(not_passed):
                 details = f'Found scores below threshold:\n' \
                           f'{dict(not_passed)}'
-                return ConditionResult(False, details)
-            return ConditionResult(True)
+                return ConditionResult(ConditionCategory.FAIL, details)
+            return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Scores are not less than {min_score}', condition)
 
@@ -127,7 +129,7 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
             value = df.loc[df['Area size'] == 'All', :]['mAP@0.5..0.95 (%)'][0]
             if value < min_score:
                 details = f'mAP score is: {format_number(value)}'
-                return ConditionResult(False, details)
-            return ConditionResult(True)
+                return ConditionResult(ConditionCategory.FAIL, details)
+            return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'mAP score is not less than {min_score}', condition)

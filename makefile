@@ -55,10 +55,6 @@ SOURCES := $(or $(PACKAGE), $(wildcard *.py))
 
 # Test and Analyize
 TEST_CODE := tests/
-NOTEBOOK_CHECKS = ./docs/source/examples/checks
-NOTEBOOK_EXAMPLES = ./docs/source/examples/guides/*.ipynb
-NOTEBOOK_USECASES = ./docs/source/examples/use-cases/*.ipynb
-NOTEBOOK_SANITIZER_FILE = ./docs/source/examples/.nbval-sanitizer
 
 PYLINT_LOG = .pylint.log
 
@@ -100,8 +96,8 @@ help:
 	@echo ""
 	@echo "validate"
 	@echo ""
-	@echo "    Run style checks 'pylint' , 'docstring' and 'notebook'"
-	@echo "    pylint docstring notebook - sub commands of validate"
+	@echo "    Run style checks 'pylint' , 'docstring'"
+	@echo "    pylint docstring - sub commands of validate"
 	@echo ""
 	@echo "test"
 	@echo ""
@@ -141,7 +137,7 @@ help:
 
 
 
-all: validate test notebook
+all: validate test
 
 
 env: $(ENV)
@@ -160,12 +156,12 @@ requirements: $(ENV)
 	then \
 		$(PIP) install -q\
 		 	"torch==1.7.1+cu110" "torchvision==0.8.2+cu110" "torchaudio==0.8.1" \
-		 	 -f https://download.pytorch.org/whl/cu110/torch_stable.html; \
+		 	 -f https://s3.amazonaws.com/pytorch/whl/torch_stable.html; \
 	elif [ $(OS) = "Linux" ]; \
 	then \
 		$(PIP) install -q\
 			"torch==1.10.2+cpu" "torchvision==0.11.3+cpu" "torchaudio==0.10.2+cpu" \
-			-f https://download.pytorch.org/whl/cpu/torch_stable.html; \
+			-f https://s3.amazonaws.com/pytorch/whl/torch_stable.html; \
 	else \
 		$(PIP) install -q torch torchvision torchaudio; \
 	fi;
@@ -209,7 +205,7 @@ docstring: dev-requirements
 
 ### Testing ######################################################
 
-.PHONY: test coverage notebook
+.PHONY: test coverage
 
 
 test: requirements dev-requirements
@@ -221,7 +217,7 @@ test-win:
 	@$(WIN_ENV)\Scripts\activate.bat
 	$(PIP_WIN) install -q\
 			"torch==1.10.2+cpu" "torchvision==0.11.3+cpu" "torchaudio==0.10.2+cpu" \
-			-f https://download.pytorch.org/whl/cpu/torch_stable.html;
+			-f https://s3.amazonaws.com/pytorch/whl/torch_stable.html;
 	@$(PIP_WIN) install -U pip
 	@$(PIP_WIN) install -q \
 		-r ./requirements/requirements.txt \
@@ -230,22 +226,6 @@ test-win:
 		-r ./requirements/dev-requirements.txt
 	python -m pytest $(WIN_TESTDIR)
 
-
-notebook: requirements dev-requirements
-# Making sure the examples are running, without validating their outputs.
-	@$(JUPYTER) nbextension enable --py widgetsnbextension
-	@echo "+++ Number of notebooks to execute: $$(find ./docs/source/examples -name "*.ipynb" | wc -l) +++"
-	@echo "+++ Executing notebooks in $(PWD) +++"
-	WANDB_MODE=offline $(PYTEST) --nbval-lax ./docs/source/examples
-
-	# For now, because of plotly - disabling the nbval and just validate that the notebooks are running
-#	$(pythonpath) $(TEST_RUNNER) --nbval $(NOTEBOOK_CHECKS) --sanitize-with $(NOTEBOOK_SANITIZER_FILE)
-
-
-regenerate-examples: requirements dev-requirements
-	@$(JUPYTER) nbextension enable --py widgetsnbextension
-	@echo "+++ Number of notebooks: $$(find ./docs/source/examples -name "*.ipynb" | wc -l) +++"
-	@$(JUPYTER) nbconvert --execute $$(find ./docs/source/examples -name "*.ipynb") --to notebook --inplace
 
 coverage: requirements dev-requirements
 	$(COVERAGE) run --source deepchecks/,tests/ --omit ultralytics_yolov5_master/ -m pytest
@@ -368,8 +348,9 @@ test-release: dist test-upload
 .PHONY: docs website dev-docs gen-static-notebooks license-check links-check
 
 
-docs: requirements doc-requirements $(DOCS_SRC)
-	cd $(DOCS) && make html SPHINXBUILD=$(SPHINX_BUILD) SPHINXOPTS=$(SPHINXOPTS) 2> docs.error.log
+docs: requirements doc-requirements dev-requirements $(DOCS_SRC)
+	@export WANDB_MODE=offline
+	cd $(DOCS) && make html SPHINXBUILD=$(SPHINX_BUILD) SPHINXOPTS=$(SPHINXOPTS)
 	@echo ""
 	@echo "++++++++++++++++++++++++"
 	@echo "++++ Build Finished ++++"

@@ -10,17 +10,19 @@
 #
 """Module containing performance report check."""
 from typing import Callable, TypeVar, Dict, cast
+
 import pandas as pd
 import plotly.express as px
 
 from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.tabular import Context, ModelComparisonContext, TrainTestCheck, ModelComparisonCheck
+from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.utils.metrics import MULTICLASS_SCORERS_NON_AVERAGE, ModelType
 
 
-__all__ = ['PerformanceReport', 'MultiModelPerformanceReport']
+__all__ = ['PerformanceReport']
 
 
 PR = TypeVar('PR', bound='PerformanceReport')
@@ -47,7 +49,12 @@ class PerformanceReport(TrainTestCheck):
     .. code-block:: python
 
         from sklearn.metrics import roc_auc_score, make_scorer
-        auc_scorer = make_scorer(roc_auc_score)
+
+        training_labels = [1, 2, 3]
+        auc_scorer = make_scorer(roc_auc_score, labels=training_labels, multi_class='ovr')
+        # Note that the labels parameter is required for multi-class classification in metrics like roc_auc_score or
+        # log_loss that use the predict_proba function of the model, in case that not all labels are present in the test
+        # set.
 
     Or you can implement your own:
 
@@ -65,8 +72,8 @@ class PerformanceReport(TrainTestCheck):
         my_mse_scorer = make_scorer(my_mse, greater_is_better=False)
     """
 
-    def __init__(self, alternative_scorers: Dict[str, Callable] = None):
-        super().__init__()
+    def __init__(self, alternative_scorers: Dict[str, Callable] = None, **kwargs):
+        super().__init__(**kwargs)
         self.user_scorers = alternative_scorers
 
     def run_logic(self, context: Context) -> CheckResult:
@@ -82,7 +89,6 @@ class PerformanceReport(TrainTestCheck):
 
         model = context.model
         task_type = context.task_type
-        classes = train_dataset.classes
 
         scorers = context.get_scorers(self.user_scorers, class_avg=False)
         datasets = {'Train': train_dataset, 'Test': test_dataset}
@@ -92,6 +98,7 @@ class PerformanceReport(TrainTestCheck):
             results = []
 
             for dataset_name, dataset in datasets.items():
+                classes = dataset.classes
                 label = cast(pd.Series, dataset.label_col)
                 n_samples = label.groupby(label).count()
                 results.extend(
@@ -156,8 +163,8 @@ class PerformanceReport(TrainTestCheck):
             if len(not_passed):
                 details = f'Found metrics with scores below threshold:\n' \
                           f'{not_passed_test[["Class", "Metric", "Value"]].to_dict("records")}'
-                return ConditionResult(False, details)
-            return ConditionResult(True)
+                return ConditionResult(ConditionCategory.FAIL, details)
+            return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Scores are not less than {min_score}', condition)
 
@@ -196,14 +203,14 @@ class PerformanceReport(TrainTestCheck):
                     test_scores_dict = dict(zip(test_scores_class['Metric'], test_scores_class['Value']))
                     train_scores_dict = dict(zip(train_scores_class['Metric'], train_scores_class['Value']))
                     # Calculate percentage of change from train to test
-                    diff = {score_name: _ratio_of_change_calc(score, test_scores_dict[score_name])
+                    diff = {score_name: _ratio_of_change_calc(score, test_scores_dict.get(score_name, 0))
                             for score_name, score in train_scores_dict.items()}
                     failed_scores = [k for k, v in diff.items() if v > threshold]
                     if failed_scores:
                         for score_name in failed_scores:
                             explained_failures.append(f'{score_name} for class {class_name} '
-                                                      f'(train={format_number(train_scores_dict[score_name])} '
-                                                      f'test={format_number(test_scores_dict[score_name])})')
+                                                      f'(train={format_number(train_scores_dict.get(score_name, 0))} '
+                                                      f'test={format_number(test_scores_dict.get(score_name, 0))})')
             else:
                 test_scores_dict = dict(zip(test_scores['Metric'], test_scores['Value']))
                 train_scores_dict = dict(zip(train_scores['Metric'], train_scores['Value']))
@@ -218,9 +225,9 @@ class PerformanceReport(TrainTestCheck):
                                                   f'test={format_number(test_scores_dict[score_name])}')
             if explained_failures:
                 message = '\n'.join(explained_failures)
-                return ConditionResult(False, message)
+                return ConditionResult(ConditionCategory.FAIL, message)
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Train-Test scores relative degradation is not greater than {threshold}',
                                   condition)
@@ -284,9 +291,9 @@ class PerformanceReport(TrainTestCheck):
                     )
                     datasets_details.append(details)
             if datasets_details:
-                return ConditionResult(False, details='\n'.join(datasets_details))
+                return ConditionResult(ConditionCategory.FAIL, details='\n'.join(datasets_details))
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(
             name=(
@@ -295,75 +302,3 @@ class PerformanceReport(TrainTestCheck):
             ),
             condition_func=condition
         )
-
-
-class MultiModelPerformanceReport(ModelComparisonCheck):
-    """Summarize performance scores for multiple models on test datasets.
-
-    Parameters
-    ----------
-    alternative_scorers : Dict[str, Callable] , default: None
-        An optional dictionary of scorer name to scorer functions.
-        If none given, using default scorers
-    """
-
-    def __init__(self, alternative_scorers: Dict[str, Callable] = None):
-        super().__init__()
-        self.user_scorers = alternative_scorers
-
-    def run_logic(self, multi_context: ModelComparisonContext):
-        """Run check logic."""
-        first_context = multi_context[0]
-        scorers = first_context.get_scorers(self.user_scorers, class_avg=False)
-
-        if multi_context.task_type in [ModelType.MULTICLASS, ModelType.BINARY]:
-            plot_x_axis = ['Class', 'Model']
-            results = []
-
-            for context in multi_context:
-                test = context.test
-                model = context.model
-                label = cast(pd.Series, test.label_col)
-                n_samples = label.groupby(label).count()
-                results.extend(
-                    [context.model_name, class_score, scorer.name, class_name, n_samples[class_name]]
-                    for scorer in scorers
-                    # scorer returns numpy array of results with item per class
-                    for class_score, class_name in zip(scorer(model, test), test.classes)
-                )
-
-            results_df = pd.DataFrame(results, columns=['Model', 'Value', 'Metric', 'Class', 'Number of samples'])
-
-        else:
-            plot_x_axis = 'Model'
-            results = [
-                [context.model_name, scorer(context.model, context.test), scorer.name,
-                 cast(pd.Series, context.test.label_col).count()]
-                for context in multi_context
-                for scorer in scorers
-            ]
-            results_df = pd.DataFrame(results, columns=['Model', 'Value', 'Metric', 'Number of samples'])
-
-        fig = px.histogram(
-            results_df,
-            x=plot_x_axis,
-            y='Value',
-            color='Model',
-            barmode='group',
-            facet_col='Metric',
-            facet_col_spacing=0.05,
-            hover_data=['Number of samples'],
-        )
-
-        if multi_context.task_type in [ModelType.MULTICLASS, ModelType.BINARY]:
-            fig.update_xaxes(title=None, tickprefix='Class ', tickangle=60)
-        else:
-            fig.update_xaxes(title=None)
-
-        fig = (
-            fig.update_yaxes(title=None, matches=None)
-            .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
-            .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
-        )
-
-        return CheckResult(results_df, display=[fig])

@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Handle display of suite result."""
-import itertools
 import os
 import sys
 import re
@@ -23,11 +22,11 @@ import pandas as pd
 from IPython.display import display, display_html
 from IPython import get_ipython
 import ipywidgets as widgets
-from ipywidgets.embed import embed_minimal_html
+from ipywidgets.embed import embed_minimal_html, dependency_state
 
 from deepchecks.core import errors
 from deepchecks.utils.ipython import is_widgets_enabled
-from deepchecks.utils.strings import get_random_string
+from deepchecks.utils.strings import create_new_file_name, get_random_string
 from deepchecks.core.check_result import CheckResult, CheckFailure
 from deepchecks.core.display_pandas import (
     dataframe_to_html, get_conditions_table,
@@ -118,7 +117,8 @@ def _display_suite_widgets(summary: str,
                            checks_w_condition_display: List[CheckResult],
                            others_table: List,
                            light_hr: str,
-                           html_out):  # pragma: no cover
+                           html_out,
+                           requirejs: bool = True):  # pragma: no cover
     """Display results of suite in as Tab widget."""
     tab = widgets.Tab()
     condition_tab = widgets.VBox()
@@ -180,23 +180,15 @@ def _display_suite_widgets(summary: str,
     page.children = [widgets.HTML(summary), widgets.HTML(tab_css), tab]
     if html_out:
         if isinstance(html_out, str):
-            if '.' in html_out:
-                basename, ext = html_out.rsplit('.', 1)
-            else:
-                basename = html_out
-                ext = 'html'
-            html_out = f'{basename}.{ext}'
-            c = itertools.count()
-            next(c)
-            while os.path.exists(html_out):
-                html_out = f'{basename} ({str(next(c))}).{ext}'
+            html_out = create_new_file_name(html_out, 'html')
         curr_path = os.path.dirname(os.path.abspath(__file__))
         with open(os.path.join(curr_path, 'resources', 'suite_output.html'), 'r', encoding='utf8') as html_file:
             html_formatted = re.sub('{', '{{', html_file.read())
             html_formatted = re.sub('}', '}}', html_formatted)
             html_formatted = re.sub('html_title', '{title}', html_formatted)
             html_formatted = re.sub('widget_snippet', '{snippet}', html_formatted)
-            embed_minimal_html(html_out, views=[page], title='Suite Output', template=html_formatted)
+            embed_minimal_html(html_out, views=[page], title='Suite Output', template=html_formatted,
+                               requirejs=requirejs, embed_url=None, state=dependency_state(page))
     else:
         display(page)
 
@@ -253,8 +245,8 @@ def _display_suite_no_widgets(summary: str,
         display_html(f'<br><a href="#summary_{unique_id}" style="font-size: 14px">Go to top</a>', raw=True)
 
 
-def display_suite_result(suite_name: str, results: List[Union[CheckResult, CheckFailure]],
-                         html_out=None):  # pragma: no cover
+def display_suite_result(suite_name: str, results: List[Union[CheckResult, CheckFailure]], extra_info: List[str],
+                         html_out=None, requirejs: bool = True):  # pragma: no cover
     """Display results of suite in IPython."""
     if len(results) == 0:
         display_html(f"""<h1>{suite_name}</h1><p>Suite is empty.</p>""", raw=True)
@@ -304,7 +296,8 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
     icons = """
     <span style="color: green;display:inline-block">\U00002713</span> /
     <span style="color: red;display:inline-block">\U00002716</span> /
-    <span style="color: orange;font-weight:bold;display:inline-block">\U00000021</span>
+    <span style="color: orange;font-weight:bold;display:inline-block">\U00000021</span> /
+    <span style="color: firebrick;font-weight:bold;display:inline-block">\U00002048</span>
     """
 
     check_names = list(set(it.check.name() for it in results))
@@ -324,12 +317,17 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
         <h1 id="summary_{unique_id}">{suite_name}</h1>
         <p>
             {prologue}<br>
-            Each check may contain conditions (which will result in pass / fail / warning, represented by {icons})
-            as well as other outputs such as plots or tables.<br>
+            Each check may contain conditions (which will result in pass / fail / warning / error
+            , represented by {icons}) as well as other outputs such as plots or tables.<br>
             Suites, checks and conditions can all be modified. Read more about
             <a href={suite_creation_example_link} target="_blank">custom suites</a>.
         </p>
         """
+
+    if extra_info:
+        summ += '<br>'
+        for info in extra_info:
+            summ += '<div>' + info + '</div>'
 
     # can't display plotly widgets in kaggle notebooks
     if html_out or (is_widgets_enabled() and os.environ.get('KAGGLE_KERNEL_RUN_TYPE') is None):
@@ -340,7 +338,8 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
                                checks_w_condition_display,
                                others_table,
                                light_hr,
-                               html_out)
+                               html_out,
+                               requirejs)
     else:
         _display_suite_no_widgets(summ,
                                   unique_id,

@@ -10,20 +10,21 @@
 #
 """Module contains the simple feature distribution check."""
 from collections import defaultdict
-from typing import Any, Callable, TypeVar, Hashable, Dict
-import numpy as np
+from typing import Callable, TypeVar, Hashable, Dict, Union
+
 import pandas as pd
 
 from deepchecks import ConditionResult
 from deepchecks.core import CheckResult, DatasetKind
-from deepchecks.core.check_utils.single_feature_contribution_utils import get_single_feature_contribution
-from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.core.check_utils.single_feature_contribution_utils import get_single_feature_contribution, \
+    get_single_feature_contribution_per_class
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Context, TrainTestCheck
-from deepchecks.vision.utils import image_properties
+from deepchecks.vision.batch_wrapper import Batch
+from deepchecks.vision.utils.image_properties import default_image_properties, validate_properties
 from deepchecks.vision.utils.image_functions import crop_image
 from deepchecks.vision.vision_data import TaskType
-
 
 __all__ = ['SimpleFeatureContribution']
 
@@ -31,7 +32,6 @@ pps_url = 'https://docs.deepchecks.com/en/stable/examples/vision/' \
           'checks/methodology/simple_feature_contribution' \
           '.html?utm_source=display_output&utm_medium=referral&utm_campaign=check_link'
 pps_html = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
-
 
 SFC = TypeVar('SFC', bound='SimpleFeatureContribution')
 
@@ -62,10 +62,13 @@ class SimpleFeatureContribution(TrainTestCheck):
 
     Parameters
     ----------
-    alternative_image_properties : List[Dict[str, Any]], default: None
+    image_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
         Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
         representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'
+    per_class : bool, default: True
+        boolean that indicates whether the results of this check should be calculated for all classes or per class in
+        label. If True, the conditions will be run per class as well.
     n_top_properties: int, default: 5
         Number of features to show, sorted by the magnitude of difference in PPS
     ppscore_params: dict, default: None
@@ -74,18 +77,21 @@ class SimpleFeatureContribution(TrainTestCheck):
 
     def __init__(
             self,
-            alternative_image_properties: Dict[str, Callable] = None,
+            image_properties: Dict[str, Callable] = None,
             n_top_properties: int = 3,
-            ppscore_params: dict = None
+            per_class: bool = True,
+            ppscore_params: dict = None,
+            **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
 
-        if alternative_image_properties:
-            image_properties.validate_properties(alternative_image_properties)
-            self.image_properties = alternative_image_properties
+        if image_properties:
+            validate_properties(image_properties)
+            self.image_properties = image_properties
         else:
-            self.image_properties = image_properties.default_image_properties
+            self.image_properties = default_image_properties
 
+        self.per_class = per_class
         self.n_top_properties = n_top_properties
         self.ppscore_params = ppscore_params or {}
 
@@ -94,7 +100,7 @@ class SimpleFeatureContribution(TrainTestCheck):
         self._train_properties['target'] = []
         self._test_properties['target'] = []
 
-    def update(self, context: Context, batch: Any, dataset_kind: DatasetKind):
+    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Calculate image properties for train or test batches."""
         if dataset_kind == DatasetKind.TRAIN:
             dataset = context.train
@@ -103,25 +109,26 @@ class SimpleFeatureContribution(TrainTestCheck):
             dataset = context.test
             properties = self._test_properties
 
-        if dataset.task_type == TaskType.CLASSIFICATION:
-            imgs = batch.images
-            properties['target'] += batch.labels.tolist()
-        elif dataset.task_type == TaskType.OBJECT_DETECTION:
-            labels = batch.labels
-            orig_imgs = batch.images
+        imgs = []
+        target = []
 
-            classes = []
-            imgs = []
-            for img, label in zip(orig_imgs, labels):
-                classes += [int(x[0]) for x in label]
-
-                bboxes = [np.array(x[1:]) for x in label]
-                imgs += [crop_image(img, *bbox) for bbox in bboxes]
-
-            properties['target'] += classes
+        if dataset.task_type == TaskType.OBJECT_DETECTION:
+            for img, labels in zip(batch.images, batch.labels):
+                for label in labels:
+                    label = label.cpu().detach().numpy()
+                    bbox = label[1:]
+                    cropped_img = crop_image(img, *bbox)
+                    if cropped_img.shape[0] == 0 or cropped_img.shape[1] == 0:
+                        continue
+                    class_id = int(label[0])
+                    imgs += [cropped_img]
+                    target += [class_id]
         else:
-            raise DeepchecksValueError(
-                f'Check {self.__class__.__name__} does not support task type {dataset.task_type}')
+            for img, classes_ids in zip(batch.images, dataset.get_classes(batch.labels)):
+                imgs += [img] * len(classes_ids)
+                target += classes_ids
+
+        properties['target'] += target
 
         for single_property in self.image_properties:
             properties[single_property['name']].extend(single_property['method'](imgs))
@@ -155,12 +162,20 @@ class SimpleFeatureContribution(TrainTestCheck):
             'the target label.'
         ]
 
-        ret_value, display = get_single_feature_contribution(df_train,
-                                                             'target',
-                                                             df_test,
-                                                             'target',
-                                                             self.ppscore_params,
-                                                             self.n_top_properties)
+        if self.per_class is True:
+            ret_value, display = get_single_feature_contribution_per_class(df_train,
+                                                                           'target',
+                                                                           df_test,
+                                                                           'target',
+                                                                           self.ppscore_params,
+                                                                           self.n_top_properties)
+        else:
+            ret_value, display = get_single_feature_contribution(df_train,
+                                                                 'target',
+                                                                 df_test,
+                                                                 'target',
+                                                                 self.ppscore_params,
+                                                                 self.n_top_properties)
 
         if display:
             display += text
@@ -171,7 +186,9 @@ class SimpleFeatureContribution(TrainTestCheck):
         """Add new condition.
 
         Add condition that will check that difference between train
-        dataset property pps and test dataset property pps is not greater than X.
+        dataset property pps and test dataset property pps is not greater than X. If per_class is True, the condition
+        will apply per class, and a single class with pps difference greater than X will be enough to fail the
+        condition.
 
         Parameters
         ----------
@@ -184,17 +201,26 @@ class SimpleFeatureContribution(TrainTestCheck):
         """
 
         def condition(value: Dict[Hashable, Dict[Hashable, float]]) -> ConditionResult:
-            failed_features = {
-                feature_name: format_number(pps_diff)
-                for feature_name, pps_diff in value['train-test difference'].items()
-                if pps_diff > threshold
-            }
+            if self.per_class is True:
+                failed_features = {
+                    feature_name: format_number(pps_value)
+                    for feature_name, pps_value in
+                    zip(value.keys(), [max(value[f]['train-test difference'].values()) for f in value.keys()])
+                    if pps_value > threshold
+                }
+
+            else:
+                failed_features = {
+                    feature_name: format_number(pps_value)
+                    for feature_name, pps_value in value['train-test difference'].items()
+                    if pps_value > threshold
+                }
 
             if failed_features:
                 message = f'Features with PPS difference above threshold: {failed_features}'
-                return ConditionResult(False, message)
+                return ConditionResult(ConditionCategory.FAIL, message)
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Train-Test properties\' Predictive Power Score difference is not greater than '
                                   f'{format_number(threshold)}', condition)
@@ -202,7 +228,9 @@ class SimpleFeatureContribution(TrainTestCheck):
     def add_condition_feature_pps_in_train_not_greater_than(self: SFC, threshold: float = 0.2) -> SFC:
         """Add new condition.
 
-        Add condition that will check that train dataset property pps is not greater than X.
+        Add condition that will check that train dataset property pps is not greater than X. If per_class is True, the
+        condition will apply per class, and a single class with pps greater than X will be enough to fail the
+        condition.
 
         Parameters
         ----------
@@ -214,18 +242,28 @@ class SimpleFeatureContribution(TrainTestCheck):
         SFC
         """
 
-        def condition(value: Dict[Hashable, Dict[Hashable, float]]) -> ConditionResult:
-            failed_features = {
-                feature_name: format_number(pps_value)
-                for feature_name, pps_value in value['train'].items()
-                if pps_value > threshold
-            }
+        def condition(value: Union[Dict[Hashable, Dict[Hashable, float]],
+                                   Dict[Hashable, Dict[Hashable, Dict[Hashable, float]]]]) -> ConditionResult:
+            if self.per_class is True:
+                failed_features = {
+                    feature_name: format_number(pps_value)
+                    for feature_name, pps_value in
+                    zip(value.keys(), [max(value[f]['train'].values()) for f in value.keys()])
+                    if pps_value > threshold
+                }
+
+            else:
+                failed_features = {
+                    feature_name: format_number(pps_value)
+                    for feature_name, pps_value in value['train'].items()
+                    if pps_value > threshold
+                }
 
             if failed_features:
                 message = f'Features in train dataset with PPS above threshold: {failed_features}'
-                return ConditionResult(False, message)
+                return ConditionResult(ConditionCategory.FAIL, message)
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Train properties\' Predictive Power Score is not greater than '
                                   f'{format_number(threshold)}', condition)

@@ -24,17 +24,22 @@ import warnings
 from typing import Any, Callable, List, Tuple, Union, TYPE_CHECKING
 
 import jsonpickle
+import jsonpickle.ext.pandas as jsonpickle_pd
 import matplotlib
 import pandas as pd
 import numpy as np
 import ipywidgets as widgets
 import plotly.graph_objects as go
 import plotly
+from ipywidgets.embed import embed_minimal_html, dependency_state
 from plotly.basedatatypes import BaseFigure
 from matplotlib import pyplot as plt
 from IPython.display import display_html
 from pandas.io.formats.style import Styler
 
+
+# registers jsonpickle pandas extension for pandas support in the to_json function
+jsonpickle_pd.register_handlers()
 
 if TYPE_CHECKING:
     from deepchecks.core.checks import BaseCheck
@@ -128,8 +133,7 @@ class CheckResult:
             box_children = []
         check_html = ''
         if unique_id:
-            check_id = f'{self.check.__class__.__name__}_{unique_id}'
-            check_html += f'<h4 id="{check_id}">{self.get_header()}</h4>'
+            check_html += f'<h4 id="{self.get_check_id(unique_id)}">{self.get_header()}</h4>'
         else:
             check_html += f'<h4>{self.get_header()}</h4>'
         if hasattr(self.check.__class__, '__doc__'):
@@ -180,6 +184,14 @@ class CheckResult:
             box.children = box_children
             return box
         display_html(check_html, raw=True)
+
+    def _repr_html_(self):
+        """Return html representation of check result."""
+        html_out = io.StringIO()
+        widgeted_output = self.display_check(as_widget=True)
+        embed_minimal_html(html_out, views=[widgeted_output], requirejs=False,
+                           embed_url=None, state=dependency_state(widgeted_output))
+        return html_out.getvalue()
 
     def _display_to_json(self) -> List[Tuple[str, str]]:
         displays = []
@@ -289,7 +301,7 @@ class CheckResult:
         """
         result_json = self._get_metadata()
         if self.conditions_results:
-            cond_df = get_conditions_table(self)
+            cond_df = get_conditions_table(self, icon_html=False)
             result_json['conditions_table'] = cond_df.data.to_json(orient='records')
         if isinstance(self.value, pd.DataFrame):
             result_json['value'] = self.value.to_json()
@@ -356,6 +368,11 @@ class CheckResult:
     def get_header(self) -> str:
         """Return header for display. if header was defined return it, else extract name of check class."""
         return self.header or self.check.name()
+
+    def get_check_id(self, unique_id: str = '') -> str:
+        """Return check id (used for href)."""
+        header = self.get_header().replace(' ', '')
+        return f'{header}_{unique_id}'
 
     def process_conditions(self) -> List[Condition]:
         """Process the conditions results from current result and check."""

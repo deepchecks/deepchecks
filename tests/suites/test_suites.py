@@ -11,18 +11,18 @@
 """builtin suites tests"""
 #pylint: disable=redefined-outer-name
 import typing as t
+from catboost import CatBoostClassifier, CatBoostRegressor
+from lightgbm import LGBMClassifier, LGBMRegressor
 import pytest
 from datetime import datetime
 
 import pandas as pd
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.model_selection import train_test_split
-from hamcrest.core.matcher import Matcher
-from hamcrest import assert_that, instance_of, only_contains, any_of
+from xgboost import XGBClassifier, XGBRegressor
 
-from deepchecks.core import SuiteResult, CheckResult, CheckFailure
-from deepchecks.tabular import suites, Dataset, SingleDatasetCheck, Suite
-from deepchecks.core.errors import DeepchecksBaseError
+from deepchecks.tabular import suites, Dataset
+from tests.conftest import get_expected_results_length, validate_suite_result
 
 
 @pytest.fixture()
@@ -52,16 +52,19 @@ def iris(iris_clean) -> t.Tuple[Dataset, Dataset, AdaBoostClassifier]:
 def test_generic_suite(
     iris: t.Tuple[Dataset, Dataset, AdaBoostClassifier],
     diabetes_split_dataset_and_model: t.Tuple[Dataset, Dataset, object],
-    iris_split_dataset_and_model_single_feature : t.Tuple[Dataset, Dataset, AdaBoostClassifier]
+    iris_split_dataset_and_model_single_feature : t.Tuple[Dataset, Dataset, AdaBoostClassifier],
+    city_arrogance_split_dataset_and_model : t.Tuple[Dataset, Dataset, AdaBoostClassifier],
 ):
     iris_train, iris_test, iris_model = iris
     diabetes_train, diabetes_test, diabetes_model = diabetes_split_dataset_and_model
+    city_train, city_test, city_model = city_arrogance_split_dataset_and_model
     iris_train_single, iris_test_single, iris_model_single= iris_split_dataset_and_model_single_feature
     suite = suites.full_suite()
 
     arguments = (
         dict(train_dataset=iris_train_single, test_dataset=iris_test_single, model=iris_model_single),
         dict(train_dataset=iris_train_single, test_dataset=iris_test_single),
+        dict(train_dataset=city_train, test_dataset=city_test, model=city_model),
         dict(train_dataset=iris_train, test_dataset=iris_test, model=iris_model),
         dict(train_dataset=iris_train, test_dataset=iris_test),
         dict(train_dataset=iris_train, model=iris_model),
@@ -76,42 +79,54 @@ def test_generic_suite(
         validate_suite_result(result, length)
 
 
-def validate_suite_result(
-    result: SuiteResult,
-    min_length: int,
-    exception_matcher: t.Optional[Matcher] = None
+def test_generic_boost(
+    iris_split_dataset_and_model_cat: t.Tuple[Dataset, Dataset, CatBoostClassifier],
+    iris_split_dataset_and_model_xgb: t.Tuple[Dataset, Dataset, XGBClassifier],
+    iris_split_dataset_and_model_lgbm : t.Tuple[Dataset, Dataset, LGBMClassifier],
+    diabetes_split_dataset_and_model_xgb: t.Tuple[Dataset, Dataset, CatBoostRegressor],
+    diabetes_split_dataset_and_model_lgbm: t.Tuple[Dataset, Dataset, XGBRegressor],
+    diabetes_split_dataset_and_model_cat : t.Tuple[Dataset, Dataset, LGBMRegressor],
 ):
-    assert_that(result, instance_of(SuiteResult))
-    assert_that(result.results, instance_of(list))
-    assert_that(len(result.results) >= min_length)
+    iris_cat_train, iris_cat_test, iris_cat_model = iris_split_dataset_and_model_cat
+    iris_xgb_train, iris_xgb_test, iris_xgb_model = iris_split_dataset_and_model_xgb
+    iris_lgbm_train, iris_lgbm_test, iris_lgbm_model = iris_split_dataset_and_model_lgbm
 
-    exception_matcher = exception_matcher or only_contains(instance_of(DeepchecksBaseError))
+    diabetes_cat_train, diabetes_cat_test, diabetes_cat_model = diabetes_split_dataset_and_model_cat
+    diabetes_xgb_train, diabetes_xgb_test, diabetes_xgb_model = diabetes_split_dataset_and_model_xgb
+    diabetes_lgbm_train, diabetes_lgbm_test, diabetes_lgbm_model = diabetes_split_dataset_and_model_lgbm
 
-    assert_that(result.results, only_contains(any_of( # type: ignore
-        instance_of(CheckFailure),
-        instance_of(CheckResult),
-    )))
+    suite = suites.full_suite()
 
-    failures = [
-        it.exception
-        for it in result.results
-        if isinstance(it, CheckFailure)
-    ]
+    arguments = (
+        dict(train_dataset=iris_cat_train, test_dataset=iris_cat_test, model=iris_cat_model),
+        dict(train_dataset=iris_xgb_train, test_dataset=iris_xgb_test, model=iris_xgb_model),
+        dict(train_dataset=iris_lgbm_train, test_dataset=iris_lgbm_test, model=iris_lgbm_model),
+        dict(train_dataset=diabetes_cat_train, test_dataset=diabetes_cat_test, model=diabetes_cat_model),
+        dict(train_dataset=diabetes_xgb_train, test_dataset=diabetes_xgb_test, model=diabetes_xgb_model),
+        dict(train_dataset=diabetes_lgbm_train, test_dataset=diabetes_lgbm_test, model=diabetes_lgbm_model),
+    )
 
-    if len(failures) != 0:
-        assert_that(actual=failures, matcher=exception_matcher) # type: ignore
+    for args in arguments:
+        result = suite.run(**args)
+        length = get_expected_results_length(suite, args)
+        validate_suite_result(result, length)
 
 
-def get_expected_results_length(suite: Suite, args: t.Dict):
-    num_single = len([c for c in suite.checks.values() if isinstance(c, SingleDatasetCheck)])
-    num_others = len(suite.checks.values()) - num_single
-    multiply = 0
-    if 'train_dataset' in args:
-        multiply += 1
-    if 'test_dataset' in args:
-        multiply += 1
-    # If no train and no test (only model) there will be single result of check failure
-    if multiply == 0:
-        multiply = 1
+def test_generic_custom(
+    iris_split_dataset_and_model_custom: t.Tuple[Dataset, Dataset, t.Any],
+    diabetes_split_dataset_and_model_custom: t.Tuple[Dataset, Dataset, t.Any],
+):
+    iris_train, iris_test, iris_model = iris_split_dataset_and_model_custom
+    diabetes_train, diabetes_test, diabetes_model = diabetes_split_dataset_and_model_custom
 
-    return num_single * multiply + num_others
+    suite = suites.full_suite()
+
+    arguments = (
+        dict(train_dataset=iris_train, test_dataset=iris_test, model=iris_model),
+        dict(train_dataset=diabetes_train, test_dataset=diabetes_test, model=diabetes_model),
+    )
+
+    for args in arguments:
+        result = suite.run(**args)
+        length = get_expected_results_length(suite, args)
+        validate_suite_result(result, length)

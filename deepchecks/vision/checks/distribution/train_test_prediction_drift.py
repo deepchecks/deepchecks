@@ -15,13 +15,15 @@ from collections import OrderedDict, defaultdict
 import pandas as pd
 
 from deepchecks import ConditionResult
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.core import DatasetKind, CheckResult
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.vision import Context, TrainTestCheck, Batch
 from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.utils.label_prediction_properties import validate_properties, \
-    DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES, DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES, get_column_type
+    DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES, DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES, get_column_type, \
+    properties_flatten
 
 __all__ = ['TrainTestPredictionDrift']
 
@@ -55,7 +57,7 @@ class TrainTestPredictionDrift(TrainTestCheck):
 
     Parameters
     ----------
-    alternative_prediction_properties : List[Dict[str, Any]], default: None
+    prediction_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
         Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
         representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'/'class_id'
@@ -67,14 +69,15 @@ class TrainTestPredictionDrift(TrainTestCheck):
 
     def __init__(
             self,
-            alternative_prediction_properties: List[Dict[str, Any]] = None,
-            max_num_categories: int = 10
+            prediction_properties: List[Dict[str, Any]] = None,
+            max_num_categories: int = 10,
+            **kwargs
     ):
-        super().__init__()
-        # validate alternative_prediction_properties:
-        if alternative_prediction_properties is not None:
-            validate_properties(alternative_prediction_properties)
-        self.alternative_prediction_properties = alternative_prediction_properties
+        super().__init__(**kwargs)
+        # validate prediction properties:
+        if prediction_properties is not None:
+            validate_properties(prediction_properties)
+        self.user_prediction_properties = prediction_properties
         self.max_num_categories = max_num_categories
         self._prediction_properties = None
         self._train_prediction_properties = None
@@ -95,14 +98,14 @@ class TrainTestPredictionDrift(TrainTestCheck):
 
         task_type = train_dataset.task_type
 
-        if self.alternative_prediction_properties is not None:
-            self._prediction_properties = self.alternative_prediction_properties
+        if self.user_prediction_properties is not None:
+            self._prediction_properties = self.user_prediction_properties
         elif task_type == TaskType.CLASSIFICATION:
             self._prediction_properties = DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES
         elif task_type == TaskType.OBJECT_DETECTION:
             self._prediction_properties = DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES
         else:
-            raise NotImplementedError('TrainTestLabelDrift must receive either alternative_prediction_properties or '
+            raise NotImplementedError('Check must receive either prediction_properties or '
                                       'run on Classification or Object Detection class')
 
         self._train_prediction_properties = defaultdict(list)
@@ -119,7 +122,10 @@ class TrainTestPredictionDrift(TrainTestCheck):
             raise DeepchecksNotSupportedError(f'Unsupported dataset kind {dataset_kind}')
 
         for prediction_property in self._prediction_properties:
-            properties[prediction_property['name']] += prediction_property['method'](batch.predictions)
+            # Flatten the properties since I don't care in this check about the property-per-sample coupling
+            properties[prediction_property['name']] += properties_flatten(
+                prediction_property['method'](batch.predictions)
+            )
 
     def compute(self, context: Context) -> CheckResult:
         """Calculate drift on prediction properties samples that were collected during update() calls.
@@ -146,7 +152,7 @@ class TrainTestPredictionDrift(TrainTestCheck):
             value, method, display = calc_drift_and_plot(
                 train_column=pd.Series(self._train_prediction_properties[name]),
                 test_column=pd.Series(self._test_prediction_properties[name]),
-                plot_title=name,
+                value_name=name,
                 column_type=get_column_type(output_type),
                 max_num_categories=self.max_num_categories
             )
@@ -207,9 +213,9 @@ class TrainTestPredictionDrift(TrainTestCheck):
                               f' threshold: {not_passing_numeric_columns}\n'
 
             if return_str:
-                return ConditionResult(False, return_str)
+                return ConditionResult(ConditionCategory.FAIL, return_str)
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'PSI <= {max_allowed_psi_score} and Earth Mover\'s Distance <= '
                                   f'{max_allowed_earth_movers_score} for prediction drift',

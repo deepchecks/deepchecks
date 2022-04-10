@@ -9,8 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing measurements for labels and predictions."""
-from typing import List
-from itertools import chain
+from typing import List, Sequence
 
 import torch
 
@@ -19,11 +18,10 @@ from deepchecks.core.errors import DeepchecksValueError
 
 # Labels
 
-def _get_bbox_area(labels: List[torch.Tensor]) -> List[int]:
+def _get_bbox_area(labels: List[torch.Tensor]) -> List[List[int]]:
     """Return a list containing the area of bboxes in batch."""
-    areas = [(label.reshape((-1, 5))[:, 4] * label.reshape((-1, 5))[:, 3]).tolist()
-             for label in labels]
-    return list(chain.from_iterable(areas))
+    return [(label.reshape((-1, 5))[:, 4] * label.reshape((-1, 5))[:, 3]).tolist()
+            for label in labels]
 
 
 def _count_num_bboxes(labels: List[torch.Tensor]) -> List[int]:
@@ -32,10 +30,9 @@ def _count_num_bboxes(labels: List[torch.Tensor]) -> List[int]:
     return num_bboxes
 
 
-def _get_samples_per_class_object_detection(labels: List[torch.Tensor]) -> List[int]:
+def _get_samples_per_class_object_detection(labels: List[torch.Tensor]) -> List[List[int]]:
     """Return a list containing the classes in batch."""
-    classes = [tensor.reshape((-1, 5))[:, 0].tolist() for tensor in labels]
-    return list(chain.from_iterable(classes))
+    return [tensor.reshape((-1, 5))[:, 0].tolist() for tensor in labels]
 
 
 def _get_samples_per_class_classification(labels: torch.Tensor) -> List[int]:
@@ -44,13 +41,13 @@ def _get_samples_per_class_classification(labels: torch.Tensor) -> List[int]:
 
 
 DEFAULT_CLASSIFICATION_LABEL_PROPERTIES = [
-    {'name': 'Samples per class', 'method': _get_samples_per_class_classification, 'output_type': 'class_id'}
+    {'name': 'Samples Per Class', 'method': _get_samples_per_class_classification, 'output_type': 'class_id'}
 ]
 
 DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES = [
-    {'name': 'Samples per class', 'method': _get_samples_per_class_object_detection, 'output_type': 'class_id'},
-    {'name': 'Bounding box area (in pixels)', 'method': _get_bbox_area, 'output_type': 'continuous'},
-    {'name': 'Number of bounding boxes per image', 'method': _count_num_bboxes, 'output_type': 'continuous'},
+    {'name': 'Samples Per Class', 'method': _get_samples_per_class_object_detection, 'output_type': 'class_id'},
+    {'name': 'Bounding Box Area (in pixels)', 'method': _get_bbox_area, 'output_type': 'continuous'},
+    {'name': 'Number of Bounding Boxes Per Image', 'method': _count_num_bboxes, 'output_type': 'continuous'},
 ]
 
 
@@ -61,28 +58,26 @@ def _get_samples_per_predicted_class_classification(predictions: torch.Tensor) -
     return torch.argmax(predictions, dim=1).tolist()
 
 
-def _get_samples_per_predicted_class_object_detection(predictions: List[torch.Tensor]) -> List[int]:
+def _get_samples_per_predicted_class_object_detection(predictions: List[torch.Tensor]) -> List[List[int]]:
     """Return a list containing the classes in batch."""
-    classes = [tensor.reshape((-1, 6))[:, -1].tolist() for tensor in predictions]
-    return list(chain.from_iterable(classes))
+    return [tensor.reshape((-1, 6))[:, -1].tolist() for tensor in predictions]
 
 
-def _get_predicted_bbox_area(predictions: List[torch.Tensor]) -> List[int]:
+def _get_predicted_bbox_area(predictions: List[torch.Tensor]) -> List[List[int]]:
     """Return a list containing the area of bboxes per image in batch."""
-    areas = [(prediction.reshape((-1, 6))[:, 2] * prediction.reshape((-1, 6))[:, 3]).tolist()
-             for prediction in predictions]
-    return list(chain.from_iterable(areas))
+    return [(prediction.reshape((-1, 6))[:, 2] * prediction.reshape((-1, 6))[:, 3]).tolist()
+            for prediction in predictions]
 
 
 DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES = [
-    {'name': 'Samples per class', 'method': _get_samples_per_predicted_class_classification, 'output_type': 'class_id'}
+    {'name': 'Samples Per Class', 'method': _get_samples_per_predicted_class_classification, 'output_type': 'class_id'}
 ]
 
 DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES = [
-    {'name': 'Samples per class', 'method': _get_samples_per_predicted_class_object_detection,
+    {'name': 'Samples Per Class', 'method': _get_samples_per_predicted_class_object_detection,
      'output_type': 'class_id'},
-    {'name': 'Bounding box area (in pixels)', 'method': _get_predicted_bbox_area, 'output_type': 'continuous'},
-    {'name': 'Number of bounding boxes per image', 'method': _count_num_bboxes, 'output_type': 'continuous'},
+    {'name': 'Bounding Box Area (in pixels)', 'method': _get_predicted_bbox_area, 'output_type': 'continuous'},
+    {'name': 'Number of Bounding Boxes Per Image', 'method': _count_num_bboxes, 'output_type': 'continuous'},
 ]
 
 
@@ -108,3 +103,14 @@ def get_column_type(output_type):
     # TODO smarter mapping based on data?
     mapper = {'continuous': 'numerical', 'discrete': 'categorical', 'class_id': 'categorical'}
     return mapper[output_type]
+
+
+def properties_flatten(in_list: Sequence) -> List:
+    """Flatten a list of lists into a single level list."""
+    out = []
+    for el in in_list:
+        if isinstance(el, Sequence) and not isinstance(el, (str, bytes)):
+            out.extend(el)
+        else:
+            out.append(el)
+    return out

@@ -12,6 +12,7 @@
 
 from typing import Dict
 
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
@@ -41,10 +42,11 @@ class TrainTestLabelDrift(TrainTestCheck):
     """
 
     def __init__(
-            self,
-            max_num_categories: int = 10
+        self,
+        max_num_categories: int = 10,
+        **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
         self.max_num_categories = max_num_categories
 
     def run_logic(self, context: Context) -> CheckResult:
@@ -62,7 +64,7 @@ class TrainTestLabelDrift(TrainTestCheck):
         drift_score, method, display = calc_drift_and_plot(
             train_column=train_dataset.label_col,
             test_column=test_dataset.label_col,
-            plot_title=train_dataset.label_name,
+            value_name=train_dataset.label_name,
             column_type='categorical' if train_dataset.label_type == 'classification_label' else 'numerical',
             max_num_categories=self.max_num_categories
         )
@@ -105,12 +107,12 @@ class TrainTestLabelDrift(TrainTestCheck):
 
             if method == 'PSI' and has_failed:
                 return_str = f'Found label PSI above threshold: {drift_score:.2f}'
-                return ConditionResult(False, return_str)
+                return ConditionResult(ConditionCategory.FAIL, return_str)
             elif method == "Earth Mover's Distance" and has_failed:
                 return_str = f'Label\'s Earth Mover\'s Distance above threshold: {drift_score:.2f}'
-                return ConditionResult(False, return_str)
+                return ConditionResult(ConditionCategory.FAIL, return_str)
 
-            return ConditionResult(True)
+            return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'PSI <= {max_allowed_psi_score} and Earth Mover\'s Distance <= '
                                   f'{max_allowed_earth_movers_score} for label drift',

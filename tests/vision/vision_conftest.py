@@ -17,20 +17,27 @@ import torch
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.dataloader import default_collate
 
+from deepchecks.core import DatasetKind
+from deepchecks.vision import VisionData, Context, Batch
+
 from deepchecks.vision.datasets.detection.coco import (
     load_model as load_yolov5_model,
-    load_dataset as load_coco_dataset
+    load_dataset as load_coco_dataset, COCOData
 )
 from deepchecks.vision.datasets.classification.mnist import (
     load_model as load_mnist_net_model,
     load_dataset as load_mnist_dataset, MNISTData
 )
+from deepchecks.vision.vision_data import TaskType
 
 from tests.vision.utils_tests.mnist_imgaug import mnist_dataset_imgaug
 from tests.vision.assets.coco_detections_dict import coco_detections_dict
 from tests.vision.assets.mnist_predictions_dict import mnist_predictions_dict
 
+
 from PIL import Image
+
+
 
 # Fix bug with torch.hub path on windows
 PROJECT_DIR = pathlib.Path(__file__).absolute().parent.parent.parent
@@ -51,6 +58,13 @@ __all__ = ['device',
            'mnist_drifted_datasets',
            'mock_trained_yolov5_object_detection',
            'mock_trained_mnist',
+           'run_update_loop',
+           'mnist_train_only_images',
+           'mnist_train_only_labels',
+           'mnist_test_only_images',
+           'mnist_train_custom_task',
+           'mnist_test_custom_task',
+           'coco_train_custom_task'
            ]
 
 
@@ -58,7 +72,7 @@ def _hash_image(image):
     if isinstance(image, np.ndarray):
         image = Image.fromarray(image)
     elif isinstance(image, torch.Tensor):
-        image = Image.fromarray(image.cpu().numpy().squeeze())
+        image = Image.fromarray(image.cpu().detach().numpy().squeeze())
 
     image = image.resize((10, 10))
     image = image.convert('L')
@@ -244,3 +258,64 @@ def two_tuples_dataloader():
             return 8
 
     return DataLoader(TwoTupleDataset(), batch_size=4)
+
+
+@pytest.fixture(scope='session')
+def mnist_train_only_images(mnist_data_loader_train):  # pylint: disable=redefined-outer-name
+    data = MNISTData(mnist_data_loader_train)
+    data._label_formatter_error = 'fake error'  # pylint: disable=protected-access
+    return data
+
+
+@pytest.fixture(scope='session')
+def mnist_train_only_labels(mnist_data_loader_train):  # pylint: disable=redefined-outer-name
+    data = MNISTData(mnist_data_loader_train)
+    data._image_formatter_error = 'fake error'  # pylint: disable=protected-access
+    return data
+
+
+@pytest.fixture(scope='session')
+def mnist_test_only_images(mnist_data_loader_test):  # pylint: disable=redefined-outer-name
+    data = MNISTData(mnist_data_loader_test)
+    data._label_formatter_error = 'fake error'  # pylint: disable=protected-access
+    return data
+
+
+@pytest.fixture(scope='session')
+def mnist_train_custom_task(mnist_data_loader_train):  # pylint: disable=redefined-outer-name
+    class CustomTask(MNISTData):
+        @property
+        def task_type(self) -> TaskType:
+            return TaskType.OTHER
+
+    return CustomTask(mnist_data_loader_train)
+
+
+@pytest.fixture(scope='session')
+def mnist_test_custom_task(mnist_data_loader_test):  # pylint: disable=redefined-outer-name
+    class CustomTask(MNISTData):
+        @property
+        def task_type(self) -> TaskType:
+            return TaskType.OTHER
+
+    return CustomTask(mnist_data_loader_test)
+
+
+@pytest.fixture(scope='session')
+def coco_train_custom_task(coco_train_dataloader):  # pylint: disable=redefined-outer-name
+    class CustomTask(COCOData):
+        @property
+        def task_type(self) -> TaskType:
+            return TaskType.OTHER
+
+    return CustomTask(coco_train_dataloader)
+
+
+def run_update_loop(dataset: VisionData):
+    context: Context = Context(dataset, random_state=0)
+    dataset.init_cache()
+    batch_start_index = 0
+    for batch in context.train:
+        batch = Batch(batch, context, DatasetKind.TRAIN, batch_start_index)
+        dataset.update_cache(batch)
+        batch_start_index += len(batch)

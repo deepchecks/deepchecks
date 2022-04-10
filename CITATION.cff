@@ -1,0 +1,49 @@
+cff-version: 1.2.0
+title: >-
+  Deepchecks: A Library for Testing and Validating
+  Machine Learning Models and Data
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Shir
+    family-names: Chorev
+    email: shir@deepchecks.com
+    affiliation: Deepchecks Ltd.
+  - given-names: Philip
+    family-names: Tannor
+    email: philip@deepchecks.com
+    affiliation: Deepchecks Ltd.
+  - given-names: Dan
+    family-names: Ben Israel
+    email: danb@deepchecks.com
+    affiliation: Deepchecks Ltd.
+  - given-names: Noam
+    family-names: Bressler
+    email: noam@deepchecks.com
+    affiliation: Deepchecks Ltd.
+  - given-names: Itay
+    family-names: Gabbay
+    email: itay@deepchecks.com
+    affiliation: Deepchecks Ltd.
+  - given-names: Nir
+    family-names: Hutnik
+    email: nir@deepchecks.com
+    affiliation: Deepchecks Ltd.
+  - given-names: Jonatan
+    family-names: Liberman
+    email: jonatan@deepchecks.com
+    affiliation: Deepchecks Ltd.
+  - given-names: Matan
+    family-names: Perlmutter
+    email: matan@deepchecks.com
+    affiliation: Deepchecks Ltd.
+  - given-names: Yurii
+    family-names: Romanyshyn
+    email: yurii@deepchecks.com
+    affiliation: Deepchecks Ltd.
+  - given-names: Lior
+    family-names: Rokach
+    email: liorrk@bgu.ac.ail
+    affiliation: Deepchecks Ltd. and Department of Software and Info. Sys. Eng. Ben-Gurion University of the Negev

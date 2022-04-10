@@ -10,7 +10,7 @@
 #
 """Module for base vision context."""
 import logging
-from typing import Mapping, Union, Iterable, Any, Tuple
+from typing import Mapping, Union
 
 import torch
 from torch import nn
@@ -18,62 +18,16 @@ from ignite.metrics import Metric
 
 from deepchecks.core import DatasetKind
 from deepchecks.vision.vision_data import VisionData, TaskType
-from deepchecks.vision.utils.validation import apply_to_tensor
 from deepchecks.core.errors import (
     DatasetValidationError, DeepchecksNotImplementedError, ModelValidationError,
-    DeepchecksNotSupportedError, DeepchecksValueError
+    DeepchecksNotSupportedError, DeepchecksValueError, ValidationError
 )
 
 
-__all__ = ['Context', 'Batch']
+__all__ = ['Context']
 
 
 logger = logging.getLogger('deepchecks')
-
-
-class Batch:
-    """Represents dataset batch returned by the dataloader during iteration."""
-
-    def __init__(
-        self,
-        batch: Tuple[Iterable[Any], Iterable[Any]],
-        context: 'Context',
-        dataset_kind: DatasetKind
-    ):
-        self._context = context
-        self._dataset_kind = dataset_kind
-        self._batch = apply_to_tensor(batch, lambda it: it.to(self._context.device))
-        self._labels = None
-        self._predictions = None
-        self._images = None
-
-    @property
-    def labels(self):
-        """Return labels for the batch, formatted in deepchecks format."""
-        if self._labels is None:
-            dataset = self._context.get_data_by_kind(self._dataset_kind)
-            self._labels = dataset.batch_to_labels(self._batch)
-        return self._labels
-
-    @property
-    def predictions(self):
-        """Return predictions for the batch, formatted in deepchecks format."""
-        if self._predictions is None:
-            dataset = self._context.get_data_by_kind(self._dataset_kind)
-            self._predictions = dataset.infer_on_batch(self._batch, self._context.model, self._context.device)
-        return self._predictions
-
-    @property
-    def images(self):
-        """Return images for the batch, formatted in deepchecks format."""
-        if self._images is None:
-            dataset = self._context.get_data_by_kind(self._dataset_kind)
-            self._images = dataset.batch_to_images(self._batch)
-        return self._images
-
-    def __getitem__(self, index):
-        """Return batch item by index."""
-        return self._batch[index]
 
 
 class Context:
@@ -124,22 +78,32 @@ class Context:
             train.validate_shared_label(test)
 
         self._device = torch.device(device) if isinstance(device, str) else (device if device else torch.device('cpu'))
+        self._prediction_formatter_error = {}
 
         if model is not None:
             if not isinstance(model, nn.Module):
                 logger.warning('Model is not a torch.nn.Module. Deepchecks can\'t validate that model is in '
                                'evaluation state.')
-            else:
-                if model.training:
-                    raise DatasetValidationError('Model is not in evaluation state. Please set model training '
-                                                 'parameter to False or run model.eval() before passing it.')
-            for dataset, dataset_type in zip([train, test], ['train', 'test']):
+            elif model.training:
+                raise DatasetValidationError('Model is not in evaluation state. Please set model training '
+                                             'parameter to False or run model.eval() before passing it.')
+
+            for dataset, dataset_type in zip([train, test], [DatasetKind.TRAIN, DatasetKind.TEST]):
                 if dataset is not None:
                     try:
                         dataset.validate_prediction(next(iter(dataset.data_loader)), model, self._device)
+                        msg = None
                     except DeepchecksNotImplementedError:
-                        logger.warning('validate_prediction() was not implemented in %s dataset, '
-                                       'some checks will not run', dataset_type)
+                        msg = f'infer_on_batch() was not implemented in {dataset_type} ' \
+                           f'dataset, some checks will not run'
+                    except ValidationError as ex:
+                        msg = f'infer_on_batch() was not implemented correctly in {dataset_type}, the ' \
+                           f'validation has failed with the error: {ex}. To test your prediction formatting use the ' \
+                           f'function `vision_data.validate_prediction(batch, model, device)`'
+
+                    if msg:
+                        self._prediction_formatter_error[dataset_type] = msg
+                        logger.warning(msg)
 
         # The copy does 2 things: Sample n_samples if parameter exists, and shuffle the data.
         # we shuffle because the data in VisionData is set to be sampled in a fixed order (in the init), so if the user
@@ -203,6 +167,12 @@ class Context:
                 f'Check is irrelevant for task of type {self.train.task_type}')
         return True
 
+    def assert_predictions_valid(self, kind: DatasetKind = None):
+        """Assert that for given DatasetKind the model & dataset infer_on_batch return predictions in right format."""
+        error = self._prediction_formatter_error.get(kind)
+        if error:
+            raise DeepchecksValueError(error)
+
     def get_data_by_kind(self, kind: DatasetKind):
         """Return the relevant VisionData by given kind."""
         if kind == DatasetKind.TRAIN:
@@ -211,3 +181,25 @@ class Context:
             return self.test
         else:
             raise DeepchecksValueError(f'Unexpected dataset kind {kind}')
+
+    def get_is_sampled_footnote(self, kind: DatasetKind = None):
+        """Get footnote to display when the datasets are sampled."""
+        message = ''
+        if kind:
+            v_data = self.get_data_by_kind(kind)
+            if v_data.is_sampled():
+                message = f'Data is sampled from the original dataset, running on {v_data.num_samples} samples out of' \
+                          f' {v_data.original_num_samples}.'
+        else:
+            if self._train is not None and self._train.is_sampled():
+                message += f'Running on {self._train.num_samples} <b>train</b> data samples out of ' \
+                           f'{self._train.original_num_samples}.'
+            if self._test is not None and self._test.is_sampled():
+                if message:
+                    message += ' '
+                message += f'Running on {self._test.num_samples} <b>test</b> data samples out of ' \
+                           f'{self._test.original_num_samples}.'
+
+        if message:
+            message = f'Note - data sampling: {message} Sample size can be controlled with the "n_samples" parameter.'
+            return f'<p style="font-size:0.9em;line-height:1;"><i>{message}</i></p>'

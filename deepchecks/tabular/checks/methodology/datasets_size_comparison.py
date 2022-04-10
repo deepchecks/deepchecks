@@ -12,7 +12,7 @@
 import typing as t
 import pandas as pd
 
-from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck
 
 
@@ -65,9 +65,9 @@ class DatasetsSizeComparison(TrainTestCheck):
         """
         def condition(check_result: dict) -> ConditionResult:
             return (
-                ConditionResult(False, f'Test dataset size is {check_result["Test"]}')
+                ConditionResult(ConditionCategory.FAIL, f'Test dataset size is {check_result["Test"]}')
                 if check_result['Test'] <= value
-                else ConditionResult(True)
+                else ConditionResult(ConditionCategory.PASS)
             )
 
         return self.add_condition(
@@ -92,9 +92,9 @@ class DatasetsSizeComparison(TrainTestCheck):
         def condition(check_result: dict) -> ConditionResult:
             test_train_ratio = check_result['Test'] / check_result['Train']
             if test_train_ratio <= ratio:
-                return ConditionResult(False, f'Test-Train size ratio is {test_train_ratio}')
+                return ConditionResult(ConditionCategory.FAIL, f'Test-Train size ratio is {test_train_ratio}')
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(
             name=f'Test-Train size ratio is not smaller than {ratio}',
@@ -113,9 +113,9 @@ class DatasetsSizeComparison(TrainTestCheck):
         def condition(check_result: dict) -> ConditionResult:
             if check_result['Train'] < check_result['Test']:
                 diff = check_result['Test'] - check_result['Train']
-                return ConditionResult(False, f'Train dataset is smaller than test dataset by {diff}')
+                return ConditionResult(ConditionCategory.FAIL, f'Train dataset is smaller than test dataset by {diff}')
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(
             name='Train dataset is not smaller than test dataset',

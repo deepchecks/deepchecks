@@ -9,27 +9,26 @@
 # ----------------------------------------------------------------------------
 #
 """Module for validation of the vision module."""
+import os
 import random
 import traceback
-import typing as t
 import numpy as np
 import torch
 import imgaug
 
-from deepchecks.core.errors import DeepchecksValueError, ValidationError
-from deepchecks.utils.ipython import is_notebook
+from deepchecks.core.errors import ValidationError
+from deepchecks.utils.ipython import is_headless, is_notebook
+from deepchecks.utils.strings import create_new_file_name
+from deepchecks.vision.utils.detection_formatters import DEFAULT_PREDICTION_FORMAT
+from deepchecks.vision.batch_wrapper import apply_to_tensor
 from deepchecks.vision.vision_data import TaskType
-from deepchecks.vision.utils.image_functions import numpy_to_image_figure, label_bbox_add_to_figure
+from deepchecks.vision.utils.image_functions import ensure_image, draw_bboxes, prepare_thumbnail
 from deepchecks.vision.vision_data import VisionData
 
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-from PIL import Image
-from io import BytesIO
 from IPython.display import display, HTML
 
 
-__all__ = ['set_seeds', 'apply_to_tensor', 'validate_extractors']
+__all__ = ['set_seeds', 'validate_extractors']
 
 
 def set_seeds(seed: int):
@@ -50,35 +49,34 @@ def set_seeds(seed: int):
         imgaug.seed(seed)
 
 
-T = t.TypeVar('T')
+def validate_extractors(dataset: VisionData, model, device=None, image_save_location: str = None,
+                        save_images: bool = True):
+    """Validate for given data_loader and model that the extractors are valid.
 
-
-def apply_to_tensor(
-    x: T,
-    fn: t.Callable[[torch.Tensor], torch.Tensor]
-) -> T:
-    """Apply provided function to tensor instances recursivly."""
-    if isinstance(x, torch.Tensor):
-        return t.cast(T, fn(x))
-    elif isinstance(x, (str, bytes, bytearray)):
-        return x
-    elif isinstance(x, (list, tuple, set)):
-        return type(x)(apply_to_tensor(it, fn) for it in x)
-    elif isinstance(x, dict):
-        return type(x)((k, apply_to_tensor(v, fn)) for k, v in x.items())
-    return x
-
-
-def validate_extractors(dataset: VisionData, model):
-    """Validate for given data_loader and model that the extractors are valid."""
+    Parameters
+    ----------
+    dataset : VisionData
+        the dataset to validate.
+    model :
+        the model to validate.
+    device : torch.device
+        device to run model on
+    image_save_location : str , default: None
+        if location is given and the machine doesn't support GUI,
+        the images will be saved there.
+    save_images : bool , default: True
+        if the machine doesn't support GUI the displayed images will be saved
+        if the value is True.
+    """
     print('Deepchecks will try to validate the extractors given...')
-    batch = next(iter(dataset.data_loader))
+    batch = apply_to_tensor(next(iter(dataset.data_loader)), lambda it: it.to(device))
     images = None
     labels = None
     predictions = None
     label_formatter_error = None
     image_formatter_error = None
     prediction_formatter_error = None
+    device = device or torch.device('cpu')
 
     try:
         dataset.validate_label(batch)
@@ -97,8 +95,8 @@ def validate_extractors(dataset: VisionData, model):
         image_formatter_error = 'Got exception \n' + traceback.format_exc()
 
     try:
-        dataset.validate_prediction(batch, model, torch.device('cpu'))
-        predictions = dataset.infer_on_batch(batch, model, torch.device('cpu'))
+        dataset.validate_prediction(batch, model, device)
+        predictions = dataset.infer_on_batch(batch, model, device)
     except ValidationError as ex:
         prediction_formatter_error = str(ex)
     except Exception:  # pylint: disable=broad-except
@@ -111,56 +109,33 @@ def validate_extractors(dataset: VisionData, model):
         classes = None
     # Plot
     if image_formatter_error is None:
-        sample_image = images[0]
+        image = ensure_image(images[0], copy=False)
+        image_title = 'Visual example of an image.'
         if dataset.task_type == TaskType.OBJECT_DETECTION:
-            # In case both label and prediction are valid show image side by side
-            if prediction_formatter_error is None and label_formatter_error is None:
-                fig = make_subplots(rows=1, cols=2)
-                fig.add_trace(numpy_to_image_figure(sample_image), row=1, col=1)
-                fig.add_trace(numpy_to_image_figure(sample_image), row=1, col=2)
-                label_bbox_add_to_figure(labels[0], fig, row=1, col=1)
-                label_bbox_add_to_figure(predictions[0], fig, prediction=True, color='orange', row=1, col=2)
-                fig.update_xaxes(title_text='Label', row=1, col=1)
-                fig.update_xaxes(title_text='Prediction', row=1, col=2)
-                fig.update_layout(title='Visual examples of an image with prediction and label data')
-            else:
-                fig = go.Figure(numpy_to_image_figure(sample_image))
-                # In here only label formatter or prediction formatter are valid (or none of them)
-                if label_formatter_error is None:
-                    label_bbox_add_to_figure(labels[0], fig)
-                    fig.update_xaxes(title='Label')
-                    fig.update_layout(title='Visual example of an image with label data')
-                elif prediction_formatter_error is None:
-                    label_bbox_add_to_figure(predictions[0], fig, prediction=True, color='orange')
-                    fig.update_xaxes(title='Prediction')
-                    fig.update_layout(title='Visual example of an image with prediction data')
-
-        elif dataset.task_type == TaskType.CLASSIFICATION:
-            fig = go.Figure(numpy_to_image_figure(sample_image))
-            # Create figure title
-            title = 'Visual example of an image'
-            if label_formatter_error is None and prediction_formatter_error is None:
-                title += ' with prediction and label data'
-            elif label_formatter_error is None:
-                title += ' with label data'
-            elif prediction_formatter_error is None:
-                title += ' with prediction data'
-            # Create x-axis title
-            x_title = []
             if label_formatter_error is None:
-                x_title.append(f'Label: {labels[0]}')
+                image = draw_bboxes(image, labels[0], copy_image=False)
             if prediction_formatter_error is None:
-                x_title.append(f'Prediction: {predictions[0]}')
+                image = draw_bboxes(image, predictions[0], copy_image=False, color='blue',
+                                    bbox_notation=DEFAULT_PREDICTION_FORMAT)
 
-            fig.update_layout(title=title)
-            fig.update_xaxes(title=', '.join(x_title))
-        else:
-            raise DeepchecksValueError(f'Not implemented for task type: {dataset.task_type}')
-
-        fig.update_yaxes(showticklabels=False, visible=True, fixedrange=True, automargin=True)
-        fig.update_xaxes(showticklabels=False, visible=True, fixedrange=True, automargin=True)
+            if label_formatter_error is None and prediction_formatter_error is None:
+                image_title = 'Visual examples of an image with prediction and label data. Label is red, ' \
+                              'prediction is blue, and deepchecks loves you.'
+            elif label_formatter_error is None:
+                image_title = 'Visual example of an image with label data. Could not display prediction.'
+            elif prediction_formatter_error is None:
+                image_title = 'Visual example of an image with prediction data. Could not display label.'
+            else:
+                image_title = 'Visual example of an image. Could not display label or prediction.'
+        elif dataset.task_type == TaskType.CLASSIFICATION:
+            if label_formatter_error is None:
+                image_title += f' Label class {labels[0]}'
+            if prediction_formatter_error is None:
+                pred_class = predictions[0].argmax()
+                image_title += f' Prediction class {pred_class}'
     else:
-        fig = None
+        image = None
+        image_title = None
 
     def get_header(x):
         if is_notebook():
@@ -184,7 +159,7 @@ def validate_extractors(dataset: VisionData, model):
     else:
         msg += f'Unable to show due to invalid label formatter.{line_break}'
 
-    if fig:
+    if image:
         if not is_notebook():
             msg += 'Visual images & label & prediction: should open in a new window'
     else:
@@ -192,10 +167,28 @@ def validate_extractors(dataset: VisionData, model):
 
     if is_notebook():
         display(HTML(msg))
-        if fig:
-            display(HTML(fig.to_image('svg').decode('utf-8')))
+        if image:
+            image_html = '<div style="display:flex;flex-direction:column;align-items:baseline;">' \
+                         f'{prepare_thumbnail(image, size=(200,200))}<p>{image_title}</p></div>'
+            display(HTML(image_html))
     else:
         print(msg)
-        if fig:
-            image = Image.open(BytesIO(fig.to_image('jpg')))
-            image.show()
+        if image:
+            if is_headless():
+                if save_images:
+                    if image_save_location is None:
+                        save_loc = os.getcwd()
+                    else:
+                        save_loc = image_save_location
+                    full_image_path = os.path.join(save_loc, 'deepchecks_formatted_image.jpg')
+                    full_image_path = create_new_file_name(full_image_path)
+                    image.save(full_image_path)
+                    print('*******************************************************************************')
+                    print('This machine does not support GUI')
+                    print('The formatted image was saved in:')
+                    print(full_image_path)
+                    print(image_title)
+                    print('validate_extractors can be set to skip the image saving or change the save path')
+                    print('*******************************************************************************')
+            else:
+                image.show()

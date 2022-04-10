@@ -9,11 +9,15 @@
 # ----------------------------------------------------------------------------
 #
 """Tests for segment performance check."""
-from hamcrest import assert_that, calling, raises, has_length, has_items
+import numpy as np
+from hamcrest import assert_that, calling, raises, has_length, has_items, close_to
+from scipy.special import softmax
+from sklearn.metrics import log_loss
 
 from deepchecks.core import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError, DeepchecksProcessError, DeepchecksNotSupportedError
 from deepchecks.tabular.checks.performance.model_error_analysis import ModelErrorAnalysis
+from deepchecks.utils.single_sample_metrics import per_sample_cross_entropy
 from tests.checks.utils import equal_condition_result
 
 
@@ -58,11 +62,11 @@ def test_model_error_analysis_classification(iris_labeled_dataset, iris_adaboost
 def test_binary_string_model_info_object(iris_binary_string_split_dataset_and_model):
     # Arrange
     train_ds, test_ds, clf = iris_binary_string_split_dataset_and_model
-    check = ModelErrorAnalysis()
-    # Act X
-    result_value = check.run(train_ds, test_ds, clf).value
+
     # Assert
-    assert_that(result_value['feature_segments']['petal length (cm)'], has_length(2))
+    assert_that(calling(ModelErrorAnalysis().run).with_args(train_ds, test_ds, clf),
+                raises(DeepchecksProcessError,
+                       'Unable to train meaningful error model'))
 
 
 def test_condition_fail(iris_labeled_dataset, iris_adaboost):
@@ -76,7 +80,8 @@ def test_condition_fail(iris_labeled_dataset, iris_adaboost):
         equal_condition_result(
             is_pass=False,
             name='The performance difference of the detected segments must not be greater than 5%',
-            details='Found change in Accuracy in features above threshold: {\'petal length (cm)\': \'10.91%\'}',
+            details='Found change in Accuracy in features above threshold: {\'petal length (cm)\': \'10.91%\', '
+                    '\'petal width (cm)\': \'8.33%\', \'sepal length (cm)\': \'8.57%\'}',
             category=ConditionCategory.WARN
         )
     ))
@@ -96,6 +101,23 @@ def test_condition_pass(iris_labeled_dataset, iris_adaboost):
         equal_condition_result(
             is_pass=True,
             name='The performance difference of the detected segments must not be greater than 200%',
-            category=ConditionCategory.WARN
         )
     ))
+
+
+def test_per_sample_log_loss():
+    np.random.seed(0)
+    n_classes = 2
+    n_samples = 1000
+    y_true = np.random.randint(0, n_classes, n_samples)
+    y_pred = np.random.randn(n_samples, n_classes)
+    y_pred = softmax(y_pred, axis=1)
+
+    assert_that(per_sample_cross_entropy(y_true, y_pred).mean(), close_to(log_loss(y_true, y_pred), 1e-10))
+
+    n_classes = 10
+    y_true = np.random.randint(0, n_classes, n_samples)
+    y_pred = np.random.randn(n_samples, n_classes)
+    y_pred = softmax(y_pred, axis=1)
+
+    assert_that(per_sample_cross_entropy(y_true, y_pred).mean(), close_to(log_loss(y_true, y_pred), 1e-10))

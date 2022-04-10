@@ -18,8 +18,8 @@ import torch
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.performance.error_model import error_model_display_dataframe, model_error_contribution
-from deepchecks.utils.single_sample_metrics import per_sample_binary_cross_entropy
-from deepchecks.vision.utils import image_properties
+from deepchecks.utils.single_sample_metrics import per_sample_cross_entropy
+from deepchecks.vision.utils.image_properties import default_image_properties, validate_properties
 from deepchecks.vision import TrainTestCheck, Context, Batch
 from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.metrics_utils.iou_utils import per_sample_mean_iou
@@ -37,7 +37,7 @@ class ModelErrorAnalysis(TrainTestCheck):
 
     Parameters
     ----------
-    alternative_image_properties : List[Dict[str, Any]], default: None
+    image_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
         Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
         representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'
@@ -52,20 +52,21 @@ class ModelErrorAnalysis(TrainTestCheck):
         minimal fraction of data that can comprise a weak segment.
     n_display_samples : int , default: 5_000
         number of samples to display in scatter plot.
-    random_seed : int, default: 42
+    random_state : int, default: 42
         random seed for all check internals.
     """
 
     def __init__(self,
-                 alternative_image_properties: t.List[t.Dict[str, t.Any]] = None,
+                 image_properties: t.List[t.Dict[str, t.Any]] = None,
                  max_properties_to_show: int = 20,
                  min_property_contribution: float = 0.15,
                  min_error_model_score: float = 0.5,
                  min_segment_size: float = 0.05,
                  n_display_samples: int = 5_000,
-                 random_seed: int = 42):
-        super().__init__()
-        self.random_state = random_seed
+                 random_state: int = 42,
+                 **kwargs):
+        super().__init__(**kwargs)
+        self.random_state = random_state
         self.min_error_model_score = min_error_model_score
         self.min_segment_size = min_segment_size
         self.max_properties_to_show = max_properties_to_show
@@ -76,14 +77,15 @@ class ModelErrorAnalysis(TrainTestCheck):
         self._train_scores = None
         self._test_scores = None
 
-        if alternative_image_properties is None:
-            self.image_properties = image_properties.default_image_properties
+        if image_properties is None:
+            self.image_properties = default_image_properties
         else:
-            image_properties.validate_properties(alternative_image_properties)
-            self.image_properties = alternative_image_properties
+            validate_properties(image_properties)
+            self.image_properties = image_properties
 
     def initialize_run(self, context: Context):
         """Initialize property and score lists."""
+        context.assert_task_type(TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION)
         self._train_properties = defaultdict(list)
         self._test_properties = defaultdict(list)
         self._train_scores = []
@@ -114,12 +116,12 @@ class ModelErrorAnalysis(TrainTestCheck):
 
         if dataset.task_type == TaskType.CLASSIFICATION:
             def scoring_func(predictions, labels):
-                return per_sample_binary_cross_entropy(labels, predictions)
+                return per_sample_cross_entropy(labels, predictions)
         elif dataset.task_type == TaskType.OBJECT_DETECTION:
             def scoring_func(predictions, labels):
                 return per_sample_mean_iou(predictions, labels)
         else:
-            raise DeepchecksValueError(f'Unsupported task type {dataset.task_type}')
+            raise DeepchecksValueError(f'Should not reach here! Unsupported task type {dataset.task_type}')
 
         if isinstance(predictions, torch.Tensor):
             predictions = predictions.cpu().detach().numpy()

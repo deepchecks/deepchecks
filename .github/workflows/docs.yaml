@@ -12,10 +12,11 @@
 name: Documentation builder
 
 on:
-  schedule:
-    # Nightly build at 3:42 A.M.
-    - cron: "42 3 */1 * *"
   pull_request:
+    branches:
+      - main
+      - "[0-9]+.[0-9]+.X"
+  push:
     branches:
       - main
       - "[0-9]+.[0-9]+.X"
@@ -24,6 +25,7 @@ on:
 
 env:
   DEEPCHECKS_DISABLE_LATEST: "true"
+  WANDB_MODE: "offline"
 
 jobs:
   # Build the documentation
@@ -40,11 +42,12 @@ jobs:
       - name: Install pandoc
         run: |
           sudo apt-get update
-          sudo apt-get install pandoc
+          sudo apt-get install pandoc dvisvgm texlive texlive-latex-extra
       - name: Build documentation
         run: make docs
 
       - name: Upload documentation
+        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v2
         with:
           name: docs

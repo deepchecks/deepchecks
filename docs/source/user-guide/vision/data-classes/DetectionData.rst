@@ -16,7 +16,7 @@ Accepted Image Format
 ---------------------
 All checks in deepchecks require images in the same format. They use the :func:`~deepchecks.vision.VisionData.batch_to_images` function in order to get
 the images in the correct format. For more info on the accepted formats, please visit the
-`VisionData User Guide <VisionData.rst>`_.
+`VisionData User Guide </user-guide/vision/data-classes/VisionData.html>`__.
 
 Accepted Label Format
 ---------------------
@@ -24,6 +24,7 @@ Deepchecks' checks use the :func:`~deepchecks.vision.DetectionData.batch_to_labe
 The accepted label format for is a a list of length N containing tensors of shape (B, 5), where N is the number
 of samples, B is the number of bounding boxes in the sample and each bounding box is represented by 5 values:
 ``(class_id, x, y, w, h)``.
+
     x and y are the coordinates (in pixels) of the upper left corner of the bounding box, w
     and h are the width and height of the bounding box (in pixels) and class_id is the class id of the prediction.
 
@@ -36,6 +37,7 @@ Deepchecks' checks use the :func:`~deepchecks.vision.DetectionData.infer_on_batc
 The accepted prediction format is a list of length N containing tensors of shape (B, 6), where N is the number
 of images, B is the number of bounding boxes detected in the sample and each bounding box is represented by 6
 values: ``[x, y, w, h, confidence, class_id]``.
+
     x and y are the coordinates (in pixels) of the upper left corner
     of the bounding box, w and h are the width and height of the bounding box (in pixels), confidence is the
     confidence of the model and class_id is the class id.

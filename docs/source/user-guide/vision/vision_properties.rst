@@ -39,23 +39,31 @@ You can either use the built-in properties or implement your own ones and pass t
 
 The built-in image properties are:
 
-- Aspect Ratio (height / width)
-- Area
-- Brightness
-- RMS (Root Mean Square) Contrast
-- RGB Mean Relative Intensity: Mean color intensity for each channel. The color intensity is normalized according to
-  the other color channels per pixel. This is done in order to capture the relationships between channels and not just
-  general intensity (brightness).
-
-  - Mean Red Relative Intensity
-  - Mean Green Relative Intensity
-  - Mean Blue Relative Intensity
+==============================  ==========
+Property name                   What is it
+==============================  ==========
+Aspect Ratio                    Ratio between height and width of image (height / width)
+Area                            Area of image in pixels (height * width)
+Brightness                      Average intensity of image pixels. Color channels have different weights according to
+                                RGB-to-Grayscale formula
+RMS Contrast                    Contrast of image, calculated by standard deviation of pixels
+Mean Red Relative Intensity     Mean over all pixels of the red channel, scaled to their relative intensity in
+                                comparison to the other channels [r / (r + g + b)].
+Mean Green Relative Intensity   Mean over all pixels of the green channel, scaled to their relative intensity in
+                                comparison to the other channels [g / (r + g + b)].
+Mean Blue Relative Intensity    Mean over all pixels of the blue channel, scaled to their relative intensity in
+                                comparison to the other channels [b / (r + g + b)].
+==============================  ==========
 
 The built-in label & predictions properties are:
 
-- Samples Per Class (classification + object detection)
-- Bounding Box Area (object detection)
-- Number of Bounding Boxes Per Image (object detection)
+===================================  ==========
+Property name                        What is it
+===================================  ==========
+Samples Per Class                    The classes abundance in the data
+Bounding Box Area                    Area of bounding boxes in pixels (height * width) for object detection
+Number of Bounding Boxes Per Image   Number of bounding boxes in a single image for object detection
+===================================  ==========
 
 Property Structure
 ====================
@@ -87,16 +95,26 @@ Each dictionary is a single property, and the checks accepts a list of those dic
 
 The Method's Input
 ~~~~~~~~~~~~~~~~~~
-Each property is built for the specific data type that it runs on, and receives its deepchecks-expected format,
-as demonstrated in :doc:`Deepchecks' format </user-guide/vision/formatter_objects>`.
-Note that prediction and label-based properties are not interchangeable due to their slightly different format, even if they calculate similar values.
 
+Each property is built for the specific data type that it runs on, and receives its deepchecks-expected format,
+as demonstrated in :doc:`Deepchecks' format </user-guide/vision/data-classes/index>`.
+Note that prediction and label-based properties are not interchangeable due to their slightly different format, even if
+they calculate similar values.
+
+The Method's Output
+~~~~~~~~~~~~~~~~~~~
+
+Each property function must return a sequence in the same length as the length of the input object. This is used later
+in order to couple each sample to its right properties values. In image properties we expect each image to generate a
+single property value, which results in a list of primitives types in the same length as the number of images. On the
+other hand for label & predictions we allow each one to have multiple primitive values (for example area of bounding
+box), which means the returned list may contain either primitives values or a lists of primitive values per
+label/prediction.
 
 Properties Demonstration
 ========================
 
-We will demonstrate the 3 drift checks (for
-each property type) and implement the properties to pass to it.
+We will demonstrate the 3 drift checks (for each property type) and implement the properties to pass to it.
 
 Image Property
 ~~~~~~~~~~~~~~
@@ -137,18 +155,15 @@ properties which apply to the Detection task type.
 .. code-block:: python
 
   from deepchecks.vision.checks.distribution import TrainTestLabelDrift
-  from itertools import chain
   import torch
-
 
   def number_of_labels(labels: List[torch.Tensor]) -> List[int]:
     """Return a list containing the number of detections per sample in batch."""
     return [label.shape[0] for label in labels]
 
-  def classes_in_labels(labels: List[torch.Tensor]) -> List[int]:
+  def classes_in_labels(labels: List[torch.Tensor]) -> List[List[int]]:
     """Return a list containing the classes in batch."""
-    classes = [label.reshape((-1, 5))[:, 0].tolist() for label in labels]
-    return list(chain.from_iterable(classes))
+    return [label.reshape((-1, 5))[:, 0].tolist() for label in labels]
 
 
     properties = [
@@ -156,7 +171,7 @@ properties which apply to the Detection task type.
     {'name': 'Classes Appearance', 'method': classes_in_labels, 'output_type': 'class_id'}
   ]
 
-  check = TrainTestLabelDrift(alternative_label_properties=properties)
+  check = TrainTestLabelDrift(label_properties=properties)
 
 
 Prediction Property
@@ -167,19 +182,16 @@ implement properties which apply to the Detection task type.
 .. code-block:: python
 
   from deepchecks.vision.checks.distribution import TrainTestPredictionDrift
-  from itertools import chain
   import torch
 
-  def classes_of_predictions(predictions: List[torch.Tensor]) -> List[int]:
+  def classes_of_predictions(predictions: List[torch.Tensor]) -> List[List[int]]:
     """Return a list containing the classes in batch."""
-    classes = [tensor.reshape((-1, 6))[:, -1].tolist() for tensor in predictions]
-    return list(chain.from_iterable(classes))
+    return [tensor.reshape((-1, 6))[:, -1].tolist() for tensor in predictions]
 
-  def bbox_area(predictions: List[torch.Tensor]) -> List[int]:
+  def bbox_area(predictions: List[torch.Tensor]) -> List[List[float]]:
     """Return a list containing the area of bboxes per image in batch."""
-    areas = [(prediction.reshape((-1, 6))[:, 2] * prediction.reshape((-1, 6))[:, 3]).tolist()
+    return [(prediction.reshape((-1, 6))[:, 2] * prediction.reshape((-1, 6))[:, 3]).tolist()
              for prediction in predictions]
-    return list(chain.from_iterable(areas))
 
 
   properties = [
@@ -187,4 +199,4 @@ implement properties which apply to the Detection task type.
     {'name': 'Bounding Box Area', 'method': bbox_area, 'output_type': 'continuous'}
   ]
 
-  check = TrainTestPredictionDrift(alternative_prediction_properties=properties)
+  check = TrainTestPredictionDrift(prediction_properties=properties)

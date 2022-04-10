@@ -11,10 +11,11 @@
 """module contains Identifier Leakage check."""
 from typing import Dict
 
+import pandas as pd
 import plotly.express as px
 
 import deepchecks.ppscore as pps
-from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.core.errors import DatasetValidationError
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.strings import format_number
@@ -32,8 +33,8 @@ class IdentifierLeakage(SingleDatasetCheck):
         dictionary containing params to pass to ppscore predictor
     """
 
-    def __init__(self, ppscore_params=None):
-        super().__init__()
+    def __init__(self, ppscore_params=None, **kwargs):
+        super().__init__(**kwargs)
         self.ppscore_params = ppscore_params or {}
 
     def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
@@ -58,15 +59,24 @@ class IdentifierLeakage(SingleDatasetCheck):
         dataset.assert_label()
         label_name = dataset.label_name
 
-        relevant_columns = list(filter(None, [dataset.datetime_name, dataset.index_name, label_name]))
+        relevant_data = pd.DataFrame({
+            it.name: it
+            for it in (dataset.index_col, dataset.datetime_col, dataset.label_col)
+            if it is not None
+        })
 
-        if len(relevant_columns) == 1:
+        if len(relevant_data.columns) == 1:
             raise DatasetValidationError(
                 'Check is irrelevant for Datasets without index or date column'
             )
 
-        df_pps = pps.predictors(df=dataset.data[relevant_columns], y=label_name, random_seed=42,
-                                **self.ppscore_params)
+        df_pps = pps.predictors(
+            df=relevant_data,
+            y=label_name,
+            random_seed=42,
+            **self.ppscore_params
+        )
+
         df_pps = df_pps.set_index('x', drop=True)
         s_ppscore = df_pps['ppscore']
 
@@ -121,10 +131,10 @@ class IdentifierLeakage(SingleDatasetCheck):
                 if score > max_pps:
                     not_passing_columns[column_name] = format_number(score)
             if not_passing_columns:
-                return ConditionResult(False,
+                return ConditionResult(ConditionCategory.FAIL,
                                        f'Found columns with PPS above threshold: {not_passing_columns}')
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(
             f'Identifier columns PPS is not greater than {format_number(max_pps)}', compare_pps)

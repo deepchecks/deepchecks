@@ -14,6 +14,7 @@ from collections import OrderedDict
 from typing import Union, List, Dict
 
 from deepchecks.core import ConditionResult, CheckResult
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck, Dataset
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.core.errors import DeepchecksValueError
@@ -67,8 +68,9 @@ class TrainTestFeatureDrift(TrainTestCheck):
         max_num_categories: int = 10,
         n_samples: int = 100_000,
         random_state: int = 42,
+        **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
         self.columns = columns
         self.ignore_columns = ignore_columns
         self.max_num_categories = max_num_categories
@@ -103,6 +105,8 @@ class TrainTestFeatureDrift(TrainTestCheck):
         train_dataset: Dataset = context.train
         test_dataset: Dataset = context.test
         features_importance = context.features_importance
+        train_dataset.assert_features()
+        test_dataset.assert_features()
 
         train_dataset = train_dataset.select(
                 self.columns, self.ignore_columns
@@ -114,6 +118,12 @@ class TrainTestFeatureDrift(TrainTestCheck):
         values_dict = OrderedDict()
         displays_dict = OrderedDict()
         for column in train_dataset.features:
+            if column in train_dataset.numerical_features:
+                column_type = 'numerical'
+            elif column in train_dataset.cat_features:
+                column_type = 'categorical'
+            else:
+                continue  # we only support categorical or numerical features
             if features_importance is not None:
                 fi_rank_series = features_importance.rank(method='first', ascending=False)
                 fi_rank = fi_rank_series[column]
@@ -124,8 +134,9 @@ class TrainTestFeatureDrift(TrainTestCheck):
             value, method, display = calc_drift_and_plot(
                 train_column=train_dataset.data[column],
                 test_column=test_dataset.data[column],
+                value_name=column,
+                column_type=column_type,
                 plot_title=plot_title,
-                column_type='categorical' if column in train_dataset.cat_features else 'numerical',
                 max_num_categories=self.max_num_categories
             )
             values_dict[column] = {
@@ -138,8 +149,8 @@ class TrainTestFeatureDrift(TrainTestCheck):
         if self.sort_feature_by == 'feature importance' and features_importance is not None:
             columns_order = features_importance.sort_values(ascending=False).head(self.n_top_columns).index
         else:
-            columns_order = sorted(train_dataset.features, key=lambda col: values_dict[col]['Drift score'], reverse=True
-                                   )[:self.n_top_columns]
+            columns_order = sorted(list(values_dict.keys()), key=lambda col: values_dict[col]['Drift score'],
+                                   reverse=True)[:self.n_top_columns]
 
         sorted_by = self.sort_feature_by if features_importance is not None else 'drift score'
 
@@ -150,7 +161,8 @@ class TrainTestFeatureDrift(TrainTestCheck):
             <br>If available, the plot titles also show the feature importance (FI) rank.
         </span>"""
 
-        displays = [headnote] + [displays_dict[col] for col in columns_order]
+        displays = [headnote] + [displays_dict[col] for col in columns_order
+                                 if col in train_dataset.cat_features + train_dataset.numerical_features]
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Drift')
 
@@ -203,9 +215,9 @@ class TrainTestFeatureDrift(TrainTestCheck):
                               f'{not_passing_numeric_columns}'
 
             if return_str:
-                return ConditionResult(False, return_str)
+                return ConditionResult(ConditionCategory.FAIL, return_str)
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'PSI <= {max_allowed_psi_score} and Earth Mover\'s Distance <= '
                                   f'{max_allowed_earth_movers_score}',

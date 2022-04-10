@@ -26,7 +26,7 @@ def test_no_drift_classification(mnist_dataset_train, device):
 
     # Assert
     assert_that(result.value, has_entries(
-        {'Samples per class': has_entries(
+        {'Samples Per Class': has_entries(
             {'Drift score': 0,
              'Method': equal_to('PSI')}
         )}
@@ -42,13 +42,13 @@ def test_no_drift_object_detection(coco_train_visiondata, device):
 
     # Assert
     assert_that(result.value, has_entries(
-        {'Samples per class': has_entries(
+        {'Samples Per Class': has_entries(
             {'Drift score': 0,
              'Method': equal_to('PSI')}
-        ), 'Bounding box area (in pixels)': has_entries(
+        ), 'Bounding Box Area (in pixels)': has_entries(
             {'Drift score': 0,
              'Method': equal_to('Earth Mover\'s Distance')}
-        ), 'Number of bounding boxes per image': has_entries(
+        ), 'Number of Bounding Boxes Per Image': has_entries(
             {'Drift score': 0,
              'Method': equal_to('Earth Mover\'s Distance')}
         )
@@ -66,7 +66,7 @@ def test_with_drift_classification(mnist_dataset_train, mnist_dataset_test, devi
 
     # Assert
     assert_that(result.value, has_entries(
-        {'Samples per class': has_entries(
+        {'Samples Per Class': has_entries(
             {'Drift score': close_to(0, 0.001),
              'Method': equal_to('PSI')}
         )
@@ -83,13 +83,13 @@ def test_with_drift_object_detection(coco_train_visiondata, coco_test_visiondata
 
     # Assert
     assert_that(result.value, has_entries(
-        {'Samples per class': has_entries(
+        {'Samples Per Class': has_entries(
             {'Drift score': close_to(0.24, 0.01),
              'Method': equal_to('PSI')}
-        ), 'Bounding box area (in pixels)': has_entries(
+        ), 'Bounding Box Area (in pixels)': has_entries(
             {'Drift score': close_to(0.012, 0.001),
              'Method': equal_to('Earth Mover\'s Distance')}
-        ), 'Number of bounding boxes per image': has_entries(
+        ), 'Number of Bounding Boxes Per Image': has_entries(
             {'Drift score': close_to(0.059, 0.001),
              'Method': equal_to('Earth Mover\'s Distance')}
         )
@@ -111,8 +111,8 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets):
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name='PSI <= 0.1 and Earth Mover\'s Distance <= 0.075 for label drift',
-        details='Found non-continues label properties with PSI drift score above threshold: {\'Samples per '
-                'class\': \'0.15\'}\n'
+        details='Found non-continues label properties with PSI drift score above threshold: {\'Samples Per '
+                'Class\': \'0.15\'}\n'
     ))
 
 
@@ -125,13 +125,13 @@ def test_with_drift_object_detection_change_max_cat(coco_train_visiondata, coco_
 
     # Assert
     assert_that(result.value, has_entries(
-        {'Samples per class': has_entries(
+        {'Samples Per Class': has_entries(
             {'Drift score': close_to(0.44, 0.01),
              'Method': equal_to('PSI')}
-        ), 'Bounding box area (in pixels)': has_entries(
+        ), 'Bounding Box Area (in pixels)': has_entries(
             {'Drift score': close_to(0.012, 0.001),
              'Method': equal_to('Earth Mover\'s Distance')}
-        ), 'Number of bounding boxes per image': has_entries(
+        ), 'Number of Bounding Boxes Per Image': has_entries(
             {'Drift score': close_to(0.059, 0.001),
              'Method': equal_to('Earth Mover\'s Distance')}
         )
@@ -145,7 +145,7 @@ def test_with_drift_object_detection_alternative_properties(coco_train_visiondat
         return [int(x[0][0]) if len(x) != 0 else 0 for x in labels]
     alternative_properties = [
         {'name': 'test', 'method': prop, 'output_type': 'continuous'}]
-    check = TrainTestLabelDrift(alternative_label_properties=alternative_properties)
+    check = TrainTestLabelDrift(label_properties=alternative_properties)
 
     # Act
     result = check.run(coco_train_visiondata, coco_test_visiondata, device=device)

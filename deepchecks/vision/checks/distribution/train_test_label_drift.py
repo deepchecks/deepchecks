@@ -14,18 +14,23 @@ from typing import Dict, List, Any
 import pandas as pd
 from collections import OrderedDict, defaultdict
 
-from deepchecks import ConditionResult
+from deepchecks.core import ConditionResult
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.core import DatasetKind, CheckResult
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.vision import Context, TrainTestCheck, Batch
 from deepchecks.vision.vision_data import TaskType
+from deepchecks.vision.utils.label_prediction_properties import (
+    DEFAULT_CLASSIFICATION_LABEL_PROPERTIES,
+    DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES,
+    validate_properties,
+    get_column_type,
+    properties_flatten
+)
 
 
 __all__ = ['TrainTestLabelDrift']
-
-from deepchecks.vision.utils.label_prediction_properties import DEFAULT_CLASSIFICATION_LABEL_PROPERTIES, \
-    DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES, validate_properties, get_column_type
 
 
 class TrainTestLabelDrift(TrainTestCheck):
@@ -55,7 +60,7 @@ class TrainTestLabelDrift(TrainTestCheck):
 
     Parameters
     ----------
-    alternative_label_properties : List[Dict[str, Any]], default: None
+    label_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
         Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
         representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'/'class_id'
@@ -63,18 +68,20 @@ class TrainTestLabelDrift(TrainTestCheck):
         Only for non-continues properties. Max number of allowed categories. If there are more,
         they are binned into an "Other" category. If max_num_categories=None, there is no limit. This limit applies
         for both drift calculation and for distribution plots.
+
     """
 
     def __init__(
             self,
-            alternative_label_properties: List[Dict[str, Any]] = None,
-            max_num_categories: int = 10
+            label_properties: List[Dict[str, Any]] = None,
+            max_num_categories: int = 10,
+            **kwargs
     ):
-        super().__init__()
-        # validate alternative_label_properties:
-        if alternative_label_properties is not None:
-            validate_properties(alternative_label_properties)
-        self.alternative_label_properties = alternative_label_properties
+        super().__init__(**kwargs)
+        # validate label properties:
+        if label_properties is not None:
+            validate_properties(label_properties)
+        self.user_label_properties = label_properties
         self.max_num_categories = max_num_categories
 
         self._label_properties = None
@@ -98,14 +105,14 @@ class TrainTestLabelDrift(TrainTestCheck):
 
         task_type = train_dataset.task_type
 
-        if self.alternative_label_properties is not None:
-            self._label_properties = self.alternative_label_properties
+        if self.user_label_properties is not None:
+            self._label_properties = self.user_label_properties
         elif task_type == TaskType.CLASSIFICATION:
             self._label_properties = DEFAULT_CLASSIFICATION_LABEL_PROPERTIES
         elif task_type == TaskType.OBJECT_DETECTION:
             self._label_properties = DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES
         else:
-            raise NotImplementedError('TrainTestLabelDrift must receive either alternative_label_properties or run '
+            raise NotImplementedError('Check must receive either label_properties or run '
                                       'on Classification or Object Detection class')
 
         self._train_label_properties = defaultdict(list)
@@ -122,7 +129,8 @@ class TrainTestLabelDrift(TrainTestCheck):
             raise DeepchecksNotSupportedError(f'Unsupported dataset kind {dataset_kind}')
 
         for label_property in self._label_properties:
-            properties[label_property['name']] += label_property['method'](batch.labels)
+            # Flatten the properties since I don't care in this check about the property-per-sample coupling
+            properties[label_property['name']] += properties_flatten(label_property['method'](batch.labels))
 
     def compute(self, context: Context) -> CheckResult:
         """Calculate drift on label properties samples that were collected during update() calls.
@@ -149,7 +157,7 @@ class TrainTestLabelDrift(TrainTestCheck):
             value, method, display = calc_drift_and_plot(
                 train_column=pd.Series(self._train_label_properties[name]),
                 test_column=pd.Series(self._test_label_properties[name]),
-                plot_title=name,
+                value_name=name,
                 column_type=get_column_type(output_type),
                 max_num_categories=self.max_num_categories
             )
@@ -208,9 +216,9 @@ class TrainTestLabelDrift(TrainTestCheck):
                               f' threshold: {not_passing_numeric_columns}\n'
 
             if return_str:
-                return ConditionResult(False, return_str)
+                return ConditionResult(ConditionCategory.FAIL, return_str)
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'PSI <= {max_allowed_psi_score} and Earth Mover\'s Distance <= '
                                   f'{max_allowed_earth_movers_score} for label drift',

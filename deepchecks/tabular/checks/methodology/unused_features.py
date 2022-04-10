@@ -23,6 +23,7 @@ from sklearn.preprocessing import RobustScaler, OrdinalEncoder
 
 from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck, Dataset
+from deepchecks.utils.function import run_available_kwargs
 from deepchecks.utils.typing import BasicModel
 
 
@@ -56,9 +57,16 @@ class UnusedFeatures(TrainTestCheck):
         The random state to use for permutation feature importance and PCA.
     """
 
-    def __init__(self, feature_importance_threshold: float = 0.2, feature_variance_threshold: float = 0.4,
-                 n_top_fi_to_show: int = 5, n_top_unused_to_show: int = 15, random_state: int = 42):
-        super().__init__()
+    def __init__(
+        self,
+        feature_importance_threshold: float = 0.2,
+        feature_variance_threshold: float = 0.4,
+        n_top_fi_to_show: int = 5,
+        n_top_unused_to_show: int = 15,
+        random_state: int = 42,
+        **kwargs
+    ):
+        super().__init__(**kwargs)
         self.feature_importance_threshold = feature_importance_threshold
         self.feature_variance_threshold = feature_variance_threshold
         self.n_top_fi_to_show = n_top_fi_to_show
@@ -221,11 +229,10 @@ class UnusedFeatures(TrainTestCheck):
             high_var_features = result['unused features']['high variance']
             if len(high_var_features) > max_high_variance_unused_features:
                 return ConditionResult(
-                    False,
-                    f'Found number of unused high variance features above threshold: {high_var_features}',
-                    category=ConditionCategory.WARN)
+                    ConditionCategory.WARN,
+                    f'Found number of unused high variance features above threshold: {high_var_features}')
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Number of high variance unused features is not greater than'
                                   f' {max_high_variance_unused_features}',
@@ -248,21 +255,19 @@ def naive_encoder(dataset: Dataset) -> Tuple[TransformerMixin, list]:
     Tuple[TransformerMixin, list]
         A transformer object, a list of columns returned
     """
-    numeric_features = [col for col in dataset.features if col not in dataset.cat_features]
-
     return ColumnTransformer(
         transformers=[
             ('num', Pipeline([
                 ('nan_handling', SimpleImputer()),
                 ('norm', RobustScaler())
             ]),
-             numeric_features),
+             dataset.numerical_features),
             ('cat',
              Pipeline([
                  ('nan_handling', SimpleImputer(strategy='most_frequent')),
-                 ('encode', OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1)),
+                 ('encode', run_available_kwargs(OrdinalEncoder, handle_unknown='use_encoded_value', unknown_value=-1)),
                  ('norm', RobustScaler())
              ]),
              dataset.cat_features)
         ]
-    ), numeric_features + dataset.cat_features
+    ), dataset.numerical_features + dataset.cat_features

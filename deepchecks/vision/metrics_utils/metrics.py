@@ -10,6 +10,7 @@
 #
 """Module for defining metrics for the vision module."""
 import typing as t
+from copy import copy
 
 import numpy as np
 import pandas as pd
@@ -19,10 +20,10 @@ from ignite.metrics import Precision, Recall, Metric
 
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
+from deepchecks.vision.metrics_utils.object_detection_precision_recall import ObjectDetectionAveragePrecision
 
 from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.vision_data import VisionData
-from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePrecision
 
 
 __all__ = [
@@ -42,8 +43,8 @@ def get_default_classification_scorers():
 
 def get_default_object_detection_scorers():
     return {
-        'AP': AveragePrecision(),
-        'AR': AveragePrecision(return_option=1)
+        'AP': ObjectDetectionAveragePrecision(),
+        'AR': ObjectDetectionAveragePrecision(return_option=1)
     }
 
 
@@ -67,11 +68,16 @@ def get_scorers_list(
     task_type = dataset.task_type
 
     if alternative_scorers:
-        # Validate that each alternative scorer is a correct type
-        for _, met in alternative_scorers.items():
+        # For alternative scorers we create a copy since in suites we are running in parallel, so we can't use the same
+        # instance for several checks.
+        scorers = {}
+        for name, met in alternative_scorers.items():
+            # Validate that each alternative scorer is a correct type
             if not isinstance(met, Metric):
                 raise DeepchecksValueError('alternative_scorers should contain metrics of type ignite.Metric')
-        scorers = alternative_scorers
+            met.reset()
+            scorers[name] = copy(met)
+        return scorers
     elif task_type == TaskType.CLASSIFICATION:
         scorers = get_default_classification_scorers()
     elif task_type == TaskType.OBJECT_DETECTION:
@@ -148,7 +154,9 @@ def metric_results_to_df(results: dict, dataset: VisionData) -> pd.DataFrame:
 def filter_classes_for_display(metrics_df: pd.DataFrame,
                                metric_to_show_by: str,
                                n_to_show: int,
-                               show_only: str) -> list:
+                               show_only: str,
+                               column_to_filter_by: str = 'Dataset',
+                               column_filter_value: str = None) -> list:
     """Filter the metrics dataframe for display purposes.
 
     Parameters
@@ -157,7 +165,7 @@ def filter_classes_for_display(metrics_df: pd.DataFrame,
         Dataframe containing the metrics.
     n_to_show : int
         Number of classes to show in the report.
-    show_only : str, default: 'largest'
+    show_only : str
         Specify which classes to show in the report. Can be one of the following:
         - 'largest': Show the largest classes.
         - 'smallest': Show the smallest classes.
@@ -166,14 +174,21 @@ def filter_classes_for_display(metrics_df: pd.DataFrame,
         - 'worst': Show the classes with the lowest score.
     metric_to_show_by : str
         Specify the metric to sort the results by. Relevant only when show_only is 'best' or 'worst'.
+    column_to_filter_by : str , default: 'Dataset'
+        Specify the name of the column to filter by.
+    column_filter_value : str , default: None
+        Specify the value of the column to filter by, if None will be set to test dataset name.
 
     Returns
     -------
     list
         List of classes to show in the report.
     """
-    # working only on the test set
-    tests_metrics_df = metrics_df[(metrics_df['Dataset'] == DatasetKind.TEST.value) &
+    # working on the test dataset on default
+    if column_filter_value is None:
+        column_filter_value = DatasetKind.TEST.value
+
+    tests_metrics_df = metrics_df[(metrics_df[column_to_filter_by] == column_filter_value) &
                                   (metrics_df['Metric'] == metric_to_show_by)]
     if show_only == 'largest':
         tests_metrics_df = tests_metrics_df.sort_values(by='Number of samples', ascending=False)

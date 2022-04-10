@@ -14,11 +14,15 @@ from .train_test_prediction_drift import TrainTestPredictionDrift
 from .image_dataset_drift import ImageDatasetDrift
 from .heatmap_comparison import HeatmapComparison
 from .image_property_drift import ImagePropertyDrift
+from .image_property_outliers import ImagePropertyOutliers
+from .label_property_outliers import LabelPropertyOutliers
 
 __all__ = [
     'TrainTestLabelDrift',
     'TrainTestPredictionDrift',
     'ImageDatasetDrift',
     'HeatmapComparison',
-    'ImagePropertyDrift'
+    'ImagePropertyDrift',
+    'ImagePropertyOutliers',
+    'LabelPropertyOutliers'
 ]

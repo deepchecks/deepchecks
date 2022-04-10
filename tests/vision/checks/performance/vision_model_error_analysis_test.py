@@ -23,10 +23,10 @@ def test_classification(mnist_dataset_train, mock_trained_mnist, device):
 
     # Act
     result = check.run(train, test, mock_trained_mnist,
-                       device=device)
+                       device=device, n_samples=None)
     # Assert
-    assert_that(len(result.value['feature_segments']), equal_to(1))
-    assert_that(result.value['feature_segments']['Brightness']['segment1']['n_samples'], equal_to(487))
+    assert_that(len(result.value['feature_segments']), equal_to(2))
+    assert_that(result.value['feature_segments']['Brightness']['segment1']['n_samples'], equal_to(254))
 
 
 def test_detection(coco_train_visiondata, coco_test_visiondata, mock_trained_yolov5_object_detection, device):
@@ -40,7 +40,7 @@ def test_detection(coco_train_visiondata, coco_test_visiondata, mock_trained_yol
                        device=device)
     # Assert
     assert_that(len(result.value['feature_segments']), equal_to(3))
-    assert_that(result.value['feature_segments']['Normalized Green Mean']['segment1']['n_samples'],
+    assert_that(result.value['feature_segments']['Mean Green Relative Intensity']['segment1']['n_samples'],
                 equal_to(21))
 
 

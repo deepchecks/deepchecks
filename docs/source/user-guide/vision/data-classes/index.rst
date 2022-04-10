@@ -36,8 +36,9 @@ vision module, and just implement there 3 functions:
     - `batch_to_labels`: Returns a list of labels in the correct format from a batch of data.
     - `infer_on_batch`: Returns a list of a model's predictions in the correct format from a batch of data.
 
-Please see specific examples in the `VisionData <VisionData.rst>`_, `ClassificationData <ClassificationData.rst>`_,
-and `DetectionData <DetectionData.rst>`_ classes.
+Please see specific examples in the `VisionData </user-guide/vision/data-classes/VisionData.html>`__,
+`ClassificationData </user-guide/vision/data-classes/ClassificationData.html>`__,
+and `DetectionData </user-guide/vision/data-classes/DetectionData.html>`_ classes.
 
 Validating Your Data Class Implementation
 =========================================
@@ -53,4 +54,4 @@ Use this function like so:
     validate_extractors(dataset, model)
 
 For more info about the classes validation see the guide
-:doc:`formatters_validation </tutorials/vision/extractors_validating>`
+:doc:`formatters_validation </tutorials/vision/examples/plot_extractors_validating>`

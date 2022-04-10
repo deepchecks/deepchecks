@@ -94,3 +94,31 @@ docs.error.log
 # Automatically downloaded files
 *coco128*
 *MNIST*
+
+# build folders of sphinx gallery
+docs/source/examples/vision/guides/examples/
+docs/source/examples/general/examples/
+docs/source/examples/vision/checks/distribution/examples/
+docs/source/examples/vision/checks/performance/examples/
+docs/source/examples/tabular/guides/examples/
+docs/source/examples/tabular/checks/distribution/examples/
+docs/source/examples/tabular/checks/overview/examples/
+docs/source/examples/tabular/checks/integrity/examples/
+docs/source/examples/tabular/checks/methodology/examples/
+docs/source/examples/tabular/checks/performance/examples/
+docs/source/examples/tabular/use-cases/examples/
+docs/source/examples/tabular/checks/methodology/examples/
+docs/source/tutorials/tabular/examples
+docs/source/tutorials/vision/examples
+docs/source/examples/vision/checks/methodology/examples/
+docs/source/user-guide/general/customizations/examples/
+docs/source/user-guide/general/exporting_results/examples/
+docs/source/tutorials/tabular/examples/
+
+# build artifacts from running docs (vision and wandb export)
+docs/source/tutorials/vision/*.html
+docs/source/tutorials/vision/deepchecks_formatted_image*.jpg
+docs/source/tutorials/vision/tomato-detection/
+docs/source/tutorials/vision/hymenoptera_data/
+docs/source/user-guide/general/exporting_results/wandb
+deepchecks/vision/datasets/classification/models/

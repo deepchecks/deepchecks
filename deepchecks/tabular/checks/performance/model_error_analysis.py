@@ -16,7 +16,7 @@ from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck, Dataset
 from deepchecks.utils.metrics import ModelType
 from deepchecks.utils.performance.error_model import model_error_contribution, error_model_display
-from deepchecks.utils.single_sample_metrics import per_sample_binary_cross_entropy, per_sample_mse
+from deepchecks.utils.single_sample_metrics import per_sample_cross_entropy, per_sample_mse
 from deepchecks.utils.strings import format_percent
 
 
@@ -49,7 +49,7 @@ class ModelErrorAnalysis(TrainTestCheck):
         number of samples to use for this check.
     n_display_samples : int , default: 5_000
         number of samples to display in scatter plot.
-    random_seed : int, default: 42
+    random_state : int, default: 42
         random seed for all check internals.
 
     Notes
@@ -64,7 +64,12 @@ class ModelErrorAnalysis(TrainTestCheck):
     .. code-block:: python
 
         from sklearn.metrics import roc_auc_score, make_scorer
-        auc_scorer = make_scorer(roc_auc_score)
+
+        training_labels = [1, 2, 3]
+        auc_scorer = make_scorer(roc_auc_score, labels=training_labels, multi_class='ovr')
+        # Note that the labels parameter is required for multi-class classification in metrics like roc_auc_score or
+        # log_loss that use the predict_proba function of the model, in case that not all labels are present in the test
+        # set.
 
     Or you can implement your own:
 
@@ -91,9 +96,10 @@ class ModelErrorAnalysis(TrainTestCheck):
             alternative_scorer: Tuple[str, Union[str, Callable]] = None,
             n_samples: int = 50_000,
             n_display_samples: int = 5_000,
-            random_seed: int = 42
+            random_state: int = 42,
+            **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
         self.max_features_to_show = max_features_to_show
         self.min_feature_contribution = min_feature_contribution
         self.min_error_model_score = min_error_model_score
@@ -101,7 +107,7 @@ class ModelErrorAnalysis(TrainTestCheck):
         self.user_scorer = dict([alternative_scorer]) if alternative_scorer else None
         self.n_samples = n_samples
         self.n_display_samples = n_display_samples
-        self.random_state = random_seed
+        self.random_state = random_state
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check."""
@@ -112,7 +118,6 @@ class ModelErrorAnalysis(TrainTestCheck):
         model = context.model
 
         scorer = context.get_single_scorer(self.user_scorer)
-
         train_dataset = train_dataset.sample(self.n_samples, random_state=self.random_state, drop_na_label=True)
         test_dataset = test_dataset.sample(self.n_samples, random_state=self.random_state, drop_na_label=True)
 
@@ -121,19 +126,18 @@ class ModelErrorAnalysis(TrainTestCheck):
             def scoring_func(dataset: Dataset):
                 return per_sample_mse(dataset.label_col, model.predict(dataset.features_columns))
         else:
-            le = preprocessing.LabelEncoder()
-            le.fit(train_dataset.classes)
-
             def scoring_func(dataset: Dataset):
+                le = preprocessing.LabelEncoder()
+                le.fit(dataset.classes)
                 encoded_label = le.transform(dataset.label_col)
-                return per_sample_binary_cross_entropy(encoded_label,
-                                                       model.predict_proba(dataset.features_columns))
+                return per_sample_cross_entropy(encoded_label,
+                                                model.predict_proba(dataset.features_columns))
 
         train_scores = scoring_func(train_dataset)
         test_scores = scoring_func(test_dataset)
 
         cat_features = train_dataset.cat_features
-        numeric_features = [num_feature for num_feature in train_dataset.features if num_feature not in cat_features]
+        numeric_features = train_dataset.numerical_features
 
         error_fi, error_model_predicted = model_error_contribution(train_dataset.features_columns,
                                                                    train_scores,
@@ -188,9 +192,9 @@ class ModelErrorAnalysis(TrainTestCheck):
             if fails:
                 sorted_fails = dict(sorted(fails.items(), key=lambda item: item[1]))
                 msg = f'Found change in {result["scorer_name"]} in features above threshold: {sorted_fails}'
-                return ConditionResult(False, msg, category=ConditionCategory.WARN)
+                return ConditionResult(ConditionCategory.WARN, msg)
             else:
-                return ConditionResult(True, category=ConditionCategory.WARN)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'The performance difference of the detected segments must'
                                   f' not be greater than {format_percent(max_ratio_change)}', condition)

@@ -35,8 +35,12 @@ class ModelInfo(ModelOnlyCheck):
         model = context.model
         estimator = get_model_of_pipeline(model)
         model_type = type(estimator).__name__
-        model_params = estimator.get_params()
-        default_params = type(estimator)().get_params()
+        try:
+            model_params = estimator.get_params()
+            default_params = type(estimator)().get_params()
+        except AttributeError:
+            model_params = {}
+            default_params = {}
 
         # Create dataframe to show
         model_param_df = pd.DataFrame(model_params.items(), columns=['Parameter', 'Value'])

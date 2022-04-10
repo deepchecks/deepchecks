@@ -20,6 +20,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
 from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, TrainTestCheck, Dataset
 from deepchecks.utils.distribution.preprocessing import ScaledNumerics
@@ -63,7 +64,12 @@ class SimpleModelComparison(TrainTestCheck):
     .. code-block:: python
 
         from sklearn.metrics import roc_auc_score, make_scorer
-        auc_scorer = make_scorer(roc_auc_score)
+
+        training_labels = [1, 2, 3]
+        auc_scorer = make_scorer(roc_auc_score, labels=training_labels, multi_class='ovr')
+        # Note that the labels parameter is required for multi-class classification in metrics like roc_auc_score or
+        # log_loss that use the predict_proba function of the model, in case that not all labels are present in the test
+        # set.
 
     Or you can implement your own:
 
@@ -81,9 +87,16 @@ class SimpleModelComparison(TrainTestCheck):
         my_mse_scorer = make_scorer(my_mse, greater_is_better=False)
     """
 
-    def __init__(self, simple_model_type: str = 'constant', alternative_scorers: Dict[str, Callable] = None,
-                 max_gain: float = 50, max_depth: int = 3, random_state: int = 42):
-        super().__init__()
+    def __init__(
+        self,
+        simple_model_type: str = 'constant',
+        alternative_scorers: Dict[str, Callable] = None,
+        max_gain: float = 50,
+        max_depth: int = 3,
+        random_state: int = 42,
+        **kwargs
+    ):
+        super().__init__(**kwargs)
         self.simple_model_type = simple_model_type
         self.user_scorers = alternative_scorers
         self.max_gain = max_gain
@@ -127,7 +140,7 @@ class SimpleModelComparison(TrainTestCheck):
         # Multiclass have different return type from the scorer, list of score per class instead of single score
         if task_type in [ModelType.MULTICLASS, ModelType.BINARY]:
             n_samples = test_label.groupby(test_label).count()
-            classes = train_dataset.classes
+            classes = test_dataset.classes
 
             results_array = []
             # Dict in format { Scorer : Dict { Class : Dict { Origin/Simple : score } } }
@@ -347,9 +360,9 @@ def condition(result: Dict, include_classes=None, average=False, max_gain=None, 
 
     if fails:
         msg = f'Found metrics with gain below threshold: {fails}'
-        return ConditionResult(False, msg)
+        return ConditionResult(ConditionCategory.FAIL, msg)
     else:
-        return ConditionResult(True)
+        return ConditionResult(ConditionCategory.PASS)
 
 
 def average_scores(scores, include_classes):

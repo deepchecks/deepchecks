@@ -27,7 +27,7 @@ def test_no_drift_classification(mnist_dataset_train, mock_trained_mnist, device
 
     # Assert
     assert_that(result.value, has_entries(
-        {'Samples per class': has_entries(
+        {'Samples Per Class': has_entries(
             {'Drift score': 0,
              'Method': equal_to('PSI')}
         )}
@@ -44,13 +44,13 @@ def test_no_drift_object_detection(coco_train_visiondata, mock_trained_yolov5_ob
 
     # Assert
     assert_that(result.value, has_entries(
-        {'Samples per class': has_entries(
+        {'Samples Per Class': has_entries(
             {'Drift score': 0,
              'Method': equal_to('PSI')}
-        ), 'Bounding box area (in pixels)': has_entries(
+        ), 'Bounding Box Area (in pixels)': has_entries(
             {'Drift score': 0,
              'Method': equal_to('Earth Mover\'s Distance')}
-        ), 'Number of bounding boxes per image': has_entries(
+        ), 'Number of Bounding Boxes Per Image': has_entries(
             {'Drift score': 0,
              'Method': equal_to('Earth Mover\'s Distance')}
         )
@@ -69,7 +69,7 @@ def test_with_drift_classification(mnist_dataset_train, mnist_dataset_test, mock
 
     # Assert
     assert_that(result.value, has_entries(
-        {'Samples per class': has_entries(
+        {'Samples Per Class': has_entries(
             {'Drift score': close_to(0, 0.001),
              'Method': equal_to('PSI')}
         )
@@ -87,13 +87,13 @@ def test_with_drift_object_detection(coco_train_visiondata, coco_test_visiondata
 
     # Assert
     assert_that(result.value, has_entries(
-        {'Samples per class': has_entries(
+        {'Samples Per Class': has_entries(
             {'Drift score': close_to(0.31, 0.01),
              'Method': equal_to('PSI')}
-        ), 'Bounding box area (in pixels)': has_entries(
+        ), 'Bounding Box Area (in pixels)': has_entries(
             {'Drift score': close_to(0.009, 0.001),
              'Method': equal_to('Earth Mover\'s Distance')}
-        ), 'Number of bounding boxes per image': has_entries(
+        ), 'Number of Bounding Boxes Per Image': has_entries(
             {'Drift score': close_to(0.054, 0.001),
              'Method': equal_to('Earth Mover\'s Distance')}
         )
@@ -111,13 +111,13 @@ def test_with_drift_object_detection_change_max_cat(coco_train_visiondata, coco_
 
     # Assert
     assert_that(result.value, has_entries(
-        {'Samples per class': has_entries(
+        {'Samples Per Class': has_entries(
             {'Drift score': close_to(0.48, 0.01),
              'Method': equal_to('PSI')}
-        ), 'Bounding box area (in pixels)': has_entries(
+        ), 'Bounding Box Area (in pixels)': has_entries(
             {'Drift score': close_to(0.009, 0.001),
              'Method': equal_to('Earth Mover\'s Distance')}
-        ), 'Number of bounding boxes per image': has_entries(
+        ), 'Number of Bounding Boxes Per Image': has_entries(
             {'Drift score': close_to(0.054, 0.001),
              'Method': equal_to('Earth Mover\'s Distance')}
         )
@@ -132,7 +132,7 @@ def test_with_drift_object_detection_alternative_measurements(coco_train_visiond
         return [int(x[0][0]) if len(x) != 0 else 0 for x in predictions]
     alternative_measurements = [
         {'name': 'test', 'method': prop, 'output_type': 'continuous'}]
-    check = TrainTestPredictionDrift(alternative_prediction_properties=alternative_measurements)
+    check = TrainTestPredictionDrift(prediction_properties=alternative_measurements)
 
     # Act
     result = check.run(coco_train_visiondata, coco_test_visiondata, mock_trained_yolov5_object_detection, device=device)
@@ -161,7 +161,7 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets, mock_train
     mod_test_ds.infer_on_batch = infer
 
     # Act
-    result = check.run(mod_train_ds, mod_test_ds, mock_trained_mnist, device=device)
+    result = check.run(mod_train_ds, mod_test_ds, mock_trained_mnist, device=device, n_samples=None)
 
     condition_result, *_ = result.conditions_results
 
@@ -169,8 +169,8 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets, mock_train
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name='PSI <= 0.15 and Earth Mover\'s Distance <= 0.075 for prediction drift',
-        details='Found non-continues prediction properties with PSI drift score above threshold: {\'Samples per '
-                'class\': \'4.0\'}\n'
+        details='Found non-continues prediction properties with PSI drift score above threshold: {\'Samples Per '
+                'Class\': \'4.0\'}\n'
     ))
 
 

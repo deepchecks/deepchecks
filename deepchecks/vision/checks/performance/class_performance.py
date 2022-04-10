@@ -16,7 +16,9 @@ import plotly.express as px
 from ignite.metrics import Metric
 
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.utils import plot
 from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.vision import TrainTestCheck, Context, Batch
 from deepchecks.vision.vision_data import TaskType
@@ -60,8 +62,9 @@ class ClassPerformance(TrainTestCheck):
                  n_to_show: int = 20,
                  show_only: str = 'largest',
                  metric_to_show_by: str = None,
-                 class_list_to_show: List[int] = None):
-        super().__init__()
+                 class_list_to_show: List[int] = None,
+                 **kwargs):
+        super().__init__(**kwargs)
         self.alternative_metrics = alternative_metrics
         self.n_to_show = n_to_show
         self.class_list_to_show = class_list_to_show
@@ -110,7 +113,7 @@ class ClassPerformance(TrainTestCheck):
             results.append(metrics_df)
 
         results_df = pd.concat(results)
-
+        results_df = results_df[['Dataset', 'Metric', 'Class', 'Class Name', 'Number of samples', 'Value']]
         if self.class_list_to_show is not None:
             results_df = results_df.loc[results_df['Class'].isin(self.class_list_to_show)]
         elif self.n_to_show is not None:
@@ -126,18 +129,17 @@ class ClassPerformance(TrainTestCheck):
             x='Class Name',
             y='Value',
             color='Dataset',
+            color_discrete_sequence=(plot.colors['Train'], plot.colors['Test']),
             barmode='group',
             facet_col='Metric',
             facet_col_spacing=0.05,
-            hover_data=['Number of samples']
+            hover_data=['Number of samples'],
+
         )
 
-        if context.train.task_type == TaskType.CLASSIFICATION:
-            fig.update_xaxes(tickprefix='Class Name', tickangle=60)
-
         fig = (
-            fig.update_xaxes(title=None, type='category')
-               .update_yaxes(title=None, matches=None)
+            fig.update_xaxes(title='Class', type='category')
+               .update_yaxes(title='Value', matches=None)
                .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
                .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
         )
@@ -162,8 +164,8 @@ class ClassPerformance(TrainTestCheck):
             if len(not_passed):
                 details = f'Found metrics with scores below threshold:\n' \
                           f'{not_passed_test[["Class", "Metric", "Value"]].to_dict("records")}'
-                return ConditionResult(False, details)
-            return ConditionResult(True)
+                return ConditionResult(ConditionCategory.FAIL, details)
+            return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Scores are not less than {min_score}', condition)
 
@@ -220,9 +222,9 @@ class ClassPerformance(TrainTestCheck):
                                                   f'test={format_number(test_scores_dict[score_name])}')
             if explained_failures:
                 message = '\n'.join(explained_failures)
-                return ConditionResult(False, message)
+                return ConditionResult(ConditionCategory.FAIL, message)
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Train-Test scores relative degradation is not greater than {threshold}',
                                   condition)
@@ -264,7 +266,7 @@ class ClassPerformance(TrainTestCheck):
 
             datasets_details = []
             for dataset in ['Test', 'Train']:
-                data = check_result.loc[check_result['Dataset'] == dataset].loc[check_result['Metric'] == score]
+                data = check_result.loc[(check_result['Dataset'] == dataset) & (check_result['Metric'] == score)]
 
                 min_value_index = data['Value'].idxmin()
                 min_row = data.loc[min_value_index]
@@ -287,9 +289,9 @@ class ClassPerformance(TrainTestCheck):
                     )
                     datasets_details.append(details)
             if datasets_details:
-                return ConditionResult(False, details='\n'.join(datasets_details))
+                return ConditionResult(ConditionCategory.FAIL, details='\n'.join(datasets_details))
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(
             name=(

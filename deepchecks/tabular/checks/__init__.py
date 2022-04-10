@@ -44,10 +44,10 @@ from .overview import (
 )
 
 from .distribution import (
-    TrustScoreComparison,
     TrainTestFeatureDrift,
     TrainTestLabelDrift,
-    WholeDatasetDrift
+    WholeDatasetDrift,
+    TrainTestPredictionDrift
 )
 
 from .performance import (
@@ -97,10 +97,10 @@ __all__ = [
     'ColumnsInfo',
 
     # distribution checks
-    'TrustScoreComparison',
     'TrainTestFeatureDrift',
     'TrainTestLabelDrift',
     'WholeDatasetDrift',
+    'TrainTestPredictionDrift',
 
     # performance checks
     'PerformanceReport',

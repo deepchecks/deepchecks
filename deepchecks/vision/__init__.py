@@ -10,11 +10,13 @@
 #
 """Package for vision functionality."""
 import logging
+from .batch_wrapper import Batch
 from .vision_data import VisionData
-from .classification_data import ClassificationData
-from .detection_data import DetectionData
 from .context import Context
-from .suite import Suite, Batch
+from .suite import Suite
+from .classification_data import ClassificationData
+from .simple_classification_data import SimpleClassificationData, SimpleClassificationDataset
+from .detection_data import DetectionData
 from .base_checks import SingleDatasetCheck, TrainTestCheck, ModelOnlyCheck
 
 
@@ -33,6 +35,8 @@ __all__ = [
     "VisionData",
     "ClassificationData",
     "DetectionData",
+    "SimpleClassificationDataset",
+    "SimpleClassificationData",
     "Context",
     "SingleDatasetCheck",
     "TrainTestCheck",

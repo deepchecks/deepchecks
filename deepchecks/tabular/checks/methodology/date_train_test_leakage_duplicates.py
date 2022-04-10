@@ -11,7 +11,7 @@
 """The date_leakage check module."""
 import pandas as pd
 
-from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.strings import format_percent, format_datetime
 
@@ -28,8 +28,8 @@ class DateTrainTestLeakageDuplicates(TrainTestCheck):
         Number of common dates to show.
     """
 
-    def __init__(self, n_to_show: int = 5):
-        super().__init__()
+    def __init__(self, n_to_show: int = 5, **kwargs):
+        super().__init__(**kwargs)
         self.n_to_show = n_to_show
 
     def run_logic(self, context: Context) -> CheckResult:
@@ -80,9 +80,9 @@ class DateTrainTestLeakageDuplicates(TrainTestCheck):
         """
         def max_ratio_condition(result: float) -> ConditionResult:
             if result > max_ratio:
-                return ConditionResult(False, f'Found {format_percent(result)} leaked dates')
+                return ConditionResult(ConditionCategory.FAIL, f'Found {format_percent(result)} leaked dates')
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Date leakage ratio is not greater than {format_percent(max_ratio)}',
                                   max_ratio_condition)

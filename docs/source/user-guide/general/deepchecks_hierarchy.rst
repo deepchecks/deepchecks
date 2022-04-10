@@ -11,9 +11,9 @@ Each check enables you to inspect a specific aspect of your data and
 models. They are the basic building block of the deepchecks package,
 covering all kinds of common issues, such as:
 
-- :doc:`/examples/tabular/checks/performance/model_error_analysis`
-- :doc:`/examples/tabular/checks/integrity/label_ambiguity`
-- :doc:`/examples/tabular/checks/methodology/date_train_test_leakage_overlap`
+- :doc:`/examples/tabular/checks/performance/examples/plot_model_error_analysis`
+- :doc:`/examples/tabular/checks/integrity/examples/plot_label_ambiguity`
+- :doc:`/examples/tabular/checks/methodology/examples/plot_date_train_test_leakage_overlap`
 
 Each check can have two types of results:
 
@@ -26,9 +26,9 @@ Each check can have two types of results:
 See Also
 ---------
 
-- :ref:`Checks Demonstrations` - example notebooks demonstrating all of the checks implemented in the package.
+- :doc:`Checks Demonstrations </examples/index>` - example notebooks demonstrating all of the checks implemented in the package.
 - :doc:`Checks API Reference </api/deepchecks.tabular.checks>` - where all the check parameters and implemented conditions can be found.
-- :doc:`/tutorials/tabular/add_a_custom_check` - for a tutorial of how to implement your own check
+- :doc:`/tutorials/tabular/examples/plot_add_a_custom_check` - for a tutorial of how to implement your own check
 
 
 Condition
@@ -51,7 +51,7 @@ Each condition has a ``ConditionCategory`` type, which indicates whether an unme
 See Also
 ---------
 
-- :doc:`/user-guide/general/customizations/configure_check_conditions` - for a tutorial demonstrating how to modify a checks' conditions
+- :doc:`/user-guide/general/customizations/examples/plot_configure_check_conditions` - for a tutorial demonstrating how to modify a checks' conditions
 - :doc:`Check Base Classes API Reference </api/deepchecks.core>` - where all of the check and condition related base objects can be found.
 
 
@@ -69,11 +69,13 @@ of checks and optional conditions.
 See Also
 ---------
 
-- `List of Existing Suites`_ - to learn more about the suites you can work with directly
-- :doc:`/user-guide/general/customizations/create_a_custom_suite` - for a demonstration about creating your own suite
+- `List of Tabular Suites`_ - to learn more about the tabular suites you can work with directly
+- `List of Vision Suites`_ - to learn more about the vision suites you can work with directly
+- :doc:`/user-guide/general/customizations/examples/plot_create_a_custom_suite` - for a demonstration about creating your own suite
 
 
-.. _List of Existing Suites: https://github.com/deepchecks/deepchecks/tree/main/deepchecks/suites
+.. _List of Tabular Suites: https://github.com/deepchecks/deepchecks/tree/main/deepchecks/tabular/suites
+.. _List of Vision Suites: https://github.com/deepchecks/deepchecks/tree/main/deepchecks/vision/suites
 
 .. image:: /_static/diagram.svg
    :alt: Deepchecks Diagram

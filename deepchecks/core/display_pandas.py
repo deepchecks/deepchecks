@@ -73,7 +73,7 @@ def get_conditions_table(check_results: Union['CheckResult', List['CheckResult']
     max_info_len : int
         max length of the additional info.
     icon_html : bool , default: True
-        if to show the html condition result icon or a char
+        if to show the html condition result icon or the enum
     Returns
     -------
     pd.Dataframe:
@@ -89,14 +89,14 @@ def get_conditions_table(check_results: Union['CheckResult', List['CheckResult']
     for check_result in check_results:
         for cond_result in check_result.conditions_results:
             sort_value = cond_result.priority
-            icon = cond_result.get_icon() if icon_html else cond_result.get_icon_char()
+            icon = cond_result.get_icon() if icon_html else cond_result.category.value
             check_header = check_result.get_header()
             if unique_id and check_result.have_display():
-                check_id = f'{check_result.check.__class__.__name__}_{unique_id}'
-                link = f'<a href=#{check_id}>{check_header}</a>'
+                link = f'<a href=#{check_result.get_check_id(unique_id)}>{check_header}</a>'
             else:
                 link = check_header
-                sort_value = 1 if sort_value == 1 else 5  # if it failed but has no display still show on top
+                # if it has no display show on bottom for the category (lower priority)
+                sort_value += 0.1
             table.append([icon, link, cond_result.name,
                          cond_result.details, sort_value])
 
@@ -130,8 +130,7 @@ def get_result_navigation_display(check_results: List['CheckResult'], unique_id:
     for check_result in check_results:
         if check_result.have_display():
             check_header = check_result.get_header()
-            check_id = f'{check_result.check.__class__.__name__}_{unique_id}'
-            link = f'<a href=#{check_id}>{check_header}</a>'
+            link = f'<a href=#{check_result.get_check_id(unique_id)}>{check_header}</a>'
             summary = get_docs_summary(check_result.check)
             table.append([link, summary])
 

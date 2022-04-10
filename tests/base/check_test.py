@@ -31,7 +31,7 @@ class DummyCheck(TrainTestCheck):
 
 def test_add_condition():
     # Arrange & Act
-    check = DummyCheck().add_condition('condition A', lambda r: True)
+    check = DummyCheck().add_condition('condition A', lambda r: ConditionCategory.PASS)
 
     # Assert
     assert_that(check._conditions.values(), contains_exactly(
@@ -43,7 +43,7 @@ def test_add_multiple_conditions():
     # Arrange & Act
     check = (DummyCheck().add_condition('condition A', lambda r: True)
              .add_condition('condition B', lambda r: False)
-             .add_condition('condition C', lambda r: ConditionResult(True)))
+             .add_condition('condition C', lambda r: ConditionResult(ConditionCategory.PASS)))
 
     # Assert
     assert_that(check._conditions.values(), contains_exactly(
@@ -85,7 +85,7 @@ def test_remove_condition():
     # Arrange
     check = (DummyCheck().add_condition('condition A', lambda r: True)
              .add_condition('condition B', lambda r: False)
-             .add_condition('condition C', lambda r: ConditionResult(True)))
+             .add_condition('condition C', lambda r: ConditionResult(ConditionCategory.PASS)))
 
     # Act & Assert
     check.remove_condition(1)
@@ -111,8 +111,8 @@ def test_condition_decision():
 
     # Arrange
     check = (DummyCheck().add_condition('condition A', lambda _: True)
-             .add_condition('condition B', lambda _: ConditionResult(False, 'some result'))
-             .add_condition('condition C', lambda _: ConditionResult(False, 'my actual', ConditionCategory.WARN))
+             .add_condition('condition B', lambda _: ConditionResult(ConditionCategory.FAIL, 'some result'))
+             .add_condition('condition C', lambda _: ConditionResult(ConditionCategory.WARN, 'my actual'))
              .add_condition('condition F', lambda _: raise_(Exception('fail'))))
 
     decisions = check.conditions_decision(CheckResult(1))
@@ -122,7 +122,7 @@ def test_condition_decision():
         all_of(
             has_property('name', 'condition A'),
             has_property('is_pass', equal_to(True)),
-            has_property('category', ConditionCategory.FAIL),
+            has_property('category', ConditionCategory.PASS),
             has_property('details', '')
         ),
         all_of(
@@ -140,7 +140,7 @@ def test_condition_decision():
         all_of(
             has_property('name', 'condition F'),
             has_property('is_pass', equal_to(False)),
-            has_property('category', ConditionCategory.WARN),
+            has_property('category', ConditionCategory.ERROR),
             has_property('details', 'Exception in condition: Exception: fail')
         )
     ))

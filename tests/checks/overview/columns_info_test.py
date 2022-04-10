@@ -62,3 +62,14 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
     result_ds = check.run(train, clf).value
     # Assert
     assert_that(result_ds, has_length(3))
+
+def test_other_feature(city_arrogance_split_dataset_and_model):
+    train, _, clf = city_arrogance_split_dataset_and_model
+    # Arrange
+    check = ColumnsInfo()
+    # Act
+    result_value = check.run(train, clf).value
+    # Assert
+    assert_that(result_value,  equal_to(
+        {'sex': 'categorical feature', 'city': 'other feature', 'arrogance': 'label'}
+        ))

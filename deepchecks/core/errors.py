@@ -19,7 +19,9 @@ __all__ = [
     'DatasetValidationError',
     'ModelValidationError',
     'DeepchecksNotImplementedError',
-    'ValidationError'
+    'ValidationError',
+    'DeepchecksBaseError',
+    'NotEnoughSamplesError'
 ]
 
 
@@ -56,7 +58,7 @@ class DeepchecksProcessError(DeepchecksBaseError):
 
 
 class NumberOfFeaturesLimitError(DeepchecksBaseError):
-    """Represents a situation when a dataset contains to much features to be used for calculation."""
+    """Represents a situation when a dataset contains too many features to be used for calculation."""
 
     pass
 
@@ -89,5 +91,11 @@ class ModelValidationError(DeepchecksBaseError):
     Should be used in a situation when a routine (like check instance, utility function, etc)
     expected and received a dataset instance that did not meet routine requirements.
     """
+
+    pass
+
+
+class NotEnoughSamplesError(DeepchecksBaseError):
+    """Represents a failure in calculation due to insufficient amount of samples."""
 
     pass

@@ -23,7 +23,9 @@ import torch
 from torch.utils.data import DataLoader, BatchSampler, Sampler
 
 
-from deepchecks.core.errors import DeepchecksNotImplementedError, DeepchecksValueError, ValidationError
+from deepchecks.core.errors import DeepchecksNotImplementedError, DeepchecksValueError, ValidationError, \
+    DeepchecksBaseError
+from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.utils.image_functions import ImageInfo
 from deepchecks.vision.utils.transformations import add_augmentation_in_start, get_transforms_handler
 
@@ -73,9 +75,12 @@ class VisionData:
         self._transform_field = transform_field
         self._warned_labels = set()
         self._image_formatter_error = None
+        self._label_formatter_error = None
+        self._get_classes_error = None
 
+        batch = next(iter(self._data_loader))
         try:
-            self.validate_image_data(next(iter(self._data_loader)))
+            self.validate_image_data(batch)
         except DeepchecksNotImplementedError:
             self._image_formatter_error = 'batch_to_images() was not implemented, some checks will not run'
             logger.warning(self._image_formatter_error)
@@ -85,15 +90,38 @@ class VisionData:
                                           f'function `validate_image_data(batch)`'
             logger.warning(self._image_formatter_error)
 
-        self._task_type = TaskType.OTHER
-        self._has_label = None
+        try:
+            self.validate_label(batch)
+        except DeepchecksNotImplementedError:
+            self._label_formatter_error = 'batch_to_labels() was not implemented, some checks will not run'
+            logger.warning(self._image_formatter_error)
+        except ValidationError as ex:
+            self._label_formatter_error = f'batch_to_labels() was not implemented correctly, the validation has ' \
+                                          f'failed with the error: "{ex}". To test your label formatting use the ' \
+                                          f'function `validate_label(batch)`'
+            logger.warning(self._label_formatter_error)
+
+        try:
+            if self._label_formatter_error is None:
+                self.validate_get_classes(batch)
+            else:
+                self._get_classes_error = 'Must have valid labels formatter to use `get_classes`'
+        except DeepchecksNotImplementedError:
+            self._get_classes_error = 'get_classes() was not implemented, some checks will not run'
+            logger.warning(self._get_classes_error)
+        except ValidationError as ex:
+            self._get_classes_error = f'get_classes() was not implemented correctly, the validation has ' \
+                                      f'failed with the error: "{ex}". To test your formatting use the ' \
+                                      f'function `validate_get_classes(batch)`'
+            logger.warning(self._get_classes_error)
+
         self._classes_indices = None
         self._current_index = None
 
     @abstractmethod
     def get_classes(self, batch_labels: Union[List[torch.Tensor], torch.Tensor]) -> List[List[int]]:
         """Get a labels batch and return classes inside it."""
-        raise NotImplementedError('get_classes() must be implemented in a subclass')
+        raise DeepchecksNotImplementedError('get_classes() must be implemented in a subclass')
 
     @abstractmethod
     def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor]:
@@ -104,18 +132,6 @@ class VisionData:
     def infer_on_batch(self, batch, model, device) -> Union[List[torch.Tensor], torch.Tensor]:
         """Infer on a batch of data."""
         raise DeepchecksNotImplementedError('infer_on_batch() must be implemented in a subclass')
-
-    @abstractmethod
-    def validate_label(self, batch):
-        """Validate a batch of labels."""
-        raise NotImplementedError('validate_label() must be implemented in a subclass')
-
-    @abstractmethod
-    def validate_prediction(self, batch, model, device):
-        """Validate a batch of predictions."""
-        raise DeepchecksValueError(
-            'validate_prediction() must be implemented in a subclass'
-        )
 
     @abstractmethod
     def batch_to_images(self, batch) -> Sequence[np.ndarray]:
@@ -157,13 +173,29 @@ class VisionData:
         """
         raise DeepchecksNotImplementedError('batch_to_images() must be implemented in a subclass')
 
-    def update_cache(self, labels):
+    def validate_label(self, batch):
+        """Validate a batch of labels."""
+        # default implementation just calling the function to see if it runs
+        self.batch_to_labels(batch)
+
+    def validate_prediction(self, batch, model, device):
+        """Validate a batch of predictions."""
+        # default implementation just calling the function to see it runs
+        self.infer_on_batch(batch, model, device)
+
+    def update_cache(self, batch: Batch):
         """Get labels and update the classes' metadata info."""
-        classes_per_label = self.get_classes(labels)
+        try:
+            # In case there are no labels or there is an invalid formatter function, this call will raise exception
+            classes_per_label = self.get_classes(batch.labels)
+        except DeepchecksBaseError:
+            self._classes_indices = None
+            return
+
         for batch_index, classes in enumerate(classes_per_label):
             for single_class in classes:
-                real_index_in_dataset = self._sampler.index_at(self._current_index + batch_index)
-                self._classes_indices[single_class].append(real_index_in_dataset)
+                dataset_index = self.to_dataset_index(self._current_index + batch_index)[0]
+                self._classes_indices[single_class].append(dataset_index)
         self._current_index += len(classes_per_label)
 
     def init_cache(self):
@@ -175,7 +207,9 @@ class VisionData:
     def classes_indices(self) -> Dict[int, List[int]]:
         """Return dict of classes as keys, and list of corresponding indices (in Dataset) of samples that include this\
         class (in the label)."""
-        if self._classes_indices is None or self._current_index < len(self._sampler):
+        if self._classes_indices is None:
+            raise DeepchecksValueError('Could not process labels.')
+        if self._current_index < len(self._sampler):
             raise DeepchecksValueError('Cached data is not computed on all the data yet.')
         return self._classes_indices
 
@@ -195,14 +229,19 @@ class VisionData:
         return self._transform_field
 
     @property
-    def has_label(self) -> bool:
+    def has_labels(self) -> bool:
         """Return True if the data loader has labels."""
-        return self._has_label
+        return self._label_formatter_error is None
+
+    @property
+    def has_images(self) -> bool:
+        """Return True if the data loader has images."""
+        return self._image_formatter_error is None
 
     @property
     def task_type(self) -> TaskType:
         """Return the task type."""
-        return self._task_type
+        return TaskType.OTHER
 
     @property
     def num_classes(self) -> int:
@@ -210,6 +249,16 @@ class VisionData:
         if self._num_classes is None:
             self._num_classes = len(self.classes_indices.keys())
         return self._num_classes
+
+    @property
+    def num_samples(self) -> int:
+        """Return the number of samples in the dataset."""
+        return len(self._sampler)
+
+    @property
+    def original_num_samples(self) -> int:
+        """Return the number of samples in the original dataset."""
+        return len(self._data_loader.dataset)
 
     @property
     def data_dimension(self):
@@ -267,7 +316,7 @@ class VisionData:
         ----------
         n_samples : int , default: None
             take only this number of samples to the copied DataLoader. The samples which will be chosen are affected
-            by random_state (fixed random state will return consistent sampels).
+            by random_state (fixed random state will return consistent samples).
         shuffle : bool, default: False
             Whether to shuffle the samples order. The shuffle is affected random_state (fixed random state will return
             consistent order)
@@ -291,12 +340,14 @@ class VisionData:
         """Use the defined collate_fn to transform a few data items to batch format."""
         return self._data_loader.collate_fn(list(samples))
 
+    def to_dataset_index(self, *batch_indices):
+        """Return for the given batch_index the sample index in the dataset object."""
+        return [self._sampler.index_at(i) for i in batch_indices]
+
     def batch_of_index(self, *indices):
         """Return batch samples of the given batch indices."""
-        samples = []
-        for i in indices:
-            index_in_dataset = self._sampler.index_at(i)
-            samples.append(self.data_loader.dataset[index_in_dataset])
+        dataset_indices = self.to_dataset_index(*indices)
+        samples = [self._data_loader.dataset[i] for i in dataset_indices]
         return self.to_batch(*samples)
 
     def validate_shared_label(self, other: VD):
@@ -318,10 +369,10 @@ class VisionData:
             raise ValidationError('Check requires dataset to be of type VisionTask. instead got: '
                                   f'{type(other).__name__}')
 
-        if self._has_label != other.has_label:
+        if self.has_labels != other.has_labels:
             raise ValidationError('Datasets required to both either have or don\'t have labels')
 
-        if self._task_type != other.task_type:
+        if self.task_type != other.task_type:
             raise ValidationError('Datasets required to have same label type')
 
     def validate_image_data(self, batch):
@@ -350,23 +401,45 @@ class VisionData:
             raise ValidationError('The data inside the iterable must be a 3D array.')
         if sample.shape[2] not in [1, 3]:
             raise ValidationError('The data inside the iterable must have 1 or 3 channels.')
-        sample_min = sample.min()
-        sample_max = sample.max()
+        sample_min = np.min(sample)
+        sample_max = np.max(sample)
         if sample_min < 0 or sample_max > 255 or sample_max <= 1:
             raise ValidationError(f'Image data found to be in range [{sample_min}, {sample_max}] instead of expected '
                                   f'range [0, 255].')
 
-    def validate_format(self, model):
+    def validate_get_classes(self, batch):
+        """Validate that the get_classes function returns data in the correct format.
+
+        Parameters
+        ----------
+        batch
+
+        Raises
+        -------
+        ValidationError
+            If the classes data doesn't fit the format after being transformed.
+        """
+        class_ids = self.get_classes(self.batch_to_labels(batch))
+        if not isinstance(class_ids, Sequence):
+            raise ValidationError('The classes must be a sequence.')
+        if not all((isinstance(x, Sequence) for x in class_ids)):
+            raise ValidationError('The classes sequence must contain as values sequences of ints '
+                                  '(sequence per sample).')
+        if not all((all((isinstance(x, int) for x in inner_ids)) for inner_ids in class_ids)):
+            raise ValidationError('The samples sequence must contain only int values.')
+
+    def validate_format(self, model, device=None):
         """Validate the correctness of the data class implementation according to the expected format.
 
         Parameters
         ----------
         model : Model
             Model to validate the data class implementation against.
-
+        device
+            Device to run the model on.
         """
         from deepchecks.vision.utils.validation import validate_extractors  # pylint: disable=import-outside-toplevel
-        validate_extractors(self, model)
+        validate_extractors(self, model, device=device)
 
     def __iter__(self):
         """Return an iterator over the dataset."""
@@ -376,10 +449,21 @@ class VisionData:
         """Return the number of batches in the dataset dataloader."""
         return len(self._data_loader)
 
-    def assert_image_formatter_valid(self):
+    def is_sampled(self):
+        """Return whether the vision data is running on sample of the data."""
+        return self.num_samples < self.original_num_samples
+
+    def assert_images_valid(self):
         """Assert the image formatter defined is valid. Else raise exception."""
         if self._image_formatter_error is not None:
             raise DeepchecksValueError(self._image_formatter_error)
+
+    def assert_labels_valid(self):
+        """Assert the label formatter defined is valid. Else raise exception."""
+        if self._label_formatter_error is not None:
+            raise DeepchecksValueError(self._label_formatter_error)
+        if self._get_classes_error is not None:
+            raise DeepchecksValueError(self._get_classes_error)
 
     @staticmethod
     def _get_data_loader_copy(data_loader: DataLoader, n_samples: int = None, shuffle: bool = False,
@@ -404,9 +488,10 @@ class VisionData:
         if isinstance(batch_sampler.sampler, IndicesSequentialSampler):
             indices = batch_sampler.sampler.indices
         else:
-            raise DeepchecksValueError('Expected data loader with sample of type IndicesSequentialSampler')
-        # If got number of samples than take random sample
-        if n_samples:
+            raise DeepchecksValueError('Expected data loader with sampler of type IndicesSequentialSampler')
+        # If got number of samples which is smaller than the number of samples we currently have,
+        # then take random sample
+        if n_samples and n_samples < len(batch_sampler.sampler):
             size = min(n_samples, len(indices))
             if random_state is not None:
                 random.seed(random_state)
@@ -427,16 +512,19 @@ class VisionData:
     @staticmethod
     def _get_data_loader_props(data_loader: DataLoader):
         """Get properties relevant for the copy of a DataLoader."""
-        return {
-            'num_workers': data_loader.num_workers,
-            'collate_fn': data_loader.collate_fn,
-            'pin_memory': data_loader.pin_memory,
-            'timeout': data_loader.timeout,
-            'worker_init_fn': data_loader.worker_init_fn,
-            'prefetch_factor': data_loader.prefetch_factor,
-            'persistent_workers': data_loader.persistent_workers,
-            'dataset': copy(data_loader.dataset)
-        }
+        attr_list = ['num_workers',
+                     'collate_fn',
+                     'pin_memory',
+                     'timeout',
+                     'worker_init_fn',
+                     'prefetch_factor',
+                     'persistent_workers']
+        aval_attr = {}
+        for attr in attr_list:
+            if hasattr(data_loader, attr):
+                aval_attr[attr] = getattr(data_loader, attr)
+        aval_attr['dataset'] = copy(data_loader.dataset)
+        return aval_attr
 
     @staticmethod
     def _get_data_loader_sequential(data_loader: DataLoader):
@@ -460,7 +548,7 @@ class VisionData:
         return data_loader.__class__(**props), sampler
 
 
-class IndicesSequentialSampler(Sampler[int]):
+class IndicesSequentialSampler(Sampler):
     """Samples elements sequentially from a given list of indices, without replacement.
 
     Args:

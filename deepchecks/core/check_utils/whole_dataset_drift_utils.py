@@ -16,12 +16,6 @@ import warnings
 import numpy as np
 import pandas as pd
 
-from deepchecks import Dataset  # TODO: Remove?
-from deepchecks.utils.distribution.plot import feature_distribution_traces, drift_score_bar_traces
-from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none
-from deepchecks.utils.strings import format_percent
-from deepchecks.utils.typing import Hashable
-
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 
@@ -34,6 +28,13 @@ from sklearn.metrics import roc_auc_score
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.model_selection import train_test_split
 import plotly.graph_objects as go
+
+from deepchecks.tabular import Dataset
+from deepchecks.utils.distribution.plot import feature_distribution_traces, drift_score_bar_traces
+from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none
+from deepchecks.utils.function import run_available_kwargs
+from deepchecks.utils.strings import format_percent
+from deepchecks.utils.typing import Hashable
 
 
 def run_whole_dataset_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.DataFrame,
@@ -113,8 +114,9 @@ def generate_model(numerical_columns: List[Hashable], categorical_columns: List[
                    random_state: int = 42) -> Pipeline:
     """Generate the unfitted Domain Classifier model."""
     categorical_transformer = Pipeline(
-        steps=[('encoder', OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=np.nan,
-                                          dtype=np.float64))]
+        steps=[('encoder', run_available_kwargs(OrdinalEncoder, handle_unknown='use_encoded_value',
+                                                unknown_value=np.nan,
+                                                dtype=np.float64))]
     )
 
     preprocessor = ColumnTransformer(
@@ -169,6 +171,7 @@ def display_dist(train_column: pd.Series, test_column: pd.Series, fi_ser: pd.Ser
     traces, xaxis_layout, yaxis_layout = \
         feature_distribution_traces(train_column.dropna(),
                                     test_column.dropna(),
+                                    column_name,
                                     is_categorical=column_name in cat_features,
                                     max_num_categories=max_num_categories)
 

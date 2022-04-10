@@ -22,15 +22,13 @@ from deepchecks.vision.utils.image_functions import numpy_grayscale_to_heatmap_f
 from deepchecks.core import DatasetKind, CheckResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision import Context, TrainTestCheck, Batch
-from deepchecks.vision.vision_data import TaskType
-
+from deepchecks.vision.vision_data import TaskType, VisionData
 
 __all__ = ['HeatmapComparison']
 
 
 class HeatmapComparison(TrainTestCheck):
-    """
-    Check if the average image brightness (or bbox location if applicable) is similar between train and test set.
+    """Check if the average image brightness (or bbox location if applicable) is similar between train and test set.
 
     The check computes the average grayscale image per dataset (train and test) and compares the resulting images.
     This comparison may serve to visualize differences in the statistics of the datasets. Additionally, in case of an
@@ -44,9 +42,10 @@ class HeatmapComparison(TrainTestCheck):
     """
 
     def __init__(self,
-                 classes_to_display: Optional[List[str]] = None):
-        super().__init__()
-        self.classes_to_display = classes_to_display
+                 classes_to_display: Optional[List[str]] = None,
+                 **kwargs):
+        super().__init__(**kwargs)
+        self.classes_to_display = {str(x) for x in classes_to_display} if classes_to_display else None
 
     def initialize_run(self, context: Context):
         """Initialize run.
@@ -87,9 +86,8 @@ class HeatmapComparison(TrainTestCheck):
         # The counter accumulates the number of images in the batches
         # image_batch is a list of images, each of which is a numpy array of shape (H, W, C), produced by running
         # the image_formatter on the batch.
-        image_batch = batch.images
-        label_batch = batch.labels
-        valid_labels, valid_images = self._filter_images(label_batch, image_batch)
+        data = context.get_data_by_kind(dataset_kind)
+        valid_labels, valid_images = self._filter_images(data, batch)
         if len(valid_images) != 0:
             self._counter[dataset_kind] += len(valid_images)
             summed_image = self._grayscale_sum_image(valid_images)
@@ -115,11 +113,12 @@ class HeatmapComparison(TrainTestCheck):
         """
         # if self.classes_to_display is set, check that it has classes that actually exist
         if self.classes_to_display is not None:
-            if not set(self.classes_to_display).issubset(
+            if not self.classes_to_display.issubset(
                     map(self._class_to_string, context.train.classes_indices.keys())
             ):
                 raise DeepchecksValueError(
-                    f'Provided list of class ids to display {self.classes_to_display} not found in training dataset.'
+                    f'Provided list of class ids to display {list(self.classes_to_display)} not found in training '
+                    f'dataset.'
                 )
         # Compute the average grayscale image by dividing the accumulated sum by the number of images
         train_grayscale = (np.expand_dims(self._grayscale_heatmap[DatasetKind.TRAIN], axis=2) /
@@ -158,7 +157,7 @@ class HeatmapComparison(TrainTestCheck):
     @staticmethod
     def plot_row_of_heatmaps(train_img: np.ndarray, test_img: np.ndarray, title: str) -> go.Figure:
         """Plot a row of heatmaps for train and test images."""
-        fig = make_subplots(rows=1, cols=3, column_titles=['Train', 'Test', 'Test - Train'])
+        fig = make_subplots(rows=1, cols=3, column_titles=['Train', 'Test', 'Test To Train Diffrence'])
         fig.add_trace(numpy_grayscale_to_heatmap_figure(train_img), row=1, col=1)
         fig.add_trace(numpy_grayscale_to_heatmap_figure(test_img), row=1, col=2)
         fig.add_trace(numpy_grayscale_to_heatmap_figure(HeatmapComparison._image_diff(test_img, train_img)),
@@ -175,24 +174,23 @@ class HeatmapComparison(TrainTestCheck):
         diff = img1.astype(np.int32) - img2.astype(np.int32)
         return np.abs(diff).astype(np.uint8)
 
-    def _filter_images(self, label_batch: List[torch.Tensor], image_batch: List[np.ndarray]) -> \
+    def _filter_images(self, data: VisionData, batch: Batch) -> \
             Tuple[List[torch.Tensor], List[np.ndarray]]:
         """Filter the images by the classes to display and return the valid labels and images."""
         valid_images = []
         valid_labels = []
-        for image, label in zip(image_batch, label_batch):
-            orig_label = label
-            if label.shape != torch.Size([]):
-                label = label.reshape((-1, 5))
-                class_idx = label[:, 0]
-            else:
-                label = [label]
-                class_idx = label
-            for i in range(len(label)):
-                if self.classes_to_display is None or self._class_to_string(class_idx[i]) in self.classes_to_display:
-                    valid_labels.append(orig_label)
+
+        if self.classes_to_display is None:
+            valid_images.extend(batch.images)
+            valid_labels.extend(batch.labels)
+        else:
+            samples = batch.images, batch.labels, data.get_classes(batch.labels)
+            for image, label, classes in zip(*samples):
+                class_names = {self._class_to_string(c) for c in classes}
+                if len(class_names.intersection(self.classes_to_display)) > 0:
+                    valid_labels.append(label)
                     valid_images.append(image)
-                    break
+
         return valid_labels, valid_images
 
     def _label_to_image(self, label: np.ndarray, original_shape: Tuple[int]) -> np.ndarray:
@@ -219,7 +217,7 @@ class HeatmapComparison(TrainTestCheck):
         return_bbox_image_batch = []
         for image, label in zip(image_batch, label_batch):
             return_bbox_image_batch.append(
-                self._label_to_image(label.detach().cpu().numpy(), image.shape[:2])
+                self._label_to_image(label.cpu().detach().numpy(), image.shape[:2])
             )
         return return_bbox_image_batch
 

@@ -10,7 +10,7 @@
 #
 """Common utilities for distribution checks."""
 
-from typing import Tuple, Union, Hashable, Callable
+from typing import Tuple, Union, Hashable, Callable, Optional
 
 from scipy.stats import wasserstein_distance
 import numpy as np
@@ -21,8 +21,7 @@ from plotly.subplots import make_subplots
 
 from deepchecks.utils.distribution.plot import drift_score_bar_traces, feature_distribution_traces
 from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
-from deepchecks.core.errors import DeepchecksValueError
-
+from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
 
 PSI_MIN_PERCENTAGE = 0.01
 
@@ -96,8 +95,13 @@ def earth_movers_distance(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.n
     return wasserstein_distance(dist1, dist2)
 
 
-def calc_drift_and_plot(train_column: pd.Series, test_column: pd.Series, plot_title: Hashable,
-                        column_type: str, max_num_categories: int = 10) -> Tuple[float, str, Callable]:
+def calc_drift_and_plot(train_column: pd.Series,
+                        test_column: pd.Series,
+                        value_name: Hashable,
+                        column_type: str,
+                        plot_title: Optional[str] = None,
+                        max_num_categories: int = 10,
+                        min_samples: int = 10) -> Tuple[float, str, Callable]:
     """
     Calculate drift score per column.
 
@@ -107,12 +111,16 @@ def calc_drift_and_plot(train_column: pd.Series, test_column: pd.Series, plot_ti
         column from train dataset
     test_column : pd.Series
         same column from test dataset
-    plot_title : Hashable
-        title of plot
+    value_name : Hashable
+        title of the x axis, if plot_title is None then also the title of the whole plot.
     column_type : str
         type of column (either "numerical" or "categorical")
+    plot_title : str or None
+        if None use value_name as title otherwise use this.
     max_num_categories : int , default: 10
         Max number of allowed categories. If there are more, they are binned into an "Other" category.
+    min_samples : int, default: 10
+        Minimum number of samples for each column in order to calculate draft
     Returns
     -------
     Tuple[float, str, Callable]
@@ -123,6 +131,10 @@ def calc_drift_and_plot(train_column: pd.Series, test_column: pd.Series, plot_ti
     train_dist = train_column.dropna().values.reshape(-1)
     test_dist = test_column.dropna().values.reshape(-1)
 
+    if len(train_dist) < min_samples or len(test_dist) < min_samples:
+        raise NotEnoughSamplesError(f'For drift need {min_samples} samples but got {len(train_dist)} for train '
+                                    f'and {len(test_dist)} for test')
+
     if column_type == 'numerical':
         scorer_name = "Earth Mover's Distance"
 
@@ -132,7 +144,7 @@ def calc_drift_and_plot(train_column: pd.Series, test_column: pd.Series, plot_ti
         score = earth_movers_distance(dist1=train_dist, dist2=test_dist)
 
         bar_traces, bar_x_axis, bar_y_axis = drift_score_bar_traces(score)
-        dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(train_dist, test_dist)
+        dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(train_dist, test_dist, value_name)
 
     elif column_type == 'categorical':
         scorer_name = 'PSI'
@@ -141,7 +153,8 @@ def calc_drift_and_plot(train_column: pd.Series, test_column: pd.Series, plot_ti
         score = psi(expected_percents=expected_percents, actual_percents=actual_percents)
 
         bar_traces, bar_x_axis, bar_y_axis = drift_score_bar_traces(score, bar_max=1)
-        dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(train_dist, test_dist, is_categorical=True,
+        dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(train_dist, test_dist, value_name,
+                                                                            is_categorical=True,
                                                                             max_num_categories=max_num_categories)
     else:
         # Should never reach here
@@ -153,6 +166,9 @@ def calc_drift_and_plot(train_column: pd.Series, test_column: pd.Series, plot_ti
 
     fig.add_traces(bar_traces, rows=[1] * len(bar_traces), cols=[1] * len(bar_traces))
     fig.add_traces(dist_traces, rows=[2] * len(dist_traces), cols=[1] * len(dist_traces))
+
+    if not plot_title:
+        plot_title = value_name
 
     shared_layout = go.Layout(
         xaxis=bar_x_axis,

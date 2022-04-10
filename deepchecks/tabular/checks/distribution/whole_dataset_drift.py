@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains the domain classifier drift check."""
-from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.core.check_utils.whole_dataset_drift_utils import run_whole_dataset_drift
 from deepchecks.utils.strings import format_number
@@ -60,9 +60,10 @@ class WholeDatasetDrift(TrainTestCheck):
             sample_size: int = 10_000,
             random_state: int = 42,
             test_size: float = 0.3,
-            min_meaningful_drift_score: float = 0.05
+            min_meaningful_drift_score: float = 0.05,
+            **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
 
         self.n_top_columns = n_top_columns
         self.min_feature_importance = min_feature_importance
@@ -90,12 +91,10 @@ class WholeDatasetDrift(TrainTestCheck):
         """
         train_dataset = context.train
         test_dataset = context.test
-        features = train_dataset.features
         cat_features = train_dataset.cat_features
+        numerical_features = train_dataset.numerical_features
 
         sample_size = min(self.sample_size, train_dataset.n_samples, test_dataset.n_samples)
-
-        numerical_features = list(set(features) - set(cat_features))
 
         headnote = """
         <span>
@@ -104,8 +103,8 @@ class WholeDatasetDrift(TrainTestCheck):
         </span>
         """
 
-        values_dict, displays = run_whole_dataset_drift(train_dataframe=train_dataset.data[features],
-                                                        test_dataframe=test_dataset.data[features],
+        values_dict, displays = run_whole_dataset_drift(train_dataframe=train_dataset.features_columns,
+                                                        test_dataframe=test_dataset.features_columns,
                                                         numerical_features=numerical_features,
                                                         cat_features=cat_features,
                                                         sample_size=sample_size, random_state=self.random_state,
@@ -137,9 +136,9 @@ class WholeDatasetDrift(TrainTestCheck):
             if drift_score > max_drift_value:
                 message = f'Found drift value of: {format_number(drift_score)}, corresponding to a domain classifier ' \
                           f'AUC of: {format_number(result["domain_classifier_auc"])}'
-                return ConditionResult(False, message)
+                return ConditionResult(ConditionCategory.FAIL, message)
             else:
-                return ConditionResult(True)
+                return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'Drift value is not greater than {format_number(max_drift_value)}',
                                   condition)

@@ -21,7 +21,7 @@ SUPPORTED_PYTHON_VERSIONS = '>=3.6, <=3.10'
 SETUP_MODULE = pathlib.Path(__file__).absolute()
 DEEPCHECKS_DIR = SETUP_MODULE.parent
 LICENSE_FILE = DEEPCHECKS_DIR / "LICENSE" 
-VERSION_FILE = DEEPCHECKS_DIR / "VERSION" 
+VERSION_FILE = DEEPCHECKS_DIR / "deepchecks" / "VERSION"
 DESCRIPTION_FILE = DEEPCHECKS_DIR / "DESCRIPTION.rst" 
 
 
@@ -43,7 +43,7 @@ PYTHON_VERSIONING_RE = re.compile(
 @lru_cache(maxsize=None)
 def is_correct_version_string(value: str) -> bool:
     match = PYTHON_VERSIONING_RE.match(value)
-    return match is not None
+    return value == "dev" or match is not None
 
 
 @lru_cache(maxsize=None)
@@ -158,7 +158,7 @@ setuptools.setup(
     },
     
     # -- dependencies --------------------------------
-    packages=setuptools.find_packages(),
+    packages=setuptools.find_packages(exclude=['tests', 'tests.*']),
     install_requires=main_requirements,
     extras_require=extra_requirements,
     dependency_links=dependency_links,
