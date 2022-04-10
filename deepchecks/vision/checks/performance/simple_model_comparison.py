@@ -131,8 +131,8 @@ class SimpleModelComparison(TrainTestCheck):
                 metric.update((prediction, label))
 
             # calculating perfect scores
-            n_of_classes = batch.predictions.to('cpu').shape[1]
-            perfect_predictions = np.eye(n_of_classes)[label.to('cpu').numpy()]
+            n_of_classes = batch.predictions.cpu().detach().shape[1]
+            perfect_predictions = np.eye(n_of_classes)[label.cpu().detach().numpy()]
             for _, metric in self._perfect_metrics.items():
                 metric.update((torch.Tensor(perfect_predictions).to(context.device), label))
 
@@ -171,6 +171,7 @@ class SimpleModelComparison(TrainTestCheck):
                                                          column_filter_value='Given Model')
             results_df = results_df.loc[results_df['Class'].isin(classes_to_show)]
 
+        results_df = results_df.dropna()
         results_df = results_df.sort_values(by=['Model', 'Value'], ascending=False).reset_index(drop=True)
 
         fig = px.histogram(
