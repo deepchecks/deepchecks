@@ -320,8 +320,8 @@ LABEL_MAP = {
 training_data = TomatoData(data_loader=train_loader, label_map=LABEL_MAP)
 val_data = TomatoData(data_loader=val_loader, label_map=LABEL_MAP)
 
-training_data.validate_format(model)
-val_data.validate_format(model)
+training_data.validate_format(model, device=device)
+val_data.validate_format(model, device=device)
 
 # And observe the output:
 
