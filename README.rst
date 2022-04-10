@@ -91,7 +91,7 @@ Using conda
 Head over to the `Quickstart Notebook <https://docs.deepchecks.com/en/stable/
 examples/guides/quickstart_in_5_minutes.html?
 utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`__
-and choose the  |binder badge image|  or the  |colab badge image|  to have it up and running, and to then apply it on your own data and models.
+and see deepchecks output on a built-in dataset, or runi t yourself to apply it on your own data and models.
 
 
 📊 Usage Examples

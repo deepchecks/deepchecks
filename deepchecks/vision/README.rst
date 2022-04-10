@@ -74,22 +74,27 @@ Using pip
 
 .. code:: bash
 
-   pip install deepchecks[vision] -U --user
+   pip install "deepchecks[vision]" -U --user
 
 Using conda
 ------------
 
 .. code:: bash
 
-   conda install -c conda-forge deepchecks[vision]
+   conda install -c conda-forge "deepchecks[vision]"
 
 
 ⏩ Try it Out!
 ===============
 
-Check out our `tutorials for a quick intro to deepchecks for CV <https://docs.deepchecks.com/en/stable/
-tutorials/vision/?
-utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>>`.
+Check out the following tutorials for a quick start with deepchecks for CV:
+
+- `Deepchecks Example - Simple Image Classification Tutorial <https://docs.deepchecks.com/en/stable/tutorials/vision/examples/
+plot_simple_classification_tutorial.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`
+- `Deepchecks for Object Detection Tutorial <https://docs.deepchecks.com/en/stable/tutorials/vision/examples/plot_detection_tutorial.html
+?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`
+- `Deepchecks for Classification Tutorial<https://docs.deepchecks.com/en/stable/tutorials/vision/examples/plot_classification_tutorial.html
+?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`
 
 
 📊 Check Examples
@@ -106,14 +111,20 @@ can be found in our `API Reference`_.
    utm_source=github.com&utm_medium=referral&
    utm_campaign=readme&utm_content=running_a_check
 
-Performance Checks
--------------------
+Model Evaluation Checks
+------------------------
+
+Evaluation checks help you to validate your model's performance.
+See all evaluation checks `here <https://docs.deepchecks.com/en/stable/examples/vision/checks/performance/examples/index.html
+?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=documentation>`_.
+Example for a model evaluation check calculating mAP:
 
 .. code:: python
 
    # load data for demo
-   from deeyolo = coco.load_model(pretrained=True)
-    test_ds = coco.load_dataset(train=False, object_type='VisionData')pchecks.vision.datasets.detection import coco
+   from deepchecks.vision.datasets.detection import coco
+   yolo = coco.load_model(pretrained=True)
+   test_ds = coco.load_dataset(train=False, object_type='VisionData')
 
    # Initialize and run desired check
    from deepchecks.vision.checks import MeanAveragePrecisionReport
@@ -127,7 +138,7 @@ Will produce output of the type:
       <h4>Mean Average Precision Report</h4>
       <p>Summarize mean average precision metrics on a dataset
       and model per IoU and area range.</p>
-      <a href="https://docs.deepchecks.com/en/0.5.0.dev2/examples/vision/checks/performance/mean_average_precision_report.html
+      <a href="https://https://docs.deepchecks.com/en/stable/examples/vision/checks/performance/examples/plot_mean_average_precision_report.html
       utm_source=display_output&utm_medium=referral&utm_campaign=readme_check_link" target="_blank">
       Read More...</a>
       <h5>Additional Outputs</h5>
@@ -174,14 +185,65 @@ Will produce output of the type:
       </tbody>
       </table>
       <p align="left">
-        <img src="/docs/images/mAP-over-IoU.png">
+        <img src="/docs/images/vision-checks/mAP-over-IoU.png">
       </p>
 
 Property Distribution Checks
 ----------------------------
 
-TBD
+Image Properties are one-dimension values that are extracted from either the images, labels or predictions. For example, an
+image property is **brightness**, and a label property is **bounding box area** (for detection tasks).
+Deepchecks includes `built-in properties<https://docs.deepchecks.com/en/stable/user-guide/vision/vision_properties.html#deepchecks-built-in-properties
+?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=documentation>`_ and supports implementing your own
+properties.
 
+Example of a property distribution check and its output:
+
+.. code::python
+
+   from deepchecks.vision.datasets.detection.coco import load_dataset
+   from deepchecks.vision.checks import ImagePropertyOutliers
+
+   train_data = load_dataset(train=True, object_type='VisionData')
+   check = ImagePropertyOutliers()
+   result = check.run(train_data)
+   result
+
+Will produce output of the type:
+
+   .. raw:: html
+
+      <h4>Image Property Outliers</h4>
+         <p>Find outliers images with respect to the given properties. <a href="https://docs.deepchecks.com/dev/examples/vision/checks/distribution/image_property_outliers.html?utm_source=display_output&amp;utm_medium=referral&amp;utm_campaign=check_link" target="_blank">Read More...</a></p>
+         <h5>Additional Outputs</h5>
+      <h3><b>Property "Brightness"</b></h3>
+      <div>
+      Total number of outliers: 6
+      </div>
+      <div>
+      Non-outliers range: 0.24 to 0.69
+      </div>
+         <h4>Samples</h4>
+            <div style="
+                  overflow-x: auto;
+                  display: grid;
+                  grid-template-rows: auto 1fr 1fr;
+                  grid-template-columns: auto repeat(6, 1fr);
+                  grid-gap: 1.5rem;
+                  justify-items: center;
+                  align-items: center;
+                  padding: 2rem;
+                  width: max-content;">
+               <h5>Brightness</h5>
+                  <p>0.11</p><p>0.12</p><p>0.22</p><p>0.71</p><p>0.72</p><p>0.78</p>
+               <h5>Image</h5>
+                  <img src="/docs/images/vision-checks/brightness-outlier-1.png">
+                  <img src="/docs/images/vision-checks/brightness-outlier-2.png">
+                  <img src="/docs/images/vision-checks/brightness-outlier-3.png">
+                  <img src="/docs/images/vision-checks/brightness-outlier-4.png">
+                  <img src="/docs/images/vision-checks/brightness-outlier-5.png">
+                  <img src="/docs/images/vision-checks/brightness-outlier-6.png">
+            </div>
 
 What Do You Need in Order To Start Validating?
 ================================================
