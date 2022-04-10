@@ -43,7 +43,6 @@ def jaccard_iou(dt, gt):
     return intersection / (dt_area + gt_area - intersection)
 
 
-
 def compute_pairwise_ious(detected, ground_truth, iou_func):
     """Compute pairwise ious between detections and ground truth."""
     ious = np.zeros((len(detected), len(ground_truth)))
