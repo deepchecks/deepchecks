@@ -82,4 +82,4 @@ def is_widgets_enabled() -> bool:
 
 def version_tuple(version):
     """Turn version string into comparable tuple."""
-    return tuple(map(int, (version.split("."))))
+    return tuple(map(int, (version.split('.'))))

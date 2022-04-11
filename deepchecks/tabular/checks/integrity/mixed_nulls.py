@@ -98,7 +98,7 @@ class MixedNulls(SingleDatasetCheck):
                 if self.check_nan:
                     unique_nans = [str(value) for value in column_data.unique()
                                    if pd.isnull(value)]
-                    nans_name = ", ".join(unique_nans)
+                    nans_name = ', '.join(unique_nans)
                     if unique_nans:
                         null_counts[nans_name] = column_data.isna().sum()
                         num_unique_nans += len(unique_nans)
