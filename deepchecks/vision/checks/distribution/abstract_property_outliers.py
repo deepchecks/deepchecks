@@ -181,10 +181,10 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
                 html = NO_IMAGES_TEMPLATE.format(prop_name=property_name, message='No outliers found.')
             else:
                 # Create id of alphabetic characters
-                id = ''.join([choice(string.ascii_uppercase) for _ in range(6)])
-                values_combine = ''.join([f'<div class="{id}-item">{format_number(x[0])}</div>'
+                sid = ''.join([choice(string.ascii_uppercase) for _ in range(6)])
+                values_combine = ''.join([f'<div class="{sid}-item">{format_number(x[0])}</div>'
                                           for x in images[property_name]])
-                images_combine = ''.join([f'<div class="{id}-item">{x[1]}</div>'
+                images_combine = ''.join([f'<div class="{sid}-item">{x[1]}</div>'
                                           for x in images[property_name]])
 
                 html = HTML_TEMPLATE.format(
@@ -195,7 +195,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
                     n_of_images=len(images[property_name]),
                     lower_limit=format_number(info['lower_limit']),
                     upper_limit=format_number(info['upper_limit']),
-                    id=id
+                    id=sid
                 )
 
             display.append(html)

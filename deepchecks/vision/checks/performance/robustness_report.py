@@ -281,17 +281,17 @@ class RobustnessReport(SingleDatasetCheck):
             ))
 
         # Create id of alphabetic characters
-        id = ''.join([choice(string.ascii_uppercase) for _ in range(6)])
-        classes = ''.join([f'<div class="{id}-item">{x}</div>' for x in classes])
-        base_images_thumbnails = ''.join([f'<div class="{id}-item">{x}</div>' for x in base_images])
-        aug_images_thumbnails = ''.join([f'<div class="{id}-item">{x}</div>' for x in aug_images])
+        sid = ''.join([choice(string.ascii_uppercase) for _ in range(6)])
+        classes = ''.join([f'<div class="{sid}-item">{x}</div>' for x in classes])
+        base_images_thumbnails = ''.join([f'<div class="{sid}-item">{x}</div>' for x in base_images])
+        aug_images_thumbnails = ''.join([f'<div class="{sid}-item">{x}</div>' for x in aug_images])
 
         return HTML_TEMPLATE.format(
             aug_name=aug_name,
             classes=classes,
             base_images=base_images_thumbnails,
             aug_images=aug_images_thumbnails,
-            id=id
+            id=sid
         )
 
     def _create_performance_graph(self, base_scores: dict, augmented_scores: dict):
