@@ -9,7 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing robustness report check."""
+import string
 from collections import defaultdict
+from random import choice
 from typing import TypeVar, List, Optional, Sized, Dict, Sequence
 
 import imgaug
@@ -278,16 +280,18 @@ class RobustnessReport(SingleDatasetCheck):
                 copy_image=False
             ))
 
-        classes = ''.join(classes)
-        base_images_thumbnails = ''.join(base_images)
-        aug_images_thumbnails = ''.join(aug_images)
+        # Create id of alphabetic characters
+        id = ''.join([choice(string.ascii_uppercase) for _ in range(6)])
+        classes = ''.join([f'<div class="{id}-item">{x}</div>' for x in classes])
+        base_images_thumbnails = ''.join([f'<div class="{id}-item">{x}</div>' for x in base_images])
+        aug_images_thumbnails = ''.join([f'<div class="{id}-item">{x}</div>' for x in aug_images])
 
         return HTML_TEMPLATE.format(
             aug_name=aug_name,
             classes=classes,
-            n_of_images=len(base_images),
             base_images=base_images_thumbnails,
             aug_images=aug_images_thumbnails,
+            id=id
         )
 
     def _create_performance_graph(self, base_scores: dict, augmented_scores: dict):
@@ -394,23 +398,49 @@ def get_random_image_pairs_from_dataset(original_dataset: VisionData,
 
 
 HTML_TEMPLATE = """
-<h3><b>Augmentation "{aug_name}"</b></h3>
-<div
-    style="
+<style>
+    .{id}-container {{
         overflow-x: auto;
-        display: grid;
-        grid-template-rows: auto 1fr 1fr;
-        grid-template-columns: auto repeat({n_of_images}, 1fr);
-        grid-gap: 1.5rem;
-        justify-items: center;
-        align-items: center;
-        padding: 2rem;
-        width: max-content;">
-    <h4>Class</h4>
-    {classes}
-    <h4>Base Image</h4>
-    {base_images}
-    <h4>Augmented Image</h4>
-    {aug_images}
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }}
+    .{id}-row {{
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 10px;
+    }}
+    .{id}-item {{
+      display: flex;
+      min-width: 200px;
+      position: relative;
+      word-wrap: break-word;
+      align-items: center;
+      justify-content: center;
+    }}
+    .{id}-title {{
+        font-family: "Open Sans", verdana, arial, sans-serif;
+        color: #2a3f5f
+    }}
+    /* A fix for jupyter widget which doesn't have width defined */ 
+    .widget-html-content {{
+        width: inherit;
+    }}
+</style>
+<h3><b>Augmentation "{aug_name}"</b></h3>
+<div class="{id}-container">
+    <div class="{id}-row">
+        <h5 class="{id}-item">Class</h5>
+        {classes}
+    </div>
+    <div class="{id}-row">
+        <h5 class="{id}-item">Base Image</h5>
+        {base_images}
+    </div>
+    <div class="{id}-row">
+        <h5 class="{id}-item">Augmented Image</h5>
+        {aug_images}
+    </div>
 </div>
 """

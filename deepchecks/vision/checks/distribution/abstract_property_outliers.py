@@ -30,6 +30,8 @@ from deepchecks.vision.vision_data import VisionData
 
 __all__ = ['AbstractPropertyOutliers']
 
+THUMBNAIL_SIZE = (200, 200)
+
 
 class AbstractPropertyOutliers(SingleDatasetCheck):
     """Find outliers samples with respect to the given properties.
@@ -150,7 +152,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
                     image = self.draw_image(data, sample_index, index_of_value_in_sample, num_properties_in_sample)
                     image_thumbnail = prepare_thumbnail(
                         image=image,
-                        size=(200, 200),
+                        size=THUMBNAIL_SIZE,
                         copy_image=False
                     )
                 else:
@@ -180,9 +182,9 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
             else:
                 # Create id of alphabetic characters
                 id = ''.join([choice(string.ascii_uppercase) for _ in range(6)])
-                values_combine = ''.join([f'<div class="{id}-item {id}-text-div">{format_number(x[0])}</div>'
+                values_combine = ''.join([f'<div class="{id}-item">{format_number(x[0])}</div>'
                                           for x in images[property_name]])
-                images_combine = ''.join([f'<div class="{id}-item {id}-image-div">{x[1]}</div>'
+                images_combine = ''.join([f'<div class="{id}-item">{x[1]}</div>'
                                           for x in images[property_name]])
 
                 html = HTML_TEMPLATE.format(
@@ -273,6 +275,7 @@ HTML_TEMPLATE = """
         overflow-x: auto;
         display: flex;
         flex-direction: column;
+        gap: 10px;
     }}
     .{id}-row {{
       display: flex;
@@ -281,39 +284,37 @@ HTML_TEMPLATE = """
       gap: 10px;
     }}
     .{id}-item {{
-      flex: 1;
+      display: flex;
       min-width: 200px;
       position: relative;
       word-wrap: break-word;
-    }}
-    .{id}-image-div {{
-      min-height: 200px;
-    }}
-    .{id}-text-div {{
-      text-align: center;
+      align-items: center;
+      justify-content: center;
     }}
     .{id}-title {{
         font-family: "Open Sans", verdana, arial, sans-serif;
         color: #2a3f5f
     }}
+    /* A fix for jupyter widget which doesn't have width defined */ 
+    .widget-html-content {{
+        width: inherit;
+    }}
 </style>
+<h3><b>Property "{prop_name}"</b></h3>
 <div>
-    <h3><b>Property "{prop_name}"</b></h3>
-    <div>
-    Total number of outliers: {count}
+Total number of outliers: {count}
+</div>
+<div>
+Non-outliers range: {lower_limit} to {upper_limit}
+</div>
+<div class="{id}-container">
+    <div class="{id}-row">
+        <h5 class="{id}-item">{prop_name}</h5>
+        {values}
     </div>
-    <div>
-    Non-outliers range: {lower_limit} to {upper_limit}
-    </div>
-    <div class="{id}-container">
-        <div class="{id}-row">
-            <h5 class="{id}-item">{prop_name}</h5>
-            {values}
-        </div>
-        <div class="{id}-row">
-            <h5 class="{id}-item">Image</h5>
-            {images}
-        </div>
+    <div class="{id}-row">
+        <h5 class="{id}-item">Image</h5>
+        {images}
     </div>
 </div>
 """
