@@ -57,7 +57,11 @@ def test_different_null_types():
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value, has_entry('col1', has_length(4)))
+    if version_tuple(pd.__version__) < version_tuple('1.4.0'):
+        assert_that(result.value, has_entry('col1', has_length(1)))
+        assert_that(result.value['col1']['nan, <NA>']['count'], is_(3))
+    else:
+        assert_that(result.value, has_entry('col1', has_length(4)))
 
 
 def test_null_list_param():
@@ -87,11 +91,7 @@ def test_single_column_two_null_types():
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    if version_tuple(pd.__version__) < version_tuple('1.4.0'):
-        assert_that(result.value, has_entry('col1', has_length(1)))
-        assert_that(result.value['col1']['nan, <NA>']['count'], is_(3))
-    else:
-        assert_that(result.value, has_entry('col1', has_length(2)))
+    assert_that(result.value, has_entry('col1', has_length(2)))
 
 
 def test_single_column_different_case_is_count_separately():
