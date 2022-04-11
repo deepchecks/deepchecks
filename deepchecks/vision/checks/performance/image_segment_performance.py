@@ -164,14 +164,12 @@ class ImageSegmentPerformance(SingleDatasetCheck):
             color_discrete_sequence=plot.metric_colors,
             barmode='group',
             facet_col='Property',
-            facet_row='Metric',
             facet_col_spacing=0.05,
-            facet_row_spacing=0.05,
             hover_data=['Number of samples']
         )
 
         bar_width = 0.2
-        (fig.update_xaxes(title=None, type='category', matches=None)
+        (fig.update_xaxes(title='Segment Property Value Range', type='category', matches=None)
             .update_yaxes(title=None)
             .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
             .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
