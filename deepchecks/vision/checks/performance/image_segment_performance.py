@@ -132,12 +132,10 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         for property_name, prop_bins in bins.items():
             # Calculate scale for the numbers formatting in the display of range
             bins_scale = max([_get_range_scale(b['start'], b['stop']) for b in prop_bins])
+            # If we have a low number of unique values for a property, the first bin (-inf, x) might be empty so
+            # check the count, and if empty filter out the bin
+            prop_bins = list(filter(lambda x: x['count'] > 0, prop_bins))
             for single_bin in prop_bins:
-                # If we have a low number of unique values for a property, the first bin (-inf, x) might be empty so
-                # check the count, and if empty filter out the bin
-                if single_bin['count'] == 0:
-                    continue
-
                 display_range = _range_string(single_bin['start'], single_bin['stop'], bins_scale)
                 bin_data = {
                     'Range': display_range,
@@ -148,14 +146,17 @@ class ImageSegmentPerformance(SingleDatasetCheck):
                 # in order to return the bins object as the check result value
                 single_bin['metrics'] = _calculate_metrics(single_bin['metrics'], dataset)
                 single_bin['display_range'] = display_range
-                # For the plotly display need row per metric in the dataframe
-                for metric, val in single_bin['metrics'].items():
-                    display_data.append({'Metric': metric, 'Value': val, **bin_data})
+                # we don't show single columns in the display
+                if len(prop_bins) > 1:
+                    # For the plotly display need row per metric in the dataframe
+                    for metric, val in single_bin['metrics'].items():
+                        display_data.append({'Metric': metric, 'Value': val, **bin_data})
                 # Save for result
                 result_value[property_name].append(single_bin)
 
         display_df = pd.DataFrame(display_data)
-
+        if display_df.empty:
+            return CheckResult(value=dict(result_value))
         fig = px.bar(
             display_df,
             x='Range',
@@ -169,7 +170,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         )
 
         bar_width = 0.2
-        (fig.update_xaxes(title='Segment Property Value Range', type='category', matches=None)
+        (fig.update_xaxes(title=None, type='category', matches=None)
             .update_yaxes(title=None)
             .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
             .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
