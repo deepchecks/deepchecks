@@ -16,7 +16,7 @@ It is possible to customize these suites by editing the checks and conditions in
 from deepchecks.vision.checks import ClassPerformance, TrainTestLabelDrift, MeanAveragePrecisionReport, \
     MeanAverageRecallReport, ImagePropertyDrift, ImageDatasetDrift, SimpleModelComparison, ConfusionMatrixReport, \
     TrainTestPredictionDrift, ImageSegmentPerformance, SimpleFeatureContribution, HeatmapComparison, \
-    ImagePropertyOutliers, LabelPropertyOutliers, ModelErrorAnalysis
+    ImagePropertyOutliers, LabelPropertyOutliers, ModelErrorAnalysis, SimilarImageLeakage
 from deepchecks.vision import Suite
 
 
@@ -28,6 +28,7 @@ def train_test_validation(**kwargs) -> Suite:
     distribution and leakage checks."""
     return Suite(
         'Train Test Validation Suite',
+        SimilarImageLeakage(**kwargs).add_condition_similar_images_not_more_than(),
         HeatmapComparison(**kwargs),
         TrainTestLabelDrift(**kwargs).add_condition_drift_score_not_greater_than(),
         TrainTestPredictionDrift(**kwargs).add_condition_drift_score_not_greater_than(),
