@@ -315,7 +315,7 @@ class TomatoData(DetectionData):
 # We have a single label here, which is the tomato class
 # The label_map is a dictionary that maps the class id to the class name, for display purposes.
 LABEL_MAP = {
-    0: 'Tomato'
+    1: 'Tomato'
 }
 training_data = TomatoData(data_loader=train_loader, label_map=LABEL_MAP)
 val_data = TomatoData(data_loader=val_loader, label_map=LABEL_MAP)
