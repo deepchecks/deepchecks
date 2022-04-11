@@ -78,3 +78,8 @@ def is_widgets_enabled() -> bool:
             return not found_disabled and found_enabled
         except Exception:  # pylint: disable=broad-except
             return False
+
+
+def version_tuple(version):
+    """Turn version string into comparable tuple."""
+    return tuple(map(int, (version.split("."))))

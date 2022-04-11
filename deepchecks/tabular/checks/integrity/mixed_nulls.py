@@ -21,6 +21,7 @@ from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.utils.strings import string_baseform, format_percent
 from deepchecks.utils.typing import Hashable
+from deepchecks.utils.ipython import version_tuple
 
 
 __all__ = ['MixedNulls']
@@ -87,7 +88,8 @@ class MixedNulls(SingleDatasetCheck):
 
         for column_name in list(df.columns):
             column_data = df[column_name]
-            if _versiontuple(pd.__version__) < _versiontuple('1.4.0'):
+            # Pandas version 1.3.X and lower doesn't support counting separate NaN values
+            if version_tuple(pd.__version__) < version_tuple('1.4.0'):
                 column_counts: pd.Series = column_data.value_counts(dropna=True)
                 null_counts = {value: count for value, count in column_counts.items()
                                if string_baseform(value) in null_string_list}
@@ -97,12 +99,12 @@ class MixedNulls(SingleDatasetCheck):
                     unique_nans = [str(value) for value in column_data.unique()
                                    if pd.isnull(value)]
                     nans_name = ", ".join(unique_nans)
-                    null_counts[nans_name] = column_data.isna().sum()
+                    if unique_nans:
+                        null_counts[nans_name] = column_data.isna().sum()
+                        num_unique_nans += len(unique_nans)
                     if len(unique_nans) >= 2:
                         display_prefix = \
                             'Pandas version 1.3.X and lower does not support counting different NaN types as separate.'
-
-                    num_unique_nans += len(unique_nans)
 
             else:
                 # Get counts of all values in series including NaNs, in sorted order of count
@@ -184,7 +186,3 @@ class MixedNulls(SingleDatasetCheck):
 
         return self.add_condition(f'Not more than {max_allowed_null_types} different null types',
                                   condition)
-
-
-def _versiontuple(v):
-    return tuple(map(int, (v.split("."))))
