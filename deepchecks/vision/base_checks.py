@@ -22,7 +22,6 @@ from deepchecks.core.checks import (
     ModelOnlyBaseCheck,
     DatasetKind
 )
-from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.vision.context import Context
 from deepchecks.vision.vision_data import VisionData
 from deepchecks.vision.batch_wrapper import Batch
@@ -60,31 +59,17 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
                                              random_state=random_state,
                                              n_samples=n_samples)
 
-        try:
-            self.initialize_run(context, DatasetKind.TRAIN)
-        except DeepchecksProcessError as e:
-            logger.warning(e.message)
-            return self.finalize_check_result(CheckResult(None, display=[e.message]))
+        self.initialize_run(context, DatasetKind.TRAIN)
 
         context.train.init_cache()
         batch_start_index = 0
         for batch in context.train:
             batch = Batch(batch, context, DatasetKind.TRAIN, batch_start_index)
             context.train.update_cache(batch)
-            try:
-                self.update(context, batch, DatasetKind.TRAIN)
-            except DeepchecksProcessError as e:
-                logger.warning(e.message)
-                return self.finalize_check_result(CheckResult(None, display=[e.message]))
-
+            self.update(context, batch, DatasetKind.TRAIN)
             batch_start_index += len(batch)
 
-        try:
-            result = self.compute(context, DatasetKind.TRAIN)
-        except DeepchecksProcessError as e:
-            logger.warning(e.message)
-            return self.finalize_check_result(CheckResult(None, display=[e.message]))
-
+        result = self.compute(context, DatasetKind.TRAIN)
         footnote = context.get_is_sampled_footnote(DatasetKind.TRAIN)
         if footnote:
             result.display.append(footnote)
@@ -130,23 +115,14 @@ class TrainTestCheck(TrainTestBaseCheck):
                                              random_state=random_state,
                                              n_samples=n_samples)
 
-        try:
-            self.initialize_run(context)
-        except DeepchecksProcessError as e:
-            logger.warning(e.message)
-            return self.finalize_check_result(CheckResult(None, display=[e.message]))
+        self.initialize_run(context)
 
         context.train.init_cache()
         batch_start_index = 0
         for batch in context.train:
             batch = Batch(batch, context, DatasetKind.TRAIN, batch_start_index)
             context.train.update_cache(batch)
-            try:
-                self.update(context, batch, DatasetKind.TRAIN)
-            except DeepchecksProcessError as e:
-                logger.warning(e.message)
-                return self.finalize_check_result(CheckResult(None, display=[e.message]))
-
+            self.update(context, batch, DatasetKind.TRAIN)
             batch_start_index += len(batch)
 
         context.test.init_cache()
@@ -154,19 +130,10 @@ class TrainTestCheck(TrainTestBaseCheck):
         for batch in context.test:
             batch = Batch(batch, context, DatasetKind.TEST, batch_start_index)
             context.test.update_cache(batch)
-            try:
-                self.update(context, batch, DatasetKind.TEST)
-            except DeepchecksProcessError as e:
-                logger.warning(e.message)
-                return self.finalize_check_result(CheckResult(None, display=[e.message]))
-
+            self.update(context, batch, DatasetKind.TEST)
             batch_start_index += len(batch)
 
-        try:
-            result = self.compute(context)
-        except DeepchecksProcessError as e:
-            logger.warning(e.message)
-            return self.finalize_check_result(CheckResult(None, display=[e.message]))
+        result = self.compute(context)
         footnote = context.get_is_sampled_footnote()
         if footnote:
             result.display.append(footnote)
@@ -199,12 +166,9 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
         """Run check."""
         assert self.context_type is not None
         context: Context = self.context_type(model=model, device=device, random_state=random_state)
-        try:
-            self.initialize_run(context)
-            return self.finalize_check_result(self.compute(context))
-        except DeepchecksProcessError as e:
-            logger.warning(e.message)
-            return self.finalize_check_result(CheckResult(None, display=[e.message]))
+
+        self.initialize_run(context)
+        return self.finalize_check_result(self.compute(context))
 
     def initialize_run(self, context: Context):
         """Initialize run before starting updating on batches. Optional."""
