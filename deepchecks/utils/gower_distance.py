@@ -19,7 +19,7 @@ def gower_matrix(data: np.ndarray, cat_features: np.array) -> np.ndarray:
     Calculate distance matrix for a dataset using Gower's method.
 
     Can deal with missing values.
-    Requires each two samples to have at least one sheared non-null value.
+    See https://statisticaloddsandends.wordpress.com/2021/02/23/what-is-gowers-distance/ for further details.
     Parameters
     ----------
     data: numpy.ndarray
@@ -27,57 +27,49 @@ def gower_matrix(data: np.ndarray, cat_features: np.array) -> np.ndarray:
     cat_features: numpy.array
         Boolean array of representing which of the columns are categorical features.
 
-    Returns numpy.ndarray representing the distance matrix.
+    Returns
+    -------
+    numpy.ndarray
+     representing the distance matrix.
     """
     if not isinstance(data, np.ndarray): data = np.asarray(data)
-    ranges = calculate_ranges(data, cat_features)
+
+    range_per_feature = np.ones(data.shape[1]) * -1
+
+    range_per_feature[~cat_features] = np.nanmax(data[:, ~cat_features], axis=0) \
+                                       - np.nanmin(data[:, ~cat_features], axis=0)
 
     result = np.zeros((data.shape[0], data.shape[0]))
     for i in range(data.shape[0]):
         for j in range(i, data.shape[0]):
-            value = calculate_distance(data[i, :], data[j, :], ranges)
+            value = calculate_distance(data[i, :], data[j, :], range_per_feature)
             result[i, j] = value
             result[j, i] = value
 
     return result
 
 
-def calculate_ranges(data: np.ndarray, cat_features: np.array) -> np.array:
-    """Calculate ranges for each numeric feature and returns -1 for other features.
-
-    Parameters
-    ----------
-    data: numpy.ndarray
-        Dataset matrix.
-    cat_features: numpy.array
-        Boolean array of representing which of the columns are categorical features.
-
-    Returns numpy.array representing the ranges of each numeric feature and -1 for categorical.
-    """
-    ranges = np.zeros(data.shape[1])
-    for col_index in range(data.shape[1]):
-        if cat_features[col_index]:
-            ranges[col_index] = -1
-        else:
-            ranges[col_index] = max(data[:, col_index]) - min(data[:, col_index])
-    return ranges
-
-
-def calculate_distance(vec1: np.array, vec2: np.array, ranges: np.array) -> float:
+def calculate_distance(vec1: np.array, vec2: np.array, range_per_feature: np.array) -> float:
     """Calculate distance between two vectors using Gower's method.
 
     Parameters
     ----------
-        vec1: First vector.
-        vec2: Second vector.
-        ranges: Ranges of each numeric feature or -1 for categorical.
+    vec1 : np.array
+        First vector.
+    vec2 : np.array
+        Second vector.
+    range_per_feature : np.array
+        Range of each numeric feature or -1 for categorical.
 
-    Returns float representing Gower's distance between two vectors.
+    Returns
+    -------
+    float
+     representing Gower's distance between the two vectors.
     """
     sum_dist = 0
     num_features = 0
     for col_index in range(len(vec1)):
-        if ranges[col_index] == -1:
+        if range_per_feature[col_index] == -1:
             # categorical feature
             if pd.isnull(vec1[col_index]) and pd.isnull(vec2[col_index]):
                 sum_dist += 0
@@ -88,9 +80,9 @@ def calculate_distance(vec1: np.array, vec2: np.array, ranges: np.array) -> floa
             # numeric feature
             if pd.isnull(vec1[col_index]) or pd.isnull(vec2[col_index]):
                 continue
-            sum_dist += np.abs(vec1[col_index] - vec2[col_index]) / ranges[col_index]
+            sum_dist += np.abs(vec1[col_index] - vec2[col_index]) / range_per_feature[col_index]
             num_features += 1
 
     if num_features == 0:
-        raise ValueError(f"No non null features found to compare examples {vec1} and {vec2}.")
+        return np.nan
     return sum_dist / num_features

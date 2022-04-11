@@ -11,8 +11,7 @@
 """Contains unit tests for the outlier_detection check."""
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, calling, raises
-from sklearn.datasets import load_iris
+from hamcrest import assert_that, calling, raises, has_item, greater_than
 
 from deepchecks.tabular.checks import OutlierDetection
 from deepchecks.tabular.dataset import Dataset
@@ -20,7 +19,7 @@ from deepchecks.tabular.dataset import Dataset
 
 def test_condition_input_validation():
     # Assert
-    assert_that(calling(OutlierDetection().add_condition_not_more_outliers_than).with_args(max_outliers_ratio=-1),
+    assert_that(calling(OutlierDetection().add_condition_outlier_ratio_not_greater_than).with_args(max_outliers_ratio=-1),
                 raises(ValueError,
                        'max_outliers_ratio must be between 0 and 1'))
 
@@ -28,22 +27,32 @@ def test_condition_input_validation():
 def test_integer_single_column_no_nulls():
     # Arrange
     data = {'col1': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1000]}
-    dataframe = pd.DataFrame(data=data)
+    dataset = Dataset(pd.DataFrame(data=data), cat_features=[])
     # Act
-    result = OutlierDetection(n_to_show=1, num_nearest_neighbors=5).run(dataframe)
+    result = OutlierDetection(n_to_show=1, num_nearest_neighbors=5).run(dataset)
     # Assert
-    assert_that(max(result.value[0]) > 0.7)
+    assert_that(result.value, has_item(greater_than(0.7)))
+
+
+def test_integer_single_column_with_nulls():
+    # Arrange
+    data = {'col1': [1, 1, 1, None, 1, 1, 1, 1, 1, 1, 1, 1, 1000]}
+    dataset = Dataset(pd.DataFrame(data=data), cat_features=[])
+    # Act
+    result = OutlierDetection(n_to_show=1, num_nearest_neighbors=5).run(dataset)
+    # Assert
+    assert_that(result.value, has_item(greater_than(0.7)))
 
 
 def test_integer_columns_with_nulls():
     # Arrange
     data = {'col1': [1, 1, 1, 1, None, 1, 1, 1, 1, 1, 1, 1, 1, 1000],
             'col2': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1000]}
-    dataframe = pd.DataFrame(data=data)
+    dataset = Dataset(pd.DataFrame(data=data), cat_features=[])
     # Act
-    result = OutlierDetection(n_to_show=1, num_nearest_neighbors=5).run(dataframe)
+    result = OutlierDetection(n_to_show=1, num_nearest_neighbors=5).run(dataset)
     # Assert
-    assert_that(max(result.value[0]) > 0.7)
+    assert_that(result.value, has_item(greater_than(0.7)))
 
 
 def test_single_column_cat_no_nulls():
@@ -51,9 +60,9 @@ def test_single_column_cat_no_nulls():
     data = {'col1': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'b']}
     dataset = Dataset(pd.DataFrame(data=data), cat_features=['col1'])
     # Act
-    result = OutlierDetection(n_to_show=1, num_nearest_neighbors=5).run(dataset)
+    result = OutlierDetection(n_to_show=2, num_nearest_neighbors=5).run(dataset)
     # Assert
-    assert_that(max(result.value[0]) > 0.7)
+    assert_that(result.value, has_item(greater_than(0.7)))
 
 
 def test_mix_types_no_nulls():
@@ -62,9 +71,9 @@ def test_mix_types_no_nulls():
             'col2': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1000]}
     dataset = Dataset(pd.DataFrame(data=data), cat_features=['col1'])
     # Act
-    result = OutlierDetection(n_to_show=1, num_nearest_neighbors=5).run(dataset)
+    result = OutlierDetection(n_to_show=2, num_nearest_neighbors=5).run(dataset)
     # Assert
-    assert_that(max(result.value[0]) > 0.7)
+    assert_that(result.value, has_item(greater_than(0.7)))
 
 
 def test_mix_types_with_nulls():
@@ -75,25 +84,20 @@ def test_mix_types_with_nulls():
     # Act
     result = OutlierDetection(n_to_show=1, num_nearest_neighbors=5).run(dataset)
     # Assert
-    assert_that(max(result.value[0]) > 0.7)
+    assert_that(result.value, has_item(greater_than(0.7)))
 
 
-def test_iris_regular():
-    # Arrange
-    iris = load_iris()
+def test_iris_regular(iris_dataset):
     # Act
-    result = OutlierDetection(n_to_show=1, num_nearest_neighbors=5).run(pd.DataFrame(iris.data))
+    result = OutlierDetection(n_to_show=2, num_nearest_neighbors=5).run(iris_dataset)
     # Assert
-    print(max(result.value[0]))
-    assert_that(max(result.value[0]) > 0.8)
+    assert_that(result.value, has_item(greater_than(0.8)))
 
 
-def test_iris_modified():
+def test_iris_modified(iris):
     # Arrange
-    iris = load_iris().data
-    iris = np.vstack([iris, [0, 100, 10000, 100000]])
+    iris.loc[len(iris.index)] = [0, 100, 10000, 100000, 1]
     # Act
-    result = OutlierDetection(n_to_show=1, num_nearest_neighbors=5).run(pd.DataFrame(iris))
+    result = OutlierDetection(n_to_show=2, num_nearest_neighbors=5).run(Dataset(iris))
     # Assert
-    print(max(result.value[0]))
-    assert_that(max(result.value[0]) > 0.999)
+    assert_that(result.value, has_item(greater_than(0.999)))

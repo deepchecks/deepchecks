@@ -16,6 +16,7 @@ from PyNomaly import loop
 from sklearn.neighbors import NearestNeighbors
 
 from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils import gower_distance
 from deepchecks.utils.dataframes import select_from_dataframe
@@ -27,6 +28,11 @@ __all__ = ['OutlierDetection']
 class OutlierDetection(SingleDatasetCheck):
     """Detects outliers in a dataset using the LoOP algorithm.
 
+    The LoOP algorithm is a robust method for detecting outliers in a dataset across multiple variables by comparing
+    the density in the area of a sample with the densities in the areas of its nearest neighbors.
+    See https://www.dbs.ifi.lmu.de/Publikationen/Papers/LoOP1649.pdf for more details.
+    LoOP is build upon a distance matrix, in our implementation we use the Gower distance that measure the distance
+    between two samples based on its numeric and categorical features.
     Parameters
     ----------
     columns : Union[Hashable, List[Hashable]] , default: None
@@ -40,7 +46,7 @@ class OutlierDetection(SingleDatasetCheck):
     n_samples : int , default: 50_000
         number of samples to use for this check.
     n_to_show : int , default: 5
-        number of most data elements with the highest outlier score to show.
+        number of data elements with the highest outlier score to show (out of sample).
     random_state : int, default: 42
         random seed for all check internals.
     """
@@ -58,9 +64,9 @@ class OutlierDetection(SingleDatasetCheck):
     ):
         super().__init__(**kwargs)
         if not isinstance(extend_parameter, int) or extend_parameter <= 0:
-            raise ValueError('extend_parameter must be a positive integer')
+            raise DeepchecksValueError('extend_parameter must be a positive integer')
         if not isinstance(num_nearest_neighbors, int) or num_nearest_neighbors <= 0:
-            raise ValueError('num_nearest_neighbors must be a positive integer')
+            raise DeepchecksValueError('num_nearest_neighbors must be a positive integer')
         self.columns = columns
         self.ignore_columns = ignore_columns
         self.num_nearest_neighbors = num_nearest_neighbors
@@ -79,9 +85,12 @@ class OutlierDetection(SingleDatasetCheck):
         df = select_from_dataframe(dataset.data, self.columns, self.ignore_columns)
 
         # Calculate distances matrix and retrieve nearest neighbors based on distance matrix.
-        cat_features = df.columns.map(lambda x: x in dataset.cat_features)
-        dist_matrix = gower_distance.gower_matrix(np.asarray(df), cat_features=np.array(cat_features))
-        knn_distance_based = NearestNeighbors(n_neighbors=self.num_nearest_neighbors, metric='precomputed').fit(
+        df_cols_for_gower = df[dataset.cat_features + dataset.numerical_features]
+        is_categorical_arr = df_cols_for_gower.columns.map(lambda x: x in dataset.cat_features)
+        dist_matrix = gower_distance.gower_matrix(np.asarray(df_cols_for_gower),
+                                                  cat_features=np.array(is_categorical_arr, dtype=bool))
+        dist_matrix[np.isnan(dist_matrix)] = np.nanmean(dist_matrix)
+        knn_distance_based = NearestNeighbors(n_neighbors=self.num_nearest_neighbors, metric='precomputed', ).fit(
             dist_matrix)
         nn_matrix = knn_distance_based.kneighbors(return_distance=False)
 
@@ -92,25 +101,25 @@ class OutlierDetection(SingleDatasetCheck):
 
         # Create the check result visualization
         top_n_idx = np.argsort(prob_vector)[-self.n_to_show:]
-        top_n_values = [prob_vector[i] for i in top_n_idx]
         dataset_outliers = df.iloc[top_n_idx, :]
-        dataset_outliers.insert(0, 'Outlier Probability Score', top_n_values)
+        dataset_outliers.insert(0, 'Outlier Probability Score', prob_vector[top_n_idx])
         dataset_outliers.sort_values('Outlier Probability Score', ascending=False, inplace=True)
 
         headnote = """<span>
                     The Outlier Probability Score is calculated by the LoOP algorithm which measures the local deviation
                      of density of a given sample with respect to its neighbors. These outlier scores are directly
-                      interpretable as a probability of an object being an outlier. see 
-                      <a href="https://www.dbs.ifi.lmu.de/Publikationen/Papers/LoOP1649.pdf" target="_blank" rel="noopener noreferrer">link</a>
-                       for more information.<br><br>
+                    interpretable as a probability of an object being an outlier. see 
+                    <a href="https://www.dbs.ifi.lmu.de/Publikationen/Papers/LoOP1649.pdf" 
+                    target="_blank" rel="noopener noreferrer">link</a> for more information.<br><br>
                 </span>"""
 
         quantiles_vector = np.quantile(prob_vector, np.array(range(1000)) / 1000, method='closest_observation')
-        return CheckResult([quantiles_vector, df.shape[0]], display=[headnote, dataset_outliers])
+        return CheckResult(quantiles_vector, display=[headnote, dataset_outliers])
 
-    def add_condition_not_more_outliers_than(self, max_outliers_ratio: float = 0.005,
-                                             outlier_score_threshold: float = 0.8):
-        """Add condition - no more than given ratio of elements over outlier threshold are allowed.
+    def add_condition_outlier_ratio_not_greater_than(self, max_outliers_ratio: float = 0.005,
+                                                     outlier_score_threshold: float = 0.8):
+        """Add condition - no more than given ratio of samples over outlier score threshold are allowed.
+
         Parameters
         ----------
         max_outliers_ratio : float , default: 0.005
@@ -119,8 +128,8 @@ class OutlierDetection(SingleDatasetCheck):
             Outlier probability score threshold to be considered outlier.
         """
         if max_outliers_ratio > 1 or max_outliers_ratio < 0:
-            raise ValueError('max_outliers_ratio must be between 0 and 1')
-        name = f'Not more than {max_outliers_ratio * 100}% of dataset over outlier score of {outlier_score_threshold}'
+            raise DeepchecksValueError('max_outliers_ratio must be between 0 and 1')
+        name = f'Not more than {max_outliers_ratio * 100:.0%} of dataset over outlier score {outlier_score_threshold}'
         return self.add_condition(name, _condition_outliers_number, outlier_score_threshold=outlier_score_threshold,
                                   max_outliers_ratio=max_outliers_ratio)
 
@@ -132,18 +141,17 @@ class OutlierDetection(SingleDatasetCheck):
         outlier_score_threshold : float, default: 0.8
             Outlier probability score threshold to be considered outlier.
         """
-        name = f'No outliers in dataset over score threshold of {outlier_score_threshold}'
+        name = f'No samples in dataset over outlier score of {outlier_score_threshold}'
         return self.add_condition(name, _condition_outliers_number, outlier_score_threshold=outlier_score_threshold)
 
 
-def _condition_outliers_number(result: np.ndarray, outlier_score_threshold: float,
+def _condition_outliers_number(quantiles_vector: np.ndarray, outlier_score_threshold: float,
                                max_outliers_ratio: float = 0):
     max_outliers_ratio = round(max_outliers_ratio, 3)
-    quantiles_vector = result[0]
 
     if quantiles_vector[int(1000 - max_outliers_ratio * 1000)] > outlier_score_threshold:
         ratio_above_threshold = round((1000 - np.argmax(quantiles_vector > outlier_score_threshold)) / 10)
-        details = f'{ratio_above_threshold}% of dataset above outlier threshold of {outlier_score_threshold}'
+        details = f'{ratio_above_threshold:.0%} of dataset samples above outlier threshold'
         return ConditionResult(ConditionCategory.WARN, details)
     else:
         return ConditionResult(ConditionCategory.PASS)
