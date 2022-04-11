@@ -58,7 +58,7 @@ def test_different_null_types():
     result = MixedNulls().run(dataframe)
     # Assert
     if version_tuple(pd.__version__) < version_tuple('1.4.0'):
-        assert_that(result.value, has_entry('col1', has_length(1)))
+        assert_that(result.value, has_entry('col1', has_length(3)))
         assert_that(result.value['col1']['nan, <NA>']['count'], is_(3))
     else:
         assert_that(result.value, has_entry('col1', has_length(4)))
