@@ -83,15 +83,36 @@ class MixedNulls(SingleDatasetCheck):
         # Result value
         display_array = []
         result_dict = defaultdict(dict)
+        display_prefix = ''
 
         for column_name in list(df.columns):
             column_data = df[column_name]
-            # Get counts of all values in series including NaNs, in sorted order of count
-            column_counts: pd.Series = column_data.value_counts(dropna=False)
-            # Filter out values not in the nulls list
-            null_counts = {value: count for value, count in column_counts.items()
-                           if (self.check_nan and pd.isnull(value)) or (string_baseform(value) in null_string_list)}
-            if len(null_counts) < 2:
+            if _versiontuple(pd.__version__) < _versiontuple('1.4.0'):
+                column_counts: pd.Series = column_data.value_counts(dropna=True)
+                null_counts = {value: count for value, count in column_counts.items()
+                               if string_baseform(value) in null_string_list}
+                num_unique_nans = len(null_counts)
+
+                if self.check_nan:
+                    unique_nans = [str(value) for value in column_data.unique()
+                                   if pd.isnull(value)]
+                    nans_name = ", ".join(unique_nans)
+                    null_counts[nans_name] = column_data.isna().sum()
+                    if len(unique_nans) >= 2:
+                        display_prefix = \
+                            'Pandas version 1.3.X and lower does not support counting different NaN types as separate.'
+
+                    num_unique_nans += len(unique_nans)
+
+            else:
+                # Get counts of all values in series including NaNs, in sorted order of count
+                column_counts: pd.Series = column_data.value_counts(dropna=False)
+                # Filter out values not in the nulls list
+                null_counts = {value: count for value, count in column_counts.items()
+                               if (self.check_nan and pd.isnull(value)) or (string_baseform(value) in null_string_list)}
+                num_unique_nans = len(null_counts)
+
+            if num_unique_nans < 2:
                 continue
             # Save the column info
             for null_value, count in null_counts.items():
@@ -105,7 +126,7 @@ class MixedNulls(SingleDatasetCheck):
             df_graph = df_graph.set_index(['Column Name', 'Value'])
             df_graph = column_importance_sorter_df(df_graph, dataset, context.features_importance,
                                                    self.n_top_columns, col='Column Name')
-            display = [N_TOP_MESSAGE % self.n_top_columns, df_graph]
+            display = [display_prefix, N_TOP_MESSAGE % self.n_top_columns, df_graph]
         else:
             display = None
 
@@ -163,3 +184,7 @@ class MixedNulls(SingleDatasetCheck):
 
         return self.add_condition(f'Not more than {max_allowed_null_types} different null types',
                                   condition)
+
+
+def _versiontuple(v):
+    return tuple(map(int, (v.split("."))))
