@@ -295,7 +295,7 @@ HTML_TEMPLATE = """
         font-family: "Open Sans", verdana, arial, sans-serif;
         color: #2a3f5f
     }}
-    /* A fix for jupyter widget which doesn't have width defined */ 
+    /* A fix for jupyter widget which doesn't have width defined */
     .widget-html-content {{
         width: inherit;
     }}
