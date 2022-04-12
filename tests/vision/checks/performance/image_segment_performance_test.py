@@ -8,6 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+import pandas as pd
 from tests.checks.utils import equal_condition_result
 from deepchecks.vision.checks.performance import ImageSegmentPerformance
 
@@ -42,6 +43,20 @@ def test_mnist_no_display(mnist_dataset_train, mock_trained_mnist):
     assert_that(result.display, has_length(1))
     assert_that(result.display[0], matches_regexp('<i>Note'))
 
+def test_mnist_top_display(mnist_dataset_train, mock_trained_mnist):
+    # Act
+    result = ImageSegmentPerformance(n_to_show=4).run(mnist_dataset_train, mock_trained_mnist, n_samples=None)
+    # Assert
+    assert_that(result.value, has_entries({
+        'Brightness': has_length(5),
+        'Area': has_length(1),
+        'Aspect Ratio': has_items(has_entries({
+            'start': 1.0, 'stop': np.inf, 'count': 60000, 'display_range': '[1, inf)',
+            'metrics': has_entries({'Precision': close_to(0.982, 0.001), 'Recall': close_to(0.979, 0.001)})
+        })),
+    }))
+    assert_that(result.display, has_length(1))
+    assert_that(result.display[0].data, has_length(4))
 
 def test_coco_and_condition(coco_train_visiondata, mock_trained_yolov5_object_detection):
     # Arrange
