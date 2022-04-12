@@ -26,10 +26,11 @@ from sklearn.inspection import permutation_importance
 
 from deepchecks import tabular
 from deepchecks.core import errors
-from deepchecks.utils import validation
+from deepchecks.tabular.utils.validation import validate_model
 from deepchecks.utils.metrics import DeepcheckScorer, get_default_scorers, task_type_check, init_validate_scorers
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.model import get_model_of_pipeline
+from deepchecks.utils.validation import ensure_hashable_or_mutable_sequence
 
 
 __all__ = [
@@ -145,8 +146,8 @@ def calculate_feature_importance(
     # TODO: maybe it is better to split it into two functions, one for dataframe instances
     # second for dataset instances
     permutation_kwargs = permutation_kwargs or {}
-    permutation_kwargs['random_state'] = permutation_kwargs.get('random_state') or 42
-    validation.validate_model(dataset, model)
+    permutation_kwargs['random_state'] = permutation_kwargs.get('random_state', 42)
+    validate_model(dataset, model)
     permutation_failure = None
     calc_type = None
     importance = None
@@ -435,7 +436,7 @@ def infer_categorical_features(
         return list(categorical_dtypes.columns)
 
     if columns is not None:
-        dataframe_columns = validation.ensure_hashable_or_mutable_sequence(columns)
+        dataframe_columns = ensure_hashable_or_mutable_sequence(columns)
     else:
         dataframe_columns = df.columns
 

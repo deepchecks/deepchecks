@@ -2,6 +2,7 @@
 """
 Confusion Matrix
 ****************
+
 This notebooks provides an overview for using and understanding the confusion matrix check.
 
 **Structure:**

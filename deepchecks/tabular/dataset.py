@@ -624,11 +624,12 @@ class Dataset:
            If index column exists, returns a pandas Series of the index column.
         """
         if self._set_index_from_dataframe_index is True:
+            index_name = self.data.index.name or 'index'
             if self._index_name is None:
-                return pd.Series(self.data.index.get_level_values(0), name=self.data.index.name,
+                return pd.Series(self.data.index.get_level_values(0), name=index_name,
                                  index=self.data.index)
             elif isinstance(self._index_name, (str, int)):
-                return pd.Series(self.data.index.get_level_values(self._index_name), name=self.data.index.name,
+                return pd.Series(self.data.index.get_level_values(self._index_name), name=index_name,
                                  index=self.data.index)
             else:
                 raise DeepchecksValueError(f'Don\'t know to handle index_name of type {type(self._index_name)}')
@@ -650,11 +651,12 @@ class Dataset:
 
     def get_datetime_column_from_index(self, datetime_name):
         """Retrieve the datetime info from the index if _set_datetime_from_dataframe_index is True."""
+        index_name = self.data.index.name or 'datetime'
         if datetime_name is None:
-            return pd.Series(self.data.index.get_level_values(0), name='datetime',
+            return pd.Series(self.data.index.get_level_values(0), name=index_name,
                              index=self.data.index)
         elif isinstance(datetime_name, (str, int)):
-            return pd.Series(self.data.index.get_level_values(datetime_name), name='datetime',
+            return pd.Series(self.data.index.get_level_values(datetime_name), name=index_name,
                              index=self.data.index)
 
     @property

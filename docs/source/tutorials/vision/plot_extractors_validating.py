@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-Test Your Extractors In Development
-===================================
-"Extractors" are used to transform the structure of your data to the
-structure required for deepchecks. To help ensure your extractors work
-as intended, deepchecks has built-in helper functions for extractor
-validation. This guide will demonstrate how to use this helper function
-to implement formatters for your own data, step by step.
+Test Your Vision Data Class During Development
+================================================
+
+"Data Classes" are used to transform the structure of your data to the
+structure required for deepchecks. To help ensure they work
+as intended, deepchecks has built-in helper functions for
+validating their structure. This guide will demonstrate how to use this helper function
+to implement them for your own data, step by step.
 
 
 **Structure:**

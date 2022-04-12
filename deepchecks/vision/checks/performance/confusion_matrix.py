@@ -118,6 +118,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
             matrix.to_numpy(),
             self.categories_to_display
         )
+        confusion_matrix = np.nan_to_num(confusion_matrix)
 
         description = [f'Showing {self.categories_to_display} of {dataset.num_classes} classes:']
         classes_to_display_ids = []
@@ -201,7 +202,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
                 continue
 
             list_of_ious = (
-                (label_index, detected_index, jaccard_iou(detected, label))
+                (label_index, detected_index, jaccard_iou(detected.cpu().numpy(), label.cpu().numpy()))
                 for label_index, label in enumerate(label_bboxes)
                 for detected_index, detected in enumerate(detections_passed_threshold)
             )
@@ -363,7 +364,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         return draw_bboxes(
             image=img,
             bboxes=detected,
-            bbox_notation='xywhl',
+            bbox_notation='xywhsl',
             border_width=2,
             color=self._DETECTION_COLOR,
             copy_image=False

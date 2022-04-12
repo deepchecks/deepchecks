@@ -128,7 +128,7 @@ def error_model_display(error_fi: pd.Series,
     dataset : tabular.Dataset
         Dataset to create display from
     model : Optional[Any]
-        Originial model for calculating the score on tabular data (Must come with scorer)
+        Original model for calculating the score on tabular data (Must come with scorer)
     scorer : Optional[Callable]
         Scorer to calculate the output values of the segments (Must come with model)
     max_features_to_show : int
@@ -179,9 +179,14 @@ def error_model_display(error_fi: pd.Series,
 
             # Partition data into two groups - weak and ok:
 
-            in_segment_indicis = cum_sum_ratio <= min_segment_size
-            weak_categories = error_per_segment_ser.index[in_segment_indicis]
-            ok_categories = error_per_segment_ser.index[~in_segment_indicis]
+            # In cum_sum_ratio the index is the categories sorted from "weakest" (the highest model error) to
+            # strongest, and the value is the cumulative fraction of all data.
+            # The weak segment contains all the weakest categories until they reach together a fraction of data of at
+            # least min_segment_size.
+            first_weakest_category_to_pass_min_segment_size = np.where(cum_sum_ratio.values >= min_segment_size)[0][0]
+            in_segment_indices = np.arange(len(cum_sum_ratio)) <= first_weakest_category_to_pass_min_segment_size
+            weak_categories = error_per_segment_ser.index[in_segment_indices]
+            ok_categories = error_per_segment_ser.index[~in_segment_indices]
 
             # Calculate score for each group and assign label and color
             if scorer:
@@ -213,7 +218,7 @@ def error_model_display(error_fi: pd.Series,
             # Display
             display.append(px.violin(
                 data, y=error_col_name, x=feature, title=f'Segmentation of error by feature: {feature}', box=False,
-                labels={error_col_name: 'model error'}, color=color_col,
+                labels={error_col_name: 'model error', 'color': 'Weak & OK Segments'}, color=color_col,
                 color_discrete_map=color_map
             ))
         elif feature in dataset.numerical_features:
@@ -240,24 +245,32 @@ def error_model_display(error_fi: pd.Series,
                     segment2_text, segment2_details = get_segment_details(model, scorer,
                                                                           dataset.copy(sampled_dataset),
                                                                           ~color_col)
+                    segment1_ok = segment1_details['score'] >= segment2_details['score']
+                    color_col = color_col.replace([True, False], [segment1_text, segment2_text])
                 else:
                     # If there is not scorer, we use the error calculation to describe the segments
                     # Colors are flipped, because lower error is better
                     segment1_text, segment1_details = get_segment_details_using_error(error_col_name, data, ~color_col)
                     segment2_text, segment2_details = get_segment_details_using_error(error_col_name, data, color_col)
-                color_col = color_col.replace([True, False], [segment1_text, segment2_text])
+                    segment1_ok = segment1_details['score'] < segment2_details['score']
+                    color_col = color_col.replace([False, True], [segment1_text, segment2_text])
 
                 # Segment with lower performance is assigned to the weak color
-                if segment1_details['score'] >= segment2_details['score']:
+                if segment1_ok:
                     color_map = {segment1_text: ok_color, segment2_text: weak_color}
+                    category_order = [segment2_text, segment1_text]
                 else:
                     color_map = {segment1_text: weak_color, segment2_text: ok_color}
+                    category_order = [segment1_text, segment2_text]
             else:
                 color_col = data[error_col_name]
                 color_map = None
+                category_order = None
+
             display.append(px.scatter(data, x=feature, y=error_col_name, color=color_col,
                                       title=f'Segmentation of error by the feature: {feature}',
-                                      labels={error_col_name: 'model error'},
+                                      labels={error_col_name: 'model error', 'color': 'Weak & OK Segments'},
+                                      category_orders={'color': category_order},
                                       color_discrete_map=color_map))
 
         if segment1_details:

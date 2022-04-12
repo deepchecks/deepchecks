@@ -2,6 +2,7 @@
 """
 Image Property Drift Check
 **************************
+
 This notebooks provides an overview for using and understanding the image property drift check.
 
 **Structure:**
@@ -139,7 +140,7 @@ properties = [
 ]
 
 check_result = ImagePropertyDrift(
-    alternative_image_properties=properties,
+    image_properties=properties,
     max_num_categories=20
 ).run(train_dataset, test_dataset)
 

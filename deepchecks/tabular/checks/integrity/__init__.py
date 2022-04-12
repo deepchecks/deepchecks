@@ -18,8 +18,8 @@ from .string_length_out_of_bounds import StringLengthOutOfBounds
 from .string_mismatch_comparison import StringMismatchComparison
 from .dominant_frequency_change import DominantFrequencyChange
 from .data_duplicates import DataDuplicates
-from .new_category import CategoryMismatchTrainTest
-from .new_label import NewLabelTrainTest
+from .category_mismatch_train_test import CategoryMismatchTrainTest
+from .new_label_train_test import NewLabelTrainTest
 from .label_ambiguity import LabelAmbiguity
 
 

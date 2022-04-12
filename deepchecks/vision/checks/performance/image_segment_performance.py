@@ -25,7 +25,7 @@ from deepchecks.core.condition import ConditionCategory
 from deepchecks.utils import plot
 from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.vision import SingleDatasetCheck, Context, Batch
-from deepchecks.vision.utils import image_properties
+from deepchecks.vision.utils.image_properties import default_image_properties, validate_properties
 from deepchecks.vision.metrics_utils import get_scorers_list, metric_results_to_df
 
 
@@ -37,7 +37,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
 
     Parameters
     ----------
-    alternative_image_properties : List[Dict[str, Any]], default: None
+    image_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
         Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
         representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'
@@ -52,24 +52,24 @@ class ImageSegmentPerformance(SingleDatasetCheck):
 
     def __init__(
         self,
-        alternative_image_properties: t.List[t.Dict[str, t.Any]] = None,
+        image_properties: t.List[t.Dict[str, t.Any]] = None,
         alternative_metrics: t.Optional[t.Dict[str, Metric]] = None,
         number_of_bins: int = 5,
         number_of_samples_to_infer_bins: int = 1000,
         **kwargs
     ):
         super().__init__(**kwargs)
-
-        if alternative_image_properties:
-            image_properties.validate_properties(alternative_image_properties)
-            self.image_properties = alternative_image_properties
+        if image_properties:
+            validate_properties(image_properties)
+            self.image_properties = image_properties
         else:
-            self.image_properties = image_properties.default_image_properties
+            self.image_properties = default_image_properties
 
         self.alternative_metrics = alternative_metrics
         self.number_of_bins = number_of_bins
         self.number_of_samples_to_infer_bins = number_of_samples_to_infer_bins
         self._state = None
+        self._metrics = None
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
         """Initialize run before starting updating on batches."""
@@ -79,7 +79,6 @@ class ImageSegmentPerformance(SingleDatasetCheck):
 
     def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Update the bins by the image properties."""
-        dataset = context.get_data_by_kind(dataset_kind)
         images = batch.images
         predictions = batch.predictions
         labels = batch.labels
@@ -103,7 +102,8 @@ class ImageSegmentPerformance(SingleDatasetCheck):
             # Check if enough data to infer bins
             if len(samples_for_bin) >= self.number_of_samples_to_infer_bins:
                 # Create the bins and metrics, and divide all cached data into the bins
-                self._state['bins'] = self._create_bins_and_metrics(samples_for_bin, dataset)
+                self._state['bins'] = self._create_bins_and_metrics(samples_for_bin,
+                                                                    context.get_data_by_kind(dataset_kind))
                 # Remove the samples cache which are no longer needed (free the memory)
                 del samples_for_bin
 
@@ -229,7 +229,13 @@ class ImageSegmentPerformance(SingleDatasetCheck):
                 min_scores = []
                 for metric in mean_scores:
                     min_metric_bin = sorted(prop_bins, key=lambda b, m=metric: b['metrics'][m])[0]
-                    min_ratio = min_metric_bin['metrics'][metric] / mean_scores[metric]
+                    if mean_scores[metric] == 0:
+                        if min_metric_bin['metrics'][metric] == 0:
+                            min_ratio = 0
+                        else:
+                            min_ratio = np.inf if min_metric_bin['metrics'][metric] > 0 else -np.inf
+                    else:
+                        min_ratio = min_metric_bin['metrics'][metric] / mean_scores[metric]
                     # Only if below threshold add to list
                     if min_ratio < ratio:
                         min_scores.append({'Range': min_metric_bin['display_range'],
@@ -273,9 +279,17 @@ def _add_to_fitting_bin(bins: t.List[t.Dict], property_value, label, prediction)
         if single_bin['start'] <= property_value < single_bin['stop']:
             single_bin['count'] += 1
             for metric in single_bin['metrics'].values():
-                # Since this is a single prediction and label need to wrap in tensor
-                metric.update((torch.unsqueeze(prediction, 0), torch.unsqueeze(label, 0)))
+                # Since this is a single prediction and label need to wrap in tensor/label, in order to pass the
+                # expected shape to the metric
+                metric.update((_wrap_torch_or_list(prediction), _wrap_torch_or_list(label)))
             return
+
+
+def _wrap_torch_or_list(value):
+    """Unsqueeze the value if it is a tensor or wrap in list otherwise."""
+    if isinstance(value, torch.Tensor):
+        return torch.unsqueeze(value, 0)
+    return [value]
 
 
 def _range_string(start, stop, precision):

@@ -11,15 +11,14 @@
 """Test functions of the VISION train test label drift."""
 from copy import copy
 
-import torch
 from hamcrest import assert_that, has_entries, close_to, equal_to
-
 import numpy as np
+
 from deepchecks.vision.checks import SimpleFeatureContribution
+from deepchecks.vision.utils.transformations import un_normalize_batch
+
 from tests.checks.utils import equal_condition_result
 from tests.vision.vision_conftest import *
-
-from deepchecks.vision.utils.transformations import un_normalize_batch
 
 
 def mnist_batch_to_images_with_bias(batch):
@@ -133,7 +132,7 @@ def test_no_drift_classification_per_class(mnist_dataset_train):
     check = SimpleFeatureContribution(per_class=True)
 
     # Act
-    result = check.run(train, test)
+    result = check.run(train, test, n_samples=None)
 
     # Assert
     assert_that(result.value, has_entries({
@@ -151,9 +150,8 @@ def test_drift_classification_per_class(mnist_dataset_train, mnist_dataset_test)
     check = SimpleFeatureContribution(per_class=True)
 
     # Act
-    result = check.run(train, test)
+    result = check.run(train, test, n_samples=None)
 
-    0.64
     # Assert
     assert_that(result.value, has_entries({
         'Brightness': has_entries({'train':  has_entries({1: equal_to(0)}),

@@ -57,7 +57,7 @@ class TrainTestPredictionDrift(TrainTestCheck):
 
     Parameters
     ----------
-    alternative_prediction_properties : List[Dict[str, Any]], default: None
+    prediction_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
         Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
         representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'/'class_id'
@@ -69,15 +69,15 @@ class TrainTestPredictionDrift(TrainTestCheck):
 
     def __init__(
             self,
-            alternative_prediction_properties: List[Dict[str, Any]] = None,
+            prediction_properties: List[Dict[str, Any]] = None,
             max_num_categories: int = 10,
             **kwargs
     ):
         super().__init__(**kwargs)
-        # validate alternative_prediction_properties:
-        if alternative_prediction_properties is not None:
-            validate_properties(alternative_prediction_properties)
-        self.alternative_prediction_properties = alternative_prediction_properties
+        # validate prediction properties:
+        if prediction_properties is not None:
+            validate_properties(prediction_properties)
+        self.user_prediction_properties = prediction_properties
         self.max_num_categories = max_num_categories
         self._prediction_properties = None
         self._train_prediction_properties = None
@@ -98,14 +98,14 @@ class TrainTestPredictionDrift(TrainTestCheck):
 
         task_type = train_dataset.task_type
 
-        if self.alternative_prediction_properties is not None:
-            self._prediction_properties = self.alternative_prediction_properties
+        if self.user_prediction_properties is not None:
+            self._prediction_properties = self.user_prediction_properties
         elif task_type == TaskType.CLASSIFICATION:
             self._prediction_properties = DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES
         elif task_type == TaskType.OBJECT_DETECTION:
             self._prediction_properties = DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES
         else:
-            raise NotImplementedError('TrainTestLabelDrift must receive either alternative_prediction_properties or '
+            raise NotImplementedError('Check must receive either prediction_properties or '
                                       'run on Classification or Object Detection class')
 
         self._train_prediction_properties = defaultdict(list)

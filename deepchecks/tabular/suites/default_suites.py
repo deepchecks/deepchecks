@@ -18,7 +18,7 @@ from deepchecks.tabular.checks import (
     DateTrainTestLeakageDuplicates, SingleFeatureContributionTrainTest, TrainTestSamplesMix,
     DateTrainTestLeakageOverlap, IdentifierLeakage, IndexTrainTestLeakage, DominantFrequencyChange,
     CategoryMismatchTrainTest, NewLabelTrainTest, StringMismatchComparison, TrainTestFeatureDrift, WholeDatasetDrift,
-    ConfusionMatrixReport, RocReport, CalibrationScore, TrustScoreComparison,
+    ConfusionMatrixReport, RocReport, CalibrationScore,
     RegressionErrorDistribution, RegressionSystematicError, PerformanceReport, SimpleModelComparison, BoostingOverfit,
     ModelInfo, ColumnsInfo, DataDuplicates, IsSingleValue, LabelAmbiguity,
     DatasetsSizeComparison, UnusedFeatures, ModelInferenceTime, ModelErrorAnalysis, TrainTestLabelDrift
@@ -86,7 +86,6 @@ def model_evaluation() -> Suite:
         SimpleModelComparison().add_condition_gain_not_less_than(),
         ModelErrorAnalysis().add_condition_segments_performance_relative_difference_not_greater_than(),
         CalibrationScore(),
-        TrustScoreComparison().add_condition_mean_score_percent_decline_not_greater_than(),
         RegressionSystematicError().add_condition_systematic_error_ratio_to_rmse_not_greater_than(),
         RegressionErrorDistribution().add_condition_kurtosis_not_less_than(),
         BoostingOverfit().add_condition_test_score_percent_decline_not_greater_than(),

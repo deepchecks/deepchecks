@@ -23,6 +23,8 @@ from deepchecks.core import DatasetKind, CheckResult, ConditionResult, Condition
 from deepchecks.core.errors import NotEnoughSamplesError, DeepchecksValueError
 from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.utils import image_properties
+from deepchecks.vision.utils.image_properties import validate_properties, default_image_properties, get_column_type
+
 
 
 __all__ = ['ImagePropertyDrift']
@@ -42,7 +44,7 @@ class ImagePropertyDrift(TrainTestCheck):
 
     Parameters
     ----------
-    alternative_image_properties : List[Dict[str, Any]], default: None
+    image_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
         Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
         representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'
@@ -58,18 +60,18 @@ class ImagePropertyDrift(TrainTestCheck):
 
     def __init__(
         self,
-        alternative_image_properties: t.Optional[t.List[t.Dict[str, t.Any]]] = None,
+        image_properties: t.Optional[t.List[t.Dict[str, t.Any]]] = None,
         max_num_categories: int = 10,
         classes_to_display: t.Optional[t.List[str]] = None,
         min_samples: int = 30,
         **kwargs
     ):
         super().__init__(**kwargs)
-        if alternative_image_properties is not None:
-            image_properties.validate_properties(alternative_image_properties)
-            self.image_properties = alternative_image_properties
+        if image_properties is not None:
+            validate_properties(image_properties)
+            self.image_properties = image_properties
         else:
-            self.image_properties = image_properties.default_image_properties
+            self.image_properties = default_image_properties
 
         self.max_num_categories = max_num_categories
         self.classes_to_display = set(classes_to_display) if classes_to_display else None
@@ -155,15 +157,16 @@ class ImagePropertyDrift(TrainTestCheck):
         df_test = pd.DataFrame(self._test_properties)
 
         if len(df_train) < self.min_samples or len(df_test) < self.min_samples:
-            return CheckResult(
-                value=None,
-                display=f'Not enough samples to calculate drift score, min {self.min_samples} samples required.',
-                header='Image Property Drift'
+            raise NotEnoughSamplesError(
+                f'Not enough samples to calculate drift score, minimum {self.min_samples} samples required'
+                f', but got {len(df_train)} and {len(df_test)} samples in the train and test datasets.'
+                'Use \'min_samples\' parameter to change the requirement.'
             )
 
         properties = sorted(self._train_properties.keys())
         figures = {}
         drifts = {}
+        not_enough_samples = []
 
         for single_property in self.image_properties:
             property_name = single_property['name']
@@ -173,29 +176,38 @@ class ImagePropertyDrift(TrainTestCheck):
                     train_column=df_train[property_name],
                     test_column=df_test[property_name],
                     value_name=property_name,
-                    column_type=image_properties.get_column_type(single_property['output_type']),
+                    column_type=get_column_type(single_property['output_type']),
                     max_num_categories=self.max_num_categories,
                     min_samples=self.min_samples
                 )
-
                 figures[property_name] = figure
                 drifts[property_name] = score
             except NotEnoughSamplesError:
-                figures[property_name] = '<p>Not enough non-null samples to calculate drift</p>'
-                drifts[property_name] = 0
+                not_enough_samples.append(property_name)
 
         if len(drifts) == 0:
             drifts = None
             displays = []
         else:
-            columns_order = sorted(properties, key=lambda col: drifts[col], reverse=True)
+            columns_order = sorted(properties, key=lambda col: drifts.get(col, 0), reverse=True)
+            properties_to_display = [p for p in properties if p in drifts]
+            # columns_order = sorted(properties, key=lambda col: drifts[col], reverse=True) # old
 
-            headnote = '<span>' \
-                       'The Drift score is a measure for the difference between two distributions. ' \
-                       'In this check, drift is measured ' \
-                       f'for the distribution of the following image properties: {properties}.' \
-                       '</span>'
+            headnote = (
+                '<span>' \
+                'The Drift score is a measure for the difference between two distributions. '
+                'In this check, drift is measured '
+                f'for the distribution of the following image properties: {properties_to_display}.<br>'
+                '</span> {additional}'
+            )
+            
+            if not_enough_samples:
+                headnote += (
+                    f'<span>The following image properties do not have enough samples to calculate drift '
+                    f'score: {not_enough_samples}</span>'
+                )
 
+            # out
             train_samples = df_train.sample(10)
             test_samples = df_test.sample(10)
             train_thumbnail_images, *_ = context.train.sample(*list(train_samples.index))
@@ -207,8 +219,13 @@ class ImagePropertyDrift(TrainTestCheck):
                 train_images=train_thumbnail_images,
                 test_images=test_thumbnail_images
             )
-
-            displays = [headnote] + [figures[col] for col in columns_order] + [thumbnails]
+            displays = [
+                headnote,
+                *[figures[col] for col in columns_order if col in figures],
+                thumbnails
+            ]
+            # displays = [headnote] + [figures[col] for col in columns_order if col in figures] # new
+            # displays = [headnote] + [figures[col] for col in columns_order] + [thumbnails] # old
 
         return CheckResult(
             value=drifts,

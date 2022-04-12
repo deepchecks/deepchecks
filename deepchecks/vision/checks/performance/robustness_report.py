@@ -9,7 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing robustness report check."""
+import string
 from collections import defaultdict
+from random import choice
 from typing import TypeVar, List, Optional, Sized, Dict, Sequence
 
 import imgaug
@@ -66,7 +68,6 @@ class RobustnessReport(SingleDatasetCheck):
 
     def initialize_run(self, context: Context, dataset_kind):
         """Initialize the metrics for the check, and validate task type is relevant."""
-        context.assert_task_type(TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION)
         dataset = context.get_data_by_kind(dataset_kind)
         # Set empty version of metrics
         self._state = {'metrics': get_scorers_list(dataset, self.alternative_metrics)}
@@ -182,8 +183,8 @@ class RobustnessReport(SingleDatasetCheck):
                       f'Dataset.__getitem__'
                 raise DeepchecksValueError(msg)
 
-            # For classification does not check label for difference
-            if dataset.task_type != TaskType.CLASSIFICATION:
+            # For object detection check that the label is affected
+            if dataset.task_type == TaskType.OBJECT_DETECTION:
                 labels = dataset.batch_to_labels(batch)
                 if torch.equal(labels[0], labels[1]):
                     msg = f'Found that labels have not been affected by adding augmentation to field ' \
@@ -210,7 +211,7 @@ class RobustnessReport(SingleDatasetCheck):
                 aug_top_affected[metric].append({'class': index_class,
                                                  'value': single_metric_scores.at[index_class, 'Value'],
                                                  'diff': diff_value,
-                                                 'samples': dataset.n_of_samples_per_class[index_class]})
+                                                 'samples': dataset.n_of_samples_per_class.get(index_class, 0)})
         return aug_top_affected
 
     def _calc_performance_diff(self, mean_base, augmented_metrics):
@@ -279,16 +280,18 @@ class RobustnessReport(SingleDatasetCheck):
                 copy_image=False
             ))
 
-        classes = ''.join(classes)
-        base_images_thumbnails = ''.join(base_images)
-        aug_images_thumbnails = ''.join(aug_images)
+        # Create id of alphabetic characters
+        sid = ''.join([choice(string.ascii_uppercase) for _ in range(6)])
+        classes = ''.join([f'<div class="{sid}-item">{x}</div>' for x in classes])
+        base_images_thumbnails = ''.join([f'<div class="{sid}-item">{x}</div>' for x in base_images])
+        aug_images_thumbnails = ''.join([f'<div class="{sid}-item">{x}</div>' for x in aug_images])
 
         return HTML_TEMPLATE.format(
             aug_name=aug_name,
             classes=classes,
-            n_of_images=len(base_images),
             base_images=base_images_thumbnails,
             aug_images=aug_images_thumbnails,
+            id=sid
         )
 
     def _create_performance_graph(self, base_scores: dict, augmented_scores: dict):
@@ -388,32 +391,56 @@ def get_random_image_pairs_from_dataset(original_dataset: VisionData,
             base_class_label = [x for x in base_label if x[0] == class_id]
             aug_class_label = [x for x in aug_label if x[0] == class_id]
             samples.append((images[0], images[1], class_id, (base_class_label, aug_class_label)))
-        elif original_dataset.task_type == TaskType.CLASSIFICATION:
-            samples.append((images[0], images[1], class_id))
         else:
-            raise DeepchecksValueError('Not implemented')
+            samples.append((images[0], images[1], class_id))
 
     return samples
 
 
 HTML_TEMPLATE = """
-<h3><b>Augmentation "{aug_name}"</b></h3>
-<div
-    style="
+<style>
+    .{id}-container {{
         overflow-x: auto;
-        display: grid;
-        grid-template-rows: auto 1fr 1fr;
-        grid-template-columns: auto repeat({n_of_images}, 1fr);
-        grid-gap: 1.5rem;
-        justify-items: center;
-        align-items: center;
-        padding: 2rem;
-        width: max-content;">
-    <h4>Class</h4>
-    {classes}
-    <h4>Base Image</h4>
-    {base_images}
-    <h4>Augmented Image</h4>
-    {aug_images}
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }}
+    .{id}-row {{
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 10px;
+    }}
+    .{id}-item {{
+      display: flex;
+      min-width: 200px;
+      position: relative;
+      word-wrap: break-word;
+      align-items: center;
+      justify-content: center;
+    }}
+    .{id}-title {{
+        font-family: "Open Sans", verdana, arial, sans-serif;
+        color: #2a3f5f
+    }}
+    /* A fix for jupyter widget which doesn't have width defined */
+    .widget-html-content {{
+        width: inherit;
+    }}
+</style>
+<h3><b>Augmentation "{aug_name}"</b></h3>
+<div class="{id}-container">
+    <div class="{id}-row">
+        <h5 class="{id}-item">Class</h5>
+        {classes}
+    </div>
+    <div class="{id}-row">
+        <h5 class="{id}-item">Base Image</h5>
+        {base_images}
+    </div>
+    <div class="{id}-row">
+        <h5 class="{id}-item">Augmented Image</h5>
+        {aug_images}
+    </div>
 </div>
 """

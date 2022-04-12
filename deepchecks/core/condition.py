@@ -11,6 +11,7 @@
 """Module containing all the base classes for checks."""
 import enum
 from typing import Callable, Dict, cast
+
 from deepchecks.core.errors import DeepchecksValueError
 
 
@@ -59,6 +60,7 @@ class ConditionCategory(enum.Enum):
     FAIL = 'FAIL'
     WARN = 'WARN'
     PASS = 'PASS'
+    ERROR = 'ERROR'
 
 
 class ConditionResult:
@@ -106,11 +108,12 @@ class ConditionResult:
             condition priority value.
         """
         if self.category == ConditionCategory.PASS:
-            return 3
+            return 4
         elif self.category == ConditionCategory.FAIL:
             return 1
-        else:
+        elif self.category == ConditionCategory.WARN:
             return 2
+        return 3  # if error
 
     @property
     def is_pass(self) -> bool:
@@ -123,8 +126,9 @@ class ConditionResult:
             return '<div style="color: green;text-align: center">\U00002713</div>'
         elif self.category == ConditionCategory.FAIL:
             return '<div style="color: red;text-align: center">\U00002716</div>'
-        else:
+        elif self.category == ConditionCategory.WARN:
             return '<div style="color: orange;text-align: center;font-weight:bold">\U00000021</div>'
+        return '<div style="color: firebrick;text-align: center;font-weight:bold">\U00002048</div>'
 
     def __repr__(self):
         """Return string representation for printing."""

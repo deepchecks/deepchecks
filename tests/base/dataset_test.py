@@ -22,7 +22,7 @@ from hamcrest import (
 )
 
 from deepchecks.tabular.dataset import Dataset
-from deepchecks.utils.validation import ensure_dataframe_type
+from deepchecks.tabular.utils.validation import ensure_dataframe_type
 from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError
 
 

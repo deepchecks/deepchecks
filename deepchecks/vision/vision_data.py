@@ -234,9 +234,14 @@ class VisionData:
         return self._transform_field
 
     @property
-    def has_label(self) -> bool:
+    def has_labels(self) -> bool:
         """Return True if the data loader has labels."""
         return self._label_formatter_error is None
+
+    @property
+    def has_images(self) -> bool:
+        """Return True if the data loader has images."""
+        return self._image_formatter_error is None
 
     @property
     def task_type(self) -> TaskType:
@@ -249,6 +254,16 @@ class VisionData:
         if self._num_classes is None:
             self._num_classes = len(self.classes_indices.keys())
         return self._num_classes
+
+    @property
+    def num_samples(self) -> int:
+        """Return the number of samples in the dataset."""
+        return len(self._sampler)
+
+    @property
+    def original_num_samples(self) -> int:
+        """Return the number of samples in the original dataset."""
+        return len(self._data_loader.dataset)
 
     @property
     def data_dimension(self):
@@ -306,7 +321,7 @@ class VisionData:
         ----------
         n_samples : int , default: None
             take only this number of samples to the copied DataLoader. The samples which will be chosen are affected
-            by random_state (fixed random state will return consistent sampels).
+            by random_state (fixed random state will return consistent samples).
         shuffle : bool, default: False
             Whether to shuffle the samples order. The shuffle is affected random_state (fixed random state will return
             consistent order)
@@ -367,7 +382,7 @@ class VisionData:
             raise ValidationError('Check requires dataset to be of type VisionTask. instead got: '
                                   f'{type(other).__name__}')
 
-        if self.has_label != other.has_label:
+        if self.has_labels != other.has_labels:
             raise ValidationError('Datasets required to both either have or don\'t have labels')
 
         if self.task_type != other.task_type:
@@ -426,17 +441,18 @@ class VisionData:
         if not all((all((isinstance(x, int) for x in inner_ids)) for inner_ids in class_ids)):
             raise ValidationError('The samples sequence must contain only int values.')
 
-    def validate_format(self, model):
+    def validate_format(self, model, device=None):
         """Validate the correctness of the data class implementation according to the expected format.
 
         Parameters
         ----------
         model : Model
             Model to validate the data class implementation against.
-
+        device
+            Device to run the model on.
         """
         from deepchecks.vision.utils.validation import validate_extractors  # pylint: disable=import-outside-toplevel
-        validate_extractors(self, model)
+        validate_extractors(self, model, device=device)
 
     def __iter__(self):
         """Return an iterator over the dataset."""
@@ -445,6 +461,10 @@ class VisionData:
     def __len__(self):
         """Return the number of batches in the dataset dataloader."""
         return len(self._data_loader)
+
+    def is_sampled(self):
+        """Return whether the vision data is running on sample of the data."""
+        return self.num_samples < self.original_num_samples
 
     def assert_images_valid(self):
         """Assert the image formatter defined is valid. Else raise exception."""
@@ -481,9 +501,10 @@ class VisionData:
         if isinstance(batch_sampler.sampler, IndicesSequentialSampler):
             indices = batch_sampler.sampler.indices
         else:
-            raise DeepchecksValueError('Expected data loader with sample of type IndicesSequentialSampler')
-        # If got number of samples than take random sample
-        if n_samples:
+            raise DeepchecksValueError('Expected data loader with sampler of type IndicesSequentialSampler')
+        # If got number of samples which is smaller than the number of samples we currently have,
+        # then take random sample
+        if n_samples and n_samples < len(batch_sampler.sampler):
             size = min(n_samples, len(indices))
             if random_state is not None:
                 random.seed(random_state)
@@ -504,16 +525,19 @@ class VisionData:
     @staticmethod
     def _get_data_loader_props(data_loader: DataLoader):
         """Get properties relevant for the copy of a DataLoader."""
-        return {
-            'num_workers': data_loader.num_workers,
-            'collate_fn': data_loader.collate_fn,
-            'pin_memory': data_loader.pin_memory,
-            'timeout': data_loader.timeout,
-            'worker_init_fn': data_loader.worker_init_fn,
-            'prefetch_factor': data_loader.prefetch_factor,
-            'persistent_workers': data_loader.persistent_workers,
-            'dataset': copy(data_loader.dataset)
-        }
+        attr_list = ['num_workers',
+                     'collate_fn',
+                     'pin_memory',
+                     'timeout',
+                     'worker_init_fn',
+                     'prefetch_factor',
+                     'persistent_workers']
+        aval_attr = {}
+        for attr in attr_list:
+            if hasattr(data_loader, attr):
+                aval_attr[attr] = getattr(data_loader, attr)
+        aval_attr['dataset'] = copy(data_loader.dataset)
+        return aval_attr
 
     @staticmethod
     def _get_data_loader_sequential(data_loader: DataLoader):
@@ -537,7 +561,7 @@ class VisionData:
         return data_loader.__class__(**props), sampler
 
 
-class IndicesSequentialSampler(Sampler[int]):
+class IndicesSequentialSampler(Sampler):
     """Samples elements sequentially from a given list of indices, without replacement.
 
     Args:

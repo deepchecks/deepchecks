@@ -2,6 +2,7 @@
 """
 Heatmap Comparison
 ******************
+
 This notebooks provides an overview for using and understanding Heatmap comparison check.
 
 **Structure:**

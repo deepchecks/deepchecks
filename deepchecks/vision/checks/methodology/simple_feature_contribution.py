@@ -10,8 +10,8 @@
 #
 """Module contains the simple feature distribution check."""
 from collections import defaultdict
-from typing import Any, Callable, TypeVar, Hashable, Dict, Union
-import numpy as np
+from typing import Callable, TypeVar, Hashable, Dict, Union
+
 import pandas as pd
 
 from deepchecks import ConditionResult
@@ -21,7 +21,8 @@ from deepchecks.core.check_utils.single_feature_contribution_utils import get_si
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Context, TrainTestCheck
-from deepchecks.vision.utils import image_properties
+from deepchecks.vision.batch_wrapper import Batch
+from deepchecks.vision.utils.image_properties import default_image_properties, validate_properties
 from deepchecks.vision.utils.image_functions import crop_image
 from deepchecks.vision.vision_data import TaskType
 
@@ -61,7 +62,7 @@ class SimpleFeatureContribution(TrainTestCheck):
 
     Parameters
     ----------
-    alternative_image_properties : List[Dict[str, Any]], default: None
+    image_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
         Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
         representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'
@@ -76,7 +77,7 @@ class SimpleFeatureContribution(TrainTestCheck):
 
     def __init__(
             self,
-            alternative_image_properties: Dict[str, Callable] = None,
+            image_properties: Dict[str, Callable] = None,
             n_top_properties: int = 3,
             per_class: bool = True,
             ppscore_params: dict = None,
@@ -84,11 +85,11 @@ class SimpleFeatureContribution(TrainTestCheck):
     ):
         super().__init__(**kwargs)
 
-        if alternative_image_properties:
-            image_properties.validate_properties(alternative_image_properties)
-            self.image_properties = alternative_image_properties
+        if image_properties:
+            validate_properties(image_properties)
+            self.image_properties = image_properties
         else:
-            self.image_properties = image_properties.default_image_properties
+            self.image_properties = default_image_properties
 
         self.per_class = per_class
         self.n_top_properties = n_top_properties
@@ -99,7 +100,7 @@ class SimpleFeatureContribution(TrainTestCheck):
         self._train_properties['target'] = []
         self._test_properties['target'] = []
 
-    def update(self, context: Context, batch: Any, dataset_kind: DatasetKind):
+    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Calculate image properties for train or test batches."""
         if dataset_kind == DatasetKind.TRAIN:
             dataset = context.train
@@ -112,10 +113,16 @@ class SimpleFeatureContribution(TrainTestCheck):
         target = []
 
         if dataset.task_type == TaskType.OBJECT_DETECTION:
-            for img, label, classes_ids in zip(batch.images, batch.labels, dataset.get_classes(batch.labels)):
-                bboxes = [np.array(x[1:]) for x in label]
-                imgs += [crop_image(img, *bbox) for bbox in bboxes]
-                target += classes_ids
+            for img, labels in zip(batch.images, batch.labels):
+                for label in labels:
+                    label = label.cpu().detach().numpy()
+                    bbox = label[1:]
+                    cropped_img = crop_image(img, *bbox)
+                    if cropped_img.shape[0] == 0 or cropped_img.shape[1] == 0:
+                        continue
+                    class_id = int(label[0])
+                    imgs += [cropped_img]
+                    target += [class_id]
         else:
             for img, classes_ids in zip(batch.images, dataset.get_classes(batch.labels)):
                 imgs += [img] * len(classes_ids)

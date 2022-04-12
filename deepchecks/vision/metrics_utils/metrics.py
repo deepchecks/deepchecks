@@ -10,6 +10,7 @@
 #
 """Module for defining metrics for the vision module."""
 import typing as t
+from copy import copy
 
 import numpy as np
 import pandas as pd
@@ -19,10 +20,10 @@ from ignite.metrics import Precision, Recall, Metric
 
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
+from deepchecks.vision.metrics_utils.object_detection_precision_recall import ObjectDetectionAveragePrecision
 
 from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.vision_data import VisionData
-from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePrecision
 
 
 __all__ = [
@@ -42,8 +43,8 @@ def get_default_classification_scorers():
 
 def get_default_object_detection_scorers():
     return {
-        'AP': AveragePrecision(),
-        'AR': AveragePrecision(return_option=1)
+        'AP': ObjectDetectionAveragePrecision(),
+        'AR': ObjectDetectionAveragePrecision(return_option=1)
     }
 
 
@@ -67,11 +68,16 @@ def get_scorers_list(
     task_type = dataset.task_type
 
     if alternative_scorers:
-        # Validate that each alternative scorer is a correct type
-        for _, met in alternative_scorers.items():
+        # For alternative scorers we create a copy since in suites we are running in parallel, so we can't use the same
+        # instance for several checks.
+        scorers = {}
+        for name, met in alternative_scorers.items():
+            # Validate that each alternative scorer is a correct type
             if not isinstance(met, Metric):
                 raise DeepchecksValueError('alternative_scorers should contain metrics of type ignite.Metric')
-        scorers = alternative_scorers
+            met.reset()
+            scorers[name] = copy(met)
+        return scorers
     elif task_type == TaskType.CLASSIFICATION:
         scorers = get_default_classification_scorers()
     elif task_type == TaskType.OBJECT_DETECTION:
@@ -129,6 +135,10 @@ def _validate_metric_type(metric_name: str, score: t.Any) -> bool:
 
 def metric_results_to_df(results: dict, dataset: VisionData) -> pd.DataFrame:
     """Get dict of metric name to tensor of classes scores, and convert it to dataframe."""
+    # The data might contain fewer classes than the model was trained on. filtering out any class id which is not
+    # presented in the data.
+    data_classes = dataset.classes_indices.keys()
+
     per_class_result = [
         [metric, class_id, dataset.label_id_to_name(class_id),
          class_score.item() if isinstance(class_score, torch.Tensor) else class_score]
@@ -136,7 +146,7 @@ def metric_results_to_df(results: dict, dataset: VisionData) -> pd.DataFrame:
         if _validate_metric_type(metric, score)
         # scorer returns results as array, containing result per class
         for class_id, class_score in enumerate(score)
-        if not np.isnan(class_score)
+        if not np.isnan(class_score) and class_id in data_classes
     ]
 
     return pd.DataFrame(per_class_result, columns=['Metric',

@@ -2,6 +2,7 @@
 """
 Image Property Outliers
 =======================
+
 This notebooks provides an overview for using and understanding the image property
 outliers check, used to detect outliers in simple image properties in a dataset.
 

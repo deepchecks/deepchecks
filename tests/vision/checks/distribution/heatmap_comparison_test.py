@@ -24,11 +24,11 @@ def test_object_detection(coco_train_visiondata, coco_test_visiondata, device):
 
     # Assert
     brightness_diff = result.value["diff"]
-    assert_that(brightness_diff.mean(), close_to(11.151, 0.001))
-    assert_that(brightness_diff.max(), close_to(46, 0.001))
+    assert_that(brightness_diff.mean(), close_to(10.420, 0.001))
+    assert_that(brightness_diff.max(), close_to(45, 0.001))
 
     bbox_diff = result.value["diff_bbox"]
-    assert_that(bbox_diff.mean(), close_to(5.701, 0.001))
+    assert_that(bbox_diff.mean(), close_to(5.589, 0.001))
     assert_that(bbox_diff.max(), close_to(24, 0.001))
 
 
@@ -37,7 +37,7 @@ def test_classification(mnist_dataset_train, mnist_dataset_test, device):
     check = HeatmapComparison()
 
     # Act
-    result = check.run(mnist_dataset_train, mnist_dataset_test, device=device)
+    result = check.run(mnist_dataset_train, mnist_dataset_test, device=device, n_samples=None)
 
     # Assert
     brightness_diff = result.value["diff"]
@@ -50,7 +50,7 @@ def test_classification_limit_classes(mnist_dataset_train, mnist_dataset_test, d
     check = HeatmapComparison(classes_to_display=['9'])
 
     # Act
-    result = check.run(mnist_dataset_train, mnist_dataset_test, device=device)
+    result = check.run(mnist_dataset_train, mnist_dataset_test, device=device, n_samples=None)
 
     # Assert
     brightness_diff = result.value["diff"]
@@ -85,3 +85,16 @@ def test_limit_classes_nonexistant_class(coco_train_visiondata, coco_test_vision
         raises(DeepchecksValueError,
                r'Provided list of class ids to display \[\'1000\'\] not found in training dataset.')
     )
+
+
+def test_custom_task(mnist_train_custom_task, mnist_test_custom_task, device):
+    # Arrange
+    check = HeatmapComparison()
+
+    # Act
+    result = check.run(mnist_train_custom_task, mnist_test_custom_task, device=device, n_samples=None)
+
+    # Assert
+    brightness_diff = result.value["diff"]
+    assert_that(brightness_diff.mean(), close_to(1.095, 0.001))
+    assert_that(brightness_diff.max(), close_to(9, 0.001))

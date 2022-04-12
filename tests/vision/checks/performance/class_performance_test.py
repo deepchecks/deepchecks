@@ -33,7 +33,7 @@ def test_mnist_largest(mnist_dataset_train, mnist_dataset_test, mock_trained_mni
     check = ClassPerformance(n_to_show=2, show_only='largest')
     # Act
     result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
-                       device=device)
+                       device=device, n_samples=None)
     first_row = result.value.sort_values(by='Number of samples', ascending=False).iloc[0]
     # Assert
     assert_that(len(set(result.value['Class'])), equal_to(2))
@@ -79,7 +79,7 @@ def test_mnist_best(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
     check = ClassPerformance(n_to_show=2, show_only='best')
     # Act
     result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
-                       device=device)
+                       device=device, n_samples=None)
     first_row = result.value.loc[result.value['Metric'] == 'Precision'].sort_values(by='Value', ascending=False).iloc[0]
 
     # Assert
@@ -99,8 +99,8 @@ def test_mnist_alt(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, 
     r_row = result.value.loc[result.value['Metric'] == 'r'].sort_values(by='Value', ascending=False).iloc[0]
     # Assert
     assert_that(len(result.value), equal_to(8))
-    assert_that(p_row['Value'], close_to(0.975, 0.001))
-    assert_that(r_row['Value'], close_to(0.985, 0.001))
+    assert_that(p_row['Value'], close_to(.984, 0.001))
+    assert_that(r_row['Value'], close_to(0.988, 0.001))
 
 
 def test_coco_best(coco_train_visiondata, coco_test_visiondata, mock_trained_yolov5_object_detection, device):
@@ -227,3 +227,12 @@ def test_condition_class_performance_imbalance_ratio_not_greater_than_fail(mnist
                        device=device)
 
     assert_that(result.conditions_results[0].is_pass, is_(False))
+
+
+def test_custom_task(mnist_train_custom_task, mnist_test_custom_task, device, mock_trained_mnist):
+    # Arrange
+    metrics = {'metric': Precision()}
+    check = ClassPerformance(alternative_metrics=metrics)
+
+    # Act & Assert - check runs without errors
+    check.run(mnist_train_custom_task, mnist_test_custom_task, model=mock_trained_mnist, device=device)
