@@ -281,7 +281,6 @@ copybutton_prompt_is_regexp = True
 # Continue copying lines as long as they end with this character
 copybutton_line_continuation_character = "\\"
 
-
 # -- Linkcode ----------------------------------------------------------------
 
 def _import_object_from_name(module_name, fullname):
@@ -444,6 +443,33 @@ for line in open('nitpick-exceptions'):
     target = target.strip()
     nitpick_ignore.append((dtype, target))
 
+def get_check_example_api_reference(filepath: str) -> t.Optional[str]:
+    if not (
+        filepath.startswith("docs/source/examples/tabular/checks/")
+        or filepath.startswith("docs/source/examples/vision/checks/")
+        or filepath.startswith("examples/tabular/checks/")
+        or filepath.startswith("examples/vision/checks/")
+    ):
+        return ''
+
+    notebook_name = snake_case_to_camel_case(
+        filepath.split("/")[-1][5:]
+            .replace(".txt", "")
+            .replace(".ipynb", "")
+            .replace(".py", "")
+    )
+
+    import deepchecks.checks
+    check_clazz = getattr(deepchecks.checks, notebook_name, None)
+
+    if check_clazz is None or not hasattr(check_clazz, "__module__"):
+        return
+
+    clazz_module = ".".join(check_clazz.__module__.split(".")[:-1])
+
+    apipath = f"<ul><li><a href='/api/generated/{clazz_module}.{notebook_name}.html'>API Reference - {notebook_name}</a></li></ul>"
+    return apipath
+
 def get_report_issue_url(pagename: str) -> str:
     template = (
         "https://github.com/{user}/{repo}/issues/new?title={title}&body={body}&labels={labels}"
@@ -460,14 +486,12 @@ def get_report_issue_url(pagename: str) -> str:
 def snake_case_to_camel_case(val: str) -> str:
     return "".join(it.capitalize() for it in val.split("_") if it)
 
-
 # -- Registration of hooks ---------
-
-
 def setup(app):
 
     def add_custom_routines(app, pagename, templatename, context, doctree):
         context["get_report_issue_url"] = get_report_issue_url
+        context["get_check_example_api_reference"] = get_check_example_api_reference
 
     # make custom routines available within html templates
     app.connect("html-page-context", add_custom_routines)
