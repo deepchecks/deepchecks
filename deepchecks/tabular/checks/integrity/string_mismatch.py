@@ -33,7 +33,7 @@ __all__ = ['StringMismatch']
 class StringMismatch(SingleDatasetCheck):
     """Detect different variants of string categories (e.g. "mislabeled" vs "mis-labeled") in a categorical column.
 
-    This check tests the all the categorical columns within a dataset and search for variants of similar strings.
+    This check tests all the categorical columns within a dataset and search for variants of similar strings.
     Specifically, we define similarity between strings if they are equal when ignoring case and non-letter
     characters.
     Example:
