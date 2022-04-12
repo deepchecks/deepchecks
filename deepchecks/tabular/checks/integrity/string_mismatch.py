@@ -33,6 +33,13 @@ __all__ = ['StringMismatch']
 class StringMismatch(SingleDatasetCheck):
     """Detect different variants of string categories (e.g. "mislabeled" vs "mis-labeled") in a categorical column.
 
+    This check tests the all the categorical columns within a dataset and search for variants of similar strings.
+    Specifically, we define similarity between strings if they are equal when ignoring case and non-letter
+    characters.
+    Example:
+    We have a column with similar strings 'OK' and 'ok.' which are variants of the same category. Knowing they both
+    exist we can fix our data so it will have only one category.
+
     Parameters
     ----------
     columns : Union[Hashable, List[Hashable]] , default: None
