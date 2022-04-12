@@ -142,10 +142,9 @@ def calc_drift_and_plot(train_column: pd.Series,
         test_dist = test_dist.astype('float')
 
         score = earth_movers_distance(dist1=train_dist, dist2=test_dist)
-
         bar_traces, bar_x_axis, bar_y_axis = drift_score_bar_traces(score)
-        dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(train_dist, test_dist, value_name)
 
+        dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(train_dist, test_dist, value_name)
     elif column_type == 'categorical':
         scorer_name = 'PSI'
         expected_percents, actual_percents, _ = \
@@ -153,9 +152,9 @@ def calc_drift_and_plot(train_column: pd.Series,
         score = psi(expected_percents=expected_percents, actual_percents=actual_percents)
 
         bar_traces, bar_x_axis, bar_y_axis = drift_score_bar_traces(score, bar_max=1)
-        dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(train_dist, test_dist, value_name,
-                                                                            is_categorical=True,
-                                                                            max_num_categories=max_num_categories)
+        dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(
+            train_dist, test_dist, value_name, is_categorical=True, max_num_categories=max_num_categories
+        )
     else:
         # Should never reach here
         raise DeepchecksValueError(f'Unsupported column type for drift: {column_type}')
@@ -181,7 +180,8 @@ def calc_drift_and_plot(train_column: pd.Series,
             y=0.6),
         width=700,
         height=400,
-        title=dict(text=plot_title, x=0.5, xanchor='center')
+        title=dict(text=plot_title, x=0.5, xanchor='center'),
+        bargroupgap=0
     )
 
     fig.update_layout(shared_layout)

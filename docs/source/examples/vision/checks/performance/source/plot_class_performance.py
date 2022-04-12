@@ -74,7 +74,6 @@ check.run(train_ds, test_ds, mnist_model)
 # the COCO dataset defined it - mean of the average precision per class, over
 # the range [0.5, 0.95, 0.05] of IoU thresholds.
 
-import numpy as np
 from deepchecks.vision.datasets.detection import coco
 
 #%%
@@ -88,9 +87,24 @@ yolo = coco.load_model(pretrained=True)
 train_ds = coco.load_dataset(train=True, object_type='VisionData')
 test_ds = coco.load_dataset(train=False, object_type='VisionData')
 
-#%%#
+#%%
 # Run the check
 # -------------
 
 check = ClassPerformance(show_only='best')
 check.run(train_ds, test_ds, yolo)
+
+#%%
+# Define a Condition
+# ==================
+# We can also define a condition to validate that our model performance is above a certain threshold.
+# The condition is defined as a function that takes the results of the check as input and
+# returns a ConditionResult object.
+
+check = ClassPerformance(show_only='worst')
+check.add_condition_test_performance_not_less_than(0.2)
+result = check.run(train_ds, test_ds, yolo)
+result
+
+#%%
+# We detected that for several classes our model performance is below the threshold.

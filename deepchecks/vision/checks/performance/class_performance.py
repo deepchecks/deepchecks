@@ -21,7 +21,6 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils import plot
 from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.vision import TrainTestCheck, Context, Batch
-from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.metrics_utils.metrics import get_scorers_list, metric_results_to_df, \
                                                     filter_classes_for_display
 
@@ -84,8 +83,6 @@ class ClassPerformance(TrainTestCheck):
 
     def initialize_run(self, context: Context):
         """Initialize run by creating the _state member with metrics for train and test."""
-        context.assert_task_type(TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION)
-
         self._data_metrics = {}
         self._data_metrics[DatasetKind.TRAIN] = get_scorers_list(context.train, self.alternative_metrics)
         self._data_metrics[DatasetKind.TEST] = get_scorers_list(context.train, self.alternative_metrics)
@@ -163,7 +160,7 @@ class ClassPerformance(TrainTestCheck):
             not_passed_test = check_result.loc[check_result['Dataset'] == 'Test']
             if len(not_passed):
                 details = f'Found metrics with scores below threshold:\n' \
-                          f'{not_passed_test[["Class", "Metric", "Value"]].to_dict("records")}'
+                          f'{not_passed_test[["Class Name", "Metric", "Value"]].to_dict("records")}'
                 return ConditionResult(ConditionCategory.FAIL, details)
             return ConditionResult(ConditionCategory.PASS)
 
@@ -188,15 +185,15 @@ class ClassPerformance(TrainTestCheck):
             test_scores = check_result.loc[check_result['Dataset'] == 'Test']
             train_scores = check_result.loc[check_result['Dataset'] == 'Train']
 
-            if check_result.get('Class') is not None:
-                classes = check_result['Class'].unique()
+            if check_result.get('Class Name') is not None:
+                classes = check_result['Class Name'].unique()
             else:
                 classes = None
             explained_failures = []
             if classes is not None:
                 for class_name in classes:
-                    test_scores_class = test_scores.loc[test_scores['Class'] == class_name]
-                    train_scores_class = train_scores.loc[train_scores['Class'] == class_name]
+                    test_scores_class = test_scores.loc[test_scores['Class Name'] == class_name]
+                    train_scores_class = train_scores.loc[train_scores['Class Name'] == class_name]
                     test_scores_dict = dict(zip(test_scores_class['Metric'], test_scores_class['Value']))
                     train_scores_dict = dict(zip(train_scores_class['Metric'], train_scores_class['Value']))
                     # Calculate percentage of change from train to test
@@ -256,9 +253,8 @@ class ClassPerformance(TrainTestCheck):
         DeepchecksValueError
             if unknown score function name were passed;
         """
-        # TODO: Redefine default scorers when making the condition work
-        # if score is None:
-        #     score = next(iter(MULTICLASS_SCORERS_NON_AVERAGE))
+        if score is None:
+            raise DeepchecksValueError('Must define "score" parameter')
 
         def condition(check_result: pd.DataFrame) -> ConditionResult:
             if score not in set(check_result['Metric']):
@@ -270,12 +266,12 @@ class ClassPerformance(TrainTestCheck):
 
                 min_value_index = data['Value'].idxmin()
                 min_row = data.loc[min_value_index]
-                min_class_name = min_row['Class']
+                min_class_name = min_row['Class Name']
                 min_value = min_row['Value']
 
                 max_value_index = data['Value'].idxmax()
                 max_row = data.loc[max_value_index]
-                max_class_name = max_row['Class']
+                max_class_name = max_row['Class Name']
                 max_value = max_row['Value']
 
                 relative_difference = abs((min_value - max_value) / max_value)

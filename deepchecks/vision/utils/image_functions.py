@@ -176,7 +176,14 @@ def prepare_thumbnail(
     """
     if size is not None:
         image = ensure_image(image, copy=copy_image)
-        image.thumbnail(size=size)
+        # First define the correct size with respect to the original aspect ratio
+        width_factor = size[0] / image.size[0]
+        height_factor = size[1] / image.size[1]
+        # Takes the minimum factor in order for the image to not exceed the size in either width or height
+        factor = min(width_factor, height_factor)
+        size = (int(image.size[0] * factor), int(image.size[1] * factor))
+        # Resize the image
+        image = image.resize(size, pilimage.ANTIALIAS)
     else:
         image = ensure_image(image, copy=False)
 
