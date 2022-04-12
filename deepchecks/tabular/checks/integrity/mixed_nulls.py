@@ -94,8 +94,9 @@ class MixedNulls(SingleDatasetCheck):
                 for value in column_data:
                     column_counts[value] += 1
             else:
-                # Get counts of all values in series including NaNs, in sorted order of count
+                # Get counts of all values in series including NaNs
                 column_counts: pd.Series = column_data.value_counts(dropna=False)
+
             # Filter out values not in the nulls list
             null_counts = {value: count for value, count in column_counts.items()
                            if (self.check_nan and pd.isnull(value)) or (string_baseform(value) in null_string_list)}
