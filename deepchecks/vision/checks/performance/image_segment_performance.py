@@ -161,6 +161,8 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         if display_df.empty:
             return CheckResult(value=dict(result_value))
         first_metric = list(get_scorers_list(dataset, self.alternative_metrics).keys())[0]
+        if self.alternative_metrics is None:
+            display_df = display_df[display_df['Metric'] == first_metric]
         top_properties = display_df[display_df['Metric'] == first_metric] \
             .groupby('Property')[['Value']] \
             .agg(np.ptp).sort_values('Value', ascending=False).head(self.n_to_show) \
