@@ -48,6 +48,8 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         Maximum number of bins to segment a single property into.
     number_of_samples_to_infer_bins : int, default : 1000
         Minimum number of samples to use to infer the bounds of the segments' bins
+    n_show_top : int , default: 3
+        number of properties to show (shows by top diffrence by first metric)
     """
 
     def __init__(
@@ -56,6 +58,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         alternative_metrics: t.Optional[t.Dict[str, Metric]] = None,
         number_of_bins: int = 5,
         number_of_samples_to_infer_bins: int = 1000,
+        n_to_show: int = 3,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -67,9 +70,9 @@ class ImageSegmentPerformance(SingleDatasetCheck):
 
         self.alternative_metrics = alternative_metrics
         self.number_of_bins = number_of_bins
+        self.n_to_show = n_to_show
         self.number_of_samples_to_infer_bins = number_of_samples_to_infer_bins
         self._state = None
-        self._metrics = None
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
         """Initialize run before starting updating on batches."""
@@ -157,6 +160,12 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         display_df = pd.DataFrame(display_data)
         if display_df.empty:
             return CheckResult(value=dict(result_value))
+        first_metric = list(get_scorers_list(dataset, self.alternative_metrics).keys())[0]
+        top_properties = display_df[display_df['Metric'] == first_metric] \
+            .groupby('Property')[['Value']] \
+            .agg(np.ptp).sort_values('Value', ascending=False).head(self.n_to_show) \
+            .reset_index()['Property']
+        display_df = display_df[display_df['Property'].isin(top_properties)]
         fig = px.bar(
             display_df,
             x='Range',
@@ -166,7 +175,9 @@ class ImageSegmentPerformance(SingleDatasetCheck):
             barmode='group',
             facet_col='Property',
             facet_col_spacing=0.05,
-            hover_data=['Number of samples']
+            hover_data=['Number of samples'],
+            title='Metric Score Per Property Value Segment '
+                  f'(showing top {self.n_to_show} properties by diffrence in segments)'
         )
 
         bar_width = 0.2
@@ -177,7 +188,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
             .update_traces(width=bar_width)
          )
 
-        return CheckResult(value=dict(result_value), display=fig)
+        return CheckResult(value=dict(display_df), display=fig)
 
     def _create_bins_and_metrics(self, batch_data: t.List[t.Tuple], dataset):
         """Return dict of bins for each property in format \
