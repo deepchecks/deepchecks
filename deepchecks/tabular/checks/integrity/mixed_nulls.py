@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains Mixed Nulls check."""
-from collections import defaultdict
+from collections import defaultdict, Counter
 from typing import Union, Dict, List, Iterable
 
 import pandas as pd
@@ -84,15 +84,12 @@ class MixedNulls(SingleDatasetCheck):
         # Result value
         display_array = []
         result_dict = defaultdict(dict)
-        display_prefix = ''
 
         for column_name in list(df.columns):
             column_data = df[column_name]
             # Pandas version 1.3.X and lower doesn't support counting separate NaN values in value_counts
             if parse_version(pd.__version__) < parse_version('1.4.0'):
-                column_counts = defaultdict(int)
-                for value in column_data:
-                    column_counts[value] += 1
+                column_counts = Counter(column_data)
             else:
                 # Get counts of all values in series including NaNs
                 column_counts: pd.Series = column_data.value_counts(dropna=False)
@@ -115,7 +112,7 @@ class MixedNulls(SingleDatasetCheck):
             df_graph = df_graph.set_index(['Column Name', 'Value'])
             df_graph = column_importance_sorter_df(df_graph, dataset, context.features_importance,
                                                    self.n_top_columns, col='Column Name')
-            display = [display_prefix, N_TOP_MESSAGE % self.n_top_columns, df_graph]
+            display = [N_TOP_MESSAGE % self.n_top_columns, df_graph]
         else:
             display = None
 
