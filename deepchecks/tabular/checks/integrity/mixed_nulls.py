@@ -21,7 +21,7 @@ from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.utils.strings import string_baseform, format_percent
 from deepchecks.utils.typing import Hashable
-from deepchecks.utils.ipython import version_tuple
+from pkg_resources import parse_version
 
 
 __all__ = ['MixedNulls']
@@ -88,33 +88,19 @@ class MixedNulls(SingleDatasetCheck):
 
         for column_name in list(df.columns):
             column_data = df[column_name]
-            # Pandas version 1.3.X and lower doesn't support counting separate NaN values
-            if version_tuple(pd.__version__) < version_tuple('1.4.0'):
-                column_counts: pd.Series = column_data.value_counts(dropna=True)
-                null_counts = {value: count for value, count in column_counts.items()
-                               if string_baseform(value) in null_string_list}
-                num_unique_nans = len(null_counts)
-
-                if self.check_nan:
-                    unique_nans = [str(value) for value in column_data.unique()
-                                   if pd.isnull(value)]
-                    nans_name = ', '.join(unique_nans)
-                    if unique_nans:
-                        null_counts[nans_name] = column_data.isna().sum()
-                        num_unique_nans += len(unique_nans)
-                    if len(unique_nans) >= 2:
-                        display_prefix = \
-                            'Pandas version 1.3.X and lower does not support counting different NaN types as separate.'
-
+            # Pandas version 1.3.X and lower doesn't support counting separate NaN values in value_counts
+            if parse_version(pd.__version__) < parse_version('1.4.0'):
+                column_counts = defaultdict(int)
+                for value in column_data:
+                    column_counts[value] += 1
             else:
                 # Get counts of all values in series including NaNs, in sorted order of count
                 column_counts: pd.Series = column_data.value_counts(dropna=False)
-                # Filter out values not in the nulls list
-                null_counts = {value: count for value, count in column_counts.items()
-                               if (self.check_nan and pd.isnull(value)) or (string_baseform(value) in null_string_list)}
-                num_unique_nans = len(null_counts)
+            # Filter out values not in the nulls list
+            null_counts = {value: count for value, count in column_counts.items()
+                           if (self.check_nan and pd.isnull(value)) or (string_baseform(value) in null_string_list)}
 
-            if num_unique_nans < 2:
+            if len(null_counts) < 2:
                 continue
             # Save the column info
             for null_value, count in null_counts.items():

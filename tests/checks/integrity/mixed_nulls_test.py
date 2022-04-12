@@ -17,7 +17,6 @@ from hamcrest import assert_that, has_length, has_entry, has_items, calling, rai
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.checks.integrity.mixed_nulls import MixedNulls
 from deepchecks.core.errors import DatasetValidationError
-from deepchecks.utils.ipython import version_tuple
 from tests.checks.utils import equal_condition_result
 
 
@@ -57,11 +56,7 @@ def test_different_null_types():
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    if version_tuple(pd.__version__) < version_tuple('1.4.0'):
-        assert_that(result.value, has_entry('col1', has_length(3)))
-        assert_that(result.value['col1']['nan, <NA>']['count'], is_(3))
-    else:
-        assert_that(result.value, has_entry('col1', has_length(4)))
+    assert_that(result.value, has_entry('col1', has_length(4)))
 
 
 def test_null_list_param():
@@ -111,11 +106,7 @@ def test_numeric_column_nulls():
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    if version_tuple(pd.__version__) < version_tuple('1.4.0'):
-        assert_that(result.value, has_entry('col1', has_length(1)))
-        assert_that(result.value['col1']['nan, <NA>, NaT']['count'], is_(3))
-    else:
-        assert_that(result.value, has_entry('col1', has_length(3)))
+    assert_that(result.value, has_entry('col1', has_length(3)))
 
 
 def test_numeric_column_nulls_with_none():
@@ -125,11 +116,7 @@ def test_numeric_column_nulls_with_none():
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    if version_tuple(pd.__version__) < version_tuple('1.4.0'):
-        assert_that(result.value, has_entry('col1', has_length(1)))
-        assert_that(result.value['col1']['nan, <NA>, NaT, None']['count'], is_(4))
-    else:
-        assert_that(result.value, has_entry('col1', has_length(4)))
+    assert_that(result.value, has_entry('col1', has_length(4)))
 
 
 def test_mix_value_columns():
@@ -139,12 +126,8 @@ def test_mix_value_columns():
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    if version_tuple(pd.__version__) < version_tuple('1.4.0'):
-        assert_that(result.value, has_entry('col1', has_length(1)))
-        assert_that(result.value['col1']['nan, <NA>, NaT']['count'], is_(3))
-    else:
-        assert_that(result.value, has_entry('col1', has_length(3)))
-        assert_that(result.value, has_entry('col2', has_length(4)))
+    assert_that(result.value, has_entry('col1', has_length(3)))
+    assert_that(result.value, has_entry('col2', has_length(4)))
 
 
 def test_single_column_nulls_with_special_characters():
