@@ -160,7 +160,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         display_df = pd.DataFrame(display_data)
         if display_df.empty:
             return CheckResult(value=dict(result_value))
-        first_metric = list(get_scorers_list(dataset, self.alternative_metrics).keys())[0]
+        first_metric = display_df['Metric'][0]
         if self.alternative_metrics is None:
             display_df = display_df[display_df['Metric'] == first_metric]
         top_properties = display_df[display_df['Metric'] == first_metric] \
@@ -173,6 +173,8 @@ class ImageSegmentPerformance(SingleDatasetCheck):
             x='Range',
             y='Value',
             color='Metric',
+            facet_row='Metric',
+            facet_row_spacing=0.05,
             color_discrete_sequence=plot.metric_colors,
             barmode='group',
             facet_col='Property',

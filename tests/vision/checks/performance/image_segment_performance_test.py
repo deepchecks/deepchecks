@@ -57,6 +57,7 @@ def test_mnist_top_display(mnist_dataset_train, mock_trained_mnist):
     }))
     assert_that(result.display, has_length(1))
     assert_that(result.display[0].data, has_length(1))
+    assert_that(result.display[0].data[0].name, equal_to('Precision'))
 
 def test_mnist_alt_metrics(mnist_dataset_train, mock_trained_mnist):
     # Act
