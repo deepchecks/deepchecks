@@ -12,7 +12,7 @@ from tests.checks.utils import equal_condition_result
 from deepchecks.vision.checks.performance import ImageSegmentPerformance
 
 import numpy as np
-from hamcrest import assert_that, has_length, has_entries, has_items, close_to
+from hamcrest import assert_that, has_length, has_entries, has_items, close_to, matches_regexp
 from tests.vision.vision_conftest import *
 
 
@@ -28,6 +28,19 @@ def test_mnist(mnist_dataset_train, mock_trained_mnist):
             'metrics': has_entries({'Precision': close_to(0.982, 0.001), 'Recall': close_to(0.979, 0.001)})
         })),
     }))
+
+
+def test_mnist_no_display(mnist_dataset_train, mock_trained_mnist):
+    # Act
+    result = ImageSegmentPerformance().run(mnist_dataset_train, mock_trained_mnist, n_samples=1)
+    # Assert
+    assert_that(result.value, has_entries({
+        'Brightness': has_length(1),
+        'Area': has_length(1),
+        'Aspect Ratio': has_length(1),
+    }))
+    assert_that(result.display, has_length(1))
+    assert_that(result.display[0], matches_regexp('<i>Note'))
 
 
 def test_coco_and_condition(coco_train_visiondata, mock_trained_yolov5_object_detection):

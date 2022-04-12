@@ -188,7 +188,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
             .update_traces(width=bar_width)
          )
 
-        return CheckResult(value=dict(display_df), display=fig)
+        return CheckResult(value=dict(result_value), display=fig)
 
     def _create_bins_and_metrics(self, batch_data: t.List[t.Tuple], dataset):
         """Return dict of bins for each property in format \
