@@ -15,9 +15,9 @@ from matplotlib.cm import ScalarMappable
 from matplotlib.colors import LinearSegmentedColormap
 
 
-__all__ = ['create_colorbar_barchart_for_check', 'shifted_color_map', 'colors']
+__all__ = ['create_colorbar_barchart_for_check', 'shifted_color_map', 'colors', 'hex_to_rgba']
 
-colors = {'Train': 'darkblue',
+colors = {'Train': '#00008b',  # dark blue
           'Test': '#69b3a2',
           'Baseline': '#b287a3',
           'Generated': '#2191FB'}
@@ -154,3 +154,8 @@ def shifted_color_map(cmap, start=0, midpoint=0.5, stop=1.0, name: str = 'shifte
     plt.register_cmap(cmap=newcmap)
 
     return newcmap
+
+
+def hex_to_rgba(h, alpha):
+    """Convert color value in hex format to rgba format with alpha transparency."""
+    return 'rgba' + str(tuple([int(h.lstrip('#')[i:i+2], 16) for i in (0, 2, 4)] + [alpha]))

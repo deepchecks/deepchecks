@@ -24,7 +24,7 @@ on:
   workflow_dispatch:
 
 env:
-  DEEPCHECKS_DISABLE_LATEST: "true"
+  DISABLE_DEEPCHECKS_ANONYMOUS_TELEMETRY: "true"
   WANDB_MODE: "offline"
 
 jobs:

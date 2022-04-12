@@ -25,7 +25,7 @@ from deepchecks.core.errors import DeepchecksValueError
 from .detection_formatters import convert_bbox
 
 
-__all__ = ['ImageInfo', 'numpy_to_image_figure', 'label_bbox_add_to_figure', 'numpy_grayscale_to_heatmap_figure',
+__all__ = ['ImageInfo', 'numpy_grayscale_to_heatmap_figure', 'ensure_image',
            'apply_heatmap_image_properties', 'draw_bboxes', 'prepare_thumbnail', 'crop_image']
 
 
@@ -48,17 +48,6 @@ class ImageInfo:
     def is_equals(self, img_b) -> bool:
         """Compare image to another image for equality."""
         return np.array_equal(self.img, img_b)
-
-
-def numpy_to_image_figure(data: np.ndarray):
-    """Create image graph object from given numpy array data."""
-    dimension = data.shape[2]
-    if dimension == 1:
-        data = cv2.cvtColor(data, cv2.COLOR_GRAY2RGB)
-    elif dimension != 3:
-        raise DeepchecksValueError(f'Don\'t know to plot images with {dimension} dimensions')
-
-    return go.Image(z=data, hoverinfo='skip')
 
 
 def ensure_image(
@@ -187,7 +176,14 @@ def prepare_thumbnail(
     """
     if size is not None:
         image = ensure_image(image, copy=copy_image)
-        image.thumbnail(size=size)
+        # First define the correct size with respect to the original aspect ratio
+        width_factor = size[0] / image.size[0]
+        height_factor = size[1] / image.size[1]
+        # Takes the minimum factor in order for the image to not exceed the size in either width or height
+        factor = min(width_factor, height_factor)
+        size = (int(image.size[0] * factor), int(image.size[1] * factor))
+        # Resize the image
+        image = image.resize(size, pilimage.ANTIALIAS)
     else:
         image = ensure_image(image, copy=False)
 
@@ -213,19 +209,6 @@ def apply_heatmap_image_properties(fig):
     """For heatmap and grayscale images, need to add those properties which on Image exists automatically."""
     fig.update_yaxes(autorange='reversed', constrain='domain')
     fig.update_xaxes(constrain='domain')
-
-
-def label_bbox_add_to_figure(labels: torch.Tensor, figure, row=None, col=None, color='red',
-                             prediction=False):
-    """Add a bounding box label and rectangle to given figure."""
-    for single in labels:
-        if prediction:
-            x, y, w, h, _, clazz = single.tolist()
-        else:
-            clazz, x, y, w, h = single.tolist()
-        figure.add_shape(type='rect', x0=x, y0=y, x1=x+w, y1=y+h, row=row, col=col, line=dict(color=color))
-        figure.add_annotation(x=x + w / 2, y=y, text=str(clazz), showarrow=False, yshift=10, row=row, col=col,
-                              font=dict(color=color))
 
 
 def crop_image(img: np.ndarray, x, y, w, h) -> np.ndarray:

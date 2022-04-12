@@ -9,10 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains AbstractPropertyOutliers check."""
+import string
 import typing as t
 from abc import abstractmethod
 from collections import defaultdict
 from numbers import Number
+from secrets import choice
 
 import numpy as np
 
@@ -27,6 +29,8 @@ from deepchecks.vision.utils.image_functions import prepare_thumbnail
 from deepchecks.vision.vision_data import VisionData
 
 __all__ = ['AbstractPropertyOutliers']
+
+THUMBNAIL_SIZE = (200, 200)
 
 
 class AbstractPropertyOutliers(SingleDatasetCheck):
@@ -148,11 +152,11 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
                     image = self.draw_image(data, sample_index, index_of_value_in_sample, num_properties_in_sample)
                     image_thumbnail = prepare_thumbnail(
                         image=image,
-                        size=(200, 200),
+                        size=THUMBNAIL_SIZE,
                         copy_image=False
                     )
                 else:
-                    image_thumbnail = '<p>Image unavailable</p>'
+                    image_thumbnail = 'Image unavailable'
                 images[name].append((value, image_thumbnail))
 
             # Calculate for all outliers the image index
@@ -176,8 +180,12 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
             elif len(info['indices']) == 0:
                 html = NO_IMAGES_TEMPLATE.format(prop_name=property_name, message='No outliers found.')
             else:
-                values_combine = ''.join([f'<p>{format_number(x[0])}</p>' for x in images[property_name]])
-                images_combine = ''.join([x[1] for x in images[property_name]])
+                # Create id of alphabetic characters
+                sid = ''.join([choice(string.ascii_uppercase) for _ in range(6)])
+                values_combine = ''.join([f'<div class="{sid}-item">{format_number(x[0])}</div>'
+                                          for x in images[property_name]])
+                images_combine = ''.join([f'<div class="{sid}-item">{x[1]}</div>'
+                                          for x in images[property_name]])
 
                 html = HTML_TEMPLATE.format(
                     prop_name=property_name,
@@ -186,7 +194,8 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
                     count=len(info['indices']),
                     n_of_images=len(images[property_name]),
                     lower_limit=format_number(info['lower_limit']),
-                    upper_limit=format_number(info['upper_limit'])
+                    upper_limit=format_number(info['upper_limit']),
+                    id=sid
                 )
 
             display.append(html)
@@ -222,39 +231,6 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         pass
 
 
-NO_IMAGES_TEMPLATE = """
-<h3><b>Property "{prop_name}"</b></h3>
-<div>{message}</div>
-"""
-
-HTML_TEMPLATE = """
-<h3><b>Property "{prop_name}"</b></h3>
-<div>
-Total number of outliers: {count}
-</div>
-<div>
-Non-outliers range: {lower_limit} to {upper_limit}
-</div>
-<h4>Samples</h4>
-<div
-    style="
-        overflow-x: auto;
-        display: grid;
-        grid-template-rows: auto 1fr 1fr;
-        grid-template-columns: auto repeat({n_of_images}, 1fr);
-        grid-gap: 1.5rem;
-        justify-items: center;
-        align-items: center;
-        padding: 2rem;
-        width: max-content;">
-    <h5>{prop_name}</h5>
-    {values}
-    <h5>Image</h5>
-    {images}
-</div>
-"""
-
-
 def _ensure_property_shape(property_values, data, prop_name):
     """Validate the result of the property."""
     if len(property_values) != len(data):
@@ -286,3 +262,61 @@ def _sample_index_from_flatten_index(cumsum_lengths, flatten_index) -> int:
     # for example if the sums lengths is [1, 6, 11, 13, 16, 20] and the flatten index = 6, it means this property
     # belong to the third image which is index = 2.
     return np.argwhere(cumsum_lengths > flatten_index)[0][0]
+
+
+NO_IMAGES_TEMPLATE = """
+<h3><b>Property "{prop_name}"</b></h3>
+<div>{message}</div>
+"""
+
+HTML_TEMPLATE = """
+<style>
+    .{id}-container {{
+        overflow-x: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }}
+    .{id}-row {{
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 10px;
+    }}
+    .{id}-item {{
+      display: flex;
+      min-width: 200px;
+      position: relative;
+      word-wrap: break-word;
+      align-items: center;
+      justify-content: center;
+    }}
+    .{id}-title {{
+        font-family: "Open Sans", verdana, arial, sans-serif;
+        color: #2a3f5f
+    }}
+    /* A fix for jupyter widget which doesn't have width defined on HTML widget */
+    .widget-html-content {{
+        width: -moz-available;          /* WebKit-based browsers will ignore this. */
+        width: -webkit-fill-available;  /* Mozilla-based browsers will ignore this. */
+        width: fill-available;
+    }}
+</style>
+<h3><b>Property "{prop_name}"</b></h3>
+<div>
+Total number of outliers: {count}
+</div>
+<div>
+Non-outliers range: {lower_limit} to {upper_limit}
+</div>
+<div class="{id}-container">
+    <div class="{id}-row">
+        <h5 class="{id}-item">{prop_name}</h5>
+        {values}
+    </div>
+    <div class="{id}-row">
+        <h5 class="{id}-item">Image</h5>
+        {images}
+    </div>
+</div>
+"""

@@ -15,7 +15,7 @@ from scipy.special import softmax
 from sklearn.metrics import log_loss
 
 from deepchecks.core import ConditionCategory
-from deepchecks.core.errors import DeepchecksValueError, DeepchecksProcessError, DeepchecksNotSupportedError
+from deepchecks.core.errors import DeepchecksValueError, DeepchecksNotSupportedError, DeepchecksProcessError
 from deepchecks.tabular.checks.performance.model_error_analysis import ModelErrorAnalysis
 from deepchecks.utils.single_sample_metrics import per_sample_cross_entropy
 from tests.checks.utils import equal_condition_result

@@ -10,4 +10,4 @@
 # ----------------------------------------------------------------------------
 #
 
-git describe --tags > VERSION
+git describe --tags > deepchecks/VERSION

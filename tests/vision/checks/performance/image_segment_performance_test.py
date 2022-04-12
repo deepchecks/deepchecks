@@ -18,7 +18,7 @@ from tests.vision.vision_conftest import *
 
 def test_mnist(mnist_dataset_train, mock_trained_mnist):
     # Act
-    result = ImageSegmentPerformance().run(mnist_dataset_train, mock_trained_mnist)
+    result = ImageSegmentPerformance().run(mnist_dataset_train, mock_trained_mnist, n_samples=None)
     # Assert
     assert_that(result.value, has_entries({
         'Brightness': has_length(5),
@@ -50,7 +50,7 @@ def test_coco_and_condition(coco_train_visiondata, mock_trained_yolov5_object_de
             }),
             has_entries({
                 'start': 0.6671875, 'stop': 0.75, 'count': 11, 'display_range': '[0.67, 0.75)',
-                'metrics': has_entries({'AP': close_to(0.364, 0.001), 'AR': close_to(0.366, 0.001)})
+                'metrics': has_entries({'AP': close_to(0.367, 0.001), 'AR': close_to(0.4, 0.001)})
             }),
             has_entries({
                 'start': 0.75, 'stop': close_to(1.102, 0.001), 'count': 28, 'display_range': '[0.75, 1.1)',
