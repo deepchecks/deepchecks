@@ -17,8 +17,8 @@ What is the purpose of the check?
 String Mismatch works on a single dataset, and it looks for mismatches in each string column in the data. Finding
 mismatches in strings is helpful for identifying errors in the data. For example, if your data is aggregated from
 multiple sources, it might have the same values but with a little variation in the formatting, like a leading uppercase.
-In this case, the model learning will be degraded, since it will see categories that are supposed to be the same as
-different categories.
+In this case, the model's ability to learn may be impaired since it will see categories that are supposed to be the
+same, as different categories.
 
 How String Mismatch Defined?
 ----------------------------

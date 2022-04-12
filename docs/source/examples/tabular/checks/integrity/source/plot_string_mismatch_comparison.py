@@ -17,9 +17,8 @@ What is the purpose of the check?
 The check compares the same categorical column within train and test and checks whether there are variants of similar
 strings that exists only in test and not in train.
 Finding those mismatches is helpful to prevent errors when inferring on the test data. For example, in train data we
-have similar strings 'string' and 'St. Ring', which have same base form but different meanings. In our test data
-we have a new phrase 'st. ring'. We would like to be acknowledged that the test data contain a new variant of the train
-data, so we can address the problem.
+have category 'New York', and  in our test data we have 'new york'. We would like to be acknowledged that the test
+data contain a new variant of the train data, so we can address the problem.
 
 How String Mismatch Defined?
 ----------------------------
