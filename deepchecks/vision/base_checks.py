@@ -15,7 +15,7 @@ from typing import Optional, Any, Union
 import torch
 from torch import nn
 
-from deepchecks.core.check_result import CheckResult
+from deepchecks.core.check_result import CheckResult, CheckFailure
 from deepchecks.core.checks import (
     SingleDatasetBaseCheck,
     TrainTestBaseCheck,
@@ -79,9 +79,10 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
 
         p_bar = ProgressBar('Computing Check', 1, unit='Check')
         result = self.compute(context, DatasetKind.TRAIN)
-        footnote = context.get_is_sampled_footnote(DatasetKind.TRAIN)
-        if footnote:
-            result.display.append(footnote)
+        if isinstance(result, CheckResult):
+            footnote = context.get_is_sampled_footnote(DatasetKind.TRAIN)
+            if footnote:
+                result.display.append(footnote)
         result = self.finalize_check_result(result)
         p_bar.inc_progress()
         p_bar.close()
@@ -156,9 +157,10 @@ class TrainTestCheck(TrainTestBaseCheck):
 
         p_bar = ProgressBar('Computing Check', 1, unit='Check')
         result = self.compute(context)
-        footnote = context.get_is_sampled_footnote()
-        if footnote:
-            result.display.append(footnote)
+        if isinstance(result, CheckResult):
+            footnote = context.get_is_sampled_footnote()
+            if footnote:
+                result.display.append(footnote)
         result = self.finalize_check_result(result)
         p_bar.inc_progress()
         p_bar.close()

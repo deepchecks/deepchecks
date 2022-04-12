@@ -503,4 +503,4 @@ class CheckFailure:
         """Return string representation."""
         tb_str = traceback.format_exception(etype=type(self.exception), value=self.exception,
                                             tb=self.exception.__traceback__)
-        return ''.join(tb_str)
+        return self.check.name() +': ' + str(self.exception)
