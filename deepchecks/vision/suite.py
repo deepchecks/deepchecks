@@ -51,7 +51,8 @@ class Suite(BaseSuite):
             scorers: Mapping[str, Metric] = None,
             scorers_per_class: Mapping[str, Metric] = None,
             device: Union[str, torch.device, None] = 'cpu',
-            random_state: int = 42
+            random_state: int = 42,
+            n_samples: Optional[int] = 10_000,
     ) -> SuiteResult:
         """Run all checks.
 
@@ -74,7 +75,8 @@ class Suite(BaseSuite):
             processing unit for use
         random_state : int
             A seed to set for pseudo-random functions
-
+        n_samples : int, default: 10,000
+            number of samples to draw from the dataset.
         Returns
         -------
         SuiteResult
@@ -90,7 +92,8 @@ class Suite(BaseSuite):
             scorers=scorers,
             scorers_per_class=scorers_per_class,
             device=device,
-            random_state=random_state
+            random_state=random_state,
+            n_samples=n_samples
         )
         progress_bar.inc_progress()
 
@@ -136,8 +139,7 @@ class Suite(BaseSuite):
                 try:
                     # if check index in results we had failure
                     if check_idx not in results:
-                        result = check.compute(context)
-                        result = check.finalize_check_result(result)
+                        result = check.finalize_check_result(check.compute(context))
                         results[check_idx] = result
                 except Exception as exp:
                     results[check_idx] = CheckFailure(check, exp)
@@ -150,7 +152,9 @@ class Suite(BaseSuite):
         for pbar in all_pbars:
             pbar.close()
 
-        return SuiteResult(self.name, sorted_result_values)
+        footnote = context.get_is_sampled_footnote()
+        extra_info = [footnote] if footnote else []
+        return SuiteResult(self.name, sorted_result_values, extra_info)
 
     def _update_loop(
         self,
@@ -181,8 +185,7 @@ class Suite(BaseSuite):
 
         # Run on all the batches
         batch_start_index = 0
-        for batch_id, batch in enumerate(vision_data):
-            progress_bar.set_text(f'{100 * batch_id / (1. * n_batches):.0f}%')
+        for batch in vision_data:
             batch = Batch(batch, context, dataset_kind, batch_start_index)
             vision_data.update_cache(batch)
             for check_idx, check in self.checks.items():
@@ -211,7 +214,8 @@ class Suite(BaseSuite):
         # SingleDatasetChecks have different handling. If we had failure in them need to add suffix to the index of
         # the results, else need to compute it.
         if single_dataset_checks:
-            progress_bar = ProgressBar('Computing Single Dataset Checks' + type_suffix, len(single_dataset_checks),
+            progress_bar = ProgressBar('Computing Single Dataset Checks' + type_suffix,
+                                       len(single_dataset_checks),
                                        unit='Check')
             progress_bars.append(progress_bar)
             for idx, check in single_dataset_checks.items():
@@ -220,16 +224,16 @@ class Suite(BaseSuite):
                 # If index in results we had a failure
                 if idx in results:
                     results[index_of_kind] = results.pop(idx)
-                    continue
-                try:
-                    result = check.compute(context, dataset_kind=dataset_kind)
-                    result = check.finalize_check_result(result)
-                    # Update header with dataset type only if both train and test ran
-                    if run_train_test_checks:
-                        result.header = result.get_header() + type_suffix
-                    results[index_of_kind] = result
-                except Exception as exp:
-                    results[index_of_kind] = CheckFailure(check, exp, type_suffix)
+                else:
+                    try:
+                        result = check.compute(context, dataset_kind=dataset_kind)
+                        result = check.finalize_check_result(result)
+                        # Update header with dataset type only if both train and test ran
+                        if run_train_test_checks:
+                            result.header = result.get_header() + type_suffix
+                        results[index_of_kind] = result
+                    except Exception as exp:
+                        results[index_of_kind] = CheckFailure(check, exp, type_suffix)
                 progress_bar.inc_progress()
 
     @classmethod

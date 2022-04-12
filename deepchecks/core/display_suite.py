@@ -245,7 +245,7 @@ def _display_suite_no_widgets(summary: str,
         display_html(f'<br><a href="#summary_{unique_id}" style="font-size: 14px">Go to top</a>', raw=True)
 
 
-def display_suite_result(suite_name: str, results: List[Union[CheckResult, CheckFailure]],
+def display_suite_result(suite_name: str, results: List[Union[CheckResult, CheckFailure]], extra_info: List[str],
                          html_out=None, requirejs: bool = True):  # pragma: no cover
     """Display results of suite in IPython."""
     if len(results) == 0:
@@ -296,7 +296,8 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
     icons = """
     <span style="color: green;display:inline-block">\U00002713</span> /
     <span style="color: red;display:inline-block">\U00002716</span> /
-    <span style="color: orange;font-weight:bold;display:inline-block">\U00000021</span>
+    <span style="color: orange;font-weight:bold;display:inline-block">\U00000021</span> /
+    <span style="color: firebrick;font-weight:bold;display:inline-block">\U00002048</span>
     """
 
     check_names = list(set(it.check.name() for it in results))
@@ -316,12 +317,17 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
         <h1 id="summary_{unique_id}">{suite_name}</h1>
         <p>
             {prologue}<br>
-            Each check may contain conditions (which will result in pass / fail / warning, represented by {icons})
-            as well as other outputs such as plots or tables.<br>
+            Each check may contain conditions (which will result in pass / fail / warning / error
+            , represented by {icons}) as well as other outputs such as plots or tables.<br>
             Suites, checks and conditions can all be modified. Read more about
             <a href={suite_creation_example_link} target="_blank">custom suites</a>.
         </p>
         """
+
+    if extra_info:
+        summ += '<br>'
+        for info in extra_info:
+            summ += '<div>' + info + '</div>'
 
     # can't display plotly widgets in kaggle notebooks
     if html_out or (is_widgets_enabled() and os.environ.get('KAGGLE_KERNEL_RUN_TYPE') is None):

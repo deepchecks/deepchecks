@@ -29,7 +29,7 @@ sys.path.insert(0, VISION_DIR)
 
 from deepchecks.utils.strings import to_snake_case
 
-with open(os.path.join(PROJECT_DIR, 'VERSION')) as version_file:
+with open(os.path.join(PROJECT_DIR, 'deepchecks', 'VERSION')) as version_file:
     VERSION = version_file.read().strip()
 
 # -- Project information -----------------------------------------------------
@@ -103,8 +103,6 @@ redirects = {
     "examples/guides/create_a_custom_suite": "../../user-guide/general/customizations/examples/plot_create_a_custom_suite.html",
     "examples/guides/export_outputs_to_wandb": "../../user-guide/general/exporting_results/examples/plot_exports_output_to_wandb.html",
     "examples/guides/save_suite_result_as_html": "../../user-guide/general/exporting_results/examples/plot_save_suite_results_as_html.html",
-
-
 }
 imgmath_image_format = 'svg'
 

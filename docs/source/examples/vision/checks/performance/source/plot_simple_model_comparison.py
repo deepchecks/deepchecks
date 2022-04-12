@@ -2,6 +2,7 @@
 """
 Simple Model Comparison
 ***********************
+
 This notebooks provides an overview for using and understanding simple model comparison check.
 
 **Structure:**
@@ -80,3 +81,31 @@ result
 # The value is a dataframe that contains the metrics' values for each class and dataset:
 
 result.value.sort_values(by=['Class', 'Metric']).head(10)
+
+#%%
+# Define a condition
+# ==================
+# We can define on our check a condition that will validate our model is better than
+# the simple model by a given margin called gain. For classification we check the gain
+# for each class separately and if there is a class that doesn't pass the defined gain
+# the condition will fail.
+#
+# The performance gain is the percent of the improved performance out of the
+# "remaining" unattained performance. Its purpose is to reflect the significance of
+# the said improvement. Take for example for a metric between 0 and 1. A change of
+# only 0.03 that takes us from 0.95 to 0.98 is highly significant (especially in an
+# imbalance scenario), but improving from 0.1 to 0.13 is not a great achievement.
+#
+# The gain is calculated as: :math:`gain = \frac{\text{model score} - \text{simple score}}
+# {\text{perfect score} - \text{simple score}}`
+#
+# Let's add a condition to the check and see what happens when it fails:
+
+check = SimpleModelComparison(strategy='stratified')
+check.add_condition_gain_not_less_than(min_allowed_gain=0.99)
+result = check.run(train_ds, test_ds, mnist_model)
+result
+
+#%%
+# We detected that for several classes our gain did not passed the target gain we
+# defined, therefore it failed.

@@ -2,6 +2,7 @@
 ==============================================
 Classification Model Validation Tutorial
 ==============================================
+
 In this tutorial, you will learn how to validate your **classification model** using deepchecks test suites.
 You can read more about the different checks and suites for computer vision use cases at the
 :doc:`examples section  </examples/index>`
@@ -261,7 +262,7 @@ val_data.validate_format(model)
 from deepchecks.vision.suites import full_suite
 
 suite = full_suite()
-result = suite.run(training_data, val_data, model, device)
+result = suite.run(training_data, val_data, model, device=device)
 
 #%%
 # Observing the results:

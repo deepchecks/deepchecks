@@ -15,8 +15,9 @@ from collections import defaultdict
 import pandas as pd
 import torch
 
+from deepchecks import CheckFailure
 from deepchecks.core import CheckResult, DatasetKind
-from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.core.errors import DeepchecksValueError, DeepchecksProcessError
 from deepchecks.utils.performance.error_model import error_model_display_dataframe, model_error_contribution
 from deepchecks.utils.single_sample_metrics import per_sample_cross_entropy
 from deepchecks.vision.utils.image_properties import default_image_properties, validate_properties
@@ -85,6 +86,7 @@ class ModelErrorAnalysis(TrainTestCheck):
 
     def initialize_run(self, context: Context):
         """Initialize property and score lists."""
+        context.assert_task_type(TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION)
         self._train_properties = defaultdict(list)
         self._test_properties = defaultdict(list)
         self._train_scores = []
@@ -120,7 +122,7 @@ class ModelErrorAnalysis(TrainTestCheck):
             def scoring_func(predictions, labels):
                 return per_sample_mean_iou(predictions, labels)
         else:
-            raise DeepchecksValueError(f'Unsupported task type {dataset.task_type}')
+            raise DeepchecksValueError(f'Should not reach here! Unsupported task type {dataset.task_type}')
 
         if isinstance(predictions, torch.Tensor):
             predictions = predictions.cpu().detach().numpy()
@@ -143,15 +145,18 @@ class ModelErrorAnalysis(TrainTestCheck):
         train_property_df = pd.DataFrame(self._train_properties).dropna(axis=1, how='all')
         test_property_df = pd.DataFrame(self._test_properties)[train_property_df.columns]
 
-        error_fi, error_model_predicted = \
-            model_error_contribution(train_property_df,
-                                     self._train_scores,
-                                     test_property_df,
-                                     self._test_scores,
-                                     train_property_df.columns.to_list(),
-                                     [],
-                                     min_error_model_score=self.min_error_model_score,
-                                     random_state=self.random_state)
+        try:
+            error_fi, error_model_predicted = \
+                model_error_contribution(train_property_df,
+                                         self._train_scores,
+                                         test_property_df,
+                                         self._test_scores,
+                                         train_property_df.columns.to_list(),
+                                         [],
+                                         min_error_model_score=self.min_error_model_score,
+                                         random_state=self.random_state)
+        except DeepchecksProcessError as e:
+            return CheckFailure(self, e)
 
         display, value = error_model_display_dataframe(error_fi,
                                                        error_model_predicted,

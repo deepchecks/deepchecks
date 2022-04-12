@@ -16,6 +16,7 @@ import pytest
 import torch
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.dataloader import default_collate
+from PIL import Image
 
 from deepchecks.core import DatasetKind
 from deepchecks.vision import VisionData, Context, Batch
@@ -33,10 +34,6 @@ from deepchecks.vision.vision_data import TaskType
 from tests.vision.utils_tests.mnist_imgaug import mnist_dataset_imgaug
 from tests.vision.assets.coco_detections_dict import coco_detections_dict
 from tests.vision.assets.mnist_predictions_dict import mnist_predictions_dict
-
-
-from PIL import Image
-
 
 
 # Fix bug with torch.hub path on windows
@@ -72,7 +69,7 @@ def _hash_image(image):
     if isinstance(image, np.ndarray):
         image = Image.fromarray(image)
     elif isinstance(image, torch.Tensor):
-        image = Image.fromarray(image.cpu().numpy().squeeze())
+        image = Image.fromarray(image.cpu().detach().numpy().squeeze())
 
     image = image.resize((10, 10))
     image = image.convert('L')
@@ -288,7 +285,7 @@ def mnist_train_custom_task(mnist_data_loader_train):  # pylint: disable=redefin
         def task_type(self) -> TaskType:
             return TaskType.OTHER
 
-    return CustomTask(mnist_data_loader_train)
+    return CustomTask(mnist_data_loader_train, transform_field='transform')
 
 
 @pytest.fixture(scope='session')
@@ -298,7 +295,7 @@ def mnist_test_custom_task(mnist_data_loader_test):  # pylint: disable=redefined
         def task_type(self) -> TaskType:
             return TaskType.OTHER
 
-    return CustomTask(mnist_data_loader_test)
+    return CustomTask(mnist_data_loader_test, transform_field='transform')
 
 
 @pytest.fixture(scope='session')

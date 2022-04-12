@@ -140,7 +140,7 @@ def test_condition_decision():
         all_of(
             has_property('name', 'condition F'),
             has_property('is_pass', equal_to(False)),
-            has_property('category', ConditionCategory.WARN),
+            has_property('category', ConditionCategory.ERROR),
             has_property('details', 'Exception in condition: Exception: fail')
         )
     ))

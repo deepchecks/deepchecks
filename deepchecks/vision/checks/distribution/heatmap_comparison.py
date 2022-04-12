@@ -217,7 +217,7 @@ class HeatmapComparison(TrainTestCheck):
         return_bbox_image_batch = []
         for image, label in zip(image_batch, label_batch):
             return_bbox_image_batch.append(
-                self._label_to_image(label.detach().cpu().numpy(), image.shape[:2])
+                self._label_to_image(label.cpu().detach().numpy(), image.shape[:2])
             )
         return return_bbox_image_batch
 

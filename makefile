@@ -155,13 +155,13 @@ requirements: $(ENV)
 	@if [ -x "$$(command -v nvidia-smi)" ]; \
 	then \
 		$(PIP) install -q\
-		 	"torch==1.7.1+cu110" "torchvision==0.8.2+cu110" "torchaudio==0.8.1" \
-		 	 -f https://download.pytorch.org/whl/cu110/torch_stable.html; \
+		 	"torch==1.10.1+cu111" "torchvision==0.11.2+cu111" "torchaudio==0.10.1" \
+		 	 -f https://s3.amazonaws.com/pytorch/whl/torch_stable.html; \
 	elif [ $(OS) = "Linux" ]; \
 	then \
 		$(PIP) install -q\
 			"torch==1.10.2+cpu" "torchvision==0.11.3+cpu" "torchaudio==0.10.2+cpu" \
-			-f https://download.pytorch.org/whl/cpu/torch_stable.html; \
+			-f https://s3.amazonaws.com/pytorch/whl/torch_stable.html; \
 	else \
 		$(PIP) install -q torch torchvision torchaudio; \
 	fi;
@@ -217,7 +217,7 @@ test-win:
 	@$(WIN_ENV)\Scripts\activate.bat
 	$(PIP_WIN) install -q\
 			"torch==1.10.2+cpu" "torchvision==0.11.3+cpu" "torchaudio==0.10.2+cpu" \
-			-f https://download.pytorch.org/whl/cpu/torch_stable.html;
+			-f https://s3.amazonaws.com/pytorch/whl/torch_stable.html;
 	@$(PIP_WIN) install -U pip
 	@$(PIP_WIN) install -q \
 		-r ./requirements/requirements.txt \

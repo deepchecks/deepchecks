@@ -14,7 +14,7 @@ from typing import Callable, Union, Mapping, Optional
 import pandas as pd
 
 from deepchecks.tabular.dataset import Dataset
-from deepchecks.utils.validation import validate_model, model_type_validation
+from deepchecks.tabular.utils.validation import validate_model, model_type_validation
 from deepchecks.utils.metrics import ModelType, task_type_check, get_default_scorers, init_validate_scorers
 from deepchecks.utils.typing import BasicModel
 from deepchecks.utils.features import calculate_feature_importance_or_none
