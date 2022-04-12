@@ -15,7 +15,7 @@ from typing import Optional, Any, Union
 import torch
 from torch import nn
 
-from deepchecks.core.check_result import CheckResult, CheckFailure
+from deepchecks.core.check_result import CheckResult
 from deepchecks.core.checks import (
     SingleDatasetBaseCheck,
     TrainTestBaseCheck,
