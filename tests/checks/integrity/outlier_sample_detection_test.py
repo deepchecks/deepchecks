@@ -8,20 +8,22 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Contains unit tests for the outlier_detection check."""
+"""Contains unit tests for the outlier_sample_detection check."""
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, calling, raises, has_item, greater_than
+from hamcrest import assert_that, calling, raises, has_item, greater_than, has_length
 
-from deepchecks.tabular.checks import OutlierDetection
+from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.tabular.checks import OutlierSampleDetection
 from deepchecks.tabular.dataset import Dataset
 
 
 def test_condition_input_validation():
     # Assert
-    assert_that(calling(OutlierDetection().add_condition_outlier_ratio_not_greater_than).with_args(max_outliers_ratio=-1),
-                raises(ValueError,
-                       'max_outliers_ratio must be between 0 and 1'))
+    assert_that(
+        calling(OutlierSampleDetection().add_condition_outlier_ratio_not_greater_than).with_args(max_outliers_ratio=-1),
+        raises(DeepchecksValueError,
+               'max_outliers_ratio must be between 0 and 1'))
 
 
 def test_integer_single_column_no_nulls():
@@ -29,7 +31,7 @@ def test_integer_single_column_no_nulls():
     data = {'col1': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1000]}
     dataset = Dataset(pd.DataFrame(data=data), cat_features=[])
     # Act
-    result = OutlierDetection(n_to_show=1, num_nearest_neighbors=5).run(dataset)
+    result = OutlierSampleDetection(n_to_show=1, num_nearest_neighbors=5).run(dataset)
     # Assert
     assert_that(result.value, has_item(greater_than(0.7)))
 
@@ -39,9 +41,10 @@ def test_integer_single_column_with_nulls():
     data = {'col1': [1, 1, 1, None, 1, 1, 1, 1, 1, 1, 1, 1, 1000]}
     dataset = Dataset(pd.DataFrame(data=data), cat_features=[])
     # Act
-    result = OutlierDetection(n_to_show=1, num_nearest_neighbors=5).run(dataset)
+    result = OutlierSampleDetection(n_to_show=1, num_nearest_neighbors=5).run(dataset)
     # Assert
     assert_that(result.value, has_item(greater_than(0.7)))
+    assert_that(np.unique(result.value), has_length(2))
 
 
 def test_integer_columns_with_nulls():
@@ -50,7 +53,7 @@ def test_integer_columns_with_nulls():
             'col2': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1000]}
     dataset = Dataset(pd.DataFrame(data=data), cat_features=[])
     # Act
-    result = OutlierDetection(n_to_show=1, num_nearest_neighbors=5).run(dataset)
+    result = OutlierSampleDetection(n_to_show=1, num_nearest_neighbors=5).run(dataset)
     # Assert
     assert_that(result.value, has_item(greater_than(0.7)))
 
@@ -60,7 +63,7 @@ def test_single_column_cat_no_nulls():
     data = {'col1': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'b']}
     dataset = Dataset(pd.DataFrame(data=data), cat_features=['col1'])
     # Act
-    result = OutlierDetection(n_to_show=2, num_nearest_neighbors=5).run(dataset)
+    result = OutlierSampleDetection(n_to_show=2, num_nearest_neighbors=5).run(dataset)
     # Assert
     assert_that(result.value, has_item(greater_than(0.7)))
 
@@ -71,7 +74,7 @@ def test_mix_types_no_nulls():
             'col2': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1000]}
     dataset = Dataset(pd.DataFrame(data=data), cat_features=['col1'])
     # Act
-    result = OutlierDetection(n_to_show=2, num_nearest_neighbors=5).run(dataset)
+    result = OutlierSampleDetection(n_to_show=2, num_nearest_neighbors=5).run(dataset)
     # Assert
     assert_that(result.value, has_item(greater_than(0.7)))
 
@@ -82,22 +85,22 @@ def test_mix_types_with_nulls():
             'col2': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1000]}
     dataset = Dataset(pd.DataFrame(data=data), cat_features=['col1'])
     # Act
-    result = OutlierDetection(n_to_show=1, num_nearest_neighbors=5).run(dataset)
+    result = OutlierSampleDetection(n_to_show=1, num_nearest_neighbors=5).run(dataset)
     # Assert
     assert_that(result.value, has_item(greater_than(0.7)))
 
 
 def test_iris_regular(iris_dataset):
     # Act
-    result = OutlierDetection(n_to_show=2, num_nearest_neighbors=5).run(iris_dataset)
+    result = OutlierSampleDetection(n_to_show=2, num_nearest_neighbors=5).run(iris_dataset)
     # Assert
     assert_that(result.value, has_item(greater_than(0.8)))
 
 
 def test_iris_modified(iris):
     # Arrange
-    iris.loc[len(iris.index)] = [0, 100, 10000, 100000, 1]
+    iris.loc[len(iris.index)] = [1, 10, 1000, 1000, 1]
     # Act
-    result = OutlierDetection(n_to_show=2, num_nearest_neighbors=5).run(Dataset(iris))
+    result = OutlierSampleDetection(n_to_show=2, num_nearest_neighbors=5).run(Dataset(iris))
     # Assert
-    assert_that(result.value, has_item(greater_than(0.999)))
+    assert_that(result.value, has_item(greater_than(0.9)))

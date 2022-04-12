@@ -18,8 +18,11 @@ def gower_matrix(data: np.ndarray, cat_features: np.array) -> np.ndarray:
     """
     Calculate distance matrix for a dataset using Gower's method.
 
+    Gowers distance is a measurement for distance between two samples. It returns the average of their distances
+    per feature. For numeric features it calculates the absolute distance divide by the range of the feature. For
+    categorical features it is an indicator whether the values are the same.
+    See https://www.jstor.org/stable/2528823 for further details.
     Can deal with missing values.
-    See https://statisticaloddsandends.wordpress.com/2021/02/23/what-is-gowers-distance/ for further details.
     Parameters
     ----------
     data: numpy.ndarray
@@ -32,21 +35,68 @@ def gower_matrix(data: np.ndarray, cat_features: np.array) -> np.ndarray:
     numpy.ndarray
      representing the distance matrix.
     """
-    if not isinstance(data, np.ndarray): data = np.asarray(data)
+    if not isinstance(data, np.ndarray):
+        data = np.asarray(data)
 
-    range_per_feature = np.ones(data.shape[1]) * -1
-
-    range_per_feature[~cat_features] = np.nanmax(data[:, ~cat_features], axis=0) \
-                                       - np.nanmin(data[:, ~cat_features], axis=0)
+    feature_ranges = np.ones(data.shape[1]) * -1
+    feature_ranges[~cat_features] = np.nanmax(data[:, ~cat_features], axis=0) - np.nanmin(data[:, ~cat_features],
+                                                                                          axis=0)
 
     result = np.zeros((data.shape[0], data.shape[0]))
     for i in range(data.shape[0]):
         for j in range(i, data.shape[0]):
-            value = calculate_distance(data[i, :], data[j, :], range_per_feature)
+            value = calculate_distance(data[i, :], data[j, :], feature_ranges)
             result[i, j] = value
             result[j, i] = value
 
     return result
+
+
+def gower_matrix_n_closets(data: np.ndarray, cat_features: np.array, num_neighbours: int):
+    """
+    Calculate distance matrix for a dataset using Gower's method.
+
+    Can deal with missing values.
+    See https://statisticaloddsandends.wordpress.com/2021/02/23/what-is-gowers-distance/ for further details.
+    Parameters
+    ----------
+    data: numpy.ndarray
+        Dataset matrix.
+    cat_features: numpy.array
+        Boolean array of representing which of the columns are categorical features.
+    num_neighbours: int
+        Number of neighbours to return. For example, for n=2 for each sample returns the distances to the two closest
+        samples in the dataset.
+    Returns
+    -------
+    numpy.ndarray
+     representing the distance matrix to the nearest neighbours.
+    numpy.ndarray
+     representing the indexes of the nearest neighbours.
+    """
+    if not isinstance(data, np.ndarray):
+        data = np.asarray(data)
+
+    feature_ranges = np.ones(data.shape[1]) * -1
+    feature_ranges[~cat_features] = np.nanmax(data[:, ~cat_features], axis=0) - np.nanmin(data[:, ~cat_features],
+                                                                                          axis=0)
+
+    distances = np.zeros((data.shape[0], num_neighbours))
+    indexes = np.zeros((data.shape[0], num_neighbours))
+
+    for i in range(data.shape[0]):
+        dist_to_sample_i = np.zeros(data.shape[0])
+        for j in range(data.shape[0]):
+            dist_to_sample_i[j] = calculate_distance(data[i, :], data[j, :], feature_ranges)
+        # fill na
+        dist_to_sample_i[np.isnan(dist_to_sample_i)] = np.nanmean(np.delete(dist_to_sample_i, [i]))
+        # sort to find the closest samples
+        min_dist_indexes = np.argpartition(dist_to_sample_i, num_neighbours + 1)[:num_neighbours + 1]
+        min_dist_indexes_ordered = sorted(min_dist_indexes, key=lambda x, arr=dist_to_sample_i: arr[x], reverse=False)
+        indexes[i, :] = min_dist_indexes_ordered[1:]
+        distances[i, :] = dist_to_sample_i[min_dist_indexes_ordered[1:]]
+
+    return distances, indexes
 
 
 def calculate_distance(vec1: np.array, vec2: np.array, range_per_feature: np.array) -> float:

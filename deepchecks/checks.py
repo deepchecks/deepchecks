@@ -39,7 +39,7 @@ __all__ = [
     'CategoryMismatchTrainTest',
     'NewLabelTrainTest',
     'LabelAmbiguity',
-    'OutlierDetection',
+    'OutlierSampleDetection',
 
     # methodology checks
     'BoostingOverfit',

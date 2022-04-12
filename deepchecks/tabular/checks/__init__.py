@@ -22,7 +22,7 @@ from .integrity import (
     CategoryMismatchTrainTest,
     NewLabelTrainTest,
     LabelAmbiguity,
-    OutlierDetection
+    OutlierSampleDetection
 )
 
 from .methodology import (
@@ -79,7 +79,7 @@ __all__ = [
     'CategoryMismatchTrainTest',
     'NewLabelTrainTest',
     'LabelAmbiguity',
-    'OutlierDetection',
+    'OutlierSampleDetection',
 
     # methodology checks
     'BoostingOverfit',
