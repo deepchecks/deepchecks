@@ -21,8 +21,8 @@ def gower_matrix(data: np.ndarray, cat_features: np.array) -> np.ndarray:
     Gowers distance is a measurement for distance between two samples. It returns the average of their distances
     per feature. For numeric features it calculates the absolute distance divide by the range of the feature. For
     categorical features it is an indicator whether the values are the same.
-    See https://www.jstor.org/stable/2528823 for further details.
-    Can deal with missing values.
+    See https://www.jstor.org/stable/2528823 for further details. In addition, it can deal with missing values.
+    Note that this method is expensive in memory and requires keeping in memory a matrix of size data*data.
     Parameters
     ----------
     data: numpy.ndarray
@@ -56,8 +56,12 @@ def gower_matrix_n_closets(data: np.ndarray, cat_features: np.array, num_neighbo
     """
     Calculate distance matrix for a dataset using Gower's method.
 
-    Can deal with missing values.
-    See https://statisticaloddsandends.wordpress.com/2021/02/23/what-is-gowers-distance/ for further details.
+    Gowers distance is a measurement for distance between two samples. It returns the average of their distances
+    per feature. For numeric features it calculates the absolute distance divide by the range of the feature. For
+    categorical features it is an indicator whether the values are the same.
+    See https://www.jstor.org/stable/2528823 for further details.
+    This method minimizes memory usage by saving in memory and returning only the closest neighbours of each sample.
+    In addition, it can deal with missing values.
     Parameters
     ----------
     data: numpy.ndarray

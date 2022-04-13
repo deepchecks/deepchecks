@@ -9,9 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Outlier detection functions."""
+import logging
 from typing import Union, List
 
-import logging
 import numpy as np
 from PyNomaly import loop
 
@@ -20,7 +20,7 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils import gower_distance
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.strings import format_percent
+from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['OutlierSampleDetection']
@@ -33,8 +33,9 @@ class OutlierSampleDetection(SingleDatasetCheck):
     The LoOP algorithm is a robust method for detecting outliers in a dataset across multiple variables by comparing
     the density in the area of a sample with the densities in the areas of its nearest neighbors.
     See https://www.dbs.ifi.lmu.de/Publikationen/Papers/LoOP1649.pdf for more details.
-    LoOP is build upon a distance matrix, in our implementation we use the Gower distance that measure the distance
+    LoOP relies on a distance matrix, in our implementation we use the Gower distance that measure the distance
     between two samples based on its numeric and categorical features.
+    See https://statisticaloddsandends.wordpress.com/2021/02/23/what-is-gowers-distance/ for further details.
     Parameters
     ----------
     columns : Union[Hashable, List[Hashable]] , default: None
@@ -86,20 +87,25 @@ class OutlierSampleDetection(SingleDatasetCheck):
         dataset = dataset.sample(self.n_samples, random_state=self.random_state, drop_na_label=True)
         df = select_from_dataframe(dataset.data, self.columns, self.ignore_columns)
         if self.num_nearest_neighbors >= len(df):
-            logger.warning('Passed num_nearest_neighbors is greater than the number of samples in the dataset')
+            logger.warning(f'Passed num_nearest_neighbors {format_number(self.num_nearest_neighbors)} which is greater '
+                           f' than the number of samples in the dataset')
             self.num_nearest_neighbors = len(df) - 1
 
         # Calculate distances matrix and retrieve nearest neighbors based on distance matrix.
         df_cols_for_gower = df[dataset.cat_features + dataset.numerical_features]
         is_categorical_arr = np.array(df_cols_for_gower.columns.map(lambda x: x in dataset.cat_features), dtype=bool)
-        dist_matrix, idx_matrix = gower_distance.gower_matrix_n_closets(data=np.asarray(df_cols_for_gower),
-                                                                        cat_features=is_categorical_arr,
-                                                                        num_neighbours=self.num_nearest_neighbors)
-
+        try:
+            dist_matrix, idx_matrix = gower_distance.gower_matrix_n_closets(data=np.asarray(df_cols_for_gower),
+                                                                            cat_features=is_categorical_arr,
+                                                                            num_neighbours=self.num_nearest_neighbors)
+        except MemoryError:
+            raise DeepchecksValueError('A out of memory error occurred while calculating the distance matrix. '
+                                       'Try reducing the n_samples or num_nearest_neighbors parameters values.')
         # Calculate outlier probability score using loop algorithm.
         m = loop.LocalOutlierProbability(distance_matrix=dist_matrix, neighbor_matrix=idx_matrix,
                                          extent=self.extent_parameter, n_neighbors=self.num_nearest_neighbors).fit()
         prob_vector = np.asarray(m.local_outlier_probabilities, dtype=float)
+        # if we couldn't calculate the outlier probability score for a sample we treat it as not an outlier.
         prob_vector[np.isnan(prob_vector)] = 0
 
         # Create the check result visualization
@@ -132,7 +138,7 @@ class OutlierSampleDetection(SingleDatasetCheck):
         if max_outliers_ratio > 1 or max_outliers_ratio < 0:
             raise DeepchecksValueError('max_outliers_ratio must be between 0 and 1')
         name = f'Not more than {format_percent(max_outliers_ratio)} of dataset over ' \
-               f'outlier score {outlier_score_threshold} '
+               f'outlier score {format_number(outlier_score_threshold)} '
         return self.add_condition(name, _condition_outliers_number, outlier_score_threshold=outlier_score_threshold,
                                   max_outliers_ratio=max_outliers_ratio)
 
@@ -144,7 +150,7 @@ class OutlierSampleDetection(SingleDatasetCheck):
         outlier_score_threshold : float, default: 0.8
             Outlier probability score threshold to be considered outlier.
         """
-        name = f'No samples in dataset over outlier score of {outlier_score_threshold}'
+        name = f'No samples in dataset over outlier score of {format_number(outlier_score_threshold)}'
         return self.add_condition(name, _condition_outliers_number, outlier_score_threshold=outlier_score_threshold)
 
 
