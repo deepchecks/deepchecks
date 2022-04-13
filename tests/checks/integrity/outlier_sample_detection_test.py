@@ -11,19 +11,54 @@
 """Contains unit tests for the outlier_sample_detection check."""
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, calling, raises, has_item, greater_than, has_length
+from hamcrest import assert_that, calling, raises, has_item, greater_than, has_length, has_items
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.checks import OutlierSampleDetection
 from deepchecks.tabular.dataset import Dataset
+from tests.checks.utils import equal_condition_result
 
 
 def test_condition_input_validation():
     # Assert
     assert_that(
         calling(OutlierSampleDetection().add_condition_outlier_ratio_not_greater_than).with_args(max_outliers_ratio=-1),
-        raises(DeepchecksValueError,
-               'max_outliers_ratio must be between 0 and 1'))
+        raises(DeepchecksValueError, 'max_outliers_ratio must be between 0 and 1'))
+
+
+def test_check_input_validation():
+    # Assert
+    assert_that(
+        calling(OutlierSampleDetection).with_args(extent_parameter=-1),
+        raises(DeepchecksValueError, 'extend_parameter must be a positive integer'))
+
+
+def test_condition_with_argument():
+    # Arrange
+    data = {'col1': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1000]}
+    dataset = Dataset(pd.DataFrame(data=data), cat_features=[])
+    # Act
+    check = OutlierSampleDetection().add_condition_outlier_ratio_not_greater_than(0.1)
+    result = check.conditions_decision(check.run(dataset))
+    # Assert
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=True,
+                               name='Not more than 10% of dataset over outlier score 0.7')
+    ))
+
+
+def test_condition_without_argument():
+    # Arrange
+    data = {'col1': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]}
+    dataset = Dataset(pd.DataFrame(data=data), cat_features=[])
+    # Act
+    check = OutlierSampleDetection().add_condition_no_outliers()
+    result = check.conditions_decision(check.run(dataset))
+    # Assert
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=True,
+                               name='No samples in dataset over outlier score of 0.7')
+    ))
 
 
 def test_integer_single_column_no_nulls():

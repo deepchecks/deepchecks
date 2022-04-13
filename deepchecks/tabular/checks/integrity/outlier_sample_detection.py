@@ -125,29 +125,29 @@ class OutlierSampleDetection(SingleDatasetCheck):
         return CheckResult(quantiles_vector, display=[headnote, dataset_outliers])
 
     def add_condition_outlier_ratio_not_greater_than(self, max_outliers_ratio: float = 0.005,
-                                                     outlier_score_threshold: float = 0.8):
+                                                     outlier_score_threshold: float = 0.7):
         """Add condition - no more than given ratio of samples over outlier score threshold are allowed.
 
         Parameters
         ----------
         max_outliers_ratio : float , default: 0.005
             Maximum ratio of outliers allowed in dataset.
-        outlier_score_threshold : float, default: 0.8
+        outlier_score_threshold : float, default: 0.7
             Outlier probability score threshold to be considered outlier.
         """
         if max_outliers_ratio > 1 or max_outliers_ratio < 0:
             raise DeepchecksValueError('max_outliers_ratio must be between 0 and 1')
         name = f'Not more than {format_percent(max_outliers_ratio)} of dataset over ' \
-               f'outlier score {format_number(outlier_score_threshold)} '
+               f'outlier score {format_number(outlier_score_threshold)}'
         return self.add_condition(name, _condition_outliers_number, outlier_score_threshold=outlier_score_threshold,
                                   max_outliers_ratio=max_outliers_ratio)
 
-    def add_condition_no_outliers(self, outlier_score_threshold: float = 0.8):
+    def add_condition_no_outliers(self, outlier_score_threshold: float = 0.7):
         """Add condition - no elements over outlier threshold are allowed.
 
         Parameters
         ----------
-        outlier_score_threshold : float, default: 0.8
+        outlier_score_threshold : float, default: 0.7
             Outlier probability score threshold to be considered outlier.
         """
         name = f'No samples in dataset over outlier score of {format_number(outlier_score_threshold)}'
@@ -156,7 +156,7 @@ class OutlierSampleDetection(SingleDatasetCheck):
 
 def _condition_outliers_number(quantiles_vector: np.ndarray, outlier_score_threshold: float,
                                max_outliers_ratio: float = 0):
-    max_outliers_ratio = round(max_outliers_ratio, 3)
+    max_outliers_ratio = max(round(max_outliers_ratio, 3), 0.001)
 
     if quantiles_vector[int(1000 - max_outliers_ratio * 1000)] > outlier_score_threshold:
         ratio_above_threshold = round((1000 - np.argmax(quantiles_vector > outlier_score_threshold)) / 1000, 3)
