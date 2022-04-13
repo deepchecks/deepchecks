@@ -140,6 +140,13 @@ class SuiteResult:
         if dedicated_run:
             wandb.finish()
 
+    def get_errors(self):
+        errors = {}
+        for res in self.results:
+            if isinstance(res, CheckFailure):
+                errors[res.header] = str(res)
+        return errors
+
 
 class BaseSuite:
     """Class for running a set of checks together, and returning a unified pass / no-pass.

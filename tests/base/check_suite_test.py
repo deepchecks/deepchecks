@@ -10,7 +10,7 @@
 #
 """suites tests"""
 import random
-from hamcrest import assert_that, calling, raises, equal_to, is_
+from hamcrest import assert_that, calling, raises, equal_to, is_, has_length, contains_string
 
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksValueError
@@ -147,3 +147,17 @@ def test_check_suite_instantiation_by_extending_another_check_suite():
         tabular_checks.MixedDataTypes,
         tabular_checks.PerformanceReport
     ]
+
+
+def test_get_error(iris_split_dataset_and_model_custom,
+                   diabetes_split_dataset_and_model_custom):
+    iris_train, iris_test, iris_model = iris_split_dataset_and_model_custom
+
+    suite = Suite(
+        "test",
+        tabular_checks.IsSingleValue(),
+        tabular_checks.ModelErrorAnalysis())
+
+    result = suite.run(train_dataset=iris_train, test_dataset=iris_test, model=iris_model)
+    assert_that(result.get_errors(), has_length(1))
+    assert_that(result.get_errors()['Model Error Analysis'], contains_string('Traceback'))

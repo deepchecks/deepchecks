@@ -116,6 +116,7 @@ def _display_suite_widgets(summary: str,
                            checks_wo_conditions_display: List[CheckResult],
                            checks_w_condition_display: List[CheckResult],
                            others_table: List,
+                           contains_check_failures: bool,
                            light_hr: str,
                            html_out,
                            requirejs: bool = True):  # pragma: no cover
@@ -168,7 +169,8 @@ def _display_suite_widgets(summary: str,
         with warnings.catch_warnings():
             warnings.simplefilter(action='ignore', category=FutureWarning)
             others_df = dataframe_to_html(others_table.style.hide_index())
-        h2_widget = widgets.HTML(_CHECKS_WITHOUT_DISPLAY_TITLE)
+        debug_message = '</br>For call traces use get_errors() on result object</br>' if contains_check_failures else ''
+        h2_widget = widgets.HTML(_CHECKS_WITHOUT_DISPLAY_TITLE + debug_message)
         others_tab.children = [h2_widget, _create_table_widget(others_df)]
     else:
         others_tab.children = [widgets.HTML(_NO_OUTPUT_TEXT)]
@@ -199,6 +201,7 @@ def _display_suite_no_widgets(summary: str,
                               checks_wo_conditions_display: List[CheckResult],
                               checks_w_condition_display: List[CheckResult],
                               others_table: List,
+                              contains_check_failures: bool,
                               light_hr: str):  # pragma: no cover
     """Display results of suite in IPython without widgets."""
     bold_hr = '<hr style="background-color: black;border: 0 none;color: black;height: 1px;">'
@@ -236,10 +239,12 @@ def _display_suite_no_widgets(summary: str,
         others_table.sort_values(by=['sort'], inplace=True)
         others_table.drop('sort', axis=1, inplace=True)
         others_h2 = f'{bold_hr}{_CHECKS_WITHOUT_DISPLAY_TITLE}'
+        debug_message = '</br>For call traces use get_errors() on result object</br>' if contains_check_failures else ''
+
         with warnings.catch_warnings():
             warnings.simplefilter(action='ignore', category=FutureWarning)
             others_df = dataframe_to_html(others_table.style.hide_index())
-        display_html(others_h2 + others_df, raw=True)
+        display_html(others_h2 + debug_message + others_df, raw=True)
 
     if unique_id:
         display_html(f'<br><a href="#summary_{unique_id}" style="font-size: 14px">Go to top</a>', raw=True)
@@ -260,6 +265,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
     checks_wo_conditions_display: List[CheckResult] = []
     checks_w_condition_display: List[CheckResult] = []
     others_table = []
+    contains_failures = False
 
     for result in results:
         if isinstance(result, CheckResult):
@@ -272,6 +278,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
             if not result.have_display():
                 others_table.append([result.get_header(), 'Nothing found', 2])
         elif isinstance(result, CheckFailure):
+            contains_failures = True
             error_types = (
                 errors.DatasetValidationError,
                 errors.ModelValidationError,
@@ -337,6 +344,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
                                checks_wo_conditions_display,
                                checks_w_condition_display,
                                others_table,
+                               contains_failures,
                                light_hr,
                                html_out,
                                requirejs)
@@ -347,4 +355,5 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
                                   checks_wo_conditions_display,
                                   checks_w_condition_display,
                                   others_table,
+                                  contains_failures,
                                   light_hr)
