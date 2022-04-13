@@ -110,7 +110,7 @@ class OutlierSampleDetection(SingleDatasetCheck):
                     target="_blank" rel="noopener noreferrer">link</a> for more information).<br><br>
                 </span>"""
 
-        quantiles_vector = np.quantile(prob_vector, np.array(range(1000)) / 1000, method='closest_observation')
+        quantiles_vector = np.quantile(prob_vector, np.array(range(1000)) / 1000, interpolation='nearest')
         return CheckResult(quantiles_vector, display=[headnote, dataset_outliers])
 
     def add_condition_outlier_ratio_not_greater_than(self, max_outliers_ratio: float = 0.005,
