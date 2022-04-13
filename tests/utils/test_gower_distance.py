@@ -10,7 +10,7 @@
 #
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, has_item, greater_than, less_than_or_equal_to
+from hamcrest import assert_that, has_item, greater_than, less_than_or_equal_to, has_length
 
 from deepchecks.utils import gower_distance
 
@@ -44,7 +44,7 @@ def test_categorical_column_with_nulls():
     assert_that(max(dist[0]), less_than_or_equal_to(0))
 
 
-def test_mix_columns_with_nulls():
+def test_mix_columns():
     # Arrange
     data = pd.DataFrame({'col1': ['a', 'a', 'a', 'b', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'b'],
                          'col2': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1000]})
@@ -57,3 +57,33 @@ def test_mix_columns_with_nulls():
     assert_that(dist[-1], has_item(1))
     assert_that(dist[3], has_item(greater_than(0.01)))
     assert_that(max(dist[0]), less_than_or_equal_to(0))
+
+
+def test_mix_columns_full_matrix():
+    # Arrange
+    data = pd.DataFrame({'col1': ['a', 'a', 'a', 'b', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'b'],
+                         'col2': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1000]})
+    is_categorical_arr = np.array([True, False], dtype=bool)
+    # Act
+    dist = gower_distance.gower_matrix(data=np.asarray(data),
+                                       cat_features=is_categorical_arr)
+    # Assert
+    assert_that(dist[-1], has_item(1))
+    assert_that(dist[-1], has_length(data.shape[0]))
+    assert_that(dist[3], has_item(greater_than(0.01)))
+    assert_that(min(dist[0]), less_than_or_equal_to(0))
+
+
+def test_mix_columns_full_matrix_with_nulls():
+    # Arrange
+    data = pd.DataFrame({'col1': ['a', 'a', 'a', 'b', 'a', 'a', None, 'a', 'a', 'a', 'a', 'a', 'a', 'b'],
+                         'col2': [1, 1, 1, 1, 1, 1, None, 1, 1, 1, 1, 1, 1, 1000]})
+    is_categorical_arr = np.array([True, False], dtype=bool)
+    # Act
+    dist = gower_distance.gower_matrix(data=np.asarray(data),
+                                       cat_features=is_categorical_arr)
+    # Assert
+    assert_that(dist[-1], has_item(1))
+    assert_that(dist[-1], has_length(data.shape[0]))
+    assert_that(dist[3], has_item(greater_than(0.01)))
+    assert_that(min(dist[0]), less_than_or_equal_to(0))
