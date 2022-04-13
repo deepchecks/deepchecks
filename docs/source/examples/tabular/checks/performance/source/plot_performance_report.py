@@ -53,5 +53,5 @@ result = check.run(train_dataset, test_dataset, model)
 result.show(show_additional_outputs=False)
 
 #%%
-# %%
 # We detected that for class "0" our the Precision result is degraded by more than 5%
+
