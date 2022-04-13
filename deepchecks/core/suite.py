@@ -140,12 +140,12 @@ class SuiteResult:
         if dedicated_run:
             wandb.finish()
 
-    def get_errors(self):
-        errors = {}
+    def get_failures(self):
+        failures = []
         for res in self.results:
             if isinstance(res, CheckFailure):
-                errors[res.header] = str(res)
-        return errors
+                failures.append(res)
+        return failures
 
 
 class BaseSuite:

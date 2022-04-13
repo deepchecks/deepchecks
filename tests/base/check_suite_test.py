@@ -10,9 +10,9 @@
 #
 """suites tests"""
 import random
-from hamcrest import assert_that, calling, raises, equal_to, is_, has_length, contains_string
+from hamcrest import assert_that, calling, raises, equal_to, is_, has_length, instance_of
 
-from deepchecks.core import CheckResult
+from deepchecks.core import CheckResult, CheckFailure
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Suite, SingleDatasetCheck, TrainTestCheck
 from deepchecks.tabular import checks as tabular_checks
@@ -159,5 +159,5 @@ def test_get_error(iris_split_dataset_and_model_custom,
         tabular_checks.ModelErrorAnalysis())
 
     result = suite.run(train_dataset=iris_train, test_dataset=iris_test, model=iris_model)
-    assert_that(result.get_errors(), has_length(1))
-    assert_that(result.get_errors()['Model Error Analysis'], contains_string('Traceback'))
+    assert_that(result.get_failures(), has_length(1))
+    assert_that(result.get_failures()[0], instance_of(CheckFailure))

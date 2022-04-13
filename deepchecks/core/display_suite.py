@@ -43,6 +43,7 @@ _NO_OUTPUT_TEXT = '<p>No outputs to show.</p>'
 _CHECKS_WITH_CONDITIONS_TITLE = '<h2>Check With Conditions Output</h2>'
 _CHECKS_WITHOUT_CONDITIONS_TITLE = '<h2>Check Without Conditions Output</h2>'
 _CHECKS_WITHOUT_DISPLAY_TITLE = '<h2>Other Checks That Weren\'t Displayed</h2>'
+_FAILED_CHECKS_MESSAGE = '</br>To debug failed checks use get_failures() to get a list of CheckFailures</br>'
 
 
 def _get_check_widget(check_res: CheckResult, unique_id: str) -> widgets.VBox:
@@ -169,7 +170,7 @@ def _display_suite_widgets(summary: str,
         with warnings.catch_warnings():
             warnings.simplefilter(action='ignore', category=FutureWarning)
             others_df = dataframe_to_html(others_table.style.hide_index())
-        debug_message = '</br>For call traces use get_errors() on result object</br>' if contains_check_failures else ''
+        debug_message = _FAILED_CHECKS_MESSAGE if contains_check_failures else ''
         h2_widget = widgets.HTML(_CHECKS_WITHOUT_DISPLAY_TITLE + debug_message)
         others_tab.children = [h2_widget, _create_table_widget(others_df)]
     else:
@@ -239,7 +240,7 @@ def _display_suite_no_widgets(summary: str,
         others_table.sort_values(by=['sort'], inplace=True)
         others_table.drop('sort', axis=1, inplace=True)
         others_h2 = f'{bold_hr}{_CHECKS_WITHOUT_DISPLAY_TITLE}'
-        debug_message = '</br>For call traces use get_errors() on result object</br>' if contains_check_failures else ''
+        debug_message = _FAILED_CHECKS_MESSAGE if contains_check_failures else ''
 
         with warnings.catch_warnings():
             warnings.simplefilter(action='ignore', category=FutureWarning)

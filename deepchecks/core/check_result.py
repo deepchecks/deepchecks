@@ -501,9 +501,7 @@ class CheckFailure:
 
     def __repr__(self):
         """Return string representation."""
-        tb_str = traceback.format_exception(etype=type(self.exception), value=self.exception,
-                                            tb=self.exception.__traceback__)
-        return ''.join(tb_str)
+        return self.header + ': ' + str(self.exception)
 
     def _ipython_display_(self):
         """Display the check failure."""
@@ -513,3 +511,9 @@ class CheckFailure:
             check_html += f'<p>{summary}</p>'
         check_html += f'<p style="color:red"> {self.exception}</p>'
         display_html(check_html, raw=True)
+
+    def print_traceback(self):
+        """Print the traceback of the failure."""
+        tb_str = traceback.format_exception(etype=type(self.exception), value=self.exception,
+                                            tb=self.exception.__traceback__)
+        print(''.join(tb_str))
