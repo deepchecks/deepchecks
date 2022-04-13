@@ -87,8 +87,8 @@ class OutlierSampleDetection(SingleDatasetCheck):
         dataset = dataset.sample(self.n_samples, random_state=self.random_state, drop_na_label=True)
         df = select_from_dataframe(dataset.data, self.columns, self.ignore_columns)
         if self.num_nearest_neighbors >= len(df):
-            logger.warning(f'Passed num_nearest_neighbors {format_number(self.num_nearest_neighbors)} which is greater '
-                           f' than the number of samples in the dataset')
+            logger.warning('Passed num_nearest_neighbors %s which is greater than the number of samples in the dataset'
+                           , self.num_nearest_neighbors)
             self.num_nearest_neighbors = len(df) - 1
 
         # Calculate distances matrix and retrieve nearest neighbors based on distance matrix.
@@ -98,9 +98,9 @@ class OutlierSampleDetection(SingleDatasetCheck):
             dist_matrix, idx_matrix = gower_distance.gower_matrix_n_closets(data=np.asarray(df_cols_for_gower),
                                                                             cat_features=is_categorical_arr,
                                                                             num_neighbours=self.num_nearest_neighbors)
-        except MemoryError:
+        except MemoryError as e:
             raise DeepchecksValueError('A out of memory error occurred while calculating the distance matrix. '
-                                       'Try reducing the n_samples or num_nearest_neighbors parameters values.')
+                                       'Try reducing the n_samples or num_nearest_neighbors parameters values.') from e
         # Calculate outlier probability score using loop algorithm.
         m = loop.LocalOutlierProbability(distance_matrix=dist_matrix, neighbor_matrix=idx_matrix,
                                          extent=self.extent_parameter, n_neighbors=self.num_nearest_neighbors).fit()
