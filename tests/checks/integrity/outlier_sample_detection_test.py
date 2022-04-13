@@ -28,10 +28,10 @@ def test_condition_input_validation():
 
 def test_integer_single_column_no_nulls():
     # Arrange
-    data = {'col1': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1000]}
+    data = {'col1': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1000]}
     dataset = Dataset(pd.DataFrame(data=data), cat_features=[])
     # Act
-    result = OutlierSampleDetection(n_to_show=1, num_nearest_neighbors=5).run(dataset)
+    result = OutlierSampleDetection(n_to_show=1, num_nearest_neighbors=2).run(dataset)
     # Assert
     assert_that(result.value, has_item(greater_than(0.7)))
 
@@ -99,8 +99,9 @@ def test_iris_regular(iris_dataset):
 
 def test_iris_modified(iris):
     # Arrange
-    iris.loc[len(iris.index)] = [1, 10, 1000, 1000, 1]
+    iris_modified = iris.copy()
+    iris_modified.loc[len(iris.index)] = [1, 10, 1000, 1000, 1]
     # Act
-    result = OutlierSampleDetection(n_to_show=2, num_nearest_neighbors=5).run(Dataset(iris))
+    result = OutlierSampleDetection(n_to_show=2, num_nearest_neighbors=5).run(Dataset(iris_modified))
     # Assert
     assert_that(result.value, has_item(greater_than(0.9)))

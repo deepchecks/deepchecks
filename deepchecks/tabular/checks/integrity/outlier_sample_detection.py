@@ -11,6 +11,7 @@
 """Outlier detection functions."""
 from typing import Union, List
 
+import logging
 import numpy as np
 from PyNomaly import loop
 
@@ -23,6 +24,7 @@ from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['OutlierSampleDetection']
+logger = logging.getLogger('deepchecks')
 
 
 class OutlierSampleDetection(SingleDatasetCheck):
@@ -83,6 +85,9 @@ class OutlierSampleDetection(SingleDatasetCheck):
             dataset = context.test
         dataset = dataset.sample(self.n_samples, random_state=self.random_state, drop_na_label=True)
         df = select_from_dataframe(dataset.data, self.columns, self.ignore_columns)
+        if self.num_nearest_neighbors >= len(df):
+            logger.warning('Passed num_nearest_neighbors is greater than the number of samples in the dataset')
+            self.num_nearest_neighbors = len(df) - 1
 
         # Calculate distances matrix and retrieve nearest neighbors based on distance matrix.
         df_cols_for_gower = df[dataset.cat_features + dataset.numerical_features]

@@ -91,7 +91,7 @@ def gower_matrix_n_closets(data: np.ndarray, cat_features: np.array, num_neighbo
         # fill na
         dist_to_sample_i[np.isnan(dist_to_sample_i)] = np.nanmean(np.delete(dist_to_sample_i, [i]))
         # sort to find the closest samples
-        min_dist_indexes = np.argpartition(dist_to_sample_i, num_neighbours + 1)[:num_neighbours + 1]
+        min_dist_indexes = np.argpartition(dist_to_sample_i, num_neighbours)[:num_neighbours + 1]
         min_dist_indexes_ordered = sorted(min_dist_indexes, key=lambda x, arr=dist_to_sample_i: arr[x], reverse=False)
         indexes[i, :] = min_dist_indexes_ordered[1:]
         distances[i, :] = dist_to_sample_i[min_dist_indexes_ordered[1:]]
