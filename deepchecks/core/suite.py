@@ -13,7 +13,7 @@ import io
 import abc
 import warnings
 from collections import OrderedDict
-from typing import Any, Union, List, Tuple
+from typing import Any, Union, List, Tuple, NamedTuple
 
 from IPython.core.display import display_html
 from IPython.core.getipython import get_ipython
@@ -55,7 +55,43 @@ class SuiteResult:
         self.name = name
         self.results = results
         self.extra_info = extra_info or []
+    
+    @property
+    def results_with_conditions(self) -> List[CheckResult]:
+        """Return all check results that have conditions."""
+        return [
+            it
+            for it in self.results
+            if isinstance(it, CheckResult) and it.have_conditions()
+        ]
+    
+    @property
+    def results_with_conditions_and_display(self) -> List[CheckResult]:
+        """Return check results that have conditions and display."""
+        return [
+            it
+            for it in self.results
+            if isinstance(it, CheckResult) and it.have_conditions() and it.have_display()
+        ]
+    
+    @property
+    def results_without_conditions(self) -> List[CheckResult]:
+        """Return check results that do not have conditions."""
+        return [
+            it
+            for it in self.results
+            if isinstance(it, CheckResult) and not it.have_conditions()
+        ]
 
+    @property
+    def failed_or_without_display_results(self) -> List[Union[CheckFailure, CheckResult]]:
+        """Return check failures or check results that do not have display."""
+        return [
+            it
+            for it in self.results
+            if isinstance(it, CheckFailure) or not it.have_display()
+        ]
+    
     def __repr__(self):
         """Return default __repr__ function uses value."""
         return self.name
@@ -215,3 +251,50 @@ class BaseSuite:
             raise DeepchecksValueError(f'No index {index} in suite')
         self.checks.pop(index)
         return self
+
+# class _CategorizedCheckResults(NamedTuple):
+#     with_display: List[CheckResult]
+#     with_conditions: List[CheckResult]
+#     with_condition_and_display: List[CheckResult]
+#     failed_or_without_display: List[Union[CheckResult, CheckFailure]]
+
+
+# def categorize_check_results(
+#     check_results: List[Union[CheckResult, CheckFailure]]
+# ) -> _CategorizedCheckResults:
+#     without_conditions = []
+#     with_conditions = []
+#     with_condition_and_display = []
+#     failed_or_without_display = []
+
+#     for cr in check_results:
+#         if isinstance(cr, CheckFailure):
+#             failed_or_without_display.append(cr)
+        
+#         elif isinstance(cr, CheckResult):
+#             if cr.have_conditions():
+#                 with_conditions.append(cr)
+#                 if cr.have_display():
+#                     with_condition_and_display.append(cr)
+#             elif cr.have_display():
+#                 with_display.append(cr)
+#             if not cr.have_display():
+#                 failed_or_without_display.append(cr)
+        
+#         else:
+#             # Should never reach here!
+#             raise TypeError(
+#                 "Expecting list of 'CheckResult'|'CheckFailure', "
+#                 f"but got {type(cr)}."
+#             )
+    
+#     with_condition_and_display = sorted(
+#         with_condition_and_display, 
+#         key=lambda it: it.priority
+#     )
+#     return _CategorizedCheckResults(
+#         with_display=with_display,
+#         with_conditions=with_conditions,
+#         with_condition_and_display=with_condition_and_display,
+#         failed_or_without_display=failed_or_without_display
+#     )
