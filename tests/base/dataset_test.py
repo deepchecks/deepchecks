@@ -10,7 +10,6 @@
 #
 """Contains unit tests for the Dataset class."""
 import typing as t
-import random
 
 import numpy as np
 import pandas as pd
@@ -23,7 +22,7 @@ from hamcrest import (
 
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.utils.validation import ensure_dataframe_type
-from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError
+from deepchecks.core.errors import DeepchecksValueError
 
 
 def assert_dataset(dataset: Dataset, args):
@@ -107,12 +106,6 @@ def test_that_mutable_properties_modification_does_not_affect_dataset_state(iris
 
     assert_that("New value" not in dataset.features)
     assert_that("New value" not in dataset.cat_features)
-
-
-def test_dataset_empty_df(empty_df):
-    args = {'df': empty_df}
-    dataset = Dataset(**args)
-    assert_dataset(dataset, args)
 
 
 def test_dataset_feature_columns(iris):
@@ -833,41 +826,6 @@ def test_sample_drop_nan_labels(iris):
     sample = dataset.sample(10000, drop_na_label=True)
     # Assert
     assert_that(sample, has_length(50))
-
-
-def test__ensure_not_empty_dataset(iris: pd.DataFrame):
-    # Arrange
-    ds = Dataset(iris)
-    # Act
-    ds = Dataset.ensure_not_empty_dataset(ds)
-
-
-def test__ensure_not_empty_dataset__with_empty_dataset():
-    # Arrange
-    ds = Dataset(pd.DataFrame())
-    # Assert
-    assert_that(
-        calling(Dataset.ensure_not_empty_dataset).with_args(ds),
-        raises(DatasetValidationError, r'dataset cannot be empty')
-    )
-
-
-def test__ensure_not_empty_dataset__with_dataframe(iris: pd.DataFrame):
-    # Arrange
-    ds = Dataset.ensure_not_empty_dataset(iris)
-    # Assert
-    assert_that(ds, instance_of(Dataset))
-    assert_that(ds.features, has_length(0))
-    assert_that(ds.label_name, equal_to(None))
-    assert_that(ds.n_samples, equal_to(len(iris)))
-
-
-def test__ensure_not_empty_dataset__with_empty_dataframe():
-    # Assert
-    assert_that(
-        calling(Dataset.ensure_not_empty_dataset).with_args(pd.DataFrame()),
-        raises(DatasetValidationError, r'dataset cannot be empty')
-    )
 
 
 def test__datasets_share_features(iris: pd.DataFrame):

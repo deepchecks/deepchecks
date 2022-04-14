@@ -71,10 +71,6 @@ class Context:
         # Validations
         if train is None and test is None and model is None:
             raise DeepchecksValueError('At least one dataset (or model) must be passed to the method!')
-        if train is not None:
-            train = Dataset.ensure_not_empty_dataset(train)
-        if test is not None:
-            test = Dataset.ensure_not_empty_dataset(test)
         # If both dataset, validate they fit each other
         if train and test:
             if not Dataset.datasets_share_label(train, test):
