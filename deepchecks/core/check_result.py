@@ -504,3 +504,12 @@ class CheckFailure:
         tb_str = traceback.format_exception(etype=type(self.exception), value=self.exception,
                                             tb=self.exception.__traceback__)
         return ''.join(tb_str)
+
+    def _ipython_display_(self):
+        """Display the check failure."""
+        check_html = f'<h4>{self.header}</h4>'
+        if hasattr(self.check.__class__, '__doc__'):
+            summary = get_docs_summary(self.check)
+            check_html += f'<p>{summary}</p>'
+        check_html += f'<p style="color:red"> {self.exception}</p>'
+        display_html(check_html, raw=True)

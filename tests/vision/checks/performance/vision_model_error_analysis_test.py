@@ -10,9 +10,9 @@
 #
 """Test functions of the VISION model error analysis."""
 
-from hamcrest import assert_that, equal_to, calling, raises, close_to
+from hamcrest import assert_that, equal_to, instance_of
 
-from deepchecks.core.errors import DeepchecksProcessError
+from deepchecks import CheckFailure
 from deepchecks.vision.checks import ModelErrorAnalysis
 
 
@@ -50,6 +50,6 @@ def test_classification_not_interesting(mnist_dataset_train, mock_trained_mnist,
     train, test = mnist_dataset_train, mnist_dataset_train
 
     # Assert
-    assert_that(calling(check.run).with_args(
+    assert_that(check.run(
         train, test, mock_trained_mnist,
-        device=device), raises(DeepchecksProcessError))
+        device=device), instance_of(CheckFailure))
