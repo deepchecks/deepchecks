@@ -45,13 +45,15 @@ class RareCategoryEncoder:
         self.cols = cols
         self._col_mapping = None
 
-    def fit(self, data: pd.DataFrame):
+    def fit(self, data: pd.DataFrame, y=None):  # noqa # pylint: disable=unused-argument
         """Fit the encoder using given dataframe.
 
         Parameters
         ----------
         data : pd.DataFrame
             data to fit from
+        y :
+            Unused, but needed for sklearn pipeline
         """
         if self.cols is not None:
             self._col_mapping = data[self.cols].apply(self._fit_for_series, axis=0)
@@ -80,13 +82,15 @@ class RareCategoryEncoder:
             data = data.apply(lambda s: s.map(self._col_mapping[s.name]))
         return data
 
-    def fit_transform(self, data: pd.DataFrame):
+    def fit_transform(self, data: pd.DataFrame, y=None):  # noqa # pylint: disable=unused-argument
         """Run `fit` and `transform` on given data.
 
         Parameters
         ----------
         data : pd.DataFrame
             data to fit on and transform
+        y :
+            Unused, but needed for sklearn pipeline
         Returns
         -------
         DataFrame
