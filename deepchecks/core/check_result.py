@@ -34,7 +34,7 @@ from deepchecks.core.condition import Condition, ConditionCategory, ConditionRes
 from deepchecks.core.display_pandas import dataframe_to_html, get_conditions_table
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.dataframes import un_numpy
-from deepchecks.utils.strings import get_docs_summary, widget_to_html
+from deepchecks.utils.strings import create_new_file_name, get_docs_summary, widget_to_html
 from deepchecks.utils.ipython import is_notebook
 from deepchecks.utils.wandb_utils import set_wandb_run_state
 
@@ -204,6 +204,8 @@ class CheckResult:
         if file is None:
             file = 'output.html'
         widgeted_output = self.display_check(as_widget=True)
+        if isinstance(file, str):
+            file = create_new_file_name(file, 'html')
         widget_to_html(widgeted_output, html_out=file, title=self.get_header(), requirejs=requirejs)
 
     def _display_to_json(self) -> List[Tuple[str, str]]:
