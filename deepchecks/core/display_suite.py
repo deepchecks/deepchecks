@@ -26,7 +26,7 @@ from ipywidgets.embed import embed_minimal_html, dependency_state
 
 from deepchecks.core import errors
 from deepchecks.utils.ipython import is_widgets_enabled
-from deepchecks.utils.strings import create_new_file_name, get_random_string
+from deepchecks.utils.strings import create_new_file_name, get_random_string, widget_to_html
 from deepchecks.core.check_result import CheckResult, CheckFailure
 from deepchecks.core.display_pandas import (
     dataframe_to_html, get_conditions_table,
@@ -181,14 +181,7 @@ def _display_suite_widgets(summary: str,
     if html_out:
         if isinstance(html_out, str):
             html_out = create_new_file_name(html_out, 'html')
-        curr_path = os.path.dirname(os.path.abspath(__file__))
-        with open(os.path.join(curr_path, 'resources', 'suite_output.html'), 'r', encoding='utf8') as html_file:
-            html_formatted = re.sub('{', '{{', html_file.read())
-            html_formatted = re.sub('}', '}}', html_formatted)
-            html_formatted = re.sub('html_title', '{title}', html_formatted)
-            html_formatted = re.sub('widget_snippet', '{snippet}', html_formatted)
-            embed_minimal_html(html_out, views=[page], title='Suite Output', template=html_formatted,
-                               requirejs=requirejs, embed_url=None, state=dependency_state(page))
+        widget_to_html(page, html_out=html_out, title='Suite Output', requirejs=requirejs)
     else:
         display(page)
 
