@@ -13,7 +13,7 @@ import io
 import abc
 import warnings
 from collections import OrderedDict
-from typing import Any, Union, List, Tuple
+from typing import Any, Union, List, Tuple, Dict
 
 from IPython.core.display import display_html
 from IPython.core.getipython import get_ipython
@@ -140,7 +140,14 @@ class SuiteResult:
         if dedicated_run:
             wandb.finish()
 
-    def get_failures(self):
+    def get_failures(self) -> Dict[str, CheckFailure]:
+        """Get all the failed checks.
+
+        Returns
+        -------
+        Dict[str, CheckFailure]
+            All the check failures in the suite.
+        """
         failures = {}
         for res in self.results:
             if isinstance(res, CheckFailure):
