@@ -82,6 +82,12 @@ def assert_dataset(dataset: Dataset, args):
                 is_(True)
             )
 
+
+def test_that_cant_create_empty_dataset():
+    assert_that(calling(Dataset).with_args(pd.DataFrame()),
+                raises(DeepchecksValueError, 'Can\'t create a Dataset object with an empty dataframe'))
+
+
 def test_that_mutable_properties_modification_does_not_affect_dataset_state(iris):
     dataset = Dataset(
         df=iris,
