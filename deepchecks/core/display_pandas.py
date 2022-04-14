@@ -92,8 +92,7 @@ def get_conditions_table(check_results: Union['CheckResult', List['CheckResult']
             icon = cond_result.get_icon() if icon_html else cond_result.category.value
             check_header = check_result.get_header()
             if unique_id and check_result.have_display():
-                check_id = f'{check_result.check.__class__.__name__}_{unique_id}'
-                link = f'<a href=#{check_id}>{check_header}</a>'
+                link = f'<a href=#{check_result.get_check_id(unique_id)}>{check_header}</a>'
             else:
                 link = check_header
                 # if it has no display show on bottom for the category (lower priority)
@@ -131,8 +130,7 @@ def get_result_navigation_display(check_results: List['CheckResult'], unique_id:
     for check_result in check_results:
         if check_result.have_display():
             check_header = check_result.get_header()
-            check_id = f'{check_result.check.__class__.__name__}_{unique_id}'
-            link = f'<a href=#{check_id}>{check_header}</a>'
+            link = f'<a href=#{check_result.get_check_id(unique_id)}>{check_header}</a>'
             summary = get_docs_summary(check_result.check)
             table.append([link, summary])
 

@@ -31,8 +31,8 @@ class HeatmapComparison(TrainTestCheck):
     """Check if the average image brightness (or bbox location if applicable) is similar between train and test set.
 
     The check computes the average grayscale image per dataset (train and test) and compares the resulting images.
-    This comparison may serve to visualize differences in the statistics of the datasets. Additionally, in case of an
-    object detection task, the check will compare the average locations of the bounding boxes between the datasets.
+    Additionally, in case of an object detection task, the check will compare the average locations of the bounding
+    boxes between the datasets.
 
     Parameters
     ----------
@@ -157,11 +157,9 @@ class HeatmapComparison(TrainTestCheck):
     @staticmethod
     def plot_row_of_heatmaps(train_img: np.ndarray, test_img: np.ndarray, title: str) -> go.Figure:
         """Plot a row of heatmaps for train and test images."""
-        fig = make_subplots(rows=1, cols=3, column_titles=['Train', 'Test', 'Test To Train Diffrence'])
+        fig = make_subplots(rows=1, cols=2, column_titles=['Train', 'Test'])
         fig.add_trace(numpy_grayscale_to_heatmap_figure(train_img), row=1, col=1)
         fig.add_trace(numpy_grayscale_to_heatmap_figure(test_img), row=1, col=2)
-        fig.add_trace(numpy_grayscale_to_heatmap_figure(HeatmapComparison._image_diff(test_img, train_img)),
-                      row=1, col=3)
         fig.update_yaxes(showticklabels=False, visible=True, fixedrange=True, automargin=True)
         fig.update_xaxes(showticklabels=False, visible=True, fixedrange=True, automargin=True)
         fig.update_layout(title=title)
@@ -217,7 +215,7 @@ class HeatmapComparison(TrainTestCheck):
         return_bbox_image_batch = []
         for image, label in zip(image_batch, label_batch):
             return_bbox_image_batch.append(
-                self._label_to_image(label.detach().cpu().numpy(), image.shape[:2])
+                self._label_to_image(label.cpu().detach().numpy(), image.shape[:2])
             )
         return return_bbox_image_batch
 

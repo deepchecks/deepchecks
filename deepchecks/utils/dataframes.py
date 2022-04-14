@@ -34,12 +34,12 @@ def un_numpy(val):
     -------
         returns the numpy value in a native type.
     """
-    if isinstance(val, np.bool_):
-        return str(val)
-    if isinstance(val, (np.float64, np.float_)):
+    if isinstance(val, np.generic):
         if np.isnan(val):
             return None
-        return float(val)
+        return val.item()
+    if isinstance(val, np.ndarray):
+        return val.tolist()
     return val
 
 
@@ -110,7 +110,7 @@ def select_from_dataframe(
     ------
     DeepchecksValueError
         If some columns do not exist within provided dataframe;
-        If 'columns' and 'ignore_columns' arguments is 'None'.
+        If 'columns' and 'ignore_columns' arguments are both not 'None'.
     """
     if columns is not None and ignore_columns is not None:
         raise DeepchecksValueError(

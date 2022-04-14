@@ -2,6 +2,7 @@
 """
 Heatmap Comparison
 ******************
+
 This notebooks provides an overview for using and understanding Heatmap comparison check.
 
 **Structure:**
@@ -20,11 +21,10 @@ over time, or when applied to new scenarios.
 
 The **Heatmap comparison** check simply
 computes an average image for all images in each dataset, train and test, and visualizes
-both the average images and the difference between the average images. That way,
-if there a significant average difference between two datasets it would be apparent in
-these average images. For example, if training data contains significantly more images
-with sky, we will see that the average train image is brighter in the upper half of the
-image.
+both the average images of both. That way, we can visually compare the difference between
+the datasets' brightness distribution. For example, if training data contains significantly
+more images with sky, we will see that the average train image is brighter in the upper half
+of the heatmap.
 
 Comparing Labels for Object Detection
 -------------------------------------

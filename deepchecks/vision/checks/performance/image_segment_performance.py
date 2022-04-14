@@ -48,6 +48,8 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         Maximum number of bins to segment a single property into.
     number_of_samples_to_infer_bins : int, default : 1000
         Minimum number of samples to use to infer the bounds of the segments' bins
+    n_show_top : int , default: 3
+        number of properties to show (shows by top diffrence by first metric)
     """
 
     def __init__(
@@ -56,6 +58,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         alternative_metrics: t.Optional[t.Dict[str, Metric]] = None,
         number_of_bins: int = 5,
         number_of_samples_to_infer_bins: int = 1000,
+        n_to_show: int = 3,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -67,6 +70,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
 
         self.alternative_metrics = alternative_metrics
         self.number_of_bins = number_of_bins
+        self.n_to_show = n_to_show
         self.number_of_samples_to_infer_bins = number_of_samples_to_infer_bins
         self._state = None
 
@@ -78,7 +82,6 @@ class ImageSegmentPerformance(SingleDatasetCheck):
 
     def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Update the bins by the image properties."""
-        dataset = context.get_data_by_kind(dataset_kind)
         images = batch.images
         predictions = batch.predictions
         labels = batch.labels
@@ -102,7 +105,8 @@ class ImageSegmentPerformance(SingleDatasetCheck):
             # Check if enough data to infer bins
             if len(samples_for_bin) >= self.number_of_samples_to_infer_bins:
                 # Create the bins and metrics, and divide all cached data into the bins
-                self._state['bins'] = self._create_bins_and_metrics(samples_for_bin, dataset)
+                self._state['bins'] = self._create_bins_and_metrics(samples_for_bin,
+                                                                    context.get_data_by_kind(dataset_kind))
                 # Remove the samples cache which are no longer needed (free the memory)
                 del samples_for_bin
 
@@ -131,12 +135,10 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         for property_name, prop_bins in bins.items():
             # Calculate scale for the numbers formatting in the display of range
             bins_scale = max([_get_range_scale(b['start'], b['stop']) for b in prop_bins])
+            # If we have a low number of unique values for a property, the first bin (-inf, x) might be empty so
+            # check the count, and if empty filter out the bin
+            prop_bins = list(filter(lambda x: x['count'] > 0, prop_bins))
             for single_bin in prop_bins:
-                # If we have a low number of unique values for a property, the first bin (-inf, x) might be empty so
-                # check the count, and if empty filter out the bin
-                if single_bin['count'] == 0:
-                    continue
-
                 display_range = _range_string(single_bin['start'], single_bin['stop'], bins_scale)
                 bin_data = {
                     'Range': display_range,
@@ -147,26 +149,39 @@ class ImageSegmentPerformance(SingleDatasetCheck):
                 # in order to return the bins object as the check result value
                 single_bin['metrics'] = _calculate_metrics(single_bin['metrics'], dataset)
                 single_bin['display_range'] = display_range
-                # For the plotly display need row per metric in the dataframe
-                for metric, val in single_bin['metrics'].items():
-                    display_data.append({'Metric': metric, 'Value': val, **bin_data})
+                # we don't show single columns in the display
+                if len(prop_bins) > 1:
+                    # For the plotly display need row per metric in the dataframe
+                    for metric, val in single_bin['metrics'].items():
+                        display_data.append({'Metric': metric, 'Value': val, **bin_data})
                 # Save for result
                 result_value[property_name].append(single_bin)
 
         display_df = pd.DataFrame(display_data)
-
+        if display_df.empty:
+            return CheckResult(value=dict(result_value))
+        first_metric = display_df['Metric'][0]
+        if self.alternative_metrics is None:
+            display_df = display_df[display_df['Metric'] == first_metric]
+        top_properties = display_df[display_df['Metric'] == first_metric] \
+            .groupby('Property')[['Value']] \
+            .agg(np.ptp).sort_values('Value', ascending=False).head(self.n_to_show) \
+            .reset_index()['Property']
+        display_df = display_df[display_df['Property'].isin(top_properties)]
         fig = px.bar(
             display_df,
             x='Range',
             y='Value',
             color='Metric',
+            facet_row='Metric',
+            facet_row_spacing=0.05,
             color_discrete_sequence=plot.metric_colors,
             barmode='group',
             facet_col='Property',
-            facet_row='Metric',
             facet_col_spacing=0.05,
-            facet_row_spacing=0.05,
-            hover_data=['Number of samples']
+            hover_data=['Number of samples'],
+            title='Metric Score Per Property Value Segment '
+                  f'(showing top {self.n_to_show} properties by diffrence in segments)'
         )
 
         bar_width = 0.2
@@ -278,9 +293,17 @@ def _add_to_fitting_bin(bins: t.List[t.Dict], property_value, label, prediction)
         if single_bin['start'] <= property_value < single_bin['stop']:
             single_bin['count'] += 1
             for metric in single_bin['metrics'].values():
-                # Since this is a single prediction and label need to wrap in tensor
-                metric.update((torch.unsqueeze(prediction, 0), torch.unsqueeze(label, 0)))
+                # Since this is a single prediction and label need to wrap in tensor/label, in order to pass the
+                # expected shape to the metric
+                metric.update((_wrap_torch_or_list(prediction), _wrap_torch_or_list(label)))
             return
+
+
+def _wrap_torch_or_list(value):
+    """Unsqueeze the value if it is a tensor or wrap in list otherwise."""
+    if isinstance(value, torch.Tensor):
+        return torch.unsqueeze(value, 0)
+    return [value]
 
 
 def _range_string(start, stop, precision):

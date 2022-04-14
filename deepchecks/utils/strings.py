@@ -20,12 +20,19 @@ from collections import defaultdict
 from decimal import Decimal
 from copy import copy
 
+from ipywidgets import Widget
+from ipywidgets.embed import embed_minimal_html, dependency_state
 import pandas as pd
 from pandas.core.dtypes.common import is_numeric_dtype
 
 import deepchecks
 from deepchecks import core
 from deepchecks.utils.typing import Hashable
+
+try:
+    from importlib.resources import files
+except ImportError:
+    from importlib_resources import files
 
 
 __all__ = [
@@ -43,7 +50,8 @@ __all__ = [
     'get_docs_summary',
     'get_ellipsis',
     'to_snake_case',
-    'create_new_file_name'
+    'create_new_file_name',
+    'widget_to_html',
 ]
 
 
@@ -92,6 +100,30 @@ def get_docs_summary(obj, with_doc_link: bool = True):
     return summary
 
 
+def widget_to_html(widget: Widget, html_out: t.Any, title: str = None, requirejs: bool = True):
+    """Save widget as html file.
+
+    Parameters
+    ----------
+    widget: Widget
+        The widget to save as html.
+    html_out: filename or file-like object
+        The file to write the HTML output to.
+    title: str , default: None
+        The title of the html file.
+    requirejs: bool , default: True
+        If to save with all javascript dependencies
+    """
+    my_resources = files('deepchecks.core')
+    with open(os.path.join(my_resources, 'resources', 'suite_output.html'), 'r', encoding='utf8') as html_file:
+        html_formatted = re.sub('{', '{{', html_file.read())
+        html_formatted = re.sub('}', '}}', html_formatted)
+        html_formatted = re.sub('html_title', '{title}', html_formatted)
+        html_formatted = re.sub('widget_snippet', '{snippet}', html_formatted)
+        embed_minimal_html(html_out, views=[widget], title=title, template=html_formatted,
+                           requirejs=requirejs, embed_url=None, state=dependency_state(widget))
+
+
 def _generate_check_docs_link_html(check):
     """Create from check object a link to its example page in the docs."""
     if not isinstance(check, core.BaseCheck):
@@ -122,16 +154,15 @@ def _generate_check_docs_link_html(check):
     # compare check full name and link to the notebook to
     # understand how link is formatted:
     #
-    # - deepchecks.tabular.checks.integrity.new_category.CategoryMismatchTrainTest
-    # - docs.deepchecks.com/{version}/examples/tabular/checks/integrity/category_mismatch_train_test.html # noqa: E501 # pylint: disable=line-too-long
+    # - deepchecks.tabular.checks.integrity.StringMismatchComparison
+    # - https://docs.deepchecks.com/{version}/examples/tabular/checks/integrity/examples/plot_string_mismatch_comparison.html # noqa: E501 # pylint: disable=line-too-long
 
     # Remove deepchecks from the start
     module_path = module_path[len('deepchecks.'):]
-    # There is a bug in doc rendering where the "tabular" is omitted, so do it for now
-    if module_path.startswith('tabular.'):
-        module_path = module_path[len('tabular.'):]
-
-    url = '/'.join([*module_path.split('.')])
+    module_parts = module_path.split('.')
+    module_parts[-1] = f'plot_{module_parts[-1]}'
+    module_parts.insert(len(module_parts) - 1, 'examples')
+    url = '/'.join([*module_parts])
     version = deepchecks.__version__ or 'stable'
     link = link_template.format(version=version, path=url)
     return f' <a href="{link}" target="_blank">Read More...</a>'

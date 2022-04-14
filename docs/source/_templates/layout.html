@@ -71,4 +71,25 @@
             });
         });
     </script>
-    {% endblock %}
+{% endblock %}
+
+{% block docs_main %}
+    {% if sidebars %}
+        {% set content_col_class = "col-md-9 col-xl-7" %}
+    {% else %}
+        {% set content_col_class = "col-md-11 col-xl-8" %}
+    {% endif %}
+    <main class="col-12 {{ content_col_class }} py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+        {% if get_check_example_api_reference(pagename) %}
+            {{ get_check_example_api_reference(pagename) }}
+        {% endif %}
+        {% block docs_body %}
+            <div>
+                {% block body %} {% endblock %}
+            </div>
+        {% endblock %}
+        {% if theme_show_prev_next %}
+            {% include "prev-next.html" %}
+        {% endif %}
+    </main>
+{% endblock %}

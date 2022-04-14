@@ -29,7 +29,7 @@ sys.path.insert(0, VISION_DIR)
 
 from deepchecks.utils.strings import to_snake_case
 
-with open(os.path.join(PROJECT_DIR, 'VERSION')) as version_file:
+with open(os.path.join(PROJECT_DIR, 'deepchecks', 'VERSION')) as version_file:
     VERSION = version_file.read().strip()
 
 # -- Project information -----------------------------------------------------
@@ -96,10 +96,8 @@ redirects = {
     "examples/checks/performance/index": "../../../examples/tabular/checks/performance/examples/index.html",
     "user-guide/supported_models": "..//user-guide/tabular/supported_models.html",
     "examples/guides/create_a_custom_suite": "../../user-guide/general/customizations/examples/plot_create_a_custom_suite.html",
-    "examples/guides/export_outputs_to_wandb": "../..//user-guide/general/exporting_results/examples/plot_export_output_to_wandb.html",
+    "examples/guides/export_outputs_to_wandb": "../../user-guide/general/exporting_results/examples/plot_exports_output_to_wandb.html",
     "examples/guides/save_suite_result_as_html": "../../user-guide/general/exporting_results/examples/plot_save_suite_results_as_html.html",
-
-
 }
 imgmath_image_format = 'svg'
 
@@ -206,8 +204,18 @@ autosummary_ignore_module_all = False
 
 # A dictionary of values to pass into the template engine’s context
 # for autosummary stubs files.
-#
-# autosummary_context = {'to_snake_case': to_snake_case}
+
+def path_exists(path: str):
+    return os.path.exists(path)
+
+def getswd(pth: str):
+    return os.getcwd()
+
+autosummary_context = {
+    'to_snake_case': to_snake_case, 
+    'path_exists': path_exists, 
+    'getcwd': os.getcwd
+}
 
 # TODO: explaine
 autosummary_filename_map = {
@@ -263,7 +271,6 @@ copybutton_prompt_is_regexp = True
 
 # Continue copying lines as long as they end with this character
 copybutton_line_continuation_character = "\\"
-
 
 # -- Linkcode ----------------------------------------------------------------
 
@@ -427,6 +434,33 @@ for line in open('nitpick-exceptions'):
     target = target.strip()
     nitpick_ignore.append((dtype, target))
 
+def get_check_example_api_reference(filepath: str) -> t.Optional[str]:
+    if not (
+        filepath.startswith("docs/source/examples/tabular/checks/")
+        or filepath.startswith("docs/source/examples/vision/checks/")
+        or filepath.startswith("examples/tabular/checks/")
+        or filepath.startswith("examples/vision/checks/")
+    ):
+        return ''
+
+    notebook_name = snake_case_to_camel_case(
+        filepath.split("/")[-1][5:]
+            .replace(".txt", "")
+            .replace(".ipynb", "")
+            .replace(".py", "")
+    )
+
+    import deepchecks.checks
+    check_clazz = getattr(deepchecks.checks, notebook_name, None)
+
+    if check_clazz is None or not hasattr(check_clazz, "__module__"):
+        return
+
+    clazz_module = ".".join(check_clazz.__module__.split(".")[:-1])
+
+    apipath = f"<ul><li><a href='../../../../../api/generated/{clazz_module}.{notebook_name}.html'>API Reference - {notebook_name}</a></li></ul>"
+    return apipath
+
 def get_report_issue_url(pagename: str) -> str:
     template = (
         "https://github.com/{user}/{repo}/issues/new?title={title}&body={body}&labels={labels}"
@@ -443,14 +477,12 @@ def get_report_issue_url(pagename: str) -> str:
 def snake_case_to_camel_case(val: str) -> str:
     return "".join(it.capitalize() for it in val.split("_") if it)
 
-
 # -- Registration of hooks ---------
-
-
 def setup(app):
 
     def add_custom_routines(app, pagename, templatename, context, doctree):
         context["get_report_issue_url"] = get_report_issue_url
+        context["get_check_example_api_reference"] = get_check_example_api_reference
 
     # make custom routines available within html templates
     app.connect("html-page-context", add_custom_routines)

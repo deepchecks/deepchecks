@@ -2,6 +2,7 @@
 """
 Export Suite Output to a HTML Report
 ************************************
+
 In this guide, we will demonstrate how to export a suite's output as an
 HTML report. This enables easily sharing the results easier and also
 using deepchecks outside of the notebook environment.

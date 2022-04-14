@@ -105,6 +105,8 @@ class TrainTestFeatureDrift(TrainTestCheck):
         train_dataset: Dataset = context.train
         test_dataset: Dataset = context.test
         features_importance = context.features_importance
+        train_dataset.assert_features()
+        test_dataset.assert_features()
 
         train_dataset = train_dataset.select(
                 self.columns, self.ignore_columns
@@ -147,8 +149,8 @@ class TrainTestFeatureDrift(TrainTestCheck):
         if self.sort_feature_by == 'feature importance' and features_importance is not None:
             columns_order = features_importance.sort_values(ascending=False).head(self.n_top_columns).index
         else:
-            columns_order = sorted(train_dataset.features, key=lambda col: values_dict[col]['Drift score'], reverse=True
-                                   )[:self.n_top_columns]
+            columns_order = sorted(list(values_dict.keys()), key=lambda col: values_dict[col]['Drift score'],
+                                   reverse=True)[:self.n_top_columns]
 
         sorted_by = self.sort_feature_by if features_importance is not None else 'drift score'
 

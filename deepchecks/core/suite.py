@@ -13,7 +13,7 @@ import io
 import abc
 import warnings
 from collections import OrderedDict
-from typing import Any, Union, List, Tuple
+from typing import Any, Union, List, Tuple, Dict
 
 from IPython.core.display import display_html
 from IPython.core.getipython import get_ipython
@@ -47,12 +47,14 @@ class SuiteResult:
     """
 
     name: str
+    extra_info: List[str]
     results: List[Union[CheckResult, CheckFailure]]
 
-    def __init__(self, name: str, results):
+    def __init__(self, name: str, results, extra_info: List[str] = None):
         """Initialize suite result."""
         self.name = name
         self.results = results
+        self.extra_info = extra_info or []
 
     def __repr__(self):
         """Return default __repr__ function uses value."""
@@ -62,10 +64,10 @@ class SuiteResult:
         # google colab has no support for widgets but good support for viewing html pages in the output
         if 'google.colab' in str(get_ipython()):
             html_out = io.StringIO()
-            display_suite_result(self.name, self.results, html_out=html_out)
+            display_suite_result(self.name, self.results, self.extra_info, html_out=html_out)
             display_html(html_out.getvalue(), raw=True)
         else:
-            display_suite_result(self.name, self.results)
+            display_suite_result(self.name, self.results, self.extra_info)
 
     def show(self):
         """Display suite result."""
@@ -96,7 +98,7 @@ class SuiteResult:
         """
         if file is None:
             file = 'output.html'
-        display_suite_result(self.name, self.results, html_out=file, requirejs=requirejs)
+        display_suite_result(self.name, self.results, self.extra_info, html_out=file, requirejs=requirejs)
 
     def to_json(self, with_display: bool = True):
         """Return check result as json.
@@ -137,6 +139,20 @@ class SuiteResult:
         progress_bar.close()
         if dedicated_run:
             wandb.finish()
+
+    def get_failures(self) -> Dict[str, CheckFailure]:
+        """Get all the failed checks.
+
+        Returns
+        -------
+        Dict[str, CheckFailure]
+            All the check failures in the suite.
+        """
+        failures = {}
+        for res in self.results:
+            if isinstance(res, CheckFailure):
+                failures[res.header] = res
+        return failures
 
 
 class BaseSuite:

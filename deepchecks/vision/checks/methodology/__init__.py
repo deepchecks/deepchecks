@@ -10,7 +10,9 @@
 #
 """Module containing the distribution checks in the vision package."""
 from .simple_feature_contribution import SimpleFeatureContribution
+from .similar_image_leakage import SimilarImageLeakage
 
 __all__ = [
     'SimpleFeatureContribution',
+    'SimilarImageLeakage'
 ]

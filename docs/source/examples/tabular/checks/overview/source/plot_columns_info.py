@@ -2,7 +2,6 @@
 """
 Columns Info
 ************
-
 Imports
 =======
 """
