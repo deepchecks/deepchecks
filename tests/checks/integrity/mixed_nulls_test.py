@@ -16,6 +16,7 @@ from hamcrest import assert_that, has_length, has_entry, has_items, calling, rai
 
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.checks.integrity.mixed_nulls import MixedNulls
+from deepchecks.core.errors import DatasetValidationError
 from tests.checks.utils import equal_condition_result
 
 
@@ -37,6 +38,15 @@ def test_single_column_one_null_type():
     result = MixedNulls().run(dataframe)
     # Assert - Single null type is allowed so return is 0
     assert_that(result.value, has_length(0))
+
+
+def test_empty_dataframe():
+    # Arrange
+    data = {'col1': []}
+    dataframe = pd.DataFrame(data=data)
+    # Act
+    assert_that(calling(MixedNulls().run).with_args(dataframe),
+                raises(DatasetValidationError, 'dataset cannot be empty'))
 
 
 def test_different_null_types():

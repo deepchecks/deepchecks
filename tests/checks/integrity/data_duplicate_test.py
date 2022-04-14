@@ -11,9 +11,10 @@
 """Tests for Mixed Nulls check"""
 import pandas as pd
 import numpy as np
-from hamcrest import assert_that, close_to, equal_to, has_items
+from hamcrest import assert_that, close_to, equal_to, calling, raises, has_items
 
 from deepchecks.core import ConditionCategory
+from deepchecks.core.errors import DatasetValidationError
 from deepchecks.tabular.checks.integrity.data_duplicates import DataDuplicates
 
 from tests.checks.utils import equal_condition_result
@@ -71,6 +72,15 @@ def test_data_duplicates_no_duplicate():
                                    'col3': [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]})
     check_obj = DataDuplicates()
     assert_that(check_obj.run(duplicate_data).value, equal_to(0))
+
+
+def test_data_duplicates_empty():
+    no_data = pd.DataFrame({'col1': [],
+                            'col2': [],
+                            'col3': []})
+    assert_that(
+        calling(DataDuplicates().run).with_args(no_data),
+        raises(DatasetValidationError, 'dataset cannot be empty'))
 
 
 def test_data_duplicates_ignore_index_column():
