@@ -866,7 +866,7 @@ class Dataset:
             return self.copy(new_data)
 
     @classmethod
-    def ensure_not_empty_dataset(cls, obj: t.Any) -> 'Dataset':
+    def cast_to_dataset(cls, obj: t.Any) -> 'Dataset':
         """Verify Dataset or transform to Dataset.
 
         Function verifies that provided value is a non-empty instance of Dataset,
@@ -883,8 +883,6 @@ class Dataset:
         DeepchecksValueError
             if the provided value is not a Dataset instance;
             if the provided value cannot be transformed into Dataset instance;
-        DatasetValidationError
-            if the provided value is empty Dataset instance;
         """
         if isinstance(obj, pd.DataFrame):
             obj = Dataset(obj, features=[], cat_features=[])
@@ -892,8 +890,6 @@ class Dataset:
             raise DeepchecksValueError(
                 f'non-empty instance of Dataset or DataFrame was expected, instead got {type(obj).__name__}'
             )
-        if len(obj.data) == 0:
-            raise DatasetValidationError('dataset cannot be empty')
         return obj
 
     @classmethod
