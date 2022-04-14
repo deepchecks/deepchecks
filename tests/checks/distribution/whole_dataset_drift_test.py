@@ -124,6 +124,9 @@ def test_over_255_categories_in_column():
 
     df_test['categorical_with_many_categories'] = np.random.choice(a=categories[20:280], size=(1000, 1))
 
+    df_train = df_train.astype({'numeric_without_drift': 'float'})
+    df_test = df_test.astype({'numeric_without_drift': 'float'})
+
     label = np.random.randint(0, 2, size=(df_train.shape[0],))
     df_train['target'] = label
     train_ds = Dataset(df_train, cat_features=['categorical_with_many_categories'], label='target')
@@ -138,4 +141,4 @@ def test_over_255_categories_in_column():
     result = check.run(train_ds, test_ds)
 
     # Assert
-    assert_that(result.value['domain_classifier_drift_score'], close_to(0.02581, 0.001))
+    assert_that(result.value['domain_classifier_drift_score'], close_to(0.0983, 0.001))
