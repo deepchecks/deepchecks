@@ -160,4 +160,4 @@ def test_get_error(iris_split_dataset_and_model_custom,
 
     result = suite.run(train_dataset=iris_train, test_dataset=iris_test, model=iris_model)
     assert_that(result.get_failures(), has_length(1))
-    assert_that(result.get_failures()[0], instance_of(CheckFailure))
+    assert_that(result.get_failures()['Model Error Analysis'], instance_of(CheckFailure))

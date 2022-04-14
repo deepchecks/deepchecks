@@ -141,10 +141,10 @@ class SuiteResult:
             wandb.finish()
 
     def get_failures(self):
-        failures = []
+        failures = {}
         for res in self.results:
             if isinstance(res, CheckFailure):
-                failures.append(res)
+                failures[res.header] = res
         return failures
 
 
