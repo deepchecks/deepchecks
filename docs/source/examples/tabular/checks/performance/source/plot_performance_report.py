@@ -2,71 +2,68 @@
 """
 Performance Report
 ******************
+This notebooks provides an overview for using and understanding performance report check.
+
+**Structure:**
+
+* `What is the purpose of the check? <#what-is-the-purpose-of-the-check>`__
+* `Generate data & model <#generate-data-model>`__
+* `Run the check <#run-the-check>`__
+* `Define a condition <#define-a-condition>`__
+* `Using alternative scorers <#using-alternative-scorers>`__
+
+What is the purpose of the check?
+=================================
+This check helps you compare your model's performance between two datasets.
+The default metric that are used are F1, Percision, and Recall for Classification
+and Negative Root Mean Square Error, Negative Mean Absolute Error, and R2 for Regression. RMSE and MAE Scorers are
+negative because we subscribe to the sklearn convention of defining scoring functions.
+`See scorers documentation <https://scikit-learn.org/stable/modules/model_evaluation.html#scoring>`_
+
 """
 
 #%%
-# Imports
-# =======
+# Generate data & model
+# =====================
 
-from deepchecks.tabular import Dataset
-import matplotlib.pyplot as plt
-from sklearn.ensemble import AdaBoostClassifier, AdaBoostRegressor
-from sklearn.datasets import load_iris
-import pandas as pd
-from sklearn.model_selection import train_test_split
+from deepchecks.tabular.datasets.classification.phishing import load_data, load_fitted_model
+
+train_dataset, test_dataset = load_data()
+model = load_fitted_model()
+
+#%%
+# Run the check
+# =============
+
 from deepchecks.tabular.checks.performance import PerformanceReport
 
-#%%
-# Generating data
-# ===============
-
-iris = load_iris(as_frame=True)
-clf = AdaBoostClassifier()
-frame = iris.frame
-X = iris.data
-Y = iris.target
-X_train, X_test, y_train, y_test = train_test_split(
-            X, Y, test_size=0.33, random_state=42)
-train_ds = Dataset(pd.concat([X_train, y_train], axis=1), 
-            features=iris.feature_names,
-            label='target')
-test_ds = Dataset(pd.concat([X_test, y_test], axis=1), 
-            features=iris.feature_names,
-            label='target')
-_ = clf.fit(X_train, y_train)
+check = PerformanceReport()
+check.run(train_dataset, test_dataset, model)
 
 #%%
-# Running peformance report on classification
-# ===========================================
+# Define a condition
+# ==================
+# We can define on our check a condition that will validate that our model doesn't degrade
+# on new data.
+#
+# Let's add a condition to the check and see what happens when it fails:
 
 check = PerformanceReport()
-check.run(train_ds, test_ds, clf)
+check.add_condition_train_test_relative_degradation_not_greater_than(0.05)
+result = check.run(train_dataset, test_dataset, model)
+result.show(show_additional_outputs=False)
 
 #%%
-# Generate regression data
-# ========================
-
-from sklearn.datasets import load_diabetes
-
-diabetes = load_diabetes(as_frame=True)
-clf = AdaBoostRegressor()
-
-frame = diabetes.frame
-X = diabetes.data
-Y = diabetes.target
-X_train, X_test, y_train, y_test = train_test_split(
-            X, Y, test_size=0.33, random_state=42)
-train_ds = Dataset(pd.concat([X_train, y_train], axis=1), 
-            features=diabetes.feature_names,
-            label='target', cat_features=['sex'])
-test_ds = Dataset(pd.concat([X_test, y_test], axis=1), 
-            features=diabetes.feature_names,
-            label='target', cat_features=['sex'])
-_ = clf.fit(X_train, y_train)
+# We detected that for class "0" our the Precision result is degraded by more than 5%
 
 #%%
-# Run performance report on regression
-# ====================================
+# Using alternative scorers
+# =========================
+# We can define alternative scorers that are not run by default:
 
-check = PerformanceReport()
-check.run(train_ds, test_ds, clf)
+from sklearn.metrics import make_scorer, fbeta_score
+
+fbeta_scorer = make_scorer(fbeta_score, labels=[0, 1], average=None, beta=0.2)
+
+check = PerformanceReport(alternative_scorers={'my scorer': fbeta_scorer})
+check.run(train_dataset, test_dataset, model)

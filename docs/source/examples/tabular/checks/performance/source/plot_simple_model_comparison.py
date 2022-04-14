@@ -29,7 +29,7 @@ The simple models are:
 
 * A **constant** model - The default. In regression the prediction is equal to the
   mean value, in classification the prediction is equal to the most common value.
-* A **random88 model - Draws the prediction from the distribution of the labels in the train.
+* A **random** model - Draws the prediction from the distribution of the labels in the train.
 * A **tree** model - Trains a simple decision tree with a given depth. The depth
   can be customized using the ``max_depth`` parameter.
 """
@@ -107,6 +107,5 @@ result = check.run(train_dataset, test_dataset, model)
 result.show(show_additional_outputs=False)
 
 #%%
-# %%
 # We detected that for class "1" our gain did not passed the target gain we
 # defined, therefore it failed.
