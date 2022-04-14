@@ -11,7 +11,6 @@
 """Handle display of suite result."""
 import os
 import sys
-import re
 from typing import List, Union
 import warnings
 
@@ -22,7 +21,6 @@ import pandas as pd
 from IPython.display import display, display_html
 from IPython import get_ipython
 import ipywidgets as widgets
-from ipywidgets.embed import embed_minimal_html, dependency_state
 
 from deepchecks.core import errors
 from deepchecks.utils.ipython import is_widgets_enabled

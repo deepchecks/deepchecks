@@ -114,14 +114,14 @@ def widget_to_html(widget: Widget, html_out: t.Any, title: str = None, requirejs
     requirejs: bool , default: True
         If to save with all javascript dependencies
     """
-    my_resources = files("deepchecks.core")
+    my_resources = files('deepchecks.core')
     with open(os.path.join(my_resources, 'resources', 'suite_output.html'), 'r', encoding='utf8') as html_file:
         html_formatted = re.sub('{', '{{', html_file.read())
         html_formatted = re.sub('}', '}}', html_formatted)
         html_formatted = re.sub('html_title', '{title}', html_formatted)
         html_formatted = re.sub('widget_snippet', '{snippet}', html_formatted)
         embed_minimal_html(html_out, views=[widget], title=title, template=html_formatted,
-                            requirejs=requirejs, embed_url=None, state=dependency_state(widget))
+                           requirejs=requirejs, embed_url=None, state=dependency_state(widget))
 
 
 def _generate_check_docs_link_html(check):
