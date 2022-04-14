@@ -24,7 +24,6 @@ import numpy as np
 import ipywidgets as widgets
 import plotly.graph_objects as go
 import plotly
-from ipywidgets.embed import embed_minimal_html, dependency_state
 from plotly.basedatatypes import BaseFigure
 from matplotlib import pyplot as plt
 from IPython.display import display_html
@@ -34,7 +33,7 @@ from deepchecks.core.condition import Condition, ConditionCategory, ConditionRes
 from deepchecks.core.display_pandas import dataframe_to_html, get_conditions_table
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.dataframes import un_numpy
-from deepchecks.utils.strings import get_docs_summary
+from deepchecks.utils.strings import create_new_file_name, get_docs_summary, widget_to_html
 from deepchecks.utils.ipython import is_notebook
 from deepchecks.utils.wandb_utils import set_wandb_run_state
 
@@ -188,10 +187,25 @@ class CheckResult:
     def _repr_html_(self):
         """Return html representation of check result."""
         html_out = io.StringIO()
-        widgeted_output = self.display_check(as_widget=True)
-        embed_minimal_html(html_out, views=[widgeted_output], requirejs=False,
-                           embed_url=None, state=dependency_state(widgeted_output))
+        self.save_as_html(html_out, False)
         return html_out.getvalue()
+
+    def save_as_html(self, file=None, requirejs: bool = True):
+        """Save output as html file.
+
+        Parameters
+        ----------
+        file : filename or file-like object
+            The file to write the HTML output to. If None writes to output.html
+        requirejs: bool , default: True
+            If to save with all javascript dependencies
+        """
+        if file is None:
+            file = 'output.html'
+        widgeted_output = self.display_check(as_widget=True)
+        if isinstance(file, str):
+            file = create_new_file_name(file, 'html')
+        widget_to_html(widgeted_output, html_out=file, title=self.get_header(), requirejs=requirejs)
 
     def _display_to_json(self) -> List[Tuple[str, str]]:
         displays = []

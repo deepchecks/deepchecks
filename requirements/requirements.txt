@@ -18,6 +18,8 @@ typing_extensions>=3.7.4.3
 tqdm>=4.62.3
 category-encoders>=2.3.0
 
+importlib_resources>=1.3; python_version < '3.9'
+
 # Category encoder depends on old statsmodels version which raises pandas warning. until dependency in category-encoders
 # is updated, explicitly add it here
 statsmodels>=0.11.0
