@@ -31,7 +31,7 @@ class SuiteResultSerializer(WidgetSerializer[SuiteResult]):
         self,
         output_id: t.Optional[str] = None,
         **kwargs
-    ) -> Widget:
+    ) -> VBox:
         tab = Tab()
         tab.set_title(0, 'Checks With Conditions')
         tab.set_title(1, 'Checks Without Conditions')

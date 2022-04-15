@@ -159,7 +159,7 @@ class SuiteResultSerializer(HtmlSerializer[SuiteResult]):
             )
             for it in self.value.results_without_conditions
         ]
-        content = self.LIGHT_HR.join(results_without_conditions)
+        content = Html.light_hr.join(results_without_conditions)
         return f'<h2>Check Without Conditions Output</h2>{content}'
 
     def prepare_failures_list(self) -> str:
