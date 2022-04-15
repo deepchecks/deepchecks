@@ -13,7 +13,7 @@ import io
 import abc
 import warnings
 from collections import OrderedDict
-from typing import Any, Union, List, Tuple, NamedTuple
+from typing import Any, Union, List, Tuple, Dict
 
 from IPython.core.display import display_html
 from IPython.core.getipython import get_ipython
@@ -176,6 +176,20 @@ class SuiteResult:
         if dedicated_run:
             wandb.finish()
 
+    def get_failures(self) -> Dict[str, CheckFailure]:
+        """Get all the failed checks.
+
+        Returns
+        -------
+        Dict[str, CheckFailure]
+            All the check failures in the suite.
+        """
+        failures = {}
+        for res in self.results:
+            if isinstance(res, CheckFailure):
+                failures[res.header] = res
+        return failures
+
 
 class BaseSuite:
     """Class for running a set of checks together, and returning a unified pass / no-pass.
@@ -251,50 +265,3 @@ class BaseSuite:
             raise DeepchecksValueError(f'No index {index} in suite')
         self.checks.pop(index)
         return self
-
-# class _CategorizedCheckResults(NamedTuple):
-#     with_display: List[CheckResult]
-#     with_conditions: List[CheckResult]
-#     with_condition_and_display: List[CheckResult]
-#     failed_or_without_display: List[Union[CheckResult, CheckFailure]]
-
-
-# def categorize_check_results(
-#     check_results: List[Union[CheckResult, CheckFailure]]
-# ) -> _CategorizedCheckResults:
-#     without_conditions = []
-#     with_conditions = []
-#     with_condition_and_display = []
-#     failed_or_without_display = []
-
-#     for cr in check_results:
-#         if isinstance(cr, CheckFailure):
-#             failed_or_without_display.append(cr)
-        
-#         elif isinstance(cr, CheckResult):
-#             if cr.have_conditions():
-#                 with_conditions.append(cr)
-#                 if cr.have_display():
-#                     with_condition_and_display.append(cr)
-#             elif cr.have_display():
-#                 with_display.append(cr)
-#             if not cr.have_display():
-#                 failed_or_without_display.append(cr)
-        
-#         else:
-#             # Should never reach here!
-#             raise TypeError(
-#                 "Expecting list of 'CheckResult'|'CheckFailure', "
-#                 f"but got {type(cr)}."
-#             )
-    
-#     with_condition_and_display = sorted(
-#         with_condition_and_display, 
-#         key=lambda it: it.priority
-#     )
-#     return _CategorizedCheckResults(
-#         with_display=with_display,
-#         with_conditions=with_conditions,
-#         with_condition_and_display=with_condition_and_display,
-#         failed_or_without_display=failed_or_without_display
-#     )
