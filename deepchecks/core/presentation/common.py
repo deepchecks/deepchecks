@@ -1,13 +1,20 @@
 import typing as t
 import warnings
 import pandas as pd
+from ipywidgets import DOMWidget
 
 from deepchecks.utils.strings import get_ellipsis
 from deepchecks.core.check_result import CheckResult
 from deepchecks.core.checks import BaseCheck
 
 
-__all__ = ['aggregate_conditions', 'form_output_anchor', 'form_check_id']
+__all__ = [
+    'aggregate_conditions', 
+    'form_output_anchor', 
+    'form_check_id', 
+    'Html',
+    'normalize_widget_style'
+]
 
 
 # class CustomNotebookRenderer(plotly_renderes.NotebookRenderer):
@@ -27,6 +34,11 @@ __all__ = ['aggregate_conditions', 'form_output_anchor', 'form_check_id']
 #         return self._is_activated
 
 
+class Html:
+    bold_hr = '<hr style="background-color: black;border: 0 none;color: black;height: 1px;">'
+    light_hr = '<hr style="background-color: #eee;border: 0 none;color: #eee;height: 4px;">'
+
+
 def form_output_anchor(output_id: str) -> str:
     return f'#summary_{output_id}'
 
@@ -34,6 +46,19 @@ def form_output_anchor(output_id: str) -> str:
 def form_check_id(check: BaseCheck, output_id: str) -> str:
     check_name = type(check).__name__
     return f'{check_name}_{output_id}'
+
+
+TDOMWidget = t.TypeVar('TDOMWidget', bound=DOMWidget)
+
+
+def normalize_widget_style(w: TDOMWidget) -> TDOMWidget:
+    return (
+        w
+        .add_class('rendered_html')
+        .add_class('jp-RenderedHTMLCommon')
+        .add_class('jp-RenderedHTML')
+        .add_class('jp-OutputArea-output')
+    )
 
 
 def aggregate_conditions(

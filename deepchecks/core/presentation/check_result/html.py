@@ -23,8 +23,27 @@ CheckResultSection = t.Union[
 ]
 
 
-class _HTMLSerializerImpl:
-    value: CheckResult
+class CheckResultSerializer(HtmlSerializer[CheckResult]):
+
+    def __init__(self, value: CheckResult, **kwargs):
+        self.value = value
+
+    def serialize(
+        self,
+        output_id: t.Optional[str] = None,
+        include: t.Optional[t.Sequence[CheckResultSection]] = None,
+        **kwargs
+    ) -> str:
+        sections_to_include = verify_include_parameter(include)
+        sections = [self.prepare_header(output_id), self.prepare_summary()]
+
+        if 'condition-table' in sections_to_include:
+            sections.append(''.join(self.prepare_conditions_table(output_id=output_id)))
+
+        if 'additional-output' in sections_to_include:
+            sections.append(''.join(self.prepare_additional_output(output_id)))
+        
+        return ''.join(sections)
     
     def prepare_header(self, output_id: t.Optional[str] = None) -> str:
         header = self.value.get_header()
@@ -59,72 +78,68 @@ class _HTMLSerializerImpl:
         self,
         output_id: t.Optional[str] = None
     ) -> t.List[str]:
-        output = ['<h5><b>Additional Outputs</b></h5>']
+        return DisplayItemsHandler.handle_display(self.value.display)
 
-        for item in self.value.display:
+
+class DisplayItemsHandler:
+
+    @classmethod
+    def handle_display(
+        cls,
+        display: t.List[t.Union[t.Callable, str, pd.DataFrame, Styler]],
+        output_id: t.Optional[str] = None,
+    ) -> t.List[str]:
+        output = [cls.header()]
+
+        for item in display:
             if isinstance(item, str):
-                output.append(self.handle_display_string(item))
-
+                output.append(cls.handle_string(item))
             elif isinstance(item, (pd.DataFrame, Styler)):
-                output.append(self.handle_display_dataframe(item))
-
+                output.append(cls.handle_dataframe(item))
             elif isinstance(item, BaseFigure):
-                output.append(self.handle_display_figure(item))
-
+                output.append(cls.handle_figure(item))
             elif callable(item):
-                output.append(self.handle_display_callable(item))
-
+                output.append(cls.handle_callable(item))
             else:
                 raise TypeError(f'Unable to display item of type: {type(item)}')
-
-        if len(self.value.display) == 0:
-            output.append('<p><b>&#x2713;</b>Nothing to display</p>')
-
+        
+        if len(display) == 0:
+            output.append(cls.empty_content_placeholder())
+        
         if output_id is not None:
-            href = form_output_anchor(output_id)
-            output.append(f'<br><a href="{href}" style="font-size: 14px">Go to top</a>')
+            output.append(cls.go_to_top_link(output_id))
 
         return output
     
     @classmethod
-    def handle_display_string(cls, item):
+    def header(cls) -> str:
+        return '<h5><b>Additional Outputs</b></h5>'
+    
+    @classmethod
+    def empty_content_placeholder(cls) -> str:
+        return '<p><b>&#x2713;</b>Nothing to display</p>'
+    
+    @classmethod
+    def go_to_top_link(cls, output_id: str) -> str:
+        href = form_output_anchor(output_id)
+        return f'<br><a href="{href}" style="font-size: 14px">Go to top</a>'
+
+    @classmethod
+    def handle_string(cls, item):
         return f'<div>{item}</div>'
     
     @classmethod
-    def handle_display_dataframe(cls, item):
+    def handle_dataframe(cls, item):
         return DataFramePresentation(item).to_html()
     
     @classmethod
-    def handle_display_callable(cls, item):
+    def handle_callable(cls, item):
         raise NotImplementedError()
 
     @classmethod
-    def handle_display_figure(cls, item):
+    def handle_figure(cls, item):
         bundle = pio.renderers['notebook'].to_mimebundle(item)  # dict structure: {"text/html": value}
         return bundle['text/html']
-
-
-class CheckResultSerializer(_HTMLSerializerImpl, HtmlSerializer[CheckResult]):
-
-    def __init__(self, value: CheckResult, **kwargs):
-        self.value = value
-
-    def serialize(
-        self,
-        output_id: t.Optional[str] = None,
-        include: t.Optional[t.Sequence[CheckResultSection]] = None,
-        **kwargs
-    ) -> str:
-        sections_to_include = verify_include_parameter(include)
-        sections = [self.prepare_header(output_id), self.prepare_summary()]
-
-        if 'condition-table' in sections_to_include:
-            sections.append(''.join(self.prepare_conditions_table(output_id=output_id)))
-
-        if 'additional-output' in sections_to_include:
-            sections.append(''.join(self.prepare_additional_output(output_id)))
-        
-        return ''.join(sections)
 
 
 def verify_include_parameter(

@@ -8,16 +8,18 @@ from deepchecks.core import errors
 from deepchecks.core.suite import SuiteResult
 from deepchecks.core.check_result import CheckFailure
 from deepchecks.core.presentation.abc import HtmlSerializer
-from deepchecks.core.presentation.common import form_output_anchor, aggregate_conditions
+from deepchecks.core.presentation.common import form_output_anchor
+from deepchecks.core.presentation.common import aggregate_conditions
+from deepchecks.core.presentation.common import Html
 from deepchecks.core.presentation.dataframe import DataFramePresentation
 from deepchecks.core.presentation.check_result.html import CheckResultSerializer as CheckResultHtmlSerializer 
 from deepchecks.core.presentation.check_result.html import CheckResultSection
 
 
-class SuiteResultSerializer(HtmlSerializer[SuiteResult]):
+__all__ = ['SuiteResultSerializer']
 
-    BOLD_HR = '<hr style="background-color: black;border: 0 none;color: black;height: 1px;">'
-    LIGHT_HR = '<hr style="background-color: #eee;border: 0 none;color: #eee;height: 4px;">'
+
+class SuiteResultSerializer(HtmlSerializer[SuiteResult]):
 
     def __init__(self, value: SuiteResult, **kwargs):
         self.value = value
@@ -41,16 +43,16 @@ class SuiteResultSerializer(HtmlSerializer[SuiteResult]):
         )
         sections = [
             summary,
-            self.BOLD_HR,
+            Html.bold_hr,
             conditions_table,
-            self.BOLD_HR,
+            Html.bold_hr,
             results_with_conditions,
-            self.BOLD_HR,
+            Html.bold_hr,
             results_without_conditions,
         ]
 
         if failures:
-            sections.extend([self.BOLD_HR, failures])
+            sections.extend([Html.bold_hr, failures])
         
         if output_id:
             anchor = form_output_anchor(output_id)
@@ -109,13 +111,18 @@ class SuiteResultSerializer(HtmlSerializer[SuiteResult]):
             {extra_info}
         """)
     
-    def prepare_conditions_table(self, output_id: t.Optional[str] = None, **kwargs):
+    def prepare_conditions_table(self, 
+        output_id: t.Optional[str] = None,
+        include_check_name: bool = False,
+        **kwargs
+    ):
         if not self.value.results_with_conditions:
             return '<p>No conditions defined on checks in the suite.</p>'
         
         table = DataFramePresentation(aggregate_conditions(
             self.value.results_with_conditions,
             output_id=output_id,
+            include_check_name=include_check_name,
             max_info_len=300
         )).to_html()
 
@@ -135,7 +142,7 @@ class SuiteResultSerializer(HtmlSerializer[SuiteResult]):
             )
             for it in self.value.results_with_conditions_and_display
         ]
-        content = self.LIGHT_HR.join(results_with_condition_and_display)
+        content = Html.light_hr.join(results_with_condition_and_display)
         return f'<h2>Check With Conditions Output</h2>{content}'
 
     def prepare_results_without_condition(

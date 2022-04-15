@@ -3,66 +3,23 @@ import typing as t
 import pandas as pd
 import plotly.graph_objects as go
 from plotly.basedatatypes import BaseFigure
-from ipywidgets import HTML, VBox, DOMWidget, Widget
+from ipywidgets import HTML, VBox, Widget
 
 from deepchecks.core.check_result import CheckResult
 from deepchecks.core.presentation.abc import WidgetSerializer
+from deepchecks.core.presentation.common import normalize_widget_style
 from . import html
 
 
 __all__ = ['CheckResultSerializer']
 
 
-class _WidgetSerializerImpl(html._HTMLSerializerImpl):
-
-    def prepare_header(self, output_id: t.Optional[str] = None) -> HTML:
-        return HTML(value=super().prepare_header(output_id))
-    
-    def prepare_summary(self) -> HTML:
-        return HTML(value=super().prepare_summary())
-
-    def prepare_conditions_table(
-        self,
-        max_info_len: int = 3000, 
-        include_icon: bool = True,
-        include_check_name: bool = False,
-        output_id: t.Optional[str] = None,
-    ) -> HTML:
-        widget = HTML(value=super().prepare_conditions_table(
-            max_info_len=max_info_len,
-            include_icon=include_icon,
-            include_check_name=include_check_name,
-            output_id=output_id
-        ))
-        return widget
-    
-    def prepare_additional_output(self, output_id: t.Optional[str] = None) -> VBox:
-        return VBox(children=[
-            HTML(value=it) if isinstance(it, str) else it
-            for it in super().prepare_additional_output(output_id)
-        ])
-    
-    @classmethod
-    def handle_display_figure(cls, item: BaseFigure) -> go.FigureWidget:
-        return go.FigureWidget(data=item)
-    
-    @classmethod
-    def handle_display_string(cls, item: str) -> HTML:
-        return HTML(value=super().handle_display_string(item))
-    
-    @classmethod
-    def handle_display_dataframe(cls, item: pd.DataFrame) -> HTML:
-        return HTML(value=super().handle_display_dataframe(item))
-    
-    @classmethod
-    def handle_display_callable(cls, item: t.Callable) -> HTML:
-        raise NotImplementedError()
-        
-
-class CheckResultSerializer(_WidgetSerializerImpl, WidgetSerializer[CheckResult]):
+class CheckResultSerializer(WidgetSerializer[CheckResult]):
 
     def __init__(self, value: CheckResult, **kwargs):
+        super().__init__(**{'value': value, **kwargs})
         self.value = value
+        self._html_serializer = html.CheckResultSerializer(self.value)
     
     def serialize(
         self,
@@ -79,17 +36,62 @@ class CheckResultSerializer(_WidgetSerializerImpl, WidgetSerializer[CheckResult]
         if 'additional-output' in sections_to_include:
             sections.append(self.prepare_additional_output(output_id))
         
-        return normilize_widget_style(VBox(children=sections))
+        return normalize_widget_style(VBox(children=sections))
+    
+    def prepare_header(self, output_id: t.Optional[str] = None) -> HTML:
+        return HTML(value=self._html_serializer.prepare_header(output_id))
+    
+    def prepare_summary(self) -> HTML:
+        return HTML(value=self._html_serializer.prepare_summary())
+
+    def prepare_conditions_table(
+        self,
+        max_info_len: int = 3000, 
+        include_icon: bool = True,
+        include_check_name: bool = False,
+        output_id: t.Optional[str] = None,
+    ) -> HTML:
+        widget = HTML(value=self._html_serializer.prepare_conditions_table(
+            max_info_len=max_info_len,
+            include_icon=include_icon,
+            include_check_name=include_check_name,
+            output_id=output_id
+        ))
+        return widget
+    
+    def prepare_additional_output(self, output_id: t.Optional[str] = None) -> VBox:
+        return VBox(children=DisplayItemsHandler.handle_display(
+            self.value.display,
+            output_id
+        ))
 
 
-TDOMWidget = t.TypeVar('TDOMWidget', bound=DOMWidget)
+class DisplayItemsHandler(html.DisplayItemsHandler):
 
+    @classmethod
+    def header(cls) -> HTML:
+        return HTML(value=super().header())
+    
+    @classmethod
+    def empty_content_placeholder(cls) -> HTML:
+        return HTML(value=super().empty_content_placeholder())
+    
+    @classmethod
+    def go_to_top_link(cls, output_id: str) -> HTML:
+        return HTML(value=super().go_to_top_link(output_id))
 
-def normilize_widget_style(w: TDOMWidget) -> TDOMWidget:
-    return (
-        w
-        .add_class('rendered_html')
-        .add_class('jp-RenderedHTMLCommon')
-        .add_class('jp-RenderedHTML')
-        .add_class('jp-OutputArea-output')
-    )
+    @classmethod
+    def handle_figure(cls, item: BaseFigure) -> go.FigureWidget:
+        return go.FigureWidget(data=item)
+    
+    @classmethod
+    def handle_string(cls, item: str) -> HTML:
+        return HTML(value=super().handle_string(item))
+    
+    @classmethod
+    def handle_dataframe(cls, item: pd.DataFrame) -> HTML:
+        return HTML(value=super().handle_dataframe(item))
+    
+    @classmethod
+    def handle_callable(cls, item: t.Callable) -> HTML:
+        raise NotImplementedError()
