@@ -163,4 +163,9 @@ setuptools.setup(
     extras_require=extra_requirements,
     dependency_links=dependency_links,
     include_package_data=True,
+    entry_points={
+        'console_scripts': [
+                'deepchecks=deepchecks.cli:main',
+        ],
+    },
 )
