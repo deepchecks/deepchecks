@@ -12,15 +12,14 @@
 from typing import Callable, Union, Optional, List, cast, Tuple
 
 import numpy as np
-import plotly.figure_factory as ff
+import plotly.express as px
 
-from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError
+from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.performance.partition import partition_column
 from deepchecks.utils.strings import format_number
 from deepchecks.utils.typing import Hashable
-
 
 __all__ = ['SegmentPerformance']
 
@@ -125,15 +124,21 @@ class SegmentPerformance(SingleDatasetCheck):
                 score = scores[i, j]
                 if not np.isnan(score):
                     scores_text[i][j] = f'{format_number(score)}\n({counts[i, j]})'
+                elif counts[i, j] == 0:
+                    scores_text[i][j] = ''
                 else:
                     scores_text[i][j] = f'{score}\n({counts[i, j]})'
 
-        fig = ff.create_annotated_heatmap(scores, annotation_text=scores_text,
-                                          x=x, y=y, colorscale='rdylgn', font_colors=['black', 'black'])
+        # Plotly FigureWidget have bug with numpy nans, so replacing with python None
+        scores = scores.astype(np.object)
+        scores[np.isnan(scores.astype(np.float_))] = None
+
+        fig = px.imshow(scores, x=x, y=y, color_continuous_scale='rdylgn')
+        fig.update_traces(text=scores_text, texttemplate='%{text}')
         fig.update_layout(title=f'{scorer.name} (count) by features {self.feature_1}/{self.feature_2}',
                           width=800, height=800)
-        fig.update_xaxes(title=self.feature_2)
-        fig.update_yaxes(title=self.feature_1, autorange='reversed')
+        fig.update_xaxes(title=self.feature_2, showgrid=False)
+        fig.update_yaxes(title=self.feature_1, autorange='reversed', showgrid=False)
         fig['data'][0]['showscale'] = True
         fig['layout']['xaxis']['side'] = 'bottom'
 
