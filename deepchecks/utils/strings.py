@@ -21,7 +21,8 @@ from decimal import Decimal
 from copy import copy
 
 from ipywidgets import Widget
-from ipywidgets.embed import embed_minimal_html, dependency_state
+from ipywidgets.embed import embed_minimal_html, dependency_state, \
+    DEFAULT_EMBED_SCRIPT_URL, DEFAULT_EMBED_REQUIREJS_URL
 import pandas as pd
 from pandas.core.dtypes.common import is_numeric_dtype
 
@@ -120,8 +121,11 @@ def widget_to_html(widget: Widget, html_out: t.Any, title: str = None, requirejs
         html_formatted = re.sub('}', '}}', html_formatted)
         html_formatted = re.sub('html_title', '{title}', html_formatted)
         html_formatted = re.sub('widget_snippet', '{snippet}', html_formatted)
-        embed_minimal_html(html_out, views=[widget], title=title, template=html_formatted,
-                           requirejs=requirejs, embed_url=None, state=dependency_state(widget))
+        embed_url = None if requirejs else ''
+        embed_minimal_html(html_out, views=[widget], title=title,
+                           template=html_formatted,
+                           requirejs=requirejs, embed_url=embed_url,
+                           state=dependency_state(widget))
 
 
 def _generate_check_docs_link_html(check):

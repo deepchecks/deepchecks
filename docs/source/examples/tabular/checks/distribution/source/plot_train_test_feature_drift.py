@@ -173,7 +173,7 @@ check_cond = check.add_condition_drift_score_not_greater_than(max_allowed_psi_sc
 #%%
 
 result = check_cond.run(train_dataset=train_dataset, test_dataset=test_dataset)
-result.show(show_additional_outputs=False)
+result
 
 #%%
 # As we see, our condition successfully detects and filters the problematic
