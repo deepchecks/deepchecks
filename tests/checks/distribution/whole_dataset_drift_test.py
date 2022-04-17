@@ -113,10 +113,10 @@ def test_over_255_categories_in_column():
 
     train_data = np.concatenate([np.random.randn(1000, 1),
                                  np.random.choice(a=categories, size=(1000, 1))],
-                                 axis=1)
+                                axis=1)
     test_data = np.concatenate([np.random.randn(1000, 1),
                                 np.random.choice(a=categories, size=(1000, 1))],
-                                axis=1)
+                               axis=1)
 
     df_train = pd.DataFrame(train_data,
                             columns=['numeric_without_drift', 'categorical_with_many_categories'])
