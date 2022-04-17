@@ -828,20 +828,11 @@ def test_sample_drop_nan_labels(iris):
     assert_that(sample, has_length(50))
 
 
-def test__ensure_not_empty_dataset(iris: pd.DataFrame):
-    # Arrange
-    ds = Dataset(iris)
-    # Act
-    ds = Dataset.cast_to_dataset(ds)
-
-
 def test__ensure_not_empty_dataset__with_empty_dataset():
-    # Arrange
-    ds = Dataset(pd.DataFrame())
     # Assert
     assert_that(
-        calling(Dataset.cast_to_dataset).with_args(ds),
-        raises(DatasetValidationError, r'dataset cannot be empty')
+        calling(Dataset.cast_to_dataset).with_args(pd.DataFrame()),
+        raises(DeepchecksValueError, 'Can\'t create a Dataset object with an empty dataframe')
     )
 
 
@@ -859,7 +850,7 @@ def test__ensure_not_empty_dataset__with_empty_dataframe():
     # Assert
     assert_that(
         calling(Dataset.cast_to_dataset).with_args(pd.DataFrame()),
-        raises(DatasetValidationError, r'dataset cannot be empty')
+        raises(DeepchecksValueError, r'Can\'t create a Dataset object with an empty dataframe')
     )
 
 

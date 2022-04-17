@@ -16,7 +16,7 @@ from hamcrest import assert_that, has_length, has_entry, has_items, calling, rai
 
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.checks.integrity.mixed_nulls import MixedNulls
-from deepchecks.core.errors import DatasetValidationError
+from deepchecks.core.errors import DatasetValidationError, DeepchecksValueError
 from tests.checks.utils import equal_condition_result
 
 
@@ -46,7 +46,7 @@ def test_empty_dataframe():
     dataframe = pd.DataFrame(data=data)
     # Act
     assert_that(calling(MixedNulls().run).with_args(dataframe),
-                raises(DatasetValidationError, 'dataset cannot be empty'))
+                raises(DeepchecksValueError, r'Can\'t create a Dataset object with an empty dataframe'))
 
 
 def test_different_null_types():
