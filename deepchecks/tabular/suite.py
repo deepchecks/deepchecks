@@ -14,6 +14,7 @@ from typing import Callable, Union, Tuple, Mapping, Optional
 
 import pandas as pd
 
+from deepchecks.analytics import send_anonymous_run_event
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
 from deepchecks.tabular.context import Context
@@ -83,7 +84,7 @@ class Suite(BaseSuite):
                           scorers=scorers,
                           scorers_per_class=scorers_per_class)
         # Create progress bar
-        progress_bar = ProgressBar(self.name, len(self.checks), 'Check')
+        progress_bar = ProgressBar(self.name(), len(self.checks), 'Check')
 
         # Run all checks
         results = []
@@ -135,7 +136,10 @@ class Suite(BaseSuite):
             progress_bar.inc_progress()
 
         progress_bar.close()
-        return SuiteResult(self.name, results)
+
+        send_anonymous_run_event(self)
+
+        return SuiteResult(self.name(), results)
 
     @classmethod
     def _get_unsupported_failure(cls, check, msg):

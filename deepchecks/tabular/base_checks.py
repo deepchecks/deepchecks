@@ -13,6 +13,7 @@ import abc
 from functools import wraps
 from typing import Union, Mapping, List, Any
 
+from deepchecks.analytics import send_anonymous_run_event
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.context import Context
 from deepchecks.core.check_result import (
@@ -60,6 +61,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
     def run(self, dataset, model=None) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
+        send_anonymous_run_event(self)
         return self.run_logic(self.context_type(  # pylint: disable=not-callable
             dataset,
             model=model
@@ -87,6 +89,7 @@ class TrainTestCheck(TrainTestBaseCheck):
     def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
+        send_anonymous_run_event(self)
         return self.run_logic(self.context_type(  # pylint: disable=not-callable
             train_dataset,
             test_dataset,
@@ -113,6 +116,7 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
     def run(self, model) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
+        send_anonymous_run_event(self)
         return self.run_logic(self.context_type(model=model))  # pylint: disable=not-callable
 
     @abc.abstractmethod
@@ -140,6 +144,7 @@ class ModelComparisonCheck(BaseCheck):
             models: Union[List[Any], Mapping[str, Any]]
             ) -> CheckResult:
         """Initialize context and pass to check logic."""
+        send_anonymous_run_event(self)
         return self.run_logic(ModelComparisonContext(train_datasets, test_datasets, models))
 
     @abc.abstractmethod

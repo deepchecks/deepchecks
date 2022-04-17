@@ -20,6 +20,7 @@ from IPython.core.getipython import get_ipython
 import jsonpickle
 import ipywidgets as widgets
 
+from deepchecks.analytics import send_anonymous_event
 from deepchecks.core.display_suite import ProgressBar, display_suite_result
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.check_result import CheckResult, CheckFailure
@@ -100,6 +101,8 @@ class SuiteResult:
             file = 'output.html'
         display_suite_result(self.name, self.results, self.extra_info, html_out=file, requirejs=requirejs)
 
+        send_anonymous_event('suite-to-html')
+
     def to_json(self, with_display: bool = True):
         """Return check result as json.
 
@@ -116,6 +119,8 @@ class SuiteResult:
         json_results = []
         for res in self.results:
             json_results.append(res.to_json(with_display=with_display))
+
+        send_anonymous_event('suite-to-json')
 
         return jsonpickle.dumps({'name': self.name, 'results': json_results})
 
@@ -139,6 +144,8 @@ class SuiteResult:
         progress_bar.close()
         if dedicated_run:
             wandb.finish()
+
+        send_anonymous_event('suite-to-wandb')
 
     def get_failures(self) -> Dict[str, CheckFailure]:
         """Get all the failed checks.
@@ -173,11 +180,11 @@ class BaseSuite:
         pass
 
     checks: OrderedDict
-    name: str
+    _name: str
     _check_index: int
 
     def __init__(self, name: str, *checks: Union[BaseCheck, 'BaseSuite']):
-        self.name = name
+        self._name = name
         self.checks = OrderedDict()
         self._check_index = 0
         for check in checks:
@@ -187,7 +194,7 @@ class BaseSuite:
         """Representation of suite as string."""
         tabs_str = '\t' * tabs
         checks_str = ''.join([f'\n{c.__repr__(tabs + 1, str(n) + ": ")}' for n, c in self.checks.items()])
-        return f'{tabs_str}{self.name}: [{checks_str}\n{tabs_str}]'
+        return f'{tabs_str}{self._name}: [{checks_str}\n{tabs_str}]'
 
     def __getitem__(self, index):
         """Access check inside the suite by name."""
@@ -229,3 +236,7 @@ class BaseSuite:
             raise DeepchecksValueError(f'No index {index} in suite')
         self.checks.pop(index)
         return self
+
+    def name(self):
+        """Return name of the suite."""
+        return self._name

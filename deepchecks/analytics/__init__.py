@@ -13,3 +13,7 @@ Module for anonymous telemetry.
 
 No credentials, data, personal information or anything private is collected (and will never be).
 """
+
+from .anonymous_telemetry import send_anonymous_event, send_anonymous_run_event
+
+__all__ = ["send_anonymous_event", "send_anonymous_run_event"]

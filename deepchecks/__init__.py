@@ -44,7 +44,7 @@ from deepchecks.tabular import (
     ModelComparisonSuite,
 )
 
-from deepchecks.analytics.anonymous_telemetry import send_anonymous_import_event
+from deepchecks.analytics import send_anonymous_event
 
 __all__ = [
     # core
@@ -97,7 +97,7 @@ except:  # pylint: disable=bare-except # noqa
 
 
 # Send an import event if not disabled
-send_anonymous_import_event()
+send_anonymous_event('package-import')
 
 # ================================================================
 

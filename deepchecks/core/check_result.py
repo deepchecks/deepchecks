@@ -29,6 +29,7 @@ from matplotlib import pyplot as plt
 from IPython.display import display_html
 from pandas.io.formats.style import Styler
 
+from deepchecks.analytics import send_anonymous_event
 from deepchecks.core.condition import Condition, ConditionCategory, ConditionResult
 from deepchecks.core.display_pandas import dataframe_to_html, get_conditions_table
 from deepchecks.core.errors import DeepchecksValueError
@@ -206,6 +207,8 @@ class CheckResult:
         if isinstance(file, str):
             file = create_new_file_name(file, 'html')
         widget_to_html(widgeted_output, html_out=file, title=self.get_header(), requirejs=requirejs)
+
+        send_anonymous_event('check-to-html')
 
     def _display_to_json(self) -> List[Tuple[str, str]]:
         displays = []

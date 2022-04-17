@@ -15,6 +15,7 @@ from typing import Optional, Any, Union
 import torch
 from torch import nn
 
+from deepchecks.analytics import send_anonymous_run_event
 from deepchecks.core.check_result import CheckResult
 from deepchecks.core.checks import (
     SingleDatasetBaseCheck,
@@ -86,6 +87,9 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         result = self.finalize_check_result(result)
         p_bar.inc_progress()
         p_bar.close()
+
+        send_anonymous_run_event(self)
+
         return result
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
@@ -164,6 +168,9 @@ class TrainTestCheck(TrainTestBaseCheck):
         result = self.finalize_check_result(result)
         p_bar.inc_progress()
         p_bar.close()
+
+        send_anonymous_run_event(self)
+
         return result
 
     def initialize_run(self, context: Context):
@@ -204,6 +211,9 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
         result = self.finalize_check_result(self.compute(context))
         p_bar.inc_progress()
         p_bar.close()
+
+        send_anonymous_run_event(self)
+
         return result
 
     def initialize_run(self, context: Context):

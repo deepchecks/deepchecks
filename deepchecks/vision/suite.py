@@ -18,6 +18,7 @@ import torch
 from torch import nn
 from ignite.metrics import Metric
 
+from deepchecks.analytics import send_anonymous_run_event
 from deepchecks.core.check_result import CheckFailure, CheckResult
 from deepchecks.core.checks import DatasetKind
 from deepchecks.core.suite import BaseSuite, SuiteResult
@@ -154,6 +155,9 @@ class Suite(BaseSuite):
 
         footnote = context.get_is_sampled_footnote()
         extra_info = [footnote] if footnote else []
+
+        send_anonymous_run_event(self)
+
         return SuiteResult(self.name, sorted_result_values, extra_info)
 
     def _update_loop(
