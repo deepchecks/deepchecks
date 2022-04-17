@@ -23,12 +23,12 @@ import pandas as pd
 import numpy as np
 import ipywidgets as widgets
 import plotly.graph_objects as go
-import plotly
 from plotly.basedatatypes import BaseFigure
+import plotly.io as pio
+import plotly
 from matplotlib import pyplot as plt
 from IPython.display import display_html
 from pandas.io.formats.style import Styler
-import plotly.io as pio
 
 from deepchecks.core.condition import Condition, ConditionCategory, ConditionResult
 from deepchecks.core.display_pandas import dataframe_to_html, get_conditions_table
@@ -459,6 +459,7 @@ class CheckResult:
         elif 'sphinx_gallery' in pio.renderers.default:
             html = self._repr_html_(unique_id=unique_id,
                                     show_additional_outputs=show_additional_outputs)
+
             class TempSphinx:
                 def _repr_html_(self):
                     return html

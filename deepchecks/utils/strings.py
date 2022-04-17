@@ -21,8 +21,7 @@ from decimal import Decimal
 from copy import copy
 
 from ipywidgets import Widget
-from ipywidgets.embed import embed_minimal_html, dependency_state, \
-    DEFAULT_EMBED_SCRIPT_URL, DEFAULT_EMBED_REQUIREJS_URL
+from ipywidgets.embed import embed_minimal_html, dependency_state
 import pandas as pd
 from pandas.core.dtypes.common import is_numeric_dtype
 
