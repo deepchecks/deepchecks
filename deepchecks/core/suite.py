@@ -79,11 +79,9 @@ class SuiteResult:
 
     def _repr_html_(self):
         """Return html representation of check result."""
-        widgets.Widget.close_all()
         html_out = io.StringIO()
         self.save_as_html(html_out, requirejs=False)
         html_page = html_out.getvalue()
-        widgets.Widget.close_all()
         return html_page
 
     def save_as_html(self, file=None, requirejs: bool = True):
