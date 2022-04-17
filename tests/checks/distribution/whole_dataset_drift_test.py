@@ -143,4 +143,4 @@ def test_over_255_categories_in_column():
     print(result.value)
 
     # Assert
-    assert_that(result.value['domain_classifier_feature_importance']['numeric_without_drift'], close_to(1.0, 0.0001))
+    assert_that(result.value['domain_classifier_feature_importance']['numeric_without_drift'], close_to(1.0, 0.01))
