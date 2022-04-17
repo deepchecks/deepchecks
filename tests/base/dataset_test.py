@@ -10,7 +10,6 @@
 #
 """Contains unit tests for the Dataset class."""
 import typing as t
-import random
 
 import numpy as np
 import pandas as pd
@@ -82,6 +81,12 @@ def assert_dataset(dataset: Dataset, args):
                 is_(True)
             )
 
+
+def test_that_cant_create_empty_dataset():
+    assert_that(calling(Dataset).with_args(pd.DataFrame()),
+                raises(DeepchecksValueError, 'Can\'t create a Dataset object with an empty dataframe'))
+
+
 def test_that_mutable_properties_modification_does_not_affect_dataset_state(iris):
     dataset = Dataset(
         df=iris,
@@ -101,12 +106,6 @@ def test_that_mutable_properties_modification_does_not_affect_dataset_state(iris
 
     assert_that("New value" not in dataset.features)
     assert_that("New value" not in dataset.cat_features)
-
-
-def test_dataset_empty_df(empty_df):
-    args = {'df': empty_df}
-    dataset = Dataset(**args)
-    assert_dataset(dataset, args)
 
 
 def test_dataset_feature_columns(iris):
@@ -829,26 +828,17 @@ def test_sample_drop_nan_labels(iris):
     assert_that(sample, has_length(50))
 
 
-def test__ensure_not_empty_dataset(iris: pd.DataFrame):
-    # Arrange
-    ds = Dataset(iris)
-    # Act
-    ds = Dataset.ensure_not_empty_dataset(ds)
-
-
 def test__ensure_not_empty_dataset__with_empty_dataset():
-    # Arrange
-    ds = Dataset(pd.DataFrame())
     # Assert
     assert_that(
-        calling(Dataset.ensure_not_empty_dataset).with_args(ds),
-        raises(DatasetValidationError, r'dataset cannot be empty')
+        calling(Dataset.cast_to_dataset).with_args(pd.DataFrame()),
+        raises(DeepchecksValueError, 'Can\'t create a Dataset object with an empty dataframe')
     )
 
 
 def test__ensure_not_empty_dataset__with_dataframe(iris: pd.DataFrame):
     # Arrange
-    ds = Dataset.ensure_not_empty_dataset(iris)
+    ds = Dataset.cast_to_dataset(iris)
     # Assert
     assert_that(ds, instance_of(Dataset))
     assert_that(ds.features, has_length(0))
@@ -859,8 +849,8 @@ def test__ensure_not_empty_dataset__with_dataframe(iris: pd.DataFrame):
 def test__ensure_not_empty_dataset__with_empty_dataframe():
     # Assert
     assert_that(
-        calling(Dataset.ensure_not_empty_dataset).with_args(pd.DataFrame()),
-        raises(DatasetValidationError, r'dataset cannot be empty')
+        calling(Dataset.cast_to_dataset).with_args(pd.DataFrame()),
+        raises(DeepchecksValueError, r'Can\'t create a Dataset object with an empty dataframe')
     )
 
 
