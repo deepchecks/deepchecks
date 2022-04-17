@@ -8,6 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+"""Telemetry CLI."""
 import argparse
 
 from deepchecks.analytics.utils import is_telemetry_enabled, toggle_telemetry
@@ -15,9 +16,13 @@ from deepchecks.analytics.utils import is_telemetry_enabled, toggle_telemetry
 
 def add_subparser(subparsers, parents) -> None:
     """Add all telemetry tracking parsers.
-    Args:
-        subparsers: subparser we are going to attach to
-        parents: Parent parsers, needed to ensure tree structure in argparse
+
+    Parameters
+    ---------
+    subparsers: argparse.ArgumentParser
+         subparser we are going to attach to
+    parents: list
+        The list of parent parsers.
     """
     telemetry_parser = subparsers.add_parser(
         "telemetry",

@@ -8,6 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+"""CLI for Deepchecks."""
 import argparse
 import logging
 import platform
@@ -20,7 +21,6 @@ logger = logging.getLogger(__name__)
 
 def create_argument_parser() -> argparse.ArgumentParser:
     """Parse all the command line arguments."""
-
     parser = argparse.ArgumentParser(
         prog="deepchecks",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -46,10 +46,9 @@ def create_argument_parser() -> argparse.ArgumentParser:
 
 
 def print_version() -> None:
-    """Prints version information of deepchecks and python."""
-
+    """Print version information of deepchecks and python."""
     try:
-        from deepchecks import __version__
+        from deepchecks import __version__  # pylint: disable=import-outside-toplevel
 
         dc_version = __version__
     except ModuleNotFoundError:
@@ -62,6 +61,7 @@ def print_version() -> None:
 
 
 def main():
+    """Represent the main entry point of the cli."""
     arg_parser = create_argument_parser()
     cmdline_arguments = arg_parser.parse_args()
 

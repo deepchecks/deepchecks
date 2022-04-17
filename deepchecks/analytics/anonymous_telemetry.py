@@ -31,37 +31,36 @@ def _identify_runtime():
     """Identify the runtime."""
     # If in docker
     try:
-        with open('/proc/1/cgroup', 'rt') as f:
+        with open('/proc/1/cgroup', 'rt', encoding='utf8') as f:
             info = f.read()
-        if 'docker' in info or "kubepods" in info:
-            return "docker"
+        if 'docker' in info or 'kubepods' in info:
+            return 'docker'
     except (FileNotFoundError, Exception):  # pylint: disable=broad-except
         pass
 
     # If in colab
-    if "COLAB_GPU" in os.environ:
-        return "colab"
+    if 'COLAB_GPU' in os.environ:
+        return 'colab'
 
     # If in notebook
     if is_notebook():
-        return "notebook"
+        return 'notebook'
 
     # If in paperspace
-    if "PAPERSPACE_NOTEBOOK_REPO_ID" in os.environ:
-        return "paperspace"
+    if 'PAPERSPACE_NOTEBOOK_REPO_ID' in os.environ:
+        return 'paperspace'
 
-    return "native"
+    return 'native'
 
 
 try:
     RUNTIME = _identify_runtime()
 except Exception:  # pylint: disable=broad-except
-    RUNTIME = "unknown"
+    RUNTIME = 'unknown'
 
 
 def get_environment_details():
     """Get environment details."""
-
     return {
         'python_version': platform.python_version(),
         'os': platform.system(),
@@ -83,7 +82,7 @@ def send_anonymous_event(event_name, event_data=None):
             params.update(get_environment_details())
 
             conn = http.client.HTTPConnection('localhost:80', timeout=3)
-            conn.request('POST', f'/events', body=json.dumps(params))
+            conn.request('POST', '/events', body=json.dumps(params))
             _ = conn.getresponse()
         except Exception:  # pylint: disable=broad-except
             pass
@@ -91,7 +90,7 @@ def send_anonymous_event(event_name, event_data=None):
 
 def send_anonymous_run_event(run_instance):
     """Send an anonymous check run event."""
-    from deepchecks import BaseSuite, BaseCheck
+    from deepchecks import BaseSuite, BaseCheck  # pylint: disable=import-outside-toplevel
     if isinstance(run_instance, BaseCheck):
         event_name = 'run-check'
     elif isinstance(run_instance, BaseSuite):
@@ -108,7 +107,7 @@ def send_anonymous_run_event(run_instance):
             for cls in mro:
                 if cls.__module__.startswith('deepchecks'):
                     return cls.p__module__.split('.')[1]
-            return "unknown"
+            return 'unknown'
 
         if mod.startswith('deepchecks'):
             try:

@@ -74,3 +74,5 @@ jsonpickle
 dtype
 dataloader
 KDE
+subcommand
+paperspace

@@ -8,6 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+"""Deepchecks CLI."""
 from .cli import main
 
 __all__ = ["main"]

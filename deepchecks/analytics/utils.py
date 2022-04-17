@@ -8,17 +8,18 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+"""Utils for analytics."""
 import os
 import uuid
 from typing import Dict, Text, Any
 
 import yaml
 
-CONFIG_FILE_PATH = "~/.deepchecks/config.yml"
+CONFIG_FILE_PATH = '~/.deepchecks/config.yml'
 
 
 def _default_telemetry_config(is_enabled: bool) -> Dict[Text, Any]:
-    """Returns the default telemetry config.
+    """Return the default telemetry config.
 
     Parameters
     ----------
@@ -37,10 +38,10 @@ def _default_telemetry_config(is_enabled: bool) -> Dict[Text, Any]:
 
 
 def write_global_telemetry_config():
-    """Writes the default telemetry config to the config file."""
+    """Write the default telemetry config to the config file."""
     if not os.path.exists(os.path.dirname(os.path.expanduser(CONFIG_FILE_PATH))):
         os.makedirs(os.path.dirname(os.path.expanduser(CONFIG_FILE_PATH)))
-        with open(os.path.expanduser(CONFIG_FILE_PATH), 'w') as f:
+        with open(os.path.expanduser(CONFIG_FILE_PATH), 'w', encoding='utf8') as f:
             f.write(
                 yaml.dump(
                     _default_telemetry_config(True),
@@ -48,7 +49,7 @@ def write_global_telemetry_config():
 
 
 def get_telemetry_config() -> Dict[Text, Any]:
-    """Returns the telemetry config from the config file.
+    """Return the telemetry config from the config file.
 
     Returns
     ------
@@ -57,15 +58,15 @@ def get_telemetry_config() -> Dict[Text, Any]:
     """
     if not os.path.exists(os.path.expanduser(CONFIG_FILE_PATH)):
         write_global_telemetry_config()
-    with open(os.path.expanduser(CONFIG_FILE_PATH), 'r') as f:
+    with open(os.path.expanduser(CONFIG_FILE_PATH), 'r', encoding='utf8') as f:
         return yaml.safe_load(f)
 
 
 def toggle_telemetry(value: bool):
-    """Disables telemetry."""
+    """Disable telemetry."""
     config = get_telemetry_config()
     config['telemetry_enabled'] = value
-    with open(os.path.expanduser(CONFIG_FILE_PATH), 'w') as f:
+    with open(os.path.expanduser(CONFIG_FILE_PATH), 'w', encoding='utf8') as f:
         f.write(
             yaml.dump(
                 config,
@@ -73,5 +74,5 @@ def toggle_telemetry(value: bool):
 
 
 def is_telemetry_enabled() -> bool:
-    """Returns whether or not telemetry is enabled."""
+    """Return whether or not telemetry is enabled."""
     return get_telemetry_config()['telemetry_enabled']
