@@ -129,7 +129,7 @@ class SegmentPerformance(SingleDatasetCheck):
                 else:
                     scores_text[i][j] = f'{score}\n({counts[i, j]})'
 
-        # Plotly FigureWidget have bug with numpy nans, so replacing with python None
+        # Plotly FigureWidget have bug with numpy nan, so replacing with python None
         scores = scores.astype(np.object)
         scores[np.isnan(scores.astype(np.float_))] = None
 
