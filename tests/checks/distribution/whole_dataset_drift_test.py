@@ -140,5 +140,7 @@ def test_over_255_categories_in_column():
     # Act
     result = check.run(train_ds, test_ds)
 
+    print(result.value)
+
     # Assert
-    assert_that(result.value['domain_classifier_drift_score'], close_to(0.0983, 0.001))
+    assert_that(result.value['domain_classifier_feature_importance']['numeric_without_drift'], close_to(1.0, 0.0001))
