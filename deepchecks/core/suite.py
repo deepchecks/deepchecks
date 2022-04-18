@@ -18,7 +18,6 @@ from typing import Any, Union, List, Tuple, Dict
 from IPython.core.display import display_html
 from IPython.core.getipython import get_ipython
 import jsonpickle
-import ipywidgets as widgets
 
 from deepchecks.core.display_suite import ProgressBar, display_suite_result
 from deepchecks.core.errors import DeepchecksValueError
