@@ -65,7 +65,7 @@ class TrainTestLabelDrift(TrainTestCheck):
         Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
         representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'/'class_id'
     max_num_categories_for_drift: int, default: 10
-        Only for non-continues properties. Max number of allowed categories. If there are more,
+        Only for non-continuous properties. Max number of allowed categories. If there are more,
         they are binned into an "Other" category. If max_num_categories=None, there is no limit. This limit applies
         for both drift calculation and for distribution plots.
     max_num_categories_for_display: int, default: 10

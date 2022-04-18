@@ -47,7 +47,17 @@ class ImagePropertyDrift(TrainTestCheck):
         List of properties. Replaces the default deepchecks properties.
         Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
         representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'
-    max_num_categories: int, default: 10
+    max_num_categories_for_drift: int, default: 10
+        Only for non-continuous properties. Max number of allowed categories. If there are more,
+        they are binned into an "Other" category. If None, there is no limit.
+    max_num_categories_for_display: int, default: 10
+        Max number of categories to show in plot.
+    show_categories_by: str, default: 'train_largest'
+        Specify which categories to show for categorical features' graphs, as the number of shown categories is limited
+        by max_num_categories_for_display. Possible values:
+        - 'train_largest': Show the largest train categories.
+        - 'test_largest': Show the largest test categories.
+        - 'largest_difference': Show the largest difference between categories.
     classes_to_display : Optional[List[float]], default: None
         List of classes to display. The distribution of the properties would include only samples belonging (or
         containing an annotation belonging) to one of these classes. If None, samples from all classes are displayed.
@@ -56,12 +66,14 @@ class ImagePropertyDrift(TrainTestCheck):
     """
 
     def __init__(
-        self,
-        image_properties: t.List[t.Dict[str, t.Any]] = None,
-        max_num_categories: int = 10,
-        classes_to_display: t.Optional[t.List[str]] = None,
-        min_samples: int = 30,
-        **kwargs
+            self,
+            image_properties: t.List[t.Dict[str, t.Any]] = None,
+            max_num_categories_for_drift: int = 10,
+            max_num_categories_for_display: int = 10,
+            show_categories_by: str = 'train_largest',
+            classes_to_display: t.Optional[t.List[str]] = None,
+            min_samples: int = 30,
+            **kwargs
     ):
         super().__init__(**kwargs)
         if image_properties is not None:
@@ -70,7 +82,9 @@ class ImagePropertyDrift(TrainTestCheck):
         else:
             self.image_properties = default_image_properties
 
-        self.max_num_categories = max_num_categories
+        self.max_num_categories_for_drift = max_num_categories_for_drift
+        self.max_num_categories_for_display = max_num_categories_for_display
+        self.show_categories_by = show_categories_by
         self.classes_to_display = classes_to_display
         self.min_samples = min_samples
         self._train_properties = None
@@ -158,7 +172,9 @@ class ImagePropertyDrift(TrainTestCheck):
                     test_column=df_test[property_name],
                     value_name=property_name,
                     column_type=get_column_type(single_property['output_type']),
-                    max_num_categories_for_drift=self.max_num_categories,
+                    max_num_categories_for_drift=self.max_num_categories_for_drift,
+                    max_num_categories_for_display=self.max_num_categories_for_display,
+                    show_categories_by=self.show_categories_by,
                     min_samples=self.min_samples
                 )
 

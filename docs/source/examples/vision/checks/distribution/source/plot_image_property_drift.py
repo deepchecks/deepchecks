@@ -139,7 +139,7 @@ properties = [
 
 check_result = ImagePropertyDrift(
     image_properties=properties,
-    max_num_categories=20
+    max_num_categories_for_drift=20
 ).run(train_dataset, test_dataset)
 
 check_result

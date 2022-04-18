@@ -37,30 +37,28 @@ class TrainTestLabelDrift(TrainTestCheck):
     ----------
     max_num_categories_for_drift: int, default: 10
         Only for categorical columns. Max number of allowed categories. If there are more,
-        they are binned into an "Other" category. If max_num_categories=None, there is no limit. This limit applies
-        for both drift calculation and for distribution plots.
+        they are binned into an "Other" category. If None, there is no limit.
     max_num_categories_for_display: int, default: 10
         Max number of categories to show in plot.
-    sort_categories_by: str, default: 'train'
-        Specify how to sort the categories shown for categorical features' graphs. This also affect which categories
-        will be shown, as speficified by max_num_categories_for_display. Possible values:
-        - 'train': Show the largest train categories.
-        - 'test': Show the largest test categories.
-        - 'difference': Show the largest difference between categories.
-
+    show_categories_by: str, default: 'train_largest'
+        Specify which categories to show for categorical features' graphs, as the number of shown categories is limited
+        by max_num_categories_for_display. Possible values:
+        - 'train_largest': Show the largest train categories.
+        - 'test_largest': Show the largest test categories.
+        - 'largest_difference': Show the largest difference between categories.
     """
 
     def __init__(
         self,
         max_num_categories_for_drift: int = 10,
         max_num_categories_for_display: int = 10,
-        sort_categories_by: str = 'train',
+        show_categories_by: str = 'train_largest',
         **kwargs
     ):
         super().__init__(**kwargs)
         self.max_num_categories_for_drift = max_num_categories_for_drift
         self.max_num_categories_for_display = max_num_categories_for_display
-        self.sort_categories_by = sort_categories_by
+        self.show_categories_by = show_categories_by
 
     def run_logic(self, context: Context) -> CheckResult:
         """Calculate drift for all columns.
@@ -81,7 +79,7 @@ class TrainTestLabelDrift(TrainTestCheck):
             column_type='categorical' if train_dataset.label_type == 'classification_label' else 'numerical',
             max_num_categories_for_drift=self.max_num_categories_for_drift,
             max_num_categories_for_display=self.max_num_categories_for_display,
-            show_categories_by=self.sort_categories_by
+            show_categories_by=self.show_categories_by
 
         )
 
