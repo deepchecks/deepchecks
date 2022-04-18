@@ -64,17 +64,27 @@ class TrainTestLabelDrift(TrainTestCheck):
         List of properties. Replaces the default deepchecks properties.
         Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
         representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'/'class_id'
-    max_num_categories : int , default: 10
+    max_num_categories_for_drift: int, default: 10
         Only for non-continues properties. Max number of allowed categories. If there are more,
         they are binned into an "Other" category. If max_num_categories=None, there is no limit. This limit applies
         for both drift calculation and for distribution plots.
+    max_num_categories_for_display: int, default: 10
+        Max number of categories to show in plot.
+    show_categories_by: str, default: 'train_largest'
+        Specify which categories to show for categorical features' graphs, as the number of shown categories is limited
+        by max_num_categories_for_display. Possible values:
+        - 'train_largest': Show the largest train categories.
+        - 'test_largest': Show the largest test categories.
+        - 'largest_difference': Show the largest difference between categories.
 
     """
 
     def __init__(
             self,
             label_properties: List[Dict[str, Any]] = None,
-            max_num_categories: int = 10,
+            max_num_categories_for_drift: int = 10,
+            max_num_categories_for_display: int = 10,
+            show_categories_by: str = 'train_largest',
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -82,7 +92,9 @@ class TrainTestLabelDrift(TrainTestCheck):
         if label_properties is not None:
             validate_properties(label_properties)
         self.user_label_properties = label_properties
-        self.max_num_categories = max_num_categories
+        self.max_num_categories_for_drift = max_num_categories_for_drift
+        self.max_num_categories_for_display = max_num_categories_for_display
+        self.show_categories_by = show_categories_by
 
         self._label_properties = None
         self._train_label_properties = None
@@ -159,7 +171,9 @@ class TrainTestLabelDrift(TrainTestCheck):
                 test_column=pd.Series(self._test_label_properties[name]),
                 value_name=name,
                 column_type=get_column_type(output_type),
-                max_num_categories=self.max_num_categories
+                max_num_categories_for_drift=self.max_num_categories_for_drift,
+                max_num_categories_for_display=self.max_num_categories_for_display,
+                show_categories_by=self.show_categories_by
             )
             values_dict[name] = {
                 'Drift score': value,

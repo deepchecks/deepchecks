@@ -158,7 +158,7 @@ class ImagePropertyDrift(TrainTestCheck):
                     test_column=df_test[property_name],
                     value_name=property_name,
                     column_type=get_column_type(single_property['output_type']),
-                    max_num_categories=self.max_num_categories,
+                    max_num_categories_for_drift=self.max_num_categories,
                     min_samples=self.min_samples
                 )
 

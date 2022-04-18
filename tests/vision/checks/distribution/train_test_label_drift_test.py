@@ -118,7 +118,7 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets):
 
 def test_with_drift_object_detection_change_max_cat(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
-    check = TrainTestLabelDrift(max_num_categories=100)
+    check = TrainTestLabelDrift(max_num_categories_for_drift=100)
 
     # Act
     result = check.run(coco_train_visiondata, coco_test_visiondata, device=device)

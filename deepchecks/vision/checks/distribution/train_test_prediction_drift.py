@@ -154,7 +154,7 @@ class TrainTestPredictionDrift(TrainTestCheck):
                 test_column=pd.Series(self._test_prediction_properties[name]),
                 value_name=name,
                 column_type=get_column_type(output_type),
-                max_num_categories=self.max_num_categories
+                max_num_categories_for_drift=self.max_num_categories
             )
             values_dict[name] = {
                 'Drift score': value,

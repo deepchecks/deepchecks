@@ -137,7 +137,7 @@ class TrainTestFeatureDrift(TrainTestCheck):
                 value_name=column,
                 column_type=column_type,
                 plot_title=plot_title,
-                max_num_categories=self.max_num_categories
+                max_num_categories_for_drift=self.max_num_categories
             )
             values_dict[column] = {
                 'Drift score': value,

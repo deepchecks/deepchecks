@@ -72,7 +72,7 @@ class TrainTestPredictionDrift(TrainTestCheck):
             test_column=pd.Series(test_prediction),
             value_name='model predictions',
             column_type='categorical' if train_dataset.label_type == 'classification_label' else 'numerical',
-            max_num_categories=self.max_num_categories
+            max_num_categories_for_drift=self.max_num_categories
         )
 
         headnote = """<span>

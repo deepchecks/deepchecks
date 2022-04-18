@@ -17,6 +17,8 @@ import numpy as np
 import pandas as pd
 from typing import List, Tuple
 
+from deepchecks.core.errors import DeepchecksValueError
+
 with warnings.catch_warnings():
     warnings.simplefilter(action='ignore', category=FutureWarning)
     from category_encoders import OneHotEncoder
@@ -108,26 +110,30 @@ class ScaledNumerics(TransformerMixin, BaseEstimator):
             return s
 
 
-def preprocess_2_cat_cols_to_same_bins(dist1: np.ndarray, dist2: np.ndarray, max_num_categories
+def preprocess_2_cat_cols_to_same_bins(dist1: np.ndarray, dist2: np.ndarray, max_num_categories: int = None,
                                        ) -> Tuple[np.ndarray, np.ndarray, List]:
     """
-    Preprocess distributions to the same bins in order to be able to be calculated by PSI.
+    Preprocess distributions to the same bins.
 
-    Function returns the value counts for each distribution and the categories list. If there are more than
-    max_num_categories, it encodes rare categories into an "OTHER" category. This is done according to the values of
-    dist1, which is treated as the "expected" distribution.
+    Function returns value counts for each distribution (with the same index) and the categories list.
+    Parameter max_num_categories can be used in order to limit the number of resulting bins.
 
     Function is for categorical data only.
 
     Parameters
     ----------
-    dist1 : np.ndarray
-        Parameters
-    dist2 : np.ndarray
-        list of values from the second distribution, treated as the actual distribution
-    max_num_categories
-        max number of allowed categories. If there are more, they are binned into an "Other" category.
+    dist1: np.ndarray
+        list of values from the first distribution.
+    dist2: np.ndarray
+        list of values from the second distribution.
+    max_num_categories: int, default: None
+        max number of allowed categories. If there are more categories than this number, categories are ordered by
+        magnitude and all the smaller categories are binned into an "Other" category.
         If max_num_categories=None, there is no limit.
+        > Note that if this parameter is used, the ordering of categories (and by extension, the decision which
+        categories are kept by name and which are binned to the "Other" category) is done according to the values of
+        dist1, which is treated as the "expected" distribution.
+
     Returns
     -------
     dist1_percents
@@ -154,7 +160,8 @@ def preprocess_2_cat_cols_to_same_bins(dist1: np.ndarray, dist2: np.ndarray, max
         dist2_counter = Counter(dist2)
         categories_list = all_categories
 
-    dist1_percents = np.array([dist1_counter[k] for k in categories_list]) / len(dist1)
-    dist2_percents = np.array([dist2_counter[k] for k in categories_list]) / len(dist2)
+    # create an array from counters; this also aligns both counts to the same index
+    dist1_counts = np.array([dist1_counter[k] for k in categories_list])
+    dist2_counts = np.array([dist2_counter[k] for k in categories_list])
 
-    return dist1_percents, dist2_percents, categories_list
+    return dist1_counts, dist2_counts, categories_list
