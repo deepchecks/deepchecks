@@ -92,11 +92,11 @@ def send_anonymous_run_event(run_instance):
     """Send an anonymous check run event."""
     from deepchecks import BaseSuite, BaseCheck  # pylint: disable=import-outside-toplevel
     if isinstance(run_instance, BaseCheck):
-        event_name = 'run-check'
+        type = 'check'
     elif isinstance(run_instance, BaseSuite):
-        event_name = 'run-suite'
+        type = 'suite'
     else:
-        event_name = 'run-unknown'
+        type = 'unknown'
 
     try:
         mod = run_instance.__module__
@@ -120,11 +120,11 @@ def send_anonymous_run_event(run_instance):
             }
         else:
             event_data = {
-                'name': 'custom_check',
+                'name': f'custom-{type}',
                 'kind': get_custom_check_kind(run_instance)
             }
 
     except Exception:  # pylint: disable=broad-except
         event_data = None
 
-    send_anonymous_event(event_name, event_data)
+    send_anonymous_event(f'run-{type}', event_data)
