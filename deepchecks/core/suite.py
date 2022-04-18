@@ -240,3 +240,14 @@ class BaseSuite:
     def name(self):
         """Return name of the suite."""
         return self._name
+
+    def set_name(self, name: str):
+        """Set name of the suite.
+
+        Parameters
+        ----------
+        name : str
+            Name of the suite.
+        """
+        self._name = name
+        return self

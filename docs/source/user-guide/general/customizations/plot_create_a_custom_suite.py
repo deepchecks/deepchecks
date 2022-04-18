@@ -141,7 +141,7 @@ customized_suite.add(
 customized_suite[3].clean_conditions()
 
 # and update the suite's name:
-customized_suite.name = 'New Data Leakage Suite'
+customized_suite.set_name('New Data Leakage Suite')
 
 #%%
 
