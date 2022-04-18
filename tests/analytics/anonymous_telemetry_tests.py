@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 from deepchecks.analytics.anonymous_telemetry import get_environment_details
-from hamcrest import assert_that, equal_to, is_in, has_key
+from hamcrest import assert_that, is_in, has_key
 
 
 def test_get_environment_details():

@@ -22,7 +22,7 @@ import sys
 
 import deepchecks
 from deepchecks import is_notebook
-from deepchecks.analytics.utils import get_telemetry_config, write_global_telemetry_config
+from deepchecks.analytics.utils import get_telemetry_config
 
 MODULE_DIR = pathlib.Path(__file__).absolute().parent.parent
 ANALYTICS_ENABLED = get_telemetry_config()['telemetry_enabled']
