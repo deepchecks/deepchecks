@@ -248,7 +248,7 @@ def _create_distribution_bar_graphs(train_column, test_column, max_num_categorie
 
     expected_percents, actual_percents = expected / len(train_column), actual / len(test_column)
 
-    # Get sorting lambda function according to the param show_categories_by:
+    # Get sorting lambda function according to the parameter show_categories_by:
     if show_categories_by == 'train_largest':
         sort_func = lambda tup: tup[0]
     elif show_categories_by == 'test_largest':
@@ -259,7 +259,7 @@ def _create_distribution_bar_graphs(train_column, test_column, max_num_categorie
         raise DeepchecksValueError(f'show_categories_by must be either "train_largest", "test_largest" '
                                    f'or "largest_difference", instead got: {show_categories_by}')
 
-    # Sort the lists together according to the param show_categories_by (done by sorting zip and then using it again
+    # Sort the lists together according to the parameter show_categories_by (done by sorting zip and then using it again
     # to return the lists to the original 3 separate ones).
     # Afterwards, leave only the first max_num_categories values in each list.
     expected_percents, actual_percents, categories_list = zip(
