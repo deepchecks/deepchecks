@@ -108,7 +108,7 @@ class Context:
         self._feature_importance_force_permutation = feature_importance_force_permutation
         self._features_importance = features_importance
         self._feature_importance_timeout = feature_importance_timeout
-        self._calculated_importance = True if features_importance is not None else False
+        self._calculated_importance = features_importance is not None
         self._importance_type = None
         self._validated_model = False
         self._task_type = None
