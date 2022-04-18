@@ -74,7 +74,7 @@ class SimilarImageLeakage(TrainTestCheck):
 
     def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Calculate image hashes for train and test."""
-        hashed_images = [average_hash(fromarray(img), hash_size=self.hash_size) for img in batch.images]
+        hashed_images = [average_hash(fromarray(img.squeeze()), hash_size=self.hash_size) for img in batch.images]
 
         if dataset_kind == DatasetKind.TRAIN:
             self._hashed_train_images += hashed_images

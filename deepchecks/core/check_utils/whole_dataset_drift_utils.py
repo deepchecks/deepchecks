@@ -31,6 +31,7 @@ import plotly.graph_objects as go
 
 from deepchecks.tabular import Dataset
 from deepchecks.utils.distribution.plot import feature_distribution_traces, drift_score_bar_traces
+from deepchecks.utils.distribution.rare_category_encoder import RareCategoryEncoder
 from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none
 from deepchecks.utils.function import run_available_kwargs
 from deepchecks.utils.strings import format_percent
@@ -114,7 +115,8 @@ def generate_model(numerical_columns: List[Hashable], categorical_columns: List[
                    random_state: int = 42) -> Pipeline:
     """Generate the unfitted Domain Classifier model."""
     categorical_transformer = Pipeline(
-        steps=[('encoder', run_available_kwargs(OrdinalEncoder, handle_unknown='use_encoded_value',
+        steps=[('rare', RareCategoryEncoder(254)),
+               ('encoder', run_available_kwargs(OrdinalEncoder, handle_unknown='use_encoded_value',
                                                 unknown_value=np.nan,
                                                 dtype=np.float64))]
     )
