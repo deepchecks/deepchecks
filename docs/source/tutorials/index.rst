@@ -12,7 +12,7 @@ Tabular Tutorials
     :caption: Tabular Tutorials
     :glob:
 
-    tabular/examples/plot*
+    ../auto_tutorials/tabular/plot*
 
 Vision Tutorials
 ----------------
@@ -22,4 +22,4 @@ Vision Tutorials
     :caption: Vision Tutorials
     :glob:
 
-    vision/examples/plot*
+    ../auto_tutorials/vision/plot*

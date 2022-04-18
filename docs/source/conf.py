@@ -108,15 +108,8 @@ imgmath_image_format = 'svg'
 
 sphinx_gallery_conf = {
     "examples_dirs": [
-        "examples/vision/checks/distribution/source",
-        "examples/vision/checks/performance/source",
-        "examples/vision/checks/methodology/source",
-        # "examples/tabular/guides/source",
-        "examples/tabular/checks/distribution/source",
-        "examples/tabular/checks/overview/source",
-        "examples/tabular/checks/integrity/source",
-        "examples/tabular/checks/methodology/source",
-        "examples/tabular/checks/performance/source",
+        "checks/vision",
+        "checks/tabular",
         "tutorials/tabular",
         "tutorials/vision",
         "user-guide/general/customizations",
@@ -124,17 +117,10 @@ sphinx_gallery_conf = {
         # "examples/tabular/use-cases/source",
     ],  # path to your example scripts
     "gallery_dirs": [
-        "examples/vision/checks/distribution/examples",
-        "examples/vision/checks/performance/examples",
-        "examples/vision/checks/methodology/examples",
-        # "examples/tabular/guides/examples",
-        "examples/tabular/checks/distribution/examples",
-        "examples/tabular/checks/overview/examples",
-        "examples/tabular/checks/integrity/examples",
-        "examples/tabular/checks/methodology/examples",
-        "examples/tabular/checks/performance/examples",
-        "tutorials/tabular/examples",
-        "tutorials/vision/examples",
+        "checks_gallery/vision",
+        "checks_gallery/tabular",
+        "auto_tutorials/vision",
+        "auto_tutorials/tabular",
         "user-guide/general/customizations/examples",
         "user-guide/general/exporting_results/examples",
         # "examples/tabular/use-cases/examples",
@@ -445,10 +431,8 @@ for line in open('nitpick-exceptions'):
 
 def get_check_example_api_reference(filepath: str) -> t.Optional[str]:
     if not (
-        filepath.startswith("docs/source/examples/tabular/checks/")
-        or filepath.startswith("docs/source/examples/vision/checks/")
-        or filepath.startswith("examples/tabular/checks/")
-        or filepath.startswith("examples/vision/checks/")
+        filepath.startswith("checks_gallery/tabular/")
+        or filepath.startswith("checks_gallery/vision/")
     ):
         return ''
 
@@ -467,7 +451,7 @@ def get_check_example_api_reference(filepath: str) -> t.Optional[str]:
 
     clazz_module = ".".join(check_clazz.__module__.split(".")[:-1])
 
-    apipath = f"<ul><li><a href='../../../../../api/generated/{clazz_module}.{notebook_name}.html'>API Reference - {notebook_name}</a></li></ul>"
+    apipath = f"<ul><li><a href='../../api/generated/{clazz_module}.{notebook_name}.html'>API Reference - {notebook_name}</a></li></ul>"
     return apipath
 
 def get_report_issue_url(pagename: str) -> str:

@@ -92,7 +92,7 @@ See the :doc:`When Should You Use </getting-started/when_should_you_use>` Sectio
 .. toctree::
     :maxdepth: 3
 
-    examples/index
+    checks/index
 
 
 .. toctree::

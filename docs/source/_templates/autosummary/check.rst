@@ -10,7 +10,7 @@
 {# submoduletype = tabular|vision... #}
 {% set submoduletype = splitname[1] %}
 
-{% set path = getcwd() + '/source/examples/' + submoduletype + '/checks/' + checktype + '/source/plot_' + to_snake_case(objname).lower() + '.py' %}
+{% set path = getcwd() + '/source/checks/' + submoduletype + '/plot_' + to_snake_case(objname).lower() + '.py' %}
 
 {%- if path_exists(path) %}
 Examples
@@ -22,10 +22,10 @@ Examples
 
 .. only:: html
 
- .. figure:: /examples/{{ submoduletype }}/checks/{{ checktype}}/examples/images/thumb/sphx_glr_plot_{{ to_snake_case(objname).lower() }}_thumb.png
+ .. figure:: /checks_gallery/{{ submoduletype }}/images/thumb/sphx_glr_plot_{{ to_snake_case(objname).lower() }}_thumb.png
      :alt: {{ objname }}
 
-     :ref:`sphx_glr_examples_{{submoduletype}}_checks_{{ checktype }}_examples_plot_{{ to_snake_case(objname).lower() }}.py`
+     :ref:`sphx_glr_checks_gallery_{{submoduletype}}_plot_{{ to_snake_case(objname).lower() }}.py`
 
 .. raw:: html
 

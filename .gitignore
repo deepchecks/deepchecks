@@ -122,3 +122,5 @@ docs/source/tutorials/vision/tomato-detection/
 docs/source/tutorials/vision/hymenoptera_data/
 docs/source/user-guide/general/exporting_results/wandb
 deepchecks/vision/datasets/classification/models/
+docs/source/auto_tutorials/
+docs/source/checks_gallery/
