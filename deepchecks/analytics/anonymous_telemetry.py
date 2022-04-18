@@ -28,7 +28,6 @@ MODULE_DIR = pathlib.Path(__file__).absolute().parent.parent
 ANALYTICS_ENABLED = get_telemetry_config()['telemetry_enabled']
 
 
-
 def _identify_runtime():
     """Identify the runtime."""
     # If in docker
