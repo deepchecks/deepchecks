@@ -17,8 +17,6 @@ import numpy as np
 import pandas as pd
 from typing import List, Tuple
 
-from deepchecks.core.errors import DeepchecksValueError
-
 with warnings.catch_warnings():
     warnings.simplefilter(action='ignore', category=FutureWarning)
     from category_encoders import OneHotEncoder

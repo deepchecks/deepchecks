@@ -157,7 +157,7 @@ def calc_drift_and_plot(train_column: pd.Series,
         dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(train_dist, test_dist, value_name)
     elif column_type == 'categorical':
         scorer_name = 'PSI'
-        expected, actual, categories_list = \
+        expected, actual, _ = \
             preprocess_2_cat_cols_to_same_bins(dist1=train_column, dist2=test_column,
                                                max_num_categories=max_num_categories_for_drift)
         expected_percents, actual_percents = expected / len(train_column), actual / len(test_column)
@@ -197,7 +197,7 @@ def calc_drift_and_plot(train_column: pd.Series,
         test_data_percents = dist_traces[1].y.sum()
 
         fig.add_annotation(
-            x=0, y=-0.2, showarrow=False, xref="paper", yref="paper", xanchor='left',
+            x=0, y=-0.2, showarrow=False, xref='paper', yref='paper', xanchor='left',
             text=f'* Showing the top {max_num_categories_for_drift} {param_to_print_dict[show_categories_by]} out of '
                  f'total {len(all_categories)} categories.'
                  f'<br>Shown data is {format_percent(train_data_percents)} of train data and '
