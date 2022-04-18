@@ -11,10 +11,8 @@
 """Represents fixtures for unit testing using pytest."""
 # Disable this pylint check since we use this convention in pytest fixtures
 #pylint: disable=redefined-outer-name
-import os
 from typing import Any, Dict, Tuple, Optional
 
-import yaml
 from hamcrest import assert_that, instance_of, only_contains, any_of
 from hamcrest.core.matcher import Matcher
 import numpy as np
