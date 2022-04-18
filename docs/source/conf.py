@@ -70,12 +70,7 @@ except Exception as error:
 # ones.
 #
 extensions = [
-    # by itself sphinx_gallery is not able to work with jupyter notebooks
-    # but nbsphinx extension is able to use some of it functionality to create
-    # thumbnail galleries. Link to the doc - https://nbsphinx.readthedocs.io/en/0.8.7/subdir/gallery.html
-    #
     'sphinx_gallery.load_style',
-    #
     'sphinx_gallery.gen_gallery',
     'numpydoc',
     'sphinx.ext.autodoc',
@@ -213,8 +208,18 @@ autosummary_ignore_module_all = False
 
 # A dictionary of values to pass into the template engine’s context
 # for autosummary stubs files.
-#
-# autosummary_context = {'to_snake_case': to_snake_case}
+
+def path_exists(path: str):
+    return os.path.exists(path)
+
+def getswd(pth: str):
+    return os.getcwd()
+
+autosummary_context = {
+    'to_snake_case': to_snake_case, 
+    'path_exists': path_exists, 
+    'getcwd': os.getcwd
+}
 
 # TODO: explaine
 autosummary_filename_map = {
@@ -270,7 +275,6 @@ copybutton_prompt_is_regexp = True
 
 # Continue copying lines as long as they end with this character
 copybutton_line_continuation_character = "\\"
-
 
 # -- Linkcode ----------------------------------------------------------------
 
@@ -434,6 +438,33 @@ for line in open('nitpick-exceptions'):
     target = target.strip()
     nitpick_ignore.append((dtype, target))
 
+def get_check_example_api_reference(filepath: str) -> t.Optional[str]:
+    if not (
+        filepath.startswith("docs/source/examples/tabular/checks/")
+        or filepath.startswith("docs/source/examples/vision/checks/")
+        or filepath.startswith("examples/tabular/checks/")
+        or filepath.startswith("examples/vision/checks/")
+    ):
+        return ''
+
+    notebook_name = snake_case_to_camel_case(
+        filepath.split("/")[-1][5:]
+            .replace(".txt", "")
+            .replace(".ipynb", "")
+            .replace(".py", "")
+    )
+
+    import deepchecks.checks
+    check_clazz = getattr(deepchecks.checks, notebook_name, None)
+
+    if check_clazz is None or not hasattr(check_clazz, "__module__"):
+        return
+
+    clazz_module = ".".join(check_clazz.__module__.split(".")[:-1])
+
+    apipath = f"<ul><li><a href='../../../../../api/generated/{clazz_module}.{notebook_name}.html'>API Reference - {notebook_name}</a></li></ul>"
+    return apipath
+
 def get_report_issue_url(pagename: str) -> str:
     template = (
         "https://github.com/{user}/{repo}/issues/new?title={title}&body={body}&labels={labels}"
@@ -450,14 +481,12 @@ def get_report_issue_url(pagename: str) -> str:
 def snake_case_to_camel_case(val: str) -> str:
     return "".join(it.capitalize() for it in val.split("_") if it)
 
-
 # -- Registration of hooks ---------
-
-
 def setup(app):
 
     def add_custom_routines(app, pagename, templatename, context, doctree):
         context["get_report_issue_url"] = get_report_issue_url
+        context["get_check_example_api_reference"] = get_check_example_api_reference
 
     # make custom routines available within html templates
     app.connect("html-page-context", add_custom_routines)

@@ -57,12 +57,13 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         # Replace the run_logic function with wrapped run function
         setattr(self, 'run_logic', wrap_run(getattr(self, 'run_logic'), self))
 
-    def run(self, dataset, model=None) -> CheckResult:
+    def run(self, dataset, model=None, **kwargs) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
         return self.run_logic(self.context_type(  # pylint: disable=not-callable
             dataset,
-            model=model
+            model=model,
+            **kwargs
         ))
 
     @abc.abstractmethod
@@ -84,13 +85,14 @@ class TrainTestCheck(TrainTestBaseCheck):
         # Replace the run_logic function with wrapped run function
         setattr(self, 'run_logic', wrap_run(getattr(self, 'run_logic'), self))
 
-    def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
+    def run(self, train_dataset, test_dataset, model=None, **kwargs) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
         return self.run_logic(self.context_type(  # pylint: disable=not-callable
             train_dataset,
             test_dataset,
-            model=model
+            model=model,
+            **kwargs
         ))
 
     @abc.abstractmethod
@@ -110,10 +112,10 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
         # Replace the run_logic function with wrapped run function
         setattr(self, 'run_logic', wrap_run(getattr(self, 'run_logic'), self))
 
-    def run(self, model) -> CheckResult:
+    def run(self, model, **kwargs) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
-        return self.run_logic(self.context_type(model=model))  # pylint: disable=not-callable
+        return self.run_logic(self.context_type(model=model, **kwargs))  # pylint: disable=not-callable
 
     @abc.abstractmethod
     def run_logic(self, context) -> CheckResult:

@@ -16,7 +16,7 @@ import inspect
 from collections import OrderedDict
 from typing import Any, Callable, List, Union, Dict, Type, ClassVar, Optional
 
-from deepchecks.core.check_result import CheckResult
+from deepchecks.core.check_result import CheckResult, CheckFailure
 from deepchecks.core.condition import Condition, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import split_camel_case
@@ -124,6 +124,9 @@ class BaseCheck(abc.ABC):
 
     def finalize_check_result(self, check_result: CheckResult) -> CheckResult:
         """Finalize the check result by adding the check instance and processing the conditions."""
+        if isinstance(check_result, CheckFailure):
+            return check_result
+
         if not isinstance(check_result, CheckResult):
             raise DeepchecksValueError(f'Check {self.name()} expected to return CheckResult but got: '
                                        + type(check_result).__name__)
