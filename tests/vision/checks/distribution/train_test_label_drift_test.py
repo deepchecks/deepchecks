@@ -139,6 +139,32 @@ def test_with_drift_object_detection_change_max_cat(coco_train_visiondata, coco_
     ))
 
 
+def test_display_changes_but_values_dont_for_diff_display_params(coco_train_visiondata, coco_test_visiondata, device):
+    def assert_func(result):
+        assert_that(result.value, has_entries(
+            {'Samples Per Class': has_entries(
+                {'Drift score': close_to(0.24, 0.01),
+                 'Method': equal_to('PSI')}
+            ), 'Bounding Box Area (in pixels)': has_entries(
+                {'Drift score': close_to(0.012, 0.001),
+                 'Method': equal_to('Earth Mover\'s Distance')}
+            ), 'Number of Bounding Boxes Per Image': has_entries(
+                {'Drift score': close_to(0.059, 0.001),
+                 'Method': equal_to('Earth Mover\'s Distance')}
+            )
+            }
+        ))
+
+    # Arrange and assert
+    check = TrainTestLabelDrift(max_num_categories_for_display=20, show_categories_by='test_largest')
+    result = check.run(coco_train_visiondata, coco_test_visiondata, device=device)
+    assert_func(result)
+
+    check = TrainTestLabelDrift(show_categories_by='largest_difference')
+    result = check.run(coco_train_visiondata, coco_test_visiondata, device=device)
+    assert_func(result)
+
+
 def test_with_drift_object_detection_alternative_properties(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
     def prop(labels):
