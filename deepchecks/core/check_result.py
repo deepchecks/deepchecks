@@ -23,8 +23,9 @@ import pandas as pd
 import numpy as np
 import ipywidgets as widgets
 import plotly.graph_objects as go
-import plotly
 from plotly.basedatatypes import BaseFigure
+import plotly.io as pio
+import plotly
 from matplotlib import pyplot as plt
 from IPython.display import display_html
 from pandas.io.formats.style import Styler
@@ -184,13 +185,16 @@ class CheckResult:
             return box
         display_html(check_html, raw=True)
 
-    def _repr_html_(self):
+    def _repr_html_(self, unique_id=None,
+                    show_additional_outputs=True, requirejs: bool = False):
         """Return html representation of check result."""
         html_out = io.StringIO()
-        self.save_as_html(html_out, False)
+        self.save_as_html(html_out, unique_id=unique_id,
+                          show_additional_outputs=show_additional_outputs, requirejs=requirejs)
         return html_out.getvalue()
 
-    def save_as_html(self, file=None, requirejs: bool = True):
+    def save_as_html(self, file=None, unique_id=None,
+                     show_additional_outputs=True, requirejs: bool = True):
         """Save output as html file.
 
         Parameters
@@ -202,7 +206,9 @@ class CheckResult:
         """
         if file is None:
             file = 'output.html'
-        widgeted_output = self.display_check(as_widget=True)
+        widgeted_output = self.display_check(unique_id=unique_id,
+                                             show_additional_outputs=show_additional_outputs,
+                                             as_widget=True)
         if isinstance(file, str):
             file = create_new_file_name(file, 'html')
         widget_to_html(widgeted_output, html_out=file, title=self.get_header(), requirejs=requirejs)
@@ -376,7 +382,7 @@ class CheckResult:
     def _ipython_display_(self, unique_id=None, as_widget=False,
                           show_additional_outputs=True):
         check_widget = self.display_check(unique_id=unique_id, as_widget=as_widget,
-                                          show_additional_outputs=show_additional_outputs,)
+                                          show_additional_outputs=show_additional_outputs)
         if as_widget:
             display_html(check_widget)
 
@@ -437,11 +443,27 @@ class CheckResult:
 
         return 4
 
-    def show(self, unique_id=None, show_additional_outputs=True):
-        """Display check result."""
+    def show(self, show_additional_outputs=True, unique_id=None):
+        """Display the check result.
+
+        Parameters
+        ----------
+        show_additional_outputs : bool
+            Boolean that controls if to show additional outputs.
+        unique_id : str
+            The unique id given by the suite that displays the check.
+        """
         if is_notebook():
-            self._ipython_display_(unique_id=unique_id,
-                                   show_additional_outputs=show_additional_outputs)
+            self.display_check(unique_id=unique_id,
+                               show_additional_outputs=show_additional_outputs)
+        elif 'sphinx_gallery' in pio.renderers.default:
+            html = self._repr_html_(unique_id=unique_id,
+                                    show_additional_outputs=show_additional_outputs)
+
+            class TempSphinx:
+                def _repr_html_(self):
+                    return html
+            return TempSphinx()
         else:
             warnings.warn('You are running in a non-interactive python shell. in order to show result you have to use '
                           'an IPython shell (etc Jupyter)')
