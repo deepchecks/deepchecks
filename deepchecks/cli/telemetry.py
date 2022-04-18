@@ -65,7 +65,7 @@ def inform_about_telemetry(_: argparse.Namespace) -> None:
 
     print(
         textwrap.dedent(
-            """Deepchecks uses telemetry to report anonymous usage information. This information is essential to 
+            """Deepchecks uses telemetry to report anonymous usage information. This information is essential to
             improve the package for all users."""
         )
     )
