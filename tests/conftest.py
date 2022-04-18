@@ -11,8 +11,10 @@
 """Represents fixtures for unit testing using pytest."""
 # Disable this pylint check since we use this convention in pytest fixtures
 #pylint: disable=redefined-outer-name
+import os
 from typing import Any, Dict, Tuple, Optional
 
+import yaml
 from hamcrest import assert_that, instance_of, only_contains, any_of
 from hamcrest.core.matcher import Matcher
 import numpy as np
@@ -38,6 +40,11 @@ from deepchecks.tabular import Dataset, TrainTestCheck, Context
 from deepchecks.core.check_result import CheckFailure, CheckResult
 
 from .vision.vision_conftest import * #pylint: disable=wildcard-import, unused-wildcard-import
+
+# Disable telemetry for tests
+from deepchecks.analytics.utils import toggle_telemetry
+toggle_telemetry(False)
+
 
 def get_expected_results_length(suite: BaseSuite, args: Dict):
     num_single = len([c for c in suite.checks.values() if isinstance(c, SingleDatasetBaseCheck)])

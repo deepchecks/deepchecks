@@ -10,6 +10,7 @@
 #
 """Telemetry CLI."""
 import argparse
+import textwrap
 
 from deepchecks.analytics.utils import is_telemetry_enabled, toggle_telemetry
 
@@ -63,24 +64,30 @@ def inform_about_telemetry(_: argparse.Namespace) -> None:
         )
 
     print(
+        textwrap.dedent(
             """
-            Deepchecks uses telemetry to report anonymous usage information. This information
-            is essential to help improve the package for all users."""
+            Deepchecks uses telemetry to report anonymous usage information. This information is essential to 
+            improve the package for all users."""
+        )
     )
 
     if not is_enabled:
         print("\nYou can enable telemetry reporting using")
-        print("\n\tdeepchecks telemetry enable")
+        print("\tdeepchecks telemetry enable")
     else:
         print("\nYou can disable telemetry reporting using:")
-        print("\n\tdeepchecks telemetry disable")
+        print("\tdeepchecks telemetry disable")
+
+    print("\n")
 
 
 def disable_telemetry(_: argparse.Namespace) -> None:
     """Disable telemetry tracking."""
     toggle_telemetry(False)
+    print("Telemetry reporting has been disabled.")
 
 
 def enable_telemetry(_: argparse.Namespace) -> None:
     """Enable telemetry tracking."""
     toggle_telemetry(True)
+    print("Telemetry reporting has been enabled.")

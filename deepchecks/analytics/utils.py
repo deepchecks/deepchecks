@@ -41,6 +41,7 @@ def write_global_telemetry_config():
     """Write the default telemetry config to the config file."""
     if not os.path.exists(os.path.dirname(os.path.expanduser(CONFIG_FILE_PATH))):
         os.makedirs(os.path.dirname(os.path.expanduser(CONFIG_FILE_PATH)))
+    if not os.path.exists(os.path.expanduser(CONFIG_FILE_PATH)):
         with open(os.path.expanduser(CONFIG_FILE_PATH), 'w', encoding='utf8') as f:
             f.write(
                 yaml.dump(

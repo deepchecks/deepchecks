@@ -18,13 +18,15 @@ import json
 import os
 import pathlib
 import platform
+import sys
 
 import deepchecks
 from deepchecks import is_notebook
-from deepchecks.analytics.utils import get_telemetry_config
+from deepchecks.analytics.utils import get_telemetry_config, write_global_telemetry_config
 
 MODULE_DIR = pathlib.Path(__file__).absolute().parent.parent
 ANALYTICS_ENABLED = get_telemetry_config()['telemetry_enabled']
+
 
 
 def _identify_runtime():
@@ -71,7 +73,7 @@ def get_environment_details():
 
 def send_anonymous_event(event_name, event_data=None):
     """Send an anonymous event ."""
-    if ANALYTICS_ENABLED:
+    if ANALYTICS_ENABLED and 'pytest' not in sys.modules:
         try:
             machine_id = get_telemetry_config()['machine_id']
             params = {
@@ -92,11 +94,11 @@ def send_anonymous_run_event(run_instance):
     """Send an anonymous check run event."""
     from deepchecks import BaseSuite, BaseCheck  # pylint: disable=import-outside-toplevel
     if isinstance(run_instance, BaseCheck):
-        type = 'check'
+        run_type = 'check'
     elif isinstance(run_instance, BaseSuite):
-        type = 'suite'
+        run_type = 'suite'
     else:
-        type = 'unknown'
+        run_type = 'unknown'
 
     try:
         mod = run_instance.__module__
@@ -120,11 +122,11 @@ def send_anonymous_run_event(run_instance):
             }
         else:
             event_data = {
-                'name': f'custom-{type}',
+                'name': f'custom-{run_type}',
                 'kind': get_custom_check_kind(run_instance)
             }
 
     except Exception:  # pylint: disable=broad-except
         event_data = None
 
-    send_anonymous_event(f'run-{type}', event_data)
+    send_anonymous_event(f'run-{run_type}', event_data)
