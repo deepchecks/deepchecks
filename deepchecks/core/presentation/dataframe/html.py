@@ -8,6 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+"""Module containing html serializer for the pandas.DataFrame type."""
 import typing as t
 import warnings
 import pandas as pd

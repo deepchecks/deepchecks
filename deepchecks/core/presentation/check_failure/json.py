@@ -8,6 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+"""Module containing json serializer for the CheckFailuer type."""
 import typing as t
 
 from deepchecks.core.check_result import CheckFailure

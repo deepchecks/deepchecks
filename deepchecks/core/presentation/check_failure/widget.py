@@ -8,6 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+"""Module containing ipywidget serializer for the CheckFailuer type."""
 from ipywidgets import VBox, HTML
 
 from deepchecks.core.check_result import CheckFailure

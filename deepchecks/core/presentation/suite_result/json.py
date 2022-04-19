@@ -8,6 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+"""Module containing JSON serializer for the SuiteResult type."""
 import typing as t
 
 from deepchecks.core.suite import SuiteResult

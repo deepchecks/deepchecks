@@ -8,6 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+"""Module containing html serializer for the SuiteResult type."""
 import typing as t
 import textwrap
 import warnings
@@ -21,7 +22,7 @@ from deepchecks.core.presentation.abc import HtmlSerializer
 from deepchecks.core.presentation.common import form_output_anchor
 from deepchecks.core.presentation.common import aggregate_conditions
 from deepchecks.core.presentation.common import Html
-from deepchecks.core.presentation.dataframe import DataFramePresentation
+from deepchecks.core.presentation.dataframe.html import DataFrameSerializer as DataFrameHtmlSerializer
 from deepchecks.core.presentation.check_result.html import CheckResultSerializer as CheckResultHtmlSerializer
 from deepchecks.core.presentation.check_result.html import CheckResultSection
 
@@ -129,12 +130,12 @@ class SuiteResultSerializer(HtmlSerializer[SuiteResult]):
         if not self.value.results_with_conditions:
             return '<p>No conditions defined on checks in the suite.</p>'
 
-        table = DataFramePresentation(aggregate_conditions(
+        table = DataFrameHtmlSerializer(aggregate_conditions(
             self.value.results_with_conditions,
             output_id=output_id,
             include_check_name=include_check_name,
             max_info_len=300
-        )).to_html()
+        )).serialize()
 
         return f'<h2>Conditions Summary</h2>{table}'
 
@@ -200,5 +201,5 @@ class SuiteResultSerializer(HtmlSerializer[SuiteResult]):
 
         with warnings.catch_warnings():
             warnings.simplefilter(action='ignore', category=FutureWarning)
-            table = DataFramePresentation(df.style.hide_index()).to_html()
+            table = DataFrameHtmlSerializer(df.style.hide_index()).serialize()
             return f'<h2>Other Checks That Weren\'t Displayed</h2>\n{table}'

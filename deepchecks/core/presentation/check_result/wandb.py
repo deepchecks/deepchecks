@@ -8,6 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+"""Module containing Wandb serializer for the CheckResult type."""
 import typing as t
 from collections import OrderedDict
 

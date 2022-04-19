@@ -8,6 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+"""Module with common utilities routines for serialization subpackage."""
 import typing as t
 import warnings
 import json

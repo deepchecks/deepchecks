@@ -8,9 +8,9 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+"""Module containing json serializer for the CheckResult type."""
 import typing as t
 
-import numpy as np
 import pandas as pd
 import jsonpickle.ext.pandas as jsonpickle_pd
 from pandas.io.formats.style import Styler

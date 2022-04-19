@@ -8,6 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+"""Module containing ipywidget serializer for the CheckResult type."""
 import typing as t
 
 import pandas as pd

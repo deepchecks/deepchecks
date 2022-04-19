@@ -8,6 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+"""Module containing Wandb serializer for the CheckFailuer type."""
 import typing as t
 
 import wandb

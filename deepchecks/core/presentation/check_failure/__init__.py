@@ -8,5 +8,5 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Subpackage with a set of serializers for the CheckResult type."""
+"""Subpackage with a set of serializers for the CheckFailure type."""
 __all__ = []

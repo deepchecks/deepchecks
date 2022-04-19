@@ -8,6 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+"""Module containing ipywidget serializer for the SuiteResult type."""
 import typing as t
 import warnings
 
@@ -21,7 +22,7 @@ from deepchecks.core.presentation.common import Html as CommonHtml
 from deepchecks.core.presentation.common import normalize_widget_style
 from deepchecks.core.presentation.check_result.html import CheckResultSection
 from deepchecks.core.presentation.check_result.widget import CheckResultSerializer as CheckResultWidgetSerializer
-from deepchecks.core.presentation.dataframe import DataFramePresentation
+from deepchecks.core.presentation.dataframe.widget import DataFrameSerializer
 
 from . import html
 
@@ -160,7 +161,7 @@ class SuiteResultSerializer(WidgetSerializer[SuiteResult]):
 
         with warnings.catch_warnings():
             warnings.simplefilter(action='ignore', category=FutureWarning)
-            return DataFramePresentation.to_widget(df.style.hide_index())
+            return DataFrameSerializer(df.style.hide_index()).serialize()
 
 
 A = t.TypeVar('A')

@@ -8,6 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+"""Module containing html serializer for the CheckFailuer type."""
 from deepchecks.utils.strings import get_docs_summary
 from deepchecks.core.check_result import CheckFailure
 from deepchecks.core.presentation.abc import HtmlSerializer

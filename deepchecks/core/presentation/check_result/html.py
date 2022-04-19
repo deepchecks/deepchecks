@@ -8,11 +8,11 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+"""Module containing html serializer for the CheckResult type."""
 import typing as t
 
 import pandas as pd
 import plotly.io as pio
-# import plotly.graph_objects as go
 from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
 from typing_extensions import Literal
@@ -20,7 +20,7 @@ from typing_extensions import Literal
 from deepchecks.core.check_result import CheckResult
 from deepchecks.utils.strings import get_docs_summary
 from deepchecks.core.presentation.abc import HtmlSerializer
-from deepchecks.core.presentation.dataframe import DataFramePresentation
+from deepchecks.core.presentation.dataframe.html import DataFrameSerializer as DataFrameHtmlSerializer
 from deepchecks.core.presentation.common import aggregate_conditions, form_output_anchor, form_check_id
 
 
@@ -75,13 +75,13 @@ class CheckResultSerializer(HtmlSerializer[CheckResult]):
         include_check_name: bool = False,
         output_id: t.Optional[str] = None,
     ) -> str:
-        table = DataFramePresentation(aggregate_conditions(
+        table = DataFrameHtmlSerializer(aggregate_conditions(
             self.value,
             max_info_len=max_info_len,
             include_icon=include_icon,
             include_check_name=include_check_name,
             output_id=output_id
-        )).to_html()
+        )).serialize()
         return f'<h5>Conditions Summary</h5>{table}'
 
     def prepare_additional_output(
@@ -140,7 +140,7 @@ class DisplayItemsHandler:
 
     @classmethod
     def handle_dataframe(cls, item):
-        return DataFramePresentation(item).to_html()
+        return DataFrameHtmlSerializer(item).serialize()
 
     @classmethod
     def handle_callable(cls, item):
