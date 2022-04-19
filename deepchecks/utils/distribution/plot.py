@@ -125,7 +125,7 @@ def feature_distribution_traces(train_column,
                                 column_name,
                                 is_categorical: bool = False,
                                 max_num_categories: int = 10,
-                                show_categories_by: str = 'train',
+                                show_categories_by: str = 'train_largest',
                                 quantile_cut: float = 0.02) -> Tuple[List[go.Trace], Dict, Dict]:
     """Create traces for comparison between train and test column.
 
