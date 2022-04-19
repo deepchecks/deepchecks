@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains Train Test label Drift check."""
-
+import warnings
 from typing import Dict
 
 from deepchecks.core.condition import ConditionCategory
@@ -46,16 +46,27 @@ class TrainTestLabelDrift(TrainTestCheck):
         - 'train_largest': Show the largest train categories.
         - 'test_largest': Show the largest test categories.
         - 'largest_difference': Show the largest difference between categories.
+    max_num_categories: int, default: None
+        Deprecated. Please use max_num_categories_for_drift and max_num_categories_for_display instead
     """
 
     def __init__(
-        self,
-        max_num_categories_for_drift: int = 10,
-        max_num_categories_for_display: int = 10,
-        show_categories_by: str = 'train_largest',
-        **kwargs
+            self,
+            max_num_categories_for_drift: int = 10,
+            max_num_categories_for_display: int = 10,
+            show_categories_by: str = 'train_largest',
+            max_num_categories: int = None,
+            **kwargs
     ):
         super().__init__(**kwargs)
+        if max_num_categories is not None:
+            warnings.warn(
+                'max_num_categories is deprecated. please use max_num_categories_for_drift and '
+                'max_num_categories_for_display instead',
+                DeprecationWarning
+            )
+            max_num_categories_for_drift = max_num_categories_for_drift or max_num_categories
+            max_num_categories_for_display = max_num_categories_for_display or max_num_categories
         self.max_num_categories_for_drift = max_num_categories_for_drift
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by

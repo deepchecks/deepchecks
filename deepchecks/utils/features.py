@@ -16,7 +16,6 @@
 import time
 import typing as t
 import warnings
-from warnings import warn
 from functools import lru_cache
 
 import numpy as np
@@ -103,7 +102,7 @@ def calculate_feature_importance_or_none(
         # ModelValidationError:
         #     if wrong type of model was provided;
         #     if function failed to predict on model;
-        warn(f'Features importance was not calculated:\n{str(error)}')
+        warnings.warn(f'Features importance was not calculated:\n{str(error)}')
         return None, None
 
 
