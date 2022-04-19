@@ -266,11 +266,6 @@ def _create_distribution_bar_graphs(train_column, test_column, max_num_categorie
         *list(sorted(zip(expected_percents, actual_percents, categories_list), key=sort_func, reverse=True))[
          :max_num_categories])
 
-    if max_num_categories is not None:
-        expected_percents, actual_percents, categories_list = \
-            expected_percents[:max_num_categories], actual_percents[:max_num_categories], \
-            categories_list[:max_num_categories]
-
     # fixes plotly widget bug with numpy values by converting them to native values
     # https://github.com/plotly/plotly.py/issues/3470
     categories_list = [un_numpy(cat) for cat in categories_list]
