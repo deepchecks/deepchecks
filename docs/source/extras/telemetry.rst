@@ -45,7 +45,7 @@ Deepchecks collects the following events:
 
 * While running checks:
     * ``run-check``: when a check is run.
-    * ``run-suite``: when a check fails.
+    * ``run-suite``: when a suite is run.
 
 Each event contains the following information:
 
