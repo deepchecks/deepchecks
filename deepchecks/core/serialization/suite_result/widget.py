@@ -17,12 +17,12 @@ from ipywidgets import Widget, HTML, VBox, Tab
 
 from deepchecks.utils.strings import get_docs_summary
 from deepchecks.core.suite import SuiteResult
-from deepchecks.core.presentation.abc import WidgetSerializer
-from deepchecks.core.presentation.common import Html as CommonHtml
-from deepchecks.core.presentation.common import normalize_widget_style
-from deepchecks.core.presentation.check_result.html import CheckResultSection
-from deepchecks.core.presentation.check_result.widget import CheckResultSerializer as CheckResultWidgetSerializer
-from deepchecks.core.presentation.dataframe.widget import DataFrameSerializer
+from deepchecks.core.serialization.abc import WidgetSerializer
+from deepchecks.core.serialization.common import Html as CommonHtml
+from deepchecks.core.serialization.common import normalize_widget_style
+from deepchecks.core.serialization.check_result.html import CheckResultSection
+from deepchecks.core.serialization.check_result.widget import CheckResultSerializer as CheckResultWidgetSerializer
+from deepchecks.core.serialization.dataframe.widget import DataFrameSerializer
 
 from . import html
 

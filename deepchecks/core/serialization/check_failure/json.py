@@ -12,7 +12,7 @@
 import typing as t
 
 from deepchecks.core.check_result import CheckFailure
-from deepchecks.core.presentation.abc import JsonSerializer
+from deepchecks.core.serialization.abc import JsonSerializer
 
 
 __all__ = ['CheckFailureSerializer']

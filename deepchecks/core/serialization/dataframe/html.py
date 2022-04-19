@@ -14,7 +14,7 @@ import warnings
 import pandas as pd
 from pandas.io.formats.style import Styler
 
-from deepchecks.core.presentation.abc import HtmlSerializer
+from deepchecks.core.serialization.abc import HtmlSerializer
 
 
 __all__ = ['DataFrameSerializer']

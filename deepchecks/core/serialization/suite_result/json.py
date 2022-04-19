@@ -14,9 +14,9 @@ import typing as t
 from deepchecks.core.suite import SuiteResult
 from deepchecks.core.check_result import CheckResult
 from deepchecks.core.check_result import CheckFailure
-from deepchecks.core.presentation.abc import JsonSerializer
-from deepchecks.core.presentation.check_result.json import CheckResultSerializer
-from deepchecks.core.presentation.check_failure.json import CheckFailureSerializer
+from deepchecks.core.serialization.abc import JsonSerializer
+from deepchecks.core.serialization.check_result.json import CheckResultSerializer
+from deepchecks.core.serialization.check_failure.json import CheckFailureSerializer
 
 
 __all__ = ['SuiteResultSerializer']

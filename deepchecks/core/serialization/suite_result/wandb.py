@@ -17,9 +17,9 @@ from wandb.sdk.data_types import WBValue
 from deepchecks.core.suite import SuiteResult
 from deepchecks.core.check_result import CheckResult
 from deepchecks.core.check_result import CheckFailure
-from deepchecks.core.presentation.abc import WandbSerializer
-from deepchecks.core.presentation.check_result.wandb import CheckResultSerializer
-from deepchecks.core.presentation.check_failure.wandb import CheckFailureSerializer
+from deepchecks.core.serialization.abc import WandbSerializer
+from deepchecks.core.serialization.check_result.wandb import CheckResultSerializer
+from deepchecks.core.serialization.check_failure.wandb import CheckFailureSerializer
 
 
 class SuiteResultSerializer(WandbSerializer[SuiteResult]):

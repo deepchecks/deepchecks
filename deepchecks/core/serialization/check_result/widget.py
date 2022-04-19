@@ -17,8 +17,8 @@ from plotly.basedatatypes import BaseFigure
 from ipywidgets import HTML, VBox, Widget
 
 from deepchecks.core.check_result import CheckResult
-from deepchecks.core.presentation.abc import WidgetSerializer
-from deepchecks.core.presentation.common import normalize_widget_style
+from deepchecks.core.serialization.abc import WidgetSerializer
+from deepchecks.core.serialization.common import normalize_widget_style
 from . import html
 
 

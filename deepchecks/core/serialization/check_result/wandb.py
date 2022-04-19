@@ -19,10 +19,10 @@ from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
 
 from deepchecks.core.check_result import CheckResult
-from deepchecks.core.presentation.abc import WandbSerializer
-from deepchecks.core.presentation.common import normalize_value
-from deepchecks.core.presentation.common import aggregate_conditions
-from deepchecks.core.presentation.common import pretify
+from deepchecks.core.serialization.abc import WandbSerializer
+from deepchecks.core.serialization.common import normalize_value
+from deepchecks.core.serialization.common import aggregate_conditions
+from deepchecks.core.serialization.common import pretify
 
 
 __all__ = ['CheckResultSerializer']

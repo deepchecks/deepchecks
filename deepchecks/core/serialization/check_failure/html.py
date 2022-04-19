@@ -11,7 +11,7 @@
 """Module containing html serializer for the CheckFailuer type."""
 from deepchecks.utils.strings import get_docs_summary
 from deepchecks.core.check_result import CheckFailure
-from deepchecks.core.presentation.abc import HtmlSerializer
+from deepchecks.core.serialization.abc import HtmlSerializer
 
 
 __all__ = ['CheckFailureSerializer']

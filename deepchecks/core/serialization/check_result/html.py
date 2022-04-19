@@ -19,9 +19,9 @@ from typing_extensions import Literal
 
 from deepchecks.core.check_result import CheckResult
 from deepchecks.utils.strings import get_docs_summary
-from deepchecks.core.presentation.abc import HtmlSerializer
-from deepchecks.core.presentation.dataframe.html import DataFrameSerializer as DataFrameHtmlSerializer
-from deepchecks.core.presentation.common import aggregate_conditions, form_output_anchor, form_check_id
+from deepchecks.core.serialization.abc import HtmlSerializer
+from deepchecks.core.serialization.dataframe.html import DataFrameSerializer as DataFrameHtmlSerializer
+from deepchecks.core.serialization.common import aggregate_conditions, form_output_anchor, form_check_id
 
 
 __all__ = ['CheckResultSerializer']

@@ -15,7 +15,7 @@ import pandas as pd
 from pandas.io.formats.style import Styler
 from ipywidgets import HTML
 
-from deepchecks.core.presentation.abc import WidgetSerializer
+from deepchecks.core.serialization.abc import WidgetSerializer
 from . import html
 
 

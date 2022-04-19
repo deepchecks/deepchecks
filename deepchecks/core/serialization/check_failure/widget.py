@@ -12,7 +12,7 @@
 from ipywidgets import VBox, HTML
 
 from deepchecks.core.check_result import CheckFailure
-from deepchecks.core.presentation.abc import WidgetSerializer
+from deepchecks.core.serialization.abc import WidgetSerializer
 
 from . import html
 

@@ -19,10 +19,10 @@ from typing_extensions import TypedDict
 
 from deepchecks.core.check_result import CheckResult
 from deepchecks.core.checks import CheckMetadata
-from deepchecks.core.presentation.abc import JsonSerializer
-from deepchecks.core.presentation.common import aggregate_conditions
-from deepchecks.core.presentation.common import normalize_value
-from deepchecks.core.presentation.common import pretify
+from deepchecks.core.serialization.abc import JsonSerializer
+from deepchecks.core.serialization.common import aggregate_conditions
+from deepchecks.core.serialization.common import normalize_value
+from deepchecks.core.serialization.common import pretify
 
 
 # registers jsonpickle pandas extension for pandas support in the to_json function

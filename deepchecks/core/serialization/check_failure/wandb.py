@@ -15,8 +15,8 @@ import wandb
 from wandb.sdk.data_types import WBValue
 
 from deepchecks.core.check_result import CheckFailure
-from deepchecks.core.presentation.abc import WandbSerializer
-from deepchecks.core.presentation.common import pretify
+from deepchecks.core.serialization.abc import WandbSerializer
+from deepchecks.core.serialization.common import pretify
 
 
 __all__ = ['CheckFailureSerializer']

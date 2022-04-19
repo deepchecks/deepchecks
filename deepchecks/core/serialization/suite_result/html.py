@@ -18,13 +18,13 @@ import pandas as pd
 from deepchecks.core import errors
 from deepchecks.core.suite import SuiteResult
 from deepchecks.core.check_result import CheckFailure
-from deepchecks.core.presentation.abc import HtmlSerializer
-from deepchecks.core.presentation.common import form_output_anchor
-from deepchecks.core.presentation.common import aggregate_conditions
-from deepchecks.core.presentation.common import Html
-from deepchecks.core.presentation.dataframe.html import DataFrameSerializer as DataFrameHtmlSerializer
-from deepchecks.core.presentation.check_result.html import CheckResultSerializer as CheckResultHtmlSerializer
-from deepchecks.core.presentation.check_result.html import CheckResultSection
+from deepchecks.core.serialization.abc import HtmlSerializer
+from deepchecks.core.serialization.common import form_output_anchor
+from deepchecks.core.serialization.common import aggregate_conditions
+from deepchecks.core.serialization.common import Html
+from deepchecks.core.serialization.dataframe.html import DataFrameSerializer as DataFrameHtmlSerializer
+from deepchecks.core.serialization.check_result.html import CheckResultSerializer as CheckResultHtmlSerializer
+from deepchecks.core.serialization.check_result.html import CheckResultSection
 
 
 __all__ = ['SuiteResultSerializer']
