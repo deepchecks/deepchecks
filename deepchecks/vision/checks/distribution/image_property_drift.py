@@ -11,7 +11,7 @@
 """Module contains Image Property Drift check."""
 import typing as t
 from collections import defaultdict
-
+import warnings
 import pandas as pd
 
 from deepchecks.core import CheckResult

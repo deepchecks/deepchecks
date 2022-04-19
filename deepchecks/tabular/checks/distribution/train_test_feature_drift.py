@@ -12,6 +12,7 @@
 
 from collections import OrderedDict
 from typing import Union, List, Dict
+import warnings
 
 from deepchecks.core import ConditionResult, CheckResult
 from deepchecks.core.condition import ConditionCategory
