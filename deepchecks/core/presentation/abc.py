@@ -1,5 +1,6 @@
 import typing as t
 from ipywidgets.widgets import Widget
+from wandb.sdk.data_types import WBValue
 
 
 __all__ = ["Presentation"]
@@ -20,12 +21,17 @@ class HtmlSerializer(Serializer[T]):
 
 
 class JsonSerializer(Serializer[T]):
-    def serialize(self, **kwargs) -> t.Dict[t.Any, t.Any]:
+    def serialize(self, **kwargs) -> t.Union[t.Dict[t.Any, t.Any], t.List[t.Any]]:
         ...
 
 
 class WidgetSerializer(Serializer[T]):
     def serialize(self, **kwargs) -> Widget:
+        ...
+    
+
+class WandbSerializer(Serializer[T]):
+    def serialize(self, **kwargs) -> t.Dict[str, WBValue]:
         ...
 
 
