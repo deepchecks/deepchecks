@@ -37,22 +37,22 @@ def initvars(
     obj : Callable
     show_defaults : bool, default False
         wherether to include vars with default value or not
-    
+
     Returns
     -------
     Dict[Any, Any] subset of the obj __dict__
     """
     assert hasattr(obj, '__init__')
     params = signature(obj.__init__).parameters
-    
+
     if show_defaults is True:
         return {
-            k: v 
-            for k, v in vars(obj).items() 
+            k: v
+            for k, v in vars(obj).items()
             if k in params
         }
     return {
-        k: v 
+        k: v
         for k, v in vars(obj).items()
         if k in params and v != params[k].default
     }

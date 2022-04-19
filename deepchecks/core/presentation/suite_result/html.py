@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 import typing as t
 import textwrap
 import warnings
@@ -12,7 +22,7 @@ from deepchecks.core.presentation.common import form_output_anchor
 from deepchecks.core.presentation.common import aggregate_conditions
 from deepchecks.core.presentation.common import Html
 from deepchecks.core.presentation.dataframe import DataFramePresentation
-from deepchecks.core.presentation.check_result.html import CheckResultSerializer as CheckResultHtmlSerializer 
+from deepchecks.core.presentation.check_result.html import CheckResultSerializer as CheckResultHtmlSerializer
 from deepchecks.core.presentation.check_result.html import CheckResultSection
 
 
@@ -23,7 +33,7 @@ class SuiteResultSerializer(HtmlSerializer[SuiteResult]):
 
     def __init__(self, value: SuiteResult, **kwargs):
         self.value = value
-    
+
     def serialize(
         self,
         output_id: t.Optional[str] = None,
@@ -32,7 +42,7 @@ class SuiteResultSerializer(HtmlSerializer[SuiteResult]):
         summary = self.prepare_summary(**kwargs)
         conditions_table = self.prepare_conditions_table(**kwargs)
         failures = self.prepare_failures_list()
-        
+
         results_with_conditions = self.prepare_results_with_condition_and_display(
             check_sections=['additional-output'],
             **kwargs
@@ -53,18 +63,18 @@ class SuiteResultSerializer(HtmlSerializer[SuiteResult]):
 
         if failures:
             sections.extend([Html.bold_hr, failures])
-        
+
         if output_id:
             anchor = form_output_anchor(output_id)
             sections.append(f'<br><a href="{anchor}" style="font-size: 14px">Go to top</a>')
-        
+
         return ''.join(sections)
-    
+
     def prepare_prologue(self) -> str:
         long_prologue_version = "The suite is composed of various checks such as: {names}, etc..."
         short_prologue_version = "The suite is composed of the following checks: {names}."
         check_names = list(set(
-            it.check.name() 
+            it.check.name()
             for it in self.value.results
         ))
         return (
@@ -72,18 +82,18 @@ class SuiteResultSerializer(HtmlSerializer[SuiteResult]):
             if len(check_names) > 3
             else short_prologue_version.format(names=', '.join(check_names))
         )
-    
+
     def prepare_header(self, output_id: t.Optional[str] = None, **kwargs) -> str:
         idattr = f'id="{form_output_anchor(output_id)}"' if output_id else ''
         return f'<h1 {idattr}>{self.value.name}</h1>'
-    
+
     def prepare_extra_info(self) -> str:
         if self.value.extra_info:
             extra_info = '<br>'.join(f'<div>{it}</div>' for it in self.value.extra_info)
             return f'<br>{extra_info}'
         else:
             return ''
-    
+
     def prepare_summary(self, output_id: t.Optional[str] = None, **kwargs) -> str:
         header = self.prepare_header(output_id)
         prologue = self.prepare_prologue()
@@ -110,15 +120,15 @@ class SuiteResultSerializer(HtmlSerializer[SuiteResult]):
             </p>
             {extra_info}
         """)
-    
-    def prepare_conditions_table(self, 
+
+    def prepare_conditions_table(self,
         output_id: t.Optional[str] = None,
         include_check_name: bool = False,
         **kwargs
     ):
         if not self.value.results_with_conditions:
             return '<p>No conditions defined on checks in the suite.</p>'
-        
+
         table = DataFramePresentation(aggregate_conditions(
             self.value.results_with_conditions,
             output_id=output_id,
@@ -127,7 +137,7 @@ class SuiteResultSerializer(HtmlSerializer[SuiteResult]):
         )).to_html()
 
         return f'<h2>Conditions Summary</h2>{table}'
-    
+
     def prepare_results_with_condition_and_display(
         self,
         output_id: t.Optional[str] = None,
@@ -136,7 +146,7 @@ class SuiteResultSerializer(HtmlSerializer[SuiteResult]):
     ) -> str:
         results_with_condition_and_display = [
             CheckResultHtmlSerializer(it).serialize(
-                output_id=output_id, 
+                output_id=output_id,
                 include=check_sections,
                 **kwargs
             )
@@ -153,7 +163,7 @@ class SuiteResultSerializer(HtmlSerializer[SuiteResult]):
     ) -> str:
         results_without_conditions = [
             CheckResultHtmlSerializer(it).serialize(
-                output_id=output_id, 
+                output_id=output_id,
                 include=check_sections,
                 **kwargs
             )
@@ -165,9 +175,9 @@ class SuiteResultSerializer(HtmlSerializer[SuiteResult]):
     def prepare_failures_list(self) -> str:
         if not self.value.failed_or_without_display_results:
             return ''
-        
+
         data = [] # type List[Tuple[check-header:str, message:str, priority:int]]
-        
+
         for it in self.value.failed_or_without_display_results:
             if not isinstance(it, CheckFailure):
                 data.append([it.get_header(), 'Nothing found', 2])
@@ -178,16 +188,16 @@ class SuiteResultSerializer(HtmlSerializer[SuiteResult]):
                     errors.DeepchecksProcessError,
                 )
                 message = (
-                    str(it.exception) 
+                    str(it.exception)
                     if isinstance(it.exception, error_types)
                     else f'{type(it.exception).__name__}: {str(it.exception)}'
                 )
                 data.append((it.header, message, 1 ))
-        
+
         df = pd.DataFrame(data=data, columns=['Check', 'Reason', 'priority'])
         df.sort_values(by=['priority'], inplace=True)
         df.drop('priority', axis=1, inplace=True)
-        
+
         with warnings.catch_warnings():
             warnings.simplefilter(action='ignore', category=FutureWarning)
             table = DataFramePresentation(df.style.hide_index()).to_html()

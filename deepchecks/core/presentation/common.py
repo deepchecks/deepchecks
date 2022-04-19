@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 import typing as t
 import warnings
 import json
@@ -15,12 +25,12 @@ from deepchecks.utils.dataframes import un_numpy
 
 
 __all__ = [
-    'aggregate_conditions', 
-    'form_output_anchor', 
-    'form_check_id', 
+    'aggregate_conditions',
+    'form_output_anchor',
+    'form_check_id',
     'Html',
     'normalize_widget_style',
-    'normilize_value',
+    'normalize_value',
     'pretify'
 ]
 
@@ -69,22 +79,19 @@ def normalize_widget_style(w: TDOMWidget) -> TDOMWidget:
     )
 
 
-def pretify(
-    data: t.Union[t.List[t.Any], t.Dict[t.Any, t.Any]],
-    indent: int = 3
-) -> str:
+def pretify(data: t.Any, indent: int = 3) -> str:
     default = lambda it: repr(it)
     return json.dumps(data, indent=indent, default=default)
 
 
-def normilize_value(value: object) -> t.Any:
+def normalize_value(value: object) -> t.Any:
     """Takes an object and returns a JSON-safe representation of it.
 
     Parameters
     ----------
     value : object
         value to normilize
-    
+
     Returns
     -------
     Any of the basic builtin datatypes
@@ -101,7 +108,7 @@ def normilize_value(value: object) -> t.Any:
 
 def aggregate_conditions(
     check_results: t.Union['CheckResult', t.List['CheckResult']],
-    max_info_len: int = 3000, 
+    max_info_len: int = 3000,
     include_icon: bool = True,
     include_check_name: bool = False,
     output_id: t.Optional[str] = None,
@@ -120,7 +127,7 @@ def aggregate_conditions(
         whether to include check name into dataframe or not
     output_id : str
         the unique id to append for the check names to create links (won't create links if None/empty).
-    
+
     Returns
     -------
     pd.Dataframe:
@@ -128,20 +135,20 @@ def aggregate_conditions(
     """
     check_results = [check_results] if isinstance(check_results, CheckResult) else check_results
     data = []
-    
+
     for check_result in check_results:
         for cond_result in check_result.conditions_results:
             priority = cond_result.priority
             icon = cond_result.get_icon() if include_icon else cond_result.category.value
             check_header = check_result.get_header()
-            
+
             if output_id and check_result.have_display():
                 link = f'<a href=#{check_result.get_check_id(output_id)}>{check_header}</a>'
             else:
                 link = check_header
                 # if it has no display show on bottom for the category (lower priority)
                 priority += 0.1
-            
+
             data.append([
                 icon, link, cond_result.name, cond_result.details, priority
             ])
@@ -150,15 +157,15 @@ def aggregate_conditions(
         data=data,
         columns=['Status', 'Check', 'Condition', 'More Info', 'sort']
     )
-    
+
     df.sort_values(by=['sort'], inplace=True)
     df.drop('sort', axis=1, inplace=True)
-    
+
     if include_check_name is False:
         df.drop('Check', axis=1, inplace=True)
-    
+
     df['More Info'] = df['More Info'].map(lambda x: get_ellipsis(x, max_info_len))
-    
+
     with warnings.catch_warnings():
         warnings.simplefilter(action='ignore', category=FutureWarning)
         return df.style.hide_index()

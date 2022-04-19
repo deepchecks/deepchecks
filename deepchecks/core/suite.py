@@ -54,7 +54,7 @@ class SuiteResult:
         self.name = name
         self.results = results
         self.extra_info = extra_info or []
-    
+
     @property
     def results_with_conditions(self) -> List[CheckResult]:
         """Return all check results that have conditions."""
@@ -63,7 +63,7 @@ class SuiteResult:
             for it in self.results
             if isinstance(it, CheckResult) and it.have_conditions()
         ]
-    
+
     @property
     def results_with_conditions_and_display(self) -> List[CheckResult]:
         """Return check results that have conditions and display."""
@@ -72,7 +72,7 @@ class SuiteResult:
             for it in self.results
             if isinstance(it, CheckResult) and it.have_conditions() and it.have_display()
         ]
-    
+
     @property
     def results_without_conditions(self) -> List[CheckResult]:
         """Return check results that do not have conditions."""
@@ -90,7 +90,7 @@ class SuiteResult:
             for it in self.results
             if isinstance(it, CheckFailure) or not it.have_display()
         ]
-    
+
     def __repr__(self):
         """Return default __repr__ function uses value."""
         return self.name

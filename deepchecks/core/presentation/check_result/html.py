@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 import typing as t
 
 import pandas as pd
@@ -42,9 +52,9 @@ class CheckResultSerializer(HtmlSerializer[CheckResult]):
 
         if 'additional-output' in sections_to_include:
             sections.append(''.join(self.prepare_additional_output(output_id)))
-        
+
         return ''.join(sections)
-    
+
     def prepare_header(self, output_id: t.Optional[str] = None) -> str:
         header = self.value.get_header()
         header = f'<b>{header}</b>'
@@ -53,27 +63,27 @@ class CheckResultSerializer(HtmlSerializer[CheckResult]):
             return f'<h4 id="{check_id}">{header}</h4>'
         else:
             return f'<h4>{header}</h4>'
-    
+
     def prepare_summary(self) -> str:
         summary = get_docs_summary(self.value.check)
         return f'<p>{summary}</p>'
-    
+
     def prepare_conditions_table(
         self,
-        max_info_len: int = 3000, 
+        max_info_len: int = 3000,
         include_icon: bool = True,
         include_check_name: bool = False,
         output_id: t.Optional[str] = None,
     ) -> str:
         table = DataFramePresentation(aggregate_conditions(
-            self.value, 
+            self.value,
             max_info_len=max_info_len,
             include_icon=include_icon,
             include_check_name=include_check_name,
             output_id=output_id
         )).to_html()
         return f'<h5>Conditions Summary</h5>{table}'
-    
+
     def prepare_additional_output(
         self,
         output_id: t.Optional[str] = None
@@ -102,23 +112,23 @@ class DisplayItemsHandler:
                 output.append(cls.handle_callable(item))
             else:
                 raise TypeError(f'Unable to display item of type: {type(item)}')
-        
+
         if len(display) == 0:
             output.append(cls.empty_content_placeholder())
-        
+
         if output_id is not None:
             output.append(cls.go_to_top_link(output_id))
 
         return output
-    
+
     @classmethod
     def header(cls) -> str:
         return '<h5><b>Additional Outputs</b></h5>'
-    
+
     @classmethod
     def empty_content_placeholder(cls) -> str:
         return '<p><b>&#x2713;</b>Nothing to display</p>'
-    
+
     @classmethod
     def go_to_top_link(cls, output_id: str) -> str:
         href = form_output_anchor(output_id)
@@ -127,11 +137,11 @@ class DisplayItemsHandler:
     @classmethod
     def handle_string(cls, item):
         return f'<div>{item}</div>'
-    
+
     @classmethod
     def handle_dataframe(cls, item):
         return DataFramePresentation(item).to_html()
-    
+
     @classmethod
     def handle_callable(cls, item):
         raise NotImplementedError()

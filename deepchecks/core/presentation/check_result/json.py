@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 import typing as t
 
 import numpy as np
@@ -11,7 +21,8 @@ from deepchecks.core.check_result import CheckResult
 from deepchecks.core.checks import CheckMetadata
 from deepchecks.core.presentation.abc import JsonSerializer
 from deepchecks.core.presentation.common import aggregate_conditions
-from deepchecks.core.presentation.common import normilize_value
+from deepchecks.core.presentation.common import normalize_value
+from deepchecks.core.presentation.common import pretify
 
 
 # registers jsonpickle pandas extension for pandas support in the to_json function
@@ -19,7 +30,6 @@ jsonpickle_pd.register_handlers()
 
 
 __all__ = ['CheckResultSerializer']
-
 
 
 class CheckResultMetadata(TypedDict):
@@ -44,10 +54,10 @@ class CheckResultSerializer(JsonSerializer[CheckResult]):
             conditions_results=self.prepare_condition_results(),
             display=self.prepare_display()
         )
-    
+
     def prepare_check_metadata(self) -> CheckMetadata:
         return self.value.check.metadata(with_doc_link=True)
-    
+
     def prepare_condition_results(self) -> t.List[t.Dict[t.Any, t.Any]]:
         if self.value.have_conditions:
             df = aggregate_conditions(self.value, include_icon=False)
@@ -55,20 +65,20 @@ class CheckResultSerializer(JsonSerializer[CheckResult]):
         else:
             return []
 
-    def prepare_value(self) -> t.Any:
-        return normilize_value(self.value.value)
-    
+    def prepare_value(self) -> str:
+        return pretify(normalize_value(self.value.value))
+
     def prepare_display(self) -> t.List[t.Any]:
         output = []
         for item in self.value.display:
             if isinstance(item, Styler):
                 output.append({
-                    'type': 'dataframe', 
+                    'type': 'dataframe',
                     'payload': item.data.to_json(orient='records')
                 })
             elif isinstance(item, pd.DataFrame):
                 output.append({
-                    'type': 'dataframe', 
+                    'type': 'dataframe',
                     'payload': item.to_json(orient='records')
                 })
             elif isinstance(item, str):

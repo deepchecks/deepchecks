@@ -1,4 +1,13 @@
-
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 import typing as t
 import warnings
 
@@ -21,12 +30,12 @@ __all__ = ['SuiteResultSerializer']
 
 
 class SuiteResultSerializer(WidgetSerializer[SuiteResult]):
-    
+
     def __init__(self, value: SuiteResult, **kwargs):
         super().__init__(**{'value': value, **kwargs},)
         self.value = value
         self._html_serializer = html.SuiteResultSerializer(self.value)
-    
+
     def serialize(
         self,
         output_id: t.Optional[str] = None,
@@ -36,7 +45,7 @@ class SuiteResultSerializer(WidgetSerializer[SuiteResult]):
         tab.set_title(0, 'Checks With Conditions')
         tab.set_title(1, 'Checks Without Conditions')
         tab.set_title(2, 'Checks Without Output')
-        
+
         tab.children = [
             self.prepare_results_with_condition_and_display(
                 output_id=output_id, **kwargs
@@ -45,7 +54,7 @@ class SuiteResultSerializer(WidgetSerializer[SuiteResult]):
                 output_id=output_id,
                 check_sections=['additional-output'],
                 **kwargs
-            ), 
+            ),
             self.prepare_failures_list()
         ]
 
@@ -58,17 +67,17 @@ class SuiteResultSerializer(WidgetSerializer[SuiteResult]):
         ])
 
     def prepare_summary(
-        self, 
-        output_id: t.Optional[str] = None, 
+        self,
+        output_id: t.Optional[str] = None,
         **kwargs
     ) -> HTML:
         return HTML(value=self._html_serializer.prepare_summary(
-            output_id, 
+            output_id,
             **kwargs
         ))
 
     def prepare_conditions_table(
-        self, 
+        self,
         output_id: t.Optional[str] = None,
         **kwargs
     ) -> HTML:
@@ -77,7 +86,7 @@ class SuiteResultSerializer(WidgetSerializer[SuiteResult]):
             include_check_name=True,
             **kwargs
         )))
-    
+
     def prepare_failures_list(self) -> HTML:
         return normalize_widget_style(HTML(
             value=self._html_serializer.prepare_failures_list()
@@ -91,7 +100,7 @@ class SuiteResultSerializer(WidgetSerializer[SuiteResult]):
     ) -> VBox:
         results_without_conditions = [
             CheckResultWidgetSerializer(it).serialize(
-                output_id=output_id, 
+                output_id=output_id,
                 include=check_sections,
                 **kwargs
             )
@@ -118,20 +127,20 @@ class SuiteResultSerializer(WidgetSerializer[SuiteResult]):
             )
             for it in self.value.results_with_conditions_and_display
         ]
-        
+
         return normalize_widget_style(VBox(children=[
             self.prepare_conditions_table(),
             HTML(value='<h2>Check With Conditions Output</h2>'),
             *join(results_with_condition_and_display, HTML(value=CommonHtml.light_hr))
         ]))
-        
+
     def prepare_navigation_for_unconditioned_results(
         self,
         output_id: t.Optional[str] = None,
         **kwargs
     ) -> Widget:
         data = []
-        
+
         for check_result in self.value.results_without_conditions:
             check_header = check_result.get_header()
 
@@ -148,7 +157,7 @@ class SuiteResultSerializer(WidgetSerializer[SuiteResult]):
             data=data,
             columns=['Check', 'Summary']
         )
-        
+
         with warnings.catch_warnings():
             warnings.simplefilter(action='ignore', category=FutureWarning)
             return DataFramePresentation.to_widget(df.style.hide_index())

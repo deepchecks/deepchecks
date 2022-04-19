@@ -141,7 +141,7 @@ class BaseCheck(abc.ABC):
     def name(cls):
         """Name of class in split camel case."""
         return split_camel_case(cls.__name__)
-    
+
     def metadata(self, with_doc_link: bool = False) -> CheckMetadata:
         return CheckMetadata(
             type=type(self).__name__,
