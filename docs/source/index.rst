@@ -100,6 +100,10 @@ See the :doc:`When Should You Use </getting-started/when_should_you_use>` Sectio
 
     api/index
 
+.. toctree::
+    :maxdepth: 1
+
+    extras/index
 
 For additional usage examples and for understanding the best practices of how to use the package, stay tuned,
 as this package is in active development!
