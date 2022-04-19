@@ -70,12 +70,7 @@ except Exception as error:
 # ones.
 #
 extensions = [
-    # by itself sphinx_gallery is not able to work with jupyter notebooks
-    # but nbsphinx extension is able to use some of it functionality to create
-    # thumbnail galleries. Link to the doc - https://nbsphinx.readthedocs.io/en/0.8.7/subdir/gallery.html
-    #
     'sphinx_gallery.load_style',
-    #
     'sphinx_gallery.gen_gallery',
     'numpydoc',
     'sphinx.ext.autodoc',

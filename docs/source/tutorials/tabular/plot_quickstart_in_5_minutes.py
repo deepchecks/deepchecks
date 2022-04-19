@@ -111,7 +111,6 @@ result = check.run(ds_train, ds_test)
 result
 
 #%%
-# %%
 # and also inspect the result value which has a check-dependant structure:
 
 result.value

@@ -98,6 +98,9 @@ class Context:
         if model is not None:
             # Here validate only type of model, later validating it can predict on the data if needed
             model_type_validation(model)
+        if features_importance is not None:
+            if not isinstance(features_importance, pd.Series):
+                raise DeepchecksValueError('features_importance must be a pandas Series')
 
         self._train = train
         self._test = test
@@ -105,7 +108,7 @@ class Context:
         self._feature_importance_force_permutation = feature_importance_force_permutation
         self._features_importance = features_importance
         self._feature_importance_timeout = feature_importance_timeout
-        self._calculated_importance = False
+        self._calculated_importance = features_importance is not None
         self._importance_type = None
         self._validated_model = False
         self._task_type = None
