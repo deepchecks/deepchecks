@@ -12,14 +12,15 @@
 # pylint: disable=broad-except
 import abc
 import enum
-import inspect
 from collections import OrderedDict
-from typing import Any, Callable, List, Union, Dict, Type, ClassVar, Optional
+from typing import Any, Callable, List, Union, Dict, Type, ClassVar, Optional, TypedDict
+from typing_extensions import TypedDict
 
 from deepchecks.core.check_result import CheckResult, CheckFailure
 from deepchecks.core.condition import Condition, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.utils.strings import split_camel_case
+from deepchecks.utils.strings import split_camel_case, get_docs_summary
+from deepchecks.utils.function import initvars
 
 try:
     import wandb
@@ -42,6 +43,13 @@ class DatasetKind(enum.Enum):
 
     TRAIN = 'Train'
     TEST = 'Test'
+
+
+class CheckMetadata(TypedDict):
+    type: str
+    name: str
+    params: Dict[Any, Any]
+    summary: str
 
 
 class BaseCheck(abc.ABC):
@@ -115,12 +123,7 @@ class BaseCheck(abc.ABC):
 
     def params(self, show_defaults: bool = False) -> Dict:
         """Return parameters to show when printing the check."""
-        init_params = inspect.signature(self.__init__).parameters
-
-        if show_defaults:
-            return {k: v for k, v in vars(self).items() if k in init_params}
-        return {k: v for k, v in vars(self).items()
-                if k in init_params and v != init_params[k].default}
+        return initvars(self, show_defaults)
 
     def finalize_check_result(self, check_result: CheckResult) -> CheckResult:
         """Finalize the check result by adding the check instance and processing the conditions."""
@@ -138,6 +141,14 @@ class BaseCheck(abc.ABC):
     def name(cls):
         """Name of class in split camel case."""
         return split_camel_case(cls.__name__)
+    
+    def metadata(self, with_doc_link: bool = False) -> CheckMetadata:
+        return CheckMetadata(
+            type=type(self).__name__,
+            name=self.name(),
+            params=self.params(show_defaults=True),
+            summary=get_docs_summary(self, with_doc_link)
+        )
 
     def __repr__(self, tabs=0, prefix=''):
         """Representation of check as string.
