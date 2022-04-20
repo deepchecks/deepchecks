@@ -34,8 +34,8 @@ class CheckFailureSerializer(HtmlSerializer[CheckFailure]):
 
     def prepare_summary(self) -> str:
         return (
-            f'<p>{get_docs_summary(self.value)}</p>'
-            if hasattr(type(self.value), '__doc__')
+            f'<p>{get_docs_summary(self.value.check)}</p>'
+            if hasattr(self.value.check, '__doc__')
             else ''
         )
 

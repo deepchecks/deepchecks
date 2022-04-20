@@ -12,12 +12,15 @@
 import typing as t
 import warnings
 import json
+import textwrap
 
 import pandas as pd
 import numpy as np
 from ipywidgets import DOMWidget
 from jsonpickle.pickler import Pickler
 from pandas.io.formats.style import Styler
+from plotly.io._utils import plotly_cdn_url
+from plotly.offline.offline import get_plotlyjs
 
 from deepchecks.utils.strings import get_ellipsis
 from deepchecks.core.check_result import CheckResult
@@ -32,7 +35,8 @@ __all__ = [
     'Html',
     'normalize_widget_style',
     'normalize_value',
-    'pretify'
+    'pretify',
+    'plotly_activation_script'
 ]
 
 
@@ -170,3 +174,90 @@ def aggregate_conditions(
     with warnings.catch_warnings():
         warnings.simplefilter(action='ignore', category=FutureWarning)
         return df.style.hide_index()
+
+
+REQUIREJS_CDN = """
+<!-- Load require.js. Delete this if your page already loads require.js -->
+<script
+    src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"
+    integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA="
+    crossorigin="anonymous">
+</script>
+"""
+
+
+# HTML
+# Build script to set global PlotlyConfig object. This must execute before
+# plotly.js is loaded.
+_window_plotly_config = """window.PlotlyConfig = {MathJaxConfig: 'local'};"""
+_mathjax_config = """if (window.MathJax) {MathJax.Hub.Config({SVG: {font: "STIX-Web"}});}"""
+
+
+def plotly_activation_script(connected: bool = True) -> str:
+    """Return plotly activation script in the requirejs enviroment.
+    
+    Parameters
+    ----------
+    connected : bool, default True
+
+    Returns
+    -------
+    str
+    """
+    if connected is True:
+        # Connected so we configure requirejs with the plotly CDN
+        script = textwrap.dedent("""
+            <script type="text/javascript">
+                if (typeof require !== 'undefined') {{
+                    require(['plotly'], function () {{}}, function (error) {{
+                        {win_config}
+                        {mathjax_config}
+                        require.undef("plotly");
+                        requirejs.config({{
+                            paths: {{'plotly': ['{plotly_cdn}']}}
+                        }});
+                        require(
+                            ['plotly'], 
+                            function(Plotly) {{window._Plotly = Plotly;}}, 
+                            function() {{console.log('Failed to load plotly')}}
+                        );
+                    }});
+                }} else {{
+                    console.log('requirejs is not present');
+                }}
+            </script>
+        """)
+        return script.format(
+            win_config=_window_plotly_config,
+            mathjax_config=_mathjax_config,
+            plotly_cdn=plotly_cdn_url().rstrip(".js"),
+        )
+    else:
+        # If not connected then we embed a copy of the plotly.js
+        # library in the notebook
+        script = textwrap.dedent("""
+            <script type="text/javascript">
+                if (typeof require !== 'undefined') {{
+                    require(['plotly'], function () {{}}, function (error) {{
+                        {win_config}
+                        {mathjax_config}
+                        require.undef("plotly");
+                        define('plotly', function(require, exports, module) {{
+                            {script}
+                        }});
+                        require(
+                            ['plotly'], 
+                            function(Plotly) {{window._Plotly = Plotly;}},
+                            function() {{console.log('Failed to load plotly')}}
+                        );
+                    }})
+                }} else {{
+                    console.log('requirejs is not present');
+                }}
+            </script>
+        """)
+        return script.format(
+            script=get_plotlyjs(),
+            win_config=_window_plotly_config,
+            mathjax_config=_mathjax_config,
+        )

@@ -40,7 +40,6 @@ class CheckResultMetadata(TypedDict):
     display: t.List[t.Any]
 
 
-
 class CheckResultSerializer(JsonSerializer[CheckResult]):
 
     def __init__(self, value: CheckResult, **kwargs):

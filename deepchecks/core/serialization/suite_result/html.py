@@ -22,6 +22,8 @@ from deepchecks.core.serialization.abc import HtmlSerializer
 from deepchecks.core.serialization.common import form_output_anchor
 from deepchecks.core.serialization.common import aggregate_conditions
 from deepchecks.core.serialization.common import Html
+from deepchecks.core.serialization.common import plotly_activation_script
+from deepchecks.core.serialization.common import REQUIREJS_CDN
 from deepchecks.core.serialization.dataframe.html import DataFrameSerializer as DataFrameHtmlSerializer
 from deepchecks.core.serialization.check_result.html import CheckResultSerializer as CheckResultHtmlSerializer
 from deepchecks.core.serialization.check_result.html import CheckResultSection
@@ -38,6 +40,8 @@ class SuiteResultSerializer(HtmlSerializer[SuiteResult]):
     def serialize(
         self,
         output_id: t.Optional[str] = None,
+        full_html: bool = False,
+        include_plotlyjs: bool = True,
         **kwargs,
     ) -> str:
         summary = self.prepare_summary(**kwargs)
@@ -68,8 +72,35 @@ class SuiteResultSerializer(HtmlSerializer[SuiteResult]):
         if output_id:
             anchor = form_output_anchor(output_id)
             sections.append(f'<br><a href="{anchor}" style="font-size: 14px">Go to top</a>')
+        
+        if full_html is False and include_plotlyjs is False:
+            return ''.join(sections)
 
-        return ''.join(sections)
+        if full_html is False and include_plotlyjs is True:
+            return ''.join([plotly_activation_script(), *sections])
+
+        # TODO: use some style to make it prety
+        return textwrap.dedent(f"""
+            <html>
+            <head><meta charset="utf-8"/></head>
+            <body 
+                style="
+                    display: flex; 
+                    flex-direction: row; 
+                    justify-content: center; 
+                    padding-top: 2rem;">
+                {REQUIREJS_CDN}
+                {plotly_activation_script()}
+                <div 
+                    style="
+                        display: flex; 
+                        flex-direction: column; 
+                        width: min-content;">
+                    {''.join(sections)}
+                </div>
+            </body>
+            </html>
+        """)
 
     def prepare_prologue(self) -> str:
         long_prologue_version = "The suite is composed of various checks such as: {names}, etc..."
@@ -148,7 +179,7 @@ class SuiteResultSerializer(HtmlSerializer[SuiteResult]):
         results_with_condition_and_display = [
             CheckResultHtmlSerializer(it).serialize(
                 output_id=output_id,
-                include=check_sections,
+                check_sections=check_sections,
                 **kwargs
             )
             for it in self.value.results_with_conditions_and_display

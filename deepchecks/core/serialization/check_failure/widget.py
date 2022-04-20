@@ -13,6 +13,7 @@ from ipywidgets import VBox, HTML
 
 from deepchecks.core.check_result import CheckFailure
 from deepchecks.core.serialization.abc import WidgetSerializer
+from deepchecks.core.serialization.common import normalize_widget_style
 
 from . import html
 
@@ -27,11 +28,11 @@ class CheckFailureSerializer(WidgetSerializer[CheckFailure]):
         self._html_serializer = html.CheckFailureSerializer(self.value)
 
     def serialize(self, **kwargs) -> VBox:
-        return VBox(children=(
+        return normalize_widget_style(VBox(children=(
             self.prepare_header(),
             self.prepare_summary(),
             self.prepare_error_message()
-        ))
+        )))
 
     def prepare_header(self) -> HTML:
         return HTML(value=self._html_serializer.prepare_header())

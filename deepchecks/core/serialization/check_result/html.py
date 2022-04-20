@@ -10,6 +10,7 @@
 #
 """Module containing html serializer for the CheckResult type."""
 import typing as t
+import textwrap
 
 import pandas as pd
 import plotly.io as pio
@@ -21,7 +22,11 @@ from deepchecks.core.check_result import CheckResult
 from deepchecks.utils.strings import get_docs_summary
 from deepchecks.core.serialization.abc import HtmlSerializer
 from deepchecks.core.serialization.dataframe.html import DataFrameSerializer as DataFrameHtmlSerializer
-from deepchecks.core.serialization.common import aggregate_conditions, form_output_anchor, form_check_id
+from deepchecks.core.serialization.common import aggregate_conditions
+from deepchecks.core.serialization.common import form_output_anchor
+from deepchecks.core.serialization.common import form_check_id
+from deepchecks.core.serialization.common import plotly_activation_script
+from deepchecks.core.serialization.common import REQUIREJS_CDN
 
 
 __all__ = ['CheckResultSerializer']
@@ -41,11 +46,13 @@ class CheckResultSerializer(HtmlSerializer[CheckResult]):
     def serialize(
         self,
         output_id: t.Optional[str] = None,
-        include: t.Optional[t.Sequence[CheckResultSection]] = None,
+        check_sections: t.Optional[t.Sequence[CheckResultSection]] = None,
+        full_html: bool = False,
+        include_plotlyjs: bool = True,
         **kwargs
     ) -> str:
-        sections_to_include = verify_include_parameter(include)
-        sections = [self.prepare_header(output_id), self.prepare_summary()]
+        sections_to_include = verify_include_parameter(check_sections)
+        sections = [self.prepare_header(output_id),self.prepare_summary()]
 
         if 'condition-table' in sections_to_include:
             sections.append(''.join(self.prepare_conditions_table(output_id=output_id)))
@@ -53,7 +60,23 @@ class CheckResultSerializer(HtmlSerializer[CheckResult]):
         if 'additional-output' in sections_to_include:
             sections.append(''.join(self.prepare_additional_output(output_id)))
 
-        return ''.join(sections)
+        if full_html is False and include_plotlyjs is False:
+            return ''.join(sections)
+
+        if full_html is False and include_plotlyjs is True:
+            return ''.join([plotly_activation_script(), *sections])
+
+        # TODO: use some style to make it prety
+        return textwrap.dedent(f"""
+            <html>
+            <head><meta charset="utf-8"/></head>
+            <body>
+                {REQUIREJS_CDN}
+                {plotly_activation_script()}
+                {''.join(sections)}
+            </body>
+            </html>
+        """)
 
     def prepare_header(self, output_id: t.Optional[str] = None) -> str:
         header = self.value.get_header()
@@ -75,6 +98,8 @@ class CheckResultSerializer(HtmlSerializer[CheckResult]):
         include_check_name: bool = False,
         output_id: t.Optional[str] = None,
     ) -> str:
+        if not self.value.have_conditions():
+            return ''
         table = DataFrameHtmlSerializer(aggregate_conditions(
             self.value,
             max_info_len=max_info_len,
