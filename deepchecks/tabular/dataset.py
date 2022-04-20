@@ -566,21 +566,18 @@ class Dataset:
             columns=columns
         )
 
+        message = ('It is recommended to initialize Dataset with categorical features by doing '
+                   '"Dataset(df, cat_features=categorical_list)". No categorical features were passed, therefore '
+                   'heuristically inferring categorical features in the data.\n'
+                   f'{len(categorical_columns)} categorical features were inferred')
+
         if len(categorical_columns) > 0:
-            columns = list(map(str, categorical_columns))[:7]
-            stringified_columns = ", ".join(columns)
-            if len(categorical_columns) < 7:
-                logger.warning(
-                    'Automatically inferred these columns as categorical features: %s. \n',
-                    stringified_columns
-                )
-            else:
-                logger.warning(
-                    'Some columns have been inferred as categorical features: '
-                    '%s. \n and more... \n For the full list '
-                    'of columns, use dataset.cat_features',
-                    stringified_columns
-                )
+            columns_to_print = categorical_columns[:7]
+            message += ': ' + ', '.join(list(map(str, columns_to_print)))
+            if len(categorical_columns) > len(columns_to_print):
+                message += '... For full list use dataset.cat_features'
+
+        logger.warning(message)
 
         return categorical_columns
 

@@ -9,10 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """Contains unit tests for the Dataset class."""
+import logging
 import typing as t
 
 import numpy as np
 import pandas as pd
+import pytest
 from sklearn.datasets import load_iris
 from sklearn.datasets import make_classification
 from hamcrest import (
@@ -20,9 +22,10 @@ from hamcrest import (
     calling, raises, not_none, has_property, all_of, contains_exactly, has_item, has_length
 )
 
-from deepchecks.tabular.dataset import Dataset
+from deepchecks.tabular.dataset import Dataset, logger as ds_logger
 from deepchecks.tabular.utils.validation import ensure_dataframe_type
-from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError
+from deepchecks.core.errors import DeepchecksValueError
+
 
 
 def assert_dataset(dataset: Dataset, args):
@@ -1036,3 +1039,21 @@ def random_classification_dataframe(n_samples=100, n_features=5) -> pd.DataFrame
     df = pd.DataFrame(x,columns=[f'X{i}'for i in range(n_features)])
     df['target'] = y
     return df
+
+
+def test_cat_features_warning(iris, caplog):
+    # Test that warning is raised when cat_features is None
+    with caplog.at_level(logging.WARNING):
+        Dataset(iris)
+    assert_that(caplog.records, has_item(has_property('message',
+                    "It is recommended to initialize Dataset with categorical features by doing "
+                    "\"Dataset(df, cat_features=categorical_list)\". No categorical features were "
+                    "passed, therefore heuristically inferring categorical features in the data.\n"
+                    "0 categorical features were inferred")
+    ))
+
+    # Test that warning is not raised when cat_features is not None
+    caplog.clear()
+    with caplog.at_level(logging.WARNING):
+        Dataset(iris, cat_features=[])
+    assert_that(caplog.records, has_length(0))
