@@ -39,6 +39,13 @@ from deepchecks.core.check_result import CheckFailure, CheckResult
 
 from .vision.vision_conftest import * #pylint: disable=wildcard-import, unused-wildcard-import
 
+from tqdm import tqdm
+from functools import partialmethod
+
+# disable tqdm for tests
+tqdm.__init__ = partialmethod(tqdm.__init__, disable=True)
+
+
 def get_expected_results_length(suite: BaseSuite, args: Dict):
     num_single = len([c for c in suite.checks.values() if isinstance(c, SingleDatasetBaseCheck)])
     num_others = len(suite.checks.values()) - num_single
