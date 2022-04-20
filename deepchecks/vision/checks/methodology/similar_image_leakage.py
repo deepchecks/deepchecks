@@ -101,9 +101,9 @@ class SimilarImageLeakage(TrainTestCheck):
         for i, h in enumerate(self._hashed_test_images):
             is_similar = (train_hashes - h) < self.min_pixel_diff
             if any(is_similar):
-                for j in np.argwhere(is_similar):  # Return indices where True
-                    similar_indices['train'].append(j[0])  # append only the first similar image in train
-                    similar_indices['test'].append(i)
+                # For each test image with similarities, append the first similar image in train
+                similar_indices['train'].append(np.argwhere(is_similar)[0][0])
+                similar_indices['test'].append(i)
 
         display_indices = random.sample(range(len(similar_indices['test'])),
                                         min(self.n_top_show, len(similar_indices['test'])))
