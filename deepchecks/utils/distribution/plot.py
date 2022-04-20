@@ -307,6 +307,6 @@ def _create_distribution_bar_graphs(train_column, test_column, max_num_categorie
 
     yaxis_layout = dict(fixedrange=True,
                         range=(0, y_lim),
-                        title='Percentage')
+                        title='Frequency')
 
     return traces, yaxis_layout
