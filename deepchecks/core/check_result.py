@@ -130,6 +130,7 @@ class CheckResult:
         """
         if as_widget:
             box = widgets.VBox()
+            box.add_class('rendered_html')
             box_children = []
         check_html = ''
         if unique_id:
