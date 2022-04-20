@@ -2,43 +2,58 @@
 """
 Dominant Frequency Change
 *************************
+This example provides an overview for using and understanding the `Dominant Frequency Change` check.
+
+**Structure:**
+
+* `What is a Dominant Frequency Change? <#what-is-a-dominant-frequency-change>`__
+* `Generate Data <#generate-data>`__
+* `Run The Check <#run-the-check>`__
+* `Define a Condition <#define-a-condition>`__
+
+What is a Dominant Frequency Change?
+====================================
+Dominant Frequency Change is a data integrity test which simply checks whether dominant values have increased
+significantly between the test data and a reference data.
+
+This check compares the dominant values of each feature in the test data to the dominant values of the same feature in
+the reference data. If the ratio of the dominant values of the test data to the reference data is greater than a
+configurable threshold, the check fails. This threshold can be configured by specifying the `ratio_change_thres`
+parameter of the check.
+
+The Definition of a Dominant Value
+----------------------------------
+The dominant value is defined as a value that is frequent in data at least more than ``dominance_ratio`` times from the
+next most frequent value. The ``dominance_ratio`` is a configurable parameter of the check.
+
 """
 
-#%%
-# Imports
-# =======
-
-import pandas as pd
-from sklearn.datasets import load_iris
-from sklearn.model_selection import train_test_split
 from deepchecks.tabular.checks.integrity import DominantFrequencyChange
-from deepchecks.tabular import Dataset
+from deepchecks.tabular.datasets.classification import iris
+#%%
+# Generate data
+# =============
+train_ds, test_ds = iris.load_data(data_format='Dataset', as_train_test=True)
 
 #%%
-# Generating Data
-# ===============
-
-iris = load_iris(return_X_y=False, as_frame=True)
-X = iris.data
-y = iris.target
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=55)
-train_dataset = Dataset(pd.concat([X_train, y_train], axis=1), 
-            features=iris.feature_names,
-            label='target')
-
-test_df = pd.concat([X_test, y_test], axis=1)
+# Introducing duplicates in the test data
+# -----------------------------------------
 
 # make duplicates in the test data
-test_df.loc[test_df.index % 2 == 0, 'petal length (cm)'] = 5.1
-test_df.loc[test_df.index / 3 > 8, 'sepal width (cm)'] = 2.7
-
-validation_dataset = Dataset(test_df, 
-            features=iris.feature_names,
-            label='target')
+test_ds.data.loc[test_ds.data.index % 2 == 0, 'petal length (cm)'] = 5.1
+test_ds.data.loc[test_ds.data.index / 3 > 8, 'sepal width (cm)'] = 2.7
 
 #%%
-# Running ``dominant_frequency_change`` check
-# ===========================================
+# Run The Check
+# =============
 
 check = DominantFrequencyChange()
-check.run(validation_dataset, train_dataset)
+check.run(test_ds, train_ds)
+
+#%%
+# Define a Condition
+# ===================
+check = DominantFrequencyChange()
+check.add_condition_ratio_of_change_not_greater_than(0.1)
+res = check.run(test_ds, train_ds)
+res.show(show_additional_outputs=False)
