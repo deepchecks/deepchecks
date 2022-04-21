@@ -24,11 +24,19 @@ DataFrameOrStyler = t.Union[pd.DataFrame, Styler]
 
 
 class DataFrameSerializer(HtmlSerializer[DataFrameOrStyler]):
+    """Serializes pandas.DataFrame instance into HTML format.
+
+    Parameters
+    ----------
+    value : Union[pandas.DataFrame, Styler]
+        DataFrame instance that needed to be serialized.
+    """
 
     def __init__(self, value: DataFrameOrStyler, **kwargs):
         self.value = value
 
     def serialize(self, **kwargs) -> str:
+        """Serialize pandas.DataFrame instance into HTML format."""
         try:
             if isinstance(self.value, pd.DataFrame):
                 df_styler = self.value.style

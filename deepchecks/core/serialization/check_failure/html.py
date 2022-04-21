@@ -18,11 +18,24 @@ __all__ = ['CheckFailureSerializer']
 
 
 class CheckFailureSerializer(HtmlSerializer[CheckFailure]):
+    """Serializes any CheckFailure instance into html format.
+
+    Parameters
+    ----------
+    value : CheckFailure
+        CheckFailure instance that needed to be serialized.
+    """
 
     def __init__(self, value: CheckFailure, **kwargs):
         self.value = value
 
     def serialize(self, **kwargs) -> str:
+        """Serialize a CheckFailure instance into html format.
+
+        Returns
+        -------
+        str
+        """
         return ''.join([
             self.prepare_header(),
             self.prepare_summary(),
@@ -30,9 +43,11 @@ class CheckFailureSerializer(HtmlSerializer[CheckFailure]):
         ])
 
     def prepare_header(self) -> str:
+        """Prepare the header section of the html output."""
         return f'<h4>{self.value.header}</h4>'
 
     def prepare_summary(self) -> str:
+        """Prepare the summary section of the html output."""
         return (
             f'<p>{get_docs_summary(self.value.check)}</p>'
             if hasattr(self.value.check, '__doc__')
@@ -40,4 +55,5 @@ class CheckFailureSerializer(HtmlSerializer[CheckFailure]):
         )
 
     def prepare_error_message(self) -> str:
+        """Prepare the error message of the html output."""
         return f'<p style="color:red"> {self.value.exception}</p>'

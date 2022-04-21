@@ -23,11 +23,24 @@ __all__ = ['CheckFailureSerializer']
 
 
 class CheckFailureSerializer(WandbSerializer[CheckFailure]):
+    """Serializes any CheckFailure instance into Wandb media format.
+
+    Parameters
+    ----------
+    value : CheckFailure
+        CheckFailure instance that needed to be serialized.
+    """
 
     def __init__(self, value: CheckFailure, **kwargs):
         self.value = value
 
     def serialize(self, **kwargs) -> t.Dict[str, WBValue]:
+        """Serialize a CheckFailure instance into Wandb media format.
+
+        Returns
+        -------
+        Dict[str, WBValue]
+        """
         header = self.value.header
         metadata = self.value.check.metadata()
         summary_table = wandb.Table(

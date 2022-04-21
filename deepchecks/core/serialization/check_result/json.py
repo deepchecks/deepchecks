@@ -41,11 +41,24 @@ class CheckResultMetadata(TypedDict):
 
 
 class CheckResultSerializer(JsonSerializer[CheckResult]):
+    """Serializes any CheckResult instance into JSON format.
+
+    Parameters
+    ----------
+    value : CheckResult
+        CheckResult instance that needed to be serialized.
+    """
 
     def __init__(self, value: CheckResult, **kwargs):
         self.value = value
 
     def serialize(self, **kwargs) -> CheckResultMetadata:
+        """Serialize a CheckResult instance into JSON format.
+
+        Returns
+        -------
+        CheckResultMetadata
+        """
         return CheckResultMetadata(
             check=self.prepare_check_metadata(),
             header=self.value.get_header(),
@@ -55,19 +68,23 @@ class CheckResultSerializer(JsonSerializer[CheckResult]):
         )
 
     def prepare_check_metadata(self) -> CheckMetadata:
+        """Prepare Check instance metadata dictionary."""
         return self.value.check.metadata(with_doc_link=True)
 
     def prepare_condition_results(self) -> t.List[t.Dict[t.Any, t.Any]]:
+        """Serialize condition results into json."""
         if self.value.have_conditions:
             df = aggregate_conditions(self.value, include_icon=False)
             return df.data.to_json(orient='records')
         else:
             return []
 
-    def prepare_value(self) -> str:
-        return pretify(normalize_value(self.value.value))
+    def prepare_value(self) -> t.Any:
+        """Serialize CheckResult value var into JSON."""
+        return normalize_value(self.value.value)
 
-    def prepare_display(self) -> t.List[t.Any]:
+    def prepare_display(self) -> t.List[t.Dict[str, t.Any]]:
+        """Serialize CheckResult display items into JSON."""
         output = []
         for item in self.value.display:
             if isinstance(item, Styler):

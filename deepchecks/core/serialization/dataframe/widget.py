@@ -26,10 +26,18 @@ DataFrameOrStyler = t.Union[pd.DataFrame, Styler]
 
 
 class DataFrameSerializer(WidgetSerializer[DataFrameOrStyler]):
+    """Serializes pandas.DataFrame instance into ipywidgets.Widget instance.
+
+    Parameters
+    ----------
+    value : Union[pd.DataFrame, Styler]
+        DataFrame instance that needed to be serialized.
+    """
 
     def __init__(self, value: DataFrameOrStyler, **kwargs):
         self.value = value
         self._html_serializer = html.DataFrameSerializer(self.value)
 
     def serialize(self, **kwargs) -> HTML:
+        """Serialize pandas.DataFrame instance into ipywidgets.Widget instance."""
         return HTML(value=self._html_serializer.serialize())

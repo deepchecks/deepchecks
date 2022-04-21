@@ -17,6 +17,7 @@ from ipywidgets import Widget, HTML, VBox, Tab
 
 from deepchecks.utils.strings import get_docs_summary
 from deepchecks.core.suite import SuiteResult
+from deepchecks.core.check_result import CheckResult
 from deepchecks.core.serialization.abc import WidgetSerializer
 from deepchecks.core.serialization.common import Html as CommonHtml
 from deepchecks.core.serialization.common import normalize_widget_style
@@ -31,6 +32,13 @@ __all__ = ['SuiteResultSerializer']
 
 
 class SuiteResultSerializer(WidgetSerializer[SuiteResult]):
+    """Serializes any SuiteResult instance into ipywidgets.Widget instance.
+
+    Parameters
+    ----------
+    value : SuiteResult
+        SuiteResult instance that needed to be serialized.
+    """
 
     def __init__(self, value: SuiteResult, **kwargs):
         super().__init__(**{'value': value, **kwargs},)
@@ -42,6 +50,17 @@ class SuiteResultSerializer(WidgetSerializer[SuiteResult]):
         output_id: t.Optional[str] = None,
         **kwargs
     ) -> VBox:
+        """Serialize a SuiteResult instance into ipywidgets.Widget instance.
+
+        Parameters
+        ----------
+        output_id : Optional[str], default None
+            unique output identifier that will be used to form anchor links
+
+        Returns
+        -------
+        ipywidgets.VBox
+        """
         tab = Tab()
         tab.set_title(0, 'Checks With Conditions')
         tab.set_title(1, 'Checks Without Conditions')
@@ -72,8 +91,9 @@ class SuiteResultSerializer(WidgetSerializer[SuiteResult]):
         output_id: t.Optional[str] = None,
         **kwargs
     ) -> HTML:
+        """Prepare summary widget."""
         return HTML(value=self._html_serializer.prepare_summary(
-            output_id,
+            output_id=output_id,
             **kwargs
         ))
 
@@ -82,13 +102,15 @@ class SuiteResultSerializer(WidgetSerializer[SuiteResult]):
         output_id: t.Optional[str] = None,
         **kwargs
     ) -> HTML:
+        """Prepare summary widget."""
         return normalize_widget_style(HTML(value=self._html_serializer.prepare_conditions_table(
-            output_id,
+            output_id=output_id,
             include_check_name=True,
             **kwargs
         )))
 
     def prepare_failures_list(self) -> HTML:
+        """Prepare failures list widget."""
         return normalize_widget_style(HTML(
             value=self._html_serializer.prepare_failures_list()
         ))
@@ -99,13 +121,31 @@ class SuiteResultSerializer(WidgetSerializer[SuiteResult]):
         check_sections: t.Optional[t.Sequence[CheckResultSection]] = None,
         **kwargs
     ) -> VBox:
+        """Prepare widget that shows results without conditions.
+
+        Parameters
+        ----------
+        output_id : Optional[str], default None
+            unique output identifier that will be used to form anchor links
+        check_sections : Optional[Sequence[Literal['condition-table', 'additional-output']]], default None
+            sequence of check result sections to include into the output,
+            in case of 'None' all sections will be included
+
+        Returns
+        -------
+        ipywidgets.VBox
+        """
+        results = t.cast(
+            t.List[CheckResult],
+            self.value.select_results(self.value.results_without_conditions & self.value.results_with_display)
+        )
         results_without_conditions = [
             CheckResultWidgetSerializer(it).serialize(
                 output_id=output_id,
                 include=check_sections,
                 **kwargs
             )
-            for it in self.value.results_without_conditions
+            for it in results
         ]
         return normalize_widget_style(VBox(children=[
             HTML(value='<h2>Check Without Conditions Output</h2>'),
@@ -120,17 +160,34 @@ class SuiteResultSerializer(WidgetSerializer[SuiteResult]):
         check_sections: t.Optional[t.Sequence[CheckResultSection]] = None,
         **kwargs
     ) -> VBox:
+        """Prepare widget that shows results with conditions and display.
+
+        Parameters
+        ----------
+        output_id : Optional[str], default None
+            unique output identifier that will be used to form anchor links
+        check_sections : Optional[Sequence[Literal['condition-table', 'additional-output']]], default None
+            sequence of check result sections to include into the output,
+            in case of 'None' all sections will be included
+
+        Returns
+        -------
+        ipywidgets.VBox
+        """
+        results = t.cast(
+            t.List[CheckResult],
+            self.value.select_results(self.value.results_with_conditions & self.value.results_with_display)
+        )
         results_with_condition_and_display = [
             CheckResultWidgetSerializer(it).serialize(
                 output_id=output_id,
                 include=check_sections,
                 **kwargs
             )
-            for it in self.value.results_with_conditions_and_display
+            for it in results
         ]
-
         return normalize_widget_style(VBox(children=[
-            self.prepare_conditions_table(),
+            self.prepare_conditions_table(output_id=output_id),
             HTML(value='<h2>Check With Conditions Output</h2>'),
             *join(results_with_condition_and_display, HTML(value=CommonHtml.light_hr))
         ]))
@@ -140,14 +197,30 @@ class SuiteResultSerializer(WidgetSerializer[SuiteResult]):
         output_id: t.Optional[str] = None,
         **kwargs
     ) -> Widget:
+        """Prepare navigation widget for the tab with unconditioned_results.
+
+        Parameters
+        ----------
+        output_id : Optional[str], default None
+            unique output identifier that will be used to form anchor links
+
+        Returns
+        -------
+        ipywidgets.Widget
+        """
         data = []
 
-        for check_result in self.value.results_without_conditions:
+        results = t.cast(
+            t.List[CheckResult],
+            self.value.select_results(self.value.results_without_conditions & self.value.results_with_display)
+        )
+
+        for check_result in results:
             check_header = check_result.get_header()
 
             if output_id:
-                anchor = f'href="#{check_result.get_check_id(output_id)}'
-                header = f'<a href="{anchor}">{check_header}</a>'
+                href = f'href="#{check_result.get_check_id(output_id)}"'
+                header = f'<a {href}>{check_header}</a>'
             else:
                 header = check_header
 
@@ -169,6 +242,7 @@ B = t.TypeVar('B')
 
 
 def join(l: t.List[A], item: B) -> t.Iterator[t.Union[A, B]]:
+    """Concatenate a list of items into one iterator and put 'item' between elements of the list."""
     list_len = len(l) - 1
     for index, el in enumerate(l):
         yield el

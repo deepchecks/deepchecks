@@ -29,11 +29,24 @@ __all__ = ['CheckResultSerializer']
 
 
 class CheckResultSerializer(WandbSerializer[CheckResult]):
+    """Serializes any CheckResult instance into Wandb media metadata.
+
+    Parameters
+    ----------
+    value : CheckResult
+        CheckResult instance that needed to be serialized.
+    """
 
     def __init__(self, value: CheckResult, **kwargs):
         self.value = value
 
-    def serialize(self, **kwargs) -> t.Dict[str, t.Any]:
+    def serialize(self, **kwargs) -> t.Dict[str, WBValue]:
+        """Serialize a CheckResult instance into Wandb media metadata.
+
+        Returns
+        -------
+        Dict[str, WBValue]
+        """
         header = self.value.header
         output = OrderedDict()
         conditions_table = self.prepare_conditions_table()
@@ -49,6 +62,7 @@ class CheckResultSerializer(WandbSerializer[CheckResult]):
         return output
 
     def prepare_summary_table(self) -> wandb.Table:
+        """Prepare summary table."""
         check_result = self.value
         metadata = check_result.check.metadata()
         return wandb.Table(
@@ -62,11 +76,13 @@ class CheckResultSerializer(WandbSerializer[CheckResult]):
         )
 
     def prepare_conditions_table(self) -> t.Optional[wandb.Table]:
+        """Prepare conditions table."""
         if self.value.conditions_results:
             df = aggregate_conditions(self.value, include_icon=False)
             return wandb.Table(dataframe=df.data, allow_mixed_types=True)
 
     def prepare_display(self) -> t.Iterator[t.Tuple[str, WBValue]]:
+        """Serialize display items into Wandb media format."""
         table_index = plot_index = html_index = 0
 
         for item in self.value.display:

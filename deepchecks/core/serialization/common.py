@@ -58,15 +58,19 @@ __all__ = [
 
 
 class Html:
+    """Set of commonly used HTML tags."""
+
     bold_hr = '<hr style="background-color: black;border: 0 none;color: black;height: 1px;">'
     light_hr = '<hr style="background-color: #eee;border: 0 none;color: #eee;height: 4px;">'
 
 
 def form_output_anchor(output_id: str) -> str:
-    return f'#summary_{output_id}'
+    """Form unique output anchor."""
+    return f'summary_{output_id}'
 
 
 def form_check_id(check: BaseCheck, output_id: str) -> str:
+    """Form check instance unique identifier."""
     check_name = type(check).__name__
     return f'{check_name}_{output_id}'
 
@@ -75,6 +79,7 @@ TDOMWidget = t.TypeVar('TDOMWidget', bound=DOMWidget)
 
 
 def normalize_widget_style(w: TDOMWidget) -> TDOMWidget:
+    """Add additional style classes to the widget."""
     return (
         w
         .add_class('rendered_html')
@@ -85,6 +90,7 @@ def normalize_widget_style(w: TDOMWidget) -> TDOMWidget:
 
 
 def pretify(data: t.Any, indent: int = 3) -> str:
+    """Pretify data."""
     default = lambda it: repr(it)
     return json.dumps(data, indent=indent, default=default)
 
@@ -147,7 +153,7 @@ def aggregate_conditions(
             icon = cond_result.get_icon() if include_icon else cond_result.category.value
             check_header = check_result.get_header()
 
-            if output_id and check_result.have_display():
+            if output_id:
                 link = f'<a href=#{check_result.get_check_id(output_id)}>{check_header}</a>'
             else:
                 link = check_header
@@ -195,7 +201,7 @@ _mathjax_config = """if (window.MathJax) {MathJax.Hub.Config({SVG: {font: "STIX-
 
 def plotly_activation_script(connected: bool = True) -> str:
     """Return plotly activation script in the requirejs enviroment.
-    
+
     Parameters
     ----------
     connected : bool, default True
@@ -217,8 +223,8 @@ def plotly_activation_script(connected: bool = True) -> str:
                             paths: {{'plotly': ['{plotly_cdn}']}}
                         }});
                         require(
-                            ['plotly'], 
-                            function(Plotly) {{window._Plotly = Plotly;}}, 
+                            ['plotly'],
+                            function(Plotly) {{window._Plotly = Plotly;}},
                             function() {{console.log('Failed to load plotly')}}
                         );
                     }});
@@ -246,7 +252,7 @@ def plotly_activation_script(connected: bool = True) -> str:
                             {script}
                         }});
                         require(
-                            ['plotly'], 
+                            ['plotly'],
                             function(Plotly) {{window._Plotly = Plotly;}},
                             function() {{console.log('Failed to load plotly')}}
                         );

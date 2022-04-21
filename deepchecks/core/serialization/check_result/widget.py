@@ -26,19 +26,39 @@ __all__ = ['CheckResultSerializer']
 
 
 class CheckResultSerializer(WidgetSerializer[CheckResult]):
+    """Serializes any CheckResult instance into ipywidgets.Widget instance.
+
+    Parameters
+    ----------
+    value : CheckResult
+        CheckResult instance that needed to be serialized.
+    """
 
     def __init__(self, value: CheckResult, **kwargs):
-        super().__init__(**{'value': value, **kwargs})
         self.value = value
         self._html_serializer = html.CheckResultSerializer(self.value)
 
     def serialize(
         self,
         output_id: t.Optional[str] = None,
-        include: t.Optional[t.Sequence[html.CheckResultSection]] = None,
+        check_sections: t.Optional[t.Sequence[html.CheckResultSection]] = None,
         **kwargs
     ) -> VBox:
-        sections_to_include = html.verify_include_parameter(include)
+        """Serialize a CheckResult instance into ipywidgets.Widget instance.
+
+        Parameters
+        ----------
+        output_id : Optional[str], default None
+            unique output identifier that will be used to form anchor links
+        check_sections : Optional[Sequence[Literal['condition-table', 'additional-output']]], default None
+            sequence of check result sections to include into theoutput,
+            in case of 'None' all sections will be included
+
+        Returns
+        -------
+        ipywidgets.VBox
+        """
+        sections_to_include = html.verify_include_parameter(check_sections)
         sections: t.List[Widget] = [self.prepare_header(output_id), self.prepare_summary()]
 
         if 'condition-table' in sections_to_include:
@@ -50,9 +70,11 @@ class CheckResultSerializer(WidgetSerializer[CheckResult]):
         return normalize_widget_style(VBox(children=sections))
 
     def prepare_header(self, output_id: t.Optional[str] = None) -> HTML:
+        """Prepare header widget."""
         return HTML(value=self._html_serializer.prepare_header(output_id))
 
     def prepare_summary(self) -> HTML:
+        """Prepare summary widget."""
         return HTML(value=self._html_serializer.prepare_summary())
 
     def prepare_conditions_table(
@@ -62,6 +84,23 @@ class CheckResultSerializer(WidgetSerializer[CheckResult]):
         include_check_name: bool = False,
         output_id: t.Optional[str] = None,
     ) -> HTML:
+        """Prepare conditions table widget.
+
+        Parameters
+        ----------
+        max_info_len : int, default 3000
+            max length of the additional info
+        include_icon : bool , default: True
+            if to show the html condition result icon or the enum
+        include_check_name : bool, default False
+            whether to include check name into dataframe or not
+        output_id : Optional[str], default None
+            unique output identifier that will be used to form anchor links
+
+        Returns
+        -------
+        ipywidgets.HTML
+        """
         widget = HTML(value=self._html_serializer.prepare_conditions_table(
             max_info_len=max_info_len,
             include_icon=include_icon,
@@ -71,6 +110,17 @@ class CheckResultSerializer(WidgetSerializer[CheckResult]):
         return widget
 
     def prepare_additional_output(self, output_id: t.Optional[str] = None) -> VBox:
+        """Prepare additional output widget.
+
+        Parameters
+        ----------
+        output_id : Optional[str], default None
+            unique output identifier that will be used to form anchor links
+
+        Returns
+        -------
+        ipywidgets.VBox
+        """
         return VBox(children=DisplayItemsHandler.handle_display(
             self.value.display,
             output_id
@@ -78,31 +128,39 @@ class CheckResultSerializer(WidgetSerializer[CheckResult]):
 
 
 class DisplayItemsHandler(html.DisplayItemsHandler):
+    """Auxiliary class to decouple display handling logic from other functionality."""
 
     @classmethod
     def header(cls) -> HTML:
+        """Return header section."""
         return HTML(value=super().header())
 
     @classmethod
     def empty_content_placeholder(cls) -> HTML:
+        """Return placeholder in case of content absence."""
         return HTML(value=super().empty_content_placeholder())
 
     @classmethod
     def go_to_top_link(cls, output_id: str) -> HTML:
+        """Return 'Go To Top' link."""
         return HTML(value=super().go_to_top_link(output_id))
 
     @classmethod
     def handle_figure(cls, item: BaseFigure) -> go.FigureWidget:
+        """Handle plotly figure item."""
         return go.FigureWidget(data=item)
 
     @classmethod
     def handle_string(cls, item: str) -> HTML:
+        """Handle textual item."""
         return HTML(value=super().handle_string(item))
 
     @classmethod
     def handle_dataframe(cls, item: pd.DataFrame) -> HTML:
+        """Handle dataframe item."""
         return HTML(value=super().handle_dataframe(item))
 
     @classmethod
     def handle_callable(cls, item: t.Callable) -> HTML:
+        """Handle callable."""
         raise NotImplementedError()

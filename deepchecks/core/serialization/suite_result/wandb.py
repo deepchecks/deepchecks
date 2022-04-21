@@ -23,11 +23,24 @@ from deepchecks.core.serialization.check_failure.wandb import CheckFailureSerial
 
 
 class SuiteResultSerializer(WandbSerializer[SuiteResult]):
+    """Serializes any SuiteResult instance into Wandb media format.
+
+    Parameters
+    ----------
+    value : SuiteResult
+        SuiteResult instance that needed to be serialized.
+    """
 
     def __init__(self, value: SuiteResult, **kwargs):
         self.value = value
 
     def serialize(self, **kwargs) -> t.Dict[str, WBValue]:
+        """Serialize a SuiteResult instance into Wandb media format.
+
+        Returns
+        -------
+        Dict[str, WBValue]
+        """
         suite_name = self.value.name
         results: t.List[t.Tuple[str, WBValue]] = []
 

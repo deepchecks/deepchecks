@@ -13,7 +13,7 @@ import io
 import abc
 import warnings
 from collections import OrderedDict
-from typing import Any, Union, List, Tuple, Dict
+from typing import Any, Union, List, Tuple, Dict, Set
 
 from IPython.core.display import display_html
 from IPython.core.getipython import get_ipython
@@ -32,6 +32,7 @@ try:
     assert hasattr(wandb, '__version__')  # verify package import not local dir
 except (ImportError, AssertionError):
     wandb = None
+
 
 __all__ = ['BaseSuite', 'SuiteResult']
 
@@ -55,41 +56,34 @@ class SuiteResult:
         self.results = results
         self.extra_info = extra_info or []
 
-    @property
-    def results_with_conditions(self) -> List[CheckResult]:
-        """Return all check results that have conditions."""
-        return [
-            it
-            for it in self.results
-            if isinstance(it, CheckResult) and it.have_conditions()
-        ]
+        # TODO: add comment about code below
 
-    @property
-    def results_with_conditions_and_display(self) -> List[CheckResult]:
-        """Return check results that have conditions and display."""
-        return [
-            it
-            for it in self.results
-            if isinstance(it, CheckResult) and it.have_conditions() and it.have_display()
-        ]
+        self.results_with_conditions: Set[int] = set()
+        self.results_without_conditions: Set[int] = set()
+        self.results_with_display: Set[int] = set()
+        self.results_without_display: Set[int] = set()
+        self.failures: Set[int] = set()
 
-    @property
-    def results_without_conditions(self) -> List[CheckResult]:
-        """Return check results that do not have conditions."""
-        return [
-            it
-            for it in self.results
-            if isinstance(it, CheckResult) and not it.have_conditions()
-        ]
+        for index, result in enumerate(self.results):
+            if isinstance(result, CheckResult):
+                if result.have_conditions():
+                    self.results_with_conditions.add(index)
+                else:
+                    self.results_without_conditions.add(index)
+                if result.have_display():
+                    self.results_with_display.add(index)
+                else:
+                    self.results_without_display.add(index)
+            else:
+                self.failures.add(index)
 
-    @property
-    def failed_or_without_display_results(self) -> List[Union[CheckFailure, CheckResult]]:
-        """Return check failures or check results that do not have display."""
-        return [
-            it
-            for it in self.results
-            if isinstance(it, CheckFailure) or not it.have_display()
-        ]
+    def select_results(self, idx: Set[int]) -> List[Union[CheckResult, CheckFailure]]:
+        """Select result by indexes."""
+        output = []
+        for index, result in enumerate(self.results):
+            if index in idx:
+                output.append(result)
+        return output
 
     def __repr__(self):
         """Return default __repr__ function uses value."""

@@ -39,6 +39,13 @@ CheckResultSection = t.Union[
 
 
 class CheckResultSerializer(HtmlSerializer[CheckResult]):
+    """Serializes any CheckResult instance into HTML format.
+
+    Parameters
+    ----------
+    value : CheckResult
+        CheckResult instance that needed to be serialized.
+    """
 
     def __init__(self, value: CheckResult, **kwargs):
         self.value = value
@@ -51,8 +58,26 @@ class CheckResultSerializer(HtmlSerializer[CheckResult]):
         include_plotlyjs: bool = True,
         **kwargs
     ) -> str:
+        """Serialize a CheckResult instance into HTML format.
+
+        Parameters
+        ----------
+        output_id : Optional[str], default None
+            unique output identifier that will be used to form anchor links
+        check_sections : Optional[Sequence[Literal['condition-table', 'additional-output']]], default None
+            sequence of check result sections to include into the output,
+            in case of 'None' all sections will be included
+        full_html : bool, default False
+            whether to return a fully independent HTML document or only CheckResult content
+        include_plotlyjs : bool, default True
+            whether to include plotlyjs activation script into output or not
+
+        Returns
+        -------
+        str
+        """
         sections_to_include = verify_include_parameter(check_sections)
-        sections = [self.prepare_header(output_id),self.prepare_summary()]
+        sections = [self.prepare_header(output_id), self.prepare_summary()]
 
         if 'condition-table' in sections_to_include:
             sections.append(''.join(self.prepare_conditions_table(output_id=output_id)))
@@ -79,6 +104,7 @@ class CheckResultSerializer(HtmlSerializer[CheckResult]):
         """)
 
     def prepare_header(self, output_id: t.Optional[str] = None) -> str:
+        """Prepare the header section of the html output."""
         header = self.value.get_header()
         header = f'<b>{header}</b>'
         if output_id is not None:
@@ -88,6 +114,7 @@ class CheckResultSerializer(HtmlSerializer[CheckResult]):
             return f'<h4>{header}</h4>'
 
     def prepare_summary(self) -> str:
+        """Prepare the summary section of the html output."""
         summary = get_docs_summary(self.value.check)
         return f'<p>{summary}</p>'
 
@@ -98,6 +125,23 @@ class CheckResultSerializer(HtmlSerializer[CheckResult]):
         include_check_name: bool = False,
         output_id: t.Optional[str] = None,
     ) -> str:
+        """Prepare the conditions table of the html output.
+
+        Parameters
+        ----------
+        max_info_len : int, default 3000
+            max length of the additional info
+        include_icon : bool , default: True
+            if to show the html condition result icon or the enum
+        include_check_name : bool, default False
+            whether to include check name into dataframe or not
+        output_id : Optional[str], default None
+            unique output identifier that will be used to form anchor links
+
+        Returns
+        -------
+        str
+        """
         if not self.value.have_conditions():
             return ''
         table = DataFrameHtmlSerializer(aggregate_conditions(
@@ -113,10 +157,26 @@ class CheckResultSerializer(HtmlSerializer[CheckResult]):
         self,
         output_id: t.Optional[str] = None
     ) -> t.List[str]:
+        """Prepare the display content of the html output.
+
+        Parameters
+        ----------
+        output_id : Optional[str], default None
+            unique output identifier that will be used to form anchor links
+
+        Returns
+        -------
+        str
+        """
         return DisplayItemsHandler.handle_display(self.value.display)
 
 
 class DisplayItemsHandler:
+    """Auxiliary class to decouple display handling logic from other functionality.
+
+    The main aim of its existence (at least for now) is to provide an ability to reuse
+    CheckResult HTML serializer in the CheckResult widget serializer without using inheritance.
+    """
 
     @classmethod
     def handle_display(
@@ -124,6 +184,19 @@ class DisplayItemsHandler:
         display: t.List[t.Union[t.Callable, str, pd.DataFrame, Styler]],
         output_id: t.Optional[str] = None,
     ) -> t.List[str]:
+        """Serialize CheckResult display items into HTML.
+
+        Parameters
+        ----------
+        display : List[Union[Callable, str, DataFrame, Styler]]
+            list of display items
+        output_id : Optional[str], default None
+            unique output identifier that will be used to form anchor links
+
+        Returns
+        -------
+        List[str]
+        """
         output = [cls.header()]
 
         for item in display:
@@ -148,38 +221,46 @@ class DisplayItemsHandler:
 
     @classmethod
     def header(cls) -> str:
+        """Return header section."""
         return '<h5><b>Additional Outputs</b></h5>'
 
     @classmethod
     def empty_content_placeholder(cls) -> str:
+        """Return placeholder in case of content absence."""
         return '<p><b>&#x2713;</b>Nothing to display</p>'
 
     @classmethod
     def go_to_top_link(cls, output_id: str) -> str:
+        """Return 'Go To Top' link."""
         href = form_output_anchor(output_id)
-        return f'<br><a href="{href}" style="font-size: 14px">Go to top</a>'
+        return f'<br><a href="#{href}" style="font-size: 14px">Go to top</a>'
 
     @classmethod
     def handle_string(cls, item):
+        """Handle textual item."""
         return f'<div>{item}</div>'
 
     @classmethod
     def handle_dataframe(cls, item):
+        """Handle dataframe item."""
         return DataFrameHtmlSerializer(item).serialize()
 
     @classmethod
     def handle_callable(cls, item):
+        """Handle callable."""
         raise NotImplementedError()
 
     @classmethod
     def handle_figure(cls, item):
-        bundle = pio.renderers['notebook'].to_mimebundle(item)  # dict structure: {"text/html": value}
+        """Handle plotly figure item."""
+        bundle = pio.renderers['notebook'].to_mimebundle(item)
         return bundle['text/html']
 
 
 def verify_include_parameter(
     include: t.Optional[t.Sequence[CheckResultSection]] = None
 ) -> t.Set[CheckResultSection]:
+    """Verify CheckResultSection sequence."""
     sections = t.cast(
         t.Set[CheckResultSection],
         {'condition-table', 'additional-output'}

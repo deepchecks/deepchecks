@@ -19,11 +19,24 @@ __all__ = ['CheckFailureSerializer']
 
 
 class CheckFailureSerializer(JsonSerializer[CheckFailure]):
+    """Serializes any CheckFailure instance into JSON format.
+
+    Parameters
+    ----------
+    value : CheckFailure
+        CheckFailure instance that needed to be serialized.
+    """
 
     def __init__(self, value: CheckFailure, **kwargs):
         self.value = value
 
-    def serialize(self, **kwargs) -> t.Dict[t.Any, t.Any]:
+    def serialize(self, **kwargs) -> t.Dict[str, t.Any]:
+        """Serialize a CheckFailure instance into JSON format.
+
+        Returns
+        -------
+        Dict[str, Any]
+        """
         return {
             'header': self.value.header,
             'check': self.value.check.metadata(),

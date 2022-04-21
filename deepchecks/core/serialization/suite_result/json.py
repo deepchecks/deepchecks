@@ -23,11 +23,24 @@ __all__ = ['SuiteResultSerializer']
 
 
 class SuiteResultSerializer(JsonSerializer[SuiteResult]):
+    """Serializes any SuiteResult instance into JSON format.
+
+    Parameters
+    ----------
+    value : SuiteResult
+        SuiteResult instance that needed to be serialized.
+    """
 
     def __init__(self, value: SuiteResult, **kwargs):
         self.value = value
 
     def serialize(self, **kwargs) -> t.Union[t.Dict[t.Any, t.Any], t.List[t.Any]]:
+        """Serialize a SuiteResult instance into JSON format.
+
+        Returns
+        -------
+        Union[Dict[Any, Any], List[Any]]
+        """
         results = []
 
         for it in self.value.results:
