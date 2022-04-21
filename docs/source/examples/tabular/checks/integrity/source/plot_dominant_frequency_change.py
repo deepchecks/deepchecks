@@ -13,13 +13,14 @@ This example provides an overview for using and understanding the `Dominant Freq
 
 What is a Dominant Frequency Change?
 ====================================
-Dominant Frequency Change is a data integrity test which simply checks whether dominant values have increased
-significantly between the test data and a reference data.
+Dominant Frequency Change is a data integrity check which simply checks whether dominant values have increased
+significantly between test data and train data. Sharp changes in dominant values can indicate a problem with the
+data collection or data processing pipeline (for example, a sharp incrase in a common null or constant value),
+and will cause the model to fail to generalize well. This check goal is to catch these issues early in the pipeline.
 
 This check compares the dominant values of each feature in the test data to the dominant values of the same feature in
-the reference data. If the ratio of the dominant values of the test data to the reference data is greater than a
-configurable threshold, the check fails. This threshold can be configured by specifying the `ratio_change_thres`
-parameter of the check.
+the train data. If the ratio of the test to train dominant values is greater than a threshold, the check fails.
+This threshold can be configured by specifying the `ratio_change_thres` parameter of the check.
 
 The Definition of a Dominant Value
 ----------------------------------
@@ -36,7 +37,7 @@ from deepchecks.tabular.datasets.classification import iris
 train_ds, test_ds = iris.load_data(data_format='Dataset', as_train_test=True)
 
 #%%
-# Introducing duplicates in the test data
+# Introducing Duplicates in the Test Data
 # -----------------------------------------
 
 # make duplicates in the test data
