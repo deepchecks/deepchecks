@@ -19,6 +19,7 @@ from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
 
 from deepchecks.core.check_result import CheckResult
+from deepchecks.core.serialization.abc import ABCDisplayItemsHandler
 from deepchecks.core.serialization.abc import WandbSerializer
 from deepchecks.core.serialization.common import normalize_value
 from deepchecks.core.serialization.common import aggregate_conditions
@@ -81,30 +82,44 @@ class CheckResultSerializer(WandbSerializer[CheckResult]):
             df = aggregate_conditions(self.value, include_icon=False)
             return wandb.Table(dataframe=df.data, allow_mixed_types=True)
 
-    def prepare_display(self) -> t.Iterator[t.Tuple[str, WBValue]]:
+    def prepare_display(self) -> t.List[t.Tuple[str, WBValue]]:
         """Serialize display items into Wandb media format."""
-        table_index = plot_index = html_index = 0
+        return DisplayItemsHandler.handle_display(self.value.display)
 
-        for item in self.value.display:
-            if isinstance(item, Styler):
-                yield (
-                    f'table {table_index}',
-                    wandb.Table(dataframe=item.data.reset_index(), allow_mixed_types=True)
-                )
-                table_index += 1
-            elif isinstance(item, pd.DataFrame):
-                yield (
-                    f'table {table_index}',
-                    wandb.Table(dataframe=item.reset_index(), allow_mixed_types=True)
-                )
-                table_index += 1
-            elif isinstance(item, str):
-                yield (f'html {html_index}', wandb.Html(data=item))
-                html_index += 1
-            elif isinstance(item, BaseFigure):
-                yield (f'plot {plot_index}', wandb.Plotly(item))
-                plot_index += 1
-            elif callable(item):
-                raise NotImplementedError()
-            else:
-                raise TypeError(f'Unable to process display item of type: {type(item)}')
+
+class DisplayItemsHandler(ABCDisplayItemsHandler):
+    """Auxiliary class to decouple display handling logic from other functionality."""
+
+    @classmethod
+    def handle_string(cls, item: str, index: int, **kwargs) -> t.Tuple[str, WBValue]:
+        """Handle textual item."""
+        return (f'item-{index}-html', wandb.Html(data=item))
+
+    @classmethod
+    def handle_dataframe(
+        cls,
+        item: t.Union[pd.DataFrame, Styler],
+        index: int,
+        **kwargs
+    ) -> t.Tuple[str, WBValue]:
+        """Handle dataframe item."""
+        if isinstance(item, Styler):
+            return (
+                f'item-{index}-table',
+                wandb.Table(dataframe=item.data.reset_index(), allow_mixed_types=True)
+            )
+        else:
+            return (
+                f'item-{index}-table',
+                wandb.Table(dataframe=item.reset_index(), allow_mixed_types=True)
+            )
+
+    @classmethod
+    def handle_callable(cls, item: t.Callable, index: int, **kwargs) -> t.Tuple[str, WBValue]:
+        """Handle callable."""
+        raise NotImplementedError()
+
+    @classmethod
+    def handle_figure(cls, item: BaseFigure, index: int, **kwargs) -> t.Tuple[str, WBValue]:
+        """Handle plotly figure item."""
+        return f'item-{index}-plot', wandb.Plotly(item)

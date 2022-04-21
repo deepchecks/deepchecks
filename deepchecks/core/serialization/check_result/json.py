@@ -20,9 +20,10 @@ from typing_extensions import TypedDict
 from deepchecks.core.check_result import CheckResult
 from deepchecks.core.checks import CheckMetadata
 from deepchecks.core.serialization.abc import JsonSerializer
+from deepchecks.core.serialization.abc import ABCDisplayItemsHandler
 from deepchecks.core.serialization.common import aggregate_conditions
 from deepchecks.core.serialization.common import normalize_value
-from deepchecks.core.serialization.common import pretify
+# from deepchecks.core.serialization.common import pretify
 
 
 # registers jsonpickle pandas extension for pandas support in the to_json function
@@ -85,24 +86,42 @@ class CheckResultSerializer(JsonSerializer[CheckResult]):
 
     def prepare_display(self) -> t.List[t.Dict[str, t.Any]]:
         """Serialize CheckResult display items into JSON."""
-        output = []
-        for item in self.value.display:
-            if isinstance(item, Styler):
-                output.append({
-                    'type': 'dataframe',
-                    'payload': item.data.to_json(orient='records')
-                })
-            elif isinstance(item, pd.DataFrame):
-                output.append({
-                    'type': 'dataframe',
-                    'payload': item.to_json(orient='records')
-                })
-            elif isinstance(item, str):
-                output.append({'type': 'html', 'payload': item})
-            elif isinstance(item, BaseFigure):
-                output.append({'type': 'plotly', 'payload': item.to_json()})
-            elif callable(item):
-                raise NotImplementedError
-            else:
-                raise TypeError(f'Unable to serialize into json item of type - {type(item)}')
-        return output
+        return DisplayItemsHandler.handle_display(self.value.display)
+
+
+class DisplayItemsHandler(ABCDisplayItemsHandler):
+    """Auxiliary class to decouple display handling logic from other functionality."""
+
+    @classmethod
+    def handle_string(cls, item: str, index: int, **kwargs) -> t.Dict[str, str]:
+        """Handle textual item."""
+        return {'type': 'html', 'payload': item}
+
+    @classmethod
+    def handle_dataframe(
+        cls,
+        item: t.Union[pd.DataFrame, Styler],
+        index: int,
+        **kwargs
+    ) -> t.Dict[str, t.Any]:
+        """Handle dataframe item."""
+        if isinstance(item, Styler):
+            return {
+                'type': 'dataframe',
+                'payload': item.data.to_json(orient='records')
+            }
+        else:
+            return {
+                'type': 'dataframe',
+                'payload': item.to_json(orient='records')
+            }
+
+    @classmethod
+    def handle_callable(cls, item: t.Callable, index: int, **kwargs) -> str:
+        """Handle callable."""
+        raise NotImplementedError()
+
+    @classmethod
+    def handle_figure(cls, item: BaseFigure, index: int, **kwargs) -> t.Dict[str, t.Any]:
+        """Handle plotly figure item."""
+        return {'type': 'plotly', 'payload': item.to_json()}

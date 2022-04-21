@@ -78,7 +78,7 @@ class SuiteResult:
                 self.failures.add(index)
 
     def select_results(self, idx: Set[int]) -> List[Union[CheckResult, CheckFailure]]:
-        """Select result by indexes."""
+        """Select results by indexes."""
         output = []
         for index, result in enumerate(self.results):
             if index in idx:

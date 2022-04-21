@@ -15,12 +15,13 @@ import textwrap
 import pandas as pd
 import plotly.io as pio
 from pandas.io.formats.style import Styler
-from plotly.basedatatypes import BaseFigure
 from typing_extensions import Literal
 
 from deepchecks.core.check_result import CheckResult
+from deepchecks.core.check_result import TDisplayItem
 from deepchecks.utils.strings import get_docs_summary
 from deepchecks.core.serialization.abc import HtmlSerializer
+from deepchecks.core.serialization.abc import ABCDisplayItemsHandler
 from deepchecks.core.serialization.dataframe.html import DataFrameSerializer as DataFrameHtmlSerializer
 from deepchecks.core.serialization.common import aggregate_conditions
 from deepchecks.core.serialization.common import form_output_anchor
@@ -168,21 +169,21 @@ class CheckResultSerializer(HtmlSerializer[CheckResult]):
         -------
         str
         """
-        return DisplayItemsHandler.handle_display(self.value.display)
+        return DisplayItemsHandler.handle_display(
+            self.value.display,
+            output_id=output_id
+        )
 
 
-class DisplayItemsHandler:
-    """Auxiliary class to decouple display handling logic from other functionality.
-
-    The main aim of its existence (at least for now) is to provide an ability to reuse
-    CheckResult HTML serializer in the CheckResult widget serializer without using inheritance.
-    """
+class DisplayItemsHandler(ABCDisplayItemsHandler):
+    """Auxiliary class to decouple display handling logic from other functionality."""
 
     @classmethod
     def handle_display(
         cls,
-        display: t.List[t.Union[t.Callable, str, pd.DataFrame, Styler]],
+        display: t.List[TDisplayItem],
         output_id: t.Optional[str] = None,
+        **kwargs
     ) -> t.List[str]:
         """Serialize CheckResult display items into HTML.
 
@@ -197,19 +198,10 @@ class DisplayItemsHandler:
         -------
         List[str]
         """
-        output = [cls.header()]
-
-        for item in display:
-            if isinstance(item, str):
-                output.append(cls.handle_string(item))
-            elif isinstance(item, (pd.DataFrame, Styler)):
-                output.append(cls.handle_dataframe(item))
-            elif isinstance(item, BaseFigure):
-                output.append(cls.handle_figure(item))
-            elif callable(item):
-                output.append(cls.handle_callable(item))
-            else:
-                raise TypeError(f'Unable to display item of type: {type(item)}')
+        output = [
+            cls.header(),
+            *super().handle_display(display, **{'output_id': output_id, **kwargs})
+        ]
 
         if len(display) == 0:
             output.append(cls.empty_content_placeholder())
@@ -236,22 +228,22 @@ class DisplayItemsHandler:
         return f'<br><a href="#{href}" style="font-size: 14px">Go to top</a>'
 
     @classmethod
-    def handle_string(cls, item):
+    def handle_string(cls, item, index, **kwargs) -> str:
         """Handle textual item."""
         return f'<div>{item}</div>'
 
     @classmethod
-    def handle_dataframe(cls, item):
+    def handle_dataframe(cls, item, index, **kwargs) -> str:
         """Handle dataframe item."""
         return DataFrameHtmlSerializer(item).serialize()
 
     @classmethod
-    def handle_callable(cls, item):
+    def handle_callable(cls, item, index, **kwargs) -> str:
         """Handle callable."""
         raise NotImplementedError()
 
     @classmethod
-    def handle_figure(cls, item):
+    def handle_figure(cls, item, index, **kwargs) -> str:
         """Handle plotly figure item."""
         bundle = pio.renderers['notebook'].to_mimebundle(item)
         return bundle['text/html']

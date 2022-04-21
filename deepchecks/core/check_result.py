@@ -73,6 +73,10 @@ _CONDITIONS_HEADER = '<h5>Conditions Summary</h5>'
 _ADDITIONAL_OUTPUTS_HEADER = '<h5>Additional Outputs</h5>'
 
 
+TDisplayCallable = Callable[..., Union[str, pd.DataFrame, Styler, BaseFigure, None]]
+TDisplayItem = Union[str, pd.DataFrame, Styler, BaseFigure, TDisplayCallable]
+
+
 class CheckResult:
     """Class which returns from a check with result that can later be used for automatic pipelines and display value.
 
@@ -85,7 +89,7 @@ class CheckResult:
     ----------
     value : Any
         Value calculated by check. Can be used to decide if decidable check passed.
-    display : List[Union[Callable, str, pd.DataFrame, Styler]] , default: None
+    display : List[Union[Callable, str, pd.DataFrame, Styler, BaseFigure]] , default: None
         Dictionary with formatters for display. possible formatters are: 'text/html', 'image/png'
     header : str , default: None
         Header to be displayed in python notebook.
@@ -93,7 +97,7 @@ class CheckResult:
 
     value: Any
     header: str
-    display: List[Union[Callable, str, pd.DataFrame, Styler]]
+    display: List[TDisplayItem]
     conditions_results: List[ConditionResult]
     check: 'BaseCheck'
 

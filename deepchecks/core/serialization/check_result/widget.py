@@ -146,21 +146,21 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
         return HTML(value=super().go_to_top_link(output_id))
 
     @classmethod
-    def handle_figure(cls, item: BaseFigure) -> go.FigureWidget:
+    def handle_figure(cls, item: BaseFigure, index: int, **kwargs) -> go.FigureWidget:
         """Handle plotly figure item."""
         return go.FigureWidget(data=item)
 
     @classmethod
-    def handle_string(cls, item: str) -> HTML:
+    def handle_string(cls, item: str, index: int, **kwargs) -> HTML:
         """Handle textual item."""
-        return HTML(value=super().handle_string(item))
+        return HTML(value=super().handle_string(item, index, **kwargs))
 
     @classmethod
-    def handle_dataframe(cls, item: pd.DataFrame) -> HTML:
+    def handle_dataframe(cls, item: pd.DataFrame, index: int, **kwargs) -> HTML:
         """Handle dataframe item."""
-        return HTML(value=super().handle_dataframe(item))
+        return HTML(value=super().handle_dataframe(item, index, **kwargs))
 
     @classmethod
-    def handle_callable(cls, item: t.Callable) -> HTML:
+    def handle_callable(cls, item: t.Callable, index: int, **kwargs) -> HTML:
         """Handle callable."""
         raise NotImplementedError()
