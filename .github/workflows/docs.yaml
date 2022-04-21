@@ -46,7 +46,7 @@ jobs:
       - name: Build documentation
         run: make docs
       - name: Validate examples
-        run: python3 ./.github/scripts/examples_validation.py
+        run: python3 ./tests/examples_validation.py
       - name: Upload documentation
         if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v2
