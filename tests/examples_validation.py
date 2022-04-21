@@ -24,7 +24,7 @@ ignored_files = [
 
 
 def validate_dir(checks_path, examples_path):
-    for root, subdirs, files in os.walk(checks_path):
+    for root, _, files in os.walk(checks_path):
         for file_name in files:
             if file_name != "__init__.py" and file_name.endswith(".py"):
                 check_path = os.path.join(root, file_name)
@@ -33,7 +33,7 @@ def validate_dir(checks_path, examples_path):
                     relative_path = "/".join(check_path.split("/")[1:-1])
                     example_path = os.path.join(examples_path, relative_path, "source", example_file_name)
                     if not os.path.exists(example_path):
-                        print("Check {} does not have a corresponding example file".format(check_path))
+                        print(f"Check {check_path} does not have a corresponding example file")
                     else:
                         validate_example(example_path)
 
@@ -47,7 +47,7 @@ def validate_example(path):
     titles = doctree.traverse(condition=docutils.nodes.title)
 
     if len(titles) != 1:
-        print("Example {} does not have a single H1 tag".format(path))
+        print(f"Example {path} does not have a single H1 tag")
 
 
 for x in checks_dirs:
