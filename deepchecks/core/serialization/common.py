@@ -14,9 +14,11 @@ import warnings
 import json
 import textwrap
 import io
+from contextlib import contextmanager
 
 import pandas as pd
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 from ipywidgets import DOMWidget
 from jsonpickle.pickler import Pickler
@@ -40,7 +42,8 @@ __all__ = [
     'pretify',
     'plotly_activation_script',
     'read_matplot_figures',
-    'concatv_images'
+    'concatv_images',
+    'switch_matplot_backend'
 ]
 
 
@@ -282,6 +285,15 @@ def read_matplot_figures() -> t.Iterator[io.BytesIO]:
         yield buffer
         fig.clear()
         plt.close(fig)
+
+
+@contextmanager
+def switch_matplot_backend(backend: str = 'Agg'):
+    """Switch matplot backend."""
+    previous = matplotlib.get_backend()
+    matplotlib.use(backend)
+    yield
+    matplotlib.use(previous)
 
 
 def concatv_images(images, gap = 10):
