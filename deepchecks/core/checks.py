@@ -13,7 +13,7 @@
 import abc
 import enum
 from collections import OrderedDict
-from typing import Any, Callable, List, Union, Dict, Type, ClassVar, Optional, TypedDict
+from typing import Any, Callable, List, Union, Dict, Type, ClassVar, Optional
 from typing_extensions import TypedDict
 
 from deepchecks.core.check_result import CheckResult, CheckFailure
@@ -143,6 +143,17 @@ class BaseCheck(abc.ABC):
         return split_camel_case(cls.__name__)
 
     def metadata(self, with_doc_link: bool = False) -> CheckMetadata:
+        """Return check metadata.
+
+        Parameters
+        ----------
+        with_doc_link : bool, default False
+            whethere to include doc link in summary or not
+
+        Returns
+        -------
+        Dict[str, Any]
+        """
         return CheckMetadata(
             type=type(self).__name__,
             name=self.name(),

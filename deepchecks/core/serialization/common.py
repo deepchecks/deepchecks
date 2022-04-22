@@ -103,7 +103,7 @@ def pretify(data: t.Any, indent: int = 3) -> str:
 
 
 def normalize_value(value: object) -> t.Any:
-    """Takes an object and returns a JSON-safe representation of it.
+    """Take an object and return a JSON-safe representation of it.
 
     Parameters
     ----------
@@ -296,7 +296,7 @@ def switch_matplot_backend(backend: str = 'Agg'):
     matplotlib.use(previous)
 
 
-def concatv_images(images, gap = 10):
+def concatv_images(images, gap=10):
     """Concatenate a list of images vertically.
 
     Parameters

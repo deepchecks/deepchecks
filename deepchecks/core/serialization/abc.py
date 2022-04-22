@@ -36,6 +36,7 @@ __all__ = [
 
 T = t.TypeVar("T")
 
+
 @t.runtime_checkable
 class Serializer(t.Protocol[T]):
     """Base protocol for all other serializers."""
@@ -51,6 +52,7 @@ class HtmlSerializer(Serializer[T], t.Protocol):
     """To html serializer protocol."""
 
     def serialize(self, **kwargs) -> str:
+        """Serialize into html."""
         ...
 
 
@@ -59,6 +61,7 @@ class JsonSerializer(Serializer[T], t.Protocol):
     """To json serializer protocol."""
 
     def serialize(self, **kwargs) -> t.Union[t.Dict[t.Any, t.Any], t.List[t.Any]]:
+        """Serialize into json."""
         ...
 
 
@@ -67,6 +70,7 @@ class WidgetSerializer(Serializer[T], t.Protocol):
     """To ipywidget serializer protocol."""
 
     def serialize(self, **kwargs) -> Widget:
+        """Serialize into ipywidgets.Widget instance."""
         ...
 
 
@@ -75,6 +79,7 @@ class WandbSerializer(Serializer[T], t.Protocol):
     """To wandb metadata serializer protocol."""
 
     def serialize(self, **kwargs) -> t.Dict[str, WBValue]:
+        """Serialize into Wandb media format."""
         ...
 
 

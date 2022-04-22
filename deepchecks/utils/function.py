@@ -34,7 +34,7 @@ def initvars(
 
     Parameters
     ----------
-    obj : Callable
+    obj : object
     show_defaults : bool, default False
         wherether to include vars with default value or not
 

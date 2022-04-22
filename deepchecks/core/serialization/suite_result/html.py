@@ -200,7 +200,8 @@ class SuiteResultSerializer(HtmlSerializer[SuiteResult]):
             {extra_info}
         """)
 
-    def prepare_conditions_table(self,
+    def prepare_conditions_table(
+        self,
         output_id: t.Optional[str] = None,
         include_check_name: bool = False,
         **kwargs
@@ -315,7 +316,7 @@ class SuiteResultSerializer(HtmlSerializer[SuiteResult]):
         if not results:
             return ''
 
-        data = [] # type List[Tuple[check-header:str, message:str, priority:int]]
+        data = []  # type List[Tuple[check-header:str, message:str, priority:int]]
 
         for it in results:
             if not isinstance(it, CheckFailure):
@@ -331,7 +332,7 @@ class SuiteResultSerializer(HtmlSerializer[SuiteResult]):
                     if isinstance(it.exception, error_types)
                     else f'{type(it.exception).__name__}: {str(it.exception)}'
                 )
-                data.append((it.header, message, 1 ))
+                data.append((it.header, message, 1))
 
         df = pd.DataFrame(data=data, columns=['Check', 'Reason', 'priority'])
         df.sort_values(by=['priority'], inplace=True)

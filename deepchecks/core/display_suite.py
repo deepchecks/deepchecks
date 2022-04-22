@@ -36,7 +36,7 @@ __all__ = ['display_suite_result', 'ProgressBar']
 
 
 _CONDITIONS_SUMMARY_TITLE = '<h2>Conditions Summary</h2>'
-_NO_CONDITIONS_SUMMARY_TITLE = '<p>No conditions defined on checks in the suite.</p>',
+_NO_CONDITIONS_SUMMARY_TITLE = '<p>No conditions defined on checks in the suite.</p>'
 _NO_OUTPUT_TEXT = '<p>No outputs to show.</p>'
 _CHECKS_WITH_CONDITIONS_TITLE = '<h2>Check With Conditions Output</h2>'
 _CHECKS_WITHOUT_CONDITIONS_TITLE = '<h2>Check Without Conditions Output</h2>'
