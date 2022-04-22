@@ -12,14 +12,21 @@
 import typing as t
 from collections import OrderedDict
 
-from wandb.sdk.data_types import WBValue
-
 from deepchecks.core.suite import SuiteResult
 from deepchecks.core.check_result import CheckResult
 from deepchecks.core.check_result import CheckFailure
 from deepchecks.core.serialization.abc import WandbSerializer
 from deepchecks.core.serialization.check_result.wandb import CheckResultSerializer
 from deepchecks.core.serialization.check_failure.wandb import CheckFailureSerializer
+
+
+try:
+    from wandb.sdk.data_types import WBValue
+except ImportError:
+    raise ImportError(
+        'Wandb serializer requires the wandb python package. '
+        'To get it, run "pip install wandb".'
+    )
 
 
 class SuiteResultSerializer(WandbSerializer[SuiteResult]):

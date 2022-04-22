@@ -11,14 +11,17 @@
 """Main serialization abstractions."""
 import typing as t
 import abc
+import io
 
 import pandas as pd
+import matplotlib.pyplot as plt
 from pandas.io.formats.style import Styler
 from ipywidgets.widgets import Widget
 from wandb.sdk.data_types import WBValue
 from plotly.basedatatypes import BaseFigure
 
 from deepchecks.core.check_result import TDisplayItem
+from deepchecks.core.serialization import common
 
 
 __all__ = [
@@ -76,6 +79,7 @@ class WandbSerializer(Serializer[T], t.Protocol):
 
 
 class ABCDisplayItemsHandler(t.Protocol):
+    """Trait that describes 'CheckResult.dislay' processing logic."""
 
     SUPPORTED_ITEM_TYPES = frozenset([
         str, pd.DataFrame, Styler, BaseFigure, t.Callable
@@ -87,10 +91,22 @@ class ABCDisplayItemsHandler(t.Protocol):
         display: t.List[TDisplayItem],
         **kwargs
     ) -> t.List[t.Any]:
+        """Serialize list of display items.
+
+        Parameters
+        ----------
+        display : List[Union[str, DataFrame, Styler, BaseFigure, Callable]]
+            list of display items
+
+        Returns
+        -------
+        List[Any]
+        """
         return [cls.handle_item(it, index) for index, it in enumerate(display)]
 
     @classmethod
     def handle_item(cls, item: TDisplayItem, index: int, **kwargs) -> t.Any:
+        """Serialize display item."""
         if isinstance(item, str):
             return cls.handle_string(item, index, **kwargs)
         elif isinstance(item, (pd.DataFrame, Styler)):
@@ -112,10 +128,13 @@ class ABCDisplayItemsHandler(t.Protocol):
         """Handle dataframe item."""
         raise NotImplementedError()
 
-    @abc.abstractclassmethod
-    def handle_callable(cls, item: t.Callable, index: int, **kwargs) -> t.Any:
+    @classmethod
+    def handle_callable(cls, item: t.Callable, index: int, **kwargs) -> t.Iterator[io.BytesIO]:
         """Handle callable."""
-        raise NotImplementedError()
+        # TODO: callable is a special case, add comments
+        with plt.ioff():
+            item()
+            return common.read_matplot_figures()
 
     @abc.abstractclassmethod
     def handle_figure(cls, item: BaseFigure, index: int, **kwargs) -> t.Any:

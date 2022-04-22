@@ -13,9 +13,11 @@ import typing as t
 import warnings
 import json
 import textwrap
+import io
 
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 from ipywidgets import DOMWidget
 from jsonpickle.pickler import Pickler
 from pandas.io.formats.style import Styler
@@ -36,7 +38,9 @@ __all__ = [
     'normalize_widget_style',
     'normalize_value',
     'pretify',
-    'plotly_activation_script'
+    'plotly_activation_script',
+    'read_matplot_figures',
+    'concatv_images'
 ]
 
 
@@ -239,8 +243,7 @@ def plotly_activation_script(connected: bool = True) -> str:
             plotly_cdn=plotly_cdn_url().rstrip(".js"),
         )
     else:
-        # If not connected then we embed a copy of the plotly.js
-        # library in the notebook
+        # If not connected then we embed a copy of the plotly.js library
         script = textwrap.dedent("""
             <script type="text/javascript">
                 if (typeof require !== 'undefined') {{
@@ -267,3 +270,59 @@ def plotly_activation_script(connected: bool = True) -> str:
             win_config=_window_plotly_config,
             mathjax_config=_mathjax_config,
         )
+
+
+def read_matplot_figures() -> t.Iterator[io.BytesIO]:
+    """Return all active matplot figures."""
+    figures = [plt.figure(n) for n in plt.get_fignums()]
+    for fig in figures:
+        buffer = io.BytesIO()
+        fig.savefig(buffer, format='png')
+        buffer.seek(0)
+        yield buffer
+        fig.clear()
+        plt.close(fig)
+
+
+def concatv_images(images, gap = 10):
+    """Concatenate a list of images vertically.
+
+    Parameters
+    ----------
+    images : List[PIL.Image.Image]
+        list of images
+    gap : int, default 10
+        gap between images
+
+    Returns
+    -------
+    PIL.Image.Image
+    """
+    try:
+        import PIL.Image as pilimage
+    except ImportError:
+        raise ImportError(
+            'concatv_images function requires the PIL package. '
+            'To get it, run "pip install pillow".'
+        )
+    else:
+        assert isinstance(images, list) and len(images) != 0
+        assert isinstance(gap, int) and gap >= 0
+
+        if len(images) == 1:
+            return t.cast(pilimage.Image, images[0]).copy()
+
+        max_width = max(it.width for it in images)
+        max_height = max(it.height for it in images)
+        dst = pilimage.new(
+            t.cast(pilimage.Image, images[0]).mode,  # type: ignore
+            (max_width, max_height)
+        )
+
+        position = 0
+
+        for img in images:
+            dst.paste(img, (0, position))
+            position = position + img.height + gap
+
+        return dst

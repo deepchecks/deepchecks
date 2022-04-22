@@ -163,4 +163,4 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
     @classmethod
     def handle_callable(cls, item: t.Callable, index: int, **kwargs) -> HTML:
         """Handle callable."""
-        raise NotImplementedError()
+        return HTML(value=super().handle_callable(item, index, **kwargs))

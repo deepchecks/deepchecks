@@ -73,7 +73,7 @@ _CONDITIONS_HEADER = '<h5>Conditions Summary</h5>'
 _ADDITIONAL_OUTPUTS_HEADER = '<h5>Additional Outputs</h5>'
 
 
-TDisplayCallable = Callable[..., Union[str, pd.DataFrame, Styler, BaseFigure, None]]
+TDisplayCallable = Callable[[], None]
 TDisplayItem = Union[str, pd.DataFrame, Styler, BaseFigure, TDisplayCallable]
 
 

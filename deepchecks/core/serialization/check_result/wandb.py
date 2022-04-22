@@ -13,8 +13,6 @@ import typing as t
 from collections import OrderedDict
 
 import pandas as pd
-import wandb
-from wandb.sdk.data_types import WBValue
 from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
 
@@ -24,6 +22,17 @@ from deepchecks.core.serialization.abc import WandbSerializer
 from deepchecks.core.serialization.common import normalize_value
 from deepchecks.core.serialization.common import aggregate_conditions
 from deepchecks.core.serialization.common import pretify
+from deepchecks.core.serialization.common import concatv_images
+
+
+try:
+    import wandb
+    from wandb.sdk.data_types import WBValue
+except ImportError:
+    raise ImportError(
+        'Wandb serializer requires the wandb python package. '
+        'To get it, run "pip install wandb".'
+    )
 
 
 __all__ = ['CheckResultSerializer']
@@ -117,7 +126,17 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
     @classmethod
     def handle_callable(cls, item: t.Callable, index: int, **kwargs) -> t.Tuple[str, WBValue]:
         """Handle callable."""
-        raise NotImplementedError()
+        try:
+            import PIL.Image as pilimage
+        except ImportError:
+            raise ImportError(
+                'Wandb CheckResultSerializer requires the PIL package '
+                'to process matplot figures. To get it, run "pip install pillow".'
+            )
+        else:
+            images = super().handle_callable(item, index, **kwargs)
+            image = concatv_images([pilimage.open(buffer) for buffer in images])
+            return (f'item-{index}-figure', wandb.Image(image))
 
     @classmethod
     def handle_figure(cls, item: BaseFigure, index: int, **kwargs) -> t.Tuple[str, WBValue]:

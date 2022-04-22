@@ -12,14 +12,13 @@
 import typing as t
 import textwrap
 
-import pandas as pd
 import plotly.io as pio
-from pandas.io.formats.style import Styler
 from typing_extensions import Literal
 
+from deepchecks.utils.strings import get_docs_summary
+from deepchecks.utils.html import imagetag
 from deepchecks.core.check_result import CheckResult
 from deepchecks.core.check_result import TDisplayItem
-from deepchecks.utils.strings import get_docs_summary
 from deepchecks.core.serialization.abc import HtmlSerializer
 from deepchecks.core.serialization.abc import ABCDisplayItemsHandler
 from deepchecks.core.serialization.dataframe.html import DataFrameSerializer as DataFrameHtmlSerializer
@@ -240,7 +239,15 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
     @classmethod
     def handle_callable(cls, item, index, **kwargs) -> str:
         """Handle callable."""
-        raise NotImplementedError()
+        images = super().handle_callable(item, index, **kwargs)
+        tags = []
+
+        for buffer in images:
+            buffer.seek(0)
+            tags.append(imagetag(buffer.read()))
+            buffer.close()
+
+        return ''.join(tags)
 
     @classmethod
     def handle_figure(cls, item, index, **kwargs) -> str:

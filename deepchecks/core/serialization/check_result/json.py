@@ -10,6 +10,7 @@
 #
 """Module containing json serializer for the CheckResult type."""
 import typing as t
+import base64
 
 import pandas as pd
 import jsonpickle.ext.pandas as jsonpickle_pd
@@ -117,9 +118,15 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
             }
 
     @classmethod
-    def handle_callable(cls, item: t.Callable, index: int, **kwargs) -> str:
+    def handle_callable(cls, item: t.Callable, index: int, **kwargs) -> t.Dict[str, t.Any]:
         """Handle callable."""
-        raise NotImplementedError()
+        return {
+            'type': 'images',
+            'payload': [
+                base64.b64encode(buffer.read()).decode('ascii')
+                for buffer in super().handle_callable(item, index, **kwargs)
+            ]
+        }
 
     @classmethod
     def handle_figure(cls, item: BaseFigure, index: int, **kwargs) -> t.Dict[str, t.Any]:
