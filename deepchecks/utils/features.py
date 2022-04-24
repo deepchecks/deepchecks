@@ -175,13 +175,12 @@ def calculate_feature_importance(
     if importance is None and permutation_failure is None and isinstance(dataset, tabular.Dataset):
         if isinstance(model, Pipeline):
             warnings.warn('Did not use built-in feature importance on the model because it is a pipeline,'
-                ' using permutation feature importance calculation')
+                          ' using permutation feature importance calculation')
         else:
             warnings.warn('Could not find built-in feature importance on the model, using '
-                    'permutation feature importance calculation')
+                          'permutation feature importance calculation')
         importance = _calc_permutation_importance(model, dataset, **permutation_kwargs)
         calc_type = 'permutation_importance'
-
 
     # If after all importance is still none raise error
     if importance is None:
