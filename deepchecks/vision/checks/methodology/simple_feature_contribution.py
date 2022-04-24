@@ -71,6 +71,8 @@ class SimpleFeatureContribution(TrainTestCheck):
         label. If True, the conditions will be run per class as well.
     n_top_properties: int, default: 5
         Number of features to show, sorted by the magnitude of difference in PPS
+    random_state: int, default: None
+        Random state for the ppscore.predictors function
     ppscore_params: dict, default: None
         dictionary of additional parameters for the ppscore predictor function
     """
@@ -80,6 +82,7 @@ class SimpleFeatureContribution(TrainTestCheck):
             image_properties: Dict[str, Callable] = None,
             n_top_properties: int = 3,
             per_class: bool = True,
+            random_state: int = None,
             ppscore_params: dict = None,
             **kwargs
     ):
@@ -93,6 +96,7 @@ class SimpleFeatureContribution(TrainTestCheck):
 
         self.per_class = per_class
         self.n_top_properties = n_top_properties
+        self.random_state = random_state
         self.ppscore_params = ppscore_params or {}
 
         self._train_properties = defaultdict(list)
@@ -122,11 +126,11 @@ class SimpleFeatureContribution(TrainTestCheck):
                         continue
                     class_id = int(label[0])
                     imgs += [cropped_img]
-                    target += [class_id]
+                    target += [dataset.label_id_to_name(class_id)]
         else:
             for img, classes_ids in zip(batch.images, dataset.get_classes(batch.labels)):
                 imgs += [img] * len(classes_ids)
-                target += classes_ids
+                target += list(map(dataset.label_id_to_name, classes_ids))
 
         properties['target'] += target
 
@@ -168,14 +172,16 @@ class SimpleFeatureContribution(TrainTestCheck):
                                                                            df_test,
                                                                            'target',
                                                                            self.ppscore_params,
-                                                                           self.n_top_properties)
+                                                                           self.n_top_properties,
+                                                                           random_state=self.random_state)
         else:
             ret_value, display = get_single_feature_contribution(df_train,
                                                                  'target',
                                                                  df_test,
                                                                  'target',
                                                                  self.ppscore_params,
-                                                                 self.n_top_properties)
+                                                                 self.n_top_properties,
+                                                                 random_state=self.random_state)
 
         if display:
             display += text

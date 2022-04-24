@@ -60,7 +60,7 @@ def get_coco_batch_to_images_with_bias_one_class(label_formatter):
 def test_no_drift_classification(mnist_dataset_train):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_train
-    check = SimpleFeatureContribution(per_class=False)
+    check = SimpleFeatureContribution(per_class=False, random_state=42)
 
     # Act
     result = check.run(train, test)
@@ -78,7 +78,7 @@ def test_drift_classification(mnist_dataset_train, mnist_dataset_test):
 
     train, test = mnist_dataset_train, mnist_dataset_test
 
-    check = SimpleFeatureContribution(per_class=False)
+    check = SimpleFeatureContribution(per_class=False, random_state=42)
 
     # Act
     result = check.run(train, test)
@@ -94,7 +94,7 @@ def test_drift_classification(mnist_dataset_train, mnist_dataset_test):
 def test_no_drift_object_detection(coco_train_visiondata):
     # Arrange
     train, test = coco_train_visiondata, coco_train_visiondata
-    check = SimpleFeatureContribution(per_class=False)
+    check = SimpleFeatureContribution(per_class=False, random_state=42)
 
     # Act
     result = check.run(train, test)
@@ -110,7 +110,7 @@ def test_no_drift_object_detection(coco_train_visiondata):
 def test_drift_object_detection(coco_train_visiondata, coco_test_visiondata):
     # Arrange
     train, test = coco_train_visiondata, coco_test_visiondata
-    check = SimpleFeatureContribution(per_class=False)
+    check = SimpleFeatureContribution(per_class=False, random_state=42)
     train = copy(train)
     train.batch_to_images = get_coco_batch_to_images_with_bias(train.batch_to_labels)
 
@@ -129,7 +129,7 @@ def test_drift_object_detection(coco_train_visiondata, coco_test_visiondata):
 def test_no_drift_classification_per_class(mnist_dataset_train):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_train
-    check = SimpleFeatureContribution(per_class=True)
+    check = SimpleFeatureContribution(per_class=True, random_state=42)
 
     # Act
     result = check.run(train, test, n_samples=None)
@@ -147,7 +147,7 @@ def test_drift_classification_per_class(mnist_dataset_train, mnist_dataset_test)
 
     train, test = mnist_dataset_train, mnist_dataset_test
 
-    check = SimpleFeatureContribution(per_class=True)
+    check = SimpleFeatureContribution(per_class=True, random_state=42)
 
     # Act
     result = check.run(train, test, n_samples=None)
@@ -163,7 +163,7 @@ def test_drift_classification_per_class(mnist_dataset_train, mnist_dataset_test)
 def test_no_drift_object_detection_per_class(coco_train_visiondata):
     # Arrange
     train, test = coco_train_visiondata, coco_train_visiondata
-    check = SimpleFeatureContribution(per_class=True)
+    check = SimpleFeatureContribution(per_class=True, random_state=42)
 
     # Act
     result = check.run(train, test)
@@ -179,7 +179,7 @@ def test_no_drift_object_detection_per_class(coco_train_visiondata):
 def test_drift_object_detection_per_class(coco_train_visiondata, coco_test_visiondata):
     # Arrange
     train, test = coco_train_visiondata, coco_test_visiondata
-    check = SimpleFeatureContribution(per_class=True)
+    check = SimpleFeatureContribution(per_class=True, random_state=42)
     train = copy(train)
     train.batch_to_images = get_coco_batch_to_images_with_bias(train.batch_to_labels)
 
@@ -198,7 +198,7 @@ def test_train_test_condition_pps_train_pass(coco_train_visiondata):
     # Arrange
     train, test = coco_train_visiondata, coco_train_visiondata
     condition_value = 0.3
-    check = SimpleFeatureContribution(per_class=False
+    check = SimpleFeatureContribution(per_class=False, random_state=42
                                       ).add_condition_feature_pps_in_train_not_greater_than(condition_value)
 
     # Act
@@ -217,7 +217,7 @@ def test_train_test_condition_pps_train_fail(coco_train_visiondata, coco_test_vi
     # Arrange
     train, test = coco_train_visiondata, coco_test_visiondata
     condition_value = 0.3
-    check = SimpleFeatureContribution(per_class=False
+    check = SimpleFeatureContribution(per_class=False, random_state=42
                                       ).add_condition_feature_pps_in_train_not_greater_than(condition_value)
     train = copy(train)
     train.batch_to_images = get_coco_batch_to_images_with_bias(train.batch_to_labels)
@@ -240,8 +240,8 @@ def test_train_test_condition_pps_train_pass_per_class(mnist_dataset_train):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_train
     condition_value = 0.3
-    check = SimpleFeatureContribution(per_class=True).add_condition_feature_pps_in_train_not_greater_than(
-        condition_value)
+    check = SimpleFeatureContribution(per_class=True, random_state=42
+                                      ).add_condition_feature_pps_in_train_not_greater_than(condition_value)
 
     # Act
     result = check.run(train_dataset=train,
@@ -259,7 +259,7 @@ def test_train_test_condition_pps_train_fail_per_class(coco_train_visiondata, co
     # Arrange
     train, test = coco_train_visiondata, coco_test_visiondata
     condition_value = 0.3
-    check = SimpleFeatureContribution(per_class=True
+    check = SimpleFeatureContribution(per_class=True, random_state=42
                                       ).add_condition_feature_pps_in_train_not_greater_than(condition_value)
     train = copy(train)
     train.batch_to_images = get_coco_batch_to_images_with_bias_one_class(train.batch_to_labels)
