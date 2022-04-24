@@ -122,7 +122,7 @@ class Dataset:
 
         if len(df) == 0:
             raise DeepchecksValueError('Can\'t create a Dataset object with an empty dataframe')
-        self._data = pd.DataFrame(df)
+        self._data = pd.DataFrame(df).copy()
 
         # Validations
         if label is None:
