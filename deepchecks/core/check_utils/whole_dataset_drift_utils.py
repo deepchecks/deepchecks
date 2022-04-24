@@ -10,7 +10,7 @@
 #
 """Module containing common WholeDatasetDriftCheck (domain classifier drift) utils."""
 
-from typing import List, Optional
+from typing import List
 import warnings
 
 import numpy as np
@@ -209,7 +209,6 @@ def display_dist(train_column: pd.Series, test_column: pd.Series, fi_ser: pd.Ser
     else:
         fig = go.Figure()
         fig.add_traces(dist_traces)
-
 
     layout = go.Layout(
         title=title,
