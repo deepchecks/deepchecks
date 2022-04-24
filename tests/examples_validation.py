@@ -10,6 +10,8 @@
 #
 import os
 import ast
+import sys
+
 import docutils.nodes
 from docutils.core import publish_doctree
 
@@ -57,4 +59,4 @@ def validate_example(path):
 flag = True
 for x in checks_dirs:
     flag = flag and validate_dir(x, "docs/source/examples")
-exit(0 if flag else 1)
+sys.exit(0 if flag else 1)
