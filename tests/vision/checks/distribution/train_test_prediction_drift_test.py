@@ -104,7 +104,7 @@ def test_with_drift_object_detection(coco_train_visiondata, coco_test_visiondata
 def test_with_drift_object_detection_change_max_cat(coco_train_visiondata, coco_test_visiondata,
                                                     mock_trained_yolov5_object_detection, device):
     # Arrange
-    check = TrainTestPredictionDrift(max_num_categories=100)
+    check = TrainTestPredictionDrift(max_num_categories_for_drift=100)
 
     # Act
     result = check.run(coco_train_visiondata, coco_test_visiondata, mock_trained_yolov5_object_detection, device=device)

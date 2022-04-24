@@ -16,7 +16,6 @@
 import time
 import typing as t
 import warnings
-from warnings import warn
 from functools import lru_cache
 
 import numpy as np
@@ -103,7 +102,7 @@ def calculate_feature_importance_or_none(
         # ModelValidationError:
         #     if wrong type of model was provided;
         #     if function failed to predict on model;
-        warn(f'Features importance was not calculated:\n{str(error)}')
+        warnings.warn(f'Features importance was not calculated:\n{str(error)}')
         return None, None
 
 
@@ -325,19 +324,18 @@ def column_importance_sorter_dict(
     feature_importances : t.Optional[pd.Series] , default: None
         feature importance normalized to 0-1 indexed by feature names
     n_top : int , default: 10
-        amount of columns to show ordered by feature importance (date, index, label are first);
-        is used only if model was specified
+        amount of columns to show ordered by feature importance (date, index, label are first)
 
     Returns
     -------
     Dict
         the dict of columns sorted and limited by feature importance.
     """
-    if feature_importances is not None:
-        key = lambda name: get_importance(name[0], feature_importances, dataset)
-        cols_dict = dict(sorted(cols_dict.items(), key=key, reverse=True))
-        if n_top:
-            return dict(list(cols_dict.items())[:n_top])
+    feature_importances = {} if feature_importances is None else feature_importances
+    key = lambda name: get_importance(name[0], feature_importances, dataset)
+    cols_dict = dict(sorted(cols_dict.items(), key=key, reverse=True))
+    if n_top:
+        return dict(list(cols_dict.items())[:n_top])
     return cols_dict
 
 
@@ -372,11 +370,11 @@ def column_importance_sorter_df(
     if len(df) == 0:
         return df
 
-    if feature_importances is not None:
-        key = lambda column: [get_importance(name, feature_importances, ds) for name in column]
-        if col:
-            df = df.sort_values(by=[col], key=key, ascending=False)
-        df = df.sort_index(key=key, ascending=False)
+    feature_importances = {} if feature_importances is None else feature_importances
+    key = lambda column: [get_importance(name, feature_importances, ds) for name in column]
+    if col:
+        df = df.sort_values(by=[col], key=key, ascending=False)
+    df = df.sort_index(key=key, ascending=False)
     if n_top:
         return df.head(n_top)
     return df
