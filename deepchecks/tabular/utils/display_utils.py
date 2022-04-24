@@ -18,6 +18,7 @@ __all__ = ['nothing_found_on_columns']
 def nothing_found_on_columns(columns: t.List[t.Hashable],
                              message: t.Optional[t.Hashable] = None,
                              max_columns: int = 5):
+    """Display columns when nothing is found."""
     display_message = message
     if not display_message:
         display_message = 'Nothing found on columns: '
