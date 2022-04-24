@@ -13,7 +13,6 @@
 
 # TODO: move tabular functionality to the tabular sub-package
 
-from re import L
 import time
 import typing as t
 import warnings
