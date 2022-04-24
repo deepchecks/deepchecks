@@ -41,8 +41,9 @@ class Dataset:
 
     Parameters
     ----------
-    df : pd.DataFrame
-        A pandas DataFrame containing data relevant for the training or validating of a ML models.
+    df : Any
+        An object that can be casted to a pandas DataFrame
+         - containing data relevant for the training or validating of a ML models.
     label : t.Union[Hashable, pd.Series, pd.DataFrame, np.ndarray] , default: None
         label column provided either as a string with the name of an existing column in the DataFrame or a label
         object including the label data (pandas Series/DataFrame or a numpy array) that will be concatenated to the
@@ -103,7 +104,7 @@ class Dataset:
 
     def __init__(
             self,
-            df: pd.DataFrame,
+            df: t.Any,
             label: t.Union[Hashable, pd.Series, pd.DataFrame, np.ndarray] = None,
             features: t.Optional[t.Sequence[Hashable]] = None,
             cat_features: t.Optional[t.Sequence[Hashable]] = None,
@@ -121,7 +122,7 @@ class Dataset:
 
         if len(df) == 0:
             raise DeepchecksValueError('Can\'t create a Dataset object with an empty dataframe')
-        self._data = df.copy()
+        self._data = pd.DataFrame(df)
 
         # Validations
         if label is None:

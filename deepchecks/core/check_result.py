@@ -501,7 +501,7 @@ class CheckFailure:
         """
         result_json = self._get_metadata()
         if with_display:
-            result_json['display'] = [('str', str(self.exception))]
+            result_json['display'] = [('html', f'<p style="color:red">{self.exception}</p>')]
         return jsonpickle.dumps(result_json, unpicklable=False)
 
     def to_wandb(self, dedicated_run: bool = True, **kwargs: Any):
@@ -546,7 +546,7 @@ class CheckFailure:
         if hasattr(self.check.__class__, '__doc__'):
             summary = get_docs_summary(self.check)
             check_html += f'<p>{summary}</p>'
-        check_html += f'<p style="color:red"> {self.exception}</p>'
+        check_html += f'<p style="color:red">{self.exception}</p>'
         display_html(check_html, raw=True)
 
     def print_traceback(self):
