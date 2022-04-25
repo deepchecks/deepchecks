@@ -37,7 +37,7 @@ def test_no_similar_object_detection(coco_train_visiondata, coco_test_visiondata
 def test_no_similar_classification(mnist_dataset_train, mnist_dataset_test):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_test
-    check = SimilarImageLeakage(hash_size=32, similarity_threshold=0.05)
+    check = SimilarImageLeakage()
 
     # Act
     result = check.run(train, test)
