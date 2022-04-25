@@ -79,5 +79,3 @@ NotebookRenderer
 requirejs
 CDN
 CustomNotebookRenderer
-pretify
-prety

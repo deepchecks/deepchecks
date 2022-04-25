@@ -106,7 +106,7 @@ class SuiteResultSerializer(HtmlSerializer[SuiteResult]):
         if full_html is False and include_plotlyjs is True:
             return ''.join([plotly_activation_script(), *sections])
 
-        # TODO: use some style to make it prety
+        # TODO: use some style to make it pretty
         return textwrap.dedent(f"""
             <html>
             <head><meta charset="utf-8"/></head>

@@ -16,7 +16,7 @@ from wandb.sdk.data_types import WBValue
 
 from deepchecks.core.check_result import CheckFailure
 from deepchecks.core.serialization.abc import WandbSerializer
-from deepchecks.core.serialization.common import pretify
+from deepchecks.core.serialization.common import prettify
 
 
 __all__ = ['CheckFailureSerializer']
@@ -51,7 +51,7 @@ class CheckFailureSerializer(WandbSerializer[CheckFailure]):
             columns=['header', 'params', 'summary', 'value'],
             data=[[
                 header,
-                pretify(metadata['params']),
+                prettify(metadata['params']),
                 metadata['summary'],
                 str(self.value.exception)
             ]]

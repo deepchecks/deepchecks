@@ -21,7 +21,7 @@ from deepchecks.core.serialization.abc import ABCDisplayItemsHandler
 from deepchecks.core.serialization.abc import WandbSerializer
 from deepchecks.core.serialization.common import normalize_value
 from deepchecks.core.serialization.common import aggregate_conditions
-from deepchecks.core.serialization.common import pretify
+from deepchecks.core.serialization.common import prettify
 from deepchecks.core.serialization.common import concatv_images
 
 
@@ -83,9 +83,9 @@ class CheckResultSerializer(WandbSerializer[CheckResult]):
             columns=['header', 'params', 'summary', 'value'],
             data=[[
                 check_result.header,
-                pretify(metadata['params']),
+                prettify(metadata['params']),
                 metadata['summary'],
-                pretify(normalize_value(check_result.value))
+                prettify(normalize_value(check_result.value))
             ]],
         )
 

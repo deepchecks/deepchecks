@@ -30,7 +30,6 @@ from deepchecks.core.serialization.abc import ABCDisplayItemsHandler
 from deepchecks.core.serialization.common import aggregate_conditions
 from deepchecks.core.serialization.common import normalize_value
 from deepchecks.core.serialization.dataframe.html import DataFrameSerializer
-# from deepchecks.core.serialization.common import pretify
 
 
 # registers jsonpickle pandas extension for pandas support in the to_json function

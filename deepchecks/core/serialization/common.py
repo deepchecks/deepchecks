@@ -39,7 +39,7 @@ __all__ = [
     'Html',
     'normalize_widget_style',
     'normalize_value',
-    'pretify',
+    'prettify',
     'plotly_activation_script',
     'read_matplot_figures',
     'concatv_images',
@@ -96,8 +96,8 @@ def normalize_widget_style(w: TDOMWidget) -> TDOMWidget:
     )
 
 
-def pretify(data: t.Any, indent: int = 3) -> str:
-    """Pretify data."""
+def prettify(data: t.Any, indent: int = 3) -> str:
+    """Prettify data."""
     default = lambda it: repr(it)
     return json.dumps(data, indent=indent, default=default)
 
