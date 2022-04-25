@@ -48,6 +48,10 @@ class CheckResultSerializer(HtmlSerializer[CheckResult]):
     """
 
     def __init__(self, value: CheckResult, **kwargs):
+        if isinstance(value, CheckResult):
+            raise TypeError(
+                f'Expected "CheckResult" but got "{type(value).__name__}"'
+            )
         self.value = value
 
     def serialize(

@@ -41,7 +41,10 @@ class SuiteResultSerializer(WidgetSerializer[SuiteResult]):
     """
 
     def __init__(self, value: SuiteResult, **kwargs):
-        super().__init__(**{'value': value, **kwargs},)
+        if isinstance(value, SuiteResult):
+            raise TypeError(
+                f'Expected "SuiteResult" but got "{type(value).__name__}"'
+            )
         self.value = value
         self._html_serializer = html.SuiteResultSerializer(self.value)
 

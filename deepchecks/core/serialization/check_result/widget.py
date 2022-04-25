@@ -35,6 +35,10 @@ class CheckResultSerializer(WidgetSerializer[CheckResult]):
     """
 
     def __init__(self, value: CheckResult, **kwargs):
+        if isinstance(value, CheckResult):
+            raise TypeError(
+                f'Expected "CheckResult" but got "{type(value).__name__}"'
+            )
         self.value = value
         self._html_serializer = html.CheckResultSerializer(self.value)
 

@@ -28,6 +28,10 @@ class CheckFailureSerializer(JsonSerializer[CheckFailure]):
     """
 
     def __init__(self, value: CheckFailure, **kwargs):
+        if isinstance(value, CheckFailure):
+            raise TypeError(
+                f'Expected "CheckFailure" but got "{type(value).__name__}"'
+            )
         self.value = value
 
     def serialize(self, **kwargs) -> t.Dict[str, t.Any]:

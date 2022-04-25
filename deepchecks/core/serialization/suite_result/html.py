@@ -43,6 +43,10 @@ class SuiteResultSerializer(HtmlSerializer[SuiteResult]):
     """
 
     def __init__(self, value: SuiteResult, **kwargs):
+        if isinstance(value, SuiteResult):
+            raise TypeError(
+                f'Expected "SuiteResult" but got "{type(value).__name__}"'
+            )
         self.value = value
 
     def serialize(

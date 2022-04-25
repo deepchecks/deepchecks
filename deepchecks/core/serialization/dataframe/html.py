@@ -33,6 +33,10 @@ class DataFrameSerializer(HtmlSerializer[DataFrameOrStyler]):
     """
 
     def __init__(self, value: DataFrameOrStyler, **kwargs):
+        if isinstance(value, (pd.DataFrame, Styler)):
+            raise TypeError(
+                f'Expected "Union[DataFrame, Styler]" but got "{type(value).__name__}"'
+            )
         self.value = value
 
     def serialize(self, **kwargs) -> str:
