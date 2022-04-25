@@ -22,9 +22,6 @@ label_name = 'income'
 # ==============
 
 train_ds, validation_ds = adult.load_data()
-encoder = LabelEncoder()
-train_ds.data[label_name] = encoder.fit_transform(train_ds.data[label_name])
-validation_ds.data[label_name] = encoder.transform(validation_ds.data[label_name])
 
 
 #%%
