@@ -17,7 +17,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from pandas.io.formats.style import Styler
 from ipywidgets.widgets import Widget
-from wandb.sdk.data_types import WBValue
+from wandb.sdk.data_types.base_types.wb_value import WBValue
 from plotly.basedatatypes import BaseFigure
 
 from deepchecks.core.check_result import TDisplayItem

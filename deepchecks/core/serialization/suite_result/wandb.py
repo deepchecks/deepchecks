@@ -21,7 +21,7 @@ from deepchecks.core.serialization.check_failure.wandb import CheckFailureSerial
 
 
 try:
-    from wandb.sdk.data_types import WBValue
+    from wandb.sdk.data_types.base_types.wb_value import WBValue
 except ImportError:
     raise ImportError(
         'Wandb serializer requires the wandb python package. '

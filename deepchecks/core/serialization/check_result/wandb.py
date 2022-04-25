@@ -27,7 +27,7 @@ from deepchecks.core.serialization.common import concatv_images
 
 try:
     import wandb
-    from wandb.sdk.data_types import WBValue
+    from wandb.sdk.data_types.base_types.wb_value import WBValue
 except ImportError:
     raise ImportError(
         'Wandb serializer requires the wandb python package. '
