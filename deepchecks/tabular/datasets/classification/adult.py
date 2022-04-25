@@ -191,11 +191,7 @@ def load_fitted_model():
             model = joblib.load(f)
     else:
         model = _build_model()
-        train, test = load_data()
-        encoder = LabelEncoder()
-        encoder.fit(train.data[_target])
-        train.data[_target] = encoder.transform(train.data[_target])
-        test.data[_target] = encoder.transform(test.data[_target])
+        train, _ = load_data()
         model.fit(train.data[train.features], train.data[train.label_name])
     return model
 
