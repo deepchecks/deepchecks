@@ -71,14 +71,14 @@ def test_condition_fail(iris_labeled_dataset, iris_adaboost):
     check_result = ModelErrorAnalysis().add_condition_segments_performance_relative_difference_not_greater_than(
     ).run(iris_labeled_dataset, iris_labeled_dataset, iris_adaboost)
     condition_result = check_result.conditions_results
-
+    print(condition_result[0].details)
     # Assert
     assert_that(condition_result, has_items(
         equal_condition_result(
             is_pass=False,
             name='The performance difference of the detected segments must not be greater than 5%',
             details='Found change in Accuracy in features above threshold: {\'petal length (cm)\': \'10.91%\', '
-                    '\'petal width (cm)\': \'8.33%\', \'sepal length (cm)\': \'8.57%\'}',
+                    '\'petal width (cm)\': \'8.33%\'}',
             category=ConditionCategory.WARN
         )
     ))

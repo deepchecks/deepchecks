@@ -270,7 +270,7 @@ def init_validate_scorers(scorers: t.Mapping[str, t.Union[str, t.Callable]],
         model type to return scorers for
     """
     return_array = model_type in [ModelType.MULTICLASS, ModelType.BINARY] and class_avg is False
-    scorers = [DeepcheckScorer(scorer, name) for name, scorer in scorers.items()]
+    scorers: t.List[DeepcheckScorer] = [DeepcheckScorer(scorer, name) for name, scorer in scorers.items()]
     for s in scorers:
         s.validate_fitting(model, dataset, return_array)
     return scorers
