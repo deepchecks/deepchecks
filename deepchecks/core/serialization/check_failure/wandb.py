@@ -11,12 +11,19 @@
 """Module containing Wandb serializer for the CheckFailuer type."""
 import typing as t
 
-import wandb
-from wandb.sdk.data_types import WBValue
-
 from deepchecks.core.check_result import CheckFailure
 from deepchecks.core.serialization.abc import WandbSerializer
 from deepchecks.core.serialization.common import prettify
+
+
+try:
+    import wandb
+    from wandb.sdk.data_types import WBValue
+except ImportError:
+    raise ImportError(
+        'Wandb serializer requires the wandb python package. '
+        'To get it, run "pip install wandb".'
+    )
 
 
 __all__ = ['CheckFailureSerializer']
