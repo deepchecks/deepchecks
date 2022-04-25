@@ -71,7 +71,7 @@ def test_condition_fail(iris_labeled_dataset, iris_adaboost):
     check_result = ModelErrorAnalysis().add_condition_segments_performance_relative_difference_not_greater_than(
     ).run(iris_labeled_dataset, iris_labeled_dataset, iris_adaboost)
     condition_result = check_result.conditions_results
-    print(condition_result[0].details)
+
     # Assert
     assert_that(condition_result, has_items(
         equal_condition_result(

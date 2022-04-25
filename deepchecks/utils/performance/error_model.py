@@ -60,7 +60,6 @@ def model_error_contribution(train_dataset: pd.DataFrame,
                                                permutation_kwargs={'random_state': random_state})
     error_fi.index = new_feature_order
     error_fi.sort_values(ascending=False, inplace=True)
-    print(error_fi)
     return error_fi, error_model_predicted
 
 
