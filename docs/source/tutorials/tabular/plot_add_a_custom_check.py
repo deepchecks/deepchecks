@@ -20,7 +20,7 @@ Each check consists of 3 main parts:
 * Conditions
 
 This guide will demonstrate how to implement a Check with a return value and
-display, for addding a condition see working with conditions (LINK)
+display, for adding a condition see working with conditions (LINK)
 
 Write a Basic Check
 ===================
