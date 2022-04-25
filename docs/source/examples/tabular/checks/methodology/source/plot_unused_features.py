@@ -6,21 +6,26 @@ This notebook provides an overview for using and understanding the Unused Featur
 
 **Structure:**
 
-* `How unused features affects my model? <#how-unused-features-affects-my-model>`__
+* `How unused features affect my model? <#how-unused-features-affect-my-model>`__
 * `Run the check <#run-the-check>`__
 * `Define a condition <#define-a-condition>`__
 
-How unused features affects my model?
+How unused features affect my model?
 =====================================
-Having too many features can lengthen training times and cause inaccuracies in the model, and is known as "The Curse
-of Dimensionality" or "Hughes Phenomenon". This is because the more dimensions there are, the larger the sample space,
-which can cause samples to be further apart from each other, as they are different in more dimensions, which badly
-affect distance measures on the samples. It might lead the model to overfit the data since it won't be able to
-generalize well when all the samples are far from each other.
+Having too many features can prolong training times and degrade model performance due to "The Curse of Dimensionality"
+or "Hughes Phenomenon".
+This is because the dimensional space grows exponentially with the number of features. When the space is too large in
+relate to the number of data samples, it results in a very sparse distribution of the samples in the space.
+This sparsity also makes the samples more similar to each other, since they are all far from each other which makes it
+harder to find cluster together similar samples in order to find patterns.
+The increased dimensional space and samples similarity may require more complex models, which in turn
+are in greater risk of overfitting.
 
-When finding features with low model contribution, they are probably a statistical noise without any real significance,
-meaning they are increasing the data dimensionality without any benefit, and they should be considered for removal.
-
+Features with low model contribution (feature importance) are probably just noise, and should be removed as they
+increase the dimensionality without contributing anything. Nevertheless, models may miss important features. For that
+reason the Unused Features check selects out of these features those that have high variance, as they may represent
+information that was ignored during model construction. We may wish to manually inspect those features to make sure
+our model is not missing on important information.
 
 Run the check
 =============
@@ -44,7 +49,7 @@ result
 # Controlling the variance threshold
 # ----------------------------------
 # The check can be configured to use a different threshold which controls which features are considered "high variance".
-# The default value is `0.4`. We will use a more strict value and see that are fewer features that considered "high
+# The default value is `0.4`. We will use a more strict value and see that fewer features are considered "high
 # variance".
 result = UnusedFeatures(feature_variance_threshold=1.5).run(train_ds, test_ds, model)
 result
