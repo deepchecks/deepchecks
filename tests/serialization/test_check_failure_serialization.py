@@ -32,7 +32,7 @@ from deepchecks.core.serialization.check_failure.json import CheckFailureSeriali
 from deepchecks.core.serialization.check_failure.wandb import CheckFailureSerializer as WandbSerializer
 from deepchecks.core.serialization.check_failure.widget import CheckFailureSerializer as WidgetSerializer
 
-from .utils import DummyCheck
+from tests.serialization.utils import DummyCheck
 
 
 # =====================================
