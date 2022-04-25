@@ -19,6 +19,8 @@ from pandas.io.formats.style import Styler
 from ipywidgets.widgets import Widget
 from wandb.sdk.data_types.base_types.wb_value import WBValue
 from plotly.basedatatypes import BaseFigure
+from typing_extensions import Protocol
+from typing_extensions import runtime_checkable
 
 from deepchecks.core.check_result import TDisplayItem
 from deepchecks.core.serialization import common
@@ -37,8 +39,8 @@ __all__ = [
 T = t.TypeVar("T")
 
 
-@t.runtime_checkable
-class Serializer(t.Protocol[T]):
+@runtime_checkable
+class Serializer(Protocol[T]):
     """Base protocol for all other serializers."""
 
     value: T
@@ -47,8 +49,8 @@ class Serializer(t.Protocol[T]):
         self.value = value
 
 
-@t.runtime_checkable
-class HtmlSerializer(Serializer[T], t.Protocol):
+@runtime_checkable
+class HtmlSerializer(Serializer[T], Protocol):
     """To html serializer protocol."""
 
     def serialize(self, **kwargs) -> str:
@@ -56,8 +58,8 @@ class HtmlSerializer(Serializer[T], t.Protocol):
         ...
 
 
-@t.runtime_checkable
-class JsonSerializer(Serializer[T], t.Protocol):
+@runtime_checkable
+class JsonSerializer(Serializer[T], Protocol):
     """To json serializer protocol."""
 
     def serialize(self, **kwargs) -> t.Union[t.Dict[t.Any, t.Any], t.List[t.Any]]:
@@ -65,8 +67,8 @@ class JsonSerializer(Serializer[T], t.Protocol):
         ...
 
 
-@t.runtime_checkable
-class WidgetSerializer(Serializer[T], t.Protocol):
+@runtime_checkable
+class WidgetSerializer(Serializer[T], Protocol):
     """To ipywidget serializer protocol."""
 
     def serialize(self, **kwargs) -> Widget:
@@ -74,8 +76,8 @@ class WidgetSerializer(Serializer[T], t.Protocol):
         ...
 
 
-@t.runtime_checkable
-class WandbSerializer(Serializer[T], t.Protocol):
+@runtime_checkable
+class WandbSerializer(Serializer[T], Protocol):
     """To wandb metadata serializer protocol."""
 
     def serialize(self, **kwargs) -> t.Dict[str, WBValue]:
@@ -83,7 +85,7 @@ class WandbSerializer(Serializer[T], t.Protocol):
         ...
 
 
-class ABCDisplayItemsHandler(t.Protocol):
+class ABCDisplayItemsHandler(Protocol):
     """Trait that describes 'CheckResult.dislay' processing logic."""
 
     SUPPORTED_ITEM_TYPES = frozenset([
