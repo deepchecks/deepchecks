@@ -16,6 +16,7 @@ import numpy as np
 
 from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.tabular import Context, SingleDatasetCheck
+from deepchecks.tabular.utils.display_utils import nothing_found_on_columns
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.utils.strings import is_string_column, format_percent
@@ -87,7 +88,7 @@ class MixedDataTypes(SingleDatasetCheck):
                                                    self.n_top_columns).T
             display = [N_TOP_MESSAGE % self.n_top_columns, df_graph]
         else:
-            display = None
+            display = nothing_found_on_columns(df.columns)
 
         return CheckResult(result_dict, display=display)
 

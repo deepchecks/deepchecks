@@ -173,7 +173,7 @@ def calc_drift_and_plot(train_column: pd.Series,
         raise DeepchecksValueError(f'Unsupported column type for drift: {column_type}')
 
     all_categories = list(set(train_column).union(set(test_column)))
-    add_footnote = column_type == 'categorical' and len(all_categories) > max_num_categories_for_drift
+    add_footnote = column_type == 'categorical' and len(all_categories) > max_num_categories_for_display
 
     if not add_footnote:
         fig = make_subplots(rows=2, cols=1, vertical_spacing=0.2, shared_yaxes=False, shared_xaxes=False,
@@ -198,7 +198,7 @@ def calc_drift_and_plot(train_column: pd.Series,
 
         fig.add_annotation(
             x=0, y=-0.2, showarrow=False, xref='paper', yref='paper', xanchor='left',
-            text=f'* Showing the top {max_num_categories_for_drift} {param_to_print_dict[show_categories_by]} out of '
+            text=f'* Showing the top {max_num_categories_for_display} {param_to_print_dict[show_categories_by]} out of '
                  f'total {len(all_categories)} categories.'
                  f'<br>Shown data is {format_percent(train_data_percents)} of train data and '
                  f'{format_percent(test_data_percents)} of test data.'
