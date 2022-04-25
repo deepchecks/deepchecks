@@ -27,7 +27,7 @@ def nothing_found_on_columns(columns: t.List[t.Hashable],
         if index == max_columns:
             display_message += '...'
             break
-        display_message += col
+        display_message += str(col)
         if index != len(columns) - 1:
             display_message += ', '
 
