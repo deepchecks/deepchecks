@@ -17,7 +17,6 @@ from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import LabelEncoder
 import joblib
 import pandas as pd
 from deepchecks.tabular.dataset import Dataset
