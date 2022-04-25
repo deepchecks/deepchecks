@@ -28,7 +28,7 @@ class CheckFailureSerializer(JsonSerializer[CheckFailure]):
     """
 
     def __init__(self, value: CheckFailure, **kwargs):
-        if isinstance(value, CheckFailure):
+        if not isinstance(value, CheckFailure):
             raise TypeError(
                 f'Expected "CheckFailure" but got "{type(value).__name__}"'
             )

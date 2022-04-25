@@ -48,7 +48,7 @@ class CheckResultSerializer(WandbSerializer[CheckResult]):
     """
 
     def __init__(self, value: CheckResult, **kwargs):
-        if isinstance(value, CheckResult):
+        if not isinstance(value, CheckResult):
             raise TypeError(
                 f'Expected "CheckResult" but got "{type(value).__name__}"'
             )

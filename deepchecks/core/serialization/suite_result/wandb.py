@@ -39,7 +39,7 @@ class SuiteResultSerializer(WandbSerializer[SuiteResult]):
     """
 
     def __init__(self, value: SuiteResult, **kwargs):
-        if isinstance(value, SuiteResult):
+        if not isinstance(value, SuiteResult):
             raise TypeError(
                 f'Expected "SuiteResult" but got "{type(value).__name__}"'
             )

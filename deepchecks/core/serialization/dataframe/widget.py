@@ -35,7 +35,7 @@ class DataFrameSerializer(WidgetSerializer[DataFrameOrStyler]):
     """
 
     def __init__(self, value: DataFrameOrStyler, **kwargs):
-        if isinstance(value, (pd.DataFrame, Styler)):
+        if not isinstance(value, (pd.DataFrame, Styler)):
             raise TypeError(
                 f'Expected "Union[DataFrame, Styler]" but got "{type(value).__name__}"'
             )
