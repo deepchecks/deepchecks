@@ -33,6 +33,22 @@ the image content.
 We then proceed to check for similar images by searching for test images whose hash is close to a hash of a training
 image, when distance is defined by the Hamming distance between the binary vectors that are the hashed images.
 
+Note about default parameters
+--------------------------------------
+Similarity between images is dependent on the purpose of the dataset. This is because sometimes we're training a model
+to find large differences between images (e.g. people vs dogs) and sometimes we're training to find small differences
+(e.g. different types of trees). Moreover, sometimes our images are taken from real-world datasets, where they were
+taken by different people, in different locations, and sometimes the images are "cleaner", such as ones taken under
+microscope or from the same security camera with the same background.
+
+The check's default parameters are set to match a real-world rgb photos and their differences.
+If your dataset has more delicate differences in it, it is advised to use the *hash_size* and *similarity_threshold*
+parameters of this check.
+The *hash_size* parameter controls the size of the hashed image. A larger hash_size will enable to find
+finer differences will between images (and results in less similarity).
+The *similarity_threshold* parameter controls the ratio of pixels that need to be different in order
+for 2 images to be considered "different". A lower similarity_threshold will define less images as "similar".
+
 #
 # Run the check
 # ==============
