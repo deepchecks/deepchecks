@@ -13,6 +13,8 @@ import re
 import subprocess
 from functools import lru_cache
 
+import tqdm
+from tqdm.notebook import tqdm as tqdm_notebook
 from IPython import get_ipython  # TODO: I think we should remove ipython from mandatory dependencies
 
 
@@ -78,3 +80,39 @@ def is_widgets_enabled() -> bool:
             return not found_disabled and found_enabled
         except Exception:  # pylint: disable=broad-except
             return False
+
+
+class ProgressBar:
+    """Progress bar for display while running suite.
+    Parameters
+    ----------
+    name
+    length
+    """
+
+    def __init__(self, name, length, unit):
+        """Initialize progress bar."""
+        self.unit = unit
+        shared_args = {'total': length, 'desc': name, 'unit': f' {unit}', 'leave': False, 'file': sys.stdout}
+        if is_widgets_enabled():
+            self.pbar = tqdm_notebook(**shared_args, colour='#9d60fb')
+        else:
+            # Normal tqdm with colour in notebooks produce bug that the cleanup doesn't remove all characters. so
+            # until bug fixed, doesn't add the colour to regular tqdm
+            self.pbar = tqdm.tqdm(**shared_args, bar_format=f'{{l_bar}}{{bar:{length}}}{{r_bar}}')
+
+    def set_text(self, text):
+        """Set current running check.
+        Parameters
+        ----------
+        text
+        """
+        self.pbar.set_postfix({self.unit: text})
+
+    def close(self):
+        """Close the progress bar."""
+        self.pbar.close()
+
+    def inc_progress(self):
+        """Increase progress bar value by 1."""
+        self.pbar.update(1)

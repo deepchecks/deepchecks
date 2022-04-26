@@ -21,7 +21,7 @@ from ignite.metrics import Metric
 from deepchecks.core.check_result import CheckFailure, CheckResult
 from deepchecks.core.checks import DatasetKind
 from deepchecks.core.suite import BaseSuite, SuiteResult
-from deepchecks.core.display_suite import ProgressBar
+from deepchecks.utils.ipython import ProgressBar
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.vision.base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
 from deepchecks.vision.context import Context

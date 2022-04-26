@@ -23,7 +23,7 @@ from deepchecks.core.checks import (
     ModelOnlyBaseCheck,
     DatasetKind
 )
-from deepchecks.core.display_suite import ProgressBar
+from deepchecks.utils.ipython import ProgressBar
 from deepchecks.vision.context import Context
 from deepchecks.vision.vision_data import VisionData
 from deepchecks.vision.batch_wrapper import Batch

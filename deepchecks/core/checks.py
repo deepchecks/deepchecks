@@ -16,7 +16,7 @@ from collections import OrderedDict
 from typing import Any, Callable, List, Union, Dict, Type, ClassVar, Optional
 from typing_extensions import TypedDict
 
-from deepchecks.core.check_result import CheckResult, CheckFailure
+from deepchecks.core import check_result as check_types
 from deepchecks.core.condition import Condition, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import split_camel_case, get_docs_summary
@@ -57,11 +57,11 @@ class BaseCheck(abc.ABC):
         self._conditions_index = 0
 
     @abc.abstractmethod
-    def run(self, *args, **kwargs) -> CheckResult:
+    def run(self, *args, **kwargs) -> 'check_types.CheckResult':
         """Run Check."""
         raise NotImplementedError()
 
-    def conditions_decision(self, result: CheckResult) -> List[ConditionResult]:
+    def conditions_decision(self, result: 'check_types.CheckResult') -> List[ConditionResult]:
         """Run conditions on given result."""
         results = []
         condition: Condition
@@ -119,12 +119,15 @@ class BaseCheck(abc.ABC):
         """Return parameters to show when printing the check."""
         return initvars(self, show_defaults)
 
-    def finalize_check_result(self, check_result: CheckResult) -> CheckResult:
+    def finalize_check_result(
+        self, 
+        check_result: 'check_types.CheckResult'
+    ) -> 'check_types.CheckResult':
         """Finalize the check result by adding the check instance and processing the conditions."""
-        if isinstance(check_result, CheckFailure):
+        if isinstance(check_result, check_types.CheckResult):
             return check_result
 
-        if not isinstance(check_result, CheckResult):
+        if not isinstance(check_result, check_types.CheckResult):
             raise DeepchecksValueError(f'Check {self.name()} expected to return CheckResult but got: '
                                        + type(check_result).__name__)
         check_result.check = self
@@ -188,7 +191,7 @@ class SingleDatasetBaseCheck(BaseCheck):
     context_type: ClassVar[Optional[Type[Any]]] = None  # TODO: Base context type
 
     @abc.abstractmethod
-    def run(self, dataset, model=None, **kwargs) -> CheckResult:
+    def run(self, dataset, model=None, **kwargs) -> 'check_types.CheckResult':
         """Run check."""
         raise NotImplementedError()
 
@@ -202,7 +205,7 @@ class TrainTestBaseCheck(BaseCheck):
     context_type: ClassVar[Optional[Type[Any]]] = None  # TODO: Base context type
 
     @abc.abstractmethod
-    def run(self, train_dataset, test_dataset, model=None, **kwargs) -> CheckResult:
+    def run(self, train_dataset, test_dataset, model=None, **kwargs) -> 'check_types.CheckResult':
         """Run check."""
         raise NotImplementedError()
 
@@ -213,6 +216,6 @@ class ModelOnlyBaseCheck(BaseCheck):
     context_type: ClassVar[Optional[Type[Any]]] = None  # TODO: Base context type
 
     @abc.abstractmethod
-    def run(self, model, **kwargs) -> CheckResult:
+    def run(self, model, **kwargs) -> 'check_types.CheckResult':
         """Run check."""
         raise NotImplementedError()
