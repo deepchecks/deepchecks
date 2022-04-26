@@ -20,6 +20,7 @@ from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.check_utils.single_feature_contribution_utils import get_single_feature_contribution, \
     get_single_feature_contribution_per_class
 from deepchecks.core.condition import ConditionCategory
+from deepchecks.core.errors import ModelValidationError
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Context, TrainTestCheck
 from deepchecks.vision.batch_wrapper import Batch
@@ -150,16 +151,20 @@ class SimpleFeatureContribution(TrainTestCheck):
         df_train = pd.DataFrame(self._train_properties)
         df_test = pd.DataFrame(self._test_properties)
 
-        # PPS task type is inferred from label dtype. For computer vision tasks, it's safe to assume that unless
+        # PPS task type is inferred from label dtype. For most computer vision tasks, it's safe to assume that unless
         # the label is a float, then the task type is not regression and thus the label is cast to object dtype.
         # For the known task types (object detection, classification), classification is always selected.
-        if context.train.task_type == TaskType.OTHER and \
-                (self.is_float_column(df_train['target']) or self.is_float_column(df_test['target'])):
-            df_train['target'] = df_train['target'].astype('float')
-            df_test['target'] = df_test['target'].astype('float')
-        else:
-            df_train['target'] = df_train['target'].astype('object')
-            df_test['target'] = df_test['target'].astype('object')
+        col_dtype = 'object'
+        if context.train.task_type == TaskType.OTHER:
+            if self.is_float_column(df_train['target']) or self.is_float_column(df_test['target']):
+                col_dtype = 'float'
+        elif context.train.task_type not in (TaskType.OBJECT_DETECTION, TaskType.CLASSIFICATION):
+            raise ModelValidationError(
+                f'Check must be explicitly adopted to the new task type {context.train.task_type}, so that the '
+                f'label type used by the PPS predictor would be appropriate.')
+
+        df_train['target'] = df_train['target'].astype(col_dtype)
+        df_test['target'] = df_test['target'].astype(col_dtype)
 
         text = [
             'The Predictive Power Score (PPS) is used to estimate the ability of an image property (such as brightness)'
