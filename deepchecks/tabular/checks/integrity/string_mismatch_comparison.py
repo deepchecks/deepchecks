@@ -16,6 +16,7 @@ import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck
+from deepchecks.tabular.utils.display_utils import nothing_found_on_columns
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.utils.typing import Hashable
@@ -135,7 +136,7 @@ class StringMismatchComparison(TrainTestCheck):
             # For display transpose the dataframe
             display = [N_TOP_MESSAGE % self.n_top_columns, df_graph.T]
         else:
-            display = None
+            display = nothing_found_on_columns(columns)
 
         return CheckResult(result_dict, display=display)
 

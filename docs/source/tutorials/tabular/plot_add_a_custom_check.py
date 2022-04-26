@@ -20,7 +20,7 @@ Each check consists of 3 main parts:
 * Conditions
 
 This guide will demonstrate how to implement a Check with a return value and
-display, for addding a condition see working with conditions (LINK)
+display, for adding a condition see `working with conditions <../../../user-guide/general/customizations/examples/plot_configure_check_conditions.html>`__.
 
 Write a Basic Check
 ===================
@@ -79,7 +79,7 @@ result.value
 
 #%%
 # To see code references for more complex checks (that can receive parameters
-# etc.), check out any of your favorite checks from our API Reference (LINK).
+# etc.), check out any of your favorite checks from our `API Reference <../../../api/deepchecks.tabular.checks.html>`__.
 
 #%%
 # Check Display
@@ -131,8 +131,8 @@ DatasetSizeComparison().run(train_dataset, test_dataset)
 # check to any Suite and it will run within it.
 #
 # The next possible step is to implement a condition, which will allow us
-# to give the check result a pass / fail mark. To do so, check out the
-# following guide (LINK)
+# to give the check result a pass / fail mark. To do so, check out `the
+# following guide <../../../user-guide/general/customizations/examples/plot_configure_check_conditions.html#add-a-custom-condition>`__.
 #
 # Base Checks Types
 # -----------------

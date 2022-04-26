@@ -13,6 +13,7 @@ from typing import Union, List
 
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
+from deepchecks.tabular.utils.display_utils import nothing_found_on_columns
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.typing import Hashable
 
@@ -72,7 +73,7 @@ class IsSingleValue(SingleDatasetCheck):
             display = ['The following columns have only one unique value', uniques]
         else:
             value = None
-            display = None
+            display = nothing_found_on_columns(df.columns)
 
         return CheckResult(value, header='Single Value in Column', display=display)
 
