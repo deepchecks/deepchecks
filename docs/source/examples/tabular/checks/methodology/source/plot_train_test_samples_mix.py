@@ -6,16 +6,16 @@ This notebook provides an overview for using and understanding the Train Test Sa
 
 **Structure:**
 
-* `Why samples mix are unwanted? <#why-samples-mix-are-unwanted>`__
+* `Why is samples mix unwanted? <#why-is-samples-mix-unwanted>`__
 * `Run the check <#run-the-check>`__
 * `Define a condition <#define-a-condition>`__
 
-Why samples mix are unwanted?
+Why is samples mix unwanted?
 =============================
-Samples mix is a situation when train and test have joint samples. While using the test dataset for evaluating the
-model, if we have samples from the train dataset which was used for training the model, then the resulting metrics will
-be biased and won't reflect the performance we will get in a real life scenario. Therefore, it's important to always
-avoid samples mix.
+Samples mix is when the train and test datasets have some samples in common.
+We use the test dataset in order to evaluate our model performance, and having samples in common with the train dataset
+will lead to biased metrics, which does not represent the real performance we will get in a real scenario. Therefore,
+we always look to avoid samples mix.
 
 Run the check
 =============
@@ -27,10 +27,10 @@ from deepchecks.tabular.checks.methodology import TrainTestSamplesMix
 
 # Create data with leakage from train to test
 train_df, test_df = iris.load_data(data_format='Dataframe')
-bad_test = test_df.append(train_df.data.iloc[[0, 1, 1, 2, 3, 4, 2, 2, 10]], ignore_index=True)
+bad_test_df = test_df.append(train_df.data.iloc[[0, 1, 1, 2, 3, 4, 2, 2, 10]], ignore_index=True)
 
 check = TrainTestSamplesMix()
-result = check.run(test_dataset=bad_test, train_dataset=train_df)
+result = check.run(test_dataset=bad_test_df, train_dataset=train_df)
 result
 
 # %%
@@ -39,5 +39,5 @@ result
 # We can define a condition that enforces that the ratio of samples in test which appears in train is below a given
 # amount, the default is `0.1`.
 check = TrainTestSamplesMix().add_condition_duplicates_ratio_not_greater_than()
-result = check.run(test_dataset=bad_test, train_dataset=train_df)
+result = check.run(test_dataset=bad_test_df, train_dataset=train_df)
 result.show(show_additional_outputs=False)
