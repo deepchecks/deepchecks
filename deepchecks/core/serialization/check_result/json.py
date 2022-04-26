@@ -23,8 +23,8 @@ from plotly.basedatatypes import BaseFigure
 from typing_extensions import TypedDict
 
 from deepchecks.utils.html import imagetag
-from deepchecks.core.check_result import CheckResult
-from deepchecks.core.checks import CheckMetadata
+from deepchecks.core import check_result as check_types
+from deepchecks.core import checks
 from deepchecks.core.serialization.abc import JsonSerializer
 from deepchecks.core.serialization.abc import ABCDisplayItemsHandler
 from deepchecks.core.serialization.common import aggregate_conditions
@@ -40,14 +40,14 @@ __all__ = ['CheckResultSerializer', 'display_from_json']
 
 
 class CheckResultMetadata(TypedDict):
-    check: CheckMetadata
+    check: 'checks.CheckMetadata'
     value: t.Any
     header: str
     conditions_results: t.List[t.Dict[t.Any, t.Any]]
     display: t.List[t.Any]
 
 
-class CheckResultSerializer(JsonSerializer[CheckResult]):
+class CheckResultSerializer(JsonSerializer['check_types.CheckResult']):
     """Serializes any CheckResult instance into JSON format.
 
     Parameters
@@ -56,8 +56,8 @@ class CheckResultSerializer(JsonSerializer[CheckResult]):
         CheckResult instance that needed to be serialized.
     """
 
-    def __init__(self, value: CheckResult, **kwargs):
-        if not isinstance(value, CheckResult):
+    def __init__(self, value: 'check_types.CheckResult', **kwargs):
+        if not isinstance(value, check_types.CheckResult):
             raise TypeError(
                 f'Expected "CheckResult" but got "{type(value).__name__}"'
             )
@@ -78,7 +78,7 @@ class CheckResultSerializer(JsonSerializer[CheckResult]):
             display=self.prepare_display()
         )
 
-    def prepare_check_metadata(self) -> CheckMetadata:
+    def prepare_check_metadata(self) -> 'checks.CheckMetadata':
         """Prepare Check instance metadata dictionary."""
         return self.value.check.metadata(with_doc_link=True)
 

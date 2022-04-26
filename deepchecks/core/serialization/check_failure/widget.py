@@ -10,8 +10,7 @@
 #
 """Module containing ipywidget serializer for the CheckFailuer type."""
 from ipywidgets import VBox, HTML
-
-from deepchecks.core.check_result import CheckFailure
+from deepchecks.core import check_result as check_types
 from deepchecks.core.serialization.abc import WidgetSerializer
 from deepchecks.core.serialization.common import normalize_widget_style
 
@@ -21,7 +20,7 @@ from . import html
 __all__ = ['CheckFailureSerializer']
 
 
-class CheckFailureSerializer(WidgetSerializer[CheckFailure]):
+class CheckFailureSerializer(WidgetSerializer['check_types.CheckFailure']):
     """Serializes any CheckFailure instance into an ipywidgets.Widget instance.
 
     Parameters
@@ -30,8 +29,8 @@ class CheckFailureSerializer(WidgetSerializer[CheckFailure]):
         CheckFailure instance that needed to be serialized.
     """
 
-    def __init__(self, value: CheckFailure, **kwargs):
-        if not isinstance(value, CheckFailure):
+    def __init__(self, value: 'check_types.CheckFailure', **kwargs):
+        if not isinstance(value, check_types.CheckFailure):
             raise TypeError(
                 f'Expected "CheckFailure" but got "{type(value).__name__}"'
             )

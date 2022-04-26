@@ -12,9 +12,8 @@
 import typing as t
 from collections import OrderedDict
 
-from deepchecks.core.suite import SuiteResult
-from deepchecks.core.check_result import CheckResult
-from deepchecks.core.check_result import CheckFailure
+from deepchecks.core import suite
+from deepchecks.core import check_result as check_types
 from deepchecks.core.serialization.abc import WandbSerializer
 from deepchecks.core.serialization.check_result.wandb import CheckResultSerializer
 from deepchecks.core.serialization.check_failure.wandb import CheckFailureSerializer
@@ -29,7 +28,7 @@ except ImportError:
     )
 
 
-class SuiteResultSerializer(WandbSerializer[SuiteResult]):
+class SuiteResultSerializer(WandbSerializer['suite.SuiteResult']):
     """Serializes any SuiteResult instance into Wandb media format.
 
     Parameters
@@ -38,8 +37,8 @@ class SuiteResultSerializer(WandbSerializer[SuiteResult]):
         SuiteResult instance that needed to be serialized.
     """
 
-    def __init__(self, value: SuiteResult, **kwargs):
-        if not isinstance(value, SuiteResult):
+    def __init__(self, value: 'suite.SuiteResult', **kwargs):
+        if not isinstance(value, suite.SuiteResult):
             raise TypeError(
                 f'Expected "SuiteResult" but got "{type(value).__name__}"'
             )
@@ -56,12 +55,12 @@ class SuiteResultSerializer(WandbSerializer[SuiteResult]):
         results: t.List[t.Tuple[str, WBValue]] = []
 
         for result in self.value.results:
-            if isinstance(result, CheckResult):
+            if isinstance(result, check_types.CheckResult):
                 results.extend([
                     (f'{suite_name}/{k}', v)
                     for k, v in CheckResultSerializer(result).serialize().items()
                 ])
-            elif isinstance(result, CheckFailure):
+            elif isinstance(result, check_types.CheckFailure):
                 results.extend([
                     (f'{suite_name}/{k}', v)
                     for k, v in CheckFailureSerializer(result).serialize().items()

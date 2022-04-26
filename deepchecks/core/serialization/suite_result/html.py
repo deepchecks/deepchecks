@@ -16,9 +16,8 @@ import warnings
 import pandas as pd
 
 from deepchecks.core import errors
-from deepchecks.core.suite import SuiteResult
-from deepchecks.core.check_result import CheckFailure
-from deepchecks.core.check_result import CheckResult
+from deepchecks.core import suite
+from deepchecks.core import check_result as check_types
 from deepchecks.core.serialization.abc import HtmlSerializer
 from deepchecks.core.serialization.common import form_output_anchor
 from deepchecks.core.serialization.common import aggregate_conditions
@@ -33,7 +32,7 @@ from deepchecks.core.serialization.check_result.html import CheckResultSection
 __all__ = ['SuiteResultSerializer']
 
 
-class SuiteResultSerializer(HtmlSerializer[SuiteResult]):
+class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
     """Serializes any SuiteResult instance into HTML format.
 
     Parameters
@@ -42,8 +41,8 @@ class SuiteResultSerializer(HtmlSerializer[SuiteResult]):
         SuiteResult instance that needed to be serialized.
     """
 
-    def __init__(self, value: SuiteResult, **kwargs):
-        if not isinstance(value, SuiteResult):
+    def __init__(self, value: 'suite.SuiteResult', **kwargs):
+        if not isinstance(value, suite.SuiteResult):
             raise TypeError(
                 f'Expected "SuiteResult" but got "{type(value).__name__}"'
             )
@@ -107,6 +106,12 @@ class SuiteResultSerializer(HtmlSerializer[SuiteResult]):
 
         if full_html is False and include_plotlyjs is True:
             return ''.join([plotly_activation_script(), *sections])
+
+        if full_html is True and include_plotlyjs is False:
+            raise ValueError(
+                'Unsupported combination of "full_html" and "include_plotlyjs". '
+                'Plotly plots will not work without plotly activation script.'
+            )
 
         # TODO: use some style to make it pretty
         return textwrap.dedent(f"""
@@ -229,7 +234,7 @@ class SuiteResultSerializer(HtmlSerializer[SuiteResult]):
             return '<p>No conditions defined on checks in the suite.</p>'
 
         results = t.cast(
-            t.List[CheckResult],
+            t.List[check_types.CheckResult],
             self.value.select_results(self.value.results_with_conditions)
         )
         table = DataFrameHtmlSerializer(aggregate_conditions(
@@ -262,7 +267,7 @@ class SuiteResultSerializer(HtmlSerializer[SuiteResult]):
         str
         """
         results = t.cast(
-            t.List[CheckResult],
+            t.List[check_types.CheckResult],
             self.value.select_results(
                 self.value.results_with_conditions & self.value.results_with_display
             )
@@ -299,7 +304,7 @@ class SuiteResultSerializer(HtmlSerializer[SuiteResult]):
         str
         """
         results = t.cast(
-            t.List[CheckResult],
+            t.List[check_types.CheckResult],
             self.value.select_results(
                 self.value.results_without_conditions & self.value.results_with_display,
             )
@@ -325,7 +330,7 @@ class SuiteResultSerializer(HtmlSerializer[SuiteResult]):
         data = []  # type List[Tuple[check-header:str, message:str, priority:int]]
 
         for it in results:
-            if not isinstance(it, CheckFailure):
+            if not isinstance(it, check_types.CheckFailure):
                 data.append([it.get_header(), 'Nothing found', 2])
             else:
                 error_types = (

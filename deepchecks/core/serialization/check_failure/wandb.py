@@ -10,8 +10,7 @@
 #
 """Module containing Wandb serializer for the CheckFailuer type."""
 import typing as t
-
-from deepchecks.core.check_result import CheckFailure
+from deepchecks.core import check_result as check_types
 from deepchecks.core.serialization.abc import WandbSerializer
 from deepchecks.core.serialization.common import prettify
 
@@ -29,7 +28,7 @@ except ImportError:
 __all__ = ['CheckFailureSerializer']
 
 
-class CheckFailureSerializer(WandbSerializer[CheckFailure]):
+class CheckFailureSerializer(WandbSerializer['check_types.CheckFailure']):
     """Serializes any CheckFailure instance into Wandb media format.
 
     Parameters
@@ -38,8 +37,8 @@ class CheckFailureSerializer(WandbSerializer[CheckFailure]):
         CheckFailure instance that needed to be serialized.
     """
 
-    def __init__(self, value: CheckFailure, **kwargs):
-        if not isinstance(value, CheckFailure):
+    def __init__(self, value: 'check_types.CheckFailure', **kwargs):
+        if not isinstance(value, check_types.CheckFailure):
             raise TypeError(
                 f'Expected "CheckFailure" but got "{type(value).__name__}"'
             )

@@ -27,8 +27,8 @@ from plotly.io._utils import plotly_cdn_url
 from plotly.offline.offline import get_plotlyjs
 
 from deepchecks.utils.strings import get_ellipsis
-from deepchecks.core.check_result import CheckResult
-from deepchecks.core.checks import BaseCheck
+from deepchecks.core import check_result as check_types
+from deepchecks.core import checks
 from deepchecks.utils.dataframes import un_numpy
 
 
@@ -76,7 +76,7 @@ def form_output_anchor(output_id: str) -> str:
     return f'summary_{output_id}'
 
 
-def form_check_id(check: BaseCheck, output_id: str) -> str:
+def form_check_id(check: 'checks.BaseCheck', output_id: str) -> str:
     """Form check instance unique identifier."""
     check_name = type(check).__name__
     return f'{check_name}_{output_id}'
@@ -125,7 +125,7 @@ def normalize_value(value: object) -> t.Any:
 
 
 def aggregate_conditions(
-    check_results: t.Union['CheckResult', t.List['CheckResult']],
+    check_results: t.Union['check_types.CheckResult', t.List['check_types.CheckResult']],
     max_info_len: int = 3000,
     include_icon: bool = True,
     include_check_name: bool = False,
@@ -151,7 +151,12 @@ def aggregate_conditions(
     pd.Dataframe:
         the condition table.
     """
-    check_results = [check_results] if isinstance(check_results, CheckResult) else check_results
+    check_results = (
+        [check_results]
+        if isinstance(check_results, check_types.CheckResult)
+        else check_results
+    )
+
     data = []
 
     for check_result in check_results:

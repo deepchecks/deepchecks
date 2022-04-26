@@ -16,7 +16,7 @@ import pandas as pd
 from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
 
-from deepchecks.core.check_result import CheckResult
+from deepchecks.core import check_result as check_types
 from deepchecks.core.serialization.abc import ABCDisplayItemsHandler
 from deepchecks.core.serialization.abc import WandbSerializer
 from deepchecks.core.serialization.common import normalize_value
@@ -38,7 +38,7 @@ except ImportError:
 __all__ = ['CheckResultSerializer']
 
 
-class CheckResultSerializer(WandbSerializer[CheckResult]):
+class CheckResultSerializer(WandbSerializer['check_types.CheckResult']):
     """Serializes any CheckResult instance into Wandb media metadata.
 
     Parameters
@@ -47,8 +47,8 @@ class CheckResultSerializer(WandbSerializer[CheckResult]):
         CheckResult instance that needed to be serialized.
     """
 
-    def __init__(self, value: CheckResult, **kwargs):
-        if not isinstance(value, CheckResult):
+    def __init__(self, value: 'check_types.CheckResult', **kwargs):
+        if not isinstance(value, check_types.CheckResult):
             raise TypeError(
                 f'Expected "CheckResult" but got "{type(value).__name__}"'
             )

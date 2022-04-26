@@ -22,12 +22,6 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import split_camel_case, get_docs_summary
 from deepchecks.utils.function import initvars
 
-try:
-    import wandb
-
-    assert hasattr(wandb, '__version__')  # verify package import not local dir
-except (ImportError, AssertionError):
-    wandb = None
 
 __all__ = [
     'DatasetKind',

@@ -16,8 +16,8 @@ import pandas as pd
 from ipywidgets import Widget, HTML, VBox, Tab
 
 from deepchecks.utils.strings import get_docs_summary
-from deepchecks.core.suite import SuiteResult
-from deepchecks.core.check_result import CheckResult
+from deepchecks.core import suite
+from deepchecks.core import check_result as check_types
 from deepchecks.core.serialization.abc import WidgetSerializer
 from deepchecks.core.serialization.common import Html as CommonHtml
 from deepchecks.core.serialization.common import normalize_widget_style
@@ -31,7 +31,7 @@ from . import html
 __all__ = ['SuiteResultSerializer']
 
 
-class SuiteResultSerializer(WidgetSerializer[SuiteResult]):
+class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
     """Serializes any SuiteResult instance into ipywidgets.Widget instance.
 
     Parameters
@@ -40,8 +40,8 @@ class SuiteResultSerializer(WidgetSerializer[SuiteResult]):
         SuiteResult instance that needed to be serialized.
     """
 
-    def __init__(self, value: SuiteResult, **kwargs):
-        if not isinstance(value, SuiteResult):
+    def __init__(self, value: 'suite.SuiteResult', **kwargs):
+        if not isinstance(value, suite.SuiteResult):
             raise TypeError(
                 f'Expected "SuiteResult" but got "{type(value).__name__}"'
             )
@@ -139,7 +139,7 @@ class SuiteResultSerializer(WidgetSerializer[SuiteResult]):
         ipywidgets.VBox
         """
         results = t.cast(
-            t.List[CheckResult],
+            t.List[check_types.CheckResult],
             self.value.select_results(self.value.results_without_conditions & self.value.results_with_display)
         )
         results_without_conditions = [
@@ -178,7 +178,7 @@ class SuiteResultSerializer(WidgetSerializer[SuiteResult]):
         ipywidgets.VBox
         """
         results = t.cast(
-            t.List[CheckResult],
+            t.List[check_types.CheckResult],
             self.value.select_results(self.value.results_with_conditions & self.value.results_with_display)
         )
         results_with_condition_and_display = [
@@ -214,7 +214,7 @@ class SuiteResultSerializer(WidgetSerializer[SuiteResult]):
         data = []
 
         results = t.cast(
-            t.List[CheckResult],
+            t.List[check_types.CheckResult],
             self.value.select_results(self.value.results_without_conditions & self.value.results_with_display)
         )
 

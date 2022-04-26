@@ -21,7 +21,7 @@ from plotly.basedatatypes import BaseFigure
 from typing_extensions import Protocol
 from typing_extensions import runtime_checkable
 
-from deepchecks.core.check_result import TDisplayItem
+from deepchecks.core import check_result as check_types
 from deepchecks.core.serialization import common
 
 
@@ -100,7 +100,7 @@ class ABCDisplayItemsHandler(Protocol):
     @classmethod
     def handle_display(
         cls,
-        display: t.List[TDisplayItem],
+        display: t.List['check_types.TDisplayItem'],
         **kwargs
     ) -> t.List[t.Any]:
         """Serialize list of display items.
@@ -117,7 +117,7 @@ class ABCDisplayItemsHandler(Protocol):
         return [cls.handle_item(it, index) for index, it in enumerate(display)]
 
     @classmethod
-    def handle_item(cls, item: TDisplayItem, index: int, **kwargs) -> t.Any:
+    def handle_item(cls, item: 'check_types.TDisplayItem', index: int, **kwargs) -> t.Any:
         """Serialize display item."""
         if isinstance(item, str):
             return cls.handle_string(item, index, **kwargs)

@@ -16,7 +16,7 @@ import plotly.graph_objects as go
 from plotly.basedatatypes import BaseFigure
 from ipywidgets import HTML, VBox, Widget
 
-from deepchecks.core.check_result import CheckResult
+from deepchecks.core import check_result as check_types
 from deepchecks.core.serialization.abc import WidgetSerializer
 from deepchecks.core.serialization.common import normalize_widget_style
 from . import html
@@ -25,7 +25,7 @@ from . import html
 __all__ = ['CheckResultSerializer']
 
 
-class CheckResultSerializer(WidgetSerializer[CheckResult]):
+class CheckResultSerializer(WidgetSerializer['check_types.CheckResult']):
     """Serializes any CheckResult instance into ipywidgets.Widget instance.
 
     Parameters
@@ -34,8 +34,8 @@ class CheckResultSerializer(WidgetSerializer[CheckResult]):
         CheckResult instance that needed to be serialized.
     """
 
-    def __init__(self, value: CheckResult, **kwargs):
-        if not isinstance(value, CheckResult):
+    def __init__(self, value: 'check_types.CheckResult', **kwargs):
+        if not isinstance(value, check_types.CheckResult):
             raise TypeError(
                 f'Expected "CheckResult" but got "{type(value).__name__}"'
             )

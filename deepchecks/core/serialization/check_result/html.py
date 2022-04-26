@@ -17,8 +17,7 @@ from typing_extensions import Literal
 
 from deepchecks.utils.strings import get_docs_summary
 from deepchecks.utils.html import imagetag
-from deepchecks.core.check_result import CheckResult
-from deepchecks.core.check_result import TDisplayItem
+from deepchecks.core import check_result as check_types
 from deepchecks.core.serialization.abc import HtmlSerializer
 from deepchecks.core.serialization.abc import ABCDisplayItemsHandler
 from deepchecks.core.serialization.dataframe.html import DataFrameSerializer as DataFrameHtmlSerializer
@@ -38,7 +37,7 @@ CheckResultSection = t.Union[
 ]
 
 
-class CheckResultSerializer(HtmlSerializer[CheckResult]):
+class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
     """Serializes any CheckResult instance into HTML format.
 
     Parameters
@@ -47,8 +46,8 @@ class CheckResultSerializer(HtmlSerializer[CheckResult]):
         CheckResult instance that needed to be serialized.
     """
 
-    def __init__(self, value: CheckResult, **kwargs):
-        if not isinstance(value, CheckResult):
+    def __init__(self, value: 'check_types.CheckResult', **kwargs):
+        if not isinstance(value, check_types.CheckResult):
             raise TypeError(
                 f'Expected "CheckResult" but got "{type(value).__name__}"'
             )
@@ -94,6 +93,12 @@ class CheckResultSerializer(HtmlSerializer[CheckResult]):
 
         if full_html is False and include_plotlyjs is True:
             return ''.join([plotly_activation_script(), *sections])
+
+        if full_html is True and include_plotlyjs is False:
+            raise ValueError(
+                'Unsupported combination of "full_html" and "include_plotlyjs". '
+                'Plotly plots will not work without plotly activation script.'
+            )
 
         # TODO: use some style to make it pretty
         return textwrap.dedent(f"""
@@ -184,7 +189,7 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
     @classmethod
     def handle_display(
         cls,
-        display: t.List[TDisplayItem],
+        display: t.List['check_types.TDisplayItem'],
         output_id: t.Optional[str] = None,
         **kwargs
     ) -> t.List[str]:

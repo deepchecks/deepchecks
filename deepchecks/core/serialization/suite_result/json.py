@@ -11,9 +11,8 @@
 """Module containing JSON serializer for the SuiteResult type."""
 import typing as t
 
-from deepchecks.core.suite import SuiteResult
-from deepchecks.core.check_result import CheckResult
-from deepchecks.core.check_result import CheckFailure
+from deepchecks.core import suite
+from deepchecks.core import check_result as check_types
 from deepchecks.core.serialization.abc import JsonSerializer
 from deepchecks.core.serialization.check_result.json import CheckResultSerializer
 from deepchecks.core.serialization.check_failure.json import CheckFailureSerializer
@@ -22,7 +21,7 @@ from deepchecks.core.serialization.check_failure.json import CheckFailureSeriali
 __all__ = ['SuiteResultSerializer']
 
 
-class SuiteResultSerializer(JsonSerializer[SuiteResult]):
+class SuiteResultSerializer(JsonSerializer['suite.SuiteResult']):
     """Serializes any SuiteResult instance into JSON format.
 
     Parameters
@@ -31,8 +30,8 @@ class SuiteResultSerializer(JsonSerializer[SuiteResult]):
         SuiteResult instance that needed to be serialized.
     """
 
-    def __init__(self, value: SuiteResult, **kwargs):
-        if not isinstance(value, SuiteResult):
+    def __init__(self, value: 'suite.SuiteResult', **kwargs):
+        if not isinstance(value, suite.SuiteResult):
             raise TypeError(
                 f'Expected "SuiteResult" but got "{type(value).__name__}"'
             )
@@ -48,9 +47,9 @@ class SuiteResultSerializer(JsonSerializer[SuiteResult]):
         results = []
 
         for it in self.value.results:
-            if isinstance(it, CheckResult):
+            if isinstance(it, check_types.CheckResult):
                 results.append(CheckResultSerializer(it).serialize())
-            elif isinstance(it, CheckFailure):
+            elif isinstance(it, check_types.CheckFailure):
                 results.append(CheckFailureSerializer(it).serialize())
             else:
                 raise TypeError(f'Unknown result type - {type(it)}')
