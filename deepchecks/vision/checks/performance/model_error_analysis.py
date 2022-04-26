@@ -148,9 +148,9 @@ class ModelErrorAnalysis(TrainTestCheck):
         try:
             error_fi, error_model_predicted = \
                 model_error_contribution(train_property_df,
-                                         self._train_scores,
+                                         pd.Series(self._train_scores),
                                          test_property_df,
-                                         self._test_scores,
+                                         pd.Series(self._test_scores),
                                          train_property_df.columns.to_list(),
                                          [],
                                          min_error_model_score=self.min_error_model_score,
