@@ -42,7 +42,7 @@ def get_check_classes_in_module(module):
     all_classes = dir(module)
     for class_name in all_classes:
         class_ = getattr(module, class_name)
-        if hasattr(class_, 'mro') and BaseCheck in class_.mro():
+        if hasattr(class_, "mro") and BaseCheck in class_.mro():
             yield class_
 
 
