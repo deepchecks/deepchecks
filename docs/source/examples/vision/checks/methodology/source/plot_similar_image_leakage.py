@@ -35,7 +35,7 @@ image, when distance is defined by the Hamming distance between the binary vecto
 
 Note about default parameters
 --------------------------------------
-Similarity between images is dependent on the purpose of the dataset. This is because sometimes we're training a model
+Similarity between images depends on the purpose of the dataset. This is because sometimes we're training a model
 to find large differences between images (e.g. people vs dogs) and sometimes we're training to find small differences
 (e.g. different types of trees). Moreover, sometimes our images are taken from real-world datasets, where they were
 taken by different people, in different locations, and sometimes the images are "cleaner", such as ones taken under
