@@ -65,10 +65,10 @@ def group_class_detection_label(detected, ground_truth):
 
     for single_detection in detected:
         class_id = untorchify(single_detection[5])
-        class_bounding_boxes[class_id]["detected"].append(single_detection.cpu().numpy())
+        class_bounding_boxes[class_id]["detected"].append(single_detection.cpu().detach().numpy())
     for single_ground_truth in ground_truth:
         class_id = untorchify(single_ground_truth[0])
-        class_bounding_boxes[class_id]["ground_truth"].append(single_ground_truth.cpu().numpy())
+        class_bounding_boxes[class_id]["ground_truth"].append(single_ground_truth.cpu().detach().numpy())
 
     return class_bounding_boxes
 
