@@ -22,15 +22,17 @@ Run the check
 We will run the check on the iris dataset.
 """
 
+from deepchecks.tabular import Dataset
 from deepchecks.tabular.datasets.classification import iris
 from deepchecks.tabular.checks.methodology import TrainTestSamplesMix
 
 # Create data with leakage from train to test
-train_df, test_df = iris.load_data(data_format='Dataframe')
-bad_test_df = test_df.append(train_df.data.iloc[[0, 1, 1, 2, 3, 4, 2, 2, 10]], ignore_index=True)
+train, test = iris.load_data()
+bad_test_df = test.data.append(train.data.iloc[[0, 1, 1, 2, 3, 4, 2, 2, 10]], ignore_index=True)
+bad_test = test.copy(bad_test_df)
 
 check = TrainTestSamplesMix()
-result = check.run(test_dataset=bad_test_df, train_dataset=train_df)
+result = check.run(test_dataset=bad_test, train_dataset=train)
 result
 
 # %%
@@ -39,5 +41,5 @@ result
 # We can define a condition that enforces that the ratio of samples in test which appears in train is below a given
 # amount, the default is `0.1`.
 check = TrainTestSamplesMix().add_condition_duplicates_ratio_not_greater_than()
-result = check.run(test_dataset=bad_test_df, train_dataset=train_df)
+result = check.run(test_dataset=bad_test, train_dataset=train)
 result.show(show_additional_outputs=False)
