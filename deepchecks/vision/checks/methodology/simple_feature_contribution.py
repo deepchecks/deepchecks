@@ -152,7 +152,7 @@ class SimpleFeatureContribution(TrainTestCheck):
 
         # PPS task type is inferred from label dtype. For computer vision tasks, it's safe to assume that unless
         # the label is a float, then the task type is not regression and thus the label is cast to object dtype.
-        if not (is_float_dtype(df_train['target']) or is_float_dtype(df_test['target'])):
+        if not (self.is_float_column(df_train['target']) or self.is_float_column(df_test['target'])):
             df_train['target'] = df_train['target'].astype('object')
             df_test['target'] = df_test['target'].astype('object')
         else:
@@ -197,6 +197,25 @@ class SimpleFeatureContribution(TrainTestCheck):
             display += text
 
         return CheckResult(value=ret_value, display=display, header='Simple Feature Contribution')
+
+    @staticmethod
+    def is_float_column(col: pd.Series) -> bool:
+        """Check if a column must be a float - meaning does it contain fractions.
+
+        Parameters
+        ----------
+        col : pd.Series
+            The column to check.
+
+        Returns
+        -------
+        bool
+            True if the column is float, False otherwise.
+        """
+        if not is_float_dtype(col):
+            return False
+
+        return (col.round() != col).any()
 
     def add_condition_feature_pps_difference_not_greater_than(self: SFC, threshold: float = 0.2) -> SFC:
         """Add new condition.
