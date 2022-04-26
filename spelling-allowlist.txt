@@ -79,3 +79,4 @@ NotebookRenderer
 requirejs
 CDN
 CustomNotebookRenderer
+Wandb

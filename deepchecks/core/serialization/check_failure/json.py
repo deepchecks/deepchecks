@@ -44,4 +44,8 @@ class CheckFailureSerializer(JsonSerializer[CheckFailure]):
         return {
             'header': self.value.header,
             'check': self.value.check.metadata(),
+            'display': [{
+                'type': 'html',
+                'payload': f'<p style="color:red">{self.value.exception}</p>'
+            }]
         }

@@ -17,13 +17,18 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from pandas.io.formats.style import Styler
 from ipywidgets.widgets import Widget
-from wandb.sdk.data_types.base_types.wb_value import WBValue
 from plotly.basedatatypes import BaseFigure
 from typing_extensions import Protocol
 from typing_extensions import runtime_checkable
 
 from deepchecks.core.check_result import TDisplayItem
 from deepchecks.core.serialization import common
+
+
+try:
+    from wandb.sdk.data_types.base_types.wb_value import WBValue
+except ImportError:
+    pass
 
 
 __all__ = [
@@ -80,7 +85,7 @@ class WidgetSerializer(Serializer[T], Protocol):
 class WandbSerializer(Serializer[T], Protocol):
     """To wandb metadata serializer protocol."""
 
-    def serialize(self, **kwargs) -> t.Dict[str, WBValue]:
+    def serialize(self, **kwargs) -> t.Dict[str, 'WBValue']:
         """Serialize into Wandb media format."""
         ...
 

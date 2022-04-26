@@ -149,12 +149,12 @@ def display_from_json(data: t.Union[str, CheckResultMetadata]) -> str:
         data = t.cast(CheckResultMetadata, jsonpickle.loads(data))
 
     if not isinstance(data, dict):
-        raise ValueError()
+        raise ValueError('Unexpected json data structure')
 
     keys = ('check', 'value', 'header', 'conditions_results', 'display')
 
     if not all(k in data for k in keys):
-        raise ValueError()
+        raise ValueError('Unexpected json data structure')
 
     header = data['header']
     summary = data['check']['summary']
