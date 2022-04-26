@@ -9,18 +9,13 @@
 # ----------------------------------------------------------------------------
 #
 import os
-import ast
 import sys
 from urllib.parse import urlparse
-
-import docutils.nodes
-from docutils.core import publish_doctree
 
 import deepchecks.tabular.checks as tabular_checks
 import deepchecks.vision.checks as vision_checks
 from deepchecks import BaseCheck
 from deepchecks.utils.strings import generate_check_docs_link
-
 
 # This script is used to validate the examples in the repo. It will validate that the names of the examples are
 # correct and match the name of the check. In addition it will validate the examples include a single H1 tag.
@@ -35,10 +30,10 @@ ignored_files = [
 def test_read_more_link(check_class, compiled_dir: str):
     link = urlparse(generate_check_docs_link(check_class()))
     # For path "/stable/examples/..." remove the version part
-    relevant_path_parts = link.path.split('/')[2:]
-    file_path = os.path.join(*compiled_dir.split('/'), *relevant_path_parts)
+    relevant_path_parts = link.path.split("/")[2:]
+    file_path = os.path.join(*compiled_dir.split("/"), *relevant_path_parts)
     if not os.path.exists(file_path):
-        print(f'Check {check_class.__name__} does not have a corresponding example file')
+        print(f"Check {check_class.__name__} 'read more' link didn't correspond to an html file")
         return False
     return True
 
