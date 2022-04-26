@@ -152,12 +152,14 @@ class SimpleFeatureContribution(TrainTestCheck):
 
         # PPS task type is inferred from label dtype. For computer vision tasks, it's safe to assume that unless
         # the label is a float, then the task type is not regression and thus the label is cast to object dtype.
-        if not (self.is_float_column(df_train['target']) or self.is_float_column(df_test['target'])):
-            df_train['target'] = df_train['target'].astype('object')
-            df_test['target'] = df_test['target'].astype('object')
-        else:
+        # For the known task types (object detection, classification), classification is always selected.
+        if context.train.task_type == TaskType.OTHER and \
+                (self.is_float_column(df_train['target']) or self.is_float_column(df_test['target'])):
             df_train['target'] = df_train['target'].astype('float')
             df_test['target'] = df_test['target'].astype('float')
+        else:
+            df_train['target'] = df_train['target'].astype('object')
+            df_test['target'] = df_test['target'].astype('object')
 
         text = [
             'The Predictive Power Score (PPS) is used to estimate the ability of an image property (such as brightness)'

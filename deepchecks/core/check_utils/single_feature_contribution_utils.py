@@ -21,7 +21,7 @@ import plotly.graph_objects as go
 
 def get_single_feature_contribution(train_df: pd.DataFrame, train_label_name: Optional[Hashable], test_df: pd.DataFrame,
                                     test_label_name: Optional[Hashable], ppscore_params: dict, n_show_top: int,
-                                    random_state: int = 42):
+                                    random_state: int = None):
     """
     Calculate the PPS for train, test and difference for single feature contribution checks.
 
@@ -43,8 +43,8 @@ def get_single_feature_contribution(train_df: pd.DataFrame, train_label_name: Op
             dictionary of additional parameters for the ppscore predictor function
         n_show_top: int
             Number of features to show, sorted by the magnitude of difference in PPS
-        random_state: int, default 42
-        Random state for the ppscore.predictors function
+        random_state: int, default None
+            Random state for the ppscore.predictors function
 
     Returns:
         CheckResult
@@ -110,7 +110,7 @@ def get_single_feature_contribution_per_class(train_df: pd.DataFrame, train_labe
                                               test_label_name: Optional[Hashable], ppscore_params: dict,
                                               n_show_top: int,
                                               min_pps_to_show: float = 0.05,
-                                              random_state: int = 42):
+                                              random_state: int = None):
     """
     Calculate the PPS for train, test and difference for single feature contribution checks per class.
 
@@ -134,7 +134,7 @@ def get_single_feature_contribution_per_class(train_df: pd.DataFrame, train_labe
             Number of features to show, sorted by the magnitude of difference in PPS
         min_pps_to_show: float, default 0.05
             Minimum PPS to show a class in the graph
-        random_state: int, default 42
+        random_state: int, default None
             Random state for the ppscore.predictors function
 
     Returns:
