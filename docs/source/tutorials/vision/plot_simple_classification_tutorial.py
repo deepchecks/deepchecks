@@ -16,7 +16,7 @@ it contains.
 """
 
 #%%
-# Defining the data and model
+# Downloading the Data
 # ===========================
 #
 # For this example we'll use a small sample of the RGB `EuroSAT dataset <https://github.com/phelber/eurosat#>`_.
@@ -84,12 +84,12 @@ result.save_as_html('output.html')
 result
 
 #%%
-# Understanding the results:
+# Understanding the Results:
 # ===========================
 # Looking at the results we see two checks whose conditions have failed:
 #
-# 1. similar image leakage
-# 2. simple Feature Contribution
+# 1. Similar Image Leakage
+# 2. Simple Feature Contribution
 #
 # The first has clearly failed due to the naturally occurring similarity between different ocean / lake image,
 # and the prevailing green of some forest images. We may wish to remove some of these duplicate images but for this
