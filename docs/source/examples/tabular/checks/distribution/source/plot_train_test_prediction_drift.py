@@ -53,7 +53,6 @@ one-dimensional distributions, the following 2 methods give the best results:
 
 from deepchecks.tabular.checks import TrainTestPredictionDrift
 from deepchecks.tabular.datasets.classification import adult
-from sklearn.preprocessing import LabelEncoder
 
 
 #%%
@@ -62,9 +61,6 @@ from sklearn.preprocessing import LabelEncoder
 
 label_name = 'income'
 train_ds, test_ds = adult.load_data()
-encoder = LabelEncoder()
-train_ds.data[label_name] = encoder.fit_transform(train_ds.data[label_name])
-test_ds.data[label_name] = encoder.transform(test_ds.data[label_name])
 
 #%%
 # Introducing drift:
