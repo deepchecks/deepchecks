@@ -245,7 +245,7 @@ class ImagePropertyDrift(TrainTestCheck):
             if len(failed_properties) > 0:
                 failed_properties = ';\n'.join(f'{p}={d:.2f}' for p, d in failed_properties)
                 return ConditionResult(
-                    False,
+                    ConditionCategory.FAIL,
                     'Earth Mover\'s Distance is above the threshold '
                     f'for the next properties:\n{failed_properties}'
                 )
