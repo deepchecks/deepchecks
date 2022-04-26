@@ -10,6 +10,7 @@
 #
 """Utils module containing useful global functions."""
 import re
+import sys
 import subprocess
 from functools import lru_cache
 
