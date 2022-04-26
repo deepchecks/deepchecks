@@ -25,6 +25,7 @@ from hamcrest import (
 )
 
 from deepchecks.core import CheckResult
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError, DeepchecksNotImplementedError
 from deepchecks.vision.datasets.classification.mnist import MNISTData
 from deepchecks.vision.utils.image_properties import default_image_properties
@@ -109,6 +110,7 @@ def test_image_property_drift_fail_condition(coco_train_visiondata, coco_test_vi
 def contains_failed_condition():
     condition_assertion = has_properties({
         'is_pass': equal_to(False),
+        'category': equal_to(ConditionCategory.FAIL),
         'details': matches_regexp(
             r'Earth Mover\'s Distance is above the threshold '
             r'for the next properties\:\n.*'
