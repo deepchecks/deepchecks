@@ -66,6 +66,9 @@ drift score from the AUC score of this classifier.
 # Irvine, CA: University of California, School of Information and Computer Science.
 
 import pandas as pd
+from urllib.request import urlopen
+from sklearn.preprocessing import LabelEncoder
+import numpy as np
 
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.datasets.classification import adult
@@ -76,6 +79,9 @@ from deepchecks.tabular.datasets.classification import adult
 
 label_name = 'income'
 train_ds, test_ds = adult.load_data()
+encoder = LabelEncoder()
+train_ds.data[label_name] = encoder.fit_transform(train_ds.data[label_name])
+test_ds.data[label_name] = encoder.transform(test_ds.data[label_name])
 
 #%%
 
