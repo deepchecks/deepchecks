@@ -62,6 +62,7 @@ from deepchecks.vision.simple_classification_data import load_dataset
 train_ds = load_dataset('./EuroSAT/euroSAT/', train=True, object_type='VisionData', image_extension='jpg')
 test_ds = load_dataset('./EuroSAT/euroSAT/', train=False, object_type='VisionData', image_extension='jpg')
 
+#%%
 # Running Deepchecks' full suite
 # ==============================
 # That's it, we have just defined the classification data object and are ready to run the train_test_validation suite:
@@ -72,7 +73,7 @@ suite = train_test_validation()
 result = suite.run(train_ds, test_ds)
 
 #%%
-# Observing the results:
+# Observing the Results:
 # ===========================
 # The results can be saved as a html file with the following code:
 
