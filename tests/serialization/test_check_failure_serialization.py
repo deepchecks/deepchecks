@@ -94,7 +94,10 @@ def test_json_serialization():
     failure = CheckFailure(DummyCheck(), ValueError("Check Failed"), 'Failure Header Message')
     serializer = JsonSerializer(failure)
     output = serializer.serialize()
+    assert_json_output(output)
 
+
+def assert_json_output(output):
     assert_that(
         output,
         all_of(

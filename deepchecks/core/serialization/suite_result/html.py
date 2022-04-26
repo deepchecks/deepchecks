@@ -71,15 +71,17 @@ class SuiteResultSerializer(HtmlSerializer[SuiteResult]):
         -------
         str
         """
-        summary = self.prepare_summary(**kwargs)
-        conditions_table = self.prepare_conditions_table(**kwargs)
+        summary = self.prepare_summary(output_id=output_id, **kwargs)
+        conditions_table = self.prepare_conditions_table(output_id=output_id, **kwargs)
         failures = self.prepare_failures_list()
 
         results_with_conditions = self.prepare_results_with_condition_and_display(
+            output_id=output_id,
             check_sections=['additional-output'],
             **kwargs
         )
         results_without_conditions = self.prepare_results_without_condition(
+            output_id=output_id,
             check_sections=['additional-output'],
             **kwargs
         )
@@ -155,8 +157,8 @@ class SuiteResultSerializer(HtmlSerializer[SuiteResult]):
         -------
         str
         """
-        idattr = f'id="{form_output_anchor(output_id)}"' if output_id else ''
-        return f'<h1 {idattr}>{self.value.name}</h1>'
+        idattr = f' id="{form_output_anchor(output_id)}"' if output_id else ''
+        return f'<h1{idattr}>{self.value.name}</h1>'
 
     def prepare_extra_info(self) -> str:
         """Prepare extra info section."""

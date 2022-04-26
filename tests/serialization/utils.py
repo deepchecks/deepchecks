@@ -9,6 +9,17 @@
 # ----------------------------------------------------------------------------
 #
 """Utils for serialization tests."""
+import this
+import typing as t
+import plotly.express as px
+import pandas as pd
+import matplotlib.pyplot as plt
+
+from deepchecks.core.suite import SuiteResult
+from deepchecks.core.check_result import CheckResult
+from deepchecks.core.check_result import CheckFailure
+from deepchecks.core.condition import ConditionResult
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.checks import BaseCheck
 
 
@@ -17,3 +28,62 @@ class DummyCheck(BaseCheck):
 
     def run(self, *args, **kwargs):
         raise NotImplementedError()
+    
+
+def create_suite_result(
+    name: str = 'Dummy Suite Result',
+    n_of_results: int = 5,
+    n_of_failures: int = 5
+) -> SuiteResult:
+    results = [
+        create_check_result(value=i, header=f'Dummy Result #{i}') 
+        for i in range(n_of_results)
+    ]
+    failures = [
+        CheckFailure(DummyCheck(), Exception(f'Error #{i}'))
+        for i in range(n_of_failures)
+    ]
+    return SuiteResult(
+        name=name,
+        results=[*results, *failures],
+        extra_info=this.s.splitlines()
+    )
+
+
+def create_check_result(
+    value: t.Any = None,
+    header: str = 'Dummy Result',
+    include_display: bool = True,
+    include_conditions: bool = True
+) -> CheckResult:
+    def draw_plot():
+        plt.subplots()
+        plt.plot([1, 2, 3, 4], [1, 4, 2, 3])
+
+    plotly_figure = px.bar(
+        px.data.gapminder().query("country == 'Canada'"),
+        x='year', y='pop'
+    )
+    display = [
+        header,
+        pd.DataFrame({'foo': range(10), 'bar': range(10)}),
+        plotly_figure,
+        draw_plot
+    ]
+    result = CheckResult(
+        value=value or 1000,
+        header='Dummy Result',
+        display=display if include_display else None,
+    )
+
+    if include_conditions:
+        c1 = ConditionResult(ConditionCategory.WARN, 'Dummy Condition 1')
+        c2 = ConditionResult(ConditionCategory.FAIL, 'Dummy Condition 2')
+        c3 = ConditionResult(ConditionCategory.PASS, 'Dummy Condition 3')
+        c1.set_name('Dummy Condition 1')
+        c2.set_name('Dummy Condition 3')
+        c3.set_name('Dummy Condition 3')
+        result.conditions_results = [c1, c2, c3]
+
+    result.check = DummyCheck()
+    return result

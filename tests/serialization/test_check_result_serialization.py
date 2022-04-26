@@ -13,9 +13,6 @@ import typing as t
 import json
 
 import wandb
-import plotly.express as px
-import pandas as pd
-import matplotlib.pyplot as plt
 from ipywidgets import VBox, HTML
 from hamcrest import (
     assert_that,
@@ -34,9 +31,6 @@ from hamcrest import (
 )
 
 from deepchecks.utils.strings import get_random_string
-from deepchecks.core.check_result import CheckResult
-from deepchecks.core.condition import ConditionResult
-from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.serialization.common import plotly_activation_script
 from deepchecks.core.serialization.check_result.json import display_from_json
 from deepchecks.core.serialization.check_result.html import CheckResultSerializer as HtmlSerializer
@@ -45,45 +39,7 @@ from deepchecks.core.serialization.check_result.wandb import CheckResultSerializ
 from deepchecks.core.serialization.check_result.widget import CheckResultSerializer as WidgetSerializer
 
 from tests.serialization.utils import DummyCheck
-
-
-def create_check_result(
-    value=None,
-    header='Dummy Result',
-    include_display=True,
-    include_conditions=True
-):
-    def draw_plot():
-        plt.subplots()
-        plt.plot([1, 2, 3, 4], [1, 4, 2, 3])
-
-    plotly_figure = px.bar(
-        px.data.gapminder().query("country == 'Canada'"),
-        x='year', y='pop'
-    )
-    display = [
-        header,
-        pd.DataFrame({'foo': range(10), 'bar': range(10)}),
-        plotly_figure,
-        draw_plot
-    ]
-    result = CheckResult(
-        value=value or 1000,
-        header='Dummy Result',
-        display=display if include_display else None,
-    )
-
-    if include_conditions:
-        c1 = ConditionResult(ConditionCategory.WARN, 'Dummy Condition 1')
-        c2 = ConditionResult(ConditionCategory.FAIL, 'Dummy Condition 2')
-        c3 = ConditionResult(ConditionCategory.PASS, 'Dummy Condition 3')
-        c1.set_name('Dummy Condition 1')
-        c2.set_name('Dummy Condition 3')
-        c3.set_name('Dummy Condition 3')
-        result.conditions_results = [c1, c2, c3]
-
-    result.check = DummyCheck()
-    return result
+from tests.serialization.utils import create_check_result
 
 
 # ===========================================
@@ -122,7 +78,7 @@ def test_html_serialization_with_empty__check_sections__parameter():
         calling(HtmlSerializer(result).serialize).with_args(check_sections=[]),
         raises(ValueError, 'include parameter cannot be empty')
     )
-    
+
 
 def test_html_serialization_with__output_id__parameter():
     result = create_check_result()
@@ -409,7 +365,7 @@ def test_widget_serialization_without_conditions_section():
     check_result = create_check_result()
     output = WidgetSerializer(check_result).serialize(check_sections=['additional-output'])
     assert_widget_output(
-        output, 
+        output,
         check_result,
         with_conditions_section=False,
         with_display_section=True
@@ -419,7 +375,7 @@ def test_widget_serialization_without_display_section():
     check_result = create_check_result()
     output = WidgetSerializer(check_result).serialize(check_sections=['condition-table'])
     assert_widget_output(
-        output, 
+        output,
         check_result,
         with_conditions_section=True,
         with_display_section=False
