@@ -67,8 +67,8 @@ def test_no_drift_classification(mnist_dataset_train):
 
     # Assert
     assert_that(result.value, has_entries({
-        'train': has_entries({'Brightness': equal_to(0)}),
-        'test': has_entries({'Brightness': equal_to(0)}),
+        'train': has_entries({'Brightness': close_to(0.08, 0.005)}),
+        'test': has_entries({'Brightness': close_to(0.08, 0.005)}),
         'train-test difference': has_entries({'Brightness': equal_to(0)})
     }))
 
@@ -85,9 +85,9 @@ def test_drift_classification(mnist_dataset_train, mnist_dataset_test):
 
     # Assert
     assert_that(result.value, has_entries({
-        'train': has_entries({'Brightness': equal_to(0)}),
-        'test': has_entries({'Brightness': close_to(0.458, 0.001)}),
-        'train-test difference': has_entries({'Brightness': close_to(-0.458, 0.001)})
+        'train': has_entries({'Brightness': close_to(0.08, 0.005)}),
+        'test': has_entries({'Brightness': close_to(0.239, 0.001)}),
+        'train-test difference': has_entries({'Brightness': close_to(-0.159, 0.001)})
     }))
 
 
@@ -119,9 +119,9 @@ def test_drift_object_detection(coco_train_visiondata, coco_test_visiondata):
 
     # Assert
     assert_that(result.value, has_entries({
-        'train': has_entries({'Brightness': close_to(0.38, 0.01)}),
+        'train': has_entries({'Brightness': close_to(0.062, 0.01)}),
         'test': has_entries({'Brightness': equal_to(0)}),
-        'train-test difference': has_entries({'Brightness': close_to(0.38, 0.01)}),
+        'train-test difference': has_entries({'Brightness': close_to(0.062, 0.01)}),
     })
                 )
 
@@ -136,9 +136,9 @@ def test_no_drift_classification_per_class(mnist_dataset_train):
 
     # Assert
     assert_that(result.value, has_entries({
-        'Brightness': has_entries({'train':  has_entries({1: equal_to(0)}),
-                                   'test':  has_entries({1: equal_to(0)}),
-                                   'train-test difference':  has_entries({1: equal_to(0)})}),
+        'Brightness': has_entries({'train':  has_entries({'1': equal_to(0)}),
+                                   'test':  has_entries({'1': equal_to(0)}),
+                                   'train-test difference':  has_entries({'1': equal_to(0)})}),
     }))
 
 
@@ -154,9 +154,9 @@ def test_drift_classification_per_class(mnist_dataset_train, mnist_dataset_test)
 
     # Assert
     assert_that(result.value, has_entries({
-        'Brightness': has_entries({'train':  has_entries({1: equal_to(0)}),
-                                   'test':  has_entries({1: close_to(0.64, 0.01)}),
-                                   'train-test difference':  has_entries({1: close_to(-0.64, 0.01)})}),
+        'Brightness': has_entries({'train':  has_entries({'1': equal_to(0)}),
+                                   'test':  has_entries({'1': close_to(0.64, 0.01)}),
+                                   'train-test difference':  has_entries({'1': close_to(-0.64, 0.01)})}),
     }))
 
 
@@ -170,9 +170,9 @@ def test_no_drift_object_detection_per_class(coco_train_visiondata):
 
     # Assert
     assert_that(result.value, has_entries({
-        'Brightness': has_entries({'train':  has_entries({71: equal_to(0)}),
-                                   'test':  has_entries({71: equal_to(0)}),
-                                   'train-test difference':  has_entries({71: equal_to(0)})}),
+        'Brightness': has_entries({'train':  has_entries({'door': equal_to(0)}),
+                                   'test':  has_entries({'door': equal_to(0)}),
+                                   'train-test difference':  has_entries({'door': equal_to(0)})}),
     }))
 
 
@@ -188,9 +188,9 @@ def test_drift_object_detection_per_class(coco_train_visiondata, coco_test_visio
 
     # Assert
     assert_that(result.value, has_entries({
-        'Brightness': has_entries({'train':  has_entries({71: equal_to(0)}),
-                                   'test':  has_entries({71: close_to(0.335, 0.01)}),
-                                   'train-test difference':  has_entries({71: close_to(-0.335, 0.01)})}),
+        'Brightness': has_entries({'train':  has_entries({'door': equal_to(0)}),
+                                   'test':  has_entries({'door': close_to(0.335, 0.01)}),
+                                   'train-test difference':  has_entries({'door': close_to(-0.335, 0.01)})}),
     }))
 
 
@@ -216,7 +216,7 @@ def test_train_test_condition_pps_train_pass(coco_train_visiondata):
 def test_train_test_condition_pps_train_fail(coco_train_visiondata, coco_test_visiondata):
     # Arrange
     train, test = coco_train_visiondata, coco_test_visiondata
-    condition_value = 0.3
+    condition_value = 0.09
     check = SimpleFeatureContribution(per_class=False, random_state=42
                                       ).add_condition_feature_pps_in_train_not_greater_than(condition_value)
     train = copy(train)
@@ -231,8 +231,7 @@ def test_train_test_condition_pps_train_fail(coco_train_visiondata, coco_test_vi
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name=f'Train properties\' Predictive Power Score is not greater than {condition_value}',
-        details='Features in train dataset with PPS above threshold: {\'Brightness\': \'0.38\', '
-                '\'RMS Contrast\': \'0.34\'}'
+        details='Features in train dataset with PPS above threshold: {\'Mean Red Relative Intensity\': \'0.1\'}'
     ))
 
 
