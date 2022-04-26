@@ -19,21 +19,29 @@ it contains.
 # Defining the data and model
 # ===========================
 #
-# The data is available from the torch library. We will download and extract it to the current directory.
+# For this example we'll use a small sample of the RGB `EuroSAT dataset <https://github.com/phelber/eurosat#>`_.
+# EuroSAT dataset is based on Sentinel-2 satellite images covering 13 spectral bands and consisting of 10 classes
+# with 27000 labeled and geo-referenced samples.
+
+# Citations:
+#
+# [1] Eurosat: A novel dataset and deep learning benchmark for land use and land cover classification. Patrick
+# Helber, Benjamin Bischke, Andreas Dengel, Damian Borth. IEEE Journal of Selected Topics in Applied Earth
+# Observations and Remote Sensing, 2019.
+#
+# [2] Introducing EuroSAT: A Novel Dataset and Deep Learning Benchmark for Land Use and Land Cover Classification.
+# Patrick Helber, Benjamin Bischke, Andreas Dengel. 2018 IEEE International Geoscience and Remote Sensing Symposium,
+# 2018.
 
 import urllib.request
 import zipfile
-import os
+import numpy as np
 
-url = 'https://download.pytorch.org/tutorial/hymenoptera_data.zip'
-urllib.request.urlretrieve(url, 'hymenoptera_data.zip')
+url = 'https://figshare.com/ndownloader/files/34912884'
+urllib.request.urlretrieve(url, 'EuroSAT_data.zip')
 
-with zipfile.ZipFile('hymenoptera_data.zip', 'r') as zip_ref:
-    zip_ref.extractall('.')
-
-# Rename val folder to test, because the simple classification task expects a test folder.
-if not os.path.exists('hymenoptera_data/test'):
-    os.rename('hymenoptera_data/val', 'hymenoptera_data/test')
+with zipfile.ZipFile('EuroSAT_data.zip', 'r') as zip_ref:
+    zip_ref.extractall('EuroSAT')
 
 #%%
 # Loading a Simple Classification Dataset
@@ -51,8 +59,8 @@ if not os.path.exists('hymenoptera_data/test'):
 
 from deepchecks.vision.simple_classification_data import load_dataset
 
-train_ds = load_dataset('hymenoptera_data', train=True, object_type='VisionData', image_extension='jpg')
-test_ds = load_dataset('hymenoptera_data', train=False, object_type='VisionData', image_extension='jpg')
+train_ds = load_dataset('./EuroSAT/euroSAT/', train=True, object_type='VisionData', image_extension='jpg')
+test_ds = load_dataset('./EuroSAT/euroSAT/', train=False, object_type='VisionData', image_extension='jpg')
 
 # Running Deepchecks' full suite
 # ==============================
@@ -74,3 +82,38 @@ result.save_as_html('output.html')
 # Or, if working inside a notebook, the output can be displayed directly by simply printing the result object:
 
 result
+
+#%%
+# Understanding the results:
+# ===========================
+# Looking at the results we see two checks whose conditions have failed:
+#
+# 1. similar image leakage
+# 2. simple Feature Contribution
+#
+# The first has clearly failed due to the naturally occurring similarity between different ocean / lake image,
+# and the prevailing green of some forest images. We may wish to remove some of these duplicate images but for this
+# dataset they make sense.
+#
+# The second failure is more interesting. The :doc:`Simple Feature Contribution
+# </examples/vision/checks/source/methodology/plot_simple_feature_contribution>` check computes various :doc:`simple
+# image # properties </user-guide/vision/vision_properties>` and checks if the image label can be inferred using a
+# simple model (for example, a Classification Tree) using the property values. The ability to predict the label using
+# these properties is measures by the Predictive Power Score (PPS) and this measure is compared between the training
+# and test dataset. In this case, the condition alerts us to the fact that this PPS for the "RMS Contrast" property was
+# significantly higher in the training dataset than in the test dataset.
+#
+# We'll show the relevant plot again for ease of discussion:
+
+check_idx = np.where([result.results[i].check.name() == 'Simple Feature Contribution'
+                      for i in range(len(result.results))])[0][0]
+result.results[check_idx].display[0]
+
+#%%
+# Here we can see the plot dedicated to the PPS of the property RMS Contrast, which measures the contrast in the
+# image by calculating the grayscale standard deviation of the image. This plot shows us that specifically for the
+# classes "Forest" and "SeaLake" (the same culprits from the Similar Image Leakage condition), the contrast is a
+# great predictor, but only in the training data! This means we have a critical problem - or model may learn to
+# classify these classes using only the contrast, without actually learning anything about the image content. We now
+# can go on and fix this issue (perhaps by adding train augmentations, or enriching our training set) even before we
+# start thinking about what model to train for the task.
