@@ -152,7 +152,7 @@ def generate_check_docs_link(check):
         return ''
 
     link_template = (
-        'https://docs.deepchecks.com/{version}/examples/{path}.html'
+        'https://docs.deepchecks.com/{version}/checks_gallery/{path}.html'
         '?utm_source=display_output&utm_medium=referral'
         '&utm_campaign=check_link'
     )
@@ -161,13 +161,13 @@ def generate_check_docs_link(check):
     # understand how link is formatted:
     #
     # - deepchecks.tabular.checks.integrity.StringMismatchComparison
-    # - https://docs.deepchecks.com/{version}/examples/tabular/checks/integrity/examples/plot_string_mismatch_comparison.html # noqa: E501 # pylint: disable=line-too-long
+    # - https://docs.deepchecks.com/{version}/checks_gallery/tabular/integrity/plot_string_mismatch_comparison.html # noqa: E501 # pylint: disable=line-too-long
 
     # Remove deepchecks from the start
     module_path = module_path[len('deepchecks.'):]
     module_parts = module_path.split('.')
     module_parts[-1] = f'plot_{module_parts[-1]}'
-    module_parts.insert(len(module_parts) - 1, 'examples')
+    module_parts.remove('checks')
     url = '/'.join([*module_parts])
     if deepchecks.__version__ and deepchecks.__version__ != 'dev':
         version_obj: Version = Version(deepchecks.__version__)
