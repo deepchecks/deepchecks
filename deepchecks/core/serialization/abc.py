@@ -144,9 +144,11 @@ class ABCDisplayItemsHandler(Protocol):
     def handle_callable(cls, item: t.Callable, index: int, **kwargs) -> t.Iterator[io.BytesIO]:
         """Handle callable."""
         # TODO: callable is a special case, add comments
-        with plt.ioff():
-            item()
-            return common.read_matplot_figures()
+        plt.ioff()
+        item()
+        r = common.read_matplot_figures()
+        plt.ion()
+        return r
 
     @abc.abstractclassmethod
     def handle_figure(cls, item: BaseFigure, index: int, **kwargs) -> t.Any:
