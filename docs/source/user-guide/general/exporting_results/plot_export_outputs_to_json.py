@@ -126,4 +126,4 @@ len(json.loads(suite_json)['results'])
 # JSON Structure <#export-a-check-s-output-checkresult-to-a-json-format>`__ we saw
 # before for each check
 
-json.loads(json.loads(suite_json)['results'][0])
+json.loads(suite_json)['results'][0]
