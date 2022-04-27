@@ -10,7 +10,6 @@ Single Feature Contribution
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 
 from deepchecks.tabular.checks.methodology import *
 from deepchecks.tabular import Dataset
@@ -26,7 +25,7 @@ df['x5'] = df['label'].apply(lambda x: 'v1' if x < 0 else 'v2')
 
 #%%
 
-ds = Dataset(df, label='label')
+ds = Dataset(df, label='label', cat_features=[])
 
 #%%
 # Running single_feature_contribution check
