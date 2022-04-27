@@ -45,7 +45,7 @@ The check's default parameters are set to match a real-world rgb photos and thei
 If your dataset has more delicate differences in it, it is advised to use the *hash_size* and *similarity_threshold*
 parameters of this check.
 The *hash_size* parameter controls the size of the hashed image. A larger hash_size will enable to find
-finer differences will between images (and results in less similarity).
+finer differences between images (and results in less similarity).
 The *similarity_threshold* parameter controls the ratio of pixels that need to be different in order
 for 2 images to be considered "different". A lower similarity_threshold will define less images as "similar".
 
