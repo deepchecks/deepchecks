@@ -37,7 +37,7 @@ Which Label Properties Are Used?
 For object detection we have default built-in label properties. For other tasks you have to define your own custom label
 properties.
 For the list of the built-in object detection label properties and explanation about custom properties refer to
-:doc:`vision properties </user-guide/vision/visio_properties>`.
+:doc:`vision properties </user-guide/vision/vision_properties>`.
 
 """
 

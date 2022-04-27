@@ -33,8 +33,10 @@ def validate_dir(checks_path, examples_path):
                 check_path = os.path.join(root, file_name)
                 if check_path not in ignored_files:
                     example_file_name = "plot_" + file_name
-                    relative_path = "/".join(check_path.split("/")[1:-1])
-                    example_path = os.path.join(examples_path, relative_path, "source", example_file_name)
+                    splitted_path = check_path.split("/")
+                    namespace = splitted_path[1]
+                    type = splitted_path[3]
+                    example_path = os.path.join(examples_path, namespace, type, example_file_name)
                     if not os.path.exists(example_path):
                         print(f"Check {check_path} does not have a corresponding example file")
                         valid = False
@@ -58,5 +60,5 @@ def validate_example(path):
 
 flag = True
 for x in checks_dirs:
-    flag = flag and validate_dir(x, "docs/source/examples")
+    flag = flag and validate_dir(x, "docs/source/checks")
 sys.exit(0 if flag else 1)

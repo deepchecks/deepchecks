@@ -385,7 +385,7 @@ class VisionData:
         batch
 
         Raises
-        -------
+        ------
         DeepchecksValueError
             If the batch data doesn't fit the format after being transformed by self().
 
@@ -415,7 +415,7 @@ class VisionData:
         batch
 
         Raises
-        -------
+        ------
         ValidationError
             If the classes data doesn't fit the format after being transformed.
         """

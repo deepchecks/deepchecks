@@ -135,7 +135,7 @@ class DetectionData(VisionData):
         batch
 
         Raises
-        -------
+        ------
         DeepchecksValueError
             If labels format is invalid
         DeepchecksNotImplementedError

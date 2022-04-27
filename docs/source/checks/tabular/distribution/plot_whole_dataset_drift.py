@@ -28,7 +28,7 @@ Causes of data drift include:
 * Change in relation between features, or covariate shift.
 
 The difference between a :doc:`feature drift
-</examples/tabular/checks/distribution/examples/plot_train_test_feature_drift>`
+</checks_gallery/tabular/distribution/plot_train_test_feature_drift>`
 (or univariate dataset drift) and a multivariate drift is that in the
 latter the data drift occures in more that one feature.
 

@@ -42,9 +42,9 @@ Other Methods of Drift Detection
 Another, more traditional method to detect such drift would be to use statistical methods.
 Such an approach is covered by several builtin check in the deepchecks.vision package, such as the
 :doc:`Label Drift Check
-</examples/vision/checks/distribution/examples/plot_train_test_label_drift>`
+</checks_gallery/vision/distribution/plot_train_test_label_drift>`
 or the :doc:`Image Dataset Drift Check
-</examples/vision/checks/distribution/examples/plot_image_dataset_drift>`.
+</checks_gallery/vision/distribution/plot_image_dataset_drift>`.
 
 
 Run the Check on a Classification Task (MNIST)

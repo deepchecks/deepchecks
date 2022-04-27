@@ -40,7 +40,7 @@ There are many methods to detect feature drift. Some of them include
 training a classifier that detects which samples come from a known
 distribution and defines the drift by the accuracy of this classifier. For
 more information, refer to the :doc:`Whole Dataset Drift check
-</examples/tabular/checks/distribution/examples/plot_whole_dataset_drift>`.
+</checks_gallery/tabular/distribution/plot_whole_dataset_drift>`.
 
 Other approaches include statistical methods aim to measure difference
 between distribution of 2 given sets. We exprimented with various approaches

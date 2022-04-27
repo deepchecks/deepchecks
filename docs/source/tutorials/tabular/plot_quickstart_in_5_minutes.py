@@ -98,7 +98,7 @@ integ_suite.run(ds_train)
 # ======================
 # If you want to run a specific check, you can just import it and run it directly.
 #
-# Check out the :doc:`Check tabular examples </examples/index>` in
+# Check out the :doc:`Check tabular examples </checks_gallery/tabular/index>` in
 # the examples or the :doc:`API Reference </api/index>` for more info about the
 # existing checks and their parameters.
 
