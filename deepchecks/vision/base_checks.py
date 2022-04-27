@@ -48,7 +48,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         self,
         dataset: VisionData,
         model: Optional[nn.Module] = None,
-        device: Union[str, torch.device, None] = 'cpu',
+        device: Union[str, torch.device, None] = None,
         random_state: int = 42,
         n_samples: Optional[int] = 10_000
     ) -> CheckResult:
@@ -115,7 +115,7 @@ class TrainTestCheck(TrainTestBaseCheck):
         train_dataset: VisionData,
         test_dataset: VisionData,
         model: Optional[nn.Module] = None,
-        device: Union[str, torch.device, None] = 'cpu',
+        device: Union[str, torch.device, None] = None,
         random_state: int = 42,
         n_samples: Optional[int] = 10_000
     ) -> CheckResult:
@@ -188,7 +188,7 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
     def run(
         self,
         model: nn.Module,
-        device: Union[str, torch.device, None] = 'cpu',
+        device: Union[str, torch.device, None] = None,
         random_state: int = 42
     ) -> CheckResult:
         """Run check."""
