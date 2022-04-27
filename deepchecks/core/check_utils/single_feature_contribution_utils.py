@@ -20,6 +20,7 @@ import plotly.graph_objects as go
 
 
 def get_pps_figure(per_class: bool):
+    """If per_class is True, then no title is defined on the figure."""
     fig = go.Figure()
     fig.update_layout(
         yaxis_title='Predictive Power Score (PPS)',
@@ -39,6 +40,7 @@ def get_pps_figure(per_class: bool):
 
 
 def pps_df_to_trace(s_pps: pd.Series, name: str):
+    """If name is train/test use our defined colors, else will use plotly defaults."""
     name = name.capitalize() if name else None
     return go.Bar(x=s_pps.index,
                   y=s_pps,

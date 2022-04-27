@@ -15,7 +15,6 @@ import deepchecks.ppscore as pps
 from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.core.check_utils.single_feature_contribution_utils import get_pps_figure, pps_df_to_trace
 from deepchecks.tabular import Context, SingleDatasetCheck
-from deepchecks.utils.plot import create_colorbar_barchart_for_check
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.strings import format_number
 
