@@ -49,12 +49,15 @@ class SingleFeatureContributionTrainTest(TrainTestCheck):
         dictionary of additional parameters for the ppscore predictor function
     n_top_features : int , default: 5
         Number of features to show, sorted by the magnitude of difference in PPS
+    random_state : int , default: None
+        Random state for the ppscore.predictors function
     """
 
-    def __init__(self, ppscore_params=None, n_top_features: int = 5, **kwargs):
+    def __init__(self, ppscore_params=None, n_top_features: int = 5, random_state: int = None, **kwargs):
         super().__init__(**kwargs)
         self.ppscore_params = ppscore_params or {}
         self.n_top_features = n_top_features
+        self.random_state = random_state
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check.
@@ -99,7 +102,8 @@ class SingleFeatureContributionTrainTest(TrainTestCheck):
                                                              train_dataset.label_name,
                                                              test_dataset.data[relevant_columns],
                                                              test_dataset.label_name, self.ppscore_params,
-                                                             self.n_top_features)
+                                                             self.n_top_features,
+                                                             random_state=self.random_state)
 
         if display:
             display += text
