@@ -276,6 +276,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             CheckResultHtmlSerializer(it).serialize(
                 output_id=output_id,
                 check_sections=check_sections,
+                include_plotlyjs=False,
                 **kwargs
             )
             for it in results
@@ -313,6 +314,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             CheckResultHtmlSerializer(it).serialize(
                 output_id=output_id,
                 include=check_sections,
+                include_plotlyjs=False,
                 **kwargs
             )
             for it in results
