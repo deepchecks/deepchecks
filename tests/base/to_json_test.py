@@ -23,7 +23,7 @@ def test_check_full_suite_not_failing(iris_split_dataset_and_model):
     assert_that(json_suite_res['name'], equal_to('Full Suite'))
     assert_that(isinstance(json_suite_res['results'], list))
     for json_res in json_suite_res['results']:
-        assert_that(isinstance(jsonpickle.loads(json_res), dict))
+        assert_that(isinstance(json_res, dict))
 
 
 def test_check_metadata(iris_dataset):
@@ -33,5 +33,5 @@ def test_check_metadata(iris_dataset):
                                              'sepal length (cm)': 'numerical feature',
                                              'sepal width (cm)': 'numerical feature',
                                              'petal length (cm)': 'numerical feature'}))
-    assert_that(json_res['name'], equal_to('Columns Info'))
-    assert_that(json_res['params'], equal_to({'n_top_columns': 4}))
+    assert_that(json_res['check']['name'], equal_to('Columns Info'))
+    assert_that(json_res['check']['params'], equal_to({'n_top_columns': 4}))

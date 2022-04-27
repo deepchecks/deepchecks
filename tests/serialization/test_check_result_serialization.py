@@ -13,6 +13,9 @@ import typing as t
 import json
 
 import wandb
+import pandas as pd
+from pandas.io.formats.style import Styler
+from plotly.basedatatypes import BaseFigure
 from ipywidgets import VBox, HTML
 from hamcrest import (
     assert_that,
@@ -67,7 +70,7 @@ def test_html_serialization():
         all_of(
             instance_of(str),
             has_length(greater_than(0)),
-            contains_string(result.header),
+            contains_string(result.get_header()),
             contains_string(t.cast(str, DummyCheck.__doc__)))
     )
 
@@ -217,42 +220,49 @@ def assert_json_output(
     )
 
     if with_display is True:
-        assert_that(
-            output['display'][0],
-            all_of(
-                instance_of(dict),
-                has_entries({
-                    'type': equal_to('html'),
-                    'payload': instance_of(str)
-                }))
-        )
-        assert_that(
-            output['display'][1],
-            all_of(
-                instance_of(dict),
-                has_entries({
-                    'type': equal_to('dataframe'),
-                    'payload': instance_of(list)
-                }))
-        )
-        assert_that(
-            output['display'][2],
-            all_of(
-                instance_of(dict),
-                has_entries({
-                    'type': equal_to('plotly'),
-                    'payload': instance_of(str)
-                }))
-        )
-        assert_that(
-            output['display'][3],
-            all_of(
-                instance_of(dict),
-                has_entries({
-                    'type': equal_to('images'),
-                    'payload': instance_of(list)
-                }))
-        )
+        for index, it in enumerate(check_result.display):
+            if isinstance(it, (pd.DataFrame, Styler)):
+                assert_that(
+                    output['display'][index],
+                    all_of(
+                        instance_of(dict),
+                        has_entries({
+                            'type': equal_to('dataframe'),
+                            'payload': instance_of(list)
+                        }))
+                )
+            elif isinstance(it, str):
+                assert_that(
+                    output['display'][index],
+                    all_of(
+                        instance_of(dict),
+                        has_entries({
+                            'type': equal_to('html'),
+                            'payload': instance_of(str)
+                        }))
+                )
+            elif isinstance(it, BaseFigure):
+                assert_that(
+                    output['display'][index],
+                    all_of(
+                        instance_of(dict),
+                        has_entries({
+                            'type': equal_to('plotly'),
+                            'payload': instance_of(str)
+                        }))
+                )
+            elif callable(it):
+                assert_that(
+                    output['display'][index],
+                    all_of(
+                        instance_of(dict),
+                        has_entries({
+                            'type': equal_to('images'),
+                            'payload': instance_of(list)
+                        }))
+                )
+            else:
+                raise TypeError(f'Unknown display item type {type(it)}')
 
 
 def test__display_from_json__function():
@@ -328,11 +338,18 @@ def wandb_output_assertion(
     }
 
     if with_display is True:
-        entries[f'{check_result.header}/item-0-html'] = instance_of(wandb.Html)
-        entries[f'{check_result.header}/item-1-table'] = instance_of(wandb.Table)
-        entries[f'{check_result.header}/item-2-plot'] = instance_of(wandb.Plotly)
-        entries[f'{check_result.header}/item-3-figure'] = instance_of(wandb.Image)
-
+        for index, it in enumerate(check_result.display):
+            if isinstance(it, (pd.DataFrame, Styler)):
+                entries[f'{check_result.header}/item-{index}-table'] = instance_of(wandb.Table)
+            elif isinstance(it, str):
+                entries[f'{check_result.header}/item-{index}-html'] = instance_of(wandb.Html)
+            elif isinstance(it, BaseFigure):
+                entries[f'{check_result.header}/item-{index}-plot'] = instance_of(wandb.Plotly)
+            elif callable(it):
+                entries[f'{check_result.header}/item-{index}-figure'] = instance_of(wandb.Image)
+            else:
+                raise TypeError(f'Unknown display item type {type(it)}')
+        
     if with_conditions_table is True:
         entries[f'{check_result.header}/conditions table'] = instance_of(wandb.Table)
 
@@ -457,5 +474,5 @@ def assert_widget_output(
                     'children',
                     all_of(
                         instance_of(tuple),
-                        has_length(equal_to(5)))))
+                        has_length(equal_to(len(check_result.display) + 1)))))  # plus header element
         )

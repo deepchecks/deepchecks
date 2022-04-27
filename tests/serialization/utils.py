@@ -67,6 +67,7 @@ def create_check_result(
     display = [
         header,
         pd.DataFrame({'foo': range(10), 'bar': range(10)}),
+        pd.DataFrame({'foo': range(10), 'bar': range(10)}).style,
         plotly_figure,
         draw_plot
     ]

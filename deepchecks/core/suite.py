@@ -183,7 +183,8 @@ class SuiteResult:
         # TODO: not sure if the `with_display` parameter is needed
         # add deprecation warning if it is not needed
         return jsonpickle.dumps(
-            SuiteResultJsonSerializer(self).serialize()
+            SuiteResultJsonSerializer(self).serialize(),
+            unpicklable=False
         )
 
     def to_wandb(

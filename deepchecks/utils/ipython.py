@@ -19,7 +19,7 @@ from tqdm.notebook import tqdm as tqdm_notebook
 from IPython import get_ipython  # TODO: I think we should remove ipython from mandatory dependencies
 
 
-__all__ = ['is_notebook', 'is_widgets_enabled', 'is_headless']
+__all__ = ['is_notebook', 'is_widgets_enabled', 'is_headless', 'ProgressBar']
 
 
 @lru_cache(maxsize=None)
@@ -85,10 +85,11 @@ def is_widgets_enabled() -> bool:
 
 class ProgressBar:
     """Progress bar for display while running suite.
+
     Parameters
     ----------
-    name
-    length
+    name : str
+    length : int
     """
 
     def __init__(self, name, length, unit):
@@ -104,9 +105,10 @@ class ProgressBar:
 
     def set_text(self, text):
         """Set current running check.
+
         Parameters
         ----------
-        text
+        text: str
         """
         self.pbar.set_postfix({self.unit: text})
 

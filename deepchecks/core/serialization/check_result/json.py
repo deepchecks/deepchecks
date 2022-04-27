@@ -118,7 +118,7 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
         if isinstance(item, Styler):
             return {
                 'type': 'dataframe',
-                'payload': item.to_dict(orient='records')
+                'payload': item.data.to_dict(orient='records')
             }
         else:
             return {

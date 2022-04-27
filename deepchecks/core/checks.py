@@ -120,11 +120,11 @@ class BaseCheck(abc.ABC):
         return initvars(self, show_defaults)
 
     def finalize_check_result(
-        self, 
+        self,
         check_result: 'check_types.CheckResult'
     ) -> 'check_types.CheckResult':
         """Finalize the check result by adding the check instance and processing the conditions."""
-        if isinstance(check_result, check_types.CheckResult):
+        if isinstance(check_result, check_types.CheckFailure):
             return check_result
 
         if not isinstance(check_result, check_types.CheckResult):
