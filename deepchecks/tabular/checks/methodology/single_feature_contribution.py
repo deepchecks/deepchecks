@@ -13,8 +13,8 @@ import typing as t
 
 import deepchecks.ppscore as pps
 from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
+from deepchecks.core.check_utils.single_feature_contribution_utils import get_pps_figure, pps_df_to_trace
 from deepchecks.tabular import Context, SingleDatasetCheck
-from deepchecks.utils.plot import create_colorbar_barchart_for_check
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.strings import format_number
 
@@ -87,23 +87,21 @@ class SingleFeatureContribution(SingleDatasetCheck):
 
         df_pps = pps.predictors(df=dataset.data[relevant_columns], y=dataset.label_name, random_seed=self.random_state,
                                 **self.ppscore_params)
-        df_pps = df_pps.set_index('x', drop=True)
-        s_ppscore = df_pps['ppscore']
+        s_ppscore = df_pps.set_index('x', drop=True)['ppscore']
+        top_to_show = s_ppscore.head(self.n_top_features)
 
-        def plot(n_top_features=self.n_top_features):
-            top_to_show = s_ppscore.head(n_top_features)
-            # Create graph:
-            create_colorbar_barchart_for_check(x=top_to_show.index, y=top_to_show.values)
+        fig = get_pps_figure(per_class=False)
+        fig.add_trace(pps_df_to_trace(top_to_show, dataset_type))
 
         text = [
             'The Predictive Power Score (PPS) is used to estimate the ability of a feature to predict the '
-            f'label by itself. (Read more about {pps_html})'
-            'A high PPS (close to 1) can mean that this feature\'s success in predicting the label is'
+            f'label by itself (Read more about {pps_html}).'
+            ' A high PPS (close to 1) can mean that this feature\'s success in predicting the label is'
             ' actually due to data leakage - meaning that the feature holds information that is based on the label '
             'to begin with.']
 
         # display only if not all scores are 0
-        display = [plot, *text] if s_ppscore.sum() else None
+        display = [fig, *text] if s_ppscore.sum() else None
 
         return CheckResult(value=s_ppscore.to_dict(), display=display, header='Single Feature Contribution')
 
