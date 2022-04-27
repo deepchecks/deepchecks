@@ -80,6 +80,7 @@ class Context:
         if device is None:
             device = 'cpu'
             if torch.cuda.is_available():
+                print('ahh')
                 logger.warning('Checks will run on the cpu on default. \
                     If you want to use cuda devices use the device parmeter in the run function.')
         self._device = torch.device(device) if isinstance(device, str) else (device if device else torch.device('cpu'))
