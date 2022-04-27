@@ -239,6 +239,7 @@ def plotly_activation_script(connected: bool = True) -> str:
                             ['plotly'],
                             function(Plotly) {{
                                 window._Plotly = Plotly;
+                                window.Plotly = Plotly;
                                 console.log('Loaded plotly successfully');
                             }},
                             function() {{console.log('Failed to load plotly')}}
@@ -271,6 +272,7 @@ def plotly_activation_script(connected: bool = True) -> str:
                             ['plotly'],
                             function(Plotly) {{
                                 window._Plotly = Plotly;
+                                window.Plotly = Plotly;
                                 console.log('Loaded plotly successfully');
                             }},
                             function() {{console.log('Failed to load plotly')}}
