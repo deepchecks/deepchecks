@@ -92,10 +92,14 @@ class SuiteResult:
                 SuiteResultWidgetSerializer(self).serialize(output_id=output_id)
             )
         else:
+            args = (
+                dict(output_id=None, full_html=True)
+                if is_colab_env()
+                else dict(output_id=output_id, full_html=False)
+            )
             display_html(
-                SuiteResultHtmlSerializer(self).serialize(output_id=output_id),
+                SuiteResultHtmlSerializer(self).serialize(**args),
                 raw=True,
-                full_html=is_colab_env()
             )
 
     def show(self):

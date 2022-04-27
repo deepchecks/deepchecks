@@ -302,12 +302,13 @@ class CheckResult:
         as_widget: bool = False,
         show_additional_outputs: bool = True
     ):
+        is_colab_env_flag = is_colab_env()
         as_widget = is_widgets_use_possible() and as_widget
         check_widget = self.display_check(
-            unique_id=unique_id,
+            unique_id=unique_id if not is_colab_env_flag else None,
             as_widget=as_widget,
             show_additional_outputs=show_additional_outputs,
-            full_html=is_colab_env()
+            full_html=is_colab_env_flag
         )
         if as_widget is True and check_widget is not None:
             display_html(check_widget)
