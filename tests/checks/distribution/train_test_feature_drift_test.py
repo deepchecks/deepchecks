@@ -22,18 +22,18 @@ def test_drift_with_model(drifted_data_and_model):
 
     # Act
     result = check.run(train, test, model)
-
+    print(result.value)
     # Assert
     assert_that(result.value, has_entries({
         'numeric_without_drift': has_entries(
             {'Drift score': close_to(0.01, 0.01),
              'Method': equal_to('Earth Mover\'s Distance'),
-             'Importance': close_to(0.31, 0.01)}
+             'Importance': close_to(0.69, 0.01)}
         ),
         'numeric_with_drift': has_entries(
             {'Drift score': close_to(0.25, 0.01),
              'Method': equal_to('Earth Mover\'s Distance'),
-             'Importance': close_to(0.69, 0.01)}
+             'Importance': close_to(0.31, 0.01)}
         ),
         'categorical_without_drift': has_entries(
             {'Drift score': close_to(0, 0.01),

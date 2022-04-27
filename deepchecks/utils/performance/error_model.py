@@ -24,6 +24,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeRegressor
 
 from deepchecks import tabular
+from deepchecks.tabular import Dataset
 from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.utils.features import calculate_feature_importance
 from deepchecks.utils.plot import colors
@@ -53,13 +54,11 @@ def model_error_contribution(train_dataset: pd.DataFrame,
     if error_model_score < min_error_model_score:
         raise DeepchecksProcessError(f'Unable to train meaningful error model '
                                      f'(r^2 score: {format_number(error_model_score)})')
-
     error_fi, _ = calculate_feature_importance(error_model,
-                                               test_dataset,
+                                               Dataset(test_dataset, test_scores),
                                                permutation_kwargs={'random_state': random_state})
     error_fi.index = new_feature_order
     error_fi.sort_values(ascending=False, inplace=True)
-
     return error_fi, error_model_predicted
 
 

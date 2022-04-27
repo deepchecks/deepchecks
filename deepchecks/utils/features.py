@@ -22,13 +22,13 @@ import numpy as np
 import pandas as pd
 from pandas.core.dtypes.common import is_float_dtype, is_numeric_dtype
 from sklearn.inspection import permutation_importance
+from sklearn.pipeline import Pipeline
 
 from deepchecks import tabular
 from deepchecks.core import errors
 from deepchecks.tabular.utils.validation import validate_model
 from deepchecks.utils.metrics import DeepcheckScorer, get_default_scorers, task_type_check, init_validate_scorers
 from deepchecks.utils.typing import Hashable
-from deepchecks.utils.model import get_model_of_pipeline
 from deepchecks.utils.validation import ensure_hashable_or_mutable_sequence
 
 
@@ -163,20 +163,26 @@ def calculate_feature_importance(
                 permutation_failure = f'{e.message}\n using model\'s built-in feature importance instead'
 
     # If there was no force permutation, or it failed tries to take importance from the model
-    if importance is None:
+    # We don't take built-in importance in pipelines because the pipeline is changing the features
+    # (for example one-hot encoding) which leads to the inner model features
+    # being different than the original dataset features
+    if importance is None and not isinstance(model, Pipeline):
         # Get the actual model in case of pipeline
-        internal_estimator = get_model_of_pipeline(model)
-        importance, calc_type = _built_in_importance(internal_estimator, dataset)
+        importance, calc_type = _built_in_importance(model, dataset)
         # If found importance and was force permutation failure before, show warning
         if importance is not None and permutation_failure:
             warnings.warn(permutation_failure)
 
     # If there was no permutation failure and no importance on the model, using permutation anyway
     if importance is None and permutation_failure is None and isinstance(dataset, tabular.Dataset):
+        if isinstance(model, Pipeline):
+            warnings.warn('Did not use built-in feature importance on the model because it is a pipeline,'
+                          ' using permutation feature importance calculation')
+        else:
+            warnings.warn('Could not find built-in feature importance on the model, using '
+                          'permutation feature importance calculation')
         importance = _calc_permutation_importance(model, dataset, **permutation_kwargs)
         calc_type = 'permutation_importance'
-        warnings.warn('Could not find built-in feature importance on the model, using '
-                      'permutation feature importance calculation')
 
     # If after all importance is still none raise error
     if importance is None:
@@ -192,18 +198,14 @@ def _built_in_importance(
     """Get feature importance member if present in model."""
     features = dataset.features if isinstance(dataset, tabular.Dataset) else dataset.columns
 
-    try:
-        if hasattr(model, 'feature_importances_'):  # Ensembles
-            normalized_feature_importance_values = model.feature_importances_ / model.feature_importances_.sum()
-            return pd.Series(normalized_feature_importance_values, index=features), 'feature_importances_'
+    if hasattr(model, 'feature_importances_'):  # Ensembles
+        normalized_feature_importance_values = model.feature_importances_ / model.feature_importances_.sum()
+        return pd.Series(normalized_feature_importance_values, index=features), 'feature_importances_'
 
-        if hasattr(model, 'coef_'):  # Linear models
-            coef = np.abs(model.coef_.flatten())
-            coef = coef / coef.sum()
-            return pd.Series(coef, index=features), 'coef_'
-    except ValueError:
-        # in case pipeline had an encoder
-        pass
+    if hasattr(model, 'coef_'):  # Linear models
+        coef = np.abs(model.coef_.flatten())
+        coef = coef / coef.sum()
+        return pd.Series(coef, index=features), 'coef_'
 
     return None, None
 

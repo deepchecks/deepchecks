@@ -78,7 +78,7 @@ def test_condition_fail(iris_labeled_dataset, iris_adaboost):
             is_pass=False,
             name='The performance difference of the detected segments must not be greater than 5%',
             details='Found change in Accuracy in features above threshold: {\'petal length (cm)\': \'10.91%\', '
-                    '\'petal width (cm)\': \'8.33%\', \'sepal length (cm)\': \'8.57%\'}',
+                    '\'petal width (cm)\': \'8.33%\'}',
             category=ConditionCategory.WARN
         )
     ))
