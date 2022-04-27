@@ -404,8 +404,8 @@ class VisionData:
         sample_min = np.min(sample)
         sample_max = np.max(sample)
         if sample_min < 0 or sample_max > 255 or sample_max <= 1:
-            raise ValidationError(f'Image data found to be in range [{sample_min}, {sample_max}] instead of expected '
-                                  f'range [0, 255].')
+            raise ValidationError(f'Image data should be in uint8 format(integers between 0 and 255). '
+                                  f'Found values in range [{sample_min}, {sample_max}].')
 
     def validate_get_classes(self, batch):
         """Validate that the get_classes function returns data in the correct format.
