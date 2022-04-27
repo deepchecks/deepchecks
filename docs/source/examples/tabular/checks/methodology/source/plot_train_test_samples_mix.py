@@ -15,7 +15,7 @@ Why is samples mix unwanted?
 Samples mix is when the train and test datasets have some samples in common.
 We use the test dataset in order to evaluate our model performance, and having samples in common with the train dataset
 will lead to biased metrics, which does not represent the real performance we will get in a real scenario. Therefore,
-we always look to avoid samples mix.
+we always want to avoid samples mix.
 
 Run the check
 =============
