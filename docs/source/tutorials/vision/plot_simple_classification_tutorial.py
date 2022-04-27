@@ -97,7 +97,7 @@ result
 # dataset they make sense.
 #
 # The second failure is more interesting. The :doc:`Simple Feature Contribution
-# </examples/vision/checks/source/methodology/plot_simple_feature_contribution>` check computes various :doc:`simple
+# </checks_gallery/vision/methodology/plot_simple_feature_contribution>` check computes various :doc:`simple
 # image # properties </user-guide/vision/vision_properties>` and checks if the image label can be inferred using a
 # simple model (for example, a Classification Tree) using the property values. The ability to predict the label using
 # these properties is measures by the Predictive Power Score (PPS) and this measure is compared between the training
