@@ -19,7 +19,7 @@ with the purpose of efficiently giving value and initiating a quick start for ea
 Built-In Suites - API Reference
 ================================
 
-Check the :mod:`deepchecks.tabular.suites.default_suites` in the API reference for a list of all of the built-in suites for tabular data.
+Check the :mod:`deepchecks.tabular.suites` in the API reference for a list of all of the built-in suites for tabular data.
 
 
 Typical Validation Scenarios

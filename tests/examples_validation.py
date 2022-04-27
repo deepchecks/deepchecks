@@ -54,8 +54,10 @@ def validate_dir(checks_path, examples_path):
                 check_path = os.path.join(root, file_name)
                 if check_path not in ignored_files:
                     example_file_name = "plot_" + file_name
-                    relative_path = "/".join(check_path.split("/")[1:-1])
-                    example_path = os.path.join(examples_path, relative_path, "source", example_file_name)
+                    splitted_path = check_path.split("/")
+                    submodule_name = splitted_path[1]
+                    check_type = splitted_path[-2]
+                    example_path = os.path.join(examples_path, submodule_name, check_type, example_file_name)
                     if not os.path.exists(example_path):
                         print(f"Check {check_path} does not have a corresponding example file")
                         all_valid = False
@@ -77,7 +79,7 @@ def validate_dir(checks_path, examples_path):
 #         print(f"Example {path} does not have a single H1 tag")
 
 
-SOURCE_DIR = "docs/source/examples"
+SOURCE_DIR = "docs/source/checks"
 COMPILED_DIR = "docs/build/html"
 
 valid = True

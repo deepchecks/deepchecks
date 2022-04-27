@@ -5,8 +5,8 @@ Using Deepchecks Vision With a Few Lines of Code
 
 Deepchecks Vision is built to validate your data and model, however complex your model and data may be. That
 being said, sometime there is no need to write a full-blown
-:doc:`ClassificationData </tutorials/vision/examples/plot_classification_tutorial>` or
-:doc:`DetectionData </tutorials/vision/examples/plot_detection_tutorial>`. In the case of a simple classification task,
+:doc:`ClassificationData </auto_tutorials/vision/plot_classification_tutorial>` or
+:doc:`DetectionData </auto_tutorials/vision/plot_detection_tutorial>`. In the case of a simple classification task,
 there is quite a few checks that can be run writing only a few lines of code. In this tutorial, we will show you how
 to run all checks that do not require a model on a simple classification task.
 
@@ -97,7 +97,7 @@ result
 # dataset they make sense.
 #
 # The second failure is more interesting. The :doc:`Simple Feature Contribution
-# </examples/vision/checks/source/methodology/plot_simple_feature_contribution>` check computes various :doc:`simple
+# </checks_gallery/vision/methodology/plot_simple_feature_contribution>` check computes various :doc:`simple
 # image # properties </user-guide/vision/vision_properties>` and checks if the image label can be inferred using a
 # simple model (for example, a Classification Tree) using the property values. The ability to predict the label using
 # these properties is measures by the Predictive Power Score (PPS) and this measure is compared between the training

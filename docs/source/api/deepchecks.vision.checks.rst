@@ -12,4 +12,5 @@ checks
     :template: autosummary/check-module.rst
     
     distribution
+    methodology
     performance
