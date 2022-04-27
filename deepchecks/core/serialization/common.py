@@ -228,6 +228,7 @@ def plotly_activation_script(connected: bool = True) -> str:
             <script type="text/javascript">
                 if (typeof require !== 'undefined') {{
                     require(['plotly'], function () {{}}, function (error) {{
+                        console.log('Plotly is not defined - loading it.');
                         {win_config}
                         {mathjax_config}
                         require.undef("plotly");
@@ -236,7 +237,10 @@ def plotly_activation_script(connected: bool = True) -> str:
                         }});
                         require(
                             ['plotly'],
-                            function(Plotly) {{window._Plotly = Plotly;}},
+                            function(Plotly) {{
+                                window._Plotly = Plotly;
+                                console.log('Loaded plotly successfully');
+                            }},
                             function() {{console.log('Failed to load plotly')}}
                         );
                     }});
@@ -256,6 +260,7 @@ def plotly_activation_script(connected: bool = True) -> str:
             <script type="text/javascript">
                 if (typeof require !== 'undefined') {{
                     require(['plotly'], function () {{}}, function (error) {{
+                        console.log('Plotly is not defined - loading it.');
                         {win_config}
                         {mathjax_config}
                         require.undef("plotly");
@@ -264,7 +269,10 @@ def plotly_activation_script(connected: bool = True) -> str:
                         }});
                         require(
                             ['plotly'],
-                            function(Plotly) {{window._Plotly = Plotly;}},
+                            function(Plotly) {{
+                                window._Plotly = Plotly;
+                                console.log('Loaded plotly successfully');
+                            }},
                             function() {{console.log('Failed to load plotly')}}
                         );
                     }})
