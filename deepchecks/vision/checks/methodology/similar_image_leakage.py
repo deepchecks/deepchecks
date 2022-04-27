@@ -40,7 +40,7 @@ class SimilarImageLeakage(TrainTestCheck):
     similarity_threshold: float, default: 0.1
         Similarity threshold (0,1). The similarity score defines what is the ratio of pixels that are different between
         the two images. If the similarity score is below the threshold, the images are considered similar.
-        Note: The score is defined such that setting it to 1 will result in similarity being detected for all images
+        Note: The threshold is defined such that setting it to 1 will result in similarity being detected for all images
         with up to half their pixels differing from each other. For a value of 1, random images (which on average
         differ from each other by half their pixels) will be detected as similar half the time. To further illustrate,
         for a hash of 8X8, setting the score to 1 will result with all images with up to 32 different pixels being
