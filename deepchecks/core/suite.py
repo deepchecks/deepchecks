@@ -12,21 +12,18 @@
 """Module containing the Suite object, used for running a set of checks together."""
 import io
 import abc
-import os
 import warnings
 from collections import OrderedDict
 from typing import Union, List, Tuple, Dict, Set, Optional
 
 from IPython.core.display import display_html
-from IPython.core.getipython import get_ipython
 import jsonpickle
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.check_result import CheckResult, CheckFailure
 from deepchecks.core.checks import BaseCheck
-from deepchecks.utils.ipython import is_notebook
+from deepchecks.utils.ipython import is_notebook, is_widgets_use_possible, is_colab_env
 from deepchecks.utils.wandb_utils import set_wandb_run_state
-from deepchecks.utils.ipython import is_widgets_enabled
 from deepchecks.utils.strings import get_random_string, create_new_file_name, widget_to_html
 from deepchecks.core.serialization.suite_result.html import SuiteResultSerializer as SuiteResultHtmlSerializer
 from deepchecks.core.serialization.suite_result.json import SuiteResultSerializer as SuiteResultJsonSerializer
@@ -34,16 +31,6 @@ from deepchecks.core.serialization.suite_result.widget import SuiteResultSeriali
 
 
 __all__ = ['BaseSuite', 'SuiteResult']
-
-
-def is_widgets_use_possible() -> bool:
-    """Verify if widgets use is possible within the current environment."""
-    # NOTE:
-    # - google colab has no support for widgets but good support for viewing html pages in the output
-    # - can't display plotly widgets in kaggle notebooks
-    is_colab_env = 'google.colab' in str(get_ipython())
-    is_kaggle_env = os.environ.get('KAGGLE_KERNEL_RUN_TYPE') is not None
-    return is_widgets_enabled() and not is_colab_env and not is_kaggle_env
 
 
 class SuiteResult:
@@ -107,7 +94,8 @@ class SuiteResult:
         else:
             display_html(
                 SuiteResultHtmlSerializer(self).serialize(output_id=output_id),
-                raw=True
+                raw=True,
+                full_html=is_colab_env()
             )
 
     def show(self):

@@ -25,7 +25,7 @@ from IPython.display import display_html
 from ipywidgets import Widget
 
 from deepchecks.utils.strings import create_new_file_name, get_docs_summary, widget_to_html
-from deepchecks.utils.ipython import is_notebook
+from deepchecks.utils.ipython import is_notebook, is_widgets_use_possible, is_colab_env
 from deepchecks.utils.wandb_utils import set_wandb_run_state
 from deepchecks.core.condition import ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
@@ -127,7 +127,8 @@ class CheckResult:
         self,
         unique_id: Optional[str] = None,
         as_widget: bool = False,
-        show_additional_outputs: bool = True
+        show_additional_outputs: bool = True,
+        full_html: bool = False
     ) -> Optional[Widget]:
         """Display the check result or return the display as widget.
 
@@ -151,9 +152,18 @@ class CheckResult:
                 show_additional_outputs=show_additional_outputs
             )
         else:
+            check_sections = (
+                ['condition-table', 'additional-output']
+                if show_additional_outputs
+                else ['condition-table']
+            )
             display_html(
-                CheckResultHtmlSerializer(self).serialize(output_id=unique_id),
-                raw=True
+                CheckResultHtmlSerializer(self).serialize(
+                    output_id=unique_id,
+                    full_html=full_html,
+                    check_sections=check_sections  # type: ignore
+                ),
+                raw=True,
             )
 
     def _repr_html_(
@@ -292,12 +302,14 @@ class CheckResult:
         as_widget: bool = False,
         show_additional_outputs: bool = True
     ):
+        as_widget = is_widgets_use_possible() and as_widget
         check_widget = self.display_check(
             unique_id=unique_id,
             as_widget=as_widget,
-            show_additional_outputs=show_additional_outputs
+            show_additional_outputs=show_additional_outputs,
+            full_html=is_colab_env()
         )
-        if as_widget is True:
+        if as_widget is True and check_widget is not None:
             display_html(check_widget)
 
     def __repr__(self):

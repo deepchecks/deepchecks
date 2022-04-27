@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Utils module containing useful global functions."""
+import os
 import re
 import sys
 import subprocess
@@ -19,7 +20,15 @@ from tqdm.notebook import tqdm as tqdm_notebook
 from IPython import get_ipython  # TODO: I think we should remove ipython from mandatory dependencies
 
 
-__all__ = ['is_notebook', 'is_widgets_enabled', 'is_headless', 'ProgressBar']
+__all__ = [
+    'is_notebook',
+    'is_widgets_enabled',
+    'is_headless',
+    'ProgressBar',
+    'is_colab_env',
+    'is_kaggle_env',
+    'is_widgets_use_possible'
+]
 
 
 @lru_cache(maxsize=None)
@@ -81,6 +90,27 @@ def is_widgets_enabled() -> bool:
             return not found_disabled and found_enabled
         except Exception:  # pylint: disable=broad-except
             return False
+
+
+@lru_cache(maxsize=None)
+def is_colab_env() -> bool:
+    """Check if we are in the google colab enviroment."""
+    return 'google.colab' in str(get_ipython())
+
+
+@lru_cache(maxsize=None)
+def is_kaggle_env() -> bool:
+    """Check if we are in the kaggle enviroment."""
+    return os.environ.get('KAGGLE_KERNEL_RUN_TYPE') is not None
+
+
+@lru_cache(maxsize=None)
+def is_widgets_use_possible() -> bool:
+    """Verify if widgets use is possible within the current environment."""
+    # NOTE:
+    # - google colab has no support for widgets but good support for viewing html pages in the output
+    # - can't display plotly widgets in kaggle notebooks
+    return is_widgets_enabled() and not is_colab_env() and not is_kaggle_env()
 
 
 class ProgressBar:
