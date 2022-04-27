@@ -5,21 +5,20 @@ Tutorials
 ==========
 
 Tabular Tutorials
------------------
+=================
 
 .. toctree::
-    :maxdepth: 1
+    :maxdepth: 3
     :caption: Tabular Tutorials
-    :glob:
 
-    tabular/plot*
+    tabular/index
 
 Vision Tutorials
-----------------
+================
 
 .. toctree::
-    :maxdepth: 1
+    :maxdepth: 3
     :caption: Vision Tutorials
     :glob:
 
-    vision/plot*
+    vision/index
