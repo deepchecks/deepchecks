@@ -95,8 +95,8 @@ class SingleFeatureContribution(SingleDatasetCheck):
 
         text = [
             'The Predictive Power Score (PPS) is used to estimate the ability of a feature to predict the '
-            f'label by itself. (Read more about {pps_html})'
-            'A high PPS (close to 1) can mean that this feature\'s success in predicting the label is'
+            f'label by itself (Read more about {pps_html}).'
+            ' A high PPS (close to 1) can mean that this feature\'s success in predicting the label is'
             ' actually due to data leakage - meaning that the feature holds information that is based on the label '
             'to begin with.']
 
