@@ -80,3 +80,4 @@ requirejs
 CDN
 CustomNotebookRenderer
 Wandb
+hotfix

@@ -20,7 +20,8 @@ import plotly.graph_objects as go
 
 
 def get_single_feature_contribution(train_df: pd.DataFrame, train_label_name: Optional[Hashable], test_df: pd.DataFrame,
-                                    test_label_name: Optional[Hashable], ppscore_params: dict, n_show_top: int):
+                                    test_label_name: Optional[Hashable], ppscore_params: dict, n_show_top: int,
+                                    random_state: int = None):
     """
     Calculate the PPS for train, test and difference for single feature contribution checks.
 
@@ -42,6 +43,8 @@ def get_single_feature_contribution(train_df: pd.DataFrame, train_label_name: Op
             dictionary of additional parameters for the ppscore predictor function
         n_show_top: int
             Number of features to show, sorted by the magnitude of difference in PPS
+        random_state: int, default None
+            Random state for the ppscore.predictors function
 
     Returns:
         CheckResult
@@ -49,11 +52,11 @@ def get_single_feature_contribution(train_df: pd.DataFrame, train_label_name: Op
             display: bar graph of the PPS of each feature.
     """
     df_pps_train = pps.predictors(df=train_df, y=train_label_name,
-                                  random_seed=42,
+                                  random_seed=random_state,
                                   **ppscore_params)
     df_pps_test = pps.predictors(df=test_df,
                                  y=test_label_name,
-                                 random_seed=42, **ppscore_params)
+                                 random_seed=random_state, **ppscore_params)
 
     s_pps_train = df_pps_train.set_index('x', drop=True)['ppscore']
     s_pps_test = df_pps_test.set_index('x', drop=True)['ppscore']
@@ -106,7 +109,8 @@ def get_single_feature_contribution_per_class(train_df: pd.DataFrame, train_labe
                                               test_df: pd.DataFrame,
                                               test_label_name: Optional[Hashable], ppscore_params: dict,
                                               n_show_top: int,
-                                              min_pps_to_show: float = 0.05):
+                                              min_pps_to_show: float = 0.05,
+                                              random_state: int = None):
     """
     Calculate the PPS for train, test and difference for single feature contribution checks per class.
 
@@ -130,6 +134,8 @@ def get_single_feature_contribution_per_class(train_df: pd.DataFrame, train_labe
             Number of features to show, sorted by the magnitude of difference in PPS
         min_pps_to_show: float, default 0.05
             Minimum PPS to show a class in the graph
+        random_state: int, default None
+            Random state for the ppscore.predictors function
 
     Returns:
         CheckResult
@@ -153,11 +159,11 @@ def get_single_feature_contribution_per_class(train_df: pd.DataFrame, train_labe
             lambda x: 1 if x == c else 0)  # pylint: disable=cell-var-from-loop
 
         df_pps_train = pps.predictors(df=train_df_all_vs_one, y=train_label_name,
-                                      random_seed=42,
+                                      random_seed=random_state,
                                       **ppscore_params)
         df_pps_test = pps.predictors(df=test_df_all_vs_one,
                                      y=test_label_name,
-                                     random_seed=42, **ppscore_params)
+                                     random_seed=random_state, **ppscore_params)
 
         s_pps_train = df_pps_train.set_index('x', drop=True)['ppscore']
         s_pps_test = df_pps_test.set_index('x', drop=True)['ppscore']

@@ -19,6 +19,7 @@ from string import ascii_uppercase, digits
 from collections import defaultdict
 from decimal import Decimal
 from copy import copy
+from packaging.version import Version
 
 from ipywidgets import Widget
 from ipywidgets.embed import embed_minimal_html, dependency_state
@@ -52,6 +53,7 @@ __all__ = [
     'to_snake_case',
     'create_new_file_name',
     'widget_to_html',
+    'generate_check_docs_link',
 ]
 
 
@@ -96,7 +98,8 @@ def get_docs_summary(obj, with_doc_link: bool = True):
         summary = next((s for s in docs.split('\n') if not re.match('^\\s*$', s)), '')
 
     if with_doc_link:
-        summary += _generate_check_docs_link_html(obj)
+        link = generate_check_docs_link(obj)
+        summary += f' <a href="{link}" target="_blank">Read More...</a>'
     return summary
 
 
@@ -127,7 +130,7 @@ def widget_to_html(widget: Widget, html_out: t.Any, title: str = None, requirejs
                            state=dependency_state(widget))
 
 
-def _generate_check_docs_link_html(check):
+def generate_check_docs_link(check):
     """Create from check object a link to its example page in the docs."""
     if not isinstance(check, core.BaseCheck):
         return ''
@@ -166,9 +169,13 @@ def _generate_check_docs_link_html(check):
     module_parts[-1] = f'plot_{module_parts[-1]}'
     module_parts.insert(len(module_parts) - 1, 'examples')
     url = '/'.join([*module_parts])
-    version = deepchecks.__version__ or 'stable'
-    link = link_template.format(version=version, path=url)
-    return f' <a href="{link}" target="_blank">Read More...</a>'
+    if deepchecks.__version__ and deepchecks.__version__ != 'dev':
+        version_obj: Version = Version(deepchecks.__version__)
+        # The version in the docs url is without the hotfix part
+        version = f'{version_obj.major}.{version_obj.minor}'
+    else:
+        version = 'stable'
+    return link_template.format(version=version, path=url)
 
 
 def get_random_string(n: int = 5):

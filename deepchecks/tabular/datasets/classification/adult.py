@@ -17,7 +17,6 @@ from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import LabelEncoder
 import joblib
 import pandas as pd
 from deepchecks.tabular.dataset import Dataset
@@ -191,11 +190,7 @@ def load_fitted_model():
             model = joblib.load(f)
     else:
         model = _build_model()
-        train, test = load_data()
-        encoder = LabelEncoder()
-        encoder.fit(train.data[_target])
-        train.data[_target] = encoder.transform(train.data[_target])
-        test.data[_target] = encoder.transform(test.data[_target])
+        train, _ = load_data()
         model.fit(train.data[train.features], train.data[train.label_name])
     return model
 
