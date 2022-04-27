@@ -19,6 +19,36 @@ from deepchecks.utils.typing import Hashable
 import plotly.graph_objects as go
 
 
+def get_pps_figure(per_class: bool):
+    fig = go.Figure()
+    fig.update_layout(
+        yaxis_title='Predictive Power Score (PPS)',
+        yaxis_range=[0, 1.05],
+        legend=dict(x=1.0, y=1.0),
+        barmode='group',
+        width=800, height=500
+    )
+    if per_class:
+        fig.update_layout(xaxis_title='Class')
+    else:
+        fig.update_layout(
+            title='Predictive Power Score (PPS) - Can a feature predict the label by itself?',
+            xaxis_title='Column',
+        )
+    return fig
+
+
+def pps_df_to_trace(s_pps: pd.Series, name: str):
+    name = name.capitalize() if name else None
+    return go.Bar(x=s_pps.index,
+                  y=s_pps,
+                  name=name,
+                  marker_color=colors.get(name),
+                  text=s_pps.round(2),
+                  textposition='outside'
+                  )
+
+
 def get_single_feature_contribution(train_df: pd.DataFrame, train_label_name: Optional[Hashable], test_df: pd.DataFrame,
                                     test_label_name: Optional[Hashable], ppscore_params: dict, n_show_top: int,
                                     random_state: int = None):
@@ -68,33 +98,15 @@ def get_single_feature_contribution(train_df: pd.DataFrame, train_label_name: Op
     s_pps_train_to_display = s_pps_train[s_difference_to_display.index]
     s_pps_test_to_display = s_pps_test[s_difference_to_display.index]
 
-    fig = go.Figure()
-    fig.add_trace(go.Bar(x=s_pps_train_to_display.index,
-                         y=s_pps_train_to_display,
-                         name='Train',
-                         marker_color=colors['Train'], text=s_pps_train_to_display.round(2), textposition='outside'
-                         ))
-    fig.add_trace(go.Bar(x=s_pps_test_to_display.index,
-                         y=s_pps_test_to_display,
-                         name='Test',
-                         marker_color=colors['Test'], text=s_pps_test_to_display.round(2), textposition='outside'
-                         ))
+    fig = get_pps_figure(per_class=False)
+    fig.add_trace(pps_df_to_trace(s_pps_train_to_display, 'train'))
+    fig.add_trace(pps_df_to_trace(s_pps_test_to_display, 'test'))
     fig.add_trace(go.Scatter(x=s_difference_to_display.index,
                              y=s_difference_to_display,
                              name='Train-Test Difference (abs)',
                              marker=dict(symbol='circle', size=15),
                              line=dict(color='#aa57b5', width=5)
                              ))
-
-    fig.update_layout(
-        title='Predictive Power Score (PPS) - Can a feature predict the label by itself?',
-        xaxis_title='Column',
-        yaxis_title='Predictive Power Score (PPS)',
-        yaxis_range=[0, 1.05],
-        legend=dict(x=1.0, y=1.0),
-        barmode='group',
-        width=800, height=500
-    )
 
     ret_value = {'train': s_pps_train.to_dict(), 'test': s_pps_test.to_dict(),
                  'train-test difference': s_difference.to_dict()}
@@ -189,28 +201,10 @@ def get_single_feature_contribution_per_class(train_df: pd.DataFrame, train_labe
             s_train_to_display = s_train[s_difference_to_display.index]
             s_test_to_display = s_test[s_difference_to_display.index]
 
-            fig = go.Figure()
-            fig.add_trace(go.Bar(x=s_train_to_display.index.astype(str),
-                                 y=s_train_to_display,
-                                 name='Train',
-                                 marker_color=colors['Train'], text=s_train_to_display.round(2), textposition='outside'
-                                 ))
-            fig.add_trace(go.Bar(x=s_test_to_display.index.astype(str),
-                                 y=s_test_to_display,
-                                 name='Test',
-                                 marker_color=colors['Test'], text=s_test_to_display.round(2), textposition='outside'
-                                 ))
-
-            fig.update_layout(
-                title=f'{feature}: Predictive Power Score (PPS) Per Class',
-                xaxis_title='Class',
-                yaxis_title='Predictive Power Score (PPS)',
-                yaxis_range=[0, 1.05],
-                legend=dict(x=1.0, y=1.0),
-                barmode='group',
-                width=800, height=400
-            )
-
+            fig = get_pps_figure(per_class=True)
+            fig.update_layout(title=f'{feature}: Predictive Power Score (PPS) Per Class')
+            fig.add_trace(pps_df_to_trace(s_train_to_display, 'train'))
+            fig.add_trace(pps_df_to_trace(s_test_to_display, 'test'))
             display.append(fig)
 
     return ret_value, display
