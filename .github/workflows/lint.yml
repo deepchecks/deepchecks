@@ -35,6 +35,8 @@ jobs:
       run: make pylint
     - name: Check import order
       uses: jamescurtin/isort-action@master
+      with:
+        sortPaths: deepchecks/
   docstring:
     runs-on: ubuntu-latest
     steps:
