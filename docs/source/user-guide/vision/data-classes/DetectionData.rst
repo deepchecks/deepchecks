@@ -4,7 +4,7 @@
 The Object Detection Data Class
 ===============================
 
-The DetectionData is a :doc:`data class </user-guide/vision/data-classes/index>` designated for object detection tasks.
+The DetectionData is a :doc:`data class </user-guide/vision/data-classes/index>` designed for object detection tasks.
 It is a subclass of the :class:`~deepchecks.vision.VisionData` class and is used to load and preprocess data for object
 detection related checks.
 
