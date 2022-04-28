@@ -94,7 +94,7 @@ result
 # Define a condition
 # ==================
 # Now, we define a condition that will validate if the percent of decline between the maximal score achieved in any
-# boosting iteration and the score achieved in the last iteration is above 10%.
+# boosting iteration and the score achieved in the last iteration is above 0.02%.
 check = BoostingOverfit()
 check.add_condition_test_score_percent_decline_not_greater_than(0.0002)
 result = check.run(train_ds, validation_ds, clf)
