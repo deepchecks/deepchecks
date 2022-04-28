@@ -98,4 +98,4 @@ result
 check = BoostingOverfit()
 check.add_condition_test_score_percent_decline_not_greater_than(0.0002)
 result = check.run(train_ds, validation_ds, clf)
-resdult.show(show_additional_outputs=False)
+result.show(show_additional_outputs=False)
