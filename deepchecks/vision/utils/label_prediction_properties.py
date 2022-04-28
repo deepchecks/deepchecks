@@ -17,6 +17,7 @@ from deepchecks.core.errors import DeepchecksValueError
 
 # Labels
 
+
 def _get_bbox_area(labels: List[torch.Tensor]) -> List[List[int]]:
     """Return a list containing the area of bboxes in batch."""
     return [(label.reshape((-1, 5))[:, 4] * label.reshape((-1, 5))[:, 3]).tolist()

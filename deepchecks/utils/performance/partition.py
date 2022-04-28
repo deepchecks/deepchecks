@@ -22,7 +22,6 @@ from deepchecks.utils.typing import Hashable
 # TODO: move tabular functionality to the tabular sub-package
 
 
-
 __all__ = ['partition_column', 'DeepchecksFilter']
 
 
