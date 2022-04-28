@@ -3,7 +3,7 @@
 Boosting Overfit
 ****************
 
-This notebooks provides an overview for using and understanding feature drift check.
+This notebooks provides an overview for using and understanding the boosting overfit check.
 
 **Structure:**
 
