@@ -15,8 +15,8 @@ from typing import List
 
 import numpy as np
 import pandas as pd
-from plotly.subplots import make_subplots
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 
