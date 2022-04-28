@@ -110,8 +110,8 @@ def test_with_drift_rgb(coco_train_dataloader, coco_test_dataloader, device):
     result = check.run(train, test, random_state=42, device=device)
     # Assert
     assert_that(result.value, has_entries({
-        'domain_classifier_auc': close_to(1, 0.001),
-        'domain_classifier_drift_score': close_to(1, 0.001),
+        'domain_classifier_auc': close_to(0.908, 0.001),
+        'domain_classifier_drift_score': close_to(0.815, 0.001),
         'domain_classifier_feature_importance': has_entries({
             'Brightness': close_to(1, 0.001),
             'Aspect Ratio': equal_to(0),
