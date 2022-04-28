@@ -27,20 +27,20 @@ __all__ = ['get_transforms_handler', 'add_augmentation_in_start', 'un_normalize_
 class AbstractTransformations(abc.ABC):
     """Abstract class for supporting functions for various transforms."""
 
-    @abc.abstractmethod
     @classmethod
+    @abc.abstractmethod
     def add_augmentation_in_start(cls, aug, transforms):
         """Add given transformations to the start of given transforms object."""
         raise NotImplementedError()
 
-    @abc.abstractmethod
     @classmethod
+    @abc.abstractmethod
     def get_test_transformation(cls):
         """Get transformation which is affecting both image data and bbox."""
         raise NotImplementedError()
 
-    @abc.abstractmethod
     @classmethod
+    @abc.abstractmethod
     def get_robustness_augmentations(cls, data_dim: t.Optional[int] = 3) -> t.List[t.Any]:
         """Get default augmentations to use in robustness report check."""
         raise NotImplementedError()
