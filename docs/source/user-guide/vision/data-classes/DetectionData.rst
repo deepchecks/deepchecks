@@ -23,7 +23,7 @@ The accepted label format for is a a list of length N containing tensors of shap
 of samples within a batch, B is the number of bounding boxes in the sample and each bounding box is represented by 5 values:
 ``(class_id, x_min, y_min, w, h)``.
 
-    x_min and y_min are the coordinates (in pixels) of the **lower left corner** of the bounding box, w
+    x_min and y_min are the coordinates (in pixels) of the **top left corner** of the bounding box, w
     and h are the width and height of the bounding box (in pixels) and class_id is the class id of the prediction.
 
 For example, for a sample with 2 bounding boxes, the label format may be:
