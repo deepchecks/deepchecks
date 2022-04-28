@@ -10,15 +10,16 @@
 #
 """Package for vision functionality."""
 import logging
-from .batch_wrapper import Batch
-from .vision_data import VisionData
-from .context import Context
-from .suite import Suite
-from .classification_data import ClassificationData
-from .simple_classification_data import SimpleClassificationData, SimpleClassificationDataset
-from .detection_data import DetectionData
-from .base_checks import SingleDatasetCheck, TrainTestCheck, ModelOnlyCheck
 
+from .base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
+from .batch_wrapper import Batch
+from .classification_data import ClassificationData
+from .context import Context
+from .detection_data import DetectionData
+from .simple_classification_data import (SimpleClassificationData,
+                                         SimpleClassificationDataset)
+from .suite import Suite
+from .vision_data import VisionData
 
 logger = logging.getLogger("deepchecks")
 

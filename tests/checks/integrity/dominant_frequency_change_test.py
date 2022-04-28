@@ -12,14 +12,13 @@
 Contains unit tests for the dominant_frequency_change check
 """
 import pandas as pd
+from hamcrest import (assert_that, calling, close_to, empty, equal_to,
+                      has_items, has_length, raises)
 from sklearn.model_selection import train_test_split
-from hamcrest import assert_that, calling, raises, equal_to, \
-                     has_length, has_items, close_to, empty
 
-from deepchecks.tabular.dataset import Dataset
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.checks.integrity import DominantFrequencyChange
-
+from deepchecks.tabular.dataset import Dataset
 from tests.checks.utils import equal_condition_result
 
 

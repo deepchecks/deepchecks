@@ -38,7 +38,8 @@ The simple models are:
 # Generate data & model
 # =====================
 
-from deepchecks.tabular.datasets.classification.phishing import load_data, load_fitted_model
+from deepchecks.tabular.datasets.classification.phishing import (
+    load_data, load_fitted_model)
 
 train_dataset, test_dataset = load_data()
 model = load_fitted_model()

@@ -12,17 +12,16 @@ import types
 
 import albumentations
 import numpy as np
+from hamcrest import (assert_that, calling, close_to, has_entries, has_items,
+                      raises)
 from ignite.metrics import Precision
-
-from deepchecks.vision.datasets.detection.coco import COCOData, CocoDataset
-
-from tests.checks.utils import equal_condition_result
-from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.vision.checks.performance.robustness_report import RobustnessReport
 from PIL import Image
-from hamcrest import assert_that, has_entries, close_to, calling, raises, has_items
 
-
+from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.vision.checks.performance.robustness_report import \
+    RobustnessReport
+from deepchecks.vision.datasets.detection.coco import COCOData, CocoDataset
+from tests.checks.utils import equal_condition_result
 from tests.vision.vision_conftest import *
 
 

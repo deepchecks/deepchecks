@@ -35,6 +35,7 @@ it contains.
 
 import urllib.request
 import zipfile
+
 import numpy as np
 
 url = 'https://figshare.com/ndownloader/files/34912884'

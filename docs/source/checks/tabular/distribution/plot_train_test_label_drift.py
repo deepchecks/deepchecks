@@ -6,12 +6,13 @@ Train Test Label Drift
 
 #%%
 
+import pprint
+
 import numpy as np
 import pandas as pd
 
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.checks import TrainTestLabelDrift
-import pprint
 
 #%%
 # Generate data - Classification label

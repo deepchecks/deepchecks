@@ -46,6 +46,7 @@ check, which will override the default metrics.
 # -------
 
 from deepchecks.vision.checks.performance import ClassPerformance
+from deepchecks.vision.datasets.classification import mnist
 
 #%%
 # Classification Performance Report
@@ -53,7 +54,6 @@ from deepchecks.vision.checks.performance import ClassPerformance
 # Generate data and model:
 # ------------------------
 
-from deepchecks.vision.datasets.classification import mnist
 
 mnist_model = mnist.load_model()
 train_ds = mnist.load_dataset(train=True, object_type='VisionData')

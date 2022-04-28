@@ -32,8 +32,9 @@ form, they are considered to be the same.
 # Run the Check
 # =========
 
-from deepchecks.tabular.checks import StringMismatch
 import pandas as pd
+
+from deepchecks.tabular.checks import StringMismatch
 
 data = {'col1': ['Deep', 'deep', 'deep!!!', '$deeP$', 'earth', 'foo', 'bar', 'foo?']}
 df = pd.DataFrame(data=data)

@@ -9,13 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """Module of RareCategoryEncoder."""
-from typing import List, Optional
 from collections import defaultdict
+from typing import List, Optional
 
 import pandas as pd
 
 from deepchecks.utils.typing import Hashable
-
 
 __all__ = ['RareCategoryEncoder']
 

@@ -8,20 +8,19 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-from typing import Union
 from itertools import permutations
+from typing import Union
 
 import numpy as np
 import torch
-from hamcrest import assert_that, equal_to, calling, raises, close_to
+from hamcrest import assert_that, calling, close_to, equal_to, raises
 from torch.utils.data import DataLoader, Dataset
 
 from deepchecks.core.errors import ValidationError
 from deepchecks.vision.datasets.detection import coco
 from deepchecks.vision.utils import image_properties
-from deepchecks.vision.utils.detection_formatters import verify_bbox_format_notation
-from deepchecks.vision.utils.detection_formatters import convert_bbox
-from deepchecks.vision.utils.detection_formatters import convert_batch_of_bboxes
+from deepchecks.vision.utils.detection_formatters import (
+    convert_batch_of_bboxes, convert_bbox, verify_bbox_format_notation)
 from deepchecks.vision.vision_data import VisionData
 
 

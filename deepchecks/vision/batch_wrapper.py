@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Contains code for BatchWrapper."""
-from typing import Tuple, Iterable, Any, TypeVar, Callable, cast, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable, Iterable, Tuple, TypeVar, cast
 
 import torch
 

@@ -17,7 +17,6 @@ import typing as t
 from deepchecks.core import errors
 from deepchecks.utils.typing import Hashable
 
-
 __all__ = [
     'ensure_hashable_or_mutable_sequence',
 ]

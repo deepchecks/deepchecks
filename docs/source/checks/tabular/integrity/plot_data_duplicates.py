@@ -15,10 +15,13 @@ This notebooks provides an overview for using and understanding the data duplica
 
 #%%
 
-from deepchecks.tabular.checks.integrity.data_duplicates import DataDuplicates
-from deepchecks.tabular import Dataset, Suite
 from datetime import datetime
+
 import pandas as pd
+
+from deepchecks.tabular import Dataset, Suite
+from deepchecks.tabular.checks.integrity.data_duplicates import DataDuplicates
+from deepchecks.tabular.datasets.classification.phishing import load_data
 
 #%%
 # Why data duplicates?
@@ -33,7 +36,6 @@ import pandas as pd
 # Load Data
 # =========
 
-from deepchecks.tabular.datasets.classification.phishing import load_data
 
 phishing_dataset = load_data(as_train_test=False, data_format='DataFrame')
 phishing_dataset
@@ -43,6 +45,7 @@ phishing_dataset
 # =============
 
 from deepchecks.tabular.checks import DataDuplicates
+
 DataDuplicates().run(phishing_dataset)
 
 # With Check Parameters

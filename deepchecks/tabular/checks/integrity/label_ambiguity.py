@@ -9,15 +9,14 @@
 # ----------------------------------------------------------------------------
 #
 """module contains Data Duplicates check."""
-from typing import Union, List
+from typing import List, Union
 
 import pandas as pd
 
-from deepchecks.core import ConditionResult, CheckResult, ConditionCategory
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
-
 
 __all__ = ['LabelAmbiguity']
 

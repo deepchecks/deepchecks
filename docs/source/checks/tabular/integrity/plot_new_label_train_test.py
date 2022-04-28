@@ -6,9 +6,10 @@ New Label
 
 #%%
 
-from deepchecks.tabular.checks.integrity import NewLabelTrainTest
-from deepchecks.tabular import Dataset
 import pandas as pd
+
+from deepchecks.tabular import Dataset
+from deepchecks.tabular.checks.integrity import NewLabelTrainTest
 
 #%%
 

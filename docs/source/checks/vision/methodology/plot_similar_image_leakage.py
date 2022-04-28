@@ -56,7 +56,6 @@ for 2 images to be considered "different". A lower similarity_threshold will def
 from deepchecks.vision.checks import SimilarImageLeakage
 from deepchecks.vision.datasets.detection.coco import load_dataset
 
-
 train_ds = load_dataset(train=True, object_type='VisionData', shuffle=False)
 test_ds = load_dataset(train=False, object_type='VisionData', shuffle=False)
 
@@ -75,10 +74,11 @@ check.run(train_ds, test_ds)
 # changes to brightness to see what happens.
 
 from copy import copy
-from PIL import Image
-import numpy as np
-from deepchecks.vision.utils.test_utils import get_modified_dataloader
 
+import numpy as np
+from PIL import Image
+
+from deepchecks.vision.utils.test_utils import get_modified_dataloader
 
 test_ds_modified = copy(test_ds)
 

@@ -110,12 +110,12 @@ or the following blog post: `RIP correlation. Introducing the Predictive Power S
 
 from deepchecks.vision import VisionData
 from deepchecks.vision.checks import SimpleFeatureContribution
+from deepchecks.vision.datasets.classification.mnist import load_dataset
 
 #%%
 # Loading data
 # ------------
 
-from deepchecks.vision.datasets.classification.mnist import load_dataset
 
 train_ds = load_dataset(train=True, object_type='VisionData')
 test_ds = load_dataset(train=False, object_type='VisionData')
@@ -142,6 +142,7 @@ check.run(train_ds, test_ds)
 # and the label
 
 from deepchecks.vision.utils.transformations import un_normalize_batch
+
 
 def mnist_batch_to_images_with_bias(batch):
     """Create function which inverse the data normalization."""
@@ -171,7 +172,8 @@ check.run(train_ds, test_ds)
 # Run the check on an Object Detection task (COCO)
 # ================================================
 
-from deepchecks.vision.datasets.detection.coco import load_dataset, yolo_label_formatter
+from deepchecks.vision.datasets.detection.coco import (load_dataset,
+                                                       yolo_label_formatter)
 
 train_ds = load_dataset(train=True, object_type='VisionData')
 test_ds = load_dataset(train=False, object_type='VisionData')

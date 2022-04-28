@@ -64,12 +64,12 @@ Imports
 
 #%%
 from deepchecks.vision.checks import TrainTestLabelDrift
+from deepchecks.vision.datasets.classification.mnist import load_dataset
 
 #%%
 # Loading Data
 # ------------
 
-from deepchecks.vision.datasets.classification.mnist import load_dataset
 
 train_ds = load_dataset(train=True, batch_size=64, object_type='VisionData')
 test_ds = load_dataset(train=False, batch_size=1000, object_type='VisionData')
@@ -88,8 +88,9 @@ check.run(train_ds, test_ds)
 # split to train and test was good (as it is balanced and random). Let's check the
 # performance of a simple model trained on MNIST.
 
-from deepchecks.vision.datasets.classification.mnist import load_model as load_mnist_model
 from deepchecks.vision.checks import ClassPerformance
+from deepchecks.vision.datasets.classification.mnist import \
+    load_model as load_mnist_model
 
 mnist_model = load_mnist_model(pretrained=True)
 ClassPerformance().run(train_ds, test_ds, mnist_model)
@@ -115,8 +116,8 @@ train_dataset, test_dataset = torch.utils.data.random_split(full_mnist, [60000,1
 # Inserting drift to the test set
 # -------------------------------
 
-from torch.utils.data._utils.collate import default_collate
 import numpy as np
+from torch.utils.data._utils.collate import default_collate
 
 np.random.seed(42)
 

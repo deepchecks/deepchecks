@@ -11,14 +11,16 @@
 """The data set contains features for binary prediction of the income of an adult (the adult dataset)."""
 import typing as t
 from urllib.request import urlopen
+
+import joblib
+import pandas as pd
 import sklearn
 from category_encoders import OrdinalEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
-import joblib
-import pandas as pd
+
 from deepchecks.tabular.dataset import Dataset
 
 __all__ = ['load_data', 'load_fitted_model']

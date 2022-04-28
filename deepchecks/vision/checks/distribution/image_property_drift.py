@@ -10,21 +10,19 @@
 #
 """Module contains Image Property Drift check."""
 import typing as t
-from collections import defaultdict
 import warnings
+from collections import defaultdict
+
 import pandas as pd
 
-from deepchecks.core import CheckResult
-from deepchecks.core import ConditionResult
-from deepchecks.core import DatasetKind
-from deepchecks.core.errors import NotEnoughSamplesError, DeepchecksValueError
+from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
+from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
-from deepchecks.vision import Batch
-from deepchecks.vision import Context
-from deepchecks.vision import TrainTestCheck
-from deepchecks.vision.utils.image_properties import validate_properties, default_image_properties, get_column_type
-
+from deepchecks.vision import Batch, Context, TrainTestCheck
+from deepchecks.vision.utils.image_properties import (default_image_properties,
+                                                      get_column_type,
+                                                      validate_properties)
 
 __all__ = ['ImagePropertyDrift']
 

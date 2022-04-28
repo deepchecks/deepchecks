@@ -11,23 +11,24 @@
 """Module of segment performance check."""
 import math
 import typing as t
-from collections import defaultdict, Counter
+from collections import Counter, defaultdict
 
 import numpy as np
 import pandas as pd
+import plotly.express as px
 import torch
 from ignite.metrics import Metric
-import plotly.express as px
 
 from deepchecks import ConditionResult
-from deepchecks.core import DatasetKind, CheckResult
+from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.utils import plot
 from deepchecks.utils.strings import format_number, format_percent
-from deepchecks.vision import SingleDatasetCheck, Context, Batch
-from deepchecks.vision.utils.image_properties import default_image_properties, validate_properties
-from deepchecks.vision.metrics_utils import get_scorers_list, metric_results_to_df
-
+from deepchecks.vision import Batch, Context, SingleDatasetCheck
+from deepchecks.vision.metrics_utils import (get_scorers_list,
+                                             metric_results_to_df)
+from deepchecks.vision.utils.image_properties import (default_image_properties,
+                                                      validate_properties)
 
 __all__ = ['ImageSegmentPerformance']
 

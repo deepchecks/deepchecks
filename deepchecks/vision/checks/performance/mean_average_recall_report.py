@@ -11,17 +11,17 @@
 """Module containing mean average recall report check."""
 import math
 from collections import defaultdict
-from typing import TypeVar, Tuple
+from typing import Tuple, TypeVar
 
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.utils.strings import format_number
-from deepchecks.vision import SingleDatasetCheck, Context, Batch
-from deepchecks.vision.metrics_utils.object_detection_precision_recall import ObjectDetectionAveragePrecision
+from deepchecks.vision import Batch, Context, SingleDatasetCheck
+from deepchecks.vision.metrics_utils.object_detection_precision_recall import \
+    ObjectDetectionAveragePrecision
 from deepchecks.vision.vision_data import TaskType
-
 
 __all__ = ['MeanAverageRecallReport']
 

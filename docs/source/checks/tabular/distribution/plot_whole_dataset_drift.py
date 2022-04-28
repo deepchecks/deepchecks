@@ -65,10 +65,11 @@ drift score from the AUC score of this classifier.
 # Dua, D. and Graff, C. (2019). UCI Machine Learning Repository [http://archive.ics.uci.edu/ml].
 # Irvine, CA: University of California, School of Information and Computer Science.
 
-import pandas as pd
 from urllib.request import urlopen
-from sklearn.preprocessing import LabelEncoder
+
 import numpy as np
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
 
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.datasets.classification import adult

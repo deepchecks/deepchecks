@@ -46,8 +46,8 @@ For the list of the built-in object detection label properties and explanation a
 # -------------
 # For the example we will load COCO object detection data, and will run the check with the default properties.
 
-from deepchecks.vision.datasets.detection.coco import load_dataset
 from deepchecks.vision.checks import LabelPropertyOutliers
+from deepchecks.vision.datasets.detection.coco import load_dataset
 
 train_data = load_dataset(train=True, object_type='VisionData')
 check = LabelPropertyOutliers()

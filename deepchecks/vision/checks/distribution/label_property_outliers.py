@@ -15,7 +15,8 @@ import numpy as np
 
 from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.vision import Batch
-from deepchecks.vision.checks.distribution.abstract_property_outliers import AbstractPropertyOutliers
+from deepchecks.vision.checks.distribution.abstract_property_outliers import \
+    AbstractPropertyOutliers
 from deepchecks.vision.utils import label_prediction_properties
 from deepchecks.vision.utils.image_functions import draw_bboxes
 from deepchecks.vision.vision_data import TaskType, VisionData
