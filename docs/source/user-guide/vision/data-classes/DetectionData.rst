@@ -128,7 +128,7 @@ each box arrives in the format: ``(class_id, x_min, y_min, x_max, y_max)``. Addi
             """
 
             return_list = []
-            predictions = model(batch[0])
+            predictions = model.to(device)(batch[0])
 
             # yolo Detections objects have List[torch.Tensor(B,6)] output where each bbox is
             #(x_min, y_min, x_max, y_max, confidence, class_id).

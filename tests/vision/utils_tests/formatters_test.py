@@ -92,12 +92,10 @@ def test_data_formatter_large_values():
             return batch * 300
 
     batch = next(iter(numpy_shape_dataloader((10, 10, 3))))
-    sample_min = float(76500)
-    sample_max = float(76500)
     assert_that(
         calling(BadImage(numpy_shape_dataloader((10, 10, 3))).validate_image_data).with_args(batch),
-        raises(ValidationError, f'Image data should be in uint8 format\(integers between 0 and 255\). '
-                                f'Found values in range \[{sample_min}, {sample_max}\].')
+        raises(ValidationError, r'Image data should be in uint8 format\(integers between 0 and 255\). '
+                                r'Found values in range \[76500.0, 76500.0\].')
     )
 
 
