@@ -25,8 +25,8 @@ def test_mnist_prior_strategy(mnist_dataset_train, mnist_dataset_test, mock_trai
     first_row = result.value.loc[result.value['Model'] != 'Perfect Model'].sort_values(by='Number of samples',
                                                                                        ascending=False).iloc[0]
     # Assert
-    assert_that(len(result.value), equal_to(12))
-    assert_that(first_row['Value'], close_to(0.994, 0.05))
+    assert_that(len(result.value), equal_to(6))
+    assert_that(first_row['Value'], close_to(0.203, 0.05))
     assert_that(first_row['Number of samples'], equal_to(1135))
     assert_that(first_row['Class'], equal_to(1))
 
@@ -49,8 +49,8 @@ def test_mnist_most_frequent(mnist_dataset_train, mnist_dataset_test, mock_train
     first_row = result.value.loc[result.value['Model'] != 'Perfect Model'].sort_values(by='Number of samples',
                                                                                        ascending=False).iloc[0]
     # Assert
-    assert_that(len(result.value), equal_to(12))
-    assert_that(first_row['Value'], close_to(0.994, 0.05))
+    assert_that(len(result.value), equal_to(6))
+    assert_that(first_row['Value'], close_to(0.203, 0.05))
     assert_that(first_row['Number of samples'], equal_to(1135))
     assert_that(first_row['Class'], equal_to(1))
 
@@ -62,7 +62,7 @@ def test_mnist_uniform(mnist_dataset_train, mnist_dataset_test, mock_trained_mni
     result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
                        device=device)
     # Assert
-    assert_that(len(result.value), equal_to(12))
+    assert_that(len(result.value), equal_to(6))
 
 
 def test_mnist_stratified(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
@@ -72,21 +72,21 @@ def test_mnist_stratified(mnist_dataset_train, mnist_dataset_test, mock_trained_
     result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
                        device=device)
     # Assert
-    assert_that(len(result.value), equal_to(12))
+    assert_that(len(result.value), equal_to(6))
 
 
 def test_condition_failed_for_multiclass(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
     train_ds, test_ds, clf = mnist_dataset_train, mnist_dataset_test, mock_trained_mnist
     # Arrange
-    check = SimpleModelComparison().add_condition_gain_not_less_than(0.8)
+    check = SimpleModelComparison().add_condition_gain_not_less_than(0.973)
     # Act X
     result = check.run(train_ds, test_ds, clf)
     # Assert
     assert_that(result.conditions_results, has_items(
         equal_condition_result(
             is_pass=False,
-            name='Model performance gain over simple model is not less than 80%',
-            details='Found metrics with gain below threshold: {\'Recall\': {1: \'-5000%\'}}')
+            name='Model performance gain over simple model is not less than 97.3%',
+            details='Found metrics with gain below threshold: {\'F1\': {9: \'97.27%\'}}')
 
     ))
 
@@ -117,6 +117,6 @@ def test_condition_pass_for_multiclass_avg_with_classes(mnist_dataset_train, mni
         equal_condition_result(
             is_pass=False,
             name='Model performance gain over simple model is not less than 100% for classes [0]',
-            details='Found metrics with gain below threshold: {\'Recall\': \'99.39%\', \'Precision\': \'97.89%\'}'
+            details='Found metrics with gain below threshold: {\'F1\': \'98.63%\'}'
         )
     ))
