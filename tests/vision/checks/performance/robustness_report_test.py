@@ -13,6 +13,7 @@ import types
 import albumentations
 import numpy as np
 from ignite.metrics import Precision
+import torchvision.transforms as T
 
 from deepchecks.vision.datasets.detection.coco import COCOData, CocoDataset
 
@@ -36,6 +37,29 @@ def test_mnist(mnist_dataset_train, mock_trained_mnist, device):
     check = RobustnessReport(augmentations=augmentations)
     # Act
     result = check.run(mnist_dataset_train, mock_trained_mnist, device=device, n_samples=None)
+    # Assert
+    assert_that(result.value, has_entries({
+        'Random Brightness Contrast': has_entries({
+            'Precision': has_entries(score=close_to(0.964, 0.001), diff=close_to(-0.014, 0.001)),
+            'Recall': has_entries(score=close_to(0.965, 0.001), diff=close_to(-0.013, 0.001))
+        }),
+        'Shift Scale Rotate': has_entries({
+            'Precision': has_entries(score=close_to(0.780, 0.001), diff=close_to(-0.202, 0.001)),
+            'Recall': has_entries(score=close_to(0.775, 0.001), diff=close_to(-0.207, 0.001))
+        }),
+    }))
+
+
+def test_mnist_torch(mnist_dataset_train_torch, mock_trained_mnist, device):
+    # Arrange
+    # Create augmentations without randomness to get fixed metrics results
+    augmentations = [
+        T.ColorJitter(brightness=0.2, contrast=0.2),
+        T.RandomRotation(degrees=(0, 45))
+    ]
+    check = RobustnessReport(augmentations=augmentations)
+    # Act
+    result = check.run(mnist_dataset_train_torch, mock_trained_mnist, device=device, n_samples=None)
     # Assert
     assert_that(result.value, has_entries({
         'Random Brightness Contrast': has_entries({

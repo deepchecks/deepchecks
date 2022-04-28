@@ -13,10 +13,12 @@ import abc
 from copy import copy
 import typing as t
 
+from PIL import Image
 import albumentations
 import imgaug.augmenters as iaa
 import torch
-import torchvision
+import torchvision.transforms as T
+import numpy as np
 
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 
@@ -145,14 +147,23 @@ class TorchTransformations(AlbumentationsTransformations):
     """Class containing supporting functions for torch transforms."""
 
     @classmethod
-    def add_augmentation_in_start(cls, aug, transforms: torchvision.transforms.Compose):
-        """Add given transformations to the start of given transforms object."""
+    def add_augmentation_in_start(cls, aug, transforms: T.Compose):
+        """Add given transformations to the start of given transforms object."""   
         if isinstance(aug, (albumentations.Compose, albumentations.BasicTransform)):
+            alb_aug = aug
             class TorchWrapper:
                 def __call__(self, image):
-                    return aug(image=image)
+                    if isinstance(image, Image.Image):
+                        return T.ToPILImage()(alb_aug(image=np.array(image))['image'])
+                    elif isinstance(image, torch.Tensor):
+                        image = image.cpu().detach().numpy()
+                        return T.ToTensor()(alb_aug(image=image)['image'])
+                    return alb_aug(image=image)['image']
             aug = TorchWrapper()
-        return torchvision.transforms.Compose([aug, *transforms.transforms])
+        elif not isinstance(aug, torch.nn.Module):
+            raise DeepchecksValueError(f'Transforms is of type torch, can\'t add to it type '
+                            f'{type(aug).__name__}')
+        return T.Compose([aug, *transforms.transforms])
 
 
 def get_transforms_handler(transforms) -> t.Type[AbstractTransformations]:
@@ -161,8 +172,8 @@ def get_transforms_handler(transforms) -> t.Type[AbstractTransformations]:
         raise DeepchecksNotSupportedError('Underlying Dataset instance must have transform field not None')
     elif isinstance(transforms, albumentations.Compose):
         return AlbumentationsTransformations
-    elif isinstance(transforms, torchvision.transforms.Compose):
-        return AlbumentationsTransformations
+    elif isinstance(transforms, T.Compose):
+        return TorchTransformations
     elif isinstance(transforms, iaa.Augmenter):
         return ImgaugTransformations
     else:

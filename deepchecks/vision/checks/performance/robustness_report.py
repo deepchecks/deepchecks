@@ -353,6 +353,8 @@ def augmentation_name(aug):
         name = aug.name
     elif isinstance(aug, albumentations.BasicTransform):
         name = aug.get_class_fullname()
+    elif isinstance(aug, torch.nn.Module):
+        name = aug.__class__.__name__
     else:
         raise DeepchecksValueError(f'Unsupported augmentation type {type(aug)}')
 

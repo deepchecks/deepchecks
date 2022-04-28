@@ -23,6 +23,7 @@ from albumentations.pytorch import ToTensorV2
 from torchvision import datasets
 from torch import nn
 from torch.utils.data import DataLoader
+import torchvision.transforms as T
 from typing_extensions import Literal
 
 from deepchecks.vision.classification_data import ClassificationData
@@ -45,7 +46,8 @@ def load_dataset(
     batch_size: t.Optional[int] = None,
     shuffle: bool = True,
     pin_memory: bool = True,
-    object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader'
+    object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader',
+    is_torch_transform: bool = False,
 ) -> t.Union[DataLoader, ClassificationData]:
     """Download MNIST dataset.
 
@@ -77,16 +79,30 @@ def load_dataset(
 
     mean = (0.1307,)
     std = (0.3081,)
-    loader = DataLoader(
-        MNIST(
+
+    if is_torch_transform:
+        dataset = datasets.MNIST(
             str(MODULE_DIR),
             train=train,
             download=True,
-            transform=A.Compose([
-                A.Normalize(mean, std),
-                ToTensorV2(),
+            transform=T.Compose([
+                T.ToTensor(),
+                T.Normalize(mean, std),
             ]),
-        ),
+        )
+    else:
+        dataset = MNIST(
+                    str(MODULE_DIR),
+                    train=train,
+                    download=True,
+                    transform=A.Compose([
+                        A.Normalize(mean, std),
+                        ToTensorV2(),
+                    ]),
+                )
+
+    loader = DataLoader(
+        dataset,
         batch_size=batch_size,
         shuffle=shuffle,
         pin_memory=pin_memory,
