@@ -58,11 +58,11 @@ def test_drift_grayscale(mnist_dataset_train, mnist_dataset_test, device):
     result = check.run(train, test, random_state=42, device=device, n_samples=None)
     # Assert
     assert_that(result.value, has_entries({
-        'domain_classifier_auc': close_to(0.516, 0.001),
-        'domain_classifier_drift_score': close_to(0.033, 0.001),
+        'domain_classifier_auc': close_to(0.5146, 0.001),
+        'domain_classifier_drift_score': close_to(0.029, 0.001),
         'domain_classifier_feature_importance': has_entries({
-            'RMS Contrast': close_to(0.965, 0.001),
-            'Brightness': close_to(0.034, 0.001),
+            'RMS Contrast': close_to(1, 0.001),
+            'Brightness': close_to(0, 0.001),
             'Aspect Ratio': equal_to(0),
             'Area': equal_to(0),
             'Mean Red Relative Intensity': equal_to(0),
@@ -110,8 +110,8 @@ def test_with_drift_rgb(coco_train_dataloader, coco_test_dataloader, device):
     result = check.run(train, test, random_state=42, device=device)
     # Assert
     assert_that(result.value, has_entries({
-        'domain_classifier_auc': close_to(1, 0.001),
-        'domain_classifier_drift_score': close_to(1, 0.001),
+        'domain_classifier_auc': close_to(0.908, 0.001),
+        'domain_classifier_drift_score': close_to(0.815, 0.001),
         'domain_classifier_feature_importance': has_entries({
             'Brightness': close_to(1, 0.001),
             'Aspect Ratio': equal_to(0),

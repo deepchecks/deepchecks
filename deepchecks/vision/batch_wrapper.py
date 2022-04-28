@@ -66,7 +66,7 @@ class Batch:
         if self._images is None:
             dataset = self._context.get_data_by_kind(self._dataset_kind)
             dataset.assert_images_valid()
-            self._images = dataset.batch_to_images(self._batch)
+            self._images = [image.astype('uint8') for image in dataset.batch_to_images(self._batch)]
         return self._images
 
     def __getitem__(self, index: int):

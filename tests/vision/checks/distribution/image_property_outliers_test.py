@@ -65,9 +65,9 @@ def test_image_property_outliers_check_mnist(mnist_dataset_train, device):
     assert_that(result, is_correct_image_property_outliers_result())
     assert_that(result.value, has_entries({
         'Brightness': has_entries({
-            'indices': has_length(610),
-            'lower_limit': close_to(6.487, .001),
-            'upper_limit': close_to(62.650, .001)
+            'indices': has_length(609),
+            'lower_limit': close_to(6.45, .01),
+            'upper_limit': close_to(62.37, .01)
         }),
         'Mean Red Relative Intensity': instance_of(str),
         'Mean Green Relative Intensity': instance_of(str),
