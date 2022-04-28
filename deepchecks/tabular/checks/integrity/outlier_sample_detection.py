@@ -14,6 +14,7 @@ from typing import Union, List
 
 import numpy as np
 from PyNomaly import loop
+from category_encoders import OrdinalEncoder
 
 from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
@@ -60,7 +61,7 @@ class OutlierSampleDetection(SingleDatasetCheck):
             ignore_columns: Union[Hashable, List[Hashable], None] = None,
             num_nearest_neighbors: int = 10,
             extent_parameter: int = 3,
-            n_samples: int = 50_000,
+            n_samples: int = 5_000,
             n_to_show: int = 5,
             random_state: int = 42,
             **kwargs
@@ -94,10 +95,13 @@ class OutlierSampleDetection(SingleDatasetCheck):
         # Calculate distances matrix and retrieve nearest neighbors based on distance matrix.
         df_cols_for_gower = df[dataset.cat_features + dataset.numerical_features]
         is_categorical_arr = np.array(df_cols_for_gower.columns.map(lambda x: x in dataset.cat_features), dtype=bool)
+        df_cols_for_gower.iloc[:, is_categorical_arr] = OrdinalEncoder(handle_missing=np.nan
+                                                                       ).fit_transform(df_cols_for_gower.values)
         try:
-            dist_matrix, idx_matrix = gower_distance.gower_matrix_n_closets(data=np.asarray(df_cols_for_gower),
-                                                                            cat_features=is_categorical_arr,
-                                                                            num_neighbours=self.num_nearest_neighbors)
+            dist_matrix, idx_matrix = gower_distance.gower_matrix_n_closets(
+                data=np.asarray(df_cols_for_gower, np.float32),
+                cat_features=is_categorical_arr,
+                num_neighbours=self.num_nearest_neighbors)
         except MemoryError as e:
             raise DeepchecksValueError('A out of memory error occurred while calculating the distance matrix. '
                                        'Try reducing the n_samples or num_nearest_neighbors parameters values.') from e

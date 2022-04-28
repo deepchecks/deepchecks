@@ -11,7 +11,7 @@
 """Module for calculating distance matrix via Gower method."""
 
 import numpy as np
-import pandas as pd
+from numba import njit
 
 
 def gower_matrix(data: np.ndarray, cat_features: np.array) -> np.ndarray:
@@ -35,8 +35,6 @@ def gower_matrix(data: np.ndarray, cat_features: np.array) -> np.ndarray:
     numpy.ndarray
      representing the distance matrix.
     """
-    if not isinstance(data, np.ndarray):
-        data = np.asarray(data)
 
     feature_ranges = np.ones(data.shape[1]) * -1
     feature_ranges[~cat_features] = np.nanmax(data[:, ~cat_features], axis=0) - np.nanmin(data[:, ~cat_features],
@@ -52,6 +50,7 @@ def gower_matrix(data: np.ndarray, cat_features: np.array) -> np.ndarray:
     return result
 
 
+@njit(fastmath=True)
 def gower_matrix_n_closets(data: np.ndarray, cat_features: np.array, num_neighbours: int):
     """
     Calculate distance matrix for a dataset using Gower's method.
@@ -78,12 +77,12 @@ def gower_matrix_n_closets(data: np.ndarray, cat_features: np.array, num_neighbo
     numpy.ndarray
      representing the indexes of the nearest neighbours.
     """
-    if not isinstance(data, np.ndarray):
-        data = np.asarray(data)
 
     feature_ranges = np.ones(data.shape[1]) * -1
-    feature_ranges[~cat_features] = np.nanmax(data[:, ~cat_features], axis=0) - np.nanmin(data[:, ~cat_features],
-                                                                                          axis=0)
+    for feat_idx in range(data.shape[1]):
+        if not cat_features[feat_idx]:
+            nonan_data = data[~np.isnan(data[:, feat_idx]), feat_idx]
+            feature_ranges[feat_idx] = np.max(nonan_data) - np.min(nonan_data)
 
     distances = np.zeros((data.shape[0], num_neighbours))
     indexes = np.zeros((data.shape[0], num_neighbours))
@@ -95,14 +94,14 @@ def gower_matrix_n_closets(data: np.ndarray, cat_features: np.array, num_neighbo
         # fill na
         dist_to_sample_i[np.isnan(dist_to_sample_i)] = np.nanmean(np.delete(dist_to_sample_i, [i]))
         # sort to find the closest samples
-        min_dist_indexes = np.argpartition(dist_to_sample_i, num_neighbours)[:num_neighbours + 1]
-        min_dist_indexes_ordered = sorted(min_dist_indexes, key=lambda x, arr=dist_to_sample_i: arr[x], reverse=False)
-        indexes[i, :] = min_dist_indexes_ordered[1:]
-        distances[i, :] = dist_to_sample_i[min_dist_indexes_ordered[1:]]
+        min_dist_indexes = np.argsort(dist_to_sample_i)[:num_neighbours + 1]
+        indexes[i, :] = min_dist_indexes[1:]
+        distances[i, :] = dist_to_sample_i[min_dist_indexes[1:]]
 
     return distances, indexes
 
 
+@njit(fastmath=True)
 def calculate_distance(vec1: np.array, vec2: np.array, range_per_feature: np.array) -> float:
     """Calculate distance between two vectors using Gower's method.
 
@@ -125,14 +124,14 @@ def calculate_distance(vec1: np.array, vec2: np.array, range_per_feature: np.arr
     for col_index in range(len(vec1)):
         if range_per_feature[col_index] == -1:
             # categorical feature
-            if pd.isnull(vec1[col_index]) and pd.isnull(vec2[col_index]):
+            if np.isnan(vec1[col_index]) and np.isnan(vec2[col_index]):
                 sum_dist += 0
-            elif (pd.isnull(vec1[col_index]) or pd.isnull(vec2[col_index])) or vec1[col_index] != vec2[col_index]:
+            elif (np.isnan(vec1[col_index]) or np.isnan(vec2[col_index])) or vec1[col_index] != vec2[col_index]:
                 sum_dist += 1
             num_features += 1
         else:
             # numeric feature
-            if pd.isnull(vec1[col_index]) or pd.isnull(vec2[col_index]):
+            if np.isnan(vec1[col_index]) or np.isnan(vec2[col_index]):
                 continue
             sum_dist += np.abs(vec1[col_index] - vec2[col_index]) / range_per_feature[col_index]
             num_features += 1
