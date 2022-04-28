@@ -20,19 +20,28 @@ weak learner to the ensemble. The new weak learner is trained on the data that i
 ensemble in the previous iteration. The mechanism continues until the ensemble reach a certain level of performance or
 until the number of iterations is reached.
 
-Thanks to its mechanism, boosting algorithms are usually less prone to overfitting. However, the number of weak
-learners in the ensemble can be too large making the ensemble too complex. In this case, the ensemble may be
-overfitted on the training data.
+Thanks to its mechanism, boosting algorithms are usually less prone to overfitting than other traditional algorithms
+like single decision trees. However, the number of weak learners in the ensemble can be too large making the ensemble
+too complex. In this case, the ensemble may be overfitted on the training data.
 
 How deepchecks detects a boosting overfit?
 ------------------------------------------
-The check runs for a pre-defined number of iterations, and in each step it limits the boosting model to use up to X
-estimators (number of estimators is monotonic increasing). It plots the given score calculated for each step for
-both the train dataset and the test dataset.
+The check runs for a pre-defined number of iterations, and in each step it uses only the first X estimators from the
+boosting model when predicting the target variable (number of estimators is monotonic increasing).
+It plots the given score calculated for each iteration for both the train dataset and the test dataset.
 
 If the ratio of decline between the maximal test score achieved in any boosting iteration and the test score achieved in the
 last iteration ("full" model score) is above a given threshold (0.05 by default), it means the model is overfitted
 and the default condition will fail.
+
+Supported Models
+----------------
+Currently the check supports the following models:
+- AdaBoost (sklearn)
+- GradientBoosting (sklearn)
+- XGBoost (xgboost)
+- LGBM (lightgbm)
+- CatBoost (catboost)
 
 Generate data & model
 =====================
@@ -70,7 +79,7 @@ validation_ds = Dataset(val_df, label='income')
 
 from sklearn.ensemble import AdaBoostClassifier
 
-clf = AdaBoostClassifier(random_state=0)
+clf = AdaBoostClassifier(random_state=0, n_estimators=100)
 clf.fit(train_ds.data[train_ds.features], train_ds.data[train_ds.label_name])
 
 #%%
@@ -87,6 +96,6 @@ result
 # Now, we define a condition that will validate if the percent of decline between the maximal score achieved in any
 # boosting iteration and the score achieved in the last iteration is above 10%.
 check = BoostingOverfit()
-check.add_condition_test_score_percent_decline_not_greater_than(0.1)
+check.add_condition_test_score_percent_decline_not_greater_than(0.0002)
 result = check.run(train_ds, validation_ds, clf)
-result.show(show_additional_outputs=False)
+resdult.show(show_additional_outputs=False)
