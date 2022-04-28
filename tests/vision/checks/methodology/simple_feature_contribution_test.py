@@ -104,8 +104,8 @@ def test_drift_classification(mnist_dataset_train, mnist_dataset_test):
     # Assert
     assert_that(result.value, has_entries({
         'train': has_entries({'Brightness': close_to(0.08, 0.005)}),
-        'test': has_entries({'Brightness': close_to(0.239, 0.001)}),
-        'train-test difference': has_entries({'Brightness': close_to(-0.159, 0.001)})
+        'test': has_entries({'Brightness': close_to(0.234, 0.001)}),
+        'train-test difference': has_entries({'Brightness': close_to(-0.153, 0.001)})
     }))
 
 
@@ -173,8 +173,8 @@ def test_drift_classification_per_class(mnist_dataset_train, mnist_dataset_test)
     # Assert
     assert_that(result.value, has_entries({
         'Brightness': has_entries({'train':  has_entries({'1': equal_to(0)}),
-                                   'test':  has_entries({'1': close_to(0.64, 0.01)}),
-                                   'train-test difference':  has_entries({'1': close_to(-0.64, 0.01)})}),
+                                   'test':  has_entries({'1': close_to(0.659, 0.01)}),
+                                   'train-test difference':  has_entries({'1': close_to(-0.659, 0.01)})}),
     }))
 
 

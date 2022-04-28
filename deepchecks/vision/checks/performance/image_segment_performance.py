@@ -42,7 +42,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
         representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'
     alternative_metrics : Dict[str, Metric], default: None
-        A dictionary of metrics, where the key is the metric name and the value is an ignite.Metric object whose score
+        A dictionary of metrics, where the key is the metric name and the value is an ignite. Metric object whose score
         should be used. If None are given, use the default metrics.
     number_of_bins: int, default : 5
         Maximum number of bins to segment a single property into.

@@ -36,7 +36,7 @@ The accepted prediction format is a list of length N containing tensors of shape
 of images, B is the number of bounding boxes detected in the sample and each bounding box is represented by 6
 values: ``[x_min, y_min, w, h, confidence, class_id]``.
 
-    x_min,y_min,w and h represent the bounding box location as before, confidence is the confidence score given by the model to
+    x_min,y_min,w and h represent the bounding box location as above, confidence is the confidence score given by the model to
     bounding box and class_id is the class id predicted by the model.
 
 For example, for a sample with 2 bounding boxes, the prediction format may be:
@@ -91,8 +91,8 @@ each box arrives in the format: ``(class_id, x_min, y_min, x_max, y_max)``. Addi
 
             Parameters
             ----------
-            batch : torch.Tensor (N, B, 5)
-                The batch of bounding boxes to convert.
+            batch : tuple
+                The batch of data, containing images and bounding boxes.
 
             Returns
             -------
@@ -102,10 +102,11 @@ each box arrives in the format: ``(class_id, x_min, y_min, x_max, y_max)``. Addi
 
             # each bbox in the labels is (class_id, x, y, x, y). convert to (class_id, x, y, w, h)
             bboxes = []
-            for image in batch[1]:
-                bboxes_in_image = [torch.cat((bbox[0], bbox[1:3], bbox[4:] - bbox[1:3]), dim=0) for bbox in image]
-                if len(bboxes_in_image) != 0:
-                    bboxes.append(torch.stack(bboxes_in_image))
+            for bboxes_single_image in batch[1]:
+                formatted_bboxes = [torch.cat((bbox[0], bbox[1:3], bbox[4:] - bbox[1:3]), dim=0)
+                                    for bbox in bboxes_single_image]
+                if len(formatted_bboxes) != 0:
+                    bboxes.append(torch.stack(formatted_bboxes))
             return bboxes
 
         def infer_on_batch(self, batch, model, device):
