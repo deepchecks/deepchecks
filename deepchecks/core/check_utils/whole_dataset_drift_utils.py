@@ -10,11 +10,12 @@
 #
 """Module containing common WholeDatasetDriftCheck (domain classifier drift) utils."""
 
-from typing import List, Optional
+from typing import List
 import warnings
 
 import numpy as np
 import pandas as pd
+from plotly.subplots import make_subplots
 
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
@@ -31,6 +32,7 @@ import plotly.graph_objects as go
 
 from deepchecks.tabular import Dataset
 from deepchecks.utils.distribution.plot import feature_distribution_traces, drift_score_bar_traces
+from deepchecks.utils.distribution.rare_category_encoder import RareCategoryEncoder
 from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none
 from deepchecks.utils.function import run_available_kwargs
 from deepchecks.utils.strings import format_percent
@@ -40,7 +42,8 @@ from deepchecks.utils.typing import Hashable
 def run_whole_dataset_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.DataFrame,
                             numerical_features: List[Hashable], cat_features: List[Hashable], sample_size: int,
                             random_state: int, test_size: float, n_top_columns: int, min_feature_importance: float,
-                            max_num_categories: Optional[int], min_meaningful_drift_score: float):
+                            max_num_categories_for_display: int, show_categories_by: str,
+                            min_meaningful_drift_score: float):
     """Calculate whole dataset drift."""
     domain_classifier = generate_model(numerical_features, cat_features, random_state)
 
@@ -102,7 +105,7 @@ def run_whole_dataset_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
                     '<h3>Main features contributing to drift</h3>',
                     N_TOP_MESSAGE % n_top_columns]
         displays += [display_dist(train_sample_df[feature], test_sample_df[feature], top_fi, cat_features,
-                                  max_num_categories)
+                                  max_num_categories_for_display, show_categories_by)
                      for feature in top_fi.index]
     else:
         displays = None
@@ -114,7 +117,8 @@ def generate_model(numerical_columns: List[Hashable], categorical_columns: List[
                    random_state: int = 42) -> Pipeline:
     """Generate the unfitted Domain Classifier model."""
     categorical_transformer = Pipeline(
-        steps=[('encoder', run_available_kwargs(OrdinalEncoder, handle_unknown='use_encoded_value',
+        steps=[('rare', RareCategoryEncoder(254)),
+               ('encoder', run_available_kwargs(OrdinalEncoder, handle_unknown='use_encoded_value',
                                                 unknown_value=np.nan,
                                                 dtype=np.float64))]
     )
@@ -163,19 +167,50 @@ def build_drift_plot(score):
 
 
 def display_dist(train_column: pd.Series, test_column: pd.Series, fi_ser: pd.Series, cat_features,
-                 max_num_categories: int = 10):
+                 max_num_categories, show_categories_by):
     """Display a distribution comparison plot for the given columns."""
     column_name = train_column.name
 
     title = f'Feature: {column_name} - Explains {format_percent(fi_ser.loc[column_name])} of dataset difference'
-    traces, xaxis_layout, yaxis_layout = \
+    dist_traces, xaxis_layout, yaxis_layout = \
         feature_distribution_traces(train_column.dropna(),
                                     test_column.dropna(),
                                     column_name,
                                     is_categorical=column_name in cat_features,
-                                    max_num_categories=max_num_categories)
+                                    max_num_categories=max_num_categories,
+                                    show_categories_by=show_categories_by)
 
-    figure = go.Figure(layout=go.Layout(
+    all_categories = list(set(train_column).union(set(test_column)))
+    add_footnote = column_name in cat_features and len(all_categories) > max_num_categories
+
+    if add_footnote:
+        fig = make_subplots(rows=2, cols=1, vertical_spacing=0.6, shared_yaxes=False, shared_xaxes=False,
+                            row_heights=[0.8, 0.2],
+                            subplot_titles=[title])
+
+        fig.add_traces(dist_traces)
+
+        param_to_print_dict = {
+            'train_largest': 'largest categories (by train)',
+            'test_largest': 'largest categories (by test)',
+            'largest_difference': 'largest difference between categories'
+        }
+        train_data_percents = dist_traces[0].y.sum()
+        test_data_percents = dist_traces[1].y.sum()
+
+        fig.add_annotation(
+            x=0, y=-0.2, showarrow=False, xref='paper', yref='paper', xanchor='left',
+            text=f'* Showing the top {max_num_categories} {param_to_print_dict[show_categories_by]} out of '
+                 f'total {len(all_categories)} categories.'
+                 f'<br>Shown data is {format_percent(train_data_percents)} of train data and '
+                 f'{format_percent(test_data_percents)} of test data.'
+        )
+
+    else:
+        fig = go.Figure()
+        fig.add_traces(dist_traces)
+
+    layout = go.Layout(
         title=title,
         xaxis=xaxis_layout,
         yaxis=yaxis_layout,
@@ -186,8 +221,8 @@ def display_dist(train_column: pd.Series, test_column: pd.Series, fi_ser: pd.Ser
             xanchor='left'),
         width=700,
         height=300
-    ))
+    )
 
-    figure.add_traces(traces)
+    fig.update_layout(layout)
 
-    return figure
+    return fig

@@ -21,6 +21,7 @@ __all__ = ['feature_distribution_traces', 'drift_score_bar_traces', 'get_density
 
 from typing import List, Dict, Tuple
 
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
 from deepchecks.utils.plot import colors
 from deepchecks.utils.dataframes import un_numpy
@@ -124,6 +125,7 @@ def feature_distribution_traces(train_column,
                                 column_name,
                                 is_categorical: bool = False,
                                 max_num_categories: int = 10,
+                                show_categories_by: str = 'train_largest',
                                 quantile_cut: float = 0.02) -> Tuple[List[go.Trace], Dict, Dict]:
     """Create traces for comparison between train and test column.
 
@@ -139,6 +141,12 @@ def feature_distribution_traces(train_column,
         State if column is categorical.
     max_num_categories : int , default: 10
         Maximum number of categories to show in plot (default: 10).
+    show_categories_by: str, default: 'train_largest'
+        Specify which categories to show for categorical features' graphs, as the number of shown categories is limited
+        by max_num_categories_for_display. Possible values:
+        - 'train_largest': Show the largest train categories.
+        - 'test_largest': Show the largest test categories.
+        - 'largest_difference': Show the largest difference between categories.
     quantile_cut : float , default: 0.02
         in which quantile to cut the edges of the plot
     Returns
@@ -153,7 +161,8 @@ def feature_distribution_traces(train_column,
         general layout
     """
     if is_categorical:
-        traces, y_layout = _create_distribution_bar_graphs(train_column, test_column, max_num_categories)
+        traces, y_layout = _create_distribution_bar_graphs(train_column, test_column, max_num_categories,
+                                                           show_categories_by)
         xaxis_layout = dict(type='category')
         return traces, xaxis_layout, y_layout
     else:
@@ -164,7 +173,7 @@ def feature_distribution_traces(train_column,
         # If there are less than 20 total unique values, draw bar graph
         train_test_uniques = np.unique(np.concatenate([train_uniques, test_uniques]))
         if train_test_uniques.size < MAX_NUMERICAL_UNIQUE_FOR_BARS:
-            traces, y_layout = _create_distribution_bar_graphs(train_column, test_column, 20)
+            traces, y_layout = _create_distribution_bar_graphs(train_column, test_column, 20, show_categories_by)
             # In case of single value widen the range, else plotly draw the bars really wide.
             if x_range[0] == x_range[1]:
                 x_range = (x_range[0] - 5, x_range[0] + 5)
@@ -203,7 +212,7 @@ def feature_distribution_traces(train_column,
             ))
         else:
             traces.append(go.Scatter(x=xs, y=train_density, fill='tozeroy', name='Train Dataset',
-                          line_color=colors['Train']))
+                                     line_color=colors['Train']))
 
         if test_uniques.size <= MAX_NUMERICAL_UNIQUES_FOR_SINGLE_DIST_BARS:
             traces.append(go.Bar(
@@ -217,7 +226,7 @@ def feature_distribution_traces(train_column,
             ))
         else:
             traces.append(go.Scatter(x=xs, y=test_density, fill='tozeroy', name='Test Dataset',
-                          line_color=colors['Test']))
+                                     line_color=colors['Test']))
 
         xaxis_layout = dict(fixedrange=False,
                             range=x_range_to_show,
@@ -233,10 +242,30 @@ def _create_bars_data_for_mixed_kde_plot(counts: np.ndarray, max_kde_value: floa
     return counts * normalize_factor
 
 
-def _create_distribution_bar_graphs(train_column, test_column, max_num_categories: int):
-    expected_percents, actual_percents, categories_list = \
-        preprocess_2_cat_cols_to_same_bins(dist1=train_column, dist2=test_column,
-                                           max_num_categories=max_num_categories)
+def _create_distribution_bar_graphs(train_column, test_column, max_num_categories: int, show_categories_by: str):
+    expected, actual, categories_list = \
+        preprocess_2_cat_cols_to_same_bins(dist1=train_column, dist2=test_column)
+
+    expected_percents, actual_percents = expected / len(train_column), actual / len(test_column)
+
+    # Get sorting lambda function according to the parameter show_categories_by:
+    if show_categories_by == 'train_largest':
+        sort_func = lambda tup: tup[0]
+    elif show_categories_by == 'test_largest':
+        sort_func = lambda tup: tup[1]
+    elif show_categories_by == 'largest_difference':
+        sort_func = lambda tup: np.abs(tup[0] - tup[1])
+    else:
+        raise DeepchecksValueError(f'show_categories_by must be either "train_largest", "test_largest" '
+                                   f'or "largest_difference", instead got: {show_categories_by}')
+
+    # Sort the lists together according to the parameter show_categories_by (done by sorting zip and then using it again
+    # to return the lists to the original 3 separate ones).
+    # Afterwards, leave only the first max_num_categories values in each list.
+    expected_percents, actual_percents, categories_list = zip(
+        *list(sorted(zip(expected_percents, actual_percents, categories_list), key=sort_func, reverse=True))[
+         :max_num_categories])
+
     # fixes plotly widget bug with numpy values by converting them to native values
     # https://github.com/plotly/plotly.py/issues/3470
     categories_list = [un_numpy(cat) for cat in categories_list]
@@ -278,6 +307,6 @@ def _create_distribution_bar_graphs(train_column, test_column, max_num_categorie
 
     yaxis_layout = dict(fixedrange=True,
                         range=(0, y_lim),
-                        title='Percentage')
+                        title='Frequency')
 
     return traces, yaxis_layout

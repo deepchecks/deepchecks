@@ -22,13 +22,25 @@ from torch.utils.data import DataLoader
 from PIL import Image
 
 
-def test_no_similars_object_detection(coco_train_visiondata, coco_test_visiondata):
+def test_no_similar_object_detection(coco_train_visiondata, coco_test_visiondata):
     # Arrange
     train, test = coco_train_visiondata, coco_test_visiondata
     check = SimilarImageLeakage()
 
     # Act
     result = check.run(train, test)
+
+    # Assert
+    assert_that(result.value, equal_to([]))
+
+
+def test_no_similar_classification(mnist_dataset_train, mnist_dataset_test):
+    # Arrange
+    train, test = mnist_dataset_train, mnist_dataset_test
+    check = SimilarImageLeakage(hash_size=32, similarity_threshold=0.02)
+
+    # Act
+    result = check.run(train, test, n_samples=500, random_state=42)
 
     # Assert
     assert_that(result.value, equal_to([]))

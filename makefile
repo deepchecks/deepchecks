@@ -346,12 +346,12 @@ test-release: dist test-upload
 
 ### Documentation
 
-.PHONY: docs website dev-docs gen-static-notebooks license-check links-check
+.PHONY: docs validate-examples website dev-docs gen-static-notebooks license-check links-check
 
 
 docs: requirements doc-requirements dev-requirements $(DOCS_SRC)
 	@export WANDB_MODE=offline
-	cd $(DOCS) && make html SPHINXBUILD=$(SPHINX_BUILD) SPHINXOPTS=$(SPHINXOPTS)
+	cd $(DOCS) && make html SPHINXBUILD=$(SPHINX_BUILD) SPHINXOPTS=$(SPHINXOPTS) 2> docs.error.log
 	@echo ""
 	@echo "++++++++++++++++++++++++"
 	@echo "++++ Build Finished ++++"
@@ -364,6 +364,8 @@ docs: requirements doc-requirements dev-requirements $(DOCS_SRC)
 	@echo "- ERRORs: $$(grep "ERROR" $(DOCS)/docs.error.log | wc -l)"
 	@echo "- WARNINGs: $$(grep "WARNING" $(DOCS)/docs.error.log | wc -l)"
 
+validate-examples: doc-requirements
+	@$(PYTHON) $(TESTDIR)/examples_validation.py
 
 show-docs: $(DOCS_BUILD)/html
 	@cd $(DOCS_BUILD)/html && $(PYTHON) -m http.server

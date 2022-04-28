@@ -9,11 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """Contains unit tests for the Dataset class."""
+import logging
 import typing as t
-import random
 
 import numpy as np
 import pandas as pd
+import pytest
 from sklearn.datasets import load_iris
 from sklearn.datasets import make_classification
 from hamcrest import (
@@ -21,9 +22,10 @@ from hamcrest import (
     calling, raises, not_none, has_property, all_of, contains_exactly, has_item, has_length
 )
 
-from deepchecks.tabular.dataset import Dataset
+from deepchecks.tabular.dataset import Dataset, logger as ds_logger
 from deepchecks.tabular.utils.validation import ensure_dataframe_type
-from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError
+from deepchecks.core.errors import DeepchecksValueError
+
 
 
 def assert_dataset(dataset: Dataset, args):
@@ -82,6 +84,12 @@ def assert_dataset(dataset: Dataset, args):
                 is_(True)
             )
 
+
+def test_that_cant_create_empty_dataset():
+    assert_that(calling(Dataset).with_args(pd.DataFrame()),
+                raises(DeepchecksValueError, 'Can\'t create a Dataset object with an empty dataframe'))
+
+
 def test_that_mutable_properties_modification_does_not_affect_dataset_state(iris):
     dataset = Dataset(
         df=iris,
@@ -101,12 +109,6 @@ def test_that_mutable_properties_modification_does_not_affect_dataset_state(iris
 
     assert_that("New value" not in dataset.features)
     assert_that("New value" not in dataset.cat_features)
-
-
-def test_dataset_empty_df(empty_df):
-    args = {'df': empty_df}
-    dataset = Dataset(**args)
-    assert_dataset(dataset, args)
 
 
 def test_dataset_feature_columns(iris):
@@ -829,26 +831,17 @@ def test_sample_drop_nan_labels(iris):
     assert_that(sample, has_length(50))
 
 
-def test__ensure_not_empty_dataset(iris: pd.DataFrame):
-    # Arrange
-    ds = Dataset(iris)
-    # Act
-    ds = Dataset.ensure_not_empty_dataset(ds)
-
-
 def test__ensure_not_empty_dataset__with_empty_dataset():
-    # Arrange
-    ds = Dataset(pd.DataFrame())
     # Assert
     assert_that(
-        calling(Dataset.ensure_not_empty_dataset).with_args(ds),
-        raises(DatasetValidationError, r'dataset cannot be empty')
+        calling(Dataset.cast_to_dataset).with_args(pd.DataFrame()),
+        raises(DeepchecksValueError, 'Can\'t create a Dataset object with an empty dataframe')
     )
 
 
 def test__ensure_not_empty_dataset__with_dataframe(iris: pd.DataFrame):
     # Arrange
-    ds = Dataset.ensure_not_empty_dataset(iris)
+    ds = Dataset.cast_to_dataset(iris)
     # Assert
     assert_that(ds, instance_of(Dataset))
     assert_that(ds.features, has_length(0))
@@ -859,8 +852,8 @@ def test__ensure_not_empty_dataset__with_dataframe(iris: pd.DataFrame):
 def test__ensure_not_empty_dataset__with_empty_dataframe():
     # Assert
     assert_that(
-        calling(Dataset.ensure_not_empty_dataset).with_args(pd.DataFrame()),
-        raises(DatasetValidationError, r'dataset cannot be empty')
+        calling(Dataset.cast_to_dataset).with_args(pd.DataFrame()),
+        raises(DeepchecksValueError, r'Can\'t create a Dataset object with an empty dataframe')
     )
 
 
@@ -1046,3 +1039,21 @@ def random_classification_dataframe(n_samples=100, n_features=5) -> pd.DataFrame
     df = pd.DataFrame(x,columns=[f'X{i}'for i in range(n_features)])
     df['target'] = y
     return df
+
+
+def test_cat_features_warning(iris, caplog):
+    # Test that warning is raised when cat_features is None
+    with caplog.at_level(logging.WARNING):
+        Dataset(iris)
+    assert_that(caplog.records, has_item(has_property('message',
+                    "It is recommended to initialize Dataset with categorical features by doing "
+                    "\"Dataset(df, cat_features=categorical_list)\". No categorical features were "
+                    "passed, therefore heuristically inferring categorical features in the data.\n"
+                    "0 categorical features were inferred")
+    ))
+
+    # Test that warning is not raised when cat_features is not None
+    caplog.clear()
+    with caplog.at_level(logging.WARNING):
+        Dataset(iris, cat_features=[])
+    assert_that(caplog.records, has_length(0))

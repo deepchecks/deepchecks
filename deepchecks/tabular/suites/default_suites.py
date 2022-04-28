@@ -20,8 +20,8 @@ from deepchecks.tabular.checks import (
     CategoryMismatchTrainTest, NewLabelTrainTest, StringMismatchComparison, TrainTestFeatureDrift, WholeDatasetDrift,
     ConfusionMatrixReport, RocReport, CalibrationScore,
     RegressionErrorDistribution, RegressionSystematicError, PerformanceReport, SimpleModelComparison, BoostingOverfit,
-    ModelInfo, ColumnsInfo, DataDuplicates, IsSingleValue, LabelAmbiguity,
-    DatasetsSizeComparison, UnusedFeatures, ModelInferenceTime, ModelErrorAnalysis, TrainTestLabelDrift
+    ModelInfo, ColumnsInfo, DataDuplicates, IsSingleValue, LabelAmbiguity, DatasetsSizeComparison,
+    UnusedFeatures, ModelInferenceTime, ModelErrorAnalysis, TrainTestLabelDrift, OutlierSampleDetection
 )
 from deepchecks.tabular import Suite
 
@@ -41,7 +41,8 @@ def single_dataset_integrity() -> Suite:
         DataDuplicates().add_condition_ratio_not_greater_than(),
         StringLengthOutOfBounds().add_condition_ratio_of_outliers_not_greater_than(),
         SpecialCharacters().add_condition_ratio_of_special_characters_not_grater_than(),
-        LabelAmbiguity().add_condition_ambiguous_sample_ratio_not_greater_than()
+        LabelAmbiguity().add_condition_ambiguous_sample_ratio_not_greater_than(),
+        OutlierSampleDetection()
     )
 
 
