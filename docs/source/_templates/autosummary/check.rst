@@ -12,6 +12,8 @@
 
 {% set path = getcwd() + '/source/checks/' + submoduletype + '/' + checktype + '/plot_' + to_snake_case(objname).lower() + '.py' %}
 
+{% set example_path = '.'.join(['deepchecks', submoduletype, 'checks', objname]) %}
+
 {%- if path_exists(path) %}
 Examples
 ~~~~~~~~
@@ -33,5 +35,7 @@ Examples
     <div style="clear:both"></div>
 {%- endif %}
 
+.. minigallery:: {{ example_path }}
+    :add-heading:
 
 {% endblock %}

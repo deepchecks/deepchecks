@@ -82,7 +82,21 @@ extensions = [
     'sphinx.ext.autosectionlabel',
     "sphinx.ext.imgmath",
     'sphinx_reredirects',
+    'sphinx.ext.intersphinx',
 ]
+
+# intersphinx configuration
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/{.major}".format(sys.version_info), None),
+    "numpy": ("https://numpy.org/doc/stable", None),
+    "scipy": ("https://docs.scipy.org/doc/scipy/", None),
+    "matplotlib": ("https://matplotlib.org/", None),
+    "pandas": ("https://pandas.pydata.org/pandas-docs/stable/", None),
+    "joblib": ("https://joblib.readthedocs.io/en/latest/", None),
+    "seaborn": ("https://seaborn.pydata.org/", None),
+    "sklearn": ("https://scikit-learn.org/stable/", None),
+    "pytorch": ("https://pytorch.org/docs/stable/", None),
+}
 
 redirects = {
     "examples/guides/quickstart_in_5_minutes": "../../auto_tutorials/tabular/plot_quickstart_in_5_minutes.html",
@@ -125,8 +139,12 @@ sphinx_gallery_conf = {
     "pypandoc": True,
     "default_thumb_file": os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                        "_static/sphx_glr_deepchecks_icon.png"),
-    "doc_module": "deepchecks",
-    "backreferences_dir": os.path.join(PROJECT_DIR, "docs/source/api/generated/backreferences"),
+    "doc_module": ("deepchecks.tabular.checks",
+                   "deepchecks.tabular.suites",
+                   "deepchecks.vision.checks",
+                   "deepchecks.vision.suites",
+                   ),
+    "backreferences_dir": os.path.join(PROJECT_DIR, "docs/source/api/generated"),
     "reference_url": {'deepchecks': None},
     # avoid generating too many cross links
     "inspect_global_variables": True,
@@ -384,7 +402,7 @@ html_copy_source = True
 #
 html_theme_options = {
     "collapse_navigation": False,
-    "navigation_depth": 6,
+    "navigation_depth": 2,
     "navbar_end": ["version-switcher", "navbar-icon-links", "menu-dropdown", ],
     # "page_sidebar_items": ["page-toc", "create-issue", "show-page-source"],
     "page_sidebar_items": ["page-toc", ],
