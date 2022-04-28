@@ -9,13 +9,15 @@
 # ----------------------------------------------------------------------------
 #
 """The vision/dataset module containing the vision Dataset class and its functions."""
-from abc import abstractmethod
 import logging
+from abc import abstractmethod
 from typing import List, Union
+
 import torch
 
-from deepchecks.core.errors import DeepchecksNotImplementedError, ValidationError
-from deepchecks.vision.vision_data import VisionData, TaskType
+from deepchecks.core.errors import (DeepchecksNotImplementedError,
+                                    ValidationError)
+from deepchecks.vision.vision_data import TaskType, VisionData
 
 logger = logging.getLogger('deepchecks')
 

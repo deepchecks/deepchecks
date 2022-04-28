@@ -12,18 +12,18 @@
 import itertools
 import os
 import random
-import typing as t
 import re
-from datetime import datetime
-from string import ascii_uppercase, digits
+import typing as t
 from collections import defaultdict
-from decimal import Decimal
 from copy import copy
-from packaging.version import Version
+from datetime import datetime
+from decimal import Decimal
+from string import ascii_uppercase, digits
 
-from ipywidgets import Widget
-from ipywidgets.embed import embed_minimal_html, dependency_state
 import pandas as pd
+from ipywidgets import Widget
+from ipywidgets.embed import dependency_state, embed_minimal_html
+from packaging.version import Version
 from pandas.core.dtypes.common import is_numeric_dtype
 
 import deepchecks

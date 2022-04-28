@@ -30,9 +30,13 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: 3.9
+
     - name: Run Pylint
       run: make pylint
-
+    - name: Check import order
+      uses: jamescurtin/isort-action@master
+      with:
+        requirementsFiles: "requirements/requirements.txt"
   docstring:
     runs-on: ubuntu-latest
     steps:

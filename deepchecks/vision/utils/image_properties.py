@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the image formatter class for the vision module."""
-from typing import Tuple, List
+from typing import List, Tuple
 
 import numpy as np
 from skimage.color import rgb2gray

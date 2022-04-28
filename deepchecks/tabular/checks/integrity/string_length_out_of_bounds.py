@@ -10,21 +10,23 @@
 #
 """String length outlier check."""
 from collections import defaultdict
-from typing import Union, Dict, Tuple, List
+from typing import Dict, List, Tuple, Union
 
 import numpy as np
 import pandas as pd
 from pandas import DataFrame, Series
 from scipy import stats
 
-from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.tabular.utils.display_utils import nothing_found_on_columns
-from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df, is_categorical
-from deepchecks.utils.strings import is_string_column, format_number, format_percent
 from deepchecks.utils.dataframes import select_from_dataframe
+from deepchecks.utils.features import (N_TOP_MESSAGE,
+                                       column_importance_sorter_df,
+                                       is_categorical)
+from deepchecks.utils.strings import (format_number, format_percent,
+                                      is_string_column)
 from deepchecks.utils.typing import Hashable
-
 
 __all__ = ['StringLengthOutOfBounds']
 

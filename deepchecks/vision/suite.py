@@ -11,23 +11,23 @@
 """Module for base vision abstractions."""
 # pylint: disable=broad-except,not-callable
 import logging
-from typing import Tuple, Mapping, Optional, Union, Dict, List
 from collections import OrderedDict
+from typing import Dict, List, Mapping, Optional, Tuple, Union
 
 import torch
-from torch import nn
 from ignite.metrics import Metric
+from torch import nn
 
 from deepchecks.core.check_result import CheckFailure, CheckResult
 from deepchecks.core.checks import DatasetKind
-from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.core.display_suite import ProgressBar
 from deepchecks.core.errors import DeepchecksNotSupportedError
-from deepchecks.vision.base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
+from deepchecks.core.suite import BaseSuite, SuiteResult
+from deepchecks.vision.base_checks import (ModelOnlyCheck, SingleDatasetCheck,
+                                           TrainTestCheck)
+from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.context import Context
 from deepchecks.vision.vision_data import VisionData
-from deepchecks.vision.batch_wrapper import Batch
-
 
 __all__ = ['Suite']
 

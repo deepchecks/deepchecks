@@ -51,10 +51,10 @@ one-dimensional distributions, the following 2 methods give the best results:
 #%%
 
 
-from deepchecks.tabular.checks import TrainTestPredictionDrift
-from deepchecks.tabular.datasets.classification import adult
 from sklearn.preprocessing import LabelEncoder
 
+from deepchecks.tabular.checks import TrainTestPredictionDrift
+from deepchecks.tabular.datasets.classification import adult
 
 #%%
 # Generate data
@@ -78,12 +78,11 @@ test_ds.data['education'] = ' Bachelors'
 # ===========
 
 
-from sklearn.pipeline import Pipeline
-from sklearn.impute import SimpleImputer
 from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import OrdinalEncoder
 from sklearn.ensemble import RandomForestClassifier
-
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OrdinalEncoder
 
 #%%
 

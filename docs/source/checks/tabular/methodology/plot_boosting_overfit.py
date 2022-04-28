@@ -34,7 +34,8 @@ for column in train_df.columns:
 # ==============
 
 from deepchecks.tabular import Dataset
-from deepchecks.tabular.checks.methodology.boosting_overfit import BoostingOverfit
+from deepchecks.tabular.checks.methodology.boosting_overfit import \
+    BoostingOverfit
 
 train_ds = Dataset(train_df, label='income')
 validation_ds = Dataset(val_df, label='income')

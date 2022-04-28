@@ -11,26 +11,25 @@
 """Handle display of suite result."""
 import os
 import sys
-from typing import List, Union
 import warnings
+from typing import List, Union
 
+import ipywidgets as widgets
+import pandas as pd
 # pylint: disable=protected-access
 import tqdm
-from tqdm.notebook import tqdm as tqdm_notebook
-import pandas as pd
-from IPython.display import display, display_html
 from IPython import get_ipython
-import ipywidgets as widgets
+from IPython.display import display, display_html
+from tqdm.notebook import tqdm as tqdm_notebook
 
 from deepchecks.core import errors
+from deepchecks.core.check_result import CheckFailure, CheckResult
+from deepchecks.core.display_pandas import (dataframe_to_html,
+                                            get_conditions_table,
+                                            get_result_navigation_display)
 from deepchecks.utils.ipython import is_widgets_enabled
-from deepchecks.utils.strings import create_new_file_name, get_random_string, widget_to_html
-from deepchecks.core.check_result import CheckResult, CheckFailure
-from deepchecks.core.display_pandas import (
-    dataframe_to_html, get_conditions_table,
-    get_result_navigation_display
-)
-
+from deepchecks.utils.strings import (create_new_file_name, get_random_string,
+                                      widget_to_html)
 
 __all__ = ['display_suite_result', 'ProgressBar']
 

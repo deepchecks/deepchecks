@@ -1,18 +1,20 @@
+import math
 import os
+import time
+import xml.etree.ElementTree as ET
 from functools import partial
+
+import albumentations as A
 import numpy as np
 import torch
-from PIL import Image
-import xml.etree.ElementTree as ET
 import torchvision
+from albumentations.pytorch import ToTensorV2
+from PIL import Image
 from torch import nn
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader, Dataset
 from torchvision.models.detection import _utils as det_utils
 from torchvision.models.detection.ssdlite import SSDLiteClassificationHead
-import albumentations as A
-from albumentations.pytorch import ToTensorV2
-import time
-import math
+
 
 class TomatoDataset(Dataset):
     def __init__(self, root, transforms):
@@ -156,6 +158,7 @@ model.eval()
 
 
 from deepchecks.vision.detection_data import DetectionData
+
 
 class TomatoData(DetectionData):
 

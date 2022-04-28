@@ -10,26 +10,21 @@
 #
 """Module contains Train Test label Drift check."""
 import warnings
-from typing import Dict, List, Any
+from collections import OrderedDict, defaultdict
+from typing import Any, Dict, List
 
 import pandas as pd
-from collections import OrderedDict, defaultdict
 
-from deepchecks.core import ConditionResult
+from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
-from deepchecks.utils.distribution.drift import calc_drift_and_plot
-from deepchecks.core import DatasetKind, CheckResult
 from deepchecks.core.errors import DeepchecksNotSupportedError
-from deepchecks.vision import Context, TrainTestCheck, Batch
-from deepchecks.vision.vision_data import TaskType
+from deepchecks.utils.distribution.drift import calc_drift_and_plot
+from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.utils.label_prediction_properties import (
     DEFAULT_CLASSIFICATION_LABEL_PROPERTIES,
-    DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES,
-    validate_properties,
-    get_column_type,
-    properties_flatten
-)
-
+    DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES, get_column_type,
+    properties_flatten, validate_properties)
+from deepchecks.vision.vision_data import TaskType
 
 __all__ = ['TrainTestLabelDrift']
 

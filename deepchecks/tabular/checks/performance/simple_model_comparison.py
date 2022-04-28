@@ -15,19 +15,18 @@ from typing import Callable, Dict, Hashable, List
 import numpy as np
 import pandas as pd
 import plotly.express as px
-from sklearn.dummy import DummyRegressor, DummyClassifier
+from sklearn.dummy import DummyClassifier, DummyRegressor
 from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.tabular import Context, TrainTestCheck, Dataset
+from deepchecks.tabular import Context, Dataset, TrainTestCheck
 from deepchecks.utils.distribution.preprocessing import ScaledNumerics
-from deepchecks.utils.strings import format_percent
 from deepchecks.utils.metrics import ModelType, get_gain
 from deepchecks.utils.simple_models import RandomModel
-
+from deepchecks.utils.strings import format_percent
 
 __all__ = ['SimpleModelComparison']
 

@@ -8,15 +8,16 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-import typing as t
 import re
-from hamcrest import assert_that, instance_of, only_contains, matches_regexp
+import typing as t
+
+from hamcrest import assert_that, instance_of, matches_regexp, only_contains
 
 from deepchecks.core import CheckResult, ConditionCategory
-from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.checks.methodology import ModelInferenceTime
-
-from tests.checks.utils import equal_condition_result, SCIENTIFIC_NOTATION_REGEXP
+from deepchecks.tabular.dataset import Dataset
+from tests.checks.utils import (SCIENTIFIC_NOTATION_REGEXP,
+                                equal_condition_result)
 
 
 def test_model_inference_time_check(

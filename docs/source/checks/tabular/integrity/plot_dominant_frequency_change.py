@@ -31,6 +31,7 @@ next most frequent value. The ``dominance_ratio`` is a configurable parameter of
 
 from deepchecks.tabular.checks.integrity import DominantFrequencyChange
 from deepchecks.tabular.datasets.classification import iris
+
 #%%
 # Generate data
 # =============

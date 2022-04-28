@@ -10,17 +10,19 @@
 #
 """Module of model error analysis check."""
 from typing import Callable, Dict, Tuple, Union
+
 from sklearn import preprocessing
 
 from deepchecks import CheckFailure
-from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksProcessError
-from deepchecks.tabular import Context, TrainTestCheck, Dataset
+from deepchecks.tabular import Context, Dataset, TrainTestCheck
 from deepchecks.utils.metrics import ModelType
-from deepchecks.utils.performance.error_model import model_error_contribution, error_model_display
-from deepchecks.utils.single_sample_metrics import per_sample_cross_entropy, per_sample_mse
+from deepchecks.utils.performance.error_model import (error_model_display,
+                                                      model_error_contribution)
+from deepchecks.utils.single_sample_metrics import (per_sample_cross_entropy,
+                                                    per_sample_mse)
 from deepchecks.utils.strings import format_percent
-
 
 __all__ = ['ModelErrorAnalysis']
 

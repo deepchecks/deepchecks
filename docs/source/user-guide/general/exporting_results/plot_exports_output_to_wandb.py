@@ -68,6 +68,7 @@ help(CheckResult.to_wandb)
 # To use this function you first need to login to your wandb account
 
 import wandb
+
 wandb.login()
 
 #%%

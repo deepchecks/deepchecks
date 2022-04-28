@@ -13,20 +13,19 @@ import warnings
 
 import pandas as pd
 import pytest
+from hamcrest import (any_of, assert_that, calling, close_to, contains_exactly,
+                      equal_to, has_item, has_length, is_, none, not_none,
+                      raises)
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.neural_network import MLPClassifier
-from hamcrest import (
-    equal_to, assert_that, calling, raises, is_,
-    close_to, not_none, none, has_length, any_of, contains_exactly, has_item
-)
 
-from deepchecks.core.errors import ModelValidationError, DeepchecksValueError
+from deepchecks.core.errors import DeepchecksValueError, ModelValidationError
 from deepchecks.tabular.dataset import Dataset
-from deepchecks.utils.features import (
-    calculate_feature_importance, calculate_feature_importance_or_none,
-    column_importance_sorter_df, column_importance_sorter_dict
-)
+from deepchecks.utils.features import (calculate_feature_importance,
+                                       calculate_feature_importance_or_none,
+                                       column_importance_sorter_df,
+                                       column_importance_sorter_dict)
 
 
 def test_adaboost(iris_split_dataset_and_model):

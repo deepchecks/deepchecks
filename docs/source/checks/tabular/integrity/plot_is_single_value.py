@@ -8,8 +8,9 @@ Is Single Value
 # Imports
 # =======
 
-from sklearn.datasets import load_iris
 import pandas as pd
+from sklearn.datasets import load_iris
+
 from deepchecks.tabular.checks.integrity.is_single_value import IsSingleValue
 
 #%%

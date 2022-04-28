@@ -11,15 +11,14 @@
 """Test functions of the VISION train test label drift."""
 from copy import copy
 
-from hamcrest import assert_that, equal_to
-
 import numpy as np
+from hamcrest import assert_that, equal_to
+from PIL import Image
+from torch.utils.data import DataLoader
+
 from deepchecks.vision.checks import SimilarImageLeakage
 from deepchecks.vision.utils.test_utils import get_modified_dataloader
 from tests.checks.utils import equal_condition_result
-
-from torch.utils.data import DataLoader
-from PIL import Image
 
 
 def test_no_similar_object_detection(coco_train_visiondata, coco_test_visiondata):

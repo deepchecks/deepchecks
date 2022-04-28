@@ -11,12 +11,11 @@
 """Contains unit tests for the new_label_train_validation check"""
 
 import pandas as pd
-from hamcrest import assert_that, calling, raises, equal_to, has_items
+from hamcrest import assert_that, calling, equal_to, has_items, raises
 
-from deepchecks.tabular.dataset import Dataset
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.checks.integrity import NewLabelTrainTest
-
+from deepchecks.tabular.dataset import Dataset
 from tests.checks.utils import equal_condition_result
 
 

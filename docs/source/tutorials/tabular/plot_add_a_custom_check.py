@@ -39,8 +39,8 @@ dictionary, string, etc...*
 
 #%%
 
-from deepchecks.tabular import TrainTestCheck, Dataset, Context
 from deepchecks.core import CheckResult
+from deepchecks.tabular import Context, Dataset, TrainTestCheck
 
 
 class DatasetSizeComparison(TrainTestCheck):
@@ -94,9 +94,11 @@ result.value
 #
 # *Good to know: ``display`` can receive a single object to display or a list of objects*
 
-from deepchecks.tabular import Dataset, TrainTestCheck, Context
-from deepchecks.core import CheckResult
 import matplotlib.pyplot as plt
+
+from deepchecks.core import CheckResult
+from deepchecks.tabular import Context, Dataset, TrainTestCheck
+
 
 class DatasetSizeComparison(TrainTestCheck):
     """Check which compares the sizes of train and test datasets."""

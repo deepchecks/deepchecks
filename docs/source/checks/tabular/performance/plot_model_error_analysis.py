@@ -12,8 +12,10 @@ Model Error Analysis
 # Dua, D. and Graff, C. (2019). UCI Machine Learning Repository [http://archive.ics.uci.edu/ml].
 # Irvine, CA: University of California, School of Information and Computer Science.
 
-import pandas as pd
 from urllib.request import urlopen
+
+import pandas as pd
+
 from deepchecks.tabular.datasets.classification import adult
 
 #%%

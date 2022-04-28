@@ -35,8 +35,10 @@ check
 # `Add a Custom Condition <#add-a-custom-condition>`__ or if you would like to
 # run the conditions outside of suite you can execute:
 
-from deepchecks.tabular import Dataset
 import pandas as pd
+
+from deepchecks.tabular import Dataset
+
 # Dummy data
 train_dataset = Dataset(pd.DataFrame(data={'x': [1,2,3,4,5,6,7,8,9]}))
 test_dataset = Dataset(pd.DataFrame(data={'x': [1,2,3]}))
@@ -98,9 +100,10 @@ suite
 # Let's look at the check ``DatasetsSizeComparison`` and see it's return value in
 # order to write a condition for it.
 
-from deepchecks.tabular.checks import DatasetsSizeComparison
-from deepchecks.tabular import Dataset
 import pandas as pd
+
+from deepchecks.tabular import Dataset
+from deepchecks.tabular.checks import DatasetsSizeComparison
 
 # We'll use dummy data for the purpose of this demonstration
 train_dataset = Dataset(pd.DataFrame(data={'x': [1,2,3,4,5,6,7,8,9]}))
@@ -163,7 +166,7 @@ suite.run(train_dataset, test_dataset)
 # as either fail or warn, by passing the category to the ConditionResult object.
 # For example we can even write condition which sets the category based on severity of the result:
 
-from deepchecks.core import ConditionResult, ConditionCategory
+from deepchecks.core import ConditionCategory, ConditionResult
 
 # Our parameters for the condition
 low_threshold = 0.3

@@ -26,7 +26,8 @@ negative because we subscribe to the sklearn convention of defining scoring func
 # Generate data & model
 # =====================
 
-from deepchecks.tabular.datasets.classification.phishing import load_data, load_fitted_model
+from deepchecks.tabular.datasets.classification.phishing import (
+    load_data, load_fitted_model)
 
 train_dataset, test_dataset = load_data()
 model = load_fitted_model()
@@ -61,7 +62,7 @@ result.show(show_additional_outputs=False)
 # =========================
 # We can define alternative scorers that are not run by default:
 
-from sklearn.metrics import make_scorer, fbeta_score
+from sklearn.metrics import fbeta_score, make_scorer
 
 fbeta_scorer = make_scorer(fbeta_score, labels=[0, 1], average=None, beta=0.2)
 

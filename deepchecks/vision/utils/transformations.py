@@ -10,13 +10,14 @@
 #
 """Module for defining functions related to vision transforms."""
 from copy import copy
-from typing import Sized, Optional
+from typing import Optional, Sized
 
 import albumentations
 import imgaug.augmenters as iaa
 import torch
 
-from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
+from deepchecks.core.errors import (DeepchecksNotSupportedError,
+                                    DeepchecksValueError)
 
 __all__ = ['get_transforms_handler', 'add_augmentation_in_start', 'un_normalize_batch',
            'ImgaugTransformations', 'AlbumentationsTransformations']

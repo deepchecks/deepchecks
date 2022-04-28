@@ -11,11 +11,11 @@
 """Contains unit tests for the columns_info check."""
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, equal_to, calling, raises, has_length
+from hamcrest import assert_that, calling, equal_to, has_length, raises
 
-from deepchecks.tabular.dataset import Dataset
-from deepchecks.tabular.checks.overview import ColumnsInfo
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.tabular.checks.overview import ColumnsInfo
+from deepchecks.tabular.dataset import Dataset
 
 
 def test_dataset_wrong_input():

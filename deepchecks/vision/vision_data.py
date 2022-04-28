@@ -9,25 +9,27 @@
 # ----------------------------------------------------------------------------
 #
 """The vision/dataset module containing the vision Dataset class and its functions."""
+import logging
 # pylint: disable=protected-access
 import random
+from abc import abstractmethod
 from collections import defaultdict
 from copy import copy
-from abc import abstractmethod
 from enum import Enum
-from typing import Any, List, Optional, Dict, TypeVar, Union, Iterator, Sequence
+from typing import (Any, Dict, Iterator, List, Optional, Sequence, TypeVar,
+                    Union)
 
-import logging
 import numpy as np
 import torch
-from torch.utils.data import DataLoader, BatchSampler, Sampler
+from torch.utils.data import BatchSampler, DataLoader, Sampler
 
-
-from deepchecks.core.errors import DeepchecksNotImplementedError, DeepchecksValueError, ValidationError, \
-    DeepchecksBaseError
+from deepchecks.core.errors import (DeepchecksBaseError,
+                                    DeepchecksNotImplementedError,
+                                    DeepchecksValueError, ValidationError)
 from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.utils.image_functions import ImageInfo
-from deepchecks.vision.utils.transformations import add_augmentation_in_start, get_transforms_handler
+from deepchecks.vision.utils.transformations import (add_augmentation_in_start,
+                                                     get_transforms_handler)
 
 logger = logging.getLogger('deepchecks')
 VD = TypeVar('VD', bound='VisionData')
@@ -438,7 +440,8 @@ class VisionData:
         device
             Device to run the model on.
         """
-        from deepchecks.vision.utils.validation import validate_extractors  # pylint: disable=import-outside-toplevel
+        from deepchecks.vision.utils.validation import \
+            validate_extractors  # pylint: disable=import-outside-toplevel
         validate_extractors(self, model, device=device)
 
     def __iter__(self):

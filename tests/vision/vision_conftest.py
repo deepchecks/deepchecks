@@ -14,27 +14,26 @@ from hashlib import md5
 import numpy as np
 import pytest
 import torch
+from PIL import Image
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.dataloader import default_collate
-from PIL import Image
 
 from deepchecks.core import DatasetKind
-from deepchecks.vision import VisionData, Context, Batch
-
-from deepchecks.vision.datasets.detection.coco import (
-    load_model as load_yolov5_model,
-    load_dataset as load_coco_dataset, COCOData
-)
-from deepchecks.vision.datasets.classification.mnist import (
-    load_model as load_mnist_net_model,
-    load_dataset as load_mnist_dataset, MNISTData
-)
+from deepchecks.vision import Batch, Context, VisionData
+from deepchecks.vision.datasets.classification.mnist import MNISTData
+from deepchecks.vision.datasets.classification.mnist import \
+    load_dataset as load_mnist_dataset
+from deepchecks.vision.datasets.classification.mnist import \
+    load_model as load_mnist_net_model
+from deepchecks.vision.datasets.detection.coco import COCOData
+from deepchecks.vision.datasets.detection.coco import \
+    load_dataset as load_coco_dataset
+from deepchecks.vision.datasets.detection.coco import \
+    load_model as load_yolov5_model
 from deepchecks.vision.vision_data import TaskType
-
-from tests.vision.utils_tests.mnist_imgaug import mnist_dataset_imgaug
 from tests.vision.assets.coco_detections_dict import coco_detections_dict
 from tests.vision.assets.mnist_predictions_dict import mnist_predictions_dict
-
+from tests.vision.utils_tests.mnist_imgaug import mnist_dataset_imgaug
 
 # Fix bug with torch.hub path on windows
 PROJECT_DIR = pathlib.Path(__file__).absolute().parent.parent.parent

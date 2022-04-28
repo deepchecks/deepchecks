@@ -7,8 +7,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
-import pickle
 import os
+import pickle
 
 script_dir = os.path.dirname(__file__)
 abs_file_path = os.path.join(script_dir, 'mnist_preds.pkl')

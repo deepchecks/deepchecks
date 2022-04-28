@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing simple comparison check."""
-from typing import Dict, Hashable, List, Any
+from typing import Any, Dict, Hashable, List
 
 import numpy as np
 import pandas as pd
@@ -17,16 +17,17 @@ import plotly.express as px
 import torch
 from ignite.metrics import Fbeta
 
-from deepchecks.core import CheckResult, DatasetKind, ConditionResult, ConditionCategory
+from deepchecks.core import (CheckResult, ConditionCategory, ConditionResult,
+                             DatasetKind)
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils import plot
 from deepchecks.utils.metrics import get_gain
 from deepchecks.utils.strings import format_percent
-from deepchecks.vision import Context, TrainTestCheck, Batch
-from deepchecks.vision.vision_data import TaskType
-from deepchecks.vision.metrics_utils import get_scorers_list, metric_results_to_df
+from deepchecks.vision import Batch, Context, TrainTestCheck
+from deepchecks.vision.metrics_utils import (get_scorers_list,
+                                             metric_results_to_df)
 from deepchecks.vision.metrics_utils.metrics import filter_classes_for_display
-
+from deepchecks.vision.vision_data import TaskType
 
 __all__ = ['SimpleModelComparison']
 

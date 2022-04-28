@@ -47,10 +47,10 @@ This checks applies only to classification datasets.
 # -----------------------
 
 from deepchecks.vision.checks.performance import SimpleModelComparison
+from deepchecks.vision.datasets.classification import mnist
 
 #%%
 
-from deepchecks.vision.datasets.classification import mnist
 
 mnist_model = mnist.load_model()
 train_ds = mnist.load_dataset(train=True, object_type='VisionData')

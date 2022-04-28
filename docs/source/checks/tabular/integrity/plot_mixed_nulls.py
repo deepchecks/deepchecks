@@ -6,8 +6,9 @@ Mixed Nulls
 
 #%%
 
-from deepchecks.tabular.checks import MixedNulls
 import pandas as pd
+
+from deepchecks.tabular.checks import MixedNulls
 
 #%%
 
