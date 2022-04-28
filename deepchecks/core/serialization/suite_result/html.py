@@ -22,8 +22,8 @@ from deepchecks.core.serialization.abc import HtmlSerializer
 from deepchecks.core.serialization.common import form_output_anchor
 from deepchecks.core.serialization.common import aggregate_conditions
 from deepchecks.core.serialization.common import Html
-from deepchecks.core.serialization.common import plotly_activation_script
-from deepchecks.core.serialization.common import REQUIREJS_CDN
+from deepchecks.core.serialization.common import plotlyjs_script
+from deepchecks.core.serialization.common import requirejs_script
 from deepchecks.core.serialization.dataframe.html import DataFrameSerializer as DataFrameHtmlSerializer
 from deepchecks.core.serialization.check_result.html import CheckResultSerializer as CheckResultHtmlSerializer
 from deepchecks.core.serialization.check_result.html import CheckResultSection
@@ -52,7 +52,9 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         self,
         output_id: t.Optional[str] = None,
         full_html: bool = False,
+        include_requirejs: bool = False,
         include_plotlyjs: bool = True,
+        connected: bool = True,
         **kwargs,
     ) -> str:
         """Serialize a SuiteResult instance into HTML format.
@@ -63,13 +65,22 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             unique output identifier that will be used to form anchor links
         full_html : bool, default False
             whether to return a fully independent HTML document or only CheckResult content
+        include_requirejs : bool, default False
+            whether to include requirejs library into output or not
         include_plotlyjs : bool, default True
-            whether to include plotlyjs activation script into output or not
+            whether to include plotlyjs library into output or not
+        connected : bool, default True
+            whether to use CDN to load js libraries or to inject their code into output
 
         Returns
         -------
         str
         """
+        if full_html is True:
+            include_plotlyjs = True
+            include_requirejs = True
+            connected = False
+
         summary = self.prepare_summary(output_id=output_id, **kwargs)
         conditions_table = self.prepare_conditions_table(output_id=output_id, **kwargs)
         failures = self.prepare_failures_list()
@@ -101,17 +112,11 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             anchor = form_output_anchor(output_id)
             sections.append(f'<br><a href="#{anchor}" style="font-size: 14px">Go to top</a>')
 
-        if full_html is False and include_plotlyjs is False:
-            return ''.join(sections)
+        plotlyjs = plotlyjs_script(connected) if include_plotlyjs is True else ''
+        requirejs = requirejs_script(connected) if include_requirejs is True else ''
 
-        if full_html is False and include_plotlyjs is True:
-            return ''.join([plotly_activation_script(), *sections])
-
-        if full_html is True and include_plotlyjs is False:
-            raise ValueError(
-                'Unsupported combination of "full_html" and "include_plotlyjs". '
-                'Plotly plots will not work without plotly activation script.'
-            )
+        if full_html is False:
+            return ''.join([requirejs, plotlyjs, *sections])
 
         # TODO: use some style to make it pretty
         return textwrap.dedent(f"""
@@ -123,8 +128,8 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
                     flex-direction: row;
                     justify-content: center;
                     padding-top: 2rem;">
-                {REQUIREJS_CDN}
-                {plotly_activation_script()}
+                {requirejs}
+                {plotlyjs}
                 <div
                     style="
                         display: flex;
@@ -277,6 +282,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
                 output_id=output_id,
                 check_sections=check_sections,
                 include_plotlyjs=False,
+                include_requirejs=False,
                 **kwargs
             )
             for it in results
@@ -315,6 +321,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
                 output_id=output_id,
                 include=check_sections,
                 include_plotlyjs=False,
+                include_requirejs=False,
                 **kwargs
             )
             for it in results

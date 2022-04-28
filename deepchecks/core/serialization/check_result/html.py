@@ -12,7 +12,6 @@
 import typing as t
 import textwrap
 
-import plotly.io as pio
 from typing_extensions import Literal
 
 from deepchecks.utils.strings import get_docs_summary
@@ -24,8 +23,8 @@ from deepchecks.core.serialization.dataframe.html import DataFrameSerializer as 
 from deepchecks.core.serialization.common import aggregate_conditions
 from deepchecks.core.serialization.common import form_output_anchor
 from deepchecks.core.serialization.common import form_check_id
-from deepchecks.core.serialization.common import plotly_activation_script
-from deepchecks.core.serialization.common import REQUIREJS_CDN
+from deepchecks.core.serialization.common import plotlyjs_script
+from deepchecks.core.serialization.common import requirejs_script
 
 
 __all__ = ['CheckResultSerializer']
@@ -58,7 +57,9 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
         output_id: t.Optional[str] = None,
         check_sections: t.Optional[t.Sequence[CheckResultSection]] = None,
         full_html: bool = False,
+        include_requirejs: bool = False,
         include_plotlyjs: bool = True,
+        connected: bool = True,
         **kwargs
     ) -> str:
         """Serialize a CheckResult instance into HTML format.
@@ -72,13 +73,22 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
             in case of 'None' all sections will be included
         full_html : bool, default False
             whether to return a fully independent HTML document or only CheckResult content
+        include_requirejs : bool, default False
+            whether to include requirejs library into output or not
         include_plotlyjs : bool, default True
-            whether to include plotlyjs activation script into output or not
+            whether to include plotlyjs library into output or not
+        connected : bool, default True
+            whether to use CDN to load js libraries or to inject their code into output
 
         Returns
         -------
         str
         """
+        if full_html is True:
+            include_plotlyjs = True
+            include_requirejs = True
+            connected = False
+
         sections_to_include = verify_include_parameter(check_sections)
         sections = [self.prepare_header(output_id), self.prepare_summary()]
 
@@ -88,26 +98,18 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
         if 'additional-output' in sections_to_include:
             sections.append(''.join(self.prepare_additional_output(output_id)))
 
-        if full_html is False and include_plotlyjs is False:
-            return ''.join(sections)
+        plotlyjs = plotlyjs_script(connected) if include_plotlyjs is True else ''
+        requirejs = requirejs_script(connected) if include_requirejs is True else ''
 
-        if full_html is False and include_plotlyjs is True:
-            return ''.join([plotly_activation_script(), *sections])
-
-        if full_html is True and include_plotlyjs is False:
-            raise ValueError(
-                'Unsupported combination of "full_html" and "include_plotlyjs". '
-                'Plotly plots will not work without plotly activation script.'
-            )
+        if full_html is False:
+            return ''.join([requirejs, plotlyjs, *sections])
 
         # TODO: use some style to make it pretty
         return textwrap.dedent(f"""
             <html>
             <head><meta charset="utf-8"/></head>
             <body>
-                {REQUIREJS_CDN}
-                {plotly_activation_script()}
-                {''.join(sections)}
+                {''.join([requirejs, plotlyjs, *sections])}
             </body>
             </html>
         """)
@@ -261,8 +263,40 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
     @classmethod
     def handle_figure(cls, item, index, **kwargs) -> str:
         """Handle plotly figure item."""
-        bundle = pio.renderers['notebook'].to_mimebundle(item)
-        return bundle['text/html']
+        from plotly.io import to_html
+        post_script = textwrap.dedent("""
+            var gd = document.getElementById('{plot_id}');
+            var x = new MutationObserver(function (mutations, observer) {{
+                    var display = window.getComputedStyle(gd).display;
+                    if (!display || display === 'none') {{
+                        console.log([gd, 'removed!']);
+                        Plotly.purge(gd);
+                        observer.disconnect();
+                    }}
+            }});
+
+            // Listen for the removal of the full notebook cells
+            var notebookContainer = gd.closest('#notebook-container');
+            if (notebookContainer) {{
+                x.observe(notebookContainer, {childList: true});
+            }}
+
+            // Listen for the clearing of the current output cell
+            var outputEl = gd.closest('.output');
+            if (outputEl) {{
+                x.observe(outputEl, {childList: true});
+            }}
+        """)
+        return to_html(
+            item,
+            auto_play=False,
+            include_plotlyjs='require',
+            post_script=post_script,
+            full_html=False,
+            default_width="100%",
+            default_height=525,
+            validate=True,
+        )
 
 
 def verify_include_parameter(

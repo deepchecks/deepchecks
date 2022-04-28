@@ -74,7 +74,7 @@ jsonpickle
 dtype
 dataloader
 KDE
-renderes
+renderers
 NotebookRenderer
 requirejs
 CDN

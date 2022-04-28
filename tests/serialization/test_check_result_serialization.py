@@ -34,7 +34,7 @@ from hamcrest import (
 )
 
 from deepchecks.utils.strings import get_random_string
-from deepchecks.core.serialization.common import plotly_activation_script
+from deepchecks.core.serialization.common import plotlyjs_script
 from deepchecks.core.serialization.check_result.json import display_from_json
 from deepchecks.core.serialization.check_result.html import CheckResultSerializer as HtmlSerializer
 from deepchecks.core.serialization.check_result.json import CheckResultSerializer as JsonSerializer
@@ -127,7 +127,7 @@ def test_html_serialization_with_plotply_activation_script():
         all_of(
             instance_of(str),
             has_length(greater_than(0)),
-            starts_with(plotly_activation_script()))
+            starts_with(plotlyjs_script()))
     )
 
 

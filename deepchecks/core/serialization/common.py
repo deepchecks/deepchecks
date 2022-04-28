@@ -14,12 +14,15 @@ import warnings
 import json
 import textwrap
 import io
+import os
+import pkgutil
 from contextlib import contextmanager
 
 import pandas as pd
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
+import plotly.io._html as plotlyhtml
 from ipywidgets import DOMWidget
 from jsonpickle.pickler import Pickler
 from pandas.io.formats.style import Styler
@@ -40,14 +43,15 @@ __all__ = [
     'normalize_widget_style',
     'normalize_value',
     'prettify',
-    'plotly_activation_script',
     'read_matplot_figures',
     'concatv_images',
-    'switch_matplot_backend'
+    'switch_matplot_backend',
+    'plotlyjs_script',
+    'requirejs_script'
 ]
 
 
-# class CustomNotebookRenderer(plotly_renderes.NotebookRenderer):
+# class CustomNotebookRenderer(plotly_renderers.NotebookRenderer):
 
 #     def __init__(self, *args, **kwargs):
 #         super().__init__(*args, **kwargs)
@@ -194,24 +198,33 @@ def aggregate_conditions(
         return df.style.hide_index()
 
 
-REQUIREJS_CDN = """
-<!-- Load require.js. Delete this if your page already loads require.js -->
-<script
-    src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"
-    integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA="
-    crossorigin="anonymous">
-</script>
-"""
+def requirejs_script(connected: bool = True):
+    """Return requirejs script tag.
+
+    Parameters
+    ----------
+    connected : bool, default True
+
+    Returns
+    -------
+    str
+    """
+    if connected is True:
+        return textwrap.dedent("""
+            <script
+                src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js"
+                integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg=="
+                crossorigin="anonymous"
+                referrerpolicy="no-referrer">
+            </script>
+        """)
+    else:
+        path = os.path.join('core', 'resources', "requirejs.min.js")
+        js = pkgutil.get_data('deepchecks', path).decode('utf-8')
+        return f'<script>{js}</script>'
 
 
-# HTML
-# Build script to set global PlotlyConfig object. This must execute before
-# plotly.js is loaded.
-_window_plotly_config = """window.PlotlyConfig = {MathJaxConfig: 'local'};"""
-_mathjax_config = """if (window.MathJax) {MathJax.Hub.Config({SVG: {font: "STIX-Web"}});}"""
-
-
-def plotly_activation_script(connected: bool = True) -> str:
+def plotlyjs_script(connected: bool = True) -> str:
     """Return plotly activation script in the requirejs enviroment.
 
     Parameters
@@ -225,12 +238,12 @@ def plotly_activation_script(connected: bool = True) -> str:
     if connected is True:
         # Connected so we configure requirejs with the plotly CDN
         script = textwrap.dedent("""
+            {win_config}
+            {mathjax_config}
             <script type="text/javascript">
                 if (typeof require !== 'undefined') {{
                     require(['plotly'], function () {{}}, function (error) {{
                         console.log('Plotly is not defined - loading it.');
-                        {win_config}
-                        {mathjax_config}
                         require.undef("plotly");
                         requirejs.config({{
                             paths: {{'plotly': ['{plotly_cdn}']}}
@@ -251,19 +264,19 @@ def plotly_activation_script(connected: bool = True) -> str:
             </script>
         """)
         return script.format(
-            win_config=_window_plotly_config,
-            mathjax_config=_mathjax_config,
+            win_config=plotlyhtml._window_plotly_config,
+            mathjax_config=plotlyhtml._mathjax_config,
             plotly_cdn=plotly_cdn_url().rstrip(".js"),
         )
     else:
         # If not connected then we embed a copy of the plotly.js library
         script = textwrap.dedent("""
+            {win_config}
+            {mathjax_config}
             <script type="text/javascript">
                 if (typeof require !== 'undefined') {{
                     require(['plotly'], function () {{}}, function (error) {{
                         console.log('Plotly is not defined - loading it.');
-                        {win_config}
-                        {mathjax_config}
                         require.undef("plotly");
                         define('plotly', function(require, exports, module) {{
                             {script}
@@ -285,8 +298,8 @@ def plotly_activation_script(connected: bool = True) -> str:
         """)
         return script.format(
             script=get_plotlyjs(),
-            win_config=_window_plotly_config,
-            mathjax_config=_mathjax_config,
+            win_config=plotlyhtml._window_plotly_config,
+            mathjax_config=plotlyhtml._mathjax_config,
         )
 
 

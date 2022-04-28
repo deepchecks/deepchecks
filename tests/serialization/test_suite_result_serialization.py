@@ -36,7 +36,7 @@ from deepchecks.utils.strings import get_random_string
 from deepchecks.core.suite import SuiteResult
 from deepchecks.core.check_result import CheckResult
 from deepchecks.core.check_result import CheckFailure
-from deepchecks.core.serialization.common import plotly_activation_script
+from deepchecks.core.serialization.common import plotlyjs_script
 from deepchecks.core.serialization.common import form_output_anchor
 from deepchecks.core.serialization.common import form_check_id
 from deepchecks.core.serialization.suite_result.html import SuiteResultSerializer as HtmlSerializer
@@ -125,7 +125,7 @@ def test_html_serialization_with_plotply_activation_script():
         all_of(
             instance_of(str),
             has_length(greater_than(0)),
-            starts_with(plotly_activation_script()))
+            starts_with(plotlyjs_script()))
     )
 
 
