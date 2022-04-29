@@ -48,9 +48,17 @@ def test_columns_info():
                        'b': 'numerical feature', 'c': 'other', 'label': 'label'}
     assert_that(result_ds, equal_to(expected_res_ds))
 
+    expected_res_df = {
+        'index': 'numerical feature', 
+        'date': 'numerical feature', 
+        'a': 'categorical feature', 
+        'b': 'numerical feature', 
+        'c': 'numerical feature', 
+        'label': 'categorical feature'
+    }
     # in df all columns are other
-    expected_res_df = {'index': 'other', 'date': 'other', 'a': 'other',
-                       'b': 'other', 'c': 'other', 'label': 'other'}
+    # expected_res_df = {'index': 'other', 'date': 'other', 'a': 'other',
+    #                    'b': 'other', 'c': 'other', 'label': 'other'}
     assert_that(result_df, equal_to(expected_res_df))
 
 
