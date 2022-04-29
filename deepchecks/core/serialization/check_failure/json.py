@@ -10,9 +10,9 @@
 #
 """Module containing json serializer for the CheckFailuer type."""
 import typing as t
+
 from deepchecks.core import check_result as check_types
 from deepchecks.core.serialization.abc import JsonSerializer
-
 
 __all__ = ['CheckFailureSerializer']
 

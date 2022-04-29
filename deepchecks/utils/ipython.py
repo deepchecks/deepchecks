@@ -11,13 +11,13 @@
 """Utils module containing useful global functions."""
 import os
 import re
-import sys
 import subprocess
+import sys
 from functools import lru_cache
 
 import tqdm
-from tqdm.notebook import tqdm as tqdm_notebook
 from IPython import get_ipython
+from tqdm.notebook import tqdm as tqdm_notebook
 
 
 __all__ = [

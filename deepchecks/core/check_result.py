@@ -13,29 +13,28 @@
 import io
 import traceback
 import warnings
-from typing import Any, Callable, List, Union, TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Any, Callable, List, Optional, Union
 
 import jsonpickle
 import jsonpickle.ext.pandas as jsonpickle_pd
 import pandas as pd
 import plotly.io as pio
-from plotly.basedatatypes import BaseFigure
-from pandas.io.formats.style import Styler
 from IPython.display import display_html
 from ipywidgets import Widget
+from pandas.io.formats.style import Styler
+from plotly.basedatatypes import BaseFigure
 
-from deepchecks.utils.strings import create_new_file_name, get_docs_summary, widget_to_html
-from deepchecks.utils.ipython import is_notebook, is_widgets_use_possible, is_colab_env, is_kaggle_env
-from deepchecks.utils.wandb_utils import set_wandb_run_state
 from deepchecks.core.condition import ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.serialization.check_failure.html import CheckFailureSerializer as CheckFailureHtmlSerializer
 from deepchecks.core.serialization.check_failure.json import CheckFailureSerializer as CheckFailureJsonSerializer
 from deepchecks.core.serialization.check_result.html import CheckResultSerializer as CheckResultHtmlSerializer
-from deepchecks.core.serialization.check_result.widget import CheckResultSerializer as CheckResultWidgetSerializer
 from deepchecks.core.serialization.check_result.json import CheckResultSerializer as CheckResultJsonSerializer
 from deepchecks.core.serialization.check_result.json import display_from_json
-
+from deepchecks.core.serialization.check_result.widget import CheckResultSerializer as CheckResultWidgetSerializer
+from deepchecks.utils.ipython import is_colab_env, is_kaggle_env, is_notebook, is_widgets_use_possible
+from deepchecks.utils.strings import create_new_file_name, get_docs_summary, widget_to_html
+from deepchecks.utils.wandb_utils import set_wandb_run_state
 
 # registers jsonpickle pandas extension for pandas support in the to_json function
 jsonpickle_pd.register_handlers()

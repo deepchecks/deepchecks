@@ -10,10 +10,10 @@
 #
 """Module containing Wandb serializer for the CheckFailuer type."""
 import typing as t
+
 from deepchecks.core import check_result as check_types
 from deepchecks.core.serialization.abc import WandbSerializer
 from deepchecks.core.serialization.common import prettify
-
 
 try:
     import wandb

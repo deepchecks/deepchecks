@@ -9,10 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing html serializer for the CheckFailuer type."""
-from deepchecks.utils.strings import get_docs_summary
 from deepchecks.core import check_result as check_types
 from deepchecks.core.serialization.abc import HtmlSerializer
-
+from deepchecks.utils.strings import get_docs_summary
 
 __all__ = ['CheckFailureSerializer']
 

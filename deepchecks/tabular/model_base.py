@@ -20,7 +20,6 @@ from deepchecks.tabular.context import Context
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.utils.ipython import ProgressBar
 
-
 __all__ = [
     'ModelComparisonSuite',
     'ModelComparisonContext'

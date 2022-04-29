@@ -13,14 +13,14 @@ import typing as t
 
 import pandas as pd
 import plotly.graph_objects as go
-from plotly.basedatatypes import BaseFigure
 from ipywidgets import HTML, VBox, Widget
+from plotly.basedatatypes import BaseFigure
 
 from deepchecks.core import check_result as check_types
 from deepchecks.core.serialization.abc import WidgetSerializer
 from deepchecks.core.serialization.common import normalize_widget_style
-from . import html
 
+from . import html
 
 __all__ = ['CheckResultSerializer']
 

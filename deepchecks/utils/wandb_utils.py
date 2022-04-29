@@ -12,7 +12,6 @@
 """Wandb utils module."""
 from typing import Any
 
-
 __all__ = ['set_wandb_run_state']
 
 

@@ -21,9 +21,8 @@ from deepchecks.tabular.base_checks import (ModelOnlyCheck, SingleDatasetCheck,
                                             TrainTestCheck)
 from deepchecks.tabular.context import Context
 from deepchecks.tabular.dataset import Dataset
-from deepchecks.utils.typing import BasicModel
 from deepchecks.utils.ipython import ProgressBar
-
+from deepchecks.utils.typing import BasicModel
 
 __all__ = ['Suite']
 

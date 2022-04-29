@@ -13,15 +13,15 @@
 import abc
 import enum
 from collections import OrderedDict
-from typing import Any, Callable, List, Union, Dict, Type, ClassVar, Optional
+from typing import Any, Callable, ClassVar, Dict, List, Optional, Type, Union
+
 from typing_extensions import TypedDict
 
 from deepchecks.core import check_result as check_types
 from deepchecks.core.condition import Condition, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.utils.strings import split_camel_case, get_docs_summary
 from deepchecks.utils.function import initvars
-
+from deepchecks.utils.strings import get_docs_summary, split_camel_case
 
 __all__ = [
     'DatasetKind',

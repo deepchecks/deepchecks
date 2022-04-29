@@ -9,19 +9,19 @@
 # ----------------------------------------------------------------------------
 #
 """Module with common utilities routines for serialization subpackage."""
-import typing as t
-import warnings
-import json
-import textwrap
 import io
+import json
 import os
 import pkgutil
+import textwrap
+import typing as t
+import warnings
 from contextlib import contextmanager
 
-import pandas as pd
-import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import plotly.io._html as plotlyhtml
 from ipywidgets import DOMWidget
 from jsonpickle.pickler import Pickler
@@ -29,11 +29,10 @@ from pandas.io.formats.style import Styler
 from plotly.io._utils import plotly_cdn_url
 from plotly.offline.offline import get_plotlyjs
 
-from deepchecks.utils.strings import get_ellipsis
 from deepchecks.core import check_result as check_types
 from deepchecks.core import checks
 from deepchecks.utils.dataframes import un_numpy
-
+from deepchecks.utils.strings import get_ellipsis
 
 __all__ = [
     'aggregate_conditions',

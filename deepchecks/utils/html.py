@@ -11,7 +11,6 @@
 """Module with html utility functions."""
 import base64
 
-
 __all__ = ['imagetag']
 
 

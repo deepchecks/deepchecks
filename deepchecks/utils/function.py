@@ -10,7 +10,7 @@
 #
 """Contain functions for handling function in checks."""
 from inspect import signature
-from typing import Callable, Dict, Any
+from typing import Any, Callable, Dict
 
 
 __all__ = ['run_available_kwargs', 'initvars']

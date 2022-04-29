@@ -9,13 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing ipywidget serializer for the CheckFailuer type."""
-from ipywidgets import VBox, HTML
+from ipywidgets import HTML, VBox
 from deepchecks.core import check_result as check_types
 from deepchecks.core.serialization.abc import WidgetSerializer
 from deepchecks.core.serialization.common import normalize_widget_style
 
 from . import html
-
 
 __all__ = ['CheckFailureSerializer']
 

@@ -20,8 +20,8 @@ import PIL.ImageOps as pilops
 import plotly.graph_objects as go
 import torch
 
-from deepchecks.utils.html import imagetag
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.utils.html import imagetag
 
 from .detection_formatters import convert_bbox
 

@@ -14,22 +14,21 @@ import abc
 import io
 import warnings
 from collections import OrderedDict
-from typing import Union, List, Tuple, Dict, Set, Optional
+from typing import Dict, List, Optional, Set, Tuple, Union
 
 import jsonpickle
 from IPython.core.display import display_html
 from ipywidgets import Widget
 
-from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.core.check_result import CheckResult, CheckFailure
+from deepchecks.core.check_result import CheckFailure, CheckResult
 from deepchecks.core.checks import BaseCheck
-from deepchecks.utils.ipython import is_notebook, is_widgets_use_possible, is_colab_env, is_kaggle_env
-from deepchecks.utils.wandb_utils import set_wandb_run_state
-from deepchecks.utils.strings import get_random_string, create_new_file_name, widget_to_html
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.serialization.suite_result.html import SuiteResultSerializer as SuiteResultHtmlSerializer
 from deepchecks.core.serialization.suite_result.json import SuiteResultSerializer as SuiteResultJsonSerializer
 from deepchecks.core.serialization.suite_result.widget import SuiteResultSerializer as SuiteResultWidgetSerializer
-
+from deepchecks.utils.ipython import is_colab_env, is_kaggle_env, is_notebook, is_widgets_use_possible
+from deepchecks.utils.strings import create_new_file_name, get_random_string, widget_to_html
+from deepchecks.utils.wandb_utils import set_wandb_run_state
 
 __all__ = ['BaseSuite', 'SuiteResult']
 

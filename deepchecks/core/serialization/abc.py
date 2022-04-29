@@ -9,21 +9,19 @@
 # ----------------------------------------------------------------------------
 #
 """Main serialization abstractions."""
-import typing as t
 import abc
 import io
+import typing as t
 
 import pandas as pd
+from ipywidgets.widgets import Widget
 # import matplotlib.pyplot as plt
 from pandas.io.formats.style import Styler
-from ipywidgets.widgets import Widget
 from plotly.basedatatypes import BaseFigure
-from typing_extensions import Protocol
-from typing_extensions import runtime_checkable
+from typing_extensions import Protocol, runtime_checkable
 
 from deepchecks.core import check_result as check_types
 from deepchecks.core.serialization import common
-
 
 try:
     from wandb.sdk.data_types.base_types.wb_value import WBValue
