@@ -10,13 +10,14 @@
 #
 """suites tests"""
 import random
-from hamcrest import assert_that, calling, raises, equal_to, is_, has_length, instance_of
 
-from deepchecks.core import CheckResult, CheckFailure
+from hamcrest import (assert_that, calling, equal_to, has_length, instance_of,
+                      is_, raises)
+
+from deepchecks.core import CheckFailure, CheckResult
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.tabular import Suite, SingleDatasetCheck, TrainTestCheck
+from deepchecks.tabular import SingleDatasetCheck, Suite, TrainTestCheck
 from deepchecks.tabular import checks as tabular_checks
-
 
 
 class SimpleDatasetCheck(SingleDatasetCheck):

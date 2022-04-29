@@ -11,22 +11,16 @@
 """Module for tabular base checks."""
 import abc
 from functools import wraps
-from typing import Union, Mapping, List, Any
+from typing import Any, List, Mapping, Union
 
-from deepchecks.tabular import deprecation_warnings  # pylint: disable=unused-import # noqa: F401
-from deepchecks.tabular.dataset import Dataset
-from deepchecks.tabular.context import Context
-from deepchecks.core.check_result import (
-    CheckResult,
-    CheckFailure,
-)
-from deepchecks.core.checks import (
-    BaseCheck,
-    SingleDatasetBaseCheck,
-    TrainTestBaseCheck,
-    ModelOnlyBaseCheck
-)
+from deepchecks.core.check_result import CheckFailure, CheckResult
+from deepchecks.core.checks import (BaseCheck, ModelOnlyBaseCheck,
+                                    SingleDatasetBaseCheck, TrainTestBaseCheck)
 from deepchecks.core.errors import DeepchecksNotSupportedError
+from deepchecks.tabular import \
+    deprecation_warnings  # pylint: disable=unused-import # noqa: F401
+from deepchecks.tabular.context import Context
+from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.model_base import ModelComparisonContext
 
 

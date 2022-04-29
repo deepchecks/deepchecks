@@ -10,24 +10,20 @@
 #
 """Module for vision base checks."""
 import logging
-from typing import Optional, Any, Union
+from typing import Any, Optional, Union
 
 import torch
 from torch import nn
 
-from deepchecks.vision import deprecation_warnings  # pylint: disable=unused-import # noqa: F401
 from deepchecks.core.check_result import CheckResult
-from deepchecks.core.checks import (
-    SingleDatasetBaseCheck,
-    TrainTestBaseCheck,
-    ModelOnlyBaseCheck,
-    DatasetKind
-)
+from deepchecks.core.checks import (DatasetKind, ModelOnlyBaseCheck,
+                                    SingleDatasetBaseCheck, TrainTestBaseCheck)
 from deepchecks.utils.ipython import ProgressBar
+from deepchecks.vision import \
+    deprecation_warnings  # pylint: disable=unused-import # noqa: F401
+from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.context import Context
 from deepchecks.vision.vision_data import VisionData
-from deepchecks.vision.batch_wrapper import Batch
-
 
 logger = logging.getLogger('deepchecks')
 

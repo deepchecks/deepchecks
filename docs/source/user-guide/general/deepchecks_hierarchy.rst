@@ -11,9 +11,9 @@ Each check enables you to inspect a specific aspect of your data and
 models. They are the basic building block of the deepchecks package,
 covering all kinds of common issues, such as:
 
-- :doc:`/examples/tabular/checks/performance/examples/plot_model_error_analysis`
-- :doc:`/examples/tabular/checks/integrity/examples/plot_label_ambiguity`
-- :doc:`/examples/tabular/checks/methodology/examples/plot_date_train_test_leakage_overlap`
+- :doc:`/checks_gallery/tabular/performance/plot_model_error_analysis`
+- :doc:`/checks_gallery/tabular/integrity/plot_label_ambiguity`
+- :doc:`/checks_gallery/tabular/methodology/plot_date_train_test_leakage_overlap`
 
 Each check can have two types of results:
 
@@ -26,9 +26,9 @@ Each check can have two types of results:
 See Also
 ---------
 
-- :doc:`Checks Demonstrations </examples/index>` - example notebooks demonstrating all of the checks implemented in the package.
+- :doc:`Checks Demonstrations </checks_gallery/tabular//index>` - example notebooks demonstrating all of the checks implemented in the package.
 - :doc:`Checks API Reference </api/deepchecks.tabular.checks>` - where all the check parameters and implemented conditions can be found.
-- :doc:`/tutorials/tabular/examples/plot_add_a_custom_check` - for a tutorial of how to implement your own check
+- :doc:`/auto_tutorials/tabular/plot_add_a_custom_check` - for a tutorial of how to implement your own check
 
 
 Condition

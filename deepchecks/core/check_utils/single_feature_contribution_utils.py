@@ -13,10 +13,11 @@ from typing import Optional
 
 import numpy as np
 import pandas as pd
+import plotly.graph_objects as go
+
 import deepchecks.ppscore as pps
 from deepchecks.utils.plot import colors
 from deepchecks.utils.typing import Hashable
-import plotly.graph_objects as go
 
 
 def get_pps_figure(per_class: bool):

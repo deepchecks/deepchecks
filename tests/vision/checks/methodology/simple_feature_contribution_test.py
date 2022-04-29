@@ -11,13 +11,12 @@
 """Test functions of the VISION train test label drift."""
 from copy import copy
 
-from hamcrest import assert_that, has_entries, close_to, equal_to
 import numpy as np
 import pandas as pd
+from hamcrest import assert_that, close_to, equal_to, has_entries
 
 from deepchecks.vision.checks import SimpleFeatureContribution
 from deepchecks.vision.utils.transformations import un_normalize_batch
-
 from tests.checks.utils import equal_condition_result
 from tests.vision.vision_conftest import *
 
@@ -104,8 +103,8 @@ def test_drift_classification(mnist_dataset_train, mnist_dataset_test):
     # Assert
     assert_that(result.value, has_entries({
         'train': has_entries({'Brightness': close_to(0.08, 0.005)}),
-        'test': has_entries({'Brightness': close_to(0.239, 0.001)}),
-        'train-test difference': has_entries({'Brightness': close_to(-0.159, 0.001)})
+        'test': has_entries({'Brightness': close_to(0.234, 0.001)}),
+        'train-test difference': has_entries({'Brightness': close_to(-0.153, 0.001)})
     }))
 
 
@@ -173,8 +172,8 @@ def test_drift_classification_per_class(mnist_dataset_train, mnist_dataset_test)
     # Assert
     assert_that(result.value, has_entries({
         'Brightness': has_entries({'train':  has_entries({'1': equal_to(0)}),
-                                   'test':  has_entries({'1': close_to(0.64, 0.01)}),
-                                   'train-test difference':  has_entries({'1': close_to(-0.64, 0.01)})}),
+                                   'test':  has_entries({'1': close_to(0.659, 0.01)}),
+                                   'train-test difference':  has_entries({'1': close_to(-0.659, 0.01)})}),
     }))
 
 

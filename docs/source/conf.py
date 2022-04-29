@@ -3,18 +3,19 @@
 # This file only contains a selection of the most common options. For a full
 # list see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
-import typing as t
+import functools
 import inspect
 import os
-import sys
 import pathlib
-import functools
+import sys
+import typing as t
 from subprocess import check_output
-import deepchecks
-from deepchecks import vision
 
 import plotly.io as pio
 from plotly.io._sg_scraper import plotly_sg_scraper
+
+import deepchecks
+from deepchecks import vision
 
 pio.renderers.default = 'sphinx_gallery'
 
@@ -85,16 +86,16 @@ extensions = [
 ]
 
 redirects = {
-    "examples/guides/quickstart_in_5_minutes": "../../tutorials/tabular/examples/plot_quickstart_in_5_minutes.html",
+    "examples/guides/quickstart_in_5_minutes": "../../auto_tutorials/tabular/plot_quickstart_in_5_minutes.html",
     "user-guide/key_concepts": "../user-guide/general/deepchecks_hierarchy.html",
     "user-guide/when_should_you_use": "../getting-started/when_should_you_use.html",
-    "examples/checks/distribution/index": "../../../examples/tabular/checks/distribution/examples/index.html",
-    "examples/checks/distribution/train_test_feature_drift": "../../../examples/tabular/checks/distribution/examples/plot_train_test_feature_drift.html",
-    "examples/checks/integrity/index": "../../../examples/tabular/checks/integrity/examples/index.html",
-    "examples/checks/methodology/index": "../../../examples/tabular/checks/methodology/examples/index.html",
-    "examples/checks/overview/index": "../../../examples/tabular/checks/overview/examples/index.html",
-    "examples/checks/performance/index": "../../../examples/tabular/checks/performance/examples/index.html",
-    "user-guide/supported_models": "..//user-guide/tabular/supported_models.html",
+    "examples/checks/distribution/index": "../../../checks_gallery/tabular/index.html",
+    "examples/checks/distribution/train_test_feature_drift": "../../../checks_gallery/tabular/distribution/plot_train_test_feature_drift.html",
+    "examples/checks/integrity/index": "../../../checks_gallery/tabular/index.html",
+    "examples/checks/methodology/index": "../../../checks_gallery/tabular/index.html",
+    "examples/checks/overview/index": "../../../checks_gallery/tabular/index.html",
+    "examples/checks/performance/index": "../../../checks_gallery/tabular/index.html",
+    "user-guide/supported_models": "../user-guide/tabular/supported_models.html",
     "examples/guides/create_a_custom_suite": "../../user-guide/general/customizations/examples/plot_create_a_custom_suite.html",
     "examples/guides/export_outputs_to_wandb": "../../user-guide/general/exporting_results/examples/plot_exports_output_to_wandb.html",
     "examples/guides/save_suite_result_as_html": "../../user-guide/general/exporting_results/examples/plot_save_suite_results_as_html.html",
@@ -103,36 +104,20 @@ imgmath_image_format = 'svg'
 
 sphinx_gallery_conf = {
     "examples_dirs": [
-        "examples/vision/checks/distribution/source",
-        "examples/vision/checks/performance/source",
-        "examples/vision/checks/methodology/source",
-        # "examples/tabular/guides/source",
-        "examples/tabular/checks/distribution/source",
-        "examples/tabular/checks/overview/source",
-        "examples/tabular/checks/integrity/source",
-        "examples/tabular/checks/methodology/source",
-        "examples/tabular/checks/performance/source",
+        "checks/vision",
+        "checks/tabular",
         "tutorials/tabular",
         "tutorials/vision",
         "user-guide/general/customizations",
         "user-guide/general/exporting_results",
-        # "examples/tabular/use-cases/source",
     ],  # path to your example scripts
     "gallery_dirs": [
-        "examples/vision/checks/distribution/examples",
-        "examples/vision/checks/performance/examples",
-        "examples/vision/checks/methodology/examples",
-        # "examples/tabular/guides/examples",
-        "examples/tabular/checks/distribution/examples",
-        "examples/tabular/checks/overview/examples",
-        "examples/tabular/checks/integrity/examples",
-        "examples/tabular/checks/methodology/examples",
-        "examples/tabular/checks/performance/examples",
-        "tutorials/tabular/examples",
-        "tutorials/vision/examples",
+        "checks_gallery/vision",
+        "checks_gallery/tabular",
+        "auto_tutorials/tabular",
+        "auto_tutorials/vision",
         "user-guide/general/customizations/examples",
         "user-guide/general/exporting_results/examples",
-        # "examples/tabular/use-cases/examples",
     ], # path to where to save gallery generated output
     "image_scrapers": (
         "matplotlib",
@@ -141,6 +126,12 @@ sphinx_gallery_conf = {
     "pypandoc": True,
     "default_thumb_file": os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                        "_static/sphx_glr_deepchecks_icon.png"),
+    "doc_module": "deepchecks",
+    "backreferences_dir": os.path.join(PROJECT_DIR, "docs/source/api/generated/backreferences"),
+    "reference_url": {'deepchecks': None},
+    # avoid generating too many cross links
+    "inspect_global_variables": True,
+    "remove_config_comments": True,
 }
 
 # Add any paths that contain templates here, relative to this directory.
@@ -191,6 +182,7 @@ python_use_unqualified_type_names = True
 #
 # autosummary_generate = False
 
+
 # If true, autosummary overwrites existing files by generated stub pages.
 # Defaults to true (enabled).
 #
@@ -209,11 +201,14 @@ autosummary_ignore_module_all = False
 # A dictionary of values to pass into the template engine’s context
 # for autosummary stubs files.
 
+
 def path_exists(path: str):
     return os.path.exists(path)
 
+
 def getswd(pth: str):
     return os.getcwd()
+
 
 autosummary_context = {
     'to_snake_case': to_snake_case, 
@@ -440,10 +435,10 @@ for line in open('nitpick-exceptions'):
 
 def get_check_example_api_reference(filepath: str) -> t.Optional[str]:
     if not (
-        filepath.startswith("docs/source/examples/tabular/checks/")
-        or filepath.startswith("docs/source/examples/vision/checks/")
-        or filepath.startswith("examples/tabular/checks/")
-        or filepath.startswith("examples/vision/checks/")
+        filepath.startswith("docs/source/checks/tabular/")
+        or filepath.startswith("docs/source/checks/vision/")
+        or filepath.startswith("checks/tabular/")
+        or filepath.startswith("checks/vision/")
     ):
         return ''
 

@@ -12,12 +12,12 @@
 import typing as t
 
 import deepchecks.ppscore as pps
-from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
-from deepchecks.core.check_utils.single_feature_contribution_utils import get_pps_figure, pps_df_to_trace
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
+from deepchecks.core.check_utils.single_feature_contribution_utils import (
+    get_pps_figure, pps_df_to_trace)
 from deepchecks.tabular import Context, SingleDatasetCheck
-from deepchecks.utils.typing import Hashable
 from deepchecks.utils.strings import format_number
-
+from deepchecks.utils.typing import Hashable
 
 __all__ = ['SingleFeatureContribution']
 

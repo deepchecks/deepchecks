@@ -10,8 +10,8 @@
 #
 # pylint: disable=unused-argument, import-outside-toplevel
 """Module containing the Suite object, used for running a set of checks together."""
-import io
 import abc
+import io
 import warnings
 from collections import OrderedDict
 from typing import Union, List, Tuple, Dict, Set, Optional

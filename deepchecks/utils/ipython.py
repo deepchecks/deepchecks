@@ -17,7 +17,7 @@ from functools import lru_cache
 
 import tqdm
 from tqdm.notebook import tqdm as tqdm_notebook
-from IPython import get_ipython  # TODO: I think we should remove ipython from mandatory dependencies
+from IPython import get_ipython
 
 
 __all__ = [

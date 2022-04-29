@@ -9,13 +9,13 @@
 # ----------------------------------------------------------------------------
 #
 """Module of segment performance check."""
-from typing import Callable, Union, Optional, List, cast, Tuple
+from typing import Callable, List, Optional, Tuple, Union, cast
 
 import numpy as np
 import plotly.express as px
 
 from deepchecks.core import CheckResult
-from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError
+from deepchecks.core.errors import DatasetValidationError, DeepchecksValueError
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.performance.partition import partition_column
 from deepchecks.utils.strings import format_number

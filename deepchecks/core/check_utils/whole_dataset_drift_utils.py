@@ -10,15 +10,15 @@
 #
 """Module containing common WholeDatasetDriftCheck (domain classifier drift) utils."""
 
-from typing import List
 import warnings
+from typing import List
 
 import numpy as np
 import pandas as pd
+import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-
-from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
 
 with warnings.catch_warnings():
     warnings.simplefilter('ignore')
@@ -26,14 +26,16 @@ with warnings.catch_warnings():
 
 from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.metrics import roc_auc_score
-from sklearn.preprocessing import OrdinalEncoder
 from sklearn.model_selection import train_test_split
-import plotly.graph_objects as go
+from sklearn.preprocessing import OrdinalEncoder
 
 from deepchecks.tabular import Dataset
-from deepchecks.utils.distribution.plot import feature_distribution_traces, drift_score_bar_traces
-from deepchecks.utils.distribution.rare_category_encoder import RareCategoryEncoder
-from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none
+from deepchecks.utils.distribution.plot import (drift_score_bar_traces,
+                                                feature_distribution_traces)
+from deepchecks.utils.distribution.rare_category_encoder import \
+    RareCategoryEncoder
+from deepchecks.utils.features import (N_TOP_MESSAGE,
+                                       calculate_feature_importance_or_none)
 from deepchecks.utils.function import run_available_kwargs
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable

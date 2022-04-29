@@ -9,16 +9,16 @@
 # ----------------------------------------------------------------------------
 #
 """The data_sample_leakage_report check module."""
-from typing import Union, List, Dict
+from typing import Dict, List, Union
+
 import pandas as pd
 
-from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.tabular.utils.display_utils import nothing_found_on_columns
+from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
-from deepchecks.utils.dataframes import select_from_dataframe
-
 
 __all__ = ['CategoryMismatchTrainTest']
 

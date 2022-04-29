@@ -9,9 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """The dataset module containing the tabular Dataset class and its functions."""
+import logging
 # pylint: disable=inconsistent-quotes,protected-access
 import typing as t
-import logging
 from functools import lru_cache
 
 import numpy as np
@@ -19,11 +19,14 @@ import pandas as pd
 from pandas.core.dtypes.common import is_numeric_dtype
 from sklearn.model_selection import train_test_split
 
+from deepchecks.core.errors import (DatasetValidationError,
+                                    DeepchecksNotSupportedError,
+                                    DeepchecksValueError)
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.features import infer_numerical_features, is_categorical, infer_categorical_features
+from deepchecks.utils.features import (infer_categorical_features,
+                                       infer_numerical_features,
+                                       is_categorical)
 from deepchecks.utils.typing import Hashable
-from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError, DeepchecksNotSupportedError
-
 
 __all__ = ['Dataset']
 

@@ -10,14 +10,15 @@
 #
 """Module for base tabular model abstractions."""
 # pylint: disable=broad-except
-from typing import Union, Tuple, Mapping, List, Any
+from typing import Any, List, Mapping, Tuple, Union
 
 from deepchecks.core.check_result import CheckFailure
+from deepchecks.core.errors import (DeepchecksNotSupportedError,
+                                    DeepchecksValueError)
 from deepchecks.core.suite import BaseSuite, SuiteResult
-from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
-from deepchecks.utils.ipython import ProgressBar
-from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.context import Context
+from deepchecks.tabular.dataset import Dataset
+from deepchecks.utils.ipython import ProgressBar
 
 
 __all__ = [
@@ -32,7 +33,8 @@ class ModelComparisonSuite(BaseSuite):
     @classmethod
     def supported_checks(cls) -> Tuple:
         """Return tuple of supported check types of this suite."""
-        from deepchecks.tabular.base_checks import ModelComparisonCheck  # pylint: disable=import-outside-toplevel
+        from deepchecks.tabular.base_checks import \
+            ModelComparisonCheck  # pylint: disable=import-outside-toplevel
         return tuple([ModelComparisonCheck])
 
     def run(self,

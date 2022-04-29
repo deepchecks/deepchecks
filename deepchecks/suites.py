@@ -15,8 +15,8 @@ removed in the nexts versions.
 """
 # flake8: noqa
 import warnings
-from deepchecks.tabular.suites import * # pylint: disable=wildcard-import
 
+from deepchecks.tabular.suites import *  # pylint: disable=wildcard-import
 
 warnings.warn(
     'Ability to import tabular suites from the `deepchecks.suites` '

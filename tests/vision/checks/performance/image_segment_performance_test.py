@@ -8,13 +8,14 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-from ignite.metrics import Precision, Recall
 import numpy as np
-from hamcrest import assert_that, equal_to, has_length, has_entries, has_items, close_to, matches_regexp
+from hamcrest import (assert_that, close_to, equal_to, has_entries, has_items,
+                      has_length, matches_regexp)
+from ignite.metrics import Precision, Recall
 
-from tests.vision.vision_conftest import *
-from tests.checks.utils import equal_condition_result
 from deepchecks.vision.checks.performance import ImageSegmentPerformance
+from tests.checks.utils import equal_condition_result
+from tests.vision.vision_conftest import *
 
 
 def test_mnist(mnist_dataset_train, mock_trained_mnist):
