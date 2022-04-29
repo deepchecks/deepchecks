@@ -16,13 +16,14 @@ import warnings
 from collections import OrderedDict
 from typing import Union, List, Tuple, Dict, Set, Optional
 
-from IPython.core.display import display_html
 import jsonpickle
+from IPython.core.display import display_html
+from ipywidgets import Widget
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.check_result import CheckResult, CheckFailure
 from deepchecks.core.checks import BaseCheck
-from deepchecks.utils.ipython import is_notebook, is_widgets_use_possible, is_colab_env
+from deepchecks.utils.ipython import is_notebook, is_widgets_use_possible, is_colab_env, is_kaggle_env
 from deepchecks.utils.wandb_utils import set_wandb_run_state
 from deepchecks.utils.strings import get_random_string, create_new_file_name, widget_to_html
 from deepchecks.core.serialization.suite_result.html import SuiteResultSerializer as SuiteResultHtmlSerializer
@@ -92,13 +93,15 @@ class SuiteResult:
                 SuiteResultWidgetSerializer(self).serialize(output_id=output_id)
             )
         else:
-            args = (
-                dict(output_id=None, full_html=True)
-                if is_colab_env()
-                else dict(output_id=output_id, full_html=False)
-            )
+            is_colab = is_colab_env()
+            is_kaggle = is_kaggle_env()
             display_html(
-                SuiteResultHtmlSerializer(self).serialize(**args),
+                SuiteResultHtmlSerializer(self).serialize(
+                    output_id=output_id if not is_colab else None,
+                    full_html=is_colab,
+                    include_requirejs=is_kaggle,
+                    connected=not is_kaggle
+                ),
                 raw=True,
             )
 
@@ -159,6 +162,23 @@ class SuiteResult:
                 file.write(html)
             else:
                 TypeError(f'Unsupported type of "file" parameter - {type(file)}')
+
+    def to_widget(
+        self,
+        unique_id : Optional[str] = None,
+    ) -> Widget:
+        """Return SuiteResult as a ipywidgets.Widget instance.
+
+        Parameters
+        ----------
+        unique_id : str
+            The unique id given by the suite that displays the check.
+
+        Returns
+        -------
+        Widget
+        """
+        return SuiteResultWidgetSerializer(self).serialize(output_id=unique_id)
 
     def to_json(self, with_display: bool = True):
         """Return check result as json.

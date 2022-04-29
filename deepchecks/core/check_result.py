@@ -25,7 +25,7 @@ from IPython.display import display_html
 from ipywidgets import Widget
 
 from deepchecks.utils.strings import create_new_file_name, get_docs_summary, widget_to_html
-from deepchecks.utils.ipython import is_notebook, is_widgets_use_possible, is_colab_env
+from deepchecks.utils.ipython import is_notebook, is_widgets_use_possible, is_colab_env, is_kaggle_env
 from deepchecks.utils.wandb_utils import set_wandb_run_state
 from deepchecks.core.condition import ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
@@ -100,7 +100,7 @@ class CheckResult:
         unique_id: Optional[str] = None,
         show_additional_outputs: bool = True
     ) -> Widget:
-        """Return CheckResult as a ipywidgets.WIdget instance.
+        """Return CheckResult as a ipywidgets.Widget instance.
 
         Parameters
         ----------
@@ -287,7 +287,7 @@ class CheckResult:
     @staticmethod
     def display_from_json(json_data: str):
         """Display the check result from a json received from a to_json."""
-        display_from_json(json_data)
+        display_html(display_from_json(json_data), raw=True)
 
     def _get_metadata(self, with_doc_link: bool = False):
         check_name = self.check.name()
@@ -302,16 +302,30 @@ class CheckResult:
         as_widget: bool = False,
         show_additional_outputs: bool = True
     ):
-        is_colab_env_flag = is_colab_env()
         as_widget = is_widgets_use_possible() and as_widget
-        check_widget = self.display_check(
-            unique_id=unique_id if not is_colab_env_flag else None,
-            as_widget=as_widget,
-            show_additional_outputs=show_additional_outputs,
-            full_html=is_colab_env_flag
+        check_sections = (
+            ['condition-table', 'additional-output']
+            if show_additional_outputs
+            else ['condition-table']
         )
-        if as_widget is True and check_widget is not None:
-            display_html(check_widget)
+
+        if as_widget is True:
+            display_html(CheckResultWidgetSerializer(self).serialize(
+                output_id=unique_id,
+                check_sections=check_sections  # type: ignore
+            ))
+        else:
+            is_colab = is_colab_env()
+            is_kaggle = is_kaggle_env()
+            display_html(
+                CheckResultHtmlSerializer(self).serialize(
+                    output_id=unique_id if not is_colab else None,
+                    full_html=is_colab,
+                    include_requirejs=is_kaggle,
+                    connected=not is_kaggle
+                ),
+                raw=True
+            )
 
     def __repr__(self):
         """Return default __repr__ function uses value."""

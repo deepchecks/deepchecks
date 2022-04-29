@@ -166,12 +166,12 @@ def display_from_json(data: t.Union[str, CheckResultMetadata]) -> str:
         with warnings.catch_warnings():
             warnings.simplefilter(action='ignore', category=FutureWarning)
             conditions_table = DataFrameSerializer(df.style.hide_index()).serialize()
-            conditions_table = f'<h5>Conditions Summary</h5>{conditions_table}'
+            conditions_table = f'<h5><b>Conditions Summary</b></h5>{conditions_table}'
     else:
         conditions_table = ''
 
     if display:
-        additional_output = []
+        additional_output = ['<h5><b>Additional Outputs</b></h5>']
 
         for record in t.cast(t.List[t.Dict[str, t.Any]], display):
             kind, payload = record['type'], record['payload']
@@ -207,7 +207,7 @@ def display_from_json(data: t.Union[str, CheckResultMetadata]) -> str:
         additional_output = '<h5><b>Additional Outputs</b></h5><p>Nothing to show</p>'
 
     template = textwrap.dedent("""
-        <h4>{header}</h4>
+        <h1>{header}</h1>
         <p>{summary}</p>
         {conditions_table}
         {additional_output}

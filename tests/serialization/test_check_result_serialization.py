@@ -258,7 +258,7 @@ def assert_json_output(
                         instance_of(dict),
                         has_entries({
                             'type': equal_to('images'),
-                            'payload': instance_of(list)
+                            'payload': all_of(has_length(greater_than(0))),
                         }))
                 )
             else:

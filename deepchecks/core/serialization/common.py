@@ -303,25 +303,27 @@ def plotlyjs_script(connected: bool = True) -> str:
         )
 
 
-def read_matplot_figures() -> t.Iterator[io.BytesIO]:
+def read_matplot_figures() -> t.List[io.BytesIO]:
     """Return all active matplot figures."""
+    output = []
     figures = [plt.figure(n) for n in plt.get_fignums()]
     for fig in figures:
         buffer = io.BytesIO()
         fig.savefig(buffer, format='png')
         buffer.seek(0)
-        yield buffer
+        output.append(buffer)
         fig.clear()
         plt.close(fig)
+    return output
 
 
 @contextmanager
-def switch_matplot_backend(backend: str = 'Agg'):
+def switch_matplot_backend(backend: str = 'agg'):
     """Switch matplot backend."""
     previous = matplotlib.get_backend()
-    matplotlib.use(backend)
+    plt.switch_backend(backend)
     yield
-    matplotlib.use(previous)
+    plt.switch_backend(previous)
 
 
 def concatv_images(images, gap=10):
@@ -353,10 +355,10 @@ def concatv_images(images, gap=10):
             return t.cast(pilimage.Image, images[0]).copy()
 
         max_width = max(it.width for it in images)
-        max_height = max(it.height for it in images)
+        height = sum(it.height for it in images)
         dst = pilimage.new(
             t.cast(pilimage.Image, images[0]).mode,  # type: ignore
-            (max_width, max_height)
+            (max_width, height)
         )
 
         position = 0

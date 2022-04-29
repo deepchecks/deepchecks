@@ -14,7 +14,7 @@ import abc
 import io
 
 import pandas as pd
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from pandas.io.formats.style import Styler
 from ipywidgets.widgets import Widget
 from plotly.basedatatypes import BaseFigure
@@ -141,14 +141,12 @@ class ABCDisplayItemsHandler(Protocol):
         raise NotImplementedError()
 
     @classmethod
-    def handle_callable(cls, item: t.Callable, index: int, **kwargs) -> t.Iterator[io.BytesIO]:
+    def handle_callable(cls, item: t.Callable, index: int, **kwargs) -> t.List[io.BytesIO]:
         """Handle callable."""
         # TODO: callable is a special case, add comments
-        plt.ioff()
-        item()
-        r = common.read_matplot_figures()
-        plt.ion()
-        return r
+        with common.switch_matplot_backend('agg'):
+            item()
+            return common.read_matplot_figures()
 
     @abc.abstractclassmethod
     def handle_figure(cls, item: BaseFigure, index: int, **kwargs) -> t.Any:

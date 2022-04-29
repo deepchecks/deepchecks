@@ -81,3 +81,5 @@ CDN
 CustomNotebookRenderer
 Wandb
 hotfix
+pyplot
+plt
