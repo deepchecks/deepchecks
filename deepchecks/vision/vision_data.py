@@ -16,12 +16,12 @@ from abc import abstractmethod
 from collections import defaultdict
 from copy import copy
 from enum import Enum
-from typing import (Any, Dict, Iterator, List, Optional, Sequence, TypeVar,
-                    Union)
+from typing import (Any, Callable, Dict, Iterator, List, Optional, Sequence,
+                    TypeVar, Union)
 
 import numpy as np
 import torch
-from torch.utils.data import BatchSampler, DataLoader, Sampler
+from torch.utils.data import BatchSampler, DataLoader, Dataset, Sampler
 
 from deepchecks.core.errors import (DeepchecksBaseError,
                                     DeepchecksNotImplementedError,
@@ -31,10 +31,11 @@ from deepchecks.vision.utils.image_functions import ImageInfo
 from deepchecks.vision.utils.transformations import (add_augmentation_in_start,
                                                      get_transforms_handler)
 
+__all__ = ['TaskType', 'VisionData']
+
+
 logger = logging.getLogger('deepchecks')
 VD = TypeVar('VD', bound='VisionData')
-
-__all__ = ['TaskType', 'VisionData']
 
 
 class TaskType(Enum):
@@ -63,11 +64,14 @@ class VisionData:
         Name of transforms field in the dataset which holds transformations of both data and label.
     """
 
-    def __init__(self,
-                 data_loader: DataLoader,
-                 num_classes: Optional[int] = None,
-                 label_map: Optional[Dict[int, str]] = None,
-                 transform_field: Optional[str] = 'transforms'):
+    def __init__(
+        self,
+        data_loader: Union[DataLoader, Dataset],
+        num_classes: Optional[int] = None,
+        label_map: Optional[Dict[int, str]] = None,
+        transform_field: Optional[str] = 'transforms'
+    ):
+        data_loader = cast_to_dataloader(data_loader)
 
         # Create data loader that uses IndicesSequentialSampler, which always return batches in the same order
         self._data_loader, self._sampler = self._get_data_loader_sequential(data_loader)
@@ -573,3 +577,34 @@ class IndicesSequentialSampler(Sampler):
     def index_at(self, location):
         """Return for a given location, the real index value."""
         return self.indices[location]
+
+
+def cast_to_dataloader(
+    data: Union[DataLoader, Dataset],
+    batch_size: int = 64,
+    shuffle: bool = True,
+    num_workers: int = 0,
+    pin_memory: bool = True,
+    collate_fn: Optional[Callable] = None
+) -> DataLoader:
+    """Cast to DataLoader instance."""
+    def batch_collate(batch):
+        imgs, labels = zip(*batch)
+        return list(imgs), list(labels)
+
+    if isinstance(data, DataLoader):
+        return data
+    elif isinstance(data, Dataset):
+        return DataLoader(
+            dataset=data,
+            batch_size=batch_size,
+            shuffle=shuffle,
+            num_workers=num_workers,
+            pin_memory=pin_memory,
+            collate_fn=collate_fn or batch_collate
+        )
+    else:
+        raise TypeError(
+            'Expected data_loader to be of type Union[DataLoader, Dataset] '
+            f'instead got {type(data).__name__}'
+        )

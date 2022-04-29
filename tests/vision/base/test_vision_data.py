@@ -416,3 +416,9 @@ def test_detection_data_bad_implementation():
                 raises(ValidationError,
                        'Check requires detection predictions to be a list of 2D tensors, when '
                        'each row has 6 columns: \[x, y, width, height, class_probability, class_id\]'))
+
+
+def test_vision_data_initialization_from_dataset_instance(coco_train_dataloader: DataLoader):
+    visiondata = VisionData(data_loader=coco_train_dataloader.dataset)
+    assert_that(visiondata.data_loader, instance_of(DataLoader))
+    assert_that(len(coco_train_dataloader.dataset) == len(visiondata.data_loader.dataset))
