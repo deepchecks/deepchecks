@@ -886,7 +886,7 @@ class Dataset:
             if the provided value cannot be transformed into Dataset instance;
         """
         if isinstance(obj, pd.DataFrame):
-            obj = Dataset(obj, features=[], cat_features=[])
+            obj = Dataset(obj)
         elif not isinstance(obj, Dataset):
             raise DeepchecksValueError(
                 f'non-empty instance of Dataset or DataFrame was expected, instead got {type(obj).__name__}'
