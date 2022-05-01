@@ -22,7 +22,6 @@ import torch.nn.functional as F
 from albumentations.pytorch import ToTensorV2
 from torch import nn
 from torch.utils.data import DataLoader
-import torchvision.transforms as T
 from torchvision import datasets
 from typing_extensions import Literal
 
@@ -45,8 +44,7 @@ def load_dataset(
     batch_size: t.Optional[int] = None,
     shuffle: bool = True,
     pin_memory: bool = True,
-    object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader',
-    is_torch_transform: bool = False,
+    object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader'
 ) -> t.Union[DataLoader, ClassificationData]:
     """Download MNIST dataset.
 
@@ -64,8 +62,6 @@ def load_dataset(
     object_type : Literal[Dataset, DataLoader], default 'DataLoader'
         object type to return. if `'VisionData'` then :obj:`deepchecks.vision.VisionData`
         will be returned, if `'DataLoader'` then :obj:`torch.utils.data.DataLoader`
-    is_torch_transform: bool, default ``False``
-        If True will use the data with torch transform instead of albumentations
 
     Returns
     -------
@@ -80,30 +76,16 @@ def load_dataset(
 
     mean = (0.1307,)
     std = (0.3081,)
-
-    if is_torch_transform:
-        dataset = datasets.MNIST(
+    loader = DataLoader(
+        MNIST(
             str(MODULE_DIR),
             train=train,
             download=True,
-            transform=T.Compose([
-                T.ToTensor(),
-                T.Normalize(mean, std),
+            transform=A.Compose([
+                A.Normalize(mean, std),
+                ToTensorV2(),
             ]),
-        )
-    else:
-        dataset = MNIST(
-                    str(MODULE_DIR),
-                    train=train,
-                    download=True,
-                    transform=A.Compose([
-                        A.Normalize(mean, std),
-                        ToTensorV2(),
-                    ]),
-                )
-
-    loader = DataLoader(
-        dataset,
+        ),
         batch_size=batch_size,
         shuffle=shuffle,
         pin_memory=pin_memory,

@@ -64,7 +64,6 @@ __all__ = ['device',
            'mnist_train_custom_task',
            'mnist_test_custom_task',
            'coco_train_custom_task',
-           'mnist_dataset_test_torch',
            'mnist_dataset_train_torch',
            ]
 
@@ -141,10 +140,6 @@ def mnist_dataset_test():
     """Return MNist dataset as VisionData object."""
     return load_mnist_dataset(train=False, object_type='VisionData', shuffle=False)
 
-@pytest.fixture(scope='session')
-def mnist_dataset_test_torch():
-    """Return MNist dataset as VisionData object."""
-    return load_mnist_dataset(train=False, object_type='VisionData', shuffle=False, is_torch_transform=True)
 
 @pytest.fixture
 def mnist_drifted_datasets(mnist_dataset_train, mnist_dataset_test):  # pylint: disable=redefined-outer-name
