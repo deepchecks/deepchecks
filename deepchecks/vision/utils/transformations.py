@@ -22,13 +22,16 @@ import numpy as np
 
 from deepchecks.core.errors import (DeepchecksNotSupportedError,
                                     DeepchecksValueError)
+from deepchecks.vision.vision_data import TaskType
 
-__all__ = ['get_transforms_handler', 'add_augmentation_in_start', 'un_normalize_batch',
+__all__ = ['get_transforms_handler', 'un_normalize_batch', 'AbstractTransformations',
            'ImgaugTransformations', 'AlbumentationsTransformations']
 
 
 class AbstractTransformations(abc.ABC):
     """Abstract class for supporting functions for various transforms."""
+
+    is_image_shifting = True
 
     @classmethod
     @abc.abstractmethod
@@ -144,7 +147,7 @@ class AlbumentationsTransformations(AbstractTransformations):
         return augmentations
 
 
-class TorchTransformations(AlbumentationsTransformations):
+class TorchTransformationsClassification(AlbumentationsTransformations):
     """Class containing supporting functions for torch transforms."""
 
     @classmethod
@@ -168,23 +171,33 @@ class TorchTransformations(AlbumentationsTransformations):
         return T.Compose([aug, *transforms.transforms])
 
 
-def get_transforms_handler(transforms) -> t.Type[AbstractTransformations]:
+class TorchTransformations(TorchTransformationsClassification):
+    """Class containing supporting functions for torch transforms (not including image shifting)."""
+
+    is_image_shifting = False
+
+    @classmethod
+    def get_robustness_augmentations(cls, data_dim: t.Optional[int] = 3) -> t.List[albumentations.BasicTransform]:
+        """Get default augmentations to use in robustness report check (without image shift)."""
+        augs = super().get_robustness_augmentations(data_dim=data_dim)
+        augs.pop(1)  # pop ShiftScaleRotate
+        return augs
+
+
+def get_transforms_handler(transforms, task_type: TaskType = None) -> t.Type[AbstractTransformations]:
     """Return the appropriate transforms handler based on type of given transforms."""
     if transforms is None:
         raise DeepchecksNotSupportedError('Underlying Dataset instance must have transform field not None')
     elif isinstance(transforms, albumentations.Compose):
         return AlbumentationsTransformations
     elif isinstance(transforms, T.Compose):
+        if task_type == TaskType.CLASSIFICATION:
+            return TorchTransformationsClassification
         return TorchTransformations
     elif isinstance(transforms, iaa.Augmenter):
         return ImgaugTransformations
     else:
         raise DeepchecksNotSupportedError('Currently only imgaug, albumentations and torch are supported')
-
-
-def add_augmentation_in_start(aug, transforms):
-    """Add given augmentation to the first place in the transforms."""
-    return get_transforms_handler(transforms).add_augmentation_in_start(aug, transforms)
 
 
 def un_normalize_batch(tensor: torch.Tensor, mean: t.Sized, std: t.Sized, max_pixel_value: int = 255):

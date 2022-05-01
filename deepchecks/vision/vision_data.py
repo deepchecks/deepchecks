@@ -28,8 +28,7 @@ from deepchecks.core.errors import (DeepchecksBaseError,
                                     DeepchecksValueError, ValidationError)
 from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.utils.image_functions import ImageInfo
-from deepchecks.vision.utils.transformations import (add_augmentation_in_start,
-                                                     get_transforms_handler)
+from deepchecks.vision.utils.transformations import get_transforms_handler
 
 logger = logging.getLogger('deepchecks')
 VD = TypeVar('VD', bound='VisionData')
@@ -293,20 +292,15 @@ class VisionData:
                   f'transformations field is named otherwise, you cat set it by using "transform_field" parameter'
             raise DeepchecksValueError(msg)
         transform = dataset_ref.__getattribute__(self._transform_field)
-        return get_transforms_handler(transform)
+        return get_transforms_handler(transform, self.task_type)
 
     def get_augmented_dataset(self, aug) -> VD:
         """Return a copy of the vision data object with the augmentation in the start of it."""
-        dataset_ref = self._data_loader.dataset
-        # If no field exists raise error
-        if not hasattr(dataset_ref, self._transform_field):
-            msg = f'Underlying Dataset instance does not contain "{self._transform_field}" attribute. If your ' \
-                  f'transformations field is named otherwise, you cat set it by using "transform_field" parameter'
-            raise DeepchecksValueError(msg)
+        transform_handler = self.get_transform_type()
         new_vision_data = self.copy()
         new_dataset_ref = new_vision_data.data_loader.dataset
         transform = new_dataset_ref.__getattribute__(self._transform_field)
-        new_transform = add_augmentation_in_start(aug, transform)
+        new_transform = transform_handler.add_augmentation_in_start(aug, transform)
         new_dataset_ref.__setattr__(self._transform_field, new_transform)
         return new_vision_data
 

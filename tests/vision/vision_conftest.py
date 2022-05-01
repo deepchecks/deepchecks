@@ -28,7 +28,8 @@ from deepchecks.vision.datasets.classification.mnist import \
     load_dataset as load_mnist_dataset
 from deepchecks.vision.datasets.classification.mnist import \
     load_model as load_mnist_net_model
-from deepchecks.vision.datasets.detection.coco import COCOData
+from deepchecks.vision.datasets.detection.coco import DATA_DIR as coco_dir, LABEL_MAP as coco_labels
+from deepchecks.vision.datasets.detection.coco import COCOData, CocoDataset
 from deepchecks.vision.datasets.detection.coco import \
     load_dataset as load_coco_dataset
 from deepchecks.vision.datasets.detection.coco import \
@@ -65,6 +66,7 @@ __all__ = ['device',
            'mnist_test_custom_task',
            'coco_train_custom_task',
            'mnist_dataset_train_torch',
+           'coco_train_visiondata_torch',
            ]
 
 
@@ -258,6 +260,40 @@ def coco_train_dataloader():
 @pytest.fixture(scope='session')
 def coco_train_visiondata():
     return load_coco_dataset(train=True, object_type='VisionData', shuffle=False)
+
+
+@pytest.fixture(scope='session')
+def coco_train_visiondata_torch():
+    coco_dir, dataset_name = CocoDataset.download_coco128(coco_dir)
+
+    def batch_collate(batch):
+        imgs, labels = zip(*batch)
+        return list(imgs), list(labels)
+
+    class CocoTorchDataset(CocoDataset):
+        def apply_transform(self, img, bboxes):
+            if self.transforms is not None:
+                transformed = self.transforms(img)
+            return transformed, bboxes
+
+    dataloader = DataLoader(
+        dataset=CocoTorchDataset(
+            root=str(coco_dir),
+            name=dataset_name,
+            train=True,
+            transforms=T.Compose([
+                lambda x: x
+            ])
+        ),
+        batch_size=32,
+        shuffle=True,
+        num_workers=0,
+        collate_fn=batch_collate,
+        pin_memory=True,
+        generator=torch.Generator()
+    )
+
+    return COCOData(data_loader=dataloader, num_classes=80, label_map=coco_labels)
 
 
 @pytest.fixture(scope='session')
