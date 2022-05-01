@@ -23,7 +23,7 @@ from deepchecks.tabular.checks import (BoostingOverfit, CalibrationScore,
                                        DominantFrequencyChange,
                                        IdentifierLeakage,
                                        IndexTrainTestLeakage, IsSingleValue,
-                                       LabelAmbiguity, MixedDataTypes,
+                                       ConflictingLabels, MixedDataTypes,
                                        MixedNulls, ModelErrorAnalysis,
                                        ModelInferenceTime, ModelInfo,
                                        NewLabelTrainTest,
@@ -56,7 +56,7 @@ def single_dataset_integrity() -> Suite:
         DataDuplicates().add_condition_ratio_not_greater_than(),
         StringLengthOutOfBounds().add_condition_ratio_of_outliers_not_greater_than(),
         SpecialCharacters().add_condition_ratio_of_special_characters_not_grater_than(),
-        LabelAmbiguity().add_condition_ambiguous_sample_ratio_not_greater_than(),
+        ConflictingLabels().add_condition_ratio_of_conflicting_labels_not_greater_than(),
         OutlierSampleDetection()
     )
 

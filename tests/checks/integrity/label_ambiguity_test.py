@@ -12,7 +12,7 @@
 import pandas as pd
 from hamcrest import assert_that, close_to, equal_to, has_items, has_length
 
-from deepchecks.tabular.checks.integrity.label_ambiguity import LabelAmbiguity
+from deepchecks.tabular.checks.integrity.label_ambiguity import ConflictingLabels
 from deepchecks.tabular.dataset import Dataset
 from tests.checks.utils import equal_condition_result
 
@@ -28,7 +28,7 @@ def test_label_ambiguity():
     dataframe = pd.DataFrame(data)
     dataframe = dataframe.astype({'col1': 'category'})
     ds = Dataset(dataframe, label='label')
-    check = LabelAmbiguity()
+    check = ConflictingLabels()
     # Act
     result = check.run(ds)
     # Assert
@@ -45,7 +45,7 @@ def test_label_ambiguity_empty():
         'label': [1, 1, 1, 1, 1, 1]*100
     }
     ds = Dataset(pd.DataFrame(data), label='label')
-    check = LabelAmbiguity()
+    check = ConflictingLabels()
     # Act
     result = check.run(ds)
     # Assert
@@ -62,7 +62,7 @@ def test_label_ambiguity_mixed():
         'label': [1, 1, 1, 1, 2, 1]*100
     }
     ds = Dataset(pd.DataFrame(data), label='label')
-    check = LabelAmbiguity()
+    check = ConflictingLabels()
     # Act
     result = check.run(ds)
     # Assert
@@ -79,7 +79,7 @@ def test_label_ambiguity_condition():
         'label': [1, 1, 1, 1, 2, 1]*100
     }
     ds = Dataset(pd.DataFrame(data), label='label')
-    check = LabelAmbiguity().add_condition_ambiguous_sample_ratio_not_greater_than()
+    check = ConflictingLabels().add_condition_ratio_of_conflicting_labels_not_greater_than()
 
     # Act
     result = check.run(ds)
@@ -102,7 +102,7 @@ def test_label_ambiguity_condition_pass():
         'label': [1, 1, 1, 1, 2, 1]*100
     }
     ds = Dataset(pd.DataFrame(data), label='label')
-    check = LabelAmbiguity().add_condition_ambiguous_sample_ratio_not_greater_than(.7)
+    check = ConflictingLabels().add_condition_ratio_of_conflicting_labels_not_greater_than(.7)
 
     # Act
     result = check.run(ds)
