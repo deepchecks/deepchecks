@@ -180,11 +180,7 @@ class TorchTransformations(TorchTransformationsClassification):
     def get_robustness_augmentations(cls, data_dim: t.Optional[int] = 3) -> t.List[albumentations.BasicTransform]:
         """Get default augmentations to use in robustness report check (without image shift)."""
         augs = super().get_robustness_augmentations(data_dim=data_dim)
-        supported_augs = []
-        for aug in augs:
-            if not isinstance(aug, albumentations.DualTransform):
-                supported_augs.append(aug)
-        return supported_augs
+        return filter(lambda aug: not isinstance(aug, albumentations.DualTransform), augs)
 
 
 def get_transforms_handler(transforms, task_type: TaskType) -> t.Type[AbstractTransformations]:
