@@ -22,7 +22,7 @@ it contains.
 # For this example we'll use a small sample of the RGB `EuroSAT dataset <https://github.com/phelber/eurosat#>`_.
 # EuroSAT dataset is based on Sentinel-2 satellite images covering 13 spectral bands and consisting of 10 classes
 # with 27000 labeled and geo-referenced samples.
-
+#
 # Citations:
 #
 # [1] Eurosat: A novel dataset and deep learning benchmark for land use and land cover classification. Patrick
@@ -99,7 +99,7 @@ result
 #
 # The second failure is more interesting. The :doc:`Simple Feature Contribution
 # </checks_gallery/vision/methodology/plot_simple_feature_contribution>` check computes various :doc:`simple
-# image # properties </user-guide/vision/vision_properties>` and checks if the image label can be inferred using a
+# image properties </user-guide/vision/vision_properties>` and checks if the image label can be inferred using a
 # simple model (for example, a Classification Tree) using the property values. The ability to predict the label using
 # these properties is measures by the Predictive Power Score (PPS) and this measure is compared between the training
 # and test dataset. In this case, the condition alerts us to the fact that this PPS for the "RMS Contrast" property was
@@ -109,7 +109,7 @@ result
 
 check_idx = np.where([result.results[i].check.name() == 'Simple Feature Contribution'
                       for i in range(len(result.results))])[0][0]
-result.results[check_idx].display[0]
+result.results[check_idx]
 
 #%%
 # Here we can see the plot dedicated to the PPS of the property RMS Contrast, which measures the contrast in the
