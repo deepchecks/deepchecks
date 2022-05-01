@@ -64,6 +64,8 @@ def load_dataset(
     object_type : Literal[Dataset, DataLoader], default 'DataLoader'
         object type to return. if `'VisionData'` then :obj:`deepchecks.vision.VisionData`
         will be returned, if `'DataLoader'` then :obj:`torch.utils.data.DataLoader`
+    is_torch_transform: bool, default ``False``
+        If True will use the data with torch transform instead of albumentations
 
     Returns
     -------
