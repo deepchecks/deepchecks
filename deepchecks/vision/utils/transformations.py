@@ -10,15 +10,15 @@
 #
 """Module for defining functions related to vision transforms."""
 import abc
-from copy import copy
 import typing as t
+from copy import copy
 
-from PIL import Image
 import albumentations
 import imgaug.augmenters as iaa
+import numpy as np
 import torch
 import torchvision.transforms as T
-import numpy as np
+from PIL import Image
 
 from deepchecks.core.errors import (DeepchecksNotSupportedError,
                                     DeepchecksValueError)
