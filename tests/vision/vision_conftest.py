@@ -28,7 +28,7 @@ from deepchecks.vision.datasets.classification.mnist import \
     load_dataset as load_mnist_dataset
 from deepchecks.vision.datasets.classification.mnist import \
     load_model as load_mnist_net_model
-from deepchecks.vision.datasets.detection.coco import DATA_DIR as coco_dir, LABEL_MAP as coco_labels
+from deepchecks.vision.datasets.detection.coco import DATA_DIR as coco_root, LABEL_MAP as coco_labels
 from deepchecks.vision.datasets.detection.coco import COCOData, CocoDataset
 from deepchecks.vision.datasets.detection.coco import \
     load_dataset as load_coco_dataset
@@ -264,7 +264,7 @@ def coco_train_visiondata():
 
 @pytest.fixture(scope='session')
 def coco_train_visiondata_torch():
-    coco_dir, dataset_name = CocoDataset.download_coco128(coco_dir)
+    coco_dir, dataset_name = CocoDataset.download_coco128(coco_root)
 
     def batch_collate(batch):
         imgs, labels = zip(*batch)

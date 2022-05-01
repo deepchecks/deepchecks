@@ -15,7 +15,6 @@ import random
 from abc import abstractmethod
 from collections import defaultdict
 from copy import copy
-from enum import Enum
 from typing import (Any, Dict, Iterator, List, Optional, Sequence, TypeVar,
                     Union)
 
@@ -27,21 +26,14 @@ from deepchecks.core.errors import (DeepchecksBaseError,
                                     DeepchecksNotImplementedError,
                                     DeepchecksValueError, ValidationError)
 from deepchecks.vision.batch_wrapper import Batch
+from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.utils.image_functions import ImageInfo
 from deepchecks.vision.utils.transformations import get_transforms_handler
 
 logger = logging.getLogger('deepchecks')
 VD = TypeVar('VD', bound='VisionData')
 
-__all__ = ['TaskType', 'VisionData']
-
-
-class TaskType(Enum):
-    """Enum containing supported task types."""
-
-    CLASSIFICATION = 'classification'
-    OBJECT_DETECTION = 'object_detection'
-    OTHER = 'other'
+__all__ = ['VisionData']
 
 
 class VisionData:

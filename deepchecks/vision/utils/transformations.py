@@ -184,7 +184,7 @@ class TorchTransformations(TorchTransformationsClassification):
         return augs
 
 
-def get_transforms_handler(transforms, task_type: TaskType = None) -> t.Type[AbstractTransformations]:
+def get_transforms_handler(transforms, task_type: TaskType) -> t.Type[AbstractTransformations]:
     """Return the appropriate transforms handler based on type of given transforms."""
     if transforms is None:
         raise DeepchecksNotSupportedError('Underlying Dataset instance must have transform field not None')
