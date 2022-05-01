@@ -23,7 +23,7 @@
 <meta name="title" content="{{ title }} | Deepchecks Documentation">
 <meta name="description" content="Do you need to know more about {{ title }}? Read more at Deepchecks Online Documentation">
 <meta name="docsearch:version" content="{{ version }}">
-<meta name="submodule" content="{{ submodule }}">
+
 
 <!-- Warning: 
         The 'shortcut link' type is often seen before icon, but this link type is non-conforming, 
@@ -81,6 +81,8 @@
             });
         });
     </script>
+    <div style="display:none;" id="dc-submodule">{{ submodule }}</div>
+
 {% endblock %}
 
 {% block docs_main %}
