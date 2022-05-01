@@ -15,24 +15,25 @@ This notebooks provides an overview for using and understanding the boosting ove
 What is A Boosting Overfit?
 ===========================
 A boosting algorithm is a machine learning algorithm that uses a combination of weak learners to predict a target
-variable. The mechanism of boosting is to increase the number of weak learners in the ensemble by adding a new
-weak learner to the ensemble. The new weak learner is trained on the data that is not predicted correctly by the
-ensemble in the previous iteration. The mechanism continues until the ensemble reach a certain level of performance or
-until the number of iterations is reached.
+variable. The mechanism of boosting is to increase the number of weak learners in the ensemble by iteratively adding a
+new weak learner. The new weak learner uses the error of the ensemble from the previous iterations as its training data.
+This mechanism continues until the ensemble reaches a certain performance level or until the given maximum number of
+iterations is reached.
 
 Thanks to its mechanism, boosting algorithms are usually less prone to overfitting than other traditional algorithms
 like single decision trees. However, the number of weak learners in the ensemble can be too large making the ensemble
-too complex. In this case, the ensemble may be overfitted on the training data.
+too complex given the amount of data it was trained on. In this case, the ensemble may be overfitted on the training
+data.
 
 How deepchecks detects a boosting overfit?
 ------------------------------------------
 The check runs for a pre-defined number of iterations, and in each step it uses only the first X estimators from the
-boosting model when predicting the target variable (number of estimators is monotonic increasing).
+boosting model when predicting the target variable (number of estimators X is monotonic increasing).
 It plots the given score calculated for each iteration for both the train dataset and the test dataset.
 
 If the ratio of decline between the maximal test score achieved in any boosting iteration and the test score achieved in the
 last iteration ("full" model score) is above a given threshold (0.05 by default), it means the model is overfitted
-and the default condition will fail.
+and the default condition, if added, will fail.
 
 Supported Models
 ----------------
