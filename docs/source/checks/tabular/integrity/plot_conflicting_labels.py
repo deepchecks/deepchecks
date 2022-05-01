@@ -12,7 +12,7 @@ This notebooks provides an overview for using and understanding the conflicting 
 * `Run the Check <#run-the-check>`__
 * `Define a Condition <#define-a-condition>`__
 
-What are conflicting labels?
+What are Conflicting Labels?
 ============================
 The check searches for identical samples with different labels. This can
 occur due to either mislabeled data, or when the data collected is missing
