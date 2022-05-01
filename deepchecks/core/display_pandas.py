@@ -9,14 +9,13 @@
 # ----------------------------------------------------------------------------
 #
 """Handle displays of pandas objects."""
-from deepchecks.utils.strings import get_docs_summary, get_ellipsis
-
-from typing import List, Union, TYPE_CHECKING
 import warnings
+from typing import TYPE_CHECKING, List, Union
 
 import pandas as pd
 from pandas.io.formats.style import Styler
 
+from deepchecks.utils.strings import get_docs_summary, get_ellipsis
 
 if TYPE_CHECKING:
     from deepchecks.core.check_result import CheckResult

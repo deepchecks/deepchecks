@@ -11,12 +11,11 @@
 """The confusion_matrix_report check module."""
 import numpy as np
 import pandas as pd
-import sklearn
 import plotly.express as px
+import sklearn
 
 from deepchecks.core import CheckResult
 from deepchecks.tabular import Context, SingleDatasetCheck
-
 
 __all__ = ['ConfusionMatrixReport']
 

@@ -9,23 +9,25 @@
 # ----------------------------------------------------------------------------
 #
 """Module of preprocessing functions."""
+import warnings
 # pylint: disable=invalid-name,unused-argument
 from collections import Counter
-import warnings
+from typing import List, Tuple
 
 import numpy as np
 import pandas as pd
-from typing import List, Tuple
 
 with warnings.catch_warnings():
     warnings.simplefilter(action='ignore', category=FutureWarning)
     from category_encoders import OneHotEncoder
-from sklearn.base import TransformerMixin, BaseEstimator
+
+from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import MinMaxScaler
-from deepchecks.utils.typing import Hashable
-from deepchecks.utils.distribution.rare_category_encoder import RareCategoryEncoder
 
+from deepchecks.utils.distribution.rare_category_encoder import \
+    RareCategoryEncoder
+from deepchecks.utils.typing import Hashable
 
 __all__ = ['ScaledNumerics', 'preprocess_2_cat_cols_to_same_bins']
 

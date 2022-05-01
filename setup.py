@@ -8,12 +8,12 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-import typing as t
 import pathlib
-import setuptools
 import re
+import typing as t
 from functools import lru_cache
 
+import setuptools
 
 DEEPCHECKS = "deepchecks"
 SUPPORTED_PYTHON_VERSIONS = '>=3.6, <=3.10'

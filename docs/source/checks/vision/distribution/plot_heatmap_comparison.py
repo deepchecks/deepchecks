@@ -56,12 +56,12 @@ Run the Check on a Classification Task (MNIST)
 # -------
 
 from deepchecks.vision.checks import TrainTestLabelDrift
+from deepchecks.vision.datasets.classification.mnist import load_dataset
 
 #%%
 # Loading Data
 # ------------
 
-from deepchecks.vision.datasets.classification.mnist import load_dataset
 
 mnist_data_train = load_dataset(train=True, batch_size=64, object_type='VisionData')
 mnist_data_test = load_dataset(train=False, batch_size=64, object_type='VisionData')

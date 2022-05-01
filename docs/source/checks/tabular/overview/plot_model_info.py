@@ -7,6 +7,7 @@ Model Info
 #%%
 
 from sklearn.ensemble import AdaBoostClassifier
+
 from deepchecks.tabular.checks.overview import ModelInfo
 
 #%%

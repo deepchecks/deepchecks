@@ -9,12 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """Contains unit tests for the calibration_metric check."""
-from hamcrest import assert_that, calling, raises, has_entries, close_to
+from hamcrest import assert_that, calling, close_to, has_entries, raises
 
-from deepchecks.tabular.dataset import Dataset
+from deepchecks.core.errors import (DeepchecksNotSupportedError,
+                                    DeepchecksValueError, ModelValidationError)
 from deepchecks.tabular.checks.performance import CalibrationScore
-from deepchecks.core.errors import DeepchecksValueError, ModelValidationError, \
-    DeepchecksNotSupportedError
+from deepchecks.tabular.dataset import Dataset
 
 
 def test_dataset_wrong_input():

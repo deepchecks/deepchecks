@@ -9,18 +9,19 @@
 # ----------------------------------------------------------------------------
 #
 """Runs extensive tests for all checks in suites using the datasets & models in deepchecks-extensive-test-assets"""
-import time
-import boto3
-from io import BytesIO
-import sys
+import json
 import pprint
+import sys
+import time
+from io import BytesIO
+
+import boto3
+import joblib
+import pandas as pd
 
 from deepchecks import Suite
-from deepchecks.suites import OverallSuite
 from deepchecks.base import Dataset
-import pandas as pd
-import json
-import joblib
+from deepchecks.suites import OverallSuite
 
 
 def has_errors(d):

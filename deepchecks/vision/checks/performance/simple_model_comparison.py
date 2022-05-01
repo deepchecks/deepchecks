@@ -9,24 +9,25 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing simple comparison check."""
-from typing import Dict, Hashable, List, Any
+from typing import Any, Dict, Hashable, List
 
 import numpy as np
 import pandas as pd
 import plotly.express as px
 import torch
-from ignite.metrics import Metric
+from ignite.metrics import Fbeta
 
-from deepchecks.core import CheckResult, DatasetKind, ConditionResult, ConditionCategory
+from deepchecks.core import (CheckResult, ConditionCategory, ConditionResult,
+                             DatasetKind)
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils import plot
 from deepchecks.utils.metrics import get_gain
 from deepchecks.utils.strings import format_percent
-from deepchecks.vision import Context, TrainTestCheck, Batch
-from deepchecks.vision.vision_data import TaskType
-from deepchecks.vision.metrics_utils import get_scorers_list, metric_results_to_df
+from deepchecks.vision import Batch, Context, TrainTestCheck
+from deepchecks.vision.metrics_utils import (get_scorers_list,
+                                             metric_results_to_df)
 from deepchecks.vision.metrics_utils.metrics import filter_classes_for_display
-
+from deepchecks.vision.vision_data import TaskType
 
 __all__ = ['SimpleModelComparison']
 
@@ -83,7 +84,7 @@ class SimpleModelComparison(TrainTestCheck):
 
     def __init__(self,
                  strategy: str = 'most_frequent',
-                 alternative_metrics: Dict[str, Metric] = None,
+                 alternative_metrics=None,
                  n_to_show: int = 20,
                  show_only: str = 'largest',
                  metric_to_show_by: str = None,
@@ -119,8 +120,12 @@ class SimpleModelComparison(TrainTestCheck):
         """Initialize the metrics for the check, and validate task type is relevant."""
         context.assert_task_type(TaskType.CLASSIFICATION)
 
-        self._test_metrics = get_scorers_list(context.train, self.alternative_metrics)
-        self._perfect_metrics = get_scorers_list(context.train, self.alternative_metrics)
+        if self.alternative_metrics is None:
+            self._test_metrics = {'F1': Fbeta(beta=1, average=False)}
+            self._perfect_metrics = {'F1': Fbeta(beta=1, average=False)}
+        else:
+            self._test_metrics = get_scorers_list(context.train, self.alternative_metrics)
+            self._perfect_metrics = get_scorers_list(context.train, self.alternative_metrics)
 
     def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Update the metrics for the check."""
@@ -232,7 +237,10 @@ class SimpleModelComparison(TrainTestCheck):
                 dummy_predictions.append(dummy_predictor())
 
         # Get scorers
-        metrics = get_scorers_list(train, self.alternative_metrics)
+        if self.alternative_metrics is None:
+            metrics = {'F1': Fbeta(beta=1, average=False)}
+        else:
+            metrics = get_scorers_list(train, self.alternative_metrics)
         for _, metric in metrics.items():
             metric.update((torch.stack(dummy_predictions), torch.LongTensor(labels)))
         return metrics

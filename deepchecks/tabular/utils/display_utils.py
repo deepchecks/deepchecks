@@ -11,7 +11,6 @@
 """Tabular display utilities."""
 import typing as t
 
-
 __all__ = ['nothing_found_on_columns']
 
 

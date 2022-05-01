@@ -11,12 +11,13 @@
 """The single_feature_contribution check module."""
 import typing as t
 
-from deepchecks.core.check_utils.single_feature_contribution_utils import get_single_feature_contribution
+from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.core.check_utils.single_feature_contribution_utils import \
+    get_single_feature_contribution
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck
-from deepchecks.core import CheckResult, ConditionResult
-from deepchecks.utils.typing import Hashable
 from deepchecks.utils.strings import format_number
+from deepchecks.utils.typing import Hashable
 
 __all__ = ['SingleFeatureContributionTrainTest']
 

@@ -10,16 +10,18 @@
 #
 """The avocado dataset contains historical data on avocado prices and sales volume in multiple US markets."""
 import typing as t
+from urllib.request import urlopen
+
+import joblib
 import pandas as pd
 import sklearn
+from category_encoders import OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
-from category_encoders import OneHotEncoder
-import joblib
-from urllib.request import urlopen
+
 from deepchecks.tabular.dataset import Dataset
 
 __all__ = ['load_data', 'load_fitted_model']

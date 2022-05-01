@@ -13,18 +13,33 @@
 Each function returns a new suite that is initialized with a list of checks and default conditions.
 It is possible to customize these suites by editing the checks and conditions inside it after the suites' creation.
 """
-from deepchecks.tabular.checks import (
-    MixedNulls, SpecialCharacters, StringLengthOutOfBounds, StringMismatch, MixedDataTypes,
-    DateTrainTestLeakageDuplicates, SingleFeatureContributionTrainTest, TrainTestSamplesMix,
-    DateTrainTestLeakageOverlap, IdentifierLeakage, IndexTrainTestLeakage, DominantFrequencyChange,
-    CategoryMismatchTrainTest, NewLabelTrainTest, StringMismatchComparison, TrainTestFeatureDrift, WholeDatasetDrift,
-    ConfusionMatrixReport, RocReport, CalibrationScore,
-    RegressionErrorDistribution, RegressionSystematicError, PerformanceReport, SimpleModelComparison, BoostingOverfit,
-    ModelInfo, ColumnsInfo, DataDuplicates, IsSingleValue, LabelAmbiguity, DatasetsSizeComparison,
-    UnusedFeatures, ModelInferenceTime, ModelErrorAnalysis, TrainTestLabelDrift, OutlierSampleDetection
-)
 from deepchecks.tabular import Suite
-
+from deepchecks.tabular.checks import (BoostingOverfit, CalibrationScore,
+                                       CategoryMismatchTrainTest, ColumnsInfo,
+                                       ConfusionMatrixReport, DataDuplicates,
+                                       DatasetsSizeComparison,
+                                       DateTrainTestLeakageDuplicates,
+                                       DateTrainTestLeakageOverlap,
+                                       DominantFrequencyChange,
+                                       IdentifierLeakage,
+                                       IndexTrainTestLeakage, IsSingleValue,
+                                       LabelAmbiguity, MixedDataTypes,
+                                       MixedNulls, ModelErrorAnalysis,
+                                       ModelInferenceTime, ModelInfo,
+                                       NewLabelTrainTest,
+                                       OutlierSampleDetection,
+                                       PerformanceReport,
+                                       RegressionErrorDistribution,
+                                       RegressionSystematicError, RocReport,
+                                       SimpleModelComparison,
+                                       SingleFeatureContributionTrainTest,
+                                       SpecialCharacters,
+                                       StringLengthOutOfBounds, StringMismatch,
+                                       StringMismatchComparison,
+                                       TrainTestFeatureDrift,
+                                       TrainTestLabelDrift,
+                                       TrainTestSamplesMix, UnusedFeatures,
+                                       WholeDatasetDrift)
 
 __all__ = ['single_dataset_integrity', 'train_test_leakage', 'train_test_validation',
            'model_evaluation', 'full_suite']

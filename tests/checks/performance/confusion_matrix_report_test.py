@@ -11,8 +11,10 @@
 """Contains unit tests for the confusion_matrix_report check."""
 import numpy as np
 from hamcrest import assert_that, calling, raises
+
+from deepchecks.core.errors import (DeepchecksNotSupportedError,
+                                    DeepchecksValueError, ModelValidationError)
 from deepchecks.tabular.checks.performance import ConfusionMatrixReport
-from deepchecks.core.errors import DeepchecksValueError, ModelValidationError, DeepchecksNotSupportedError
 
 
 def test_dataset_wrong_input():

@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing performance report check."""
-from typing import Callable, TypeVar, Dict, cast
+from typing import Callable, Dict, TypeVar, cast
 
 import pandas as pd
 import plotly.express as px
@@ -18,9 +18,8 @@ from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, TrainTestCheck
-from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.utils.metrics import MULTICLASS_SCORERS_NON_AVERAGE, ModelType
-
+from deepchecks.utils.strings import format_number, format_percent
 
 __all__ = ['PerformanceReport']
 

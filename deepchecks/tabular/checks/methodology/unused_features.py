@@ -11,21 +11,20 @@
 """The UnusedFeatures check module."""
 from typing import Tuple
 
-import plotly.graph_objects as go
 import numpy as np
 import pandas as pd
+import plotly.graph_objects as go
 from sklearn.base import TransformerMixin
 from sklearn.compose import ColumnTransformer
 from sklearn.decomposition import PCA
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import RobustScaler, OrdinalEncoder
+from sklearn.preprocessing import OrdinalEncoder, RobustScaler
 
-from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
-from deepchecks.tabular import Context, TrainTestCheck, Dataset
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
+from deepchecks.tabular import Context, Dataset, TrainTestCheck
 from deepchecks.utils.function import run_available_kwargs
 from deepchecks.utils.typing import BasicModel
-
 
 __all__ = ['UnusedFeatures']
 

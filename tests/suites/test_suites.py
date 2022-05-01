@@ -11,17 +11,17 @@
 """builtin suites tests"""
 #pylint: disable=redefined-outer-name
 import typing as t
-from catboost import CatBoostClassifier, CatBoostRegressor
-from lightgbm import LGBMClassifier, LGBMRegressor
-import pytest
 from datetime import datetime
 
 import pandas as pd
+import pytest
+from catboost import CatBoostClassifier, CatBoostRegressor
+from lightgbm import LGBMClassifier, LGBMRegressor
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.model_selection import train_test_split
 from xgboost import XGBClassifier, XGBRegressor
 
-from deepchecks.tabular import suites, Dataset
+from deepchecks.tabular import Dataset, suites
 from tests.conftest import get_expected_results_length, validate_suite_result
 
 

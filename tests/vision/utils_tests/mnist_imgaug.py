@@ -8,14 +8,16 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+import typing as t
+
 import numpy as np
 import torch
-from torchvision import datasets
-import typing as t
 from imgaug import augmenters as iaa
 from torch.utils.data import DataLoader
+from torchvision import datasets
 
-from deepchecks.vision.datasets.classification.mnist import MODULE_DIR, MNISTData
+from deepchecks.vision.datasets.classification.mnist import (MODULE_DIR,
+                                                             MNISTData)
 
 
 class MNIST(datasets.MNIST):

@@ -10,15 +10,15 @@
 #
 """Module contains Train Test label Drift check."""
 
-from typing import Dict
 import warnings
+from typing import Dict
+
 import pandas as pd
 
 from deepchecks import ConditionCategory
-from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
-
 
 __all__ = ['TrainTestPredictionDrift']
 

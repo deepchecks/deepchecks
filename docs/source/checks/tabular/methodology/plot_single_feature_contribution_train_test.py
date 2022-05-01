@@ -104,6 +104,7 @@ The process of calculating the PPS is the following:
 
 from deepchecks.tabular.datasets.classification.phishing import load_data
 
+
 def relate_column_to_label(dataset, column, label_power):
     col_data = dataset.data[column]
     dataset.data[column] = col_data + (dataset.data[dataset.label_name] * col_data.mean() * label_power)
@@ -118,7 +119,8 @@ relate_column_to_label(test_dataset, 'numDigits', 0.1)
 #%%
 # Run the check
 # =============
-from deepchecks.tabular.checks.methodology import SingleFeatureContributionTrainTest
+from deepchecks.tabular.checks.methodology import \
+    SingleFeatureContributionTrainTest
 
 result = SingleFeatureContributionTrainTest().run(train_dataset=train_dataset, test_dataset=test_dataset)
 result

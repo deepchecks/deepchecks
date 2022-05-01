@@ -9,25 +9,27 @@
 # ----------------------------------------------------------------------------
 #
 """The vision/dataset module containing the vision Dataset class and its functions."""
+import logging
 # pylint: disable=protected-access
 import random
+from abc import abstractmethod
 from collections import defaultdict
 from copy import copy
-from abc import abstractmethod
 from enum import Enum
-from typing import Any, List, Optional, Dict, TypeVar, Union, Iterator, Sequence
+from typing import (Any, Dict, Iterator, List, Optional, Sequence, TypeVar,
+                    Union)
 
-import logging
 import numpy as np
 import torch
-from torch.utils.data import DataLoader, BatchSampler, Sampler
+from torch.utils.data import BatchSampler, DataLoader, Sampler
 
-
-from deepchecks.core.errors import DeepchecksNotImplementedError, DeepchecksValueError, ValidationError, \
-    DeepchecksBaseError
+from deepchecks.core.errors import (DeepchecksBaseError,
+                                    DeepchecksNotImplementedError,
+                                    DeepchecksValueError, ValidationError)
 from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.utils.image_functions import ImageInfo
-from deepchecks.vision.utils.transformations import add_augmentation_in_start, get_transforms_handler
+from deepchecks.vision.utils.transformations import (add_augmentation_in_start,
+                                                     get_transforms_handler)
 
 logger = logging.getLogger('deepchecks')
 VD = TypeVar('VD', bound='VisionData')
@@ -404,8 +406,8 @@ class VisionData:
         sample_min = np.min(sample)
         sample_max = np.max(sample)
         if sample_min < 0 or sample_max > 255 or sample_max <= 1:
-            raise ValidationError(f'Image data found to be in range [{sample_min}, {sample_max}] instead of expected '
-                                  f'range [0, 255].')
+            raise ValidationError(f'Image data should be in uint8 format(integers between 0 and 255). '
+                                  f'Found values in range [{sample_min}, {sample_max}].')
 
     def validate_get_classes(self, batch):
         """Validate that the get_classes function returns data in the correct format.
@@ -438,7 +440,8 @@ class VisionData:
         device
             Device to run the model on.
         """
-        from deepchecks.vision.utils.validation import validate_extractors  # pylint: disable=import-outside-toplevel
+        from deepchecks.vision.utils.validation import \
+            validate_extractors  # pylint: disable=import-outside-toplevel
         validate_extractors(self, model, device=device)
 
     def __iter__(self):

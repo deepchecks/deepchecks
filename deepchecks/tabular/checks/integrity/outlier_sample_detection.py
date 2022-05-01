@@ -10,17 +10,17 @@
 #
 """Outlier detection functions."""
 import logging
-from typing import Union, List
+from typing import List, Union
 
 import numpy as np
 from PyNomaly import loop
 
-from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils import gower_distance
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.strings import format_percent, format_number
+from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['OutlierSampleDetection']

@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 import numpy as np
-from hamcrest import assert_that, equal_to, calling, raises
+from hamcrest import assert_that, calling, equal_to, raises
 
 from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
 from deepchecks.utils.outliers import iqr_outliers_range

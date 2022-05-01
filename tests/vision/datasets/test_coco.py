@@ -8,17 +8,14 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-from torch.utils.data import DataLoader
-from hamcrest import assert_that, instance_of, calling, raises, is_
 from unittest.mock import patch
+
+from hamcrest import assert_that, calling, instance_of, is_, raises
+from torch.utils.data import DataLoader
 
 from deepchecks import vision
 from deepchecks.vision.datasets.detection.coco import (
-    load_dataset,
-    DATA_DIR,
-    CocoDataset,
-    download_coco128_from_ultralytics
-)
+    DATA_DIR, CocoDataset, download_coco128_from_ultralytics, load_dataset)
 
 
 def patch_side_effect(*args, **kwargs):

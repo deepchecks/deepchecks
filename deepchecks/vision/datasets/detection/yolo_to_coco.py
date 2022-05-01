@@ -9,15 +9,15 @@
 # ----------------------------------------------------------------------------
 #
 """Module for converting YOLO annotations to COCO format."""
+import datetime
 import json
 import os
 import os.path as osp
-from typing import Sequence, Optional, Union
-import datetime
+import uuid
+from typing import Optional, Sequence, Union
+
 import cv2
 import numpy as np
-import uuid
-
 
 YOLO_PATH = "/Users/nirbenzvi/code/DeepChecks/coco128"
 # Complete this by putting COCO labels

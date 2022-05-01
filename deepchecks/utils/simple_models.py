@@ -11,7 +11,6 @@
 """Contains simple models used in checks."""
 import numpy as np
 
-
 __all__ = ['PerfectModel', 'RandomModel']
 
 
