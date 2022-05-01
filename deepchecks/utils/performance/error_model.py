@@ -9,12 +9,11 @@
 # ----------------------------------------------------------------------------
 #
 """Common utilities for model error analysis."""
-from typing import Tuple, List, Hashable, Dict, Any, Optional, Callable
+from typing import Any, Callable, Dict, Hashable, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
 import plotly.express as px
-
 from category_encoders import TargetEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestRegressor
@@ -24,8 +23,8 @@ from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeRegressor
 
 from deepchecks import tabular
-from deepchecks.tabular import Dataset
 from deepchecks.core.errors import DeepchecksProcessError
+from deepchecks.tabular import Dataset
 from deepchecks.utils.features import calculate_feature_importance
 from deepchecks.utils.plot import colors
 from deepchecks.utils.strings import format_number, format_percent

@@ -1,3 +1,4 @@
+"""utils for testing."""
 # ----------------------------------------------------------------------------
 # Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
 #
@@ -8,9 +9,11 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-from deepchecks.vision import VisionData
-from torch.utils.data import DataLoader
 from typing import Callable
+
+from torch.utils.data import DataLoader
+
+from deepchecks.vision import VisionData
 
 
 def get_modified_dataloader(vision_data: VisionData, func_to_apply: Callable, shuffle: bool = False) -> DataLoader:

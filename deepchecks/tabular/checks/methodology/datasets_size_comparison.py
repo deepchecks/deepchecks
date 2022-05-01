@@ -10,11 +10,11 @@
 #
 """Datasets size comparision check module."""
 import typing as t
+
 import pandas as pd
 
-from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, TrainTestCheck
-
 
 __all__ = ['DatasetsSizeComparison']
 

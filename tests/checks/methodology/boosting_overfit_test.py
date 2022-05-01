@@ -11,15 +11,15 @@
 """Boosting overfit tests."""
 from statistics import mean
 
+from hamcrest import assert_that, close_to, has_length
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
-from hamcrest import assert_that, close_to, has_length
 
+from deepchecks.tabular.checks.methodology.boosting_overfit import \
+    BoostingOverfit
 from deepchecks.tabular.dataset import Dataset
-from deepchecks.tabular.checks.methodology.boosting_overfit import BoostingOverfit
-
 from tests.checks.utils import equal_condition_result
 
 

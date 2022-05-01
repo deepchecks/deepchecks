@@ -10,18 +10,19 @@
 #
 """Module contains Train Test label Drift check."""
 from collections import defaultdict
-from typing import Tuple, List, Iterable, Optional
+from typing import Iterable, List, Optional, Tuple
 
 import cv2
-import torch
-from plotly.subplots import make_subplots
 import numpy as np
 import plotly.graph_objs as go
+import torch
+from plotly.subplots import make_subplots
 
-from deepchecks.vision.utils.image_functions import numpy_grayscale_to_heatmap_figure, apply_heatmap_image_properties
-from deepchecks.core import DatasetKind, CheckResult
+from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.vision import Context, TrainTestCheck, Batch
+from deepchecks.vision import Batch, Context, TrainTestCheck
+from deepchecks.vision.utils.image_functions import (
+    apply_heatmap_image_properties, numpy_grayscale_to_heatmap_figure)
 from deepchecks.vision.vision_data import TaskType, VisionData
 
 __all__ = ['HeatmapComparison']

@@ -11,9 +11,10 @@
 """Module contains the domain classifier drift check."""
 import warnings
 
-from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
+from deepchecks.core.check_utils.whole_dataset_drift_utils import \
+    run_whole_dataset_drift
 from deepchecks.tabular import Context, TrainTestCheck
-from deepchecks.core.check_utils.whole_dataset_drift_utils import run_whole_dataset_drift
 from deepchecks.utils.strings import format_number
 
 __all__ = ['WholeDatasetDrift']

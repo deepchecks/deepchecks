@@ -24,8 +24,8 @@ overall performance of the model.
 # Run the check
 # =============
 
-from deepchecks.vision.datasets.detection import coco
 from deepchecks.vision.checks.performance import ImageSegmentPerformance
+from deepchecks.vision.datasets.detection import coco
 
 coco_data = coco.load_dataset(train=False, object_type='VisionData')
 model = coco.load_model()

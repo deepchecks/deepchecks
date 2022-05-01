@@ -6,8 +6,9 @@ Mixed Data Types
 
 #%%
 
-from deepchecks.tabular.checks import MixedDataTypes
 import pandas as pd
+
+from deepchecks.tabular.checks import MixedDataTypes
 
 #%%
 # Benign condition

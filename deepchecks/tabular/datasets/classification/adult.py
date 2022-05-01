@@ -11,19 +11,21 @@
 """The data set contains features for binary prediction of the income of an adult (the adult dataset)."""
 import typing as t
 from urllib.request import urlopen
+
+import joblib
+import pandas as pd
 import sklearn
 from category_encoders import OrdinalEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
-import joblib
-import pandas as pd
+
 from deepchecks.tabular.dataset import Dataset
 
 __all__ = ['load_data', 'load_fitted_model']
 
-_MODEL_URL = 'https://ndownloader.figshare.com/files/34516460'
+_MODEL_URL = 'https://figshare.com/ndownloader/files/34939083'
 _FULL_DATA_URL = 'https://ndownloader.figshare.com/files/34516457'
 _TRAIN_DATA_URL = 'https://ndownloader.figshare.com/files/34516448'
 _TEST_DATA_URL = 'https://ndownloader.figshare.com/files/34516454'
@@ -177,12 +179,12 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
 
 
 def load_fitted_model():
-    """Load and return a fitted classification model to predict the flower type in the iris dataset.
+    """Load and return a fitted classification model.
 
     Returns
     -------
     model : Joblib
-        The model/pipeline that was trained on the iris dataset.
+        The model/pipeline that was trained on the adult dataset.
 
     """
     if sklearn.__version__ == _MODEL_VERSION:

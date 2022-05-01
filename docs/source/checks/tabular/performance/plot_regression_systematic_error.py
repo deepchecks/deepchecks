@@ -8,10 +8,11 @@ Regression Systematic Error
 # Imports
 # =======
 
-from deepchecks.tabular import Dataset
-from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.datasets import load_diabetes
+from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.model_selection import train_test_split
+
+from deepchecks.tabular import Dataset
 from deepchecks.tabular.checks.performance import RegressionSystematicError
 
 #%%

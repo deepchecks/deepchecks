@@ -19,16 +19,17 @@ occur due to either mislabeled data, or when the data collected is missing
 features necessary to separate the labels. If the data is mislabled, it can
 confuse the model and can result in lower performance of the model.
 """
+import pandas as pd
+
+from deepchecks.tabular import Dataset
 # %%
 from deepchecks.tabular.checks.integrity import LabelAmbiguity
-from deepchecks.tabular import Dataset
-import pandas as pd
+from deepchecks.tabular.datasets.classification.phishing import load_data
 
 #%%
 # Load Data
 # =========
 
-from deepchecks.tabular.datasets.classification.phishing import load_data
 
 phishing_dataframe = load_data(as_train_test=False, data_format='Dataframe')
 phishing_dataset = Dataset(phishing_dataframe, label='target', features=['urlLength', 'numDigits', 'numParams', 'num_%20', 'num_@', 'bodyLength', 'numTitles', 'numImages', 'numLinks', 'specialChars'])

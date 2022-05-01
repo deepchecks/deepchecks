@@ -11,8 +11,8 @@ Single Feature Contribution
 import numpy as np
 import pandas as pd
 
-from deepchecks.tabular.checks.methodology import *
 from deepchecks.tabular import Dataset
+from deepchecks.tabular.checks.methodology import *
 
 #%%
 # Generating Data

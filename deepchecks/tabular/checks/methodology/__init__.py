@@ -10,17 +10,17 @@
 #
 """Module contains checks for methodological flaws in the model building process."""
 from .boosting_overfit import BoostingOverfit
-from .unused_features import UnusedFeatures
-from .single_feature_contribution import SingleFeatureContribution
-from .single_feature_contribution_train_test import SingleFeatureContributionTrainTest
-from .index_leakage import IndexTrainTestLeakage
-from .train_test_samples_mix import TrainTestSamplesMix
+from .datasets_size_comparison import DatasetsSizeComparison
 from .date_train_test_leakage_duplicates import DateTrainTestLeakageDuplicates
 from .date_train_test_leakage_overlap import DateTrainTestLeakageOverlap
 from .identifier_leakage import IdentifierLeakage
+from .index_leakage import IndexTrainTestLeakage
 from .model_inference_time import ModelInferenceTime
-from .datasets_size_comparison import DatasetsSizeComparison
-
+from .single_feature_contribution import SingleFeatureContribution
+from .single_feature_contribution_train_test import \
+    SingleFeatureContributionTrainTest
+from .train_test_samples_mix import TrainTestSamplesMix
+from .unused_features import UnusedFeatures
 
 __all__ = [
     'BoostingOverfit',

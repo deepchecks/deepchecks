@@ -4,21 +4,17 @@
 Tutorials
 ==========
 
-Tabular Tutorials
-=================
-
 .. toctree::
     :maxdepth: 3
     :caption: Tabular Tutorials
+    :collapse: False
 
     tabular/index
-
-Vision Tutorials
-================
 
 .. toctree::
     :maxdepth: 3
     :caption: Vision Tutorials
-    :glob:
+    :collapse: False
+
 
     vision/index

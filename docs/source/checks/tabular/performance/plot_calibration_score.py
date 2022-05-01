@@ -6,14 +6,15 @@ Calibration Score
 #%%
 # 
 
-from deepchecks.tabular.checks import CalibrationScore
-from deepchecks.tabular import Dataset
-from sklearn.linear_model import LogisticRegression
-from sklearn.datasets import load_iris
-from sklearn.model_selection import train_test_split
-import pandas as pd
 import warnings
 
+import pandas as pd
+from sklearn.datasets import load_iris
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+
+from deepchecks.tabular import Dataset
+from deepchecks.tabular.checks import CalibrationScore
 from deepchecks.tabular.datasets.classification import adult
 
 
@@ -35,6 +36,7 @@ warnings.formatwarning = custom_formatwarning
 # Irvine, CA: University of California, School of Information and Computer Science.
 
 from urllib.request import urlopen
+
 from sklearn.preprocessing import LabelEncoder
 
 label_name = 'income'

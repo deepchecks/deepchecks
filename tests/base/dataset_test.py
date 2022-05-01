@@ -15,17 +15,15 @@ import typing as t
 import numpy as np
 import pandas as pd
 import pytest
-from sklearn.datasets import load_iris
-from sklearn.datasets import make_classification
-from hamcrest import (
-    assert_that, instance_of, equal_to, is_,
-    calling, raises, not_none, has_property, all_of, contains_exactly, has_item, has_length
-)
+from hamcrest import (all_of, assert_that, calling, contains_exactly, equal_to,
+                      has_item, has_length, has_property, instance_of, is_,
+                      not_none, raises)
+from sklearn.datasets import load_iris, make_classification
 
-from deepchecks.tabular.dataset import Dataset, logger as ds_logger
-from deepchecks.tabular.utils.validation import ensure_dataframe_type
 from deepchecks.core.errors import DeepchecksValueError
-
+from deepchecks.tabular.dataset import Dataset
+from deepchecks.tabular.dataset import logger as ds_logger
+from deepchecks.tabular.utils.validation import ensure_dataframe_type
 
 
 def assert_dataset(dataset: Dataset, args):

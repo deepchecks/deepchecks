@@ -40,8 +40,8 @@ article. We'll see the specific features soon.
 
 #%%
 
-from IPython.display import Image
 from IPython.core.display import HTML
+from IPython.display import Image
 
 Image(url= "https://developer.mozilla.org/en-US/docs/Learn/Common_questions/What_is_a_URL/mdn-url-all.png")
 
@@ -67,7 +67,12 @@ Image(url= "https://developer.mozilla.org/en-US/docs/Learn/Common_questions/What
 # ================
 # OK, let's take a look at the data!
 
-import numpy as np; import pandas as pd; import sklearn; import deepchecks; 
+import numpy as np
+import pandas as pd
+import sklearn
+
+import deepchecks
+
 pd.set_option('display.max_columns', 45); SEED=832; np.random.seed(SEED);
 
 #%%
@@ -142,6 +147,7 @@ df.columns
 # new suite object:
 
 from deepchecks.tabular.suites import single_dataset_integrity
+
 integ_suite = single_dataset_integrity()
 
 #%%
@@ -181,7 +187,9 @@ len(raw_test_df)
 # We'll just set the scrape date as our index, drop a few useless columns, one-hot
 # encode our categorical ext column and scale all numeric data:
 
-from deepchecks.tabular.datasets.classification.phishing import get_url_preprocessor
+from deepchecks.tabular.datasets.classification.phishing import \
+    get_url_preprocessor
+
 pipeline = get_url_preprocessor()
 
 #%%
@@ -348,6 +356,7 @@ msuite.run(model=logreg, train_dataset=ds_train, test_dataset=ds_test)
 # So let's throw something a bit more rich in expressive power at the problem - a decision tree!
 
 from sklearn.tree import DecisionTreeClassifier
+
 model = DecisionTreeClassifier(criterion='entropy', splitter='random', random_state=SEED)
 model.fit(train_X, train_y)
 msuite.run(model=model, train_dataset=ds_train, test_dataset=ds_test)
@@ -360,6 +369,7 @@ msuite.run(model=model, train_dataset=ds_train, test_dataset=ds_test)
 # gradient-boosted ensemble of them!
 
 from sklearn.ensemble import GradientBoostingClassifier
+
 model = GradientBoostingClassifier(n_estimators=250, random_state=SEED, max_depth=20, subsample=0.8 , loss='exponential')
 model.fit(train_X, train_y)
 msuite.run(model=model, train_dataset=ds_train, test_dataset=ds_test)

@@ -52,9 +52,8 @@ Imports
 
 #%%
 
-from deepchecks.vision.datasets.detection import coco
 from deepchecks.vision.checks.distribution import ImagePropertyDrift
-
+from deepchecks.vision.datasets.detection import coco
 #%%
 # Prepare data
 # ------------
@@ -119,6 +118,7 @@ check_result.show(show_additional_outputs=False)
 # * `mean_blue_relative_intensity`
 
 from typing import List
+
 import numpy as np
 
 

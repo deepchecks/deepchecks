@@ -8,11 +8,12 @@ Multi Model Performance Report
 # Multiclass
 # ==========
 
-from deepchecks.tabular import Dataset
-from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
-from sklearn.tree import DecisionTreeClassifier
 from sklearn.datasets import load_iris
+from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+
+from deepchecks.tabular import Dataset
 from deepchecks.tabular.checks.performance import MultiModelPerformanceReport
 
 #%%

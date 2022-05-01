@@ -10,19 +10,18 @@
 #
 """Module containing confusion matrix report check."""
 import typing as t
+from collections import defaultdict
+from queue import PriorityQueue
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 import torch
 from plotly.express import imshow
-from queue import PriorityQueue
-from collections import defaultdict
 
 from deepchecks.core import CheckResult, DatasetKind
-from deepchecks.vision import SingleDatasetCheck, Context, Batch
-from deepchecks.vision.vision_data import TaskType
+from deepchecks.vision import Batch, Context, SingleDatasetCheck
 from deepchecks.vision.metrics_utils.iou_utils import jaccard_iou
-
+from deepchecks.vision.vision_data import TaskType
 
 __all__ = ['ConfusionMatrixReport']
 

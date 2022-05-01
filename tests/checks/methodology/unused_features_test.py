@@ -9,8 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Unused features tests."""
-from deepchecks.tabular.checks.methodology import UnusedFeatures
 from hamcrest import assert_that, equal_to
+
+from deepchecks.tabular.checks.methodology import UnusedFeatures
 
 
 def test_unused_feature_detection(iris_split_dataset_and_model_rf):

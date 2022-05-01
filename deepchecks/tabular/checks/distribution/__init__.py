@@ -10,10 +10,9 @@
 #
 """Module containing all data distribution checks."""
 from .train_test_feature_drift import TrainTestFeatureDrift
-from .whole_dataset_drift import WholeDatasetDrift
 from .train_test_label_drift import TrainTestLabelDrift
 from .train_test_prediction_drift import TrainTestPredictionDrift
-
+from .whole_dataset_drift import WholeDatasetDrift
 
 __all__ = [
     'TrainTestFeatureDrift',

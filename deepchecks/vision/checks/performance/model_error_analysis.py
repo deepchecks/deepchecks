@@ -17,13 +17,15 @@ import torch
 
 from deepchecks import CheckFailure
 from deepchecks.core import CheckResult, DatasetKind
-from deepchecks.core.errors import DeepchecksValueError, DeepchecksProcessError
-from deepchecks.utils.performance.error_model import error_model_display_dataframe, model_error_contribution
+from deepchecks.core.errors import DeepchecksProcessError, DeepchecksValueError
+from deepchecks.utils.performance.error_model import (
+    error_model_display_dataframe, model_error_contribution)
 from deepchecks.utils.single_sample_metrics import per_sample_cross_entropy
-from deepchecks.vision.utils.image_properties import default_image_properties, validate_properties
-from deepchecks.vision import TrainTestCheck, Context, Batch
-from deepchecks.vision.vision_data import TaskType
+from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.metrics_utils.iou_utils import per_sample_mean_iou
+from deepchecks.vision.utils.image_properties import (default_image_properties,
+                                                      validate_properties)
+from deepchecks.vision.vision_data import TaskType
 
 __all__ = ['ModelErrorAnalysis']
 

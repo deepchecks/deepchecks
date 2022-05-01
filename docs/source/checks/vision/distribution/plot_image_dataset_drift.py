@@ -86,12 +86,12 @@ Mean Blue Relative Intensity    Mean over all pixels of the blue channel, scaled
 import numpy as np
 
 from deepchecks.vision.checks import ImageDatasetDrift
+from deepchecks.vision.datasets.detection.coco import load_dataset
 
 #%%
 # Loading the data
 # ----------------
 
-from deepchecks.vision.datasets.detection.coco import load_dataset
 
 train_ds = load_dataset(train=True, object_type='VisionData')
 test_ds = load_dataset(train=False, object_type='VisionData')
@@ -111,6 +111,7 @@ check.run(train_dataset=train_ds, test_dataset=test_ds)
 # Now, we will define a custom data object that will insert a drift to the training set.
 
 from deepchecks.vision.datasets.detection.coco import COCOData
+
 
 def add_brightness(img):
     reverse = 255 - img

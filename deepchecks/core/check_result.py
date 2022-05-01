@@ -14,28 +14,31 @@ import base64
 import io
 import traceback
 import warnings
-from typing import Any, Callable, List, Tuple, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable, List, Tuple, Union
 
+import ipywidgets as widgets
 import jsonpickle
 import jsonpickle.ext.pandas as jsonpickle_pd
 import matplotlib
-import pandas as pd
 import numpy as np
-import ipywidgets as widgets
-import plotly.graph_objects as go
-from plotly.basedatatypes import BaseFigure
-import plotly.io as pio
+import pandas as pd
 import plotly
-from matplotlib import pyplot as plt
+import plotly.graph_objects as go
+import plotly.io as pio
 from IPython.display import display_html
+from matplotlib import pyplot as plt
 from pandas.io.formats.style import Styler
+from plotly.basedatatypes import BaseFigure
 
-from deepchecks.core.condition import Condition, ConditionCategory, ConditionResult
-from deepchecks.core.display_pandas import dataframe_to_html, get_conditions_table
+from deepchecks.core.condition import (Condition, ConditionCategory,
+                                       ConditionResult)
+from deepchecks.core.display_pandas import (dataframe_to_html,
+                                            get_conditions_table)
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.dataframes import un_numpy
-from deepchecks.utils.strings import create_new_file_name, get_docs_summary, widget_to_html
 from deepchecks.utils.ipython import is_notebook
+from deepchecks.utils.strings import (create_new_file_name, get_docs_summary,
+                                      widget_to_html)
 from deepchecks.utils.wandb_utils import set_wandb_run_state
 
 # registers jsonpickle pandas extension for pandas support in the to_json function

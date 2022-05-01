@@ -6,10 +6,13 @@ Date Train Validation Leakage Overlap
 
 #%%
 
-from deepchecks.tabular.checks.methodology import DateTrainTestLeakageOverlap
-from deepchecks.tabular import Dataset, Suite
 from datetime import datetime
+
 import pandas as pd
+
+from deepchecks.tabular import Dataset, Suite
+from deepchecks.tabular.checks.methodology import DateTrainTestLeakageOverlap
+
 
 def dataset_from_dict(d: dict, datetime_name: str = None) -> Dataset:
     dataframe = pd.DataFrame(data=d)

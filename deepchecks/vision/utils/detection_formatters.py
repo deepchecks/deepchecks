@@ -10,12 +10,11 @@
 #
 """Module for defining detection encoders."""
 from collections import Counter
-from typing import Union, Sequence, List, Tuple, Iterable
+from typing import Iterable, List, Sequence, Tuple, Union
 
 import numpy as np
 import torch
 from PIL.Image import Image
-
 
 __all__ = ['verify_bbox_format_notation', 'convert_batch_of_bboxes', 'convert_bbox', 'DEFAULT_PREDICTION_FORMAT']
 

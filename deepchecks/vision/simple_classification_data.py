@@ -13,15 +13,14 @@ import typing as t
 from pathlib import Path
 
 import cv2
+import numpy as np
 import PIL.Image as pilimage
 import torch
-import numpy as np
 from torch.utils.data import DataLoader
 from torchvision.datasets import VisionDataset
 from typing_extensions import Literal
 
 from deepchecks import vision
-
 
 __all__ = ['load_dataset', 'SimpleClassificationDataset', 'SimpleClassificationData']
 

@@ -11,13 +11,11 @@
 """Contains unit tests for the string_length_out_of_bounds check."""
 import numpy as np
 import pandas as pd
-
-from hamcrest import assert_that, has_length, has_items
+from hamcrest import assert_that, has_items, has_length
 
 from deepchecks.core import ConditionCategory
-from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.checks import StringLengthOutOfBounds
-
+from deepchecks.tabular.dataset import Dataset
 from tests.checks.utils import equal_condition_result
 
 

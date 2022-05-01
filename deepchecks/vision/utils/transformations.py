@@ -20,7 +20,8 @@ import torch
 import torchvision.transforms as T
 import numpy as np
 
-from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
+from deepchecks.core.errors import (DeepchecksNotSupportedError,
+                                    DeepchecksValueError)
 
 __all__ = ['get_transforms_handler', 'add_augmentation_in_start', 'un_normalize_batch',
            'ImgaugTransformations', 'AlbumentationsTransformations']
