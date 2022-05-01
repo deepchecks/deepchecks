@@ -10,10 +10,10 @@
 #
 """Module contains all data integrity checks."""
 from .category_mismatch_train_test import CategoryMismatchTrainTest
+from .conflicting_labels import ConflictingLabels
 from .data_duplicates import DataDuplicates
 from .dominant_frequency_change import DominantFrequencyChange
 from .is_single_value import IsSingleValue
-from .conflicting_labels import ConflictingLabels
 from .mixed_data_types import MixedDataTypes
 from .mixed_nulls import MixedNulls
 from .new_label_train_test import NewLabelTrainTest
