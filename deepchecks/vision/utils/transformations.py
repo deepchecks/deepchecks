@@ -149,9 +149,10 @@ class TorchTransformations(AlbumentationsTransformations):
 
     @classmethod
     def add_augmentation_in_start(cls, aug, transforms: T.Compose):
-        """Add given transformations to the start of given transforms object."""   
+        """Add given transformations to the start of given transforms object."""
         if isinstance(aug, (albumentations.Compose, albumentations.BasicTransform)):
             alb_aug = aug
+
             class TorchWrapper:
                 def __call__(self, image):
                     if isinstance(image, Image.Image):
@@ -163,7 +164,7 @@ class TorchTransformations(AlbumentationsTransformations):
             aug = TorchWrapper()
         elif not isinstance(aug, torch.nn.Module):
             raise DeepchecksValueError(f'Transforms is of type torch, can\'t add to it type '
-                            f'{type(aug).__name__}')
+                                       f'{type(aug).__name__}')
         return T.Compose([aug, *transforms.transforms])
 
 
