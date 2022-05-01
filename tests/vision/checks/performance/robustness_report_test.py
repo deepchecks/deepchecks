@@ -12,7 +12,7 @@ import types
 
 import albumentations
 import numpy as np
-from hamcrest import (assert_that, calling, close_to, has_entries, has_items,
+from hamcrest import (assert_that, calling, close_to, has_entries, has_items, has_length,
                       raises)
 from ignite.metrics import Precision
 import torchvision.transforms as T
@@ -79,15 +79,14 @@ def test_mnist_torch_default(mnist_dataset_train_torch, mock_trained_mnist, devi
     # Act
     result = check.run(mnist_dataset_train_torch, mock_trained_mnist, device=device, n_samples=None)
     # Assert
-    # default transformers are random so we just check if score between 0-1 and diff within +-1
     assert_that(result.value, has_entries({
         'Random Brightness Contrast': has_entries({
-            'Precision': has_entries(score=close_to(0.5, 0.5), diff=close_to(0, 1)),
-            'Recall': has_entries(score=close_to(0.5, 0.5), diff=close_to(0, 1))
+            'Precision': has_entries(score=close_to(0.964, 0.001), diff=close_to(-0.014, 0.001)),
+            'Recall': has_entries(score=close_to(0.964, 0.001), diff=close_to(-0.014, 0.001))
         }),
         'Shift Scale Rotate': has_entries({
-            'Precision': has_entries(score=close_to(0.5, 0.5), diff=close_to(0, 1)),
-            'Recall': has_entries(score=close_to(0.5, 0.5), diff=close_to(0, 1))
+            'Precision': has_entries(score=close_to(0.784, 0.001), diff=close_to(-0.198, 0.001)),
+            'Recall': has_entries(score=close_to(0.779, 0.001), diff=close_to(-0.203, 0.001))
         }),
     }))
 
@@ -125,6 +124,57 @@ def test_coco_and_condition(coco_train_visiondata, mock_trained_yolov5_object_de
             details='Augmentations not passing: {\'Hue Saturation Value\'}'
         )
     ))
+
+
+def test_coco_torch_and_condition(coco_train_visiondata_torch, mock_trained_yolov5_object_detection, device):
+    """Because of the large running time, instead of checking the conditions in separated tests, combining a few
+    tests into one."""
+    # Arrange
+    # Create augmentations without randomness to get fixed metrics results
+    augmentations = [
+        albumentations.HueSaturationValue(p=1.0),
+    ]
+    check = RobustnessReport(augmentations=augmentations)
+
+    check.add_condition_degradation_not_greater_than(0.5)
+    check.add_condition_degradation_not_greater_than(0.01)
+
+    # Act
+    result = check.run(coco_train_visiondata_torch, mock_trained_yolov5_object_detection, device=device)
+    # Assert
+    assert_that(result.value, has_entries({
+        'Hue Saturation Value': has_entries({
+            'AP': has_entries(score=close_to(0.348, 0.1), diff=close_to(-0.104, 0.1)),
+            'AR': has_entries(score=close_to(0.376, 0.1), diff=close_to(-0.092, 0.1))
+        }),
+    }))
+    assert_that(result.conditions_results, has_items(
+        equal_condition_result(
+            is_pass=True,
+            name='Metrics degrade by not more than 50%'
+        ),
+        equal_condition_result(
+            is_pass=False,
+            name='Metrics degrade by not more than 1%',
+            details='Augmentations not passing: {\'Hue Saturation Value\'}'
+        )
+    ))
+
+
+def test_coco_torch_default(coco_train_visiondata_torch, mock_trained_yolov5_object_detection, device):
+    # Arrange
+    check = RobustnessReport()
+
+    # Act
+    result = check.run(coco_train_visiondata_torch, mock_trained_yolov5_object_detection, device=device)
+    # Assert
+    assert_that(result.value, has_entries({
+        'Hue Saturation Value': has_entries({
+            'AP': has_entries(score=close_to(0.348, 0.1), diff=close_to(-0.104, 0.1)),
+            'AR': has_entries(score=close_to(0.376, 0.1), diff=close_to(-0.092, 0.1))
+        }),
+    }))
+    assert_that(result.value, has_length(3))
 
 
 def test_dataset_not_augmenting_labels(coco_train_visiondata: COCOData, mock_trained_yolov5_object_detection, device):
