@@ -22,7 +22,7 @@ it contains.
 # For this example we'll use a small sample of the RGB `EuroSAT dataset <https://github.com/phelber/eurosat#>`_.
 # EuroSAT dataset is based on Sentinel-2 satellite images covering 13 spectral bands and consisting of 10 classes
 # with 27000 labeled and geo-referenced samples.
-
+#
 # Citations:
 #
 # [1] Eurosat: A novel dataset and deep learning benchmark for land use and land cover classification. Patrick
@@ -109,7 +109,7 @@ result
 
 check_idx = np.where([result.results[i].check.name() == 'Simple Feature Contribution'
                       for i in range(len(result.results))])[0][0]
-result.results[check_idx].display[0]
+result.results[check_idx]
 
 #%%
 # Here we can see the plot dedicated to the PPS of the property RMS Contrast, which measures the contrast in the

@@ -1,5 +1,13 @@
 {% extends "!layout.html" %}
 
+{% set splitname = pagename.split('/') %}
+{% if splitname[1] == 'tabular' or 'deepchecks.tabular' in splitname[2]%}
+{% set submodule = 'tabular' %}
+{% elif splitname[1] == 'vision' or 'deepchecks.vision' in splitname[2]%}
+{% set submodule = 'vision' %}
+{% else %}
+{% set submodule = 'general' %}
+{% endif %}
 
 {%- block htmltitle %}
 <!-- Google Tag Manager -->
@@ -15,6 +23,7 @@
 <meta name="title" content="{{ title }} | Deepchecks Documentation">
 <meta name="description" content="Do you need to know more about {{ title }}? Read more at Deepchecks Online Documentation">
 <meta name="docsearch:version" content="{{ version }}">
+<meta name="submodule" content="{{ submodule }}">
 
 <!-- Warning: 
         The 'shortcut link' type is often seen before icon, but this link type is non-conforming, 
@@ -22,6 +31,7 @@
         MDN docs https://developer.mozilla.org/en-US/docs/Web/HTML/Link_types
     -->
 <link rel="shortcut icon" href="/_static/favicons/favicon.ico">
+<link rel="canonical" href="https://docs.deepchecks.com/stable/{{pagename}}.html" />
 
 <link rel="icon" href="/_static/favicons/favicon.png" sizes="32x32">
 <link rel="icon" href="/_static/favicons/favicon.png" sizes="192x192">
