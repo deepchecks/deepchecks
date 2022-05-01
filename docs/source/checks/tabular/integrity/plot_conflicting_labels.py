@@ -7,8 +7,8 @@ This notebooks provides an overview for using and understanding the conflicting 
 
 **Structure:**
 
-* `What are conflicting labels? <#what-are-conflicting-labels>`__
-* `Load data <#load-data>`__
+* `What are Conflicting Labels? <#what-are-conflicting-labels>`__
+* `Load Data <#load-data>`__
 * `Run the Check <#run-the-check>`__
 * `Define a Condition <#define-a-condition>`__
 
@@ -27,7 +27,7 @@ from deepchecks.tabular.checks.integrity import ConflictingLabels
 from deepchecks.tabular.datasets.classification.phishing import load_data
 
 #%%
-# Load data
+# Load Data
 # =========
 
 
@@ -50,7 +50,7 @@ ConflictingLabels(n_to_show=1).run(phishing_dataset)
 ConflictingLabels(columns=['urlLength', 'numDigits']).run(phishing_dataset)
 
 #%%
-# Define a condition
+# Define a Condition
 # ==================
 # Now, we define a condition that enforces that the ratio of samples with conflicting labels
 # should be 0. A condition is deepchecks' way to validate model and data quality,
