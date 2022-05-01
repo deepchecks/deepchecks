@@ -123,7 +123,7 @@ class MixedDataTypes(SingleDatasetCheck):
         """Add condition - Whether the ratio of rarer data type (strings or numbers) is not in the "danger zone".
 
         The "danger zone" represents the following logic - if the rarer data type is, for example, 30% of the data,
-        than the column is presumably supposed to contain both numbers and numeric values. If the rarer data type is,
+        than the column is presumably supposed to contain both numbers and string values. If the rarer data type is,
         for example, less than 1% of the data, than it's presumably a contamination, but a negligible one. In the range
         between, there is a real chance that the rarer data type may represent a problem to model training and
         inference.
