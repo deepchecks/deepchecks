@@ -17,9 +17,12 @@ import torch
 from PIL import Image
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.dataloader import default_collate
+import torchvision.transforms as T
+from torchvision import datasets
 
 from deepchecks.core import DatasetKind
 from deepchecks.vision import Batch, Context, VisionData
+from deepchecks.vision.datasets.classification.mnist import MODULE_DIR as mnist_dir
 from deepchecks.vision.datasets.classification.mnist import MNISTData
 from deepchecks.vision.datasets.classification.mnist import \
     load_dataset as load_mnist_dataset
@@ -108,7 +111,25 @@ def mnist_dataset_train():
 @pytest.fixture(scope='session')
 def mnist_dataset_train_torch():
     """Return MNist dataset as VisionData object."""
-    return load_mnist_dataset(train=True, object_type='VisionData', shuffle=False, is_torch_transform=True)
+    mean = (0.1307,)
+    std = (0.3081,)
+    dataset = datasets.MNIST(
+            str(mnist_dir),
+            train=True,
+            download=True,
+            transform=T.Compose([
+                T.ToTensor(),
+                T.Normalize(mean, std),
+            ]),
+        )
+    loader = DataLoader(
+        dataset,
+        batch_size=64,
+        shuffle=False,
+        pin_memory=True,
+        generator=torch.Generator()
+    )
+    return MNISTData(loader, num_classes=len(datasets.MNIST.classes), transform_field='transform')
 
 @pytest.fixture(scope='session')
 def mnist_data_loader_test():
