@@ -62,13 +62,33 @@ def test_mnist_torch(mnist_dataset_train_torch, mock_trained_mnist, device):
     result = check.run(mnist_dataset_train_torch, mock_trained_mnist, device=device, n_samples=None)
     # Assert
     assert_that(result.value, has_entries({
+        'Color Jitter': has_entries({
+            'Precision': has_entries(score=close_to(0.972, 0.001), diff=close_to(-0.006, 0.001)),
+            'Recall': has_entries(score=close_to(.972, 0.001), diff=close_to(-0.005, 0.001))
+        }),
+        'Random Rotation': has_entries({
+            'Precision': has_entries(score=close_to(0.866, 0.001), diff=close_to(-0.114, 0.001)),
+            'Recall': has_entries(score=close_to(0.862, 0.001), diff=close_to(-0.118, 0.001))
+        }),
+    }))
+
+
+def test_mnist_torch_default(mnist_dataset_train_torch, mock_trained_mnist, device):
+    # Arrange
+    # tests default (albumentations) transformers on torch transformed data
+    check = RobustnessReport()
+    # Act
+    result = check.run(mnist_dataset_train_torch, mock_trained_mnist, device=device, n_samples=None)
+    # Assert
+    # default transformers are random so we just check if value between 0-1
+    assert_that(result.value, has_entries({
         'Random Brightness Contrast': has_entries({
-            'Precision': has_entries(score=close_to(0.964, 0.001), diff=close_to(-0.014, 0.001)),
-            'Recall': has_entries(score=close_to(0.965, 0.001), diff=close_to(-0.013, 0.001))
+            'Precision': has_entries(score=close_to(0.5, 0.5), diff=close_to(0.5, 0.5)),
+            'Recall': has_entries(score=close_to(0.5, 0.5), diff=close_to(0.5, 0.5))
         }),
         'Shift Scale Rotate': has_entries({
-            'Precision': has_entries(score=close_to(0.780, 0.001), diff=close_to(-0.202, 0.001)),
-            'Recall': has_entries(score=close_to(0.775, 0.001), diff=close_to(-0.207, 0.001))
+            'Precision': has_entries(score=close_to(0.5, 0.5), diff=close_to(0.5, 0.5)),
+            'Recall': has_entries(score=close_to(0.5, 0.5), diff=close_to(0.5, 0.5))
         }),
     }))
 
