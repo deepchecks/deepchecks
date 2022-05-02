@@ -17,7 +17,7 @@ from collections import defaultdict
 from copy import copy
 from enum import Enum
 from typing import (Any, Callable, Dict, Iterator, List, Optional, Sequence,
-                    TypeVar, Type, Union)
+                    Type, TypeVar, Union)
 
 import numpy as np
 import torch
