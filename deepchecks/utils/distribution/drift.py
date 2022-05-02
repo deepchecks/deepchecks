@@ -83,16 +83,19 @@ def earth_movers_distance(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.n
     Any
         the Wasserstein distance between the two distributions.
 
+    Raises
+    -------
+    DeepchecksValueError
+        if the value of margin_quantile_filter is not in range [0, 0.5)
+
     """
     if not isinstance(margin_quantile_filter, Number) or margin_quantile_filter < 0 or margin_quantile_filter >= 0.5:
         raise DeepchecksValueError(
             f'margin_quantile_filter expected a value in range [0, 0.5), instead got {margin_quantile_filter}')
 
     if margin_quantile_filter != 0:
-        dist1_qt_min = np.quantile(dist1, margin_quantile_filter)
-        dist1_qt_max = np.quantile(dist1, 1-margin_quantile_filter)
-        dist2_qt_min = np.quantile(dist2, margin_quantile_filter)
-        dist2_qt_max = np.quantile(dist2, 1-margin_quantile_filter)
+        dist1_qt_min, dist1_qt_max = np.quantile(dist1, [margin_quantile_filter, 1-margin_quantile_filter])
+        dist2_qt_min, dist2_qt_max = np.quantile(dist2, [margin_quantile_filter, 1-margin_quantile_filter])
         dist1 = dist1[(dist1_qt_max >= dist1) & (dist1 >= dist1_qt_min)]
         dist2 = dist2[(dist2_qt_max >= dist2) & (dist2 >= dist2_qt_min)]
 
