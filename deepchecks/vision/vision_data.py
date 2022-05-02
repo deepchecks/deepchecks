@@ -165,8 +165,8 @@ class VisionData:
         VisionData
         """
         return cls(
-            data_loader=cast_to_dataloader(
-                data=data,
+            data_loader=DataLoader(
+                dataset=data,
                 batch_size=batch_size,
                 shuffle=shuffle,
                 num_workers=num_workers,
