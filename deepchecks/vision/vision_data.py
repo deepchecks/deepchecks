@@ -164,6 +164,10 @@ class VisionData:
         -------
         VisionData
         """
+        def batch_collate(batch):
+            imgs, labels = zip(*batch)
+            return list(imgs), list(labels)
+
         return cls(
             data_loader=DataLoader(
                 dataset=data,
@@ -171,7 +175,7 @@ class VisionData:
                 shuffle=shuffle,
                 num_workers=num_workers,
                 pin_memory=pin_memory,
-                collate_fn=collate_fn
+                collate_fn=collate_fn or batch_collate
             ),
             num_classes=num_classes,
             label_map=label_map,
