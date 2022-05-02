@@ -134,10 +134,11 @@ def generate_model(numerical_columns: List[Hashable], categorical_columns: List[
 
     return Pipeline(
         steps=[('preprocessing', preprocessor),
-               ('model', HistGradientBoostingClassifier(
-                   max_depth=2, max_iter=10, random_state=random_state,
-                   categorical_features=[False] * len(numerical_columns) + [True] * len(categorical_columns)
-               ))])
+               ('model', run_available_kwargs(HistGradientBoostingClassifier,
+                                              max_depth=2, max_iter=10, random_state=random_state,
+                                              categorical_features=[False] * len(numerical_columns)
+                                              + [True] * len(categorical_columns)
+                                              ))])
 
 
 def auc_to_drift_score(auc: float) -> float:
