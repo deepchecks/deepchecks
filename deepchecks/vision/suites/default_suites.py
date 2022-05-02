@@ -16,7 +16,7 @@ It is possible to customize these suites by editing the checks and conditions in
 from deepchecks.vision.checks import ClassPerformance, TrainTestLabelDrift, MeanAveragePrecisionReport, \
     MeanAverageRecallReport, ImagePropertyDrift, ImageDatasetDrift, SimpleModelComparison, ConfusionMatrixReport, \
     TrainTestPredictionDrift, ImageSegmentPerformance, SimpleFeatureContribution, HeatmapComparison, \
-    ImagePropertyOutliers, LabelPropertyOutliers, ModelErrorAnalysis, SimilarImageLeakage
+    ImagePropertyOutliers, LabelPropertyOutliers, ModelErrorAnalysis, SimilarImageLeakage, NewLabels
 from deepchecks.vision import Suite
 
 
@@ -34,7 +34,8 @@ def train_test_validation(**kwargs) -> Suite:
         TrainTestPredictionDrift(**kwargs).add_condition_drift_score_not_greater_than(),
         ImagePropertyDrift(**kwargs).add_condition_drift_score_not_greater_than(),
         ImageDatasetDrift(**kwargs),
-        SimpleFeatureContribution(**kwargs).add_condition_feature_pps_difference_not_greater_than()
+        SimpleFeatureContribution(**kwargs).add_condition_feature_pps_difference_not_greater_than(),
+        NewLabels(**kwargs).add_condition_new_label_percentage_not_greater_than()
     )
 
 

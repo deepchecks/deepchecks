@@ -76,7 +76,7 @@ def test_object_detection_coco_with_condition(coco_train_visiondata, coco_test_v
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Percentage of new labels in the test set not above 10%',
+                               name='Percentage of new labels in the test set not above 10%.',
                                details='10.85% of labels found in test set were not in train set.')
     ))
 
@@ -104,7 +104,7 @@ def test_classification_mnist_with_condition(mnist_dataset_train, mnist_dataset_
     # Assert
     assert_that(check.conditions_decision(result), has_items(
         equal_condition_result(is_pass=True,
-                               name='Percentage of new labels in the test set not above 0%',
+                               name='Percentage of new labels in the test set not above 0%.',
                                details='')
     ))
     assert_that(result.value, has_length(1))
@@ -131,7 +131,7 @@ def test_classification_mnist_change_label_with_condition(mnist_dataset_train, m
     # Assert
     assert_that(check.conditions_decision(result), has_items(
         equal_condition_result(is_pass=False,
-                               name='Percentage of new labels in the test set not above 0%',
+                               name='Percentage of new labels in the test set not above 0%.',
                                details='10.1% of labels found in test set were not in train set.')
     ))
     assert_that(result.value, has_entries(

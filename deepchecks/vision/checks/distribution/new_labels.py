@@ -20,7 +20,7 @@ from deepchecks.core import ConditionResult
 from deepchecks.core import DatasetKind, CheckResult
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.utils.strings import format_percent
+from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.vision import Context, TrainTestCheck, Batch, VisionData
 from deepchecks.vision.utils.image_functions import prepare_thumbnail, draw_bboxes
 
@@ -43,7 +43,6 @@ def draw_image(data: VisionData, sample_index: int, class_id: int) -> str:
     class_id : int
         The class_id of the image or relevant bounding box inside image.
     """
-
     sample = data.data_loader.dataset[sample_index]
     batch = data.to_batch(sample)
 
@@ -62,7 +61,7 @@ def draw_image(data: VisionData, sample_index: int, class_id: int) -> str:
 
 
 class NewLabels(TrainTestCheck):
-    """Finds labels in the test set that do not exist in the train set.
+    """Detects labels that apper only in the test set.
 
     Parameters
     ----------
@@ -90,10 +89,10 @@ class NewLabels(TrainTestCheck):
         self._class_id_counter = defaultdict(list)
 
     def update(self, context: Context, batch: Batch, dataset_kind):
-        """Counts number of appearances for each class_id in train and test."""
+        """Count number of appearances for each class_id in train and test."""
         data = context.get_data_by_kind(dataset_kind)
         classes_in_batch = data.get_classes(batch.labels)
-        for image_idx, labels_per_image in enumerate(classes_in_batch):
+        for labels_per_image in classes_in_batch:
             for label in labels_per_image:
                 if label not in self._class_id_counter:
                     self._class_id_counter[label] = [0, 0]
@@ -113,7 +112,7 @@ class NewLabels(TrainTestCheck):
         for class_id, value in self._class_id_counter.items():
             if value[0] == 0:
                 class_id_only_in_test[class_id] = value[1]
-        class_id_only_in_test = {k: v for k, v in sorted(class_id_only_in_test.items(), key=lambda item: -item[1])}
+        class_id_only_in_test = dict(sorted(class_id_only_in_test.items(), key=lambda item: -item[1]))
 
         # Create display
         display = []
@@ -125,22 +124,23 @@ class NewLabels(TrainTestCheck):
                                       for x in images_of_class_id])
 
             html = HTML_TEMPLATE.format(
-                label_name=class_id,
+                label_name=data.label_id_to_name(class_id),
                 images=images_combine,
-                count=num_occurrences,
+                count=format_number(num_occurrences),
                 id=sid
             )
             display.append(html)
         class_id_only_in_test['all_labels'] = sum(data.n_of_samples_per_class.values())
         return CheckResult(class_id_only_in_test, display=''.join(display[:self.max_new_labels_to_display]))
 
-    def add_condition_new_label_percentage_not_greater_than(self, max_allowed_new_labels: float = 0):
+    def add_condition_new_label_percentage_not_greater_than(self, max_allowed_new_labels: float = 0.005):
+        # Default value set to 0.005 because of sampling mechanism
         """
         Add condition - Percentage of labels that apper only in the test set required to be below specified threshold.
 
         Parameters
         ----------
-        max_allowed_new_labels: float , default: 0
+        max_allowed_new_labels: float , default: 0.005
             the max threshold for percentage of labels that only apper in the test set.
         """
 
@@ -150,12 +150,12 @@ class NewLabels(TrainTestCheck):
             present_new_labels = new_labels_in_test_set / total_labels_in_test_set
 
             if present_new_labels > max_allowed_new_labels:
-                massage = f"{format_percent(present_new_labels)} of labels found in test set were not in train set."
+                massage = f'{format_percent(present_new_labels)} of labels found in test set were not in train set.'
                 return ConditionResult(ConditionCategory.FAIL, massage)
             else:
                 return ConditionResult(ConditionCategory.PASS)
 
-        name = f'Percentage of new labels in the test set not above {format_percent(max_allowed_new_labels)}'
+        name = f'Percentage of new labels in the test set not above {format_percent(max_allowed_new_labels)}.'
         return self.add_condition(name, condition)
 
 
@@ -194,7 +194,7 @@ HTML_TEMPLATE = """
 </style>
 <h3><b>Label  "{label_name}"</b></h3>
 <div>
-Total number of appearances in test set: {count}
+Appears {count} times in test set.
 </div>
 <div class="{id}-container">
     <div class="{id}-row">
