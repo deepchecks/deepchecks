@@ -130,7 +130,7 @@ def get_result_navigation_display(check_results: List['CheckResult'], unique_id:
         if check_result.have_display():
             check_header = check_result.get_header()
             link = f'<a href=#{check_result.get_check_id(unique_id)}>{check_header}</a>'
-            summary = get_docs_summary(check_result.check)
+            summary = check_result._get_metadata()['summary']
             table.append([link, summary])
 
     nav_table = pd.DataFrame(data=table,

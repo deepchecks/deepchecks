@@ -18,6 +18,7 @@ from typing import Any, Dict, List, Tuple, Union
 import jsonpickle
 from IPython.core.display import display_html
 from IPython.core.getipython import get_ipython
+from deepchecks.core.check_json import CheckJson
 
 from deepchecks.core.check_result import CheckFailure, CheckResult
 from deepchecks.core.checks import BaseCheck
@@ -115,6 +116,15 @@ class SuiteResult:
             json_results.append(res.to_json(with_display=with_display))
 
         return jsonpickle.dumps({'name': self.name, 'results': json_results})
+
+    @classmethod
+    def from_json(cls, json_res: str):
+        json_dict = jsonpickle.loads(json_res)
+        name = json_dict['name']
+        results = []
+        for res in json_dict['results']:
+            results.append(CheckJson(res))
+        return SuiteResult(name, results)
 
     def to_wandb(self, dedicated_run: bool = None, **kwargs: Any):
         """Export suite result to wandb.

@@ -12,6 +12,7 @@
 # pylint: disable=broad-except
 import base64
 import io
+from tabnanny import check
 import traceback
 import warnings
 from typing import TYPE_CHECKING, Any, Callable, List, Tuple, Union
@@ -418,6 +419,10 @@ class CheckResult:
         return all((r.is_pass for r in self.conditions_results))
 
     @property
+    def check_name(self):
+        return self.check.name()
+
+    @property
     def priority(self) -> int:
         """Return priority of the current result.
 
@@ -555,3 +560,7 @@ class CheckFailure:
         tb_str = traceback.format_exception(etype=type(self.exception), value=self.exception,
                                             tb=self.exception.__traceback__)
         print(''.join(tb_str))
+
+    @property
+    def check_name(self):
+        return self.check.name()

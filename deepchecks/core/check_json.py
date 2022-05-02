@@ -50,7 +50,7 @@ class CheckJson(CheckResult):
         json_dict = jsonpickle.loads(json_data)
 
         self.value = json_dict.get('value')
-        self.check_name = json_dict.get('name')
+        self._check_name = json_dict.get('name')
         self.header = json_dict.get('header')
         self.params = json_dict.get('params')
         self.summary = json_dict.get('summary')
@@ -95,6 +95,9 @@ class CheckJson(CheckResult):
         """Conditions are already processed it is to prevent errors."""
         pass
 
+    @property
+    def check_name(self):
+        return self._check_name
 
 # class CheckFailure:
 #     """Class which holds a check run exception.
