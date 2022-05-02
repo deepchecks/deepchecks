@@ -13,17 +13,15 @@ This notebooks provides an overview for using and understanding the model error 
 
 What is Model Error Analysis?
 =============================
-Looking at performance metrics are often enough when comparing various modeling alternatives or when tracking model
-progress during training. However, when it's time to fully evaluate if a model is fit for production, it's recommended
-to look deeper at how the model performs on various segments of the data. The model error analysis check searches for
-data segments in which the model error is significantly lower from the model error of the dataset as a whole.
+Evaluating the model's overall performance metrics gives a good high-level overview and can be useful for tracking model progress during training of for comparing models. However, when it's time to fully evaluate if a model is fit for production, or when you're interested in a deeper understanding of your model's performance in order to improve it or to be aware of its weaknesses, it's recommended
+to look deeper at how the model performs on various segments of the data. The model error analysis check searches for data segments in which the model error is significantly lower from the model error of the dataset as a whole.
 
 Algorithm:
 ----------
 
 1. Computes the per-sample loss (for log-loss for classification, mse for regression).
 2. Trains a regression model to predict the error of the user's model, based on the input features.
-3. Do stage 3 several times with various tree parameters and random states to ensure that the most relevant partitions for model error are selected.
+3. Repeat stage 2 several times with various tree parameters and random states to ensure that the most relevant partitions for model error are selected.
 4. The features scoring the highest feature importance for the error regression model are selected and the distribution of the error vs the feature values is plotted.
 
 The check results are shown only if the error regression model manages
@@ -50,7 +48,7 @@ We will run the check on the adult dataset which can be downloaded from the
 from deepchecks.tabular.datasets.classification import adult
 from deepchecks.tabular.checks import ModelErrorAnalysis
 
-train_ds, test_ds = adult.load_data()
+train_ds, test_ds = adult.load_data(data_format='Dataset', as_train_test=True)
 model = adult.load_fitted_model()
 
 check = ModelErrorAnalysis(min_error_model_score=0.3)
