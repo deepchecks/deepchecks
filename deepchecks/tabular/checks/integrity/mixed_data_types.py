@@ -27,7 +27,7 @@ __all__ = ['MixedDataTypes']
 
 
 class MixedDataTypes(SingleDatasetCheck):
-    """Detect a small amount of a rare data type within a column, such as few string samples in a mostly numeric column.
+    """Detect columns which contains a mix of numerical and string values.
 
     Parameters
     ----------
