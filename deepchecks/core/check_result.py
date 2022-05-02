@@ -140,9 +140,7 @@ class CheckResult:
             check_html += f'<h4 id="{self.get_check_id(unique_id)}">{self.get_header()}</h4>'
         else:
             check_html += f'<h4>{self.get_header()}</h4>'
-        if hasattr(self.check.__class__, '__doc__'):
-            summary = get_docs_summary(self.check)
-            check_html += f'<p>{summary}</p>'
+        check_html += f'<p>{self._get_metadata()["summary"]}</p>'
         if self.conditions_results:
             check_html += _CONDITIONS_HEADER
             check_html += dataframe_to_html(get_conditions_table(self, unique_id))
@@ -365,7 +363,7 @@ class CheckResult:
         for display_type, value in json_data['display']:
             if display_type == 'html':
                 display_html(value, raw=True)
-            elif display_type in ['conditions', 'dataframe']:
+            elif display_type == 'dataframe':
                 df: pd.DataFrame = pd.read_json(value, orient='records')
                 display_html(dataframe_to_html(df), raw=True)
             elif display_type == 'plotly':
