@@ -57,8 +57,6 @@ def test_columns_info():
         'label': 'categorical feature'
     }
     # in df all columns are other
-    # expected_res_df = {'index': 'other', 'date': 'other', 'a': 'other',
-    #                    'b': 'other', 'c': 'other', 'label': 'other'}
     assert_that(result_df, equal_to(expected_res_df))
 
 
