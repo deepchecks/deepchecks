@@ -25,7 +25,7 @@ Algorithm:
 4. The features scoring the highest feature importance for the error regression model are selected and the distribution of the error vs the feature values is plotted.
 
 The check results are shown only if the error regression model manages
-to predict the error well enough. The resulting plots show the distribution of the error for the features that are
+to predict the error well enough (above a given r squared performance threshold, defined by the min_error_model_score parameter and set by default to 0.5). The resulting plots show the distribution of the error for the features that are
 most effective at segmenting the error to high and low values, without need for manual selection of segmentation
 features.
 
@@ -51,6 +51,7 @@ from deepchecks.tabular.checks import ModelErrorAnalysis
 train_ds, test_ds = adult.load_data(data_format='Dataset', as_train_test=True)
 model = adult.load_fitted_model()
 
+# We create the check with a slightly lower r squared threshold to ensure that the check can run on the example dataset.
 check = ModelErrorAnalysis(min_error_model_score=0.3)
 result = check.run(train_ds, test_ds, model)
 result
