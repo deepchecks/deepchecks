@@ -178,7 +178,7 @@ class TorchTransformations(AbstractTransformations):
 
     @classmethod
     @abc.abstractmethod
-    def get_robustness_augmentations(cls, data_dim: t.Optional[int] = 3) -> t.List[t.Any]:
+    def get_robustness_augmentations(cls, data_dim: t.Optional[int] = 3) -> t.List[albumentations.BasicTransform]:
         """Get default augmentations to use in robustness report check."""
         return AlbumentationsTransformations.get_robustness_augmentations(data_dim)
 
