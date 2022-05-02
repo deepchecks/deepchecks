@@ -49,6 +49,10 @@ class TrainTestFeatureDrift(TrainTestCheck):
     sort_feature_by : str , default: feature importance
         Indicates how features will be sorted. Can be either "feature importance"
         or "drift score"
+    margin_quantile_filter: float, default: 0
+        float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
+        out of the EMD calculation. This is done in order for extreme values not to affect the calculation
+        disproportionally. This filter is applied to both distributions, in both margins.
     max_num_categories_for_drift: int, default: 10
         Only for categorical columns. Max number of allowed categories. If there are more,
         they are binned into an "Other" category. If None, there is no limit.
@@ -74,6 +78,7 @@ class TrainTestFeatureDrift(TrainTestCheck):
             ignore_columns: Union[Hashable, List[Hashable], None] = None,
             n_top_columns: int = 5,
             sort_feature_by: str = 'feature importance',
+            margin_quantile_filter: float = 0,
             max_num_categories_for_drift: int = 10,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'train_largest',
@@ -85,6 +90,7 @@ class TrainTestFeatureDrift(TrainTestCheck):
         super().__init__(**kwargs)
         self.columns = columns
         self.ignore_columns = ignore_columns
+        self.margin_quantile_filter = margin_quantile_filter
         if max_num_categories is not None:
             warnings.warn(
                 f'{self.__class__.__name__}: max_num_categories is deprecated. please use max_num_categories_for_drift '
@@ -159,6 +165,7 @@ class TrainTestFeatureDrift(TrainTestCheck):
                 value_name=column,
                 column_type=column_type,
                 plot_title=plot_title,
+                margin_quantile_filter=self.margin_quantile_filter,
                 max_num_categories_for_drift=self.max_num_categories_for_drift,
                 max_num_categories_for_display=self.max_num_categories_for_display,
                 show_categories_by=self.show_categories_by
