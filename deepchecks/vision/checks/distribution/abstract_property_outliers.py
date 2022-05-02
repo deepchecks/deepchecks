@@ -144,7 +144,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
             # Calculate cumulative sum of the outliers lengths in order to find the correct index of the image
             for outlier_index in show_indices:
                 sample_index = _sample_index_from_flatten_index(values_lengths_cumsum, outlier_index)
-                sample_index = data.to_dataset_index(sample_index)[0]
+                dataset_index = data.to_dataset_index(sample_index)[0]
                 value = values_arr[outlier_index].item()
                 # To get the value index inside the properties list of a single sample we take the sum of values
                 # and decrease the current outlier index. Then we get the value index from the end of the sample list.
@@ -152,7 +152,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
                 num_properties_in_sample = len(values[sample_index])
 
                 if data.has_images:
-                    image = self.draw_image(data, sample_index, index_of_value_in_sample, num_properties_in_sample)
+                    image = self.draw_image(data, dataset_index, index_of_value_in_sample, num_properties_in_sample)
                     image_thumbnail = prepare_thumbnail(
                         image=image,
                         size=THUMBNAIL_SIZE,
