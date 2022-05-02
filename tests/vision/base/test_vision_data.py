@@ -419,6 +419,8 @@ def test_detection_data_bad_implementation():
 
 
 def test_vision_data_initialization_from_dataset_instance(coco_train_dataloader: DataLoader):
-    visiondata = VisionData(data_loader=coco_train_dataloader.dataset)
+    visiondata = VisionData.from_dataset(data=coco_train_dataloader.dataset)
     assert_that(visiondata.data_loader, instance_of(DataLoader))
     assert_that(len(coco_train_dataloader.dataset) == len(visiondata.data_loader.dataset))
+    assert_that(len(list(visiondata)) == 1)
+    assert_that(visiondata.num_samples == len(visiondata.data_loader.dataset))

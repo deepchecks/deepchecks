@@ -17,7 +17,7 @@ from collections import defaultdict
 from copy import copy
 from enum import Enum
 from typing import (Any, Callable, Dict, Iterator, List, Optional, Sequence,
-                    TypeVar, Union)
+                    TypeVar, Type, Union)
 
 import numpy as np
 import torch
@@ -66,13 +66,11 @@ class VisionData:
 
     def __init__(
         self,
-        data_loader: Union[DataLoader, Dataset],
+        data_loader: DataLoader,
         num_classes: Optional[int] = None,
         label_map: Optional[Dict[int, str]] = None,
         transform_field: Optional[str] = 'transforms'
     ):
-        data_loader = cast_to_dataloader(data_loader)
-
         # Create data loader that uses IndicesSequentialSampler, which always return batches in the same order
         self._data_loader, self._sampler = self._get_data_loader_sequential(data_loader)
 
@@ -123,6 +121,62 @@ class VisionData:
 
         self._classes_indices = None
         self._current_index = None
+
+    @classmethod
+    def from_dataset(
+        cls: Type[VD],
+        data: Dataset,
+        batch_size: int = 64,
+        shuffle: bool = True,
+        num_workers: int = 0,
+        pin_memory: bool = True,
+        collate_fn: Optional[Callable] = None,
+        num_classes: Optional[int] = None,
+        label_map: Optional[Dict[int, str]] = None,
+        transform_field: Optional[str] = 'transforms'
+    ) -> VD:
+        """Create VisionData instance from a Dataset instance.
+
+        Parameters
+        ----------
+        data : Dataset
+            instance of a Dataset.
+        batch_size: int, default 64
+            how many samples per batch to load.
+        shuffle : bool, default True:
+            set to ``True`` to have the data reshuffled at every epoch.
+        num_workers  int, default 0:
+            how many subprocesses to use for data loading.
+            ``0`` means that the data will be loaded in the main process.
+        pin_memory bool, default True
+            If ``True``, the data loader will copy Tensors into CUDA pinned memory
+            before returning them.
+        collate_fn : Optional[Callable]
+            merges a list of samples to form a mini-batch of Tensor(s).
+        num_classes : Optional[int], default None
+            Number of classes in the dataset. If not provided, will be inferred from the dataset.
+        label_map : Optional[Dict[int, str]], default None
+            A dictionary mapping class ids to their names.
+        transform_field : Optional[str], default: 'transforms'
+            Name of transforms field in the dataset which holds transformations of both data and label.
+
+        Returns
+        -------
+        VisionData
+        """
+        return cls(
+            data_loader=cast_to_dataloader(
+                data=data,
+                batch_size=batch_size,
+                shuffle=shuffle,
+                num_workers=num_workers,
+                pin_memory=pin_memory,
+                collate_fn=collate_fn
+            ),
+            num_classes=num_classes,
+            label_map=label_map,
+            transform_field=transform_field
+        )
 
     @abstractmethod
     def get_classes(self, batch_labels: Union[List[torch.Tensor], torch.Tensor]) -> List[List[int]]:
@@ -587,7 +641,27 @@ def cast_to_dataloader(
     pin_memory: bool = True,
     collate_fn: Optional[Callable] = None
 ) -> DataLoader:
-    """Cast to DataLoader instance."""
+    """Cast to DataLoader instance.
+
+    Parameters
+    ----------
+    batch_size: int, default 64:
+        how many samples per batch to load.
+    shuffle : bool, default True:
+        set to ``True`` to have the data reshuffled at every epoch.
+    num_workers  int, default 0:
+        how many subprocesses to use for data loading.
+        ``0`` means that the data will be loaded in the main process.
+    pin_memory bool, default True:
+        If ``True``, the data loader will copy Tensors into CUDA pinned memory
+        before returning them.
+    collate_fn : Optional[Callable]:
+        merges a list of samples to form a mini-batch of Tensor(s).
+
+    Returns
+    -------
+    DataLoader
+    """
     def batch_collate(batch):
         imgs, labels = zip(*batch)
         return list(imgs), list(labels)
