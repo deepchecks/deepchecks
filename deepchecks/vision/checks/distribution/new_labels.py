@@ -136,7 +136,7 @@ class NewLabels(TrainTestCheck):
     def add_condition_new_label_percentage_not_greater_than(self, max_allowed_new_labels: float = 0.005):
         # Default value set to 0.005 because of sampling mechanism
         """
-        Add condition - Percentage of labels that apper only in the test set required to be below specified threshold.
+        Add condition - Ratio of labels that appear only in the test set required to be below specified threshold.
 
         Parameters
         ----------
