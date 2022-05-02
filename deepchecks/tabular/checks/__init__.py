@@ -11,8 +11,8 @@
 """Module importing all tabular checks."""
 from .distribution import (TrainTestFeatureDrift, TrainTestLabelDrift,
                            TrainTestPredictionDrift, WholeDatasetDrift)
-from .integrity import (CategoryMismatchTrainTest, DataDuplicates,
-                        DominantFrequencyChange, IsSingleValue, LabelAmbiguity,
+from .integrity import (CategoryMismatchTrainTest, ConflictingLabels,
+                        DataDuplicates, DominantFrequencyChange, IsSingleValue,
                         MixedDataTypes, MixedNulls, NewLabelTrainTest,
                         OutlierSampleDetection, SpecialCharacters,
                         StringLengthOutOfBounds, StringMismatch,
@@ -44,7 +44,7 @@ __all__ = [
     'DataDuplicates',
     'CategoryMismatchTrainTest',
     'NewLabelTrainTest',
-    'LabelAmbiguity',
+    'ConflictingLabels',
     'OutlierSampleDetection',
 
     # methodology checks
