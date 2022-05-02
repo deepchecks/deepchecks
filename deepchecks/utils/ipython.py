@@ -19,7 +19,6 @@ import tqdm
 from IPython import get_ipython
 from tqdm.notebook import tqdm as tqdm_notebook
 
-
 __all__ = [
     'is_notebook',
     'is_widgets_enabled',

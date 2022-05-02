@@ -15,16 +15,15 @@ import typing as t
 from typing_extensions import Literal
 
 from deepchecks.core import check_result as check_types
-from deepchecks.core.serialization.abc import (
-    ABCDisplayItemsHandler,
-    HtmlSerializer)
-from deepchecks.core.serialization.common import (
-    aggregate_conditions,
-    form_check_id,
-    form_output_anchor,
-    plotlyjs_script,
-    requirejs_script)
-from deepchecks.core.serialization.dataframe.html import DataFrameSerializer as DataFrameHtmlSerializer
+from deepchecks.core.serialization.abc import (ABCDisplayItemsHandler,
+                                               HtmlSerializer)
+from deepchecks.core.serialization.common import (aggregate_conditions,
+                                                  form_check_id,
+                                                  form_output_anchor,
+                                                  plotlyjs_script,
+                                                  requirejs_script)
+from deepchecks.core.serialization.dataframe.html import \
+    DataFrameSerializer as DataFrameHtmlSerializer
 from deepchecks.utils.html import imagetag
 from deepchecks.utils.strings import get_docs_summary
 

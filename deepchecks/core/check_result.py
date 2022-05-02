@@ -26,14 +26,21 @@ from plotly.basedatatypes import BaseFigure
 
 from deepchecks.core.condition import ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.core.serialization.check_failure.html import CheckFailureSerializer as CheckFailureHtmlSerializer
-from deepchecks.core.serialization.check_failure.json import CheckFailureSerializer as CheckFailureJsonSerializer
-from deepchecks.core.serialization.check_result.html import CheckResultSerializer as CheckResultHtmlSerializer
-from deepchecks.core.serialization.check_result.json import CheckResultSerializer as CheckResultJsonSerializer
+from deepchecks.core.serialization.check_failure.html import \
+    CheckFailureSerializer as CheckFailureHtmlSerializer
+from deepchecks.core.serialization.check_failure.json import \
+    CheckFailureSerializer as CheckFailureJsonSerializer
+from deepchecks.core.serialization.check_result.html import \
+    CheckResultSerializer as CheckResultHtmlSerializer
+from deepchecks.core.serialization.check_result.json import \
+    CheckResultSerializer as CheckResultJsonSerializer
 from deepchecks.core.serialization.check_result.json import display_from_json
-from deepchecks.core.serialization.check_result.widget import CheckResultSerializer as CheckResultWidgetSerializer
-from deepchecks.utils.ipython import is_colab_env, is_kaggle_env, is_notebook, is_widgets_use_possible
-from deepchecks.utils.strings import create_new_file_name, get_docs_summary, widget_to_html
+from deepchecks.core.serialization.check_result.widget import \
+    CheckResultSerializer as CheckResultWidgetSerializer
+from deepchecks.utils.ipython import (is_colab_env, is_kaggle_env, is_notebook,
+                                      is_widgets_use_possible)
+from deepchecks.utils.strings import (create_new_file_name, get_docs_summary,
+                                      widget_to_html)
 from deepchecks.utils.wandb_utils import set_wandb_run_state
 
 # registers jsonpickle pandas extension for pandas support in the to_json function
@@ -233,7 +240,9 @@ class CheckResult:
         # doing import within method to prevent premature ImportError
         try:
             import wandb
-            from deepchecks.core.serialization.check_result.wandb import CheckResultSerializer as WandbSerializer
+
+            from deepchecks.core.serialization.check_result.wandb import \
+                CheckResultSerializer as WandbSerializer
         except ImportError as error:
             raise ImportError(
                 'Wandb serializer requires the wandb python package. '
@@ -482,7 +491,9 @@ class CheckFailure:
         # doing import within method to prevent premature ImportError
         try:
             import wandb
-            from deepchecks.core.serialization.check_failure.wandb import CheckFailureSerializer as WandbSerializer
+
+            from deepchecks.core.serialization.check_failure.wandb import \
+                CheckFailureSerializer as WandbSerializer
         except ImportError as error:
             raise ImportError(
                 'Wandb serializer requires the wandb python package. '

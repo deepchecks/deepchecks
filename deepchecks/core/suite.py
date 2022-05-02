@@ -23,11 +23,16 @@ from ipywidgets import Widget
 from deepchecks.core.check_result import CheckFailure, CheckResult
 from deepchecks.core.checks import BaseCheck
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.core.serialization.suite_result.html import SuiteResultSerializer as SuiteResultHtmlSerializer
-from deepchecks.core.serialization.suite_result.json import SuiteResultSerializer as SuiteResultJsonSerializer
-from deepchecks.core.serialization.suite_result.widget import SuiteResultSerializer as SuiteResultWidgetSerializer
-from deepchecks.utils.ipython import is_colab_env, is_kaggle_env, is_notebook, is_widgets_use_possible
-from deepchecks.utils.strings import create_new_file_name, get_random_string, widget_to_html
+from deepchecks.core.serialization.suite_result.html import \
+    SuiteResultSerializer as SuiteResultHtmlSerializer
+from deepchecks.core.serialization.suite_result.json import \
+    SuiteResultSerializer as SuiteResultJsonSerializer
+from deepchecks.core.serialization.suite_result.widget import \
+    SuiteResultSerializer as SuiteResultWidgetSerializer
+from deepchecks.utils.ipython import (is_colab_env, is_kaggle_env, is_notebook,
+                                      is_widgets_use_possible)
+from deepchecks.utils.strings import (create_new_file_name, get_random_string,
+                                      widget_to_html)
 from deepchecks.utils.wandb_utils import set_wandb_run_state
 
 __all__ = ['BaseSuite', 'SuiteResult']
@@ -222,7 +227,9 @@ class SuiteResult:
         # Previous implementation used ProgressBar to show serialization progress
         try:
             import wandb
-            from deepchecks.core.serialization.suite_result.wandb import SuiteResultSerializer as WandbSerializer
+
+            from deepchecks.core.serialization.suite_result.wandb import \
+                SuiteResultSerializer as WandbSerializer
         except ImportError as error:
             raise ImportError(
                 'Wandb serializer requires the wandb python package. '

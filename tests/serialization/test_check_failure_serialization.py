@@ -12,28 +12,21 @@
 import typing as t
 
 import wandb
-from ipywidgets import VBox, HTML
-from hamcrest import (
-    assert_that,
-    calling,
-    raises,
-    instance_of,
-    all_of,
-    contains_string,
-    has_entry,
-    has_property,
-    has_length,
-    only_contains,
-)
+from hamcrest import (all_of, assert_that, calling, contains_string, has_entry,
+                      has_length, has_property, instance_of, only_contains,
+                      raises)
+from ipywidgets import HTML, VBox
 
 from deepchecks.core.check_result import CheckFailure
-from deepchecks.core.serialization.check_failure.html import CheckFailureSerializer as HtmlSerializer
-from deepchecks.core.serialization.check_failure.json import CheckFailureSerializer as JsonSerializer
-from deepchecks.core.serialization.check_failure.wandb import CheckFailureSerializer as WandbSerializer
-from deepchecks.core.serialization.check_failure.widget import CheckFailureSerializer as WidgetSerializer
-
+from deepchecks.core.serialization.check_failure.html import \
+    CheckFailureSerializer as HtmlSerializer
+from deepchecks.core.serialization.check_failure.json import \
+    CheckFailureSerializer as JsonSerializer
+from deepchecks.core.serialization.check_failure.wandb import \
+    CheckFailureSerializer as WandbSerializer
+from deepchecks.core.serialization.check_failure.widget import \
+    CheckFailureSerializer as WidgetSerializer
 from tests.serialization.utils import DummyCheck
-
 
 # =====================================
 

@@ -9,18 +9,17 @@
 # ----------------------------------------------------------------------------
 #
 """Utils for serialization tests."""
-import this
 import typing as t
-import plotly.express as px
-import pandas as pd
-import matplotlib.pyplot as plt
 
-from deepchecks.core.suite import SuiteResult
-from deepchecks.core.check_result import CheckResult
-from deepchecks.core.check_result import CheckFailure
-from deepchecks.core.condition import ConditionResult
-from deepchecks.core.condition import ConditionCategory
+import matplotlib.pyplot as plt
+import pandas as pd
+import plotly.express as px
+import this
+
+from deepchecks.core.check_result import CheckFailure, CheckResult
 from deepchecks.core.checks import BaseCheck
+from deepchecks.core.condition import ConditionCategory, ConditionResult
+from deepchecks.core.suite import SuiteResult
 
 
 class DummyCheck(BaseCheck):

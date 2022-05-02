@@ -9,44 +9,36 @@
 # ----------------------------------------------------------------------------
 #
 """CheckResult serialization tests."""
-import typing as t
 import json
+import typing as t
 
-from ipywidgets import VBox, HTML, Tab
 from bs4 import BeautifulSoup
+from hamcrest import (all_of, assert_that, calling, contains_exactly,
+                      contains_string, equal_to, greater_than, has_entries,
+                      has_length, has_property, instance_of, matches_regexp,
+                      raises, starts_with)
+from ipywidgets import HTML, Tab, VBox
 from wandb.sdk.data_types.base_types.wb_value import WBValue
-from hamcrest import (
-    assert_that,
-    calling,
-    raises,
-    instance_of,
-    all_of,
-    contains_string,
-    has_property,
-    has_length,
-    greater_than,
-    matches_regexp,
-    has_entries,
-    equal_to,
-    starts_with,
-    contains_exactly
-)
 
-from deepchecks.utils.strings import get_random_string
+from deepchecks.core.check_result import CheckFailure, CheckResult
+from deepchecks.core.serialization.common import (form_check_id,
+                                                  form_output_anchor,
+                                                  plotlyjs_script)
+from deepchecks.core.serialization.suite_result.html import \
+    SuiteResultSerializer as HtmlSerializer
+from deepchecks.core.serialization.suite_result.json import \
+    SuiteResultSerializer as JsonSerializer
+from deepchecks.core.serialization.suite_result.wandb import \
+    SuiteResultSerializer as WandbSerializer
+from deepchecks.core.serialization.suite_result.widget import \
+    SuiteResultSerializer as WidgetSerializer
 from deepchecks.core.suite import SuiteResult
-from deepchecks.core.check_result import CheckResult
-from deepchecks.core.check_result import CheckFailure
-from deepchecks.core.serialization.common import plotlyjs_script
-from deepchecks.core.serialization.common import form_output_anchor
-from deepchecks.core.serialization.common import form_check_id
-from deepchecks.core.serialization.suite_result.html import SuiteResultSerializer as HtmlSerializer
-from deepchecks.core.serialization.suite_result.json import SuiteResultSerializer as JsonSerializer
-from deepchecks.core.serialization.suite_result.wandb import SuiteResultSerializer as WandbSerializer
-from deepchecks.core.serialization.suite_result.widget import SuiteResultSerializer as WidgetSerializer
-
+from deepchecks.utils.strings import get_random_string
+from tests.serialization.test_check_failure_serialization import \
+    assert_json_output as assert_check_failure_json_output
+from tests.serialization.test_check_result_serialization import \
+    assert_json_output as assert_check_result_json_output
 from tests.serialization.utils import create_suite_result
-from tests.serialization.test_check_result_serialization import assert_json_output as assert_check_result_json_output
-from tests.serialization.test_check_failure_serialization import assert_json_output as assert_check_failure_json_output
 
 
 def test_html_serializer_initialization():

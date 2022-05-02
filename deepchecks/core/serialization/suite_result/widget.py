@@ -19,7 +19,8 @@ from deepchecks.core import check_result as check_types
 from deepchecks.core import suite
 from deepchecks.core.serialization.abc import WidgetSerializer
 from deepchecks.core.serialization.check_result.html import CheckResultSection
-from deepchecks.core.serialization.check_result.widget import CheckResultSerializer as CheckResultWidgetSerializer
+from deepchecks.core.serialization.check_result.widget import \
+    CheckResultSerializer as CheckResultWidgetSerializer
 from deepchecks.core.serialization.common import Html as CommonHtml
 from deepchecks.core.serialization.common import normalize_widget_style
 from deepchecks.core.serialization.dataframe.widget import DataFrameSerializer

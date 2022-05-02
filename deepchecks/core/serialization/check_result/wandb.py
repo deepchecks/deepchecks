@@ -17,13 +17,11 @@ from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
 
 from deepchecks.core import check_result as check_types
-from deepchecks.core.serialization.abc import ABCDisplayItemsHandler, WandbSerializer
-from deepchecks.core.serialization.common import (
-    aggregate_conditions,
-    concatv_images,
-    normalize_value,
-    prettify
-)
+from deepchecks.core.serialization.abc import (ABCDisplayItemsHandler,
+                                               WandbSerializer)
+from deepchecks.core.serialization.common import (aggregate_conditions,
+                                                  concatv_images,
+                                                  normalize_value, prettify)
 
 try:
     import wandb

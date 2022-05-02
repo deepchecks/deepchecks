@@ -9,41 +9,30 @@
 # ----------------------------------------------------------------------------
 #
 """CheckResult serialization tests."""
-import typing as t
 import json
+import typing as t
 
-import wandb
 import pandas as pd
+import wandb
+from hamcrest import (all_of, assert_that, calling, contains_string, equal_to,
+                      greater_than, has_entries, has_length, has_property,
+                      instance_of, matches_regexp, raises, starts_with)
+from ipywidgets import HTML, VBox
 from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
-from ipywidgets import VBox, HTML
-from hamcrest import (
-    assert_that,
-    calling,
-    raises,
-    instance_of,
-    all_of,
-    contains_string,
-    has_property,
-    has_length,
-    greater_than,
-    matches_regexp,
-    has_entries,
-    equal_to,
-    starts_with
-)
 
-from deepchecks.utils.strings import get_random_string
-from deepchecks.core.serialization.common import plotlyjs_script
+from deepchecks.core.serialization.check_result.html import \
+    CheckResultSerializer as HtmlSerializer
+from deepchecks.core.serialization.check_result.json import \
+    CheckResultSerializer as JsonSerializer
 from deepchecks.core.serialization.check_result.json import display_from_json
-from deepchecks.core.serialization.check_result.html import CheckResultSerializer as HtmlSerializer
-from deepchecks.core.serialization.check_result.json import CheckResultSerializer as JsonSerializer
-from deepchecks.core.serialization.check_result.wandb import CheckResultSerializer as WandbSerializer
-from deepchecks.core.serialization.check_result.widget import CheckResultSerializer as WidgetSerializer
-
-from tests.serialization.utils import DummyCheck
-from tests.serialization.utils import create_check_result
-
+from deepchecks.core.serialization.check_result.wandb import \
+    CheckResultSerializer as WandbSerializer
+from deepchecks.core.serialization.check_result.widget import \
+    CheckResultSerializer as WidgetSerializer
+from deepchecks.core.serialization.common import plotlyjs_script
+from deepchecks.utils.strings import get_random_string
+from tests.serialization.utils import DummyCheck, create_check_result
 
 # ===========================================
 
