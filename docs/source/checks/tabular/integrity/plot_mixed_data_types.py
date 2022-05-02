@@ -13,10 +13,11 @@ This notebooks provides an overview for using and understanding the mixed data t
 
 What are Mixed Data Types?
 ==========================
-Mixed data types is a situation when a column contains numeric values as string type, or a column contains both numeric
-and string types. The check detects this situation whether most of the values are numeric (counting also numbers in
-string type as numeric) or most of the values are string.
-We want to be aware of this "types mix" since it may indicate a problem in the data collection pipeline, or represent a
+Mixed data types is a situation when a column contains both string values and numeric values (either as numeric type or
+as string like "42.90"). The check detects columns which contains mixed types at any ratio, even if there is a single
+value which is different from the rest.
+
+We want to be aware of this since it may indicate a problem in the data collection pipeline, or represent a
 problem for the model's training.
 
 Run the Check
@@ -55,9 +56,9 @@ def insert_number_types(col: pd.Series, ratio_to_replace):
 
 # Load dataset and insert some data type mixing
 adult_df, _ = adult.load_data(as_train_test=True, data_format='Dataframe')
-adult_df['workclass'] = insert_numeric_string_types(adult_df['workclass'], ratio_to_replace=0.2)
-adult_df['education'] = insert_number_types(adult_df['education'], ratio_to_replace=0.2)
-adult_df['age'] = insert_string_types(adult_df['age'], ratio_to_replace=0.2)
+adult_df['workclass'] = insert_numeric_string_types(adult_df['workclass'], ratio_to_replace=0.01)
+adult_df['education'] = insert_number_types(adult_df['education'], ratio_to_replace=0.1)
+adult_df['age'] = insert_string_types(adult_df['age'], ratio_to_replace=0.5)
 
 # Run the check
 adult_dataset = Dataset(adult_df, cat_features=['workclass', 'education'])
@@ -74,6 +75,6 @@ result
 # presumably supposed to contain both numbers and string values. So when the ratio is inside the range there is a real
 # chance that the rarer data type may represent a problem to model training and inference.
 
-check = MixedDataTypes().add_condition_rare_type_ratio_not_in_range((0.01, 0.1))
+check = MixedDataTypes().add_condition_rare_type_ratio_not_in_range((0.01, 0.2))
 result = check.run(adult_dataset)
 result.show(show_additional_outputs=False)
