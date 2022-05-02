@@ -18,7 +18,7 @@ from typing import Any, Dict, List, Tuple, Union
 import jsonpickle
 from IPython.core.display import display_html
 from IPython.core.getipython import get_ipython
-from deepchecks.core.check_json import CheckJson
+from deepchecks.core.check_json import CheckJson, CheckJsonFailure
 
 from deepchecks.core.check_result import CheckFailure, CheckResult
 from deepchecks.core.checks import BaseCheck
@@ -123,7 +123,10 @@ class SuiteResult:
         name = json_dict['name']
         results = []
         for res in json_dict['results']:
-            results.append(CheckJson(res))
+            if jsonpickle.loads(res).get('exception'):
+                results.append(CheckJsonFailure(res))
+            else:
+                results.append(CheckJson(res))
         return SuiteResult(name, results)
 
     def to_wandb(self, dedicated_run: bool = None, **kwargs: Any):

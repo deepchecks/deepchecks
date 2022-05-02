@@ -18,7 +18,7 @@ import jsonpickle
 import jsonpickle.ext.pandas as jsonpickle_pd
 import pandas as pd
 import plotly
-from deepchecks.core.check_result import CheckResult
+from deepchecks.core.check_result import CheckFailure, CheckResult
 
 from deepchecks.core.condition import (Condition, ConditionCategory,
                                        ConditionResult)
@@ -28,7 +28,7 @@ jsonpickle_pd.register_handlers()
 
 __all__ = [
     'CheckJson',
-    # 'CheckFailure',
+    'CheckJsonFailure',
 ]
 
 
@@ -99,87 +99,36 @@ class CheckJson(CheckResult):
     def check_name(self):
         return self._check_name
 
-# class CheckFailure:
-#     """Class which holds a check run exception.
+class CheckJsonFailure(CheckFailure):
+    """Class which holds a check run exception.
 
-#     Parameters
-#     ----------
-#     check : BaseCheck
-#     exception : Exception
-#     header_suffix : str , default ``
+    Parameters
+    ----------
+    check : BaseCheck
+    exception : Exception
+    header_suffix : str , default ``
 
-#     """
+    """
 
-#     def __init__(self, check: 'BaseCheck', exception: Exception, header_suffix: str = ''):
-#         self.check = check
-#         self.exception = exception
-#         self.header = check.name() + header_suffix
+    def __init__(self, json_data: str):
+        json_dict = jsonpickle.loads(json_data)
+        self.exception = json_dict.get('exception')
+        self._check_name = json_dict.get('name')
+        self.header = json_dict.get('header')
+        self.params = json_dict.get('params')
+        self.summary = json_dict.get('summary')
 
-#     def to_json(self, with_display: bool = True):
-#         """Return check failure as json.
+    def _get_metadata(self, _: bool = False):
+        CheckJson._get_metadata()
 
-#         Parameters
-#         ----------
-#         with_display : bool
-#             controls if to serialize display or not
+    def __repr__(self):
+        """Return string representation."""
+        return self.header + ': ' + str(self.exception)
 
-#         Returns
-#         -------
-#         dict
-#             {'name': .., 'params': .., 'header': .., 'display': ..}
-#         """
-#         result_json = self._get_metadata()
-#         if with_display:
-#             result_json['display'] = [('html', f'<p style="color:red">{self.exception}</p>')]
-#         return jsonpickle.dumps(result_json, unpicklable=False)
+    def print_traceback(self):
+        """Print the traceback of the failure."""
+        print(self.exception)
 
-#     def to_wandb(self, dedicated_run: bool = True, **kwargs: Any):
-#         """Export check result to wandb.
-
-#         Parameters
-#         ----------
-#         dedicated_run : bool , default: None
-#             If to initiate and finish a new wandb run.
-#             If None it will be dedicated if wandb.run is None.
-#         kwargs: Keyword arguments to pass to wandb.init.
-#                 Default project name is deepchecks.
-#                 Default config is the check metadata (params, train/test/ name etc.).
-#         """
-#         check_metadata = self._get_metadata()
-#         section_suffix = check_metadata['header'] + '/'
-#         data = [check_metadata['header'],
-#                 str(check_metadata['params']),
-#                 check_metadata['summary'],
-#                 str(self.exception)]
-#         check_metadata['value'] = str(self.exception)
-#         dedicated_run = set_wandb_run_state(dedicated_run, check_metadata, **kwargs)
-#         final_table = wandb.Table(columns=['header', 'params', 'summary', 'value'])
-#         final_table.add_data(*data)
-#         wandb.log({f'{section_suffix}results': final_table}, commit=False)
-#         if dedicated_run:
-#             wandb.finish()
-
-#     def _get_metadata(self, with_doc_link: bool = False):
-#         check_name = self.check.name()
-#         parameters = self.check.params(True)
-#         summary = get_docs_summary(self.check, with_doc_link=with_doc_link)
-#         return {'name': check_name, 'params': parameters, 'header': self.header, 'summary': summary}
-
-#     def __repr__(self):
-#         """Return string representation."""
-#         return self.header + ': ' + str(self.exception)
-
-#     def _ipython_display_(self):
-#         """Display the check failure."""
-#         check_html = f'<h4>{self.header}</h4>'
-#         if hasattr(self.check.__class__, '__doc__'):
-#             summary = get_docs_summary(self.check)
-#             check_html += f'<p>{summary}</p>'
-#         check_html += f'<p style="color:red">{self.exception}</p>'
-#         display_html(check_html, raw=True)
-
-#     def print_traceback(self):
-#         """Print the traceback of the failure."""
-#         tb_str = traceback.format_exception(etype=type(self.exception), value=self.exception,
-#                                             tb=self.exception.__traceback__)
-#         print(''.join(tb_str))
+    @property
+    def check_name(self):
+        return self._check_name

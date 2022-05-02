@@ -506,6 +506,7 @@ class CheckFailure:
             {'name': .., 'params': .., 'header': .., 'display': ..}
         """
         result_json = self._get_metadata()
+        result_json['exception'] = str(self.exception)
         if with_display:
             result_json['display'] = [('html', f'<p style="color:red">{self.exception}</p>')]
         return jsonpickle.dumps(result_json, unpicklable=False)
@@ -549,9 +550,8 @@ class CheckFailure:
     def _ipython_display_(self):
         """Display the check failure."""
         check_html = f'<h4>{self.header}</h4>'
-        if hasattr(self.check.__class__, '__doc__'):
-            summary = get_docs_summary(self.check)
-            check_html += f'<p>{summary}</p>'
+        summary = self._get_metadata()['summary']
+        check_html += f'<p>{summary}</p>'
         check_html += f'<p style="color:red">{self.exception}</p>'
         display_html(check_html, raw=True)
 
