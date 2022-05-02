@@ -10,7 +10,6 @@
 #
 """Module contains Train Test label Drift check."""
 import string
-from collections import defaultdict
 from secrets import choice
 from typing import Dict
 
@@ -86,17 +85,10 @@ class NewLabels(TrainTestCheck):
 
         self.max_images_to_display_per_label = max_images_to_display_per_label
         self.max_new_labels_to_display = max_new_labels_to_display
-        self._class_id_counter = defaultdict(list)
 
     def update(self, context: Context, batch: Batch, dataset_kind):
-        """Count number of appearances for each class_id in train and test."""
-        data = context.get_data_by_kind(dataset_kind)
-        classes_in_batch = data.get_classes(batch.labels)
-        for labels_per_image in classes_in_batch:
-            for label in labels_per_image:
-                if label not in self._class_id_counter:
-                    self._class_id_counter[label] = [0, 0]
-                self._class_id_counter[label][dataset_kind == DatasetKind.TEST] += 1
+        """No additional caching required for this check."""
+        pass
 
     def compute(self, context: Context) -> CheckResult:
         """Calculate which class_id are only available in the test data set and display them.
@@ -107,40 +99,45 @@ class NewLabels(TrainTestCheck):
             value: A dictionary showing new class_ids introduced in the test set and number of times they were spotted.
             display: Images containing said class_ids from the test set.
         """
-        data = context.get_data_by_kind(DatasetKind.TEST)
-        class_id_only_in_test = defaultdict(list)
-        for class_id, value in self._class_id_counter.items():
-            if value[0] == 0:
-                class_id_only_in_test[class_id] = value[1]
-        class_id_only_in_test = dict(sorted(class_id_only_in_test.items(), key=lambda item: -item[1]))
+        test_data = context.get_data_by_kind(DatasetKind.TEST)
+
+        classes_in_train = context.get_data_by_kind(DatasetKind.TRAIN).classes_indices.keys()
+        classes_only_in_test = {key: len(value) for key, value in test_data.classes_indices.items()
+                                if key not in classes_in_train}
+        # sort by number of appearances in test set in descending order
+        classes_only_in_test = dict(sorted(classes_only_in_test.items(), key=lambda item: -item[1]))
 
         # Create display
-        display = []
-        for class_id, num_occurrences in class_id_only_in_test.items():
+        displays = []
+        for class_id, num_occurrences in classes_only_in_test.items():
             # Create id of alphabetic characters
             sid = ''.join([choice(string.ascii_uppercase) for _ in range(3)])
-            images_of_class_id = list(set(data.classes_indices[class_id]))[:self.max_images_to_display_per_label]
-            images_combine = ''.join([f'<div class="{sid}-item">{draw_image(data, x, class_id)}</div>'
+            images_of_class_id = list(set(test_data.classes_indices[class_id]))[:self.max_images_to_display_per_label]
+            images_combine = ''.join([f'<div class="{sid}-item">{draw_image(test_data, x, class_id)}</div>'
                                       for x in images_of_class_id])
 
             html = HTML_TEMPLATE.format(
-                label_name=data.label_id_to_name(class_id),
+                label_name=test_data.label_id_to_name(class_id),
                 images=images_combine,
                 count=format_number(num_occurrences),
                 id=sid
             )
-            display.append(html)
-        class_id_only_in_test['all_labels'] = sum(data.n_of_samples_per_class.values())
-        return CheckResult(class_id_only_in_test, display=''.join(display[:self.max_new_labels_to_display]))
+            displays.append(html)
+            if len(displays) == self.max_new_labels_to_display:
+                break
 
-    def add_condition_new_label_percentage_not_greater_than(self, max_allowed_new_labels: float = 0.005):
+        output_summery = {test_data.label_id_to_name(key): value for key, value in classes_only_in_test.items()}
+        output_summery['all_labels'] = sum(test_data.n_of_samples_per_class.values())
+        return CheckResult(output_summery, display=displays)
+
+    def add_condition_new_label_ratio_not_greater_than(self, max_allowed_new_labels_ratio: float = 0.005):
         # Default value set to 0.005 because of sampling mechanism
         """
         Add condition - Percentage of labels that apper only in the test set required to be below specified threshold.
 
         Parameters
         ----------
-        max_allowed_new_labels: float , default: 0.005
+        max_allowed_new_labels_ratio: float , default: 0.005
             the max threshold for percentage of labels that only apper in the test set.
         """
 
@@ -149,13 +146,17 @@ class NewLabels(TrainTestCheck):
             new_labels_in_test_set = sum(result.values()) - total_labels_in_test_set
             present_new_labels = new_labels_in_test_set / total_labels_in_test_set
 
-            if present_new_labels > max_allowed_new_labels:
-                massage = f'{format_percent(present_new_labels)} of labels found in test set were not in train set.'
+            if present_new_labels > max_allowed_new_labels_ratio:
+                top_new_class = list(result.keys())[:3]
+                if 'all_labels' in top_new_class:
+                    top_new_class.remove('all_labels')
+                massage = f'{format_percent(present_new_labels)} of labels found in test set were not in train set.\n'
+                massage += f'New labels most common in test set: {top_new_class}'
                 return ConditionResult(ConditionCategory.FAIL, massage)
             else:
                 return ConditionResult(ConditionCategory.PASS)
 
-        name = f'Percentage of new labels in the test set not above {format_percent(max_allowed_new_labels)}.'
+        name = f'Percentage of new labels in the test set not above {format_percent(max_allowed_new_labels_ratio)}.'
         return self.add_condition(name, condition)
 
 
