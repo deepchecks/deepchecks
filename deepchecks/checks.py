@@ -38,7 +38,7 @@ __all__ = [
     'DataDuplicates',
     'CategoryMismatchTrainTest',
     'NewLabelTrainTest',
-    'LabelAmbiguity',
+    'ConflictingLabels',
     'OutlierSampleDetection',
 
     # methodology checks
