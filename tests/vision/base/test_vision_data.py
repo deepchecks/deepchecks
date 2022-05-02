@@ -286,10 +286,10 @@ def test_data_at_batch_index_to_dataset_index(mnist_dataset_train):
             i += len(data)
 
     # Act
-    sample = mnist_dataset_train.batch_of_index(mnist_dataset_train.to_dataset_index(sample_index))
+    sample = mnist_dataset_train.batch_of_index(mnist_dataset_train.to_dataset_index(sample_index)[0])
 
     # Assert
-    assert sample[0][0].mean() == single_data.mean()
+    assert torch.equal(sample[0][0], single_data)
     assert sample[1][0] == single_label
 
 
