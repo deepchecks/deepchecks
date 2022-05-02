@@ -347,9 +347,9 @@ class VisionData:
         return [self._sampler.index_at(i) for i in batch_indices]
 
     def batch_of_index(self, *indices):
-        """Return batch samples of the given batch indices."""
-        dataset_indices = self.to_dataset_index(*indices)
-        samples = [self._data_loader.dataset[i] for i in dataset_indices]
+        """Return batch samples of the given DATASET indices. If you saved indices while running on the batch, first
+        convert them to the dataset indices using to_dataset_index."""
+        samples = [self._data_loader.dataset[i] for i in indices]
         return self.to_batch(*samples)
 
     def validate_shared_label(self, other: VD):

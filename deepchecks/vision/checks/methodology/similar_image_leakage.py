@@ -125,7 +125,9 @@ class SimilarImageLeakage(TrainTestCheck):
             for similar_index in display_indices:
                 for dataset in ('train', 'test'):
                     image = data_obj[dataset].batch_to_images(
-                        data_obj[dataset].batch_of_index(similar_indices[dataset][similar_index])
+                        data_obj[dataset].batch_of_index(
+                            data_obj[dataset].to_dataset_index(similar_indices[dataset][similar_index])
+                        )
                     )[0]
                     image_thumbnail = prepare_thumbnail(
                         image=image,

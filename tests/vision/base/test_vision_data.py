@@ -272,6 +272,7 @@ def test_sampler(mnist_dataset_train):
 def test_data_at_batch_index_to_dataset_index(mnist_dataset_train):
     # Arrange
     sample_index = 100
+    mnist_dataset_train = mnist_dataset_train.copy(shuffle=True)
 
     i = 0
     single_data = None
@@ -285,10 +286,10 @@ def test_data_at_batch_index_to_dataset_index(mnist_dataset_train):
             i += len(data)
 
     # Act
-    sample = mnist_dataset_train.batch_of_index(sample_index)
+    sample = mnist_dataset_train.batch_of_index(mnist_dataset_train.to_dataset_index(sample_index))
 
     # Assert
-    assert torch.equal(sample[0][0], single_data)
+    assert sample[0][0].mean() == single_data.mean()
     assert sample[1][0] == single_label
 
 
