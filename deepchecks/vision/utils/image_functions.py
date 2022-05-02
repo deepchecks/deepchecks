@@ -91,7 +91,7 @@ def ensure_image(
 
 def draw_bboxes(
     image: t.Union[pilimage.Image, np.ndarray, torch.Tensor],
-    bboxes: np.ndarray,
+    bboxes: t.Union[np.ndarray, torch.Tensor],
     bbox_notation: t.Optional[str] = None,
     copy_image: bool = True,
     border_width: int = 1,
@@ -103,7 +103,7 @@ def draw_bboxes(
     ----------
     image : Union[PIL.Image.Image, numpy.ndarray, torch.Tensor]
         image to draw on
-    bboxes : numpy.ndarray
+    bboxes : Union[numpy.ndarray, torch.Tensor]
         array of bboxes
     bbox_notation : Optional[str], default None
         format of the provided bboxes
