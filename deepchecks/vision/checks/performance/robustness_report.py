@@ -186,7 +186,7 @@ class RobustnessReport(SingleDatasetCheck):
                 raise DeepchecksValueError(msg)
 
             # For object detection check that the label is affected
-            if dataset.task_type == TaskType.OBJECT_DETECTION and transform_handler.is_image_shifting:
+            if dataset.task_type == TaskType.OBJECT_DETECTION and transform_handler.is_transforming_labels:
                 labels = dataset.batch_to_labels(batch)
                 if torch.equal(labels[0], labels[1]):
                     msg = f'Found that labels have not been affected by adding augmentation to field ' \

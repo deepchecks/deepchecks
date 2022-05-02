@@ -31,7 +31,7 @@ __all__ = ['get_transforms_handler', 'un_normalize_batch', 'AbstractTransformati
 class AbstractTransformations(abc.ABC):
     """Abstract class for supporting functions for various transforms."""
 
-    is_image_shifting = True
+    is_transforming_labels = True
 
     @classmethod
     @abc.abstractmethod
@@ -147,7 +147,7 @@ class AlbumentationsTransformations(AbstractTransformations):
         return augmentations
 
 
-class TorchTransformationsClassification(AlbumentationsTransformations):
+class TorchTransformations(AbstractTransformations):
     """Class containing supporting functions for torch transforms."""
 
     @classmethod
@@ -170,11 +170,23 @@ class TorchTransformationsClassification(AlbumentationsTransformations):
                                        f'{type(aug).__name__}')
         return T.Compose([aug, *transforms.transforms])
 
+    @classmethod
+    @abc.abstractmethod
+    def get_test_transformation(cls):
+        """Get transformation which is affecting image data."""
+        return AlbumentationsTransformations.get_test_transformation()
 
-class TorchTransformations(TorchTransformationsClassification):
+    @classmethod
+    @abc.abstractmethod
+    def get_robustness_augmentations(cls, data_dim: t.Optional[int] = 3) -> t.List[t.Any]:
+        """Get default augmentations to use in robustness report check."""
+        return AlbumentationsTransformations.get_robustness_augmentations(data_dim)
+
+
+class TorchTransformationsBbox(TorchTransformations):
     """Class containing supporting functions for torch transforms (not including image shifting)."""
 
-    is_image_shifting = False
+    is_transforming_labels = False
 
     @classmethod
     def get_robustness_augmentations(cls, data_dim: t.Optional[int] = 3) -> t.List[albumentations.BasicTransform]:
@@ -190,8 +202,8 @@ def get_transforms_handler(transforms, task_type: TaskType) -> t.Type[AbstractTr
     elif isinstance(transforms, albumentations.Compose):
         return AlbumentationsTransformations
     elif isinstance(transforms, T.Compose):
-        if task_type == TaskType.CLASSIFICATION:
-            return TorchTransformationsClassification
+        if task_type == TaskType.OBJECT_DETECTION:
+            return TorchTransformationsBbox
         return TorchTransformations
     elif isinstance(transforms, iaa.Augmenter):
         return ImgaugTransformations
