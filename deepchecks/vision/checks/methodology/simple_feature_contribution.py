@@ -10,22 +10,23 @@
 #
 """Module contains the simple feature distribution check."""
 from collections import defaultdict
-from typing import Callable, TypeVar, Hashable, Dict, Union
+from typing import Callable, Dict, Hashable, TypeVar, Union
 
 import pandas as pd
 from pandas.core.dtypes.common import is_float_dtype
 
 from deepchecks import ConditionResult
 from deepchecks.core import CheckResult, DatasetKind
-from deepchecks.core.check_utils.single_feature_contribution_utils import get_single_feature_contribution, \
-    get_single_feature_contribution_per_class
+from deepchecks.core.check_utils.single_feature_contribution_utils import (
+    get_single_feature_contribution, get_single_feature_contribution_per_class)
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import ModelValidationError
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Context, TrainTestCheck
 from deepchecks.vision.batch_wrapper import Batch
-from deepchecks.vision.utils.image_properties import default_image_properties, validate_properties
 from deepchecks.vision.utils.image_functions import crop_image
+from deepchecks.vision.utils.image_properties import (default_image_properties,
+                                                      validate_properties)
 from deepchecks.vision.vision_data import TaskType
 
 __all__ = ['SimpleFeatureContribution']

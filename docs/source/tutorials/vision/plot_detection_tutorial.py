@@ -22,29 +22,30 @@ their classes.
 # Defining the data and model
 # ===========================
 
+import math
 # Importing the required packages
 import os
 import time
+import urllib.request
+import xml.etree.ElementTree as ET
+import zipfile
 from functools import partial
-import math
 
+import albumentations as A
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
-from PIL import Image
-import xml.etree.ElementTree as ET
 import torchvision
 import torchvision.transforms as T
+from albumentations.pytorch import ToTensorV2
+from PIL import Image
 from torch import nn
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader, Dataset
 from torchvision.models.detection import _utils as det_utils
 from torchvision.models.detection.ssdlite import SSDLiteClassificationHead
-import albumentations as A
-from albumentations.pytorch import ToTensorV2
+
 import deepchecks
 from deepchecks.vision.detection_data import DetectionData
-import urllib.request
-import zipfile
-import matplotlib.pyplot as plt
 
 #%%
 # Load Data
@@ -147,6 +148,8 @@ def prepare(inp):
     return torch.tensor(inp, dtype=torch.uint8)
 
 import torchvision.transforms.functional as F
+
+
 def show(imgs):
     if not isinstance(imgs, list):
         imgs = [imgs]
@@ -221,8 +224,6 @@ print("-"*80)
 print("Second element is: ", type(batch[1]), "with len of ", len(batch[1]))
 print("Example output of a label shape from the dataloader ", batch[1][0])
 
-# And we can watch the output:
-
 #%%
 # Implementing the DetectionData class
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -239,6 +240,7 @@ print("Example output of a label shape from the dataloader ", batch[1][0])
 # :class:`deepchecks.vision.detection_data.DetectionData` class.
 
 from deepchecks.vision.detection_data import DetectionData
+
 
 class TomatoData(DetectionData):
 

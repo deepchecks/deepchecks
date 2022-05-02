@@ -11,15 +11,14 @@
 """The roc_report check module."""
 from typing import Dict, List
 
-import plotly.graph_objects as go
 import numpy as np
+import plotly.graph_objects as go
 import sklearn
 
+from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular import Context, SingleDatasetCheck
-from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.utils.strings import format_number
-
 
 __all__ = ['RocReport']
 

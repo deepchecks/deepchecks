@@ -31,22 +31,22 @@ In this guide we will implement a custom instance segmentation task and run chec
 # First we will define a `PyTorch Dataset <https://pytorch.org/tutorials/beginner/basics/data_tutorial.html>`_.
 # of COCO-128 segmentation task. This part represents your own code, and is not yet Deepchecks related.
 
-import os
 import contextlib
+import os
 import typing as t
 from pathlib import Path
 
+import albumentations as A
+import matplotlib.pyplot as plt
+import numpy as np
 import torch
+import torchvision.transforms.functional as F
+from albumentations.pytorch.transforms import ToTensorV2
+from PIL import Image, ImageDraw
 from torch.utils.data import DataLoader
 from torchvision.datasets import VisionDataset
 from torchvision.datasets.utils import download_and_extract_archive
 from torchvision.utils import draw_segmentation_masks
-import torchvision.transforms.functional as F
-from PIL import Image, ImageDraw
-import matplotlib.pyplot as plt
-import numpy as np
-import albumentations as A
-from albumentations.pytorch.transforms import ToTensorV2
 
 
 class CocoSegmentDataset(VisionDataset):
@@ -214,6 +214,7 @@ fix
 # `batch_to_images` and `get_classes` are used so we will need to make sure our data is in the expected format.
 
 from typing import List, Sequence
+
 from deepchecks.vision import VisionData
 
 
@@ -263,6 +264,7 @@ result
 
 
 from itertools import chain
+
 from deepchecks.vision.checks import TrainTestLabelDrift
 
 # The labels object is the result of `batch_to_labels` function we defined earlier. The property should return a flat

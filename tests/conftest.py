@@ -9,38 +9,39 @@
 # ----------------------------------------------------------------------------
 #
 """Represents fixtures for unit testing using pytest."""
+from functools import partialmethod
 # Disable this pylint check since we use this convention in pytest fixtures
 #pylint: disable=redefined-outer-name
-from typing import Any, Dict, Tuple, Optional
+from typing import Any, Dict, Optional, Tuple
 
-from hamcrest import assert_that, instance_of, only_contains, any_of
-from hamcrest.core.matcher import Matcher
-import numpy as np
-import pytest
-import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import pytest
+from catboost import CatBoostClassifier, CatBoostRegressor
+from hamcrest import any_of, assert_that, instance_of, only_contains
+from hamcrest.core.matcher import Matcher
+from lightgbm import LGBMClassifier, LGBMRegressor
 from sklearn.compose import ColumnTransformer
-from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier, GradientBoostingRegressor
-from sklearn.datasets import load_iris, load_diabetes
+from sklearn.datasets import load_diabetes, load_iris
+from sklearn.ensemble import (AdaBoostClassifier, GradientBoostingRegressor,
+                              RandomForestClassifier)
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import KBinsDiscretizer, OrdinalEncoder, FunctionTransformer
+from sklearn.preprocessing import (FunctionTransformer, KBinsDiscretizer,
+                                   OrdinalEncoder)
 from sklearn.tree import DecisionTreeClassifier
+from tqdm import tqdm
 from xgboost import XGBClassifier, XGBRegressor
-from catboost import CatBoostClassifier, CatBoostRegressor
-from lightgbm import LGBMClassifier, LGBMRegressor
+
+from deepchecks.core.check_result import CheckFailure, CheckResult
 from deepchecks.core.checks import SingleDatasetBaseCheck
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksBaseError
 from deepchecks.core.suite import BaseSuite, SuiteResult
+from deepchecks.tabular import Context, Dataset, TrainTestCheck
 
-from deepchecks.tabular import Dataset, TrainTestCheck, Context
-from deepchecks.core.check_result import CheckFailure, CheckResult
-
-from .vision.vision_conftest import * #pylint: disable=wildcard-import, unused-wildcard-import
-
-from tqdm import tqdm
-from functools import partialmethod
+from .vision.vision_conftest import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 # disable tqdm for tests
 tqdm.__init__ = partialmethod(tqdm.__init__, disable=True)

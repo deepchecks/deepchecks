@@ -23,8 +23,8 @@ We will run the check on the iris dataset.
 """
 
 from deepchecks.tabular import Dataset
-from deepchecks.tabular.datasets.classification import iris
 from deepchecks.tabular.checks.methodology import TrainTestSamplesMix
+from deepchecks.tabular.datasets.classification import iris
 
 # Create data with leakage from train to test
 train, test = iris.load_data()

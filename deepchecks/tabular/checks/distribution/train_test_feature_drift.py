@@ -10,17 +10,16 @@
 #
 """Module contains Train Test Drift check."""
 
-from collections import OrderedDict
-from typing import Union, List, Dict
 import warnings
+from collections import OrderedDict
+from typing import Dict, List, Union
 
-from deepchecks.core import ConditionResult, CheckResult
+from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.condition import ConditionCategory
-from deepchecks.tabular import Context, TrainTestCheck, Dataset
-from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.tabular import Context, Dataset, TrainTestCheck
+from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.utils.typing import Hashable
-
 
 __all__ = ['TrainTestFeatureDrift']
 

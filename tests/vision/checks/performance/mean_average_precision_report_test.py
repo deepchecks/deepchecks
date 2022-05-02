@@ -8,11 +8,11 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-from hamcrest import assert_that, close_to, has_length, calling, raises
+from hamcrest import assert_that, calling, close_to, has_length, raises
 
-from tests.checks.utils import equal_condition_result
 from deepchecks.core.errors import ModelValidationError
 from deepchecks.vision.checks.performance import MeanAveragePrecisionReport
+from tests.checks.utils import equal_condition_result
 
 
 def test_mnist_error(mnist_dataset_test, mock_trained_mnist, device):

@@ -39,6 +39,7 @@ model = load_model()
 
 from deepchecks.vision.detection_data import DetectionData
 
+
 class CocoDetectionData(DetectionData):
     def batch_to_images(self, batch):
         return batch[0]
@@ -81,6 +82,7 @@ validate_extractors(CocoDetectionData(data_loader), model)
 # For the next step we'll fix the label extractor and then validate again:
 
 import torch
+
 
 class CocoDetectionData(DetectionData):
     def batch_to_labels(self, batch):
@@ -138,6 +140,7 @@ validate_extractors(CocoDetectionData(data_loader), model)
 # validate it we also need visual assertion and for that we need the image extractor to work.
 
 import numpy as np
+
 
 class CocoDetectionData(DetectionData):
     def batch_to_images(self, batch):

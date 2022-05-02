@@ -8,10 +8,12 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.vision.checks.performance.simple_model_comparison import SimpleModelComparison
-from hamcrest import assert_that, close_to, equal_to, is_in, calling, raises, has_items
+from hamcrest import (assert_that, calling, close_to, equal_to, has_items,
+                      is_in, raises)
 
+from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.vision.checks.performance.simple_model_comparison import \
+    SimpleModelComparison
 from tests.checks.utils import equal_condition_result
 
 

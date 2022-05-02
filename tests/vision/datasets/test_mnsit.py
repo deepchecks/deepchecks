@@ -9,17 +9,16 @@
 # ----------------------------------------------------------------------------
 #
 import time
+
+from hamcrest import assert_that, calling, instance_of, raises
 from torch.utils.data import DataLoader
-from hamcrest import assert_that, instance_of, calling, raises
 
 from deepchecks.vision import VisionData
-from deepchecks.vision.datasets.classification.mnist import (
-    load_dataset,
-    load_model,
-    MNistNet,
-    DATA_PATH,
-    MODEL_PATH
-)
+from deepchecks.vision.datasets.classification.mnist import (DATA_PATH,
+                                                             MODEL_PATH,
+                                                             MNistNet,
+                                                             load_dataset,
+                                                             load_model)
 
 
 def test_dataset_load():

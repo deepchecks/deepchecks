@@ -10,12 +10,12 @@
 #
 """Tabular objects validation utilities."""
 import typing as t
+
 import pandas as pd
 
-from deepchecks.core import errors
 from deepchecks import tabular
+from deepchecks.core import errors
 from deepchecks.utils.typing import BasicModel
-
 
 __all__ = [
     'model_type_validation',

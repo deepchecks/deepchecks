@@ -9,25 +9,24 @@
 # ----------------------------------------------------------------------------
 #
 """Module representing the MNIST dataset."""
-import typing as t
-import pathlib
 import logging
+import pathlib
+import typing as t
 import warnings
 from typing import Iterable, List, Union
 
+import albumentations as A
 import numpy as np
 import torch
 import torch.nn.functional as F
-import albumentations as A
 from albumentations.pytorch import ToTensorV2
-from torchvision import datasets
 from torch import nn
 from torch.utils.data import DataLoader
+from torchvision import datasets
 from typing_extensions import Literal
 
 from deepchecks.vision.classification_data import ClassificationData
 from deepchecks.vision.utils.transformations import un_normalize_batch
-
 
 __all__ = ['load_dataset', 'load_model', 'MNistNet', 'MNIST', 'MNISTData']
 

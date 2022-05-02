@@ -11,12 +11,15 @@
 """Contains unit tests for the single_feature_contribution check."""
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, close_to, calling, raises, has_entries, has_length
+from hamcrest import (assert_that, calling, close_to, has_entries, has_length,
+                      raises)
 
+from deepchecks.core.errors import (DatasetValidationError,
+                                    DeepchecksNotSupportedError,
+                                    DeepchecksValueError)
+from deepchecks.tabular.checks.methodology import (
+    SingleFeatureContribution, SingleFeatureContributionTrainTest)
 from deepchecks.tabular.dataset import Dataset
-from deepchecks.tabular.checks.methodology import SingleFeatureContribution, SingleFeatureContributionTrainTest
-from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError, DeepchecksNotSupportedError
-
 from tests.checks.utils import equal_condition_result
 
 

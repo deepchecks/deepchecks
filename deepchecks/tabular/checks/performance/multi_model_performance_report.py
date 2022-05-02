@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing multi model performance report check."""
-from typing import Dict, Callable, cast
+from typing import Callable, Dict, cast
 
 import pandas as pd
 import plotly.express as px
@@ -17,7 +17,6 @@ import plotly.express as px
 from deepchecks.core import CheckResult
 from deepchecks.tabular import ModelComparisonCheck, ModelComparisonContext
 from deepchecks.utils.metrics import ModelType
-
 
 __all__ = ['MultiModelPerformanceReport']
 

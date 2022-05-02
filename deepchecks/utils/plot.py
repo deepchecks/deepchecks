@@ -9,11 +9,10 @@
 # ----------------------------------------------------------------------------
 #
 """Utils module containing utilities for plotting."""
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import LinearSegmentedColormap
-
 
 __all__ = ['create_colorbar_barchart_for_check', 'shifted_color_map', 'colors', 'hex_to_rgba']
 

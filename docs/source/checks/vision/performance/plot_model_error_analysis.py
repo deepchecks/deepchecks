@@ -29,7 +29,6 @@ What is the purpose of the check?
 # -------
 
 from deepchecks.vision.checks.performance import ModelErrorAnalysis
-
 #%%
 # Classification Performance Report
 # ---------------------------------
@@ -62,6 +61,7 @@ check.run(train_ds, test_ds, mnist_model)
 # precision per class, over the range [0.5, 0.95, 0.05] of IoU thresholds.
 
 import numpy as np
+
 from deepchecks.vision.datasets.detection import coco
 
 #%%

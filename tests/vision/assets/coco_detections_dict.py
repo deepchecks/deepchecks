@@ -8,8 +8,8 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-from torch import tensor
 import torch
+from torch import tensor
 
 # pylint: disable=line-too-long
 

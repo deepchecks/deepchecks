@@ -9,21 +9,20 @@
 # ----------------------------------------------------------------------------
 #
 """module contains Data Duplicates check."""
-from typing import Union, List
+from typing import List, Union
 
 import pandas as pd
 
-from deepchecks.core import ConditionResult, CheckResult, ConditionCategory
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
 
+__all__ = ['ConflictingLabels']
 
-__all__ = ['LabelAmbiguity']
 
-
-class LabelAmbiguity(SingleDatasetCheck):
-    """Find samples with multiple labels.
+class ConflictingLabels(SingleDatasetCheck):
+    """Find samples which have the exact same features' values but different labels.
 
     Parameters
     ----------
@@ -108,8 +107,8 @@ class LabelAmbiguity(SingleDatasetCheck):
 
         return CheckResult(value=percent_ambiguous, display=display)
 
-    def add_condition_ambiguous_sample_ratio_not_greater_than(self, max_ratio=0):
-        """Add condition - require samples with multiple labels to not be more than max_ratio.
+    def add_condition_ratio_of_conflicting_labels_not_greater_than(self, max_ratio=0):
+        """Add condition - require ratio of samples with conflicting labels to not be more than max_ratio.
 
         Parameters
         ----------

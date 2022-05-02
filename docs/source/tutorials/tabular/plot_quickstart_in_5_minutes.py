@@ -30,13 +30,13 @@ code, that start here: `Define a Dataset Object <#define-a-dataset-object>`__.
 # For the purpose of this guide we'll use the simple iris dataset and train a
 # simple random forest model for multiclass classification:
 
+import numpy as np
 # General imports
 import pandas as pd
-import numpy as np
-
-from deepchecks.tabular.datasets.classification import iris
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
+
+from deepchecks.tabular.datasets.classification import iris
 
 # Load Data
 iris_df = iris.load_data(data_format='Dataframe', as_train_test=False)

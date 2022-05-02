@@ -9,20 +9,20 @@
 # ----------------------------------------------------------------------------
 #
 """Module for base tabular context."""
-from typing import Callable, Union, Mapping, Optional
+from typing import Callable, Mapping, Optional, Union
 
 import pandas as pd
 
+from deepchecks.core.errors import (DatasetValidationError,
+                                    DeepchecksNotSupportedError,
+                                    DeepchecksValueError, ModelValidationError)
 from deepchecks.tabular.dataset import Dataset
-from deepchecks.tabular.utils.validation import validate_model, model_type_validation
-from deepchecks.utils.metrics import ModelType, task_type_check, get_default_scorers, init_validate_scorers
-from deepchecks.utils.typing import BasicModel
+from deepchecks.tabular.utils.validation import (model_type_validation,
+                                                 validate_model)
 from deepchecks.utils.features import calculate_feature_importance_or_none
-from deepchecks.core.errors import (
-    DatasetValidationError, ModelValidationError,
-    DeepchecksNotSupportedError, DeepchecksValueError
-)
-
+from deepchecks.utils.metrics import (ModelType, get_default_scorers,
+                                      init_validate_scorers, task_type_check)
+from deepchecks.utils.typing import BasicModel
 
 __all__ = [
     'Context'

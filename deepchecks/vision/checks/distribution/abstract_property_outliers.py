@@ -18,12 +18,14 @@ from secrets import choice
 
 import numpy as np
 
-from deepchecks.utils.strings import format_number
 from deepchecks import CheckResult
 from deepchecks.core import DatasetKind
-from deepchecks.core.errors import DeepchecksProcessError, NotEnoughSamplesError, DeepchecksValueError
+from deepchecks.core.errors import (DeepchecksProcessError,
+                                    DeepchecksValueError,
+                                    NotEnoughSamplesError)
 from deepchecks.utils.outliers import iqr_outliers_range
-from deepchecks.vision import SingleDatasetCheck, Context, Batch
+from deepchecks.utils.strings import format_number
+from deepchecks.vision import Batch, Context, SingleDatasetCheck
 from deepchecks.vision.utils import label_prediction_properties
 from deepchecks.vision.utils.image_functions import prepare_thumbnail
 from deepchecks.vision.vision_data import VisionData

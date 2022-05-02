@@ -8,11 +8,15 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module containing the distribution checks in the vision package."""
-from .similar_image_leakage import SimilarImageLeakage
-from .simple_feature_contribution import SimpleFeatureContribution
+"""The task type module containing the TaskType enum."""
+from enum import Enum
 
-__all__ = [
-    'SimpleFeatureContribution',
-    'SimilarImageLeakage'
-]
+__all__ = ['TaskType']
+
+
+class TaskType(Enum):
+    """Enum containing supported task types."""
+
+    CLASSIFICATION = 'classification'
+    OBJECT_DETECTION = 'object_detection'
+    OTHER = 'other'

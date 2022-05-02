@@ -12,8 +12,8 @@ import os
 
 from hamcrest import assert_that
 
-from deepchecks.vision.utils.validation import validate_extractors
 from deepchecks.utils.ipython import is_headless
+from deepchecks.vision.utils.validation import validate_extractors
 
 FILE_NAME = 'deepchecks_formatted_image.jpg'
 

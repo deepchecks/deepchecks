@@ -9,22 +9,23 @@
 # ----------------------------------------------------------------------------
 #
 """A module containing utils for plotting distributions."""
-from numbers import Number
 from functools import cmp_to_key
+from numbers import Number
 
 import numpy as np
 import pandas as pd
-from scipy.stats import gaussian_kde
 import plotly.graph_objs as go
+from scipy.stats import gaussian_kde
 
 __all__ = ['feature_distribution_traces', 'drift_score_bar_traces', 'get_density']
 
-from typing import List, Dict, Tuple
+from typing import Dict, List, Tuple
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
-from deepchecks.utils.plot import colors
 from deepchecks.utils.dataframes import un_numpy
+from deepchecks.utils.distribution.preprocessing import \
+    preprocess_2_cat_cols_to_same_bins
+from deepchecks.utils.plot import colors
 
 # For numerical plots, below this number of unique values we draw bar plots, else KDE
 MAX_NUMERICAL_UNIQUE_FOR_BARS = 20

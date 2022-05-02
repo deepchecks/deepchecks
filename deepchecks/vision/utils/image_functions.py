@@ -9,21 +9,21 @@
 # ----------------------------------------------------------------------------
 #
 """Module for defining functions related to image data."""
-import typing as t
-import io
 import base64
+import io
+import typing as t
 
 import cv2
 import numpy as np
-import torch
 import PIL.Image as pilimage
 import PIL.ImageDraw as pildraw
 import PIL.ImageOps as pilops
 import plotly.graph_objects as go
+import torch
 
 from deepchecks.core.errors import DeepchecksValueError
-from .detection_formatters import convert_bbox
 
+from .detection_formatters import convert_bbox
 
 __all__ = ['ImageInfo', 'numpy_grayscale_to_heatmap_figure', 'ensure_image',
            'apply_heatmap_image_properties', 'draw_bboxes', 'prepare_thumbnail', 'crop_image']

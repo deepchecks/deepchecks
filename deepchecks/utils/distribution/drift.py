@@ -10,18 +10,19 @@
 #
 """Common utilities for distribution checks."""
 
-from typing import Tuple, Union, Hashable, Callable, Optional
+from typing import Callable, Hashable, Optional, Tuple, Union
 
-from scipy.stats import wasserstein_distance
 import numpy as np
 import pandas as pd
-
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from scipy.stats import wasserstein_distance
 
-from deepchecks.utils.distribution.plot import drift_score_bar_traces, feature_distribution_traces
-from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
 from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
+from deepchecks.utils.distribution.plot import (drift_score_bar_traces,
+                                                feature_distribution_traces)
+from deepchecks.utils.distribution.preprocessing import \
+    preprocess_2_cat_cols_to_same_bins
 from deepchecks.utils.strings import format_percent
 
 PSI_MIN_PERCENTAGE = 0.01

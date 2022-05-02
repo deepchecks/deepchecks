@@ -8,15 +8,15 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-from hamcrest import assert_that, all_of, instance_of, has_key, has_length, has_properties, has_entries, is_, \
-    contains_exactly, close_to, calling, raises, equal_to, any_of
+from hamcrest import (all_of, any_of, assert_that, calling, close_to,
+                      contains_exactly, equal_to, has_entries, has_key,
+                      has_length, has_properties, instance_of, is_, raises)
 from hamcrest.core.matcher import Matcher
 
 from deepchecks import CheckResult
 from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.vision.checks import ImagePropertyOutliers
 from deepchecks.vision.utils.image_properties import default_image_properties
-
 from tests.vision.vision_conftest import *
 
 

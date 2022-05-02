@@ -9,13 +9,13 @@
 # ----------------------------------------------------------------------------
 #
 """Module of segment performance check."""
-from typing import Callable, Union, Optional, List, cast, Tuple
+from typing import Callable, List, Optional, Tuple, Union, cast
 
 import numpy as np
 import plotly.express as px
 
 from deepchecks.core import CheckResult
-from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError
+from deepchecks.core.errors import DatasetValidationError, DeepchecksValueError
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.performance.partition import partition_column
 from deepchecks.utils.strings import format_number
@@ -93,6 +93,11 @@ class SegmentPerformance(SingleDatasetCheck):
 
         elif self.feature_1 is None or self.feature_2 is None:
             raise DeepchecksValueError('Must define both "feature_1" and "feature_2" or none of them')
+        else:
+            # If both are defined, must be in dataset columns
+            columns = dataset.data.columns
+            if self.feature_1 not in columns or self.feature_2 not in columns:
+                raise DeepchecksValueError('"feature_1" and "feature_2" must be in dataset columns')
 
         feature_1_filters = partition_column(dataset, self.feature_1, max_segments=self.max_segments)
         feature_2_filters = partition_column(dataset, self.feature_2, max_segments=self.max_segments)

@@ -11,10 +11,9 @@
 """The date_leakage check module."""
 import pandas as pd
 
-from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, TrainTestCheck
-from deepchecks.utils.strings import format_percent, format_datetime
-
+from deepchecks.utils.strings import format_datetime, format_percent
 
 __all__ = ['DateTrainTestLeakageDuplicates']
 
