@@ -12,7 +12,8 @@
 import numpy as np
 import pandas as pd
 import plotly.express as px
-import sklearn
+import plotly.graph_objects as go
+from sklearn import metrics
 
 from deepchecks.core import CheckResult
 from deepchecks.tabular import Context, SingleDatasetCheck
@@ -48,12 +49,17 @@ class ConfusionMatrixReport(SingleDatasetCheck):
 
         y_pred = np.array(model.predict(ds_x)).reshape(len(ds_y), )
         total_classes = sorted(list(set(pd.concat([ds_y, pd.Series(y_pred)]).to_list())))
-        confusion_matrix = sklearn.metrics.confusion_matrix(ds_y, y_pred)
+        confusion_matrix = metrics.confusion_matrix(ds_y, y_pred)
+        confusion_matrix_norm = metrics.confusion_matrix(ds_y, y_pred, normalize='true')
 
-        # Figure
-        fig = px.imshow(confusion_matrix, x=total_classes, y=total_classes, text_auto=True)
+        fig = go.Figure(data=go.Heatmap(
+                    x=total_classes,
+                    y=total_classes,
+                    z=confusion_matrix_norm,
+                    text=confusion_matrix,
+                    colorbar=dict(title='Normalized Value'), 
+                    texttemplate="%{text}"))
         fig.update_layout(width=600, height=600)
-        fig.update_xaxes(title='Predicted Value', type='category')
-        fig.update_yaxes(title='True value', type='category')
-
+        fig.update_xaxes(title='Predicted Value', type='category', scaleanchor='y', constrain='domain')
+        fig.update_yaxes(title='True value', type='category', constrain='domain', autorange='reversed')
         return CheckResult(confusion_matrix, display=fig)
