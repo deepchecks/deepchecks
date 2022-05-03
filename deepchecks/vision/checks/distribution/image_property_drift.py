@@ -54,7 +54,7 @@ class ImagePropertyDrift(TrainTestCheck):
         they are binned into an "Other" category. If None, there is no limit.
     max_num_categories_for_display: int, default: 10
         Max number of categories to show in plot.
-    show_categories_by: str, default: 'train_largest'
+    show_categories_by: str, default: 'largest_difference'
         Specify which categories to show for categorical features' graphs, as the number of shown categories is limited
         by max_num_categories_for_display. Possible values:
         - 'train_largest': Show the largest train categories.
@@ -75,7 +75,7 @@ class ImagePropertyDrift(TrainTestCheck):
             margin_quantile_filter: float = 0,
             max_num_categories_for_drift: int = 10,
             max_num_categories_for_display: int = 10,
-            show_categories_by: str = 'train_largest',
+            show_categories_by: str = 'largest_difference',
             classes_to_display: t.Optional[t.List[str]] = None,
             min_samples: int = 30,
             max_num_categories: int = None,  # Deprecated
