@@ -11,11 +11,10 @@
 """Tests for Single Value Check"""
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, calling, raises, equal_to, has_items
+from hamcrest import assert_that, calling, equal_to, has_items, raises
 
-from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError
+from deepchecks.core.errors import DatasetValidationError, DeepchecksValueError
 from deepchecks.tabular.checks.integrity.is_single_value import IsSingleValue
-
 from tests.checks.utils import equal_condition_result
 
 
@@ -60,13 +59,9 @@ def test_multi_column_dataset_single_value_with_ignore():
 
 
 def test_empty_df_single_value():
-    #Arrange
-    df = pd.DataFrame()
-    cls = IsSingleValue()
-
     # Act & Assert
-    assert_that(calling(cls.run).with_args(df),
-                raises(DatasetValidationError, 'dataset cannot be empty'))
+    assert_that(calling(IsSingleValue().run).with_args(pd.DataFrame()),
+                raises(DeepchecksValueError, r'Can\'t create a Dataset object with an empty dataframe'))
 
 
 def test_single_value_object(iris_dataset):

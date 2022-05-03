@@ -15,14 +15,17 @@ from collections import defaultdict
 import pandas as pd
 import torch
 
+from deepchecks import CheckFailure
 from deepchecks.core import CheckResult, DatasetKind
-from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.utils.performance.error_model import error_model_display_dataframe, model_error_contribution
+from deepchecks.core.errors import DeepchecksProcessError, DeepchecksValueError
+from deepchecks.utils.performance.error_model import (
+    error_model_display_dataframe, model_error_contribution)
 from deepchecks.utils.single_sample_metrics import per_sample_cross_entropy
-from deepchecks.vision.utils.image_properties import default_image_properties, validate_properties
-from deepchecks.vision import TrainTestCheck, Context, Batch
-from deepchecks.vision.vision_data import TaskType
+from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.metrics_utils.iou_utils import per_sample_mean_iou
+from deepchecks.vision.utils.image_properties import (default_image_properties,
+                                                      validate_properties)
+from deepchecks.vision.vision_data import TaskType
 
 __all__ = ['ModelErrorAnalysis']
 
@@ -144,15 +147,18 @@ class ModelErrorAnalysis(TrainTestCheck):
         train_property_df = pd.DataFrame(self._train_properties).dropna(axis=1, how='all')
         test_property_df = pd.DataFrame(self._test_properties)[train_property_df.columns]
 
-        error_fi, error_model_predicted = \
-            model_error_contribution(train_property_df,
-                                     self._train_scores,
-                                     test_property_df,
-                                     self._test_scores,
-                                     train_property_df.columns.to_list(),
-                                     [],
-                                     min_error_model_score=self.min_error_model_score,
-                                     random_state=self.random_state)
+        try:
+            error_fi, error_model_predicted = \
+                model_error_contribution(train_property_df,
+                                         pd.Series(self._train_scores),
+                                         test_property_df,
+                                         pd.Series(self._test_scores),
+                                         train_property_df.columns.to_list(),
+                                         [],
+                                         min_error_model_score=self.min_error_model_score,
+                                         random_state=self.random_state)
+        except DeepchecksProcessError as e:
+            return CheckFailure(self, e)
 
         display, value = error_model_display_dataframe(error_fi,
                                                        error_model_predicted,

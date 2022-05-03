@@ -9,11 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """Test functions of the VISION train test label drift."""
-from hamcrest import assert_that, has_entries, close_to, equal_to, raises, calling
-from tests.checks.utils import equal_condition_result
+from hamcrest import (assert_that, calling, close_to, equal_to, has_entries,
+                      raises)
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks import TrainTestLabelDrift
+from tests.checks.utils import equal_condition_result
 
 
 def test_no_drift_classification(mnist_dataset_train, device):
@@ -118,7 +119,7 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets):
 
 def test_with_drift_object_detection_change_max_cat(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
-    check = TrainTestLabelDrift(max_num_categories=100)
+    check = TrainTestLabelDrift(max_num_categories_for_drift=100)
 
     # Act
     result = check.run(coco_train_visiondata, coco_test_visiondata, device=device)
@@ -137,6 +138,32 @@ def test_with_drift_object_detection_change_max_cat(coco_train_visiondata, coco_
         )
         }
     ))
+
+
+def test_display_changes_but_values_dont_for_diff_display_params(coco_train_visiondata, coco_test_visiondata, device):
+    def assert_func(result):
+        assert_that(result.value, has_entries(
+            {'Samples Per Class': has_entries(
+                {'Drift score': close_to(0.24, 0.01),
+                 'Method': equal_to('PSI')}
+            ), 'Bounding Box Area (in pixels)': has_entries(
+                {'Drift score': close_to(0.012, 0.001),
+                 'Method': equal_to('Earth Mover\'s Distance')}
+            ), 'Number of Bounding Boxes Per Image': has_entries(
+                {'Drift score': close_to(0.059, 0.001),
+                 'Method': equal_to('Earth Mover\'s Distance')}
+            )
+            }
+        ))
+
+    # Arrange and assert
+    check = TrainTestLabelDrift(max_num_categories_for_display=20, show_categories_by='test_largest')
+    result = check.run(coco_train_visiondata, coco_test_visiondata, device=device)
+    assert_func(result)
+
+    check = TrainTestLabelDrift(show_categories_by='largest_difference')
+    result = check.run(coco_train_visiondata, coco_test_visiondata, device=device)
+    assert_func(result)
 
 
 def test_with_drift_object_detection_alternative_properties(coco_train_visiondata, coco_test_visiondata, device):

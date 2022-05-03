@@ -10,20 +10,23 @@
 #
 """Module contains the simple feature distribution check."""
 from collections import defaultdict
-from typing import Callable, TypeVar, Hashable, Dict, Union
+from typing import Callable, Dict, Hashable, TypeVar, Union
 
 import pandas as pd
+from pandas.core.dtypes.common import is_float_dtype
 
 from deepchecks import ConditionResult
 from deepchecks.core import CheckResult, DatasetKind
-from deepchecks.core.check_utils.single_feature_contribution_utils import get_single_feature_contribution, \
-    get_single_feature_contribution_per_class
+from deepchecks.core.check_utils.single_feature_contribution_utils import (
+    get_single_feature_contribution, get_single_feature_contribution_per_class)
 from deepchecks.core.condition import ConditionCategory
+from deepchecks.core.errors import ModelValidationError
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Context, TrainTestCheck
 from deepchecks.vision.batch_wrapper import Batch
-from deepchecks.vision.utils.image_properties import default_image_properties, validate_properties
 from deepchecks.vision.utils.image_functions import crop_image
+from deepchecks.vision.utils.image_properties import (default_image_properties,
+                                                      validate_properties)
 from deepchecks.vision.vision_data import TaskType
 
 __all__ = ['SimpleFeatureContribution']
@@ -71,6 +74,8 @@ class SimpleFeatureContribution(TrainTestCheck):
         label. If True, the conditions will be run per class as well.
     n_top_properties: int, default: 5
         Number of features to show, sorted by the magnitude of difference in PPS
+    random_state: int, default: None
+        Random state for the ppscore.predictors function
     ppscore_params: dict, default: None
         dictionary of additional parameters for the ppscore predictor function
     """
@@ -80,6 +85,7 @@ class SimpleFeatureContribution(TrainTestCheck):
             image_properties: Dict[str, Callable] = None,
             n_top_properties: int = 3,
             per_class: bool = True,
+            random_state: int = None,
             ppscore_params: dict = None,
             **kwargs
     ):
@@ -93,6 +99,7 @@ class SimpleFeatureContribution(TrainTestCheck):
 
         self.per_class = per_class
         self.n_top_properties = n_top_properties
+        self.random_state = random_state
         self.ppscore_params = ppscore_params or {}
 
         self._train_properties = defaultdict(list)
@@ -122,11 +129,11 @@ class SimpleFeatureContribution(TrainTestCheck):
                         continue
                     class_id = int(label[0])
                     imgs += [cropped_img]
-                    target += [class_id]
+                    target += [dataset.label_id_to_name(class_id)]
         else:
             for img, classes_ids in zip(batch.images, dataset.get_classes(batch.labels)):
                 imgs += [img] * len(classes_ids)
-                target += classes_ids
+                target += list(map(dataset.label_id_to_name, classes_ids))
 
         properties['target'] += target
 
@@ -144,6 +151,21 @@ class SimpleFeatureContribution(TrainTestCheck):
         """
         df_train = pd.DataFrame(self._train_properties)
         df_test = pd.DataFrame(self._test_properties)
+
+        # PPS task type is inferred from label dtype. For most computer vision tasks, it's safe to assume that unless
+        # the label is a float, then the task type is not regression and thus the label is cast to object dtype.
+        # For the known task types (object detection, classification), classification is always selected.
+        col_dtype = 'object'
+        if context.train.task_type == TaskType.OTHER:
+            if self.is_float_column(df_train['target']) or self.is_float_column(df_test['target']):
+                col_dtype = 'float'
+        elif context.train.task_type not in (TaskType.OBJECT_DETECTION, TaskType.CLASSIFICATION):
+            raise ModelValidationError(
+                f'Check must be explicitly adopted to the new task type {context.train.task_type}, so that the '
+                f'label type used by the PPS predictor would be appropriate.')
+
+        df_train['target'] = df_train['target'].astype(col_dtype)
+        df_test['target'] = df_test['target'].astype(col_dtype)
 
         text = [
             'The Predictive Power Score (PPS) is used to estimate the ability of an image property (such as brightness)'
@@ -168,19 +190,40 @@ class SimpleFeatureContribution(TrainTestCheck):
                                                                            df_test,
                                                                            'target',
                                                                            self.ppscore_params,
-                                                                           self.n_top_properties)
+                                                                           self.n_top_properties,
+                                                                           random_state=self.random_state)
         else:
             ret_value, display = get_single_feature_contribution(df_train,
                                                                  'target',
                                                                  df_test,
                                                                  'target',
                                                                  self.ppscore_params,
-                                                                 self.n_top_properties)
+                                                                 self.n_top_properties,
+                                                                 random_state=self.random_state)
 
         if display:
             display += text
 
         return CheckResult(value=ret_value, display=display, header='Simple Feature Contribution')
+
+    @staticmethod
+    def is_float_column(col: pd.Series) -> bool:
+        """Check if a column must be a float - meaning does it contain fractions.
+
+        Parameters
+        ----------
+        col : pd.Series
+            The column to check.
+
+        Returns
+        -------
+        bool
+            True if the column is float, False otherwise.
+        """
+        if not is_float_dtype(col):
+            return False
+
+        return (col.round() != col).any()
 
     def add_condition_feature_pps_difference_not_greater_than(self: SFC, threshold: float = 0.2) -> SFC:
         """Add new condition.

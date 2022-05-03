@@ -10,21 +10,20 @@
 #
 """String mismatch functions."""
 from collections import defaultdict
-from typing import Union, List
+from typing import List, Union
 
 import pandas as pd
 
-from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, TrainTestCheck
+from deepchecks.tabular.utils.display_utils import nothing_found_on_columns
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
+from deepchecks.utils.features import (N_TOP_MESSAGE,
+                                       column_importance_sorter_df)
+from deepchecks.utils.strings import (format_percent,
+                                      get_base_form_to_variants_dict,
+                                      is_string_column)
 from deepchecks.utils.typing import Hashable
-from deepchecks.utils.strings import (
-    get_base_form_to_variants_dict,
-    is_string_column,
-    format_percent,
-)
-
 
 __all__ = ['StringMismatchComparison']
 
@@ -135,7 +134,7 @@ class StringMismatchComparison(TrainTestCheck):
             # For display transpose the dataframe
             display = [N_TOP_MESSAGE % self.n_top_columns, df_graph.T]
         else:
-            display = None
+            display = nothing_found_on_columns(columns)
 
         return CheckResult(result_dict, display=display)
 

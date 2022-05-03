@@ -9,9 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains the domain classifier drift check."""
-from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
+import warnings
+
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
+from deepchecks.core.check_utils.whole_dataset_drift_utils import \
+    run_whole_dataset_drift
 from deepchecks.tabular import Context, TrainTestCheck
-from deepchecks.core.check_utils.whole_dataset_drift_utils import run_whole_dataset_drift
 from deepchecks.utils.strings import format_number
 
 __all__ = ['WholeDatasetDrift']
@@ -38,10 +41,14 @@ class WholeDatasetDrift(TrainTestCheck):
         less than 5% to the predictive power of the Domain Classifier won't be displayed. This limit is used
         together (AND) with n_top_columns, so features more important than min_feature_importance can be
         hidden.
-    max_num_categories : int , default: 10
-        Only for categorical columns. Max number of categories to display in distributio plots. If there are
-        more, they are binned into an "Other" category in the display. If max_num_categories=None, there is
-        no limit.
+    max_num_categories_for_display: int, default: 10
+        Max number of categories to show in plot.
+    show_categories_by: str, default: 'train_largest'
+        Specify which categories to show for categorical features' graphs, as the number of shown categories is limited
+        by max_num_categories_for_display. Possible values:
+        - 'train_largest': Show the largest train categories.
+        - 'test_largest': Show the largest test categories.
+        - 'largest_difference': Show the largest difference between categories.
     sample_size : int , default: 10_000
         Max number of rows to use from each dataset for the training and evaluation of the domain classifier.
     random_state : int , default: 42
@@ -50,24 +57,36 @@ class WholeDatasetDrift(TrainTestCheck):
         Fraction of the combined datasets to use for the evaluation of the domain classifier.
     min_meaningful_drift_score : float , default 0.05
         Minimum drift score for displaying drift in check. Under that score, check will display "nothing found".
+    max_num_categories: int, default: None
+        Deprecated. Please use max_num_categories_for_display instead
     """
 
     def __init__(
             self,
             n_top_columns: int = 3,
             min_feature_importance: float = 0.05,
-            max_num_categories: int = 10,
+            max_num_categories_for_display: int = 10,
+            show_categories_by: str = 'train_largest',
             sample_size: int = 10_000,
             random_state: int = 42,
             test_size: float = 0.3,
             min_meaningful_drift_score: float = 0.05,
+            max_num_categories: int = None,
             **kwargs
     ):
         super().__init__(**kwargs)
 
         self.n_top_columns = n_top_columns
         self.min_feature_importance = min_feature_importance
-        self.max_num_categories = max_num_categories
+        if max_num_categories is not None:
+            warnings.warn(
+                f'{self.__class__.__name__}: max_num_categories is deprecated. please use '
+                f'max_num_categories_for_display instead',
+                DeprecationWarning
+            )
+            max_num_categories_for_display = max_num_categories_for_display or max_num_categories
+        self.max_num_categories_for_display = max_num_categories_for_display
+        self.show_categories_by = show_categories_by
         self.sample_size = sample_size
         self.random_state = random_state
         self.test_size = test_size
@@ -103,15 +122,17 @@ class WholeDatasetDrift(TrainTestCheck):
         </span>
         """
 
-        values_dict, displays = run_whole_dataset_drift(train_dataframe=train_dataset.features_columns,
-                                                        test_dataframe=test_dataset.features_columns,
-                                                        numerical_features=numerical_features,
-                                                        cat_features=cat_features,
-                                                        sample_size=sample_size, random_state=self.random_state,
-                                                        test_size=self.test_size, n_top_columns=self.n_top_columns,
-                                                        min_feature_importance=self.min_feature_importance,
-                                                        max_num_categories=self.max_num_categories,
-                                                        min_meaningful_drift_score=self.min_meaningful_drift_score)
+        values_dict, displays = run_whole_dataset_drift(
+            train_dataframe=train_dataset.features_columns,
+            test_dataframe=test_dataset.features_columns,
+            numerical_features=numerical_features,
+            cat_features=cat_features,
+            sample_size=sample_size, random_state=self.random_state,
+            test_size=self.test_size, n_top_columns=self.n_top_columns,
+            min_feature_importance=self.min_feature_importance,
+            max_num_categories_for_display=self.max_num_categories_for_display,
+            show_categories_by=self.show_categories_by,
+            min_meaningful_drift_score=self.min_meaningful_drift_score)
 
         if displays:
             displays.insert(0, headnote)

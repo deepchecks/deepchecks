@@ -9,14 +9,14 @@
 # ----------------------------------------------------------------------------
 #
 """Tests for Mixed Nulls check"""
-import pandas as pd
 import numpy as np
-from hamcrest import assert_that, close_to, equal_to, calling, raises, has_items
+import pandas as pd
+from hamcrest import (assert_that, calling, close_to, equal_to, has_items,
+                      raises)
 
 from deepchecks.core import ConditionCategory
-from deepchecks.core.errors import DatasetValidationError
+from deepchecks.core.errors import DatasetValidationError, DeepchecksValueError
 from deepchecks.tabular.checks.integrity.data_duplicates import DataDuplicates
-
 from tests.checks.utils import equal_condition_result
 
 
@@ -80,7 +80,7 @@ def test_data_duplicates_empty():
                             'col3': []})
     assert_that(
         calling(DataDuplicates().run).with_args(no_data),
-        raises(DatasetValidationError, 'dataset cannot be empty'))
+        raises(DeepchecksValueError, 'Can\'t create a Dataset object with an empty dataframe'))
 
 
 def test_data_duplicates_ignore_index_column():

@@ -11,12 +11,12 @@
 """Tests for Mixed Nulls check"""
 import numpy as np
 import pandas as pd
+from hamcrest import (assert_that, calling, has_entry, has_items, has_length,
+                      is_, raises)
 
-from hamcrest import assert_that, has_length, has_entry, has_items, calling, raises
-
-from deepchecks.tabular.dataset import Dataset
+from deepchecks.core.errors import DatasetValidationError, DeepchecksValueError
 from deepchecks.tabular.checks.integrity.mixed_nulls import MixedNulls
-from deepchecks.core.errors import DatasetValidationError
+from deepchecks.tabular.dataset import Dataset
 from tests.checks.utils import equal_condition_result
 
 
@@ -46,7 +46,7 @@ def test_empty_dataframe():
     dataframe = pd.DataFrame(data=data)
     # Act
     assert_that(calling(MixedNulls().run).with_args(dataframe),
-                raises(DatasetValidationError, 'dataset cannot be empty'))
+                raises(DeepchecksValueError, r'Can\'t create a Dataset object with an empty dataframe'))
 
 
 def test_different_null_types():
@@ -56,7 +56,7 @@ def test_different_null_types():
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value, has_entry('col1', has_length(3)))
+    assert_that(result.value, has_entry('col1', has_length(4)))
 
 
 def test_null_list_param():
@@ -97,6 +97,37 @@ def test_single_column_different_case_is_count_separately():
     result = MixedNulls().run(dataframe)
     # Assert
     assert_that(result.value, has_entry('col1', has_length(3)))
+
+
+def test_numeric_column_nulls():
+    # Arrange
+    data = {'col1': [1, 2, np.NaN, pd.NA, pd.NaT]}
+    dataframe = pd.DataFrame(data=data)
+    # Act
+    result = MixedNulls().run(dataframe)
+    # Assert
+    assert_that(result.value, has_entry('col1', has_length(3)))
+
+
+def test_numeric_column_nulls_with_none():
+    # Arrange
+    data = {'col1': [1, 2, np.NaN, pd.NA, pd.NaT, None]}
+    dataframe = pd.DataFrame(data=data)
+    # Act
+    result = MixedNulls().run(dataframe)
+    # Assert
+    assert_that(result.value, has_entry('col1', has_length(4)))
+
+
+def test_mix_value_columns():
+    # Arrange
+    data = {'col1': [1, 2, np.NaN, pd.NA, pd.NaT, 3], 'col2': ['foo', 'bar', 'Nan', 'nan', 'NaN', None]}
+    dataframe = pd.DataFrame(data=data)
+    # Act
+    result = MixedNulls().run(dataframe)
+    # Assert
+    assert_that(result.value, has_entry('col1', has_length(3)))
+    assert_that(result.value, has_entry('col2', has_length(4)))
 
 
 def test_single_column_nulls_with_special_characters():

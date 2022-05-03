@@ -13,11 +13,12 @@ Contains unit tests for the single_feature_contribution check
 """
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, close_to, calling, raises, has_items
+from hamcrest import assert_that, calling, close_to, has_items, raises
 
+from deepchecks.core.errors import DatasetValidationError, DeepchecksValueError
+from deepchecks.tabular.checks.methodology.index_leakage import \
+    IndexTrainTestLeakage
 from deepchecks.tabular.dataset import Dataset
-from deepchecks.tabular.checks.methodology.index_leakage import IndexTrainTestLeakage
-from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError
 from tests.checks.utils import equal_condition_result
 
 

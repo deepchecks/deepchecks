@@ -5,7 +5,7 @@ Classification Model Validation Tutorial
 
 In this tutorial, you will learn how to validate your **classification model** using deepchecks test suites.
 You can read more about the different checks and suites for computer vision use cases at the
-:doc:`examples section  </examples/index>`
+:doc:`examples section  </checks_gallery/vision/index>`
 
 A classification model is usually used to classify an image into one of a number of classes. Although there are
 multi label use-cases, in which the model is used to classify an image into multiple classes, most use-cases
@@ -17,23 +17,26 @@ Currently deepchecks supports only single label classification (either binary or
 # Defining the data and model
 # ===========================
 
-# Importing the required packages
-import torchvision
-from torchvision import datasets, models, transforms
-import torch
-from torch import nn
 import os
-import deepchecks
-from deepchecks.vision.classification_data import ClassificationData
-import matplotlib.pyplot as plt
-import numpy as np
-import albumentations as A
-from albumentations.pytorch import ToTensorV2
-from torchvision.datasets import ImageFolder
-import PIL.Image
-import cv2
 import urllib.request
 import zipfile
+
+import albumentations as A
+import cv2
+import matplotlib.pyplot as plt
+import numpy as np
+import PIL.Image
+import torch
+# Importing the required packages
+import torchvision
+from albumentations.pytorch import ToTensorV2
+from torch import nn
+from torchvision import datasets, models, transforms
+from torchvision.datasets import ImageFolder
+
+import deepchecks
+from deepchecks.vision.classification_data import ClassificationData
+
 #%%
 # Downloading the dataset
 # ~~~~~~~~~~~~~~~~~~~~~~~
@@ -192,7 +195,6 @@ print("Example output of a label shape from the dataloader ", batch[1][0].shape)
 print("Image values", batch[1][0])
 
 #%%
-# And we can watch the output:
 # Implementing the ClassificationData class
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # The first step is to implement a class that enables deepchecks to interact with your model and data.

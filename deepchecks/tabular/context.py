@@ -9,20 +9,20 @@
 # ----------------------------------------------------------------------------
 #
 """Module for base tabular context."""
-from typing import Callable, Union, Mapping, Optional
+from typing import Callable, Mapping, Optional, Union
 
 import pandas as pd
 
+from deepchecks.core.errors import (DatasetValidationError,
+                                    DeepchecksNotSupportedError,
+                                    DeepchecksValueError, ModelValidationError)
 from deepchecks.tabular.dataset import Dataset
-from deepchecks.tabular.utils.validation import validate_model, model_type_validation
-from deepchecks.utils.metrics import ModelType, task_type_check, get_default_scorers, init_validate_scorers
-from deepchecks.utils.typing import BasicModel
+from deepchecks.tabular.utils.validation import (model_type_validation,
+                                                 validate_model)
 from deepchecks.utils.features import calculate_feature_importance_or_none
-from deepchecks.core.errors import (
-    DatasetValidationError, ModelValidationError,
-    DeepchecksNotSupportedError, DeepchecksValueError
-)
-
+from deepchecks.utils.metrics import (ModelType, get_default_scorers,
+                                      init_validate_scorers, task_type_check)
+from deepchecks.utils.typing import BasicModel
 
 __all__ = [
     'Context'
@@ -72,9 +72,9 @@ class Context:
         if train is None and test is None and model is None:
             raise DeepchecksValueError('At least one dataset (or model) must be passed to the method!')
         if train is not None:
-            train = Dataset.ensure_not_empty_dataset(train)
+            train = Dataset.cast_to_dataset(train)
         if test is not None:
-            test = Dataset.ensure_not_empty_dataset(test)
+            test = Dataset.cast_to_dataset(test)
         # If both dataset, validate they fit each other
         if train and test:
             if not Dataset.datasets_share_label(train, test):
@@ -98,6 +98,9 @@ class Context:
         if model is not None:
             # Here validate only type of model, later validating it can predict on the data if needed
             model_type_validation(model)
+        if features_importance is not None:
+            if not isinstance(features_importance, pd.Series):
+                raise DeepchecksValueError('features_importance must be a pandas Series')
 
         self._train = train
         self._test = test
@@ -105,7 +108,7 @@ class Context:
         self._feature_importance_force_permutation = feature_importance_force_permutation
         self._features_importance = features_importance
         self._feature_importance_timeout = feature_importance_timeout
-        self._calculated_importance = False
+        self._calculated_importance = features_importance is not None
         self._importance_type = None
         self._validated_model = False
         self._task_type = None

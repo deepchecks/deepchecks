@@ -12,31 +12,24 @@
 import itertools
 import typing as t
 
-import torch
-from torch.utils.data import DataLoader
-from hamcrest import (
-    assert_that,
-    calling,
-    raises,
-    equal_to,
-    has_entries,
-    instance_of,
-    all_of,
-    contains_exactly
-)
 import albumentations as A
 import imgaug.augmenters as iaa
+import torch
+from hamcrest import (all_of, assert_that, calling, contains_exactly, equal_to,
+                      has_entries, instance_of, raises)
+from torch.utils.data import DataLoader
 
-from deepchecks.core.errors import ValidationError, DeepchecksValueError, DeepchecksNotImplementedError
+from deepchecks.core.errors import (DeepchecksNotImplementedError,
+                                    DeepchecksValueError, ValidationError)
 from deepchecks.vision.classification_data import ClassificationData
-from deepchecks.vision.vision_data import TaskType
+from deepchecks.vision.datasets.classification import mnist
 from deepchecks.vision.datasets.classification.mnist import MNISTData
 from deepchecks.vision.datasets.detection import coco
-from deepchecks.vision.datasets.classification import mnist
 from deepchecks.vision.datasets.detection.coco import COCOData
 from deepchecks.vision.detection_data import DetectionData
-from deepchecks.vision.vision_data import VisionData
-from deepchecks.vision.utils.transformations import AlbumentationsTransformations, ImgaugTransformations
+from deepchecks.vision.utils.transformations import (
+    AlbumentationsTransformations, ImgaugTransformations)
+from deepchecks.vision.vision_data import TaskType, VisionData
 from tests.vision.vision_conftest import run_update_loop
 
 

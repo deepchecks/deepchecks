@@ -10,15 +10,17 @@
 #
 """The phishing dataset contains a slightly synthetic dataset of urls - some regular and some used for phishing."""
 import typing as t
-import pandas as pd
+from urllib.request import urlopen
+
 import joblib
+import pandas as pd
 import sklearn
-from sklearn.ensemble import RandomForestClassifier
+from category_encoders import OneHotEncoder
 from sklearn.compose import ColumnTransformer
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
-from category_encoders import OneHotEncoder
-from urllib.request import urlopen
+
 from deepchecks.tabular.dataset import Dataset
 
 __all__ = ['load_data', 'load_fitted_model']

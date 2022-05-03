@@ -9,10 +9,15 @@
 # ----------------------------------------------------------------------------
 #
 """Test functions of the whole dataset drift check."""
-from hamcrest import assert_that, has_entries, close_to
+import random
+import string
 
-from deepchecks.tabular.dataset import Dataset
+import numpy as np
+import pandas as pd
+from hamcrest import assert_that, close_to, has_entries
+
 from deepchecks.tabular.checks import WholeDatasetDrift
+from deepchecks.tabular.dataset import Dataset
 from tests.checks.utils import equal_condition_result
 
 
@@ -98,3 +103,43 @@ def test_max_drift_score_condition_fail(drifted_data):
         name='Drift value is not greater than 0.25',
         details='Found drift value of: 0.86, corresponding to a domain classifier AUC of: 0.93'
     ))
+
+
+def test_over_255_categories_in_column():
+    np.random.seed(42)
+
+    letters = string.ascii_letters
+    categories = [''.join(random.choice(letters) for _ in range(5)) for _ in range(300)]
+
+    train_data = np.concatenate([np.random.randn(1000, 1),
+                                 np.random.choice(a=categories, size=(1000, 1))],
+                                axis=1)
+    test_data = np.concatenate([np.random.randn(1000, 1),
+                                np.random.choice(a=categories, size=(1000, 1))],
+                               axis=1)
+
+    df_train = pd.DataFrame(train_data,
+                            columns=['numeric_without_drift', 'categorical_with_many_categories'])
+    df_test = pd.DataFrame(test_data, columns=df_train.columns)
+
+    df_test['categorical_with_many_categories'] = np.random.choice(a=categories[20:280], size=(1000, 1))
+
+    df_train = df_train.astype({'numeric_without_drift': 'float'})
+    df_test = df_test.astype({'numeric_without_drift': 'float'})
+
+    label = np.random.randint(0, 2, size=(df_train.shape[0],))
+    df_train['target'] = label
+    train_ds = Dataset(df_train, cat_features=['categorical_with_many_categories'], label='target')
+
+    label = np.random.randint(0, 2, size=(df_test.shape[0],))
+    df_test['target'] = label
+    test_ds = Dataset(df_test, cat_features=['categorical_with_many_categories'], label='target')
+
+    check = WholeDatasetDrift()
+
+    # Act
+    result = check.run(train_ds, test_ds)
+
+    # Assert
+    # we only care that it runs
+    assert_that(result.value['domain_classifier_auc'])

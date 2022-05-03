@@ -9,9 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """The dataset module containing the tabular Dataset class and its functions."""
+import logging
 # pylint: disable=inconsistent-quotes,protected-access
 import typing as t
-import logging
 from functools import lru_cache
 
 import numpy as np
@@ -19,11 +19,14 @@ import pandas as pd
 from pandas.core.dtypes.common import is_numeric_dtype
 from sklearn.model_selection import train_test_split
 
+from deepchecks.core.errors import (DatasetValidationError,
+                                    DeepchecksNotSupportedError,
+                                    DeepchecksValueError)
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.features import infer_numerical_features, is_categorical, infer_categorical_features
+from deepchecks.utils.features import (infer_categorical_features,
+                                       infer_numerical_features,
+                                       is_categorical)
 from deepchecks.utils.typing import Hashable
-from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError, DeepchecksNotSupportedError
-
 
 __all__ = ['Dataset']
 
@@ -41,8 +44,9 @@ class Dataset:
 
     Parameters
     ----------
-    df : pd.DataFrame
-        A pandas DataFrame containing data relevant for the training or validating of a ML models.
+    df : Any
+        An object that can be casted to a pandas DataFrame
+         - containing data relevant for the training or validating of a ML models.
     label : t.Union[Hashable, pd.Series, pd.DataFrame, np.ndarray] , default: None
         label column provided either as a string with the name of an existing column in the DataFrame or a label
         object including the label data (pandas Series/DataFrame or a numpy array) that will be concatenated to the
@@ -103,7 +107,7 @@ class Dataset:
 
     def __init__(
             self,
-            df: pd.DataFrame,
+            df: t.Any,
             label: t.Union[Hashable, pd.Series, pd.DataFrame, np.ndarray] = None,
             features: t.Optional[t.Sequence[Hashable]] = None,
             cat_features: t.Optional[t.Sequence[Hashable]] = None,
@@ -119,7 +123,9 @@ class Dataset:
             label_type: str = None
     ):
 
-        self._data = df.copy()
+        if len(df) == 0:
+            raise DeepchecksValueError('Can\'t create a Dataset object with an empty dataframe')
+        self._data = pd.DataFrame(df).copy()
 
         # Validations
         if label is None:
@@ -564,21 +570,18 @@ class Dataset:
             columns=columns
         )
 
+        message = ('It is recommended to initialize Dataset with categorical features by doing '
+                   '"Dataset(df, cat_features=categorical_list)". No categorical features were passed, therefore '
+                   'heuristically inferring categorical features in the data.\n'
+                   f'{len(categorical_columns)} categorical features were inferred')
+
         if len(categorical_columns) > 0:
-            columns = list(map(str, categorical_columns))[:7]
-            stringified_columns = ", ".join(columns)
-            if len(categorical_columns) < 7:
-                logger.warning(
-                    'Automatically inferred these columns as categorical features: %s. \n',
-                    stringified_columns
-                )
-            else:
-                logger.warning(
-                    'Some columns have been inferred as categorical features: '
-                    '%s. \n and more... \n For the full list '
-                    'of columns, use dataset.cat_features',
-                    stringified_columns
-                )
+            columns_to_print = categorical_columns[:7]
+            message += ': ' + ', '.join(list(map(str, columns_to_print)))
+            if len(categorical_columns) > len(columns_to_print):
+                message += '... For full list use dataset.cat_features'
+
+        logger.warning(message)
 
         return categorical_columns
 
@@ -864,7 +867,7 @@ class Dataset:
             return self.copy(new_data)
 
     @classmethod
-    def ensure_not_empty_dataset(cls, obj: t.Any) -> 'Dataset':
+    def cast_to_dataset(cls, obj: t.Any) -> 'Dataset':
         """Verify Dataset or transform to Dataset.
 
         Function verifies that provided value is a non-empty instance of Dataset,
@@ -881,8 +884,6 @@ class Dataset:
         DeepchecksValueError
             if the provided value is not a Dataset instance;
             if the provided value cannot be transformed into Dataset instance;
-        DatasetValidationError
-            if the provided value is empty Dataset instance;
         """
         if isinstance(obj, pd.DataFrame):
             obj = Dataset(obj, features=[], cat_features=[])
@@ -890,8 +891,6 @@ class Dataset:
             raise DeepchecksValueError(
                 f'non-empty instance of Dataset or DataFrame was expected, instead got {type(obj).__name__}'
             )
-        if len(obj.data) == 0:
-            raise DatasetValidationError('dataset cannot be empty')
         return obj
 
     @classmethod

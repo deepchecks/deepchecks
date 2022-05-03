@@ -13,12 +13,20 @@
 Each function returns a new suite that is initialized with a list of checks and default conditions.
 It is possible to customize these suites by editing the checks and conditions inside it after the suites' creation.
 """
-from deepchecks.vision.checks import ClassPerformance, TrainTestLabelDrift, MeanAveragePrecisionReport, \
-    MeanAverageRecallReport, ImagePropertyDrift, ImageDatasetDrift, SimpleModelComparison, ConfusionMatrixReport, \
-    TrainTestPredictionDrift, ImageSegmentPerformance, SimpleFeatureContribution, HeatmapComparison, \
-    ImagePropertyOutliers, LabelPropertyOutliers, ModelErrorAnalysis
 from deepchecks.vision import Suite
-
+from deepchecks.vision.checks import (ClassPerformance, ConfusionMatrixReport,
+                                      HeatmapComparison, ImageDatasetDrift,
+                                      ImagePropertyDrift,
+                                      ImagePropertyOutliers,
+                                      ImageSegmentPerformance,
+                                      LabelPropertyOutliers,
+                                      MeanAveragePrecisionReport,
+                                      MeanAverageRecallReport,
+                                      ModelErrorAnalysis, SimilarImageLeakage,
+                                      SimpleFeatureContribution,
+                                      SimpleModelComparison,
+                                      TrainTestLabelDrift,
+                                      TrainTestPredictionDrift)
 
 __all__ = ['train_test_validation', 'model_evaluation', 'full_suite', 'integrity_validation']
 
@@ -28,6 +36,7 @@ def train_test_validation(**kwargs) -> Suite:
     distribution and leakage checks."""
     return Suite(
         'Train Test Validation Suite',
+        SimilarImageLeakage(**kwargs).add_condition_similar_images_not_more_than(),
         HeatmapComparison(**kwargs),
         TrainTestLabelDrift(**kwargs).add_condition_drift_score_not_greater_than(),
         TrainTestPredictionDrift(**kwargs).add_condition_drift_score_not_greater_than(),

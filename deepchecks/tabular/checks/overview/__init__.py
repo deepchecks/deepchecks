@@ -9,9 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains check of overall overview of datasets and model."""
-from .model_info import ModelInfo
 from .columns_info import ColumnsInfo
-
+from .model_info import ModelInfo
 
 __all__ = [
     'ModelInfo',

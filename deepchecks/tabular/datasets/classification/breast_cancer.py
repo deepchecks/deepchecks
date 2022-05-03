@@ -11,10 +11,11 @@
 """The data set contains features for binary prediction of breast cancer."""
 import typing as t
 from urllib.request import urlopen
-import sklearn
-from sklearn.ensemble import AdaBoostClassifier
+
 import joblib
 import pandas as pd
+import sklearn
+from sklearn.ensemble import AdaBoostClassifier
 
 from deepchecks.tabular.dataset import Dataset
 

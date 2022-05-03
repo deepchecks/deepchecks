@@ -14,28 +14,31 @@ import base64
 import io
 import traceback
 import warnings
-from typing import Any, Callable, List, Tuple, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable, List, Tuple, Union
 
+import ipywidgets as widgets
 import jsonpickle
 import jsonpickle.ext.pandas as jsonpickle_pd
 import matplotlib
-import pandas as pd
 import numpy as np
-import ipywidgets as widgets
-import plotly.graph_objects as go
+import pandas as pd
 import plotly
-from ipywidgets.embed import embed_minimal_html, dependency_state
-from plotly.basedatatypes import BaseFigure
-from matplotlib import pyplot as plt
+import plotly.graph_objects as go
+import plotly.io as pio
 from IPython.display import display_html
+from matplotlib import pyplot as plt
 from pandas.io.formats.style import Styler
+from plotly.basedatatypes import BaseFigure
 
-from deepchecks.core.condition import Condition, ConditionCategory, ConditionResult
-from deepchecks.core.display_pandas import dataframe_to_html, get_conditions_table
+from deepchecks.core.condition import (Condition, ConditionCategory,
+                                       ConditionResult)
+from deepchecks.core.display_pandas import (dataframe_to_html,
+                                            get_conditions_table)
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.dataframes import un_numpy
-from deepchecks.utils.strings import get_docs_summary
 from deepchecks.utils.ipython import is_notebook
+from deepchecks.utils.strings import (create_new_file_name, get_docs_summary,
+                                      widget_to_html)
 from deepchecks.utils.wandb_utils import set_wandb_run_state
 
 # registers jsonpickle pandas extension for pandas support in the to_json function
@@ -130,6 +133,7 @@ class CheckResult:
         """
         if as_widget:
             box = widgets.VBox()
+            box.add_class('rendered_html')
             box_children = []
         check_html = ''
         if unique_id:
@@ -185,13 +189,33 @@ class CheckResult:
             return box
         display_html(check_html, raw=True)
 
-    def _repr_html_(self):
+    def _repr_html_(self, unique_id=None,
+                    show_additional_outputs=True, requirejs: bool = False):
         """Return html representation of check result."""
         html_out = io.StringIO()
-        widgeted_output = self.display_check(as_widget=True)
-        embed_minimal_html(html_out, views=[widgeted_output], requirejs=False,
-                           embed_url=None, state=dependency_state(widgeted_output))
+        self.save_as_html(html_out, unique_id=unique_id,
+                          show_additional_outputs=show_additional_outputs, requirejs=requirejs)
         return html_out.getvalue()
+
+    def save_as_html(self, file=None, unique_id=None,
+                     show_additional_outputs=True, requirejs: bool = True):
+        """Save output as html file.
+
+        Parameters
+        ----------
+        file : filename or file-like object
+            The file to write the HTML output to. If None writes to output.html
+        requirejs: bool , default: True
+            If to save with all javascript dependencies
+        """
+        if file is None:
+            file = 'output.html'
+        widgeted_output = self.display_check(unique_id=unique_id,
+                                             show_additional_outputs=show_additional_outputs,
+                                             as_widget=True)
+        if isinstance(file, str):
+            file = create_new_file_name(file, 'html')
+        widget_to_html(widgeted_output, html_out=file, title=self.get_header(), requirejs=requirejs)
 
     def _display_to_json(self) -> List[Tuple[str, str]]:
         displays = []
@@ -362,7 +386,7 @@ class CheckResult:
     def _ipython_display_(self, unique_id=None, as_widget=False,
                           show_additional_outputs=True):
         check_widget = self.display_check(unique_id=unique_id, as_widget=as_widget,
-                                          show_additional_outputs=show_additional_outputs,)
+                                          show_additional_outputs=show_additional_outputs)
         if as_widget:
             display_html(check_widget)
 
@@ -423,11 +447,27 @@ class CheckResult:
 
         return 4
 
-    def show(self, unique_id=None, show_additional_outputs=True):
-        """Display check result."""
+    def show(self, show_additional_outputs=True, unique_id=None):
+        """Display the check result.
+
+        Parameters
+        ----------
+        show_additional_outputs : bool
+            Boolean that controls if to show additional outputs.
+        unique_id : str
+            The unique id given by the suite that displays the check.
+        """
         if is_notebook():
-            self._ipython_display_(unique_id=unique_id,
-                                   show_additional_outputs=show_additional_outputs)
+            self.display_check(unique_id=unique_id,
+                               show_additional_outputs=show_additional_outputs)
+        elif 'sphinx_gallery' in pio.renderers.default:
+            html = self._repr_html_(unique_id=unique_id,
+                                    show_additional_outputs=show_additional_outputs)
+
+            class TempSphinx:
+                def _repr_html_(self):
+                    return html
+            return TempSphinx()
         else:
             warnings.warn('You are running in a non-interactive python shell. in order to show result you have to use '
                           'an IPython shell (etc Jupyter)')
@@ -464,7 +504,7 @@ class CheckFailure:
         """
         result_json = self._get_metadata()
         if with_display:
-            result_json['display'] = [('str', str(self.exception))]
+            result_json['display'] = [('html', f'<p style="color:red">{self.exception}</p>')]
         return jsonpickle.dumps(result_json, unpicklable=False)
 
     def to_wandb(self, dedicated_run: bool = True, **kwargs: Any):
@@ -501,6 +541,19 @@ class CheckFailure:
 
     def __repr__(self):
         """Return string representation."""
+        return self.header + ': ' + str(self.exception)
+
+    def _ipython_display_(self):
+        """Display the check failure."""
+        check_html = f'<h4>{self.header}</h4>'
+        if hasattr(self.check.__class__, '__doc__'):
+            summary = get_docs_summary(self.check)
+            check_html += f'<p>{summary}</p>'
+        check_html += f'<p style="color:red">{self.exception}</p>'
+        display_html(check_html, raw=True)
+
+    def print_traceback(self):
+        """Print the traceback of the failure."""
         tb_str = traceback.format_exception(etype=type(self.exception), value=self.exception,
                                             tb=self.exception.__traceback__)
-        return ''.join(tb_str)
+        print(''.join(tb_str))

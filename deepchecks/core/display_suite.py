@@ -11,28 +11,25 @@
 """Handle display of suite result."""
 import os
 import sys
-import re
-from typing import List, Union
 import warnings
+from typing import List, Union
 
+import ipywidgets as widgets
+import pandas as pd
 # pylint: disable=protected-access
 import tqdm
-from tqdm.notebook import tqdm as tqdm_notebook
-import pandas as pd
-from IPython.display import display, display_html
 from IPython import get_ipython
-import ipywidgets as widgets
-from ipywidgets.embed import embed_minimal_html, dependency_state
+from IPython.display import display, display_html
+from tqdm.notebook import tqdm as tqdm_notebook
 
 from deepchecks.core import errors
+from deepchecks.core.check_result import CheckFailure, CheckResult
+from deepchecks.core.display_pandas import (dataframe_to_html,
+                                            get_conditions_table,
+                                            get_result_navigation_display)
 from deepchecks.utils.ipython import is_widgets_enabled
-from deepchecks.utils.strings import create_new_file_name, get_random_string
-from deepchecks.core.check_result import CheckResult, CheckFailure
-from deepchecks.core.display_pandas import (
-    dataframe_to_html, get_conditions_table,
-    get_result_navigation_display
-)
-
+from deepchecks.utils.strings import (create_new_file_name, get_random_string,
+                                      widget_to_html)
 
 __all__ = ['display_suite_result', 'ProgressBar']
 
@@ -43,6 +40,7 @@ _NO_OUTPUT_TEXT = '<p>No outputs to show.</p>'
 _CHECKS_WITH_CONDITIONS_TITLE = '<h2>Check With Conditions Output</h2>'
 _CHECKS_WITHOUT_CONDITIONS_TITLE = '<h2>Check Without Conditions Output</h2>'
 _CHECKS_WITHOUT_DISPLAY_TITLE = '<h2>Other Checks That Weren\'t Displayed</h2>'
+_FAILED_CHECKS_MESSAGE = '</br>To debug failed checks use get_failures() to get a list of CheckFailures</br>'
 
 
 def _get_check_widget(check_res: CheckResult, unique_id: str) -> widgets.VBox:
@@ -116,6 +114,7 @@ def _display_suite_widgets(summary: str,
                            checks_wo_conditions_display: List[CheckResult],
                            checks_w_condition_display: List[CheckResult],
                            others_table: List,
+                           contains_check_failures: bool,
                            light_hr: str,
                            html_out,
                            requirejs: bool = True):  # pragma: no cover
@@ -168,7 +167,8 @@ def _display_suite_widgets(summary: str,
         with warnings.catch_warnings():
             warnings.simplefilter(action='ignore', category=FutureWarning)
             others_df = dataframe_to_html(others_table.style.hide_index())
-        h2_widget = widgets.HTML(_CHECKS_WITHOUT_DISPLAY_TITLE)
+        debug_message = _FAILED_CHECKS_MESSAGE if contains_check_failures else ''
+        h2_widget = widgets.HTML(_CHECKS_WITHOUT_DISPLAY_TITLE + debug_message)
         others_tab.children = [h2_widget, _create_table_widget(others_df)]
     else:
         others_tab.children = [widgets.HTML(_NO_OUTPUT_TEXT)]
@@ -181,14 +181,7 @@ def _display_suite_widgets(summary: str,
     if html_out:
         if isinstance(html_out, str):
             html_out = create_new_file_name(html_out, 'html')
-        curr_path = os.path.dirname(os.path.abspath(__file__))
-        with open(os.path.join(curr_path, 'resources', 'suite_output.html'), 'r', encoding='utf8') as html_file:
-            html_formatted = re.sub('{', '{{', html_file.read())
-            html_formatted = re.sub('}', '}}', html_formatted)
-            html_formatted = re.sub('html_title', '{title}', html_formatted)
-            html_formatted = re.sub('widget_snippet', '{snippet}', html_formatted)
-            embed_minimal_html(html_out, views=[page], title='Suite Output', template=html_formatted,
-                               requirejs=requirejs, embed_url=None, state=dependency_state(page))
+        widget_to_html(page, html_out=html_out, title='Suite Output', requirejs=requirejs)
     else:
         display(page)
 
@@ -199,6 +192,7 @@ def _display_suite_no_widgets(summary: str,
                               checks_wo_conditions_display: List[CheckResult],
                               checks_w_condition_display: List[CheckResult],
                               others_table: List,
+                              contains_check_failures: bool,
                               light_hr: str):  # pragma: no cover
     """Display results of suite in IPython without widgets."""
     bold_hr = '<hr style="background-color: black;border: 0 none;color: black;height: 1px;">'
@@ -236,10 +230,12 @@ def _display_suite_no_widgets(summary: str,
         others_table.sort_values(by=['sort'], inplace=True)
         others_table.drop('sort', axis=1, inplace=True)
         others_h2 = f'{bold_hr}{_CHECKS_WITHOUT_DISPLAY_TITLE}'
+        debug_message = _FAILED_CHECKS_MESSAGE if contains_check_failures else ''
+
         with warnings.catch_warnings():
             warnings.simplefilter(action='ignore', category=FutureWarning)
             others_df = dataframe_to_html(others_table.style.hide_index())
-        display_html(others_h2 + others_df, raw=True)
+        display_html(others_h2 + debug_message + others_df, raw=True)
 
     if unique_id:
         display_html(f'<br><a href="#summary_{unique_id}" style="font-size: 14px">Go to top</a>', raw=True)
@@ -260,6 +256,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
     checks_wo_conditions_display: List[CheckResult] = []
     checks_w_condition_display: List[CheckResult] = []
     others_table = []
+    contains_failures = False
 
     for result in results:
         if isinstance(result, CheckResult):
@@ -272,6 +269,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
             if not result.have_display():
                 others_table.append([result.get_header(), 'Nothing found', 2])
         elif isinstance(result, CheckFailure):
+            contains_failures = True
             error_types = (
                 errors.DatasetValidationError,
                 errors.ModelValidationError,
@@ -337,6 +335,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
                                checks_wo_conditions_display,
                                checks_w_condition_display,
                                others_table,
+                               contains_failures,
                                light_hr,
                                html_out,
                                requirejs)
@@ -347,4 +346,5 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
                                   checks_wo_conditions_display,
                                   checks_w_condition_display,
                                   others_table,
+                                  contains_failures,
                                   light_hr)

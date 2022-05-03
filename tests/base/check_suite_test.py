@@ -10,13 +10,14 @@
 #
 """suites tests"""
 import random
-from hamcrest import assert_that, calling, raises, equal_to, is_
 
-from deepchecks.core import CheckResult
+from hamcrest import (assert_that, calling, equal_to, has_length, instance_of,
+                      is_, raises)
+
+from deepchecks.core import CheckFailure, CheckResult
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.tabular import Suite, SingleDatasetCheck, TrainTestCheck
+from deepchecks.tabular import SingleDatasetCheck, Suite, TrainTestCheck
 from deepchecks.tabular import checks as tabular_checks
-
 
 
 class SimpleDatasetCheck(SingleDatasetCheck):
@@ -147,3 +148,17 @@ def test_check_suite_instantiation_by_extending_another_check_suite():
         tabular_checks.MixedDataTypes,
         tabular_checks.PerformanceReport
     ]
+
+
+def test_get_error(iris_split_dataset_and_model_custom,
+                   diabetes_split_dataset_and_model_custom):
+    iris_train, iris_test, iris_model = iris_split_dataset_and_model_custom
+
+    suite = Suite(
+        "test",
+        tabular_checks.IsSingleValue(),
+        tabular_checks.ModelErrorAnalysis())
+
+    result = suite.run(train_dataset=iris_train, test_dataset=iris_test, model=iris_model)
+    assert_that(result.get_failures(), has_length(1))
+    assert_that(result.get_failures()['Model Error Analysis'], instance_of(CheckFailure))

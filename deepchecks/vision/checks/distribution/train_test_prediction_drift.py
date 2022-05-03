@@ -9,21 +9,23 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains Train Test Prediction Drift check."""
-from typing import Dict, List, Any
+import warnings
 from collections import OrderedDict, defaultdict
+from typing import Any, Dict, List
 
 import pandas as pd
 
 from deepchecks import ConditionResult
+from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
-from deepchecks.utils.distribution.drift import calc_drift_and_plot
-from deepchecks.core import DatasetKind, CheckResult
 from deepchecks.core.errors import DeepchecksNotSupportedError
-from deepchecks.vision import Context, TrainTestCheck, Batch
+from deepchecks.utils.distribution.drift import calc_drift_and_plot
+from deepchecks.vision import Batch, Context, TrainTestCheck
+from deepchecks.vision.utils.label_prediction_properties import (
+    DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES,
+    DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES, get_column_type,
+    properties_flatten, validate_properties)
 from deepchecks.vision.vision_data import TaskType
-from deepchecks.vision.utils.label_prediction_properties import validate_properties, \
-    DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES, DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES, get_column_type, \
-    properties_flatten
 
 __all__ = ['TrainTestPredictionDrift']
 
@@ -61,16 +63,28 @@ class TrainTestPredictionDrift(TrainTestCheck):
         List of properties. Replaces the default deepchecks properties.
         Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
         representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'/'class_id'
-    max_num_categories : int , default: 10
-        Only for non-continues properties. Max number of allowed categories. If there are more,
-        they are binned into an "Other" category. If max_num_categories=None, there is no limit. This limit applies
-        for both drift calculation and for distribution plots.
+    max_num_categories_for_drift: int, default: 10
+        Only for non-continues columns. Max number of allowed categories. If there are more,
+        they are binned into an "Other" category. If None, there is no limit.
+    max_num_categories_for_display: int, default: 10
+        Max number of categories to show in plot.
+    show_categories_by: str, default: 'train_largest'
+        Specify which categories to show for categorical features' graphs, as the number of shown categories is limited
+        by max_num_categories_for_display. Possible values:
+        - 'train_largest': Show the largest train categories.
+        - 'test_largest': Show the largest test categories.
+        - 'largest_difference': Show the largest difference between categories.
+    max_num_categories: int, default: None
+        Deprecated. Please use max_num_categories_for_drift and max_num_categories_for_display instead
     """
 
     def __init__(
             self,
             prediction_properties: List[Dict[str, Any]] = None,
-            max_num_categories: int = 10,
+            max_num_categories_for_drift: int = 10,
+            max_num_categories_for_display: int = 10,
+            show_categories_by: str = 'train_largest',
+            max_num_categories: int = None,  # Deprecated
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -78,7 +92,17 @@ class TrainTestPredictionDrift(TrainTestCheck):
         if prediction_properties is not None:
             validate_properties(prediction_properties)
         self.user_prediction_properties = prediction_properties
-        self.max_num_categories = max_num_categories
+        if max_num_categories is not None:
+            warnings.warn(
+                f'{self.__class__.__name__}: max_num_categories is deprecated. please use max_num_categories_for_drift '
+                'and max_num_categories_for_display instead',
+                DeprecationWarning
+            )
+            max_num_categories_for_drift = max_num_categories_for_drift or max_num_categories
+            max_num_categories_for_display = max_num_categories_for_display or max_num_categories
+        self.max_num_categories_for_drift = max_num_categories_for_drift
+        self.max_num_categories_for_display = max_num_categories_for_display
+        self.show_categories_by = show_categories_by
         self._prediction_properties = None
         self._train_prediction_properties = None
         self._test_prediction_properties = None
@@ -154,7 +178,9 @@ class TrainTestPredictionDrift(TrainTestCheck):
                 test_column=pd.Series(self._test_prediction_properties[name]),
                 value_name=name,
                 column_type=get_column_type(output_type),
-                max_num_categories=self.max_num_categories
+                max_num_categories_for_drift=self.max_num_categories_for_drift,
+                max_num_categories_for_display=self.max_num_categories_for_display,
+                show_categories_by=self.show_categories_by
             )
             values_dict[name] = {
                 'Drift score': value,

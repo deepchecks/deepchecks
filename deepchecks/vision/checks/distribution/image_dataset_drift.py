@@ -10,15 +10,17 @@
 #
 """Module contains the domain classifier drift check."""
 from collections import defaultdict
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
 import pandas as pd
 
 from deepchecks.core import CheckResult, DatasetKind
-from deepchecks.vision import Context, TrainTestCheck, Batch
-from deepchecks.vision.utils.image_properties import default_image_properties, validate_properties, get_column_type
-from deepchecks.core.check_utils.whole_dataset_drift_utils import run_whole_dataset_drift
-
+from deepchecks.core.check_utils.whole_dataset_drift_utils import \
+    run_whole_dataset_drift
+from deepchecks.vision import Batch, Context, TrainTestCheck
+from deepchecks.vision.utils.image_properties import (default_image_properties,
+                                                      get_column_type,
+                                                      validate_properties)
 
 __all__ = ['ImageDatasetDrift']
 
@@ -131,8 +133,8 @@ class ImageDatasetDrift(TrainTestCheck):
             train_dataframe=df_train, test_dataframe=df_test, numerical_features=numeric_features,
             cat_features=categorical_features, sample_size=sample_size, random_state=context.random_state,
             test_size=self.test_size, n_top_columns=self.n_top_properties,
-            min_feature_importance=self.min_feature_importance, max_num_categories=None,
-            min_meaningful_drift_score=self.min_meaningful_drift_score
+            min_feature_importance=self.min_feature_importance, max_num_categories_for_display=None,
+            show_categories_by=None, min_meaningful_drift_score=self.min_meaningful_drift_score
         )
 
         if displays:

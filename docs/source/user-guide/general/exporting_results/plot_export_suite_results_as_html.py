@@ -49,6 +49,7 @@ suite_result.save_as_html() # will save the result in output.html
 
 # Removing outputs created. this cell should be hidden in nbpshinx using "nbsphinx: hidden" in the metadata
 import os
+
 os.remove('output.html')
 os.remove('my_suite.html')
 

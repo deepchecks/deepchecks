@@ -13,20 +13,19 @@ import warnings
 
 import pandas as pd
 import pytest
+from hamcrest import (any_of, assert_that, calling, close_to, contains_exactly,
+                      equal_to, has_item, has_length, is_, none, not_none,
+                      raises)
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.neural_network import MLPClassifier
-from hamcrest import (
-    equal_to, assert_that, calling, raises, is_,
-    close_to, not_none, none, has_length, any_of, contains_exactly, has_item
-)
 
-from deepchecks.core.errors import ModelValidationError, DeepchecksValueError
+from deepchecks.core.errors import DeepchecksValueError, ModelValidationError
 from deepchecks.tabular.dataset import Dataset
-from deepchecks.utils.features import (
-    calculate_feature_importance, calculate_feature_importance_or_none,
-    column_importance_sorter_df, column_importance_sorter_dict
-)
+from deepchecks.utils.features import (calculate_feature_importance,
+                                       calculate_feature_importance_or_none,
+                                       column_importance_sorter_df,
+                                       column_importance_sorter_dict)
 
 
 def test_adaboost(iris_split_dataset_and_model):
@@ -52,6 +51,16 @@ def test_linear_regression(diabetes):
     assert_that(feature_importances.max(), close_to(0.225374532399, 0.0000000001))
     assert_that(feature_importances.sum(), close_to(1, 0.000001))
     assert_that(fi_type, is_('coef_'))
+
+
+def test_pipeline(iris_split_dataset_and_model_single_feature):
+    _, test_ds, clf = iris_split_dataset_and_model_single_feature
+    feature_importances, fi_type = calculate_feature_importance(clf, test_ds)
+    print(feature_importances)
+    assert_that(feature_importances['sepal length (cm)'], equal_to(1))
+    assert_that(feature_importances, has_length(1))
+    assert_that(fi_type, is_('permutation_importance'))
+    assert_that(hasattr(clf.steps[-1][1], 'feature_importances_'))
 
 
 def test_logistic_regression():

@@ -10,15 +10,19 @@
 #
 """Module of model error analysis check."""
 from typing import Callable, Dict, Tuple, Union
+
 from sklearn import preprocessing
 
-from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
-from deepchecks.tabular import Context, TrainTestCheck, Dataset
+from deepchecks import CheckFailure
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
+from deepchecks.core.errors import DeepchecksProcessError
+from deepchecks.tabular import Context, Dataset, TrainTestCheck
 from deepchecks.utils.metrics import ModelType
-from deepchecks.utils.performance.error_model import model_error_contribution, error_model_display
-from deepchecks.utils.single_sample_metrics import per_sample_cross_entropy, per_sample_mse
+from deepchecks.utils.performance.error_model import (error_model_display,
+                                                      model_error_contribution)
+from deepchecks.utils.single_sample_metrics import (per_sample_cross_entropy,
+                                                    per_sample_mse)
 from deepchecks.utils.strings import format_percent
-
 
 __all__ = ['ModelErrorAnalysis']
 
@@ -138,15 +142,17 @@ class ModelErrorAnalysis(TrainTestCheck):
 
         cat_features = train_dataset.cat_features
         numeric_features = train_dataset.numerical_features
-
-        error_fi, error_model_predicted = model_error_contribution(train_dataset.features_columns,
-                                                                   train_scores,
-                                                                   test_dataset.features_columns,
-                                                                   test_scores,
-                                                                   numeric_features,
-                                                                   cat_features,
-                                                                   min_error_model_score=self.min_error_model_score,
-                                                                   random_state=self.random_state)
+        try:
+            error_fi, error_model_predicted = model_error_contribution(train_dataset.features_columns,
+                                                                       train_scores,
+                                                                       test_dataset.features_columns,
+                                                                       test_scores,
+                                                                       numeric_features,
+                                                                       cat_features,
+                                                                       min_error_model_score=self.min_error_model_score,
+                                                                       random_state=self.random_state)
+        except DeepchecksProcessError as e:
+            return CheckFailure(self, e)
 
         display, value = error_model_display(error_fi,
                                              error_model_predicted,

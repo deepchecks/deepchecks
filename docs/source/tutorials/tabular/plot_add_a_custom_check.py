@@ -20,7 +20,7 @@ Each check consists of 3 main parts:
 * Conditions
 
 This guide will demonstrate how to implement a Check with a return value and
-display, for addding a condition see working with conditions (LINK)
+display, for adding a condition see `working with conditions <../../../user-guide/general/customizations/examples/plot_configure_check_conditions.html>`__.
 
 Write a Basic Check
 ===================
@@ -39,8 +39,8 @@ dictionary, string, etc...*
 
 #%%
 
-from deepchecks.tabular import TrainTestCheck, Dataset, Context
 from deepchecks.core import CheckResult
+from deepchecks.tabular import Context, Dataset, TrainTestCheck
 
 
 class DatasetSizeComparison(TrainTestCheck):
@@ -79,7 +79,7 @@ result.value
 
 #%%
 # To see code references for more complex checks (that can receive parameters
-# etc.), check out any of your favorite checks from our API Reference (LINK).
+# etc.), check out any of your favorite checks from our `API Reference <../../../api/deepchecks.tabular.checks.html>`__.
 
 #%%
 # Check Display
@@ -94,9 +94,11 @@ result.value
 #
 # *Good to know: ``display`` can receive a single object to display or a list of objects*
 
-from deepchecks.tabular import Dataset, TrainTestCheck, Context
-from deepchecks.core import CheckResult
 import matplotlib.pyplot as plt
+
+from deepchecks.core import CheckResult
+from deepchecks.tabular import Context, Dataset, TrainTestCheck
+
 
 class DatasetSizeComparison(TrainTestCheck):
     """Check which compares the sizes of train and test datasets."""
@@ -131,8 +133,8 @@ DatasetSizeComparison().run(train_dataset, test_dataset)
 # check to any Suite and it will run within it.
 #
 # The next possible step is to implement a condition, which will allow us
-# to give the check result a pass / fail mark. To do so, check out the
-# following guide (LINK)
+# to give the check result a pass / fail mark. To do so, check out `the
+# following guide <../../../user-guide/general/customizations/examples/plot_configure_check_conditions.html#add-a-custom-condition>`__.
 #
 # Base Checks Types
 # -----------------

@@ -9,11 +9,14 @@
 # ----------------------------------------------------------------------------
 #
 """Tests for segment performance check."""
-from hamcrest import assert_that, has_entries, close_to, has_property, equal_to, calling, raises
+from hamcrest import (assert_that, calling, close_to, equal_to, has_entries,
+                      has_property, raises)
 
+from deepchecks.core.errors import (DeepchecksNotSupportedError,
+                                    DeepchecksValueError)
+from deepchecks.tabular.checks.performance.segment_performance import \
+    SegmentPerformance
 from deepchecks.tabular.dataset import Dataset
-from deepchecks.core.errors import DeepchecksValueError, DeepchecksNotSupportedError
-from deepchecks.tabular.checks.performance.segment_performance import SegmentPerformance
 
 
 def test_dataset_wrong_input():
@@ -51,6 +54,17 @@ def test_segment_performance_diabetes(diabetes_split_dataset_and_model):
     }))
     assert_that(result['scores'].mean(), close_to(-53, 1))
     assert_that(result['counts'].sum(), equal_to(146))
+
+
+def test_segment_performance_illegal_features(diabetes_split_dataset_and_model):
+    # Arrange
+    _, val, model = diabetes_split_dataset_and_model
+
+    # Act & Assert
+    assert_that(
+        calling(SegmentPerformance(feature_1='AGE', feature_2='sex').run).with_args(val, model),
+        raises(DeepchecksValueError, r'\"feature_1\" and \"feature_2\" must be in dataset columns')
+    )
 
 
 def test_segment_top_features(diabetes_split_dataset_and_model):

@@ -11,23 +11,24 @@
 """Module of segment performance check."""
 import math
 import typing as t
-from collections import defaultdict, Counter
+from collections import Counter, defaultdict
 
 import numpy as np
 import pandas as pd
+import plotly.express as px
 import torch
 from ignite.metrics import Metric
-import plotly.express as px
 
 from deepchecks import ConditionResult
-from deepchecks.core import DatasetKind, CheckResult
+from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.utils import plot
 from deepchecks.utils.strings import format_number, format_percent
-from deepchecks.vision import SingleDatasetCheck, Context, Batch
-from deepchecks.vision.utils.image_properties import default_image_properties, validate_properties
-from deepchecks.vision.metrics_utils import get_scorers_list, metric_results_to_df
-
+from deepchecks.vision import Batch, Context, SingleDatasetCheck
+from deepchecks.vision.metrics_utils import (get_scorers_list,
+                                             metric_results_to_df)
+from deepchecks.vision.utils.image_properties import (default_image_properties,
+                                                      validate_properties)
 
 __all__ = ['ImageSegmentPerformance']
 
@@ -42,12 +43,14 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
         representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'
     alternative_metrics : Dict[str, Metric], default: None
-        A dictionary of metrics, where the key is the metric name and the value is an ignite.Metric object whose score
+        A dictionary of metrics, where the key is the metric name and the value is an ignite. Metric object whose score
         should be used. If None are given, use the default metrics.
     number_of_bins: int, default : 5
         Maximum number of bins to segment a single property into.
     number_of_samples_to_infer_bins : int, default : 1000
         Minimum number of samples to use to infer the bounds of the segments' bins
+    n_show_top : int , default: 3
+        number of properties to show (shows by top diffrence by first metric)
     """
 
     def __init__(
@@ -56,6 +59,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         alternative_metrics: t.Optional[t.Dict[str, Metric]] = None,
         number_of_bins: int = 5,
         number_of_samples_to_infer_bins: int = 1000,
+        n_to_show: int = 3,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -67,9 +71,9 @@ class ImageSegmentPerformance(SingleDatasetCheck):
 
         self.alternative_metrics = alternative_metrics
         self.number_of_bins = number_of_bins
+        self.n_to_show = n_to_show
         self.number_of_samples_to_infer_bins = number_of_samples_to_infer_bins
         self._state = None
-        self._metrics = None
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
         """Initialize run before starting updating on batches."""
@@ -80,8 +84,8 @@ class ImageSegmentPerformance(SingleDatasetCheck):
     def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Update the bins by the image properties."""
         images = batch.images
-        predictions = batch.predictions
-        labels = batch.labels
+        predictions = [tens.detach() for tens in batch.predictions]
+        labels = [tens.detach() for tens in batch.labels]
 
         samples_for_bin: t.List = self._state['samples_for_binning']
         bins = self._state['bins']
@@ -132,12 +136,10 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         for property_name, prop_bins in bins.items():
             # Calculate scale for the numbers formatting in the display of range
             bins_scale = max([_get_range_scale(b['start'], b['stop']) for b in prop_bins])
+            # If we have a low number of unique values for a property, the first bin (-inf, x) might be empty so
+            # check the count, and if empty filter out the bin
+            prop_bins = list(filter(lambda x: x['count'] > 0, prop_bins))
             for single_bin in prop_bins:
-                # If we have a low number of unique values for a property, the first bin (-inf, x) might be empty so
-                # check the count, and if empty filter out the bin
-                if single_bin['count'] == 0:
-                    continue
-
                 display_range = _range_string(single_bin['start'], single_bin['stop'], bins_scale)
                 bin_data = {
                     'Range': display_range,
@@ -148,26 +150,39 @@ class ImageSegmentPerformance(SingleDatasetCheck):
                 # in order to return the bins object as the check result value
                 single_bin['metrics'] = _calculate_metrics(single_bin['metrics'], dataset)
                 single_bin['display_range'] = display_range
-                # For the plotly display need row per metric in the dataframe
-                for metric, val in single_bin['metrics'].items():
-                    display_data.append({'Metric': metric, 'Value': val, **bin_data})
+                # we don't show single columns in the display
+                if len(prop_bins) > 1:
+                    # For the plotly display need row per metric in the dataframe
+                    for metric, val in single_bin['metrics'].items():
+                        display_data.append({'Metric': metric, 'Value': val, **bin_data})
                 # Save for result
                 result_value[property_name].append(single_bin)
 
         display_df = pd.DataFrame(display_data)
-
+        if display_df.empty:
+            return CheckResult(value=dict(result_value))
+        first_metric = display_df['Metric'][0]
+        if self.alternative_metrics is None:
+            display_df = display_df[display_df['Metric'] == first_metric]
+        top_properties = display_df[display_df['Metric'] == first_metric] \
+            .groupby('Property')[['Value']] \
+            .agg(np.ptp).sort_values('Value', ascending=False).head(self.n_to_show) \
+            .reset_index()['Property']
+        display_df = display_df[display_df['Property'].isin(top_properties)]
         fig = px.bar(
             display_df,
             x='Range',
             y='Value',
             color='Metric',
+            facet_row='Metric',
+            facet_row_spacing=0.05,
             color_discrete_sequence=plot.metric_colors,
             barmode='group',
             facet_col='Property',
-            facet_row='Metric',
             facet_col_spacing=0.05,
-            facet_row_spacing=0.05,
-            hover_data=['Number of samples']
+            hover_data=['Number of samples'],
+            title='Metric Score Per Property Value Segment '
+                  f'(showing top {self.n_to_show} properties by diffrence in segments)'
         )
 
         bar_width = 0.2

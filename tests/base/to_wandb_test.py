@@ -9,9 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """to wandb tests"""
-import wandb
 from hamcrest import assert_that, equal_to, not_none
 
+import wandb
 from deepchecks.tabular.suites import full_suite
 
 wandb.setup(wandb.Settings(mode="disabled", program=__name__, program_relpath=__name__, disable_code=True))

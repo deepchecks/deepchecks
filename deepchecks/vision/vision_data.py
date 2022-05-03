@@ -9,43 +9,30 @@
 # ----------------------------------------------------------------------------
 #
 """The vision/dataset module containing the vision Dataset class and its functions."""
+import logging
 # pylint: disable=protected-access
 import random
+from abc import abstractmethod
 from collections import defaultdict
 from copy import copy
-from abc import abstractmethod
-from enum import Enum
-from typing import Any, List, Optional, Dict, TypeVar, Union, Iterator, Sequence
+from typing import (Any, Dict, Iterator, List, Optional, Sequence, TypeVar,
+                    Union)
 
-import logging
 import numpy as np
 import torch
-from torch.utils.data import DataLoader, BatchSampler, Sampler
+from torch.utils.data import BatchSampler, DataLoader, Sampler
 
-from deepchecks.vision import batch_wrapper  # pylint: disable=unused-import, is used as type annotation
+from deepchecks.core.errors import (DeepchecksBaseError,
+                                    DeepchecksNotImplementedError,
+                                    DeepchecksValueError, ValidationError)
+from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.utils.image_functions import ImageInfo
-from deepchecks.vision.utils.transformations import add_augmentation_in_start, get_transforms_handler
-from deepchecks.core.errors import (
-    DeepchecksNotImplementedError,
-    DeepchecksValueError,
-    ValidationError,
-    DeepchecksBaseError
-)
-
+from deepchecks.vision.utils.transformations import get_transforms_handler
 
 logger = logging.getLogger('deepchecks')
 VD = TypeVar('VD', bound='VisionData')
 
-
-__all__ = ['TaskType', 'VisionData']
-
-
-class TaskType(Enum):
-    """Enum containing supported task types."""
-
-    CLASSIFICATION = 'classification'
-    OBJECT_DETECTION = 'object_detection'
-    OTHER = 'other'
+__all__ = ['VisionData']
 
 
 class VisionData:
@@ -296,24 +283,19 @@ class VisionData:
                   f'transformations field is named otherwise, you cat set it by using "transform_field" parameter'
             raise DeepchecksValueError(msg)
         transform = dataset_ref.__getattribute__(self._transform_field)
-        return get_transforms_handler(transform)
+        return get_transforms_handler(transform, self.task_type)
 
-    def get_augmented_dataset(self, aug) -> VD:
+    def get_augmented_dataset(self: VD, aug) -> VD:
         """Return a copy of the vision data object with the augmentation in the start of it."""
-        dataset_ref = self._data_loader.dataset
-        # If no field exists raise error
-        if not hasattr(dataset_ref, self._transform_field):
-            msg = f'Underlying Dataset instance does not contain "{self._transform_field}" attribute. If your ' \
-                  f'transformations field is named otherwise, you cat set it by using "transform_field" parameter'
-            raise DeepchecksValueError(msg)
+        transform_handler = self.get_transform_type()
         new_vision_data = self.copy()
         new_dataset_ref = new_vision_data.data_loader.dataset
         transform = new_dataset_ref.__getattribute__(self._transform_field)
-        new_transform = add_augmentation_in_start(aug, transform)
+        new_transform = transform_handler.add_augmentation_in_start(aug, transform)
         new_dataset_ref.__setattr__(self._transform_field, new_transform)
         return new_vision_data
 
-    def copy(self, n_samples: int = None, shuffle: bool = False, random_state: int = None) -> VD:
+    def copy(self: VD, n_samples: int = None, shuffle: bool = False, random_state: int = None) -> VD:
         """Create new copy of this object, with the data-loader and dataset also copied, and altered by the given \
         parameters.
 
@@ -398,7 +380,7 @@ class VisionData:
         batch
 
         Raises
-        -------
+        ------
         DeepchecksValueError
             If the batch data doesn't fit the format after being transformed by self().
 
@@ -417,8 +399,8 @@ class VisionData:
         sample_min = np.min(sample)
         sample_max = np.max(sample)
         if sample_min < 0 or sample_max > 255 or sample_max <= 1:
-            raise ValidationError(f'Image data found to be in range [{sample_min}, {sample_max}] instead of expected '
-                                  f'range [0, 255].')
+            raise ValidationError(f'Image data should be in uint8 format(integers between 0 and 255). '
+                                  f'Found values in range [{sample_min}, {sample_max}].')
 
     def validate_get_classes(self, batch):
         """Validate that the get_classes function returns data in the correct format.
@@ -428,7 +410,7 @@ class VisionData:
         batch
 
         Raises
-        -------
+        ------
         ValidationError
             If the classes data doesn't fit the format after being transformed.
         """
@@ -451,7 +433,8 @@ class VisionData:
         device
             Device to run the model on.
         """
-        from deepchecks.vision.utils.validation import validate_extractors  # pylint: disable=import-outside-toplevel
+        from deepchecks.vision.utils.validation import \
+            validate_extractors  # pylint: disable=import-outside-toplevel
         validate_extractors(self, model, device=device)
 
     def __iter__(self):

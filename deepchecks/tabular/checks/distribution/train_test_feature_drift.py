@@ -10,16 +10,16 @@
 #
 """Module contains Train Test Drift check."""
 
+import warnings
 from collections import OrderedDict
-from typing import Union, List, Dict
+from typing import Dict, List, Union
 
-from deepchecks.core import ConditionResult, CheckResult
+from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.condition import ConditionCategory
-from deepchecks.tabular import Context, TrainTestCheck, Dataset
-from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.tabular import Context, Dataset, TrainTestCheck
+from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.utils.typing import Hashable
-
 
 __all__ = ['TrainTestFeatureDrift']
 
@@ -49,31 +49,53 @@ class TrainTestFeatureDrift(TrainTestCheck):
     sort_feature_by : str , default: feature importance
         Indicates how features will be sorted. Can be either "feature importance"
         or "drift score"
-    max_num_categories : int , default: 10
+    max_num_categories_for_drift: int, default: 10
         Only for categorical columns. Max number of allowed categories. If there are more,
-        they are binned into an "Other" category. If max_num_categories=None, there is no limit. This limit applies
-        for both drift calculation and for distribution plots.
+        they are binned into an "Other" category. If None, there is no limit.
+    max_num_categories_for_display: int, default: 10
+        Max number of categories to show in plot.
+    show_categories_by: str, default: 'train_largest'
+        Specify which categories to show for categorical features' graphs, as the number of shown categories is limited
+        by max_num_categories_for_display. Possible values:
+        - 'train_largest': Show the largest train categories.
+        - 'test_largest': Show the largest test categories.
+        - 'largest_difference': Show the largest difference between categories.
     n_samples : int , default: 100_000
         Number of samples to use for drift computation and plot.
     random_state : int , default: 42
         Random seed for sampling.
+    max_num_categories: int, default: None
+        Deprecated. Please use max_num_categories_for_drift and max_num_categories_for_display instead
     """
 
     def __init__(
-        self,
-        columns: Union[Hashable, List[Hashable], None] = None,
-        ignore_columns: Union[Hashable, List[Hashable], None] = None,
-        n_top_columns: int = 5,
-        sort_feature_by: str = 'feature importance',
-        max_num_categories: int = 10,
-        n_samples: int = 100_000,
-        random_state: int = 42,
-        **kwargs
+            self,
+            columns: Union[Hashable, List[Hashable], None] = None,
+            ignore_columns: Union[Hashable, List[Hashable], None] = None,
+            n_top_columns: int = 5,
+            sort_feature_by: str = 'feature importance',
+            max_num_categories_for_drift: int = 10,
+            max_num_categories_for_display: int = 10,
+            show_categories_by: str = 'train_largest',
+            n_samples: int = 100_000,
+            random_state: int = 42,
+            max_num_categories: int = None,  # Deprecated
+            **kwargs
     ):
         super().__init__(**kwargs)
         self.columns = columns
         self.ignore_columns = ignore_columns
-        self.max_num_categories = max_num_categories
+        if max_num_categories is not None:
+            warnings.warn(
+                f'{self.__class__.__name__}: max_num_categories is deprecated. please use max_num_categories_for_drift '
+                'and max_num_categories_for_display instead',
+                DeprecationWarning
+            )
+            max_num_categories_for_drift = max_num_categories_for_drift or max_num_categories
+            max_num_categories_for_display = max_num_categories_for_display or max_num_categories
+        self.max_num_categories_for_drift = max_num_categories_for_drift
+        self.max_num_categories_for_display = max_num_categories_for_display
+        self.show_categories_by = show_categories_by
         if sort_feature_by in {'feature importance', 'drift score'}:
             self.sort_feature_by = sort_feature_by
         else:
@@ -137,7 +159,9 @@ class TrainTestFeatureDrift(TrainTestCheck):
                 value_name=column,
                 column_type=column_type,
                 plot_title=plot_title,
-                max_num_categories=self.max_num_categories
+                max_num_categories_for_drift=self.max_num_categories_for_drift,
+                max_num_categories_for_display=self.max_num_categories_for_display,
+                show_categories_by=self.show_categories_by
             )
             values_dict[column] = {
                 'Drift score': value,

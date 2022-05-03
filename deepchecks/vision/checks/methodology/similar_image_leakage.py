@@ -10,15 +10,16 @@
 #
 """Module contains the similar image leakage check."""
 import random
-from typing import TypeVar, List, Tuple
-import numpy as np
-from PIL.Image import fromarray
-from imagehash import average_hash
+from typing import List, Tuple, TypeVar
 
-from deepchecks import ConditionResult, ConditionCategory
+import numpy as np
+from imagehash import average_hash
+from PIL.Image import fromarray
+
+from deepchecks import ConditionCategory, ConditionResult
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.vision import Context, TrainTestCheck, Batch
+from deepchecks.vision import Batch, Context, TrainTestCheck
 
 __all__ = ['SimilarImageLeakage']
 
@@ -40,7 +41,7 @@ class SimilarImageLeakage(TrainTestCheck):
     similarity_threshold: float, default: 0.1
         Similarity threshold (0,1). The similarity score defines what is the ratio of pixels that are different between
         the two images. If the similarity score is below the threshold, the images are considered similar.
-        Note: The score is defined such that setting it to 1 will result in similarity being detected for all images
+        Note: The threshold is defined such that setting it to 1 will result in similarity being detected for all images
         with up to half their pixels differing from each other. For a value of 1, random images (which on average
         differ from each other by half their pixels) will be detected as similar half the time. To further illustrate,
         for a hash of 8X8, setting the score to 1 will result with all images with up to 32 different pixels being
@@ -74,7 +75,7 @@ class SimilarImageLeakage(TrainTestCheck):
 
     def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Calculate image hashes for train and test."""
-        hashed_images = [average_hash(fromarray(img), hash_size=self.hash_size) for img in batch.images]
+        hashed_images = [average_hash(fromarray(img.squeeze()), hash_size=self.hash_size) for img in batch.images]
 
         if dataset_kind == DatasetKind.TRAIN:
             self._hashed_train_images += hashed_images
@@ -101,9 +102,9 @@ class SimilarImageLeakage(TrainTestCheck):
         for i, h in enumerate(self._hashed_test_images):
             is_similar = (train_hashes - h) < self.min_pixel_diff
             if any(is_similar):
-                for j in np.argwhere(is_similar):  # Return indices where True
-                    similar_indices['train'].append(j[0])  # append only the first similar image in train
-                    similar_indices['test'].append(i)
+                # For each test image with similarities, append the first similar image in train
+                similar_indices['train'].append(np.argwhere(is_similar)[0][0])
+                similar_indices['test'].append(i)
 
         display_indices = random.sample(range(len(similar_indices['test'])),
                                         min(self.n_top_show, len(similar_indices['test'])))

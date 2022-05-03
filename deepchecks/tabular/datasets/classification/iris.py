@@ -10,11 +10,13 @@
 #
 """The data set contains 3 classes of 50 instances each, where each class refers to a type of iris plant."""
 import typing as t
+from urllib.request import urlopen
+
+import joblib
 import pandas as pd
 import sklearn
 from sklearn.ensemble import RandomForestClassifier
-import joblib
-from urllib.request import urlopen
+
 from deepchecks.tabular.dataset import Dataset
 
 __all__ = ['load_data', 'load_fitted_model']
@@ -118,8 +120,8 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
         test = pd.read_csv(_TEST_DATA_URL)
 
         if data_format == 'Dataset':
-            train = Dataset(train, label=_target, cat_features=_CAT_FEATURES)
-            test = Dataset(test, label=_target, cat_features=_CAT_FEATURES)
+            train = Dataset(train, label=_target, cat_features=_CAT_FEATURES, label_type='classification_label')
+            test = Dataset(test, label=_target, cat_features=_CAT_FEATURES, label_type='classification_label')
 
         return train, test
 

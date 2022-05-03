@@ -13,20 +13,19 @@ import typing as t
 from functools import partial
 from itertools import product
 from textwrap import dedent
+from collections import defaultdict
+from queue import PriorityQueue
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 import torch
 from plotly.express import imshow
-from queue import PriorityQueue
-from collections import defaultdict
 
 from deepchecks.vision.utils.image_functions import prepare_thumbnail, draw_bboxes, prepare_grid
 from deepchecks.core import CheckResult, DatasetKind
-from deepchecks.vision import SingleDatasetCheck, Context, Batch
-from deepchecks.vision.vision_data import TaskType, VisionData
+from deepchecks.vision import Batch, Context, SingleDatasetCheck
 from deepchecks.vision.metrics_utils.iou_utils import jaccard_iou
-
+from deepchecks.vision.vision_data import TaskType
 
 __all__ = ['ConfusionMatrixReport']
 
@@ -202,7 +201,14 @@ class ConfusionMatrixReport(SingleDatasetCheck):
                 continue
 
             list_of_ious = (
-                (label_index, detected_index, jaccard_iou(detected.cpu().numpy(), label.cpu().numpy()))
+                (
+                    label_index, 
+                    detected_index, 
+                    jaccard_iou(
+                        detected.cpu().detach().numpy(),
+                        label.cpu().detach().numpy()
+                    )
+                )
                 for label_index, label in enumerate(label_bboxes)
                 for detected_index, detected in enumerate(detections_passed_threshold)
             )

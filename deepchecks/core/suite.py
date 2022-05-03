@@ -9,21 +9,20 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the Suite object, used for running a set of checks together."""
-import io
 import abc
+import io
 import warnings
 from collections import OrderedDict
-from typing import Any, Union, List, Tuple
+from typing import Any, Dict, List, Tuple, Union
 
+import jsonpickle
 from IPython.core.display import display_html
 from IPython.core.getipython import get_ipython
-import jsonpickle
-import ipywidgets as widgets
 
+from deepchecks.core.check_result import CheckFailure, CheckResult
+from deepchecks.core.checks import BaseCheck
 from deepchecks.core.display_suite import ProgressBar, display_suite_result
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.core.check_result import CheckResult, CheckFailure
-from deepchecks.core.checks import BaseCheck
 from deepchecks.utils.ipython import is_notebook
 from deepchecks.utils.wandb_utils import set_wandb_run_state
 
@@ -79,11 +78,9 @@ class SuiteResult:
 
     def _repr_html_(self):
         """Return html representation of check result."""
-        widgets.Widget.close_all()
         html_out = io.StringIO()
         self.save_as_html(html_out, requirejs=False)
         html_page = html_out.getvalue()
-        widgets.Widget.close_all()
         return html_page
 
     def save_as_html(self, file=None, requirejs: bool = True):
@@ -139,6 +136,20 @@ class SuiteResult:
         progress_bar.close()
         if dedicated_run:
             wandb.finish()
+
+    def get_failures(self) -> Dict[str, CheckFailure]:
+        """Get all the failed checks.
+
+        Returns
+        -------
+        Dict[str, CheckFailure]
+            All the check failures in the suite.
+        """
+        failures = {}
+        for res in self.results:
+            if isinstance(res, CheckFailure):
+                failures[res.header] = res
+        return failures
 
 
 class BaseSuite:
