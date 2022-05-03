@@ -17,8 +17,6 @@ from typing import List, Tuple, Union
 import numpy as np
 import pandas as pd
 
-from deepchecks.core.errors import DeepchecksValueError
-
 with warnings.catch_warnings():
     warnings.simplefilter(action='ignore', category=FutureWarning)
     from category_encoders import OneHotEncoder
@@ -30,6 +28,8 @@ from sklearn.preprocessing import MinMaxScaler
 from deepchecks.utils.distribution.rare_category_encoder import \
     RareCategoryEncoder
 from deepchecks.utils.typing import Hashable
+from deepchecks.core.errors import DeepchecksValueError
+
 
 __all__ = ['ScaledNumerics', 'preprocess_2_cat_cols_to_same_bins']
 
