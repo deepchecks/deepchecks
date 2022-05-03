@@ -28,6 +28,16 @@ def test_classification(mnist_dataset_train, mock_trained_mnist, device):
     assert_that(result.value.shape, equal_to((10, 10)))
 
 
+def test_classification_not_normalize(mnist_dataset_train, mock_trained_mnist, device):
+    # Arrange
+    check = ConfusionMatrixReport(is_normalize=False)
+    # Act
+    result = check.run(mnist_dataset_train, mock_trained_mnist,
+                       device=device)
+    # Assert
+    assert_that(result.value.shape, equal_to((10, 10)))
+
+
 def test_detection(coco_train_visiondata, mock_trained_yolov5_object_detection, device):
     # Arrange
     check = ConfusionMatrixReport()
