@@ -15,7 +15,6 @@ import random
 from abc import abstractmethod
 from collections import defaultdict
 from copy import copy
-from enum import Enum
 from typing import (Any, Callable, Dict, Iterator, List, Optional, Sequence,
                     Type, TypeVar, Union)
 
