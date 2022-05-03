@@ -63,6 +63,10 @@ class TrainTestPredictionDrift(TrainTestCheck):
         List of properties. Replaces the default deepchecks properties.
         Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
         representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'/'class_id'
+    margin_quantile_filter: float, default: 0
+        float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
+        out of the EMD calculation. This is done in order for extreme values not to affect the calculation
+        disproportionally. This filter is applied to both distributions, in both margins.
     max_num_categories_for_drift: int, default: 10
         Only for non-continues columns. Max number of allowed categories. If there are more,
         they are binned into an "Other" category. If None, there is no limit.
@@ -81,6 +85,7 @@ class TrainTestPredictionDrift(TrainTestCheck):
     def __init__(
             self,
             prediction_properties: List[Dict[str, Any]] = None,
+            margin_quantile_filter: float = 0,
             max_num_categories_for_drift: int = 10,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'train_largest',
@@ -92,6 +97,7 @@ class TrainTestPredictionDrift(TrainTestCheck):
         if prediction_properties is not None:
             validate_properties(prediction_properties)
         self.user_prediction_properties = prediction_properties
+        self.margin_quantile_filter = margin_quantile_filter
         if max_num_categories is not None:
             warnings.warn(
                 f'{self.__class__.__name__}: max_num_categories is deprecated. please use max_num_categories_for_drift '
@@ -178,6 +184,7 @@ class TrainTestPredictionDrift(TrainTestCheck):
                 test_column=pd.Series(self._test_prediction_properties[name]),
                 value_name=name,
                 column_type=get_column_type(output_type),
+                margin_quantile_filter=self.margin_quantile_filter,
                 max_num_categories_for_drift=self.max_num_categories_for_drift,
                 max_num_categories_for_display=self.max_num_categories_for_display,
                 show_categories_by=self.show_categories_by
