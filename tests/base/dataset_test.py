@@ -16,8 +16,8 @@ import numpy as np
 import pandas as pd
 import pytest
 from hamcrest import (all_of, assert_that, calling, contains_exactly, equal_to,
-                      has_item, has_length, has_property, instance_of, is_,
-                      not_none, raises, greater_than)
+                      greater_than, has_item, has_length, has_property,
+                      instance_of, is_, not_none, raises)
 from sklearn.datasets import load_iris, make_classification
 
 from deepchecks.core.errors import DeepchecksValueError
