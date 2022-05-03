@@ -27,7 +27,7 @@ __all__ = ['MixedDataTypes']
 
 
 class MixedDataTypes(SingleDatasetCheck):
-    """Detect columns which contains a mix of numerical and string values.
+    """Detect columns which contain a mix of numerical and string values.
 
     Parameters
     ----------
