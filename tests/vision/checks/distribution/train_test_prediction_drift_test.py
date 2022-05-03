@@ -90,7 +90,7 @@ def test_with_drift_object_detection(coco_train_visiondata, coco_test_visiondata
     # Assert
     assert_that(result.value, has_entries(
         {'Samples Per Class': has_entries(
-            {'Drift score': close_to(0.31, 0.01),
+            {'Drift score': close_to(0.37, 0.01),
              'Method': equal_to('PSI')}
         ), 'Bounding Box Area (in pixels)': has_entries(
             {'Drift score': close_to(0.009, 0.001),

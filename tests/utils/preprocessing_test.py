@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Test preprocessing utils"""
-from hamcrest import assert_that, equal_to, raises, close_to, calling, only_contains
+from hamcrest import assert_that, equal_to, raises, calling
 import numpy as np
 
 from deepchecks.core.errors import DeepchecksValueError

@@ -12,7 +12,7 @@
 import warnings
 # pylint: disable=invalid-name,unused-argument
 from collections import Counter
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -114,8 +114,9 @@ class ScaledNumerics(TransformerMixin, BaseEstimator):
             return s
 
 
-def preprocess_2_cat_cols_to_same_bins(dist1: np.ndarray, dist2: np.ndarray, max_num_categories: int = None,
-                                       sort_by: str = 'dist1') -> Tuple[np.ndarray, np.ndarray, List]:
+def preprocess_2_cat_cols_to_same_bins(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series],
+                                       max_num_categories: int = None, sort_by: str = 'dist1'
+                                       ) -> Tuple[np.ndarray, np.ndarray, List]:
     """
     Preprocess distributions to the same bins.
 
@@ -126,9 +127,9 @@ def preprocess_2_cat_cols_to_same_bins(dist1: np.ndarray, dist2: np.ndarray, max
 
     Parameters
     ----------
-    dist1: np.ndarray
+    dist1: Union[np.ndarray, pd.Series]
         list of values from the first distribution.
-    dist2: np.ndarray
+    dist2: Union[np.ndarray, pd.Series]
         list of values from the second distribution.
     max_num_categories: int, default: None
         max number of allowed categories. If there are more categories than this number, categories are ordered by
