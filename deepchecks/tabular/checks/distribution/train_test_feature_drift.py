@@ -49,6 +49,10 @@ class TrainTestFeatureDrift(TrainTestCheck):
     sort_feature_by : str , default: feature importance
         Indicates how features will be sorted. Can be either "feature importance"
         or "drift score"
+    margin_quantile_filter: float, default: 0
+        float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
+        out of the EMD calculation. This is done in order for extreme values not to affect the calculation
+        disproportionally. This filter is applied to both distributions, in both margins.
     max_num_categories_for_drift: int, default: 10
         Only for categorical columns. Max number of allowed categories. If there are more,
         they are binned into an "Other" category. If None, there is no limit.
@@ -74,6 +78,7 @@ class TrainTestFeatureDrift(TrainTestCheck):
             ignore_columns: Union[Hashable, List[Hashable], None] = None,
             n_top_columns: int = 5,
             sort_feature_by: str = 'feature importance',
+            margin_quantile_filter: float = 0,
             max_num_categories_for_drift: int = 10,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'train_largest',
@@ -85,6 +90,7 @@ class TrainTestFeatureDrift(TrainTestCheck):
         super().__init__(**kwargs)
         self.columns = columns
         self.ignore_columns = ignore_columns
+        self.margin_quantile_filter = margin_quantile_filter
         if max_num_categories is not None:
             warnings.warn(
                 f'{self.__class__.__name__}: max_num_categories is deprecated. please use max_num_categories_for_drift '
@@ -139,6 +145,17 @@ class TrainTestFeatureDrift(TrainTestCheck):
 
         values_dict = OrderedDict()
         displays_dict = OrderedDict()
+
+        features_order = (
+            tuple(
+                features_importance
+                .sort_values(ascending=False)
+                .index
+            )
+            if features_importance is not None
+            else None
+        )
+
         for column in train_dataset.features:
             if column in train_dataset.numerical_features:
                 column_type = 'numerical'
@@ -147,8 +164,7 @@ class TrainTestFeatureDrift(TrainTestCheck):
             else:
                 continue  # we only support categorical or numerical features
             if features_importance is not None:
-                fi_rank_series = features_importance.rank(method='first', ascending=False)
-                fi_rank = fi_rank_series[column]
+                fi_rank = features_order.index(column) + 1
                 plot_title = f'{column} (#{int(fi_rank)} in FI)'
             else:
                 plot_title = column
@@ -159,6 +175,7 @@ class TrainTestFeatureDrift(TrainTestCheck):
                 value_name=column,
                 column_type=column_type,
                 plot_title=plot_title,
+                margin_quantile_filter=self.margin_quantile_filter,
                 max_num_categories_for_drift=self.max_num_categories_for_drift,
                 max_num_categories_for_display=self.max_num_categories_for_display,
                 show_categories_by=self.show_categories_by
@@ -171,9 +188,9 @@ class TrainTestFeatureDrift(TrainTestCheck):
             displays_dict[column] = display
 
         if self.sort_feature_by == 'feature importance' and features_importance is not None:
-            columns_order = features_importance.sort_values(ascending=False).head(self.n_top_columns).index
+            columns_order = features_order[:self.n_top_columns]
         else:
-            columns_order = sorted(list(values_dict.keys()), key=lambda col: values_dict[col]['Drift score'],
+            columns_order = sorted(values_dict.keys(), key=lambda col: values_dict[col]['Drift score'],
                                    reverse=True)[:self.n_top_columns]
 
         sorted_by = self.sort_feature_by if features_importance is not None else 'drift score'
