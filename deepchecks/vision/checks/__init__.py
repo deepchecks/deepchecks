@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module importing all vision checks."""
-from .distribution import (HeatmapComparison,NewLabels, ImageDatasetDrift,
+from .distribution import (HeatmapComparison, NewLabels, ImageDatasetDrift,
                            ImagePropertyDrift, ImagePropertyOutliers,
                            LabelPropertyOutliers, TrainTestLabelDrift,
                            TrainTestPredictionDrift)
