@@ -9,11 +9,15 @@
 # ----------------------------------------------------------------------------
 #
 """Module importing all vision checks."""
-from .distribution import (HeatmapComparison, NewLabels, ImageDatasetDrift, ImagePropertyDrift, ImagePropertyOutliers,
-                           LabelPropertyOutliers, TrainTestLabelDrift, TrainTestPredictionDrift)
+from .distribution import (HeatmapComparison, ImageDatasetDrift,
+                           ImagePropertyDrift, ImagePropertyOutliers,
+                           LabelPropertyOutliers, NewLabels,
+                           TrainTestLabelDrift, TrainTestPredictionDrift)
 from .methodology import SimilarImageLeakage, SimpleFeatureContribution
-from .performance import (ClassPerformance, ConfusionMatrixReport, ImageSegmentPerformance, MeanAveragePrecisionReport,
-                          MeanAverageRecallReport, ModelErrorAnalysis, RobustnessReport, SimpleModelComparison)
+from .performance import (ClassPerformance, ConfusionMatrixReport,
+                          ImageSegmentPerformance, MeanAveragePrecisionReport,
+                          MeanAverageRecallReport, ModelErrorAnalysis,
+                          RobustnessReport, SimpleModelComparison)
 
 __all__ = ['ClassPerformance', 'ConfusionMatrixReport', 'MeanAveragePrecisionReport', 'MeanAverageRecallReport',
            'RobustnessReport', 'SimpleModelComparison', 'TrainTestLabelDrift', 'ImageDatasetDrift',

@@ -22,12 +22,12 @@ from deepchecks.vision.checks import (ClassPerformance, ConfusionMatrixReport,
                                       LabelPropertyOutliers,
                                       MeanAveragePrecisionReport,
                                       MeanAverageRecallReport,
-                                      ModelErrorAnalysis, SimilarImageLeakage,
+                                      ModelErrorAnalysis, NewLabels,
+                                      SimilarImageLeakage,
                                       SimpleFeatureContribution,
                                       SimpleModelComparison,
                                       TrainTestLabelDrift,
-                                      TrainTestPredictionDrift,
-                                      NewLabels)
+                                      TrainTestPredictionDrift)
 
 __all__ = ['train_test_validation', 'model_evaluation', 'full_suite', 'integrity_validation']
 

@@ -15,13 +15,13 @@ from typing import Dict
 
 import torch
 
-from deepchecks.core import ConditionResult
-from deepchecks.core import DatasetKind, CheckResult
+from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.utils.strings import format_percent, format_number
-from deepchecks.vision import Context, TrainTestCheck, Batch, VisionData
-from deepchecks.vision.utils.image_functions import prepare_thumbnail, draw_bboxes
+from deepchecks.utils.strings import format_number, format_percent
+from deepchecks.vision import Batch, Context, TrainTestCheck, VisionData
+from deepchecks.vision.utils.image_functions import (draw_bboxes,
+                                                     prepare_thumbnail)
 
 __all__ = ['NewLabels']
 
