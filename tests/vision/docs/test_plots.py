@@ -12,7 +12,6 @@ from pathlib import Path
 from runpy import run_path
 
 import torch
-
 import wandb
 
 # Since we have a plot that's calling `wandb.login` we need to setup first

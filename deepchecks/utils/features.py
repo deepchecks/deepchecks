@@ -473,10 +473,19 @@ def is_categorical(
     bool
         True if is categorical according to input numbers
     """
+    if len(column) == 0:
+        raise ValueError(
+            '"column" instance is empty, cannot determine '
+            'whether it is categorical or not'
+        )
+
     n_unique = column.nunique(dropna=True)
     n_samples = len(column.dropna())
 
     if is_float_dtype(column):
         return n_unique <= max_float_categories
 
-    return n_unique / n_samples < max_categorical_ratio and n_unique <= max_categories
+    if n_samples == 0:
+        return False
+
+    return (n_unique / n_samples) < max_categorical_ratio and n_unique <= max_categories

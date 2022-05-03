@@ -34,6 +34,7 @@ from deepchecks.vision.metrics_utils import (calculate_metrics,
                                              metric_results_to_df)
 from deepchecks.vision.utils.image_functions import (ImageInfo, draw_bboxes,
                                                      prepare_thumbnail)
+from deepchecks.vision.utils.transformations import AbstractTransformations
 from deepchecks.vision.utils.validation import set_seeds
 from deepchecks.vision.vision_data import TaskType
 
@@ -162,7 +163,7 @@ class RobustnessReport(SingleDatasetCheck):
 
         return self.add_condition(f'Metrics degrade by not more than {format_percent(ratio)}', condition)
 
-    def _validate_augmenting_affects(self, transform_handler, dataset: VisionData):
+    def _validate_augmenting_affects(self, transform_handler: AbstractTransformations, dataset: VisionData):
         """Validate the user is using the transforms' field correctly, and that if affects the image and label."""
         aug_dataset = dataset.get_augmented_dataset(transform_handler.get_test_transformation())
         # Iterate both datasets and compare results
@@ -185,7 +186,7 @@ class RobustnessReport(SingleDatasetCheck):
                 raise DeepchecksValueError(msg)
 
             # For object detection check that the label is affected
-            if dataset.task_type == TaskType.OBJECT_DETECTION:
+            if dataset.task_type == TaskType.OBJECT_DETECTION and transform_handler.is_transforming_labels:
                 labels = dataset.batch_to_labels(batch)
                 if torch.equal(labels[0], labels[1]):
                     msg = f'Found that labels have not been affected by adding augmentation to field ' \
@@ -354,6 +355,8 @@ def augmentation_name(aug):
         name = aug.name
     elif isinstance(aug, albumentations.BasicTransform):
         name = aug.get_class_fullname()
+    elif isinstance(aug, torch.nn.Module):
+        name = aug.__class__.__name__
     else:
         raise DeepchecksValueError(f'Unsupported augmentation type {type(aug)}')
 
