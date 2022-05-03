@@ -115,7 +115,7 @@ class ScaledNumerics(TransformerMixin, BaseEstimator):
 
 
 def preprocess_2_cat_cols_to_same_bins(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series],
-                                       max_num_categories: int = None, sort_by: str = 'dist1'
+                                       max_num_categories: int = None, sort_by: str = 'difference'
                                        ) -> Tuple[np.ndarray, np.ndarray, List]:
     """
     Preprocess distributions to the same bins.
@@ -139,7 +139,7 @@ def preprocess_2_cat_cols_to_same_bins(dist1: Union[np.ndarray, pd.Series], dist
         categories are kept by name and which are binned to the "Other" category) is done by default according to the
         values of dist1, which is treated as the "expected" distribution. This behavior can be changed by using the
         sort_by parameter.
-    sort_by: str, default: 'dist1'
+    sort_by: str, default: 'difference'
         Specify how categories should be sorted, affecting which categories will get into the "Other" category.
         Possible values:
         - 'dist1': Sort by the largest dist1 categories.

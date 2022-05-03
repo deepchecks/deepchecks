@@ -181,8 +181,7 @@ def calc_drift_and_plot(train_column: pd.Series,
         scorer_name = 'PSI'
         expected, actual, _ = \
             preprocess_2_cat_cols_to_same_bins(dist1=train_column, dist2=test_column,
-                                               max_num_categories=max_num_categories_for_drift,
-                                               sort_by='difference')
+                                               max_num_categories=max_num_categories_for_drift)
         expected_percents, actual_percents = expected / len(train_column), actual / len(test_column)
         score = psi(expected_percents=expected_percents, actual_percents=actual_percents)
 
