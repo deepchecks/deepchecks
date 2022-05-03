@@ -9,33 +9,14 @@
 # ----------------------------------------------------------------------------
 #
 """Module importing all vision checks."""
-from .distribution import (HeatmapComparison, NewLabels, ImageDatasetDrift,
-                           ImagePropertyDrift, ImagePropertyOutliers,
-                           LabelPropertyOutliers, TrainTestLabelDrift,
-                           TrainTestPredictionDrift)
+from .distribution import (HeatmapComparison, NewLabels, ImageDatasetDrift, ImagePropertyDrift, ImagePropertyOutliers,
+                           LabelPropertyOutliers, TrainTestLabelDrift, TrainTestPredictionDrift)
 from .methodology import SimilarImageLeakage, SimpleFeatureContribution
-from .performance import (ClassPerformance, ConfusionMatrixReport,
-                          ImageSegmentPerformance, MeanAveragePrecisionReport,
-                          MeanAverageRecallReport, ModelErrorAnalysis,
-                          RobustnessReport, SimpleModelComparison)
+from .performance import (ClassPerformance, ConfusionMatrixReport, ImageSegmentPerformance, MeanAveragePrecisionReport,
+                          MeanAverageRecallReport, ModelErrorAnalysis, RobustnessReport, SimpleModelComparison)
 
-__all__ = [
-    'ClassPerformance',
-    'ConfusionMatrixReport',
-    'MeanAveragePrecisionReport',
-    'MeanAverageRecallReport',
-    'RobustnessReport',
-    'SimpleModelComparison',
-    'TrainTestLabelDrift',
-    'ImageDatasetDrift',
-    'ImagePropertyDrift',
-    'ModelErrorAnalysis',
-    'TrainTestPredictionDrift',
-    'ImageSegmentPerformance',
-    'SimpleFeatureContribution',
-    'ImagePropertyOutliers',
-    'LabelPropertyOutliers',
-    'HeatmapComparison',
-    'SimilarImageLeakage',
-    'NewLabels'
-]
+__all__ = ['ClassPerformance', 'ConfusionMatrixReport', 'MeanAveragePrecisionReport', 'MeanAverageRecallReport',
+           'RobustnessReport', 'SimpleModelComparison', 'TrainTestLabelDrift', 'ImageDatasetDrift',
+           'ImagePropertyDrift', 'ModelErrorAnalysis', 'TrainTestPredictionDrift', 'ImageSegmentPerformance',
+           'SimpleFeatureContribution', 'ImagePropertyOutliers', 'LabelPropertyOutliers', 'HeatmapComparison',
+           'SimilarImageLeakage', 'NewLabels']

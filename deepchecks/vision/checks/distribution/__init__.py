@@ -9,12 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the distribution checks in the vision package."""
-from .new_labels import NewLabels
 from .heatmap_comparison import HeatmapComparison
 from .image_dataset_drift import ImageDatasetDrift
 from .image_property_drift import ImagePropertyDrift
 from .image_property_outliers import ImagePropertyOutliers
 from .label_property_outliers import LabelPropertyOutliers
+from .new_labels import NewLabels
 from .train_test_label_drift import TrainTestLabelDrift
 from .train_test_prediction_drift import TrainTestPredictionDrift
 
