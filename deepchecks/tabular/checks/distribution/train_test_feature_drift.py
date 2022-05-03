@@ -49,7 +49,7 @@ class TrainTestFeatureDrift(TrainTestCheck):
     sort_feature_by : str , default: feature importance
         Indicates how features will be sorted. Can be either "feature importance"
         or "drift score"
-    margin_quantile_filter: float, default: 0
+    margin_quantile_filter: float, default: 0.025
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
         disproportionally. This filter is applied to both distributions, in both margins.
@@ -78,7 +78,7 @@ class TrainTestFeatureDrift(TrainTestCheck):
             ignore_columns: Union[Hashable, List[Hashable], None] = None,
             n_top_columns: int = 5,
             sort_feature_by: str = 'feature importance',
-            margin_quantile_filter: float = 0,
+            margin_quantile_filter: float = 0.025,
             max_num_categories_for_drift: int = 10,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',

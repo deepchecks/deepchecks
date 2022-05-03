@@ -31,7 +31,7 @@ def test_image_property_drift_check(coco_train_visiondata, coco_test_visiondata,
     assert_that(result, is_correct_image_property_drift_result())
 
     assert_that(result.value, has_entries(
-        {'Brightness': close_to(0.05, 0.01)}
+        {'Brightness': close_to(0.07, 0.01)}
     ))
 
 
@@ -44,7 +44,7 @@ def test_image_property_drift_check_limit_classes(coco_train_visiondata, coco_te
     assert_that(result, is_correct_image_property_drift_result())
 
     assert_that(result.value, has_entries(
-        {'Brightness': close_to(0.15, 0.01)}
+        {'Brightness': close_to(0.17, 0.01)}
     ))
 
 

@@ -34,7 +34,7 @@ class TrainTestLabelDrift(TrainTestCheck):
 
     Parameters
     ----------
-    margin_quantile_filter: float, default: 0
+    margin_quantile_filter: float, default: 0.025
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
         disproportionally. This filter is applied to both distributions, in both margins.
@@ -55,7 +55,7 @@ class TrainTestLabelDrift(TrainTestCheck):
 
     def __init__(
             self,
-            margin_quantile_filter: float = 0,
+            margin_quantile_filter: float = 0.025,
             max_num_categories_for_drift: int = 10,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',

@@ -117,7 +117,7 @@ def calc_drift_and_plot(train_column: pd.Series,
                         value_name: Hashable,
                         column_type: str,
                         plot_title: Optional[str] = None,
-                        margin_quantile_filter: float = 0,
+                        margin_quantile_filter: float = 0.025,
                         max_num_categories_for_drift: int = 10,
                         max_num_categories_for_display: int = 10,
                         show_categories_by: str = 'largest_difference',
@@ -137,7 +137,7 @@ def calc_drift_and_plot(train_column: pd.Series,
         type of column (either "numerical" or "categorical")
     plot_title: str or None
         if None use value_name as title otherwise use this.
-    margin_quantile_filter: float, default: 0
+    margin_quantile_filter: float, default: 0.025
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
         disproportionally. This filter is applied to both distributions, in both margins.
