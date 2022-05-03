@@ -144,7 +144,6 @@ class TrainTestFeatureDrift(TrainTestCheck):
             tuple(
                 features_importance
                 .sort_values(ascending=False)
-                .rank(method='first', ascending=False)
                 .index
             )
             if features_importance is not None
