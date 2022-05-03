@@ -150,7 +150,7 @@ class NewLabels(TrainTestCheck):
                 top_new_class = list(result.keys())[:3]
                 if 'all_labels' in top_new_class:
                     top_new_class.remove('all_labels')
-                massage = f'{format_percent(present_new_labels)} of labels found in test set were not in train set.\n'
+                massage = f'{format_percent(present_new_labels)} of labels found in test set were not in train set. '
                 massage += f'New labels most common in test set: {top_new_class}'
                 return ConditionResult(ConditionCategory.FAIL, massage)
             else:

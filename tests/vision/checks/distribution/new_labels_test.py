@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Image Property Drift check tests"""
+"""New Labels check tests"""
 from copy import copy
 
 from hamcrest import (
@@ -74,7 +74,7 @@ def test_object_detection_coco_with_condition(coco_train_visiondata, coco_test_v
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                name='Percentage of new labels in the test set not above 10%.',
-                               details='10.85% of labels found in test set were not in train set.\n'
+                               details='10.85% of labels found in test set were not in train set. '
                                        'New labels most common in test set: [\'sandwich\', \'kite\', \'truck\']')
     ))
 
@@ -128,7 +128,7 @@ def test_classification_mnist_change_label_with_condition(mnist_dataset_train, m
         equal_condition_result(is_pass=False,
                                name='Percentage of new labels in the test set not above 0%.',
                                details='10.1% of labels found in test set were not in train set.'
-                                       '\nNew labels most common in test set: [\'-3\']')
+                                       ' New labels most common in test set: [\'-3\']')
     ))
     assert_that(result.value, has_entries(
         {'-3': close_to(1010, 1)}))
