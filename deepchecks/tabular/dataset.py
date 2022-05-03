@@ -886,6 +886,10 @@ class Dataset:
             if the provided value cannot be transformed into Dataset instance;
         """
         if isinstance(obj, pd.DataFrame):
+            logger.warning(
+                'Received a "pandas.DataFrame" instance, initializing '
+                '"deepchecks.tabular.Dataset" from it'
+            )
             obj = Dataset(obj)
         elif not isinstance(obj, Dataset):
             raise DeepchecksValueError(
