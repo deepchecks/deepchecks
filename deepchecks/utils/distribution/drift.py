@@ -232,7 +232,7 @@ def calc_drift_and_plot(train_column: pd.Series,
 
     fig.update_layout(
         legend=dict(
-            title='Dataset',
+            title='Legend',
             yanchor='top',
             y=0.6),
         width=700,
