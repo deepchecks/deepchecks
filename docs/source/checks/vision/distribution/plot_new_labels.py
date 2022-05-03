@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 New Labels
-***************
+==========
 
 This notebooks provides an overview for using and understanding the New Labels check.
 
@@ -13,7 +13,7 @@ This notebooks provides an overview for using and understanding the New Labels c
 
 
 How the check works
-========================
+-----------------
 In this check we count the frequency of each class id in the test set then check which of them
 do not apper in the training set. Note that by default this check run on a sample of the data set and so it is
 possible that class ids that are rare in the train set will also be considered as new labels in the test set.
@@ -21,7 +21,7 @@ possible that class ids that are rare in the train set will also be considered a
 
 # %%
 # Run the Check
-# =============
+# -----------------
 from deepchecks.vision.datasets.detection import coco
 from deepchecks.vision.checks import NewLabels
 
@@ -33,7 +33,7 @@ result
 
 # %%
 # Observe the check’s output
-# --------------------------
+# ~~~~~~~~~~~~~~~~~~
 # The check searches for new labels in the test set. The value output is a dictionary containing of appearances of each
 # newly found class_id in addition to the total number of labels in the test set for comparison purposes.
 
@@ -41,7 +41,7 @@ result.value
 
 # %%
 # Define a condition
-# ------------------
+# -------------------
 # The check has a default condition which can be defined. The condition verifies that the ratio of new labels out of
 # the total number of labels in the test set is smaller than a given threshold. If the check is run with the default
 # sampling mechanism we recommend on setting the condition threshold to a small percentage instead of setting it
