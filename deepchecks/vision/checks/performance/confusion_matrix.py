@@ -16,9 +16,9 @@ from queue import PriorityQueue
 import numpy as np
 import pandas as pd
 import torch
-from plotly.express import imshow
 
 from deepchecks.core import CheckResult, DatasetKind
+from deepchecks.utils.plot import create_confusion_matrix_figure
 from deepchecks.vision import Batch, Context, SingleDatasetCheck
 from deepchecks.vision.metrics_utils.iou_utils import jaccard_iou
 from deepchecks.vision.vision_data import TaskType
@@ -59,17 +59,22 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         Threshold to consider bounding box as detected.
     iou_threshold (float, default 0.5):
         Threshold to consider detected bounding box as labeled bounding box.
+    is_normalize (bool, default True):
+        If to color the matrix by normalizing by true values.
     """
 
     def __init__(self,
                  categories_to_display: int = 10,
                  confidence_threshold: float = 0.3,
                  iou_threshold: float = 0.5,
+                 is_normalize: bool = True,
                  **kwargs):
         super().__init__(**kwargs)
         self.confidence_threshold = confidence_threshold
         self.categories_to_display = categories_to_display
         self.iou_threshold = iou_threshold
+        self.is_normalize = is_normalize
+
         self.matrix = None
         self.classes_list = None
         self.not_found_idx = None
@@ -143,18 +148,11 @@ class ConfusionMatrixReport(SingleDatasetCheck):
                 x.append(it)
                 y.append(it)
             else:
-                x.append('No overlapping prediction')
-                y.append('No overlapping label')
+                x.append('No overlapping')
+                y.append('No overlapping')
 
         description.append(
-            imshow(
-                confusion_matrix,
-                x=x,
-                y=y,
-                text_auto=True)
-            .update_layout(width=600, height=600)
-            .update_xaxes(title='Predicted Value', type='category')
-            .update_yaxes(title='True value', type='category')
+            create_confusion_matrix_figure(confusion_matrix, x, y, self.is_normalize)
         )
         return CheckResult(
             matrix,

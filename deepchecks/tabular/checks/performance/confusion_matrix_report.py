@@ -11,18 +11,30 @@
 """The confusion_matrix_report check module."""
 import numpy as np
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
 from sklearn import metrics
 
 from deepchecks.core import CheckResult
 from deepchecks.tabular import Context, SingleDatasetCheck
+from deepchecks.utils.plot import create_confusion_matrix_figure
+
 
 __all__ = ['ConfusionMatrixReport']
 
 
 class ConfusionMatrixReport(SingleDatasetCheck):
-    """Calculate the confusion matrix of the model on the given dataset."""
+    """Calculate the confusion matrix of the model on the given dataset.
+
+    Parameters
+    ----------
+    is_normalize (bool, default True):
+        If to color the matrix by normalizing by true values.
+    """
+
+    def __init__(self,
+                 is_normalize: bool = True,
+                 **kwargs):
+        super().__init__(**kwargs)
+        self.is_normalize = is_normalize
 
     def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
         """Run check.
@@ -50,16 +62,8 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         y_pred = np.array(model.predict(ds_x)).reshape(len(ds_y), )
         total_classes = sorted(list(set(pd.concat([ds_y, pd.Series(y_pred)]).to_list())))
         confusion_matrix = metrics.confusion_matrix(ds_y, y_pred)
-        confusion_matrix_norm = metrics.confusion_matrix(ds_y, y_pred, normalize='true')
 
-        fig = go.Figure(data=go.Heatmap(
-                    x=total_classes,
-                    y=total_classes,
-                    z=confusion_matrix_norm,
-                    text=confusion_matrix,
-                    colorbar=dict(title='Normalized Value'), 
-                    texttemplate="%{text}"))
-        fig.update_layout(width=600, height=600)
-        fig.update_xaxes(title='Predicted Value', type='category', scaleanchor='y', constrain='domain')
-        fig.update_yaxes(title='True value', type='category', constrain='domain', autorange='reversed')
+        fig = create_confusion_matrix_figure(confusion_matrix, total_classes,
+                                             total_classes, self.is_normalize)
+
         return CheckResult(confusion_matrix, display=fig)
