@@ -145,6 +145,17 @@ class TrainTestFeatureDrift(TrainTestCheck):
 
         values_dict = OrderedDict()
         displays_dict = OrderedDict()
+
+        features_order = (
+            tuple(
+                features_importance
+                .sort_values(ascending=False)
+                .index
+            )
+            if features_importance is not None
+            else None
+        )
+
         for column in train_dataset.features:
             if column in train_dataset.numerical_features:
                 column_type = 'numerical'
@@ -153,8 +164,7 @@ class TrainTestFeatureDrift(TrainTestCheck):
             else:
                 continue  # we only support categorical or numerical features
             if features_importance is not None:
-                fi_rank_series = features_importance.rank(method='first', ascending=False)
-                fi_rank = fi_rank_series[column]
+                fi_rank = features_order.index(column) + 1
                 plot_title = f'{column} (#{int(fi_rank)} in FI)'
             else:
                 plot_title = column
@@ -178,9 +188,9 @@ class TrainTestFeatureDrift(TrainTestCheck):
             displays_dict[column] = display
 
         if self.sort_feature_by == 'feature importance' and features_importance is not None:
-            columns_order = features_importance.sort_values(ascending=False).head(self.n_top_columns).index
+            columns_order = features_order[:self.n_top_columns]
         else:
-            columns_order = sorted(list(values_dict.keys()), key=lambda col: values_dict[col]['Drift score'],
+            columns_order = sorted(values_dict.keys(), key=lambda col: values_dict[col]['Drift score'],
                                    reverse=True)[:self.n_top_columns]
 
         sorted_by = self.sort_feature_by if features_importance is not None else 'drift score'
