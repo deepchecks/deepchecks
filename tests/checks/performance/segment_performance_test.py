@@ -56,6 +56,17 @@ def test_segment_performance_diabetes(diabetes_split_dataset_and_model):
     assert_that(result['counts'].sum(), equal_to(146))
 
 
+def test_segment_performance_illegal_features(diabetes_split_dataset_and_model):
+    # Arrange
+    _, val, model = diabetes_split_dataset_and_model
+
+    # Act & Assert
+    assert_that(
+        calling(SegmentPerformance(feature_1='AGE', feature_2='sex').run).with_args(val, model),
+        raises(DeepchecksValueError, r'\"feature_1\" and \"feature_2\" must be in dataset columns')
+    )
+
+
 def test_segment_top_features(diabetes_split_dataset_and_model):
     # Arrange
     _, val, model = diabetes_split_dataset_and_model
