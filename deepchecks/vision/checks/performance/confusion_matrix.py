@@ -25,7 +25,7 @@ from deepchecks.vision.utils.image_functions import prepare_thumbnail, draw_bbox
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.vision import Batch, Context, SingleDatasetCheck
 from deepchecks.vision.metrics_utils.iou_utils import jaccard_iou
-from deepchecks.vision.vision_data import TaskType
+from deepchecks.vision.vision_data import TaskType, VisionData
 
 __all__ = ['ConfusionMatrixReport']
 
