@@ -17,6 +17,8 @@ from typing import List, Tuple
 import numpy as np
 import pandas as pd
 
+from deepchecks.core.errors import DeepchecksValueError
+
 with warnings.catch_warnings():
     warnings.simplefilter(action='ignore', category=FutureWarning)
     from category_encoders import OneHotEncoder
@@ -30,6 +32,8 @@ from deepchecks.utils.distribution.rare_category_encoder import \
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['ScaledNumerics', 'preprocess_2_cat_cols_to_same_bins']
+
+OTHER_CATEGORY_NAME = 'Other rare categories'
 
 
 class ScaledNumerics(TransformerMixin, BaseEstimator):
@@ -111,7 +115,7 @@ class ScaledNumerics(TransformerMixin, BaseEstimator):
 
 
 def preprocess_2_cat_cols_to_same_bins(dist1: np.ndarray, dist2: np.ndarray, max_num_categories: int = None,
-                                       ) -> Tuple[np.ndarray, np.ndarray, List]:
+                                       sort_by: str = 'dist1') -> Tuple[np.ndarray, np.ndarray, List]:
     """
     Preprocess distributions to the same bins.
 
@@ -131,8 +135,16 @@ def preprocess_2_cat_cols_to_same_bins(dist1: np.ndarray, dist2: np.ndarray, max
         magnitude and all the smaller categories are binned into an "Other" category.
         If max_num_categories=None, there is no limit.
         > Note that if this parameter is used, the ordering of categories (and by extension, the decision which
-        categories are kept by name and which are binned to the "Other" category) is done according to the values of
-        dist1, which is treated as the "expected" distribution.
+        categories are kept by name and which are binned to the "Other" category) is done by default according to the
+        values of dist1, which is treated as the "expected" distribution. This behavior can be changed by using the
+        sort_by parameter.
+    sort_by: str, default: 'dist1'
+        Specify how categories should be sorted, affecting which categories will get into the "Other" category.
+        Possible values:
+        - 'dist1': Sort by the largest dist1 categories.
+        - 'difference': Sort by the largest difference between categories.
+        > Note that this parameter has no effect if max_num_categories = None or there are not enough unique categories.
+
 
     Returns
     -------
@@ -147,13 +159,26 @@ def preprocess_2_cat_cols_to_same_bins(dist1: np.ndarray, dist2: np.ndarray, max
     all_categories = list(set(dist1).union(set(dist2)))
 
     if max_num_categories is not None and len(all_categories) > max_num_categories:
-        dist1_counter = dict(Counter(dist1).most_common(max_num_categories))
-        dist1_counter['Other rare categories'] = len(dist1) - sum(dist1_counter.values())
-        categories_list = list(dist1_counter.keys())
-
+        dist1_counter = Counter(dist1)
         dist2_counter = Counter(dist2)
+
+        if sort_by == 'dist1':
+            # categories_list = [x[0] for x in dist1_counter.most_common(max_num_categories)]
+            sort_by_counter = dist1_counter
+        elif sort_by == 'difference':
+            sort_by_counter = Counter({key: abs(dist1_counter[key] - dist2_counter[key])
+                                       for key in set(dist1_counter.keys()).union(dist2_counter.keys())})
+        else:
+            raise DeepchecksValueError(f'sort_by got unexpected value: {sort_by}')
+
+        # Not using most_common func of Counter as it's not deterministic for equal values
+        categories_list = [x[0] for x in sorted(sort_by_counter.items(), key=lambda x: (-x[1], x[0]))][
+                          :max_num_categories]
+        dist1_counter = {k: dist1_counter[k] for k in categories_list}
+        dist1_counter[OTHER_CATEGORY_NAME] = len(dist1) - sum(dist1_counter.values())
         dist2_counter = {k: dist2_counter[k] for k in categories_list}
-        dist2_counter['Other rare categories'] = len(dist2) - sum(dist2_counter.values())
+        dist2_counter[OTHER_CATEGORY_NAME] = len(dist2) - sum(dist2_counter.values())
+        categories_list.append(OTHER_CATEGORY_NAME)
 
     else:
         dist1_counter = Counter(dist1)
