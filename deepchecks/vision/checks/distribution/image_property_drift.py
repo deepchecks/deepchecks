@@ -20,8 +20,10 @@ import PIL.Image as pilimage
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
+from deepchecks.utils.strings import format_number
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.vision import Batch, Context, TrainTestCheck
+from deepchecks.vision.utils.image_functions import prepare_grid, prepare_thumbnail
 from deepchecks.vision.utils.image_properties import (default_image_properties,
                                                       get_column_type,
                                                       validate_properties)
@@ -71,13 +73,13 @@ class ImagePropertyDrift(TrainTestCheck):
 
     def __init__(
             self,
-            image_properties: t.List[t.Dict[str, t.Any]] = None,
+            image_properties: t.Optional[t.List[t.Dict[str, t.Any]]] = None,
             max_num_categories_for_drift: int = 10,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'train_largest',
             classes_to_display: t.Optional[t.List[str]] = None,
             min_samples: int = 30,
-            max_num_categories: int = None,  # Deprecated
+            max_num_categories: t.Optional[int] = None,  # Deprecated
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -226,7 +228,7 @@ class ImagePropertyDrift(TrainTestCheck):
                 f'for the distribution of the following image properties: {properties_to_display}.<br>'
                 '</span> {additional}'
             )
-            
+
             if not_enough_samples:
                 headnote += (
                     f'<span>The following image properties do not have enough samples to calculate drift '

@@ -202,8 +202,8 @@ class ConfusionMatrixReport(SingleDatasetCheck):
 
             list_of_ious = (
                 (
-                    label_index, 
-                    detected_index, 
+                    label_index,
+                    detected_index,
                     jaccard_iou(
                         detected.cpu().detach().numpy(),
                         label.cpu().detach().numpy()
