@@ -13,12 +13,11 @@ This notebooks provides an overview for using and understanding the mixed data t
 
 What are Mixed Data Types?
 ==========================
-Mixed data types is a situation when a column contains both string values and numeric values (either as numeric type or
-as string like "42.90"). The check detects columns which contains mixed types at any ratio, even if there is a single
-value which is different from the rest.
+Mixed data types is when a column contains both string values and numeric values (either as numeric type or
+as string like "42.90"). This may indicate a problem in the data collection pipeline, or represent a
+problem situation for the model's training.
 
-We want to be aware of this since it may indicate a problem in the data collection pipeline, or represent a
-problem for the model's training.
+This checks searches for columns with a mix of strings and numeric values and returns them and their respective ratios.
 
 Run the Check
 =============
@@ -29,10 +28,9 @@ We will run the check on the adult dataset which can be downloaded from the
 
 import pandas as pd
 import numpy as np
-from deepchecks.tabular import Dataset
 from deepchecks.tabular.datasets.classification import adult
-from deepchecks.tabular.checks import MixedDataTypes
 
+# Prepare functions to insert mixed data types
 
 def insert_new_values_types(col: pd.Series, ratio_to_replace: float, values_list):
     col = col.to_numpy().astype(object)
@@ -60,7 +58,11 @@ adult_df['workclass'] = insert_numeric_string_types(adult_df['workclass'], ratio
 adult_df['education'] = insert_number_types(adult_df['education'], ratio_to_replace=0.1)
 adult_df['age'] = insert_string_types(adult_df['age'], ratio_to_replace=0.5)
 
-# Run the check
+#%%
+
+from deepchecks.tabular import Dataset
+from deepchecks.tabular.checks import MixedDataTypes
+
 adult_dataset = Dataset(adult_df, cat_features=['workclass', 'education'])
 check = MixedDataTypes()
 result = check.run(adult_dataset)
