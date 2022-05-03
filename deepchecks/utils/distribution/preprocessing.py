@@ -25,11 +25,10 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import MinMaxScaler
 
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.distribution.rare_category_encoder import \
     RareCategoryEncoder
 from deepchecks.utils.typing import Hashable
-from deepchecks.core.errors import DeepchecksValueError
-
 
 __all__ = ['ScaledNumerics', 'preprocess_2_cat_cols_to_same_bins']
 
