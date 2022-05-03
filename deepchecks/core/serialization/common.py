@@ -50,23 +50,6 @@ __all__ = [
 ]
 
 
-# class CustomNotebookRenderer(plotly_renderers.NotebookRenderer):
-
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-#         self.connected = False
-#         self._is_activated = False
-
-#     def activate(self):
-#         if self._is_activated is False:
-#             super().activate()
-#             self._is_activated = True
-
-#     @property
-#     def is_plotly_activated(self):
-#         return self._is_activated
-
-
 class Html:
     """Set of commonly used HTML tags."""
 
