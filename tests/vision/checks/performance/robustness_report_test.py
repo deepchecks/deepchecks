@@ -12,9 +12,10 @@ import types
 
 import albumentations
 import numpy as np
-from hamcrest import (assert_that, calling, close_to, has_entries, has_items,
+from hamcrest import (assert_that, calling, close_to, has_entries, has_items, has_length,
                       raises)
 from ignite.metrics import Precision
+import torchvision.transforms as T
 from PIL import Image
 
 from deepchecks.core.errors import DeepchecksValueError
@@ -44,6 +45,48 @@ def test_mnist(mnist_dataset_train, mock_trained_mnist, device):
         'Shift Scale Rotate': has_entries({
             'Precision': has_entries(score=close_to(0.780, 0.001), diff=close_to(-0.202, 0.001)),
             'Recall': has_entries(score=close_to(0.775, 0.001), diff=close_to(-0.207, 0.001))
+        }),
+    }))
+
+
+def test_mnist_torch(mnist_dataset_train_torch, mock_trained_mnist, device):
+    # Arrange
+    # Create augmentations without randomness to get fixed metrics results
+    augmentations = [
+        T.ColorJitter(brightness=0.2, contrast=0.2),
+        T.RandomRotation(degrees=(0, 45))
+    ]
+    check = RobustnessReport(augmentations=augmentations)
+    # Act
+    result = check.run(mnist_dataset_train_torch, mock_trained_mnist, device=device, n_samples=None)
+    # Assert
+    assert_that(result.value, has_entries({
+        'Color Jitter': has_entries({
+            'Precision': has_entries(score=close_to(0.972, 0.001), diff=close_to(-0.006, 0.001)),
+            'Recall': has_entries(score=close_to(.972, 0.001), diff=close_to(-0.005, 0.001))
+        }),
+        'Random Rotation': has_entries({
+            'Precision': has_entries(score=close_to(0.866, 0.001), diff=close_to(-0.114, 0.001)),
+            'Recall': has_entries(score=close_to(0.862, 0.001), diff=close_to(-0.118, 0.001))
+        }),
+    }))
+
+
+def test_mnist_torch_default(mnist_dataset_train_torch, mock_trained_mnist, device):
+    # Arrange
+    # tests default (albumentations) transformers on torch transformed data
+    check = RobustnessReport()
+    # Act
+    result = check.run(mnist_dataset_train_torch, mock_trained_mnist, device=device, n_samples=None)
+    # Assert
+    assert_that(result.value, has_entries({
+        'Random Brightness Contrast': has_entries({
+            'Precision': has_entries(score=close_to(0.964, 0.001), diff=close_to(-0.014, 0.001)),
+            'Recall': has_entries(score=close_to(0.964, 0.001), diff=close_to(-0.014, 0.001))
+        }),
+        'Shift Scale Rotate': has_entries({
+            'Precision': has_entries(score=close_to(0.784, 0.001), diff=close_to(-0.198, 0.001)),
+            'Recall': has_entries(score=close_to(0.779, 0.001), diff=close_to(-0.203, 0.001))
         }),
     }))
 
@@ -81,6 +124,22 @@ def test_coco_and_condition(coco_train_visiondata, mock_trained_yolov5_object_de
             details='Augmentations not passing: {\'Hue Saturation Value\'}'
         )
     ))
+
+
+def test_coco_torch_default(coco_train_visiondata_torch, mock_trained_yolov5_object_detection, device):
+    # Arrange
+    check = RobustnessReport()
+
+    # Act
+    result = check.run(coco_train_visiondata_torch, mock_trained_yolov5_object_detection, device=device)
+    # Assert
+    assert_that(result.value, has_entries({
+        'Hue Saturation Value': has_entries({
+            'AP': has_entries(score=close_to(0.348, 0.1), diff=close_to(-0.104, 0.1)),
+            'AR': has_entries(score=close_to(0.376, 0.1), diff=close_to(-0.092, 0.1))
+        }),
+    }))
+    assert_that(result.value, has_length(3))
 
 
 def test_dataset_not_augmenting_labels(coco_train_visiondata: COCOData, mock_trained_yolov5_object_detection, device):
