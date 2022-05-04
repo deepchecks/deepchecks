@@ -19,8 +19,8 @@ from copy import copy
 from datetime import datetime
 from decimal import Decimal
 from string import ascii_uppercase, digits
-import numpy as np
 
+import numpy as np
 import pandas as pd
 from ipywidgets import Widget
 from ipywidgets.embed import dependency_state, embed_minimal_html
