@@ -27,11 +27,11 @@ def test_cat_cols_to_bins_no_max_num_categories():
     assert_that(sorted(list(res[2])), equal_to(all_letters))
 
 
-def test_cat_cols_to_bins_with_max_num_categories():
+def test_cat_cols_to_bins_with_max_num_categories_and_sort_by_dist1():
     # Makes sure that doesn't ignore cats missing in test
     dist1 = np.array(list('aaabbbccd'))
     dist2 = np.array(list('aacdee'))
-    res = preprocess_2_cat_cols_to_same_bins(dist1=dist1, dist2=dist2, max_num_categories=3)
+    res = preprocess_2_cat_cols_to_same_bins(dist1=dist1, dist2=dist2, max_num_categories=3, sort_by='dist1')
 
     assert_that(list(res[0]), equal_to([3, 3, 2, 1]))
     assert_that(list(res[1]), equal_to([2, 0, 1, 3]))
@@ -42,7 +42,7 @@ def test_cat_cols_to_bins_with_max_num_categories_and_sort_by_diff():
     # Makes sure that doesn't ignore cats missing in test and train
     dist1 = np.array(list('aaabbbccd'))
     dist2 = np.array(list('aacdee'))
-    res = preprocess_2_cat_cols_to_same_bins(dist1=dist1, dist2=dist2, max_num_categories=3, sort_by='difference')
+    res = preprocess_2_cat_cols_to_same_bins(dist1=dist1, dist2=dist2, max_num_categories=3)
 
     assert_that(list(res[0]), equal_to([3, 0, 3, 3]))
     assert_that(list(res[1]), equal_to([0, 2, 2, 2]))
