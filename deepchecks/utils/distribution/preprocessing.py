@@ -163,7 +163,6 @@ def preprocess_2_cat_cols_to_same_bins(dist1: Union[np.ndarray, pd.Series], dist
         dist2_counter = Counter(dist2)
 
         if sort_by == 'dist1':
-            # categories_list = [x[0] for x in dist1_counter.most_common(max_num_categories)]
             sort_by_counter = dist1_counter
         elif sort_by == 'difference':
             sort_by_counter = Counter({key: abs(dist1_counter[key] - dist2_counter[key])
