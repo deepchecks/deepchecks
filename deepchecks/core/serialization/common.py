@@ -224,22 +224,19 @@ def plotlyjs_script(connected: bool = True) -> str:
             {mathjax_config}
             <script type="text/javascript">
                 if (typeof require !== 'undefined') {{
-                    require(['plotly'], function () {{}}, function (error) {{
-                        console.log('Plotly is not defined - loading it.');
-                        require.undef("plotly");
-                        requirejs.config({{
-                            paths: {{'plotly': ['{plotly_cdn}']}}
-                        }});
-                        require(
-                            ['plotly'],
-                            function(Plotly) {{
-                                window._Plotly = Plotly;
-                                window.Plotly = Plotly;
-                                console.log('Loaded plotly successfully');
-                            }},
-                            function() {{console.log('Failed to load plotly')}}
-                        );
+                    require.undef("plotly");
+                    requirejs.config({{
+                        paths: {{'plotly': ['{plotly_cdn}']}}
                     }});
+                    require(
+                        ['plotly'],
+                        function(Plotly) {{
+                            window._Plotly = Plotly;
+                            window.Plotly = Plotly;
+                            console.log('Loaded plotly successfully');
+                        }},
+                        function() {{console.log('Failed to load plotly')}}
+                    );
                 }} else {{
                     console.log('requirejs is not present');
                 }}
@@ -257,22 +254,19 @@ def plotlyjs_script(connected: bool = True) -> str:
             {mathjax_config}
             <script type="text/javascript">
                 if (typeof require !== 'undefined') {{
-                    require(['plotly'], function () {{}}, function (error) {{
-                        console.log('Plotly is not defined - loading it.');
-                        require.undef("plotly");
-                        define('plotly', function(require, exports, module) {{
-                            {script}
-                        }});
-                        require(
-                            ['plotly'],
-                            function(Plotly) {{
-                                window._Plotly = Plotly;
-                                window.Plotly = Plotly;
-                                console.log('Loaded plotly successfully');
-                            }},
-                            function() {{console.log('Failed to load plotly')}}
-                        );
-                    }})
+                    require.undef("plotly");
+                    define('plotly', function(require, exports, module) {{
+                        {script}
+                    }});
+                    require(
+                        ['plotly'],
+                        function(Plotly) {{
+                            window._Plotly = Plotly;
+                            window.Plotly = Plotly;
+                            console.log('Loaded plotly successfully');
+                        }},
+                        function() {{console.log('Failed to load plotly')}}
+                    );
                 }} else {{
                     console.log('requirejs is not present');
                 }}
