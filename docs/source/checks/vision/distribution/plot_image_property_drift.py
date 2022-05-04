@@ -82,7 +82,7 @@ check_result.value
 # min_samples to 5 to tell the check to calculate drift despite having only a few images left after the class
 # filtration)
 
-check_result = ImagePropertyDrift(classes_to_display=['person', 'cat', 'cell phone', 'car'], min_samples=5
+check_result = ImagePropertyDrift(classes_to_display=['bicycle', 'bench', 'bus', 'truck'], min_samples=5
                                   ).run(train_dataset, test_dataset)
 check_result
 
