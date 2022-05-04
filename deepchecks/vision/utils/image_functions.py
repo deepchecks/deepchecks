@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module for defining functions related to image data."""
-import base64
 import io
 import typing as t
 
@@ -22,11 +21,13 @@ import plotly.graph_objects as go
 import torch
 
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.utils.html import imagetag
 
 from .detection_formatters import convert_bbox
 
 __all__ = ['ImageInfo', 'numpy_grayscale_to_heatmap_figure', 'ensure_image',
-           'apply_heatmap_image_properties', 'draw_bboxes', 'prepare_thumbnail', 'crop_image']
+           'apply_heatmap_image_properties', 'draw_bboxes', 'prepare_thumbnail',
+           'crop_image', 'imagetag']
 
 
 class ImageInfo:
@@ -190,9 +191,9 @@ def prepare_thumbnail(
     img_bytes = io.BytesIO()
     image.save(fp=img_bytes, format='PNG')
     img_bytes.seek(0)
-    png = base64.b64encode(img_bytes.read()).decode('ascii')
+    tag = imagetag(img_bytes.read())
     img_bytes.close()
-    return f'<img src="data:image/png;base64,{png}"/>'
+    return tag
 
 
 def numpy_grayscale_to_heatmap_figure(data: np.ndarray):
