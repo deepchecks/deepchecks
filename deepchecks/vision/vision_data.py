@@ -15,34 +15,26 @@ import random
 from abc import abstractmethod
 from collections import defaultdict
 from copy import copy
-from enum import Enum
-from typing import (Any, Dict, Iterator, List, Optional, Sequence, TypeVar,
-                    Union)
+from typing import (Any, Callable, Dict, Iterator, List, Optional, Sequence,
+                    Type, TypeVar, Union)
 
 import numpy as np
 import torch
-from torch.utils.data import BatchSampler, DataLoader, Sampler
+from torch.utils.data import BatchSampler, DataLoader, Dataset, Sampler
 
 from deepchecks.core.errors import (DeepchecksBaseError,
                                     DeepchecksNotImplementedError,
                                     DeepchecksValueError, ValidationError)
 from deepchecks.vision.batch_wrapper import Batch
+from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.utils.image_functions import ImageInfo
-from deepchecks.vision.utils.transformations import (add_augmentation_in_start,
-                                                     get_transforms_handler)
+from deepchecks.vision.utils.transformations import get_transforms_handler
+
+__all__ = ['VisionData']
+
 
 logger = logging.getLogger('deepchecks')
 VD = TypeVar('VD', bound='VisionData')
-
-__all__ = ['TaskType', 'VisionData']
-
-
-class TaskType(Enum):
-    """Enum containing supported task types."""
-
-    CLASSIFICATION = 'classification'
-    OBJECT_DETECTION = 'object_detection'
-    OTHER = 'other'
 
 
 class VisionData:
@@ -63,12 +55,13 @@ class VisionData:
         Name of transforms field in the dataset which holds transformations of both data and label.
     """
 
-    def __init__(self,
-                 data_loader: DataLoader,
-                 num_classes: Optional[int] = None,
-                 label_map: Optional[Dict[int, str]] = None,
-                 transform_field: Optional[str] = 'transforms'):
-
+    def __init__(
+        self,
+        data_loader: DataLoader,
+        num_classes: Optional[int] = None,
+        label_map: Optional[Dict[int, str]] = None,
+        transform_field: Optional[str] = 'transforms'
+    ):
         # Create data loader that uses IndicesSequentialSampler, which always return batches in the same order
         self._data_loader, self._sampler = self._get_data_loader_sequential(data_loader)
 
@@ -119,6 +112,66 @@ class VisionData:
 
         self._classes_indices = None
         self._current_index = None
+
+    @classmethod
+    def from_dataset(
+        cls: Type[VD],
+        data: Dataset,
+        batch_size: int = 64,
+        shuffle: bool = True,
+        num_workers: int = 0,
+        pin_memory: bool = True,
+        collate_fn: Optional[Callable] = None,
+        num_classes: Optional[int] = None,
+        label_map: Optional[Dict[int, str]] = None,
+        transform_field: Optional[str] = 'transforms'
+    ) -> VD:
+        """Create VisionData instance from a Dataset instance.
+
+        Parameters
+        ----------
+        data : Dataset
+            instance of a Dataset.
+        batch_size: int, default 64
+            how many samples per batch to load.
+        shuffle : bool, default True:
+            set to ``True`` to have the data reshuffled at every epoch.
+        num_workers  int, default 0:
+            how many subprocesses to use for data loading.
+            ``0`` means that the data will be loaded in the main process.
+        pin_memory bool, default True
+            If ``True``, the data loader will copy Tensors into CUDA pinned memory
+            before returning them.
+        collate_fn : Optional[Callable]
+            merges a list of samples to form a mini-batch of Tensor(s).
+        num_classes : Optional[int], default None
+            Number of classes in the dataset. If not provided, will be inferred from the dataset.
+        label_map : Optional[Dict[int, str]], default None
+            A dictionary mapping class ids to their names.
+        transform_field : Optional[str], default: 'transforms'
+            Name of transforms field in the dataset which holds transformations of both data and label.
+
+        Returns
+        -------
+        VisionData
+        """
+        def batch_collate(batch):
+            imgs, labels = zip(*batch)
+            return list(imgs), list(labels)
+
+        return cls(
+            data_loader=DataLoader(
+                dataset=data,
+                batch_size=batch_size,
+                shuffle=shuffle,
+                num_workers=num_workers,
+                pin_memory=pin_memory,
+                collate_fn=collate_fn or batch_collate
+            ),
+            num_classes=num_classes,
+            label_map=label_map,
+            transform_field=transform_field
+        )
 
     @abstractmethod
     def get_classes(self, batch_labels: Union[List[torch.Tensor], torch.Tensor]) -> List[List[int]]:
@@ -293,20 +346,15 @@ class VisionData:
                   f'transformations field is named otherwise, you cat set it by using "transform_field" parameter'
             raise DeepchecksValueError(msg)
         transform = dataset_ref.__getattribute__(self._transform_field)
-        return get_transforms_handler(transform)
+        return get_transforms_handler(transform, self.task_type)
 
     def get_augmented_dataset(self, aug) -> VD:
         """Return a copy of the vision data object with the augmentation in the start of it."""
-        dataset_ref = self._data_loader.dataset
-        # If no field exists raise error
-        if not hasattr(dataset_ref, self._transform_field):
-            msg = f'Underlying Dataset instance does not contain "{self._transform_field}" attribute. If your ' \
-                  f'transformations field is named otherwise, you cat set it by using "transform_field" parameter'
-            raise DeepchecksValueError(msg)
+        transform_handler = self.get_transform_type()
         new_vision_data = self.copy()
         new_dataset_ref = new_vision_data.data_loader.dataset
         transform = new_dataset_ref.__getattribute__(self._transform_field)
-        new_transform = add_augmentation_in_start(aug, transform)
+        new_transform = transform_handler.add_augmentation_in_start(aug, transform)
         new_dataset_ref.__setattr__(self._transform_field, new_transform)
         return new_vision_data
 

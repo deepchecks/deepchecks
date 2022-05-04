@@ -62,7 +62,7 @@ def per_sample_cross_entropy(y_true: np.array, y_pred: np.array, eps=1e-15):
         )
 
     # clip and renormalization y_pred
-    y_pred = y_pred.clip(eps, 1 - eps)
+    y_pred = y_pred.astype('float').clip(eps, 1 - eps)
     y_pred /= y_pred.sum(axis=1)[:, np.newaxis]
 
     return -(transformed_labels * np.log(y_pred)).sum(axis=1)
