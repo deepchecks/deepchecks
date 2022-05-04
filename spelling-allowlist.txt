@@ -78,4 +78,12 @@ jsonpickle
 dtype
 dataloader
 KDE
+renderers
+NotebookRenderer
+requirejs
+CDN
+CustomNotebookRenderer
+Wandb
 hotfix
+pyplot
+plt

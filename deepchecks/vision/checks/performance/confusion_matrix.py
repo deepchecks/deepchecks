@@ -206,8 +206,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
                     detected_index,
                     jaccard_iou(
                         detected.cpu().detach().numpy(),
-                        label.cpu().detach().numpy()
-                    )
+                        label.cpu().detach().numpy())
                 )
                 for label_index, label in enumerate(label_bboxes)
                 for detected_index, detected in enumerate(detections_passed_threshold)

@@ -18,7 +18,7 @@ from torch import nn
 from deepchecks.core.check_result import CheckResult
 from deepchecks.core.checks import (DatasetKind, ModelOnlyBaseCheck,
                                     SingleDatasetBaseCheck, TrainTestBaseCheck)
-from deepchecks.core.display_suite import ProgressBar
+from deepchecks.utils.ipython import ProgressBar
 from deepchecks.vision import \
     deprecation_warnings  # pylint: disable=unused-import # noqa: F401
 from deepchecks.vision.batch_wrapper import Batch
