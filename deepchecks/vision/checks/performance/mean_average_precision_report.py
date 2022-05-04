@@ -126,7 +126,7 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
         """
         def condition(df: pd.DataFrame):
             df = df.reset_index()
-            value = df.loc[df['Area size'] == 'All', :]['mAP@0.5..0.95 (%)'][0]
+            value = df.loc[df['Area size'] == 'All', :]['mAP@[.50::.95] (%)'][0]
             if value < min_score:
                 details = f'mAP score is: {format_number(value)}'
                 return ConditionResult(ConditionCategory.FAIL, details)
