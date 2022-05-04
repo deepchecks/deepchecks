@@ -9,16 +9,23 @@
 # ----------------------------------------------------------------------------
 #
 """Utils module containing utilities for plotting."""
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import plotly.graph_objects as go
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import LinearSegmentedColormap
-import plotly.graph_objects as go
 
 from deepchecks.utils.strings import format_number
 
 __all__ = ['create_colorbar_barchart_for_check', 'shifted_color_map',
            'create_confusion_matrix_figure', 'colors', 'hex_to_rgba']
+
+
+def _format_number_if_not_nan(x):
+    if np.isnan(x):
+        return x
+    return format_number(x)
+
 
 colors = {'Train': '#00008b',  # dark blue
           'Test': '#69b3a2',
@@ -187,7 +194,7 @@ def create_confusion_matrix_figure(confusion_matrix, x, y, is_normalize):
     if is_normalize:
         confusion_matrix_norm = confusion_matrix.astype('float') / \
             confusion_matrix.sum(axis=1)[:, np.newaxis] * 100
-        confusion_matrix_norm = np.vectorize(format_number)(confusion_matrix_norm)
+        confusion_matrix_norm = np.vectorize(_format_number_if_not_nan)(confusion_matrix_norm)
         texttemplate = '%{z}%<br>(%{text})'
         colorbar_title = '% of<br>True Values'
         plot_title = 'Percent Out of True Values (Count)'

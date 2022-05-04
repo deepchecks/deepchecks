@@ -17,7 +17,6 @@ from deepchecks.core import CheckResult
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.plot import create_confusion_matrix_figure
 
-
 __all__ = ['ConfusionMatrixReport']
 
 
