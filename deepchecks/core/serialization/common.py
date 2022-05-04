@@ -8,6 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+# pylint: disable=unused-import,import-outside-toplevel, protected-access
 """Module with common utilities routines for serialization subpackage."""
 import io
 import json
@@ -84,8 +85,7 @@ def normalize_widget_style(w: TDOMWidget) -> TDOMWidget:
 
 def prettify(data: t.Any, indent: int = 3) -> str:
     """Prettify data."""
-    default = lambda it: repr(it)
-    return json.dumps(data, indent=indent, default=default)
+    return json.dumps(data, indent=indent, default=repr)
 
 
 def normalize_value(value: object) -> t.Any:
@@ -201,7 +201,7 @@ def requirejs_script(connected: bool = True):
             </script>
         """)
     else:
-        path = os.path.join('core', 'resources', "requirejs.min.js")
+        path = os.path.join('core', 'resources', 'requirejs.min.js')
         js = pkgutil.get_data('deepchecks', path).decode('utf-8')
         return f'<script>{js}</script>'
 
@@ -248,7 +248,7 @@ def plotlyjs_script(connected: bool = True) -> str:
         return script.format(
             win_config=plotlyhtml._window_plotly_config,
             mathjax_config=plotlyhtml._mathjax_config,
-            plotly_cdn=plotly_cdn_url().rstrip(".js"),
+            plotly_cdn=plotly_cdn_url().rstrip('.js'),
         )
     else:
         # If not connected then we embed a copy of the plotly.js library
@@ -324,11 +324,11 @@ def concatv_images(images, gap=10):
     """
     try:
         import PIL.Image as pilimage
-    except ImportError:
+    except ImportError as e:
         raise ImportError(
             'concatv_images function requires the PIL package. '
             'To get it, run "pip install pillow".'
-        )
+        ) from e
     else:
         assert isinstance(images, list) and len(images) != 0
         assert isinstance(gap, int) and gap >= 0

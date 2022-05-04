@@ -18,11 +18,11 @@ from deepchecks.core.serialization.common import prettify
 try:
     import wandb
     from wandb.sdk.data_types.base_types.wb_value import WBValue
-except ImportError:
+except ImportError as e:
     raise ImportError(
         'Wandb serializer requires the wandb python package. '
         'To get it, run "pip install wandb".'
-    )
+    ) from e
 
 
 __all__ = ['CheckFailureSerializer']
