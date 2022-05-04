@@ -13,12 +13,12 @@ from typing import List
 import numpy as np
 
 from deepchecks.vision.metrics_utils.detection_precision_recall import \
-    AveragePrecision
+    AveragePrecisionRecall
 from deepchecks.vision.metrics_utils.iou_utils import (
     compute_pairwise_ious, group_class_detection_label, jaccard_iou)
 
 
-class ObjectDetectionAveragePrecision(AveragePrecision):
+class ObjectDetectionAveragePrecision(AveragePrecisionRecall):
     """We are expecting to receive the predictions in the following format: [x, y, w, h, confidence, label]."""
 
     def get_labels_areas(self, labels) -> List[int]:

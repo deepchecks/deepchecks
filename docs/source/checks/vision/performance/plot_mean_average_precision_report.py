@@ -47,8 +47,8 @@ result
 # %%
 # Observe the check’s output
 # --------------------------
-# The result value is a dataframe that has the Average Precision score for different bounding box sizes. We report the
-# Average Precision for different IoU thresholds: 0.5, 0.75 and a mean of AP values
+# The result value is a dataframe that has the Mean Average Precision score for different bounding box area sizes.
+# We report the mAP for different IoU thresholds: 0.5, 0.75 and an average of mAP values
 # for IoU thresholds between 0.5 and 0.9 (with jump size of 0.05).
 
 result.value
@@ -59,6 +59,6 @@ result.value
 # We can define a condition that checks whether our model's mean average precision score is not less than
 # a given threshold for all bounding box sizes.
 
-check = MeanAveragePrecisionReport().add_condition_test_mean_average_precision_not_less_than(0.4)
+check = MeanAveragePrecisionReport().add_condition_average_mean_average_precision_not_less_than(0.4)
 result = check.run(test_ds, yolo)
 result.show(show_additional_outputs=False)

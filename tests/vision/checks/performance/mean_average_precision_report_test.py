@@ -30,10 +30,10 @@ def test_mnist_error(mnist_dataset_test, mock_trained_mnist, device):
 def test_coco(coco_test_visiondata, mock_trained_yolov5_object_detection, device):
     # Arrange
     check = MeanAveragePrecisionReport() \
-            .add_condition_test_average_precision_not_less_than(0.1) \
-            .add_condition_test_average_precision_not_less_than(0.4) \
-            .add_condition_test_mean_average_precision_not_less_than() \
-            .add_condition_test_mean_average_precision_not_less_than(0.5)
+            .add_condition_mean_average_precision_not_less_than(0.1) \
+            .add_condition_mean_average_precision_not_less_than(0.4) \
+            .add_condition_average_mean_average_precision_not_less_than() \
+            .add_condition_average_mean_average_precision_not_less_than(0.5)
 
     # Act
     result = check.run(coco_test_visiondata,

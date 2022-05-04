@@ -53,7 +53,7 @@ def model_evaluation(**kwargs) -> Suite:
     return Suite(
         'Model Evaluation Suite',
         ClassPerformance(**kwargs).add_condition_train_test_relative_degradation_not_greater_than(),
-        MeanAveragePrecisionReport(**kwargs).add_condition_test_mean_average_precision_not_less_than(),
+        MeanAveragePrecisionReport(**kwargs).add_condition_average_mean_average_precision_not_less_than(),
         MeanAverageRecallReport(**kwargs),
         SimpleModelComparison(**kwargs).add_condition_gain_not_less_than(),
         ConfusionMatrixReport(**kwargs),
