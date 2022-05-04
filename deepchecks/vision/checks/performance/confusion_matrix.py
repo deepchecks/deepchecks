@@ -59,21 +59,21 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         Threshold to consider bounding box as detected.
     iou_threshold (float, default 0.5):
         Threshold to consider detected bounding box as labeled bounding box.
-    is_normalize (bool, default True):
-        If to color the matrix by normalizing by true values.
+    normalized (bool, default True):
+        boolean that determines whether to normalize the true values of the matrix.
     """
 
     def __init__(self,
                  categories_to_display: int = 10,
                  confidence_threshold: float = 0.3,
                  iou_threshold: float = 0.5,
-                 is_normalize: bool = True,
+                 normalized: bool = True,
                  **kwargs):
         super().__init__(**kwargs)
         self.confidence_threshold = confidence_threshold
         self.categories_to_display = categories_to_display
         self.iou_threshold = iou_threshold
-        self.is_normalize = is_normalize
+        self.normalized = normalized
 
         self.matrix = None
         self.classes_list = None
@@ -152,7 +152,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
                 y.append('No overlapping')
 
         description.append(
-            create_confusion_matrix_figure(confusion_matrix, x, y, self.is_normalize)
+            create_confusion_matrix_figure(confusion_matrix, x, y, self.normalized)
         )
         return CheckResult(
             matrix,

@@ -25,15 +25,15 @@ class ConfusionMatrixReport(SingleDatasetCheck):
 
     Parameters
     ----------
-    is_normalize (bool, default True):
-        If to color the matrix by normalizing by true values.
+    normalized (bool, default True):
+        boolean that determines whether to normalize the true values of the matrix.
     """
 
     def __init__(self,
-                 is_normalize: bool = True,
+                 normalized: bool = True,
                  **kwargs):
         super().__init__(**kwargs)
-        self.is_normalize = is_normalize
+        self.normalized = normalized
 
     def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
         """Run check.
@@ -63,6 +63,6 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         confusion_matrix = metrics.confusion_matrix(ds_y, y_pred)
 
         fig = create_confusion_matrix_figure(confusion_matrix, total_classes,
-                                             total_classes, self.is_normalize)
+                                             total_classes, self.normalized)
 
         return CheckResult(confusion_matrix, display=fig)

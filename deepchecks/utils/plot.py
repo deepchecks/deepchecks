@@ -15,16 +15,10 @@ import plotly.graph_objects as go
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import LinearSegmentedColormap
 
-from deepchecks.utils.strings import format_number
+from deepchecks.utils.strings import format_number_if_not_nan
 
 __all__ = ['create_colorbar_barchart_for_check', 'shifted_color_map',
            'create_confusion_matrix_figure', 'colors', 'hex_to_rgba']
-
-
-def _format_number_if_not_nan(x):
-    if np.isnan(x):
-        return x
-    return format_number(x)
 
 
 colors = {'Train': '#00008b',  # dark blue
@@ -171,35 +165,36 @@ def hex_to_rgba(h, alpha):
     return 'rgba' + str(tuple([int(h.lstrip('#')[i:i+2], 16) for i in (0, 2, 4)] + [alpha]))
 
 
-def create_confusion_matrix_figure(confusion_matrix, x, y, is_normalize):
+def create_confusion_matrix_figure(confusion_matrix: np.ndarray, x: np.ndarray,
+                                   y: np.ndarray, normalized: bool):
     """Create a confusion matrix figure.
 
     Parameters
     ----------
     confusion_matrix: np.ndarray
-        array containing the confusion matrix.
+        2D array containing the confusion matrix.
     x: np.ndarray
         array containing x axis data.
     y: np.ndarray
         array containing y axis data.
-    is_normalize: bool
+    normalized: bool
         if True will also show normalized values by the true values.
 
     Returns
     -------
-    go.Figure
+    plotly Figure object
         confusion matrix figure
 
     """
-    if is_normalize:
+    if normalized:
         confusion_matrix_norm = confusion_matrix.astype('float') / \
             confusion_matrix.sum(axis=1)[:, np.newaxis] * 100
-        confusion_matrix_norm = np.vectorize(_format_number_if_not_nan)(confusion_matrix_norm)
+        z = np.vectorize(format_number_if_not_nan)(confusion_matrix_norm)
         texttemplate = '%{z}%<br>(%{text})'
         colorbar_title = '% of<br>True Values'
         plot_title = 'Percent Out of True Values (Count)'
     else:
-        confusion_matrix_norm = confusion_matrix
+        z = confusion_matrix
         colorbar_title = None
         texttemplate = '%{text}'
         plot_title = 'Value Count'
@@ -207,7 +202,7 @@ def create_confusion_matrix_figure(confusion_matrix, x, y, is_normalize):
     fig = go.Figure(data=go.Heatmap(
                 x=x,
                 y=y,
-                z=confusion_matrix_norm,
+                z=z,
                 text=confusion_matrix,
                 texttemplate=texttemplate))
     fig.data[0].colorbar.title = colorbar_title

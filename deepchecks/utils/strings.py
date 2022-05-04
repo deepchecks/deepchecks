@@ -19,6 +19,7 @@ from copy import copy
 from datetime import datetime
 from decimal import Decimal
 from string import ascii_uppercase, digits
+import numpy as np
 
 import pandas as pd
 from ipywidgets import Widget
@@ -54,6 +55,7 @@ __all__ = [
     'create_new_file_name',
     'widget_to_html',
     'generate_check_docs_link',
+    'format_number_if_not_nan',
 ]
 
 
@@ -445,6 +447,25 @@ def format_number(x, floating_point: int = 2) -> str:
     else:
         ret_x = round(x, floating_point)
         return add_commas(ret_x).rstrip('0')
+
+
+def format_number_if_not_nan(x, floating_point: int = 2):
+    """Format number if it is not nan for elegant display.
+
+    Parameters
+    ----------
+    x
+        Number to be displayed
+    floating_point : int , default: 2
+        Number of floating points to display
+    Returns
+    -------
+    str
+        String of beautified number if number is not nan
+    """
+    if np.isnan(x):
+        return x
+    return format_number(x, floating_point)
 
 
 def format_list(l: t.List[Hashable], max_elements_to_show: int = 10, max_string_length: int = 40) -> str:
