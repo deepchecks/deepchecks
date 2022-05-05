@@ -8,6 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+# pylint: disable=import-outside-toplevel
 """Module containing Wandb serializer for the CheckResult type."""
 import typing as t
 from collections import OrderedDict
@@ -26,11 +27,11 @@ from deepchecks.core.serialization.common import (aggregate_conditions,
 try:
     import wandb
     from wandb.sdk.data_types.base_types.wb_value import WBValue
-except ImportError:
+except ImportError as e:
     raise ImportError(
         'Wandb serializer requires the wandb python package. '
         'To get it, run "pip install wandb".'
-    )
+    ) from e
 
 __all__ = ['CheckResultSerializer']
 
@@ -129,11 +130,11 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
         """Handle callable."""
         try:
             import PIL.Image as pilimage
-        except ImportError:
+        except ImportError as error:
             raise ImportError(
                 'Wandb CheckResultSerializer requires the PIL package '
                 'to process matplot figures. To get it, run "pip install pillow".'
-            )
+            ) from error
         else:
             images = super().handle_callable(item, index, **kwargs)
             image = concatv_images([pilimage.open(buffer) for buffer in images])
