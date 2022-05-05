@@ -23,6 +23,7 @@ from deepchecks.core.serialization.check_result.widget import \
     CheckResultSerializer as CheckResultWidgetSerializer
 from deepchecks.core.serialization.common import Html as CommonHtml
 from deepchecks.core.serialization.common import normalize_widget_style
+from deepchecks.core.serialization.common import join
 from deepchecks.core.serialization.dataframe.widget import DataFrameSerializer
 from deepchecks.utils.strings import get_docs_summary
 
@@ -238,16 +239,3 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         with warnings.catch_warnings():
             warnings.simplefilter(action='ignore', category=FutureWarning)
             return DataFrameSerializer(df.style.hide_index()).serialize()
-
-
-A = t.TypeVar('A')
-B = t.TypeVar('B')
-
-
-def join(l: t.List[A], item: B) -> t.Iterator[t.Union[A, B]]:
-    """Concatenate a list of items into one iterator and put 'item' between elements of the list."""
-    list_len = len(l) - 1
-    for index, el in enumerate(l):
-        yield el
-        if index != list_len:
-            yield item

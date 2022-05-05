@@ -90,6 +90,48 @@ class WandbSerializer(Serializer[T], Protocol):
         ...
 
 
+class HtmlDisplayable(t.Protocol):
+    def _repr_html_(self) -> t.Any: ...
+
+
+class JsonDisplayable(t.Protocol):
+    def _repr_json_(self) -> t.Any: ...
+
+
+class JpegDisplayable(t.Protocol):
+    def _repr_jpeg_(self) -> t.Any: ...
+
+
+class PngDisplayable(t.Protocol):
+    def _repr_png_(self) -> t.Any: ...
+
+
+class SvgDisplayable(t.Protocol):
+    def _repr_png_(self, **kwargs) -> t.Any: ...
+
+
+class MimebundeDisplayable(t.Protocol):
+    def _repr_mimebundle_(self, **kwargs) -> t.Any: ...
+
+
+IPythonDisplayable = t.Union[
+    HtmlDisplayable,
+    JsonDisplayable,
+    JpegDisplayable,
+    PngDisplayable,
+    SvgDisplayable,
+    MimebundeDisplayable
+]
+
+
+class IPythonSerializer(Serializer[T], Protocol):
+    """"""
+
+    def serialize(self, **kwargs) -> t.List[IPythonDisplayable]:
+        """Serialize into a list of objects that are Ipython displayable."""
+        ...
+
+
 class ABCDisplayItemsHandler(Protocol):
     """Trait that describes 'CheckResult.dislay' processing logic."""
 
@@ -98,7 +140,6 @@ class ABCDisplayItemsHandler(Protocol):
     ])
 
     @classmethod
-    @abc.abstractmethod
     def handle_display(
         cls,
         display: t.List['check_types.TDisplayItem'],
@@ -118,7 +159,6 @@ class ABCDisplayItemsHandler(Protocol):
         return [cls.handle_item(it, index) for index, it in enumerate(display)]
 
     @classmethod
-    @abc.abstractmethod
     def handle_item(cls, item: 'check_types.TDisplayItem', index: int, **kwargs) -> t.Any:
         """Serialize display item."""
         if isinstance(item, str):

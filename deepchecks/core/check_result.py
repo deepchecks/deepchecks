@@ -19,29 +19,37 @@ import jsonpickle
 import jsonpickle.ext.pandas as jsonpickle_pd
 import pandas as pd
 import plotly.io as pio
-from IPython.display import display_html
+from IPython.display import display_html, display
 from ipywidgets import Widget
 from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
 
-from deepchecks.core.condition import ConditionCategory, ConditionResult
-from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.core.serialization.check_failure.html import \
-    CheckFailureSerializer as CheckFailureHtmlSerializer
-from deepchecks.core.serialization.check_failure.json import \
-    CheckFailureSerializer as CheckFailureJsonSerializer
-from deepchecks.core.serialization.check_result.html import \
-    CheckResultSerializer as CheckResultHtmlSerializer
-from deepchecks.core.serialization.check_result.json import \
-    CheckResultSerializer as CheckResultJsonSerializer
-from deepchecks.core.serialization.check_result.json import display_from_json
-from deepchecks.core.serialization.check_result.widget import \
-    CheckResultSerializer as CheckResultWidgetSerializer
-from deepchecks.utils.ipython import (is_colab_env, is_kaggle_env, is_notebook,
-                                      is_widgets_use_possible)
-from deepchecks.utils.strings import (create_new_file_name, get_docs_summary,
-                                      widget_to_html)
+from deepchecks.utils.ipython import (
+    is_colab_env, 
+    is_kaggle_env, 
+    is_notebook,
+    is_widgets_use_possible
+)
+from deepchecks.utils.strings import (
+    create_new_file_name, 
+    get_docs_summary,
+    widget_to_html,
+    widget_to_html_string,
+    get_random_string
+)
 from deepchecks.utils.wandb_utils import set_wandb_run_state
+
+from .condition import ConditionCategory, ConditionResult
+from .errors import DeepchecksValueError
+from .serialization.check_failure.html import CheckFailureSerializer as CheckFailureHtmlSerializer
+from .serialization.check_failure.json import CheckFailureSerializer as CheckFailureJsonSerializer
+from .serialization.check_failure.ipython import CheckFailureSerializer as CheckFailureIPythonSerializer
+from .serialization.check_result.ipython import CheckResultSerializer as CheckResultIPythonSerializer
+from .serialization.check_result.html import CheckResultSerializer as CheckResultHtmlSerializer
+from .serialization.check_result.json import CheckResultSerializer as CheckResultJsonSerializer
+from .serialization.check_result.json import display_from_json
+from .serialization.check_result.widget import CheckResultSerializer as CheckResultWidgetSerializer
+
 
 # registers jsonpickle pandas extension for pandas support in the to_json function
 jsonpickle_pd.register_handlers()
@@ -100,244 +108,13 @@ class CheckResult:
         for item in self.display:
             if not isinstance(item, (str, pd.DataFrame, Styler, Callable, BaseFigure)):
                 raise DeepchecksValueError(f'Can\'t display item of type: {type(item)}')
-
-    def to_widget(
-        self,
-        unique_id: Optional[str] = None,
-        show_additional_outputs: bool = True
-    ) -> Widget:
-        """Return CheckResult as a ipywidgets.Widget instance.
-
-        Parameters
-        ----------
-        unique_id : str
-            The unique id given by the suite that displays the check.
-        show_additional_outputs : bool
-            Boolean that controls if to show additional outputs.
-
-        Returns
-        -------
-        Widget
-        """
-        check_sections = (
-            ['condition-table', 'additional-output']
-            if show_additional_outputs is True
-            else ['condition-table']
-        )
-        return CheckResultWidgetSerializer(self).serialize(
-            output_id=unique_id,
-            check_sections=check_sections  # type: ignore
-        )
-
-    def display_check(
-        self,
-        unique_id: Optional[str] = None,
-        as_widget: bool = False,
-        show_additional_outputs: bool = True,
-        full_html: bool = False
-    ) -> Optional[Widget]:
-        """Display the check result or return the display as widget.
-
-        Parameters
-        ----------
-        unique_id : str
-            The unique id given by the suite that displays the check.
-        as_widget : bool
-            Boolean that controls if to display the check regulary or if to return a widget.
-        show_additional_outputs : bool
-            Boolean that controls if to show additional outputs.
-
-        Returns
-        -------
-        Widget
-            Widget representation of the display if as_widget is True.
-        """
-        if as_widget is True:
-            return self.to_widget(
-                unique_id=unique_id,
-                show_additional_outputs=show_additional_outputs
-            )
-        else:
-            check_sections = (
-                ['condition-table', 'additional-output']
-                if show_additional_outputs
-                else ['condition-table']
-            )
-            display_html(
-                CheckResultHtmlSerializer(self).serialize(
-                    output_id=unique_id,
-                    full_html=full_html,
-                    check_sections=check_sections  # type: ignore
-                ),
-                raw=True,
-            )
-
-    def _repr_html_(
-        self,
-        unique_id: Optional[str] = None,
-        show_additional_outputs: bool = True,
-        requirejs: bool = False
-    ) -> str:
-        """Return html representation of check result."""
-        html_out = io.StringIO()
-        self.save_as_html(
-            html_out,
-            unique_id=unique_id,
-            show_additional_outputs=show_additional_outputs,
-            requirejs=requirejs
-        )
-        return html_out.getvalue()
-
-    def save_as_html(
-        self,
-        file: Union[str, io.TextIOWrapper, None] = None,
-        unique_id: Optional[str] = None,
-        show_additional_outputs: bool = True,
-        requirejs: bool = True
-    ):
-        """Save output as html file.
-
-        Parameters
-        ----------
-        file : filename or file-like object
-            The file to write the HTML output to. If None writes to output.html
-        requirejs: bool , default: True
-            If to save with all javascript dependencies
-        """
-        if file is None:
-            file = 'output.html'
-        if isinstance(file, str):
-            file = create_new_file_name(file)
-
-        widget_to_html(
-            self.to_widget(
-                unique_id=unique_id,
-                show_additional_outputs=show_additional_outputs,
-            ),
-            html_out=file,
-            title=self.get_header(),
-            requirejs=requirejs
-        )
-
-    def to_wandb(
-        self,
-        dedicated_run: bool = True,
-        **kwargs: Any
-    ):
-        """Export check result to wandb.
-
-        Parameters
-        ----------
-        dedicated_run : bool , default: None
-            If to initiate and finish a new wandb run.
-            If None it will be dedicated if wandb.run is None.
-        kwargs: Keyword arguments to pass to wandb.init.
-                Default project name is deepchecks.
-                Default config is the check metadata (params, train/test/ name etc.).
-        """
-        # NOTE: Wandb is not a default dependency
-        # user should install it manually therefore we are
-        # doing import within method to prevent premature ImportError
-        try:
-            import wandb
-
-            from deepchecks.core.serialization.check_result.wandb import \
-                CheckResultSerializer as WandbSerializer
-        except ImportError as error:
-            raise ImportError(
-                'Wandb serializer requires the wandb python package. '
-                'To get it, run "pip install wandb".'
-            ) from error
-        else:
-            dedicated_run = set_wandb_run_state(
-                dedicated_run,
-                {'header': self.get_header(), **self.check.metadata()},
-                **kwargs
-            )
-            wandb.log(WandbSerializer(self).serialize())
-            if dedicated_run:  # TODO: create context manager for this
-                wandb.finish()
-
-    def to_json(self, with_display: bool = True) -> str:
-        """Return check result as json.
-
-        Returned JSON string will have next structure:
-
-        >>    class CheckResultMetadata(TypedDict):
-        >>        check: CheckMetadata
-        >>        value: Any
-        >>        header: str
-        >>        conditions_results: List[Dict[Any, Any]]
-        >>        display: List[Dict[str, Any]]
-
-        >>    class CheckMetadata(TypedDict):
-        >>        type: str
-        >>        name: str
-        >>        params: Dict[Any, Any]
-        >>        summary: str
-
-        Parameters
-        ----------
-        with_display : bool
-            controls if to serialize display or not
-
-        Returns
-        -------
-        str
-        """
-        # TODO: not sure if the `with_display` parameter is needed
-        # add deprecation warning if it is not needed
-        return jsonpickle.dumps(
-            CheckResultJsonSerializer(self).serialize(),
-            unpicklable=False
-        )
-
-    @staticmethod
-    def display_from_json(json_data: str):
-        """Display the check result from a json received from a to_json."""
-        display_html(display_from_json(json_data), raw=True)
-
+    
     def _get_metadata(self, with_doc_link: bool = False):
         check_name = self.check.name()
         parameters = self.check.params(show_defaults=True)
         header = self.get_header()
         return {'name': check_name, 'params': parameters, 'header': header,
                 'summary': get_docs_summary(self.check, with_doc_link=with_doc_link)}
-
-    def _ipython_display_(
-        self,
-        unique_id: Optional[str] = None,
-        as_widget: bool = True,
-        show_additional_outputs: bool = True
-    ):
-        as_widget = is_widgets_use_possible() and as_widget
-        check_sections = (
-            ['condition-table', 'additional-output']
-            if show_additional_outputs
-            else ['condition-table']
-        )
-
-        if as_widget is True:
-            display_html(CheckResultWidgetSerializer(self).serialize(
-                output_id=unique_id,
-                check_sections=check_sections  # type: ignore
-            ))
-        else:
-            is_colab = is_colab_env()
-            is_kaggle = is_kaggle_env()
-            display_html(
-                CheckResultHtmlSerializer(self).serialize(
-                    output_id=unique_id if not is_colab else None,
-                    full_html=is_colab,
-                    include_requirejs=is_kaggle,
-                    connected=not is_kaggle
-                ),
-                raw=True
-            )
-
-    def __repr__(self):
-        """Return default __repr__ function uses value."""
-        return f'{self.get_header()}: {self.value}'
 
     def get_header(self) -> str:
         """Return header for display. if header was defined return it, else extract name of check class."""
@@ -392,6 +169,179 @@ class CheckResult:
 
         return 4
 
+    def display_check(
+        self,
+        unique_id: Optional[str] = None,
+        as_widget: bool = False,
+        show_additional_outputs: bool = True,
+    ) -> Optional[Widget]:
+        """Display the check result or return the display as widget.
+
+        Parameters
+        ----------
+        unique_id : str
+            The unique id given by the suite that displays the check.
+        as_widget : bool
+            Boolean that controls if to display the check regulary or if to return a widget.
+        show_additional_outputs : bool
+            Boolean that controls if to show additional outputs.
+
+        Returns
+        -------
+        Widget
+            Widget representation of the display if as_widget is True.
+        """
+        if as_widget is True:
+            return self.to_widget(
+                unique_id=unique_id,
+                show_additional_outputs=show_additional_outputs
+            )
+        else:
+            check_sections = (
+                ['condition-table', 'additional-output']
+                if show_additional_outputs
+                else ['condition-table']
+            )
+            display(*CheckResultIPythonSerializer(self).serialize(
+                output_id=unique_id,
+                check_sections=check_sections  # type: ignore
+            ))
+
+    def save_as_html(
+        self,
+        file: Union[str, io.TextIOWrapper, None] = None,
+        unique_id: Optional[str] = None,
+        show_additional_outputs: bool = True,
+        requirejs: bool = True
+    ):
+        """Save output as html file.
+
+        Parameters
+        ----------
+        file : filename or file-like object
+            The file to write the HTML output to. If None writes to output.html
+        requirejs: bool , default: True
+            If to save with all javascript dependencies
+        """
+        if file is None:
+            file = 'output.html'
+        if isinstance(file, str):
+            file = create_new_file_name(file)
+
+        widget_to_html(
+            self.to_widget(
+                unique_id=unique_id or get_random_string(n=25),
+                show_additional_outputs=show_additional_outputs,
+            ),
+            html_out=file,
+            title=self.get_header(),
+            requirejs=requirejs
+        )
+    
+    def to_widget(
+        self,
+        unique_id: Optional[str] = None,
+        show_additional_outputs: bool = True
+    ) -> Widget:
+        """Return CheckResult as a ipywidgets.Widget instance.
+
+        Parameters
+        ----------
+        unique_id : str
+            The unique id given by the suite that displays the check.
+        show_additional_outputs : bool
+            Boolean that controls if to show additional outputs.
+
+        Returns
+        -------
+        Widget
+        """
+        check_sections = (
+            ['condition-table', 'additional-output']
+            if show_additional_outputs is True
+            else ['condition-table']
+        )
+        return CheckResultWidgetSerializer(self).serialize(
+            output_id=unique_id,
+            check_sections=check_sections  # type: ignore
+        )
+
+    def to_wandb(
+        self,
+        dedicated_run: bool = True,
+        **kwargs: Any
+    ):
+        """Export check result to wandb.
+
+        Parameters
+        ----------
+        dedicated_run : bool , default: None
+            If to initiate and finish a new wandb run.
+            If None it will be dedicated if wandb.run is None.
+        kwargs: Keyword arguments to pass to wandb.init.
+                Default project name is deepchecks.
+                Default config is the check metadata (params, train/test/ name etc.).
+        """
+        # NOTE: Wandb is not a default dependency
+        # user should install it manually therefore we are
+        # doing import within method to prevent premature ImportError
+        try:
+            import wandb
+            from .serialization.check_result.wandb import CheckResultSerializer as WandbSerializer
+        except ImportError as error:
+            raise ImportError(
+                'Wandb serializer requires the wandb python package. '
+                'To get it, run "pip install wandb".'
+            ) from error
+        else:
+            dedicated_run = set_wandb_run_state(
+                dedicated_run,
+                {'header': self.get_header(), **self.check.metadata()},
+                **kwargs
+            )
+            wandb.log(WandbSerializer(self).serialize())
+            if dedicated_run:  # TODO: create context manager for this
+                wandb.finish()
+
+    def to_json(self, with_display: bool = True) -> str:
+        """Return check result as json.
+
+        Returned JSON string will have next structure:
+
+        >>    class CheckResultMetadata(TypedDict):
+        >>        check: CheckMetadata
+        >>        value: Any
+        >>        header: str
+        >>        conditions_results: List[Dict[Any, Any]]
+        >>        display: List[Dict[str, Any]]
+
+        >>    class CheckMetadata(TypedDict):
+        >>        type: str
+        >>        name: str
+        >>        params: Dict[Any, Any]
+        >>        summary: str
+
+        Parameters
+        ----------
+        with_display : bool
+            controls if to serialize display or not
+
+        Returns
+        -------
+        str
+        """
+        # TODO: not sure if the `with_display` parameter is needed
+        # add deprecation warning if it is not needed
+        return jsonpickle.dumps(
+            CheckResultJsonSerializer(self).serialize(),
+            unpicklable=False
+        )
+
+    @staticmethod
+    def display_from_json(json_data: str):
+        """Display the check result from a json received from a to_json."""
+        display_html(display_from_json(json_data), raw=True)
+
     def show(self, show_additional_outputs=True, unique_id=None):
         """Display the check result.
 
@@ -408,9 +358,13 @@ class CheckResult:
                 show_additional_outputs=show_additional_outputs
             )
         elif 'sphinx_gallery' in pio.renderers.default:
-            html = self._repr_html_(
-                unique_id=unique_id,
-                show_additional_outputs=show_additional_outputs
+            html = widget_to_html_string(
+                self.to_widget(
+                    unique_id=unique_id,
+                    show_additional_outputs=show_additional_outputs
+                ),
+                title=self.get_header(),
+                requirejs=True
             )
 
             class TempSphinx:
@@ -424,6 +378,61 @@ class CheckResult:
                 'In order to show result you have to use '
                 'an IPython shell (etc Jupyter)'
             )
+    
+    def __repr__(self):
+        """Return default __repr__ function uses value."""
+        return f'{self.get_header()}: {self.value}'
+    
+    def _repr_html_(
+        self,
+        unique_id: Optional[str] = None,
+        show_additional_outputs: bool = True,
+        requirejs: bool = False,
+        **kwargs
+    ) -> str:
+        """Return html representation of check result."""
+        check_sections = (
+            ['condition-table', 'additional-output']
+            if show_additional_outputs
+            else ['condition-table']
+        )
+        return CheckResultHtmlSerializer(self).serialize(
+            output_id=unique_id or get_random_string(n=25),
+            include_plotlyjs=True,
+            include_requirejs=requirejs,
+            check_sections=check_sections  # type: ignore
+        )
+    
+    def _repr_json_(self, **kwargs):
+        return CheckResultJsonSerializer(self).serialize()
+    
+    def _repr_mimebundle_(self, **kwargs):
+        return {
+            'text/html': self._repr_html_(),
+            'application/json': self._repr_json_()
+        }
+    
+    def _ipython_display_(
+        self,
+        unique_id: Optional[str] = None,
+        as_widget: bool = True,
+        show_additional_outputs: bool = True
+    ):
+        check_sections = (
+            ['condition-table', 'additional-output']
+            if show_additional_outputs
+            else ['condition-table']
+        )
+        if is_widgets_use_possible() and as_widget:
+            display_html(CheckResultWidgetSerializer(self).serialize(
+                output_id=unique_id or get_random_string(n=25),
+                check_sections=check_sections  # type: ignore
+            ))
+        else:
+            display(*CheckResultIPythonSerializer(self).serialize(
+                output_id=unique_id or get_random_string(n=25),
+                check_sections=check_sections  # type: ignore
+            ))
 
 
 class CheckFailure:
@@ -441,6 +450,12 @@ class CheckFailure:
         self.check = check
         self.exception = exception
         self.header = check.name() + header_suffix
+    
+    def _get_metadata(self, with_doc_link: bool = False):
+        check_name = self.check.name()
+        parameters = self.check.params(True)
+        summary = get_docs_summary(self.check, with_doc_link=with_doc_link)
+        return {'name': check_name, 'params': parameters, 'header': self.header, 'summary': summary}
 
     def to_json(self, with_display: bool = True):
         """Return check failure as json.
@@ -491,9 +506,7 @@ class CheckFailure:
         # doing import within method to prevent premature ImportError
         try:
             import wandb
-
-            from deepchecks.core.serialization.check_failure.wandb import \
-                CheckFailureSerializer as WandbSerializer
+            from .serialization.check_failure.wandb import CheckFailureSerializer as WandbSerializer
         except ImportError as error:
             raise ImportError(
                 'Wandb serializer requires the wandb python package. '
@@ -509,22 +522,25 @@ class CheckFailure:
             if dedicated_run:
                 wandb.finish()
 
-    def _get_metadata(self, with_doc_link: bool = False):
-        check_name = self.check.name()
-        parameters = self.check.params(True)
-        summary = get_docs_summary(self.check, with_doc_link=with_doc_link)
-        return {'name': check_name, 'params': parameters, 'header': self.header, 'summary': summary}
-
     def __repr__(self):
         """Return string representation."""
         return self.header + ': ' + str(self.exception)
+    
+    def _repr_html_(self):
+        return CheckFailureHtmlSerializer(self).serialize()
+    
+    def _repr_json_(self):
+        return CheckFailureJsonSerializer(self).serialize()
+    
+    def _repr_mimebundle_(self):
+        return {
+            'text/html': self._repr_html_(),
+            'application/json': self._repr_json_()
+        }
 
     def _ipython_display_(self):
         """Display the check failure."""
-        display_html(
-            CheckFailureHtmlSerializer(self).serialize(),
-            raw=True
-        )
+        display(*CheckFailureIPythonSerializer(self).serialize())
 
     def print_traceback(self):
         """Print the traceback of the failure."""

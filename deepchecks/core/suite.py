@@ -17,23 +17,20 @@ from collections import OrderedDict
 from typing import Dict, List, Optional, Set, Tuple, Union
 
 import jsonpickle
-from IPython.core.display import display_html
+from IPython.core.display import display_html, display
 from ipywidgets import Widget
 
-from deepchecks.core.check_result import CheckFailure, CheckResult
-from deepchecks.core.checks import BaseCheck
-from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.core.serialization.suite_result.html import \
-    SuiteResultSerializer as SuiteResultHtmlSerializer
-from deepchecks.core.serialization.suite_result.json import \
-    SuiteResultSerializer as SuiteResultJsonSerializer
-from deepchecks.core.serialization.suite_result.widget import \
-    SuiteResultSerializer as SuiteResultWidgetSerializer
-from deepchecks.utils.ipython import (is_colab_env, is_kaggle_env, is_notebook,
-                                      is_widgets_use_possible)
-from deepchecks.utils.strings import (create_new_file_name, get_random_string,
-                                      widget_to_html)
+from deepchecks.utils.ipython import is_notebook, is_widgets_use_possible
+from deepchecks.utils.strings import create_new_file_name, get_random_string, widget_to_html
 from deepchecks.utils.wandb_utils import set_wandb_run_state
+
+from .check_result import CheckFailure, CheckResult
+from .checks import BaseCheck
+from .errors import DeepchecksValueError
+from .serialization.suite_result.html import SuiteResultSerializer as SuiteResultHtmlSerializer
+from .serialization.suite_result.json import SuiteResultSerializer as SuiteResultJsonSerializer
+from .serialization.suite_result.widget import SuiteResultSerializer as SuiteResultWidgetSerializer
+from .serialization.suite_result.ipython import SuiteResultSerializer as SuiteResultIPythonSerializer
 
 __all__ = ['BaseSuite', 'SuiteResult']
 
@@ -89,25 +86,34 @@ class SuiteResult:
     def __repr__(self):
         """Return default __repr__ function uses value."""
         return self.name
+    
+    def _repr_html_(self) -> str:
+        """Return html representation of check result."""
+        return SuiteResultHtmlSerializer(self).serialize(
+            include_plotlyjs=True,
+            include_requirejs=False,
+            output_id=get_random_string(n=25)
+        )
+    
+    def _repr_json_(self):
+        return SuiteResultJsonSerializer(self).serialize()
+    
+    def _repr_mimebundle_(self):
+        return {
+            'text/html': self._repr_html_(),
+            'application/json': self._repr_json_()
+        }
 
     def _ipython_display_(self):
-        output_id = get_random_string()
+        output_id = get_random_string(n=25)
         if is_widgets_use_possible() is True:
-            display_html(
-                SuiteResultWidgetSerializer(self).serialize(output_id=output_id)
-            )
+            display_html(SuiteResultWidgetSerializer(self).serialize(
+                output_id=output_id
+            ))
         else:
-            is_colab = is_colab_env()
-            is_kaggle = is_kaggle_env()
-            display_html(
-                SuiteResultHtmlSerializer(self).serialize(
-                    output_id=output_id if not is_colab else None,
-                    full_html=is_colab,
-                    include_requirejs=is_kaggle,
-                    connected=not is_kaggle
-                ),
-                raw=True,
-            )
+            display(*SuiteResultIPythonSerializer(self).serialize(
+                output_id=output_id
+            ))
 
     def show(self):
         """Display suite result."""
@@ -119,12 +125,6 @@ class SuiteResult:
                 'In order to show result you have to use '
                 'an IPython shell (etc Jupyter)'
             )
-
-    def _repr_html_(self) -> str:
-        """Return html representation of check result."""
-        html_out = io.StringIO()
-        self.save_as_html(html_out, requirejs=False)
-        return html_out.getvalue()
 
     def save_as_html(
         self,
