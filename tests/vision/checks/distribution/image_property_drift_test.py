@@ -37,14 +37,14 @@ def test_image_property_drift_check(coco_train_visiondata, coco_test_visiondata,
 
 def test_image_property_drift_check_limit_classes(coco_train_visiondata, coco_test_visiondata, device):
     # Run
-    result = ImagePropertyDrift(classes_to_display=['person', 'cat', 'cell phone', 'car'], min_samples=5
+    result = ImagePropertyDrift(classes_to_display=['bicycle', 'bench', 'bus', 'truck'], min_samples=5
                                 ).run(coco_train_visiondata, coco_test_visiondata, device=device)
 
     # Assert
     assert_that(result, is_correct_image_property_drift_result())
 
     assert_that(result.value, has_entries(
-        {'Brightness': close_to(0.15, 0.01)}
+        {'Brightness': close_to(0.103, 0.01)}
     ))
 
 
