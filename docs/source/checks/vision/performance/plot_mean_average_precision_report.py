@@ -53,7 +53,7 @@ result
 
 result.value
 
-# %%
+#%%
 # Define a condition 
 # ==================
 # We can define a condition that checks whether our model's mean average precision score is not less than
