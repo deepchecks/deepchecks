@@ -20,7 +20,7 @@ import jsonpickle
 from IPython.core.display import display_html
 from ipywidgets import Widget
 
-from deepchecks.core.check_result import CheckFailure, CheckResult
+from deepchecks.core.check_result import CheckFailure, CheckOutput, CheckResult
 from deepchecks.core.checks import BaseCheck
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.serialization.suite_result.html import \
@@ -44,12 +44,12 @@ class SuiteResult:
     Parameters
     ----------
     name: str
-    results: List[Union[CheckResult, CheckFailure]]
+    results: List[CheckOutput]
     """
 
     name: str
     extra_info: List[str]
-    results: List[Union[CheckResult, CheckFailure]]
+    results: List[CheckOutput]
 
     def __init__(self, name: str, results, extra_info: Optional[List[str]] = None):
         """Initialize suite result."""
@@ -78,7 +78,7 @@ class SuiteResult:
             else:
                 self.failures.add(index)
 
-    def select_results(self, idx: Set[int]) -> List[Union[CheckResult, CheckFailure]]:
+    def select_results(self, idx: Set[int]) -> List[CheckOutput]:
         """Select results by indexes."""
         output = []
         for index, result in enumerate(self.results):
@@ -277,7 +277,7 @@ class BaseSuite:
         """Return list of of supported check types."""
         pass
 
-    checks: OrderedDict
+    checks: 'OrderedDict[int, BaseCheck]'
     name: str
     _check_index: int
 

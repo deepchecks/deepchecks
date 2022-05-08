@@ -136,7 +136,7 @@ class BaseCheck(abc.ABC):
         return check_result
 
     @classmethod
-    def name(cls):
+    def name(cls) -> str:
         """Name of class in split camel case."""
         return split_camel_case(cls.__name__)
 

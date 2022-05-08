@@ -59,4 +59,4 @@ class CheckFailureSerializer(HtmlSerializer['check_types.CheckFailure']):
 
     def prepare_error_message(self) -> str:
         """Prepare the error message of the html output."""
-        return f'<p style="color:red"> {self.value.exception}</p>'
+        return f'<p style="color:red">{self.value.exception}</p>'
