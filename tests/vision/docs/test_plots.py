@@ -27,8 +27,7 @@ DOCS_EXAMPLES_DIR = sphinx_gallery_conf['examples_dirs']
 def test_plots_on_gpu():
     """If there is GPU available running all the docs plot files. Only makes sure the plots don't crash, and not \
     testing any other display or functionality."""
-    if not torch.cuda.is_available():
-
+    if torch.cuda.is_available():
         # Take only source file and excluding compiled files
         source_files = set()
         for dir in DOCS_EXAMPLES_DIR:
