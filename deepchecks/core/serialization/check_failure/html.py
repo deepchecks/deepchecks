@@ -9,8 +9,10 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing html serializer for the CheckFailuer type."""
+from typing import Optional
 from deepchecks.core import check_result as check_types
 from deepchecks.core.serialization.abc import HtmlSerializer
+from deepchecks.core.serialization.common import form_check_id
 
 __all__ = ['CheckFailureSerializer']
 
@@ -44,9 +46,15 @@ class CheckFailureSerializer(HtmlSerializer['check_types.CheckFailure']):
             self.prepare_error_message()
         ])
 
-    def prepare_header(self) -> str:
+    def prepare_header(self, output_id: Optional[str] = None) -> str:
         """Prepare the header section of the html output."""
-        return f'<h4>{self.value.get_header()}</h4>'
+        header = self.value.get_header()
+        header = f'<b>{header}</b>'
+        if output_id is not None:
+            check_id = form_check_id(self.value.check_name, output_id)
+            return f'<h4 id="{check_id}">{header}</h4>'
+        else:
+            return f'<h4>{header}</h4>'
 
     def prepare_summary(self) -> str:
         """Prepare the summary section of the html output."""

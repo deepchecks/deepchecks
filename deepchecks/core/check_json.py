@@ -12,7 +12,7 @@
 # pylint: disable=broad-except
 import io
 
-from typing import Dict, List
+from typing import Dict, List, Union
 
 import jsonpickle
 import jsonpickle.ext.pandas as jsonpickle_pd
@@ -42,16 +42,18 @@ class CheckResultJson(CheckResult):
 
     Parameters
     ----------
-    json_data : str
+    json_data: Union[str, Dict]
         Json data
     """
 
-    def __init__(self, json_data: str):
-        json_dict = jsonpickle.loads(json_data)
+    def __init__(self, json_dict: Union[str, Dict]):
+        if isinstance(json_dict, str):
+            json_dict = jsonpickle.loads(json_dict)
 
         self.value = json_dict.get('value')
         self.header = json_dict.get('header')
         self.check_metadata = json_dict.get('check')
+        self._check_name = self.check_metadata['name']
 
         conditions_results_json = json_dict.get('conditions_results')
         if conditions_results_json is not None:
@@ -93,22 +95,22 @@ class CheckFailureJson(CheckFailure):
 
     Parameters
     ----------
-    check : BaseCheck
-    exception : Exception
-    header_suffix : str , default ``
-
+    json_data: Union[str, Dict]
+        Json data
     """
 
-    def __init__(self, json_data: str):
-        json_dict = jsonpickle.loads(json_data)
+    def __init__(self, json_dict: Union[str, Dict]):
+        if isinstance(json_dict, str):
+            json_dict = jsonpickle.loads(json_dict)
 
         self.value = json_dict.get('value')
         self.header = json_dict.get('header')
         self.check_metadata = json_dict.get('check')
+        self._check_name = self.check_metadata['name']
         self.exception = json_dict.get('exception')
 
     def get_metadata(self, with_doc_link: bool = False):
-        CheckJson.get_metadata(self)
+        CheckResultJson.get_metadata(self)
 
     def print_traceback(self):
         """Print the traceback of the failure."""

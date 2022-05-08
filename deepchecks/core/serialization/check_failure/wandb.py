@@ -52,7 +52,7 @@ class CheckFailureSerializer(WandbSerializer['check_types.CheckFailure']):
         Dict[str, WBValue]
         """
         header = self.value.header
-        metadata = self.value.check.metadata()
+        metadata = self.value.get_metadata()
         summary_table = wandb.Table(
             columns=['header', 'params', 'summary', 'value'],
             data=[[

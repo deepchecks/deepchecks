@@ -101,7 +101,7 @@ def are_navigation_links_present(
             for it in soup.select('a')
         ),
         all(
-            soup.select_one(f'#{form_check_id(it.check, output_id)}') is not None
+            soup.select_one(f'#{form_check_id(it.check_name, output_id)}') is not None
             for it in suite_result.results
             if isinstance(it, CheckResult)
         )

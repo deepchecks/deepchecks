@@ -64,14 +64,16 @@ class CheckOutput:
     _check_name: str = None
 
     @staticmethod
-    def from_json(json_data: str) -> Union['CheckFailureJson', 'CheckResultJson']:
+    def from_json(json_dict: Union[str, Dict]) -> Union['CheckFailureJson', 'CheckResultJson']:
         from deepchecks.core.check_json import CheckFailureJson, CheckResultJson
 
-        check_type = jsonpickle.loads(json_data)['type']
+        if isinstance(json_dict, str):
+            json_dict = jsonpickle.loads(json_dict)
+        check_type = json_dict['type']
         if check_type == 'CheckFailure':
-            return CheckFailureJson(json_data)
+            return CheckFailureJson(json_dict)
         elif check_type == 'CheckResult':
-            return CheckResultJson(json_data)
+            return CheckResultJson(json_dict)
         else:
             raise ValueError('Excpected type one of CheckFailure/CheckResult recievied: ' + type)
 

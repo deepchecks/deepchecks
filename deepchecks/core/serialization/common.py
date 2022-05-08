@@ -63,9 +63,8 @@ def form_output_anchor(output_id: str) -> str:
     return f'summary_{output_id}'
 
 
-def form_check_id(check: 'checks.BaseCheck', output_id: str) -> str:
+def form_check_id(check_name: str, output_id: str) -> str:
     """Form check instance unique identifier."""
-    check_name = type(check).__name__
     return f'{check_name}_{output_id}'
 
 

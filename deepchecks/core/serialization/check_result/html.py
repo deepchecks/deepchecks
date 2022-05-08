@@ -119,7 +119,7 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
         header = self.value.get_header()
         header = f'<b>{header}</b>'
         if output_id is not None:
-            check_id = form_check_id(self.value.check, output_id)
+            check_id = form_check_id(self.value.check_name, output_id)
             return f'<h4 id="{check_id}">{header}</h4>'
         else:
             return f'<h4>{header}</h4>'
