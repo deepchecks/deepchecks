@@ -42,8 +42,8 @@ def get_default_classification_scorers():
 
 def get_default_object_detection_scorers():
     return {
-        'AP': ObjectDetectionAveragePrecision(),
-        'AR': ObjectDetectionAveragePrecision(return_option=1)
+        'Average Precision': ObjectDetectionAveragePrecision(),
+        'Average Recall': ObjectDetectionAveragePrecision(return_option=1)
     }
 
 
