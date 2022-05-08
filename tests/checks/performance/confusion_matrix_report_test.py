@@ -58,3 +58,13 @@ def test_model_info_object(iris_labeled_dataset, iris_adaboost):
     for i in range(len(result)):
         for j in range(len(result[i])):
             assert isinstance(result[i][j], np.int64)
+
+def test_model_info_object_not_normalize(iris_labeled_dataset, iris_adaboost):
+    # Arrange
+    check = ConfusionMatrixReport(normalized=False)
+    # Act X
+    result = check.run(iris_labeled_dataset, iris_adaboost).value
+    # Assert
+    for i in range(len(result)):
+        for j in range(len(result[i])):
+            assert isinstance(result[i][j], np.int64)
