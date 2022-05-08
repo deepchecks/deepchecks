@@ -4,12 +4,6 @@
 Feature Importance
 ====================
 
-#TODO:
-link to shap
-link to unused features
-link to feature drift
-link to "how to make faster"
-
 
 What is Feature Importance?
 ===========================
@@ -17,21 +11,23 @@ Feature importance is a ranking that represents the significance of input featur
 A feature with higher importance has more influence on the prediction of the model.
 Feature importance can be general (meaning, for all model predictions, on average) or local (meaning, for a specific
 sample).
-There are many ways to calculate feature importance, some are generic for all models (such as Shapley values) and some
-are specific for a specific model type (such as the Gini index for decision trees).
+There are many ways to calculate feature importance, some are generic for all models (such as `Shapley values <https://christophm.github.io/interpretable-ml-book/shapley.html>`_)
+and some are specific for a specific model type (such as the `Gini importance <https://medium.com/the-artificial-impostor/feature-importance-measures-for-tree-models-part-i-47f187c1a2c3#:~:text=Gini%20Importance%20or%20Mean%20Decrease%20in%20Impurity%20(MDI)%20calculates%20each,number%20of%20samples%20it%20splits.>`_
+for decision trees).
 
 
 Why Does Deepchecks Use Feature Importance?
 ===========================================
 Deepchecks uses your model's feature importance for 2 main reasons:
-* Help you find issues with your model or data, as in the check UnusedFeatures
+* Help you find issues with your model or data, as in the check :doc:`UnusedFeatures </checks_gallery/tabular/methodology/unused_features>`
 * Display the most relevant information the check has found (for instance, if deepchecks found drift in many features,
-as in the check TrainTestFeatureDrift, it would only display the features with the highest importance)
+as in the check :doc:`TrainTestFeatureDrift </checks_gallery/tabular/distribution/train_test_feature_drift>`,
+it would only display the features with the highest importance)
 
 Note
 -----
 For most checks, deepchecks does not *require* the usage of feature importance, and that you can
-shorten or  :ref:`even skip <_feature_importance__calculation_too_long>` this phase of the calculation.
+shorten or :ref:`even skip <_feature_importance__calculation_too_long>` this phase of the calculation.
 
 How Does Deepchecks Get Feature Importance?
 ===========================================
