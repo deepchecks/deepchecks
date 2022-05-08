@@ -37,21 +37,21 @@ def test_check_run_display_as_widget(iris_dataset):
     dispaly_box = check_res.display_check(as_widget=True)
     # Assert
     assert_that(dispaly_box, instance_of(VBox))
-    assert_that(dispaly_box.children, has_length(1))
+    assert_that(dispaly_box.children, has_length(4))
 
 
 def test_check_run_display_unique_id(iris_dataset):
     # Arrange
     check_res = ColumnsInfo(n_top_columns=4).run(iris_dataset)
     # Assert
-    assert_that(check_res.display_check(unique_id=7), is_(None))
+    assert_that(check_res.display_check(unique_id='qwerty'), is_(None))
 
 
 def test_check_run_display_condition(iris_dataset):
     # Arrange
     check_res = DataDuplicates().add_condition_ratio_not_greater_than(0).run(iris_dataset)
     # Run
-    assert_that(check_res.display_check(unique_id=7), is_(None))
+    assert_that(check_res.display_check(unique_id='qwerty'), is_(None))
 
 
 def test_check_run_display_nothing_to_show(iris_dataset):
@@ -59,7 +59,7 @@ def test_check_run_display_nothing_to_show(iris_dataset):
     check_res = MixedNulls().run(iris_dataset)
 
     # Assert
-    check_res.display_check(unique_id=7)
+    check_res.display_check(unique_id='qwerty')
 
 
 def test_check_result_repr(iris_dataset):
@@ -97,7 +97,9 @@ def test_check_result_display_plotly(iris):
     display = check_res.display_check(as_widget=True)
 
     # Assert
-    assert_that(display.children[1], instance_of(FigureWidget))
+    assert_that(display, instance_of(VBox))
+    assert_that(display.children[3], instance_of(VBox)) # additional output wiidget
+    assert_that(display.children[3].children[1], instance_of(FigureWidget)) # plotly figure widget
 
 
 def test_check_result_to_json():
@@ -108,7 +110,7 @@ def test_check_result_to_json():
 
     # Assert
     assert_that(calling(check_res.to_json).with_args(),
-                raises(Exception, 'Unable to create json for item of type: <class \'dict\'>'))
+                raises(Exception, "Unable to handle display item of type: <class 'dict'>"))
 
 
 def test_check_result_from_json(iris):
@@ -116,16 +118,24 @@ def test_check_result_from_json(iris):
     plot = plotly.express.bar(iris)
 
     json_to_display = jsonpickle.dumps({
+        'check': {
+            'type': 'DummyCheckClass',
+            'name': 'Dummy Check',
+            'summary': 'summary',
+            'params': {}
+        },
         'display': [
-            ('html', 'hi'),
-            ('dataframe', pd.DataFrame({'a': [1, 2], 'b': [1, 2]}).to_json()),
-            ('plotly', plot.to_json()),
-            ('plt', 'Base64String')
+            {'type': 'html', 'payload': 'hi'},
+            {'type': 'plotly', 'payload': plot.to_json()},
+            {'type': 'images', 'payload': ['Base64String']},
+            {
+                'type': 'dataframe', 
+                'payload': pd.DataFrame({'a': [1, 2], 'b': [1, 2]}).to_dict(orient='records')
+            },
         ],
-        'conditions_table': pd.DataFrame({'a': [1, 2], 'b': [1, 2]}).to_json(),
+        'conditions_results': pd.DataFrame({'a': [1, 2], 'b': [1, 2]}).to_json(),
         'header': 'header',
-        'summary': 'summary'
-
+        'value': 5,
     })
 
     # Assert
