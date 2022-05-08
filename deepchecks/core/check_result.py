@@ -14,7 +14,6 @@ import io
 import traceback
 import warnings
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union
-from importlib_metadata import metadata
 
 import jsonpickle
 import jsonpickle.ext.pandas as jsonpickle_pd
@@ -24,7 +23,6 @@ from IPython.display import display_html
 from ipywidgets import Widget
 from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
-from deepchecks.core.checks import CheckMetadata
 
 from deepchecks.core.condition import ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
@@ -41,8 +39,7 @@ from deepchecks.core.serialization.check_result.widget import \
     CheckResultSerializer as CheckResultWidgetSerializer
 from deepchecks.utils.ipython import (is_colab_env, is_kaggle_env, is_notebook,
                                       is_widgets_use_possible)
-from deepchecks.utils.strings import (create_new_file_name, get_docs_summary,
-                                      widget_to_html)
+from deepchecks.utils.strings import (create_new_file_name, widget_to_html)
 from deepchecks.utils.wandb_utils import set_wandb_run_state
 
 # registers jsonpickle pandas extension for pandas support in the to_json function
@@ -74,9 +71,9 @@ class CheckOutput:
         """Return header for display. if header was defined return it, else extract name of check class."""
         return self.header or self.check_name
 
-    def _get_metadata(self, with_doc_link: bool = False) -> CheckMetadata:
+    def get_metadata(self, with_doc_link: bool = False) -> Dict:
         """Return the related check metadata"""
-        return self.check.metadata(with_doc_link=with_doc_link)
+        return {'header': self.get_header(), **self.check.metadata(with_doc_link=with_doc_link)}
 
     @property
     def check_name(self):

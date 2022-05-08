@@ -19,6 +19,7 @@ from typing import Dict, List, Optional, Set, Tuple, Union
 import jsonpickle
 from IPython.core.display import display_html
 from ipywidgets import Widget
+from deepchecks.core.check_json import CheckFailureJson, CheckResultJson
 
 from deepchecks.core.check_result import CheckFailure, CheckOutput, CheckResult
 from deepchecks.core.checks import BaseCheck
@@ -258,6 +259,21 @@ class SuiteResult:
             if isinstance(res, CheckFailure):
                 failures[res.header] = res
         return failures
+
+    @classmethod
+    def from_json(cls, json_res: str):
+        json_dict = jsonpickle.loads(json_res)
+        name = json_dict['name']
+        results = []
+        for res in json_dict['results']:
+            type = jsonpickle.loads(res)['type']
+            if type == 'CheckFailure':
+                results.append(CheckFailureJson(res))
+            elif type == 'CheckResult':
+                results.append(CheckResultJson(res))
+            else:
+                raise ValueError('Excpected type one of CheckFailure/CheckResult recievied: ' + type)
+        return SuiteResult(name, results)
 
 
 class BaseSuite:

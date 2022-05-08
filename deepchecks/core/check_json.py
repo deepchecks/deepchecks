@@ -12,7 +12,7 @@
 # pylint: disable=broad-except
 import io
 
-from typing import List
+from typing import Dict, List
 
 import jsonpickle
 import jsonpickle.ext.pandas as jsonpickle_pd
@@ -27,12 +27,12 @@ from deepchecks.core.condition import (Condition, ConditionCategory,
 jsonpickle_pd.register_handlers()
 
 __all__ = [
-    'CheckJson',
-    'CheckJsonFailure',
+    'CheckResultJson',
+    'CheckFailureJson',
 ]
 
 
-class CheckJson(CheckResult):
+class CheckResultJson(CheckResult):
     """Class which returns from a check with result that can later be used for automatic pipelines and display value.
 
     Class containing the result of a check
@@ -50,10 +50,8 @@ class CheckJson(CheckResult):
         json_dict = jsonpickle.loads(json_data)
 
         self.value = json_dict.get('value')
-        self._check_name = json_dict.get('name')
         self.header = json_dict.get('header')
-        self.params = json_dict.get('params')
-        self.summary = json_dict.get('summary')
+        self.check_metadata = json_dict.get('check')
 
         conditions_table = json_dict.get('conditions_table')
         if conditions_table is not None:
@@ -68,38 +66,30 @@ class CheckJson(CheckResult):
         json_display = json_dict.get('display')
         self.display = []
         if json_display is not None:
-            for display_type, value in json_display:
+            for record in json_display:
+                display_type, payload = record['type'], record['payload']
                 if display_type == 'html':
-                    self.display.append(value)
+                    self.display.append(payload)
                 elif display_type == 'dataframe':
-                    df: pd.DataFrame = pd.read_json(value, orient='records')
+                    df: pd.DataFrame = pd.read_json(payload, orient='records')
                     self.display.append(df)
                 elif display_type == 'plotly':
-                    plotly_json = io.StringIO(value)
+                    plotly_json = io.StringIO(payload)
                     self.display.append(plotly.io.read_json(plotly_json))
                 elif display_type == 'plt':
-                    self.display.append((f'<img src=\'data:image/png;base64,{value}\'>'))
+                    self.display.append((f'<img src=\'data:image/png;base64,{payload}\'>'))
                 else:
                     raise ValueError(f'Unexpected type of display received: {display_type}')
 
-    def _get_metadata(self, _: bool = False):
-        header = self.get_header()
-        return {'name': self.check_name, 'params': self.params, 'header': header,
-                'summary': self.summary}
-
-    def get_header(self) -> str:
-        """Return header for display. if header was defined return it, else extract name of check class."""
-        return self.header
+    def get_metadata(self, with_doc_link: bool = False) -> Dict:
+        """Return the related check metadata"""
+        return {'header': self.get_header(), **self.check_metadata}
 
     def process_conditions(self) -> List[Condition]:
         """Conditions are already processed it is to prevent errors."""
         pass
 
-    @property
-    def check_name(self):
-        return self._check_name
-
-class CheckJsonFailure(CheckFailure):
+class CheckFailureJson(CheckFailure):
     """Class which holds a check run exception.
 
     Parameters
@@ -112,23 +102,15 @@ class CheckJsonFailure(CheckFailure):
 
     def __init__(self, json_data: str):
         json_dict = jsonpickle.loads(json_data)
-        self.exception = json_dict.get('exception')
-        self._check_name = json_dict.get('name')
+
+        self.value = json_dict.get('value')
         self.header = json_dict.get('header')
-        self.params = json_dict.get('params')
-        self.summary = json_dict.get('summary')
+        self.check_metadata = json_dict.get('check')
+        self.exception = json_dict.get('exception')
 
-    def _get_metadata(self, _: bool = False):
-        CheckJson._get_metadata()
-
-    def __repr__(self):
-        """Return string representation."""
-        return self.header + ': ' + str(self.exception)
+    def get_metadata(self, with_doc_link: bool = False):
+        CheckJson.get_metadata(self)
 
     def print_traceback(self):
         """Print the traceback of the failure."""
         print(self.exception)
-
-    @property
-    def check_name(self):
-        return self._check_name

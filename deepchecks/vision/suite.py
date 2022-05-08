@@ -18,7 +18,7 @@ import torch
 from ignite.metrics import Metric
 from torch import nn
 
-from deepchecks.core.check_result import CheckFailure, CheckOutput, CheckResult
+from deepchecks.core.check_result import CheckFailure, CheckOutput
 from deepchecks.core.checks import DatasetKind
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.core.suite import BaseSuite, SuiteResult

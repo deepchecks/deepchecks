@@ -11,7 +11,6 @@
 """Module containing html serializer for the CheckFailuer type."""
 from deepchecks.core import check_result as check_types
 from deepchecks.core.serialization.abc import HtmlSerializer
-from deepchecks.utils.strings import get_docs_summary
 
 __all__ = ['CheckFailureSerializer']
 
@@ -47,15 +46,11 @@ class CheckFailureSerializer(HtmlSerializer['check_types.CheckFailure']):
 
     def prepare_header(self) -> str:
         """Prepare the header section of the html output."""
-        return f'<h4>{self.value.header}</h4>'
+        return f'<h4>{self.value.get_header()}</h4>'
 
     def prepare_summary(self) -> str:
         """Prepare the summary section of the html output."""
-        return (
-            f'<p>{get_docs_summary(self.value.check)}</p>'
-            if hasattr(self.value.check, '__doc__')
-            else ''
-        )
+        return f'<p>{self.value.get_metadata()["summary"]}</p>'
 
     def prepare_error_message(self) -> str:
         """Prepare the error message of the html output."""

@@ -39,6 +39,7 @@ jsonpickle_pd.register_handlers()
 
 
 class CheckResultMetadata(TypedDict):
+    type: str
     check: 'checks.CheckMetadata'
     value: t.Any
     header: str
@@ -70,6 +71,7 @@ class CheckResultSerializer(JsonSerializer['check_types.CheckResult']):
         CheckResultMetadata
         """
         return CheckResultMetadata(
+            type='CheckResult',
             check=self.prepare_check_metadata(),
             header=self.value.get_header(),
             value=self.prepare_value(),

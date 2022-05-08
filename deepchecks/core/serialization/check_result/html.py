@@ -26,7 +26,6 @@ from deepchecks.core.serialization.common import (aggregate_conditions,
 from deepchecks.core.serialization.dataframe.html import \
     DataFrameSerializer as DataFrameHtmlSerializer
 from deepchecks.utils.html import imagetag
-from deepchecks.utils.strings import get_docs_summary
 
 __all__ = ['CheckResultSerializer']
 
@@ -127,8 +126,7 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
 
     def prepare_summary(self) -> str:
         """Prepare the summary section of the html output."""
-        summary = get_docs_summary(self.value.check)
-        return f'<p>{summary}</p>'
+        return f'<p>{self.value.get_metadata()["summary"]}</p>'
 
     def prepare_conditions_table(
         self,
