@@ -31,7 +31,7 @@ MPR = TypeVar('MPR', bound='MeanAveragePrecisionReport')
 
 
 class MeanAveragePrecisionReport(SingleDatasetCheck):
-    """Summarize mean average precision metrics on a dataset and model per IoU and bounding box area size.
+    """Summarize mean average precision metrics on a dataset and model per IoU and bounding box area.
 
     Parameters
     ----------
