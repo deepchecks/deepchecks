@@ -18,12 +18,7 @@ from typing import Dict, List, Optional, Set, Tuple, Union
 
 import jsonpickle
 from IPython.core.display import display_html
-<<<<<<< HEAD
-from IPython.core.getipython import get_ipython
-from deepchecks.core.check_json import CheckJson, CheckJsonFailure
-=======
 from ipywidgets import Widget
->>>>>>> ce9d4b297114330a817797582722849204cfc5c1
 
 from deepchecks.core.check_result import CheckFailure, CheckResult
 from deepchecks.core.checks import BaseCheck
@@ -201,27 +196,6 @@ class SuiteResult:
         -------
         str
         """
-<<<<<<< HEAD
-        json_results = []
-        for res in self.results:
-            json_results.append(res.to_json(with_display=with_display))
-
-        return jsonpickle.dumps({'name': self.name, 'results': json_results})
-
-    @classmethod
-    def from_json(cls, json_res: str):
-        json_dict = jsonpickle.loads(json_res)
-        name = json_dict['name']
-        results = []
-        for res in json_dict['results']:
-            if jsonpickle.loads(res).get('exception'):
-                results.append(CheckJsonFailure(res))
-            else:
-                results.append(CheckJson(res))
-        return SuiteResult(name, results)
-
-    def to_wandb(self, dedicated_run: bool = None, **kwargs: Any):
-=======
         # TODO: not sure if the `with_display` parameter is needed
         # add deprecation warning if it is not needed
         return jsonpickle.dumps(
@@ -234,7 +208,6 @@ class SuiteResult:
         dedicated_run: Optional[bool] = None,
         **kwargs
     ):
->>>>>>> ce9d4b297114330a817797582722849204cfc5c1
         """Export suite result to wandb.
 
         Parameters

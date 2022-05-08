@@ -11,7 +11,6 @@
 """Module containing the check results classes."""
 # pylint: disable=broad-except,import-outside-toplevel,unused-argument
 import io
-from tabnanny import check
 import traceback
 import warnings
 from typing import TYPE_CHECKING, Any, Callable, List, Optional, Union
