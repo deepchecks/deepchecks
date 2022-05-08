@@ -8,6 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+# pylint: disable=unnecessary-ellipsis
 """Main serialization abstractions."""
 import abc
 import io
@@ -15,16 +16,17 @@ import typing as t
 
 import pandas as pd
 from ipywidgets.widgets import Widget
-# import matplotlib.pyplot as plt
 from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
 from typing_extensions import Protocol, runtime_checkable
 
-from deepchecks.core import check_result as check_types
+from deepchecks.core import \
+    check_result as check_types  # pylint: disable=unused-import
 from deepchecks.core.serialization import common
 
 try:
-    from wandb.sdk.data_types.base_types.wb_value import WBValue
+    from wandb.sdk.data_types.base_types.wb_value import \
+        WBValue  # pylint: disable=unused-import
 except ImportError:
     pass
 
@@ -39,7 +41,7 @@ __all__ = [
 ]
 
 
-T = t.TypeVar("T")
+T = t.TypeVar('T')
 
 
 @runtime_checkable
@@ -96,6 +98,7 @@ class ABCDisplayItemsHandler(Protocol):
     ])
 
     @classmethod
+    @abc.abstractmethod
     def handle_display(
         cls,
         display: t.List['check_types.TDisplayItem'],
@@ -115,6 +118,7 @@ class ABCDisplayItemsHandler(Protocol):
         return [cls.handle_item(it, index) for index, it in enumerate(display)]
 
     @classmethod
+    @abc.abstractmethod
     def handle_item(cls, item: 'check_types.TDisplayItem', index: int, **kwargs) -> t.Any:
         """Serialize display item."""
         if isinstance(item, str):
@@ -128,17 +132,20 @@ class ABCDisplayItemsHandler(Protocol):
         else:
             raise TypeError(f'Unable to handle display item of type: {type(item)}')
 
-    @abc.abstractclassmethod
+    @classmethod
+    @abc.abstractmethod
     def handle_string(cls, item: str, index: int, **kwargs) -> t.Any:
         """Handle textual item."""
         raise NotImplementedError()
 
-    @abc.abstractclassmethod
+    @classmethod
+    @abc.abstractmethod
     def handle_dataframe(cls, item: t.Union[pd.DataFrame, Styler], index: int, **kwargs) -> t.Any:
         """Handle dataframe item."""
         raise NotImplementedError()
 
     @classmethod
+    @abc.abstractmethod
     def handle_callable(cls, item: t.Callable, index: int, **kwargs) -> t.List[io.BytesIO]:
         """Handle callable."""
         # TODO: callable is a special case, add comments
@@ -146,7 +153,8 @@ class ABCDisplayItemsHandler(Protocol):
             item()
             return common.read_matplot_figures()
 
-    @abc.abstractclassmethod
+    @classmethod
+    @abc.abstractmethod
     def handle_figure(cls, item: BaseFigure, index: int, **kwargs) -> t.Any:
         """Handle plotly figure item."""
         raise NotImplementedError()

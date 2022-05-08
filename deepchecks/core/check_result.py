@@ -307,7 +307,7 @@ class CheckResult:
     def _ipython_display_(
         self,
         unique_id: Optional[str] = None,
-        as_widget: bool = False,
+        as_widget: bool = True,
         show_additional_outputs: bool = True
     ):
         as_widget = is_widgets_use_possible() and as_widget

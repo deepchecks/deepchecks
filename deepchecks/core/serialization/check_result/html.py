@@ -12,6 +12,7 @@
 import textwrap
 import typing as t
 
+from plotly.io import to_html
 from typing_extensions import Literal
 
 from deepchecks.core import check_result as check_types
@@ -263,7 +264,6 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
     @classmethod
     def handle_figure(cls, item, index, **kwargs) -> str:
         """Handle plotly figure item."""
-        from plotly.io import to_html
         post_script = textwrap.dedent("""
             var gd = document.getElementById('{plot_id}');
             var x = new MutationObserver(function (mutations, observer) {{
@@ -293,7 +293,7 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
             include_plotlyjs='require',
             post_script=post_script,
             full_html=False,
-            default_width="100%",
+            default_width='100%',
             default_height=525,
             validate=True,
         )

@@ -22,11 +22,11 @@ from deepchecks.core.serialization.check_result.wandb import \
 
 try:
     from wandb.sdk.data_types.base_types.wb_value import WBValue
-except ImportError:
+except ImportError as error:
     raise ImportError(
         'Wandb serializer requires the wandb python package. '
         'To get it, run "pip install wandb".'
-    )
+    ) from error
 
 
 class SuiteResultSerializer(WandbSerializer['suite.SuiteResult']):

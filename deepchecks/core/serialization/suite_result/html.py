@@ -142,8 +142,8 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
 
     def prepare_prologue(self) -> str:
         """Prepare prologue section."""
-        long_prologue_version = "The suite is composed of various checks such as: {names}, etc..."
-        short_prologue_version = "The suite is composed of the following checks: {names}."
+        long_prologue_version = 'The suite is composed of various checks such as: {names}, etc...'
+        short_prologue_version = 'The suite is composed of the following checks: {names}.'
         check_names = list(set(
             it.check.name()
             for it in self.value.results
