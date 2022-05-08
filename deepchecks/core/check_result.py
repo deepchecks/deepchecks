@@ -47,6 +47,7 @@ jsonpickle_pd.register_handlers()
 
 
 if TYPE_CHECKING:
+    from deepchecks.core.check_json import CheckFailureJson, CheckResultJson
     from deepchecks.core.checks import BaseCheck
 
 
@@ -61,6 +62,18 @@ class CheckOutput:
     check: Optional['BaseCheck']
     header: Optional[str]
     _check_name: str = None
+
+    @staticmethod
+    def from_json(json_data: str) -> Union['CheckFailureJson', 'CheckResultJson']:
+        from deepchecks.core.check_json import CheckFailureJson, CheckResultJson
+
+        check_type = jsonpickle.loads(json_data)['type']
+        if check_type == 'CheckFailure':
+            return CheckFailureJson(json_data)
+        elif check_type == 'CheckResult':
+            return CheckResultJson(json_data)
+        else:
+            raise ValueError('Excpected type one of CheckFailure/CheckResult recievied: ' + type)
 
     @staticmethod
     def display_from_json(json_data: str):
