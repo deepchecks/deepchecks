@@ -4,6 +4,10 @@
 Feature Importance
 ====================
 
+* `What is Feature Importance? <#what-is-feature-importance>`__
+* `Why Does Deepchecks Use Feature Importance? <#why-does-deepchecks-use-feature-importance>`__
+* `What if the Feature Importance Calculation Takes Too Long? <#what-if-the-feature-importance-calculation-takes-too-long>`__
+
 
 What is Feature Importance?
 ===========================
@@ -25,9 +29,9 @@ as in the check :doc:`TrainTestFeatureDrift </checks_gallery/tabular/distributio
 it would only display the features with the highest importance)
 
 Note
------
+----
 For most checks, deepchecks does not *require* the usage of feature importance, and that you can
-shorten or :ref:`even skip <_feature_importance__calculation_too_long>` this phase of the calculation.
+shorten or `even skip <#what-if-the-feature-importance-calculation-takes-too-long>`__ this phase of the calculation.
 
 How Does Deepchecks Get Feature Importance?
 ===========================================
@@ -45,6 +49,9 @@ checks and suites.
 Deepchecks expects this data to be a ``pandas.Series`` where the index is feature names and the value is the calculated
 importance.
 
+>>> check = UnusedFeatures()
+>>> check.run(ds_train, ds_test, model, feature_importance=pd.Series({'feat1': 0.3, 'feat2': 0.7}))
+
 Deepchecks Calculates the Feature Importance for You
 ----------------------------------------------------
 If there's no built-in feature importance in the model or the user has not supplied feature importance data of their
@@ -53,9 +60,12 @@ own, deepchecks will calculate feature importance using scikit-learn's `permutat
 You can also force this action by using the ``feature_importance_force_permutation`` parameter in the ``run``
 function, available in all checks and suites.
 
-.. _feature_importance__calculation_too_long:
+>>> check = TrainTestFeatureDrift()
+>>> check.run(ds_train, ds_test, model, feature_importance_force_permutation=True)
+
+
 What if the Feature Importance Calculation Takes Too Long?
-----------------------------------------------------------
+=========================================================
 Feature importance is a complex calculation which can take a lot of time, depending on the number of features and
 samples in your data.
 However, besides for cetrain checks, deepchecks does not require feature importance.
@@ -63,3 +73,6 @@ Therefore, if you want deepchecks to skip the calculation of feature importance,
 ``feature_importance_timeout`` parameter in the ``run`` function, available in all checks and suites. If
 deepchecks projects the feature importance calculation to take more than this parameter, the process will be skipped.
 Configuring this parameter to 0 will ensure the calculation is always skipped.
+
+>>> check = WholeDatasetDrift()
+>>> check.run(ds_train, ds_test, model, feature_importance_timeout=0)
