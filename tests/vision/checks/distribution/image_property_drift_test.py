@@ -37,7 +37,7 @@ def test_image_property_drift_check(coco_train_visiondata, coco_test_visiondata,
 
 def test_image_property_drift_check_limit_classes(coco_train_visiondata, coco_test_visiondata, device):
     # Run
-    result = ImagePropertyDrift(classes_to_display=['person', 'cat', 'cell phone', 'car'], min_samples=5
+    result = ImagePropertyDrift(classes_to_display=['bicycle', 'bench', 'bus', 'truck'], min_samples=5
                                 ).run(coco_train_visiondata, coco_test_visiondata, device=device)
 
     # Assert
