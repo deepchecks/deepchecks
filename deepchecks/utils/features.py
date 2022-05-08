@@ -225,21 +225,28 @@ def _calc_permutation_importance(
 
     Parameters
     ----------
-    model : t.Any
+    model: t.Any
         A fitted model
-    dataset : tabular.Dataset
+    dataset: tabular.Dataset
         dataset used to fit the model
-    n_repeats : int , default: 30
+    n_repeats: int, default: 30
         Number of times to permute a feature
     mask_high_variance_features : bool , default: False
         If true, features for which calculated permutation importance values
         varied greatly would be returned has having 0 feature importance
-    random_state : int , default: 42
+    random_state: int, default: 42
         Random seed for permutation importance calculation.
-    n_samples : int , default: 10_000
+    n_samples: int, default: 10_000
         The number of samples to draw from X to compute feature importance
         in each repeat (without replacement).
-    alternative_scorer : t.Optional[DeepcheckScorer] , default: None
+    alternative_scorer: t.Optional[DeepcheckScorer], default: None
+        Scorer to use for evaluation of the model performance in the permutation_importance function. If not defined,
+        the default deepchecks scorers are used.
+    timeout: int, default: None
+        Allowed runtime of permutation_importance, in seconds. As we can't limit the actual runtime of the function,
+        the timeout parameter is used for estimation of the runtime, done be measuring the inference time of the model
+        and multiplying it by number of repeats and features. If the expected runtime is bigger than timeout, the
+        calculation is skipped.
 
     Returns
     -------
