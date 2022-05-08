@@ -47,7 +47,7 @@ Defining deepchecks Dataset
 
 Running the Integrity Suite
 ---------------------------
-One of deepchecks' usecases is to validate the integrity of the dataset, even without a model. In order to do so, the
+One of deepchecks' use-cases is to validate the integrity of the dataset, even without a model. In order to do so, the
 single dataset integrity suite can be run on the dataset.
 
 .. code-block:: python
@@ -58,7 +58,7 @@ single dataset integrity suite can be run on the dataset.
 
 Displaying the results
 ~~~~~~~~~~~~~~~~~~~~~~
-We will use the built-in functions of the Databricks platforn to view the results in a HTML format.
+We will use the built-in functions of the Databricks platform to view the results in a HTML format.
 
 .. code-block:: python
 
@@ -68,7 +68,7 @@ We will use the built-in functions of the Databricks platforn to view the result
 
     displayHTML(buff.getvalue())
 
-Building s Logistic Regression Model
+Building a Logistic Regression Model
 ------------------------------------
 After we validated that our data is clean and ready to be used in a model, we will build a logistic regression model
 that classifies whether a person's income is above or below 50K.
@@ -162,10 +162,6 @@ Displaying the Results
 ~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
-
-    from IPython.core.display import display, HTML
-    display(HTML("your content"))
-
 
     from io import StringIO
     buff = StringIO()
