@@ -264,16 +264,22 @@ def _calc_permutation_importance(
         single_scorer_dict = {scorer_name: default_scorers[scorer_name]}
         scorer = init_validate_scorers(single_scorer_dict, model, dataset, model_type=task_type)[0]
 
-    if timeout is not None:
-        start_time = time.time()
-        scorer(model, dataset_sample)
-        calc_time = time.time() - start_time
+    start_time = time.time()
+    scorer(model, dataset_sample)
+    calc_time = time.time() - start_time
 
-        if calc_time * n_repeats * len(dataset.features) > timeout:
-            raise errors.DeepchecksTimeoutError('Permutation importance calculation was not projected to finish in'
-                                                f' {timeout} seconds.')
+    predicted_time_to_run = calc_time * n_repeats * len(dataset.features)
+
+    if timeout is not None:
+        if predicted_time_to_run > timeout:
+            raise errors.DeepchecksTimeoutError(
+                f'Skipping permutation importance calculation: calculation was projected to finish in '
+                f'{int(np.ceil(predicted_time_to_run))} seconds, but timeout was configured to {timeout} seconds')
     else:
         warnings.warn('Calculating permutation feature importance without time limit')
+
+    warnings.warn(f'Calculating permutation feature importance. Expected to finish in {predicted_time_to_run} '
+                  f'seconds')
 
     r = permutation_importance(
         model,
