@@ -53,11 +53,10 @@ class CheckResultJson(CheckResult):
         self.header = json_dict.get('header')
         self.check_metadata = json_dict.get('check')
 
-        conditions_table = json_dict.get('conditions_table')
-        if conditions_table is not None:
+        conditions_results_json = json_dict.get('conditions_results')
+        if conditions_results_json is not None:
             self.conditions_results = []
-            conditions_table = jsonpickle.loads(conditions_table)
-            for condition in conditions_table:
+            for condition in conditions_results_json:
                 cond_res = ConditionResult(ConditionCategory[condition['Status']], condition['More Info'])
                 cond_res.set_name(condition['Condition'])
                 self.conditions_results.append(cond_res)

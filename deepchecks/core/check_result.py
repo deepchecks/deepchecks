@@ -287,6 +287,7 @@ class CheckResult(CheckOutput):
         Returned JSON string will have next structure:
 
         >>    class CheckResultMetadata(TypedDict):
+        >>        type: str
         >>        check: CheckMetadata
         >>        value: Any
         >>        header: str
@@ -294,7 +295,6 @@ class CheckResult(CheckOutput):
         >>        display: List[Dict[str, Any]]
 
         >>    class CheckMetadata(TypedDict):
-        >>        type: str
         >>        name: str
         >>        params: Dict[Any, Any]
         >>        summary: str
