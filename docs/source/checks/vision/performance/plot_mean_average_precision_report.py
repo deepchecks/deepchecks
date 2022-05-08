@@ -49,7 +49,7 @@ result
 # --------------------------
 # The result value is a dataframe that has the Mean Average Precision score for different bounding box area sizes.
 # We report the mAP for different IoU thresholds: 0.5, 0.75 and an average of mAP values
-# for IoU thresholds between 0.5 and 0.9 (with jump size of 0.05).
+# for IoU thresholds between 0.5 and 0.9 (with a jump size of 0.05).
 
 result.value
 
