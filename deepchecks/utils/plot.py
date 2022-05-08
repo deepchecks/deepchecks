@@ -191,7 +191,7 @@ def create_confusion_matrix_figure(confusion_matrix: np.ndarray, x: np.ndarray,
             confusion_matrix.sum(axis=1)[:, np.newaxis] * 100
         z = np.vectorize(format_number_if_not_nan)(confusion_matrix_norm)
         texttemplate = '%{z}%<br>(%{text})'
-        colorbar_title = '% of<br>True Values'
+        colorbar_title = '% out of<br>True Values'
         plot_title = 'Percent Out of True Values (Count)'
     else:
         z = confusion_matrix

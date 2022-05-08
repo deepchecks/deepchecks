@@ -128,8 +128,9 @@ class ConfusionMatrixReport(SingleDatasetCheck):
             if category == 'no-overlapping':
                 description.append(
                     '"No overlapping" categories are labels and prediction which did not have a matching '
-                    'label/prediction. For example a predictions that did not have a sufficiently overlapping '
-                    'label bounding box will appear under the "No overlapping label" category'
+                    'label/prediction.<br>For example a predictions that did not have a sufficiently overlapping '
+                    'label bounding box will appear under "No overlapping" category in the True Value '
+                    'axis (y-axis).'
                 )
                 classes_to_display.append('no-overlapping')
             elif isinstance(category, int):
