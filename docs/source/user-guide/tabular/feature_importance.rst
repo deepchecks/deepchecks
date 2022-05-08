@@ -31,7 +31,7 @@ as in the check TrainTestFeatureDrift, it would only display the features with t
 Note
 -----
 For most checks, deepchecks does not *require* the usage of feature importance, and that you can
-shorten or  :ref:`even skip <_feature_importance__calculation_too_long>`. this phase of the calculation. See
+shorten or  :ref:`even skip <_feature_importance__calculation_too_long>` this phase of the calculation.
 
 How Does Deepchecks Get Feature Importance?
 ===========================================
@@ -44,7 +44,7 @@ Deepchecks looks for the attribute ``feature_importances_`` or ``coef_`` and use
 
 You Insert Your Own Feature Importance Data
 -------------------------------------------
-This can be done by using the ``features_importance`` input received by the ``run`` function, available in all
+This can be done by using the ``features_importance`` parameter in the ``run`` function, available in all
 checks and suites.
 Deepchecks expects this data to be a ``pandas.Series`` where the index is feature names and the value is the calculated
 importance.
@@ -54,7 +54,7 @@ Deepchecks Calculates the Feature Importance for You
 If there's no built-in feature importance in the model or the user has not supplied feature importance data of their
 own, deepchecks will calculate feature importance using scikit-learn's `permutation_importance <https://scikit-learn.org/stable/modules/generated/sklearn.inspection.permutation_importance.html>`_.
 
-You can also force this action by using the ``feature_importance_force_permutation`` input received by the ``run``
+You can also force this action by using the ``feature_importance_force_permutation`` parameter in the ``run``
 function, available in all checks and suites.
 
 .. _feature_importance__calculation_too_long:
@@ -64,5 +64,6 @@ Feature importance is a complex calculation which can take a lot of time, depend
 samples in your data.
 However, besides for cetrain checks, deepchecks does not require feature importance.
 Therefore, if you want deepchecks to skip the calculation of feature importance, you can use the
-``feature_importance_timeout`` input received by the ``run`` function, available in all checks and suites. If
+``feature_importance_timeout`` parameter in the ``run`` function, available in all checks and suites. If
 deepchecks projects the feature importance calculation to take more than this parameter, the process will be skipped.
+Configuring this parameter to 0 will ensure the calculation is always skipped.
