@@ -18,7 +18,7 @@ A feature with higher importance has more influence on the prediction of the mod
 Feature importance can be general (meaning, for all model predictions, on average) or local (meaning, for a specific
 sample).
 There are many ways to calculate feature importance, some are generic for all models (such as Shapley values) and some
-are specific for a specific model (such as the Gini index for decision trees).
+are specific for a specific model type (such as the Gini index for decision trees).
 
 
 Why Does Deepchecks Use Feature Importance?
