@@ -22,6 +22,7 @@ import torch
 from plotly.express import imshow
 
 from deepchecks.vision.utils.image_functions import prepare_thumbnail, draw_bboxes, prepare_grid
+from deepchecks.utils.itertools import flatten_matrix
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.vision import Batch, Context, SingleDatasetCheck
 from deepchecks.vision.metrics_utils.iou_utils import jaccard_iou
@@ -393,9 +394,3 @@ def filter_confusion_matrix(
         categories.add(col)
     categories = sorted(categories)
     return confusion_matrix[np.ix_(categories, categories)], categories
-
-
-def flatten_matrix(matrix: np.ndarray) -> t.Iterator[t.Tuple[int, int, t.Any]]:
-    for row_index, row in enumerate(matrix):
-        for column_index, cell in enumerate(row):
-            yield row_index, column_index, cell

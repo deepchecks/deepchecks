@@ -9,8 +9,11 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing class performance check."""
-from typing import Dict, List, TypeVar
+import textwrap
+from typing import Dict, List, TypeVar, NamedTuple, Tuple, Callable, Optional
 
+import torch
+import numpy as np
 import pandas as pd
 import plotly.express as px
 from ignite.metrics import Metric
@@ -21,8 +24,16 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils import plot
 from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.vision import Batch, Context, TrainTestCheck
+from deepchecks.vision.task_type import TaskType
+from deepchecks.vision.utils.image_functions import prepare_thumbnail, draw_bboxes, prepare_grid
+from deepchecks.utils.itertools import flatten_matrix
+from deepchecks.vision.metrics_utils.iou_utils import compute_pairwise_ious as pairwise_ious
+from deepchecks.vision.metrics_utils.iou_utils import jaccard_iou
 from deepchecks.vision.metrics_utils.metrics import (
-    filter_classes_for_display, get_scorers_list, metric_results_to_df)
+    filter_classes_for_display,
+    get_scorers_list,
+    metric_results_to_df
+)
 
 __all__ = ['ClassPerformance']
 
@@ -79,12 +90,18 @@ class ClassPerformance(TrainTestCheck):
 
         self.metric_to_show_by = metric_to_show_by
         self._data_metrics = {}
+        # self._successfully_evaluated_images = None
+        # self._unsuccessfully_evaluated_images = None
+        self._images: List[BboxesMatchResult] = []
 
     def initialize_run(self, context: Context):
         """Initialize run by creating the _state member with metrics for train and test."""
         self._data_metrics = {}
         self._data_metrics[DatasetKind.TRAIN] = get_scorers_list(context.train, self.alternative_metrics)
         self._data_metrics[DatasetKind.TEST] = get_scorers_list(context.train, self.alternative_metrics)
+        # self._successfully_evaluated_images = []
+        # self._unsuccessfully_evaluated_images = []
+        self._images = []
 
         if not self.metric_to_show_by:
             self.metric_to_show_by = list(self._data_metrics[DatasetKind.TRAIN].keys())[0]
@@ -93,30 +110,242 @@ class ClassPerformance(TrainTestCheck):
         """Update the metrics by passing the batch to ignite metric update method."""
         label = batch.labels
         prediction = batch.predictions
+
         for _, metric in self._data_metrics[dataset_kind].items():
             metric.update((prediction, label))
+
+        self._collect_output_images(
+            context=context,
+            batch=batch,
+            dataset_kind=dataset_kind
+        )
+
+    def _collect_output_images(
+        self,
+        context: Context,
+        batch: Batch,
+        dataset_kind: DatasetKind
+    ):
+        dataset = context.get_data_by_kind(dataset_kind)
+        task_type = dataset.task_type
+
+        if task_type is TaskType.CLASSIFICATION:
+            raise NotImplementedError()
+        elif task_type is TaskType.OBJECT_DETECTION:
+            self._collect_output_images_for_detection_task(batch)
+        else:
+            # Do nothing in this case
+            pass
+
+    def _collect_output_images_for_detection_task(
+        self,
+        batch: Batch,
+    ):
+        assert self._images is not None
+
+        n_of_images = 5  #TODO:
+
+        def are_enough_images(stat: List[BboxesMatchResult]) -> bool:
+            return len([
+                it for it in stat
+                if (
+                    len(it.matches) != 0
+                    and len(it.no_overlapping_dt) != 0
+                    and len(it.no_overlapping_gt) != 0
+                )
+            ]) >= n_of_images
+
+        if are_enough_images(self._images):
+            return
+
+        for img, gt, dt in zip(batch.images, batch.labels, batch.predictions):
+            if not are_enough_images(self._images):
+                self._images.append(match_bboxes(img, gt, dt))
+            else:
+                return
+
+    def _prepare_images_thumbnails_for_detection_task(
+        self,
+        context: Context
+    ):
+        assert self._images is not None
+
+        n_of_images = 5  #TODO:
+
+        def prepare_image_thumbnail(
+            img: np.ndarray,
+            gt: Optional[np.ndarray] = None,
+            dt: Optional[np.ndarray] = None,
+            gt_color: str = 'red',
+            dt_color: str = 'blue'
+        ) -> str:
+            assert not (gt is None and dt is None)
+            image = img
+
+            if gt is not None:
+                image = draw_bboxes(
+                    image=image,
+                    bboxes=np.stack([gt]),
+                    bbox_notation='lxywh',
+                    color=gt_color,
+                    copy_image=True,
+                    include_label=False,
+                    border_width=2
+                )
+            if dt is not None:
+                image = draw_bboxes(
+                    image=image,
+                    bboxes=np.stack([dt]),
+                    bbox_notation='xywhsl',
+                    color=dt_color,
+                    copy_image=False,
+                    include_label=False,
+                    border_width=2
+                )
+            return prepare_thumbnail(
+                image=image,
+                copy_image=False,
+                size=(400, 400)
+            )
+
+        def prepare_evalutation_grid(
+            img: np.ndarray,
+            bbox_pairs: List[BBoxPair],
+            class_name: Callable[[int], str]
+        ) -> str:
+            images_tags = []
+            info = []
+            for gt, dt, ious in bbox_pairs:
+                dt_class_id = dt[-1]
+                gt_class_id = gt[0]
+                images_tags.append(prepare_image_thumbnail(
+                    img, gt=gt, dt=dt
+                ))
+                info.append(prepare_grid(
+                    n_of_columns=3,
+                    n_of_rows=2,
+                    style={
+                        'align-self': 'start',
+                        'padding': '0',
+                        'padding-top': '2rem'
+                    },
+                    content=[
+                        '<span><b>ground truth (red)</b></span>',
+                        '<span><b>detected truth (blue)</b></span>',
+                        '<span><b>ious</b></span>',
+                        f'<p>{class_name(gt_class_id)}</p>',
+                        f'<p>{class_name(dt_class_id)}</p>',
+                        f'<p>{format_number(ious, 5)}</p>'
+                    ],
+                ))
+            return prepare_grid(
+                style={
+                    'grid-template-rows': 'auto auto',
+                    'grid-template-columns': f'repeat({len(images_tags)}, 1fr)',
+                },
+                content=[*images_tags, *info]
+            )
+        
+        def prepare_no_overlapping_grid(
+            img: np.ndarray,
+            bboxes: np.ndarray, 
+            class_name: Callable[[int], str],
+            is_ground_truth: bool = True,
+        ) -> str:
+            images_tags = []
+            info = []
+            for bbox in bboxes:
+                if is_ground_truth:
+                    title_tag = '<span><b>ground truth</b></span>'
+                    class_name_tag = f'<span>{class_name(bbox[0])}</span>'
+                    thumbnail_args = {'img': img, 'gt': bbox}
+                else:
+                    title_tag = '<span><b>detected truth</b></span>'
+                    class_name_tag = f'<span>{class_name(bbox[-1])}</span>'
+                    thumbnail_args = {'img': img, 'dt': bbox}
+                images_tags.append(prepare_image_thumbnail(
+                    **thumbnail_args
+                ))
+                info.append(prepare_grid(
+                    n_of_columns=2,
+                    n_of_rows=1,
+                    style={'align-self': 'start'},
+                    content=[title_tag, class_name_tag,],
+                ))
+            return prepare_grid(
+                style={
+                    'grid-template-rows': 'auto auto',
+                    'grid-template-columns': f'repeat({len(images_tags)}, 1fr)',
+                },
+                content=[*images_tags, *info]
+            )
+
+        content = []
+
+        for index, stat in enumerate(self._images[:n_of_images], start=1):
+            content.append(f'<h5><b>Image #{index}</b></h5>')
+            if len(stat.matches) != 0:
+                content.append(f'<h5><b>Correctly detected objects</b></h5>')
+                content.append(prepare_evalutation_grid(
+                    stat.image, 
+                    stat.matches, 
+                    context.train.label_id_to_name
+                ))
+            else: 
+                content.append(f'<h5><b>Correctly detected objects</b> - nothing to show</h5>')
+            
+            if len(stat.no_overlapping_gt) != 0:
+                content.append(f'<h5><b>No overlapping ground truth</b></h5>')
+                content.append(prepare_no_overlapping_grid(
+                    stat.image, 
+                    stat.no_overlapping_gt, 
+                    context.train.label_id_to_name
+                ))
+            else:
+                content.append(f'<h5><b>No overlapping ground truth</b> - nothing to show</h5>')
+
+            if len(stat.no_overlapping_dt) != 0:
+                content.append(f'<h5><b>No overlapping detected truth</b></h5>')
+                content.append(prepare_no_overlapping_grid(
+                    stat.image,
+                    stat.no_overlapping_dt, 
+                    context.train.label_id_to_name
+                ))
+            else:
+                content.append(f'<h5><b>No overlapping detected truth</b> - nothing to show</h5>')
+
+        return content
 
     def compute(self, context: Context) -> CheckResult:
         """Compute the metric result using the ignite metrics compute method and create display."""
         results = []
+
         for dataset_kind in [DatasetKind.TRAIN, DatasetKind.TEST]:
             dataset = context.get_data_by_kind(dataset_kind)
-            metrics_df = metric_results_to_df(
-                {k: m.compute() for k, m in self._data_metrics[dataset_kind].items()}, dataset
-            )
+            computed_metrics = {k: m.compute() for k, m in self._data_metrics[dataset_kind].items()}
+            metrics_df = metric_results_to_df(computed_metrics, dataset)
             metrics_df['Dataset'] = dataset_kind.value
             metrics_df['Number of samples'] = metrics_df['Class'].map(dataset.n_of_samples_per_class.get)
             results.append(metrics_df)
 
-        results_df = pd.concat(results)
-        results_df = results_df[['Dataset', 'Metric', 'Class', 'Class Name', 'Number of samples', 'Value']]
+        results_df = pd.concat(results)[[
+            'Dataset',
+            'Metric',
+            'Class',
+            'Class Name',
+            'Number of samples',
+            'Value'
+        ]]
+
         if self.class_list_to_show is not None:
             results_df = results_df.loc[results_df['Class'].isin(self.class_list_to_show)]
         elif self.n_to_show is not None:
-            classes_to_show = filter_classes_for_display(results_df,
-                                                         self.metric_to_show_by,
-                                                         self.n_to_show,
-                                                         self.show_only)
+            classes_to_show = filter_classes_for_display(
+                results_df,
+                self.metric_to_show_by,
+                self.n_to_show,
+                self.show_only
+            )
             results_df = results_df.loc[results_df['Class'].isin(classes_to_show)]
 
         results_df = results_df.sort_values(by=['Dataset', 'Value'], ascending=False)
@@ -130,20 +359,29 @@ class ClassPerformance(TrainTestCheck):
             facet_col='Metric',
             facet_col_spacing=0.05,
             hover_data=['Number of samples'],
-
         )
 
         fig = (
-            fig.update_xaxes(title='Class', type='category')
-               .update_yaxes(title='Value', matches=None)
-               .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
-               .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
+            fig
+            .update_xaxes(title='Class', type='category')
+            .update_yaxes(title='Value', matches=None)
+            .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
+            .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
         )
+
+        task_type = context.train.task_type
+
+        if task_type is TaskType.CLASSIFICATION:
+            raise NotImplementedError()
+        elif task_type is TaskType.OBJECT_DETECTION:
+            display = [fig, *self._prepare_images_thumbnails_for_detection_task(context)]
+        else:
+            display = [fig]
 
         return CheckResult(
             results_df,
             header='Class Performance',
-            display=fig
+            display=display
         )
 
     def add_condition_test_performance_not_less_than(self: PR, min_score: float) -> PR:
@@ -295,3 +533,109 @@ class ClassPerformance(TrainTestCheck):
             ),
             condition_func=condition
         )
+
+
+class BBoxPair(NamedTuple):
+    gt: np.ndarray
+    dt: np.ndarray
+    ious: float
+
+
+class BboxesMatchResult(NamedTuple):
+    image: np.ndarray
+    matches: List[BBoxPair]
+    no_overlapping_gt: np.ndarray  # array[gt-bbox, ...]
+    no_overlapping_dt: np.ndarray  # array[dt-bbox, ...]
+
+
+def match_bboxes(
+    image: np.ndarray,
+    ground_truth: torch.Tensor,
+    detected_truth: torch.Tensor,
+    ious_threshold: float = 0.5,
+    confidence_threshold: float = 0
+) -> BboxesMatchResult:
+    passed_threshold_dt = np.array([
+        detection.cpu().detach().numpy()
+        for detection in detected_truth
+        if detection[4] > confidence_threshold
+    ])
+
+    if len(passed_threshold_dt) == 0:
+        return BboxesMatchResult(
+            image=image,
+            matches=[],
+            no_overlapping_gt=ground_truth.cpu().detach().numpy(),
+            no_overlapping_dt=np.array([]),
+        )
+
+    iter_of_ious = (
+        (
+            gt_idx,
+            dt_idx,
+            jaccard_iou(
+                dt_bbox,  # is a numpy array already
+                gt_bbox.cpu().detach().numpy()
+            )
+        )
+        for gt_idx, gt_bbox in enumerate(ground_truth)
+        for dt_idx, dt_bbox in enumerate(passed_threshold_dt)
+    )
+    matches = np.array([
+        [gt_idx, dt_idx, ious]
+        for gt_idx, dt_idx, ious in iter_of_ious
+        if ious > ious_threshold
+    ])
+
+    # remove duplicate matches
+    if len(matches) > 0:
+        # sort by ious, in descend order
+        matches = matches[matches[:, 2].argsort()[::-1]]
+        # leave matches with unique prediction and the highest ious
+        matches = matches[np.unique(matches[:, 1], return_index=True)[1]]
+        # sort by ious, in descend order
+        matches = matches[matches[:, 2].argsort()[::-1]]
+        # leave matches with unique label and the highest ious
+        matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
+
+    if len(matches) == 0:
+        return BboxesMatchResult(
+            image=image,
+            matches=[],
+            no_overlapping_gt=ground_truth.cpu().detach().numpy(),
+            no_overlapping_dt=passed_threshold_dt  # is a numpy array already
+        )
+
+    prepared_matches = [
+        BBoxPair(
+            gt=ground_truth[int(gt_idx)].cpu().detach().numpy(),
+            dt=passed_threshold_dt[int(dt_idx)],  # is a numpy array already
+            ious=ious
+        )
+        for gt_idx, dt_idx, ious in matches
+    ]
+    no_overlapping_gt = [
+        ground_truth[gt_idx]
+        for gt_idx in range(len(ground_truth))
+        if (matches[:, 0] == gt_idx).any() is False
+    ]
+    no_overlapping_dt = [
+        passed_threshold_dt[dt_idx]
+        for dt_idx in range(len(passed_threshold_dt))
+        if (matches[:, 1] == dt_idx).any() is False
+    ]
+
+    return BboxesMatchResult(
+        image=image,
+        matches=prepared_matches,
+        no_overlapping_gt=(
+            torch.stack(no_overlapping_gt).cpu().detach().numpy()
+            if no_overlapping_gt
+            else np.array([])
+        ),
+        no_overlapping_dt=(
+            torch.stack(no_overlapping_dt).cpu().detach().numpy()
+            if no_overlapping_gt
+            else np.array([])
+        )
+    )

@@ -107,7 +107,7 @@ class ImagePropertyDrift(TrainTestCheck):
         self.max_num_categories_for_drift = max_num_categories_for_drift
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
-        self.classes_to_display = classes_to_display
+        self.classes_to_display = set(classes_to_display) if classes_to_display else None
         self.min_samples = min_samples
         self._train_properties = None
         self._test_properties = None
@@ -144,12 +144,12 @@ class ImagePropertyDrift(TrainTestCheck):
             # use only images belonging (or containing an annotation belonging) to one of the classes in
             # classes_to_display
             class_to_string = dataset.label_id_to_name
-            images_classes = dataset.get_classes(batch.labels)
+            images_classes = dataset.get_classes(labels)
 
             # Iterator[tuple[image-index, set[image-classes]]]
             images_classes = (
                 (index, set(map(class_to_string, image_classes)))
-                for index, image_classes in enumerate(context.train.get_classes(labels))
+                for index, image_classes in enumerate(images_classes)
             )
             images = [
                 images[index]

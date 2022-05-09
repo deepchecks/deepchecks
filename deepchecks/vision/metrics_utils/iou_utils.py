@@ -15,7 +15,7 @@ import numpy as np
 import torch
 
 
-def jaccard_iou(dt: np.array, gt: np.array):
+def jaccard_iou(dt: np.ndarray, gt: np.ndarray) -> float:
     """Calculate the jaccard IoU.
 
     See https://en.wikipedia.org/wiki/Jaccard_index
@@ -50,7 +50,7 @@ def jaccard_iou(dt: np.array, gt: np.array):
     return intersection / (dt_area + gt_area - intersection)
 
 
-def compute_pairwise_ious(detected, ground_truth, iou_func):
+def compute_pairwise_ious(detected, ground_truth, iou_func=jaccard_iou):
     """Compute pairwise ious between detections and ground truth."""
     ious = np.zeros((len(detected), len(ground_truth)))
     for g_idx, g in enumerate(ground_truth):

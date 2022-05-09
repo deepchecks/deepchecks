@@ -97,6 +97,7 @@ def draw_bboxes(
     copy_image: bool = True,
     border_width: int = 1,
     color: t.Union[str, t.Dict[np.number, str]] = 'red',
+    include_label: bool = True
 ) -> pilimage.Image:
     """Draw bboxes on the image.
 
@@ -114,6 +115,8 @@ def draw_bboxes(
         width of the bbox outline
     color: Union[str, Dict[number, str]], default "red"
         color of the bbox outline. It could be a map mapping class id to the color
+    include_label : bool, default True
+        whether to draw class name (identifier) on the image or not
 
     Returns
     -------
@@ -147,7 +150,9 @@ def draw_bboxes(
             raise TypeError('color must be of type - Union[str, Dict[int, str]]')
 
         draw.rectangle(xy=(x0, y0, x1, y1), width=border_width, outline=color_to_use)
-        draw.text(xy=(x0 + (w * 0.5), y0 + (h * 0.2)), text=str(clazz), fill=color_to_use)
+        
+        if include_label is True:
+            draw.text(xy=(x0 + (w * 0.5), y0 + (h * 0.2)), text=str(clazz), fill=color_to_use)
 
     return image
 
@@ -216,7 +221,7 @@ def prepare_grid(
     if n_of_rows is not None:
         default_style['grid-template-rows'] = f'repeat({n_of_rows}, 1fr)'
     if n_of_columns is not None:
-        default_style['grid-template-columns'] = f'repeat({n_of_rows}, 1fr)'
+        default_style['grid-template-columns'] = f'repeat({n_of_columns}, 1fr)'
 
     if style is not None:
         default_style.update(**style)
