@@ -18,7 +18,6 @@ from .checks import (BaseCheck, DatasetKind, ModelOnlyBaseCheck,
                      SingleDatasetBaseCheck, TrainTestBaseCheck)
 from .condition import Condition, ConditionCategory, ConditionResult
 from .suite import BaseSuite, SuiteResult
-# from .serialization.common import from_json
 
 __all__ = [
     'BaseCheck',

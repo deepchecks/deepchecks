@@ -25,7 +25,6 @@ from deepchecks.core.serialization.check_result.html import \
     CheckResultSerializer as HtmlSerializer
 from deepchecks.core.serialization.check_result.json import \
     CheckResultSerializer as JsonSerializer
-from deepchecks.core.serialization.check_result.json import display_from_json
 from deepchecks.core.serialization.check_result.wandb import \
     CheckResultSerializer as WandbSerializer
 from deepchecks.core.serialization.check_result.widget import \
