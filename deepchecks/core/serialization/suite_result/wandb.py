@@ -21,7 +21,8 @@ from deepchecks.core.serialization.check_result.wandb import \
     CheckResultSerializer
 
 try:
-    from wandb.sdk.data_types.base_types.wb_value import WBValue
+    if t.TYPE_CHECKING:
+        from wandb.sdk.data_types.base_types.wb_value import WBValue
 except ImportError as error:
     pass
 

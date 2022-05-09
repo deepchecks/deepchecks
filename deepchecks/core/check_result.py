@@ -97,6 +97,11 @@ class CheckOutput:
         """Return the related check metadata."""
         return {'header': self.get_header(), **self.check.metadata(with_doc_link=with_doc_link)}
 
+    def get_check_id(self, unique_id: str = '') -> str:
+        """Return check id (used for href)."""
+        header = self.get_header().replace(' ', '')
+        return f'{header}_{unique_id}'
+
 
 class CheckResult(CheckOutput):
     """Class which returns from a check with result that can later be used for automatic pipelines and display value.
@@ -364,11 +369,6 @@ class CheckResult(CheckOutput):
     def __repr__(self):
         """Return default __repr__ function uses value."""
         return f'{self.get_header()}: {self.value}'
-
-    def get_check_id(self, unique_id: str = '') -> str:
-        """Return check id (used for href)."""
-        header = self.get_header().replace(' ', '')
-        return f'{header}_{unique_id}'
 
     def process_conditions(self):
         """Process the conditions results from current result and check."""

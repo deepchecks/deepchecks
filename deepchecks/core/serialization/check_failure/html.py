@@ -13,7 +13,6 @@ from typing import Optional
 
 from deepchecks.core import check_result as check_types
 from deepchecks.core.serialization.abc import HtmlSerializer
-from deepchecks.core.serialization.common import form_check_id
 
 __all__ = ['CheckFailureSerializer']
 
@@ -52,7 +51,7 @@ class CheckFailureSerializer(HtmlSerializer['check_types.CheckFailure']):
         header = self.value.get_header()
         header = f'<b>{header}</b>'
         if output_id is not None:
-            check_id = form_check_id(self.value.check, output_id)
+            check_id = self.value.get_check_id(output_id)
             return f'<h4 id="{check_id}">{header}</h4>'
         else:
             return f'<h4>{header}</h4>'

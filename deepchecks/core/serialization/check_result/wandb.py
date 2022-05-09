@@ -33,7 +33,8 @@ except ImportError as e:
     ) from e
 
 try:
-    from wandb.sdk.data_types.base_types.wb_value import WBValue
+    if t.TYPE_CHECKING:
+        from wandb.sdk.data_types.base_types.wb_value import WBValue
 except ImportError:
     pass
 
