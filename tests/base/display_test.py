@@ -131,7 +131,7 @@ def test_check_result_from_json(iris):
             {'type': 'plotly', 'payload': plot.to_json()},
             {
                 'type': 'dataframe', 
-                'payload': pd.DataFrame({'a': [1, 2], 'b': [1, 2]}).to_json(orient='records')
+                'payload': pd.DataFrame({'a': [1, 2], 'b': [1, 2]}).to_dict(orient='records')
             },
         ],
         'header': 'header',
