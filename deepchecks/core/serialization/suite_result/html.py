@@ -349,7 +349,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
                 )
                 message = (
                     str(it.exception)
-                    if isinstance(it.exception, error_types) 
+                    if isinstance(it.exception, error_types)
                     else f'{type(it.exception).__name__}: {str(it.exception)}'
                 )
                 data.append((it.header, message, 1))

@@ -25,7 +25,6 @@ __all__ = [
     'CheckFailure',
     'CheckFailureJson',
     'CheckResultJson',
-    'from_json',
     'Condition',
     'ConditionResult',
     'ConditionCategory',

@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the check results classes."""
-# pylint: disable=broad-except
+# pylint: disable=super-init-not-called
 import io
 
 from typing import Dict, List, Union
@@ -32,7 +32,7 @@ class FakeCheck:
     def __init__(self, metadata: Dict):
         self._metadata = metadata
 
-    def metadata(self, *args, **kwargs):  # pylint: disable=unused-import
+    def metadata(self, *args, **kwargs):  # pylint: disable=unused-argument
         return self._metadata
 
     def name(self):
