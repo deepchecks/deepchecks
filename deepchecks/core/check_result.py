@@ -94,7 +94,6 @@ class CheckOutput:
 
     def get_metadata(self, with_doc_link: bool = False) -> Dict:
         """Return the related check metadata."""
-        print(self.check.metadata())
         return {'header': self.get_header(), **self.check.metadata(with_doc_link=with_doc_link)}
 
 
