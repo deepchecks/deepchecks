@@ -216,7 +216,7 @@ def assert_json_output(
                         instance_of(dict),
                         has_entries({
                             'type': equal_to('dataframe'),
-                            'payload': instance_of(str)
+                            'payload': instance_of(list)
                         }))
                 )
             elif isinstance(it, str):
