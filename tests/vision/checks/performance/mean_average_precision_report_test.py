@@ -30,10 +30,10 @@ def test_mnist_error(mnist_dataset_test, mock_trained_mnist, device):
 def test_coco(coco_test_visiondata, mock_trained_yolov5_object_detection, device):
     # Arrange
     check = MeanAveragePrecisionReport() \
-            .add_condition_test_average_precision_not_less_than(0.1) \
-            .add_condition_test_average_precision_not_less_than(0.4) \
-            .add_condition_test_mean_average_precision_not_less_than() \
-            .add_condition_test_mean_average_precision_not_less_than(0.5)
+            .add_condition_mean_average_precision_not_less_than(0.1) \
+            .add_condition_mean_average_precision_not_less_than(0.4) \
+            .add_condition_average_mean_average_precision_not_less_than() \
+            .add_condition_average_mean_average_precision_not_less_than(0.5)
 
     # Act
     result = check.run(coco_test_visiondata,
@@ -43,21 +43,21 @@ def test_coco(coco_test_visiondata, mock_trained_yolov5_object_detection, device
     df = result.value
     assert_that(df, has_length(4))
 
-    assert_that(df.loc['All', 'mAP@0.5..0.95 (%)'], close_to(0.409, 0.001))
-    assert_that(df.loc['All', 'AP@.50 (%)'], close_to(0.566, 0.001))
-    assert_that(df.loc['All', 'AP@.75 (%)'], close_to(0.425, 0.001))
+    assert_that(df.loc['All', 'mAP@[.50::.95] (avg.%)'], close_to(0.409, 0.001))
+    assert_that(df.loc['All', 'mAP@.50 (%)'], close_to(0.566, 0.001))
+    assert_that(df.loc['All', 'mAP@.75 (%)'], close_to(0.425, 0.001))
 
-    assert_that(df.loc['Small (area < 32^2)', 'mAP@0.5..0.95 (%)'], close_to(0.212, 0.001))
-    assert_that(df.loc['Small (area < 32^2)', 'AP@.50 (%)'], close_to(0.342, 0.001))
-    assert_that(df.loc['Small (area < 32^2)', 'AP@.75 (%)'], close_to(0.212, 0.001))
+    assert_that(df.loc['Small (area < 32^2)', 'mAP@[.50::.95] (avg.%)'], close_to(0.212, 0.001))
+    assert_that(df.loc['Small (area < 32^2)', 'mAP@.50 (%)'], close_to(0.342, 0.001))
+    assert_that(df.loc['Small (area < 32^2)', 'mAP@.75 (%)'], close_to(0.212, 0.001))
 
-    assert_that(df.loc['Medium (32^2 < area < 96^2)', 'mAP@0.5..0.95 (%)'], close_to(0.383, 0.001))
-    assert_that(df.loc['Medium (32^2 < area < 96^2)', 'AP@.50 (%)'], close_to(0.600, 0.001))
-    assert_that(df.loc['Medium (32^2 < area < 96^2)', 'AP@.75 (%)'], close_to(0.349, 0.001))
+    assert_that(df.loc['Medium (32^2 < area < 96^2)', 'mAP@[.50::.95] (avg.%)'], close_to(0.383, 0.001))
+    assert_that(df.loc['Medium (32^2 < area < 96^2)', 'mAP@.50 (%)'], close_to(0.600, 0.001))
+    assert_that(df.loc['Medium (32^2 < area < 96^2)', 'mAP@.75 (%)'], close_to(0.349, 0.001))
 
-    assert_that(df.loc['Large (area < 96^2)', 'mAP@0.5..0.95 (%)'], close_to(0.541, 0.001))
-    assert_that(df.loc['Large (area < 96^2)', 'AP@.50 (%)'], close_to(0.674, 0.001))
-    assert_that(df.loc['Large (area < 96^2)', 'AP@.75 (%)'], close_to(0.585, 0.001))
+    assert_that(df.loc['Large (area < 96^2)', 'mAP@[.50::.95] (avg.%)'], close_to(0.541, 0.001))
+    assert_that(df.loc['Large (area < 96^2)', 'mAP@.50 (%)'], close_to(0.674, 0.001))
+    assert_that(df.loc['Large (area < 96^2)', 'mAP@.75 (%)'], close_to(0.585, 0.001))
 
     assert_that(result.conditions_results[0], equal_condition_result(
         is_pass=True,
@@ -67,8 +67,8 @@ def test_coco(coco_test_visiondata, mock_trained_yolov5_object_detection, device
     assert_that(result.conditions_results[1], equal_condition_result(
         is_pass=False,
         name='Scores are not less than 0.4',
-        details="Found scores below threshold:\n{'Small (area < 32^2)': {'AP@.50 (%)': '0.342'}, "
-                "'Medium (32^2 < area < 96^2)': {'AP@.75 (%)': '0.35'}}"
+        details="Found scores below threshold:\n{'Small (area < 32^2)': {'mAP@.50 (%)': '0.342'}, "
+                "'Medium (32^2 < area < 96^2)': {'mAP@.75 (%)': '0.35'}}"
     ))
 
     assert_that(result.conditions_results[2], equal_condition_result(
@@ -96,18 +96,18 @@ def test_coco_area_param(coco_test_visiondata, mock_trained_yolov5_object_detect
     df = result.value
     assert_that(df, has_length(4))
 
-    assert_that(df.loc['All', 'mAP@0.5..0.95 (%)'], close_to(0.409, 0.001))
-    assert_that(df.loc['All', 'AP@.50 (%)'], close_to(0.566, 0.001))
-    assert_that(df.loc['All', 'AP@.75 (%)'], close_to(0.425, 0.001))
+    assert_that(df.loc['All', 'mAP@[.50::.95] (avg.%)'], close_to(0.409, 0.001))
+    assert_that(df.loc['All', 'mAP@.50 (%)'], close_to(0.566, 0.001))
+    assert_that(df.loc['All', 'mAP@.75 (%)'], close_to(0.425, 0.001))
 
-    assert_that(df.loc['Small (area < 40^2)', 'mAP@0.5..0.95 (%)'], close_to(0.191, 0.001))
-    assert_that(df.loc['Small (area < 40^2)', 'AP@.50 (%)'], close_to(0.324, 0.001))
-    assert_that(df.loc['Small (area < 40^2)', 'AP@.75 (%)'], close_to(0.179, 0.001))
+    assert_that(df.loc['Small (area < 40^2)', 'mAP@[.50::.95] (avg.%)'], close_to(0.191, 0.001))
+    assert_that(df.loc['Small (area < 40^2)', 'mAP@.50 (%)'], close_to(0.324, 0.001))
+    assert_that(df.loc['Small (area < 40^2)', 'mAP@.75 (%)'], close_to(0.179, 0.001))
 
-    assert_that(df.loc['Medium (40^2 < area < 100^2)', 'mAP@0.5..0.95 (%)'], close_to(0.414, 0.001))
-    assert_that(df.loc['Medium (40^2 < area < 100^2)', 'AP@.50 (%)'], close_to(0.622, 0.001))
-    assert_that(df.loc['Medium (40^2 < area < 100^2)', 'AP@.75 (%)'], close_to(0.388, 0.001))
+    assert_that(df.loc['Medium (40^2 < area < 100^2)', 'mAP@[.50::.95] (avg.%)'], close_to(0.414, 0.001))
+    assert_that(df.loc['Medium (40^2 < area < 100^2)', 'mAP@.50 (%)'], close_to(0.622, 0.001))
+    assert_that(df.loc['Medium (40^2 < area < 100^2)', 'mAP@.75 (%)'], close_to(0.388, 0.001))
 
-    assert_that(df.loc['Large (area < 100^2)', 'mAP@0.5..0.95 (%)'], close_to(0.542, 0.001))
-    assert_that(df.loc['Large (area < 100^2)', 'AP@.50 (%)'], close_to(0.673, 0.001))
-    assert_that(df.loc['Large (area < 100^2)', 'AP@.75 (%)'], close_to(0.592, 0.001))
+    assert_that(df.loc['Large (area < 100^2)', 'mAP@[.50::.95] (avg.%)'], close_to(0.542, 0.001))
+    assert_that(df.loc['Large (area < 100^2)', 'mAP@.50 (%)'], close_to(0.673, 0.001))
+    assert_that(df.loc['Large (area < 100^2)', 'mAP@.75 (%)'], close_to(0.592, 0.001))

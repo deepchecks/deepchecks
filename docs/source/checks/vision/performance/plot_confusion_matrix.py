@@ -35,5 +35,5 @@ train_ds = coco.load_dataset(object_type='VisionData')
 
 from deepchecks.vision.checks.performance import ConfusionMatrixReport
 
-check = ConfusionMatrixReport(categories_to_display=20)
+check = ConfusionMatrixReport(categories_to_display=10)
 check.run(train_ds, yolo)

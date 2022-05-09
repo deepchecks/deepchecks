@@ -37,7 +37,7 @@ class TrainTestPredictionDrift(TrainTestCheck):
 
     Parameters
     ----------
-    margin_quantile_filter: float, default: 0
+    margin_quantile_filter: float, default: 0.025
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
         disproportionally. This filter is applied to both distributions, in both margins.
@@ -46,7 +46,7 @@ class TrainTestPredictionDrift(TrainTestCheck):
         they are binned into an "Other" category. If None, there is no limit.
     max_num_categories_for_display: int, default: 10
         Max number of categories to show in plot.
-    show_categories_by: str, default: 'train_largest'
+    show_categories_by: str, default: 'largest_difference'
         Specify which categories to show for categorical features' graphs, as the number of shown categories is limited
         by max_num_categories_for_display. Possible values:
         - 'train_largest': Show the largest train categories.
@@ -58,10 +58,10 @@ class TrainTestPredictionDrift(TrainTestCheck):
 
     def __init__(
             self,
-            margin_quantile_filter: float = 0,
+            margin_quantile_filter: float = 0.025,
             max_num_categories_for_drift: int = 10,
             max_num_categories_for_display: int = 10,
-            show_categories_by: str = 'train_largest',
+            show_categories_by: str = 'largest_difference',
             max_num_categories: int = None,  # Deprecated
             **kwargs
     ):
