@@ -44,6 +44,7 @@ H2O models can only train and predict on H2OFrame objects.
 .. code:: ipython3
 
     gbm = h2o.estimators.gbm.H2OGradientBoostingEstimator()
+    print('Trained!')
 
 We must tell the H2O model what are the feature columns and what is the
 name of the label column.
