@@ -216,7 +216,7 @@ def assert_json_output(
                         instance_of(dict),
                         has_entries({
                             'type': equal_to('dataframe'),
-                            'payload': instance_of(list)
+                            'payload': instance_of(str)
                         }))
                 )
             elif isinstance(it, str):
@@ -245,7 +245,7 @@ def assert_json_output(
                     all_of(
                         instance_of(dict),
                         has_entries({
-                            'type': equal_to('images'),
+                            'type': equal_to('html'),
                             'payload': all_of(has_length(greater_than(0))),
                         }))
                 )

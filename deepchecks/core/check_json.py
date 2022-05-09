@@ -92,6 +92,7 @@ class CheckResultJson(CheckResult):
         """Conditions are already processed it is to prevent errors."""
         pass
 
+
 class CheckFailureJson(CheckFailure):
     """Class which holds a check run exception.
 

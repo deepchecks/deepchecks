@@ -11,6 +11,7 @@
 """to json tests"""
 import jsonpickle
 from hamcrest import assert_that, equal_to
+from deepchecks.core.suite import SuiteResult
 
 from deepchecks.tabular.checks import ColumnsInfo
 from deepchecks.tabular.suites import full_suite
@@ -19,11 +20,13 @@ from deepchecks.tabular.suites import full_suite
 def test_check_full_suite_not_failing(iris_split_dataset_and_model):
     train, test, model = iris_split_dataset_and_model
     suite_res = full_suite().run(train, test, model)
-    json_suite_res = jsonpickle.loads(suite_res.to_json())
+    json_res_undecoded = suite_res.to_json()
+    json_suite_res = jsonpickle.loads(json_res_undecoded)
     assert_that(json_suite_res['name'], equal_to('Full Suite'))
     assert_that(isinstance(json_suite_res['results'], list))
     for json_res in json_suite_res['results']:
         assert_that(isinstance(json_res, dict))
+    assert_that(isinstance(SuiteResult.from_json(json_res_undecoded), SuiteResult))
 
 
 def test_check_metadata(iris_dataset):

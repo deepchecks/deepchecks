@@ -115,12 +115,12 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
         if isinstance(item, Styler):
             return {
                 'type': 'dataframe',
-                'payload': item.data.to_dict(orient='records')
+                'payload': item.data.to_json(orient='records')
             }
         else:
             return {
                 'type': 'dataframe',
-                'payload': item.to_dict(orient='records')
+                'payload': item.to_json(orient='records')
             }
 
     @classmethod

@@ -76,7 +76,7 @@ class CheckResultSerializer(WandbSerializer['check_types.CheckResult']):
     def prepare_summary_table(self) -> wandb.Table:
         """Prepare summary table."""
         check_result = self.value
-        metadata = check_result.metadata()
+        metadata = check_result.get_metadata()
         return wandb.Table(
             columns=['header', 'params', 'summary', 'value'],
             data=[[
