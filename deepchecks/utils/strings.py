@@ -93,16 +93,17 @@ def get_docs_summary(obj, with_doc_link: bool = True):
     str
         the object summary.
     """
-    summary = ''
     if hasattr(obj.__class__, '__doc__'):
         docs = obj.__class__.__doc__ or ''
         # Take first non-whitespace line.
         summary = next((s for s in docs.split('\n') if not re.match('^\\s*$', s)), '')
 
-    if with_doc_link:
-        link = generate_check_docs_link(obj)
-        summary += f' <a href="{link}" target="_blank">Read More...</a>'
-    return summary
+        if with_doc_link:
+            link = generate_check_docs_link(obj)
+            summary += f' <a href="{link}" target="_blank">Read More...</a>'
+
+        return summary
+    return ''
 
 
 def widget_to_html(widget: Widget, html_out: t.Any, title: str = None, requirejs: bool = True):

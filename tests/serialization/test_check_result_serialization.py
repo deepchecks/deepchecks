@@ -25,7 +25,6 @@ from deepchecks.core.serialization.check_result.html import \
     CheckResultSerializer as HtmlSerializer
 from deepchecks.core.serialization.check_result.json import \
     CheckResultSerializer as JsonSerializer
-from deepchecks.core.serialization.check_result.json import display_from_json
 from deepchecks.core.serialization.check_result.wandb import \
     CheckResultSerializer as WandbSerializer
 from deepchecks.core.serialization.check_result.widget import \
@@ -252,20 +251,6 @@ def assert_json_output(
                 )
             else:
                 raise TypeError(f'Unknown display item type {type(it)}')
-
-
-def test__display_from_json__function():
-    output = JsonSerializer(create_check_result()).serialize()
-    html = display_from_json(output)
-
-    assert_that(
-        html,
-        all_of(
-            instance_of(str),
-            has_length(greater_than(0)),
-            contains_string(output['check']['summary']),
-            contains_string(output['header']))
-    )
 
 
 # ===========================================

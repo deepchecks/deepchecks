@@ -345,6 +345,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
                     errors.DatasetValidationError,
                     errors.ModelValidationError,
                     errors.DeepchecksProcessError,
+                    str  # in case of serialized exception
                 )
                 message = (
                     str(it.exception)

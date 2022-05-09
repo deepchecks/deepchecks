@@ -18,7 +18,7 @@ import torch
 from ignite.metrics import Metric
 from torch import nn
 
-from deepchecks.core.check_result import CheckFailure, CheckResult
+from deepchecks.core.check_result import BaseCheckResult, CheckFailure
 from deepchecks.core.checks import DatasetKind
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.core.suite import BaseSuite, SuiteResult
@@ -99,7 +99,7 @@ class Suite(BaseSuite):
 
         results: Dict[
             Union[str, int],
-            Union[CheckResult, CheckFailure]
+            BaseCheckResult
         ] = OrderedDict({})
 
         run_train_test_checks = train_dataset is not None and test_dataset is not None
@@ -160,7 +160,7 @@ class Suite(BaseSuite):
         self,
         context: Context,
         run_train_test_checks: bool,
-        results: Dict[Union[str, int], Union[CheckResult, CheckFailure]],
+        results: Dict[Union[str, int], BaseCheckResult],
         dataset_kind: DatasetKind,
         progress_bars: List
     ):

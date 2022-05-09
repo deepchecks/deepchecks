@@ -31,14 +31,12 @@ from plotly.io._utils import plotly_cdn_url
 from plotly.offline.offline import get_plotlyjs
 
 from deepchecks.core import check_result as check_types
-from deepchecks.core import checks
 from deepchecks.utils.dataframes import un_numpy
 from deepchecks.utils.strings import get_ellipsis
 
 __all__ = [
     'aggregate_conditions',
     'form_output_anchor',
-    'form_check_id',
     'Html',
     'normalize_widget_style',
     'normalize_value',
@@ -61,12 +59,6 @@ class Html:
 def form_output_anchor(output_id: str) -> str:
     """Form unique output anchor."""
     return f'summary_{output_id}'
-
-
-def form_check_id(check: 'checks.BaseCheck', output_id: str) -> str:
-    """Form check instance unique identifier."""
-    check_name = type(check).__name__
-    return f'{check_name}_{output_id}'
 
 
 TDOMWidget = t.TypeVar('TDOMWidget', bound=DOMWidget)

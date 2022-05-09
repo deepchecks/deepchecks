@@ -24,7 +24,6 @@ from deepchecks.core.serialization.check_result.widget import \
 from deepchecks.core.serialization.common import Html as CommonHtml
 from deepchecks.core.serialization.common import normalize_widget_style
 from deepchecks.core.serialization.dataframe.widget import DataFrameSerializer
-from deepchecks.utils.strings import get_docs_summary
 
 from . import html
 
@@ -227,7 +226,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             else:
                 header = check_header
 
-            summary = get_docs_summary(check_result.check)
+            summary = check_result.get_metadata(with_doc_link=True)['summary']
             data.append([header, summary])
 
         df = pd.DataFrame(
