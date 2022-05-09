@@ -58,6 +58,7 @@ TDisplayItem = Union[str, pd.DataFrame, Styler, BaseFigure, TDisplayCallable]
 
 
 class CheckOutput:
+    """Generic class for any check output, contains some basic functions."""
     check: Optional['BaseCheck']
     header: Optional[str]
 
@@ -73,7 +74,7 @@ class CheckOutput:
         elif check_type == 'CheckResult':
             return CheckResultJson(json_dict)
         else:
-            raise ValueError('Excpected type one of CheckFailure/CheckResult recievied: ' + type)
+            raise ValueError('Excpected json object to be one of [CheckFailure, CheckResult] but recievied: ' + type)
 
     def get_header(self) -> str:
         """Return header for display. if header was defined return it, else extract name of check class."""
@@ -81,6 +82,7 @@ class CheckOutput:
 
     def get_metadata(self, with_doc_link: bool = False) -> Dict:
         """Return the related check metadata"""
+        print(self.check.metadata())
         return {'header': self.get_header(), **self.check.metadata(with_doc_link=with_doc_link)}
 
 
@@ -313,7 +315,7 @@ class CheckResult(CheckOutput):
         # TODO: not sure if the `with_display` parameter is needed
         # add deprecation warning if it is not needed
         return jsonpickle.dumps(
-            CheckResultJsonSerializer(self).serialize(),
+            CheckResultJsonSerializer(self).serialize(with_display=with_display),
             unpicklable=False
         )
 

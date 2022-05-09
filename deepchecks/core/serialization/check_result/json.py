@@ -10,14 +10,9 @@
 #
 """Module containing json serializer for the CheckResult type."""
 import base64
-import textwrap
 import typing as t
-import warnings
 
-import jsonpickle
-import jsonpickle.ext.pandas as jsonpickle_pd
 import pandas as pd
-import plotly.io as pio
 from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
 from typing_extensions import TypedDict
@@ -28,14 +23,9 @@ from deepchecks.core.serialization.abc import (ABCDisplayItemsHandler,
                                                JsonSerializer)
 from deepchecks.core.serialization.common import (aggregate_conditions,
                                                   normalize_value)
-from deepchecks.core.serialization.dataframe.html import DataFrameSerializer
 from deepchecks.utils.html import imagetag
 
 __all__ = ['CheckResultSerializer']
-
-
-# registers jsonpickle pandas extension for pandas support in the to_json function
-jsonpickle_pd.register_handlers()
 
 
 class CheckResultMetadata(TypedDict):
@@ -63,20 +53,26 @@ class CheckResultSerializer(JsonSerializer['check_types.CheckResult']):
             )
         self.value = value
 
-    def serialize(self, **kwargs) -> CheckResultMetadata:
+    def serialize(self, with_display: bool = True, **kwargs) -> CheckResultMetadata:
         """Serialize a CheckResult instance into JSON format.
+
+        Parameters
+        ----------
+        with_display : bool
+            controls if to serialize display or not
 
         Returns
         -------
         CheckResultMetadata
         """
+        display = self.prepare_display() if with_display else None
         return CheckResultMetadata(
             type='CheckResult',
             check=self.prepare_check_metadata(),
             header=self.value.get_header(),
             value=self.prepare_value(),
             conditions_results=self.prepare_condition_results(),
-            display=self.prepare_display()
+            display=display
         )
 
     def prepare_check_metadata(self) -> 'checks.CheckMetadata':
@@ -131,9 +127,9 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
     def handle_callable(cls, item: t.Callable, index: int, **kwargs) -> t.Dict[str, t.Any]:
         """Handle callable."""
         return {
-            'type': 'images',
+            'type': 'html',
             'payload': [
-                base64.b64encode(buffer.read()).decode('ascii')
+                imagetag(base64.b64encode(buffer.read()))
                 for buffer in super().handle_callable(item, index, **kwargs)
             ]
         }

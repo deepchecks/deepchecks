@@ -15,16 +15,12 @@ import io
 from typing import Dict, List, Union, TYPE_CHECKING
 
 import jsonpickle
-import jsonpickle.ext.pandas as jsonpickle_pd
 import pandas as pd
 import plotly
-from deepchecks.core.check_result import CheckFailure, CheckResult, CheckOutput
+from deepchecks.core.check_result import CheckFailure, CheckResult
 
 from deepchecks.core.condition import (Condition, ConditionCategory,
                                        ConditionResult)
-
-# registers jsonpickle pandas extension for pandas support in the to_json function
-jsonpickle_pd.register_handlers()
 
 __all__ = [
     'CheckResultJson',
@@ -109,7 +105,6 @@ class CheckFailureJson(CheckFailure):
         if isinstance(json_dict, str):
             json_dict = jsonpickle.loads(json_dict)
 
-        self.value = json_dict.get('value')
         self.header = json_dict.get('header')
         self.check = FakeCheck(json_dict.get('check'))
         self.exception = json_dict.get('exception')
