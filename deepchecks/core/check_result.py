@@ -76,7 +76,8 @@ class CheckOutput:
         CheckOutput
             A check output object.
         """
-        from deepchecks.core.check_json import CheckFailureJson, CheckResultJson
+        from deepchecks.core.check_json import (CheckFailureJson,
+                                                CheckResultJson)
 
         if isinstance(json_dict, str):
             json_dict = jsonpickle.loads(json_dict)
