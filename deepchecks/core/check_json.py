@@ -12,7 +12,7 @@
 # pylint: disable=broad-except
 import io
 
-from typing import Dict, List, Union, TYPE_CHECKING
+from typing import Dict, List, Union
 
 import jsonpickle
 import pandas as pd
@@ -32,7 +32,7 @@ class FakeCheck:
     def __init__(self, metadata: Dict):
         self._metadata = metadata
 
-    def metadata(self, *args, **kwargs):
+    def metadata(self, *args, **kwargs):  # pylint: disable=unused-import
         return self._metadata
 
     def name(self):
