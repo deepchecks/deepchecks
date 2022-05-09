@@ -21,6 +21,18 @@ __all__ = ['from_json']
 
 
 def from_json(json_dict: t.Union[str, t.Dict]) -> t.Union[CheckOutput, SuiteResult]:
+    """Convert a json object that was returned from one of our classes to_json.
+
+    Parameters
+    ----------
+    json_data: Union[str, Dict]
+        Json data
+
+    Returns
+    -------
+    Union[CheckOutput, SuiteResult]
+        A check output or a suite result object.
+    """
     if isinstance(json_dict, str):
         json_dict = jsonpickle.loads(json_dict)
     json_type = json_dict['type']

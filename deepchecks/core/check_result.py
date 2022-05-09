@@ -59,11 +59,24 @@ TDisplayItem = Union[str, pd.DataFrame, Styler, BaseFigure, TDisplayCallable]
 
 class CheckOutput:
     """Generic class for any check output, contains some basic functions."""
+
     check: Optional['BaseCheck']
     header: Optional[str]
 
     @staticmethod
-    def from_json(json_dict: Union[str, Dict]) -> Union['CheckFailureJson', 'CheckResultJson']:
+    def from_json(json_dict: Union[str, Dict]) -> 'CheckOutput':
+        """Convert a json object that was returned from CheckResult.to_json or CheckFailure.to_json.
+
+        Parameters
+        ----------
+        json_data: Union[str, Dict]
+            Json data
+
+        Returns
+        -------
+        CheckOutput
+            A check output object.
+        """
         from deepchecks.core.check_json import CheckFailureJson, CheckResultJson
 
         if isinstance(json_dict, str):
@@ -81,7 +94,7 @@ class CheckOutput:
         return self.header or self.check.name()
 
     def get_metadata(self, with_doc_link: bool = False) -> Dict:
-        """Return the related check metadata"""
+        """Return the related check metadata."""
         print(self.check.metadata())
         return {'header': self.get_header(), **self.check.metadata(with_doc_link=with_doc_link)}
 

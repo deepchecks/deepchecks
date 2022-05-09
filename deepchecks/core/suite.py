@@ -261,6 +261,18 @@ class SuiteResult:
 
     @classmethod
     def from_json(cls, json_res: str):
+        """Convert a json object that was returned from SuiteResult.to_json.
+
+        Parameters
+        ----------
+        json_data: Union[str, Dict]
+            Json data
+
+        Returns
+        -------
+        SuiteResult
+            A suite result object.
+        """
         json_dict = jsonpickle.loads(json_res)
         name = json_dict['name']
         results = []
