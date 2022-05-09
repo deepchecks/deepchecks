@@ -17,16 +17,22 @@ from deepchecks.tabular.checks import ColumnsInfo
 from deepchecks.tabular.suites import full_suite
 
 
+def _test_suite_json(json_res):
+    json_suite_res = jsonpickle.loads(json_res)
+    assert_that(json_suite_res['name'], equal_to('Full Suite'))
+    assert_that(isinstance(json_suite_res['results'], list))
+    for json_check_res in json_suite_res['results']:
+        assert_that(isinstance(json_check_res, dict))
+
 def test_check_full_suite_not_failing(iris_split_dataset_and_model):
     train, test, model = iris_split_dataset_and_model
     suite_res = full_suite().run(train, test, model)
-    json_res_undecoded = suite_res.to_json()
-    json_suite_res = jsonpickle.loads(json_res_undecoded)
-    assert_that(json_suite_res['name'], equal_to('Full Suite'))
-    assert_that(isinstance(json_suite_res['results'], list))
-    for json_res in json_suite_res['results']:
-        assert_that(isinstance(json_res, dict))
-    assert_that(isinstance(SuiteResult.from_json(json_res_undecoded), SuiteResult))
+    json_res = suite_res.to_json()
+    _test_suite_json(json_res)
+    suite_from_json = SuiteResult.from_json(json_res)
+    assert_that(isinstance(suite_from_json, SuiteResult))
+    # reasserting the json
+    _test_suite_json(suite_from_json.to_json())
 
 
 def test_check_metadata(iris_dataset):
