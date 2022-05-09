@@ -25,7 +25,7 @@ def test_no_drift_classification_label(diabetes, diabetes_model):
 
     # Assert
     assert_that(result.value, has_entries(
-            {'Drift score': close_to(0.03, 0.002),
+            {'Drift score': close_to(0.04, 0.01),
              'Method': equal_to('Earth Mover\'s Distance')}
     ))
 

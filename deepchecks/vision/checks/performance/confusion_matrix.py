@@ -19,11 +19,11 @@ from queue import PriorityQueue
 import numpy as np
 import pandas as pd
 import torch
-from plotly.express import imshow
 
 from deepchecks.vision.utils.image_functions import prepare_thumbnail, draw_bboxes, prepare_grid
 from deepchecks.utils.itertools import flatten_matrix
 from deepchecks.core import CheckResult, DatasetKind
+from deepchecks.utils.plot import create_confusion_matrix_figure
 from deepchecks.vision import Batch, Context, SingleDatasetCheck
 from deepchecks.vision.metrics_utils.iou_utils import jaccard_iou
 from deepchecks.vision.vision_data import TaskType, VisionData
@@ -46,8 +46,8 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         Threshold to consider bounding box as detected.
     iou_threshold (float, default 0.5):
         Threshold to consider detected bounding box as labeled bounding box.
-    n_of_images_to_show : int, default 5
-        Number of misclassified images to show.
+    normalized (bool, default True):
+        boolean that determines whether to normalize the true values of the matrix.
     """
 
     _IMAGE_THUMBNAIL_SIZE = (400, 400)
@@ -67,18 +67,19 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         {{grid}}
     """)
 
-    def __init__(
-        self,
-        categories_to_display: int = 10,
-        confidence_threshold: float = 0.3,
-        iou_threshold: float = 0.5,
-        n_of_images_to_show: int = 10,
-        **kwargs
-    ):
+    def __init__(self,
+                 categories_to_display: int = 10,
+                 confidence_threshold: float = 0.3,
+                 iou_threshold: float = 0.5,
+                 normalized: bool = True,
+                 n_of_images_to_show: int = 10,
+                 **kwargs):
         super().__init__(**kwargs)
         self.confidence_threshold = confidence_threshold
         self.categories_to_display = categories_to_display
         self.iou_threshold = iou_threshold
+        self.normalized = normalized
+
         self.matrix = None
         self.task_type = None
         self.misclassified_images = None
@@ -130,8 +131,9 @@ class ConfusionMatrixReport(SingleDatasetCheck):
             if category == 'no-overlapping':
                 description.append(
                     '"No overlapping" categories are labels and prediction which did not have a matching '
-                    'label/prediction. For example a predictions that did not have a sufficiently overlapping '
-                    'label bounding box will appear under the "No overlapping label" category'
+                    'label/prediction.<br>For example a predictions that did not have a sufficiently overlapping '
+                    'label bounding box will appear under "No overlapping" category in the True Value '
+                    'axis (y-axis).'
                 )
                 classes_to_display_ids.append('no-overlapping')
                 classes_to_display.append('no-overlapping')
@@ -152,18 +154,11 @@ class ConfusionMatrixReport(SingleDatasetCheck):
                 x.append(it)
                 y.append(it)
             else:
-                x.append('No overlapping prediction')
-                y.append('No overlapping label')
+                x.append('No overlapping')
+                y.append('No overlapping')
 
         description.append(
-            imshow(
-                confusion_matrix,
-                x=x,
-                y=y,
-                text_auto=True)
-            .update_layout(width=600, height=600)
-            .update_xaxes(title='Predicted Value', type='category')
-            .update_yaxes(title='True value', type='category')
+            create_confusion_matrix_figure(confusion_matrix, x, y, self.normalized)
         )
         description.append(self._misclassified_images_thumbnails(
             matrix.loc[classes_to_display_ids, classes_to_display_ids],

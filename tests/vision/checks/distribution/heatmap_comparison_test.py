@@ -61,19 +61,19 @@ def test_classification_limit_classes(mnist_dataset_train, mnist_dataset_test, d
 
 def test_object_detection_limit_classes(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
-    check = HeatmapComparison(classes_to_display=['person'])
+    check = HeatmapComparison(classes_to_display=['bicycle', 'bench'])
 
     # Act
     result = check.run(coco_train_visiondata, coco_test_visiondata, device=device)
     
     # Assert
     brightness_diff = result.value["diff"]
-    assert_that(brightness_diff.mean(), close_to(15.065, 0.001))
-    assert_that(brightness_diff.max(), close_to(66, 0.001))
+    assert_that(brightness_diff.mean(), close_to(39.458, 0.001))
+    assert_that(brightness_diff.max(), close_to(170, 0.001))
 
     bbox_diff = result.value["diff_bbox"]
-    assert_that(bbox_diff.mean(), close_to(8.932, 0.001))
-    assert_that(bbox_diff.max(), close_to(40, 0.001))
+    assert_that(bbox_diff.mean(), close_to(15.154, 0.001))
+    assert_that(bbox_diff.max(), close_to(75, 0.001))
 
 
 def test_limit_classes_nonexistant_class(coco_train_visiondata, coco_test_visiondata, device):
