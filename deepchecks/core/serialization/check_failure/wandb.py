@@ -16,8 +16,6 @@ from deepchecks.core.serialization.abc import WandbSerializer
 from deepchecks.core.serialization.common import prettify
 
 try:
-    from wandb.sdk.data_types.base_types.wb_value import WBValue
-
     import wandb
 except ImportError as e:
     raise ImportError(
@@ -25,6 +23,10 @@ except ImportError as e:
         'To get it, run "pip install wandb".'
     ) from e
 
+try:
+    from wandb.sdk.data_types.base_types.wb_value import WBValue
+except ImportError:
+    pass
 
 __all__ = ['CheckFailureSerializer']
 
@@ -45,7 +47,7 @@ class CheckFailureSerializer(WandbSerializer['check_types.CheckFailure']):
             )
         self.value = value
 
-    def serialize(self, **kwargs) -> t.Dict[str, WBValue]:
+    def serialize(self, **kwargs) -> t.Dict[str, 'WBValue']:
         """Serialize a CheckFailure instance into Wandb media format.
 
         Returns

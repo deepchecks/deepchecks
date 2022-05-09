@@ -25,14 +25,17 @@ from deepchecks.core.serialization.common import (aggregate_conditions,
                                                   normalize_value, prettify)
 
 try:
-    from wandb.sdk.data_types.base_types.wb_value import WBValue
-
     import wandb
 except ImportError as e:
     raise ImportError(
         'Wandb serializer requires the wandb python package. '
         'To get it, run "pip install wandb".'
     ) from e
+
+try:
+    from wandb.sdk.data_types.base_types.wb_value import WBValue
+except ImportError:
+    pass
 
 __all__ = ['CheckResultSerializer']
 
@@ -53,7 +56,7 @@ class CheckResultSerializer(WandbSerializer['check_types.CheckResult']):
             )
         self.value = value
 
-    def serialize(self, **kwargs) -> t.Dict[str, WBValue]:
+    def serialize(self, **kwargs) -> t.Dict[str, 'WBValue']:
         """Serialize a CheckResult instance into Wandb media metadata.
 
         Returns
@@ -94,7 +97,7 @@ class CheckResultSerializer(WandbSerializer['check_types.CheckResult']):
             df = aggregate_conditions(self.value, include_icon=False)
             return wandb.Table(dataframe=df.data, allow_mixed_types=True)
 
-    def prepare_display(self) -> t.List[t.Tuple[str, WBValue]]:
+    def prepare_display(self) -> t.List[t.Tuple[str, 'WBValue']]:
         """Serialize display items into Wandb media format."""
         return DisplayItemsHandler.handle_display(self.value.display)
 
@@ -103,7 +106,7 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
     """Auxiliary class to decouple display handling logic from other functionality."""
 
     @classmethod
-    def handle_string(cls, item: str, index: int, **kwargs) -> t.Tuple[str, WBValue]:
+    def handle_string(cls, item: str, index: int, **kwargs) -> t.Tuple[str, 'WBValue']:
         """Handle textual item."""
         return (f'item-{index}-html', wandb.Html(data=item))
 
@@ -113,7 +116,7 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
         item: t.Union[pd.DataFrame, Styler],
         index: int,
         **kwargs
-    ) -> t.Tuple[str, WBValue]:
+    ) -> t.Tuple[str, 'WBValue']:
         """Handle dataframe item."""
         if isinstance(item, Styler):
             return (
@@ -127,7 +130,7 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
             )
 
     @classmethod
-    def handle_callable(cls, item: t.Callable, index: int, **kwargs) -> t.Tuple[str, WBValue]:
+    def handle_callable(cls, item: t.Callable, index: int, **kwargs) -> t.Tuple[str, 'WBValue']:
         """Handle callable."""
         try:
             import PIL.Image as pilimage
@@ -142,6 +145,6 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
             return (f'item-{index}-figure', wandb.Image(image))
 
     @classmethod
-    def handle_figure(cls, item: BaseFigure, index: int, **kwargs) -> t.Tuple[str, WBValue]:
+    def handle_figure(cls, item: BaseFigure, index: int, **kwargs) -> t.Tuple[str, 'WBValue']:
         """Handle plotly figure item."""
         return f'item-{index}-plot', wandb.Plotly(item)

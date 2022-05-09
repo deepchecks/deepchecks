@@ -23,10 +23,7 @@ from deepchecks.core.serialization.check_result.wandb import \
 try:
     from wandb.sdk.data_types.base_types.wb_value import WBValue
 except ImportError as error:
-    raise ImportError(
-        'Wandb serializer requires the wandb python package. '
-        'To get it, run "pip install wandb".'
-    ) from error
+    pass
 
 
 class SuiteResultSerializer(WandbSerializer['suite.SuiteResult']):
@@ -45,7 +42,7 @@ class SuiteResultSerializer(WandbSerializer['suite.SuiteResult']):
             )
         self.value = value
 
-    def serialize(self, **kwargs) -> t.Dict[str, WBValue]:
+    def serialize(self, **kwargs) -> t.Dict[str, 'WBValue']:
         """Serialize a SuiteResult instance into Wandb media format.
 
         Returns
@@ -53,7 +50,7 @@ class SuiteResultSerializer(WandbSerializer['suite.SuiteResult']):
         Dict[str, WBValue]
         """
         suite_name = self.value.name
-        results: t.List[t.Tuple[str, WBValue]] = []
+        results: t.List[t.Tuple[str, 'WBValue']] = []
 
         for result in self.value.results:
             if isinstance(result, check_types.CheckResult):
