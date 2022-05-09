@@ -13,8 +13,11 @@ from runpy import run_path
 import sys
 path = Path(__file__).parent.parent.parent.parent / "docs" / "source"
 sys.path.insert(1, str(path))
+import plotly.io as pio
+default = pio.renderers.default
 from conf import sphinx_gallery_conf
-
+# Importing conf changes the default renderer to "sphinx_gallery" and we don't want that
+pio.renderers.default = default
 import torch
 import wandb
 
