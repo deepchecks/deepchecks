@@ -10,6 +10,7 @@
 #
 """Module containing html serializer for the CheckFailuer type."""
 from typing import Optional
+
 from deepchecks.core import check_result as check_types
 from deepchecks.core.serialization.abc import HtmlSerializer
 from deepchecks.core.serialization.common import form_check_id

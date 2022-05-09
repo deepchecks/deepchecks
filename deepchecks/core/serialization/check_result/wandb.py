@@ -25,8 +25,9 @@ from deepchecks.core.serialization.common import (aggregate_conditions,
                                                   normalize_value, prettify)
 
 try:
-    import wandb
     from wandb.sdk.data_types.base_types.wb_value import WBValue
+
+    import wandb
 except ImportError as e:
     raise ImportError(
         'Wandb serializer requires the wandb python package. '

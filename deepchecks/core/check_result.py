@@ -38,7 +38,7 @@ from deepchecks.core.serialization.check_result.widget import \
     CheckResultSerializer as CheckResultWidgetSerializer
 from deepchecks.utils.ipython import (is_colab_env, is_kaggle_env, is_notebook,
                                       is_widgets_use_possible)
-from deepchecks.utils.strings import (create_new_file_name, widget_to_html)
+from deepchecks.utils.strings import create_new_file_name, widget_to_html
 from deepchecks.utils.wandb_utils import set_wandb_run_state
 
 # registers jsonpickle pandas extension for pandas support in the to_json function
@@ -77,7 +77,8 @@ class CheckOutput:
         CheckOutput
             A check output object.
         """
-        from deepchecks.core.check_json import CheckFailureJson, CheckResultJson
+        from deepchecks.core.check_json import (CheckFailureJson,
+                                                CheckResultJson)
 
         if isinstance(json_dict, str):
             json_dict = jsonpickle.loads(json_dict)
@@ -280,7 +281,6 @@ class CheckResult(CheckOutput):
         # doing import within method to prevent premature ImportError
         try:
             import wandb
-
             from deepchecks.core.serialization.check_result.wandb import \
                 CheckResultSerializer as WandbSerializer
         except ImportError as error:
@@ -515,7 +515,6 @@ class CheckFailure(CheckOutput):
         # doing import within method to prevent premature ImportError
         try:
             import wandb
-
             from deepchecks.core.serialization.check_failure.wandb import \
                 CheckFailureSerializer as WandbSerializer
         except ImportError as error:

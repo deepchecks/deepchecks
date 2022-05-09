@@ -11,14 +11,13 @@
 """Module containing the check results classes."""
 # pylint: disable=super-init-not-called
 import io
-
 from typing import Dict, List, Union
 
 import jsonpickle
 import pandas as pd
 import plotly
-from deepchecks.core.check_result import CheckFailure, CheckResult
 
+from deepchecks.core.check_result import CheckFailure, CheckResult
 from deepchecks.core.condition import (Condition, ConditionCategory,
                                        ConditionResult)
 
