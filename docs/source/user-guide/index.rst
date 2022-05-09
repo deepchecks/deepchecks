@@ -36,3 +36,12 @@ Vision
 
     vision/data-classes/index
     vision/vision_properties
+
+Integrations
+------------
+
+.. toctree::
+    :maxdepth: 2
+    :caption: Integrations
+
+    integrations/spark_databricks
