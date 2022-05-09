@@ -77,7 +77,7 @@ class CheckResultJson(CheckResult):
                 if display_type == 'html':
                     self.display.append(payload)
                 elif display_type == 'dataframe':
-                    df: pd.DataFrame = pd.DataFrame.from_dict(payload, orient='records')
+                    df = pd.DataFrame.from_dict(payload, orient='records')
                     self.display.append(df)
                 elif display_type == 'plotly':
                     plotly_json = io.StringIO(payload)
