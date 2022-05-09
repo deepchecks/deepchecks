@@ -56,14 +56,14 @@ TDisplayCallable = Callable[[], None]
 TDisplayItem = Union[str, pd.DataFrame, Styler, BaseFigure, TDisplayCallable]
 
 
-class CheckOutput:
+class BaseCheckResult:
     """Generic class for any check output, contains some basic functions."""
 
     check: Optional['BaseCheck']
     header: Optional[str]
 
     @staticmethod
-    def from_json(json_dict: Union[str, Dict]) -> 'CheckOutput':
+    def from_json(json_dict: Union[str, Dict]) -> 'BaseCheckResult':
         """Convert a json object that was returned from CheckResult.to_json or CheckFailure.to_json.
 
         Parameters
@@ -73,7 +73,7 @@ class CheckOutput:
 
         Returns
         -------
-        CheckOutput
+        BaseCheckResult
             A check output object.
         """
         from deepchecks.core.check_json import (CheckFailureJson,
@@ -103,7 +103,7 @@ class CheckOutput:
         return f'{header}_{unique_id}'
 
 
-class CheckResult(CheckOutput):
+class CheckResult(BaseCheckResult):
     """Class which returns from a check with result that can later be used for automatic pipelines and display value.
 
     Class containing the result of a check
@@ -448,7 +448,7 @@ class CheckResult(CheckOutput):
             )
 
 
-class CheckFailure(CheckOutput):
+class CheckFailure(BaseCheckResult):
     """Class which holds a check run exception.
 
     Parameters

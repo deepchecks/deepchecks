@@ -10,6 +10,7 @@
 #
 """Module containing the check results classes."""
 # pylint: disable=super-init-not-called
+import base64
 import io
 from typing import Dict, List, Union
 
@@ -20,6 +21,7 @@ import plotly
 from deepchecks.core.check_result import CheckFailure, CheckResult
 from deepchecks.core.condition import (Condition, ConditionCategory,
                                        ConditionResult)
+from deepchecks.utils.html import imagetag
 
 __all__ = [
     'CheckResultJson',
@@ -84,6 +86,12 @@ class CheckResultJson(CheckResult):
                     self.display.append(plotly.io.read_json(plotly_json))
                 elif display_type == 'plt':
                     self.display.append((f'<img src=\'data:image/png;base64,{payload}\'>'))
+                elif display_type == 'images':
+                    assert isinstance(payload, list)
+                    self.display.extend(
+                        imagetag(base64.b64decode(it))
+                        for it in payload
+                    )
                 else:
                     raise ValueError(f'Unexpected type of display received: {display_type}')
 

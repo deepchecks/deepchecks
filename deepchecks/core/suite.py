@@ -20,7 +20,8 @@ import jsonpickle
 from IPython.core.display import display_html
 from ipywidgets import Widget
 
-from deepchecks.core.check_result import CheckFailure, CheckOutput, CheckResult
+from deepchecks.core.check_result import (BaseCheckResult, CheckFailure,
+                                          CheckResult)
 from deepchecks.core.checks import BaseCheck
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.serialization.suite_result.html import \
@@ -44,12 +45,12 @@ class SuiteResult:
     Parameters
     ----------
     name: str
-    results: List[CheckOutput]
+    results: List[BaseCheckResult]
     """
 
     name: str
     extra_info: List[str]
-    results: List[CheckOutput]
+    results: List[BaseCheckResult]
 
     def __init__(self, name: str, results, extra_info: Optional[List[str]] = None):
         """Initialize suite result."""
@@ -78,7 +79,7 @@ class SuiteResult:
             else:
                 self.failures.add(index)
 
-    def select_results(self, idx: Set[int]) -> List[CheckOutput]:
+    def select_results(self, idx: Set[int]) -> List[BaseCheckResult]:
         """Select results by indexes."""
         output = []
         for index, result in enumerate(self.results):
@@ -276,7 +277,7 @@ class SuiteResult:
         name = json_dict['name']
         results = []
         for res in json_dict['results']:
-            results.append(CheckOutput.from_json(res))
+            results.append(BaseCheckResult.from_json(res))
         return SuiteResult(name, results)
 
 

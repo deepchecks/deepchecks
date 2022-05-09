@@ -23,7 +23,6 @@ from deepchecks.core.serialization.abc import (ABCDisplayItemsHandler,
                                                JsonSerializer)
 from deepchecks.core.serialization.common import (aggregate_conditions,
                                                   normalize_value)
-from deepchecks.utils.html import imagetag
 
 __all__ = ['CheckResultSerializer']
 
@@ -127,9 +126,9 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
     def handle_callable(cls, item: t.Callable, index: int, **kwargs) -> t.Dict[str, t.Any]:
         """Handle callable."""
         return {
-            'type': 'html',
+            'type': 'images',
             'payload': [
-                imagetag(base64.b64encode(buffer.read()))
+                base64.b64encode(buffer.read()).decode('ascii')
                 for buffer in super().handle_callable(item, index, **kwargs)
             ]
         }

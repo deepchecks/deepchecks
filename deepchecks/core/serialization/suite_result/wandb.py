@@ -22,7 +22,8 @@ from deepchecks.core.serialization.check_result.wandb import \
 
 try:
     if t.TYPE_CHECKING:
-        from wandb.sdk.data_types.base_types.wb_value import WBValue  # pylint: disable=unused-import
+        from wandb.sdk.data_types.base_types.wb_value import \
+            WBValue  # pylint: disable=unused-import
 except ImportError:
     pass
 
