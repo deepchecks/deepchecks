@@ -1,5 +1,5 @@
-Spark & Databrick
-=================
+Spark & Databricks
+==================
 
 This tutorial demonstrates how deepchecks can be used on the Databricks ML platform using Spark. We will build a
 logistic regression model on top of the Adult dataset, a sample dataset that is automatically available on every
@@ -34,6 +34,12 @@ We first define the dataset schema and then load it as a Spark dataframe.
 
 Defining deepchecks Dataset
 ---------------------------
+We first convert the spark DataFrame to a pandas dataframe deepchecks can work with.
+
+.. note::
+    Conversion to a pandas dataframe will load the data into memory. If you have a large dataset, is is recommended to
+    sample the data first. Logically, it is OK to sample since anyway most of the checks will be performed on a small
+    subset of the data.
 
 .. code-block:: python
 
@@ -109,13 +115,16 @@ Training the Model
     # Define the pipeline based on the stages created in previous steps.
     pipeline = Pipeline(stages=[stringIndexer, encoder, labelToIndex, vecAssembler, lr])
 
-    # Define the pipeline model.
+    # Fit the pipeline model.
     pipelineModel = pipeline.fit(trainDF)
 
 Writing a Model Wrapper
 ~~~~~~~~~~~~~~~~~~~~~~~
 We will write a wrapper to our model, that will implement the required API for deepchecks according the the
-:doc: `</user-guide/tabular/supported_models>` guide.
+:doc: `</user-guide/tabular/supported_models>` guide. Generally the wrapper model will contain 2 functions in
+case of a classification problem: the ``predict`` and the ``predict_proba`` functions that will be called by
+deepchecks. In addition it is also possible to specify the feature importances of the model. Read more about
+feature importance handling in the :doc: `</user-guide/tabular/feature_importance>` guide.
 
 .. code-block:: python
 
@@ -147,17 +156,24 @@ We will write a wrapper to our model, that will implement the required API for d
     The wrapper here considers that all features are equally important. This is not a valid assumption for
     real models, but is done here for simplicity.
 
-Running the Full Suite
-----------------------
-We will run the full suite, that contains all checks in the package.
+Evaluating the Model Using Deepchecks Suites
+--------------------------------------------
+
+We will run 2 suites, the ``model_evaluation`` suite that is meant to test model performance and overfit, and the
+``train_test_validation`` is meant to validate correctness of train-test split, including integrity, distribution and
+leakage checks.
 
 .. code-block:: python
 
-    from deepchecks.tabular.suites import full_suite
+    from deepchecks.tabular.suites import model_evaluation, train_test_validation
 
-    suite = full_suite()
-    res = suite.run(ds_train, ds_test, PySparkModelWrapper(pipelineModel, pipelineModel.stages[2].labels))
+    eval_suite = model_evaluation()
+    model_evaluation_res = eval_suite.run(ds_train,ds_test, PySparkModelWrapper(pipelineModel,
+                                          pipelineModel.stages[2].labels))
 
+    train_test_suite = train_test_validation()
+    train_test_res = train_test_suite.run(ds_train, ds_test, PySparkModelWrapper(pipelineModel,
+                                          pipelineModel.stages[2].labels))
 Displaying the Results
 ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -165,6 +181,11 @@ Displaying the Results
 
     from io import StringIO
     buff = StringIO()
-    res.save_as_html(buff)
+    model_evaluation_res.save_as_html(buff)
+
+    displayHTML(buff.getvalue())
+
+    buff = StringIO()
+    train_test_res.save_as_html(buff)
 
     displayHTML(buff.getvalue())

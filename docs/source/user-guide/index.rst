@@ -44,5 +44,4 @@ Integrations
     :maxdepth: 2
     :caption: Integrations
 
-    `Databricks Integration <integrations/spark.html>`_
     integrations/spark_databricks
