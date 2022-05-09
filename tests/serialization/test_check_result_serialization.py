@@ -254,20 +254,6 @@ def assert_json_output(
                 raise TypeError(f'Unknown display item type {type(it)}')
 
 
-def test__display_from_json__function():
-    output = JsonSerializer(create_check_result()).serialize()
-    html = display_from_json(output)
-
-    assert_that(
-        html,
-        all_of(
-            instance_of(str),
-            has_length(greater_than(0)),
-            contains_string(output['check']['summary']),
-            contains_string(output['header']))
-    )
-
-
 # ===========================================
 
 

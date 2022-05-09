@@ -34,7 +34,6 @@ from deepchecks.core.serialization.check_result.html import \
     CheckResultSerializer as CheckResultHtmlSerializer
 from deepchecks.core.serialization.check_result.json import \
     CheckResultSerializer as CheckResultJsonSerializer
-from deepchecks.core.serialization.check_result.json import display_from_json
 from deepchecks.core.serialization.check_result.widget import \
     CheckResultSerializer as CheckResultWidgetSerializer
 from deepchecks.utils.ipython import (is_colab_env, is_kaggle_env, is_notebook,
@@ -61,7 +60,6 @@ TDisplayItem = Union[str, pd.DataFrame, Styler, BaseFigure, TDisplayCallable]
 class CheckOutput:
     check: Optional['BaseCheck']
     header: Optional[str]
-    _check_name: str = None
 
     @staticmethod
     def from_json(json_dict: Union[str, Dict]) -> Union['CheckFailureJson', 'CheckResultJson']:
@@ -77,24 +75,13 @@ class CheckOutput:
         else:
             raise ValueError('Excpected type one of CheckFailure/CheckResult recievied: ' + type)
 
-    @staticmethod
-    def display_from_json(json_data: str):
-        """Display the check result from a json received from a to_json."""
-        display_html(display_from_json(json_data), raw=True)
-
     def get_header(self) -> str:
         """Return header for display. if header was defined return it, else extract name of check class."""
-        return self.header or self.check_name
+        return self.header or self.check.name()
 
     def get_metadata(self, with_doc_link: bool = False) -> Dict:
         """Return the related check metadata"""
         return {'header': self.get_header(), **self.check.metadata(with_doc_link=with_doc_link)}
-
-    @property
-    def check_name(self):
-        if self._check_name is None:
-            self._check_name = self.check.name()
-        return self._check_name
 
 
 class CheckResult(CheckOutput):

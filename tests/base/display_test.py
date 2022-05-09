@@ -139,7 +139,7 @@ def test_check_result_from_json(iris):
     })
 
     # Assert
-    assert_that(CheckResult.display_from_json(json_to_display), is_(None))
+    assert_that(CheckResult.from_json(json_to_display), is_(None))
 
 
 def test_check_result_show():

@@ -298,7 +298,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
     <span style="color: firebrick;font-weight:bold;display:inline-block">\U00002048</span>
     """
 
-    check_names = list(set(it.check_name for it in results))
+    check_names = list(set(it.check.name() for it in results))
     prologue = (
         f"The suite is composed of various checks such as: {', '.join(check_names[:3])}, etc..."
         if len(check_names) > 3

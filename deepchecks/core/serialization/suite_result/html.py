@@ -145,7 +145,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         long_prologue_version = 'The suite is composed of various checks such as: {names}, etc...'
         short_prologue_version = 'The suite is composed of the following checks: {names}.'
         check_names = list(set(
-            it.check_name
+            it.check.name()
             for it in self.value.results
         ))
         return (

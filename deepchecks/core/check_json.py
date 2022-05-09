@@ -12,13 +12,13 @@
 # pylint: disable=broad-except
 import io
 
-from typing import Dict, List, Union
+from typing import Dict, List, Union, TYPE_CHECKING
 
 import jsonpickle
 import jsonpickle.ext.pandas as jsonpickle_pd
 import pandas as pd
 import plotly
-from deepchecks.core.check_result import CheckFailure, CheckResult
+from deepchecks.core.check_result import CheckFailure, CheckResult, CheckOutput
 
 from deepchecks.core.condition import (Condition, ConditionCategory,
                                        ConditionResult)
@@ -30,6 +30,17 @@ __all__ = [
     'CheckResultJson',
     'CheckFailureJson',
 ]
+
+
+class FakeCheck:
+    def __init__(self, metadata: Dict):
+        self._metadata = metadata
+
+    def metadata(self, *args, **kwargs):
+        return self._metadata
+
+    def name(self):
+        return self._metadata['name']
 
 
 class CheckResultJson(CheckResult):
@@ -52,8 +63,7 @@ class CheckResultJson(CheckResult):
 
         self.value = json_dict.get('value')
         self.header = json_dict.get('header')
-        self.check_metadata = json_dict.get('check')
-        self._check_name = self.check_metadata['name']
+        self.check = FakeCheck(json_dict.get('check'))
 
         conditions_results_json = json_dict.get('conditions_results')
         if conditions_results_json is not None:
@@ -82,10 +92,6 @@ class CheckResultJson(CheckResult):
                 else:
                     raise ValueError(f'Unexpected type of display received: {display_type}')
 
-    def get_metadata(self, with_doc_link: bool = False) -> Dict:
-        """Return the related check metadata"""
-        return {'header': self.get_header(), **self.check_metadata}
-
     def process_conditions(self) -> List[Condition]:
         """Conditions are already processed it is to prevent errors."""
         pass
@@ -105,12 +111,8 @@ class CheckFailureJson(CheckFailure):
 
         self.value = json_dict.get('value')
         self.header = json_dict.get('header')
-        self.check_metadata = json_dict.get('check')
-        self._check_name = self.check_metadata['name']
+        self.check = FakeCheck(json_dict.get('check'))
         self.exception = json_dict.get('exception')
-
-    def get_metadata(self, with_doc_link: bool = False):
-        CheckResultJson.get_metadata(self)
 
     def print_traceback(self):
         """Print the traceback of the failure."""
