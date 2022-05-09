@@ -126,7 +126,7 @@ def feature_distribution_traces(train_column,
                                 column_name,
                                 is_categorical: bool = False,
                                 max_num_categories: int = 10,
-                                show_categories_by: str = 'train_largest',
+                                show_categories_by: str = 'largest_difference',
                                 quantile_cut: float = 0.02) -> Tuple[List[go.Trace], Dict, Dict]:
     """Create traces for comparison between train and test column.
 
@@ -142,7 +142,7 @@ def feature_distribution_traces(train_column,
         State if column is categorical.
     max_num_categories : int , default: 10
         Maximum number of categories to show in plot (default: 10).
-    show_categories_by: str, default: 'train_largest'
+    show_categories_by: str, default: 'largest_difference'
         Specify which categories to show for categorical features' graphs, as the number of shown categories is limited
         by max_num_categories_for_display. Possible values:
         - 'train_largest': Show the largest train categories.

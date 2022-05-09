@@ -35,7 +35,7 @@ def _dict_conc(test_list):
     return result
 
 
-class AveragePrecision(Metric):
+class AveragePrecisionRecall(Metric):
     """Abstract class to calculate average precision and recall for various vision tasks.
 
     Parameters
