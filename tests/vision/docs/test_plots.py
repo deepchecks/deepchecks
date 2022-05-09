@@ -10,27 +10,25 @@
 #
 from pathlib import Path
 from runpy import run_path
-import sys
-path = Path(__file__).parent.parent.parent.parent / "docs" / "source"
-sys.path.insert(1, str(path))
-import plotly.io as pio
-default = pio.renderers.default
-from conf import sphinx_gallery_conf
-# Importing conf changes the default renderer to "sphinx_gallery" and we don't want that
-pio.renderers.default = default
 import torch
 import wandb
 
 # Since we have a plot that's calling `wandb.login` we need to setup first
 wandb.setup(wandb.Settings(mode="disabled", program=__name__, program_relpath=__name__, disable_code=True))
 
-DOCS_EXAMPLES_DIR = sphinx_gallery_conf['examples_dirs']
+DOCS_EXAMPLES_DIR = ["checks/vision",
+                     "checks/tabular",
+                     "tutorials/tabular",
+                     "tutorials/vision",
+                     "user-guide/general/customizations",
+                     "user-guide/general/exporting_results", ]
 
 
 def test_plots_on_gpu():
     """If there is GPU available running all the docs plot files. Only makes sure the plots don't crash, and not \
     testing any other display or functionality."""
-    if torch.cuda.is_available():
+    if not torch.cuda.is_available():
+        path = Path(__file__).parent.parent.parent.parent / "docs" / "source"
         # Take only source file and excluding compiled files
         source_files = set()
         for dir in DOCS_EXAMPLES_DIR:

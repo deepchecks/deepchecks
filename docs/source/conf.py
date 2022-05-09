@@ -426,16 +426,12 @@ html_context = {
 # -- Other -------------------------------------------------
 nitpick_ignore = []
 
-try:
-    for line in open('nitpick-exceptions'):
-        if line.strip() == "" or line.startswith("#"):
-            continue
-        dtype, target = line.split(None, 1)
-        target = target.strip()
-        nitpick_ignore.append((dtype, target))
-except FileNotFoundError:
-    pass
-
+for line in open('nitpick-exceptions'):
+    if line.strip() == "" or line.startswith("#"):
+        continue
+    dtype, target = line.split(None, 1)
+    target = target.strip()
+    nitpick_ignore.append((dtype, target))
 
 def get_check_example_api_reference(filepath: str) -> t.Optional[str]:
     if not (
