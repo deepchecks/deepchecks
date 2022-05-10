@@ -41,7 +41,6 @@ class DatasetKind(enum.Enum):
 
 
 class CheckMetadata(TypedDict):
-    type: str
     name: str
     params: Dict[Any, Any]
     summary: str
@@ -136,7 +135,7 @@ class BaseCheck(abc.ABC):
         return check_result
 
     @classmethod
-    def name(cls):
+    def name(cls) -> str:
         """Name of class in split camel case."""
         return split_camel_case(cls.__name__)
 
@@ -153,7 +152,6 @@ class BaseCheck(abc.ABC):
         Dict[str, Any]
         """
         return CheckMetadata(
-            type=type(self).__name__,
             name=self.name(),
             params=self.params(show_defaults=True),
             summary=get_docs_summary(self, with_doc_link)

@@ -6,7 +6,7 @@ Open from Docs - *Recommended*
 ==============================
 
 All examples can be viewed in the 
-`Examples <https://docs.deepchecks.com/en/stable/examples/index.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=examples_folder>`__
+`Examples <https://docs.deepchecks.com/stable/checks_gallery/tabular/index.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=examples_folder>`__
 section in the documentation.
 
 Note that they can be also be launched directly from the documentation,
@@ -16,7 +16,7 @@ by clicking on the badges that each notebook has on the top right side:
 .. raw:: html
 
    <p align="center">
-      <a href="https://docs.deepchecks.com/en/stable/examples/index.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=examples_folder_image">
+      <a href="https://docs.deepchecks.com/stable/checks_gallery/tabular/index.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=examples_folder_image">
       <img src="/docs/images/notebook-example-launch-badges.png">
       </a>
    </p>

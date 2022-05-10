@@ -43,7 +43,7 @@ class WholeDatasetDrift(TrainTestCheck):
         hidden.
     max_num_categories_for_display: int, default: 10
         Max number of categories to show in plot.
-    show_categories_by: str, default: 'train_largest'
+    show_categories_by: str, default: 'largest_difference'
         Specify which categories to show for categorical features' graphs, as the number of shown categories is limited
         by max_num_categories_for_display. Possible values:
         - 'train_largest': Show the largest train categories.
@@ -66,7 +66,7 @@ class WholeDatasetDrift(TrainTestCheck):
             n_top_columns: int = 3,
             min_feature_importance: float = 0.05,
             max_num_categories_for_display: int = 10,
-            show_categories_by: str = 'train_largest',
+            show_categories_by: str = 'largest_difference',
             sample_size: int = 10_000,
             random_state: int = 42,
             test_size: float = 0.3,

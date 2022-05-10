@@ -21,8 +21,7 @@ from ipywidgets import HTML, Tab, VBox
 from wandb.sdk.data_types.base_types.wb_value import WBValue
 
 from deepchecks.core.check_result import CheckFailure, CheckResult
-from deepchecks.core.serialization.common import (form_check_id,
-                                                  form_output_anchor,
+from deepchecks.core.serialization.common import (form_output_anchor,
                                                   plotlyjs_script)
 from deepchecks.core.serialization.suite_result.html import \
     SuiteResultSerializer as HtmlSerializer
@@ -101,7 +100,7 @@ def are_navigation_links_present(
             for it in soup.select('a')
         ),
         all(
-            soup.select_one(f'#{form_check_id(it.check, output_id)}') is not None
+            soup.select_one(f'#{it.get_check_id(output_id)}') is not None
             for it in suite_result.results
             if isinstance(it, CheckResult)
         )

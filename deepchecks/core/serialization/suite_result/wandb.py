@@ -45,7 +45,7 @@ class SuiteResultSerializer(WandbSerializer['suite.SuiteResult']):
             )
         self.value = value
 
-    def serialize(self, **kwargs) -> t.Dict[str, WBValue]:
+    def serialize(self, **kwargs) -> t.Dict[str, 'WBValue']:
         """Serialize a SuiteResult instance into Wandb media format.
 
         Returns
@@ -53,7 +53,7 @@ class SuiteResultSerializer(WandbSerializer['suite.SuiteResult']):
         Dict[str, WBValue]
         """
         suite_name = self.value.name
-        results: t.List[t.Tuple[str, WBValue]] = []
+        results: t.List[t.Tuple[str, 'WBValue']] = []
 
         for result in self.value.results:
             if isinstance(result, check_types.CheckResult):

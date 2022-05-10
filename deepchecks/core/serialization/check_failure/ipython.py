@@ -10,13 +10,14 @@
 #
 """"""
 import typing as t
+
 from IPython.display import HTML
 
 from deepchecks.core import check_result as check_types
-from deepchecks.core.serialization.abc import IPythonSerializer, IPythonDisplayable
+from deepchecks.core.serialization.abc import (IPythonDisplayable,
+                                               IPythonSerializer)
 
 from . import html
-
 
 __all__ = ['CheckFailureSerializer']
 

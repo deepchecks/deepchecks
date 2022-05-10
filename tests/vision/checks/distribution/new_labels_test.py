@@ -11,11 +11,7 @@
 """New Labels check tests"""
 from copy import copy
 
-from hamcrest import (
-    assert_that,
-    has_length,
-    has_entries, close_to, has_items
-)
+from hamcrest import assert_that, close_to, has_entries, has_items, has_length
 
 from deepchecks.vision.checks.distribution import NewLabels
 from deepchecks.vision.utils.test_utils import get_modified_dataloader
@@ -62,7 +58,7 @@ def test_object_detection_coco(coco_train_visiondata, coco_test_visiondata, devi
     result = NewLabels().run(coco_train_visiondata, coco_test_visiondata, device=device)
     # Assert
     assert_that(result.value, has_entries(
-        {'sandwich': close_to(14, 1), 'kite': close_to(7, 1), 'all_labels': close_to(387, 1)}
+        {'donut': close_to(14, 1), 'tennis racket': close_to(7, 1), 'all_labels': close_to(387, 1)}
     ))
 
 
@@ -72,10 +68,12 @@ def test_object_detection_coco_with_condition(coco_train_visiondata, coco_test_v
     result = check.conditions_decision(check.run(coco_train_visiondata, coco_test_visiondata, device=device))
     # Assert
     assert_that(result, has_items(
-        equal_condition_result(is_pass=False,
-                               name='Percentage of new labels in the test set not above 10%.',
-                               details='10.85% of labels found in test set were not in train set. '
-                                       'New labels most common in test set: [\'sandwich\', \'kite\', \'truck\']')
+        equal_condition_result(
+            is_pass=False,
+            name='Percentage of new labels in the test set not above 10%.',
+            details=(
+                '10.85% of labels found in test set were not in train set. '
+                'New labels most common in test set: [\'donut\', \'tennis racket\', \'boat\']'))
     ))
 
 
@@ -88,7 +86,7 @@ def test_object_detection_coco_new_labels(coco_train_visiondata, coco_test_visio
     result = NewLabels().run(coco_train_visiondata, test, device=device)
     # Assert
     assert_that(result.value, has_entries(
-        {'sandwich': close_to(14, 1), '-5': close_to(2, 1), 'all_labels': close_to(387, 1)}))
+        {'donut': close_to(14, 1), '-5': close_to(2, 1), 'all_labels': close_to(387, 1)}))
 
 
 def test_classification_mnist_with_condition(mnist_dataset_train, mnist_dataset_test, device):

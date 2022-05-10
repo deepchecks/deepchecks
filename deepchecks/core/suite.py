@@ -17,20 +17,36 @@ from collections import OrderedDict
 from typing import Dict, List, Optional, Set, Tuple, Union
 
 import jsonpickle
-from IPython.core.display import display_html, display
+from IPython.core.display import display, display_html
 from ipywidgets import Widget
 
-from deepchecks.utils.ipython import is_notebook, is_widgets_use_possible
-from deepchecks.utils.strings import create_new_file_name, get_random_string, widget_to_html
+from deepchecks.core.check_result import (BaseCheckResult, CheckFailure,
+                                          CheckResult)
+from deepchecks.core.checks import BaseCheck
+from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.core.serialization.suite_result.html import \
+    SuiteResultSerializer as SuiteResultHtmlSerializer
+from deepchecks.core.serialization.suite_result.json import \
+    SuiteResultSerializer as SuiteResultJsonSerializer
+from deepchecks.core.serialization.suite_result.widget import \
+    SuiteResultSerializer as SuiteResultWidgetSerializer
+from deepchecks.utils.ipython import (is_colab_env, is_kaggle_env, is_notebook,
+                                      is_widgets_use_possible)
+from deepchecks.utils.strings import (create_new_file_name, get_random_string,
+                                      widget_to_html)
 from deepchecks.utils.wandb_utils import set_wandb_run_state
 
 from .check_result import CheckFailure, CheckResult
 from .checks import BaseCheck
 from .errors import DeepchecksValueError
-from .serialization.suite_result.html import SuiteResultSerializer as SuiteResultHtmlSerializer
-from .serialization.suite_result.json import SuiteResultSerializer as SuiteResultJsonSerializer
-from .serialization.suite_result.widget import SuiteResultSerializer as SuiteResultWidgetSerializer
-from .serialization.suite_result.ipython import SuiteResultSerializer as SuiteResultIPythonSerializer
+from .serialization.suite_result.html import \
+    SuiteResultSerializer as SuiteResultHtmlSerializer
+from .serialization.suite_result.ipython import \
+    SuiteResultSerializer as SuiteResultIPythonSerializer
+from .serialization.suite_result.json import \
+    SuiteResultSerializer as SuiteResultJsonSerializer
+from .serialization.suite_result.widget import \
+    SuiteResultSerializer as SuiteResultWidgetSerializer
 
 __all__ = ['BaseSuite', 'SuiteResult']
 
@@ -41,12 +57,12 @@ class SuiteResult:
     Parameters
     ----------
     name: str
-    results: List[Union[CheckResult, CheckFailure]]
+    results: List[BaseCheckResult]
     """
 
     name: str
     extra_info: List[str]
-    results: List[Union[CheckResult, CheckFailure]]
+    results: List[BaseCheckResult]
 
     def __init__(self, name: str, results, extra_info: Optional[List[str]] = None):
         """Initialize suite result."""
@@ -75,7 +91,7 @@ class SuiteResult:
             else:
                 self.failures.add(index)
 
-    def select_results(self, idx: Set[int]) -> List[Union[CheckResult, CheckFailure]]:
+    def select_results(self, idx: Set[int]) -> List[BaseCheckResult]:
         """Select results by indexes."""
         output = []
         for index, result in enumerate(self.results):
@@ -259,6 +275,27 @@ class SuiteResult:
                 failures[res.header] = res
         return failures
 
+    @classmethod
+    def from_json(cls, json_res: str):
+        """Convert a json object that was returned from SuiteResult.to_json.
+
+        Parameters
+        ----------
+        json_data: Union[str, Dict]
+            Json data
+
+        Returns
+        -------
+        SuiteResult
+            A suite result object.
+        """
+        json_dict = jsonpickle.loads(json_res)
+        name = json_dict['name']
+        results = []
+        for res in json_dict['results']:
+            results.append(BaseCheckResult.from_json(res))
+        return SuiteResult(name, results)
+
 
 class BaseSuite:
     """Class for running a set of checks together, and returning a unified pass / no-pass.
@@ -277,7 +314,7 @@ class BaseSuite:
         """Return list of of supported check types."""
         pass
 
-    checks: OrderedDict
+    checks: 'OrderedDict[int, BaseCheck]'
     name: str
     _check_index: int
 

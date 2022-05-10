@@ -17,19 +17,16 @@ from IPython.display import HTML
 
 from deepchecks.core import check_result as check_types
 from deepchecks.core import errors, suite
-from deepchecks.core.serialization.abc import IPythonSerializer, IPythonDisplayable
+from deepchecks.core.serialization.abc import (IPythonDisplayable,
+                                               IPythonSerializer)
 from deepchecks.core.serialization.check_result.html import CheckResultSection
-from deepchecks.core.serialization.check_result.ipython import CheckResultSerializer
-from deepchecks.core.serialization.common import (
-    Html,
-    aggregate_conditions,
-    form_output_anchor,
-    join,
-    flatten
-)
+from deepchecks.core.serialization.check_result.ipython import \
+    CheckResultSerializer
+from deepchecks.core.serialization.common import (Html, aggregate_conditions,
+                                                  flatten, form_output_anchor,
+                                                  join)
 
 from . import html
-
 
 __all__ = ['SuiteResultSerializer']
 

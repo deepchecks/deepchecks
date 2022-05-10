@@ -187,9 +187,9 @@ def test_no_drift_object_detection_per_class(coco_train_visiondata):
 
     # Assert
     assert_that(result.value, has_entries({
-        'Brightness': has_entries({'train':  has_entries({'door': equal_to(0)}),
-                                   'test':  has_entries({'door': equal_to(0)}),
-                                   'train-test difference':  has_entries({'door': equal_to(0)})}),
+        'Brightness': has_entries({'train':  has_entries({'clock': equal_to(0)}),
+                                   'test':  has_entries({'clock': equal_to(0)}),
+                                   'train-test difference':  has_entries({'clock': equal_to(0)})}),
     }))
 
 
@@ -202,12 +202,12 @@ def test_drift_object_detection_per_class(coco_train_visiondata, coco_test_visio
 
     # Act
     result = check.run(train, test)
-
+    
     # Assert
     assert_that(result.value, has_entries({
-        'Brightness': has_entries({'train':  has_entries({'door': equal_to(0)}),
-                                   'test':  has_entries({'door': close_to(0.335, 0.01)}),
-                                   'train-test difference':  has_entries({'door': close_to(-0.335, 0.01)})}),
+        'Brightness': has_entries({'train':  has_entries({'fork': equal_to(0)}),
+                                   'test':  has_entries({'fork': close_to(0.0025, 0.001)}),
+                                   'train-test difference':  has_entries({'fork': close_to(-0.0025, 0.001)})}),
     }))
 
 
@@ -248,7 +248,11 @@ def test_train_test_condition_pps_train_fail(coco_train_visiondata, coco_test_vi
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name=f'Train properties\' Predictive Power Score is not greater than {condition_value}',
-        details='Features in train dataset with PPS above threshold: {\'Mean Red Relative Intensity\': \'0.1\'}'
+        details=(
+            'Features in train dataset with PPS above threshold: '
+            '{\'Mean Red Relative Intensity\': \'0.11\', '
+            '\'Aspect Ratio\': \'0.09\'}'
+        )
     ))
 
 

@@ -10,14 +10,15 @@
 #
 """"""
 import typing as t
+
 from IPython.display import HTML, Image
 
 from deepchecks.core import check_result as check_types
+from deepchecks.core.serialization.abc import (IPythonDisplayable,
+                                               IPythonSerializer)
 from deepchecks.core.serialization.common import flatten
-from deepchecks.core.serialization.abc import IPythonSerializer, IPythonDisplayable
 
 from . import html
-
 
 __all__ = ['CheckResultSerializer']
 

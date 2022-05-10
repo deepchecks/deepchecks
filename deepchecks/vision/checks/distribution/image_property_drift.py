@@ -45,7 +45,7 @@ class ImagePropertyDrift(TrainTestCheck):
         List of properties. Replaces the default deepchecks properties.
         Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
         representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'
-    margin_quantile_filter: float, default: 0
+    margin_quantile_filter: float, default: 0.025
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
         disproportionally. This filter is applied to both distributions, in both margins.
@@ -54,7 +54,7 @@ class ImagePropertyDrift(TrainTestCheck):
         they are binned into an "Other" category. If None, there is no limit.
     max_num_categories_for_display: int, default: 10
         Max number of categories to show in plot.
-    show_categories_by: str, default: 'train_largest'
+    show_categories_by: str, default: 'largest_difference'
         Specify which categories to show for categorical features' graphs, as the number of shown categories is limited
         by max_num_categories_for_display. Possible values:
         - 'train_largest': Show the largest train categories.
@@ -72,10 +72,10 @@ class ImagePropertyDrift(TrainTestCheck):
     def __init__(
             self,
             image_properties: t.List[t.Dict[str, t.Any]] = None,
-            margin_quantile_filter: float = 0,
+            margin_quantile_filter: float = 0.025,
             max_num_categories_for_drift: int = 10,
             max_num_categories_for_display: int = 10,
-            show_categories_by: str = 'train_largest',
+            show_categories_by: str = 'largest_difference',
             classes_to_display: t.Optional[t.List[str]] = None,
             min_samples: int = 30,
             max_num_categories: int = None,  # Deprecated

@@ -140,6 +140,7 @@ class ABCDisplayItemsHandler(Protocol):
     ])
 
     @classmethod
+    @abc.abstractmethod
     def handle_display(
         cls,
         display: t.List['check_types.TDisplayItem'],
@@ -159,6 +160,7 @@ class ABCDisplayItemsHandler(Protocol):
         return [cls.handle_item(it, index) for index, it in enumerate(display)]
 
     @classmethod
+    @abc.abstractmethod
     def handle_item(cls, item: 'check_types.TDisplayItem', index: int, **kwargs) -> t.Any:
         """Serialize display item."""
         if isinstance(item, str):
