@@ -130,7 +130,8 @@ class SuiteResult:
     def save_as_html(
         self,
         file: Union[str, io.TextIOWrapper, None] = None,
-        requirejs: bool = True
+        as_widget: bool = True,
+        requirejs: bool = True,
     ):
         """Save output as html file.
 
@@ -138,8 +139,10 @@ class SuiteResult:
         ----------
         file : filename or file-like object
             The file to write the HTML output to. If None writes to output.html
+        as_widget : bool, default True
+            whether to use ipywidgets or not
         requirejs: bool , default: True
-            If to save with all javascript dependencies
+            whether to include requirejs library into output HTML or not
         """
         output_id = get_random_string()
 
@@ -148,9 +151,9 @@ class SuiteResult:
         if isinstance(file, str):
             file = create_new_file_name(file)
 
-        if is_widgets_use_possible():
+        if as_widget is True:
             widget_to_html(
-                widget=SuiteResultWidgetSerializer(self).serialize(output_id=output_id),
+                widget=self.to_widget(unique_id=output_id),
                 html_out=file,
                 title=self.name,
                 requirejs=requirejs
@@ -158,7 +161,9 @@ class SuiteResult:
         else:
             html = SuiteResultHtmlSerializer(self).serialize(
                 output_id=output_id,
-                full_html=True
+                full_html=True,
+                include_requirejs=requirejs,
+                include_plotlyjs=True
             )
             if isinstance(file, str):
                 with open(file, 'w', encoding='utf-8') as f:

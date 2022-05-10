@@ -9,12 +9,11 @@
 # ----------------------------------------------------------------------------
 #
 """Test drift utils"""
-from hamcrest import assert_that, equal_to, raises, close_to, calling
+import numpy as np
+from hamcrest import assert_that, calling, close_to, equal_to, raises
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.distribution.drift import earth_movers_distance
-
-import numpy as np
 
 
 def test_emd():
