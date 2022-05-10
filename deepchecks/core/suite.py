@@ -114,7 +114,7 @@ class SuiteResult:
     def _repr_json_(self):
         return SuiteResultJsonSerializer(self).serialize()
     
-    def _repr_mimebundle_(self):
+    def _repr_mimebundle_(self, **kwargs):
         return {
             'text/html': self._repr_html_(),
             'application/json': self._repr_json_()

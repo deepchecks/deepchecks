@@ -13,7 +13,8 @@
 import io
 import traceback
 import warnings
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union
+from typing import (TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union,
+                    cast)
 
 import jsonpickle
 import jsonpickle.ext.pandas as jsonpickle_pd
@@ -36,9 +37,10 @@ from deepchecks.core.serialization.check_result.json import \
     CheckResultSerializer as CheckResultJsonSerializer
 from deepchecks.core.serialization.check_result.widget import \
     CheckResultSerializer as CheckResultWidgetSerializer
-from deepchecks.utils.ipython import (is_colab_env, is_kaggle_env, is_notebook,
-                                      is_widgets_use_possible)
-from deepchecks.utils.strings import create_new_file_name, widget_to_html
+from deepchecks.utils.ipython import is_notebook, is_widgets_use_possible
+from deepchecks.utils.strings import (create_new_file_name, get_docs_summary,
+                                      get_random_string, widget_to_html,
+                                      widget_to_html_string)
 from deepchecks.utils.wandb_utils import set_wandb_run_state
 
 from .condition import ConditionCategory, ConditionResult
@@ -55,7 +57,6 @@ from .serialization.check_result.ipython import \
     CheckResultSerializer as CheckResultIPythonSerializer
 from .serialization.check_result.json import \
     CheckResultSerializer as CheckResultJsonSerializer
-from .serialization.check_result.json import display_from_json
 from .serialization.check_result.widget import \
     CheckResultSerializer as CheckResultWidgetSerializer
 
@@ -86,7 +87,7 @@ class BaseCheckResult:
 
         Parameters
         ----------
-        json_data: Union[str, Dict]
+        json_dict: Union[str, Dict]
             Json data
 
         Returns
@@ -99,13 +100,18 @@ class BaseCheckResult:
 
         if isinstance(json_dict, str):
             json_dict = jsonpickle.loads(json_dict)
-        check_type = json_dict['type']
+        
+        check_type = cast(dict, json_dict)['type']
+        
         if check_type == 'CheckFailure':
             return CheckFailureJson(json_dict)
         elif check_type == 'CheckResult':
             return CheckResultJson(json_dict)
         else:
-            raise ValueError('Excpected json object to be one of [CheckFailure, CheckResult] but recievied: ' + type)
+            raise ValueError(
+                'Excpected json object to be one of [CheckFailure, CheckResult] '
+                f'but recievied: {check_type}'
+            )
 
     def get_header(self) -> str:
         """Return header for display. if header was defined return it, else extract name of check class."""
@@ -386,8 +392,6 @@ class CheckResult(BaseCheckResult):
         -------
         str
         """
-        # TODO: not sure if the `with_display` parameter is needed
-        # add deprecation warning if it is not needed
         return jsonpickle.dumps(
             CheckResultJsonSerializer(self).serialize(with_display=with_display),
             unpicklable=False
@@ -503,6 +507,7 @@ class CheckFailure(BaseCheckResult):
         self.header = check.name() + header_suffix
     
     def _get_metadata(self, with_doc_link: bool = False):
+        assert self.check is not None
         check_name = self.check.name()
         parameters = self.check.params(True)
         summary = get_docs_summary(self.check, with_doc_link=with_doc_link)
