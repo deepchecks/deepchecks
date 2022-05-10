@@ -27,7 +27,7 @@ from .detection_formatters import convert_bbox
 
 __all__ = ['ImageInfo', 'numpy_grayscale_to_heatmap_figure', 'ensure_image',
            'apply_heatmap_image_properties', 'draw_bboxes', 'prepare_thumbnail',
-           'crop_image', 'imagetag']
+           'crop_image', 'imagetag', 'prepare_sample_thumbnail']
 
 
 class ImageInfo:
@@ -178,7 +178,7 @@ def prepare_thumbnail(
 
     Returns
     -------
-    str : html '<img>' tag with embedded image
+    str : HTML image tag with embedded image bytes
     """
     if size is not None:
         image = ensure_image(image, copy=copy_image)
@@ -199,6 +199,103 @@ def prepare_thumbnail(
     tag = imagetag(img_bytes.read())
     img_bytes.close()
     return tag
+
+
+def prepare_sample_thumbnail(
+    image: t.Union[pilimage.Image, np.ndarray, torch.Tensor],
+    gt: t.Union[np.ndarray, torch.Tensor, None] = None,
+    dt: t.Union[np.ndarray, torch.Tensor, None] = None,
+    gt_bbox_notation: str = 'lxywh',
+    dt_bbox_notation: str = 'xywhsl',
+    gt_color: str = 'red',
+    dt_color: str = 'blue',
+    border_width: int = 1,
+    size: t.Optional[t.Tuple[int, int]] = None,
+    include_label: bool = True
+) -> str:
+    """Draw gt and dt bboxes on the image and return it as an HTML image tag.
+
+    Parameters
+    ----------
+    image : Union[PIL.Image.Image, numpy.ndarray, torch.Tensor]
+        image to use
+    gt : Union[np.ndarray, torch.Tensor, None], default None
+        ground truth
+    dt : Union[np.ndarray, torch.Tensor, None], default None
+        detected truth
+    gt_bbox_notation : str, default 'lxywh'
+        ground truth bbox notation
+    dt_bbox_notation : str, default 'xywhsl'
+        detected truth bbox notation
+    gt_color : str, default 'red'
+        ground truth bbox border color
+    dt_color : str, default 'blue'
+        detected truth bbox border color
+    border_width ; int, default 1
+        bbox border width
+    size : Optional[Tuple[int, int]], default None
+        size to which image should be rescaled
+    include_label : bool, default True
+        whether to draw class name (identifier) on the image or not
+
+    Returns
+    -------
+    str : HTML image tag with embedded image bytes
+
+    Raises
+    ------
+    ValueError :
+        - if gt and dt both are None
+        - if gt or dt length is equal to zero
+    
+    """
+    if not (gt is not None or dt is not None):
+        raise ValueError(
+            'At least one parameter, ground truth or detected truth, '
+            'must be provided'
+        )
+
+    if gt is not None:
+        if len(gt) == 0:
+            raise ValueError('ground truth cannot be empty')
+        if gt.ndim == 1:
+            gt = np.stack([
+                gt if isinstance(gt, np.ndarray) 
+                else t.cast(np.ndarray, gt.cpu().detach().numpy())
+            ])
+        image = draw_bboxes(
+            image=image,
+            bboxes=gt,
+            bbox_notation=gt_bbox_notation,
+            color=gt_color,
+            copy_image=True,
+            include_label=include_label,
+            border_width=border_width,
+        )
+    
+    if dt is not None:
+        if len(dt) == 0:
+            raise ValueError('detected truth cannot be empty')
+        if dt.ndim == 1:
+            dt = np.stack([
+                dt if isinstance(dt, np.ndarray) 
+                else t.cast(np.ndarray, dt.cpu().detach().numpy())
+            ])
+        image = draw_bboxes(
+            image=image,
+            bboxes=dt,
+            bbox_notation=dt_bbox_notation,
+            color=dt_color,
+            copy_image=False,
+            include_label=include_label,
+            border_width=border_width
+        )
+    
+    return prepare_thumbnail(
+        image=image,
+        copy_image=False,
+        size=size
+    )
 
 
 def prepare_grid(

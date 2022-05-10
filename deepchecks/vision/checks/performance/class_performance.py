@@ -9,14 +9,14 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing class performance check."""
-import textwrap
-from typing import Dict, List, TypeVar, NamedTuple, Tuple, Callable, Optional
+from typing import Dict, List, TypeVar, NamedTuple, Tuple, Callable, Optional, cast
 
 import torch
 import numpy as np
 import pandas as pd
 import plotly.express as px
 from ignite.metrics import Metric
+from sklearn.preprocessing import LabelBinarizer
 
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
@@ -25,9 +25,7 @@ from deepchecks.utils import plot
 from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.task_type import TaskType
-from deepchecks.vision.utils.image_functions import prepare_thumbnail, draw_bboxes, prepare_grid
-from deepchecks.utils.itertools import flatten_matrix
-from deepchecks.vision.metrics_utils.iou_utils import compute_pairwise_ious as pairwise_ious
+from deepchecks.vision.utils.image_functions import prepare_grid, prepare_sample_thumbnail, prepare_thumbnail, draw_bboxes
 from deepchecks.vision.metrics_utils.iou_utils import jaccard_iou
 from deepchecks.vision.metrics_utils.metrics import (
     filter_classes_for_display,
@@ -66,17 +64,25 @@ class ClassPerformance(TrainTestCheck):
         are ignored.
     """
 
-    def __init__(self,
-                 alternative_metrics: Dict[str, Metric] = None,
-                 n_to_show: int = 20,
-                 show_only: str = 'largest',
-                 metric_to_show_by: str = None,
-                 class_list_to_show: List[int] = None,
-                 **kwargs):
+    def __init__(
+        self,
+        alternative_metrics: Optional[Dict[str, Metric]] = None,
+        n_to_show: int = 20,
+        show_only: str = 'largest',
+        metric_to_show_by: Optional[str] = None,
+        class_list_to_show: Optional[List[int]] = None,
+        n_of_images: int = 5,
+        thumbnail_size: Tuple[int, int] = (400, 400),
+        bbox_border_width: int = 2,
+        **kwargs
+    ):
         super().__init__(**kwargs)
         self.alternative_metrics = alternative_metrics
         self.n_to_show = n_to_show
         self.class_list_to_show = class_list_to_show
+        self.n_of_images = n_of_images
+        self.thumbnail_size = thumbnail_size
+        self.bbox_border_width = bbox_border_width
 
         if self.class_list_to_show is None:
             if show_only not in ['largest', 'smallest', 'random', 'best', 'worst']:
@@ -90,18 +96,24 @@ class ClassPerformance(TrainTestCheck):
 
         self.metric_to_show_by = metric_to_show_by
         self._data_metrics = {}
-        # self._successfully_evaluated_images = None
-        # self._unsuccessfully_evaluated_images = None
-        self._images: List[BboxesMatchResult] = []
+        # are used in case of classification task type
+        # type: Optional[List[Tuple[image, y-true, y-predicted]]]
+        self._successfully_evaluated_images: Optional[List[Tuple[np.ndarray, int, int]]] = None
+        self._unsuccessfully_evaluated_images: Optional[List[Tuple[np.ndarray, int, int]]] = None
+        # is used in case of detection task type
+        self._images: Optional[List[BboxesMatchResult]] = None
 
     def initialize_run(self, context: Context):
         """Initialize run by creating the _state member with metrics for train and test."""
         self._data_metrics = {}
         self._data_metrics[DatasetKind.TRAIN] = get_scorers_list(context.train, self.alternative_metrics)
         self._data_metrics[DatasetKind.TEST] = get_scorers_list(context.train, self.alternative_metrics)
-        # self._successfully_evaluated_images = []
-        # self._unsuccessfully_evaluated_images = []
-        self._images = []
+
+        if context.train.task_type is TaskType.CLASSIFICATION:
+            self._successfully_evaluated_images = []
+            self._unsuccessfully_evaluated_images = []
+        elif context.train.task_type is TaskType.OBJECT_DETECTION:
+            self._images = []
 
         if not self.metric_to_show_by:
             self.metric_to_show_by = list(self._data_metrics[DatasetKind.TRAIN].keys())[0]
@@ -119,202 +131,6 @@ class ClassPerformance(TrainTestCheck):
             batch=batch,
             dataset_kind=dataset_kind
         )
-
-    def _collect_output_images(
-        self,
-        context: Context,
-        batch: Batch,
-        dataset_kind: DatasetKind
-    ):
-        dataset = context.get_data_by_kind(dataset_kind)
-        task_type = dataset.task_type
-
-        if task_type is TaskType.CLASSIFICATION:
-            raise NotImplementedError()
-        elif task_type is TaskType.OBJECT_DETECTION:
-            self._collect_output_images_for_detection_task(batch)
-        else:
-            # Do nothing in this case
-            pass
-
-    def _collect_output_images_for_detection_task(
-        self,
-        batch: Batch,
-    ):
-        assert self._images is not None
-
-        n_of_images = 5  #TODO:
-
-        def are_enough_images(stat: List[BboxesMatchResult]) -> bool:
-            return len([
-                it for it in stat
-                if (
-                    len(it.matches) != 0
-                    and len(it.no_overlapping_dt) != 0
-                    and len(it.no_overlapping_gt) != 0
-                )
-            ]) >= n_of_images
-
-        if are_enough_images(self._images):
-            return
-
-        for img, gt, dt in zip(batch.images, batch.labels, batch.predictions):
-            if not are_enough_images(self._images):
-                self._images.append(match_bboxes(img, gt, dt))
-            else:
-                return
-
-    def _prepare_images_thumbnails_for_detection_task(
-        self,
-        context: Context
-    ):
-        assert self._images is not None
-
-        n_of_images = 5  #TODO:
-
-        def prepare_image_thumbnail(
-            img: np.ndarray,
-            gt: Optional[np.ndarray] = None,
-            dt: Optional[np.ndarray] = None,
-            gt_color: str = 'red',
-            dt_color: str = 'blue'
-        ) -> str:
-            assert not (gt is None and dt is None)
-            image = img
-
-            if gt is not None:
-                image = draw_bboxes(
-                    image=image,
-                    bboxes=np.stack([gt]),
-                    bbox_notation='lxywh',
-                    color=gt_color,
-                    copy_image=True,
-                    include_label=False,
-                    border_width=2
-                )
-            if dt is not None:
-                image = draw_bboxes(
-                    image=image,
-                    bboxes=np.stack([dt]),
-                    bbox_notation='xywhsl',
-                    color=dt_color,
-                    copy_image=False,
-                    include_label=False,
-                    border_width=2
-                )
-            return prepare_thumbnail(
-                image=image,
-                copy_image=False,
-                size=(400, 400)
-            )
-
-        def prepare_evalutation_grid(
-            img: np.ndarray,
-            bbox_pairs: List[BBoxPair],
-            class_name: Callable[[int], str]
-        ) -> str:
-            images_tags = []
-            info = []
-            for gt, dt, ious in bbox_pairs:
-                dt_class_id = dt[-1]
-                gt_class_id = gt[0]
-                images_tags.append(prepare_image_thumbnail(
-                    img, gt=gt, dt=dt
-                ))
-                info.append(prepare_grid(
-                    n_of_columns=3,
-                    n_of_rows=2,
-                    style={
-                        'align-self': 'start',
-                        'padding': '0',
-                        'padding-top': '2rem'
-                    },
-                    content=[
-                        '<span><b>ground truth (red)</b></span>',
-                        '<span><b>detected truth (blue)</b></span>',
-                        '<span><b>ious</b></span>',
-                        f'<p>{class_name(gt_class_id)}</p>',
-                        f'<p>{class_name(dt_class_id)}</p>',
-                        f'<p>{format_number(ious, 5)}</p>'
-                    ],
-                ))
-            return prepare_grid(
-                style={
-                    'grid-template-rows': 'auto auto',
-                    'grid-template-columns': f'repeat({len(images_tags)}, 1fr)',
-                },
-                content=[*images_tags, *info]
-            )
-        
-        def prepare_no_overlapping_grid(
-            img: np.ndarray,
-            bboxes: np.ndarray, 
-            class_name: Callable[[int], str],
-            is_ground_truth: bool = True,
-        ) -> str:
-            images_tags = []
-            info = []
-            for bbox in bboxes:
-                if is_ground_truth:
-                    title_tag = '<span><b>ground truth</b></span>'
-                    class_name_tag = f'<span>{class_name(bbox[0])}</span>'
-                    thumbnail_args = {'img': img, 'gt': bbox}
-                else:
-                    title_tag = '<span><b>detected truth</b></span>'
-                    class_name_tag = f'<span>{class_name(bbox[-1])}</span>'
-                    thumbnail_args = {'img': img, 'dt': bbox}
-                images_tags.append(prepare_image_thumbnail(
-                    **thumbnail_args
-                ))
-                info.append(prepare_grid(
-                    n_of_columns=2,
-                    n_of_rows=1,
-                    style={'align-self': 'start'},
-                    content=[title_tag, class_name_tag,],
-                ))
-            return prepare_grid(
-                style={
-                    'grid-template-rows': 'auto auto',
-                    'grid-template-columns': f'repeat({len(images_tags)}, 1fr)',
-                },
-                content=[*images_tags, *info]
-            )
-
-        content = []
-
-        for index, stat in enumerate(self._images[:n_of_images], start=1):
-            content.append(f'<h5><b>Image #{index}</b></h5>')
-            if len(stat.matches) != 0:
-                content.append(f'<h5><b>Correctly detected objects</b></h5>')
-                content.append(prepare_evalutation_grid(
-                    stat.image, 
-                    stat.matches, 
-                    context.train.label_id_to_name
-                ))
-            else: 
-                content.append(f'<h5><b>Correctly detected objects</b> - nothing to show</h5>')
-            
-            if len(stat.no_overlapping_gt) != 0:
-                content.append(f'<h5><b>No overlapping ground truth</b></h5>')
-                content.append(prepare_no_overlapping_grid(
-                    stat.image, 
-                    stat.no_overlapping_gt, 
-                    context.train.label_id_to_name
-                ))
-            else:
-                content.append(f'<h5><b>No overlapping ground truth</b> - nothing to show</h5>')
-
-            if len(stat.no_overlapping_dt) != 0:
-                content.append(f'<h5><b>No overlapping detected truth</b></h5>')
-                content.append(prepare_no_overlapping_grid(
-                    stat.image,
-                    stat.no_overlapping_dt, 
-                    context.train.label_id_to_name
-                ))
-            else:
-                content.append(f'<h5><b>No overlapping detected truth</b> - nothing to show</h5>')
-
-        return content
 
     def compute(self, context: Context) -> CheckResult:
         """Compute the metric result using the ignite metrics compute method and create display."""
@@ -339,6 +155,7 @@ class ClassPerformance(TrainTestCheck):
 
         if self.class_list_to_show is not None:
             results_df = results_df.loc[results_df['Class'].isin(self.class_list_to_show)]
+        
         elif self.n_to_show is not None:
             classes_to_show = filter_classes_for_display(
                 results_df,
@@ -372,9 +189,9 @@ class ClassPerformance(TrainTestCheck):
         task_type = context.train.task_type
 
         if task_type is TaskType.CLASSIFICATION:
-            raise NotImplementedError()
+            display = [fig, self._prepare_images_thumbnails_for_classification_task()]
         elif task_type is TaskType.OBJECT_DETECTION:
-            display = [fig, *self._prepare_images_thumbnails_for_detection_task(context)]
+            display = [fig, self._prepare_images_thumbnails_for_detection_task(context)]
         else:
             display = [fig]
 
@@ -465,8 +282,8 @@ class ClassPerformance(TrainTestCheck):
 
     def add_condition_class_performance_imbalance_ratio_not_greater_than(
         self: PR,
-        threshold: float = 0.3,
-        score: str = None
+        threshold: float  = 0.3,
+        score: Optional[str] = None
     ) -> PR:
         """Add condition.
 
@@ -533,6 +350,298 @@ class ClassPerformance(TrainTestCheck):
             ),
             condition_func=condition
         )
+    
+    def _collect_output_images(
+        self,
+        context: Context,
+        batch: Batch,
+        dataset_kind: DatasetKind
+    ):
+        dataset = context.get_data_by_kind(dataset_kind)
+        task_type = dataset.task_type
+
+        if task_type is TaskType.CLASSIFICATION:
+            self._collect_output_images_for_classification_task(batch)
+        elif task_type is TaskType.OBJECT_DETECTION:
+            self._collect_output_images_for_detection_task(batch)
+        else:
+            # Do nothing in this case
+            pass
+    
+    def _collect_output_images_for_classification_task(
+        self,
+        batch: Batch,
+    ):
+        assert (
+            self._successfully_evaluated_images is not None
+            and self._unsuccessfully_evaluated_images is not None
+        )
+        
+        detected_classes = (
+            LabelBinarizer()
+            .fit(batch.labels)
+            .inverse_transform(batch.predictions)
+        )
+
+        for img, y_true, y_pred in zip(batch.images, batch.labels, detected_classes):
+            sample = (
+                img, 
+                int(y_true.item()), 
+                int(y_pred)  # type: ignore
+            )
+            if y_true == y_pred and len(self._successfully_evaluated_images) < self.n_of_images:
+                self._successfully_evaluated_images.append(sample)
+            elif y_true != y_pred and len(self._unsuccessfully_evaluated_images) < self.n_of_images:
+                self._unsuccessfully_evaluated_images.append(sample)
+    
+    def _prepare_images_thumbnails_for_classification_task(self) -> str:
+        assert (
+            self._successfully_evaluated_images is not None
+            and self._unsuccessfully_evaluated_images is not None
+        )
+
+        description_grid_style = {
+            'align-self': 'start',
+            'padding': '0',
+            'padding-top': '2rem',
+        }
+
+        if len(self._successfully_evaluated_images) == 0:
+            successful_evaluation = '<p>Nothing to show</p>'
+        else:
+            successful_evaluation_thumbnails = []
+            successful_evaluation_description = []
+            
+            for img, y_true, y_pred in self._successfully_evaluated_images:
+                successful_evaluation_thumbnails.append(prepare_thumbnail(
+                    image=img, size=self.thumbnail_size
+                ))
+                successful_evaluation_description.append(prepare_grid(
+                    n_of_rows=1, 
+                    n_of_columns=2,
+                    style=description_grid_style,
+                    content=['<span><b>y-true</b></span>', f'<span>{y_true}</span>']
+                ))
+            
+            successful_evaluation = prepare_grid(
+                style={
+                    'grid-template-rows': 'auto auto',
+                    'grid-template-columns': f'repeat({len(successful_evaluation_thumbnails)}, 1fr)',
+                },
+                content=[*successful_evaluation_thumbnails, *successful_evaluation_description]
+            )
+        
+        if len(self._unsuccessfully_evaluated_images) == 0:
+            unsuccessful_evaluation = '<p>Nothing to show</p>'
+        else:
+            unsuccessful_evaluation_thumbnails = []
+            unsuccessful_evaluation_description = []
+            
+            for img, y_true, y_pred in self._unsuccessfully_evaluated_images:
+                unsuccessful_evaluation_thumbnails.append(prepare_thumbnail(
+                    image=img, 
+                    size=self.thumbnail_size
+                ))
+                unsuccessful_evaluation_description.append(prepare_grid(
+                    n_of_rows=2,
+                    n_of_columns=2,
+                    style=description_grid_style,
+                    content=[
+                        '<span><b>y-true</b></span>', 
+                        '<span><b>y-pred</b></span>', 
+                        f'<span>{y_true}</span>', 
+                        f'<span>{y_pred}</span>'
+                    ]
+                ))
+            
+            unsuccessful_evaluation = prepare_grid(
+                style={
+                    'grid-template-rows': 'auto auto',
+                    'grid-template-columns': f'repeat({len(unsuccessful_evaluation_thumbnails)}, 1fr)',
+                },
+                content=[*unsuccessful_evaluation_thumbnails, *unsuccessful_evaluation_description]
+            )
+
+        content_template = (
+            '<h5><b>Correct model predictions</b></h5>'
+            '<div style="padding-left: 1rem;">{successful_evaluation}</div>'
+            '<h5><b>Incorrect model predictions</b></h5>'
+            '<div style="padding-left: 1rem;">{unsuccessful_evaluation}</div>'
+        )
+        return content_template.format(
+            successful_evaluation=successful_evaluation,
+            unsuccessful_evaluation=unsuccessful_evaluation
+        )
+        
+    def _collect_output_images_for_detection_task(
+        self,
+        batch: Batch,
+    ):
+        assert self._images is not None
+
+        def are_enough_images(stat: List[BboxesMatchResult]) -> bool:
+            return len([
+                it for it in stat
+                if (
+                    len(it.matches) != 0
+                    and len(it.no_overlapping_dt) != 0
+                    and len(it.no_overlapping_gt) != 0
+                )
+            ]) >= self.n_of_images
+
+        if are_enough_images(self._images):
+            return
+
+        for img, gt, dt in zip(batch.images, batch.labels, batch.predictions):
+            if not are_enough_images(self._images):
+                self._images.append(match_bboxes(img, gt, dt))
+            else:
+                return
+    
+    def _prepare_images_thumbnails_for_detection_task(
+        self,
+        context: Context
+    ):
+        assert self._images is not None
+
+        content = []
+        class_name = context.train.label_id_to_name
+
+        section_template = (
+            '<h5><b>{title}</b></h5>'
+            '<div style="padding-left: 1rem;">{content}</div>'
+        )
+
+        for index, stat in enumerate(self._images[:self.n_of_images], start=1):
+            content.append(''.join((
+                f'<h5><b>Image #{index}</b></h5>',
+                # ==
+                section_template.format(
+                    title='<h5><b>Correctly detected objects</b></h5>',
+                    content=(
+                        self._prepare_grid_of_detected_objects(
+                            stat.image, 
+                            stat.matches, 
+                            class_name)
+                        if len(stat.matches) != 0
+                        else '<p>nothing to show</p>')),
+                # ==
+                section_template.format(
+                    title='<h5><b>No overlapping ground truth</b></h5>',
+                    content=(
+                        self._prepare_grid_of_no_overlapping_objects(
+                            img=stat.image, 
+                            bboxes=stat.no_overlapping_gt, 
+                            class_name=class_name)
+                        if len(stat.no_overlapping_gt) != 0
+                        else '<p>nothing to show</p>')),
+                # ==
+                section_template.format(
+                    title='<h5><b>No overlapping detected truth</b></h5>',
+                    content=(
+                        self._prepare_grid_of_no_overlapping_objects(
+                            img=stat.image,
+                            bboxes=stat.no_overlapping_dt,
+                            class_name=class_name)
+                        if len(stat.no_overlapping_dt) != 0
+                        else '<p>nothing to show</p>'))
+            )))
+
+        return '<hr style="margin-bottom: 1rem; border: 1px dashed #999;">'.join(content)
+
+    def _prepare_grid_of_detected_objects(
+        self,
+        img: np.ndarray,
+        bbox_pairs: List['BBoxPair'],
+        class_name: Callable[[int], str],
+    ) -> str:
+        images_tags = []
+        info = []
+        
+        for gt, dt, ious in bbox_pairs:
+            dt_class_id = dt[-1]
+            gt_class_id = gt[0]
+            images_tags.append(prepare_sample_thumbnail(
+                image=img, 
+                gt=gt, 
+                dt=dt, 
+                border_width=self.bbox_border_width, 
+                size=self.thumbnail_size,
+                include_label=False
+            ))
+            info.append(prepare_grid(
+                n_of_columns=3,
+                n_of_rows=2,
+                style={
+                    'align-self': 'start',
+                    'padding': '0',
+                    'padding-top': '2rem'
+                },
+                content=[
+                    '<span><b>ground truth (red)</b></span>',
+                    '<span><b>detected truth (blue)</b></span>',
+                    '<span><b>ious</b></span>',
+                    f'<p>{class_name(gt_class_id)}</p>',
+                    f'<p>{class_name(dt_class_id)}</p>',
+                    f'<p>{format_number(ious, 5)}</p>'
+                ],
+            ))
+        
+        return prepare_grid(
+            style={
+                'grid-template-rows': 'auto auto',
+                'grid-template-columns': f'repeat({len(images_tags)}, 1fr)',
+            },
+            content=[*images_tags, *info]
+        )
+    
+    def _prepare_grid_of_no_overlapping_objects(
+        self,
+        img: np.ndarray,
+        bboxes: np.ndarray, 
+        class_name: Callable[[int], str],
+        is_ground_truth: bool = True,
+    ) -> str:
+        images_tags = []
+        info = []
+
+        thumbnail_kwargs = {
+            'image': img, 
+            'border_width': self.bbox_border_width, 
+            'size': self.thumbnail_size,
+            'include_label': False
+        }
+        
+        for bbox in bboxes:
+            
+            if is_ground_truth:
+                title_tag = '<span><b>ground truth</b></span>'
+                class_name_tag = f'<span>{class_name(bbox[0])}</span>'
+                thumbnail_kwargs['gt'] = bbox
+            else:
+                title_tag = '<span><b>detected truth</b></span>'
+                class_name_tag = f'<span>{class_name(bbox[-1])}</span>'
+                thumbnail_kwargs['dt'] = bbox
+                
+            images_tags.append(prepare_sample_thumbnail(
+                **thumbnail_kwargs
+            ))
+            info.append(prepare_grid(
+                n_of_columns=2,
+                n_of_rows=1,
+                style={'align-self': 'start'},
+                content=[title_tag, class_name_tag,],
+            ))
+        
+        return prepare_grid(
+            style={
+                'grid-template-rows': 'auto auto',
+                'grid-template-columns': f'repeat({len(images_tags)}, 1fr)',
+            },
+            content=[*images_tags, *info]
+        )
+
+# TODO: functionality below could be resuded in confusion matrix
 
 
 class BBoxPair(NamedTuple):
