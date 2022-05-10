@@ -10,8 +10,9 @@
 #
 """Module containing the integrations of the deepchecks.tabular package with the h2o autoML package."""
 
-import pandas as pd
 import numpy as np
+import pandas as pd
+
 try:
     import h2o
 except ImportError as e:
@@ -22,12 +23,15 @@ except ImportError as e:
 
 
 class H2OWrapper:
+    """Deepchecks Wrapper for the h2o autoML package."""
 
     def __init__(self, h2o_model):
         self.model = h2o_model
 
     def predict(self, df: pd.DataFrame) -> np.array:
+        """Predict the class labels for the given data."""
         return self.model.predict(h2o.H2OFrame(df)).as_data_frame().values[:, 0]
 
     def predict_proba(self, df: pd.DataFrame) -> np.array:
+        """Predict the class probabilities for the given data."""
         return self.model.predict(h2o.H2OFrame(df)).as_data_frame().values[:, 1:].astype(float)
