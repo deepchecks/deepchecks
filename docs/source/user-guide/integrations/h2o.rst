@@ -9,7 +9,7 @@ we’ll be showing how you can effortlessly test your H2O model with
 deepchecks in the exact same way you can test any sklearn model.
 
 This example can be run using
-`collab <https://colab.research.google.com/github/deepchecks/deepchecks/tree/examples/integrations/h2o/deepchecks_h2o_tutorial.ipynb>`__.
+`colab <https://colab.research.google.com/github/deepchecks/deepchecks/tree/examples/integrations/h2o/deepchecks_h2o_tutorial.ipynb>`__.
 
 Building an H2O Model
 ---------------------
@@ -75,32 +75,18 @@ before we can run deepchecks on our H2O model, we have one step
 remaining - bridging between the API of the H2O model and the
 scikit-learn API that deepchecks expects.
 
-We will write a wrapper to our H2O model, that will implement the required API for deepchecks according the the
-:doc: `</user-guide/tabular/supported_models>` guide. This wrapper is also available for import under
-`deepchecks.tabular.integrations.h2o` but is brought here for completes.
+We have created a simple wrapper for our H2O model, that implements the required API for deepchecks according the the
+:doc: `</user-guide/tabular/supported_models>` guide. This wrapper is available from
+`deepchecks.tabular.integrations.h2o`.
 
 Generally the wrapper model will contain 2 functions in
 case of a classification problem: the ``predict`` and the ``predict_proba`` functions that will be called by
-deepchecks. In addition it is also possible to specify the feature importances of the model. Read more about
+deepchecks. In addition, it is also possible to specify the feature importances of the model. Read more about
 feature importance handling in the :doc: `</user-guide/tabular/feature_importance>` guide.
 
 .. code:: ipython3
 
-    import pandas as pd
-    import numpy as np
-    class H2OWrapper:
-    
-        def __init__(self, h2o_model):
-            self.model = h2o_model
-            
-        def predict(self, df: pd.DataFrame) -> np.array:
-            return self.model.predict(h2o.H2OFrame(df)).as_data_frame().values[:, 0]
-    
-        def predict_proba(self, df: pd.DataFrame) -> np.array:
-            return self.model.predict(h2o.H2OFrame(df)).as_data_frame().values[:, 1:].astype(float)
-
-.. code:: ipython3
-
+    from deepchecks.tabular.integrations.h2o import H2OWrapper
     h2o_dc_gbm = H2OWrapper(gbm)
 
 Now we can run deepchecks! We’ll start by defining the deepchecks
