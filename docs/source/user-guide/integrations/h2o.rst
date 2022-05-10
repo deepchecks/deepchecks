@@ -1,9 +1,10 @@
-Using deepchecks with an H2O Model
+============================
+H2O
 ==================================
 
 `H2O <https://docs.h2o.ai/h2o/latest-stable/h2o-docs/automl.html>`__ is
-a wildly used AutoML framework, written in Java but with multiple fully
-implemented api libraries, including one in python. In this example,
+a widely used AutoML framework, written in Java but with multiple fully
+implemented API libraries, including one in python. In this example,
 we’ll be showing how you can effortlessly test your H2O model with
 deepchecks in the exact same way you can test any sklearn model.
 
@@ -75,8 +76,8 @@ Running deepchecks on H2O
 =========================
 
 before we can run deepchecks on our H2O model, we have one step
-remaining - bridging between the api of the H2O model and the
-scikit-learn api that deepchecks expects.
+remaining - bridging between the API of the H2O model and the
+scikit-learn API that deepchecks expects.
 
 We will write a wrapper to our H2O model, that will implement the required API for deepchecks according the the
 :doc: `</user-guide/tabular/supported_models>` guide. Generally the wrapper model will contain 2 functions in
@@ -129,7 +130,7 @@ Comparing model performance
 
 We can see that from an overall performance standpoint (considering the
 f1 metric), the H2O model achieves superior performance compared to the
-sklearn model, especially in the less abundant class.
+sklearn model, especially in the smaller class.
 
 Deeper model performance evaluation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -168,4 +169,4 @@ features.
 
 We see that the scikit-learn model, apart from being worse overall, is
 specifically worse (a drop in accuracy of 0.6) at predicting the income
-of Females with a relationship status of “Others”.
+of females with a relationship status of “Others”.
