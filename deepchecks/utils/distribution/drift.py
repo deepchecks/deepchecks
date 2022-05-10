@@ -14,7 +14,6 @@ from typing import Callable, Hashable, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
-import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from scipy.stats import wasserstein_distance
 
@@ -117,10 +116,10 @@ def calc_drift_and_plot(train_column: pd.Series,
                         value_name: Hashable,
                         column_type: str,
                         plot_title: Optional[str] = None,
-                        margin_quantile_filter: float = 0,
+                        margin_quantile_filter: float = 0.025,
                         max_num_categories_for_drift: int = 10,
                         max_num_categories_for_display: int = 10,
-                        show_categories_by: str = 'train_largest',
+                        show_categories_by: str = 'largest_difference',
                         min_samples: int = 10) -> Tuple[float, str, Callable]:
     """
     Calculate drift score per column.
@@ -137,7 +136,7 @@ def calc_drift_and_plot(train_column: pd.Series,
         type of column (either "numerical" or "categorical")
     plot_title: str or None
         if None use value_name as title otherwise use this.
-    margin_quantile_filter: float, default: 0
+    margin_quantile_filter: float, default: 0.025
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
         disproportionally. This filter is applied to both distributions, in both margins.
@@ -145,7 +144,7 @@ def calc_drift_and_plot(train_column: pd.Series,
         Max number of allowed categories. If there are more, they are binned into an "Other" category.
     max_num_categories_for_display: int, default: 10
         Max number of categories to show in plot.
-    show_categories_by: str, default: 'train_largest'
+    show_categories_by: str, default: 'largest_difference'
         Specify which categories to show for categorical features' graphs, as the number of shown categories is limited
         by max_num_categories_for_display. Possible values:
         - 'train_largest': Show the largest train categories.
@@ -206,8 +205,12 @@ def calc_drift_and_plot(train_column: pd.Series,
                             row_heights=[0.1, 0.8, 0.1],
                             subplot_titles=[f'Drift Score ({scorer_name})', 'Distribution Plot'])
 
-    fig.add_traces(bar_traces, rows=[1] * len(bar_traces), cols=[1] * len(bar_traces))
-    fig.add_traces(dist_traces, rows=[2] * len(dist_traces), cols=[1] * len(dist_traces))
+    fig.add_traces(bar_traces, rows=1, cols=1)
+    fig.update_xaxes(bar_x_axis, row=1, col=1)
+    fig.update_yaxes(bar_y_axis, row=1, col=1)
+    fig.add_traces(dist_traces, rows=2, cols=1)
+    fig.update_xaxes(dist_x_axis, row=2, col=1)
+    fig.update_yaxes(dist_y_axis, row=2, col=1)
 
     if add_footnote:
         param_to_print_dict = {
@@ -226,24 +229,14 @@ def calc_drift_and_plot(train_column: pd.Series,
                  f'{format_percent(test_data_percents)} of test data.'
         )
 
-    if not plot_title:
-        plot_title = value_name
-
-    shared_layout = go.Layout(
-        xaxis=bar_x_axis,
-        yaxis=bar_y_axis,
-        xaxis2=dist_x_axis,
-        yaxis2=dist_y_axis,
+    fig.update_layout(
         legend=dict(
-            title='Dataset',
+            title='Legend',
             yanchor='top',
             y=0.6),
         width=700,
         height=400,
-        title=dict(text=plot_title, x=0.5, xanchor='center'),
-        bargroupgap=0
-    )
-
-    fig.update_layout(shared_layout)
+        title=dict(text=plot_title or value_name, x=0.5, xanchor='center'),
+        bargroupgap=0)
 
     return score, scorer_name, fig

@@ -31,7 +31,7 @@ MPR = TypeVar('MPR', bound='MeanAveragePrecisionReport')
 
 
 class MeanAveragePrecisionReport(SingleDatasetCheck):
-    """Summarize mean average precision metrics on a dataset and model per IoU and area range.
+    """Summarize mean average precision metrics on a dataset and model per IoU and bounding box area.
 
     Parameters
     ----------
@@ -72,7 +72,7 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
 
             rows.append(area_scores)
 
-        results = pd.DataFrame(columns=['Area size', 'mAP@0.5..0.95 (%)', 'AP@.50 (%)', 'AP@.75 (%)'])
+        results = pd.DataFrame(columns=['Area size', 'mAP@[.50::.95] (avg.%)', 'mAP@.50 (%)', 'mAP@.75 (%)'])
         for i in range(len(rows)):
             results.loc[i] = rows[i]
         results = results.set_index('Area size')
@@ -86,17 +86,17 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
 
         data = {
             'IoU threshold': self._ap_metric.iou_thresholds,
-            'AP (%)': mean_res
+            'mAP (%)': mean_res
         }
         df = pd.DataFrame.from_dict(data)
 
-        fig = px.line(df, x='IoU threshold', y='AP (%)',
+        fig = px.line(df, x='IoU threshold', y='mAP (%)',
                       title='Mean Average Precision over increasing IoU thresholds')
 
         return CheckResult(value=results, display=[results, fig])
 
-    def add_condition_test_average_precision_not_less_than(self: MPR, min_score: float) -> MPR:
-        """Add condition - AP scores in different area thresholds is not less than given score.
+    def add_condition_mean_average_precision_not_less_than(self: MPR, min_score: float) -> MPR:
+        """Add condition - mAP scores for in different area thresholds is not less than given score.
 
         Parameters
         ----------
@@ -116,8 +116,8 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
 
         return self.add_condition(f'Scores are not less than {min_score}', condition)
 
-    def add_condition_test_mean_average_precision_not_less_than(self: MPR, min_score: float = 0.3) -> MPR:
-        """Add condition - mAP score in all areas is not less than given score.
+    def add_condition_average_mean_average_precision_not_less_than(self: MPR, min_score: float = 0.3) -> MPR:
+        """Add condition - average mAP for IoU values between 0.5 to 0.9 in all areas is not less than given score.
 
         Parameters
         ----------
@@ -126,7 +126,7 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
         """
         def condition(df: pd.DataFrame):
             df = df.reset_index()
-            value = df.loc[df['Area size'] == 'All', :]['mAP@0.5..0.95 (%)'][0]
+            value = df.loc[df['Area size'] == 'All', :]['mAP@[.50::.95] (avg.%)'][0]
             if value < min_score:
                 details = f'mAP score is: {format_number(value)}'
                 return ConditionResult(ConditionCategory.FAIL, details)

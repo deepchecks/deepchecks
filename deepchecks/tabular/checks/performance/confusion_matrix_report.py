@@ -11,17 +11,29 @@
 """The confusion_matrix_report check module."""
 import numpy as np
 import pandas as pd
-import plotly.express as px
-import sklearn
+from sklearn import metrics
 
 from deepchecks.core import CheckResult
 from deepchecks.tabular import Context, SingleDatasetCheck
+from deepchecks.utils.plot import create_confusion_matrix_figure
 
 __all__ = ['ConfusionMatrixReport']
 
 
 class ConfusionMatrixReport(SingleDatasetCheck):
-    """Calculate the confusion matrix of the model on the given dataset."""
+    """Calculate the confusion matrix of the model on the given dataset.
+
+    Parameters
+    ----------
+    normalized (bool, default True):
+        boolean that determines whether to normalize the true values of the matrix.
+    """
+
+    def __init__(self,
+                 normalized: bool = True,
+                 **kwargs):
+        super().__init__(**kwargs)
+        self.normalized = normalized
 
     def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
         """Run check.
@@ -48,12 +60,9 @@ class ConfusionMatrixReport(SingleDatasetCheck):
 
         y_pred = np.array(model.predict(ds_x)).reshape(len(ds_y), )
         total_classes = sorted(list(set(pd.concat([ds_y, pd.Series(y_pred)]).to_list())))
-        confusion_matrix = sklearn.metrics.confusion_matrix(ds_y, y_pred)
+        confusion_matrix = metrics.confusion_matrix(ds_y, y_pred)
 
-        # Figure
-        fig = px.imshow(confusion_matrix, x=total_classes, y=total_classes, text_auto=True)
-        fig.update_layout(width=600, height=600)
-        fig.update_xaxes(title='Predicted Value', type='category')
-        fig.update_yaxes(title='True value', type='category')
+        fig = create_confusion_matrix_figure(confusion_matrix, total_classes,
+                                             total_classes, self.normalized)
 
         return CheckResult(confusion_matrix, display=fig)

@@ -22,7 +22,8 @@ from deepchecks.vision.checks import (ClassPerformance, ConfusionMatrixReport,
                                       LabelPropertyOutliers,
                                       MeanAveragePrecisionReport,
                                       MeanAverageRecallReport,
-                                      ModelErrorAnalysis, SimilarImageLeakage,
+                                      ModelErrorAnalysis, NewLabels,
+                                      SimilarImageLeakage,
                                       SimpleFeatureContribution,
                                       SimpleModelComparison,
                                       TrainTestLabelDrift,
@@ -42,7 +43,8 @@ def train_test_validation(**kwargs) -> Suite:
         TrainTestPredictionDrift(**kwargs).add_condition_drift_score_not_greater_than(),
         ImagePropertyDrift(**kwargs).add_condition_drift_score_not_greater_than(),
         ImageDatasetDrift(**kwargs),
-        SimpleFeatureContribution(**kwargs).add_condition_feature_pps_difference_not_greater_than()
+        SimpleFeatureContribution(**kwargs).add_condition_feature_pps_difference_not_greater_than(),
+        NewLabels(**kwargs).add_condition_new_label_ratio_not_greater_than()
     )
 
 
@@ -51,7 +53,7 @@ def model_evaluation(**kwargs) -> Suite:
     return Suite(
         'Model Evaluation Suite',
         ClassPerformance(**kwargs).add_condition_train_test_relative_degradation_not_greater_than(),
-        MeanAveragePrecisionReport(**kwargs).add_condition_test_mean_average_precision_not_less_than(),
+        MeanAveragePrecisionReport(**kwargs).add_condition_average_mean_average_precision_not_less_than(),
         MeanAverageRecallReport(**kwargs),
         SimpleModelComparison(**kwargs).add_condition_gain_not_less_than(),
         ConfusionMatrixReport(**kwargs),

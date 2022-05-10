@@ -126,7 +126,7 @@ def feature_distribution_traces(train_column,
                                 column_name,
                                 is_categorical: bool = False,
                                 max_num_categories: int = 10,
-                                show_categories_by: str = 'train_largest',
+                                show_categories_by: str = 'largest_difference',
                                 quantile_cut: float = 0.02) -> Tuple[List[go.Trace], Dict, Dict]:
     """Create traces for comparison between train and test column.
 
@@ -142,7 +142,7 @@ def feature_distribution_traces(train_column,
         State if column is categorical.
     max_num_categories : int , default: 10
         Maximum number of categories to show in plot (default: 10).
-    show_categories_by: str, default: 'train_largest'
+    show_categories_by: str, default: 'largest_difference'
         Specify which categories to show for categorical features' graphs, as the number of shown categories is limited
         by max_num_categories_for_display. Possible values:
         - 'train_largest': Show the largest train categories.
@@ -190,10 +190,16 @@ def feature_distribution_traces(train_column,
         )
         # Heuristically take points on x-axis to show on the plot
         # The intuition is the graph will look "smooth" wherever we will zoom it
+        # Also takes mean and median values in order to plot it later accurately
+        mean_train_column = np.mean(train_column)
+        mean_test_column = np.mean(test_column)
+        median_train_column = np.median(train_column)
+        median_test_column = np.median(test_column)
         xs = sorted(np.concatenate((
             np.linspace(x_range[0], x_range[1], 50),
             np.quantile(train_column, q=np.arange(0.02, 1, 0.02)),
-            np.quantile(test_column, q=np.arange(0.02, 1, 0.02))
+            np.quantile(test_column, q=np.arange(0.02, 1, 0.02)),
+            [mean_train_column, mean_test_column, median_train_column, median_test_column]
         )))
 
         train_density = get_density(train_column, xs)
@@ -212,8 +218,8 @@ def feature_distribution_traces(train_column,
                 name='Train Dataset',
             ))
         else:
-            traces.append(go.Scatter(x=xs, y=train_density, fill='tozeroy', name='Train Dataset',
-                                     line_color=colors['Train']))
+            traces.extend(_create_distribution_scatter_plot(xs, train_density, mean_train_column, median_train_column,
+                                                            is_train=True))
 
         if test_uniques.size <= MAX_NUMERICAL_UNIQUES_FOR_SINGLE_DIST_BARS:
             traces.append(go.Bar(
@@ -226,8 +232,8 @@ def feature_distribution_traces(train_column,
                 name='Test Dataset',
             ))
         else:
-            traces.append(go.Scatter(x=xs, y=test_density, fill='tozeroy', name='Test Dataset',
-                                     line_color=colors['Test']))
+            traces.extend(_create_distribution_scatter_plot(xs, test_density, mean_test_column, median_test_column,
+                                                            is_train=False))
 
         xaxis_layout = dict(fixedrange=False,
                             range=x_range_to_show,
@@ -241,6 +247,20 @@ def _create_bars_data_for_mixed_kde_plot(counts: np.ndarray, max_kde_value: floa
     so we normalize the counts to sum to 4 times the max KDE value."""
     normalize_factor = 4 * max_kde_value / np.sum(counts)
     return counts * normalize_factor
+
+
+def _create_distribution_scatter_plot(xs, ys, mean, median, is_train):
+    traces = []
+    name = 'Train' if is_train else 'Test'
+    traces.append(go.Scatter(x=xs, y=ys, fill='tozeroy', name=f'{name} Dataset',
+                             line_color=colors[name], line_shape='spline'))
+    y_mean_index = np.argmax(xs == mean)
+    traces.append(go.Scatter(x=[mean, mean], y=[0, ys[y_mean_index]], name=f'{name} Mean',
+                             line=dict(color=colors[name], dash='dash'), mode='lines+markers'))
+    y_median_index = np.argmax(xs == median)
+    traces.append(go.Scatter(x=[median, median], y=[0, ys[y_median_index]], name=f'{name} Median',
+                             line=dict(color=colors[name]), mode='lines'))
+    return traces
 
 
 def _create_distribution_bar_graphs(train_column, test_column, max_num_categories: int, show_categories_by: str):

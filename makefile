@@ -181,8 +181,8 @@ doc-requirements: $(ENV)
 
 
 dev-requirements: $(ENV)
-	@echo "####  installing development dependencies, it could take some time, please wait! #### "
-	@$(PIP) install -q -r ./requirements/dev-requirements.txt
+	@echo "####  installing development dependencies, it could take some time, please wait! ####"
+	@$(PIP) install -r ./requirements/dev-requirements.txt
 
 
 ### Static Analysis ######################################################

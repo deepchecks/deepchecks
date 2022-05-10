@@ -20,6 +20,7 @@ from datetime import datetime
 from decimal import Decimal
 from string import ascii_uppercase, digits
 
+import numpy as np
 import pandas as pd
 from ipywidgets import Widget
 from ipywidgets.embed import dependency_state, embed_minimal_html
@@ -54,6 +55,7 @@ __all__ = [
     'create_new_file_name',
     'widget_to_html',
     'generate_check_docs_link',
+    'format_number_if_not_nan',
 ]
 
 
@@ -91,16 +93,17 @@ def get_docs_summary(obj, with_doc_link: bool = True):
     str
         the object summary.
     """
-    summary = ''
     if hasattr(obj.__class__, '__doc__'):
         docs = obj.__class__.__doc__ or ''
         # Take first non-whitespace line.
         summary = next((s for s in docs.split('\n') if not re.match('^\\s*$', s)), '')
 
-    if with_doc_link:
-        link = generate_check_docs_link(obj)
-        summary += f' <a href="{link}" target="_blank">Read More...</a>'
-    return summary
+        if with_doc_link:
+            link = generate_check_docs_link(obj)
+            summary += f' <a href="{link}" target="_blank">Read More...</a>'
+
+        return summary
+    return ''
 
 
 def widget_to_html(widget: Widget, html_out: t.Any, title: str = None, requirejs: bool = True):
@@ -445,6 +448,25 @@ def format_number(x, floating_point: int = 2) -> str:
     else:
         ret_x = round(x, floating_point)
         return add_commas(ret_x).rstrip('0')
+
+
+def format_number_if_not_nan(x, floating_point: int = 2):
+    """Format number if it is not nan for elegant display.
+
+    Parameters
+    ----------
+    x
+        Number to be displayed
+    floating_point : int , default: 2
+        Number of floating points to display
+    Returns
+    -------
+    str
+        String of beautified number if number is not nan
+    """
+    if np.isnan(x):
+        return x
+    return format_number(x, floating_point)
 
 
 def format_list(l: t.List[Hashable], max_elements_to_show: int = 10, max_string_length: int = 40) -> str:

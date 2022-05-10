@@ -31,7 +31,7 @@ def test_drift_with_model(drifted_data_and_model):
              'Importance': close_to(0.69, 0.01)}
         ),
         'numeric_with_drift': has_entries(
-            {'Drift score': close_to(0.25, 0.01),
+            {'Drift score': close_to(0.34, 0.01),
              'Method': equal_to('Earth Mover\'s Distance'),
              'Importance': close_to(0.31, 0.01)}
         ),
@@ -64,7 +64,7 @@ def test_drift_no_model(drifted_data_and_model):
              'Importance': equal_to(None)}
         ),
         'numeric_with_drift': has_entries(
-            {'Drift score': close_to(0.25, 0.01),
+            {'Drift score': close_to(0.34, 0.01),
              'Method': equal_to('Earth Mover\'s Distance'),
              'Importance': equal_to(None)}
         ),
@@ -95,7 +95,7 @@ def test_drift_max_drift_score_condition_fail(drifted_data_and_model):
         is_pass=False,
         name='PSI <= 0.2 and Earth Mover\'s Distance <= 0.1',
         details='Found categorical columns with PSI above threshold: {\'categorical_with_drift\': \'0.22\'}\n'
-                'Found numeric columns with Earth Mover\'s Distance above threshold: {\'numeric_with_drift\': \'0.25\'}'
+                'Found numeric columns with Earth Mover\'s Distance above threshold: {\'numeric_with_drift\': \'0.34\'}'
     ))
 
 

@@ -13,12 +13,12 @@
 from typing import Any, List, Mapping, Tuple, Union
 
 from deepchecks.core.check_result import CheckFailure
-from deepchecks.core.display_suite import ProgressBar
 from deepchecks.core.errors import (DeepchecksNotSupportedError,
                                     DeepchecksValueError)
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.tabular.context import Context
 from deepchecks.tabular.dataset import Dataset
+from deepchecks.utils.ipython import ProgressBar
 
 __all__ = [
     'ModelComparisonSuite',
