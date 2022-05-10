@@ -11,8 +11,8 @@
 """Module contains Image Property Drift check."""
 import typing as t
 import warnings
-from textwrap import dedent
 from collections import defaultdict
+from textwrap import dedent
 
 import pandas as pd
 import PIL.Image as pilimage
@@ -20,10 +20,11 @@ import PIL.Image as pilimage
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
-from deepchecks.utils.strings import format_number
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
+from deepchecks.utils.strings import format_number
 from deepchecks.vision import Batch, Context, TrainTestCheck
-from deepchecks.vision.utils.image_functions import prepare_grid, prepare_thumbnail
+from deepchecks.vision.utils.image_functions import (prepare_grid,
+                                                     prepare_thumbnail)
 from deepchecks.vision.utils.image_properties import (default_image_properties,
                                                       get_column_type,
                                                       validate_properties)

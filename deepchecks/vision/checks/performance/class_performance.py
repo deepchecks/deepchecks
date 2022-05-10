@@ -9,12 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing class performance check."""
-from typing import Dict, List, TypeVar, NamedTuple, Tuple, Callable, Optional, cast
+from typing import Callable, Dict, List, NamedTuple, Optional, Tuple, TypeVar
 
-import torch
 import numpy as np
 import pandas as pd
 import plotly.express as px
+import torch
 from ignite.metrics import Metric
 from sklearn.preprocessing import LabelBinarizer
 
@@ -24,14 +24,13 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils import plot
 from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.vision import Batch, Context, TrainTestCheck
-from deepchecks.vision.task_type import TaskType
-from deepchecks.vision.utils.image_functions import prepare_grid, prepare_sample_thumbnail, prepare_thumbnail, draw_bboxes
 from deepchecks.vision.metrics_utils.iou_utils import jaccard_iou
 from deepchecks.vision.metrics_utils.metrics import (
-    filter_classes_for_display,
-    get_scorers_list,
-    metric_results_to_df
-)
+    filter_classes_for_display, get_scorers_list, metric_results_to_df)
+from deepchecks.vision.task_type import TaskType
+from deepchecks.vision.utils.image_functions import (prepare_grid,
+                                                     prepare_sample_thumbnail,
+                                                     prepare_thumbnail)
 
 __all__ = ['ClassPerformance']
 
@@ -97,7 +96,7 @@ class ClassPerformance(TrainTestCheck):
         self.metric_to_show_by = metric_to_show_by
         self._data_metrics = {}
         # are used in case of classification task type
-        # type: Optional[List[Tuple[image, y-true, y-predicted]]]
+        # var type - list[tuple[image, y-true, y-predicted]]]
         self._successfully_evaluated_images: Optional[List[Tuple[np.ndarray, int, int]]] = None
         self._unsuccessfully_evaluated_images: Optional[List[Tuple[np.ndarray, int, int]]] = None
         # is used in case of detection task type
@@ -155,7 +154,7 @@ class ClassPerformance(TrainTestCheck):
 
         if self.class_list_to_show is not None:
             results_df = results_df.loc[results_df['Class'].isin(self.class_list_to_show)]
-        
+
         elif self.n_to_show is not None:
             classes_to_show = filter_classes_for_display(
                 results_df,
@@ -350,7 +349,7 @@ class ClassPerformance(TrainTestCheck):
             ),
             condition_func=condition
         )
-    
+
     def _collect_output_images(
         self,
         context: Context,
@@ -367,7 +366,7 @@ class ClassPerformance(TrainTestCheck):
         else:
             # Do nothing in this case
             pass
-    
+
     def _collect_output_images_for_classification_task(
         self,
         batch: Batch,
@@ -376,7 +375,7 @@ class ClassPerformance(TrainTestCheck):
             self._successfully_evaluated_images is not None
             and self._unsuccessfully_evaluated_images is not None
         )
-        
+
         detected_classes = (
             LabelBinarizer()
             .fit(batch.labels)
@@ -385,15 +384,15 @@ class ClassPerformance(TrainTestCheck):
 
         for img, y_true, y_pred in zip(batch.images, batch.labels, detected_classes):
             sample = (
-                img, 
-                int(y_true.item()), 
+                img,
+                int(y_true.item()),
                 int(y_pred)  # type: ignore
             )
             if y_true == y_pred and len(self._successfully_evaluated_images) < self.n_of_images:
                 self._successfully_evaluated_images.append(sample)
             elif y_true != y_pred and len(self._unsuccessfully_evaluated_images) < self.n_of_images:
                 self._unsuccessfully_evaluated_images.append(sample)
-    
+
     def _prepare_images_thumbnails_for_classification_task(self) -> str:
         assert (
             self._successfully_evaluated_images is not None
@@ -411,18 +410,18 @@ class ClassPerformance(TrainTestCheck):
         else:
             successful_evaluation_thumbnails = []
             successful_evaluation_description = []
-            
+
             for img, y_true, y_pred in self._successfully_evaluated_images:
                 successful_evaluation_thumbnails.append(prepare_thumbnail(
                     image=img, size=self.thumbnail_size
                 ))
                 successful_evaluation_description.append(prepare_grid(
-                    n_of_rows=1, 
+                    n_of_rows=1,
                     n_of_columns=2,
                     style=description_grid_style,
                     content=['<span><b>y-true</b></span>', f'<span>{y_true}</span>']
                 ))
-            
+
             successful_evaluation = prepare_grid(
                 style={
                     'grid-template-rows': 'auto auto',
@@ -430,16 +429,16 @@ class ClassPerformance(TrainTestCheck):
                 },
                 content=[*successful_evaluation_thumbnails, *successful_evaluation_description]
             )
-        
+
         if len(self._unsuccessfully_evaluated_images) == 0:
             unsuccessful_evaluation = '<p>Nothing to show</p>'
         else:
             unsuccessful_evaluation_thumbnails = []
             unsuccessful_evaluation_description = []
-            
+
             for img, y_true, y_pred in self._unsuccessfully_evaluated_images:
                 unsuccessful_evaluation_thumbnails.append(prepare_thumbnail(
-                    image=img, 
+                    image=img,
                     size=self.thumbnail_size
                 ))
                 unsuccessful_evaluation_description.append(prepare_grid(
@@ -447,13 +446,13 @@ class ClassPerformance(TrainTestCheck):
                     n_of_columns=2,
                     style=description_grid_style,
                     content=[
-                        '<span><b>y-true</b></span>', 
-                        '<span><b>y-pred</b></span>', 
-                        f'<span>{y_true}</span>', 
+                        '<span><b>y-true</b></span>',
+                        '<span><b>y-pred</b></span>',
+                        f'<span>{y_true}</span>',
                         f'<span>{y_pred}</span>'
                     ]
                 ))
-            
+
             unsuccessful_evaluation = prepare_grid(
                 style={
                     'grid-template-rows': 'auto auto',
@@ -472,7 +471,7 @@ class ClassPerformance(TrainTestCheck):
             successful_evaluation=successful_evaluation,
             unsuccessful_evaluation=unsuccessful_evaluation
         )
-        
+
     def _collect_output_images_for_detection_task(
         self,
         batch: Batch,
@@ -497,7 +496,7 @@ class ClassPerformance(TrainTestCheck):
                 self._images.append(match_bboxes(img, gt, dt))
             else:
                 return
-    
+
     def _prepare_images_thumbnails_for_detection_task(
         self,
         context: Context
@@ -520,8 +519,8 @@ class ClassPerformance(TrainTestCheck):
                     title='<h5><b>Correctly detected objects</b></h5>',
                     content=(
                         self._prepare_grid_of_detected_objects(
-                            stat.image, 
-                            stat.matches, 
+                            stat.image,
+                            stat.matches,
                             class_name)
                         if len(stat.matches) != 0
                         else '<p>nothing to show</p>')),
@@ -530,8 +529,8 @@ class ClassPerformance(TrainTestCheck):
                     title='<h5><b>No overlapping ground truth</b></h5>',
                     content=(
                         self._prepare_grid_of_no_overlapping_objects(
-                            img=stat.image, 
-                            bboxes=stat.no_overlapping_gt, 
+                            img=stat.image,
+                            bboxes=stat.no_overlapping_gt,
                             class_name=class_name)
                         if len(stat.no_overlapping_gt) != 0
                         else '<p>nothing to show</p>')),
@@ -557,15 +556,15 @@ class ClassPerformance(TrainTestCheck):
     ) -> str:
         images_tags = []
         info = []
-        
+
         for gt, dt, ious in bbox_pairs:
             dt_class_id = dt[-1]
             gt_class_id = gt[0]
             images_tags.append(prepare_sample_thumbnail(
-                image=img, 
-                gt=gt, 
-                dt=dt, 
-                border_width=self.bbox_border_width, 
+                image=img,
+                gt=gt,
+                dt=dt,
+                border_width=self.bbox_border_width,
                 size=self.thumbnail_size,
                 include_label=False
             ))
@@ -586,7 +585,7 @@ class ClassPerformance(TrainTestCheck):
                     f'<p>{format_number(ious, 5)}</p>'
                 ],
             ))
-        
+
         return prepare_grid(
             style={
                 'grid-template-rows': 'auto auto',
@@ -594,11 +593,11 @@ class ClassPerformance(TrainTestCheck):
             },
             content=[*images_tags, *info]
         )
-    
+
     def _prepare_grid_of_no_overlapping_objects(
         self,
         img: np.ndarray,
-        bboxes: np.ndarray, 
+        bboxes: np.ndarray,
         class_name: Callable[[int], str],
         is_ground_truth: bool = True,
     ) -> str:
@@ -606,14 +605,14 @@ class ClassPerformance(TrainTestCheck):
         info = []
 
         thumbnail_kwargs = {
-            'image': img, 
-            'border_width': self.bbox_border_width, 
+            'image': img,
+            'border_width': self.bbox_border_width,
             'size': self.thumbnail_size,
             'include_label': False
         }
-        
+
         for bbox in bboxes:
-            
+
             if is_ground_truth:
                 title_tag = '<span><b>ground truth</b></span>'
                 class_name_tag = f'<span>{class_name(bbox[0])}</span>'
@@ -622,7 +621,7 @@ class ClassPerformance(TrainTestCheck):
                 title_tag = '<span><b>detected truth</b></span>'
                 class_name_tag = f'<span>{class_name(bbox[-1])}</span>'
                 thumbnail_kwargs['dt'] = bbox
-                
+
             images_tags.append(prepare_sample_thumbnail(
                 **thumbnail_kwargs
             ))
@@ -632,7 +631,7 @@ class ClassPerformance(TrainTestCheck):
                 style={'align-self': 'start'},
                 content=[title_tag, class_name_tag,],
             ))
-        
+
         return prepare_grid(
             style={
                 'grid-template-rows': 'auto auto',

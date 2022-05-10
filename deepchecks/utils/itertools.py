@@ -10,8 +10,8 @@
 #
 """Module containing usefull iter functions."""
 import typing as t
-import numpy as np
 
+import numpy as np
 
 __all__ = ['flatten_matrix', 'join']
 

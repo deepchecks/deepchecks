@@ -150,7 +150,7 @@ def draw_bboxes(
             raise TypeError('color must be of type - Union[str, Dict[int, str]]')
 
         draw.rectangle(xy=(x0, y0, x1, y1), width=border_width, outline=color_to_use)
-        
+
         if include_label is True:
             draw.text(xy=(x0 + (w * 0.5), y0 + (h * 0.2)), text=str(clazz), fill=color_to_use)
 
@@ -247,7 +247,7 @@ def prepare_sample_thumbnail(
     ValueError :
         - if gt and dt both are None
         - if gt or dt length is equal to zero
-    
+
     """
     if not (gt is not None or dt is not None):
         raise ValueError(
@@ -260,7 +260,7 @@ def prepare_sample_thumbnail(
             raise ValueError('ground truth cannot be empty')
         if gt.ndim == 1:
             gt = np.stack([
-                gt if isinstance(gt, np.ndarray) 
+                gt if isinstance(gt, np.ndarray)
                 else t.cast(np.ndarray, gt.cpu().detach().numpy())
             ])
         image = draw_bboxes(
@@ -272,13 +272,13 @@ def prepare_sample_thumbnail(
             include_label=include_label,
             border_width=border_width,
         )
-    
+
     if dt is not None:
         if len(dt) == 0:
             raise ValueError('detected truth cannot be empty')
         if dt.ndim == 1:
             dt = np.stack([
-                dt if isinstance(dt, np.ndarray) 
+                dt if isinstance(dt, np.ndarray)
                 else t.cast(np.ndarray, dt.cpu().detach().numpy())
             ])
         image = draw_bboxes(
@@ -290,7 +290,7 @@ def prepare_sample_thumbnail(
             include_label=include_label,
             border_width=border_width
         )
-    
+
     return prepare_thumbnail(
         image=image,
         copy_image=False,

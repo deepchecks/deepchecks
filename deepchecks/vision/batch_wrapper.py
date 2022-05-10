@@ -14,7 +14,6 @@ from typing import TYPE_CHECKING, Any, Callable, Iterable, Tuple, TypeVar, cast
 import torch
 
 from deepchecks.core import DatasetKind
-from deepchecks.vision.context import Context  # pylint: disable=unused-import, it is used as annotation
 
 if TYPE_CHECKING:
     from deepchecks.vision.context import Context

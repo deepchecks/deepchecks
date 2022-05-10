@@ -10,22 +10,23 @@
 #
 """Module containing confusion matrix report check."""
 import typing as t
+from collections import defaultdict
 from functools import partial
 from itertools import product
-from textwrap import dedent
-from collections import defaultdict
 from queue import PriorityQueue
+from textwrap import dedent
 
 import numpy as np
 import pandas as pd
 import torch
 
-from deepchecks.vision.utils.image_functions import prepare_thumbnail, draw_bboxes, prepare_grid
-from deepchecks.utils.itertools import flatten_matrix
 from deepchecks.core import CheckResult, DatasetKind
+from deepchecks.utils.itertools import flatten_matrix
 from deepchecks.utils.plot import create_confusion_matrix_figure
 from deepchecks.vision import Batch, Context, SingleDatasetCheck
 from deepchecks.vision.metrics_utils.iou_utils import jaccard_iou
+from deepchecks.vision.utils.image_functions import (draw_bboxes, prepare_grid,
+                                                     prepare_thumbnail)
 from deepchecks.vision.vision_data import TaskType, VisionData
 
 __all__ = ['ConfusionMatrixReport']
