@@ -9,12 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """Module for calculating distance matrix via Gower method."""
-import time
 
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import OrdinalEncoder
-from deepchecks.utils.array_utils import fast_sum_by_row
+
+from deepchecks.utils.array_math import fast_sum_by_row
 
 
 def gower_matrix(data: np.ndarray, cat_features: np.array) -> np.ndarray:
@@ -93,8 +93,8 @@ def calculate_nearest_neighbours_distances(cat_data: pd.DataFrame, numeric_data:
     numeric_data = np.nan_to_num(numeric_data, nan=np.NINF)
 
     for i in range(num_samples):
-        dist_to_sample_i = __calculate_distances_to_sample(i, cat_data, numeric_data, numeric_feature_ranges,
-                                                           num_features)
+        dist_to_sample_i = _calculate_distances_to_sample(i, cat_data, numeric_data, numeric_feature_ranges,
+                                                          num_features)
         # sort to find the closest samples (including self)
         min_dist_indexes = np.argpartition(dist_to_sample_i, num_neighbours)[:num_neighbours]
         min_dist_indexes_ordered = sorted(min_dist_indexes, key=lambda x, arr=dist_to_sample_i: arr[x], reverse=False)
@@ -104,10 +104,11 @@ def calculate_nearest_neighbours_distances(cat_data: pd.DataFrame, numeric_data:
     return np.nan_to_num(distances, nan=np.nan, posinf=np.nan, neginf=np.nan), indexes
 
 
-def __calculate_distances_to_sample(sample_index: int, cat_data: np.ndarray, numeric_data: np.ndarray,
-                                    numeric_feature_ranges: np.ndarray, num_features: int):
+def _calculate_distances_to_sample(sample_index: int, cat_data: np.ndarray, numeric_data: np.ndarray,
+                                   numeric_feature_ranges: np.ndarray, num_features: int):
     """
     Calculate Gower's distance between a single sample to the rest of the samples in the dataset.
+
     Parameters
     ----------
     sample_index

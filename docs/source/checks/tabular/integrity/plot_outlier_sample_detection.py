@@ -56,7 +56,7 @@ modified_iris = Dataset(iris)
 # =============
 # We define the num_neighbors and the extent parameters for the LoOP algorithm.
 
-check = OutlierSampleDetection(num_nearest_neighbors=10, extent_parameter=3)
+check = OutlierSampleDetection(nearest_neighbors_percent=10, extent_parameter=3)
 check.run(modified_iris)
 
 # %%

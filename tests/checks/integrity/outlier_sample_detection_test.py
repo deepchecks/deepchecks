@@ -68,9 +68,9 @@ def test_integer_single_column_no_nulls():
     data = {'col1': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1000]}
     dataset = Dataset(pd.DataFrame(data=data), cat_features=[])
     # Act
-    result = OutlierSampleDetection(n_to_show=1, num_nearest_neighbors=2).run(dataset)
+    result = OutlierSampleDetection(nearest_neighbors_percent=0.2).run(dataset)
     # Assert
-    assert_that(result.value, has_item(greater_than(0.7)))
+    assert_that(result.value, has_item(greater_than(0.76)))
 
 
 def test_integer_single_column_with_nulls():
@@ -78,9 +78,9 @@ def test_integer_single_column_with_nulls():
     data = {'col1': [1, 1, 1, None, 1, 1, 1, 1, 1, 1, 1, 1, 1000]}
     dataset = Dataset(pd.DataFrame(data=data), cat_features=[])
     # Act
-    result = OutlierSampleDetection(n_to_show=1, num_nearest_neighbors=5).run(dataset)
+    result = OutlierSampleDetection(nearest_neighbors_percent=0.3).run(dataset)
     # Assert
-    assert_that(result.value, has_item(greater_than(0.7)))
+    assert_that(result.value, has_item(greater_than(0.44)))
     assert_that(np.unique(result.value), has_length(2))
 
 
@@ -90,9 +90,9 @@ def test_integer_columns_with_nulls():
             'col2': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1000]}
     dataset = Dataset(pd.DataFrame(data=data), cat_features=[])
     # Act
-    result = OutlierSampleDetection(n_to_show=1, num_nearest_neighbors=5).run(dataset)
+    result = OutlierSampleDetection(nearest_neighbors_percent=0.3).run(dataset)
     # Assert
-    assert_that(result.value, has_item(greater_than(0.7)))
+    assert_that(result.value, has_item(greater_than(0.44)))
 
 
 def test_single_column_cat_no_nulls():
@@ -100,9 +100,9 @@ def test_single_column_cat_no_nulls():
     data = {'col1': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'b']}
     dataset = Dataset(pd.DataFrame(data=data), cat_features=['col1'])
     # Act
-    result = OutlierSampleDetection(n_to_show=2, num_nearest_neighbors=5).run(dataset)
+    result = OutlierSampleDetection(nearest_neighbors_percent=0.3).run(dataset)
     # Assert
-    assert_that(result.value, has_item(greater_than(0.7)))
+    assert_that(result.value, has_item(greater_than(0.57)))
 
 
 def test_mix_types_no_nulls():
@@ -111,9 +111,9 @@ def test_mix_types_no_nulls():
             'col2': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1000]}
     dataset = Dataset(pd.DataFrame(data=data), cat_features=['col1'])
     # Act
-    result = OutlierSampleDetection(n_to_show=2, num_nearest_neighbors=5).run(dataset)
+    result = OutlierSampleDetection(nearest_neighbors_percent=0.3).run(dataset)
     # Assert
-    assert_that(result.value, has_item(greater_than(0.7)))
+    assert_that(result.value, has_item(greater_than(0.57)))
 
 
 def test_mix_types_with_nulls():
@@ -122,16 +122,16 @@ def test_mix_types_with_nulls():
             'col2': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1000]}
     dataset = Dataset(pd.DataFrame(data=data), cat_features=['col1'])
     # Act
-    result = OutlierSampleDetection(n_to_show=1, num_nearest_neighbors=5).run(dataset)
+    result = OutlierSampleDetection(nearest_neighbors_percent=0.3).run(dataset)
     # Assert
-    assert_that(result.value, has_item(greater_than(0.7)))
+    assert_that(result.value, has_item(greater_than(0.42)))
 
 
 def test_iris_regular(iris_dataset):
     # Act
-    result = OutlierSampleDetection(n_to_show=2, num_nearest_neighbors=5).run(iris_dataset)
+    result = OutlierSampleDetection(n_to_show=2).run(iris_dataset)
     # Assert
-    assert_that(result.value, has_item(greater_than(0.8)))
+    assert_that(result.value, has_item(greater_than(0.915)))
 
 
 def test_iris_modified(iris):
@@ -139,15 +139,15 @@ def test_iris_modified(iris):
     iris_modified = iris.copy()
     iris_modified.loc[len(iris.index)] = [1, 10, 1000, 1000, 1]
     # Act
-    result = OutlierSampleDetection(n_to_show=2, num_nearest_neighbors=5).run(Dataset(iris_modified))
+    result = OutlierSampleDetection(n_to_show=2).run(Dataset(iris_modified))
     # Assert
-    assert_that(result.value, has_item(greater_than(0.9)))
+    assert_that(result.value, has_item(greater_than(0.99)))
 
 
 def test_avocado():
     # Arrange
     dataset = avocado.load_data()[0]
     # Act
-    result = OutlierSampleDetection(n_to_show=2, num_nearest_neighbors=5).run(dataset)
+    result = OutlierSampleDetection(extent_parameter=3, n_samples=5000, timeout=0).run(dataset)
     # Assert
-    assert_that(result.value, has_item(greater_than(0.95)))
+    assert_that(result.value, has_item(greater_than(0.67)))

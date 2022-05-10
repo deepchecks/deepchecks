@@ -9,8 +9,13 @@
 # ----------------------------------------------------------------------------
 #
 """Utils module with methods for fast calculations."""
-import numpy as np
+
+from deepchecks.core.errors import DeepchecksTimeoutError
 
 
-def fast_sum_by_row(matrix: np.ndarray) -> np.array:
-    return np.matmul(matrix, np.ones(matrix.shape[1]))
+def get_time_out_handler(error_message: str):
+    """Get a timeout handler."""
+    def timeout_handler(signum, frame):  # Custom signal handler
+        raise DeepchecksTimeoutError(error_message)
+
+    return timeout_handler
