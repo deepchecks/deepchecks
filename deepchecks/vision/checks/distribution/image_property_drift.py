@@ -231,7 +231,7 @@ class ImagePropertyDrift(TrainTestCheck):
             # columns_order = sorted(properties, key=lambda col: drifts[col], reverse=True) # old
 
             headnote = (
-                '<span>' \
+                '<span>'
                 'The Drift score is a measure for the difference between two distributions. '
                 'In this check, drift is measured '
                 f'for the distribution of the following image properties: {properties_to_display}.<br>'
@@ -261,8 +261,6 @@ class ImagePropertyDrift(TrainTestCheck):
                 *[figures[col] for col in columns_order if col in figures],
                 thumbnails
             ]
-            # displays = [headnote] + [figures[col] for col in columns_order if col in figures] # new
-            # displays = [headnote] + [figures[col] for col in columns_order] + [thumbnails] # old
 
         return CheckResult(
             value=drifts,

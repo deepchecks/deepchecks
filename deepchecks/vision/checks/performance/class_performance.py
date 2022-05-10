@@ -281,7 +281,7 @@ class ClassPerformance(TrainTestCheck):
 
     def add_condition_class_performance_imbalance_ratio_not_greater_than(
         self: PR,
-        threshold: float  = 0.3,
+        threshold: float = 0.3,
         score: Optional[str] = None
     ) -> PR:
         """Add condition.
@@ -629,7 +629,7 @@ class ClassPerformance(TrainTestCheck):
                 n_of_columns=2,
                 n_of_rows=1,
                 style={'align-self': 'start'},
-                content=[title_tag, class_name_tag,],
+                content=[title_tag, class_name_tag]
             ))
 
         return prepare_grid(
@@ -640,7 +640,7 @@ class ClassPerformance(TrainTestCheck):
             content=[*images_tags, *info]
         )
 
-# TODO: functionality below could be resuded in confusion matrix
+# TODO: functionality below could be reused in confusion matrix
 
 
 class BBoxPair(NamedTuple):

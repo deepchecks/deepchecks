@@ -15,8 +15,8 @@ import random
 from abc import abstractmethod
 from collections import defaultdict
 from copy import copy
-from typing import (Any, Callable, Dict, Iterator, List, Optional, Sequence,
-                    Type, TypeVar, Union)
+from typing import (TYPE_CHECKING, Any, Callable, Dict, Iterator, List,
+                    Optional, Sequence, Type, TypeVar, Union)
 
 import numpy as np
 import torch
@@ -28,6 +28,9 @@ from deepchecks.core.errors import (DeepchecksBaseError,
 from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.utils.image_functions import ImageInfo
 from deepchecks.vision.utils.transformations import get_transforms_handler
+
+if TYPE_CHECKING:
+    from deepchecks.vision import batch_wrapper
 
 __all__ = ['VisionData']
 

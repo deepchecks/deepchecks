@@ -17,6 +17,7 @@ __all__ = ['flatten_matrix', 'join']
 
 
 def flatten_matrix(matrix: np.ndarray) -> t.Iterator[t.Tuple[int, int, t.Any]]:
+    """Flatten 2D matrix."""
     for row_index, row in enumerate(matrix):
         for column_index, cell in enumerate(row):
             yield row_index, column_index, cell
