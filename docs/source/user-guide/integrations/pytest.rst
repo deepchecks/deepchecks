@@ -1,10 +1,10 @@
 ======
-pytest
+Pytest
 ======
 
 This tutorial demonstrates how deepchecks can be used inside unit tests performed on data or model, with the pytest
 framework.
-We will use the ``diabetes`` dataset from scikit-learn, and check whether certain columns does not contain drift
+We will use the ``diabetes`` dataset from scikit-learn, and check whether certain columns contain drift
 between the training and the test sets.
 
 .. code-block:: python
@@ -16,7 +16,7 @@ between the training and the test sets.
     from deepchecks import Dataset
     from deepchecks.tabular.checks import TrainTestFeatureDrift
 
-Defining PyTest Fixtures
+Defining Pytest Fixtures
 -------------------------
 
 pytest fixtures provide a defined, reliable and consistent context for the tests. This could include environment (for
@@ -33,7 +33,7 @@ In this tutorial we will define a fixture that load the ``diabetes`` dataset fro
 Implementing the Test
 -----------------------
 
-Now, we will implement a test that will check if some columns in the dataset are not drifting between the training and
+Now, we will implement a test that will check if some columns in the dataset have drifted between the train and test datasets.
 the test sets.
 
 .. code-block:: python
