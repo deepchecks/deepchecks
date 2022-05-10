@@ -1,6 +1,6 @@
 ============================
 H2O
-==================================
+============================
 
 `H2O <https://docs.h2o.ai/h2o/latest-stable/h2o-docs/automl.html>`__ is
 a widely used AutoML framework, written in Java but with multiple fully
@@ -26,7 +26,7 @@ in `deepchecks.tabular.datasets`.
 
     train_df, test_df = adult.load_data(data_format='Dataframe', as_train_test=True)
 
-Now we’ll build an H2O H2OGradientBoostingEstimator based on this
+Now we’ll build an H2O `H2OGradientBoostingEstimator <https://docs.h2o.ai/h2o/latest-stable/h2o-py/docs/modeling.html#h2o.estimators.gbm.H2OGradientBoostingEstimator>`__ based on this
 dataset split.
 
 .. code:: ipython3
@@ -44,8 +44,7 @@ H2O models can only train and predict on H2OFrame objects.
 
 .. code:: ipython3
 
-    gbm = h2o.estimators.gbm.H2OGradientBoostingEstimator()
-    print('Trained!')
+    gbm = h2o.estimators.gbm.H2OGradientBoostingEstimator();
 
 We must tell the H2O model what are the feature columns and what is the
 name of the label column.
@@ -60,8 +59,7 @@ name of the label column.
 
 .. code:: ipython3
 
-    gbm.train(x=feature_cols, y=label_col, training_frame=train_h2o, verbose=False)
-    print('Trained!')
+    gbm.train(x=feature_cols, y=label_col, training_frame=train_h2o, verbose=False);
 
 
 To compare to our new H2O model, we’ll download the default scikit-learn
@@ -80,7 +78,10 @@ remaining - bridging between the API of the H2O model and the
 scikit-learn API that deepchecks expects.
 
 We will write a wrapper to our H2O model, that will implement the required API for deepchecks according the the
-:doc: `</user-guide/tabular/supported_models>` guide. Generally the wrapper model will contain 2 functions in
+:doc: `</user-guide/tabular/supported_models>` guide. This wrapper is also available for import under
+`deepchecks.tabular.integrations.h2o` but is brought here for completes.
+
+Generally the wrapper model will contain 2 functions in
 case of a classification problem: the ``predict`` and the ``predict_proba`` functions that will be called by
 deepchecks. In addition it is also possible to specify the feature importances of the model. Read more about
 feature importance handling in the :doc: `</user-guide/tabular/feature_importance>` guide.
@@ -132,10 +133,10 @@ We can see that from an overall performance standpoint (considering the
 f1 metric), the H2O model achieves superior performance compared to the
 sklearn model, especially in the smaller class.
 
-Deeper model performance evaluation
+Further model performance evaluation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-We next wish to get a deeper evaluation of the H2O model. For example,
+We next wish to get a more in depth evaluation of the H2O model. For example,
 we can use the SegmentPerformance check to compare the performance of
 the two models across segments of the sex and relationship status
 features.
