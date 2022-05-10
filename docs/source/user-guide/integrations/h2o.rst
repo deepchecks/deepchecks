@@ -8,6 +8,9 @@ implemented API libraries, including one in python. In this example,
 we’ll be showing how you can effortlessly test your H2O model with
 deepchecks in the exact same way you can test any sklearn model.
 
+This example can be run using
+`collab <https://colab.research.google.com/github/deepchecks/deepchecks/tree/examples/integrations/h2o/deepchecks_h2o_tutorial.ipynb>`__.
+
 Building an H2O Model
 ---------------------
 
