@@ -10,13 +10,15 @@
 #
 """Outlier detection functions."""
 import logging
+import signal
+import warnings
 from typing import List, Union
 
 import numpy as np
 from PyNomaly import loop
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
-from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.core.errors import DeepchecksValueError, DeepchecksProcessError
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils import gower_distance
 from deepchecks.utils.dataframes import select_from_dataframe
@@ -42,27 +44,30 @@ class OutlierSampleDetection(SingleDatasetCheck):
         Columns to check, if none are given checks all columns except ignored ones.
     ignore_columns : Union[Hashable, List[Hashable]] , default: None
         Columns to ignore, if none given checks based on columns variable
-    num_nearest_neighbors : int, default: 10
+    num_nearest_neighbors : int, default: 5
         Number of nearest neighbors to use for outlier detection.
     extent_parameter: int, default: 3
         Extend parameter for LoOP algorithm.
-    n_samples : int , default: 50_000
+    n_samples : int , default: 5_000
         number of samples to use for this check.
     n_to_show : int , default: 5
         number of data elements with the highest outlier score to show (out of sample).
     random_state : int, default: 42
         random seed for all check internals.
+    timeout : int, default: 10
+        Check will be interrupted if it takes more than this number of seconds. If 0, check will not be interrupted.
     """
 
     def __init__(
             self,
             columns: Union[Hashable, List[Hashable], None] = None,
             ignore_columns: Union[Hashable, List[Hashable], None] = None,
-            num_nearest_neighbors: int = 10,
+            num_nearest_neighbors: int = 5,
             extent_parameter: int = 3,
-            n_samples: int = 50_000,
+            n_samples: int = 5_000,
             n_to_show: int = 5,
             random_state: int = 42,
+            timeout: int = 10,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -77,36 +82,39 @@ class OutlierSampleDetection(SingleDatasetCheck):
         self.n_samples = n_samples
         self.n_to_show = n_to_show
         self.random_state = random_state
+        self.timeout = timeout
 
     def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
         """Run check."""
+        signal.signal(signal.SIGALRM, get_time_out_handler(self.timeout))
+        signal.alarm(self.timeout)
         if dataset_type == 'train':
             dataset = context.train
         else:
             dataset = context.test
         dataset = dataset.sample(self.n_samples, random_state=self.random_state, drop_na_label=True)
         df = select_from_dataframe(dataset.data, self.columns, self.ignore_columns)
+        if df.shape[0] ** 2 * df.shape[1] > 10 ** 10:
+            warnings.warn("This operation is computationally expensive, consider reducing the number of samples or "
+                          "columns.")
         if self.num_nearest_neighbors >= len(df):
             logger.warning('Passed num_nearest_neighbors %s which is greater than the number of samples in the dataset'
                            , self.num_nearest_neighbors)
             self.num_nearest_neighbors = len(df) - 1
-
-        # Calculate distances matrix and retrieve nearest neighbors based on distance matrix.
-        df_cols_for_gower = df[dataset.cat_features + dataset.numerical_features]
-        is_categorical_arr = np.array(df_cols_for_gower.columns.map(lambda x: x in dataset.cat_features), dtype=bool)
         try:
-            dist_matrix, idx_matrix = gower_distance.gower_matrix_n_closets(data=np.asarray(df_cols_for_gower),
-                                                                            cat_features=is_categorical_arr,
-                                                                            num_neighbours=self.num_nearest_neighbors)
+            dist_matrix, idx_matrix = gower_distance.calculate_nearest_neighbours_distances(
+                df[dataset.cat_features], df[dataset.numerical_features], self.num_nearest_neighbors)
         except MemoryError as e:
             raise DeepchecksValueError('A out of memory error occurred while calculating the distance matrix. '
                                        'Try reducing the n_samples or num_nearest_neighbors parameters values.') from e
+
         # Calculate outlier probability score using loop algorithm.
         m = loop.LocalOutlierProbability(distance_matrix=dist_matrix, neighbor_matrix=idx_matrix,
                                          extent=self.extent_parameter, n_neighbors=self.num_nearest_neighbors).fit()
         prob_vector = np.asarray(m.local_outlier_probabilities, dtype=float)
         # if we couldn't calculate the outlier probability score for a sample we treat it as not an outlier.
         prob_vector[np.isnan(prob_vector)] = 0
+        signal.alarm(0)  # cancels the timeout alarm
 
         # Create the check result visualization
         top_n_idx = np.argsort(prob_vector)[-self.n_to_show:]
@@ -114,44 +122,46 @@ class OutlierSampleDetection(SingleDatasetCheck):
         dataset_outliers.insert(0, 'Outlier Probability Score', prob_vector[top_n_idx])
         dataset_outliers.sort_values('Outlier Probability Score', ascending=False, inplace=True)
         headnote = """<span>
-                    The Outlier Probability Score is calculated by the LoOP algorithm which measures the local deviation
-                    of density of a given sample with respect to its neighbors. These outlier scores are directly
-                    interpretable as a probability of an object being an outlier (see
-                    <a href="https://www.dbs.ifi.lmu.de/Publikationen/Papers/LoOP1649.pdf"
-                    target="_blank" rel="noopener noreferrer">link</a> for more information).<br><br>
-                </span>"""
+                        The Outlier Probability Score is calculated by the LoOP algorithm which measures the local deviation
+                        of density of a given sample with respect to its neighbors. These outlier scores are directly
+                        interpretable as a probability of an object being an outlier (see
+                        <a href="https://www.dbs.ifi.lmu.de/Publikationen/Papers/LoOP1649.pdf"
+                        target="_blank" rel="noopener noreferrer">link</a> for more information).<br><br>
+                    </span>"""
 
         quantiles_vector = np.quantile(prob_vector, np.array(range(1000)) / 1000, interpolation='nearest')
         return CheckResult(quantiles_vector, display=[headnote, dataset_outliers])
 
-    def add_condition_outlier_ratio_not_greater_than(self, max_outliers_ratio: float = 0.005,
-                                                     outlier_score_threshold: float = 0.7):
-        """Add condition - no more than given ratio of samples over outlier score threshold are allowed.
 
-        Parameters
-        ----------
-        max_outliers_ratio : float , default: 0.005
-            Maximum ratio of outliers allowed in dataset.
-        outlier_score_threshold : float, default: 0.7
-            Outlier probability score threshold to be considered outlier.
-        """
-        if max_outliers_ratio > 1 or max_outliers_ratio < 0:
-            raise DeepchecksValueError('max_outliers_ratio must be between 0 and 1')
-        name = f'Not more than {format_percent(max_outliers_ratio)} of dataset over ' \
-               f'outlier score {format_number(outlier_score_threshold)}'
-        return self.add_condition(name, _condition_outliers_number, outlier_score_threshold=outlier_score_threshold,
-                                  max_outliers_ratio=max_outliers_ratio)
+def add_condition_outlier_ratio_not_greater_than(self, max_outliers_ratio: float = 0.005,
+                                                 outlier_score_threshold: float = 0.7):
+    """Add condition - no more than given ratio of samples over outlier score threshold are allowed.
 
-    def add_condition_no_outliers(self, outlier_score_threshold: float = 0.7):
-        """Add condition - no elements over outlier threshold are allowed.
+    Parameters
+    ----------
+    max_outliers_ratio : float , default: 0.005
+        Maximum ratio of outliers allowed in dataset.
+    outlier_score_threshold : float, default: 0.7
+        Outlier probability score threshold to be considered outlier.
+    """
+    if max_outliers_ratio > 1 or max_outliers_ratio < 0:
+        raise DeepchecksValueError('max_outliers_ratio must be between 0 and 1')
+    name = f'Not more than {format_percent(max_outliers_ratio)} of dataset over ' \
+           f'outlier score {format_number(outlier_score_threshold)}'
+    return self.add_condition(name, _condition_outliers_number, outlier_score_threshold=outlier_score_threshold,
+                              max_outliers_ratio=max_outliers_ratio)
 
-        Parameters
-        ----------
-        outlier_score_threshold : float, default: 0.7
-            Outlier probability score threshold to be considered outlier.
-        """
-        name = f'No samples in dataset over outlier score of {format_number(outlier_score_threshold)}'
-        return self.add_condition(name, _condition_outliers_number, outlier_score_threshold=outlier_score_threshold)
+
+def add_condition_no_outliers(self, outlier_score_threshold: float = 0.7):
+    """Add condition - no elements over outlier threshold are allowed.
+
+    Parameters
+    ----------
+    outlier_score_threshold : float, default: 0.7
+        Outlier probability score threshold to be considered outlier.
+    """
+    name = f'No samples in dataset over outlier score of {format_number(outlier_score_threshold)}'
+    return self.add_condition(name, _condition_outliers_number, outlier_score_threshold=outlier_score_threshold)
 
 
 def _condition_outliers_number(quantiles_vector: np.ndarray, outlier_score_threshold: float,
@@ -164,3 +174,10 @@ def _condition_outliers_number(quantiles_vector: np.ndarray, outlier_score_thres
         return ConditionResult(ConditionCategory.WARN, details)
     else:
         return ConditionResult(ConditionCategory.PASS)
+
+
+def get_time_out_handler(timeout: int):
+    def timeout_handler(signum, frame):  # Custom signal handler
+        raise DeepchecksProcessError(f"Check has reached specified timeout of {format_number(timeout)} seconds")
+
+    return timeout_handler

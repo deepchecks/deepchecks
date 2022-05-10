@@ -17,6 +17,7 @@ from hamcrest import (assert_that, calling, greater_than, has_item, has_items,
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.checks import OutlierSampleDetection
 from deepchecks.tabular.dataset import Dataset
+from deepchecks.tabular.datasets.regression import avocado
 from tests.checks.utils import equal_condition_result
 
 
@@ -141,3 +142,12 @@ def test_iris_modified(iris):
     result = OutlierSampleDetection(n_to_show=2, num_nearest_neighbors=5).run(Dataset(iris_modified))
     # Assert
     assert_that(result.value, has_item(greater_than(0.9)))
+
+
+def test_avocado():
+    # Arrange
+    dataset = avocado.load_data()[0]
+    # Act
+    result = OutlierSampleDetection(n_to_show=2, num_nearest_neighbors=5).run(dataset)
+    # Assert
+    assert_that(result.value, has_item(greater_than(0.95)))
