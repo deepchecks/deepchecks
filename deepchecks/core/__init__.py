@@ -12,6 +12,7 @@
 
 Import objects to be available in parent deepchecks module.
 """
+from .check_json import CheckFailureJson, CheckResultJson
 from .check_result import CheckFailure, CheckResult
 from .checks import (BaseCheck, DatasetKind, ModelOnlyBaseCheck,
                      SingleDatasetBaseCheck, TrainTestBaseCheck)
@@ -22,6 +23,8 @@ __all__ = [
     'BaseCheck',
     'CheckResult',
     'CheckFailure',
+    'CheckFailureJson',
+    'CheckResultJson',
     'Condition',
     'ConditionResult',
     'ConditionCategory',

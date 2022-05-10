@@ -17,13 +17,18 @@ from deepchecks.core.serialization.common import prettify
 
 try:
     import wandb
-    from wandb.sdk.data_types.base_types.wb_value import WBValue
 except ImportError as e:
     raise ImportError(
         'Wandb serializer requires the wandb python package. '
         'To get it, run "pip install wandb".'
     ) from e
 
+try:
+    if t.TYPE_CHECKING:
+        from wandb.sdk.data_types.base_types.wb_value import \
+            WBValue  # pylint: disable=unused-import
+except ImportError:
+    pass
 
 __all__ = ['CheckFailureSerializer']
 
@@ -44,7 +49,7 @@ class CheckFailureSerializer(WandbSerializer['check_types.CheckFailure']):
             )
         self.value = value
 
-    def serialize(self, **kwargs) -> t.Dict[str, WBValue]:
+    def serialize(self, **kwargs) -> t.Dict[str, 'WBValue']:
         """Serialize a CheckFailure instance into Wandb media format.
 
         Returns
@@ -52,7 +57,7 @@ class CheckFailureSerializer(WandbSerializer['check_types.CheckFailure']):
         Dict[str, WBValue]
         """
         header = self.value.header
-        metadata = self.value.check.metadata()
+        metadata = self.value.get_metadata()
         summary_table = wandb.Table(
             columns=['header', 'params', 'summary', 'value'],
             data=[[

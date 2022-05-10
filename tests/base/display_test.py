@@ -21,6 +21,7 @@ from plotly.graph_objs import FigureWidget
 from deepchecks.core.check_result import CheckResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.checks import ColumnsInfo, DataDuplicates, MixedNulls
+from deepchecks.utils.json_utils import from_json
 
 pio.renderers.default = "json"
 
@@ -82,7 +83,7 @@ def test_check_result_display_plt_func():
     def display_func():
         return 'test'
     check_res = CheckResult(value=7, header='test', display=[display_func])
-    check_res.check = DataDuplicates
+    check_res.check = DataDuplicates()
 
     # Assert
     assert_that(check_res.display_check(), is_(None))
@@ -93,7 +94,7 @@ def test_check_result_display_plotly(iris):
     # Arrange
     plot = plotly.express.bar(iris)
     check_res = CheckResult(value=7, header='test', display=[plot])
-    check_res.check = DataDuplicates
+    check_res.check = DataDuplicates()
     display = check_res.display_check(as_widget=True)
 
     # Assert
@@ -118,6 +119,7 @@ def test_check_result_from_json(iris):
     plot = plotly.express.bar(iris)
 
     json_to_display = jsonpickle.dumps({
+        'type': 'CheckResult',
         'check': {
             'type': 'DummyCheckClass',
             'name': 'Dummy Check',
@@ -127,19 +129,17 @@ def test_check_result_from_json(iris):
         'display': [
             {'type': 'html', 'payload': 'hi'},
             {'type': 'plotly', 'payload': plot.to_json()},
-            {'type': 'images', 'payload': ['Base64String']},
             {
                 'type': 'dataframe', 
                 'payload': pd.DataFrame({'a': [1, 2], 'b': [1, 2]}).to_dict(orient='records')
             },
         ],
-        'conditions_results': pd.DataFrame({'a': [1, 2], 'b': [1, 2]}).to_json(),
         'header': 'header',
         'value': 5,
     })
 
     # Assert
-    assert_that(CheckResult.display_from_json(json_to_display), is_(None))
+    assert_that(isinstance(from_json(json_to_display), CheckResult))
 
 
 def test_check_result_show():
