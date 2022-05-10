@@ -2,10 +2,10 @@ Airflow
 =======
 
 .. note::
-    Download the full code example from the following link:
+    Download the full code example from the following
     `link <https://github.com/deepchecks/deepchecks/tree/main/examples/integrations/airflow>`__
 
-Apache Airflow is an open-source workflow management system. It is commmonly used to automate data processing,
+Apache Airflow is an open-source workflow management system. It is commonly used to automate data processing,
 data science, and data engineering pipelines.
 
 This tutorial demonstrates how deepchecks can be used with Apache Airflow. We will run a simple Airflow DAG that will
@@ -62,8 +62,8 @@ Defining the Data & Model Loading Tasks
         context["ti"].xcom_push(key="adult_model", value=os.path.join(data_path, "adult_model.joblib"))
 
 .. warning::
-    The dataset and the model is saved in the local filesystem for simplicity. For most use-cases,
-    it is recommended to save the data and the model in a S3/GCS bucket.
+    The dataset and the model are saved in the local filesystem for simplicity. For most use-cases,
+    it is recommended to save the data and the model in a S3/GCS/other intermediate storage.
 
 Defining the Integrity Report Task
 ----------------------------------
