@@ -129,7 +129,7 @@ every day.
 
     with DAG(
             dag_id="deepchecks_airflow_integration",
-            schedule_interval=None,
+            schedule_interval="@daily",
             default_args={
                 "owner": "airflow",
                 "retries": 1,
