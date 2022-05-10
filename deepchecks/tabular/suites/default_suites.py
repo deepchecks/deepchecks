@@ -38,7 +38,7 @@ from deepchecks.tabular.checks import (BoostingOverfit, CalibrationScore,
                                        TrainTestFeatureDrift,
                                        TrainTestLabelDrift,
                                        TrainTestSamplesMix, UnusedFeatures,
-                                       WholeDatasetDrift)
+                                       WholeDatasetDrift, OutlierSampleDetection)
 
 __all__ = ['single_dataset_integrity', 'train_test_leakage', 'train_test_validation',
            'model_evaluation', 'full_suite']
@@ -55,7 +55,8 @@ def single_dataset_integrity() -> Suite:
         DataDuplicates().add_condition_ratio_not_greater_than(),
         StringLengthOutOfBounds().add_condition_ratio_of_outliers_not_greater_than(),
         SpecialCharacters().add_condition_ratio_of_special_characters_not_grater_than(),
-        ConflictingLabels().add_condition_ratio_of_conflicting_labels_not_greater_than()
+        ConflictingLabels().add_condition_ratio_of_conflicting_labels_not_greater_than(),
+        OutlierSampleDetection()
     )
 
 

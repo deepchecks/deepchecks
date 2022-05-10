@@ -134,11 +134,11 @@ class OutlierSampleDetection(SingleDatasetCheck):
         dataset_outliers.insert(0, 'Outlier Probability Score', prob_vector[top_n_idx])
         dataset_outliers.sort_values('Outlier Probability Score', ascending=False, inplace=True)
         headnote = """<span>
-                        The Outlier Probability Score is calculated by the LoOP algorithm which measures the local deviation
-                        of density of a given sample with respect to its neighbors. These outlier scores are directly
-                        interpretable as a probability of an object being an outlier (see
-                        <a href="https://www.dbs.ifi.lmu.de/Publikationen/Papers/LoOP1649.pdf"
-                        target="_blank" rel="noopener noreferrer">link</a> for more information).<br><br>
+                    The Outlier Probability Score is calculated by the LoOP algorithm which measures the local deviation
+                    of density of a given sample with respect to its neighbors. These outlier scores are directly
+                    interpretable as a probability of an object being an outlier (see
+                    <a href="https://www.dbs.ifi.lmu.de/Publikationen/Papers/LoOP1649.pdf"
+                    target="_blank" rel="noopener noreferrer">link</a> for more information).<br><br>
                     </span>"""
 
         quantiles_vector = np.quantile(prob_vector, np.array(range(1000)) / 1000, interpolation='nearest')

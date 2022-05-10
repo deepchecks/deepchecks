@@ -92,7 +92,7 @@ def calculate_nearest_neighbours_distances(cat_data: pd.DataFrame, numeric_data:
     numeric_feature_ranges = np.nanmax(numeric_data, axis=0) - np.nanmin(numeric_data, axis=0)
     numeric_data = np.nan_to_num(numeric_data, nan=np.NINF)
 
-    for i in range(num_samples):
+    for i in range(num_samples):  # TODO: parallelize this loop
         dist_to_sample_i = _calculate_distances_to_sample(i, cat_data, numeric_data, numeric_feature_ranges,
                                                           num_features)
         # sort to find the closest samples (including self)
