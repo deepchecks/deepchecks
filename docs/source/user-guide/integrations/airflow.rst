@@ -13,7 +13,7 @@ evaluate the Adult dataset from the UCI Machine Learning Repository. The DAG wil
 :func:`~deepchecks.tabular.suites.single_dataset_integrity` and the :func:`~deepchecks.tabular.suites.model_evaluation`
 suites on the Adult data and a pre-trained model.
 
-.. image:: _static/airflow_dag.png
+.. image:: /_static/airflow_dag.png
    :alt: The DAG for this tutorial
    :align: center
 
