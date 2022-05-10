@@ -21,8 +21,6 @@ in `deepchecks.tabular.datasets`.
 
 .. code:: ipython3
 
-    import warnings
-    warnings.filterwarnings('ignore')
     from deepchecks.tabular.datasets.classification import adult
 
 .. code:: ipython3
@@ -35,7 +33,6 @@ dataset split.
 .. code:: ipython3
 
     import h2o
-    h2o.no_progress()
     h2o.init()
 
 
@@ -55,9 +52,7 @@ name of the label column.
 .. code:: ipython3
 
     feature_cols = adult._FEATURES
-    print(feature_cols)
     label_col = adult._target
-    print(label_col)
 
 
 .. code:: ipython3
