@@ -139,8 +139,7 @@ def test_drift_object_detection(coco_train_visiondata, coco_test_visiondata):
         'train': has_entries({'Brightness': close_to(0.062, 0.01)}),
         'test': has_entries({'Brightness': equal_to(0)}),
         'train-test difference': has_entries({'Brightness': close_to(0.062, 0.01)}),
-    })
-                )
+    }))
 
 
 def test_no_drift_classification_per_class(mnist_dataset_train):
@@ -191,6 +190,42 @@ def test_no_drift_object_detection_per_class(coco_train_visiondata):
                                    'test':  has_entries({'clock': equal_to(0)}),
                                    'train-test difference':  has_entries({'clock': equal_to(0)})}),
     }))
+
+
+def test_no_drift_object_detection_per_class_min_pps(coco_train_visiondata):
+    # Arrange
+    train, test = coco_train_visiondata, coco_train_visiondata
+    check = SimpleFeatureContribution(per_class=True, random_state=42, min_pps_to_show=2)
+
+    # Act
+    result = check.run(train, test)
+
+    # Assert
+    assert_that(result.value, has_entries({
+        'Brightness': has_entries({'train':  has_entries({'clock': equal_to(0)}),
+                                   'test':  has_entries({'clock': equal_to(0)}),
+                                   'train-test difference':  has_entries({'clock': equal_to(0)})}),
+    }))
+    assert_that(result.display, equal_to([]))
+
+
+def test_drift_object_detections_min_pps(coco_train_visiondata, coco_test_visiondata):
+    # Arrange
+    train, test = coco_train_visiondata, coco_test_visiondata
+    check = SimpleFeatureContribution(per_class=False, random_state=42, min_pps_to_show=2)
+    train = copy(train)
+    train.batch_to_images = get_coco_batch_to_images_with_bias(train.batch_to_labels)
+
+    # Act
+    result = check.run(train, test)
+
+    # Assert
+    assert_that(result.value, has_entries({
+        'train': has_entries({'Brightness': close_to(0.062, 0.01)}),
+        'test': has_entries({'Brightness': equal_to(0)}),
+        'train-test difference': has_entries({'Brightness': close_to(0.062, 0.01)}),
+    }))
+    assert_that(result.display, equal_to([]))
 
 
 def test_drift_object_detection_per_class(coco_train_visiondata, coco_test_visiondata):
