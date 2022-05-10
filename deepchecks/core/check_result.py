@@ -13,7 +13,7 @@
 import io
 import traceback
 import warnings
-from typing import TYPE_CHECKING, Any, Callable, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union
 
 import jsonpickle
 import jsonpickle.ext.pandas as jsonpickle_pd
@@ -34,13 +34,11 @@ from deepchecks.core.serialization.check_result.html import \
     CheckResultSerializer as CheckResultHtmlSerializer
 from deepchecks.core.serialization.check_result.json import \
     CheckResultSerializer as CheckResultJsonSerializer
-from deepchecks.core.serialization.check_result.json import display_from_json
 from deepchecks.core.serialization.check_result.widget import \
     CheckResultSerializer as CheckResultWidgetSerializer
 from deepchecks.utils.ipython import (is_colab_env, is_kaggle_env, is_notebook,
                                       is_widgets_use_possible)
-from deepchecks.utils.strings import (create_new_file_name, get_docs_summary,
-                                      widget_to_html)
+from deepchecks.utils.strings import create_new_file_name, widget_to_html
 from deepchecks.utils.wandb_utils import set_wandb_run_state
 
 # registers jsonpickle pandas extension for pandas support in the to_json function
@@ -58,7 +56,54 @@ TDisplayCallable = Callable[[], None]
 TDisplayItem = Union[str, pd.DataFrame, Styler, BaseFigure, TDisplayCallable]
 
 
-class CheckResult:
+class BaseCheckResult:
+    """Generic class for any check output, contains some basic functions."""
+
+    check: Optional['BaseCheck']
+    header: Optional[str]
+
+    @staticmethod
+    def from_json(json_dict: Union[str, Dict]) -> 'BaseCheckResult':
+        """Convert a json object that was returned from CheckResult.to_json or CheckFailure.to_json.
+
+        Parameters
+        ----------
+        json_data: Union[str, Dict]
+            Json data
+
+        Returns
+        -------
+        BaseCheckResult
+            A check output object.
+        """
+        from deepchecks.core.check_json import (CheckFailureJson,
+                                                CheckResultJson)
+
+        if isinstance(json_dict, str):
+            json_dict = jsonpickle.loads(json_dict)
+        check_type = json_dict['type']
+        if check_type == 'CheckFailure':
+            return CheckFailureJson(json_dict)
+        elif check_type == 'CheckResult':
+            return CheckResultJson(json_dict)
+        else:
+            raise ValueError('Excpected json object to be one of [CheckFailure, CheckResult] but recievied: ' + type)
+
+    def get_header(self) -> str:
+        """Return header for display. if header was defined return it, else extract name of check class."""
+        return self.header or self.check.name()
+
+    def get_metadata(self, with_doc_link: bool = False) -> Dict:
+        """Return the related check metadata."""
+        return {'header': self.get_header(), **self.check.metadata(with_doc_link=with_doc_link)}
+
+    def get_check_id(self, unique_id: str = '') -> str:
+        """Return check id (used for href)."""
+        header = self.get_header().replace(' ', '')
+        return f'{header}_{unique_id}'
+
+
+class CheckResult(BaseCheckResult):
     """Class which returns from a check with result that can later be used for automatic pipelines and display value.
 
     Class containing the result of a check
@@ -80,7 +125,6 @@ class CheckResult:
     header: Optional[str]
     display: List[TDisplayItem]
     conditions_results: List[ConditionResult]
-    check: 'BaseCheck'
 
     def __init__(
         self,
@@ -264,6 +308,7 @@ class CheckResult:
         Returned JSON string will have next structure:
 
         >>    class CheckResultMetadata(TypedDict):
+        >>        type: str
         >>        check: CheckMetadata
         >>        value: Any
         >>        header: str
@@ -271,7 +316,6 @@ class CheckResult:
         >>        display: List[Dict[str, Any]]
 
         >>    class CheckMetadata(TypedDict):
-        >>        type: str
         >>        name: str
         >>        params: Dict[Any, Any]
         >>        summary: str
@@ -288,21 +332,9 @@ class CheckResult:
         # TODO: not sure if the `with_display` parameter is needed
         # add deprecation warning if it is not needed
         return jsonpickle.dumps(
-            CheckResultJsonSerializer(self).serialize(),
+            CheckResultJsonSerializer(self).serialize(with_display=with_display),
             unpicklable=False
         )
-
-    @staticmethod
-    def display_from_json(json_data: str):
-        """Display the check result from a json received from a to_json."""
-        display_html(display_from_json(json_data), raw=True)
-
-    def _get_metadata(self, with_doc_link: bool = False):
-        check_name = self.check.name()
-        parameters = self.check.params(show_defaults=True)
-        header = self.get_header()
-        return {'name': check_name, 'params': parameters, 'header': header,
-                'summary': get_docs_summary(self.check, with_doc_link=with_doc_link)}
 
     def _ipython_display_(
         self,
@@ -338,15 +370,6 @@ class CheckResult:
     def __repr__(self):
         """Return default __repr__ function uses value."""
         return f'{self.get_header()}: {self.value}'
-
-    def get_header(self) -> str:
-        """Return header for display. if header was defined return it, else extract name of check class."""
-        return self.header or self.check.name()
-
-    def get_check_id(self, unique_id: str = '') -> str:
-        """Return check id (used for href)."""
-        header = self.get_header().replace(' ', '')
-        return f'{header}_{unique_id}'
 
     def process_conditions(self):
         """Process the conditions results from current result and check."""
@@ -426,7 +449,7 @@ class CheckResult:
             )
 
 
-class CheckFailure:
+class CheckFailure(BaseCheckResult):
     """Class which holds a check run exception.
 
     Parameters
@@ -508,12 +531,6 @@ class CheckFailure:
             wandb.log(WandbSerializer(self).serialize())
             if dedicated_run:
                 wandb.finish()
-
-    def _get_metadata(self, with_doc_link: bool = False):
-        check_name = self.check.name()
-        parameters = self.check.params(True)
-        summary = get_docs_summary(self.check, with_doc_link=with_doc_link)
-        return {'name': check_name, 'params': parameters, 'header': self.header, 'summary': summary}
 
     def __repr__(self):
         """Return string representation."""

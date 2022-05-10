@@ -55,4 +55,4 @@ class SuiteResultSerializer(JsonSerializer['suite.SuiteResult']):
             else:
                 raise TypeError(f'Unknown result type - {type(it)}')
 
-        return {'name': self.value.name, 'results': results}
+        return {'name': self.value.name, 'results': results, 'type' : 'SuiteResult'}

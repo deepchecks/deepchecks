@@ -9,9 +9,10 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing html serializer for the CheckFailuer type."""
+from typing import Optional
+
 from deepchecks.core import check_result as check_types
 from deepchecks.core.serialization.abc import HtmlSerializer
-from deepchecks.utils.strings import get_docs_summary
 
 __all__ = ['CheckFailureSerializer']
 
@@ -45,18 +46,20 @@ class CheckFailureSerializer(HtmlSerializer['check_types.CheckFailure']):
             self.prepare_error_message()
         ])
 
-    def prepare_header(self) -> str:
+    def prepare_header(self, output_id: Optional[str] = None) -> str:
         """Prepare the header section of the html output."""
-        return f'<h4>{self.value.header}</h4>'
+        header = self.value.get_header()
+        header = f'<b>{header}</b>'
+        if output_id is not None:
+            check_id = self.value.get_check_id(output_id)
+            return f'<h4 id="{check_id}">{header}</h4>'
+        else:
+            return f'<h4>{header}</h4>'
 
     def prepare_summary(self) -> str:
         """Prepare the summary section of the html output."""
-        return (
-            f'<p>{get_docs_summary(self.value.check)}</p>'
-            if hasattr(self.value.check, '__doc__')
-            else ''
-        )
+        return f'<p>{self.value.get_metadata()["summary"]}</p>'
 
     def prepare_error_message(self) -> str:
         """Prepare the error message of the html output."""
-        return f'<p style="color:red"> {self.value.exception}</p>'
+        return f'<p style="color:red">{self.value.exception}</p>'
