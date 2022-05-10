@@ -24,7 +24,7 @@ from deepchecks.vision.checks import (ClassPerformance, ConfusionMatrixReport,
                                       MeanAverageRecallReport,
                                       ModelErrorAnalysis, NewLabels,
                                       SimilarImageLeakage,
-                                      SimpleFeatureContribution,
+                                      SingleFeatureContribution,
                                       SimpleModelComparison,
                                       TrainTestLabelDrift,
                                       TrainTestPredictionDrift)
@@ -43,7 +43,7 @@ def train_test_validation(**kwargs) -> Suite:
         TrainTestPredictionDrift(**kwargs).add_condition_drift_score_not_greater_than(),
         ImagePropertyDrift(**kwargs).add_condition_drift_score_not_greater_than(),
         ImageDatasetDrift(**kwargs),
-        SimpleFeatureContribution(**kwargs).add_condition_feature_pps_difference_not_greater_than(),
+        SingleFeatureContribution(**kwargs).add_condition_feature_pps_difference_not_greater_than(),
         NewLabels(**kwargs).add_condition_new_label_ratio_not_greater_than()
     )
 
