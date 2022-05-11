@@ -345,7 +345,7 @@ DeepIterable = t.Iterable[t.Union[T, 'DeepIterable[T]']]
 
 
 def flatten(l: DeepIterable[T]) -> t.Iterable[T]:
-    """Flatten nested terables."""
+    """Flatten nested iterables."""
     for it in l:
         if isinstance(it, (list, tuple, set, t.Generator, t.Iterator)):
             yield from flatten(it)
