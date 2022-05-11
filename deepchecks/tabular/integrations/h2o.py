@@ -41,5 +41,5 @@ class H2OWrapper:
         """Return the feature importances based on h2o internal calculation."""
         try:
             return self.model.varimp(use_pandas=True)['percentage'].values
-        except:
+        except: # pylint: disable=bare-except # noqa
             return None
