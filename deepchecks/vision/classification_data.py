@@ -31,7 +31,7 @@ class ClassificationData(VisionData):
 
     @property
     def task_type(self) -> TaskType:
-        """Return the task type."""
+        """Return the task type (classification)."""
         return TaskType.CLASSIFICATION
 
     @abstractmethod
