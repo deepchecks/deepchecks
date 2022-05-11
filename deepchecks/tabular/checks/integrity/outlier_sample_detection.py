@@ -20,7 +20,8 @@ from PyNomaly import loop
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import (DeepchecksProcessError,
                                     DeepchecksTimeoutError,
-                                    DeepchecksValueError)
+                                    DeepchecksValueError,
+                                    NotEnoughSamplesError)
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils import gower_distance
 from deepchecks.utils.dataframes import select_from_dataframe
@@ -30,6 +31,8 @@ from deepchecks.utils.typing import Hashable
 
 __all__ = ['OutlierSampleDetection']
 logger = logging.getLogger('deepchecks')
+DATASET_TIME_EVALUATION_SIZE = 100
+MINIMUM_NUM_NEAREST_NEIGHBORS = 5
 
 
 class OutlierSampleDetection(SingleDatasetCheck):
@@ -102,11 +105,16 @@ class OutlierSampleDetection(SingleDatasetCheck):
             dataset = context.test
         dataset = dataset.sample(self.n_samples, random_state=self.random_state, drop_na_label=True)
         df = select_from_dataframe(dataset.data, self.columns, self.ignore_columns)
-        num_neighbours = min(max(int(self.nearest_neighbors_percent * df.shape[0]), 5), df.shape[0] - 1)
+        num_neighbours = int(max(self.nearest_neighbors_percent * df.shape[0], MINIMUM_NUM_NEAREST_NEIGHBORS))
+        if df.shape[0] < 1 / self.nearest_neighbors_percent:
+            raise NotEnoughSamplesError(
+                f'There are not enough samples to run this check, found only {format_number(df.shape[0])} samples.')
 
         start_time = time.time()
         gower_distance.calculate_nearest_neighbours_distances(
-            df[dataset.cat_features].iloc[:100], df[dataset.numerical_features].iloc[:100], min(10, num_neighbours))
+            cat_data=df[dataset.cat_features].iloc[:DATASET_TIME_EVALUATION_SIZE],
+            numeric_data=df[dataset.numerical_features].iloc[:DATASET_TIME_EVALUATION_SIZE],
+            num_neighbours=int(min(np.sqrt(DATASET_TIME_EVALUATION_SIZE), num_neighbours)))
         predicted_time_to_run_in_seconds = ((time.time() - start_time) / 130000) * (df.shape[0] ** 2)
         if predicted_time_to_run_in_seconds > self.timeout > 0:
             raise DeepchecksTimeoutError(
@@ -141,7 +149,7 @@ class OutlierSampleDetection(SingleDatasetCheck):
                     target="_blank" rel="noopener noreferrer">link</a> for more information).<br><br>
                     </span>"""
 
-        quantiles_vector = np.quantile(prob_vector, np.array(range(1000)) / 1000, interpolation='nearest')
+        quantiles_vector = np.quantile(prob_vector, np.array(range(1000)) / 1000, interpolation='higher')
         return CheckResult(quantiles_vector, display=[headnote, dataset_outliers])
 
     def add_condition_outlier_ratio_not_greater_than(self, max_outliers_ratio: float = 0.005,

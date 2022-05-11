@@ -40,7 +40,7 @@ def test_condition_with_argument():
     data = {'col1': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1000]}
     dataset = Dataset(pd.DataFrame(data=data), cat_features=[])
     # Act
-    check = OutlierSampleDetection().add_condition_outlier_ratio_not_greater_than(0.1)
+    check = OutlierSampleDetection(nearest_neighbors_percent=0.2).add_condition_outlier_ratio_not_greater_than(0.1)
     result = check.conditions_decision(check.run(dataset))
     # Assert
     assert_that(result, has_items(
@@ -54,7 +54,7 @@ def test_condition_without_argument():
     data = {'col1': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]}
     dataset = Dataset(pd.DataFrame(data=data), cat_features=[])
     # Act
-    check = OutlierSampleDetection().add_condition_no_outliers()
+    check = OutlierSampleDetection(nearest_neighbors_percent=0.2).add_condition_no_outliers()
     result = check.conditions_decision(check.run(dataset))
     # Assert
     assert_that(result, has_items(
