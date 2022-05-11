@@ -109,7 +109,11 @@ def is_widgets_use_possible() -> bool:
     # NOTE:
     # - google colab has no support for widgets but good support for viewing html pages in the output
     # - can't display plotly widgets in kaggle notebooks
-    return is_widgets_enabled() and not is_colab_env() and not is_kaggle_env()
+    return (
+        is_widgets_enabled() 
+        and not is_colab_env() 
+        and not is_kaggle_env()
+    )
 
 
 class ProgressBar:

@@ -31,16 +31,22 @@ from deepchecks.core.serialization.check_failure.html import \
     CheckFailureSerializer as CheckFailureHtmlSerializer
 from deepchecks.core.serialization.check_failure.json import \
     CheckFailureSerializer as CheckFailureJsonSerializer
+from deepchecks.core.serialization.check_failure.widget import \
+    CheckFailureSerializer as CheckFailureWidgetSerializer
 from deepchecks.core.serialization.check_result.html import \
     CheckResultSerializer as CheckResultHtmlSerializer
 from deepchecks.core.serialization.check_result.json import \
     CheckResultSerializer as CheckResultJsonSerializer
 from deepchecks.core.serialization.check_result.widget import \
     CheckResultSerializer as CheckResultWidgetSerializer
-from deepchecks.utils.ipython import is_notebook, is_widgets_use_possible
+from deepchecks.utils.ipython import (
+    is_notebook, 
+    is_widgets_use_possible, 
+    is_colab_env, 
+    is_kaggle_env, 
+    is_widgets_enabled)
 from deepchecks.utils.strings import (create_new_file_name, get_docs_summary,
-                                      get_random_string, widget_to_html,
-                                      widget_to_html_string)
+                                      widget_to_html, widget_to_html_string)
 from deepchecks.utils.wandb_utils import set_wandb_run_state
 
 from .condition import ConditionCategory, ConditionResult
@@ -232,7 +238,7 @@ class CheckResult(BaseCheckResult):
     def display_check(
         self,
         unique_id: Optional[str] = None,
-        as_widget: bool = False,
+        as_widget: bool = True,
         show_additional_outputs: bool = True,
     ) -> Optional[Widget]:
         """Display the check result or return the display as widget.
@@ -251,17 +257,35 @@ class CheckResult(BaseCheckResult):
         Widget
             Widget representation of the display if as_widget is True.
         """
-        if as_widget is True:
+        check_sections = (
+            ['condition-table', 'additional-output']
+            if show_additional_outputs
+            else ['condition-table']
+        )
+        
+        if is_colab_env() and as_widget:
+            display_html(
+                widget_to_html_string(
+                    self.to_widget(
+                        unique_id=unique_id,
+                        show_additional_outputs=show_additional_outputs
+                    ),
+                    title=self.get_header(),
+                    requirejs=True
+                ),
+                raw=True
+            )
+        elif is_widgets_enabled() and as_widget:
             return self.to_widget(
                 unique_id=unique_id,
                 show_additional_outputs=show_additional_outputs
             )
         else:
-            check_sections = (
-                ['condition-table', 'additional-output']
-                if show_additional_outputs
-                else ['condition-table']
-            )
+            if as_widget:
+                warnings.warn(
+                    'Widgets are not enable (or not supported) '
+                    'and cannot be used.'
+                )
             display(*CheckResultIPythonSerializer(self).serialize(
                 output_id=unique_id,
                 check_sections=check_sections  # type: ignore
@@ -272,6 +296,7 @@ class CheckResult(BaseCheckResult):
         file: Union[str, io.TextIOWrapper, None] = None,
         unique_id: Optional[str] = None,
         show_additional_outputs: bool = True,
+        as_widget: bool = True,
         requirejs: bool = True
     ):
         """Save output as html file.
@@ -280,24 +305,84 @@ class CheckResult(BaseCheckResult):
         ----------
         file : filename or file-like object
             The file to write the HTML output to. If None writes to output.html
+        as_widget : bool, default True
+            whether to use ipywidgets or not
         requirejs: bool , default: True
-            If to save with all javascript dependencies
+            whether to include requirejs library into output HTML or not
         """
         if file is None:
             file = 'output.html'
         if isinstance(file, str):
             file = create_new_file_name(file)
 
-        widget_to_html(
-            self.to_widget(
-                unique_id=unique_id or get_random_string(n=25),
-                show_additional_outputs=show_additional_outputs,
-            ),
-            html_out=file,
-            title=self.get_header(),
-            requirejs=requirejs
-        )
+        if as_widget is True:
+            widget_to_html(
+                self.to_widget(
+                    unique_id=unique_id,
+                    show_additional_outputs=show_additional_outputs,
+                ),
+                html_out=file,
+                title=self.get_header(),
+                requirejs=requirejs
+            )
+        else:
+            html = CheckResultHtmlSerializer(self).serialize(
+                output_id=unique_id,
+                full_html=True,
+                include_requirejs=requirejs,
+                include_plotlyjs=True
+            )
+            if isinstance(file, str):
+                with open(file, 'w', encoding='utf-8') as f:
+                    f.write(html)
+            elif isinstance(file, io.StringIO):
+                file.write(html)
+            else:
+                TypeError(f'Unsupported type of "file" parameter - {type(file)}')
     
+    def show(
+        self, 
+        show_additional_outputs: bool = True, 
+        unique_id: Optional[str] = None
+    ):
+        """Display the check result.
+
+        Parameters
+        ----------
+        show_additional_outputs : bool
+            Boolean that controls if to show additional outputs.
+        unique_id : str
+            The unique id given by the suite that displays the check.
+        """
+        if is_notebook():
+            widget = self.display_check(
+                unique_id=unique_id,
+                show_additional_outputs=show_additional_outputs
+            )
+            if widget is not None:
+                display_html(widget)
+        elif 'sphinx_gallery' in pio.renderers.default:
+            html = widget_to_html_string(
+                self.to_widget(
+                    unique_id=unique_id,
+                    show_additional_outputs=show_additional_outputs
+                ),
+                title=self.get_header(),
+                requirejs=True
+            )
+
+            class TempSphinx:
+                def _repr_html_(self):
+                    return html
+
+            return TempSphinx()
+        else:
+            warnings.warn(
+                'You are running in a non-interactive python shell. '
+                'In order to show result you have to use '
+                'an IPython shell (etc Jupyter)'
+            )
+
     def to_widget(
         self,
         unique_id: Optional[str] = None,
@@ -347,9 +432,7 @@ class CheckResult(BaseCheckResult):
         # doing import within method to prevent premature ImportError
         try:
             import wandb
-
-            from .serialization.check_result.wandb import \
-                CheckResultSerializer as WandbSerializer
+            from .serialization.check_result.wandb import CheckResultSerializer as WandbSerializer
         except ImportError as error:
             raise ImportError(
                 'Wandb serializer requires the wandb python package. '
@@ -397,43 +480,6 @@ class CheckResult(BaseCheckResult):
             unpicklable=False
         )
 
-    def show(self, show_additional_outputs=True, unique_id=None):
-        """Display the check result.
-
-        Parameters
-        ----------
-        show_additional_outputs : bool
-            Boolean that controls if to show additional outputs.
-        unique_id : str
-            The unique id given by the suite that displays the check.
-        """
-        if is_notebook():
-            self.display_check(
-                unique_id=unique_id,
-                show_additional_outputs=show_additional_outputs
-            )
-        elif 'sphinx_gallery' in pio.renderers.default:
-            html = widget_to_html_string(
-                self.to_widget(
-                    unique_id=unique_id,
-                    show_additional_outputs=show_additional_outputs
-                ),
-                title=self.get_header(),
-                requirejs=True
-            )
-
-            class TempSphinx:
-                def _repr_html_(self):
-                    return html
-
-            return TempSphinx()
-        else:
-            warnings.warn(
-                'You are running in a non-interactive python shell. '
-                'In order to show result you have to use '
-                'an IPython shell (etc Jupyter)'
-            )
-    
     def __repr__(self):
         """Return default __repr__ function uses value."""
         return f'{self.get_header()}: {self.value}'
@@ -452,7 +498,7 @@ class CheckResult(BaseCheckResult):
             else ['condition-table']
         )
         return CheckResultHtmlSerializer(self).serialize(
-            output_id=unique_id or get_random_string(n=25),
+            output_id=unique_id,
             include_plotlyjs=True,
             include_requirejs=requirejs,
             check_sections=check_sections  # type: ignore
@@ -473,21 +519,13 @@ class CheckResult(BaseCheckResult):
         as_widget: bool = True,
         show_additional_outputs: bool = True
     ):
-        check_sections = (
-            ['condition-table', 'additional-output']
-            if show_additional_outputs
-            else ['condition-table']
+        widget = self.display_check(
+            unique_id=unique_id,
+            as_widget=as_widget,
+            show_additional_outputs=show_additional_outputs
         )
-        if is_widgets_use_possible() and as_widget:
-            display_html(CheckResultWidgetSerializer(self).serialize(
-                output_id=unique_id or get_random_string(n=25),
-                check_sections=check_sections  # type: ignore
-            ))
-        else:
-            display(*CheckResultIPythonSerializer(self).serialize(
-                output_id=unique_id or get_random_string(n=25),
-                check_sections=check_sections  # type: ignore
-            ))
+        if widget is not None:
+            display_html(widget)
 
 
 class CheckFailure(BaseCheckResult):
@@ -512,6 +550,105 @@ class CheckFailure(BaseCheckResult):
         parameters = self.check.params(True)
         summary = get_docs_summary(self.check, with_doc_link=with_doc_link)
         return {'name': check_name, 'params': parameters, 'header': self.header, 'summary': summary}
+    
+    def display_check(self, as_widget: bool = True) -> Optional[Widget]:
+        """Display the check failure or return the display as widget.
+
+        Parameters
+        ----------
+        as_widget : bool
+            Boolean that controls if to display the check regulary or if to return a widget.
+
+        Returns
+        -------
+        Widget
+            Widget representation of the display if as_widget is True.
+        """
+        is_colab = is_colab_env()
+        
+        if is_colab and as_widget:
+            display_html(
+                widget_to_html_string(
+                    self.to_widget(),
+                    title=self.get_header(),
+                    requirejs=True
+                ),
+                raw=True
+            )
+        elif is_widgets_enabled() and as_widget:
+            return self.to_widget()
+        else:
+            display(*CheckFailureIPythonSerializer(self).serialize())
+
+    def save_as_html(
+        self,
+        file: Union[str, io.TextIOWrapper, None] = None,
+        as_widget: bool = True,
+        requirejs: bool = True
+    ):
+        """Save output as html file.
+
+        Parameters
+        ----------
+        file : filename or file-like object
+            The file to write the HTML output to. If None writes to output.html
+        as_widget : bool, default True
+            whether to use ipywidgets or not
+        requirejs: bool , default: True
+            whether to include requirejs library into output HTML or not
+        """
+        if file is None:
+            file = 'output.html'
+        if isinstance(file, str):
+            file = create_new_file_name(file)
+
+        if as_widget is True:
+            widget_to_html(
+                self.to_widget(),
+                html_out=file,
+                title=self.get_header(),
+                requirejs=requirejs
+            )
+        else:
+            html = CheckFailureHtmlSerializer(self).serialize(
+                full_html=True,
+                include_requirejs=requirejs,
+                include_plotlyjs=True
+            )
+            if isinstance(file, str):
+                with open(file, 'w', encoding='utf-8') as f:
+                    f.write(html)
+            elif isinstance(file, io.StringIO):
+                file.write(html)
+            else:
+                TypeError(f'Unsupported type of "file" parameter - {type(file)}')
+
+    def show(self):
+        """Display the check failure."""
+        if is_notebook():
+            self.display_check()
+        elif 'sphinx_gallery' in pio.renderers.default:
+            html = widget_to_html_string(
+                self.to_widget(),
+                title=self.get_header(),
+                requirejs=True
+            )
+
+            class TempSphinx:
+                def _repr_html_(self):
+                    return html
+
+            return TempSphinx()
+        else:
+            warnings.warn(
+                'You are running in a non-interactive python shell. '
+                'In order to show result you have to use '
+                'an IPython shell (etc Jupyter)'
+            )
+    
+    def to_widget(self) -> Widget:
+        """Return CheckFailure as a ipywidgets.Widget instance."""
+        return CheckFailureWidgetSerializer(self).serialize()
 
     def to_json(self, with_display: bool = True):
         """Return check failure as json.
@@ -562,9 +699,7 @@ class CheckFailure(BaseCheckResult):
         # doing import within method to prevent premature ImportError
         try:
             import wandb
-
-            from .serialization.check_failure.wandb import \
-                CheckFailureSerializer as WandbSerializer
+            from .serialization.check_failure.wandb import CheckFailureSerializer as WandbSerializer
         except ImportError as error:
             raise ImportError(
                 'Wandb serializer requires the wandb python package. '
@@ -590,7 +725,7 @@ class CheckFailure(BaseCheckResult):
     def _repr_json_(self):
         return CheckFailureJsonSerializer(self).serialize()
     
-    def _repr_mimebundle_(self):
+    def _repr_mimebundle_(self, **kwargs):
         return {
             'text/html': self._repr_html_(),
             'application/json': self._repr_json_()
