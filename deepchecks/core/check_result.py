@@ -41,8 +41,8 @@ from deepchecks.core.serialization.check_result.widget import \
     CheckResultSerializer as CheckResultWidgetSerializer
 from deepchecks.utils.ipython import (is_colab_env, is_notebook,
                                       is_widgets_enabled)
-from deepchecks.utils.strings import (create_new_file_name, get_docs_summary,
-                                      widget_to_html, widget_to_html_string)
+from deepchecks.utils.strings import (create_new_file_name, widget_to_html,
+                                      widget_to_html_string)
 from deepchecks.utils.wandb_utils import set_wandb_run_state
 
 from .serialization.check_failure.ipython import \
@@ -158,22 +158,6 @@ class CheckResult(BaseCheckResult):
         for item in self.display:
             if not isinstance(item, (str, pd.DataFrame, Styler, Callable, BaseFigure)):
                 raise DeepchecksValueError(f'Can\'t display item of type: {type(item)}')
-
-    def _get_metadata(self, with_doc_link: bool = False):
-        check_name = self.check.name()
-        parameters = self.check.params(show_defaults=True)
-        header = self.get_header()
-        return {'name': check_name, 'params': parameters, 'header': header,
-                'summary': get_docs_summary(self.check, with_doc_link=with_doc_link)}
-
-    def get_header(self) -> str:
-        """Return header for display. if header was defined return it, else extract name of check class."""
-        return self.header or self.check.name()
-
-    def get_check_id(self, unique_id: str = '') -> str:
-        """Return check id (used for href)."""
-        header = self.get_header().replace(' ', '')
-        return f'{header}_{unique_id}'
 
     def process_conditions(self):
         """Process the conditions results from current result and check."""
@@ -529,13 +513,6 @@ class CheckFailure(BaseCheckResult):
         self.check = check
         self.exception = exception
         self.header = check.name() + header_suffix
-
-    def _get_metadata(self, with_doc_link: bool = False):
-        assert self.check is not None
-        check_name = self.check.name()
-        parameters = self.check.params(True)
-        summary = get_docs_summary(self.check, with_doc_link=with_doc_link)
-        return {'name': check_name, 'params': parameters, 'header': self.header, 'summary': summary}
 
     def display_check(self, as_widget: bool = True) -> Optional[Widget]:
         """Display the check failure or return the display as widget.
