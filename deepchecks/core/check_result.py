@@ -38,7 +38,8 @@ from deepchecks.core.serialization.check_result.widget import \
     CheckResultSerializer as CheckResultWidgetSerializer
 from deepchecks.utils.ipython import (is_colab_env, is_kaggle_env, is_notebook,
                                       is_widgets_use_possible)
-from deepchecks.utils.strings import create_new_file_name, widget_to_html
+from deepchecks.utils.strings import (create_new_file_name, get_random_string,
+                                      widget_to_html)
 from deepchecks.utils.wandb_utils import set_wandb_run_state
 
 # registers jsonpickle pandas extension for pandas support in the to_json function
@@ -237,6 +238,7 @@ class CheckResult(BaseCheckResult):
         file: Union[str, io.TextIOWrapper, None] = None,
         unique_id: Optional[str] = None,
         show_additional_outputs: bool = True,
+        as_widget: bool = True,
         requirejs: bool = True
     ):
         """Save output as html file.
@@ -245,23 +247,42 @@ class CheckResult(BaseCheckResult):
         ----------
         file : filename or file-like object
             The file to write the HTML output to. If None writes to output.html
+        as_widget : bool, default True
+            whether to use ipywidgets or not
         requirejs: bool , default: True
-            If to save with all javascript dependencies
+            whether to include requirejs library into output HTML or not
         """
+        output_id = get_random_string()
+
         if file is None:
             file = 'output.html'
         if isinstance(file, str):
             file = create_new_file_name(file)
 
-        widget_to_html(
-            self.to_widget(
-                unique_id=unique_id,
-                show_additional_outputs=show_additional_outputs,
-            ),
-            html_out=file,
-            title=self.get_header(),
-            requirejs=requirejs
-        )
+        if as_widget is True:
+            widget_to_html(
+                self.to_widget(
+                    unique_id=unique_id,
+                    show_additional_outputs=show_additional_outputs,
+                ),
+                html_out=file,
+                title=self.get_header(),
+                requirejs=requirejs
+            )
+        else:
+            html = CheckResultHtmlSerializer(self).serialize(
+                output_id=output_id,
+                full_html=True,
+                include_requirejs=requirejs,
+                include_plotlyjs=True
+            )
+            if isinstance(file, str):
+                with open(file, 'w', encoding='utf-8') as f:
+                    f.write(html)
+            elif isinstance(file, io.StringIO):
+                file.write(html)
+            else:
+                TypeError(f'Unsupported type of "file" parameter - {type(file)}')
 
     def to_wandb(
         self,

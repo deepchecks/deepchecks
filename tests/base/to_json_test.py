@@ -11,8 +11,8 @@
 """to json tests"""
 import jsonpickle
 from hamcrest import assert_that, equal_to
-from deepchecks.core.suite import SuiteResult
 
+from deepchecks.core.suite import SuiteResult
 from deepchecks.tabular.checks import ColumnsInfo
 from deepchecks.tabular.suites import full_suite
 
