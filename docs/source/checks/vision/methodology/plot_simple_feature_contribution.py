@@ -110,7 +110,6 @@ or the following blog post: `RIP correlation. Introducing the Predictive Power S
 
 import numpy as np
 
-from deepchecks.vision import VisionData
 from deepchecks.vision.checks import SimpleFeatureContribution
 from deepchecks.vision.datasets.classification.mnist import load_dataset
 
