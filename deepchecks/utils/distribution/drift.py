@@ -15,7 +15,7 @@ from typing import Callable, Hashable, Optional, Tuple, Union
 import numpy as np
 import pandas as pd
 from plotly.subplots import make_subplots
-from scipy.stats import wasserstein_distance
+from scipy.stats import wasserstein_distance, chi2_contingency
 
 from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
 from deepchecks.utils.distribution.plot import (drift_score_bar_traces,
@@ -27,6 +27,39 @@ from deepchecks.utils.strings import format_percent
 PSI_MIN_PERCENTAGE = 0.01
 
 __all__ = ['calc_drift_and_plot']
+
+
+def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series]) -> float:
+    """Calculate the Cramer's V statistic.
+
+    For more on Cramer's V, see https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V
+    Uses the Cramer's V bias correction, see http://stats.lse.ac.uk/bergsma/pdf/cramerV3.pdf
+
+    Function is for categorical data only.
+
+    Parameters
+    ----------
+    dist1 : Union[np.ndarray, pd.Series]
+        array of numberical values.
+    dist2 : Union[np.ndarray, pd.Series]
+        array of numberical values to compare dist1 to.
+    Returns
+    -------
+    float
+        the bias-corrected Cramer's V value of the 2 distributions.
+
+    """
+    dist1_counts, dist2_counts, _ = preprocess_2_cat_cols_to_same_bins(dist1=dist1, dist2=dist2)
+    contingency_matrix = pd.DataFrame([dist1_counts, dist2_counts])
+
+    chi2 = chi2_contingency(contingency_matrix)[0]
+    n = contingency_matrix.sum().sum()
+    phi2 = chi2/n
+    r, k = contingency_matrix.shape
+    phi2corr = max(0, phi2 - ((k-1)*(r-1))/(n-1))
+    rcorr = r - ((r-1)**2)/(n-1)
+    kcorr = k - ((k-1)**2)/(n-1)
+    return np.sqrt(phi2corr / min((kcorr-1), (rcorr-1)))
 
 
 def psi(expected_percents: np.ndarray, actual_percents: np.ndarray):
