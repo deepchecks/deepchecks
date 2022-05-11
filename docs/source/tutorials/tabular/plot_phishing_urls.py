@@ -156,7 +156,7 @@ integ_suite = single_dataset_integrity()
 # the package a bit more context, namely what is the label column, and whether
 # we have a datetime column (we have, as an index, so we'll set
 # ``set_datetime_from_dataframe_index=True``), or any categorical features (we have
-# none after one-hot encoding them, so we'll set ``cate_features=[]`` explicitly).
+# none after one-hot encoding them, so we'll set ``cat_features=[]`` explicitly).
 
 dataset = deepchecks.tabular.Dataset(df=df, label='target',
                                      set_datetime_from_dataframe_index=True, cat_features=[])
@@ -241,8 +241,8 @@ from deepchecks.tabular.suites import train_test_validation
 vsuite = train_test_validation()
 
 #%%
-# Now that we have separate train and test DataFrames, we create two ``deepchecks.tabular.Dataset`` objects to enable
-# this suite and the next one to run addressing the train and test dataframes according to their role. That here
+# Now that we have separate train and test DataFrames, we will create two ``deepchecks.tabular.Dataset`` objects to enable
+# this suite and the next one to run addressing the train and test dataframes according to their role. Notice that here
 # we pass the label as a column instead of a column name, because we've seperated the feature DataFrame from the target.
 
 ds_train = deepchecks.tabular.Dataset(df=train_X, label=train_y, set_datetime_from_dataframe_index=True,
