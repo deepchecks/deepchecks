@@ -36,17 +36,8 @@ from deepchecks.utils.strings import (create_new_file_name, get_random_string,
                                       widget_to_html, widget_to_html_string)
 from deepchecks.utils.wandb_utils import set_wandb_run_state
 
-from .check_result import CheckFailure, CheckResult
-from .checks import BaseCheck
-from .errors import DeepchecksValueError
-from .serialization.suite_result.html import \
-    SuiteResultSerializer as SuiteResultHtmlSerializer
 from .serialization.suite_result.ipython import \
     SuiteResultSerializer as SuiteResultIPythonSerializer
-from .serialization.suite_result.json import \
-    SuiteResultSerializer as SuiteResultJsonSerializer
-from .serialization.suite_result.widget import \
-    SuiteResultSerializer as SuiteResultWidgetSerializer
 
 __all__ = ['BaseSuite', 'SuiteResult']
 
@@ -104,7 +95,7 @@ class SuiteResult:
         return self.name
 
     def _repr_html_(
-        self, 
+        self,
         unique_id: Optional[str] = None,
         requirejs: bool = True,
     ) -> str:
@@ -183,7 +174,6 @@ class SuiteResult:
         requirejs: bool , default: True
             whether to include requirejs library into output HTML or not
         """
-
         if file is None:
             file = 'output.html'
         if isinstance(file, str):

@@ -345,6 +345,7 @@ DeepIterable = t.Iterable[t.Union[T, 'DeepIterable[T]']]
 
 
 def flatten(l: DeepIterable[T]) -> t.Iterable[T]:
+    """Flatten nested terables."""
     for it in l:
         if isinstance(it, (list, tuple, set, t.Generator, t.Iterator)):
             yield from flatten(it)
@@ -357,7 +358,7 @@ B = t.TypeVar('B')
 
 
 def join(l: t.List[A], item: B) -> t.Iterator[t.Union[A, B]]:
-    """Concatenate a list of items into one iterator and put 'item' between elements of the list."""
+    """Construct an iterator from list and put 'item' between each element of the list."""
     list_len = len(l) - 1
     for index, el in enumerate(l):
         yield el

@@ -15,12 +15,12 @@ import typing as t
 from bs4 import BeautifulSoup
 from hamcrest import (all_of, assert_that, calling, contains_exactly,
                       contains_string, equal_to, greater_than, has_entries,
-                      has_length, has_property, instance_of, matches_regexp,
-                      raises, starts_with, only_contains, has_item)
-from ipywidgets import HTML, Tab, VBox
-from wandb.sdk.data_types.base_types.wb_value import WBValue
-from plotly.basedatatypes import BaseFigure
+                      has_item, has_length, has_property, instance_of,
+                      matches_regexp, only_contains, raises, starts_with)
 from IPython.display import Image
+from ipywidgets import HTML, Tab, VBox
+from plotly.basedatatypes import BaseFigure
+from wandb.sdk.data_types.base_types.wb_value import WBValue
 
 from deepchecks.core.check_result import CheckFailure, CheckResult
 from deepchecks.core.serialization.common import (form_output_anchor,
@@ -41,7 +41,8 @@ from tests.serialization.test_check_failure_serialization import \
     assert_json_output as assert_check_failure_json_output
 from tests.serialization.test_check_result_serialization import \
     assert_json_output as assert_check_result_json_output
-from tests.serialization.utils import create_suite_result, instance_of_ipython_formatter
+from tests.serialization.utils import (create_suite_result,
+                                       instance_of_ipython_formatter)
 
 
 def test_html_serializer_initialization():

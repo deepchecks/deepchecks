@@ -189,10 +189,11 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
     @classmethod
     def handle_callable(cls, item, index, **kwargs):
         """Handle callable."""
-        # NOTE: 
-        # we are calling `handle_callable` method not from 'html.DisplayItemsHandler' 
-        # but from 'BaseDisplayItemsHandler' that returns list of byte streams
-        figures = super(html.DisplayItemsHandler, cls).handle_callable(
+        # NOTE:
+        # we are calling `handle_callable` method not from 'html.DisplayItemsHandler'
+        # but from 'abc.ABCDisplayItemsHandler' that returns list of byte streams
+        #
+        figures = super(html.DisplayItemsHandler, cls).handle_callable(  # pylint: disable=bad-super-call
             item, index, **kwargs
         )
         return [

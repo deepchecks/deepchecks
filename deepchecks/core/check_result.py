@@ -45,22 +45,10 @@ from deepchecks.utils.strings import (create_new_file_name, get_docs_summary,
                                       widget_to_html, widget_to_html_string)
 from deepchecks.utils.wandb_utils import set_wandb_run_state
 
-from .condition import ConditionCategory, ConditionResult
-from .errors import DeepchecksValueError
-from .serialization.check_failure.html import \
-    CheckFailureSerializer as CheckFailureHtmlSerializer
 from .serialization.check_failure.ipython import \
     CheckFailureSerializer as CheckFailureIPythonSerializer
-from .serialization.check_failure.json import \
-    CheckFailureSerializer as CheckFailureJsonSerializer
-from .serialization.check_result.html import \
-    CheckResultSerializer as CheckResultHtmlSerializer
 from .serialization.check_result.ipython import \
     CheckResultSerializer as CheckResultIPythonSerializer
-from .serialization.check_result.json import \
-    CheckResultSerializer as CheckResultJsonSerializer
-from .serialization.check_result.widget import \
-    CheckResultSerializer as CheckResultWidgetSerializer
 
 # registers jsonpickle pandas extension for pandas support in the to_json function
 jsonpickle_pd.register_handlers()
@@ -156,7 +144,7 @@ class CheckResult(BaseCheckResult):
         self,
         value,
         header: Optional[str] = None,
-        display: Optional[List[TDisplayItem]] = None
+        display: Optional[List[TDisplayItem]] = None  # pylint: disable=redefined-outer-name
     ):
         self.value = value
         self.header = header
