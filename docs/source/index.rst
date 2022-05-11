@@ -77,12 +77,6 @@ See the :doc:`When Should You Use </getting-started/when_should_you_use>` Sectio
 
     getting-started/index
 
-
-.. toctree::
-    :maxdepth: 3
-
-    auto_tutorials/index
-
 .. toctree::
     :maxdepth: 3
 

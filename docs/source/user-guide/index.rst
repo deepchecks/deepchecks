@@ -26,6 +26,8 @@ Tabular
 
     tabular/dataset_object
     tabular/supported_models
+    tabular/feature_importance
+    tabular/auto_tutorials/index
 
 Vision
 -------
@@ -36,6 +38,8 @@ Vision
 
     vision/data-classes/index
     vision/vision_properties
+    vision/auto_tutorials/index
+
 
 Integrations
 ------------
