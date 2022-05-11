@@ -30,17 +30,17 @@ from deepchecks.vision.utils.image_properties import (default_image_properties,
                                                       validate_properties)
 from deepchecks.vision.vision_data import TaskType
 
-__all__ = ['SingleFeatureContribution']
+__all__ = ['SimpleFeatureContribution']
 
 pps_url = 'https://docs.deepchecks.com/en/stable/examples/vision/' \
           'checks/methodology/simple_feature_contribution' \
           '.html?utm_source=display_output&utm_medium=referral&utm_campaign=check_link'
 pps_html = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
 
-SFC = TypeVar('SFC', bound='SingleFeatureContribution')
+SFC = TypeVar('SFC', bound='SimpleFeatureContribution')
 
 
-class SingleFeatureContribution(TrainTestCheck):
+class SimpleFeatureContribution(TrainTestCheck):
     """
     Return the Predictive Power Score of image properties, in order to estimate their ability to predict the label.
 
@@ -211,7 +211,7 @@ class SingleFeatureContribution(TrainTestCheck):
         if display:
             display += text
 
-        return CheckResult(value=ret_value, display=display, header='Single Feature Contribution')
+        return CheckResult(value=ret_value, display=display, header='Simple Feature Contribution')
 
     @staticmethod
     def is_float_column(col: pd.Series) -> bool:
