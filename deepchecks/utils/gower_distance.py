@@ -9,6 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Module for calculating distance matrix via Gower method."""
+import random
+import string
 
 import numpy as np
 import pandas as pd
@@ -86,7 +88,7 @@ def calculate_nearest_neighbours_distances(cat_data: pd.DataFrame, numeric_data:
     distances, indexes = np.zeros((num_samples, num_neighbours)), np.zeros((num_samples, num_neighbours))
     # handle categorical - transform to an ordinal numpy array
     enc = OrdinalEncoder()
-    cat_data = np.nan_to_num(enc.fit_transform(cat_data.fillna(value=np.nan)), nan=-1)
+    cat_data = enc.fit_transform(cat_data.fillna(value=''.join(random.choices(string.printable, k=16))))
     # handle numerical - calculate ranges per feature and fill numerical nan to minus np.inf
     numeric_data = np.asarray(numeric_data.fillna(value=np.nan))
     numeric_feature_ranges = np.nanmax(numeric_data, axis=0) - np.nanmin(numeric_data, axis=0)
