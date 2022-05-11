@@ -91,56 +91,56 @@ class WandbSerializer(Serializer[T], Protocol):
 
 
 @runtime_checkable
-class HTMLFormatter(t.Protocol):
+class HTMLFormatter(Protocol):
     """An HTML formatter."""
 
     def _repr_html_(self) -> t.Any: ...
 
 
 @runtime_checkable
-class MarkdownFormatter(t.Protocol):
+class MarkdownFormatter(Protocol):
     """A Markdown formatter."""
 
     def _repr_markdown_(self) -> t.Any: ...
 
 
 @runtime_checkable
-class JSONFormatter(t.Protocol):
+class JSONFormatter(Protocol):
     """A JSON formatter."""
 
     def _repr_json_(self) -> t.Any: ...
 
 
 @runtime_checkable
-class JPEGFormatter(t.Protocol):
+class JPEGFormatter(Protocol):
     """A JPEG formatter."""
 
     def _repr_jpeg_(self) -> t.Any: ...
 
 
 @runtime_checkable
-class PNGFormatter(t.Protocol):
+class PNGFormatter(Protocol):
     """A PNG formatter."""
 
     def _repr_png_(self) -> t.Any: ...
 
 
 @runtime_checkable
-class SVGFormatter(t.Protocol):
+class SVGFormatter(Protocol):
     """An SVG formatter."""
 
     def _repr_png_(self, **kwargs) -> t.Any: ...
 
 
 @runtime_checkable
-class IPythonDisplayFormatter(t.Protocol):
+class IPythonDisplayFormatter(Protocol):
     """An Formatter for objects that know how to display themselves."""
 
     def _ipython_display_(self, **kwargs) -> t.Any: ...
 
 
 @runtime_checkable
-class MimeBundleFormatter(t.Protocol):
+class MimeBundleFormatter(Protocol):
     """A Formatter for arbitrary mime-types."""
 
     def _repr_mimebundle_(self, **kwargs) -> t.Any: ...
