@@ -13,6 +13,6 @@ from .similar_image_leakage import SimilarImageLeakage
 from .simple_feature_contribution import SimpleFeatureContribution
 
 __all__ = [
-    'SingleFeatureContribution',
+    'SimpleFeatureContribution',
     'SimilarImageLeakage'
 ]
