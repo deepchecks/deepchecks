@@ -131,7 +131,7 @@ def test_iris_regular(iris_dataset):
     # Act
     result = OutlierSampleDetection(n_to_show=2).run(iris_dataset)
     # Assert
-    assert_that(result.value, has_item(greater_than(0.915)))
+    assert_that(result.value, has_item(greater_than(0.91)))
 
 
 def test_iris_modified(iris):

@@ -27,6 +27,7 @@ from deepchecks.tabular.checks import (BoostingOverfit, CalibrationScore,
                                        MixedDataTypes, MixedNulls,
                                        ModelErrorAnalysis, ModelInferenceTime,
                                        ModelInfo, NewLabelTrainTest,
+                                       OutlierSampleDetection,
                                        PerformanceReport,
                                        RegressionErrorDistribution,
                                        RegressionSystematicError, RocReport,
@@ -38,7 +39,7 @@ from deepchecks.tabular.checks import (BoostingOverfit, CalibrationScore,
                                        TrainTestFeatureDrift,
                                        TrainTestLabelDrift,
                                        TrainTestSamplesMix, UnusedFeatures,
-                                       WholeDatasetDrift, OutlierSampleDetection)
+                                       WholeDatasetDrift)
 
 __all__ = ['single_dataset_integrity', 'train_test_leakage', 'train_test_validation',
            'model_evaluation', 'full_suite']

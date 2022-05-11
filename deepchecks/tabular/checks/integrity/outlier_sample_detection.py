@@ -102,11 +102,11 @@ class OutlierSampleDetection(SingleDatasetCheck):
             dataset = context.test
         dataset = dataset.sample(self.n_samples, random_state=self.random_state, drop_na_label=True)
         df = select_from_dataframe(dataset.data, self.columns, self.ignore_columns)
-        num_neighbours = max(int(self.nearest_neighbors_percent * df.shape[0]), 5)
+        num_neighbours = min(max(int(self.nearest_neighbors_percent * df.shape[0]), 5), df.shape[0] - 1)
 
         start_time = time.time()
         gower_distance.calculate_nearest_neighbours_distances(
-            df[dataset.cat_features].iloc[:100], df[dataset.numerical_features].iloc[:100], 10)
+            df[dataset.cat_features].iloc[:100], df[dataset.numerical_features].iloc[:100], min(10, num_neighbours))
         predicted_time_to_run_in_seconds = ((time.time() - start_time) / 130000) * (df.shape[0] ** 2)
         if predicted_time_to_run_in_seconds > self.timeout > 0:
             raise DeepchecksTimeoutError(
