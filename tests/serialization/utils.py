@@ -15,11 +15,21 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import plotly.express as px
 import this
+from hamcrest import any_of, instance_of
 
 from deepchecks.core.check_result import CheckFailure, CheckResult
 from deepchecks.core.checks import BaseCheck
 from deepchecks.core.condition import ConditionCategory, ConditionResult
 from deepchecks.core.suite import SuiteResult
+from deepchecks.core.serialization.abc import (
+    HTMLFormatter,
+    MarkdownFormatter,
+    PNGFormatter,
+    JPEGFormatter,
+    JSONFormatter,
+    IPythonDisplayFormatter,
+    MimeBundleFormatter
+)
 
 
 class DummyCheck(BaseCheck):
@@ -87,3 +97,15 @@ def create_check_result(
 
     result.check = DummyCheck()
     return result
+
+
+def instance_of_ipython_formatter():
+    return any_of(
+        instance_of(HTMLFormatter),
+        instance_of(MarkdownFormatter),
+        instance_of(PNGFormatter),
+        instance_of(JPEGFormatter),
+        instance_of(JSONFormatter),
+        instance_of(IPythonDisplayFormatter),
+        instance_of(MimeBundleFormatter),
+    )

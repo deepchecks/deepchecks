@@ -90,44 +90,83 @@ class WandbSerializer(Serializer[T], Protocol):
         ...
 
 
-class HtmlDisplayable(t.Protocol):
+@runtime_checkable
+class HTMLFormatter(t.Protocol):
+    """An HTML formatter."""
+
     def _repr_html_(self) -> t.Any: ...
 
 
-class JsonDisplayable(t.Protocol):
+@runtime_checkable
+class MarkdownFormatter(t.Protocol):
+    """A Markdown formatter."""
+
+    def _repr_markdown_(self) -> t.Any: ...
+
+
+@runtime_checkable
+class JSONFormatter(t.Protocol):
+    """A JSON formatter."""
+
     def _repr_json_(self) -> t.Any: ...
 
 
-class JpegDisplayable(t.Protocol):
+@runtime_checkable
+class JPEGFormatter(t.Protocol):
+    """A JPEG formatter."""
+
     def _repr_jpeg_(self) -> t.Any: ...
 
 
-class PngDisplayable(t.Protocol):
+@runtime_checkable
+class PNGFormatter(t.Protocol):
+    """A PNG formatter."""
+
     def _repr_png_(self) -> t.Any: ...
 
 
-class SvgDisplayable(t.Protocol):
+@runtime_checkable
+class SVGFormatter(t.Protocol):
+    """An SVG formatter."""
+
     def _repr_png_(self, **kwargs) -> t.Any: ...
 
 
-class MimebundeDisplayable(t.Protocol):
+@runtime_checkable
+class IPythonDisplayFormatter(t.Protocol):
+    """An Formatter for objects that know how to display themselves."""
+
+    def _ipython_display_(self, **kwargs) -> t.Any: ...
+
+
+@runtime_checkable
+class MimeBundleFormatter(t.Protocol):
+    """A Formatter for arbitrary mime-types."""
+
     def _repr_mimebundle_(self, **kwargs) -> t.Any: ...
 
 
-IPythonDisplayable = t.Union[
-    HtmlDisplayable,
-    JsonDisplayable,
-    JpegDisplayable,
-    PngDisplayable,
-    SvgDisplayable,
-    MimebundeDisplayable
+# NOTE: For more info about IPython formatters API refer to the next documentation page:
+# - https://ipython.readthedocs.io/en/stable/api/generated/IPython.core.formatters.html
+
+
+IPythonFormatter = t.Union[
+    HTMLFormatter,
+    MarkdownFormatter,
+    JSONFormatter,
+    JPEGFormatter,
+    PNGFormatter,
+    SVGFormatter,
+    IPythonDisplayFormatter,
+    MimeBundleFormatter
 ]
 
 
+@runtime_checkable
 class IPythonSerializer(Serializer[T], Protocol):
-    """"""
+    """To IPython formatters list serializer."""
 
-    def serialize(self, **kwargs) -> t.List[IPythonDisplayable]:
+    def serialize(self, **kwargs) -> t.List[IPythonFormatter]:
         """Serialize into a list of objects that are Ipython displayable."""
         ...
 

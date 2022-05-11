@@ -30,8 +30,8 @@ from deepchecks.core.serialization.suite_result.json import \
     SuiteResultSerializer as SuiteResultJsonSerializer
 from deepchecks.core.serialization.suite_result.widget import \
     SuiteResultSerializer as SuiteResultWidgetSerializer
-from deepchecks.utils.ipython import (is_colab_env, is_kaggle_env, is_notebook,
-                                      is_widgets_use_possible, is_widgets_enabled)
+from deepchecks.utils.ipython import (is_colab_env, is_notebook,
+                                      is_widgets_enabled)
 from deepchecks.utils.strings import (create_new_file_name, get_random_string,
                                       widget_to_html, widget_to_html_string)
 from deepchecks.utils.wandb_utils import set_wandb_run_state
@@ -102,18 +102,22 @@ class SuiteResult:
     def __repr__(self):
         """Return default __repr__ function uses value."""
         return self.name
-    
-    def _repr_html_(self, requirejs: bool = False) -> str:
+
+    def _repr_html_(
+        self, 
+        unique_id: Optional[str] = None,
+        requirejs: bool = True,
+    ) -> str:
         """Return html representation of check result."""
         return SuiteResultHtmlSerializer(self).serialize(
             include_plotlyjs=True,
             include_requirejs=requirejs,
-            output_id=get_random_string(n=25)
+            output_id=unique_id or get_random_string(n=25)
         )
-    
+
     def _repr_json_(self):
         return SuiteResultJsonSerializer(self).serialize()
-    
+
     def _repr_mimebundle_(self, **kwargs):
         return {
             'text/html': self._repr_html_(),
@@ -121,7 +125,7 @@ class SuiteResult:
         }
 
     def _ipython_display_(
-        self, 
+        self,
         as_widget: bool = True,
         unique_id: Optional[str] = None
     ):
@@ -139,7 +143,7 @@ class SuiteResult:
         else:
             if as_widget:
                 warnings.warn(
-                    'Widgets are not enable (or not supported) '
+                    'Widgets are not enabled (or not supported) '
                     'and cannot be used.'
                 )
             display(*SuiteResultIPythonSerializer(self).serialize(
@@ -147,7 +151,7 @@ class SuiteResult:
             ))
 
     def show(
-        self, 
+        self,
         as_widget: bool = True,
         unique_id: Optional[str] = None
     ):

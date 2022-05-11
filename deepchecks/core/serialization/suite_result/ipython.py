@@ -8,23 +8,20 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module containing html serializer for the SuiteResult type."""
+"""Module containing SuiteResult serialization logic."""
 import typing as t
-import warnings
 
-import pandas as pd
 from IPython.display import HTML
 
 from deepchecks.core import check_result as check_types
-from deepchecks.core import errors, suite
-from deepchecks.core.serialization.abc import (IPythonDisplayable,
+from deepchecks.core import suite
+from deepchecks.core.serialization.abc import (IPythonFormatter,
                                                IPythonSerializer)
 from deepchecks.core.serialization.check_result.html import CheckResultSection
 from deepchecks.core.serialization.check_result.ipython import \
     CheckResultSerializer
-from deepchecks.core.serialization.common import (Html, aggregate_conditions,
-                                                  flatten, form_output_anchor,
-                                                  join)
+from deepchecks.core.serialization.common import (Html, flatten,
+                                                  form_output_anchor, join)
 
 from . import html
 
@@ -32,7 +29,7 @@ __all__ = ['SuiteResultSerializer']
 
 
 class SuiteResultSerializer(IPythonSerializer['suite.SuiteResult']):
-    """Serializes any SuiteResult instance into HTML format.
+    """Serializes any SuiteResult instance into a list of IPython formatters.
 
     Parameters
     ----------
@@ -52,8 +49,8 @@ class SuiteResultSerializer(IPythonSerializer['suite.SuiteResult']):
         self,
         output_id: t.Optional[str] = None,
         **kwargs,
-    ) -> t.List[IPythonDisplayable]:
-        """Serialize a SuiteResult instance into a list of IPython displayable objects.
+    ) -> t.List[IPythonFormatter]:
+        """Serialize a SuiteResult instance into a list of IPython formatters.
 
         Parameters
         ----------
@@ -62,7 +59,7 @@ class SuiteResultSerializer(IPythonSerializer['suite.SuiteResult']):
 
         Returns
         -------
-        List[IPythonDisplayable]
+        List[IPythonFormatter]
         """
         summary = self.prepare_summary(output_id=output_id, **kwargs)
         conditions_table = self.prepare_conditions_table(output_id=output_id, **kwargs)
@@ -111,7 +108,7 @@ class SuiteResultSerializer(IPythonSerializer['suite.SuiteResult']):
         HTML
         """
         return HTML(self._html_serializer.prepare_summary(
-            output_id=output_id, 
+            output_id=output_id,
             **kwargs
         ))
 
@@ -145,7 +142,7 @@ class SuiteResultSerializer(IPythonSerializer['suite.SuiteResult']):
         output_id: t.Optional[str] = None,
         check_sections: t.Optional[t.Sequence[CheckResultSection]] = None,
         **kwargs
-    ) -> t.List[IPythonDisplayable]:
+    ) -> t.List[IPythonFormatter]:
         """Prepare subsection of the content that shows results with conditions.
 
         Parameters
@@ -158,7 +155,7 @@ class SuiteResultSerializer(IPythonSerializer['suite.SuiteResult']):
 
         Returns
         -------
-        List[IPythonDisplayable]
+        List[IPythonFormatter]
         """
         results = t.cast(
             t.List[check_types.CheckResult],
@@ -175,7 +172,7 @@ class SuiteResultSerializer(IPythonSerializer['suite.SuiteResult']):
             for it in results
         ]
         content = join(
-            results_with_condition_and_display, 
+            results_with_condition_and_display,
             HTML(Html.light_hr)
         )
         return list(flatten([
@@ -188,7 +185,7 @@ class SuiteResultSerializer(IPythonSerializer['suite.SuiteResult']):
         output_id: t.Optional[str] = None,
         check_sections: t.Optional[t.Sequence[CheckResultSection]] = None,
         **kwargs
-    ) -> t.List[IPythonDisplayable]:
+    ) -> t.List[IPythonFormatter]:
         """Prepare subsection of the content that shows results without conditions.
 
         Parameters
@@ -201,7 +198,7 @@ class SuiteResultSerializer(IPythonSerializer['suite.SuiteResult']):
 
         Returns
         -------
-        List[IPythonDisplayable]
+        List[IPythonFormatter]
         """
         results = t.cast(
             t.List[check_types.CheckResult],
@@ -220,7 +217,7 @@ class SuiteResultSerializer(IPythonSerializer['suite.SuiteResult']):
             for it in results
         ]
         content = join(
-            results_without_conditions, 
+            results_without_conditions,
             HTML(Html.light_hr)
         )
         return list(flatten([

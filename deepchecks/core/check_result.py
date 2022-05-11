@@ -39,12 +39,8 @@ from deepchecks.core.serialization.check_result.json import \
     CheckResultSerializer as CheckResultJsonSerializer
 from deepchecks.core.serialization.check_result.widget import \
     CheckResultSerializer as CheckResultWidgetSerializer
-from deepchecks.utils.ipython import (
-    is_notebook, 
-    is_widgets_use_possible, 
-    is_colab_env, 
-    is_kaggle_env, 
-    is_widgets_enabled)
+from deepchecks.utils.ipython import (is_colab_env, is_notebook,
+                                      is_widgets_enabled)
 from deepchecks.utils.strings import (create_new_file_name, get_docs_summary,
                                       widget_to_html, widget_to_html_string)
 from deepchecks.utils.wandb_utils import set_wandb_run_state
@@ -106,9 +102,9 @@ class BaseCheckResult:
 
         if isinstance(json_dict, str):
             json_dict = jsonpickle.loads(json_dict)
-        
+
         check_type = cast(dict, json_dict)['type']
-        
+
         if check_type == 'CheckFailure':
             return CheckFailureJson(json_dict)
         elif check_type == 'CheckResult':
@@ -174,7 +170,7 @@ class CheckResult(BaseCheckResult):
         for item in self.display:
             if not isinstance(item, (str, pd.DataFrame, Styler, Callable, BaseFigure)):
                 raise DeepchecksValueError(f'Can\'t display item of type: {type(item)}')
-    
+
     def _get_metadata(self, with_doc_link: bool = False):
         check_name = self.check.name()
         parameters = self.check.params(show_defaults=True)
@@ -262,7 +258,7 @@ class CheckResult(BaseCheckResult):
             if show_additional_outputs
             else ['condition-table']
         )
-        
+
         if is_colab_env() and as_widget:
             display_html(
                 widget_to_html_string(
@@ -283,7 +279,7 @@ class CheckResult(BaseCheckResult):
         else:
             if as_widget:
                 warnings.warn(
-                    'Widgets are not enable (or not supported) '
+                    'Widgets are not enabled (or not supported) '
                     'and cannot be used.'
                 )
             display(*CheckResultIPythonSerializer(self).serialize(
@@ -339,10 +335,10 @@ class CheckResult(BaseCheckResult):
                 file.write(html)
             else:
                 TypeError(f'Unsupported type of "file" parameter - {type(file)}')
-    
+
     def show(
-        self, 
-        show_additional_outputs: bool = True, 
+        self,
+        show_additional_outputs: bool = True,
         unique_id: Optional[str] = None
     ):
         """Display the check result.
@@ -432,7 +428,9 @@ class CheckResult(BaseCheckResult):
         # doing import within method to prevent premature ImportError
         try:
             import wandb
-            from .serialization.check_result.wandb import CheckResultSerializer as WandbSerializer
+
+            from .serialization.check_result.wandb import \
+                CheckResultSerializer as WandbSerializer
         except ImportError as error:
             raise ImportError(
                 'Wandb serializer requires the wandb python package. '
@@ -483,12 +481,12 @@ class CheckResult(BaseCheckResult):
     def __repr__(self):
         """Return default __repr__ function uses value."""
         return f'{self.get_header()}: {self.value}'
-    
+
     def _repr_html_(
         self,
         unique_id: Optional[str] = None,
         show_additional_outputs: bool = True,
-        requirejs: bool = False,
+        requirejs: bool = True,
         **kwargs
     ) -> str:
         """Return html representation of check result."""
@@ -503,16 +501,16 @@ class CheckResult(BaseCheckResult):
             include_requirejs=requirejs,
             check_sections=check_sections  # type: ignore
         )
-    
+
     def _repr_json_(self, **kwargs):
         return CheckResultJsonSerializer(self).serialize()
-    
+
     def _repr_mimebundle_(self, **kwargs):
         return {
             'text/html': self._repr_html_(),
             'application/json': self._repr_json_()
         }
-    
+
     def _ipython_display_(
         self,
         unique_id: Optional[str] = None,
@@ -543,14 +541,14 @@ class CheckFailure(BaseCheckResult):
         self.check = check
         self.exception = exception
         self.header = check.name() + header_suffix
-    
+
     def _get_metadata(self, with_doc_link: bool = False):
         assert self.check is not None
         check_name = self.check.name()
         parameters = self.check.params(True)
         summary = get_docs_summary(self.check, with_doc_link=with_doc_link)
         return {'name': check_name, 'params': parameters, 'header': self.header, 'summary': summary}
-    
+
     def display_check(self, as_widget: bool = True) -> Optional[Widget]:
         """Display the check failure or return the display as widget.
 
@@ -565,7 +563,7 @@ class CheckFailure(BaseCheckResult):
             Widget representation of the display if as_widget is True.
         """
         is_colab = is_colab_env()
-        
+
         if is_colab and as_widget:
             display_html(
                 widget_to_html_string(
@@ -645,7 +643,7 @@ class CheckFailure(BaseCheckResult):
                 'In order to show result you have to use '
                 'an IPython shell (etc Jupyter)'
             )
-    
+
     def to_widget(self) -> Widget:
         """Return CheckFailure as a ipywidgets.Widget instance."""
         return CheckFailureWidgetSerializer(self).serialize()
@@ -699,7 +697,9 @@ class CheckFailure(BaseCheckResult):
         # doing import within method to prevent premature ImportError
         try:
             import wandb
-            from .serialization.check_failure.wandb import CheckFailureSerializer as WandbSerializer
+
+            from .serialization.check_failure.wandb import \
+                CheckFailureSerializer as WandbSerializer
         except ImportError as error:
             raise ImportError(
                 'Wandb serializer requires the wandb python package. '
@@ -717,14 +717,14 @@ class CheckFailure(BaseCheckResult):
 
     def __repr__(self):
         """Return string representation."""
-        return self.header + ': ' + str(self.exception)
-    
+        return self.get_header() + ': ' + str(self.exception)
+
     def _repr_html_(self):
         return CheckFailureHtmlSerializer(self).serialize()
-    
+
     def _repr_json_(self):
         return CheckFailureJsonSerializer(self).serialize()
-    
+
     def _repr_mimebundle_(self, **kwargs):
         return {
             'text/html': self._repr_html_(),

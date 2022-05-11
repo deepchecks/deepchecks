@@ -109,9 +109,9 @@ def get_docs_summary(obj, with_doc_link: bool = True):
 
 
 def widget_to_html(
-    widget: Widget, 
-    html_out: t.Union[str, t.TextIO], 
-    title: t.Optional[str] = None, 
+    widget: Widget,
+    html_out: t.Union[str, t.TextIO],
+    title: t.Optional[str] = None,
     requirejs: bool = True
 ):
     """Save widget as html file.
@@ -141,8 +141,8 @@ def widget_to_html(
 
 
 def widget_to_html_string(
-    widget: Widget, 
-    title: t.Optional[str] = None, 
+    widget: Widget,
+    title: t.Optional[str] = None,
     requirejs: bool = True
 ) -> str:
     """Transform widget into html string.
@@ -155,7 +155,7 @@ def widget_to_html_string(
         The title of the html file.
     requirejs: bool , default: True
         If to save with all javascript dependencies
-    
+
     Returns
     -------
     str

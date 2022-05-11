@@ -8,13 +8,13 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-""""""
+"""Module containing CheckResult serialization logic."""
 import typing as t
 
 from IPython.display import HTML, Image
 
 from deepchecks.core import check_result as check_types
-from deepchecks.core.serialization.abc import (IPythonDisplayable,
+from deepchecks.core.serialization.abc import (IPythonFormatter,
                                                IPythonSerializer)
 from deepchecks.core.serialization.common import flatten
 
@@ -24,6 +24,13 @@ __all__ = ['CheckResultSerializer']
 
 
 class CheckResultSerializer(IPythonSerializer['check_types.CheckResult']):
+    """Serializes any CheckResult instance into a list of IPython formatters.
+
+    Parameters
+    ----------
+    value : CheckResult
+        CheckResult instance that needed to be serialized.
+    """
 
     def __init__(self, value: 'check_types.CheckResult', **kwargs):
         if not isinstance(value, check_types.CheckResult):
@@ -38,8 +45,8 @@ class CheckResultSerializer(IPythonSerializer['check_types.CheckResult']):
         output_id: t.Optional[str] = None,
         check_sections: t.Optional[t.Sequence[html.CheckResultSection]] = None,
         **kwargs
-    ) -> t.List[IPythonDisplayable]:
-        """Serialize a CheckResult instance into a list of Ipython displayable objects.
+    ) -> t.List[IPythonFormatter]:
+        """Serialize a CheckResult instance into a list of IPython formatters.
 
         Parameters
         ----------
@@ -51,11 +58,11 @@ class CheckResultSerializer(IPythonSerializer['check_types.CheckResult']):
 
         Returns
         -------
-        List[IPythonDisplayable]
+        List[IPythonFormatter]
         """
         sections_to_include = html.verify_include_parameter(check_sections)
-        sections: t.List[IPythonDisplayable] = [
-            self.prepare_header(output_id), 
+        sections: t.List[IPythonFormatter] = [
+            self.prepare_header(output_id),
             self.prepare_summary()
         ]
 
@@ -64,7 +71,7 @@ class CheckResultSerializer(IPythonSerializer['check_types.CheckResult']):
 
         if 'additional-output' in sections_to_include:
             sections.extend(self.prepare_additional_output(output_id))
-        
+
         return list(flatten(sections))
 
     def prepare_header(self, output_id: t.Optional[str] = None) -> HTML:
@@ -109,7 +116,7 @@ class CheckResultSerializer(IPythonSerializer['check_types.CheckResult']):
     def prepare_additional_output(
         self,
         output_id: t.Optional[str] = None
-    ) -> t.List[IPythonDisplayable]:
+    ) -> t.List[IPythonFormatter]:
         """Prepare the display content.
 
         Parameters
@@ -119,7 +126,7 @@ class CheckResultSerializer(IPythonSerializer['check_types.CheckResult']):
 
         Returns
         -------
-        List[IPythonDisplayable]
+        List[IPythonFormatter]
         """
         return DisplayItemsHandler.handle_display(
             self.value.display,
@@ -136,7 +143,7 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
         display: t.List['check_types.TDisplayItem'],
         output_id: t.Optional[str] = None,
         **kwargs
-    ) -> t.List[IPythonDisplayable]:
+    ) -> t.List[IPythonFormatter]:
         """Serialize CheckResult display items into IPython displayable objects.
 
         Parameters
@@ -148,7 +155,7 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
 
         Returns
         -------
-        List[IPythonDisplayable]
+        List[IPythonFormatter]
         """
         return list(flatten(
             super().handle_display(display, output_id, **kwargs)
@@ -182,9 +189,15 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
     @classmethod
     def handle_callable(cls, item, index, **kwargs):
         """Handle callable."""
+        # NOTE: 
+        # we are calling `handle_callable` method not from 'html.DisplayItemsHandler' 
+        # but from 'BaseDisplayItemsHandler' that returns list of byte streams
+        figures = super(html.DisplayItemsHandler, cls).handle_callable(
+            item, index, **kwargs
+        )
         return [
             Image(data=it, format='png')
-            for it in super().handle_callable(item, index, **kwargs)
+            for it in figures
         ]
 
     @classmethod

@@ -9,6 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """display tests"""
+from unittest.mock import Mock, patch
+
 import jsonpickle
 import pandas as pd
 import plotly.express
@@ -25,42 +27,51 @@ from deepchecks.utils.json_utils import from_json
 
 pio.renderers.default = "json"
 
+
 # display check
 def test_check_run_display(iris_dataset):
     # Arrange
-    check_res = ColumnsInfo(n_top_columns=4).run(iris_dataset)
-    assert_that(check_res.display_check(), is_(None))
+    with patch('deepchecks.core.check_result.display') as mock:
+        check_res = ColumnsInfo(n_top_columns=4).run(iris_dataset)
+        assert_that(check_res.display_check(), is_(None))
+        mock.assert_called_once()
 
 
 def test_check_run_display_as_widget(iris_dataset):
-    # Arrange
-    check_res = ColumnsInfo(n_top_columns=4).run(iris_dataset)
-    dispaly_box = check_res.display_check(as_widget=True)
-    # Assert
-    assert_that(dispaly_box, instance_of(VBox))
-    assert_that(dispaly_box.children, has_length(4))
+    with patch('deepchecks.core.check_result.is_widgets_enabled', Mock(return_value=True)):
+        # Arrange
+        check_res = ColumnsInfo(n_top_columns=4).run(iris_dataset)
+        dispaly_box = check_res.display_check(as_widget=True)
+        # Assert
+        assert_that(dispaly_box, instance_of(VBox))
+        assert_that(dispaly_box.children, has_length(4))
 
 
 def test_check_run_display_unique_id(iris_dataset):
-    # Arrange
-    check_res = ColumnsInfo(n_top_columns=4).run(iris_dataset)
-    # Assert
-    assert_that(check_res.display_check(unique_id='qwerty'), is_(None))
+    with patch('deepchecks.core.check_result.display') as mock:
+        # Arrange
+        check_res = ColumnsInfo(n_top_columns=4).run(iris_dataset)
+        # Assert
+        assert_that(check_res.display_check(unique_id='qwerty'), is_(None))
+        mock.assert_called_once()
 
 
 def test_check_run_display_condition(iris_dataset):
-    # Arrange
-    check_res = DataDuplicates().add_condition_ratio_not_greater_than(0).run(iris_dataset)
-    # Run
-    assert_that(check_res.display_check(unique_id='qwerty'), is_(None))
+    with patch('deepchecks.core.check_result.display') as mock:
+        # Arrange
+        check_res = DataDuplicates().add_condition_ratio_not_greater_than(0).run(iris_dataset)
+        # Assert
+        assert_that(check_res.display_check(unique_id='qwerty'), is_(None))
+        mock.assert_called_once()
 
 
 def test_check_run_display_nothing_to_show(iris_dataset):
-    # Arrange
-    check_res = MixedNulls().run(iris_dataset)
-
-    # Assert
-    check_res.display_check(unique_id='qwerty')
+    with patch('deepchecks.core.check_result.display') as mock:
+        # Arrange
+        check_res = MixedNulls().run(iris_dataset)
+        # Assert
+        check_res.display_check(unique_id='qwerty')
+        mock.assert_called_once()
 
 
 def test_check_result_repr(iris_dataset):
@@ -86,8 +97,11 @@ def test_check_result_display_plt_func():
     check_res.check = DataDuplicates()
 
     # Assert
-    assert_that(check_res.display_check(), is_(None))
-    assert_that(check_res.display_check(as_widget=True), not_none())
+    with patch('deepchecks.core.check_result.display') as mock:
+        assert_that(check_res.display_check(), is_(None))
+        mock.assert_called_once()
+    with patch('deepchecks.core.check_result.is_widgets_enabled', Mock(return_value=True)):
+        assert_that(check_res.display_check(as_widget=True), not_none())
 
 
 def test_check_result_display_plotly(iris):
@@ -95,7 +109,9 @@ def test_check_result_display_plotly(iris):
     plot = plotly.express.bar(iris)
     check_res = CheckResult(value=7, header='test', display=[plot])
     check_res.check = DataDuplicates()
-    display = check_res.display_check(as_widget=True)
+
+    with patch('deepchecks.core.check_result.is_widgets_enabled', Mock(return_value=True)):
+        display = check_res.display_check(as_widget=True)
 
     # Assert
     assert_that(display, instance_of(VBox))
@@ -146,5 +162,10 @@ def test_check_result_show():
     # Arrange
     cr = CheckResult(value=0, header='test', display=[''])
     cr.check = DataDuplicates()
-    # Assert
-    assert_that(cr.show(), is_(None))
+    
+    with patch('deepchecks.core.check_result.is_notebook', Mock(return_value=True)):
+        with patch('deepchecks.core.check_result.is_widgets_enabled', Mock(return_value=True)):
+            with patch('deepchecks.core.check_result.display_html') as mock:
+                # Assert
+                assert_that(cr.show(), is_(None))
+                mock.assert_called_once()
