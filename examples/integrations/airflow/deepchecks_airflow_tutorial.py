@@ -9,7 +9,8 @@ import pandas as pd
 from deepchecks.tabular.datasets.classification import adult
 
 dir_path = "suite_results"
-data_path = os.path.join(os.getcwd(), "data")  # For demo only. Replace that with a S3/GCS other than local filesystem
+# For demo only. Replace that with a S3/GCS other than local filesystem
+data_path = os.path.join(os.getcwd(), "data")
 
 
 def load_adult_dataset(**context):
