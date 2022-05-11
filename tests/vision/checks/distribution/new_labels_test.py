@@ -11,11 +11,7 @@
 """New Labels check tests"""
 from copy import copy
 
-from hamcrest import (
-    assert_that,
-    has_length,
-    has_entries, close_to, has_items
-)
+from hamcrest import assert_that, close_to, has_entries, has_items, has_length
 
 from deepchecks.vision.checks.distribution import NewLabels
 from deepchecks.vision.utils.test_utils import get_modified_dataloader
