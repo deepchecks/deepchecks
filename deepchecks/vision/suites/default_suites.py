@@ -24,8 +24,8 @@ from deepchecks.vision.checks import (ClassPerformance, ConfusionMatrixReport,
                                       MeanAverageRecallReport,
                                       ModelErrorAnalysis, NewLabels,
                                       SimilarImageLeakage,
-                                      SingleFeatureContribution,
                                       SimpleModelComparison,
+                                      SingleFeatureContribution,
                                       TrainTestLabelDrift,
                                       TrainTestPredictionDrift)
 

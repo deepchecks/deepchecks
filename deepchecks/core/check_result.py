@@ -284,7 +284,6 @@ class CheckResult(BaseCheckResult):
         # doing import within method to prevent premature ImportError
         try:
             import wandb
-
             from deepchecks.core.serialization.check_result.wandb import \
                 CheckResultSerializer as WandbSerializer
         except ImportError as error:
@@ -514,7 +513,6 @@ class CheckFailure(BaseCheckResult):
         # doing import within method to prevent premature ImportError
         try:
             import wandb
-
             from deepchecks.core.serialization.check_failure.wandb import \
                 CheckFailureSerializer as WandbSerializer
         except ImportError as error:
