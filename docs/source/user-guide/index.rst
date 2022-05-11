@@ -45,4 +45,5 @@ Integrations
     :caption: Integrations
 
     integrations/spark_databricks
+    integrations/pytest
     integrations/h2o

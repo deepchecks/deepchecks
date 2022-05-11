@@ -151,9 +151,16 @@ from deepchecks.tabular.suites import single_dataset_integrity
 integ_suite = single_dataset_integrity()
 
 #%%
-# We will now run that suite on our dataframe:
+# We will now run that suite on our data. While running on the native DataFrame is possible in some cases, it is
+# recommended to wrap it with the ``deepchecks.tabular.Dataset`` object instead, to give
+# the package a bit more context, namely what is the label column, and whether
+# we have a datetime column (we have, as an index, so we'll set
+# ``set_datetime_from_dataframe_index=True``), or any categorical features (we have
+# none after one-hot encoding them, so we'll set ``cat_features=[]`` explicitly).
 
-integ_suite.run(df)
+dataset = deepchecks.tabular.Dataset(df=df, label='target',
+                                     set_datetime_from_dataframe_index=True, cat_features=[])
+integ_suite.run(dataset)
 
 #%%
 # Understanding the checks' results!
@@ -234,14 +241,13 @@ from deepchecks.tabular.suites import train_test_validation
 vsuite = train_test_validation()
 
 #%%
-# First, we have to wrap the dataframes in ``deepchecks.Dataset`` objects to give
-# the package a bit more context, namely what is the label column, and whether
-# we have a datetime column (we have, as an index, so we'll set
-# ``set_datetime_from_dataframe_index=True``), or any categorical features (we have
-# none after one-hot encoding them, so we'll set ``cate_features=[]`` explicitly).
+# Now that we have separate train and test DataFrames, we will create two ``deepchecks.tabular.Dataset`` objects to enable
+# this suite and the next one to run addressing the train and test dataframes according to their role. Notice that here
+# we pass the label as a column instead of a column name, because we've seperated the feature DataFrame from the target.
 
-ds_train = deepchecks.Dataset(df=train_X, label=train_y, set_datetime_from_dataframe_index=True, cat_features=[])
-ds_test = deepchecks.Dataset(df=test_X, label=test_y, set_datetime_from_dataframe_index=True, cat_features=[])
+ds_train = deepchecks.tabular.Dataset(df=train_X, label=train_y, set_datetime_from_dataframe_index=True,
+                                      cat_features=[])
+ds_test = deepchecks.tabular.Dataset(df=test_X, label=test_y, set_datetime_from_dataframe_index=True, cat_features=[])
 
 #%%
 # Now we just have to provide the ``run`` method of the suite object with both the
