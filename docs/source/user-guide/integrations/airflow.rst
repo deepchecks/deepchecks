@@ -30,7 +30,8 @@ suites on the Adult data and a pre-trained model.
     from deepchecks.tabular.datasets.classification import adult
 
     dir_path = "suite_results"
-    data_path = os.path.join(os.getcwd(), "data")  # For demo only. Replace that with a S3/GCS other than local filesystem
+     # For demo only. Replace that with a S3/GCS other than local filesystem
+    data_path = os.path.join(os.getcwd(), "data")
 
 Defining the Data & Model Loading Tasks
 ---------------------------------------
@@ -68,7 +69,7 @@ Defining the Data & Model Loading Tasks
 Defining the Integrity Report Task
 ----------------------------------
 
-The :func:`~deepchecks.tabular.suites.single_dataset_integrity` suite will be used to evaluate the train and test
+The :func:`~deepchecks.tabular.suites.single_dataset_integrity` suite will be used to evaluate the train and production
 datasets. It will check for integrity issues and will save the output html reports to the ``suite_results`` directory.
 
 .. code-block:: python
@@ -165,8 +166,9 @@ every day.
 And that's it! In order to run the dag, make sure you place the file in your DAGs folder referenced in your
 ``airflow.cfg``. The default location for your DAGs is ``~/airflow/dags``.
 
-After that, you can run the dag using the following command:
+The DAG is scheduled to run daily, but the scheduling can be configured using the ``schedule_interval`` property.
+The DAG can also be manually triggered for a single run by using the following command:
 
 .. code-block:: bash
 
-    airflow dags trigger deepchecks_airflow_integration
+    airflow dags backfill deepchecks_airflow_integration --start-date <some date in YYYY-MM-DD format>
