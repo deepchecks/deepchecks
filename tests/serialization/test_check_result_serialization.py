@@ -35,8 +35,8 @@ from deepchecks.core.serialization.check_result.widget import \
     CheckResultSerializer as WidgetSerializer
 from deepchecks.core.serialization.common import plotlyjs_script
 from deepchecks.utils.strings import get_random_string
-from tests.serialization.utils import (DummyCheck, create_check_result,
-                                       instance_of_ipython_formatter)
+from tests.common import (DummyCheck, create_check_result,
+                          instance_of_ipython_formatter)
 
 # ===========================================
 
@@ -163,7 +163,7 @@ def test_ipython_serializer_initialization_with_incorrect_type_of_value():
 def test_ipython_serialization():
     result = create_check_result()
     output = IPythonSerializer(result).serialize()
-    
+
     assert_that(
         output,
         all_of(
@@ -367,7 +367,7 @@ def wandb_output_assertion(
                 entries[f'{check_result.header}/item-{index}-figure'] = instance_of(wandb.Image)
             else:
                 raise TypeError(f'Unknown display item type {type(it)}')
-        
+
     if with_conditions_table is True:
         entries[f'{check_result.header}/conditions table'] = instance_of(wandb.Table)
 

@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Utils for serialization tests."""
+"""Common functions."""
 import typing as t
 
 import matplotlib.pyplot as plt
@@ -34,7 +34,7 @@ class DummyCheck(BaseCheck):
 
     def run(self, *args, **kwargs):
         raise NotImplementedError()
-    
+
 
 def create_suite_result(
     name: str = 'Dummy Suite Result',
@@ -42,7 +42,7 @@ def create_suite_result(
     n_of_failures: int = 5
 ) -> SuiteResult:
     results = [
-        create_check_result(value=i, header=f'Dummy Result #{i}') 
+        create_check_result(value=i, header=f'Dummy Result #{i}')
         for i in range(n_of_results)
     ]
     failures = [

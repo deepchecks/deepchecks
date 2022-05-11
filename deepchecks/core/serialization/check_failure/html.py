@@ -33,18 +33,28 @@ class CheckFailureSerializer(HtmlSerializer['check_types.CheckFailure']):
             )
         self.value = value
 
-    def serialize(self, **kwargs) -> str:
+    def serialize(
+        self,
+        full_html: bool = False,
+        **kwargs
+    ) -> str:
         """Serialize a CheckFailure instance into html format.
 
         Returns
         -------
         str
         """
-        return ''.join([
-            self.prepare_header(),
-            self.prepare_summary(),
-            self.prepare_error_message()
-        ])
+        header = self.prepare_header()
+        content = ''.join([header, self.prepare_summary(), self.prepare_error_message()])
+        if full_html is True:
+            return (
+                '<html>'
+                f'<head><title>{header}</title></head>'
+                f'<body>{content}</body>'
+                '</html>'
+            )
+        else:
+            return content
 
     def prepare_header(self, output_id: Optional[str] = None) -> str:
         """Prepare the header section of the html output."""

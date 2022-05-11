@@ -37,12 +37,11 @@ from deepchecks.core.serialization.suite_result.widget import \
     SuiteResultSerializer as WidgetSerializer
 from deepchecks.core.suite import SuiteResult
 from deepchecks.utils.strings import get_random_string
+from tests.common import create_suite_result, instance_of_ipython_formatter
 from tests.serialization.test_check_failure_serialization import \
     assert_json_output as assert_check_failure_json_output
 from tests.serialization.test_check_result_serialization import \
     assert_json_output as assert_check_result_json_output
-from tests.serialization.utils import (create_suite_result,
-                                       instance_of_ipython_formatter)
 
 
 def test_html_serializer_initialization():

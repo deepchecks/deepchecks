@@ -120,7 +120,7 @@ class SuiteResult:
         as_widget: bool = True,
         unique_id: Optional[str] = None
     ):
-        if is_colab_env():
+        if is_colab_env() and as_widget:
             display_html(
                 widget_to_html_string(
                     self.to_widget(unique_id=unique_id or get_random_string(n=25)),
@@ -173,6 +173,11 @@ class SuiteResult:
             whether to use ipywidgets or not
         requirejs: bool , default: True
             whether to include requirejs library into output HTML or not
+
+        Returns
+        -------
+        Optional[str] :
+            name of newly create file
         """
         if file is None:
             file = 'output.html'
@@ -200,6 +205,9 @@ class SuiteResult:
                 file.write(html)
             else:
                 TypeError(f'Unsupported type of "file" parameter - {type(file)}')
+
+        if isinstance(file, str):
+            return file
 
     def to_widget(
         self,

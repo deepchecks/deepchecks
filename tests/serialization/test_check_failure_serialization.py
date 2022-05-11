@@ -28,7 +28,7 @@ from deepchecks.core.serialization.check_failure.wandb import \
     CheckFailureSerializer as WandbSerializer
 from deepchecks.core.serialization.check_failure.widget import \
     CheckFailureSerializer as WidgetSerializer
-from tests.serialization.utils import DummyCheck, instance_of_ipython_formatter
+from tests.common import DummyCheck, instance_of_ipython_formatter
 
 # =====================================
 
@@ -200,8 +200,8 @@ def test_widget_serialization():
             has_property(
                 'children',
                 all_of(
-                    instance_of(tuple), 
-                    has_length(3), 
+                    instance_of(tuple),
+                    has_length(3),
                     only_contains(instance_of(HTML)))))
     )
     assert_that(
@@ -209,22 +209,22 @@ def test_widget_serialization():
         has_property(
             'value',
             all_of(
-                instance_of(str), 
+                instance_of(str),
                 contains_string(failure.header)))
     )
     assert_that(
         output.children[1],
         has_property(
-            'value', 
+            'value',
             all_of(
-                instance_of(str), 
+                instance_of(str),
                 contains_string(t.cast(str,DummyCheck.__doc__))))
     )
     assert_that(
         output.children[2],
         has_property(
-            'value', 
+            'value',
             all_of(
-                instance_of(str), 
+                instance_of(str),
                 contains_string(str(failure.exception))))
     )

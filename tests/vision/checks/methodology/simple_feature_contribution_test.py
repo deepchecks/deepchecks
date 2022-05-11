@@ -202,7 +202,7 @@ def test_drift_object_detection_per_class(coco_train_visiondata, coco_test_visio
 
     # Act
     result = check.run(train, test)
-    
+
     # Assert
     assert_that(result.value, has_entries({
         'Brightness': has_entries({'train':  has_entries({'fork': equal_to(0)}),

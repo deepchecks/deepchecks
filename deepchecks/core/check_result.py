@@ -277,6 +277,11 @@ class CheckResult(BaseCheckResult):
             whether to use ipywidgets or not
         requirejs: bool , default: True
             whether to include requirejs library into output HTML or not
+
+        Returns
+        -------
+        Optional[str] :
+            name of newly create file
         """
         if file is None:
             file = 'output.html'
@@ -307,6 +312,9 @@ class CheckResult(BaseCheckResult):
                 file.write(html)
             else:
                 TypeError(f'Unsupported type of "file" parameter - {type(file)}')
+
+        if isinstance(file, str):
+            return file
 
     def show(
         self,
@@ -548,7 +556,7 @@ class CheckFailure(BaseCheckResult):
         file: Union[str, io.TextIOWrapper, None] = None,
         as_widget: bool = True,
         requirejs: bool = True
-    ):
+    ) -> Optional[str]:
         """Save output as html file.
 
         Parameters
@@ -559,6 +567,11 @@ class CheckFailure(BaseCheckResult):
             whether to use ipywidgets or not
         requirejs: bool , default: True
             whether to include requirejs library into output HTML or not
+
+        Returns
+        -------
+        Optional[str] :
+            name of newly create file
         """
         if file is None:
             file = 'output.html'
@@ -573,11 +586,8 @@ class CheckFailure(BaseCheckResult):
                 requirejs=requirejs
             )
         else:
-            html = CheckFailureHtmlSerializer(self).serialize(
-                full_html=True,
-                include_requirejs=requirejs,
-                include_plotlyjs=True
-            )
+            html = CheckFailureHtmlSerializer(self).serialize(full_html=True)
+
             if isinstance(file, str):
                 with open(file, 'w', encoding='utf-8') as f:
                     f.write(html)
@@ -586,10 +596,15 @@ class CheckFailure(BaseCheckResult):
             else:
                 TypeError(f'Unsupported type of "file" parameter - {type(file)}')
 
+        if isinstance(file, str):
+            return file
+
     def show(self):
         """Display the check failure."""
         if is_notebook():
-            self.display_check()
+            widget = self.display_check()
+            if widget is not None:
+                display_html(widget)
         elif 'sphinx_gallery' in pio.renderers.default:
             html = widget_to_html_string(
                 self.to_widget(),
