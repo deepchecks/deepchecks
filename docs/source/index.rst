@@ -85,12 +85,12 @@ See the :doc:`When Should You Use </getting-started/when_should_you_use>` Sectio
 .. toctree::
     :maxdepth: 3
 
-    checks_gallery/tabular/index
+    checks_gallery/tabular
 
 .. toctree::
     :maxdepth: 3
 
-    checks_gallery/vision/index
+    checks_gallery/vision
 
 .. toctree::
     :maxdepth: 3
