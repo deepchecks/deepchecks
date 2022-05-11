@@ -35,3 +35,11 @@ class H2OWrapper:
     def predict_proba(self, df: pd.DataFrame) -> np.array:
         """Predict the class probabilities for the given data."""
         return self.model.predict(h2o.H2OFrame(df)).as_data_frame().values[:, 1:].astype(float)
+
+    @property
+    def feature_importances_(self) -> np.array:
+        """Return the feature importances based on h2o internal calculation."""
+        try:
+            return self.model.varimp(use_pandas=True)['percentage'].values
+        except:
+            return None
