@@ -61,15 +61,15 @@ Defining the Data & Model Loading Tasks
 
         context["ti"].xcom_push(key="adult_model", value=os.path.join(data_path, "adult_model.joblib"))
 
-.. warning::
+.. note::
     The dataset and the model are saved in the local filesystem for simplicity. For most use-cases,
     it is recommended to save the data and the model in a S3/GCS/other intermediate storage.
 
 Defining the Integrity Report Task
 ----------------------------------
 
-The :func:`~deepchecks.tabular.suites.single_dataset_integrity` suite will be used to evaluate the training and test
-datasets. It will check for integrity issues and will save the reports in the ``suite_results`` directory.
+The :func:`~deepchecks.tabular.suites.single_dataset_integrity` suite will be used to evaluate the train and test
+datasets. It will check for integrity issues and will save the output html reports to the ``suite_results`` directory.
 
 .. code-block:: python
 
@@ -100,7 +100,7 @@ Defining the Model Evaluation Task
 ----------------------------------
 
 The :func:`~deepchecks.tabular.suites.model_evaluation` suite will be used to evaluate the model itself.
-It will check for model performance and overfit issues and will save the reports in the ``suite_results`` directory.
+It will check for model performance and overfit issues and will save the report to the ``suite_results`` directory.
 
 .. code-block:: python
 
