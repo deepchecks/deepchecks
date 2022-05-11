@@ -10,6 +10,7 @@
 #
 """Outlier detection functions."""
 import logging
+import platform
 import signal
 import time
 from typing import List, Union
@@ -96,9 +97,10 @@ class OutlierSampleDetection(SingleDatasetCheck):
     def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
         """Run check."""
         timeout_msg = f'Check has reached specified timeout of {format_number(self.timeout)} seconds, try reducing ' \
-                      f'n_samples, select a subset of columns or increase the timeout. '
-        signal.signal(signal.SIGALRM, get_time_out_handler(timeout_msg))
-        signal.alarm(self.timeout)
+                      f'n_samples, select a subset of columns or increase the timeout.'
+        if platform.system() != 'Windows':  # currently, windows is not supported
+            signal.signal(signal.SIGALRM, get_time_out_handler(timeout_msg))
+            signal.alarm(self.timeout)
         if dataset_type == 'train':
             dataset = context.train
         else:
