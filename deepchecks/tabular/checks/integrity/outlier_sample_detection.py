@@ -136,9 +136,10 @@ class OutlierSampleDetection(SingleDatasetCheck):
         prob_vector = np.asarray(m.local_outlier_probabilities, dtype=float)
         # if we couldn't calculate the outlier probability score for a sample we treat it as not an outlier.
         prob_vector[np.isnan(prob_vector)] = 0
-        signal.alarm(0)  # cancels the timeout alarm
+        if platform.system() != 'Windows':  # cancels the timeout alarm. currently, windows is not supported
+            signal.alarm(0)
 
-        # Create the check result visualization
+            # Create the check result visualization
         top_n_idx = np.argsort(prob_vector)[-self.n_to_show:]
         dataset_outliers = df.iloc[top_n_idx, :]
         dataset_outliers.insert(0, 'Outlier Probability Score', prob_vector[top_n_idx])
