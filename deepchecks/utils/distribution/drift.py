@@ -24,9 +24,13 @@ from deepchecks.utils.distribution.preprocessing import \
     preprocess_2_cat_cols_to_same_bins
 from deepchecks.utils.strings import format_percent
 
-PSI_MIN_PERCENTAGE = 0.01
 
 __all__ = ['calc_drift_and_plot']
+
+
+PSI_MIN_PERCENTAGE = 0.01
+SUPPORTED_CATEGORICAL_METHODS = ['Cramer', 'PSI']
+SUPPORTED_NUMERICAL_METHODS = ['Earth Mover\'s Distance']
 
 
 def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series]) -> float:
@@ -203,7 +207,7 @@ def calc_drift_and_plot(train_column: pd.Series,
                                     f'and {len(test_dist)} for test')
 
     if column_type == 'numerical':
-        scorer_name = "Earth Mover's Distance"
+        scorer_name = 'Earth Mover\'s Distance'
 
         train_dist = train_dist.astype('float')
         test_dist = test_dist.astype('float')

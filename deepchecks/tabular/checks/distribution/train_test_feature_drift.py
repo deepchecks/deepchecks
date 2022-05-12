@@ -18,7 +18,7 @@ from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
-from deepchecks.utils.distribution.drift import calc_drift_and_plot
+from deepchecks.utils.distribution.drift import SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERICAL_METHODS, calc_drift_and_plot
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['TrainTestFeatureDrift']
@@ -215,8 +215,8 @@ class TrainTestFeatureDrift(TrainTestCheck):
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Drift')
 
-    def add_condition_drift_score_not_greater_than(self, max_allowed_psi_score: float = 0.2,
-                                                   max_allowed_earth_movers_score: float = 0.1,
+    def add_condition_drift_score_not_greater_than(self, max_allowed_categorical_score: float = 0.2,
+                                                   max_allowed_numarical_score: float = 0.1,
                                                    number_of_top_features_to_consider: int = 5):
         """
         Add condition - require drift score to not be more than a certain threshold.
@@ -250,11 +250,12 @@ class TrainTestFeatureDrift(TrainTestCheck):
                                                          reverse=True)]
             columns_to_consider = columns_to_consider[:number_of_top_features_to_consider]
             not_passing_categorical_columns = {column: f'{d["Drift score"]:.2}' for column, d in result.items() if
-                                               d['Drift score'] > max_allowed_psi_score and d['Method'] == 'PSI'
+                                               d['Drift score'] > max_allowed_categorical_score and
+                                               d['Method'] in SUPPORTED_CATEGORICAL_METHODS
                                                and column in columns_to_consider}
             not_passing_numeric_columns = {column: f'{d["Drift score"]:.2}' for column, d in result.items() if
-                                           d['Drift score'] > max_allowed_earth_movers_score
-                                           and d['Method'] == "Earth Mover's Distance"
+                                           d['Drift score'] > max_allowed_numarical_score
+                                           and d['Method'] in SUPPORTED_NUMERICAL_METHODS
                                            and column in columns_to_consider}
             return_str = ''
             if not_passing_categorical_columns:
@@ -268,6 +269,6 @@ class TrainTestFeatureDrift(TrainTestCheck):
             else:
                 return ConditionResult(ConditionCategory.PASS)
 
-        return self.add_condition(f'PSI <= {max_allowed_psi_score} and Earth Mover\'s Distance <= '
-                                  f'{max_allowed_earth_movers_score}',
+        return self.add_condition(f'PSI <= {max_allowed_categorical_score} and Earth Mover\'s Distance <= '
+                                  f'{max_allowed_numarical_score}',
                                   condition)

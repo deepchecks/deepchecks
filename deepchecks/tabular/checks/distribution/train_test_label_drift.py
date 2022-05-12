@@ -15,7 +15,7 @@ from typing import Dict
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck
-from deepchecks.utils.distribution.drift import calc_drift_and_plot
+from deepchecks.utils.distribution.drift import SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERICAL_METHODS, calc_drift_and_plot
 
 __all__ = ['TrainTestLabelDrift']
 
@@ -118,8 +118,8 @@ class TrainTestLabelDrift(TrainTestCheck):
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Label Drift')
 
-    def add_condition_drift_score_not_greater_than(self, max_allowed_psi_score: float = 0.2,
-                                                   max_allowed_earth_movers_score: float = 0.1):
+    def add_condition_drift_score_not_greater_than(self, max_allowed_categorical_score: float = 0.2,
+                                                   max_allowed_numarical_score: float = 0.1):
         """
         Add condition - require drift score to not be more than a certain threshold.
 
@@ -141,18 +141,18 @@ class TrainTestLabelDrift(TrainTestCheck):
         def condition(result: Dict) -> ConditionResult:
             drift_score = result['Drift score']
             method = result['Method']
-            has_failed = (drift_score > max_allowed_psi_score and method == 'PSI') or \
-                         (drift_score > max_allowed_earth_movers_score and method == "Earth Mover's Distance")
+            has_failed = (drift_score > max_allowed_categorical_score and method in SUPPORTED_CATEGORICAL_METHODS) or \
+                         (drift_score > max_allowed_numarical_score and method in SUPPORTED_NUMERICAL_METHODS)
 
-            if method == 'PSI' and has_failed:
-                return_str = f'Found label PSI above threshold: {drift_score:.2f}'
+            if method in SUPPORTED_CATEGORICAL_METHODS and has_failed:
+                return_str = f'Max allowed categorical drift score above threshold: {drift_score:.2f}'
                 return ConditionResult(ConditionCategory.FAIL, return_str)
-            elif method == "Earth Mover's Distance" and has_failed:
-                return_str = f'Label\'s Earth Mover\'s Distance above threshold: {drift_score:.2f}'
+            elif method in SUPPORTED_NUMERICAL_METHODS and has_failed:
+                return_str = f'Max allowed numarical drift score above threshold: {drift_score:.2f}'
                 return ConditionResult(ConditionCategory.FAIL, return_str)
 
             return ConditionResult(ConditionCategory.PASS)
 
-        return self.add_condition(f'PSI <= {max_allowed_psi_score} and Earth Mover\'s Distance <= '
-                                  f'{max_allowed_earth_movers_score} for label drift',
+        return self.add_condition(f'PSI <= {max_allowed_categorical_score} and Earth Mover\'s Distance <= '
+                                  f'{max_allowed_numarical_score} for label drift',
                                   condition)

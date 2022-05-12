@@ -18,7 +18,7 @@ import pandas as pd
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksNotSupportedError
-from deepchecks.utils.distribution.drift import calc_drift_and_plot
+from deepchecks.utils.distribution.drift import SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERICAL_METHODS, calc_drift_and_plot
 from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.utils.label_prediction_properties import (
     DEFAULT_CLASSIFICATION_LABEL_PROPERTIES,
@@ -215,8 +215,8 @@ class TrainTestLabelDrift(TrainTestCheck):
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Label Drift')
 
-    def add_condition_drift_score_not_greater_than(self, max_allowed_psi_score: float = 0.15,
-                                                   max_allowed_earth_movers_score: float = 0.075
+    def add_condition_drift_score_not_greater_than(self, max_allowed_categorical_score: float = 0.15,
+                                                   max_allowed_numarical_score: float = 0.075
                                                    ) -> 'TrainTestLabelDrift':
         """
         Add condition - require label properties drift score to not be more than a certain threshold.
@@ -227,9 +227,9 @@ class TrainTestLabelDrift(TrainTestCheck):
 
         Parameters
         ----------
-        max_allowed_psi_score: float , default: 0.15
+        max_allowed_categorical_score: float , default: 0.15
             the max threshold for the PSI score
-        max_allowed_earth_movers_score: float ,  default: 0.075
+        max_allowed_numarical_score: float ,  default: 0.075
             the max threshold for the Earth Mover's Distance score
         Returns
         -------
@@ -239,16 +239,17 @@ class TrainTestLabelDrift(TrainTestCheck):
 
         def condition(result: Dict) -> ConditionResult:
             not_passing_categorical_columns = {props: f'{d["Drift score"]:.2}' for props, d in result.items() if
-                                               d['Drift score'] > max_allowed_psi_score and d['Method'] == 'PSI'}
+                                               d['Drift score'] > max_allowed_categorical_score and 
+                                               d['Method'] in SUPPORTED_CATEGORICAL_METHODS}
             not_passing_numeric_columns = {props: f'{d["Drift score"]:.2}' for props, d in result.items() if
-                                           d['Drift score'] > max_allowed_earth_movers_score
-                                           and d['Method'] == "Earth Mover's Distance"}
+                                           d['Drift score'] > max_allowed_numarical_score
+                                           and d['Method'] in SUPPORTED_NUMERICAL_METHODS}
             return_str = ''
             if not_passing_categorical_columns:
-                return_str += f'Found non-continues label properties with PSI drift score above threshold:' \
+                return_str += f'Found non-continues label properties with drift score above threshold:' \
                               f' {not_passing_categorical_columns}\n'
             if not_passing_numeric_columns:
-                return_str += f'Found continues label properties with Earth Mover\'s drift score above' \
+                return_str += f'Found continues label properties with drift score above' \
                               f' threshold: {not_passing_numeric_columns}\n'
 
             if return_str:
@@ -256,6 +257,7 @@ class TrainTestLabelDrift(TrainTestCheck):
             else:
                 return ConditionResult(ConditionCategory.PASS)
 
-        return self.add_condition(f'PSI <= {max_allowed_psi_score} and Earth Mover\'s Distance <= '
-                                  f'{max_allowed_earth_movers_score} for label drift',
+        return self.add_condition(f'non-continues drift score <= {max_allowed_categorical_score} and '
+                                  'continues drift score <= '
+                                  f'{max_allowed_numarical_score} for label drift',
                                   condition)
