@@ -100,10 +100,15 @@ class SuiteResult:
         requirejs: bool = True,
     ) -> str:
         """Return html representation of check result."""
+        output_id = (
+            unique_id or get_random_string(n=25)
+            if not is_colab_env()
+            else None
+        )
         return SuiteResultHtmlSerializer(self).serialize(
             include_plotlyjs=True,
             include_requirejs=requirejs,
-            output_id=unique_id or get_random_string(n=25)
+            output_id=output_id
         )
 
     def _repr_json_(self):
@@ -120,17 +125,22 @@ class SuiteResult:
         as_widget: bool = True,
         unique_id: Optional[str] = None
     ):
+        output_id = (
+            unique_id or get_random_string(n=25)
+            if not is_colab_env()
+            else None
+        )
         if is_colab_env() and as_widget:
             display_html(
                 widget_to_html_string(
-                    self.to_widget(unique_id=unique_id),
+                    self.to_widget(unique_id=output_id),
                     title=self.name,
                     requirejs=True
                 ),
                 raw=True
             )
         elif is_widgets_enabled() and as_widget and not is_kaggle_env():
-            display_html(self.to_widget(unique_id=unique_id or get_random_string(n=25)))
+            display_html(self.to_widget(unique_id=output_id))
         else:
             if as_widget:
                 warnings.warn(
@@ -138,7 +148,7 @@ class SuiteResult:
                     'and cannot be used.'
                 )
             display(*SuiteResultIPythonSerializer(self).serialize(
-                output_id=unique_id or get_random_string(n=25),
+                output_id=output_id,
             ))
 
     def show(
