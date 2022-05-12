@@ -1067,10 +1067,8 @@ class Dataset:
 
     def len_when_sampled(self, n_samples: int):
         """Return number of samples in the sampled dataframe this dataset is sampled with n_samples samples."""
-
         return min(len(self), n_samples)
 
     def is_sampled(self, n_samples: int):
         """Return True if the dataset number of samples will decrease when sampled with n_samples samples."""
-
         return len(self) > n_samples
