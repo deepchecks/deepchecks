@@ -5,10 +5,10 @@ Using Deepchecks Vision With a Few Lines of Code
 
 Deepchecks Vision is built to validate your data and model, however complex your model and data may be. That
 being said, sometime there is no need to write a full-blown
-:doc:`ClassificationData </auto_tutorials/vision/plot_classification_tutorial>` or
-:doc:`DetectionData </auto_tutorials/vision/plot_detection_tutorial>`. In the case of a simple classification task,
-there is quite a few checks that can be run writing only a few lines of code. In this tutorial, we will show you how
-to run all checks that do not require a model on a simple classification task.
+:doc:`ClassificationData </user-guide/vision/auto_tutorials/plot_classification_tutorial>` or
+:doc:`DetectionData </user-guide/vision/auto_tutorials/plot_detection_tutorial>`. In the case of a simple classification
+task, there is quite a few checks that can be run writing only a few lines of code. In this tutorial, we will show you
+how to run all checks that do not require a model on a simple classification task.
 
 This is ideal, for example, when receiving a new dataset for a classification task. Running these checks on the dataset
 before even starting with training will give you a quick idea of how the dataset looks like and what potential issues

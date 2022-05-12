@@ -17,7 +17,6 @@ from pandas.api.types import infer_dtype
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
-from deepchecks.tabular.utils.display_utils import nothing_found_on_columns
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import (N_TOP_MESSAGE,
                                        column_importance_sorter_df)
@@ -92,8 +91,7 @@ class SpecialCharacters(SingleDatasetCheck):
         df_graph = df_graph.set_index(['Column Name'])
         df_graph = column_importance_sorter_df(df_graph, dataset, context.features_importance,
                                                self.n_top_columns, col='Column Name')
-        display = [N_TOP_MESSAGE % self.n_top_columns, df_graph] if len(df_graph) > 0 else \
-            nothing_found_on_columns(df.columns)
+        display = [N_TOP_MESSAGE % self.n_top_columns, df_graph] if len(df_graph) > 0 else None
 
         return CheckResult(result, display=display)
 
