@@ -10,8 +10,6 @@
 #
 """Outlier detection functions."""
 import logging
-import platform
-import signal
 import time
 from typing import List, Union
 
@@ -27,7 +25,6 @@ from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils import gower_distance
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.strings import format_number, format_percent
-from deepchecks.utils.timer import get_time_out_handler
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['OutlierSampleDetection']
@@ -96,11 +93,6 @@ class OutlierSampleDetection(SingleDatasetCheck):
 
     def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
         """Run check."""
-        timeout_msg = f'Check has reached specified timeout of {format_number(self.timeout)} seconds, try reducing ' \
-                      f'n_samples, select a subset of columns or increase the timeout.'
-        if platform.system() != 'Windows':  # currently, windows is not supported
-            signal.signal(signal.SIGALRM, get_time_out_handler(timeout_msg))
-            signal.alarm(self.timeout)
         if dataset_type == 'train':
             dataset = context.train
         else:
@@ -136,10 +128,8 @@ class OutlierSampleDetection(SingleDatasetCheck):
         prob_vector = np.asarray(m.local_outlier_probabilities, dtype=float)
         # if we couldn't calculate the outlier probability score for a sample we treat it as not an outlier.
         prob_vector[np.isnan(prob_vector)] = 0
-        if platform.system() != 'Windows':  # cancels the timeout alarm. currently, windows is not supported
-            signal.alarm(0)
 
-            # Create the check result visualization
+        # Create the check result visualization
         top_n_idx = np.argsort(prob_vector)[-self.n_to_show:]
         dataset_outliers = df.iloc[top_n_idx, :]
         dataset_outliers.insert(0, 'Outlier Probability Score', prob_vector[top_n_idx])
