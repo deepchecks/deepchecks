@@ -23,7 +23,7 @@ How can I use deepchecks to detect drift?
 
 
 What Is Distribution Drift?
-==============
+==========================
 
 Distribution drift is a change in the underlying distribution of the data, the target, or the prediction.
 
@@ -37,16 +37,25 @@ changes in data (e.g. daily or seasonal changes).
 
 
 
+Which types of drift are there?
+================================
+
+In machine learning, we usually refer to 2 types of drift that interest us:
+
+Concept drift -
+which means that the underline relation between the data and
+  the label has changed.
 
 
+Data / Label / Target drift
+Label drift is the change in the distribution of the label itself.
+Note that this can also be caused by concept drift, but here we discuss a change that means that the label can still be
+accurately predicted from the data, but its distribution has changed.
 
 
+What are the causes of drift?
+==============================
 
-What is a feature drift?
-========================
-Data drift is simply a change in the distribution of data over time. It is
-also one of the top reasons of a machine learning model performance degrades
-over time.
 
 Causes of data drift include:
 
@@ -56,17 +65,23 @@ Causes of data drift include:
 * Natural drift in the data, such as mean temperature changing with the seasons.
 * Change in relation between features, or covariate shift.
 
-Feature drift is such drift in a single feature in the dataset.
 
-In the context of machine learning, drift between the training set and the
-test set will likely make the model to be prone to errors. In other words,
-this means that the model was trained on data that is different from the
-current test data, thus it will probably make more mistakes predicting the
-target variable.
 
-How deepchecks detects feature drift
-------------------------------------
-There are many methods to detect feature drift. Some of them include
+
+
+How do you detect drift?
+=====================================
+The answer to this question has 2 parts:
+1. How do you measure a change in a distribution?
+2. What distribution should you measure a change on?
+
+
+
+There are many methods to detect drift.
+The simplest one is by comparing 2 samples of the same variable, and
+
+
+Some of them include
 training a classifier that detects which samples come from a known
 distribution and defines the drift by the accuracy of this classifier. For
 more information, refer to the :doc:`Whole Dataset Drift check
@@ -84,6 +99,48 @@ For numerical features, the check uses the Earth Movers Distance method
 and for the categorical features it uses the PSI. The check calculates drift
 between train dataset and test dataset per feature, using these 2 statistical
 measures.
+
+How can I use deepchecks to detect drift?
+=========================================
+Deepchecks can test your data for both concept drift and label drift, by using a variety of methods.
+
+Tabular data
+^^^^^^^^^^^^
+Feature drift
+Whole dataset drift
+Label drift
+Prediction drift
+
+Computer vision data
+^^^^^^^^^^^^^^^^^^^^
+
+Property drift
+Image dataset drift
+Label drift
+Prediction drift
+
+
+
+
+
+
+What is a feature drift?
+========================
+Data drift is simply a change in the distribution of data over time. It is
+also one of the top reasons of a machine learning model performance degrades
+over time.
+
+Feature drift is such drift in a single feature in the dataset.
+
+In the context of machine learning, drift between the training set and the
+test set will likely make the model to be prone to errors. In other words,
+this means that the model was trained on data that is different from the
+current test data, thus it will probably make more mistakes predicting the
+target variable.
+
+How deepchecks detects feature drift
+------------------------------------
+
 
 
 What Is Prediction Drift?
