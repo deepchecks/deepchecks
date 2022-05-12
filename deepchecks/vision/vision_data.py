@@ -295,7 +295,7 @@ class VisionData:
 
     @property
     def task_type(self) -> TaskType:
-        """Return the task type."""
+        """Return the task type: classification, object_detection or other."""
         return TaskType.OTHER
 
     @property

@@ -28,7 +28,7 @@ See Also
 
 - :doc:`Checks Demonstrations </checks_gallery/tabular//index>` - example notebooks demonstrating all of the checks implemented in the package.
 - :doc:`Checks API Reference </api/deepchecks.tabular.checks>` - where all the check parameters and implemented conditions can be found.
-- :doc:`/auto_tutorials/tabular/plot_add_a_custom_check` - for a tutorial of how to implement your own check
+- :doc:`/user-guide/tabular/auto_tutorials/plot_add_a_custom_check` - for a tutorial of how to implement your own check
 
 
 Condition
