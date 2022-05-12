@@ -310,11 +310,19 @@ class RobustnessReport(SingleDatasetCheck):
                                  textposition='auto', marker=dict(color=plot.metric_colors[index])),
                           col=index + 1, row=1)
 
-        title = 'Performance Comparison'
-        (fig.update_layout(font=dict(size=12), height=300, width=400 * len(metrics), autosize=False,
-                           title=dict(text=title, font=dict(size=20)), margin=dict(l=0, b=0),
-                           showlegend=False)
-         .update_xaxes(title=None, type='category', tickangle=30))
+        fig \
+            .update_layout(
+                font=dict(size=12),
+                autosize=False,
+                title=dict(text='Performance Comparison', font=dict(size=20)),
+                margin=dict(l=0, b=0),
+                showlegend=False
+            ).update_xaxes(
+                title=None,
+                type='category',
+                tickangle=30
+            )
+
         return fig
 
     def _create_top_affected_graph(self, top_affected_dict, dataset):
@@ -340,12 +348,21 @@ class RobustnessReport(SingleDatasetCheck):
                                  marker=dict(color=plot.metric_colors[index])),
                           row=1, col=index + 1)
 
-        title = 'Top Affected Classes'
-        (fig.update_layout(font=dict(size=12), height=300, width=600 * len(metrics),
-                           title=dict(text=title, font=dict(size=20)), margin=dict(l=0, b=0),
-                           showlegend=False)
-         .update_xaxes(title=None, type='category', tickangle=30, tickprefix='Class ', automargin=True)
-         .update_yaxes(automargin=True))
+        fig \
+            .update_layout(
+                font=dict(size=12),
+                title=dict(text='Top Affected Classes', font=dict(size=20)),
+                margin=dict(l=0, b=0),
+                showlegend=False
+            ).update_xaxes(
+                title=None,
+                type='category',
+                tickangle=30,
+                tickprefix='Class ',
+                automargin=True
+            ).update_yaxes(
+                automargin=True
+            )
 
         return fig
 

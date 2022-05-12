@@ -59,10 +59,7 @@ class RegressionSystematicError(SingleDatasetCheck):
                 name='Model prediction error',
                 hoverinfo='x',
                 boxmean=True))
-            .update_layout(
-                title_text='Box plot of the model prediction error',
-                width=800,
-                height=500)
+            .update_layout(title_text='Box plot of the model prediction error')
         )
 
         display = [

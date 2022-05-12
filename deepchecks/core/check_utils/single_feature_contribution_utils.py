@@ -28,7 +28,6 @@ def get_pps_figure(per_class: bool):
         yaxis_range=[0, 1.05],
         legend=dict(x=1.0, y=1.0),
         barmode='group',
-        width=800, height=500
     )
     if per_class:
         fig.update_layout(xaxis_title='Class')
