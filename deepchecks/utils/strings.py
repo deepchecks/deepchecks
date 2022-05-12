@@ -13,8 +13,8 @@ import io
 import itertools
 import os
 import random
-import sys
 import re
+import sys
 import typing as t
 from collections import defaultdict
 from copy import copy

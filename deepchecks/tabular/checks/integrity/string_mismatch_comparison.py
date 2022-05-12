@@ -113,8 +113,10 @@ class StringMismatchComparison(TrainTestCheck):
                     variants_only_in_dataset = list(tested_values - baseline_values)
                     variants_only_in_baseline = list(baseline_values - tested_values)
                     common_variants = list(tested_values & baseline_values)
-                    percent_variants_only_in_dataset = _percentage_in_series(tested_column, tested_counts, variants_only_in_dataset)
-                    percent_variants_in_baseline = _percentage_in_series(baseline_column, baseline_counts, variants_only_in_baseline)
+                    percent_variants_only_in_dataset = _percentage_in_series(tested_column, tested_counts,
+                                                                             variants_only_in_dataset)
+                    percent_variants_in_baseline = _percentage_in_series(baseline_column, baseline_counts,
+                                                                         variants_only_in_baseline)
 
                     display_mismatches.append([column_name, baseform, common_variants,
                                                variants_only_in_dataset, percent_variants_only_in_dataset[1],
