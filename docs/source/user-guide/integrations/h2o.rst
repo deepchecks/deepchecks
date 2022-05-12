@@ -9,7 +9,7 @@ benchmarking and production-grade use alike.
 
 Check out our interactive `example notebook <https://colab.research.google.com/github/deepchecks/deepchecks/tree/examples/integrations/h2o/deepchecks_h2o_tutorial.ipynb>`__,
 demonstrating how to effortlessly test your H2O model with deepchecks in the exact same way
-you can test any sklearn model!
+you can test any sklearn model! The notebook itself is available on Github `here <https://github.com/deepchecks/deepchecks/tree/examples/integrations/h2o/deepchecks_h2o_tutorial.ipynb>`__.
 
 The example notebook includes:
 -------------------------
