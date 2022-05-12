@@ -17,7 +17,7 @@ For a quick start, check out the following examples in the tutorials section:
 Tabular Data
 -------------
 
-- :doc:`Quickstart in 5 minutes </auto_tutorials/tabular/plot_quickstart_in_5_minutes>`
+- :doc:`Quickstart in 5 minutes </user-guide/tabular/auto_tutorials/plot_quickstart_in_5_minutes>`
 
 
 Computer Vision
@@ -25,9 +25,9 @@ Computer Vision
 
 **Beta Release**
 
-- :doc:`Deepchecks Example - Simple Image Classification Tutorial </auto_tutorials/vision/plot_simple_classification_tutorial>`
-- :doc:`Deepchecks for Object Detection Tutorial </auto_tutorials/vision/plot_detection_tutorial>`
-- :doc:`Deepchecks for Classification Tutorial</auto_tutorials/vision/plot_classification_tutorial>`
+- :doc:`Deepchecks Example - Simple Image Classification Tutorial </user-guide/vision/auto_tutorials/plot_simple_classification_tutorial>`
+- :doc:`Deepchecks for Object Detection Tutorial </user-guide/vision/auto_tutorials/plot_detection_tutorial>`
+- :doc:`Deepchecks for Classification Tutorial</user-guide/vision/auto_tutorials/plot_classification_tutorial>`
 
 
 .. note:: 
