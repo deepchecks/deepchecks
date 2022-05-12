@@ -28,7 +28,10 @@ class TrainTestLabelDrift(TrainTestCheck):
     dataset.
     For numerical columns, we use the Earth Movers Distance.
     See https://en.wikipedia.org/wiki/Wasserstein_metric
-    For categorical columns, we use the Population Stability Index (PSI).
+
+    For categorical distributions, we use the Cramer's V.
+    See https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V
+    We also support Population Stability Index (PSI).
     See https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf.
 
 
@@ -49,6 +52,8 @@ class TrainTestLabelDrift(TrainTestCheck):
         - 'train_largest': Show the largest train categories.
         - 'test_largest': Show the largest test categories.
         - 'largest_difference': Show the largest difference between categories.
+    categirical_drift_method: str, default: "Cramer"
+        Cramer for Cramer's V, PSI for Population Stability Index (PSI).
     max_num_categories: int, default: None
         Deprecated. Please use max_num_categories_for_drift and max_num_categories_for_display instead
     """
@@ -59,6 +64,7 @@ class TrainTestLabelDrift(TrainTestCheck):
             max_num_categories_for_drift: int = 10,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
+            categirical_drift_method='Cramer',
             max_num_categories: int = None,
             **kwargs
     ):
@@ -75,6 +81,8 @@ class TrainTestLabelDrift(TrainTestCheck):
         self.max_num_categories_for_drift = max_num_categories_for_drift
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
+        self.categirical_drift_method = categirical_drift_method
+
 
     def run_logic(self, context: Context) -> CheckResult:
         """Calculate drift for all columns.
@@ -96,8 +104,8 @@ class TrainTestLabelDrift(TrainTestCheck):
             margin_quantile_filter=self.margin_quantile_filter,
             max_num_categories_for_drift=self.max_num_categories_for_drift,
             max_num_categories_for_display=self.max_num_categories_for_display,
-            show_categories_by=self.show_categories_by
-
+            show_categories_by=self.show_categories_by,
+            categirical_drift_method=self.categirical_drift_method,
         )
 
         headnote = """<span>

@@ -32,8 +32,11 @@ class TrainTestFeatureDrift(TrainTestCheck):
     dataset.
     For numerical columns, we use the Earth Movers Distance.
     See https://en.wikipedia.org/wiki/Wasserstein_metric
-    For categorical columns, we use the Population Stability Index (PSI).
-    See https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf
+
+    For categorical distributions, we use the Cramer's V.
+    See https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V
+    We also support Population Stability Index (PSI).
+    See https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf.
 
 
     Parameters
@@ -64,6 +67,8 @@ class TrainTestFeatureDrift(TrainTestCheck):
         - 'train_largest': Show the largest train categories.
         - 'test_largest': Show the largest test categories.
         - 'largest_difference': Show the largest difference between categories.
+    categirical_drift_method: str, default: "Cramer"
+        Cramer for Cramer's V, PSI for Population Stability Index (PSI).
     n_samples : int , default: 100_000
         Number of samples to use for drift computation and plot.
     random_state : int , default: 42
@@ -82,6 +87,7 @@ class TrainTestFeatureDrift(TrainTestCheck):
             max_num_categories_for_drift: int = 10,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
+            categirical_drift_method='Cramer',
             n_samples: int = 100_000,
             random_state: int = 42,
             max_num_categories: int = None,  # Deprecated
@@ -107,6 +113,7 @@ class TrainTestFeatureDrift(TrainTestCheck):
         else:
             raise DeepchecksValueError('sort_feature_by must be either "feature importance" or "drift score"')
         self.n_top_columns = n_top_columns
+        self.categirical_drift_method = categirical_drift_method
         self.n_samples = n_samples
         self.random_state = random_state
 
@@ -178,7 +185,8 @@ class TrainTestFeatureDrift(TrainTestCheck):
                 margin_quantile_filter=self.margin_quantile_filter,
                 max_num_categories_for_drift=self.max_num_categories_for_drift,
                 max_num_categories_for_display=self.max_num_categories_for_display,
-                show_categories_by=self.show_categories_by
+                show_categories_by=self.show_categories_by,
+                categirical_drift_method=self.categirical_drift_method,
             )
             values_dict[column] = {
                 'Drift score': value,
