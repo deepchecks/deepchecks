@@ -46,7 +46,7 @@ class StringMismatch(SingleDatasetCheck):
         Columns to ignore, if none given checks based on columns variable
     n_top_columns : int , optional
         amount of columns to show ordered by feature importance (date, index, label are first)
-    n_samples : int , default: 10_000
+    n_samples : int , default: 1_000_000
         number of samples to use for this check.
     random_state : int, default: 42
         random seed for all check internals.
