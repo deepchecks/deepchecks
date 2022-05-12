@@ -16,7 +16,7 @@ coveralls
 tox
 gower==0.0.5
 
-scikit-learn>=0.24.2
+scikit-learn==1.0.2
 
 catboost
 lightgbm
