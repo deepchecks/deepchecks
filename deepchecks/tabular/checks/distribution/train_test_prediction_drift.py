@@ -10,15 +10,15 @@
 #
 """Module contains Train Test label Drift check."""
 
-from typing import Dict
 import warnings
+from typing import Dict
+
 import pandas as pd
 
 from deepchecks import ConditionCategory
-from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
-
 
 __all__ = ['TrainTestPredictionDrift']
 
@@ -37,12 +37,16 @@ class TrainTestPredictionDrift(TrainTestCheck):
 
     Parameters
     ----------
+    margin_quantile_filter: float, default: 0.025
+        float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
+        out of the EMD calculation. This is done in order for extreme values not to affect the calculation
+        disproportionally. This filter is applied to both distributions, in both margins.
     max_num_categories_for_drift: int, default: 10
         Only for categorical columns. Max number of allowed categories. If there are more,
         they are binned into an "Other" category. If None, there is no limit.
     max_num_categories_for_display: int, default: 10
         Max number of categories to show in plot.
-    show_categories_by: str, default: 'train_largest'
+    show_categories_by: str, default: 'largest_difference'
         Specify which categories to show for categorical features' graphs, as the number of shown categories is limited
         by max_num_categories_for_display. Possible values:
         - 'train_largest': Show the largest train categories.
@@ -54,13 +58,15 @@ class TrainTestPredictionDrift(TrainTestCheck):
 
     def __init__(
             self,
+            margin_quantile_filter: float = 0.025,
             max_num_categories_for_drift: int = 10,
             max_num_categories_for_display: int = 10,
-            show_categories_by: str = 'train_largest',
+            show_categories_by: str = 'largest_difference',
             max_num_categories: int = None,  # Deprecated
             **kwargs
     ):
         super().__init__(**kwargs)
+        self.margin_quantile_filter = margin_quantile_filter
         if max_num_categories is not None:
             warnings.warn(
                 f'{self.__class__.__name__}: max_num_categories is deprecated. please use max_num_categories_for_drift '
@@ -94,6 +100,7 @@ class TrainTestPredictionDrift(TrainTestCheck):
             test_column=pd.Series(test_prediction),
             value_name='model predictions',
             column_type='categorical' if train_dataset.label_type == 'classification_label' else 'numerical',
+            margin_quantile_filter=self.margin_quantile_filter,
             max_num_categories_for_drift=self.max_num_categories_for_drift,
             max_num_categories_for_display=self.max_num_categories_for_display,
             show_categories_by=self.show_categories_by

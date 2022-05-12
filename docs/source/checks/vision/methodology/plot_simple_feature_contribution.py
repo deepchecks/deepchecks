@@ -3,7 +3,7 @@
 Simple Feature Contribution
 ***************************
 
-This notebook provides an overview for using and understanding the "Single Feature
+This notebook provides an overview for using and understanding the "Simple Feature
 Contribution Train Test" check.
 
 **Structure:**
@@ -108,56 +108,54 @@ or the following blog post: `RIP correlation. Introducing the Predictive Power S
 # Imports
 # -------
 
-from deepchecks.vision import VisionData
+import numpy as np
+
 from deepchecks.vision.checks import SimpleFeatureContribution
+from deepchecks.vision.datasets.classification.mnist import load_dataset
 
 #%%
 # Loading data
 # ------------
 
-from deepchecks.vision.datasets.classification.mnist import load_dataset
 
 train_ds = load_dataset(train=True, object_type='VisionData')
 test_ds = load_dataset(train=False, object_type='VisionData')
 
-#%%
-
-from deepchecks.vision.datasets.classification.mnist import load_dataset
-
-train_ds = load_dataset(train=True, object_type='VisionData')
-test_ds = load_dataset(train=False, object_type='VisionData')
-
-#%%
-
-check = SimpleFeatureContribution()
-check.run(train_ds, test_ds)
 
 #%%
 # Insert bias
 # -----------
-# Let's now see what happens when we insert bias into the dataset.
+# Let's see what happens when we insert bias into the dataset.
 #
 # Specifically, we're going to change the pixel values of the image depending
 # on the label (0 to 9) so there is a correlation between brightness of image
-# and the label
+# and the label (also a small correlation of the index)
 
 from deepchecks.vision.utils.transformations import un_normalize_batch
 
-def mnist_batch_to_images_with_bias(batch):
-    """Create function which inverse the data normalization."""
-    tensor = batch[0]
-    tensor = tensor.permute(0, 2, 3, 1)
-    ret = un_normalize_batch(tensor, (0.1307,), (0.3081,))
-    for i, label in enumerate(batch[1]):
-        ret[i] = ret[i].clip(min=5 * label, max = 180 + 5 * label)
-    return ret
 
+def mnist_batch_to_images_with_bias_mod(mod):
+    def mnist_batch_to_images_with_bias(batch):
+        """Create function which inverse the data normalization."""
+        tensor = batch[0]
+        tensor = tensor.permute(0, 2, 3, 1)
+        ret = un_normalize_batch(tensor, (0.1307,), (0.3081,))
+        # add some label/index correlation
+        for i, label in enumerate(batch[1]):
+            if i % mod != 0:
+                ret[i] = np.ones(ret[i].shape) * int(i % 3 + 1) * int(label)
+
+        return ret
+    return mnist_batch_to_images_with_bias
 #%%
 
-test_ds.batch_to_images = mnist_batch_to_images_with_bias
+train_ds.batch_to_images = mnist_batch_to_images_with_bias_mod(9)
+test_ds.batch_to_images = mnist_batch_to_images_with_bias_mod(2)
+
+
 
 #%%
-# Re-run after bias
+# Run after bias
 # -----------------
 
 check = SimpleFeatureContribution()
@@ -171,14 +169,15 @@ check.run(train_ds, test_ds)
 # Run the check on an Object Detection task (COCO)
 # ================================================
 
-from deepchecks.vision.datasets.detection.coco import load_dataset, yolo_label_formatter
+from deepchecks.vision.datasets.detection.coco import (load_dataset,
+                                                       yolo_label_formatter)
 
 train_ds = load_dataset(train=True, object_type='VisionData')
 test_ds = load_dataset(train=False, object_type='VisionData')
 
 #%%
 
-check = SimpleFeatureContribution()
+check = SimpleFeatureContribution(per_class=False)
 check.run(train_ds, test_ds)
 
 #%%
@@ -190,24 +189,27 @@ check.run(train_ds, test_ds)
 # (where the bounding boxes are), so there is a correlation between brightness
 # of image and the label
 
-# Increase the pixel values of all bounding boxes with specific labels:
-def coco_batch_to_images_with_bias(batch):
-    import numpy as np
-    ret = [np.array(x) for x in batch[0]]
-    for i, labels in enumerate(train_ds.batch_to_labels(batch)):
-        for label in labels:
-            if label[0] > 40:
-                x, y, w, h = np.array(label[1:]).astype(int)
-                ret[i][y:y+h, x:x+w] = ret[i][y:y+h, x:x+w].clip(min=200)
-    return ret
+# Increase the pixel values of all bounding boxes by the labels value:
+def coco_batch_to_images_with_bias_mod(mod):
+    def coco_batch_to_images_with_bias(batch):
+        import numpy as np
+        ret = [np.array(x) for x in batch[0]]
+        for i, labels in enumerate(train_ds.batch_to_labels(batch)):
+            if i % mod != 0:
+                for label in labels:
+                    x, y, w, h = np.array(label[1:]).astype(int)
+                    ret[i][y:y+h, x:x+w] = ret[i][y:y+h, x:x+w].clip(min=200) * int(label[0])
+        return ret
+    return coco_batch_to_images_with_bias
 
-train_ds.batch_to_images = coco_batch_to_images_with_bias
+train_ds.batch_to_images = coco_batch_to_images_with_bias_mod(12)
+test_ds.batch_to_images = coco_batch_to_images_with_bias_mod(2)
 
 #%%
 # Re-run after bias
 # -----------------
 
-check = SimpleFeatureContribution()
+check = SimpleFeatureContribution(per_class=False)
 check.run(train_ds, test_ds)
 
 #%%
@@ -227,6 +229,7 @@ check.run(train_ds, test_ds)
 #
 # Let's add the conditions, and re-run the check:
 
-check = SimpleFeatureContribution().add_condition_feature_pps_difference_not_greater_than().add_condition_feature_pps_in_train_not_greater_than()
+check = SimpleFeatureContribution(per_class=False).add_condition_feature_pps_difference_not_greater_than(0.1) \
+        .add_condition_feature_pps_in_train_not_greater_than()
 result = check.run(train_dataset=train_ds, test_dataset=test_ds)
 result.show(show_additional_outputs=False)

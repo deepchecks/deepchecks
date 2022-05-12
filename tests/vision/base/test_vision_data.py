@@ -12,31 +12,24 @@
 import itertools
 import typing as t
 
-import torch
-from torch.utils.data import DataLoader
-from hamcrest import (
-    assert_that,
-    calling,
-    raises,
-    equal_to,
-    has_entries,
-    instance_of,
-    all_of,
-    contains_exactly
-)
 import albumentations as A
 import imgaug.augmenters as iaa
+import torch
+from hamcrest import (all_of, assert_that, calling, contains_exactly, equal_to,
+                      has_entries, instance_of, raises)
+from torch.utils.data import DataLoader
 
-from deepchecks.core.errors import ValidationError, DeepchecksValueError, DeepchecksNotImplementedError
+from deepchecks.core.errors import (DeepchecksNotImplementedError,
+                                    DeepchecksValueError, ValidationError)
 from deepchecks.vision.classification_data import ClassificationData
-from deepchecks.vision.vision_data import TaskType
+from deepchecks.vision.datasets.classification import mnist
 from deepchecks.vision.datasets.classification.mnist import MNISTData
 from deepchecks.vision.datasets.detection import coco
-from deepchecks.vision.datasets.classification import mnist
 from deepchecks.vision.datasets.detection.coco import COCOData
 from deepchecks.vision.detection_data import DetectionData
-from deepchecks.vision.vision_data import VisionData
-from deepchecks.vision.utils.transformations import AlbumentationsTransformations, ImgaugTransformations
+from deepchecks.vision.utils.transformations import (
+    AlbumentationsTransformations, ImgaugTransformations)
+from deepchecks.vision.vision_data import TaskType, VisionData
 from tests.vision.vision_conftest import run_update_loop
 
 
@@ -423,3 +416,11 @@ def test_detection_data_bad_implementation():
                 raises(ValidationError,
                        'Check requires detection predictions to be a list of 2D tensors, when '
                        'each row has 6 columns: \[x, y, width, height, class_probability, class_id\]'))
+
+
+def test_vision_data_initialization_from_dataset_instance(coco_train_dataloader: DataLoader):
+    visiondata = VisionData.from_dataset(data=coco_train_dataloader.dataset)
+    assert_that(visiondata.data_loader, instance_of(DataLoader))
+    assert_that(len(coco_train_dataloader.dataset) == len(visiondata.data_loader.dataset))
+    assert_that(len(list(visiondata)) == 1)
+    assert_that(visiondata.num_samples == len(visiondata.data_loader.dataset))

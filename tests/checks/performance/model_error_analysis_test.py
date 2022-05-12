@@ -10,14 +10,18 @@
 #
 """Tests for segment performance check."""
 import numpy as np
-from hamcrest import assert_that, calling, raises, has_length, has_items, close_to, instance_of
+from hamcrest import (assert_that, calling, close_to, has_items, has_length,
+                      instance_of, raises)
 from scipy.special import softmax
 from sklearn.metrics import log_loss
 
 from deepchecks import CheckFailure
 from deepchecks.core import ConditionCategory
-from deepchecks.core.errors import DeepchecksValueError, DeepchecksNotSupportedError, DeepchecksProcessError
-from deepchecks.tabular.checks.performance.model_error_analysis import ModelErrorAnalysis
+from deepchecks.core.errors import (DeepchecksNotSupportedError,
+                                    DeepchecksProcessError,
+                                    DeepchecksValueError)
+from deepchecks.tabular.checks.performance.model_error_analysis import \
+    ModelErrorAnalysis
 from deepchecks.utils.single_sample_metrics import per_sample_cross_entropy
 from tests.checks.utils import equal_condition_result
 

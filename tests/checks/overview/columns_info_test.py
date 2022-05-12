@@ -11,11 +11,11 @@
 """Contains unit tests for the columns_info check."""
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, equal_to, calling, raises, has_length
+from hamcrest import assert_that, calling, equal_to, has_length, raises
 
-from deepchecks.tabular.dataset import Dataset
-from deepchecks.tabular.checks.overview import ColumnsInfo
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.tabular.checks.overview import ColumnsInfo
+from deepchecks.tabular.dataset import Dataset
 
 
 def test_dataset_wrong_input():
@@ -48,9 +48,15 @@ def test_columns_info():
                        'b': 'numerical feature', 'c': 'other', 'label': 'label'}
     assert_that(result_ds, equal_to(expected_res_ds))
 
+    expected_res_df = {
+        'index': 'numerical feature',
+        'date': 'numerical feature',
+        'a': 'categorical feature',
+        'b': 'numerical feature',
+        'c': 'numerical feature',
+        'label': 'categorical feature'
+    }
     # in df all columns are other
-    expected_res_df = {'index': 'other', 'date': 'other', 'a': 'other',
-                       'b': 'other', 'c': 'other', 'label': 'other'}
     assert_that(result_df, equal_to(expected_res_df))
 
 

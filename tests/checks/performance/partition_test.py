@@ -9,11 +9,11 @@
 # ----------------------------------------------------------------------------
 #
 """Tests for partition columns function."""
+import hamcrest as h
 import pandas as pd
 
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.utils.performance.partition import partition_column
-import hamcrest as h
 
 
 def test_column_partition_numerical(diabetes):

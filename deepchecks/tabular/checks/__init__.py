@@ -9,61 +9,27 @@
 # ----------------------------------------------------------------------------
 #
 """Module importing all tabular checks."""
-from .integrity import (
-    MixedNulls,
-    StringMismatch,
-    MixedDataTypes,
-    IsSingleValue,
-    SpecialCharacters,
-    StringLengthOutOfBounds,
-    StringMismatchComparison,
-    DominantFrequencyChange,
-    DataDuplicates,
-    CategoryMismatchTrainTest,
-    NewLabelTrainTest,
-    LabelAmbiguity,
-    OutlierSampleDetection
-)
-
-from .methodology import (
-    BoostingOverfit,
-    UnusedFeatures,
-    SingleFeatureContribution,
-    SingleFeatureContributionTrainTest,
-    IndexTrainTestLeakage,
-    TrainTestSamplesMix,
-    DateTrainTestLeakageDuplicates,
-    DateTrainTestLeakageOverlap,
-    IdentifierLeakage,
-    ModelInferenceTime,
-    DatasetsSizeComparison
-)
-
-from .overview import (
-    ModelInfo,
-    ColumnsInfo
-)
-
-from .distribution import (
-    TrainTestFeatureDrift,
-    TrainTestLabelDrift,
-    WholeDatasetDrift,
-    TrainTestPredictionDrift
-)
-
-from .performance import (
-    PerformanceReport,
-    ConfusionMatrixReport,
-    RocReport,
-    SimpleModelComparison,
-    CalibrationScore,
-    SegmentPerformance,
-    RegressionSystematicError,
-    RegressionErrorDistribution,
-    MultiModelPerformanceReport,
-    ModelErrorAnalysis
-)
-
+from .distribution import (TrainTestFeatureDrift, TrainTestLabelDrift,
+                           TrainTestPredictionDrift, WholeDatasetDrift)
+from .integrity import (CategoryMismatchTrainTest, ConflictingLabels,
+                        DataDuplicates, DominantFrequencyChange, IsSingleValue,
+                        MixedDataTypes, MixedNulls, NewLabelTrainTest,
+                        OutlierSampleDetection, SpecialCharacters,
+                        StringLengthOutOfBounds, StringMismatch,
+                        StringMismatchComparison)
+from .methodology import (BoostingOverfit, DatasetsSizeComparison,
+                          DateTrainTestLeakageDuplicates,
+                          DateTrainTestLeakageOverlap, IdentifierLeakage,
+                          IndexTrainTestLeakage, ModelInferenceTime,
+                          SingleFeatureContribution,
+                          SingleFeatureContributionTrainTest,
+                          TrainTestSamplesMix, UnusedFeatures)
+from .overview import ColumnsInfo, ModelInfo
+from .performance import (CalibrationScore, ConfusionMatrixReport,
+                          ModelErrorAnalysis, MultiModelPerformanceReport,
+                          PerformanceReport, RegressionErrorDistribution,
+                          RegressionSystematicError, RocReport,
+                          SegmentPerformance, SimpleModelComparison)
 
 __all__ = [
     # integrity checks
@@ -78,7 +44,7 @@ __all__ = [
     'DataDuplicates',
     'CategoryMismatchTrainTest',
     'NewLabelTrainTest',
-    'LabelAmbiguity',
+    'ConflictingLabels',
     'OutlierSampleDetection',
 
     # methodology checks

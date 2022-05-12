@@ -9,14 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains is_single_value check."""
-from typing import Union, List
+from typing import List, Union
 
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
-from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
-from deepchecks.tabular.utils.display_utils import nothing_found_on_columns
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.typing import Hashable
-
 
 __all__ = ['IsSingleValue']
 
@@ -73,7 +71,7 @@ class IsSingleValue(SingleDatasetCheck):
             display = ['The following columns have only one unique value', uniques]
         else:
             value = None
-            display = nothing_found_on_columns(df.columns)
+            display = None
 
         return CheckResult(value, header='Single Value in Column', display=display)
 

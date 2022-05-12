@@ -8,17 +8,14 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-from torch.utils.data import DataLoader
-from hamcrest import assert_that, instance_of, calling, raises, is_
 from unittest.mock import patch
+
+from hamcrest import assert_that, calling, instance_of, is_, raises
+from torch.utils.data import DataLoader
 
 from deepchecks import vision
 from deepchecks.vision.datasets.detection.coco import (
-    load_dataset,
-    DATA_DIR,
-    CocoDataset,
-    download_coco128_from_ultralytics
-)
+    DATA_DIR, CocoDataset, download_coco128_from_ultralytics, load_dataset)
 
 
 def patch_side_effect(*args, **kwargs):
@@ -68,7 +65,7 @@ def test__load_dataset__func_with_unknow_object_type_parameter():
 def test_train_test_split():
     train = load_dataset(train=True, object_type='DataLoader')
     test = load_dataset(train=False, object_type='DataLoader')
-    
+
     assert_that((len(train.dataset) + len(test.dataset)) == 128)
 
     train_images = set(it.name for it in train.dataset.images)

@@ -11,11 +11,10 @@
 """Contains unit tests for the string_mismatch check."""
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, has_length, has_entry, has_entries, has_items
+from hamcrest import assert_that, has_entries, has_entry, has_items, has_length
 
-from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.checks import StringMismatchComparison
-
+from deepchecks.tabular.dataset import Dataset
 from tests.checks.utils import equal_condition_result
 
 
@@ -75,18 +74,6 @@ def test_no_mismatch_on_numeric_string_column():
     # Arrange
     data = {'num_str': ['10', '2.3', '1']}
     compared_data = {'num_str': ['1', '2.30', '1.0']}
-
-    # Act
-    result = StringMismatchComparison().run(pd.DataFrame(data=data), pd.DataFrame(data=compared_data)).value
-
-    # Assert
-    assert_that(result, has_length(0))
-
-
-def test_no_mismatch_on_one_column_numeric():
-    # Arrange
-    data = {'num_str': ['10', '2.3', '1']}
-    compared_data = {'num_str': [1, 2.30, 1.0]}
 
     # Act
     result = StringMismatchComparison().run(pd.DataFrame(data=data), pd.DataFrame(data=compared_data)).value

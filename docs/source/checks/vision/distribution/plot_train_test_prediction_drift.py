@@ -78,12 +78,13 @@ Run the check on a Classification task (MNIST)
 # -------
 
 from deepchecks.vision.checks import TrainTestPredictionDrift
+from deepchecks.vision.datasets.classification.mnist import (load_dataset,
+                                                             load_model)
 
 #%%
 # Loading data and model:
 # -----------------------
 
-from deepchecks.vision.datasets.classification.mnist import load_dataset, load_model
 
 train_ds = load_dataset(train=True, batch_size=64, object_type='VisionData')
 test_ds = load_dataset(train=False, batch_size=64, object_type='VisionData')
@@ -107,6 +108,7 @@ check.run(train_ds, test_ds, model)
 # performance of a simple model trained on MNIST.
 
 from deepchecks.vision.checks import ClassPerformance
+
 ClassPerformance().run(train_ds, test_ds, model)
 
 #%%
@@ -131,8 +133,8 @@ train_dataset, test_dataset = torch.utils.data.random_split(full_mnist, [60000,1
 # Inserting drift to the test set
 # -------------------------------
 
-from torch.utils.data._utils.collate import default_collate
 import numpy as np
+from torch.utils.data._utils.collate import default_collate
 
 np.random.seed(42)
 

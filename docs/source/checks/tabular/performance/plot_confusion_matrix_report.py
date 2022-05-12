@@ -8,11 +8,12 @@ Confusion Matrix Report
 # Imports
 # =======
 
-from deepchecks.tabular import Dataset
-from sklearn.ensemble import AdaBoostClassifier
-from sklearn.datasets import load_iris
-from sklearn.model_selection import train_test_split
 import pandas as pd
+from sklearn.datasets import load_iris
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.model_selection import train_test_split
+
+from deepchecks.tabular import Dataset
 from deepchecks.tabular.checks.performance import ConfusionMatrixReport
 
 #%%

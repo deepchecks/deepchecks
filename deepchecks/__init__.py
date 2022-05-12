@@ -9,42 +9,27 @@
 # ----------------------------------------------------------------------------
 #
 """Deepchecks."""
-import sys
-import types
 import os
 import pathlib
-import matplotlib
-import plotly.io as pio
+import sys
+import types
 import warnings
 from importlib._bootstrap import _init_module_attrs
 
-from deepchecks.utils.ipython import is_notebook
-from deepchecks.core import (
-    BaseCheck,
-    BaseSuite,
-    CheckResult,
-    CheckFailure,
-    SuiteResult,
-    Condition,
-    ConditionResult,
-    ConditionCategory,
-    SingleDatasetBaseCheck,
-    TrainTestBaseCheck,
-    ModelOnlyBaseCheck
-)
-# TODO: remove in further versions
-from deepchecks.tabular import (
-    Dataset,
-    Suite,
-    Context,
-    SingleDatasetCheck,
-    TrainTestCheck,
-    ModelOnlyCheck,
-    ModelComparisonCheck,
-    ModelComparisonSuite,
-)
+import matplotlib
+import plotly.io as pio
 
-from deepchecks.analytics.anonymous_telemetry import send_anonymous_import_event
+from deepchecks.analytics.anonymous_telemetry import \
+    send_anonymous_import_event
+from deepchecks.core import (BaseCheck, BaseSuite, CheckFailure, CheckResult,
+                             Condition, ConditionCategory, ConditionResult,
+                             ModelOnlyBaseCheck, SingleDatasetBaseCheck,
+                             SuiteResult, TrainTestBaseCheck)
+# TODO: remove in further versions
+from deepchecks.tabular import (Context, Dataset, ModelComparisonCheck,
+                                ModelComparisonSuite, ModelOnlyCheck,
+                                SingleDatasetCheck, Suite, TrainTestCheck)
+from deepchecks.utils.ipython import is_notebook
 
 __all__ = [
     # core

@@ -9,19 +9,19 @@
 # ----------------------------------------------------------------------------
 #
 """Common utilities for distribution checks."""
+from numbers import Number
+from typing import Callable, Hashable, Optional, Tuple, Union
 
-from typing import Tuple, Union, Hashable, Callable, Optional
-
-from scipy.stats import wasserstein_distance
 import numpy as np
 import pandas as pd
-
-import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from scipy.stats import wasserstein_distance
 
-from deepchecks.utils.distribution.plot import drift_score_bar_traces, feature_distribution_traces
-from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
 from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
+from deepchecks.utils.distribution.plot import (drift_score_bar_traces,
+                                                feature_distribution_traces)
+from deepchecks.utils.distribution.preprocessing import \
+    preprocess_2_cat_cols_to_same_bins
 from deepchecks.utils.strings import format_percent
 
 PSI_MIN_PERCENTAGE = 0.01
@@ -58,7 +58,8 @@ def psi(expected_percents: np.ndarray, actual_percents: np.ndarray):
     return psi_value
 
 
-def earth_movers_distance(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series]):
+def earth_movers_distance(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series],
+                          margin_quantile_filter: float):
     """
     Calculate the Earth Movers Distance (Wasserstein distance).
 
@@ -68,27 +69,42 @@ def earth_movers_distance(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.n
 
     Parameters
     ----------
-    dist1 : Union[np.ndarray, pd.Series]
+    dist1: Union[np.ndarray, pd.Series]
         array of numberical values.
-    dist2 : Union[np.ndarray, pd.Series]
+    dist2: Union[np.ndarray, pd.Series]
         array of numberical values to compare dist1 to.
+    margin_quantile_filter: float
+        float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
+        out of the EMD calculation. This is done in order for extreme values not to affect the calculation
+        disproportionally. This filter is applied to both distributions, in both margins.
     Returns
     -------
     Any
         the Wasserstein distance between the two distributions.
 
+    Raises
+    -------
+    DeepchecksValueError
+        if the value of margin_quantile_filter is not in range [0, 0.5)
+
     """
-    unique1 = np.unique(dist1)
-    unique2 = np.unique(dist2)
+    if not isinstance(margin_quantile_filter, Number) or margin_quantile_filter < 0 or margin_quantile_filter >= 0.5:
+        raise DeepchecksValueError(
+            f'margin_quantile_filter expected a value in range [0, 0.5), instead got {margin_quantile_filter}')
 
-    sample_space = list(set(unique1).union(set(unique2)))
+    if margin_quantile_filter != 0:
+        dist1_qt_min, dist1_qt_max = np.quantile(dist1, [margin_quantile_filter, 1-margin_quantile_filter])
+        dist2_qt_min, dist2_qt_max = np.quantile(dist2, [margin_quantile_filter, 1-margin_quantile_filter])
+        dist1 = dist1[(dist1_qt_max >= dist1) & (dist1 >= dist1_qt_min)]
+        dist2 = dist2[(dist2_qt_max >= dist2) & (dist2 >= dist2_qt_min)]
 
-    val_max = max(sample_space)
-    val_min = min(sample_space)
+    val_max = np.max([np.max(dist1), np.max(dist2)])
+    val_min = np.min([np.min(dist1), np.min(dist2)])
 
     if val_max == val_min:
         return 0
 
+    # Scale the distribution between 0 and 1:
     dist1 = (dist1 - val_min) / (val_max - val_min)
     dist2 = (dist2 - val_min) / (val_max - val_min)
 
@@ -100,9 +116,10 @@ def calc_drift_and_plot(train_column: pd.Series,
                         value_name: Hashable,
                         column_type: str,
                         plot_title: Optional[str] = None,
+                        margin_quantile_filter: float = 0.025,
                         max_num_categories_for_drift: int = 10,
                         max_num_categories_for_display: int = 10,
-                        show_categories_by: str = 'train_largest',
+                        show_categories_by: str = 'largest_difference',
                         min_samples: int = 10) -> Tuple[float, str, Callable]:
     """
     Calculate drift score per column.
@@ -119,11 +136,15 @@ def calc_drift_and_plot(train_column: pd.Series,
         type of column (either "numerical" or "categorical")
     plot_title: str or None
         if None use value_name as title otherwise use this.
+    margin_quantile_filter: float, default: 0.025
+        float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
+        out of the EMD calculation. This is done in order for extreme values not to affect the calculation
+        disproportionally. This filter is applied to both distributions, in both margins.
     max_num_categories_for_drift: int, default: 10
         Max number of allowed categories. If there are more, they are binned into an "Other" category.
     max_num_categories_for_display: int, default: 10
         Max number of categories to show in plot.
-    show_categories_by: str, default: 'train_largest'
+    show_categories_by: str, default: 'largest_difference'
         Specify which categories to show for categorical features' graphs, as the number of shown categories is limited
         by max_num_categories_for_display. Possible values:
         - 'train_largest': Show the largest train categories.
@@ -151,7 +172,7 @@ def calc_drift_and_plot(train_column: pd.Series,
         train_dist = train_dist.astype('float')
         test_dist = test_dist.astype('float')
 
-        score = earth_movers_distance(dist1=train_dist, dist2=test_dist)
+        score = earth_movers_distance(dist1=train_dist, dist2=test_dist, margin_quantile_filter=margin_quantile_filter)
         bar_traces, bar_x_axis, bar_y_axis = drift_score_bar_traces(score)
 
         dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(train_dist, test_dist, value_name)
@@ -184,8 +205,12 @@ def calc_drift_and_plot(train_column: pd.Series,
                             row_heights=[0.1, 0.8, 0.1],
                             subplot_titles=[f'Drift Score ({scorer_name})', 'Distribution Plot'])
 
-    fig.add_traces(bar_traces, rows=[1] * len(bar_traces), cols=[1] * len(bar_traces))
-    fig.add_traces(dist_traces, rows=[2] * len(dist_traces), cols=[1] * len(dist_traces))
+    fig.add_traces(bar_traces, rows=1, cols=1)
+    fig.update_xaxes(bar_x_axis, row=1, col=1)
+    fig.update_yaxes(bar_y_axis, row=1, col=1)
+    fig.add_traces(dist_traces, rows=2, cols=1)
+    fig.update_xaxes(dist_x_axis, row=2, col=1)
+    fig.update_yaxes(dist_y_axis, row=2, col=1)
 
     if add_footnote:
         param_to_print_dict = {
@@ -204,24 +229,14 @@ def calc_drift_and_plot(train_column: pd.Series,
                  f'{format_percent(test_data_percents)} of test data.'
         )
 
-    if not plot_title:
-        plot_title = value_name
-
-    shared_layout = go.Layout(
-        xaxis=bar_x_axis,
-        yaxis=bar_y_axis,
-        xaxis2=dist_x_axis,
-        yaxis2=dist_y_axis,
+    fig.update_layout(
         legend=dict(
-            title='Dataset',
+            title='Legend',
             yanchor='top',
             y=0.6),
         width=700,
         height=400,
-        title=dict(text=plot_title, x=0.5, xanchor='center'),
-        bargroupgap=0
-    )
-
-    fig.update_layout(shared_layout)
+        title=dict(text=plot_title or value_name, x=0.5, xanchor='center'),
+        bargroupgap=0)
 
     return score, scorer_name, fig

@@ -9,13 +9,14 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the distribution checks in the vision package."""
-from .train_test_label_drift import TrainTestLabelDrift
-from .train_test_prediction_drift import TrainTestPredictionDrift
-from .image_dataset_drift import ImageDatasetDrift
 from .heatmap_comparison import HeatmapComparison
+from .image_dataset_drift import ImageDatasetDrift
 from .image_property_drift import ImagePropertyDrift
 from .image_property_outliers import ImagePropertyOutliers
 from .label_property_outliers import LabelPropertyOutliers
+from .new_labels import NewLabels
+from .train_test_label_drift import TrainTestLabelDrift
+from .train_test_prediction_drift import TrainTestPredictionDrift
 
 __all__ = [
     'TrainTestLabelDrift',
@@ -24,5 +25,6 @@ __all__ = [
     'HeatmapComparison',
     'ImagePropertyDrift',
     'ImagePropertyOutliers',
-    'LabelPropertyOutliers'
+    'LabelPropertyOutliers',
+    'NewLabels'
 ]

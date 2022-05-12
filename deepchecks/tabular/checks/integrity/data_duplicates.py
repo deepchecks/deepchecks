@@ -9,18 +9,16 @@
 # ----------------------------------------------------------------------------
 #
 """module contains Data Duplicates check."""
-from typing import Union, List
+from typing import List, Union
 
 import numpy as np
 
-from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DatasetValidationError
 from deepchecks.tabular import Context, SingleDatasetCheck
-from deepchecks.tabular.utils.display_utils import nothing_found_on_columns
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.strings import format_percent, format_list
+from deepchecks.utils.strings import format_list, format_percent
 from deepchecks.utils.typing import Hashable
-
 
 __all__ = ['DataDuplicates']
 
@@ -112,7 +110,7 @@ class DataDuplicates(SingleDatasetCheck):
             display = [text, explanation, most_duplicates]
 
         else:
-            display = nothing_found_on_columns(data_columns)
+            display = None
 
         return CheckResult(value=percent_duplicate, display=display)
 

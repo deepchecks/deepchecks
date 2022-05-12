@@ -6,8 +6,9 @@ Special Characters
 
 #%%
 
-from deepchecks.tabular.checks import SpecialCharacters
 import pandas as pd
+
+from deepchecks.tabular.checks import SpecialCharacters
 
 #%%
 

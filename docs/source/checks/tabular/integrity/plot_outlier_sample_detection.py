@@ -33,7 +33,8 @@ import pandas as pd
 from sklearn.datasets import load_iris
 
 from deepchecks.tabular import Dataset
-from deepchecks.tabular.checks.integrity.outlier_sample_detection import OutlierSampleDetection
+from deepchecks.tabular.checks.integrity.outlier_sample_detection import \
+    OutlierSampleDetection
 
 # %%
 # Prepare data
@@ -48,14 +49,14 @@ iris.describe()
 outlier_sample = [1, 10, 50, 100]
 iris.loc[len(iris.index)] = outlier_sample
 print(iris.tail())
-modified_iris = Dataset(iris)
+modified_iris = Dataset(iris, cat_features=[])
 
 # %%
 # Run the Check
 # =============
-# We define the num_neighbors and the extent parameters for the LoOP algorithm.
+# We define the nearest_neighbors_percent and the extent parameters for the LoOP algorithm.
 
-check = OutlierSampleDetection(num_nearest_neighbors=10, extent_parameter=3)
+check = OutlierSampleDetection(nearest_neighbors_percent=0.01, extent_parameter=3)
 check.run(modified_iris)
 
 # %%

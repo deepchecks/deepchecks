@@ -37,7 +37,6 @@ We will run the check on the adult dataset which can be downloaded from the
 from deepchecks.tabular.checks import UnusedFeatures
 from deepchecks.tabular.datasets.classification import adult
 
-
 train_ds, test_ds = adult.load_data()
 model = adult.load_fitted_model()
 

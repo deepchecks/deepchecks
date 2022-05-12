@@ -9,9 +9,10 @@
 # ----------------------------------------------------------------------------
 #
 """Test functions of the heatmap comparison check."""
-from hamcrest import assert_that, raises, calling, close_to
+from hamcrest import assert_that, calling, close_to, raises
 
-from deepchecks.core.errors import DeepchecksValueError, DeepchecksNotSupportedError
+from deepchecks.core.errors import (DeepchecksNotSupportedError,
+                                    DeepchecksValueError)
 from deepchecks.vision.checks.distribution import HeatmapComparison
 
 
@@ -60,19 +61,19 @@ def test_classification_limit_classes(mnist_dataset_train, mnist_dataset_test, d
 
 def test_object_detection_limit_classes(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
-    check = HeatmapComparison(classes_to_display=['person', 'cat'])
+    check = HeatmapComparison(classes_to_display=['bicycle', 'bench'])
 
     # Act
     result = check.run(coco_train_visiondata, coco_test_visiondata, device=device)
 
     # Assert
     brightness_diff = result.value["diff"]
-    assert_that(brightness_diff.mean(), close_to(49, 0.001))
-    assert_that(brightness_diff.max(), close_to(208, 0.001))
+    assert_that(brightness_diff.mean(), close_to(39.458, 0.001))
+    assert_that(brightness_diff.max(), close_to(170, 0.001))
 
     bbox_diff = result.value["diff_bbox"]
-    assert_that(bbox_diff.mean(), close_to(18.501, 0.001))
-    assert_that(bbox_diff.max(), close_to(100, 0.001))
+    assert_that(bbox_diff.mean(), close_to(15.154, 0.001))
+    assert_that(bbox_diff.max(), close_to(75, 0.001))
 
 
 def test_limit_classes_nonexistant_class(coco_train_visiondata, coco_test_visiondata, device):

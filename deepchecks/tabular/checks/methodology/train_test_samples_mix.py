@@ -10,6 +10,7 @@
 #
 """The data_sample_leakage_report check module."""
 from typing import List
+
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionResult
@@ -17,7 +18,6 @@ from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
-
 
 pd.options.mode.chained_assignment = None
 

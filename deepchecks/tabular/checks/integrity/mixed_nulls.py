@@ -9,21 +9,20 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains Mixed Nulls check."""
-from collections import defaultdict, Counter
-from typing import Union, Dict, List, Iterable
+from collections import Counter, defaultdict
+from typing import Dict, Iterable, List, Union
 
 import pandas as pd
-
-from deepchecks.tabular import Context, SingleDatasetCheck
-from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
-from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.tabular.utils.display_utils import nothing_found_on_columns
-from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
-from deepchecks.utils.strings import string_baseform, format_percent
-from deepchecks.utils.typing import Hashable
 from pkg_resources import parse_version
 
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
+from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.tabular import Context, SingleDatasetCheck
+from deepchecks.utils.dataframes import select_from_dataframe
+from deepchecks.utils.features import (N_TOP_MESSAGE,
+                                       column_importance_sorter_df)
+from deepchecks.utils.strings import format_percent, string_baseform
+from deepchecks.utils.typing import Hashable
 
 __all__ = ['MixedNulls']
 
@@ -115,7 +114,7 @@ class MixedNulls(SingleDatasetCheck):
                                                    self.n_top_columns, col='Column Name')
             display = [N_TOP_MESSAGE % self.n_top_columns, df_graph]
         else:
-            display = nothing_found_on_columns(df.columns)
+            display = None
 
         return CheckResult(result_dict, display=display)
 

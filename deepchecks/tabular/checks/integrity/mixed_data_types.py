@@ -9,25 +9,24 @@
 # ----------------------------------------------------------------------------
 #
 """module contains Mixed Types check."""
-from typing import List, Union, Tuple
-import pandas as pd
+from typing import List, Tuple, Union
 
 import numpy as np
+import pandas as pd
 
-from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
-from deepchecks.tabular.utils.display_utils import nothing_found_on_columns
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
-from deepchecks.utils.strings import is_string_column, format_percent
+from deepchecks.utils.features import (N_TOP_MESSAGE,
+                                       column_importance_sorter_df)
+from deepchecks.utils.strings import format_percent, is_string_column
 from deepchecks.utils.typing import Hashable
-
 
 __all__ = ['MixedDataTypes']
 
 
 class MixedDataTypes(SingleDatasetCheck):
-    """Detect a small amount of a rare data type within a column, such as few string samples in a mostly numeric column.
+    """Detect columns which contain a mix of numerical and string values.
 
     Parameters
     ----------
@@ -88,7 +87,7 @@ class MixedDataTypes(SingleDatasetCheck):
                                                    self.n_top_columns).T
             display = [N_TOP_MESSAGE % self.n_top_columns, df_graph]
         else:
-            display = nothing_found_on_columns(df.columns)
+            display = None
 
         return CheckResult(result_dict, display=display)
 
@@ -123,7 +122,7 @@ class MixedDataTypes(SingleDatasetCheck):
         """Add condition - Whether the ratio of rarer data type (strings or numbers) is not in the "danger zone".
 
         The "danger zone" represents the following logic - if the rarer data type is, for example, 30% of the data,
-        than the column is presumably supposed to contain both numbers and numeric values. If the rarer data type is,
+        than the column is presumably supposed to contain both numbers and string values. If the rarer data type is,
         for example, less than 1% of the data, than it's presumably a contamination, but a negligible one. In the range
         between, there is a real chance that the rarer data type may represent a problem to model training and
         inference.

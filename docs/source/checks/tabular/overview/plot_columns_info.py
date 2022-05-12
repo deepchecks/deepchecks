@@ -8,10 +8,11 @@ Imports
 
 #%%
 
-import pandas as pd
 import numpy as np
-from deepchecks.tabular.checks.overview import ColumnsInfo
+import pandas as pd
+
 from deepchecks.tabular import Dataset
+from deepchecks.tabular.checks.overview import ColumnsInfo
 
 #%%
 # Generating data

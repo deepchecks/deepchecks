@@ -8,13 +8,14 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-from ignite.metrics import Precision, Recall
 import numpy as np
-from hamcrest import assert_that, equal_to, has_length, has_entries, has_items, close_to, matches_regexp
+from hamcrest import (assert_that, close_to, equal_to, has_entries, has_items,
+                      has_length, matches_regexp)
+from ignite.metrics import Precision, Recall
 
-from tests.vision.vision_conftest import *
-from tests.checks.utils import equal_condition_result
 from deepchecks.vision.checks.performance import ImageSegmentPerformance
+from tests.checks.utils import equal_condition_result
+from tests.vision.vision_conftest import *
 
 
 def test_mnist(mnist_dataset_train, mock_trained_mnist):
@@ -43,6 +44,7 @@ def test_mnist_no_display(mnist_dataset_train, mock_trained_mnist):
     assert_that(result.display, has_length(1))
     assert_that(result.display[0], matches_regexp('<i>Note'))  #
 
+
 def test_mnist_top_display(mnist_dataset_train, mock_trained_mnist):
     # Act
     result = ImageSegmentPerformance(n_to_show=1).run(mnist_dataset_train, mock_trained_mnist, n_samples=None)
@@ -58,6 +60,7 @@ def test_mnist_top_display(mnist_dataset_train, mock_trained_mnist):
     assert_that(result.display, has_length(1))
     assert_that(result.display[0].data, has_length(1))
     assert_that(result.display[0].data[0].name, equal_to('Precision'))
+
 
 def test_mnist_alt_metrics(mnist_dataset_train, mock_trained_mnist):
     # Act
@@ -77,9 +80,10 @@ def test_mnist_alt_metrics(mnist_dataset_train, mock_trained_mnist):
     assert_that(result.display[0].data[0].name, equal_to('p'))
     assert_that(result.display[0].data[3].name, equal_to('r'))
 
+
 def test_coco_and_condition(coco_train_visiondata, mock_trained_yolov5_object_detection):
     # Arrange
-    check = ImageSegmentPerformance().add_condition_score_from_mean_ratio_not_less_than(0.5)\
+    check = ImageSegmentPerformance().add_condition_score_from_mean_ratio_not_less_than(0.5) \
         .add_condition_score_from_mean_ratio_not_less_than(0.1)
     # Act
     result = check.run(coco_train_visiondata, mock_trained_yolov5_object_detection)
@@ -93,19 +97,19 @@ def test_coco_and_condition(coco_train_visiondata, mock_trained_yolov5_object_de
         'Aspect Ratio': has_items(
             has_entries({
                 'start': -np.inf, 'stop': 0.6671875, 'count': 12, 'display_range': '(-inf, 0.67)',
-                'metrics': has_entries({'AP': close_to(0.454, 0.001), 'AR': close_to(0.45, 0.001)})
+                'metrics': has_entries({'Average Precision': close_to(0.454, 0.001), 'Average Recall': close_to(0.45, 0.001)})
             }),
             has_entries({
                 'start': 0.6671875, 'stop': 0.75, 'count': 11, 'display_range': '[0.67, 0.75)',
-                'metrics': has_entries({'AP': close_to(0.367, 0.001), 'AR': close_to(0.4, 0.001)})
+                'metrics': has_entries({'Average Precision': close_to(0.367, 0.001), 'Average Recall': close_to(0.4, 0.001)})
             }),
             has_entries({
                 'start': 0.75, 'stop': close_to(1.102, 0.001), 'count': 28, 'display_range': '[0.75, 1.1)',
-                'metrics': has_entries({'AP': close_to(0.299, 0.001), 'AR': close_to(0.333, 0.001)})
+                'metrics': has_entries({'Average Precision': close_to(0.299, 0.001), 'Average Recall': close_to(0.333, 0.001)})
             }),
             has_entries({
                 'start': close_to(1.102, 0.001), 'stop': np.inf, 'count': 13, 'display_range': '[1.1, inf)',
-                'metrics': has_entries({'AP': close_to(0.5, 0.001), 'AR': close_to(0.549, 0.001)})
+                'metrics': has_entries({'Average Precision': close_to(0.5, 0.001), 'Average Recall': close_to(0.549, 0.001)})
             }),
         )
     }))
@@ -119,6 +123,6 @@ def test_coco_and_condition(coco_train_visiondata, mock_trained_yolov5_object_de
             is_pass=False,
             name='No segment with ratio between score to mean less than 50%',
             details="Properties with failed segments: Mean Green Relative Intensity: "
-                    "{'Range': '[0.34, 0.366)', 'Metric': 'AP', 'Ratio': 0.44}"
+                    "{'Range': '[0.34, 0.366)', 'Metric': 'Average Precision', 'Ratio': 0.44}"
         )
     ))

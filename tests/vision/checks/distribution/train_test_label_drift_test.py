@@ -9,11 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """Test functions of the VISION train test label drift."""
-from hamcrest import assert_that, has_entries, close_to, equal_to, raises, calling
-from tests.checks.utils import equal_condition_result
+from hamcrest import (assert_that, calling, close_to, equal_to, has_entries,
+                      raises)
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks import TrainTestLabelDrift
+from tests.checks.utils import equal_condition_result
 
 
 def test_no_drift_classification(mnist_dataset_train, device):
@@ -84,13 +85,13 @@ def test_with_drift_object_detection(coco_train_visiondata, coco_test_visiondata
     # Assert
     assert_that(result.value, has_entries(
         {'Samples Per Class': has_entries(
-            {'Drift score': close_to(0.24, 0.01),
+            {'Drift score': close_to(0.37, 0.01),
              'Method': equal_to('PSI')}
         ), 'Bounding Box Area (in pixels)': has_entries(
-            {'Drift score': close_to(0.012, 0.001),
+            {'Drift score': close_to(0.013, 0.001),
              'Method': equal_to('Earth Mover\'s Distance')}
         ), 'Number of Bounding Boxes Per Image': has_entries(
-            {'Drift score': close_to(0.059, 0.001),
+            {'Drift score': close_to(0.051, 0.001),
              'Method': equal_to('Earth Mover\'s Distance')}
         )
         }
@@ -129,10 +130,10 @@ def test_with_drift_object_detection_change_max_cat(coco_train_visiondata, coco_
             {'Drift score': close_to(0.44, 0.01),
              'Method': equal_to('PSI')}
         ), 'Bounding Box Area (in pixels)': has_entries(
-            {'Drift score': close_to(0.012, 0.001),
+            {'Drift score': close_to(0.013, 0.001),
              'Method': equal_to('Earth Mover\'s Distance')}
         ), 'Number of Bounding Boxes Per Image': has_entries(
-            {'Drift score': close_to(0.059, 0.001),
+            {'Drift score': close_to(0.051, 0.001),
              'Method': equal_to('Earth Mover\'s Distance')}
         )
         }
@@ -143,13 +144,13 @@ def test_display_changes_but_values_dont_for_diff_display_params(coco_train_visi
     def assert_func(result):
         assert_that(result.value, has_entries(
             {'Samples Per Class': has_entries(
-                {'Drift score': close_to(0.24, 0.01),
+                {'Drift score': close_to(0.37, 0.01),
                  'Method': equal_to('PSI')}
             ), 'Bounding Box Area (in pixels)': has_entries(
-                {'Drift score': close_to(0.012, 0.001),
+                {'Drift score': close_to(0.013, 0.001),
                  'Method': equal_to('Earth Mover\'s Distance')}
             ), 'Number of Bounding Boxes Per Image': has_entries(
-                {'Drift score': close_to(0.059, 0.001),
+                {'Drift score': close_to(0.051, 0.001),
                  'Method': equal_to('Earth Mover\'s Distance')}
             )
             }
@@ -179,7 +180,7 @@ def test_with_drift_object_detection_alternative_properties(coco_train_visiondat
     # Assert
     assert_that(result.value, has_entries(
         {'test': has_entries(
-            {'Drift score': close_to(0.046, 0.001),
+            {'Drift score': close_to(0.05, 0.001),
              'Method': equal_to('Earth Mover\'s Distance')}
         )
         }

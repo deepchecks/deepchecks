@@ -52,9 +52,8 @@ Imports
 
 #%%
 
-from deepchecks.vision.datasets.detection import coco
 from deepchecks.vision.checks.distribution import ImagePropertyDrift
-
+from deepchecks.vision.datasets.detection import coco
 #%%
 # Prepare data
 # ------------
@@ -83,7 +82,7 @@ check_result.value
 # min_samples to 5 to tell the check to calculate drift despite having only a few images left after the class
 # filtration)
 
-check_result = ImagePropertyDrift(classes_to_display=['person', 'cat', 'cell phone', 'car'], min_samples=5
+check_result = ImagePropertyDrift(classes_to_display=['bicycle', 'bench', 'bus', 'truck'], min_samples=5
                                   ).run(train_dataset, test_dataset)
 check_result
 
@@ -119,6 +118,7 @@ check_result.show(show_additional_outputs=False)
 # * `mean_blue_relative_intensity`
 
 from typing import List
+
 import numpy as np
 
 

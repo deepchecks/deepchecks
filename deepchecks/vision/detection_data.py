@@ -9,20 +9,21 @@
 # ----------------------------------------------------------------------------
 #
 """The vision/dataset module containing the vision Dataset class and its functions."""
-from abc import abstractmethod
 import logging
+from abc import abstractmethod
 from typing import List
 
 import torch
 
-from deepchecks.core.errors import DeepchecksNotImplementedError, DeepchecksValueError, ValidationError
-from deepchecks.vision.vision_data import VisionData, TaskType
+from deepchecks.core.errors import (DeepchecksNotImplementedError,
+                                    DeepchecksValueError, ValidationError)
+from deepchecks.vision.vision_data import TaskType, VisionData
 
 logger = logging.getLogger('deepchecks')
 
 
 class DetectionData(VisionData):
-    """The ClassificationData class is used to load and preprocess data for a object detection task.
+    """The DetectionData class is used to load and preprocess data for a object detection task.
 
     It is a subclass of the VisionData class. The DetectionData class is containing additional data and general
     methods intended for easily accessing metadata relevant for validating a computer vision object detection ML models.
@@ -30,7 +31,7 @@ class DetectionData(VisionData):
 
     @property
     def task_type(self) -> TaskType:
-        """Return the task type."""
+        """Return the task type (object_detection)."""
         return TaskType.OBJECT_DETECTION
 
     @abstractmethod

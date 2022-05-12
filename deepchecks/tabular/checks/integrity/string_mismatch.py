@@ -11,21 +11,19 @@
 """String mismatch functions."""
 import itertools
 from collections import defaultdict
-from typing import Union, List
+from typing import List, Union
 
 import pandas as pd
 
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
-from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
+from deepchecks.utils.features import (N_TOP_MESSAGE,
+                                       column_importance_sorter_df)
+from deepchecks.utils.strings import (format_percent,
+                                      get_base_form_to_variants_dict,
+                                      is_string_column)
 from deepchecks.utils.typing import Hashable
-from deepchecks.utils.strings import (
-    get_base_form_to_variants_dict,
-    is_string_column,
-    format_percent
-)
-
 
 __all__ = ['StringMismatch']
 
@@ -48,6 +46,10 @@ class StringMismatch(SingleDatasetCheck):
         Columns to ignore, if none given checks based on columns variable
     n_top_columns : int , optional
         amount of columns to show ordered by feature importance (date, index, label are first)
+    n_samples : int , default: 10_000
+        number of samples to use for this check.
+    random_state : int, default: 42
+        random seed for all check internals.
     """
 
     def __init__(
@@ -55,12 +57,16 @@ class StringMismatch(SingleDatasetCheck):
         columns: Union[Hashable, List[Hashable], None] = None,
         ignore_columns: Union[Hashable, List[Hashable], None] = None,
         n_top_columns: int = 10,
+        n_samples: int = 10_000,
+        random_state: int = 42,
         **kwargs
     ):
         super().__init__(**kwargs)
         self.columns = columns
         self.ignore_columns = ignore_columns
         self.n_top_columns = n_top_columns
+        self.n_samples = n_samples
+        self.random_state = random_state
 
     def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
         """Run check."""
@@ -69,7 +75,10 @@ class StringMismatch(SingleDatasetCheck):
         else:
             dataset = context.test
 
-        df = select_from_dataframe(dataset.data, self.columns, self.ignore_columns)
+        df = select_from_dataframe(dataset.sample(self.n_samples, random_state=self.random_state).data,
+                                   self.columns, self.ignore_columns)
+
+        sampling_footnote = context.get_is_sampled_footnote(self.n_samples)
 
         results = []
         result_dict = defaultdict(dict)
@@ -100,6 +109,8 @@ class StringMismatch(SingleDatasetCheck):
             df_graph = column_importance_sorter_df(df_graph, dataset, context.features_importance,
                                                    self.n_top_columns, col='Column Name')
             display = [N_TOP_MESSAGE % self.n_top_columns, df_graph]
+            if sampling_footnote:
+                display.append(sampling_footnote)
         else:
             display = None
 

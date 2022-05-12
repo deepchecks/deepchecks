@@ -27,11 +27,12 @@ alphanumeric characters in lowercase. (For example "Cat-9?!" base form is "cat9"
 form, they are considered to be the same.
 """
 
+import pandas as pd
+
 #%%
 # Run the Check
 # =============
 from deepchecks.tabular.checks import StringMismatchComparison
-import pandas as pd
 
 data = {'col1': ['Deep', 'deep', 'deep!!!', 'earth', 'foo', 'bar', 'foo?']}
 compared_data = {'col1': ['Deep', 'deep', '$deeP$', 'earth', 'foo', 'bar', 'foo?', '?deep']}

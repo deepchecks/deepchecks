@@ -13,10 +13,11 @@ from typing import Optional
 
 import numpy as np
 import pandas as pd
+import plotly.graph_objects as go
+
 import deepchecks.ppscore as pps
 from deepchecks.utils.plot import colors
 from deepchecks.utils.typing import Hashable
-import plotly.graph_objects as go
 
 
 def get_pps_figure(per_class: bool):
@@ -51,8 +52,11 @@ def pps_df_to_trace(s_pps: pd.Series, name: str):
                   )
 
 
-def get_single_feature_contribution(train_df: pd.DataFrame, train_label_name: Optional[Hashable], test_df: pd.DataFrame,
-                                    test_label_name: Optional[Hashable], ppscore_params: dict, n_show_top: int,
+def get_single_feature_contribution(train_df: pd.DataFrame, train_label_name: Optional[Hashable],
+                                    test_df: pd.DataFrame,
+                                    test_label_name: Optional[Hashable], ppscore_params: dict,
+                                    n_show_top: int,
+                                    min_pps_to_show: float = 0.05,
                                     random_state: int = None):
     """
     Calculate the PPS for train, test and difference for single feature contribution checks.
@@ -75,6 +79,8 @@ def get_single_feature_contribution(train_df: pd.DataFrame, train_label_name: Op
             dictionary of additional parameters for the ppscore predictor function
         n_show_top: int
             Number of features to show, sorted by the magnitude of difference in PPS
+        min_pps_to_show: float, default 0.05
+            Minimum PPS to show a class in the graph
         random_state: int, default None
             Random state for the ppscore.predictors function
 
@@ -94,8 +100,7 @@ def get_single_feature_contribution(train_df: pd.DataFrame, train_label_name: Op
     s_pps_test = df_pps_test.set_index('x', drop=True)['ppscore']
     s_difference = s_pps_train - s_pps_test
 
-    s_difference_to_display = np.abs(s_difference).apply(lambda x: 0 if x < 0 else x)
-    s_difference_to_display = s_difference_to_display.sort_values(ascending=False).head(n_show_top)
+    s_difference_to_display = np.abs(s_difference).sort_values(ascending=False).head(n_show_top)
 
     s_pps_train_to_display = s_pps_train[s_difference_to_display.index]
     s_pps_test_to_display = s_pps_test[s_difference_to_display.index]
@@ -107,14 +112,15 @@ def get_single_feature_contribution(train_df: pd.DataFrame, train_label_name: Op
                              y=s_difference_to_display,
                              name='Train-Test Difference (abs)',
                              marker=dict(symbol='circle', size=15),
-                             line=dict(color='#aa57b5', width=5)
+                             line=dict(color='#aa57b5', width=5),
+                             text=s_difference_to_display.round(2)
                              ))
 
     ret_value = {'train': s_pps_train.to_dict(), 'test': s_pps_test.to_dict(),
                  'train-test difference': s_difference.to_dict()}
 
-    # display only if not all scores are 0
-    display = [fig] if s_pps_train.sum() or s_pps_test.sum() else None
+    # display only if not all scores are above min_pps_to_show
+    display = [fig] if any(s_pps_train > min_pps_to_show) or any(s_pps_test > min_pps_to_show) else None
 
     return ret_value, display
 
@@ -195,7 +201,7 @@ def get_single_feature_contribution_per_class(train_df: pd.DataFrame, train_labe
         ret_value[feature] = {'train': s_train.to_dict(), 'test': s_test.to_dict(),
                               'train-test difference': s_difference.to_dict()}
 
-        # If not all results are 0, plot add to display:
+        # display only if not all scores are above min_pps_to_show
         if any(s_train > min_pps_to_show) or any(s_test > min_pps_to_show):
             s_difference_to_display = np.abs(s_difference).apply(lambda x: 0 if x < 0 else x)
             s_difference_to_display = s_difference_to_display.sort_values(ascending=False).head(n_show_top)

@@ -181,8 +181,8 @@ doc-requirements: $(ENV)
 
 
 dev-requirements: $(ENV)
-	@echo "####  installing development dependencies, it could take some time, please wait! #### "
-	@$(PIP) install -q -r ./requirements/dev-requirements.txt
+	@echo "####  installing development dependencies, it could take some time, please wait! ####"
+	@$(PIP) install -r ./requirements/dev-requirements.txt
 
 
 ### Static Analysis ######################################################
@@ -297,6 +297,7 @@ clean-docs: $(DOCS)
 
 trailing-spaces:
 	@find ./deepchecks/ -name "*.py" -type f -print0 | xargs -0 sed -i "s/[[:space:]]*$$//"
+	@find ./tests/ -name "*.py" -type f -print0 | xargs -0 sed -i "s/[[:space:]]*$$//"
 
 
 ### Release ######################################################
@@ -351,7 +352,7 @@ test-release: dist test-upload
 
 docs: requirements doc-requirements dev-requirements $(DOCS_SRC)
 	@export WANDB_MODE=offline
-	cd $(DOCS) && make html SPHINXBUILD=$(SPHINX_BUILD) SPHINXOPTS=$(SPHINXOPTS) 2> docs.error.log
+	cd $(DOCS) && make html SPHINXBUILD=$(SPHINX_BUILD) SPHINXOPTS=$(SPHINXOPTS)
 	@echo ""
 	@echo "++++++++++++++++++++++++"
 	@echo "++++ Build Finished ++++"

@@ -9,8 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module for working with pre-built datasets."""
-from . import classification
-from . import regression
-
+from . import classification, regression
 
 __all__ = ['classification', 'regression']

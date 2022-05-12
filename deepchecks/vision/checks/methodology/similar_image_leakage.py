@@ -10,15 +10,16 @@
 #
 """Module contains the similar image leakage check."""
 import random
-from typing import TypeVar, List, Tuple
-import numpy as np
-from PIL.Image import fromarray
-from imagehash import average_hash
+from typing import List, Tuple, TypeVar
 
-from deepchecks import ConditionResult, ConditionCategory
+import numpy as np
+from imagehash import average_hash
+from PIL.Image import fromarray
+
+from deepchecks import ConditionCategory, ConditionResult
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.vision import Context, TrainTestCheck, Batch
+from deepchecks.vision import Batch, Context, TrainTestCheck
 
 __all__ = ['SimilarImageLeakage']
 
@@ -189,7 +190,6 @@ Total number of test samples with similar images in train: {count}
     style="
         overflow-x: auto;
         display: grid;
-        grid-template-rows: auto 1fr 1fr;
         grid-template-columns: auto repeat({n_of_images}, 1fr);
         grid-gap: 1.5rem;
         justify-items: center;

@@ -39,16 +39,16 @@ For a quick start, check out the following pages in the tutorials section:
 Tabular Data Quickstart
 -------------------------
 
-- :doc:`Quickstart in 5 minutes </auto_tutorials/tabular/plot_quickstart_in_5_minutes>`
+- :doc:`Quickstart in 5 minutes </user-guide/tabular/auto_tutorials/plot_quickstart_in_5_minutes>`
 
 Computer Vision Quickstart
 -----------------------------
 
 **CV Beta Release**
 
-- :doc:`Deepchecks Example - Simple Image Classification Tutorial </auto_tutorials/vision/plot_simple_classification_tutorial>`
-- :doc:`Deepchecks for Object Detection Tutorial </auto_tutorials/vision/plot_detection_tutorial>`
-- :doc:`Deepchecks for Classification Tutorial</auto_tutorials/vision/plot_classification_tutorial>`
+- :doc:`Deepchecks Example - Simple Image Classification Tutorial </user-guide/vision/auto_tutorials/plot_simple_classification_tutorial>`
+- :doc:`Deepchecks for Object Detection Tutorial </user-guide/vision/auto_tutorials/plot_detection_tutorial>`
+- :doc:`Deepchecks for Classification Tutorial</user-guide/vision/auto_tutorials/plot_classification_tutorial>`
 
 .. note:: 
    Deepchecks' Computer Vision subpackage is in beta release.
@@ -77,12 +77,6 @@ See the :doc:`When Should You Use </getting-started/when_should_you_use>` Sectio
 
     getting-started/index
 
-
-.. toctree::
-    :maxdepth: 3
-
-    auto_tutorials/index
-
 .. toctree::
     :maxdepth: 3
 
@@ -91,12 +85,12 @@ See the :doc:`When Should You Use </getting-started/when_should_you_use>` Sectio
 .. toctree::
     :maxdepth: 3
 
-    checks_gallery/tabular/index
+    checks_gallery/tabular
 
 .. toctree::
     :maxdepth: 3
 
-    checks_gallery/vision/index
+    checks_gallery/vision
 
 .. toctree::
     :maxdepth: 3

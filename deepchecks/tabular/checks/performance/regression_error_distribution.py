@@ -9,14 +9,13 @@
 # ----------------------------------------------------------------------------
 #
 """The regression_error_distribution check module."""
-import plotly.express as px
 import pandas as pd
+import plotly.express as px
 from scipy.stats import kurtosis
 
-from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.strings import format_number
-
 
 __all__ = ['RegressionErrorDistribution']
 

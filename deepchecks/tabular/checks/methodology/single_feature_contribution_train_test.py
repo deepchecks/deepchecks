@@ -11,12 +11,13 @@
 """The single_feature_contribution check module."""
 import typing as t
 
-from deepchecks.core.check_utils.single_feature_contribution_utils import get_single_feature_contribution
+from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.core.check_utils.single_feature_contribution_utils import \
+    get_single_feature_contribution
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck
-from deepchecks.core import CheckResult, ConditionResult
-from deepchecks.utils.typing import Hashable
 from deepchecks.utils.strings import format_number
+from deepchecks.utils.typing import Hashable
 
 __all__ = ['SingleFeatureContributionTrainTest']
 
@@ -51,13 +52,20 @@ class SingleFeatureContributionTrainTest(TrainTestCheck):
         Number of features to show, sorted by the magnitude of difference in PPS
     random_state : int , default: None
         Random state for the ppscore.predictors function
+    min_pps_to_show: float, default 0.05
+        Minimum PPS to show a class in the graph
     """
 
-    def __init__(self, ppscore_params=None, n_top_features: int = 5, random_state: int = None, **kwargs):
+    def __init__(self, ppscore_params=None,
+                 n_top_features: int = 5,
+                 random_state: int = None,
+                 min_pps_to_show: float = 0.05,
+                 **kwargs):
         super().__init__(**kwargs)
         self.ppscore_params = ppscore_params or {}
         self.n_top_features = n_top_features
         self.random_state = random_state
+        self.min_pps_to_show = min_pps_to_show
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check.
@@ -103,6 +111,7 @@ class SingleFeatureContributionTrainTest(TrainTestCheck):
                                                              test_dataset.data[relevant_columns],
                                                              test_dataset.label_name, self.ppscore_params,
                                                              self.n_top_features,
+                                                             min_pps_to_show=self.min_pps_to_show,
                                                              random_state=self.random_state)
 
         if display:

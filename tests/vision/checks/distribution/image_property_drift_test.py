@@ -9,27 +9,18 @@
 # ----------------------------------------------------------------------------
 #
 """Image Property Drift check tests"""
-from hamcrest import (
-    assert_that,
-    instance_of,
-    all_of,
-    calling,
-    matches_regexp,
-    raises,
-    has_property,
-    has_properties,
-    has_length,
-    contains_exactly,
-    greater_than,
-    equal_to, has_key, has_entries, close_to
-)
+from hamcrest import (all_of, assert_that, calling, close_to, contains_exactly,
+                      equal_to, greater_than, has_entries, has_key, has_length,
+                      has_properties, has_property, instance_of,
+                      matches_regexp, raises)
 
 from deepchecks.core import CheckResult
 from deepchecks.core.condition import ConditionCategory
-from deepchecks.core.errors import DeepchecksValueError, DeepchecksNotImplementedError
+from deepchecks.core.errors import (DeepchecksNotImplementedError,
+                                    DeepchecksValueError)
+from deepchecks.vision.checks.distribution import ImagePropertyDrift
 from deepchecks.vision.datasets.classification.mnist import MNISTData
 from deepchecks.vision.utils.image_properties import default_image_properties
-from deepchecks.vision.checks.distribution import ImagePropertyDrift
 
 
 def test_image_property_drift_check(coco_train_visiondata, coco_test_visiondata, device):
@@ -40,20 +31,20 @@ def test_image_property_drift_check(coco_train_visiondata, coco_test_visiondata,
     assert_that(result, is_correct_image_property_drift_result())
 
     assert_that(result.value, has_entries(
-        {'Brightness': close_to(0.05, 0.01)}
+        {'Brightness': close_to(0.07, 0.01)}
     ))
 
 
 def test_image_property_drift_check_limit_classes(coco_train_visiondata, coco_test_visiondata, device):
     # Run
-    result = ImagePropertyDrift(classes_to_display=['person', 'cat', 'cell phone', 'car'], min_samples=5
+    result = ImagePropertyDrift(classes_to_display=['bicycle', 'bench', 'bus', 'truck'], min_samples=5
                                 ).run(coco_train_visiondata, coco_test_visiondata, device=device)
 
     # Assert
     assert_that(result, is_correct_image_property_drift_result())
 
     assert_that(result.value, has_entries(
-        {'Brightness': close_to(0.15, 0.01)}
+        {'Brightness': close_to(0.13, 0.01)}
     ))
 
 

@@ -9,17 +9,14 @@
 # ----------------------------------------------------------------------------
 #
 """Contains unit tests for the confusion_matrix_report check."""
-from sklearn.metrics import make_scorer, recall_score, f1_score
+from hamcrest import (assert_that, calling, close_to, has_entries, has_entry,
+                      has_items, is_, raises)
+from sklearn.metrics import f1_score, make_scorer, recall_score
 
-from deepchecks.tabular.checks.performance import SimpleModelComparison
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.tabular.checks.performance import SimpleModelComparison
 from deepchecks.utils.metrics import ModelType, get_default_scorers
 from tests.checks.utils import equal_condition_result
-
-from hamcrest import (
-    assert_that, calling, raises, close_to,
-    has_items, has_entries, has_entry, is_
-)
 
 
 def test_dataset_wrong_input():

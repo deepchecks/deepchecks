@@ -10,18 +10,17 @@
 #
 """Boosting overfit check module."""
 from copy import deepcopy
-from typing import Callable, Union, Tuple
+from typing import Callable, Tuple, Union
 
-from sklearn.pipeline import Pipeline
-import plotly.graph_objects as go
 import numpy as np
+import plotly.graph_objects as go
+from sklearn.pipeline import Pipeline
 
-from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError, ModelValidationError
 from deepchecks.tabular import Context, TrainTestCheck
-from deepchecks.utils.strings import format_percent
 from deepchecks.utils.model import get_model_of_pipeline
-
+from deepchecks.utils.strings import format_percent
 
 __all__ = ['BoostingOverfit']
 

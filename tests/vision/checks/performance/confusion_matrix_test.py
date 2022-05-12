@@ -10,9 +10,10 @@
 #
 """Test functions of the VISION confusion matrix."""
 
-from hamcrest import assert_that, equal_to, less_than_or_equal_to as le
-from deepchecks.vision.checks import ConfusionMatrixReport
+from hamcrest import assert_that, equal_to
+from hamcrest import less_than_or_equal_to as le
 
+from deepchecks.vision.checks import ConfusionMatrixReport
 
 # TODO: more tests
 
@@ -20,6 +21,16 @@ from deepchecks.vision.checks import ConfusionMatrixReport
 def test_classification(mnist_dataset_train, mock_trained_mnist, device):
     # Arrange
     check = ConfusionMatrixReport()
+    # Act
+    result = check.run(mnist_dataset_train, mock_trained_mnist,
+                       device=device)
+    # Assert
+    assert_that(result.value.shape, equal_to((10, 10)))
+
+
+def test_classification_not_normalize(mnist_dataset_train, mock_trained_mnist, device):
+    # Arrange
+    check = ConfusionMatrixReport(normalized=False)
     # Act
     result = check.run(mnist_dataset_train, mock_trained_mnist,
                        device=device)

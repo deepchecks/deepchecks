@@ -10,23 +10,21 @@
 #
 """Module for base tabular abstractions."""
 # pylint: disable=broad-except
-from typing import Callable, Union, Tuple, Mapping, Optional
+from typing import Callable, Mapping, Optional, Tuple, Union
 
 import pandas as pd
 
-from deepchecks.tabular.dataset import Dataset
-from deepchecks.tabular.base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
-from deepchecks.tabular.context import Context
-from deepchecks.utils.typing import BasicModel
 from deepchecks.core.check_result import CheckFailure
-from deepchecks.core.suite import BaseSuite, SuiteResult
-from deepchecks.core.display_suite import ProgressBar
 from deepchecks.core.errors import DeepchecksNotSupportedError
+from deepchecks.core.suite import BaseSuite, SuiteResult
+from deepchecks.tabular.base_checks import (ModelOnlyCheck, SingleDatasetCheck,
+                                            TrainTestCheck)
+from deepchecks.tabular.context import Context
+from deepchecks.tabular.dataset import Dataset
+from deepchecks.utils.ipython import ProgressBar
+from deepchecks.utils.typing import BasicModel
 
-
-__all__ = [
-    'Suite',
-]
+__all__ = ['Suite']
 
 
 class Suite(BaseSuite):

@@ -9,7 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains all prebuilt vision suites."""
-from .default_suites import integrity_validation, train_test_validation, model_evaluation, full_suite
+from .default_suites import (full_suite, integrity_validation,
+                             model_evaluation, train_test_validation)
 
 __all__ = ['train_test_validation',
            'model_evaluation', 'full_suite', 'integrity_validation']

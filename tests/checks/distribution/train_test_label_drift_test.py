@@ -9,11 +9,10 @@
 # ----------------------------------------------------------------------------
 #
 """Test functions of the train test label drift."""
-from hamcrest import assert_that, has_entries, close_to, equal_to
+from hamcrest import assert_that, close_to, equal_to, has_entries
 
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular.checks import TrainTestLabelDrift
-
 from tests.checks.utils import equal_condition_result
 
 
@@ -57,7 +56,7 @@ def test_drift_regression_label(drifted_regression_label):
 
     # Assert
     assert_that(result.value, has_entries(
-        {'Drift score': close_to(0.249, 0.01),
+        {'Drift score': close_to(0.34, 0.01),
          'Method': equal_to('Earth Mover\'s Distance')}
          ))
 
@@ -93,7 +92,7 @@ def test_drift_max_drift_score_condition_fail_emd(drifted_regression_label):
         is_pass=False,
         category=ConditionCategory.FAIL,
         name='PSI <= 0.2 and Earth Mover\'s Distance <= 0.1 for label drift',
-        details='Label\'s Earth Mover\'s Distance above threshold: 0.26'
+        details='Label\'s Earth Mover\'s Distance above threshold: 0.34'
     ))
 
 

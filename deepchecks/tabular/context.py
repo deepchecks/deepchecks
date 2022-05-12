@@ -9,20 +9,21 @@
 # ----------------------------------------------------------------------------
 #
 """Module for base tabular context."""
-from typing import Callable, Union, Mapping, Optional
+from typing import Callable, Mapping, Optional, Union
 
 import pandas as pd
 
+from deepchecks.core import DatasetKind
+from deepchecks.core.errors import (DatasetValidationError,
+                                    DeepchecksNotSupportedError,
+                                    DeepchecksValueError, ModelValidationError)
 from deepchecks.tabular.dataset import Dataset
-from deepchecks.tabular.utils.validation import validate_model, model_type_validation
-from deepchecks.utils.metrics import ModelType, task_type_check, get_default_scorers, init_validate_scorers
-from deepchecks.utils.typing import BasicModel
+from deepchecks.tabular.utils.validation import (model_type_validation,
+                                                 validate_model)
 from deepchecks.utils.features import calculate_feature_importance_or_none
-from deepchecks.core.errors import (
-    DatasetValidationError, ModelValidationError,
-    DeepchecksNotSupportedError, DeepchecksValueError
-)
-
+from deepchecks.utils.metrics import (ModelType, get_default_scorers,
+                                      init_validate_scorers, task_type_check)
+from deepchecks.utils.typing import BasicModel
 
 __all__ = [
     'Context'
@@ -266,3 +267,34 @@ class Context:
         scorer_name = next(iter(scorers))
         single_scorer_dict = {scorer_name: scorers[scorer_name]}
         return init_validate_scorers(single_scorer_dict, self.model, self.train, class_avg, self.task_type)[0]
+
+    def get_data_by_kind(self, kind: DatasetKind):
+        """Return the relevant Dataset by given kind."""
+        if kind == DatasetKind.TRAIN:
+            return self.train
+        elif kind == DatasetKind.TEST:
+            return self.test
+        else:
+            raise DeepchecksValueError(f'Unexpected dataset kind {kind}')
+
+    def get_is_sampled_footnote(self, n_samples: int, kind: DatasetKind = None):
+        """Get footnote to display when the datasets are sampled."""
+        message = ''
+        if kind:
+            v_data = self.get_data_by_kind(kind)
+            if v_data.is_sampled(n_samples):
+                message = f'Data is sampled from the original dataset, running on ' \
+                          f'{v_data.len_when_sampled(n_samples)} samples out of {len(v_data)}.'
+        else:
+            if self._train is not None and self._train.is_sampled(n_samples):
+                message += f'Running on {self._train.len_when_sampled(n_samples)} <b>train</b> data samples out of ' \
+                           f'{len(self._train)}.'
+            if self._test is not None and self._test.is_sampled(n_samples):
+                if message:
+                    message += ' '
+                message += f'Running on {self._test.len_when_sampled(n_samples)} <b>test</b> data samples out of ' \
+                           f'{len(self._test)}.'
+
+        if message:
+            message = f'Note - data sampling: {message} Sample size can be controlled with the "n_samples" parameter.'
+            return f'<p style="font-size:0.9em;line-height:1;"><i>{message}</i></p>'
