@@ -46,6 +46,10 @@ class StringMismatch(SingleDatasetCheck):
         Columns to ignore, if none given checks based on columns variable
     n_top_columns : int , optional
         amount of columns to show ordered by feature importance (date, index, label are first)
+    n_samples : int , default: 10_000
+        number of samples to use for this check.
+    random_state : int, default: 42
+        random seed for all check internals.
     """
 
     def __init__(
@@ -53,12 +57,16 @@ class StringMismatch(SingleDatasetCheck):
         columns: Union[Hashable, List[Hashable], None] = None,
         ignore_columns: Union[Hashable, List[Hashable], None] = None,
         n_top_columns: int = 10,
+        n_samples: int = 10_000,
+        random_state: int = 42,
         **kwargs
     ):
         super().__init__(**kwargs)
         self.columns = columns
         self.ignore_columns = ignore_columns
         self.n_top_columns = n_top_columns
+        self.n_samples = n_samples
+        self.random_state = random_state
 
     def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
         """Run check."""
@@ -67,7 +75,8 @@ class StringMismatch(SingleDatasetCheck):
         else:
             dataset = context.test
 
-        df = select_from_dataframe(dataset.data, self.columns, self.ignore_columns)
+        df = select_from_dataframe(dataset.sample(self.n_samples, random_state=self.random_state).data,
+                                   self.columns, self.ignore_columns)
 
         results = []
         result_dict = defaultdict(dict)

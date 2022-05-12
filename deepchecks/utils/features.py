@@ -197,10 +197,14 @@ def _built_in_importance(
     features = dataset.features if isinstance(dataset, tabular.Dataset) else dataset.columns
 
     if hasattr(model, 'feature_importances_'):  # Ensembles
+        if model.feature_importances_ is None:
+            return None, None
         normalized_feature_importance_values = model.feature_importances_ / model.feature_importances_.sum()
         return pd.Series(normalized_feature_importance_values, index=features), 'feature_importances_'
 
     if hasattr(model, 'coef_'):  # Linear models
+        if model.coef_ is None:
+            return None, None
         coef = np.abs(model.coef_.flatten())
         coef = coef / coef.sum()
         return pd.Series(coef, index=features), 'coef_'
