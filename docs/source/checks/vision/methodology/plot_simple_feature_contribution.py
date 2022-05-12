@@ -134,20 +134,24 @@ test_ds = load_dataset(train=False, object_type='VisionData')
 from deepchecks.vision.utils.transformations import un_normalize_batch
 
 
-def mnist_batch_to_images_with_bias(batch):
-    """Create function which inverse the data normalization."""
-    tensor = batch[0]
-    tensor = tensor.permute(0, 2, 3, 1)
-    ret = un_normalize_batch(tensor, (0.1307,), (0.3081,))
-    # add some label/index correlation
-    for i, label in enumerate(batch[1]):
-        ret[i] = np.ones(ret[i].shape) * int(i % 3 + 1) * int(label)
+def mnist_batch_to_images_with_bias_mod(mod):
+    def mnist_batch_to_images_with_bias(batch):
+        """Create function which inverse the data normalization."""
+        tensor = batch[0]
+        tensor = tensor.permute(0, 2, 3, 1)
+        ret = un_normalize_batch(tensor, (0.1307,), (0.3081,))
+        # add some label/index correlation
+        for i, label in enumerate(batch[1]):
+            if i % mod != 0:
+                ret[i] = np.ones(ret[i].shape) * int(i % 3 + 1) * int(label)
 
-    return ret
+        return ret
+    return mnist_batch_to_images_with_bias
 #%%
 
-train_ds.batch_to_images = mnist_batch_to_images_with_bias
-test_ds.batch_to_images = mnist_batch_to_images_with_bias
+train_ds.batch_to_images = mnist_batch_to_images_with_bias_mod(9)
+test_ds.batch_to_images = mnist_batch_to_images_with_bias_mod(2)
+
 
 
 #%%
@@ -186,16 +190,20 @@ check.run(train_ds, test_ds)
 # of image and the label
 
 # Increase the pixel values of all bounding boxes by the labels value:
-def coco_batch_to_images_with_bias(batch):
-    import numpy as np
-    ret = [np.array(x) for x in batch[0]]
-    for i, labels in enumerate(train_ds.batch_to_labels(batch)):
-        for label in labels:
-            x, y, w, h = np.array(label[1:]).astype(int)
-            ret[i][y:y+h, x:x+w] = ret[i][y:y+h, x:x+w].clip(min=200) * int(label[0])
-    return ret
+def coco_batch_to_images_with_bias_mod(mod):
+    def coco_batch_to_images_with_bias(batch):
+        import numpy as np
+        ret = [np.array(x) for x in batch[0]]
+        for i, labels in enumerate(train_ds.batch_to_labels(batch)):
+            if i % mod != 0:
+                for label in labels:
+                    x, y, w, h = np.array(label[1:]).astype(int)
+                    ret[i][y:y+h, x:x+w] = ret[i][y:y+h, x:x+w].clip(min=200) * int(label[0])
+        return ret
+    return coco_batch_to_images_with_bias
 
-train_ds.batch_to_images = coco_batch_to_images_with_bias
+train_ds.batch_to_images = coco_batch_to_images_with_bias_mod(7)
+test_ds.batch_to_images = coco_batch_to_images_with_bias_mod(2)
 
 #%%
 # Re-run after bias
@@ -222,6 +230,6 @@ check.run(train_ds, test_ds)
 # Let's add the conditions, and re-run the check:
 
 check = SimpleFeatureContribution(per_class=False).add_condition_feature_pps_difference_not_greater_than(0.05) \
-        .add_condition_feature_pps_in_train_not_greater_than()
+        .add_condition_feature_pps_in_train_not_greater_than(0.1)
 result = check.run(train_dataset=train_ds, test_dataset=test_ds)
 result.show(show_additional_outputs=False)
