@@ -587,7 +587,7 @@ def assert_saved_html_file(filename='output.html'):
     output = pathlib.Path(filename)
     assert_that(output.exists() and output.is_file())
     try:
-        content = output.open('r').read()
+        content = output.open('r', encoding='utf-8').read()
         assert_that(content, is_html_document())
     finally:
         output.unlink()

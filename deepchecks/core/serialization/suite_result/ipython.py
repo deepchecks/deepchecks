@@ -67,7 +67,7 @@ class SuiteResultSerializer(IPythonSerializer['suite.SuiteResult']):
 
         results_with_conditions = self.prepare_results_with_condition_and_display(
             output_id=output_id,
-            check_sections=['additional-output'],
+            check_sections=['condition-table', 'additional-output'],
             **kwargs
         )
         results_without_conditions = self.prepare_results_without_condition(
@@ -115,7 +115,7 @@ class SuiteResultSerializer(IPythonSerializer['suite.SuiteResult']):
     def prepare_conditions_table(
         self,
         output_id: t.Optional[str] = None,
-        include_check_name: bool = False,
+        include_check_name: bool = True,
         **kwargs
     ) -> HTML:
         """Prepare conditions table section.
@@ -124,7 +124,7 @@ class SuiteResultSerializer(IPythonSerializer['suite.SuiteResult']):
         ----------
         output_id : Optional[str], default None
             unique output identifier that will be used to form anchor links
-        include_check_name : bool, default False
+        include_check_name : bool, default True
             wherether to include check name into table or not
 
         Returns

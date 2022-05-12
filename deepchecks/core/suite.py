@@ -123,7 +123,7 @@ class SuiteResult:
         if is_colab_env() and as_widget:
             display_html(
                 widget_to_html_string(
-                    self.to_widget(unique_id=unique_id or get_random_string(n=25)),
+                    self.to_widget(unique_id=unique_id),
                     title=self.name,
                     requirejs=True
                 ),
