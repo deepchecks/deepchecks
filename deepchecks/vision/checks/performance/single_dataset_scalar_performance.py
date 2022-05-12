@@ -11,12 +11,14 @@
 """Module containing a single dataset with a signle scalar output performance check."""
 import typing as t
 import torch
-from ignite.metrics import Metric
+from ignite.metrics import Metric, Accuracy
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.vision import Batch, Context, SingleDatasetCheck
-from deepchecks.vision.metrics_utils import (get_scorers_list)
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.vision.vision_data import TaskType
+from deepchecks.vision.metrics_utils.object_detection_precision_recall import \
+    ObjectDetectionAveragePrecision
 
 __all__ = ['SingleDatasetScalarPerformance']
 
@@ -32,7 +34,7 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck):
         The function to reduce the scores vector into a single scalar
     """
     def __init__(self,
-                 metric: Metric,
+                 metric: Metric = None,
                  reduce: t.Callable = None,
                  **kwargs):
         super().__init__(**kwargs)
@@ -41,6 +43,14 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck):
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind.TRAIN):
         """Initialize the metric for the check, and validate task type is relevant."""
+        if self.metric is None:
+            if context.train.task_type == TaskType.CLASSIFICATION:
+                self.metric = Accuracy()
+            elif context.train.task_type == TaskType.OBJECT_DETECTION:
+                self.metric = ObjectDetectionAveragePrecision()
+            else:
+                raise DeepchecksValueError('For task types other then classification or object detection, '
+                                           'pass a metric explicitly')
         self.metric.reset()
 
     def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind.TRAIN):

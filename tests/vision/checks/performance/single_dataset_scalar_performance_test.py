@@ -8,21 +8,21 @@ from deepchecks.vision.checks.performance.single_dataset_scalar_performance impo
 
 def test_classification(mnist_dataset_train, mock_trained_mnist, device):
     # Arrange
-    check = SingleDatasetScalarPerformance(Precision(), torch.max)
+    check = SingleDatasetScalarPerformance()
 
     # Act
     result = check.run(mnist_dataset_train, mock_trained_mnist)
 
     # Assert
     # scalar
-    assert_that(result.value.dim(), equal_to(0))
+    assert_that(type(result.value), equal_to(float))
     # metric
     assert_that(result.value, greater_than_or_equal_to(0))
 
 
 def test_add_condition(mnist_dataset_train, mock_trained_mnist, device):
     # Arrange
-    check = SingleDatasetScalarPerformance(Accuracy())
+    check = SingleDatasetScalarPerformance()
     check.add_condition_greater_than(0.5)
 
     # Act
