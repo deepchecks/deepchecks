@@ -75,7 +75,7 @@ class StringMismatch(SingleDatasetCheck):
         else:
             dataset = context.test
 
-        df = select_from_dataframe(dataset.data.sample(self.n_samples, random_state=self.random_state),
+        df = select_from_dataframe(dataset.sample(self.n_samples, random_state=self.random_state).data,
                                    self.columns, self.ignore_columns)
 
         results = []
