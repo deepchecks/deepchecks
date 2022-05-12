@@ -5,9 +5,9 @@ Deepchecks ❤️ Open Source
 ⚠ Short Update About Our Community and Ethics ⚠
 --------------------------------------------------
 
-We have recently encountered  `an unusual method 👀 <https://www.linkedin.com/feed/update/urn:li:activity:6930518775905550336/>`_ for delivering feedback, which we hope won't happen again. 
+We have recently encountered  `an unusual method 👀 <https://www.linkedin.com/feed/update/urn:li:activity:6930518775905550336/>`_ for delivering feedback. 
 
-We believe that open source communities should be about value for the users and not an arena for battles between competitors.
+While we appreciate the help with the QA, we believe that open source communities should be about value for the users and not an arena for battles between competitors.
 
 Community Foundations
 -----------------------
