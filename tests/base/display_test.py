@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """display tests"""
+import contextlib
 import io
 import pathlib
 import typing as t
@@ -26,7 +27,6 @@ from plotly.graph_objs import FigureWidget
 
 from deepchecks.core.check_result import CheckFailure, CheckResult
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.core.suite import SuiteResult
 from deepchecks.tabular.checks import ColumnsInfo, DataDuplicates, MixedNulls
 from deepchecks.utils.json_utils import from_json
 from tests.common import DummyCheck, create_check_result, create_suite_result
@@ -185,22 +185,18 @@ def test_check_result_show():
 
 
 def test_check_result_show_with_sphinx_gallery_env_enabled():
-    # Arrange
-    original_renderer = pio.renderers.default
-    pio.renderers.default = 'sphinx_gallery'
-    check_result = create_check_result(10)
-
-    # Assert
-    r = check_result.show()
-    assert_that(hasattr(r, '_repr_html_'))
-    assert_that(
-        r._repr_html_(),
-        all_of(
-            instance_of(str),
-            has_length(greater_than(0)))
-    )
-
-    pio.renderers.default = original_renderer
+    with plotly_default_renderer('sphinx_gallery'):
+        # Arrange
+        check_result = create_check_result(10)
+        # Assert
+        r = check_result.show()
+        assert_that(hasattr(r, '_repr_html_'))
+        assert_that(
+            r._repr_html_(),
+            all_of(
+                instance_of(str),
+                has_length(greater_than(0)))
+        )
 
 
 def test_check_result_display_with_enabled_colab_enviroment():
@@ -351,22 +347,18 @@ def test_check_failure_show():
 
 
 def test_check_failure_show_with_sphinx_gallery_env_enabled():
-    # Arrange
-    original_renderer = pio.renderers.default
-    pio.renderers.default = 'sphinx_gallery'
-    failure = CheckFailure(DummyCheck(), Exception('error message'))
-
-    # Assert
-    r = failure.show()
-    assert_that(hasattr(r, '_repr_html_'))
-    assert_that(
-        r._repr_html_(),
-        all_of(
-            instance_of(str),
-            has_length(greater_than(0)))
-    )
-
-    pio.renderers.default = original_renderer
+    with plotly_default_renderer('sphinx_gallery'):
+        # Arrange
+        failure = CheckFailure(DummyCheck(), Exception('error message'))
+        # Assert
+        r = failure.show()
+        assert_that(hasattr(r, '_repr_html_'))
+        assert_that(
+            r._repr_html_(),
+            all_of(
+                instance_of(str),
+                has_length(greater_than(0)))
+        )
 
 
 def test_check_failure_ipython_display():
@@ -594,10 +586,20 @@ def assert_saved_html_file(filename='output.html'):
 
 
 def is_html_document():
+    any_whitespace = r'[\s]*'
+    anything = r'[\s\S\d\D\w\W]*'
     regexp = (
-        r'^[\s]*([\s\S\d\D\w\W]*)<html( lang="en")*>[\s]*'
-        r'<head>([\s\S\d\D\w\W]*)<\/head>[\s]*'
-        r'<body([\s\S\d\D\w\W]*)>([\s\S\d\D\w\W]*)<\/body>[\s]*'
-        r'<\/html>[\s]*$'
+        fr'^{any_whitespace}({anything})<html( lang="en")*>{any_whitespace}'
+        fr'<head>({anything})<\/head>{any_whitespace}'
+        fr'<body({anything})>({anything})<\/body>{any_whitespace}'
+        fr'<\/html>{any_whitespace}$'
     )
     return all_of(instance_of(str), matches_regexp(regexp))
+
+
+@contextlib.contextmanager
+def plotly_default_renderer(name):
+    original_renderer = pio.renderers.default
+    pio.renderers.default = name
+    yield
+    pio.renderers.default = original_renderer
