@@ -46,7 +46,7 @@ class StringMismatch(SingleDatasetCheck):
         Columns to ignore, if none given checks based on columns variable
     n_top_columns : int , optional
         amount of columns to show ordered by feature importance (date, index, label are first)
-    n_samples : int , default: 10_000
+    n_samples : int , default: 1_000_000
         number of samples to use for this check.
     random_state : int, default: 42
         random seed for all check internals.
@@ -57,7 +57,7 @@ class StringMismatch(SingleDatasetCheck):
         columns: Union[Hashable, List[Hashable], None] = None,
         ignore_columns: Union[Hashable, List[Hashable], None] = None,
         n_top_columns: int = 10,
-        n_samples: int = 10_000,
+        n_samples: int = 1_000_000,
         random_state: int = 42,
         **kwargs
     ):
@@ -88,6 +88,7 @@ class StringMismatch(SingleDatasetCheck):
             if not is_string_column(column):
                 continue
 
+            value_counts = column.value_counts()
             uniques = column.unique()
             base_form_to_variants = get_base_form_to_variants_dict(uniques)
             for base_form, variants in base_form_to_variants.items():
@@ -95,7 +96,7 @@ class StringMismatch(SingleDatasetCheck):
                     continue
                 result_dict[column_name][base_form] = []
                 for variant in variants:
-                    count = sum(column == variant)
+                    count = value_counts[variant]
                     percent = count / len(column)
                     results.append([column_name, base_form, variant, count, format_percent(percent)])
                     result_dict[column_name][base_form].append({

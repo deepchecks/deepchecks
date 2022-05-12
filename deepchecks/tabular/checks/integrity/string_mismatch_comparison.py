@@ -48,7 +48,7 @@ class StringMismatchComparison(TrainTestCheck):
         Columns to ignore, if none given checks based on columns variable
     n_top_columns : int , optional
         amount of columns to show ordered by feature importance (date, index, label are first)
-    n_samples : int , default: 10_000
+    n_samples : int , default: 1_000_000
         number of samples to use for this check.
     random_state : int, default: 42
         random seed for all check internals.
@@ -59,7 +59,7 @@ class StringMismatchComparison(TrainTestCheck):
         columns: Union[Hashable, List[Hashable], None] = None,
         ignore_columns: Union[Hashable, List[Hashable], None] = None,
         n_top_columns: int = 10,
-        n_samples: int = 10_000,
+        n_samples: int = 1_000_000,
         random_state: int = 42,
         **kwargs
     ):
@@ -98,6 +98,8 @@ class StringMismatchComparison(TrainTestCheck):
             if not is_string_column(tested_column) or not is_string_column(baseline_column):
                 continue
 
+            tested_counts = tested_column.value_counts()
+            baseline_counts = baseline_column.value_counts()
             tested_baseforms = get_base_form_to_variants_dict(tested_column.unique())
             baseline_baseforms = get_base_form_to_variants_dict(baseline_column.unique())
 
@@ -111,8 +113,10 @@ class StringMismatchComparison(TrainTestCheck):
                     variants_only_in_dataset = list(tested_values - baseline_values)
                     variants_only_in_baseline = list(baseline_values - tested_values)
                     common_variants = list(tested_values & baseline_values)
-                    percent_variants_only_in_dataset = _percentage_in_series(tested_column, variants_only_in_dataset)
-                    percent_variants_in_baseline = _percentage_in_series(baseline_column, variants_only_in_baseline)
+                    percent_variants_only_in_dataset = _percentage_in_series(tested_column, tested_counts,
+                                                                             variants_only_in_dataset)
+                    percent_variants_in_baseline = _percentage_in_series(baseline_column, baseline_counts,
+                                                                         variants_only_in_baseline)
 
                     display_mismatches.append([column_name, baseform, common_variants,
                                                variants_only_in_dataset, percent_variants_only_in_dataset[1],
@@ -181,7 +185,7 @@ def _condition_percent_limit(result, ratio: float):
     return ConditionResult(ConditionCategory.PASS)
 
 
-def _percentage_in_series(series, values):
-    count = sum(series.isin(values))
+def _percentage_in_series(series, counts, values):
+    count = sum([counts[value] for value in values])
     percent = count / series.size
     return percent, f'{format_percent(percent)} ({count})'
