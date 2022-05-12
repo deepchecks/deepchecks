@@ -202,7 +202,7 @@ def coco_batch_to_images_with_bias_mod(mod):
         return ret
     return coco_batch_to_images_with_bias
 
-train_ds.batch_to_images = coco_batch_to_images_with_bias_mod(7)
+train_ds.batch_to_images = coco_batch_to_images_with_bias_mod(12)
 test_ds.batch_to_images = coco_batch_to_images_with_bias_mod(2)
 
 #%%
@@ -229,7 +229,7 @@ check.run(train_ds, test_ds)
 #
 # Let's add the conditions, and re-run the check:
 
-check = SimpleFeatureContribution(per_class=False).add_condition_feature_pps_difference_not_greater_than(0.05) \
-        .add_condition_feature_pps_in_train_not_greater_than(0.1)
+check = SimpleFeatureContribution(per_class=False).add_condition_feature_pps_difference_not_greater_than(0.1) \
+        .add_condition_feature_pps_in_train_not_greater_than()
 result = check.run(train_dataset=train_ds, test_dataset=test_ds)
 result.show(show_additional_outputs=False)
