@@ -32,7 +32,7 @@ This package is built and maintained by `Deepchecks <https://deepchecks.com/>`__
 scientists and software engineers that recognize the rising influence of machine learning models on our day-to-day life, and 
 want to make sure these models are working as they are expected to.
 
-**We've built and released this package to help ML fellows test and validate their models and catch issues in their models as early as possible, so
+**We've built and released this package to help ML practitioners test and validate their models and catch issues in their models as early as possible, so
 all of us can keep enjoying the benefits of ML algorithms.**
 
 We believe that open source is the natural and healthy way into the hearts of ML practitioners. It is also a healthy way to learn about their preferences and
