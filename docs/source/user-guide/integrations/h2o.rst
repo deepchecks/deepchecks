@@ -7,9 +7,9 @@ a widely used AutoML framework, written in Java but with multiple fully
 implemented API libraries, including one in python. It it's ease of use and powerful results make it popular for
 benchmarking and production-grade use alike.
 
-Check out our interactive `example notebook <https://colab.research.google.com/github/deepchecks/deepchecks/tree/examples/integrations/h2o/deepchecks_h2o_tutorial.ipynb>`__,
+Check out our interactive `example notebook <https://colab.research.google.com/github/deepchecks/deepchecks/blob/main/examples/integrations/h2o/deepchecks_h2o_tutorial.ipynb>`__,
 demonstrating how to effortlessly test your H2O model with deepchecks in the exact same way
-you can test any sklearn model! The notebook itself is available on Github `here <https://github.com/deepchecks/deepchecks/tree/examples/integrations/h2o/deepchecks_h2o_tutorial.ipynb>`__.
+you can test any sklearn model! The notebook itself is available on Github `here <https://github.com/deepchecks/deepchecks/blob/main/examples/integrations/h2o/deepchecks_h2o_tutorial.ipynb>`__.
 
 The example notebook includes:
 -------------------------
