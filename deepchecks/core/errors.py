@@ -10,19 +10,10 @@
 #
 """Module with all deepchecks error types."""
 
-
-__all__ = [
-    'DeepchecksValueError',
-    'DeepchecksNotSupportedError',
-    'DeepchecksProcessError',
-    'NumberOfFeaturesLimitError',
-    'DatasetValidationError',
-    'ModelValidationError',
-    'DeepchecksNotImplementedError',
-    'ValidationError',
-    'DeepchecksBaseError',
-    'NotEnoughSamplesError'
-]
+__all__ = ['DeepchecksValueError', 'DeepchecksNotSupportedError', 'DeepchecksProcessError',
+           'NumberOfFeaturesLimitError', 'DatasetValidationError', 'ModelValidationError',
+           'DeepchecksNotImplementedError', 'ValidationError', 'DeepchecksBaseError', 'NotEnoughSamplesError',
+           'DeepchecksTimeoutError']
 
 
 class DeepchecksBaseError(Exception):
