@@ -88,6 +88,7 @@ class StringMismatch(SingleDatasetCheck):
             if not is_string_column(column):
                 continue
 
+            value_counts = column.value_counts()
             uniques = column.unique()
             base_form_to_variants = get_base_form_to_variants_dict(uniques)
             for base_form, variants in base_form_to_variants.items():
@@ -95,7 +96,7 @@ class StringMismatch(SingleDatasetCheck):
                     continue
                 result_dict[column_name][base_form] = []
                 for variant in variants:
-                    count = sum(column == variant)
+                    count = value_counts[variant]
                     percent = count / len(column)
                     results.append([column_name, base_form, variant, count, format_percent(percent)])
                     result_dict[column_name][base_form].append({
