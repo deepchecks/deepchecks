@@ -59,7 +59,7 @@ class StringMismatchComparison(TrainTestCheck):
         columns: Union[Hashable, List[Hashable], None] = None,
         ignore_columns: Union[Hashable, List[Hashable], None] = None,
         n_top_columns: int = 10,
-        n_samples: int = 10_000,
+        n_samples: int = 1_000_000,
         random_state: int = 42,
         **kwargs
     ):
