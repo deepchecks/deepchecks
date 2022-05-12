@@ -23,12 +23,11 @@ except ImportError as e:
         'To get it, run "pip install wandb".'
     ) from e
 
-try:
-    if t.TYPE_CHECKING:
-        from wandb.sdk.data_types.base_types.wb_value import \
-            WBValue  # pylint: disable=unused-import
-except ImportError:
-    pass
+
+if t.TYPE_CHECKING:
+    from wandb.sdk.data_types.base_types.wb_value import \
+        WBValue  # pylint: disable=unused-import
+
 
 __all__ = ['CheckFailureSerializer']
 

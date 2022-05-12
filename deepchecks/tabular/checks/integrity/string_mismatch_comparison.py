@@ -16,7 +16,6 @@ import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, TrainTestCheck
-from deepchecks.tabular.utils.display_utils import nothing_found_on_columns
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import (N_TOP_MESSAGE,
                                        column_importance_sorter_df)
@@ -49,6 +48,10 @@ class StringMismatchComparison(TrainTestCheck):
         Columns to ignore, if none given checks based on columns variable
     n_top_columns : int , optional
         amount of columns to show ordered by feature importance (date, index, label are first)
+    n_samples : int , default: 10_000
+        number of samples to use for this check.
+    random_state : int, default: 42
+        random seed for all check internals.
     """
 
     def __init__(
@@ -56,12 +59,16 @@ class StringMismatchComparison(TrainTestCheck):
         columns: Union[Hashable, List[Hashable], None] = None,
         ignore_columns: Union[Hashable, List[Hashable], None] = None,
         n_top_columns: int = 10,
+        n_samples: int = 10_000,
+        random_state: int = 42,
         **kwargs
     ):
         super().__init__(**kwargs)
         self.columns = columns
         self.ignore_columns = ignore_columns
         self.n_top_columns = n_top_columns
+        self.n_samples = n_samples
+        self.random_state = random_state
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check.
@@ -72,9 +79,9 @@ class StringMismatchComparison(TrainTestCheck):
             with value of type dict that contains detected different variants of string
         """
         # Validate parameters
-        df = context.test.data
+        df = context.test.sample(self.n_samples, random_state=self.random_state).data
         df = select_from_dataframe(df, self.columns, self.ignore_columns)
-        baseline_df = context.train.data
+        baseline_df = context.train.sample(self.n_samples, random_state=self.random_state).data
 
         display_mismatches = []
         result_dict = defaultdict(dict)
@@ -134,7 +141,7 @@ class StringMismatchComparison(TrainTestCheck):
             # For display transpose the dataframe
             display = [N_TOP_MESSAGE % self.n_top_columns, df_graph.T]
         else:
-            display = nothing_found_on_columns(columns)
+            display = None
 
         return CheckResult(result_dict, display=display)
 

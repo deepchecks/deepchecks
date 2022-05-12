@@ -8,17 +8,24 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Utils for serialization tests."""
+"""Common functions."""
 import typing as t
 
 import matplotlib.pyplot as plt
 import pandas as pd
 import plotly.express as px
 import this
+from hamcrest import any_of, instance_of
 
 from deepchecks.core.check_result import CheckFailure, CheckResult
 from deepchecks.core.checks import BaseCheck
 from deepchecks.core.condition import ConditionCategory, ConditionResult
+from deepchecks.core.serialization.abc import (HTMLFormatter,
+                                               IPythonDisplayFormatter,
+                                               JPEGFormatter, JSONFormatter,
+                                               MarkdownFormatter,
+                                               MimeBundleFormatter,
+                                               PNGFormatter)
 from deepchecks.core.suite import SuiteResult
 
 
@@ -27,7 +34,7 @@ class DummyCheck(BaseCheck):
 
     def run(self, *args, **kwargs):
         raise NotImplementedError()
-    
+
 
 def create_suite_result(
     name: str = 'Dummy Suite Result',
@@ -35,7 +42,7 @@ def create_suite_result(
     n_of_failures: int = 5
 ) -> SuiteResult:
     results = [
-        create_check_result(value=i, header=f'Dummy Result #{i}') 
+        create_check_result(value=i, header=f'Dummy Result #{i}')
         for i in range(n_of_results)
     ]
     failures = [
@@ -87,3 +94,15 @@ def create_check_result(
 
     result.check = DummyCheck()
     return result
+
+
+def instance_of_ipython_formatter():
+    return any_of(
+        instance_of(HTMLFormatter),
+        instance_of(MarkdownFormatter),
+        instance_of(PNGFormatter),
+        instance_of(JPEGFormatter),
+        instance_of(JSONFormatter),
+        instance_of(IPythonDisplayFormatter),
+        instance_of(MimeBundleFormatter),
+    )

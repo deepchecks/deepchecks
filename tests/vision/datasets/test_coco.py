@@ -65,7 +65,7 @@ def test__load_dataset__func_with_unknow_object_type_parameter():
 def test_train_test_split():
     train = load_dataset(train=True, object_type='DataLoader')
     test = load_dataset(train=False, object_type='DataLoader')
-    
+
     assert_that((len(train.dataset) + len(test.dataset)) == 128)
 
     train_images = set(it.name for it in train.dataset.images)
