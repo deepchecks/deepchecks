@@ -12,9 +12,11 @@
 import typing as t
 import torch
 from ignite.metrics import Metric
-from deepchecks.core import CheckResult, DatasetKind
+from deepchecks.core import CheckResult, ConditionResult, DatasetKind
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.vision import Batch, Context, SingleDatasetCheck
 from deepchecks.vision.metrics_utils import (get_scorers_list)
+from deepchecks.core.errors import DeepchecksValueError
 
 __all__ = ['SingleDatasetScalarPerformance']
 
@@ -26,12 +28,12 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck):
     ----------
         metric : default: None
         An ignite.Metric object whose score should be used. If None are given, use the default metrics.
-        reduce: torch function, default: torch.mean
+        reduce: torch function, default: None (for metrics that already return a scalar)
         The function to reduce the scores vector into a single scalar
     """
     def __init__(self,
                  metric: Metric,
-                 reduce: t.Callable = torch.mean,
+                 reduce: t.Callable = None,
                  **kwargs):
         super().__init__(**kwargs)
         self.metric = metric
@@ -49,5 +51,29 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck):
 
     def compute(self, context: Context, dataset_kind: DatasetKind.TRAIN) -> CheckResult:
         """Compute the metric result using the ignite metrics compute method and reduce to a scalar."""
-        result = self.reduce(self.metric.compute())
-        return CheckResult(result)
+        metric_result = self.metric.compute()
+        if self.reduce is not None:
+            if type(metric_result) is float:
+                Warning('Metric result is already scalar, skipping reduction')
+                return CheckResult(metric_result)
+            else:
+                return CheckResult(self.reduce(metric_result))
+        elif type(metric_result) is float:
+            return CheckResult(metric_result)
+        else:
+            raise DeepchecksValueError(f'The metric {repr(self.metric)} return a non-scalar value, '
+                                       f'please specify a reduce function or choose a different metric')
+
+    def add_condition_greater_than(self, threshold: float) -> ConditionResult:
+        """Add condition - the result is greater than the threshold"""
+        def condition(check_result):
+            if check_result > threshold:
+                return ConditionResult(ConditionCategory.PASS)
+            else:
+                details = f'The result is not greater than {threshold}'
+                return ConditionResult(ConditionCategory.FAIL, details)
+        return self.add_condition(f'Score is grater than {threshold}', condition)
+
+
+
+
