@@ -11,15 +11,15 @@ Check out our interactive `example notebook <https://colab.research.google.com/g
 demonstrating how to effortlessly test your H2O model with deepchecks in the exact same way
 you can test any sklearn model!
 
-In this example includes:
+The example notebook includes:
 -------------------------
 
-1. Training a simpel H2O model.
-2. How to use deepchecks to get beautiful plots comparing it's performance to an sklearn model.
-3. Using deepchecks to understand the deeper differences between the models.
+1. Training a simple H2O model.
+2. Demonstrating how use deepchecks on the H2O model to run a check. We'll run a deepchecks model performance check , that generates a detailed plot for model comparison (we'll compare the H2O model's performance to a a scikit-learn based model).
+3. Using deepchecks for gaining a deeper understanding about the difference in performance between the two models.
 
 
-In short:
+Quick peek at the code for running the check on an H2O-based model:
 
 .. code:: ipython3
 
