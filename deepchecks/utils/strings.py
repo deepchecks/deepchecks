@@ -13,6 +13,7 @@ import io
 import itertools
 import os
 import random
+import sys
 import re
 import typing as t
 from collections import defaultdict
@@ -61,7 +62,7 @@ __all__ = [
 ]
 
 # Creating a translation table for the string.translate() method to be used in string base form method
-DEL_CHARS = ''.join(c for c in map(chr, range(1114111)) if not c.isalnum())
+DEL_CHARS = ''.join(c for c in map(chr, range(sys.maxunicode)) if not c.isalnum())
 DEL_MAP = str.maketrans('', '', DEL_CHARS)
 
 
