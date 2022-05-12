@@ -9,29 +9,15 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing a single dataset with a signle scalar output performance check."""
-import math
 import typing as t
-from collections import Counter, defaultdict
-
-import numpy as np
-import pandas as pd
-import plotly.express as px
 import torch
 from ignite.metrics import Metric
-
-from deepchecks import ConditionResult
 from deepchecks.core import CheckResult, DatasetKind
-from deepchecks.core.condition import ConditionCategory
-from deepchecks.utils import plot
-from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.vision import Batch, Context, SingleDatasetCheck
-from deepchecks.vision.metrics_utils import (get_scorers_list,
-                                             metric_results_to_df)
-from deepchecks.vision.utils.image_properties import (default_image_properties,
-                                                      validate_properties)
-
+from deepchecks.vision.metrics_utils import (get_scorers_list)
 
 __all__ = ['SingleDatasetScalarPerformance']
+
 
 class SingleDatasetScalarPerformance(SingleDatasetCheck):
     """Summarize a given metric over a given dataset to return a performance score as a scalar.
@@ -40,26 +26,28 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck):
     ----------
         metric : default: None
         An ignite.Metric object whose score should be used. If None are given, use the default metrics.
-        reduce: str, default: 'mean'
+        reduce: torch function, default: torch.mean
         The function to reduce the scores vector into a single scalar
     """
     def __init__(self,
                  metric: Metric,
-                 reduce: str = 'mean'):
+                 reduce: t.Callable = torch.mean,
+                 **kwargs):
         super().__init__(**kwargs)
         self.metric = metric
         self.reduce = reduce
 
-    def initialize_run(self, context: Context):
-        """Initialize run by creating the _state member with a metric."""
-        pass
+    def initialize_run(self, context: Context, dataset_kind: DatasetKind.TRAIN):
+        """Initialize the metric for the check, and validate task type is relevant."""
+        self.metric.reset()
 
-    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
+    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind.TRAIN):
         """Update the metrics by passing the batch to ignite metric update method."""
         label = batch.labels
         prediction = batch.predictions
         self.metric.update((prediction, label))
 
-    def compute(self, context: Context) -> CheckResult:
-        """Compute the metric result using the ignite metrics compute method."""
-        pass
+    def compute(self, context: Context, dataset_kind: DatasetKind.TRAIN) -> CheckResult:
+        """Compute the metric result using the ignite metrics compute method and reduce to a scalar."""
+        result = self.reduce(self.metric.compute())
+        return CheckResult(result)
