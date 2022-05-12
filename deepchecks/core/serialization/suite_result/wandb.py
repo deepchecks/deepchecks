@@ -20,12 +20,9 @@ from deepchecks.core.serialization.check_failure.wandb import \
 from deepchecks.core.serialization.check_result.wandb import \
     CheckResultSerializer
 
-try:
-    if t.TYPE_CHECKING:
-        from wandb.sdk.data_types.base_types.wb_value import \
-            WBValue  # pylint: disable=unused-import
-except ImportError:
-    pass
+if t.TYPE_CHECKING:
+    from wandb.sdk.data_types.base_types.wb_value import \
+        WBValue  # pylint: disable=unused-import
 
 
 class SuiteResultSerializer(WandbSerializer['suite.SuiteResult']):

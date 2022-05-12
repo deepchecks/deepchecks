@@ -160,7 +160,7 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
             include_check_name=include_check_name,
             output_id=output_id
         )).serialize()
-        return f'<h5>Conditions Summary</h5>{table}'
+        return f'<h5><b>Conditions Summary</b></h5>{table}'
 
     def prepare_additional_output(
         self,

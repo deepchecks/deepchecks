@@ -17,7 +17,7 @@ from collections import OrderedDict
 from typing import Dict, List, Optional, Set, Tuple, Union
 
 import jsonpickle
-from IPython.core.display import display_html
+from IPython.core.display import display, display_html
 from ipywidgets import Widget
 
 from deepchecks.core.check_result import (BaseCheckResult, CheckFailure,
@@ -31,10 +31,13 @@ from deepchecks.core.serialization.suite_result.json import \
 from deepchecks.core.serialization.suite_result.widget import \
     SuiteResultSerializer as SuiteResultWidgetSerializer
 from deepchecks.utils.ipython import (is_colab_env, is_kaggle_env, is_notebook,
-                                      is_widgets_use_possible)
+                                      is_widgets_enabled)
 from deepchecks.utils.strings import (create_new_file_name, get_random_string,
-                                      widget_to_html)
+                                      widget_to_html, widget_to_html_string)
 from deepchecks.utils.wandb_utils import set_wandb_run_state
+
+from .serialization.suite_result.ipython import \
+    SuiteResultSerializer as SuiteResultIPythonSerializer
 
 __all__ = ['BaseSuite', 'SuiteResult']
 
@@ -91,29 +94,71 @@ class SuiteResult:
         """Return default __repr__ function uses value."""
         return self.name
 
-    def _ipython_display_(self):
-        output_id = get_random_string()
-        if is_widgets_use_possible() is True:
-            display_html(
-                SuiteResultWidgetSerializer(self).serialize(output_id=output_id)
-            )
-        else:
-            is_colab = is_colab_env()
-            is_kaggle = is_kaggle_env()
-            display_html(
-                SuiteResultHtmlSerializer(self).serialize(
-                    output_id=output_id if not is_colab else None,
-                    full_html=is_colab,
-                    include_requirejs=is_kaggle,
-                    connected=not is_kaggle
-                ),
-                raw=True,
-            )
+    def _repr_html_(
+        self,
+        unique_id: Optional[str] = None,
+        requirejs: bool = True,
+    ) -> str:
+        """Return html representation of check result."""
+        output_id = (
+            unique_id or get_random_string(n=25)
+            if not is_colab_env()
+            else None
+        )
+        return SuiteResultHtmlSerializer(self).serialize(
+            include_plotlyjs=True,
+            include_requirejs=requirejs,
+            output_id=output_id
+        )
 
-    def show(self):
+    def _repr_json_(self):
+        return SuiteResultJsonSerializer(self).serialize()
+
+    def _repr_mimebundle_(self, **kwargs):
+        return {
+            'text/html': self._repr_html_(),
+            'application/json': self._repr_json_()
+        }
+
+    def _ipython_display_(
+        self,
+        as_widget: bool = True,
+        unique_id: Optional[str] = None
+    ):
+        output_id = (
+            unique_id or get_random_string(n=25)
+            if not is_colab_env()
+            else None
+        )
+        if is_colab_env() and as_widget:
+            display_html(
+                widget_to_html_string(
+                    self.to_widget(unique_id=output_id),
+                    title=self.name,
+                    requirejs=True
+                ),
+                raw=True
+            )
+        elif is_widgets_enabled() and as_widget and not is_kaggle_env():
+            display_html(self.to_widget(unique_id=output_id))
+        else:
+            if as_widget:
+                warnings.warn(
+                    'Widgets are not enabled (or not supported) '
+                    'and cannot be used.'
+                )
+            display(*SuiteResultIPythonSerializer(self).serialize(
+                output_id=output_id,
+            ))
+
+    def show(
+        self,
+        as_widget: bool = True,
+        unique_id: Optional[str] = None
+    ):
         """Display suite result."""
         if is_notebook():
-            self._ipython_display_()
+            self._ipython_display_(as_widget=as_widget, unique_id=unique_id)
         else:
             warnings.warn(
                 'You are running in a non-interactive python shell. '
@@ -121,17 +166,12 @@ class SuiteResult:
                 'an IPython shell (etc Jupyter)'
             )
 
-    def _repr_html_(self) -> str:
-        """Return html representation of check result."""
-        html_out = io.StringIO()
-        self.save_as_html(html_out, requirejs=False)
-        return html_out.getvalue()
-
     def save_as_html(
         self,
         file: Union[str, io.TextIOWrapper, None] = None,
         as_widget: bool = True,
         requirejs: bool = True,
+        unique_id: Optional[str] = None
     ):
         """Save output as html file.
 
@@ -143,9 +183,12 @@ class SuiteResult:
             whether to use ipywidgets or not
         requirejs: bool , default: True
             whether to include requirejs library into output HTML or not
-        """
-        output_id = get_random_string()
 
+        Returns
+        -------
+        Optional[str] :
+            name of newly create file
+        """
         if file is None:
             file = 'output.html'
         if isinstance(file, str):
@@ -153,14 +196,14 @@ class SuiteResult:
 
         if as_widget is True:
             widget_to_html(
-                widget=self.to_widget(unique_id=output_id),
+                widget=self.to_widget(unique_id=unique_id or get_random_string(n=25)),
                 html_out=file,
                 title=self.name,
                 requirejs=requirejs
             )
         else:
             html = SuiteResultHtmlSerializer(self).serialize(
-                output_id=output_id,
+                output_id=unique_id or get_random_string(n=25),
                 full_html=True,
                 include_requirejs=requirejs,
                 include_plotlyjs=True
@@ -172,6 +215,9 @@ class SuiteResult:
                 file.write(html)
             else:
                 TypeError(f'Unsupported type of "file" parameter - {type(file)}')
+
+        if isinstance(file, str):
+            return file
 
     def to_widget(
         self,
