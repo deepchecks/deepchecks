@@ -204,14 +204,14 @@ def feature_distribution_traces(train_column,
 
         train_density = get_density(train_column, xs)
         test_density = get_density(test_column, xs)
-        # bars_width = (x_range_to_show[1] - x_range_to_show[0]) / 100
+        bars_width = (x_range_to_show[1] - x_range_to_show[0]) / 100
 
         traces = []
         if train_uniques.size <= MAX_NUMERICAL_UNIQUES_FOR_SINGLE_DIST_BARS:
             traces.append(go.Bar(
                 x=train_uniques,
                 y=_create_bars_data_for_mixed_kde_plot(train_uniques_counts, np.max(test_density)),
-                # width=[bars_width] * train_uniques.size,
+                width=[bars_width] * train_uniques.size,
                 marker=dict(color=colors['Train']),
                 name='Train Dataset',
             ))
@@ -223,7 +223,7 @@ def feature_distribution_traces(train_column,
             traces.append(go.Bar(
                 x=test_uniques,
                 y=_create_bars_data_for_mixed_kde_plot(test_uniques_counts, np.max(train_density)),
-                # width=[bars_width] * test_uniques.size,
+                width=[bars_width] * test_uniques.size,
                 marker=dict(color=colors['Test']),
                 name='Test Dataset',
             ))
