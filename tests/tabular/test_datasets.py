@@ -8,6 +8,8 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+import sys
+
 import numpy as np
 import sklearn
 from hamcrest import assert_that, instance_of
@@ -38,9 +40,12 @@ def assert_dataset_module(dataset_module):
     pretrained_model = dataset_module.load_fitted_model()
     trained_model = dataset_module.load_fitted_model(pretrained=False)
 
-    assert_sklearn_trees_model_equals(pretrained_model, trained_model)
     assert_that(trained_model.predict(train.features_columns.iloc[:1]), instance_of(np.ndarray))
     assert_that(trained_model.predict(test.features_columns.iloc[:1]), instance_of(np.ndarray))
+
+    # The models were trained on python 3.8, therefore tests for equality only on this version
+    if sys.version_info[1] == 8:
+        assert_sklearn_trees_model_equals(pretrained_model, trained_model)
 
 
 def test_model_predict_on_breast_cancer():
