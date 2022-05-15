@@ -29,7 +29,7 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck):
 
     Parameters
     ----------
-        metric: Metric,  default: None
+        metric: Metric, default: None
         An ignite.Metric object whose score should be used. If None is given, use the default metric.
         reduce: torch function, default: None
         The function to reduce the scores tensor into a single scalar. For metrics that return a scalar use None
