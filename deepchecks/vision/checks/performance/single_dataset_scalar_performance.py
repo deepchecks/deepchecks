@@ -69,30 +69,34 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck):
         if self.reduce is not None:
             if type(metric_result) is float:
                 warnings.warn(SyntaxWarning('Metric result is already scalar, skipping reduce operation'))
-                return CheckResult(metric_result)
+                result_value = metric_result
             else:
-                return CheckResult(float(self.reduce(metric_result)))
+                result_value = float(self.reduce(metric_result))
         elif type(metric_result) is float:
-            return CheckResult(metric_result)
+            result_value = metric_result
         else:
-            raise DeepchecksValueError(f'The metric {repr(self.metric)} return a non-scalar value, '
+            raise DeepchecksValueError(f'The metric {self.metric.__class__} return a non-scalar value, '
                                        f'please specify a reduce function or choose a different metric')
+        result_dict = {'score': result_value,
+                       'metric': self.metric.__class__.__name__,
+                       'reduce': None if self.reduce is None else self.reduce.__name__}
+        return CheckResult(result_dict)
 
     def add_condition_greater_than(self, threshold: float) -> ConditionResult:
         """Add condition - the result is greater than the threshold"""
         def condition(check_result):
-            if check_result > threshold:
+            if check_result['score'] > threshold:
                 return ConditionResult(ConditionCategory.PASS)
             else:
                 details = f'The score is not greater than {threshold}'
                 return ConditionResult(ConditionCategory.FAIL, details)
-        return self.add_condition(f'Score is grater than {threshold}', condition)
+        return self.add_condition(f'Score is greater than {threshold}', condition)
 
     def add_condition_greater_equal_to(self, threshold: float) -> ConditionResult:
         """Add condition - the result is greater than the threshold"""
 
         def condition(check_result):
-            if check_result >= threshold:
+            if check_result['score'] >= threshold:
                 return ConditionResult(ConditionCategory.PASS)
             else:
                 details = f'The score is not greater than or equal to {threshold}'
@@ -103,7 +107,7 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck):
     def add_condition_less_than(self, threshold: float) -> ConditionResult:
         """Add condition - the result is greater than the threshold"""
         def condition(check_result):
-            if check_result < threshold:
+            if check_result['score'] < threshold:
                 return ConditionResult(ConditionCategory.PASS)
             else:
                 details = f'The score is not less than {threshold}'
@@ -114,7 +118,7 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck):
         """Add condition - the result is greater than the threshold"""
 
         def condition(check_result):
-            if check_result <= threshold:
+            if check_result['score'] <= threshold:
                 return ConditionResult(ConditionCategory.PASS)
             else:
                 details = f'The score is not less than or equal to {threshold}'
