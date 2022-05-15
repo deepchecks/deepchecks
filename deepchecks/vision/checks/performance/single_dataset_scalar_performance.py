@@ -42,6 +42,11 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck):
         super().__init__(**kwargs)
         self.metric = metric
         self.reduce = reduce
+        if 'metric_name' in kwargs.keys():
+            self.metric_name = kwargs['metric_name']
+
+        if 'reduce_name' in kwargs.keys():
+            self.reduce_name = kwargs['reduce_name']
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind.TRAIN):
         """Initialize the metric for the check, and validate task type is relevant."""
@@ -77,9 +82,18 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck):
         else:
             raise DeepchecksValueError(f'The metric {self.metric.__class__} return a non-scalar value, '
                                        f'please specify a reduce function or choose a different metric')
+
+        metric_name = self.metric_name if hasattr(self, 'metric_name') else self.metric.__class__.__name__
+        if hasattr(self, 'reduce_name'):
+            reduce_name = self.reduce_name
+        elif self.reduce is None:
+            reduce_name = None
+        else:
+            reduce_name = self.reduce.__name__
+
         result_dict = {'score': result_value,
-                       'metric': self.metric.__class__.__name__,
-                       'reduce': None if self.reduce is None else self.reduce.__name__}
+                       'metric': metric_name,
+                       'reduce': reduce_name}
         return CheckResult(result_dict)
 
     def add_condition_greater_than(self, threshold: float) -> ConditionResult:

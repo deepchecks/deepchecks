@@ -23,7 +23,7 @@ def test_detection_deafults(coco_train_visiondata, mock_trained_yolov5_object_de
 
 def test_detection_w_params(coco_train_visiondata, mock_trained_yolov5_object_detection):
     # params that should run normally
-    check = SingleDatasetScalarPerformance(reduce=torch.max)
+    check = SingleDatasetScalarPerformance(reduce=torch.max, reduce_name='torch_max')
     result = check.run(coco_train_visiondata, mock_trained_yolov5_object_detection)
     assert_that(type(result.value['score']), equal_to(float))
 
@@ -58,7 +58,7 @@ def test_add_condition(mnist_dataset_train, mock_trained_mnist):
 
 def test_classification_w_params(mnist_dataset_train, mock_trained_mnist):
     # params that should run normally
-    check = SingleDatasetScalarPerformance(Precision(), torch.max)
+    check = SingleDatasetScalarPerformance(Precision(), torch.max, reduce_name='max')
     result = check.run(mnist_dataset_train, mock_trained_mnist)
     assert_that(type(result.value['score']), equal_to(float))
 
