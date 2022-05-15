@@ -157,7 +157,7 @@ def calc_drift_and_plot(train_column: pd.Series,
                         max_num_categories_for_drift: int = 10,
                         max_num_categories_for_display: int = 10,
                         show_categories_by: str = 'largest_difference',
-                        categirical_drift_method='Cramer',
+                        categorical_drift_method='Cramer',
                         min_samples: int = 10) -> Tuple[float, str, Callable]:
     """
     Calculate drift score per column.
@@ -188,7 +188,7 @@ def calc_drift_and_plot(train_column: pd.Series,
         - 'train_largest': Show the largest train categories.
         - 'test_largest': Show the largest test categories.
         - 'largest_difference': Show the largest difference between categories.
-    categirical_drift_method: str, default: "Cramer"
+    categorical_drift_method: str, default: "Cramer"
         Cramer for Cramer's V, PSI for Population Stability Index (PSI).
     min_samples: int, default: 10
         Minimum number of samples for each column in order to calculate draft
@@ -217,7 +217,7 @@ def calc_drift_and_plot(train_column: pd.Series,
 
         dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(train_dist, test_dist, value_name)
     elif column_type == 'categorical':
-        if categirical_drift_method == 'Cramer':
+        if categorical_drift_method == 'Cramer':
             scorer_name = 'Cramer\'s V'
             score = cramers_v(dist1=train_dist, dist2=test_dist)
 
@@ -225,7 +225,7 @@ def calc_drift_and_plot(train_column: pd.Series,
             dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(
                 train_dist, test_dist, value_name, is_categorical=True, max_num_categories=max_num_categories_for_display,
             )
-        elif categirical_drift_method == 'PSI':
+        elif categorical_drift_method == 'PSI':
             scorer_name = 'PSI'
             expected, actual, _ = \
                 preprocess_2_cat_cols_to_same_bins(dist1=train_column, dist2=test_column,
@@ -239,8 +239,8 @@ def calc_drift_and_plot(train_column: pd.Series,
                 show_categories_by=show_categories_by
             )
         else:
-            raise ValueError(f'Excpected categirical_drift_method to be one '
-                             'of [Cramer, PSI], recieved: {categirical_drift_method}')
+            raise ValueError(f'Excpected categorical_drift_method to be one '
+                             'of [Cramer, PSI], recieved: {categorical_drift_method}')
     else:
         # Should never reach here
         raise DeepchecksValueError(f'Unsupported column type for drift: {column_type}')

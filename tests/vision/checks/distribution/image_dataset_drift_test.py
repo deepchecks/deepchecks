@@ -30,7 +30,29 @@ def pil_drift_formatter(batch):
 def test_no_drift_grayscale(mnist_dataset_train, device):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_train
-    check = ImageDatasetDrift()
+    check = ImageDatasetDrift(categorical_drift_method='PSI')
+
+    # Act
+    result = check.run(train, test, random_state=42, device=device, n_samples=None)
+    # Assert
+    assert_that(result.value, has_entries({
+        'domain_classifier_auc': close_to(0.479, 0.001),
+        'domain_classifier_drift_score': equal_to(0),
+        'domain_classifier_feature_importance': has_entries({
+            'Brightness': equal_to(0),
+            'Aspect Ratio': equal_to(0),
+            'Area': equal_to(0),
+            'Mean Red Relative Intensity': equal_to(0),
+            'Mean Blue Relative Intensity': equal_to(0),
+            'Mean Green Relative Intensity': equal_to(0),
+        })
+    }))
+
+
+def test_no_drift_grayscale_cramer(mnist_dataset_train, device):
+    # Arrange
+    train, test = mnist_dataset_train, mnist_dataset_train
+    check = ImageDatasetDrift(categorical_drift_method='Cramer')
 
     # Act
     result = check.run(train, test, random_state=42, device=device, n_samples=None)
@@ -52,7 +74,7 @@ def test_no_drift_grayscale(mnist_dataset_train, device):
 def test_drift_grayscale(mnist_dataset_train, mnist_dataset_test, device):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_test
-    check = ImageDatasetDrift()
+    check = ImageDatasetDrift(categorical_drift_method='PSI')
 
     # Act
     result = check.run(train, test, random_state=42, device=device, n_samples=None)
@@ -76,7 +98,7 @@ def test_no_drift_rgb(coco_train_dataloader, coco_test_dataloader, device):
     # Arrange
     train = COCOData(coco_train_dataloader)
     test = COCOData(coco_test_dataloader)
-    check = ImageDatasetDrift()
+    check = ImageDatasetDrift(categorical_drift_method='PSI')
 
     # Act
     result = check.run(train, test, random_state=42, device=device)
@@ -105,7 +127,7 @@ def test_with_drift_rgb(coco_train_dataloader, coco_test_dataloader, device):
     train = DriftCoco(coco_train_dataloader)
     test = COCOData(coco_test_dataloader)
 
-    check = ImageDatasetDrift()
+    check = ImageDatasetDrift(categorical_drift_method='PSI')
     # Act
     result = check.run(train, test, random_state=42, device=device)
     # Assert

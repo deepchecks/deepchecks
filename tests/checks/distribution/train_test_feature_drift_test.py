@@ -18,7 +18,7 @@ from tests.checks.utils import equal_condition_result
 def test_drift_with_model(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check = TrainTestFeatureDrift()
+    check = TrainTestFeatureDrift(categorical_drift_method='PSI')
 
     # Act
     result = check.run(train, test, model)
@@ -51,7 +51,7 @@ def test_drift_with_model(drifted_data_and_model):
 def test_drift_no_model(drifted_data_and_model):
     # Arrange
     train, test, _ = drifted_data_and_model
-    check = TrainTestFeatureDrift()
+    check = TrainTestFeatureDrift(categorical_drift_method='PSI')
 
     # Act
     result = check.run(train, test)
@@ -84,7 +84,7 @@ def test_drift_no_model(drifted_data_and_model):
 def test_drift_max_drift_score_condition_fail(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check = TrainTestFeatureDrift().add_condition_drift_score_not_greater_than()
+    check = TrainTestFeatureDrift(categorical_drift_method='PSI').add_condition_drift_score_not_greater_than()
 
     # Act
     result = check.run(train, test, model)
@@ -93,17 +93,18 @@ def test_drift_max_drift_score_condition_fail(drifted_data_and_model):
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name='PSI <= 0.2 and Earth Mover\'s Distance <= 0.1',
-        details='Found categorical columns with PSI above threshold: {\'categorical_with_drift\': \'0.22\'}\n'
-                'Found numeric columns with Earth Mover\'s Distance above threshold: {\'numeric_with_drift\': \'0.34\'}'
+        name='categorical drift score <= 0.2 and numerical drift score <= 0.1',
+        details='Found categorical columns with drift score above threshold: {\'categorical_with_drift\': \'0.22\'}\n'
+                'Found numerical columns with drift score above threshold: {\'numeric_with_drift\': \'0.34\'}'
     ))
 
 
 def test_drift_max_drift_score_condition_pass_threshold(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check = TrainTestFeatureDrift().add_condition_drift_score_not_greater_than(max_allowed_psi_score=1,
-                                                                               max_allowed_earth_movers_score=1)
+    check = TrainTestFeatureDrift(categorical_drift_method='PSI') \
+        .add_condition_drift_score_not_greater_than(max_allowed_categorical_score=1,
+                                                    max_allowed_numerical_score=1)
 
     # Act
     result = check.run(train, test, model)
@@ -112,5 +113,5 @@ def test_drift_max_drift_score_condition_pass_threshold(drifted_data_and_model):
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
-        name='PSI <= 1 and Earth Mover\'s Distance <= 1'
+        name='categorical drift score <= 1 and numerical drift score <= 1'
     ))

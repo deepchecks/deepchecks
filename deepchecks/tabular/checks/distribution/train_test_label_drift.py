@@ -26,6 +26,7 @@ class TrainTestLabelDrift(TrainTestCheck):
 
     Check calculates a drift score for the label in test dataset, by comparing its distribution to the train
     dataset.
+
     For numerical columns, we use the Earth Movers Distance.
     See https://en.wikipedia.org/wiki/Wasserstein_metric
 
@@ -52,7 +53,7 @@ class TrainTestLabelDrift(TrainTestCheck):
         - 'train_largest': Show the largest train categories.
         - 'test_largest': Show the largest test categories.
         - 'largest_difference': Show the largest difference between categories.
-    categirical_drift_method: str, default: "Cramer"
+    categorical_drift_method: str, default: "Cramer"
         Cramer for Cramer's V, PSI for Population Stability Index (PSI).
     max_num_categories: int, default: None
         Deprecated. Please use max_num_categories_for_drift and max_num_categories_for_display instead
@@ -64,7 +65,7 @@ class TrainTestLabelDrift(TrainTestCheck):
             max_num_categories_for_drift: int = 10,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
-            categirical_drift_method='Cramer',
+            categorical_drift_method='Cramer',
             max_num_categories: int = None,
             **kwargs
     ):
@@ -81,7 +82,7 @@ class TrainTestLabelDrift(TrainTestCheck):
         self.max_num_categories_for_drift = max_num_categories_for_drift
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
-        self.categirical_drift_method = categirical_drift_method
+        self.categorical_drift_method = categorical_drift_method
 
 
     def run_logic(self, context: Context) -> CheckResult:
@@ -105,7 +106,7 @@ class TrainTestLabelDrift(TrainTestCheck):
             max_num_categories_for_drift=self.max_num_categories_for_drift,
             max_num_categories_for_display=self.max_num_categories_for_display,
             show_categories_by=self.show_categories_by,
-            categirical_drift_method=self.categirical_drift_method,
+            categorical_drift_method=self.categorical_drift_method,
         )
 
         headnote = """<span>
@@ -119,7 +120,7 @@ class TrainTestLabelDrift(TrainTestCheck):
         return CheckResult(value=values_dict, display=displays, header='Train Test Label Drift')
 
     def add_condition_drift_score_not_greater_than(self, max_allowed_categorical_score: float = 0.2,
-                                                   max_allowed_numarical_score: float = 0.1):
+                                                   max_allowed_numerical_score: float = 0.1):
         """
         Add condition - require drift score to not be more than a certain threshold.
 
@@ -128,10 +129,10 @@ class TrainTestLabelDrift(TrainTestCheck):
 
         Parameters
         ----------
-        max_allowed_psi_score: float , default: 0.2
-            the max threshold for the PSI score
-        max_allowed_earth_movers_score: float ,  default: 0.1
-            the max threshold for the Earth Mover's Distance score
+        max_allowed_categorical_score: float , default: 0.2
+            the max threshold for the categorical drift score
+        max_allowed_numerical_score: float ,  default: 0.1
+            the max threshold for the numerical drift score
         Returns
         -------
         ConditionResult
@@ -142,17 +143,14 @@ class TrainTestLabelDrift(TrainTestCheck):
             drift_score = result['Drift score']
             method = result['Method']
             has_failed = (drift_score > max_allowed_categorical_score and method in SUPPORTED_CATEGORICAL_METHODS) or \
-                         (drift_score > max_allowed_numarical_score and method in SUPPORTED_NUMERICAL_METHODS)
+                         (drift_score > max_allowed_numerical_score and method in SUPPORTED_NUMERICAL_METHODS)
 
-            if method in SUPPORTED_CATEGORICAL_METHODS and has_failed:
-                return_str = f'Max allowed categorical drift score above threshold: {drift_score:.2f}'
-                return ConditionResult(ConditionCategory.FAIL, return_str)
-            elif method in SUPPORTED_NUMERICAL_METHODS and has_failed:
-                return_str = f'Max allowed numarical drift score above threshold: {drift_score:.2f}'
+            if has_failed:
+                return_str = f'Label\'s {method} above threshold: {drift_score:.2f}'
                 return ConditionResult(ConditionCategory.FAIL, return_str)
 
             return ConditionResult(ConditionCategory.PASS)
 
-        return self.add_condition(f'PSI <= {max_allowed_categorical_score} and Earth Mover\'s Distance <= '
-                                  f'{max_allowed_numarical_score} for label drift',
+        return self.add_condition(f'categorical drift score <= {max_allowed_categorical_score} and '
+                                  f'numerical drift score <= {max_allowed_numerical_score} for label drift',
                                   condition)

@@ -21,7 +21,7 @@ from tests.checks.utils import equal_condition_result
 def test_no_drift_classification(mnist_dataset_train, mock_trained_mnist, device):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_train
-    check = TrainTestPredictionDrift()
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI')
 
     # Act
     result = check.run(train, test, mock_trained_mnist,
@@ -38,7 +38,7 @@ def test_no_drift_classification(mnist_dataset_train, mock_trained_mnist, device
 
 def test_no_drift_object_detection(coco_train_visiondata, mock_trained_yolov5_object_detection, device):
     # Arrange
-    check = TrainTestPredictionDrift()
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI')
 
     # Act
     result = check.run(coco_train_visiondata, coco_train_visiondata, mock_trained_yolov5_object_detection,
@@ -63,7 +63,7 @@ def test_no_drift_object_detection(coco_train_visiondata, mock_trained_yolov5_ob
 def test_with_drift_classification(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_test
-    check = TrainTestPredictionDrift()
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI')
 
     # Act
     result = check.run(train, test, mock_trained_mnist,
@@ -79,10 +79,29 @@ def test_with_drift_classification(mnist_dataset_train, mnist_dataset_test, mock
     ))
 
 
+def test_with_drift_classification_cramer(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
+    # Arrange
+    train, test = mnist_dataset_train, mnist_dataset_test
+    check = TrainTestPredictionDrift(categorical_drift_method='Cramer')
+
+    # Act
+    result = check.run(train, test, mock_trained_mnist,
+                       device=device)
+
+    # Assert
+    assert_that(result.value, has_entries(
+        {'Samples Per Class': has_entries(
+            {'Drift score': close_to(0, 0.001),
+             'Method': equal_to('Cramer\'s V')}
+        )
+        }
+    ))
+
+
 def test_with_drift_object_detection(coco_train_visiondata, coco_test_visiondata, mock_trained_yolov5_object_detection,
                                      device):
     # Arrange
-    check = TrainTestPredictionDrift()
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI')
 
     # Act
     result = check.run(coco_train_visiondata, coco_test_visiondata, mock_trained_yolov5_object_detection, device=device)
@@ -106,7 +125,7 @@ def test_with_drift_object_detection(coco_train_visiondata, coco_test_visiondata
 def test_with_drift_object_detection_change_max_cat(coco_train_visiondata, coco_test_visiondata,
                                                     mock_trained_yolov5_object_detection, device):
     # Arrange
-    check = TrainTestPredictionDrift(max_num_categories_for_drift=100)
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI', max_num_categories_for_drift=100)
 
     # Act
     result = check.run(coco_train_visiondata, coco_test_visiondata, mock_trained_yolov5_object_detection, device=device)
@@ -134,7 +153,7 @@ def test_with_drift_object_detection_alternative_measurements(coco_train_visiond
         return [int(x[0][0]) if len(x) != 0 else 0 for x in predictions]
     alternative_measurements = [
         {'name': 'test', 'method': prop, 'output_type': 'continuous'}]
-    check = TrainTestPredictionDrift(prediction_properties=alternative_measurements)
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI', prediction_properties=alternative_measurements)
 
     # Act
     result = check.run(coco_train_visiondata, coco_test_visiondata, mock_trained_yolov5_object_detection, device=device)
@@ -151,7 +170,7 @@ def test_with_drift_object_detection_alternative_measurements(coco_train_visiond
 
 def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets, mock_trained_mnist, device):
     # Arrange
-    check = TrainTestPredictionDrift().add_condition_drift_score_not_greater_than()
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI').add_condition_drift_score_not_greater_than()
     mod_train_ds, mod_test_ds = mnist_drifted_datasets
 
     def infer(batch, model, device):
@@ -166,13 +185,13 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets, mock_train
     result = check.run(mod_train_ds, mod_test_ds, mock_trained_mnist, device=device, n_samples=None)
 
     condition_result, *_ = result.conditions_results
-
+    print(condition_result)
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name='PSI <= 0.15 and Earth Mover\'s Distance <= 0.075 for prediction drift',
-        details='Found non-continues prediction properties with PSI drift score above threshold: {\'Samples Per '
-                'Class\': \'4.0\'}\n'
+        name='categorical drift score <= 0.15 and numerical drift score <= 0.075 for prediction drift',
+        details='Found categorical prediction properties with drift score ' +
+                'above threshold: {\'Samples Per Class\': \'4.0\'}\n'
     ))
 
 

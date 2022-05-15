@@ -44,7 +44,7 @@ that aim to measure difference between 2 distributions.
 We experimented with various approaches and found that for detecting drift between 2
 one-dimensional distributions, the following 2 methods give the best results:
 
-* For numerical features, the `Population Stability Index (PSI) <https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf>`__
+* For numerical features, the `Cramer's V <https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V>`__
 * For categorical features, the `Wasserstein Distance (Earth Mover's Distance) <https://en.wikipedia.org/wiki/Wasserstein_metric>`__
 
 However, one does not simply measure drift on a prediction, as they may be complex structures. These methods are

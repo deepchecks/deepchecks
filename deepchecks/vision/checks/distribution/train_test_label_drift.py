@@ -79,7 +79,7 @@ class TrainTestLabelDrift(TrainTestCheck):
         - 'train_largest': Show the largest train categories.
         - 'test_largest': Show the largest test categories.
         - 'largest_difference': Show the largest difference between categories.
-    categirical_drift_method: str, default: "Cramer"
+    categorical_drift_method: str, default: "Cramer"
         Cramer for Cramer's V, PSI for Population Stability Index (PSI).
     max_num_categories: int, default: None
         Deprecated. Please use max_num_categories_for_drift and max_num_categories_for_display instead
@@ -92,7 +92,7 @@ class TrainTestLabelDrift(TrainTestCheck):
             max_num_categories_for_drift: int = 10,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
-            categirical_drift_method='Cramer',
+            categorical_drift_method='Cramer',
             max_num_categories: int = None,  # Deprecated
             **kwargs
     ):
@@ -114,7 +114,7 @@ class TrainTestLabelDrift(TrainTestCheck):
         self.max_num_categories_for_drift = max_num_categories_for_drift
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
-        self.categirical_drift_method = categirical_drift_method
+        self.categorical_drift_method = categorical_drift_method
 
         self._label_properties = None
         self._train_label_properties = None
@@ -195,7 +195,7 @@ class TrainTestLabelDrift(TrainTestCheck):
                 max_num_categories_for_drift=self.max_num_categories_for_drift,
                 max_num_categories_for_display=self.max_num_categories_for_display,
                 show_categories_by=self.show_categories_by,
-                categirical_drift_method=self.categirical_drift_method,
+                categorical_drift_method=self.categorical_drift_method,
             )
             values_dict[name] = {
                 'Drift score': value,
@@ -216,7 +216,7 @@ class TrainTestLabelDrift(TrainTestCheck):
         return CheckResult(value=values_dict, display=displays, header='Train Test Label Drift')
 
     def add_condition_drift_score_not_greater_than(self, max_allowed_categorical_score: float = 0.15,
-                                                   max_allowed_numarical_score: float = 0.075
+                                                   max_allowed_numerical_score: float = 0.075
                                                    ) -> 'TrainTestLabelDrift':
         """
         Add condition - require label properties drift score to not be more than a certain threshold.
@@ -229,7 +229,7 @@ class TrainTestLabelDrift(TrainTestCheck):
         ----------
         max_allowed_categorical_score: float , default: 0.15
             the max threshold for the PSI score
-        max_allowed_numarical_score: float ,  default: 0.075
+        max_allowed_numerical_score: float ,  default: 0.075
             the max threshold for the Earth Mover's Distance score
         Returns
         -------
@@ -242,14 +242,14 @@ class TrainTestLabelDrift(TrainTestCheck):
                                                d['Drift score'] > max_allowed_categorical_score and 
                                                d['Method'] in SUPPORTED_CATEGORICAL_METHODS}
             not_passing_numeric_columns = {props: f'{d["Drift score"]:.2}' for props, d in result.items() if
-                                           d['Drift score'] > max_allowed_numarical_score
+                                           d['Drift score'] > max_allowed_numerical_score
                                            and d['Method'] in SUPPORTED_NUMERICAL_METHODS}
             return_str = ''
             if not_passing_categorical_columns:
-                return_str += f'Found non-continues label properties with drift score above threshold:' \
+                return_str += f'Found categorical label properties with drift score above threshold:' \
                               f' {not_passing_categorical_columns}\n'
             if not_passing_numeric_columns:
-                return_str += f'Found continues label properties with drift score above' \
+                return_str += f'Found numerical label properties with drift score above' \
                               f' threshold: {not_passing_numeric_columns}\n'
 
             if return_str:
@@ -257,7 +257,6 @@ class TrainTestLabelDrift(TrainTestCheck):
             else:
                 return ConditionResult(ConditionCategory.PASS)
 
-        return self.add_condition(f'non-continues drift score <= {max_allowed_categorical_score} and '
-                                  'continues drift score <= '
-                                  f'{max_allowed_numarical_score} for label drift',
+        return self.add_condition(f'categorical drift score <= {max_allowed_categorical_score} and '
+                                  f'numerical drift score <= {max_allowed_numerical_score}',
                                   condition)
