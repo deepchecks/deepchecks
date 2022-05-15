@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Single Data Scalar Performance
+Single Dataset Scalar Performance
 ******************************
 
-This notebooks provides an overview for using and understanding single data scalar performance check.
+This notebooks provides an overview for using and understanding single dataset scalar performance check.
 
 **Structure:**
 
