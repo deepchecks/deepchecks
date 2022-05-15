@@ -49,7 +49,8 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck):
                 self.metric = Accuracy()
             elif context.train.task_type == TaskType.OBJECT_DETECTION:
                 self.metric = ObjectDetectionAveragePrecision()
-                self.reduce = torch.nanmean
+                if self.reduce is None:
+                    self.reduce = torch.nanmean
             else:
                 raise DeepchecksValueError('For task types other then classification or object detection, '
                                            'pass a metric explicitly')
