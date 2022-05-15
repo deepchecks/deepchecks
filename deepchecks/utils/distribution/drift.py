@@ -223,7 +223,8 @@ def calc_drift_and_plot(train_column: pd.Series,
 
             bar_traces, bar_x_axis, bar_y_axis = drift_score_bar_traces(score, bar_max=1)
             dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(
-                train_dist, test_dist, value_name, is_categorical=True, max_num_categories=max_num_categories_for_display,
+                train_dist, test_dist, value_name, is_categorical=True,
+                max_num_categories=max_num_categories_for_display,
             )
         elif categorical_drift_method == 'PSI':
             scorer_name = 'PSI'
@@ -235,12 +236,13 @@ def calc_drift_and_plot(train_column: pd.Series,
 
             bar_traces, bar_x_axis, bar_y_axis = drift_score_bar_traces(score, bar_max=1)
             dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(
-                train_dist, test_dist, value_name, is_categorical=True, max_num_categories=max_num_categories_for_display,
+                train_dist, test_dist, value_name, is_categorical=True,
+                max_num_categories=max_num_categories_for_display,
                 show_categories_by=show_categories_by
             )
         else:
-            raise ValueError(f'Excpected categorical_drift_method to be one '
-                             'of [Cramer, PSI], recieved: {categorical_drift_method}')
+            raise ValueError('Excpected categorical_drift_method to be one '
+                             f'of [Cramer, PSI], recieved: {categorical_drift_method}')
     else:
         # Should never reach here
         raise DeepchecksValueError(f'Unsupported column type for drift: {column_type}')

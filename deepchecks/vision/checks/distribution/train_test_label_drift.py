@@ -239,7 +239,7 @@ class TrainTestLabelDrift(TrainTestCheck):
 
         def condition(result: Dict) -> ConditionResult:
             not_passing_categorical_columns = {props: f'{d["Drift score"]:.2}' for props, d in result.items() if
-                                               d['Drift score'] > max_allowed_categorical_score and 
+                                               d['Drift score'] > max_allowed_categorical_score and
                                                d['Method'] in SUPPORTED_CATEGORICAL_METHODS}
             not_passing_numeric_columns = {props: f'{d["Drift score"]:.2}' for props, d in result.items() if
                                            d['Drift score'] > max_allowed_numerical_score

@@ -260,7 +260,8 @@ class TrainTestFeatureDrift(TrainTestCheck):
                                            and column in columns_to_consider}
             return_str = ''
             if not_passing_categorical_columns:
-                return_str += f'Found categorical columns with drift score above threshold: {not_passing_categorical_columns}\n'
+                return_str += 'Found categorical columns with drift score above threshold: ' \
+                              f'{not_passing_categorical_columns}\n'
             if not_passing_numeric_columns:
                 return_str += f'Found numerical columns with drift score above threshold: ' \
                               f'{not_passing_numeric_columns}'
