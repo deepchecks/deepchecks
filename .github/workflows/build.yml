@@ -27,9 +27,9 @@ jobs:
         python-version: ["3.6", "3.7", "3.8", "3.9"] #TODO: add 3.10 when upgrading torch to 1.11
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
     - name: Set Up Env
@@ -40,8 +40,8 @@ jobs:
     runs-on: ubuntu-latest
     name: coveralls
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v3
       with:
         python-version: "3.9"
     - name: Set Up Env
@@ -58,9 +58,9 @@ jobs:
         python-version: ["3.8"] #TODO: add 3.10 when scikit-learn have a wheel https://github.com/scikit-learn/scikit-learn/pull/21232
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
     - name: Run Tests
@@ -71,11 +71,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout the code
-      uses: actions/checkout@v2.3.4
+      uses: actions/checkout@v3
       with:
         fetch-depth: 0
     - name: Setup Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v3
       with:
         python-version: '3.7'
     - name: Get explicit and transitive dependencies
@@ -107,9 +107,9 @@ jobs:
   gpu-tests:
     runs-on: [self-hosted, gpu]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
           python-version: '3.7'
       - name: Set Up Env
