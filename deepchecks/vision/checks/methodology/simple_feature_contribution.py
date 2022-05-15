@@ -12,6 +12,7 @@
 from collections import defaultdict
 from typing import Callable, Dict, Hashable, TypeVar, Union
 
+import numpy as np
 import pandas as pd
 from pandas.core.dtypes.common import is_float_dtype
 
@@ -76,6 +77,8 @@ class SimpleFeatureContribution(TrainTestCheck):
         Number of features to show, sorted by the magnitude of difference in PPS
     random_state: int, default: None
         Random state for the ppscore.predictors function
+    min_pps_to_show: float, default 0.05
+            Minimum PPS to show a class in the graph
     ppscore_params: dict, default: None
         dictionary of additional parameters for the ppscore predictor function
     """
@@ -86,6 +89,7 @@ class SimpleFeatureContribution(TrainTestCheck):
             n_top_properties: int = 3,
             per_class: bool = True,
             random_state: int = None,
+            min_pps_to_show: float = 0.05,
             ppscore_params: dict = None,
             **kwargs
     ):
@@ -97,6 +101,7 @@ class SimpleFeatureContribution(TrainTestCheck):
         else:
             self.image_properties = default_image_properties
 
+        self.min_pps_to_show = min_pps_to_show
         self.per_class = per_class
         self.n_top_properties = n_top_properties
         self.random_state = random_state
@@ -191,6 +196,7 @@ class SimpleFeatureContribution(TrainTestCheck):
                                                                            'target',
                                                                            self.ppscore_params,
                                                                            self.n_top_properties,
+                                                                           min_pps_to_show=self.min_pps_to_show,
                                                                            random_state=self.random_state)
         else:
             ret_value, display = get_single_feature_contribution(df_train,
@@ -199,6 +205,7 @@ class SimpleFeatureContribution(TrainTestCheck):
                                                                  'target',
                                                                  self.ppscore_params,
                                                                  self.n_top_properties,
+                                                                 min_pps_to_show=self.min_pps_to_show,
                                                                  random_state=self.random_state)
 
         if display:
@@ -249,14 +256,14 @@ class SimpleFeatureContribution(TrainTestCheck):
                     feature_name: format_number(pps_value)
                     for feature_name, pps_value in
                     zip(value.keys(), [max(value[f]['train-test difference'].values()) for f in value.keys()])
-                    if pps_value > threshold
+                    if np.abs(pps_value) > threshold
                 }
 
             else:
                 failed_features = {
                     feature_name: format_number(pps_value)
                     for feature_name, pps_value in value['train-test difference'].items()
-                    if pps_value > threshold
+                    if np.abs(pps_value) > threshold
                 }
 
             if failed_features:

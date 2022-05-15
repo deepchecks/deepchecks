@@ -12,21 +12,23 @@
 import typing as t
 
 import wandb
-from hamcrest import (all_of, assert_that, calling, contains_string, has_entry,
-                      has_length, has_property, instance_of, only_contains,
-                      raises)
+from hamcrest import (all_of, any_of, assert_that, calling, contains_string,
+                      equal_to, has_entry, has_length, has_property,
+                      instance_of, only_contains, raises)
 from ipywidgets import HTML, VBox
 
 from deepchecks.core.check_result import CheckFailure
 from deepchecks.core.serialization.check_failure.html import \
     CheckFailureSerializer as HtmlSerializer
+from deepchecks.core.serialization.check_failure.ipython import \
+    CheckFailureSerializer as IPythonSerializer
 from deepchecks.core.serialization.check_failure.json import \
     CheckFailureSerializer as JsonSerializer
 from deepchecks.core.serialization.check_failure.wandb import \
     CheckFailureSerializer as WandbSerializer
 from deepchecks.core.serialization.check_failure.widget import \
     CheckFailureSerializer as WidgetSerializer
-from tests.serialization.utils import DummyCheck
+from tests.common import DummyCheck, instance_of_ipython_formatter
 
 # =====================================
 
@@ -60,6 +62,39 @@ def test_html_serialization():
             contains_string(str(failure.exception)),
             contains_string(str(failure.header)),
             contains_string(t.cast(str, DummyCheck.__doc__)))
+    )
+
+
+# =====================================
+
+
+def test_ipython_serializer_initialization():
+    serializer = IPythonSerializer(CheckFailure(
+        DummyCheck(),
+        Exception("Error"),
+        'Failure Header Message'
+    ))
+
+
+def test_ipython_serializer_initialization_with_incorrect_type_of_value():
+    assert_that(
+        calling(IPythonSerializer).with_args({}),
+        raises(
+            TypeError,
+            'Expected "CheckFailure" but got "dict"')
+    )
+
+
+def test_ipython_serialization():
+    failure = CheckFailure(DummyCheck(), ValueError("Check Failed"), 'Failure Header Message')
+    serializer = IPythonSerializer(failure)
+    output = serializer.serialize()
+
+    assert_that(
+        output,
+        all_of(
+            instance_of(list),
+            only_contains(instance_of_ipython_formatter()))
     )
 
 
@@ -165,8 +200,8 @@ def test_widget_serialization():
             has_property(
                 'children',
                 all_of(
-                    instance_of(tuple), 
-                    has_length(3), 
+                    instance_of(tuple),
+                    has_length(3),
                     only_contains(instance_of(HTML)))))
     )
     assert_that(
@@ -174,22 +209,22 @@ def test_widget_serialization():
         has_property(
             'value',
             all_of(
-                instance_of(str), 
+                instance_of(str),
                 contains_string(failure.header)))
     )
     assert_that(
         output.children[1],
         has_property(
-            'value', 
+            'value',
             all_of(
-                instance_of(str), 
+                instance_of(str),
                 contains_string(t.cast(str,DummyCheck.__doc__))))
     )
     assert_that(
         output.children[2],
         has_property(
-            'value', 
+            'value',
             all_of(
-                instance_of(str), 
+                instance_of(str),
                 contains_string(str(failure.exception))))
     )

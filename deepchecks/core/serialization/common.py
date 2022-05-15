@@ -45,7 +45,9 @@ __all__ = [
     'concatv_images',
     'switch_matplot_backend',
     'plotlyjs_script',
-    'requirejs_script'
+    'requirejs_script',
+    'flatten',
+    'join'
 ]
 
 
@@ -336,3 +338,29 @@ def concatv_images(images, gap=10):
             position = position + img.height + gap
 
         return dst
+
+
+T = t.TypeVar('T')
+DeepIterable = t.Iterable[t.Union[T, 'DeepIterable[T]']]
+
+
+def flatten(l: DeepIterable[T]) -> t.Iterable[T]:
+    """Flatten nested iterables."""
+    for it in l:
+        if isinstance(it, (list, tuple, set, t.Generator, t.Iterator)):
+            yield from flatten(it)
+        else:
+            yield t.cast(T, it)
+
+
+A = t.TypeVar('A')
+B = t.TypeVar('B')
+
+
+def join(l: t.List[A], item: B) -> t.Iterator[t.Union[A, B]]:
+    """Construct an iterator from list and put 'item' between each element of the list."""
+    list_len = len(l) - 1
+    for index, el in enumerate(l):
+        yield el
+        if index != list_len:
+            yield item

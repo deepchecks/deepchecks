@@ -15,14 +15,18 @@ import typing as t
 import pandas as pd
 import wandb
 from hamcrest import (all_of, assert_that, calling, contains_string, equal_to,
-                      greater_than, has_entries, has_length, has_property,
-                      instance_of, matches_regexp, raises, starts_with)
+                      greater_than, has_entries, has_item, has_length,
+                      has_property, instance_of, matches_regexp, only_contains,
+                      raises, starts_with)
+from IPython.display import Image
 from ipywidgets import HTML, VBox
 from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
 
 from deepchecks.core.serialization.check_result.html import \
     CheckResultSerializer as HtmlSerializer
+from deepchecks.core.serialization.check_result.ipython import \
+    CheckResultSerializer as IPythonSerializer
 from deepchecks.core.serialization.check_result.json import \
     CheckResultSerializer as JsonSerializer
 from deepchecks.core.serialization.check_result.wandb import \
@@ -31,7 +35,8 @@ from deepchecks.core.serialization.check_result.widget import \
     CheckResultSerializer as WidgetSerializer
 from deepchecks.core.serialization.common import plotlyjs_script
 from deepchecks.utils.strings import get_random_string
-from tests.serialization.utils import DummyCheck, create_check_result
+from tests.common import (DummyCheck, create_check_result,
+                          instance_of_ipython_formatter)
 
 # ===========================================
 
@@ -136,6 +141,45 @@ def test_html_serialization_to_full_html_page():
             instance_of(str),
             matches_regexp(regexp)
         )
+    )
+
+
+# ===========================================
+
+
+def test_ipython_serializer_initialization():
+    serializer = IPythonSerializer(create_check_result())
+
+
+def test_ipython_serializer_initialization_with_incorrect_type_of_value():
+    assert_that(
+        calling(IPythonSerializer).with_args([]),
+        raises(
+            TypeError,
+            'Expected "CheckResult" but got "list"')
+    )
+
+
+def test_ipython_serialization():
+    result = create_check_result()
+    output = IPythonSerializer(result).serialize()
+
+    assert_that(
+        output,
+        all_of(
+            instance_of(list),
+            has_length(greater_than(0)),
+            only_contains(instance_of_ipython_formatter()),
+            has_item(instance_of(Image)),
+            has_item(instance_of(BaseFigure)))
+    )
+
+
+def test_ipython_serialization_with_empty__check_sections__parameter():
+    result = create_check_result()
+    assert_that(
+        calling(IPythonSerializer(result).serialize).with_args(check_sections=[]),
+        raises(ValueError, 'include parameter cannot be empty')
     )
 
 
@@ -323,7 +367,7 @@ def wandb_output_assertion(
                 entries[f'{check_result.header}/item-{index}-figure'] = instance_of(wandb.Image)
             else:
                 raise TypeError(f'Unknown display item type {type(it)}')
-        
+
     if with_conditions_table is True:
         entries[f'{check_result.header}/conditions table'] = instance_of(wandb.Table)
 

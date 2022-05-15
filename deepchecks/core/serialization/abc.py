@@ -90,6 +90,87 @@ class WandbSerializer(Serializer[T], Protocol):
         ...
 
 
+@runtime_checkable
+class HTMLFormatter(Protocol):
+    """An HTML formatter."""
+
+    def _repr_html_(self) -> t.Any: ...
+
+
+@runtime_checkable
+class MarkdownFormatter(Protocol):
+    """A Markdown formatter."""
+
+    def _repr_markdown_(self) -> t.Any: ...
+
+
+@runtime_checkable
+class JSONFormatter(Protocol):
+    """A JSON formatter."""
+
+    def _repr_json_(self) -> t.Any: ...
+
+
+@runtime_checkable
+class JPEGFormatter(Protocol):
+    """A JPEG formatter."""
+
+    def _repr_jpeg_(self) -> t.Any: ...
+
+
+@runtime_checkable
+class PNGFormatter(Protocol):
+    """A PNG formatter."""
+
+    def _repr_png_(self) -> t.Any: ...
+
+
+@runtime_checkable
+class SVGFormatter(Protocol):
+    """An SVG formatter."""
+
+    def _repr_png_(self, **kwargs) -> t.Any: ...
+
+
+@runtime_checkable
+class IPythonDisplayFormatter(Protocol):
+    """An Formatter for objects that know how to display themselves."""
+
+    def _ipython_display_(self, **kwargs) -> t.Any: ...
+
+
+@runtime_checkable
+class MimeBundleFormatter(Protocol):
+    """A Formatter for arbitrary mime-types."""
+
+    def _repr_mimebundle_(self, **kwargs) -> t.Any: ...
+
+
+# NOTE: For more info about IPython formatters API refer to the next documentation page:
+# - https://ipython.readthedocs.io/en/stable/api/generated/IPython.core.formatters.html
+
+
+IPythonFormatter = t.Union[
+    HTMLFormatter,
+    MarkdownFormatter,
+    JSONFormatter,
+    JPEGFormatter,
+    PNGFormatter,
+    SVGFormatter,
+    IPythonDisplayFormatter,
+    MimeBundleFormatter
+]
+
+
+@runtime_checkable
+class IPythonSerializer(Serializer[T], Protocol):
+    """To IPython formatters list serializer."""
+
+    def serialize(self, **kwargs) -> t.List[IPythonFormatter]:
+        """Serialize into a list of objects that are Ipython displayable."""
+        ...
+
+
 class ABCDisplayItemsHandler(Protocol):
     """Trait that describes 'CheckResult.dislay' processing logic."""
 

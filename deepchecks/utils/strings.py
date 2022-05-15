@@ -9,10 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """String functions."""
+import io
 import itertools
 import os
 import random
 import re
+import sys
 import typing as t
 from collections import defaultdict
 from copy import copy
@@ -55,8 +57,13 @@ __all__ = [
     'create_new_file_name',
     'widget_to_html',
     'generate_check_docs_link',
+    'widget_to_html_string',
     'format_number_if_not_nan',
 ]
+
+# Creating a translation table for the string.translate() method to be used in string base form method
+DEL_CHARS = ''.join(c for c in map(chr, range(sys.maxunicode)) if not c.isalnum())
+DEL_MAP = str.maketrans('', '', DEL_CHARS)
 
 
 def get_ellipsis(long_string: str, max_length: int):
@@ -106,7 +113,12 @@ def get_docs_summary(obj, with_doc_link: bool = True):
     return ''
 
 
-def widget_to_html(widget: Widget, html_out: t.Any, title: str = None, requirejs: bool = True):
+def widget_to_html(
+    widget: Widget,
+    html_out: t.Union[str, t.TextIO],
+    title: t.Optional[str] = None,
+    requirejs: bool = True
+):
     """Save widget as html file.
 
     Parameters
@@ -127,10 +139,35 @@ def widget_to_html(widget: Widget, html_out: t.Any, title: str = None, requirejs
         html_formatted = re.sub('html_title', '{title}', html_formatted)
         html_formatted = re.sub('widget_snippet', '{snippet}', html_formatted)
         embed_url = None if requirejs else ''
-        embed_minimal_html(html_out, views=[widget], title=title,
+        embed_minimal_html(html_out, views=[widget], title=title or '',
                            template=html_formatted,
                            requirejs=requirejs, embed_url=embed_url,
                            state=dependency_state(widget))
+
+
+def widget_to_html_string(
+    widget: Widget,
+    title: t.Optional[str] = None,
+    requirejs: bool = True
+) -> str:
+    """Transform widget into html string.
+
+    Parameters
+    ----------
+    widget: Widget
+        The widget to save as html.
+    title: str , default: None
+        The title of the html file.
+    requirejs: bool , default: True
+        If to save with all javascript dependencies
+
+    Returns
+    -------
+    str
+    """
+    buffer = io.StringIO()
+    widget_to_html(widget, buffer, title, requirejs)
+    return buffer.getvalue()
 
 
 def generate_check_docs_link(check):
@@ -211,7 +248,7 @@ def string_baseform(string: str) -> str:
     """
     if not isinstance(string, str):
         return string
-    return re.sub('[^A-Za-z0-9]+', '', string).lower()
+    return string.translate(DEL_MAP).lower()
 
 
 def is_string_column(column: pd.Series) -> bool:

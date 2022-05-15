@@ -49,11 +49,11 @@ def test_columns_info():
     assert_that(result_ds, equal_to(expected_res_ds))
 
     expected_res_df = {
-        'index': 'numerical feature', 
-        'date': 'numerical feature', 
-        'a': 'categorical feature', 
-        'b': 'numerical feature', 
-        'c': 'numerical feature', 
+        'index': 'numerical feature',
+        'date': 'numerical feature',
+        'a': 'categorical feature',
+        'b': 'numerical feature',
+        'c': 'numerical feature',
         'label': 'categorical feature'
     }
     # in df all columns are other

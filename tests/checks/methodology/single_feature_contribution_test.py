@@ -11,7 +11,7 @@
 """Contains unit tests for the single_feature_contribution check."""
 import numpy as np
 import pandas as pd
-from hamcrest import (assert_that, calling, close_to, has_entries, has_length,
+from hamcrest import (assert_that, calling, close_to, equal_to, has_entries, has_length,
                       raises)
 
 from deepchecks.core.errors import (DatasetValidationError,
@@ -87,6 +87,15 @@ def test_trainval_assert_single_feature_contribution():
                                                                      test_dataset=Dataset(df2, label='label'))
 
     assert_that(result.value['train-test difference'], has_entries(expected))
+
+
+def test_trainval_assert_single_feature_contribution_min_pps():
+    df, df2, expected = util_generate_second_similar_dataframe_and_expected()
+    result = SingleFeatureContributionTrainTest(random_state=42,
+                                                min_pps_to_show=2).run(train_dataset=Dataset(df, label='label'),
+                                                                       test_dataset=Dataset(df2, label='label'))
+    assert_that(result.value['train-test difference'], has_entries(expected))
+    assert_that(result.display, equal_to([]))
 
 
 def test_trainval_show_top_single_feature_contribution():
