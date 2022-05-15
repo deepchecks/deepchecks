@@ -34,17 +34,21 @@ def assert_sklearn_trees_model_equals(model1, model2):
 
 
 def assert_dataset_module(dataset_module):
+    python_minor_version = sys.version_info[1]
+    # We use scikit-learn version 1.0.2 which is available from python 3.7
+    if python_minor_version < 7:
+        return
     if sklearn.__version__ != dataset_module._MODEL_VERSION:
         raise Exception(f'Can\'t test pretrained model for non matching sklearn version {sklearn.__version__}')
     train, test = dataset_module.load_data()
     pretrained_model = dataset_module.load_fitted_model()
-    trained_model = dataset_module.load_fitted_model(pretrained=False)
 
-    assert_that(trained_model.predict(train.features_columns.iloc[:1]), instance_of(np.ndarray))
-    assert_that(trained_model.predict(test.features_columns.iloc[:1]), instance_of(np.ndarray))
+    assert_that(pretrained_model.predict(train.features_columns.iloc[:1]), instance_of(np.ndarray))
+    assert_that(pretrained_model.predict(test.features_columns.iloc[:1]), instance_of(np.ndarray))
 
     # The models were trained on python 3.8, therefore tests for equality only on this version
-    if sys.version_info[1] == 8:
+    if python_minor_version == 8:
+        trained_model = dataset_module.load_fitted_model(pretrained=False)
         assert_sklearn_trees_model_equals(pretrained_model, trained_model)
 
 

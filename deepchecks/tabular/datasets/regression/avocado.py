@@ -26,11 +26,11 @@ from deepchecks.tabular.dataset import Dataset
 
 __all__ = ['load_data', 'load_fitted_model']
 
-_MODEL_URL = 'https://figshare.com/ndownloader/files/35122684'
+_MODEL_URL = 'https://figshare.com/ndownloader/files/35122756'
 _FULL_DATA_URL = 'https://figshare.com/ndownloader/files/32393729'
 _TRAIN_DATA_URL = 'https://figshare.com/ndownloader/files/32393732'
 _TEST_DATA_URL = 'https://figshare.com/ndownloader/files/32393726'
-_MODEL_VERSION = '0.24.2'
+_MODEL_VERSION = '1.0.2'
 _target = 'AveragePrice'
 _CAT_FEATURES = ['region', 'type']
 _NUM_FEATURES = ['Total Volume', '4046', '4225', 'Total Bags', 'Small Bags', 'Large Bags', 'XLarge Bags']
