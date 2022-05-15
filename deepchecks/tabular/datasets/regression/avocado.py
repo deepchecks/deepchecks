@@ -26,7 +26,7 @@ from deepchecks.tabular.dataset import Dataset
 
 __all__ = ['load_data', 'load_fitted_model']
 
-_MODEL_URL = 'https://figshare.com/ndownloader/files/35122654'
+_MODEL_URL = 'https://figshare.com/ndownloader/files/35122684'
 _FULL_DATA_URL = 'https://figshare.com/ndownloader/files/32393729'
 _TRAIN_DATA_URL = 'https://figshare.com/ndownloader/files/32393732'
 _TEST_DATA_URL = 'https://figshare.com/ndownloader/files/32393726'
