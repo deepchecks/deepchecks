@@ -21,11 +21,11 @@ from deepchecks.tabular.dataset import Dataset
 
 __all__ = ['load_data', 'load_fitted_model']
 
-_MODEL_URL = 'https://figshare.com/ndownloader/files/35121988'
+_MODEL_URL = 'https://figshare.com/ndownloader/files/35122645'
 _FULL_DATA_URL = 'https://ndownloader.figshare.com/files/33325472'
 _TRAIN_DATA_URL = 'https://ndownloader.figshare.com/files/33325556'
 _TEST_DATA_URL = 'https://ndownloader.figshare.com/files/33325559'
-_MODEL_VERSION = '1.0.1'
+_MODEL_VERSION = '0.24.2'
 _target = 'target'
 _CAT_FEATURES = []
 

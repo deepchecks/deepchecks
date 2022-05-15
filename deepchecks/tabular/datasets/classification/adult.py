@@ -25,11 +25,11 @@ from deepchecks.tabular.dataset import Dataset
 
 __all__ = ['load_data', 'load_fitted_model']
 
-_MODEL_URL = 'https://figshare.com/ndownloader/files/35122510'
+_MODEL_URL = 'https://figshare.com/ndownloader/files/35122642'
 _FULL_DATA_URL = 'https://ndownloader.figshare.com/files/34516457'
 _TRAIN_DATA_URL = 'https://ndownloader.figshare.com/files/34516448'
 _TEST_DATA_URL = 'https://ndownloader.figshare.com/files/34516454'
-_MODEL_VERSION = '1.0.1'
+_MODEL_VERSION = '0.24.2'
 _FEATURES = ['age', 'workclass', 'fnlwgt', 'education', 'education-num', 'marital-status', 'occupation', 'relationship',
              'race', 'sex', 'capital-gain', 'capital-loss', 'hours-per-week', 'native-country']
 _target = 'income'
