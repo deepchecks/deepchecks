@@ -1,9 +1,9 @@
-.. image:: _static/deepchecks-logo-with-white-wide-back.png
+.. image:: /_static/deepchecks-logo-with-white-wide-back.png
    :target: https://deepchecks.com/?utm_source=docs.deepchecks.com&utm_medium=referral&utm_campaign=welcome
    :alt: Deepchecks Logo
    :align: center
 
-.. image:: _static/checks_and_conditions.png
+.. image:: /_static/checks_and_conditions.png
    :alt: Deepchecks Suite of Checks
    :align: center
 
@@ -20,7 +20,7 @@ and data, and it enables doing so with minimal effort. Deepchecks accompanies yo
 various validation and testing needs such as verifying your data's integrity, inspecting its distributions,
 validating data splits, evaluating your model and comparing between different models.
 
-.. admonition:: Join Our Community 👋
+.. topic:: Join Our Community 👋
     In addition to perusing the documentation, please feel free to
     ask questions on our `Slack Community <https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg>`_,
     or to post a issue or start a discussion on `Github <https://github.com/deepchecks/deepchecks/issues>`_.
@@ -39,7 +39,7 @@ In order to use deepchecks, you need to install it with pip:
     # for installing deepchecks including the computer vision subpackage (note - Pytorch should be installed separately):
     pip install "deepchecks[vision]" --upgrade
 
-For more installation details and best practices, check out our full :doc:`Installation </getting-started/installation>` instructions.
+For more installation details and best practices, check out our :doc:`full installation instructions </getting-started/installation>`.
 
 
 🏃‍♀️ See It in Action
@@ -50,13 +50,13 @@ For a quick start, check out the following examples in the tutorials section:
 Tabular Data
 -------------
 
-- :doc:`Tabular Tutorial - for quickly running suites and checks </user-guide/tabular/auto_tutorials/plot_quickstart_in_5_minutes>`
+- :doc:`Tabular Tutorial - quickly running suites and checks </user-guide/tabular/auto_tutorials/plot_quickstart_in_5_minutes>`
 
 
 Computer Vision
 ----------------
 
-.. admonition:: CV in Beta Release
+.. topic:: CV in Beta Release
    Deepchecks' Computer Vision subpackage is in beta release.
    It is :doc:`available for installation </getting-started/installation>` from PyPi, use at your own discretion.
    `Github Issues <https://github.com/deepchecks/deepchecks/issues>`_ are welcome!
@@ -77,7 +77,7 @@ problems, and/or validate your model and evaluate it.
    :alt: When To Validate - ML Pipeline Schema
    :align: center
 
-See the :doc:`When Should You Use </getting-started/when_should_you_use>` Section for an elaborate explanation of the typical scenarios.
+See the :doc:`When Should You Use </getting-started/when_should_you_use>` section for an elaborate explanation of the typical scenarios.
 
 
 📊 Which Types of Checks Exist?
@@ -86,7 +86,7 @@ See the :doc:`When Should You Use </getting-started/when_should_you_use>` Sectio
 Check out our :doc:`/checks_gallery/tabular/index` to see all the available checks for Tabular and
 :doc:`/checks_gallery/vision/index` for CV.
 
-They are checks for different phases in the pipeline:
+They are checks for different phases in the ML workflow:
 
 - Data Integrity
 - Train-Test Validation (Distribution and Methodology Checks)
@@ -112,8 +112,8 @@ subset** of the following:
    etc.), with optional labels
 -  The model's **training data with labels**
 -  **Test data** (which the model isn't exposed to) with labels
--  | A **supported model** that you wish to validate, **including: scikit-learn, XGBoost, PyTorch, and more**
-   | For more details about supported tabular data model see :doc:`supported models </user-guide/tabular/supported_models>`.
+-  | A **supported model** that you wish to validate, including: **scikit-learn, XGBoost, PyTorch, and more**.
+   | For tabular data models see :doc:`supported models </user-guide/tabular/supported_models>`, for more details about the supported model API.
    | For **Computer Vision**, we currently support the **PyTorch** framework. See :doc:`/user-guide/vision/data-classes/index` to understand how to integrate your data.
 
 
