@@ -21,7 +21,7 @@ from deepchecks.tabular.dataset import Dataset
 
 __all__ = ['load_data', 'load_fitted_model']
 
-_MODEL_URL = 'https://ndownloader.figshare.com/files/33325673'
+_MODEL_URL = 'https://figshare.com/ndownloader/files/35121988'
 _FULL_DATA_URL = 'https://ndownloader.figshare.com/files/33325472'
 _TRAIN_DATA_URL = 'https://ndownloader.figshare.com/files/33325556'
 _TEST_DATA_URL = 'https://ndownloader.figshare.com/files/33325559'
@@ -239,7 +239,7 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
             raise ValueError('data_format must be either "Dataset" or "Dataframe"')
 
 
-def load_fitted_model():
+def load_fitted_model(pretrained=True):
     """Load and return a fitted classification model to predict the flower type in the iris dataset.
 
     Returns
@@ -248,7 +248,7 @@ def load_fitted_model():
         The model/pipeline that was trained on the iris dataset.
 
     """
-    if sklearn.__version__ == _MODEL_VERSION:
+    if sklearn.__version__ == _MODEL_VERSION and pretrained:
         with urlopen(_MODEL_URL) as f:
             model = joblib.load(f)
     else:
@@ -260,4 +260,4 @@ def load_fitted_model():
 
 def _build_model():
     """Build the model to fit."""
-    return AdaBoostClassifier()
+    return AdaBoostClassifier(random_state=0)

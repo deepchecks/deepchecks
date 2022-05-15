@@ -21,7 +21,7 @@ from deepchecks.tabular.dataset import Dataset
 
 __all__ = ['load_data', 'load_fitted_model']
 
-_MODEL_URL = 'https://figshare.com/ndownloader/files/32653100'
+_MODEL_URL = 'https://figshare.com/ndownloader/files/35121991'
 _FULL_DATA_URL = 'https://figshare.com/ndownloader/files/32652977'
 _TRAIN_DATA_URL = 'https://figshare.com/ndownloader/files/32653172'
 _TEST_DATA_URL = 'https://figshare.com/ndownloader/files/32653130'
@@ -126,7 +126,7 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
         return train, test
 
 
-def load_fitted_model():
+def load_fitted_model(pretrained=True):
     """Load and return a fitted classification model to predict the flower type in the iris dataset.
 
     Returns
@@ -135,7 +135,7 @@ def load_fitted_model():
         the model/pipeline that was trained on the iris dataset.
 
     """
-    if sklearn.__version__ == '1.0.1':
+    if sklearn.__version__ == _MODEL_VERSION and pretrained:
         with urlopen(_MODEL_URL) as f:
             model = joblib.load(f)
     else:
@@ -147,4 +147,4 @@ def load_fitted_model():
 
 def _build_model():
     """Build the model to fit."""
-    return RandomForestClassifier()
+    return RandomForestClassifier(random_state=0)

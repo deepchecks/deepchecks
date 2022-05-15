@@ -25,7 +25,7 @@ from deepchecks.tabular.dataset import Dataset
 
 __all__ = ['load_data', 'load_fitted_model']
 
-_MODEL_URL = 'https://ndownloader.figshare.com/files/33080447'
+_MODEL_URL = 'https://figshare.com/ndownloader/files/35121994'
 _FULL_DATA_URL = 'https://figshare.com/ndownloader/files/33079757'
 _TRAIN_DATA_URL = 'https://ndownloader.figshare.com/files/33079781'
 _TEST_DATA_URL = 'https://ndownloader.figshare.com/files/33079787'
@@ -191,7 +191,7 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
         return train, test
 
 
-def load_fitted_model():
+def load_fitted_model(pretrained=True):
     """Load and return a fitted regression model to predict the target in the phishing dataset.
 
     Returns
@@ -200,7 +200,7 @@ def load_fitted_model():
         the model/pipeline that was trained on the phishing dataset.
 
     """
-    if sklearn.__version__ == _MODEL_VERSION:
+    if sklearn.__version__ == _MODEL_VERSION and pretrained:
         with urlopen(_MODEL_URL) as f:
             model = joblib.load(f)
     else:
@@ -267,4 +267,4 @@ def _build_model():
                                                            OneHotEncoder())]),
                                           _CAT_FEATURES)])),
         ('model',
-         RandomForestClassifier(criterion='entropy', n_estimators=40))])
+         RandomForestClassifier(criterion='entropy', n_estimators=40, random_state=0))])
