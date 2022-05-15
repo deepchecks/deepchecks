@@ -19,6 +19,7 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.metrics_utils.object_detection_precision_recall import \
     ObjectDetectionAveragePrecision
+import warnings
 
 __all__ = ['SingleDatasetScalarPerformance']
 
@@ -48,6 +49,7 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck):
                 self.metric = Accuracy()
             elif context.train.task_type == TaskType.OBJECT_DETECTION:
                 self.metric = ObjectDetectionAveragePrecision()
+                self.reduce = torch.nanmean
             else:
                 raise DeepchecksValueError('For task types other then classification or object detection, '
                                            'pass a metric explicitly')
@@ -64,10 +66,10 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck):
         metric_result = self.metric.compute()
         if self.reduce is not None:
             if type(metric_result) is float:
-                Warning('Metric result is already scalar, skipping reduction')
+                warnings.warn(SyntaxWarning('Metric result is already scalar, skipping reduction'))
                 return CheckResult(metric_result)
             else:
-                return CheckResult(self.reduce(metric_result))
+                return CheckResult(float(self.reduce(metric_result)))
         elif type(metric_result) is float:
             return CheckResult(metric_result)
         else:
@@ -84,6 +86,36 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck):
                 return ConditionResult(ConditionCategory.FAIL, details)
         return self.add_condition(f'Score is grater than {threshold}', condition)
 
+    def add_condition_greater_equal_to(self, threshold: float) -> ConditionResult:
+        """Add condition - the result is greater than the threshold"""
 
+        def condition(check_result):
+            if check_result >= threshold:
+                return ConditionResult(ConditionCategory.PASS)
+            else:
+                details = f'The result is not greater than or equal to {threshold}'
+                return ConditionResult(ConditionCategory.FAIL, details)
 
+        return self.add_condition(f'Score is grater than or equal to {threshold}', condition)
 
+    def add_condition_less_than(self, threshold: float) -> ConditionResult:
+        """Add condition - the result is greater than the threshold"""
+        def condition(check_result):
+            if check_result < threshold:
+                return ConditionResult(ConditionCategory.PASS)
+            else:
+                details = f'The result is not less than {threshold}'
+                return ConditionResult(ConditionCategory.FAIL, details)
+        return self.add_condition(f'Score is less than {threshold}', condition)
+
+    def add_condition_less_equal_to(self, threshold: float) -> ConditionResult:
+        """Add condition - the result is greater than the threshold"""
+
+        def condition(check_result):
+            if check_result <= threshold:
+                return ConditionResult(ConditionCategory.PASS)
+            else:
+                details = f'The result is not less than or equal to {threshold}'
+                return ConditionResult(ConditionCategory.FAIL, details)
+
+        return self.add_condition(f'Score is less than or equal to {threshold}', condition)
