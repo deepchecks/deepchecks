@@ -35,7 +35,7 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck):
         The function to reduce the scores tensor into a single scalar. For metrics that return a scalar use None
         (default).
     """
-    
+
     def __init__(self,
                  metric: Metric = None,
                  reduce: t.Callable = None,
@@ -54,8 +54,12 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck):
         if self.metric is None:
             if context.train.task_type == TaskType.CLASSIFICATION:
                 self.metric = Accuracy()
+                if not hasattr(self, 'metric_name'):
+                    self.metric_name = 'accuracy'
             elif context.train.task_type == TaskType.OBJECT_DETECTION:
                 self.metric = ObjectDetectionAveragePrecision()
+                if not hasattr(self, 'metric_name'):
+                    self.metric_name = 'object_detection_average_precision'
                 if self.reduce is None:
                     self.reduce = torch.nanmean
             else:
