@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module containing a single dataset with a signle scalar output performance check."""
+"""Module containing a check for computing a scalar performance metric for a single dataset."""
 import typing as t
 import torch
 from ignite.metrics import Metric, Accuracy
@@ -25,14 +25,15 @@ __all__ = ['SingleDatasetScalarPerformance']
 
 
 class SingleDatasetScalarPerformance(SingleDatasetCheck):
-    """Summarize a given metric over a given dataset to return a performance score as a scalar.
+    """Calculate a performance metric as a scalar for a given model and a given dataset.
 
     Parameters
     ----------
-        metric : default: None
-        An ignite.Metric object whose score should be used. If None are given, use the default metrics.
-        reduce: torch function, default: None (for metrics that already return a scalar)
-        The function to reduce the scores vector into a single scalar
+        metric: Metric,  default: None
+        An ignite.Metric object whose score should be used. If None is given, use the default metric.
+        reduce: torch function, default: None
+        The function to reduce the scores tensor into a single scalar. For metrics that return a scalar use None
+        (default).
     """
     def __init__(self,
                  metric: Metric = None,
@@ -67,7 +68,7 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck):
         metric_result = self.metric.compute()
         if self.reduce is not None:
             if type(metric_result) is float:
-                warnings.warn(SyntaxWarning('Metric result is already scalar, skipping reduction'))
+                warnings.warn(SyntaxWarning('Metric result is already scalar, skipping reduce operation'))
                 return CheckResult(metric_result)
             else:
                 return CheckResult(float(self.reduce(metric_result)))
@@ -83,7 +84,7 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck):
             if check_result > threshold:
                 return ConditionResult(ConditionCategory.PASS)
             else:
-                details = f'The result is not greater than {threshold}'
+                details = f'The score is not greater than {threshold}'
                 return ConditionResult(ConditionCategory.FAIL, details)
         return self.add_condition(f'Score is grater than {threshold}', condition)
 
@@ -94,10 +95,10 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck):
             if check_result >= threshold:
                 return ConditionResult(ConditionCategory.PASS)
             else:
-                details = f'The result is not greater than or equal to {threshold}'
+                details = f'The score is not greater than or equal to {threshold}'
                 return ConditionResult(ConditionCategory.FAIL, details)
 
-        return self.add_condition(f'Score is grater than or equal to {threshold}', condition)
+        return self.add_condition(f'Score is greater than or equal to {threshold}', condition)
 
     def add_condition_less_than(self, threshold: float) -> ConditionResult:
         """Add condition - the result is greater than the threshold"""
@@ -105,7 +106,7 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck):
             if check_result < threshold:
                 return ConditionResult(ConditionCategory.PASS)
             else:
-                details = f'The result is not less than {threshold}'
+                details = f'The score is not less than {threshold}'
                 return ConditionResult(ConditionCategory.FAIL, details)
         return self.add_condition(f'Score is less than {threshold}', condition)
 
@@ -116,7 +117,7 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck):
             if check_result <= threshold:
                 return ConditionResult(ConditionCategory.PASS)
             else:
-                details = f'The result is not less than or equal to {threshold}'
+                details = f'The score is not less than or equal to {threshold}'
                 return ConditionResult(ConditionCategory.FAIL, details)
 
         return self.add_condition(f'Score is less than or equal to {threshold}', condition)
