@@ -19,7 +19,7 @@ from deepchecks.tabular.datasets.regression import avocado
 from deepchecks.utils.model import get_model_of_pipeline
 
 
-def assert_sklearn_trees_model_equals(model1, model2):
+def assert_sklearn_model_equals(model1, model2):
     model1 = get_model_of_pipeline(model1)
     model2 = get_model_of_pipeline(model2)
     assert type(model1) == type(model2)
@@ -28,28 +28,25 @@ def assert_sklearn_trees_model_equals(model1, model2):
     elif hasattr(model1, 'estimators_'):
         assert len(model1.estimators_) == len(model2.estimators_)
         for sub1, sub2 in zip(model1.estimators_, model2.estimators_):
-            assert_sklearn_trees_model_equals(sub1, sub2)
+            assert_sklearn_model_equals(sub1, sub2)
     else:
         raise Exception('Don\'t know how to compare models')
 
 
 def assert_dataset_module(dataset_module):
-    python_minor_version = sys.version_info[1]
-    # We use scikit-learn version 1.0.2 which is available from python 3.7
-    if python_minor_version < 7:
-        return
-    if sklearn.__version__ != dataset_module._MODEL_VERSION:
-        raise Exception(f'Can\'t test pretrained model for non matching sklearn version {sklearn.__version__}')
     train, test = dataset_module.load_data()
-    pretrained_model = dataset_module.load_fitted_model()
+    trained_model = dataset_module.load_fitted_model(pretrained=False)
 
-    assert_that(pretrained_model.predict(train.features_columns.iloc[:1]), instance_of(np.ndarray))
-    assert_that(pretrained_model.predict(test.features_columns.iloc[:1]), instance_of(np.ndarray))
+    assert_that(trained_model.predict(train.features_columns.iloc[:1]), instance_of(np.ndarray))
+    assert_that(trained_model.predict(test.features_columns.iloc[:1]), instance_of(np.ndarray))
 
-    # The models were trained on python 3.8, therefore tests for equality only on this version
+    # The models were trained on python 3.8, therefore tests for equality of pretrained only on this version
+    python_minor_version = sys.version_info[1]
     if python_minor_version == 8:
-        trained_model = dataset_module.load_fitted_model(pretrained=False)
-        assert_sklearn_trees_model_equals(pretrained_model, trained_model)
+        if sklearn.__version__ != dataset_module._MODEL_VERSION:
+            raise Exception(f'Can\'t test pretrained model for non matching sklearn version {sklearn.__version__}')
+        pretrained_model = dataset_module.load_fitted_model(pretrained=True)
+        assert_sklearn_model_equals(pretrained_model, trained_model)
 
 
 def test_model_predict_on_breast_cancer():
