@@ -50,7 +50,7 @@ class ImagePropertyDrift(TrainTestCheck):
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
         disproportionally. This filter is applied to both distributions, in both margins.
     max_num_categories_for_drift: int, default: 10
-        Only for non-continuous properties. Max number of allowed categories. If there are more,
+        Only for categorical properties. Max number of allowed categories. If there are more,
         they are binned into an "Other" category. If None, there is no limit.
     max_num_categories_for_display: int, default: 10
         Max number of categories to show in plot.
