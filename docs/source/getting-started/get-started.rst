@@ -7,10 +7,10 @@
    :alt: Deepchecks Suite of Checks
    :align: center
 
-
+|
 
 ========================
-Welcome to deepchecks!
+Welcome to Deepchecks!
 ========================
 
 Deepchecks is the leading tool for testing and for validating your machine learning models
@@ -18,10 +18,12 @@ and data, and it enables doing so with minimal effort. Deepchecks accompanies yo
 various validation and testing needs such as verifying your data's integrity, inspecting its distributions,
 validating data splits, evaluating your model and comparing between different models.
 
-.. topic:: Join Our Community 👋
-    In addition to perusing the documentation, please feel free to
-    ask questions on our `Slack Community <https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg>`_,
-    or to post a issue or start a discussion on `Github <https://github.com/deepchecks/deepchecks/issues>`_.
+.. admonition:: Join Our Community 👋
+   :class: tip
+
+   In addition to perusing the documentation, please feel free to
+   ask questions on our `Slack Community <https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg>`_,
+   or to post a issue or start a discussion on `Github <https://github.com/deepchecks/deepchecks/issues>`_.
 
 
 💻 Installation
@@ -54,10 +56,10 @@ Tabular Data
 Computer Vision
 ----------------
 
-.. topic:: CV in Beta Release
-   Deepchecks' Computer Vision subpackage is in beta release.
+.. admonition:: Note: CV Subpackage is in Beta Release
+
    It is :doc:`available for installation </getting-started/installation>` from PyPi, use at your own discretion.
-   `Github Issues <https://github.com/deepchecks/deepchecks/issues>`_ are welcome!
+   `Github Issues <https://github.com/deepchecks/deepchecks/issues>`_ for feedback and feature requests are welcome!
 
 - :doc:`Object Detection Tutorial </user-guide/vision/auto_tutorials/plot_detection_tutorial>`
 - :doc:`Simple Image Classification Tutorial (for data without model) </user-guide/vision/auto_tutorials/plot_simple_classification_tutorial>`
