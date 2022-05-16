@@ -45,7 +45,7 @@ class CocoDetectionData(DetectionData):
         return batch[0]
 
     def batch_to_labels(self, batch):
-        return batch[1]
+        return torch.round(batch[1])
 
     def infer_on_batch(self, batch, model, device):
         return model.to(device)(batch[0])
