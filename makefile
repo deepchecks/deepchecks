@@ -253,6 +253,10 @@ tox: requirements dev-requirements
 	$(TOX)
 
 
+freeze:
+    $(PIP) freeze
+
+
 ### Cleanup ######################################################
 
 .PHONY: clean clean-env clean-all clean-build clean-test clean-dist clean-docs trailing-spaces
