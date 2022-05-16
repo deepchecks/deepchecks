@@ -20,7 +20,8 @@ from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS,
                                                  SUPPORTED_NUMERIC_METHODS,
-                                                 calc_drift_and_plot, get_drift_method)
+                                                 calc_drift_and_plot,
+                                                 get_drift_method)
 from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.utils.label_prediction_properties import (
     DEFAULT_CLASSIFICATION_LABEL_PROPERTIES,
