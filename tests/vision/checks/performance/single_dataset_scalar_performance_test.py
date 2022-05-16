@@ -73,5 +73,6 @@ def test_classification_w_params(mnist_dataset_train, mock_trained_mnist, device
     # params that should raise an error
     check = SingleDatasetScalarPerformance(Precision())
     assert_that(calling(check.run).with_args(mnist_dataset_train, mock_trained_mnist, device=device),
-                raises(DeepchecksValueError))
+                raises(DeepchecksValueError, f'The metric {Precision().__class__} return a non-scalar value, '
+                                                f'please specify a reduce function or choose a different metric'))
 
