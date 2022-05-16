@@ -10,16 +10,19 @@
 #
 """Module containing a check for computing a scalar performance metric for a single dataset."""
 import typing as t
+import warnings
+
 import torch
-from ignite.metrics import Metric, Accuracy
+from ignite.metrics import Accuracy, Metric
+
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
-from deepchecks.vision import Batch, Context, SingleDatasetCheck
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.vision.vision_data import TaskType
+from deepchecks.vision import Batch, Context, SingleDatasetCheck
 from deepchecks.vision.metrics_utils.object_detection_precision_recall import \
     ObjectDetectionAveragePrecision
-import warnings
+from deepchecks.vision.vision_data import TaskType
+
 
 __all__ = ['SingleDatasetScalarPerformance']
 
