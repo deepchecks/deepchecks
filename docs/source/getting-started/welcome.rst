@@ -9,11 +9,9 @@
 
 
 
-================
-Getting Started
-================
-
-Welcome to deepchecks! 
+========================
+Welcome to deepchecks!
+========================
 
 Deepchecks is the leading tool for testing and for validating your machine learning models
 and data, and it enables doing so with minimal effort. Deepchecks accompanies you through

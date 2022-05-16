@@ -6,6 +6,6 @@ Getting Started
     :titlesonly:
     :maxdepth: 1
 
-    get-started
+    welcome
     installation
     when_should_you_use
