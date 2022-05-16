@@ -329,11 +329,11 @@ class AveragePrecisionRecall(Metric):
         with warnings.catch_warnings():
             warnings.simplefilter(action="ignore", category=RuntimeWarning)
             res = np.nanmean(res[:, :, :], axis=0)
-        if get_mean_val:
-            return np.nanmean(res[res > -1])
-        if zeroed_negative:
-            res = res.clip(min=0)
-        return res[0][0]
+            if get_mean_val:
+                return np.nanmean(res[res > -1])
+            if zeroed_negative:
+                res = res.clip(min=0)
+            return res[0][0]
 
     @abstractmethod
     def get_confidences(self, detections) -> List[float]:
