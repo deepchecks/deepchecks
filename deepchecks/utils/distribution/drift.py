@@ -10,7 +10,7 @@
 #
 """Common utilities for distribution checks."""
 from numbers import Number
-from typing import Callable, Hashable, Optional, Tuple, Union
+from typing import Callable, Dict, Hashable, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -24,12 +24,41 @@ from deepchecks.utils.distribution.preprocessing import \
     preprocess_2_cat_cols_to_same_bins
 from deepchecks.utils.strings import format_percent
 
-__all__ = ['calc_drift_and_plot']
+__all__ = ['calc_drift_and_plot', 'get_drift_method']
 
 
 PSI_MIN_PERCENTAGE = 0.01
-SUPPORTED_CATEGORICAL_METHODS = ['Cramer', 'PSI']
-SUPPORTED_NUMERICAL_METHODS = ['Earth Mover\'s Distance']
+SUPPORTED_CATEGORICAL_METHODS = ['Cramer\'s V', 'PSI']
+SUPPORTED_NUMERIC_METHODS = ['Earth Mover\'s Distance']
+
+
+def get_drift_method(result_dict: Dict):
+    """Return which drift scoring methods were in use.
+
+    Parameters
+    ----------
+    result_dict : Dict
+        the result dict of the drift check.
+    Returns
+    -------
+    Tuple(str, str)
+        the categorical scoring method and then the numeric scoring method.
+
+    """
+    result_df = pd.DataFrame(result_dict).T
+    cat_mthod_arr = result_df[result_df['Method'].isin(SUPPORTED_CATEGORICAL_METHODS)]['Method']
+    if len(cat_mthod_arr):
+        cat_method = cat_mthod_arr[0]
+    else:
+        cat_method = None
+
+    num_mthod_arr = result_df[result_df['Method'].isin(SUPPORTED_NUMERIC_METHODS)]['Method']
+    if len(num_mthod_arr):
+        num_method = num_mthod_arr[0]
+    else:
+        num_method = None
+
+    return cat_method, num_method
 
 
 def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series]) -> float:
@@ -60,8 +89,10 @@ def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.S
     phi2 = chi2/n
     r, k = contingency_matrix.shape
 
-    # This is based on https://stackoverflow.com/questions/46498455/categorical-features-correlation/46498792#46498792
-    # and reused in other sources (https://towardsdatascience.com/the-search-for-categorical-correlation-a1cf7f1888c9)
+    # This is based on
+    # https://stackoverflow.com/questions/46498455/categorical-features-correlation/46498792#46498792 # noqa: SC100
+    # and reused in other sources
+    # (https://towardsdatascience.com/the-search-for-categorical-correlation-a1cf7f1888c9) # noqa: SC100
     phi2corr = max(0, phi2 - ((k-1)*(r-1))/(n-1))
     rcorr = r - ((r-1)**2)/(n-1)
     kcorr = k - ((k-1)**2)/(n-1)
@@ -192,7 +223,7 @@ def calc_drift_and_plot(train_column: pd.Series,
         - 'largest_difference': Show the largest difference between categories.
     categorical_drift_method: str, default: "cramer_v"
         decides which method to use on categorical variables. Possible values are:
-        Cramer for Cramer's V, PSI for Population Stability Index (PSI).
+        "cramers_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
     min_samples: int, default: 10
         Minimum number of samples for each column in order to calculate draft
     Returns

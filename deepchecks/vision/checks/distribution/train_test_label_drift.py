@@ -19,8 +19,8 @@ from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS,
-                                                 SUPPORTED_NUMERICAL_METHODS,
-                                                 calc_drift_and_plot)
+                                                 SUPPORTED_NUMERIC_METHODS,
+                                                 calc_drift_and_plot, get_drift_method)
 from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.utils.label_prediction_properties import (
     DEFAULT_CLASSIFICATION_LABEL_PROPERTIES,
@@ -83,7 +83,7 @@ class TrainTestLabelDrift(TrainTestCheck):
         - 'largest_difference': Show the largest difference between categories.
     categorical_drift_method: str, default: "cramer_v"
         decides which method to use on categorical variables. Possible values are:
-        Cramer for Cramer's V, PSI for Population Stability Index (PSI).
+        "cramers_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
     max_num_categories: int, default: None
         Deprecated. Please use max_num_categories_for_drift and max_num_categories_for_display instead
     """
@@ -242,18 +242,19 @@ class TrainTestLabelDrift(TrainTestCheck):
         """
 
         def condition(result: Dict) -> ConditionResult:
+            cat_method, num_method = get_drift_method(result)
             not_passing_categorical_columns = {props: f'{d["Drift score"]:.2}' for props, d in result.items() if
                                                d['Drift score'] > max_allowed_categorical_score and
                                                d['Method'] in SUPPORTED_CATEGORICAL_METHODS}
             not_passing_numeric_columns = {props: f'{d["Drift score"]:.2}' for props, d in result.items() if
                                            d['Drift score'] > max_allowed_numeric_score
-                                           and d['Method'] in SUPPORTED_NUMERICAL_METHODS}
+                                           and d['Method'] in SUPPORTED_NUMERIC_METHODS}
             return_str = ''
             if not_passing_categorical_columns:
-                return_str += f'Found categorical label properties with drift score above threshold:' \
+                return_str += f'Found categorical label properties with {cat_method} above threshold:' \
                               f' {not_passing_categorical_columns}\n'
             if not_passing_numeric_columns:
-                return_str += f'Found numeric label properties with drift score above' \
+                return_str += f'Found numeric label properties with {num_method} above' \
                               f' threshold: {not_passing_numeric_columns}\n'
 
             if return_str:

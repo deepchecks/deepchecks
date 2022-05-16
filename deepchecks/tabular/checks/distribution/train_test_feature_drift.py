@@ -19,8 +19,8 @@ from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
 from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS,
-                                                 SUPPORTED_NUMERICAL_METHODS,
-                                                 calc_drift_and_plot)
+                                                 SUPPORTED_NUMERIC_METHODS,
+                                                 calc_drift_and_plot, get_drift_method)
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['TrainTestFeatureDrift']
@@ -72,7 +72,7 @@ class TrainTestFeatureDrift(TrainTestCheck):
         - 'largest_difference': Show the largest difference between categories.
     categorical_drift_method: str, default: "cramer_v"
         decides which method to use on categorical variables. Possible values are:
-        Cramer for Cramer's V, PSI for Population Stability Index (PSI).
+        "cramers_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
     n_samples : int , default: 100_000
         Number of samples to use for drift computation and plot.
     random_state : int , default: 42
@@ -245,6 +245,7 @@ class TrainTestFeatureDrift(TrainTestCheck):
         """
 
         def condition(result: Dict) -> ConditionResult:
+            cat_method, num_method = get_drift_method(result)
             if all(x['Importance'] is not None for x in result.values()):
                 columns_to_consider = \
                     [col_name for col_name, fi in sorted(result.items(), key=lambda item: item[1]['Importance'],
@@ -260,14 +261,14 @@ class TrainTestFeatureDrift(TrainTestCheck):
                                                and column in columns_to_consider}
             not_passing_numeric_columns = {column: f'{d["Drift score"]:.2}' for column, d in result.items() if
                                            d['Drift score'] > max_allowed_numeric_score
-                                           and d['Method'] in SUPPORTED_NUMERICAL_METHODS
+                                           and d['Method'] in SUPPORTED_NUMERIC_METHODS
                                            and column in columns_to_consider}
             return_str = ''
             if not_passing_categorical_columns:
-                return_str += 'Found categorical columns with drift score above threshold: ' \
+                return_str += f'Found categorical columns with {cat_method} above threshold: ' \
                               f'{not_passing_categorical_columns}\n'
             if not_passing_numeric_columns:
-                return_str += f'Found numeric columns with drift score above threshold: ' \
+                return_str += f'Found numeric columns with {num_method} above threshold: ' \
                               f'{not_passing_numeric_columns}'
 
             if return_str:

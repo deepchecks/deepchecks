@@ -131,8 +131,28 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets):
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name='categorical drift score <= 0.1 and numerical drift score <= 0.075',
-        details='Found categorical label properties with drift score above threshold: {\'Samples Per '
+        details='Found categorical label properties with PSI above threshold: {\'Samples Per '
                 'Class\': \'0.15\'}\n'
+    ))
+
+
+def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets):
+    # Arrange
+    check = TrainTestLabelDrift(categorical_drift_method='cramer_v') \
+        .add_condition_drift_score_not_greater_than(max_allowed_categorical_score=0.1)
+    mod_train_ds, mod_test_ds = mnist_drifted_datasets
+
+    # Act
+    result = check.run(mod_train_ds, mod_test_ds)
+
+    condition_result, *_ = result.conditions_results
+
+    # Assert
+    assert_that(condition_result, equal_condition_result(
+        is_pass=False,
+        name='categorical drift score <= 0.1 and numerical drift score <= 0.075',
+        details='Found categorical label properties with Cramer\'s V above threshold: {\'Samples Per '
+                'Class\': \'0.18\'}\n'
     ))
 
 

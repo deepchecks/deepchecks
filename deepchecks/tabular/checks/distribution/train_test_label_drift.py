@@ -16,7 +16,7 @@ from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS,
-                                                 SUPPORTED_NUMERICAL_METHODS,
+                                                 SUPPORTED_NUMERIC_METHODS,
                                                  calc_drift_and_plot)
 
 __all__ = ['TrainTestLabelDrift']
@@ -57,7 +57,7 @@ class TrainTestLabelDrift(TrainTestCheck):
         - 'largest_difference': Show the largest difference between categories.
     categorical_drift_method: str, default: "cramer_v"
         decides which method to use on categorical variables. Possible values are:
-        Cramer for Cramer's V, PSI for Population Stability Index (PSI).
+        "cramers_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
     max_num_categories: int, default: None
         Deprecated. Please use max_num_categories_for_drift and max_num_categories_for_display instead
     """
@@ -146,7 +146,7 @@ class TrainTestLabelDrift(TrainTestCheck):
             drift_score = result['Drift score']
             method = result['Method']
             has_failed = (drift_score > max_allowed_categorical_score and method in SUPPORTED_CATEGORICAL_METHODS) or \
-                         (drift_score > max_allowed_numeric_score and method in SUPPORTED_NUMERICAL_METHODS)
+                         (drift_score > max_allowed_numeric_score and method in SUPPORTED_NUMERIC_METHODS)
 
             if has_failed:
                 return_str = f'Label\'s {method} above threshold: {drift_score:.2f}'
