@@ -78,7 +78,7 @@ def test_with_drift_classification(mnist_dataset_train, mnist_dataset_test, devi
 def test_with_drift_classification_cramer(mnist_dataset_train, mnist_dataset_test, device):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_test
-    check = TrainTestLabelDrift(categorical_drift_method='Cramer')
+    check = TrainTestLabelDrift(categorical_drift_method='cramer_v')
 
     # Act
     result = check.run(train, test, device=device)

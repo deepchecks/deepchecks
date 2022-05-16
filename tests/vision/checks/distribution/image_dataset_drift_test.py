@@ -52,7 +52,7 @@ def test_no_drift_grayscale(mnist_dataset_train, device):
 def test_no_drift_grayscale_cramer(mnist_dataset_train, device):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_train
-    check = ImageDatasetDrift(categorical_drift_method='Cramer')
+    check = ImageDatasetDrift(categorical_drift_method='cramer_v')
 
     # Act
     result = check.run(train, test, random_state=42, device=device, n_samples=None)

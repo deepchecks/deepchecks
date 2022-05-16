@@ -70,7 +70,7 @@ class TrainTestFeatureDrift(TrainTestCheck):
         - 'train_largest': Show the largest train categories.
         - 'test_largest': Show the largest test categories.
         - 'largest_difference': Show the largest difference between categories.
-    categorical_drift_method: str, default: "Cramer"
+    categorical_drift_method: str, default: "cramer_v"
         decides which method to use on categorical variables. Possible values are:
         Cramer for Cramer's V, PSI for Population Stability Index (PSI).
     n_samples : int , default: 100_000
@@ -91,7 +91,7 @@ class TrainTestFeatureDrift(TrainTestCheck):
             max_num_categories_for_drift: int = 10,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
-            categorical_drift_method='Cramer',
+            categorical_drift_method='cramer_v',
             n_samples: int = 100_000,
             random_state: int = 42,
             max_num_categories: int = None,  # Deprecated

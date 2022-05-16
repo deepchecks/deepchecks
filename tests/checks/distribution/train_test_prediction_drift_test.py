@@ -48,7 +48,7 @@ def test_drift_classification_label(drifted_data_and_model):
 def test_drift_classification_label_cramer(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check = TrainTestPredictionDrift(categorical_drift_method='Cramer')
+    check = TrainTestPredictionDrift(categorical_drift_method='cramer_v')
 
     # Act
     result = check.run(train, test, model)

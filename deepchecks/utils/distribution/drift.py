@@ -159,7 +159,7 @@ def calc_drift_and_plot(train_column: pd.Series,
                         max_num_categories_for_drift: int = 10,
                         max_num_categories_for_display: int = 10,
                         show_categories_by: str = 'largest_difference',
-                        categorical_drift_method='Cramer',
+                        categorical_drift_method='cramer_v',
                         min_samples: int = 10) -> Tuple[float, str, Callable]:
     """
     Calculate drift score per column.
@@ -190,7 +190,7 @@ def calc_drift_and_plot(train_column: pd.Series,
         - 'train_largest': Show the largest train categories.
         - 'test_largest': Show the largest test categories.
         - 'largest_difference': Show the largest difference between categories.
-    categorical_drift_method: str, default: "Cramer"
+    categorical_drift_method: str, default: "cramer_v"
         decides which method to use on categorical variables. Possible values are:
         Cramer for Cramer's V, PSI for Population Stability Index (PSI).
     min_samples: int, default: 10
@@ -220,7 +220,7 @@ def calc_drift_and_plot(train_column: pd.Series,
 
         dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(train_dist, test_dist, value_name)
     elif column_type == 'categorical':
-        if categorical_drift_method == 'Cramer':
+        if categorical_drift_method == 'cramer_v':
             scorer_name = 'Cramer\'s V'
             score = cramers_v(dist1=train_dist, dist2=test_dist)
         elif categorical_drift_method == 'PSI':
