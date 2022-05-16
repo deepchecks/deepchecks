@@ -4,284 +4,183 @@
 Drift User Guide
 ====================
 
+(Is this needed if there's a menu on the right?)
+
 **Structure:**
 
-* `What is a feature drift? <#what-is-a-feature-drift>`__
-* `Generate data & model <#generate-data-model>`__
-* `Run the check <#run-the-check>`__
-* `Define a condition <#define-a-condition>`__
-
-What is drift?
-
-Which types of drift are there?
-
-What are the causes of drift?
-
-Which drift detection methods exist?
-
-How can I use deepchecks to detect drift?
+* `What Is Distribution Drift? <#what-is-distribution-drift>`__
+* `Which Types of Drift Are There? <#which-types-of-drift-are-there>`__
+* `What Are the Causes of Drift? <#what-are-the-causes-of-drift>`__
+* `How Do You Detect Drift? <#how-do-you-detect-drift>`__
+* `How Can I Use Deepchecks to Detect Drift? <#how-can-i-use-deepchecks-to-detect-drift>`__
+* `Code Examples <#code-examples>`__
 
 
 What Is Distribution Drift?
 ==========================
 
-Distribution drift is a change in the underlying distribution of the data, the target, or the prediction.
+Distribution drift is a change in the underlying distribution of the data or the target label. Drift happens over time,
+and can occur either gradually or suddenly.
 
-Drift happens over time, and can occur either slowly or suddenly.
+Common reasons of drift can be natural changes in the data, such as shopping habits changing for an online retailer
+(for example, during the covid pandemic, virtual shopping has risen significantly and buyer patterns have changed), or
+data streaming and quality issues, such as a camera settings changed accidentally to have lower exposure.
+
+So Why Is Drift So Important?
+-----------------------------
+
+In machine learning, our models are built to predict only on data they have seen before.
+There's a misconception that machine learning models are some magical intelligent models, that can understand
+any data presented to them. But the truth is that machine learning models learn to predict only on similar data
+(or, more formally, data drawn from the same distribution the model was trained on).
+If that data has changed, and the relationships between the different variables and target label have changed,
+our model may not be as accurate as it was before.
+
+Detecting drift is an important warning sign that our model may be not as accurate as we think, and that it should be
+adjusted or retrained on different data.
+In production environments, detecting drift is often the only way to know that our model is inaccurate,
+as in many domains the label is unknown for some time after the prediction.
+
+Important to note that not all changes in data are drift. For example, periodic changes in data due to daily, weekly or
+seasonal changes are usually not considered drift, as they can be predicted in advance and the model can learn from
+past data samples.
 
 
-Not all changes in data are drift. For example, periodic changes in data due to daily, weekly or seasonal changes are not considered drift.
-
-Some changes in data are predictable - sales  As drift is a change in the distribution of data, it is inherently unpredictable. , and is not predictable like other changes in data, such as periodic
-changes in data (e.g. daily or seasonal changes).
-
-
-
-Which types of drift are there?
+Which Types of Drift Are There?
 ================================
 
-In machine learning, we usually refer to 2 types of drift that interest us:
+In machine learning, we usually refer to 3 types of drift:
 
-Concept drift -
-which means that the underline relation between the data and
-  the label has changed.
+Concept Drift
+-------------
+Concept drift happens when the underline relation between the data and the label has changed. In layman terms, this means that our
+data has changed in a way that affects our label, meaning a model trained on previous data will have difficulty predicting
+on the new data, as the label can't be predicted in the same way anymore.
+
+Concept drift will almost always require some changes to the model, and will require retraining it on newer data.
+
+Data Drift
+----------
+Data drift is any change in the distribution of the data. It usually refers to changes that do not significantly affect the label.
+However, even when not affecting the model, data drift is important, as it can expose other undetected issues.
+
+Moreover, when labels are not available (as happens in many cases), data drift cannot be discerned from concept drift.
+
+Label Drift
+-----------
+Label drift is the change in the distribution of the label itself. Note that this can also be caused by concept drift,
+but here we discuss a change that means that the label can still be accurately predicted from the data, but its
+distribution has changed.
+
+(Is this interesting? Should I add this to each drift? Should I detail the causes more?)
+
+Label drift is important for 2 reasons:
+
+1. Your model can be improved - Machine learning models use the label's distribution when learning to predict it.
+For example, if a dataset has 90% of label A and 10% of label B, the model may learn that label A is more common and
+is a better prediction in cases where the label can't be inferred easily. Changes to this distribution can prompt us
+to retrain the model on the new distribution, in order to more accurately simulate the current reality.
+Note that this is not relevant when the training dataset is sampled so labels are evenly distributed.
+
+2. You may need to take some action - Not all changes in data means we need to retrain our model.
+However, we may need to act differently on it.
+For example, a fraud prevention company predicts fraudulent payments in 80% accuracy. Suddenly, the company notices that
+that they are getting more fraudulent payments recently. They are still predicted in 80% accuracy, but those 20% they
+get wrong are now more costly, and therefore the company needs to adjust its actions - perhaps adjusting the model
+decision threshold, or adding a manual review process.
+
+For more on the different types of drift, `see here <https://deepchecks.com/data-drift-vs-concept-drift-what-are-the-main-differences/>`_
 
 
-Data / Label / Target drift
-Label drift is the change in the distribution of the label itself.
-Note that this can also be caused by concept drift, but here we discuss a change that means that the label can still be
-accurately predicted from the data, but its distribution has changed.
-
-
-What are the causes of drift?
+What Are the Causes of Drift?
 ==============================
 
-
-Causes of data drift include:
-
-* Upstream process changes, such as a sensor being replaced that changes the
-  units of measurement from inches to centimeters.
-* Data quality issues, such as a broken sensor always reading 0.
-* Natural drift in the data, such as mean temperature changing with the seasons.
-* Change in relation between features, or covariate shift.
+(Is this interesting on its own? Or should this be a part of the description of each drift?)
 
 
+How Do You Detect Drift?
+=========================
+
+In general, drift detection is done by comparing the newer and older data, and seeing whether they are derived from
+the same underlying distribution. This is actually not a "yes or no" question - Instead, we ask "what is the probability
+that these 2 distributions are the same?".
+
+There are many methods to detect drift. Here, we will elaborate on 2:
+
+Detection by Statistical Test
+-----------------------------
+This is the simplest and most common drift detection method.
+This is done by sampling a single variable (that can either be a data feature, the label or even the prediction) and
+running a statistical test that aims to measure the difference the 2 samples.
+There are many tests that can do this, such as the Kolmogorov-Smirnov test, Jensen-Shannon Divergence and more.
+In deepchecks, we found that the best results are given by:
+
+* For continuous numeric distributions - `Wasserstein metric (Earth Movers Distance) <https://en.wikipedia.org/wiki/Wasserstein_metric>`__
+* For discrete or categorical distributions - `Population Stability Index (PSI) <https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf>`__ or `Cramer's V <https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V>`__
+
+These methods have the advantage of being simple to use and produce explainable results. However, they are limited by
+checking each feature one at a time, and cannot detect drift that occurs over multiple variables (or they detect it
+multiple times)
+
+Detection by Domain Classifier
+------------------------------
+
+This is a method to detect multivariate drift, meaning that it can run on several variables, and even on the whole dataset.
+This is done by training a model to classify if a sample came from the train dataset or the new (test or production) dataset.
+If the classifier can easily predict which sample is from which dataset, it would mean that there are significant differences between these datasets.
+
+The main advantage of this method is that it can also uncover covariate drift, meaning drift in the data that does not
+affect the distribution of each individual variable, but does affect the relationship between them. For example, ?
 
 
-
-How do you detect drift?
-=====================================
-The answer to this question has 2 parts:
-1. How do you measure a change in a distribution?
-2. What distribution should you measure a change on?
-
-
-
-There are many methods to detect drift.
-The simplest one is by comparing 2 samples of the same variable, and
-
-
-Some of them include
-training a classifier that detects which samples come from a known
-distribution and defines the drift by the accuracy of this classifier. For
-more information, refer to the :doc:`Whole Dataset Drift check
-</checks_gallery/tabular/distribution/plot_whole_dataset_drift>`.
-
-Other approaches include statistical methods aim to measure difference
-between distribution of 2 given sets. We exprimented with various approaches
-and found that for detecting drift in a single feature, the following 2
-methods give the best results:
-
-* `Population Stability Index (PSI) <https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf>`__
-* `Wasserstein metric (Earth Movers Distance) <https://en.wikipedia.org/wiki/Wasserstein_metric>`__
-
-For numerical features, the check uses the Earth Movers Distance method
-and for the categorical features it uses the PSI. The check calculates drift
-between train dataset and test dataset per feature, using these 2 statistical
-measures.
-
-How can I use deepchecks to detect drift?
+How Can I Use Deepchecks to Detect Drift?
 =========================================
 Deepchecks can test your data for both concept drift and label drift, by using a variety of methods.
 
-Tabular data
-^^^^^^^^^^^^
-Feature drift
-Whole dataset drift
-Label drift
-Prediction drift
+Tabular Data
+------------
 
-Computer vision data
-^^^^^^^^^^^^^^^^^^^^
+To detect `data <#data-drift>`__ or `concept drift <#concept-drift>`__, deepchecks offers the
+:doc:`Feature Drift check </checks_gallery/tabular/distribution/plot_train_test_feature_drift>` which uses univariate
+`statistical test <#detection-by-statistical-test>`__ and the :doc:`Whole Dataset Drift check</checks_gallery/tabular/distribution/plot_whole_dataset_drift>`
+which uses a `domain classifier <#detection-by-domain-classifier>`__ in order to detect multivariate drift.
 
-Property drift
-Image dataset drift
-Label drift
-Prediction drift
+For label drift, deepchecks offers the :doc:`Label Drift check </checks_gallery/tabular/distribution/plot_train_test_label_drift>`, which also uses univariate `statistical test <#detection-by-statistical-test>`__.
 
+In cases where the label is not available, we strongly recommend to also use the :doc:`Prediction Drift check</checks_gallery/tabular/distribution/plot_train_test_prediction_drift>`,
+which uses the same methods but on the model's predictions, and can detect possible changes in the distribution of the label.
 
+For code examples, see `here <#tabular-checks>`__
 
+Computer Vision Data
+--------------------
 
+To detect `data <#data-drift>`__ or `concept drift <#concept-drift>`__, deepchecks offers the
+:doc:`Image Property Drift check </checks_gallery/vision/distribution/plot_image_property_drift>` which uses univariate
+`statistical test <#detection-by-statistical-test>`__ and the :doc:`Image Dataset Drift check</checks_gallery/vision/distribution/plot_image_dataset_drift>`
+which uses a `domain classifier <#detection-by-domain-classifier>`__ in order to detect multivariate drift.
 
+For label drift, deepchecks offers the :doc:`Label Drift check </checks_gallery/vision/distribution/plot_train_test_label_drift>`, which also uses univariate `statistical test <#detection-by-statistical-test>`__.
 
-What is a feature drift?
-========================
-Data drift is simply a change in the distribution of data over time. It is
-also one of the top reasons of a machine learning model performance degrades
-over time.
+In cases where the label is not available, we strongly recommend to also use the :doc:`Prediction Drift check</checks_gallery/vision/distribution/plot_train_test_prediction_drift>`,
+which uses the same methods but on the model's predictions, and can detect possible changes in the distribution of the label.
 
-Feature drift is such drift in a single feature in the dataset.
+All of the computer vision checks use the :doc:`image and label properties</user-guide/vision-properties>` to estimate
+drift, as image data and labels are not simple one-dimensional variables.
 
-In the context of machine learning, drift between the training set and the
-test set will likely make the model to be prone to errors. In other words,
-this means that the model was trained on data that is different from the
-current test data, thus it will probably make more mistakes predicting the
-target variable.
-
-How deepchecks detects feature drift
-------------------------------------
+For code examples, see `here <#computer-vision-checks>`__
 
 
-
-What Is Prediction Drift?
-===========================
-The term drift (and all it's derivatives) is used to describe any change in the data compared
-to the data the model was trained on. Prediction drift refers to the case in which a change
-in the data (data/feature drift) has happened and as a result, the distribution of the
-models' prediction has changed.
-
-Calculating prediction drift is especially useful in cases
-in which labels are not available for the test dataset, and so a drift in the predictions
-is our only indication that a changed has happened in the data that actually affects model
-predictions. If labels are available, it's also recommended to run the `Label Drift Check
-</examples/tabular/checks/distribution/examples/plot_train_test_label_drift.html>`__.
-
-There are two main causes for prediction drift:
-
-* A change in the sample population. In this case, the underline phenomenon we're trying
-  to predict behaves the same, but we're not getting the same types of samples. For example,
-  Iris Virginica stops growing and is not being predicted by the model trained to classify Iris species.
-* Concept drift, which means that the underline relation between the data and
-  the label has changed.
-  For example, we're trying to predict income based on food spending, but ongoing inflation effect prices.
-  It's important to note that concept drift won't necessarily result in prediction drift, unless it affects features that
-  are of high importance to the model.
-
-How Does the TrainTestPredictionDrift Check Work?
-=================================================
-There are many methods to detect drift, that usually include statistical methods
-that aim to measure difference between 2 distributions.
-We experimented with various approaches and found that for detecting drift between 2
-one-dimensional distributions, the following 2 methods give the best results:
-
-* For regression problems, the `Population Stability Index (PSI) <https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf>`__
-* For classification problems, the `Wasserstein Distance (Earth Mover's Distance) <https://en.wikipedia.org/wiki/Wasserstein_metric>`__
+Code Examples
+=============
 
 
-
-What is a dataset drift?
-========================
-A whole dataset drift, or a multivariate dataset drift, occurs when the
-statistical properties of our input feature change, denoted by a change
-in the distribution P(X).
-
-Causes of data drift include:
-
-* Upstream process changes, such as a sensor being replaced that changes
-  the units of measurement from inches to centimeters.
-* Data quality issues, such as a broken sensor always reading 0.
-* Natural drift in the data, such as mean temperature changing with the seasons.
-* Change in relation between features, or covariate shift.
-
-The difference between a :doc:`feature drift
-</checks_gallery/tabular/distribution/plot_train_test_feature_drift>`
-(or univariate dataset drift) and a multivariate drift is that in the
-latter the data drift occures in more that one feature.
-
-In the context of machine learning, drift between the training set and the
-test means that the model was trained on data that is different from the
-current test data, thus it will probably make more mistakes predicting the
-target variable.
-
-How deepchecks detects dataset drift
-------------------------------------
-There are many methods to detect feature drift. Some of them are statistical
-methods that aim to measure difference between distribution of 2 given sets.
-This methods are more suited to univariate distributions and are primarily
-used to detect drift between 2 subsets of a single feature.
-
-Measuring a multivariate data drift is a bit more challenging. In the whole
-dataset drift check, the multivariate drift is measured by training a classifier
-that detects which samples come from a known distribution and defines the
-drift by the accuracy of this classifier.
-
-Practically, the check concatanates the train and the test sets, and assigns
-label 0 to samples that come from the training set, and 1 to those who are
-from the test set. Then, we train a binary classifer of type
-`Histogram-based Gradient Boosting Classification Tree
-<https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.HistGradientBoostingClassifier.html>`__, and measure the
-drift score from the AUC score of this classifier.
+Tabular Checks
+--------------
+TBC
 
 
-What Is Dataset Drift?
-------------------------
-Data drift is simply a change in the distribution of data over time. It is also
-one of the top reasons that a machine learning model performance degrades over time.
+Computer Vision Checks
+----------------------
 
-Specifically, a whole dataset drift, or a multivariate dataset drift, occurs when
-there is a change in the relation between input features.
-
-Causes of data drift include:
-
-* Natural drift in the data, such as lighting (brightness) changes between summer
-  and winter.
-* Upstream process changes, such as a camera being replaced that has a different
-  lens, which makes images sharper.
-* Data quality issues, such as a malfunctioning camera that always returns a black image.
-* Data pipeline errors, such as a change in image augmentations done in preprocessing.
-
-In the context of machine learning, drift between the training set and the test set
-(which is not due to augmentation) will likely make the model prone to errors. In
-other words, if the model was trained on data that is different from the current test
-data, it will probably make more mistakes predicting the target variable.
-
-How Does the ImageDatasetDrift Check Work?
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-There are many methods to detect feature drift. Some of them are statistical methods
-that aim to measure difference between distribution of 2 given sets. This methods
-are more suited to univariate distributions and are primarily used to detect drift
-between 2 subsets of a single feature.
-
-Measuring a multivariate data drift is a bit more challenging. In the image dataset
-drift check, the multivariate drift is measured by training a classifier that detects
-which samples come from a known distribution and defines the drift by the accuracy
-of this classifier.
-
-Practically, the check concatenates the train and the test sets, and assigns label 0
-to samples that come from the training set, and 1 to those from the test set.
-Then, we train a binary classifer of type `Histogram-based Gradient Boosting
-Classification Tree <https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.HistGradientBoostingClassifier.html>`_,
-and measure the drift score from the AUC score of this classifier.
-
-As the classifier is a tree model, that cannot run on the images themselves, the
-check calculates properties for each image (such as brightness, aspect ratio etc.)
-and uses them as input features to the classifier.
-
-Which Image Properties Are Used?
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-==============================  ==========
-Property name                   What is it
-==============================  ==========
-Aspect Ratio                    Ratio between height and width of image (height / width)
-Area                            Area of image in pixels (height * width)
-Brightness                      Average intensity of image pixels. Color channels have different weights according to
-                                RGB-to-Grayscale formula
-RMS Contrast                    Contrast of image, calculated by standard deviation of pixels
-Mean Red Relative Intensity     Mean over all pixels of the red channel, scaled to their relative intensity in
-                                comparison to the other channels [r / (r + g + b)].
-Mean Green Relative Intensity   Mean over all pixels of the green channel, scaled to their relative intensity in
-                                comparison to the other channels [g / (r + g + b)].
-Mean Blue Relative Intensity    Mean over all pixels of the blue channel, scaled to their relative intensity in
-                                comparison to the other channels [b / (r + g + b)].
-==============================  ==========
-"""
+TBC
