@@ -78,6 +78,12 @@ class Context:
             train.validate_shared_label(test)
 
         self._device = torch.device(device) if isinstance(device, str) else (device if device else torch.device('cpu'))
+
+        # Checking if a GPU device is available
+        if torch.cuda.is_available() and self._device.type == 'cpu':
+            logger.warning('GPU device is available but is not used. In order to use the GPU, pass the correct device '
+                           'using the device argument of the run function.')
+
         self._prediction_formatter_error = {}
 
         if model is not None:

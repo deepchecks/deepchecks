@@ -10,10 +10,11 @@
 #
 #
 import copy
+import logging
 
 import torch
 from hamcrest import (all_of, assert_that, calling, equal_to, has_properties,
-                      has_property, instance_of, is_, raises, same_instance)
+                      has_property, instance_of, is_, raises, same_instance, contains_string)
 from torch import nn
 
 from deepchecks.core import DatasetKind
@@ -176,3 +177,12 @@ def test_vision_context_helper_functions(mnist_dataset_train):
     assert_that(context.get_data_by_kind(DatasetKind.TRAIN), instance_of(ClassificationData))
     assert_that(calling(context.get_data_by_kind).with_args(DatasetKind.TEST), raises(DeepchecksNotSupportedError,
                 r'Check is irrelevant for Datasets without test dataset'))
+
+
+def test_gpu_warning(mnist_dataset_train, caplog):
+    if torch.cuda.is_available():
+        with caplog.at_level(logging.WARNING):
+            context = Context(train=mnist_dataset_train)
+            assert_that(caplog.text, contains_string(r'GPU device is available but is not used. In order to use the GPU'
+                                                     r', pass the correct device using the device argument of the run '
+                                                     r'function.'))
