@@ -59,6 +59,9 @@ def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.S
     n = contingency_matrix.sum().sum()
     phi2 = chi2/n
     r, k = contingency_matrix.shape
+
+    # This is based on https://stackoverflow.com/questions/46498455/categorical-features-correlation/46498792#46498792
+    # and reused in other sources (https://towardsdatascience.com/the-search-for-categorical-correlation-a1cf7f1888c9)
     phi2corr = max(0, phi2 - ((k-1)*(r-1))/(n-1))
     rcorr = r - ((r-1)**2)/(n-1)
     kcorr = k - ((k-1)**2)/(n-1)
@@ -188,6 +191,7 @@ def calc_drift_and_plot(train_column: pd.Series,
         - 'test_largest': Show the largest test categories.
         - 'largest_difference': Show the largest difference between categories.
     categorical_drift_method: str, default: "Cramer"
+        decides which method to use on categorical variables. Possible values are:
         Cramer for Cramer's V, PSI for Population Stability Index (PSI).
     min_samples: int, default: 10
         Minimum number of samples for each column in order to calculate draft
@@ -219,12 +223,6 @@ def calc_drift_and_plot(train_column: pd.Series,
         if categorical_drift_method == 'Cramer':
             scorer_name = 'Cramer\'s V'
             score = cramers_v(dist1=train_dist, dist2=test_dist)
-
-            bar_traces, bar_x_axis, bar_y_axis = drift_score_bar_traces(score, bar_max=1)
-            dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(
-                train_dist, test_dist, value_name, is_categorical=True,
-                max_num_categories=max_num_categories_for_display,
-            )
         elif categorical_drift_method == 'PSI':
             scorer_name = 'PSI'
             expected, actual, _ = \
@@ -232,16 +230,15 @@ def calc_drift_and_plot(train_column: pd.Series,
                                                    max_num_categories=max_num_categories_for_drift)
             expected_percents, actual_percents = expected / len(train_column), actual / len(test_column)
             score = psi(expected_percents=expected_percents, actual_percents=actual_percents)
-
-            bar_traces, bar_x_axis, bar_y_axis = drift_score_bar_traces(score, bar_max=1)
-            dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(
-                train_dist, test_dist, value_name, is_categorical=True,
-                max_num_categories=max_num_categories_for_display,
-                show_categories_by=show_categories_by
-            )
         else:
             raise ValueError('Excpected categorical_drift_method to be one '
                              f'of [Cramer, PSI], recieved: {categorical_drift_method}')
+        bar_traces, bar_x_axis, bar_y_axis = drift_score_bar_traces(score, bar_max=1)
+        dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(
+            train_dist, test_dist, value_name, is_categorical=True,
+            max_num_categories=max_num_categories_for_display,
+            show_categories_by=show_categories_by
+        )
     else:
         # Should never reach here
         raise DeepchecksValueError(f'Unsupported column type for drift: {column_type}')
