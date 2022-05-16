@@ -253,7 +253,7 @@ tox: requirements dev-requirements
 	$(TOX)
 
 
-freeze:
+freeze: requirements dev-requirements
 	@$(PIP) freeze
 
 
