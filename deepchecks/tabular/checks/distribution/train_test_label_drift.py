@@ -86,7 +86,6 @@ class TrainTestLabelDrift(TrainTestCheck):
         self.show_categories_by = show_categories_by
         self.categorical_drift_method = categorical_drift_method
 
-
     def run_logic(self, context: Context) -> CheckResult:
         """Calculate drift for all columns.
 
