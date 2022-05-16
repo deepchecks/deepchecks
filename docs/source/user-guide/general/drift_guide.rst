@@ -29,12 +29,10 @@ data acquisition and processing issues, such as a camera settings changing accid
 So Why Is Drift So Important?
 -----------------------------
 
-In machine learning, our models are built to predict only on data they have seen before.
-There's a misconception that machine learning models are some magical intelligent models, that can understand
-any data presented to them. But the truth is that machine learning models learn to predict only on similar data
-(or, more formally, data drawn from the same distribution the model was trained on).
-If that data has changed, and the relationships between the different variables and target label have changed,
-our model may not be as accurate as it was before.
+Machine learning models are meant to predict on unseen data, based on previous known data (more accurately, this refers
+to supervised machine learning models, for which drift is relevant).
+If the data, or the relationships between the different variables and target label, has changed, our model may not be as
+accurate as it was before.
 
 Detecting drift is an important warning sign that our model may be not as accurate on the new data compared to the training data, and that it should be
 adjusted or retrained on different data.
@@ -72,30 +70,42 @@ Label drift is the change in the distribution of the label itself. Note that thi
 but here we discuss a change that means that the label can still be accurately predicted from the data, but its
 distribution has changed.
 
-(Is this interesting? Should I add this to each drift? Should I detail the causes more?)
-
-Label drift is important for 2 reasons:
-
-1. Your model can be improved - Machine learning models use the label's distribution when learning to predict it.
-For example, if a dataset has 90% of label A and 10% of label B, the model may learn that label A is more common and
-is a better prediction in cases where the label can't be inferred easily. Changes to this distribution can prompt us
-to retrain the model on the new distribution, in order to more accurately simulate the current reality.
-Note that this is not relevant when the training dataset is sampled so labels are evenly distributed.
-
-2. You may need to take some action - Not all changes in data means we need to retrain our model.
-However, we may need to act differently on it.
-For example, a fraud prevention company predicts fraudulent payments in 80% accuracy. Suddenly, the company notices that
-that they are getting more fraudulent payments recently. They are still predicted in 80% accuracy, but those 20% they
-get wrong are now more costly, and therefore the company needs to adjust its actions - perhaps adjusting the model
-decision threshold, or adding a manual review process.
+In many cases, label drift alone might not be of interest. However, it may affect your model's accuracy, as less-accurate
+classes may be more prevalent now that they were in your train dataset.
 
 For more on the different types of drift, `see here <https://deepchecks.com/data-drift-vs-concept-drift-what-are-the-main-differences/>`_
 
+What Can You Do in Case of Drift?
+---------------------------------
 
-What Are the Causes of Drift?
-==============================
+Retrain Your Model
+^^^^^^^^^^^^^^^^^^
 
-(Is this interesting on its own? Or should this be a part of the description of each drift?)
+If you have either kind of drift, retraining your model on new data, that better represents the current distribution
+of data, is the most straight-forward solution.
+However, this solution might require additional resources such as manual labeling of new data, or might not be possible
+if labels on the newer data are not available yet.
+
+Retraining is usually necessary in cases of concept drift. However, retraining may still be of use even for label drift,
+as the model may perform better when knowing the correct distribution of the label (this is not relevant when the
+training dataset is sampled so labels are evenly distributed)
+
+
+Adjust Your Prediction
+^^^^^^^^^^^^^^^^^^^^^^
+
+When retraining is not an option, or if a quick action needs to be taken, adjustments to the output of the models may
+still help in cases of concept drift. This can be done by either recalibrating your model's output, or by changing your
+decision thresholds on the model's scores.
+
+However, these methods assume that there's still enough similarity between your training data and your current data,
+which may not always be the case.
+
+Do Nothing
+^^^^^^^^^^
+
+Not all drift is necessarily bad, and each case should be examined separately. Sometimes, data drift may be simply
+explained by label drift (for example, data drift of social media pictures  can be explained by the label drift of ... ) ??
 
 
 How Do You Detect Drift?
@@ -119,8 +129,8 @@ In deepchecks, we found that the best results are given by:
 * For discrete or categorical distributions - `Population Stability Index (PSI) <https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf>`__ or `Cramer's V <https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V>`__
 
 These methods have the advantage of being simple to use and produce explainable results. However, they are limited by
-checking each feature one at a time, and cannot detect drift that occurs over multiple variables (or they detect it
-multiple times)
+checking each feature one at a time, and cannot detect drift in the relations between features. Also, these methods
+will usually detect drift multiple times if it occures in several features.
 
 Detection by Domain Classifier
 ------------------------------
@@ -130,7 +140,11 @@ This is done by training a model to classify if a sample came from the train dat
 If the classifier can easily predict which sample is from which dataset, it would mean that there are significant differences between these datasets.
 
 The main advantage of this method is that it can also uncover covariate drift, meaning drift in the data that does not
-affect the distribution of each individual variable, but does affect the relationship between them. For example, ?
+affect the distribution of each individual variable, but does affect the relationship between them.
+
+For example, you're predicting the income of a person from his city and education. Let's say a tech giant now moved into city A. This means that:
+1. Given that a person lives in city A, he's more likely to have a more advanced degree (educated people moved to city A) - this is multivariate drift.
+2. Given his education, a resident of city A now earns more. - this is concept drift.
 
 
 How Can I Use Deepchecks to Detect Drift?
@@ -152,8 +166,14 @@ which uses the same methods but on the model's predictions, and can detect possi
 
 For code examples, see `here <#tabular-checks>`__
 
+All of these checks appear in the `deepchecks interactive demo <https://checks-demo.deepchecks.com>`__, where you can
+insert corruption into the data and see the check at work.
+
 Computer Vision Data
 --------------------
+
+All of the computer vision checks use the :doc:`image and label properties</user-guide/vision-properties>` to estimate
+drift, as image data and labels are not simple one-dimensional variables.
 
 To detect `data <#data-drift>`__ or `concept drift <#concept-drift>`__, deepchecks offers the
 :doc:`Image Property Drift check </checks_gallery/vision/distribution/plot_image_property_drift>` which uses univariate
@@ -164,9 +184,6 @@ For label drift, deepchecks offers the :doc:`Label Drift check </checks_gallery/
 
 In cases where the label is not available, we strongly recommend to also use the :doc:`Prediction Drift check</checks_gallery/vision/distribution/plot_train_test_prediction_drift>`,
 which uses the same methods but on the model's predictions, and can detect possible changes in the distribution of the label.
-
-All of the computer vision checks use the :doc:`image and label properties</user-guide/vision-properties>` to estimate
-drift, as image data and labels are not simple one-dimensional variables.
 
 For code examples, see `here <#computer-vision-checks>`__
 
