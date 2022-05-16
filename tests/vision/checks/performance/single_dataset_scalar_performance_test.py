@@ -7,12 +7,12 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks.performance.single_dataset_scalar_performance import SingleDatasetScalarPerformance
 
 
-def test_detection_deafults(coco_train_visiondata, mock_trained_yolov5_object_detection):
+def test_detection_deafults(coco_train_visiondata, mock_trained_yolov5_object_detection, device):
     # Arrange
     check = SingleDatasetScalarPerformance()
 
     # Act
-    result = check.run(coco_train_visiondata, mock_trained_yolov5_object_detection)
+    result = check.run(coco_train_visiondata, mock_trained_yolov5_object_detection, device=device)
 
     # Assert
     # scalar
@@ -21,19 +21,19 @@ def test_detection_deafults(coco_train_visiondata, mock_trained_yolov5_object_de
     assert_that(result.value['score'], greater_than_or_equal_to(0))
 
 
-def test_detection_w_params(coco_train_visiondata, mock_trained_yolov5_object_detection):
+def test_detection_w_params(coco_train_visiondata, mock_trained_yolov5_object_detection, device):
     # params that should run normally
     check = SingleDatasetScalarPerformance(reduce=torch.max, reduce_name='torch_max')
-    result = check.run(coco_train_visiondata, mock_trained_yolov5_object_detection)
+    result = check.run(coco_train_visiondata, mock_trained_yolov5_object_detection, device=device)
     assert_that(type(result.value['score']), equal_to(float))
 
 
-def test_classification_defaults(mnist_dataset_train, mock_trained_mnist):
+def test_classification_defaults(mnist_dataset_train, mock_trained_mnist, device):
     # Arrange
     check = SingleDatasetScalarPerformance()
 
     # Act
-    result = check.run(mnist_dataset_train, mock_trained_mnist)
+    result = check.run(mnist_dataset_train, mock_trained_mnist, device=device)
 
     # Assert
     # scalar
@@ -42,35 +42,36 @@ def test_classification_defaults(mnist_dataset_train, mock_trained_mnist):
     assert_that(result.value['score'], greater_than_or_equal_to(0))
 
 
-def test_add_condition(mnist_dataset_train, mock_trained_mnist):
+def test_add_condition(mnist_dataset_train, mock_trained_mnist, device):
     # Arrange
     check = SingleDatasetScalarPerformance()
     check.add_condition_greater_than(0.5)
     check.add_condition_less_equal_to(0.2)
 
     # Act
-    result = check.run(mnist_dataset_train, mock_trained_mnist)
+    result = check.run(mnist_dataset_train, mock_trained_mnist, device=device)
 
     # Assert
     assert_that(result.conditions_results[0].is_pass)
     assert_that(result.conditions_results[1].is_pass, equal_to(False))
 
 
-def test_classification_w_params(mnist_dataset_train, mock_trained_mnist):
+def test_classification_w_params(mnist_dataset_train, mock_trained_mnist, device):
     # params that should run normally
     check = SingleDatasetScalarPerformance(Precision(), torch.max, reduce_name='max')
-    result = check.run(mnist_dataset_train, mock_trained_mnist)
+    result = check.run(mnist_dataset_train, mock_trained_mnist, device=device)
     assert_that(type(result.value['score']), equal_to(float))
 
     # params that should raise a warning but still run
     check = SingleDatasetScalarPerformance(Accuracy(), torch.min)
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always")
-        result = check.run(mnist_dataset_train, mock_trained_mnist)
+        result = check.run(mnist_dataset_train, mock_trained_mnist, device=device)
         assert issubclass(w[-1].category, SyntaxWarning)
         assert type(result.value['score']) == float
 
     # params that should raise an error
     check = SingleDatasetScalarPerformance(Precision())
-    assert_that(calling(check.run).with_args(mnist_dataset_train, mock_trained_mnist), raises(DeepchecksValueError))
+    assert_that(calling(check.run).with_args(mnist_dataset_train, mock_trained_mnist, device=device),
+                raises(DeepchecksValueError))
 
