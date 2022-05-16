@@ -19,12 +19,12 @@ Drift User Guide
 What Is Distribution Drift?
 ==========================
 
-Distribution drift is a change in the underlying distribution of the data or the target label. Drift happens over time,
+Distribution drift is a change in the underlying distribution of the data, the label or of the relationship between them. Drift happens over time,
 and can occur either gradually or suddenly.
 
 Common reasons of drift can be natural changes in the data, such as shopping habits changing for an online retailer
 (for example, during the covid pandemic, virtual shopping has risen significantly and buyer patterns have changed), or
-data streaming and quality issues, such as a camera settings changed accidentally to have lower exposure.
+data acquisition and processing issues, such as a camera settings changing accidentally to have lower exposure.
 
 So Why Is Drift So Important?
 -----------------------------
@@ -36,12 +36,12 @@ any data presented to them. But the truth is that machine learning models learn 
 If that data has changed, and the relationships between the different variables and target label have changed,
 our model may not be as accurate as it was before.
 
-Detecting drift is an important warning sign that our model may be not as accurate as we think, and that it should be
+Detecting drift is an important warning sign that our model may be not as accurate on the new data compared to the training data, and that it should be
 adjusted or retrained on different data.
-In production environments, detecting drift is often the only way to know that our model is inaccurate,
-as in many domains the label is unknown for some time after the prediction.
+In production environments, detecting drift (and other measured derived from drift, such as model confidence) is often the only way to know that our model performance is deteriorating,
+as in many cases the label is unknown for some time after the prediction is made.
 
-Important to note that not all changes in data are drift. For example, periodic changes in data due to daily, weekly or
+It is important to note that not all changes in data represent drift. For example, periodic changes in data due to daily, weekly or
 seasonal changes are usually not considered drift, as they can be predicted in advance and the model can learn from
 past data samples.
 
