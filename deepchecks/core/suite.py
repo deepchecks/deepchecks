@@ -279,6 +279,7 @@ class SuiteResult:
         # Previous implementation used ProgressBar to show serialization progress
         try:
             import wandb
+
             from deepchecks.core.serialization.suite_result.wandb import \
                 SuiteResultSerializer as WandbSerializer
         except ImportError as error:
