@@ -13,7 +13,7 @@ This notebooks provides an overview for using and understanding single dataset s
 
 What Is the Purpose of the Check?
 =================================
-This check returns a metric result as a single scalar, which is especially useful for monitoring.
+This check returns a metric result as a single scalar, which is especially useful for monitoring a model in production.
 
 """
 #%%
@@ -34,7 +34,7 @@ test_ds = mnist.load_dataset(train=False, object_type='VisionData')
 #%%
 # Run the check
 # -------------
-# We will run the check with the prior model type. The check will use the default
+# We will run the check with the model defined above. The check will use the default
 # classification metric - ignite's Accuracy.
 # The default metric returns a scalar, therefore we will use the reduce function default - None.
 
@@ -48,7 +48,7 @@ result
 
 #%%
 # Now we will run a check with parameters, to use a metric and a reduce function different from the defaults.
-# We will also pass names for them, so that the result dictionary will look neat.
+# We will also pass names for them, so that the return value will look neat.
 from ignite.metrics import Precision
 from torch import nanmean
 check = SingleDatasetScalarPerformance(Precision(), nanmean, metric_name='precision', reduce_name='mean')
