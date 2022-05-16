@@ -18,7 +18,9 @@ from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
-from deepchecks.utils.distribution.drift import SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERICAL_METHODS, calc_drift_and_plot
+from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS,
+                                                 SUPPORTED_NUMERICAL_METHODS,
+                                                 calc_drift_and_plot)
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['TrainTestFeatureDrift']

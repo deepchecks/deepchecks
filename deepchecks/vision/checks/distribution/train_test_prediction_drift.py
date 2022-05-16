@@ -19,7 +19,9 @@ from deepchecks import ConditionResult
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksNotSupportedError
-from deepchecks.utils.distribution.drift import SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERICAL_METHODS, calc_drift_and_plot
+from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS,
+                                                 SUPPORTED_NUMERICAL_METHODS,
+                                                 calc_drift_and_plot)
 from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.utils.label_prediction_properties import (
     DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES,

@@ -15,7 +15,9 @@ from typing import Dict
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck
-from deepchecks.utils.distribution.drift import SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERICAL_METHODS, calc_drift_and_plot
+from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS,
+                                                 SUPPORTED_NUMERICAL_METHODS,
+                                                 calc_drift_and_plot)
 
 __all__ = ['TrainTestLabelDrift']
 

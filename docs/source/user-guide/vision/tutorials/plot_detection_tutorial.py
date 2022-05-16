@@ -253,7 +253,7 @@ class TomatoData(DetectionData):
         where each image is a numpy array of shape (height, width, channels). The numbers in the array should be in the
         range [0, 255] in a uint8 format.
         """
-        inp = torch.stack(list(batch[0])).numpy().transpose((0, 2, 3, 1))
+        inp = torch.stack(list(batch[0])).cpu().detach().numpy().transpose((0, 2, 3, 1))
         mean = [0.485, 0.456, 0.406]
         std = [0.229, 0.224, 0.225]
         # Un-normalize the images
