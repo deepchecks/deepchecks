@@ -26,6 +26,8 @@ from deepchecks.core.serialization.dataframe.html import \
     DataFrameSerializer as DataFrameHtmlSerializer
 from deepchecks.utils.html import imagetag
 
+from . import FIGURE_CONTAINER_MAX_HEIGHT, FIGURE_CONTAINER_MAX_WIDTH
+
 __all__ = ['CheckResultSerializer']
 
 
@@ -284,15 +286,24 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
                 x.observe(outputEl, {childList: true});
             }}
         """)
-        return to_html(
-            item,
-            auto_play=False,
-            include_plotlyjs='require',
-            post_script=post_script,
-            full_html=False,
-            default_width='100%',
-            default_height=525,
-            validate=True,
+        template = (
+            '<div style="max-width:{max_width}; max-height:{max_height};">'
+            '{content}'
+            '</div>'
+        )
+        return template.format(
+            max_height=FIGURE_CONTAINER_MAX_HEIGHT,
+            max_width=FIGURE_CONTAINER_MAX_WIDTH,
+            content=to_html(
+                item,
+                auto_play=False,
+                include_plotlyjs='require',
+                post_script=post_script,
+                full_html=False,
+                default_width='100%',
+                default_height=525,
+                validate=True,
+            )
         )
 
 
