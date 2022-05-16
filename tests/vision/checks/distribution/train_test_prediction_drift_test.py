@@ -185,7 +185,7 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets, mock_train
     result = check.run(mod_train_ds, mod_test_ds, mock_trained_mnist, device=device, n_samples=None)
 
     condition_result, *_ = result.conditions_results
-    print(condition_result)
+
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,

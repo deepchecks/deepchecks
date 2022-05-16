@@ -25,7 +25,7 @@ from deepchecks.vision.utils.image_properties import default_image_properties
 
 def test_image_property_drift_check(coco_train_visiondata, coco_test_visiondata, device):
     # Run
-    result = ImagePropertyDrift(categorical_drift_method='PSI').run(coco_train_visiondata, coco_test_visiondata, device=device)
+    result = ImagePropertyDrift().run(coco_train_visiondata, coco_test_visiondata, device=device)
 
     # Assert
     assert_that(result, is_correct_image_property_drift_result())
@@ -37,22 +37,7 @@ def test_image_property_drift_check(coco_train_visiondata, coco_test_visiondata,
 
 def test_image_property_drift_check_limit_classes(coco_train_visiondata, coco_test_visiondata, device):
     # Run
-    result = ImagePropertyDrift(categorical_drift_method='PSI',
-                                classes_to_display=['bicycle', 'bench', 'bus', 'truck'], min_samples=5
-                                ).run(coco_train_visiondata, coco_test_visiondata, device=device)
-
-    # Assert
-    assert_that(result, is_correct_image_property_drift_result())
-
-    assert_that(result.value, has_entries(
-        {'Brightness': close_to(0.13, 0.01)}
-    ))
-
-
-def test_image_property_drift_check_limit_classes_cramer(coco_train_visiondata, coco_test_visiondata, device):
-    # Run
-    result = ImagePropertyDrift(categorical_drift_method='Cramer',
-                                classes_to_display=['bicycle', 'bench', 'bus', 'truck'], min_samples=5
+    result = ImagePropertyDrift(classes_to_display=['bicycle', 'bench', 'bus', 'truck'], min_samples=5
                                 ).run(coco_train_visiondata, coco_test_visiondata, device=device)
 
     # Assert
@@ -89,7 +74,7 @@ def test_image_property_drift_initialization_with_list_of_invalid_image_properti
 
 def test_image_property_drift_condition(coco_train_visiondata, coco_test_visiondata, device):
     result = (
-        ImagePropertyDrift(categorical_drift_method='PSI')
+        ImagePropertyDrift()
         .add_condition_drift_score_not_greater_than()
         .run(coco_train_visiondata, coco_test_visiondata, device=device)
     )
@@ -102,7 +87,7 @@ def test_image_property_drift_condition(coco_train_visiondata, coco_test_visiond
 
 def test_image_property_drift_fail_condition(coco_train_visiondata, coco_test_visiondata, device):
     result = (
-        ImagePropertyDrift(categorical_drift_method='PSI')
+        ImagePropertyDrift()
         .add_condition_drift_score_not_greater_than(0)
         .run(coco_train_visiondata, coco_test_visiondata, device=device)
     )

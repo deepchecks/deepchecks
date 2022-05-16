@@ -219,7 +219,7 @@ class TrainTestPredictionDrift(TrainTestCheck):
         return CheckResult(value=values_dict, display=displays, header='Train Test Prediction Drift')
 
     def add_condition_drift_score_not_greater_than(self, max_allowed_categorical_score: float = 0.15,
-                                                   max_allowed_numerical_score: float = 0.075
+                                                   max_allowed_numeric_score: float = 0.075
                                                    ) -> 'TrainTestPredictionDrift':
         """
         Add condition - require prediction properties drift score to not be more than a certain threshold.
@@ -233,9 +233,9 @@ class TrainTestPredictionDrift(TrainTestCheck):
         Parameters
         ----------
         max_allowed_categorical_score: float , default: 0.15
-            the max threshold for the categorical drift score
-        max_allowed_numerical_score: float ,  default: 0.075
-            the max threshold for the numerical drift score
+            the max threshold for the categorical variable drift score
+        max_allowed_numeric_score: float ,  default: 0.075
+            the max threshold for the numeric variable drift score
         Returns
         -------
         ConditionResult
@@ -247,14 +247,14 @@ class TrainTestPredictionDrift(TrainTestCheck):
                                                d['Drift score'] > max_allowed_categorical_score
                                                and d['Method'] in SUPPORTED_CATEGORICAL_METHODS}
             not_passing_numeric_columns = {props: f'{d["Drift score"]:.2}' for props, d in result.items() if
-                                           d['Drift score'] > max_allowed_numerical_score
+                                           d['Drift score'] > max_allowed_numeric_score
                                            and d['Method'] in SUPPORTED_NUMERICAL_METHODS}
             return_str = ''
             if not_passing_categorical_columns:
                 return_str += f'Found categorical prediction properties with drift score above threshold:' \
                               f' {not_passing_categorical_columns}\n'
             if not_passing_numeric_columns:
-                return_str += f'Found numerical prediction properties with drift score above' \
+                return_str += f'Found numeric prediction properties with drift score above' \
                               f' threshold: {not_passing_numeric_columns}\n'
 
             if return_str:
@@ -263,5 +263,5 @@ class TrainTestPredictionDrift(TrainTestCheck):
                 return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'categorical drift score <= {max_allowed_categorical_score} and '
-                                  f'numerical drift score <= {max_allowed_numerical_score} for prediction drift',
+                                  f'numerical drift score <= {max_allowed_numeric_score} for prediction drift',
                                   condition)

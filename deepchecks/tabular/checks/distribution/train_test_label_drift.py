@@ -121,7 +121,7 @@ class TrainTestLabelDrift(TrainTestCheck):
         return CheckResult(value=values_dict, display=displays, header='Train Test Label Drift')
 
     def add_condition_drift_score_not_greater_than(self, max_allowed_categorical_score: float = 0.2,
-                                                   max_allowed_numerical_score: float = 0.1):
+                                                   max_allowed_numeric_score: float = 0.1):
         """
         Add condition - require drift score to not be more than a certain threshold.
 
@@ -132,9 +132,9 @@ class TrainTestLabelDrift(TrainTestCheck):
         Parameters
         ----------
         max_allowed_categorical_score: float , default: 0.2
-            the max threshold for the categorical drift score
-        max_allowed_numerical_score: float ,  default: 0.1
-            the max threshold for the numerical drift score
+            the max threshold for the categorical variable drift score
+        max_allowed_numeric_score: float ,  default: 0.1
+            the max threshold for the numeric variable drift score
         Returns
         -------
         ConditionResult
@@ -145,7 +145,7 @@ class TrainTestLabelDrift(TrainTestCheck):
             drift_score = result['Drift score']
             method = result['Method']
             has_failed = (drift_score > max_allowed_categorical_score and method in SUPPORTED_CATEGORICAL_METHODS) or \
-                         (drift_score > max_allowed_numerical_score and method in SUPPORTED_NUMERICAL_METHODS)
+                         (drift_score > max_allowed_numeric_score and method in SUPPORTED_NUMERICAL_METHODS)
 
             if has_failed:
                 return_str = f'Label\'s {method} above threshold: {drift_score:.2f}'
@@ -154,5 +154,5 @@ class TrainTestLabelDrift(TrainTestCheck):
             return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'categorical drift score <= {max_allowed_categorical_score} and '
-                                  f'numerical drift score <= {max_allowed_numerical_score} for label drift',
+                                  f'numerical drift score <= {max_allowed_numeric_score} for label drift',
                                   condition)

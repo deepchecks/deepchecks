@@ -219,7 +219,7 @@ class TrainTestFeatureDrift(TrainTestCheck):
         return CheckResult(value=values_dict, display=displays, header='Train Test Drift')
 
     def add_condition_drift_score_not_greater_than(self, max_allowed_categorical_score: float = 0.2,
-                                                   max_allowed_numerical_score: float = 0.1,
+                                                   max_allowed_numeric_score: float = 0.1,
                                                    number_of_top_features_to_consider: int = 5):
         """
         Add condition - require drift score to not be more than a certain threshold.
@@ -231,9 +231,9 @@ class TrainTestFeatureDrift(TrainTestCheck):
         Parameters
         ----------
         max_allowed_categorical_score: float , default: 0.2
-            the max threshold for the categorical drift score
-        max_allowed_numerical_score: float ,  default: 0.1
-            the max threshold for the numerical drift score
+            the max threshold for the categorical variable drift score
+        max_allowed_numeric_score: float ,  default: 0.1
+            the max threshold for the numeric variable drift score
         number_of_top_features_to_consider: int , default: 5
             the number of top features for which exceed the threshold will fail the
             condition.
@@ -258,7 +258,7 @@ class TrainTestFeatureDrift(TrainTestCheck):
                                                d['Method'] in SUPPORTED_CATEGORICAL_METHODS
                                                and column in columns_to_consider}
             not_passing_numeric_columns = {column: f'{d["Drift score"]:.2}' for column, d in result.items() if
-                                           d['Drift score'] > max_allowed_numerical_score
+                                           d['Drift score'] > max_allowed_numeric_score
                                            and d['Method'] in SUPPORTED_NUMERICAL_METHODS
                                            and column in columns_to_consider}
             return_str = ''
@@ -266,7 +266,7 @@ class TrainTestFeatureDrift(TrainTestCheck):
                 return_str += 'Found categorical columns with drift score above threshold: ' \
                               f'{not_passing_categorical_columns}\n'
             if not_passing_numeric_columns:
-                return_str += f'Found numerical columns with drift score above threshold: ' \
+                return_str += f'Found numeric columns with drift score above threshold: ' \
                               f'{not_passing_numeric_columns}'
 
             if return_str:
@@ -275,5 +275,5 @@ class TrainTestFeatureDrift(TrainTestCheck):
                 return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'categorical drift score <= {max_allowed_categorical_score} and '
-                                  f'numerical drift score <= {max_allowed_numerical_score}',
+                                  f'numerical drift score <= {max_allowed_numeric_score}',
                                   condition)

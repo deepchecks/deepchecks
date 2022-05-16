@@ -95,7 +95,7 @@ def test_drift_max_drift_score_condition_fail(drifted_data_and_model):
         is_pass=False,
         name='categorical drift score <= 0.2 and numerical drift score <= 0.1',
         details='Found categorical columns with drift score above threshold: {\'categorical_with_drift\': \'0.22\'}\n'
-                'Found numerical columns with drift score above threshold: {\'numeric_with_drift\': \'0.34\'}'
+                'Found numeric columns with drift score above threshold: {\'numeric_with_drift\': \'0.34\'}'
     ))
 
 
@@ -104,7 +104,7 @@ def test_drift_max_drift_score_condition_pass_threshold(drifted_data_and_model):
     train, test, model = drifted_data_and_model
     check = TrainTestFeatureDrift(categorical_drift_method='PSI') \
         .add_condition_drift_score_not_greater_than(max_allowed_categorical_score=1,
-                                                    max_allowed_numerical_score=1)
+                                                    max_allowed_numeric_score=1)
 
     # Act
     result = check.run(train, test, model)

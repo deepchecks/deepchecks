@@ -70,7 +70,7 @@ class TrainTestLabelDrift(TrainTestCheck):
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
         disproportionally. This filter is applied to both distributions, in both margins.
     max_num_categories_for_drift: int, default: 10
-        Only for categorical properties. Max number of allowed categories. If there are more,
+        Only for discrete properties. Max number of allowed categories. If there are more,
         they are binned into an "Other" category. If max_num_categories=None, there is no limit. This limit applies
         for both drift calculation and for distribution plots.
     max_num_categories_for_display: int, default: 10
@@ -218,7 +218,7 @@ class TrainTestLabelDrift(TrainTestCheck):
         return CheckResult(value=values_dict, display=displays, header='Train Test Label Drift')
 
     def add_condition_drift_score_not_greater_than(self, max_allowed_categorical_score: float = 0.15,
-                                                   max_allowed_numerical_score: float = 0.075
+                                                   max_allowed_numeric_score: float = 0.075
                                                    ) -> 'TrainTestLabelDrift':
         """
         Add condition - require label properties drift score to not be more than a certain threshold.
@@ -232,7 +232,7 @@ class TrainTestLabelDrift(TrainTestCheck):
         ----------
         max_allowed_categorical_score: float , default: 0.15
             the max threshold for the PSI score
-        max_allowed_numerical_score: float ,  default: 0.075
+        max_allowed_numeric_score: float ,  default: 0.075
             the max threshold for the Earth Mover's Distance score
         Returns
         -------
@@ -245,14 +245,14 @@ class TrainTestLabelDrift(TrainTestCheck):
                                                d['Drift score'] > max_allowed_categorical_score and
                                                d['Method'] in SUPPORTED_CATEGORICAL_METHODS}
             not_passing_numeric_columns = {props: f'{d["Drift score"]:.2}' for props, d in result.items() if
-                                           d['Drift score'] > max_allowed_numerical_score
+                                           d['Drift score'] > max_allowed_numeric_score
                                            and d['Method'] in SUPPORTED_NUMERICAL_METHODS}
             return_str = ''
             if not_passing_categorical_columns:
                 return_str += f'Found categorical label properties with drift score above threshold:' \
                               f' {not_passing_categorical_columns}\n'
             if not_passing_numeric_columns:
-                return_str += f'Found numerical label properties with drift score above' \
+                return_str += f'Found numeric label properties with drift score above' \
                               f' threshold: {not_passing_numeric_columns}\n'
 
             if return_str:
@@ -261,5 +261,5 @@ class TrainTestLabelDrift(TrainTestCheck):
                 return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(f'categorical drift score <= {max_allowed_categorical_score} and '
-                                  f'numerical drift score <= {max_allowed_numerical_score}',
+                                  f'numerical drift score <= {max_allowed_numeric_score}',
                                   condition)

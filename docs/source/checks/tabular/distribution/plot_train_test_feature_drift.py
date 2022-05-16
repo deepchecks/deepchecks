@@ -168,7 +168,7 @@ result.value
 # and we don't have a problem in our data or model!
 
 check_cond = check.add_condition_drift_score_not_greater_than(max_allowed_categorical_score=0.2, 
-                                                              max_allowed_numerical_score=0.1)
+                                                              max_allowed_numeric_score=0.1)
 
 #%%
 

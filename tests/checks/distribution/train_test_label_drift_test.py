@@ -101,7 +101,7 @@ def test_drift_max_drift_score_condition_pass_threshold(non_drifted_classificati
     train, test = non_drifted_classification_label
     check = TrainTestLabelDrift(categorical_drift_method='PSI') \
         .add_condition_drift_score_not_greater_than(max_allowed_categorical_score=1,
-                                                    max_allowed_numerical_score=1)
+                                                    max_allowed_numeric_score=1)
 
     # Act
     result = check.run(train, test)

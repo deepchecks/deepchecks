@@ -82,7 +82,7 @@ def test_drift_max_drift_score_condition_pass_threshold(drifted_data_and_model):
     train, test, model = drifted_data_and_model
     check = TrainTestPredictionDrift(categorical_drift_method='PSI') \
         .add_condition_drift_score_not_greater_than(max_allowed_categorical_score=1,
-                                                    max_allowed_numerical_score=1)
+                                                    max_allowed_numeric_score=1)
 
     # Act
     result = check.run(train, test, model)
