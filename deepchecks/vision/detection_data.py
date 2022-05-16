@@ -157,11 +157,11 @@ class DetectionData(VisionData):
             raise DeepchecksValueError('Check requires object detection label to be a list of 2D tensors, when '
                                        'each row has 5 columns: [class_id, x, y, width, height]')
         if torch.min(labels[0]) < 0:
-            raise DeepchecksValueError('Check requires object detection bounding box coordinates to be of format '
-                                       '[class_id, x, y, width, height]. Found one of coordinates to be negative')
+            raise DeepchecksValueError('Found one of coordinates to be negative, check requires object detection '
+                                       'bounding box coordinates to be of format [class_id, x, y, width, height].')
         if torch.max(labels[0][:, 0] % 1) > 0:
-            raise DeepchecksValueError('Object detection labels per image should be a Bx5 tensor of format '
-                                       '[class_id, x, y, width, height]. class_id must be a positive integer')
+            raise DeepchecksValueError('Class_id must be a positive integer. Object detection labels per image should '
+                                       'be a Bx5 tensor of format [class_id, x, y, width, height].')
 
     def validate_prediction(self, batch, model, device):
         """
@@ -195,12 +195,12 @@ class DetectionData(VisionData):
             raise ValidationError('Check requires detection predictions to be a list of 2D tensors, when '
                                   'each row has 6 columns: [x, y, width, height, class_probability, class_id]')
         if torch.min(batch_predictions[0]) < 0:
-            raise DeepchecksValueError('Check requires object detection bounding box predictions to be of format '
-                                       '[x, y, width, height, confidence, class_id]. Found one of coordinates to be '
-                                       'negative')
+            raise DeepchecksValueError('Found one of coordinates to be negative, Check requires object detection '
+                                       'bounding box predictions to be of format [x, y, width, height, confidence,'
+                                       ' class_id]. ')
         if torch.min(batch_predictions[0][:, 4]) < 0 or torch.max(batch_predictions[0][:, 4]) > 1:
-            raise DeepchecksValueError('Object detection predictions per image should be a Bx6 tensor of format [x, y,'
-                                       ' width, height, confidence, class_id]. confidence must be between 0 and 1')
+            raise DeepchecksValueError('Confidence must be between 0 and 1. Object detection predictions per image '
+                                       'should be a Bx6 tensor of format [x, y, width, height, confidence, class_id].')
         if torch.max(batch_predictions[0][:, 5] % 1) > 0:
-            raise DeepchecksValueError('Object detection predictions per image should be a Bx6 tensor of format [x, y,'
-                                       ' width, height, confidence, class_id]. class_id must be a positive integer')
+            raise DeepchecksValueError('Class_id must be a positive integer. Object detection predictions per image '
+                                       'should be a Bx6 tensor of format [x, y, width, height, confidence, class_id].')
