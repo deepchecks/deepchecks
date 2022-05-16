@@ -442,5 +442,5 @@ class MyDetectionTaskData(DetectionData):
 def test_validation_bad_batch_to_label(coco_train_dataloader: DataLoader):
     assert_that(
         calling(MyDetectionTaskData).with_args(coco_train_dataloader),
-        raises(DeepchecksValueError, 'Check requires object detection bounding box coordinates to be of format \['
-                                     'class_id, x, y, width, height\]. Found one of coordinates to be negative'))
+        raises(DeepchecksValueError, 'Found one of coordinates to be negative, check requires object detection bounding'
+                                     ' box coordinates to be of format \[class_id, x, y, width, height\].'))
