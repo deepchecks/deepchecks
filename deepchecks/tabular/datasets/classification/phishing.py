@@ -43,7 +43,7 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
         t.Union[t.Tuple, t.Union[Dataset, pd.DataFrame]]:
     """Load and returns the phishing url dataset (classification).
 
-    The phishing url dataset contains slighly synthetic dataset of urls - some regular and some used for phishing.
+    The phishing url dataset contains slightly synthetic dataset of urls - some regular and some used for phishing.
 
     The dataset is based on the `great project <https://github.com/Rohith-2/url_classification_dl>`_ by
     `Rohith Ramakrishnan <https://www.linkedin.com/in/rohith-ramakrishnan-54094a1a0/>`_ and others, accompanied by

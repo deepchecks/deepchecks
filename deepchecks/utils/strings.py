@@ -14,6 +14,7 @@ import itertools
 import os
 import random
 import re
+import sys
 import typing as t
 from collections import defaultdict
 from copy import copy
@@ -59,6 +60,10 @@ __all__ = [
     'widget_to_html_string',
     'format_number_if_not_nan',
 ]
+
+# Creating a translation table for the string.translate() method to be used in string base form method
+DEL_CHARS = ''.join(c for c in map(chr, range(sys.maxunicode)) if not c.isalnum())
+DEL_MAP = str.maketrans('', '', DEL_CHARS)
 
 
 def get_ellipsis(long_string: str, max_length: int):
@@ -243,7 +248,7 @@ def string_baseform(string: str) -> str:
     """
     if not isinstance(string, str):
         return string
-    return re.sub('[^A-Za-z0-9]+', '', string).lower()
+    return string.translate(DEL_MAP).lower()
 
 
 def is_string_column(column: pd.Series) -> bool:
