@@ -43,7 +43,7 @@ For more installation details and best practices, check out our :doc:`full insta
 
 
 🏃‍♀️ See It in Action
-====================
+=======================
 
 For a quick start, check out the following examples in the tutorials section:
 
