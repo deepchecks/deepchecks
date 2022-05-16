@@ -10,10 +10,9 @@
 #
 
 import torch
-from ignite.metrics import Precision, Accuracy
-from hamcrest import (assert_that, equal_to, greater_than_or_equal_to,
-                      is_in, raises, calling)
 import warnings
+from hamcrest import (assert_that, equal_to, greater_than_or_equal_to, raises, calling)
+from ignite.metrics import Precision, Accuracy
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks.performance.single_dataset_scalar_performance import SingleDatasetScalarPerformance
 
@@ -76,14 +75,14 @@ def test_classification_w_params(mnist_dataset_train, mock_trained_mnist, device
     # params that should raise a warning but still run
     check = SingleDatasetScalarPerformance(Accuracy(), torch.min)
     with warnings.catch_warnings(record=True) as w:
-        warnings.simplefilter("always")
+        warnings.simplefilter('always')
         result = check.run(mnist_dataset_train, mock_trained_mnist, device=device)
         assert issubclass(w[-1].category, SyntaxWarning)
-        assert type(result.value['score']) == float
+        assert isinstance(result.value['score'], float)
 
     # params that should raise an error
     check = SingleDatasetScalarPerformance(Precision())
     assert_that(calling(check.run).with_args(mnist_dataset_train, mock_trained_mnist, device=device),
                 raises(DeepchecksValueError, f'The metric {Precision().__class__} return a non-scalar value, '
-                                                f'please specify a reduce function or choose a different metric'))
+                                             f'please specify a reduce function or choose a different metric'))
 
