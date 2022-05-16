@@ -15,7 +15,9 @@ from typing import Dict
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck
-from deepchecks.utils.distribution.drift import calc_drift_and_plot
+from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS,
+                                                 SUPPORTED_NUMERIC_METHODS,
+                                                 calc_drift_and_plot)
 
 __all__ = ['TrainTestLabelDrift']
 
@@ -26,9 +28,13 @@ class TrainTestLabelDrift(TrainTestCheck):
 
     Check calculates a drift score for the label in test dataset, by comparing its distribution to the train
     dataset.
+
     For numerical columns, we use the Earth Movers Distance.
     See https://en.wikipedia.org/wiki/Wasserstein_metric
-    For categorical columns, we use the Population Stability Index (PSI).
+
+    For categorical distributions, we use the Cramer's V.
+    See https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V
+    We also support Population Stability Index (PSI).
     See https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf.
 
 
@@ -49,6 +55,9 @@ class TrainTestLabelDrift(TrainTestCheck):
         - 'train_largest': Show the largest train categories.
         - 'test_largest': Show the largest test categories.
         - 'largest_difference': Show the largest difference between categories.
+    categorical_drift_method: str, default: "cramer_v"
+        decides which method to use on categorical variables. Possible values are:
+        "cramers_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
     max_num_categories: int, default: None
         Deprecated. Please use max_num_categories_for_drift and max_num_categories_for_display instead
     """
@@ -59,6 +68,7 @@ class TrainTestLabelDrift(TrainTestCheck):
             max_num_categories_for_drift: int = 10,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
+            categorical_drift_method='cramer_v',
             max_num_categories: int = None,
             **kwargs
     ):
@@ -75,6 +85,7 @@ class TrainTestLabelDrift(TrainTestCheck):
         self.max_num_categories_for_drift = max_num_categories_for_drift
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
+        self.categorical_drift_method = categorical_drift_method
 
     def run_logic(self, context: Context) -> CheckResult:
         """Calculate drift for all columns.
@@ -96,8 +107,8 @@ class TrainTestLabelDrift(TrainTestCheck):
             margin_quantile_filter=self.margin_quantile_filter,
             max_num_categories_for_drift=self.max_num_categories_for_drift,
             max_num_categories_for_display=self.max_num_categories_for_display,
-            show_categories_by=self.show_categories_by
-
+            show_categories_by=self.show_categories_by,
+            categorical_drift_method=self.categorical_drift_method,
         )
 
         headnote = """<span>
@@ -110,20 +121,21 @@ class TrainTestLabelDrift(TrainTestCheck):
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Label Drift')
 
-    def add_condition_drift_score_not_greater_than(self, max_allowed_psi_score: float = 0.2,
-                                                   max_allowed_earth_movers_score: float = 0.1):
+    def add_condition_drift_score_not_greater_than(self, max_allowed_categorical_score: float = 0.2,
+                                                   max_allowed_numeric_score: float = 0.1):
         """
         Add condition - require drift score to not be more than a certain threshold.
 
         The industry standard for PSI limit is above 0.2.
+        Cramer's V does not have a common industry standard.
         Earth movers does not have a common industry standard.
 
         Parameters
         ----------
-        max_allowed_psi_score: float , default: 0.2
-            the max threshold for the PSI score
-        max_allowed_earth_movers_score: float ,  default: 0.1
-            the max threshold for the Earth Mover's Distance score
+        max_allowed_categorical_score: float , default: 0.2
+            the max threshold for the categorical variable drift score
+        max_allowed_numeric_score: float ,  default: 0.1
+            the max threshold for the numeric variable drift score
         Returns
         -------
         ConditionResult
@@ -133,18 +145,15 @@ class TrainTestLabelDrift(TrainTestCheck):
         def condition(result: Dict) -> ConditionResult:
             drift_score = result['Drift score']
             method = result['Method']
-            has_failed = (drift_score > max_allowed_psi_score and method == 'PSI') or \
-                         (drift_score > max_allowed_earth_movers_score and method == "Earth Mover's Distance")
+            has_failed = (drift_score > max_allowed_categorical_score and method in SUPPORTED_CATEGORICAL_METHODS) or \
+                         (drift_score > max_allowed_numeric_score and method in SUPPORTED_NUMERIC_METHODS)
 
-            if method == 'PSI' and has_failed:
-                return_str = f'Found label PSI above threshold: {drift_score:.2f}'
-                return ConditionResult(ConditionCategory.FAIL, return_str)
-            elif method == "Earth Mover's Distance" and has_failed:
-                return_str = f'Label\'s Earth Mover\'s Distance above threshold: {drift_score:.2f}'
+            if has_failed:
+                return_str = f'Label\'s {method} above threshold: {drift_score:.2f}'
                 return ConditionResult(ConditionCategory.FAIL, return_str)
 
             return ConditionResult(ConditionCategory.PASS)
 
-        return self.add_condition(f'PSI <= {max_allowed_psi_score} and Earth Mover\'s Distance <= '
-                                  f'{max_allowed_earth_movers_score} for label drift',
+        return self.add_condition(f'categorical drift score <= {max_allowed_categorical_score} and '
+                                  f'numerical drift score <= {max_allowed_numeric_score} for label drift',
                                   condition)
