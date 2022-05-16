@@ -126,6 +126,7 @@ class TrainTestLabelDrift(TrainTestCheck):
         Add condition - require drift score to not be more than a certain threshold.
 
         The industry standard for PSI limit is above 0.2.
+        Cramer's V does not have a common industry standard.
         Earth movers does not have a common industry standard.
 
         Parameters
