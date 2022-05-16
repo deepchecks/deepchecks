@@ -25,17 +25,17 @@ from deepchecks.tabular.dataset import Dataset
 
 __all__ = ['load_data', 'load_fitted_model']
 
-_MODEL_URL = 'https://figshare.com/ndownloader/files/34939083'
+_MODEL_URL = 'https://figshare.com/ndownloader/files/35122753'
 _FULL_DATA_URL = 'https://ndownloader.figshare.com/files/34516457'
 _TRAIN_DATA_URL = 'https://ndownloader.figshare.com/files/34516448'
 _TEST_DATA_URL = 'https://ndownloader.figshare.com/files/34516454'
-_MODEL_VERSION = '1.0.1'
+_MODEL_VERSION = '1.0.2'
 _FEATURES = ['age', 'workclass', 'fnlwgt', 'education', 'education-num', 'marital-status', 'occupation', 'relationship',
              'race', 'sex', 'capital-gain', 'capital-loss', 'hours-per-week', 'native-country']
 _target = 'income'
 _CAT_FEATURES = ['workclass', 'education', 'marital-status', 'occupation', 'relationship', 'race', 'sex',
                  'native-country']
-_NUM_FEATURES = list(set(_FEATURES) - set(_CAT_FEATURES))
+_NUM_FEATURES = sorted(list(set(_FEATURES) - set(_CAT_FEATURES)))
 
 
 def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
@@ -178,7 +178,7 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
             raise ValueError('data_format must be either "Dataset" or "Dataframe"')
 
 
-def load_fitted_model():
+def load_fitted_model(pretrained=True):
     """Load and return a fitted classification model.
 
     Returns
@@ -187,7 +187,7 @@ def load_fitted_model():
         The model/pipeline that was trained on the adult dataset.
 
     """
-    if sklearn.__version__ == _MODEL_VERSION:
+    if sklearn.__version__ == _MODEL_VERSION and pretrained:
         with urlopen(_MODEL_URL) as f:
             model = joblib.load(f)
     else:
