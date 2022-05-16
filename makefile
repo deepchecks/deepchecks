@@ -254,7 +254,7 @@ tox: requirements dev-requirements
 
 
 freeze:
-    $(PIP) freeze
+	@$(PIP) freeze
 
 
 ### Cleanup ######################################################
