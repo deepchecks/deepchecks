@@ -386,19 +386,19 @@ def test_detection_data_bad_implementation():
     detection_data.dummy_batch = True
 
     assert_that(calling(detection_data.validate_label).with_args(7),
-                raises(DeepchecksValueError,
+                raises(ValidationError,
                        'Check requires object detection label to be a list with an entry for each sample'))
     assert_that(calling(detection_data.validate_label).with_args([]),
-                raises(DeepchecksValueError,
+                raises(ValidationError,
                        'Check requires object detection label to be a non-empty list'))
     assert_that(calling(detection_data.validate_label).with_args([8]),
-                raises(DeepchecksValueError,
+                raises(ValidationError,
                        'Check requires object detection label to be a list of torch.Tensor'))
     assert_that(calling(detection_data.validate_label).with_args([torch.Tensor([])]),
-                raises(DeepchecksValueError,
+                raises(ValidationError,
                        'Check requires object detection label to be a list of 2D tensors'))
     assert_that(calling(detection_data.validate_label).with_args([torch.Tensor([[1, 2], [1, 2]])]),
-                raises(DeepchecksValueError,
+                raises(ValidationError,
                        'Check requires object detection label to be a list of 2D tensors, when '
                        'each row has 5 columns: \[class_id, x, y, width, height\]'))
 
@@ -440,7 +440,10 @@ class MyDetectionTaskData(DetectionData):
 
 
 def test_validation_bad_batch_to_label(coco_train_dataloader: DataLoader):
-    assert_that(
-        calling(MyDetectionTaskData).with_args(coco_train_dataloader),
-        raises(DeepchecksValueError, 'Found one of coordinates to be negative, check requires object detection bounding'
-                                     ' box coordinates to be of format \[class_id, x, y, width, height\].'))
+    vision_data = MyDetectionTaskData(coco_train_dataloader)
+    assert_that(vision_data._label_formatter_error, equal_to('batch_to_labels() was not implemented correctly, '
+                                                             'the validation has failed with the error: \"Found one '
+                                                             'of coordinates to be negative, check requires object '
+                                                             'detection bounding box coordinates to be of format ['
+                                                             'class_id, x, y, width, height].\". To test your label '
+                                                             'formatting use the function `validate_label(batch)`'))
