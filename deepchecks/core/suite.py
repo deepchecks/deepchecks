@@ -97,18 +97,13 @@ class SuiteResult:
     def _repr_html_(
         self,
         unique_id: Optional[str] = None,
-        requirejs: bool = True,
+        requirejs: bool = False,
     ) -> str:
         """Return html representation of check result."""
-        output_id = (
-            unique_id or get_random_string(n=25)
-            if not is_colab_env()
-            else None
-        )
-        return SuiteResultHtmlSerializer(self).serialize(
-            include_plotlyjs=True,
-            include_requirejs=requirejs,
-            output_id=output_id
+        return widget_to_html_string(
+            self.to_widget(unique_id=unique_id or get_random_string(n=25)),
+            title=self.name,
+            requirejs=requirejs
         )
 
     def _repr_json_(self):

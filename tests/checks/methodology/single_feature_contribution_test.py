@@ -11,8 +11,8 @@
 """Contains unit tests for the single_feature_contribution check."""
 import numpy as np
 import pandas as pd
-from hamcrest import (assert_that, calling, close_to, equal_to, has_entries, has_length,
-                      raises)
+from hamcrest import (assert_that, calling, close_to, equal_to, has_entries,
+                      has_length, raises)
 
 from deepchecks.core.errors import (DatasetValidationError,
                                     DeepchecksNotSupportedError,
