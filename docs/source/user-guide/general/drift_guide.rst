@@ -108,7 +108,8 @@ Do Nothing
 ^^^^^^^^^^
 
 Not all drift is necessarily bad, and each case should be examined separately. Sometimes, data drift may be simply
-explained by label drift (for example, data drift of social media pictures  can be explained by the label drift of ... ) ??
+explained by label drift (for example, in a dataset of food images, a drift in brightness of images can simply mean
+that people are eating more eggs, which are whiter than other foods).
 
 
 How Do You Detect Drift?
