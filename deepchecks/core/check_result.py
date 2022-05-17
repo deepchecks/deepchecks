@@ -466,20 +466,17 @@ class CheckResult(BaseCheckResult):
         self,
         unique_id: Optional[str] = None,
         show_additional_outputs: bool = True,
-        requirejs: bool = True,
+        requirejs: bool = False,
         **kwargs
     ) -> str:
         """Return html representation of check result."""
-        check_sections = (
-            ['condition-table', 'additional-output']
-            if show_additional_outputs
-            else ['condition-table']
-        )
-        return CheckResultHtmlSerializer(self).serialize(
-            output_id=unique_id,
-            include_plotlyjs=True,
-            include_requirejs=requirejs,
-            check_sections=check_sections  # type: ignore
+        return widget_to_html_string(
+            self.to_widget(
+                unique_id=unique_id,
+                show_additional_outputs=show_additional_outputs
+            ),
+            title=self.get_header(),
+            requirejs=requirejs
         )
 
     def _repr_json_(self, **kwargs):
