@@ -30,7 +30,9 @@
 # 8080labs/ppscore: zenodo release (1.2.0). Zenodo. https://doi.org/10.5281/zenodo.4091345
 
 # pylint: skip-file
+import warnings
 
+warnings.filterwarnings('ignore', message='The least populated class in y has only')
 
 import numpy as np
 import pandas as pd

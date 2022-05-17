@@ -86,7 +86,9 @@ extensions = [
 ]
 
 redirects = {
-    "examples/guides/quickstart_in_5_minutes": "../../auto_tutorials/tabular/plot_quickstart_in_5_minutes.html",
+    "index": "getting-started/get-started.html",
+    "getting-started/index": "get-started.html",
+    "examples/guides/quickstart_in_5_minutes": "../../user-guide/tabular/auto_tutorials/plot_quickstart_in_5_minutes.html",
     "user-guide/key_concepts": "../user-guide/general/deepchecks_hierarchy.html",
     "user-guide/when_should_you_use": "../getting-started/when_should_you_use.html",
     "examples/checks/distribution/index": "../../../checks_gallery/tabular/index.html",
@@ -106,16 +108,16 @@ sphinx_gallery_conf = {
     "examples_dirs": [
         "checks/vision",
         "checks/tabular",
-        "tutorials/tabular",
-        "tutorials/vision",
+        "user-guide/tabular/tutorials",
+        "user-guide/vision/tutorials",
         "user-guide/general/customizations",
         "user-guide/general/exporting_results",
     ],  # path to your example scripts
     "gallery_dirs": [
         "checks_gallery/vision",
         "checks_gallery/tabular",
-        "auto_tutorials/tabular",
-        "auto_tutorials/vision",
+        "user-guide/tabular/auto_tutorials",
+        "user-guide/vision/auto_tutorials",
         "user-guide/general/customizations/examples",
         "user-guide/general/exporting_results/examples",
     ], # path to where to save gallery generated output

@@ -16,7 +16,6 @@ import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, TrainTestCheck
-from deepchecks.tabular.utils.display_utils import nothing_found_on_columns
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import (N_TOP_MESSAGE,
                                        column_importance_sorter_df)
@@ -49,6 +48,10 @@ class StringMismatchComparison(TrainTestCheck):
         Columns to ignore, if none given checks based on columns variable
     n_top_columns : int , optional
         amount of columns to show ordered by feature importance (date, index, label are first)
+    n_samples : int , default: 1_000_000
+        number of samples to use for this check.
+    random_state : int, default: 42
+        random seed for all check internals.
     """
 
     def __init__(
@@ -56,12 +59,16 @@ class StringMismatchComparison(TrainTestCheck):
         columns: Union[Hashable, List[Hashable], None] = None,
         ignore_columns: Union[Hashable, List[Hashable], None] = None,
         n_top_columns: int = 10,
+        n_samples: int = 1_000_000,
+        random_state: int = 42,
         **kwargs
     ):
         super().__init__(**kwargs)
         self.columns = columns
         self.ignore_columns = ignore_columns
         self.n_top_columns = n_top_columns
+        self.n_samples = n_samples
+        self.random_state = random_state
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check.
@@ -72,9 +79,11 @@ class StringMismatchComparison(TrainTestCheck):
             with value of type dict that contains detected different variants of string
         """
         # Validate parameters
-        df = context.test.data
+        df = context.test.sample(self.n_samples, random_state=self.random_state).data
         df = select_from_dataframe(df, self.columns, self.ignore_columns)
-        baseline_df = context.train.data
+        baseline_df = context.train.sample(self.n_samples, random_state=self.random_state).data
+
+        sampling_footnote = context.get_is_sampled_footnote(self.n_samples)
 
         display_mismatches = []
         result_dict = defaultdict(dict)
@@ -89,6 +98,8 @@ class StringMismatchComparison(TrainTestCheck):
             if not is_string_column(tested_column) or not is_string_column(baseline_column):
                 continue
 
+            tested_counts = tested_column.value_counts()
+            baseline_counts = baseline_column.value_counts()
             tested_baseforms = get_base_form_to_variants_dict(tested_column.unique())
             baseline_baseforms = get_base_form_to_variants_dict(baseline_column.unique())
 
@@ -102,8 +113,10 @@ class StringMismatchComparison(TrainTestCheck):
                     variants_only_in_dataset = list(tested_values - baseline_values)
                     variants_only_in_baseline = list(baseline_values - tested_values)
                     common_variants = list(tested_values & baseline_values)
-                    percent_variants_only_in_dataset = _percentage_in_series(tested_column, variants_only_in_dataset)
-                    percent_variants_in_baseline = _percentage_in_series(baseline_column, variants_only_in_baseline)
+                    percent_variants_only_in_dataset = _percentage_in_series(tested_column, tested_counts,
+                                                                             variants_only_in_dataset)
+                    percent_variants_in_baseline = _percentage_in_series(baseline_column, baseline_counts,
+                                                                         variants_only_in_baseline)
 
                     display_mismatches.append([column_name, baseform, common_variants,
                                                variants_only_in_dataset, percent_variants_only_in_dataset[1],
@@ -133,8 +146,10 @@ class StringMismatchComparison(TrainTestCheck):
             )
             # For display transpose the dataframe
             display = [N_TOP_MESSAGE % self.n_top_columns, df_graph.T]
+            if sampling_footnote:
+                display.append(sampling_footnote)
         else:
-            display = nothing_found_on_columns(columns)
+            display = None
 
         return CheckResult(result_dict, display=display)
 
@@ -170,7 +185,7 @@ def _condition_percent_limit(result, ratio: float):
     return ConditionResult(ConditionCategory.PASS)
 
 
-def _percentage_in_series(series, values):
-    count = sum(series.isin(values))
+def _percentage_in_series(series, counts, values):
+    count = sum([counts[value] for value in values])
     percent = count / series.size
     return percent, f'{format_percent(percent)} ({count})'

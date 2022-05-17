@@ -253,6 +253,10 @@ tox: requirements dev-requirements
 	$(TOX)
 
 
+freeze: requirements dev-requirements
+	@$(PIP) freeze
+
+
 ### Cleanup ######################################################
 
 .PHONY: clean clean-env clean-all clean-build clean-test clean-dist clean-docs trailing-spaces
@@ -297,6 +301,7 @@ clean-docs: $(DOCS)
 
 trailing-spaces:
 	@find ./deepchecks/ -name "*.py" -type f -print0 | xargs -0 sed -i "s/[[:space:]]*$$//"
+	@find ./tests/ -name "*.py" -type f -print0 | xargs -0 sed -i "s/[[:space:]]*$$//"
 
 
 ### Release ######################################################
@@ -350,7 +355,7 @@ test-release: dist test-upload
 
 docs: requirements doc-requirements dev-requirements $(DOCS_SRC)
 	@export WANDB_MODE=offline
-	cd $(DOCS) && make html SPHINXBUILD=$(SPHINX_BUILD) SPHINXOPTS=$(SPHINXOPTS) 2> docs.error.log
+	cd $(DOCS) && make html SPHINXBUILD=$(SPHINX_BUILD) SPHINXOPTS=$(SPHINXOPTS)
 	@echo ""
 	@echo "++++++++++++++++++++++++"
 	@echo "++++ Build Finished ++++"
@@ -371,9 +376,9 @@ show-docs: $(DOCS_BUILD)/html
 
 
 license-check:
-	@wget https://dlcdn.apache.org/skywalking/eyes/0.2.0/skywalking-license-eye-0.2.0-bin.tgz && tar -xzvf skywalking-license-eye-0.2.0-bin.tgz
-	@mv skywalking-license-eye-0.2.0-bin/bin/linux/license-eye ./
-	@rm -rf skywalking-license-eye-0.2.0-bin && rm -f skywalking-license-eye-0.2.0-bin.tgz
+	@wget https://dlcdn.apache.org/skywalking/eyes/0.3.0/skywalking-license-eye-0.3.0-bin.tgz && tar -xzvf skywalking-license-eye-0.3.0-bin.tgz
+	@mv skywalking-license-eye-0.3.0-bin/bin/linux/license-eye ./
+	@rm -rf skywalking-license-eye-0.3.0-bin && rm -f skywalking-license-eye-0.3.0-bin.tgz
 	./license-eye -c .licenserc_fix.yaml header check
 	@rm license-eye
 

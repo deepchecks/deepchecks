@@ -15,7 +15,6 @@ import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, TrainTestCheck
-from deepchecks.tabular.utils.display_utils import nothing_found_on_columns
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
@@ -120,7 +119,7 @@ class CategoryMismatchTrainTest(TrainTestCheck):
                 'new_categories': category['new_categories']
             }), new_categories))
         else:
-            display = nothing_found_on_columns(cat_features)
+            display = None
             new_categories = {}
         return CheckResult(new_categories, display=display)
 

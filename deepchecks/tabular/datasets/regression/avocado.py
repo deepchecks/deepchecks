@@ -26,11 +26,11 @@ from deepchecks.tabular.dataset import Dataset
 
 __all__ = ['load_data', 'load_fitted_model']
 
-_MODEL_URL = 'https://figshare.com/ndownloader/files/32393723'
+_MODEL_URL = 'https://figshare.com/ndownloader/files/35122756'
 _FULL_DATA_URL = 'https://figshare.com/ndownloader/files/32393729'
 _TRAIN_DATA_URL = 'https://figshare.com/ndownloader/files/32393732'
 _TEST_DATA_URL = 'https://figshare.com/ndownloader/files/32393726'
-_MODEL_VERSION = '1.0.1'
+_MODEL_VERSION = '1.0.2'
 _target = 'AveragePrice'
 _CAT_FEATURES = ['region', 'type']
 _NUM_FEATURES = ['Total Volume', '4046', '4225', 'Total Bags', 'Small Bags', 'Large Bags', 'XLarge Bags']
@@ -149,7 +149,7 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
         return train, test
 
 
-def load_fitted_model():
+def load_fitted_model(pretrained=True):
     """Load and return a fitted regression model to predict the AveragePrice in the avocado dataset.
 
     Returns
@@ -158,7 +158,7 @@ def load_fitted_model():
         the model/pipeline that was trained on the Avocado dataset.
 
     """
-    if sklearn.__version__ == _MODEL_VERSION:
+    if sklearn.__version__ == _MODEL_VERSION and pretrained:
         with urlopen(_MODEL_URL) as f:
             model = joblib.load(f)
     else:
@@ -180,5 +180,5 @@ def _build_model():
                                           _NUM_FEATURES),
                                          ('cat', OneHotEncoder(),
                                           _CAT_FEATURES)])),
-        ('classifier', RandomForestRegressor())
+        ('classifier', RandomForestRegressor(random_state=0, max_depth=7, n_estimators=30))
     ])

@@ -10,6 +10,7 @@
 #
 from pathlib import Path
 from runpy import run_path
+
 import torch
 import wandb
 
@@ -18,8 +19,8 @@ wandb.setup(wandb.Settings(mode="disabled", program=__name__, program_relpath=__
 
 DOCS_EXAMPLES_DIR = ["checks/vision",
                      "checks/tabular",
-                     "tutorials/tabular",
-                     "tutorials/vision",
+                     "user-guide/tabular/tutorials",
+                     "user-guide/vision/tutorials",
                      "user-guide/general/customizations",
                      "user-guide/general/exporting_results", ]
 

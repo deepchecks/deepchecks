@@ -15,9 +15,11 @@ import typing as t
 from bs4 import BeautifulSoup
 from hamcrest import (all_of, assert_that, calling, contains_exactly,
                       contains_string, equal_to, greater_than, has_entries,
-                      has_length, has_property, instance_of, matches_regexp,
-                      raises, starts_with)
+                      has_item, has_length, has_property, instance_of,
+                      matches_regexp, only_contains, raises, starts_with)
+from IPython.display import Image
 from ipywidgets import HTML, Tab, VBox
+from plotly.basedatatypes import BaseFigure
 from wandb.sdk.data_types.base_types.wb_value import WBValue
 
 from deepchecks.core.check_result import CheckFailure, CheckResult
@@ -25,6 +27,8 @@ from deepchecks.core.serialization.common import (form_output_anchor,
                                                   plotlyjs_script)
 from deepchecks.core.serialization.suite_result.html import \
     SuiteResultSerializer as HtmlSerializer
+from deepchecks.core.serialization.suite_result.ipython import \
+    SuiteResultSerializer as IPythonSerializer
 from deepchecks.core.serialization.suite_result.json import \
     SuiteResultSerializer as JsonSerializer
 from deepchecks.core.serialization.suite_result.wandb import \
@@ -33,11 +37,11 @@ from deepchecks.core.serialization.suite_result.widget import \
     SuiteResultSerializer as WidgetSerializer
 from deepchecks.core.suite import SuiteResult
 from deepchecks.utils.strings import get_random_string
+from tests.common import create_suite_result, instance_of_ipython_formatter
 from tests.serialization.test_check_failure_serialization import \
     assert_json_output as assert_check_failure_json_output
 from tests.serialization.test_check_result_serialization import \
     assert_json_output as assert_check_result_json_output
-from tests.serialization.utils import create_suite_result
 
 
 def test_html_serializer_initialization():
@@ -135,6 +139,36 @@ def test_html_serialization_to_full_html_page():
         all_of(instance_of(str), matches_regexp(regexp))
     )
 
+
+# ============================================================================
+
+
+def test_ipython_serializer_initialization():
+    serializer = IPythonSerializer(create_suite_result())
+
+
+def test_ipython_serializer_initialization_with_incorrect_type_of_value():
+    assert_that(
+        calling(IPythonSerializer).with_args(set()),
+        raises(
+            TypeError,
+            'Expected "SuiteResult" but got "set"')
+    )
+
+
+def test_ipython_serialization():
+    suite_result = create_suite_result()
+    output = IPythonSerializer(suite_result).serialize()
+
+    assert_that(
+        output,
+        all_of(
+            instance_of(list),
+            has_length(greater_than(0)),
+            only_contains(instance_of_ipython_formatter()),
+            has_item(instance_of(Image)),
+            has_item(instance_of(BaseFigure)))
+    )
 
 # ============================================================================
 
