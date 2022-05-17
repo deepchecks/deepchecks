@@ -4,16 +4,10 @@
 Drift User Guide
 ====================
 
-(Is this needed if there's a menu on the right?)
+**In This Guide, You Can Learn:**
 
-**Structure:**
-
-* `What Is Distribution Drift? <#what-is-distribution-drift>`__
-* `Which Types of Drift Are There? <#which-types-of-drift-are-there>`__
-* `What Are the Causes of Drift? <#what-are-the-causes-of-drift>`__
-* `How Do You Detect Drift? <#how-do-you-detect-drift>`__
-* `How Can I Use Deepchecks to Detect Drift? <#how-can-i-use-deepchecks-to-detect-drift>`__
-* `Code Examples <#code-examples>`__
+* `What Is Distribution Drift and How Can You Detect It? <#what-is-distribution-drift>`__
+* `How Can You Use Deepchecks to Detect Drift? <#how-can-i-use-deepchecks-to-detect-drift>`__
 
 
 What Is Distribution Drift?
@@ -77,12 +71,22 @@ For more on the different types of drift, `see here <https://deepchecks.com/data
 What Can You Do in Case of Drift?
 ---------------------------------
 
+There are several solutions to distribution drift. They are also dependent on the information you have.
+
+* If your drifted data has labels, you can easily know which type of drift you are facing.
+* However, the more common case is when you don't have your data labels yet. In this case, we can only try and measure
+  drift on the data (features) or the model's output.
+  If we detect drift, we have no way to know whether this drift is a simple data drift, label drift or concept drift, as
+  we don't know the true labels.
+
+(Feels disconnected to the rest here)
+
 Retrain Your Model
 ^^^^^^^^^^^^^^^^^^
 
 If you have either kind of drift, retraining your model on new data, that better represents the current distribution
 of data, is the most straight-forward solution.
-However, this solution might require additional resources such as manual labeling of new data, or might not be possible
+However, this solution may require additional resources such as manual labeling of new data, or might not be possible
 if labels on the newer data are not available yet.
 
 Retraining is usually necessary in cases of concept drift. However, retraining may still be of use even for label drift,
