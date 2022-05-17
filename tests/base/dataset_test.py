@@ -1040,7 +1040,7 @@ def random_classification_dataframe(n_samples=100, n_features=5) -> pd.DataFrame
     return df
 
 
-def test_cat_features_warning(iris, caplog):
+def test_cat_features_warning(iris):
     # Test that warning is raised when cat_features is None
     with warnings.catch_warnings(record=True) as w:
         Dataset(iris)
