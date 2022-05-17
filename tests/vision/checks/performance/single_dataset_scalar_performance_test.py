@@ -9,12 +9,16 @@
 # ----------------------------------------------------------------------------
 #
 
-import torch
 import warnings
-from hamcrest import (assert_that, equal_to, greater_than_or_equal_to, raises, calling)
-from ignite.metrics import Precision, Accuracy
+
+import torch
+from hamcrest import (assert_that, calling, equal_to, greater_than_or_equal_to,
+                      raises)
+from ignite.metrics import Accuracy, Precision
+
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.vision.checks.performance.single_dataset_scalar_performance import SingleDatasetScalarPerformance
+from deepchecks.vision.checks.performance.single_dataset_scalar_performance import \
+    SingleDatasetScalarPerformance
 
 
 def test_detection_deafults(coco_train_visiondata, mock_trained_yolov5_object_detection, device):

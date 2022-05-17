@@ -27,7 +27,8 @@ In this example we use 'nanmean' that returns the mean over the classes, while i
 # Generate data and model
 # -----------------------
 
-from deepchecks.vision.checks.performance.single_dataset_scalar_performance import SingleDatasetScalarPerformance
+from deepchecks.vision.checks.performance.single_dataset_scalar_performance import \
+    SingleDatasetScalarPerformance
 from deepchecks.vision.datasets.classification import mnist
 
 #%%
@@ -60,6 +61,7 @@ result.value
 # We will also pass names for them, so that the return value will look neat.
 from ignite.metrics import Precision
 from torch import nanmean
+
 check = SingleDatasetScalarPerformance(Precision(), nanmean, metric_name='precision', reduce_name='mean')
 result = check.run(train_ds, mnist_model)
 result.value
