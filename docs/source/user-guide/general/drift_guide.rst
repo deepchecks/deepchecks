@@ -116,12 +116,12 @@ that these 2 distributions are the same?".
 
 There are many methods to detect drift. Here, we will elaborate on 2:
 
-Detection by Statistical Test
------------------------------
+Detection by Univariate Measure
+--------------------------------
 This is the simplest and most common drift detection method.
-This is done by sampling a single variable (that can either be a data feature, the label or even the prediction) and
-running a statistical test that aims to measure the difference the 2 samples.
-There are many tests that can do this, such as the Kolmogorov-Smirnov test, Jensen-Shannon Divergence and more.
+This is done by taking only one variable at a time (that can either be a data feature, the label or even the prediction)
+and measuring the difference between newer and older samples of the variable.
+There are many measures that can be used for this, such as the Kolmogorov-Smirnov test, Jensen-Shannon Divergence and more.
 In deepchecks, we found that the best results are given by:
 
 * For continuous numeric distributions - `Wasserstein metric (Earth Movers Distance) <https://en.wikipedia.org/wiki/Wasserstein_metric>`__
