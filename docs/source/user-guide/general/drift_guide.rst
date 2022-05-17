@@ -16,7 +16,7 @@ What Is Distribution Drift?
 Distribution drift is a change in the underlying distribution of the data, the label or of the relationship between them. Drift happens over time,
 and can occur either gradually or suddenly.
 
-Common reasons of drift can be natural changes in the data, such as shopping habits changing for an online retailer
+Common reasons for drift can be natural changes in the data, such as shopping habits changing for an online retailer
 (for example, during the covid pandemic, virtual shopping has risen significantly and buyer patterns have changed), or
 data acquisition and processing issues, such as a camera settings changing accidentally to have lower exposure.
 
