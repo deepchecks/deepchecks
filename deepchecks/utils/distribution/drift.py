@@ -294,7 +294,7 @@ def calc_drift_and_plot(train_column: pd.Series,
             'largest_difference': 'largest difference between categories'
         }
         train_data_percents = dist_traces[0].y.sum()
-        test_data_percents = dist_traces[1].y.sum()
+        test_data_percents = sum([y for y in dist_traces[1].y if y])
 
         fig.add_annotation(
             x=0, y=-0.2, showarrow=False, xref='paper', yref='paper', xanchor='left',
@@ -309,7 +309,6 @@ def calc_drift_and_plot(train_column: pd.Series,
             title='Legend',
             yanchor='top',
             y=0.6),
-        width=700,
         height=400,
         title=dict(text=plot_title or value_name, x=0.5, xanchor='center'),
         bargroupgap=0)

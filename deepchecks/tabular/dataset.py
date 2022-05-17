@@ -12,6 +12,7 @@
 import logging
 # pylint: disable=inconsistent-quotes,protected-access
 import typing as t
+import warnings
 from functools import lru_cache
 
 import numpy as np
@@ -581,7 +582,7 @@ class Dataset:
             if len(categorical_columns) > len(columns_to_print):
                 message += '... For full list use dataset.cat_features'
 
-        logger.warning(message)
+        warnings.warn(message)
 
         return categorical_columns
 
@@ -886,9 +887,9 @@ class Dataset:
             if the provided value cannot be transformed into Dataset instance;
         """
         if isinstance(obj, pd.DataFrame):
-            logger.warning(
-                'Received a "pandas.DataFrame" instance, initializing '
-                '"deepchecks.tabular.Dataset" from it'
+            warnings.warn(
+                'Received a "pandas.DataFrame" instance. It is recommended to pass a "deepchecks.tabular.Dataset" '
+                'instance by doing "Dataset(dataframe)"'
             )
             obj = Dataset(obj)
         elif not isinstance(obj, Dataset):

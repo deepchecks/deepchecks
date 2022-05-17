@@ -236,15 +236,14 @@ def test_permutation_importance_with_nan_labels(iris_split_dataset_and_model):
     train_ds, _, adaboost = iris_split_dataset_and_model
     train_data = train_ds.data.copy()
     train_data.loc[train_data['target'] != 2, 'target'] = None
+    train_ds = train_ds.copy(train_data)
 
     # Act
     with warnings.catch_warnings(record=True) as w:
-        feature_importances, fi_type = calculate_feature_importance(adaboost, Dataset(train_data, label='target'),
-                                                                    force_permutation=True)
+        feature_importances, fi_type = calculate_feature_importance(adaboost, train_ds, force_permutation=True)
         assert_that(w, has_length(1))
         assert_that(str(w[0].message), contains_string('Calculating permutation feature importance without time limit. '
                                                        'Expected to finish in '))
-
 
     # Assert
     assert_that(feature_importances.sum(), close_to(1, 0.0001))
