@@ -82,7 +82,7 @@ def validate_extractors(dataset: VisionData, model, device=None, image_save_loca
         dataset.validate_label(batch)
         labels = dataset.batch_to_labels(batch)
     except ValidationError as ex:
-        label_formatter_error = "Fail! " + str(ex)
+        label_formatter_error = 'Fail! ' + str(ex)
     except Exception:  # pylint: disable=broad-except
         label_formatter_error = 'Got exception \n' + traceback.format_exc()
 
@@ -90,7 +90,7 @@ def validate_extractors(dataset: VisionData, model, device=None, image_save_loca
         dataset.validate_image_data(batch)
         images = dataset.batch_to_images(batch)
     except ValidationError as ex:
-        image_formatter_error = "Fail! " + str(ex)
+        image_formatter_error = 'Fail! ' + str(ex)
     except Exception:  # pylint: disable=broad-except
         image_formatter_error = 'Got exception \n' + traceback.format_exc()
 
