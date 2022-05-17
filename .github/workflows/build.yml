@@ -100,6 +100,7 @@ jobs:
         # torch is BSD https://github.com/pytorch/pytorch/blob/master/LICENSE
         # torchvision is BSD https://github.com/pytorch/vision/blob/main/LICENSE
         # torchaudio is BSD https://github.com/pytorch/audio/blob/main/LICENSE
+        # terminado is BSD https://github.com/jupyter/terminado/blob/main/LICENSE
 
     - name: Print report
       if: ${{ always() }}
