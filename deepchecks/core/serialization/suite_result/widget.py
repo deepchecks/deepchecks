@@ -178,7 +178,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         """
         results = t.cast(
             t.List[check_types.CheckResult],
-            self.value.select_results(self.value.results_with_conditions & self.value.results_with_display)
+            self.value.select_results(self.value.results_with_conditions)
         )
         results_with_condition_and_display = [
             CheckResultWidgetSerializer(it).serialize(
@@ -188,10 +188,15 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             )
             for it in results
         ]
+        output = (
+            join(results_with_condition_and_display, HTML(value=CommonHtml.light_hr))
+            if len(results_with_condition_and_display) > 0
+            else (HTML(value='<p>Nothing to show</p>'),)
+        )
         return normalize_widget_style(VBox(children=[
             self.prepare_conditions_table(output_id=output_id),
             HTML(value='<h2>Check With Conditions Output</h2>'),
-            *join(results_with_condition_and_display, HTML(value=CommonHtml.light_hr))
+            *output
         ]))
 
     def prepare_navigation_for_unconditioned_results(
