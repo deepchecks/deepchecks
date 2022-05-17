@@ -40,8 +40,7 @@ In production environments, detecting drift (and other measured derived from dri
 as in many cases the label is unknown for some time after the prediction is made.
 
 It is important to note that not all changes in data represent drift. For example, periodic changes in data due to daily, weekly or
-seasonal changes are usually not considered drift, as they can be predicted in advance and the model can learn from
-past data samples.
+seasonal changes are usually not considered drift, as they as they are often present in the training data.
 
 
 Which Types of Drift Are There?
