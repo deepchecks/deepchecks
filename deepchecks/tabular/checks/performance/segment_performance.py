@@ -76,7 +76,6 @@ class SegmentPerformance(SingleDatasetCheck):
             dataset = context.test
 
         model = context.model
-        features_importance = context.features_importance
         scorer = context.get_single_scorer(self.user_scorer)
         dataset.assert_features()
         features = dataset.features
@@ -85,6 +84,8 @@ class SegmentPerformance(SingleDatasetCheck):
             raise DatasetValidationError('Dataset must have at least 2 features')
 
         if self.feature_1 is None and self.feature_2 is None:
+            # Use feature importance to select features if none were defined
+            features_importance = context.features_importance
             if features_importance is None:
                 self.feature_1, self.feature_2, *_ = features
             else:
@@ -141,11 +142,9 @@ class SegmentPerformance(SingleDatasetCheck):
         fig = px.imshow(scores, x=x, y=y, color_continuous_scale='rdylgn')
         fig.update_traces(text=scores_text, texttemplate='%{text}')
         fig.update_layout(title=f'{scorer.name} (count) by features {self.feature_1}/{self.feature_2}',
-                          width=800, height=800)
-        fig.update_xaxes(title=self.feature_2, showgrid=False)
+                          height=600)
+        fig.update_xaxes(title=self.feature_2, showgrid=False, tickangle=-30, side='bottom')
         fig.update_yaxes(title=self.feature_1, autorange='reversed', showgrid=False)
-        fig['data'][0]['showscale'] = True
-        fig['layout']['xaxis']['side'] = 'bottom'
 
         value = {'scores': scores, 'counts': counts, 'feature_1': self.feature_1, 'feature_2': self.feature_2}
         return CheckResult(value, display=fig)
