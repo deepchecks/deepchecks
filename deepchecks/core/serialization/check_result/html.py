@@ -59,6 +59,7 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
         include_requirejs: bool = False,
         include_plotlyjs: bool = True,
         connected: bool = True,
+        display_nothing_found: bool = True,
         **kwargs
     ) -> str:
         """Serialize a CheckResult instance into HTML format.
@@ -78,6 +79,9 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
             whether to include plotlyjs library into output or not
         connected : bool, default True
             whether to use CDN to load js libraries or to inject their code into output
+        display_nothing_found : bool, default True
+            affects the output only when display is empty. If True, will show nothing found message, otherwise will
+            not show the "additional-output" section.
 
         Returns
         -------
@@ -94,7 +98,7 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
         if 'condition-table' in sections_to_include:
             sections.append(''.join(self.prepare_conditions_table(output_id=output_id)))
 
-        if 'additional-output' in sections_to_include:
+        if 'additional-output' in sections_to_include and (display_nothing_found or self.value.display):
             sections.append(''.join(self.prepare_additional_output(output_id)))
 
         plotlyjs = plotlyjs_script(connected) if include_plotlyjs is True else ''

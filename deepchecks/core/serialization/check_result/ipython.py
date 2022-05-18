@@ -44,6 +44,7 @@ class CheckResultSerializer(IPythonSerializer['check_types.CheckResult']):
         self,
         output_id: t.Optional[str] = None,
         check_sections: t.Optional[t.Sequence[html.CheckResultSection]] = None,
+        display_nothing_found: bool = True,
         **kwargs
     ) -> t.List[IPythonFormatter]:
         """Serialize a CheckResult instance into a list of IPython formatters.
@@ -55,6 +56,9 @@ class CheckResultSerializer(IPythonSerializer['check_types.CheckResult']):
         check_sections : Optional[Sequence[Literal['condition-table', 'additional-output']]], default None
             sequence of check result sections to include into the output,
             in case of 'None' all sections will be included
+        display_nothing_found : bool, default True
+            affects the output only when display is empty. If True, will show nothing found message, otherwise will
+            not show the "additional-output" section.
 
         Returns
         -------
@@ -69,7 +73,7 @@ class CheckResultSerializer(IPythonSerializer['check_types.CheckResult']):
         if 'condition-table' in sections_to_include:
             sections.append(self.prepare_conditions_table(output_id=output_id))
 
-        if 'additional-output' in sections_to_include:
+        if 'additional-output' in sections_to_include and (display_nothing_found or self.value.display):
             sections.extend(self.prepare_additional_output(output_id))
 
         return list(flatten(sections))

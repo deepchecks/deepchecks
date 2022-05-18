@@ -65,12 +65,12 @@ class SuiteResultSerializer(IPythonSerializer['suite.SuiteResult']):
         conditions_table = self.prepare_conditions_table(output_id=output_id, **kwargs)
         failures = self.prepare_failures_list()
 
-        results_with_conditions = self.prepare_results_with_condition_and_display(
+        results_with_conditions = self.prepare_results_with_condition(
             output_id=output_id,
             check_sections=['condition-table', 'additional-output'],
             **kwargs
         )
-        results_without_conditions = self.prepare_results_without_condition(
+        results_without_conditions = self.prepare_results_without_condition_with_display(
             output_id=output_id,
             check_sections=['additional-output'],
             **kwargs
@@ -137,7 +137,7 @@ class SuiteResultSerializer(IPythonSerializer['suite.SuiteResult']):
             **kwargs
         ))
 
-    def prepare_results_with_condition_and_display(
+    def prepare_results_with_condition(
         self,
         output_id: t.Optional[str] = None,
         check_sections: t.Optional[t.Sequence[CheckResultSection]] = None,
@@ -160,13 +160,14 @@ class SuiteResultSerializer(IPythonSerializer['suite.SuiteResult']):
         results = t.cast(
             t.List[check_types.CheckResult],
             self.value.select_results(
-                self.value.results_with_conditions & self.value.results_with_display
+                self.value.results_with_conditions
             )
         )
         results_with_condition_and_display = [
             CheckResultSerializer(it).serialize(
                 output_id=output_id,
                 check_sections=check_sections,
+                display_nothing_found=False,
                 **kwargs
             )
             for it in results
@@ -180,7 +181,7 @@ class SuiteResultSerializer(IPythonSerializer['suite.SuiteResult']):
             content
         ]))
 
-    def prepare_results_without_condition(
+    def prepare_results_without_condition_with_display(
         self,
         output_id: t.Optional[str] = None,
         check_sections: t.Optional[t.Sequence[CheckResultSection]] = None,

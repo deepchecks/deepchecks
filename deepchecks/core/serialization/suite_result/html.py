@@ -84,12 +84,12 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         conditions_table = self.prepare_conditions_table(output_id=output_id, **kwargs)
         failures = self.prepare_failures_list()
 
-        results_with_conditions = self.prepare_results_with_condition_and_display(
+        results_with_conditions = self.prepare_results_with_condition(
             output_id=output_id,
             check_sections=['condition-table', 'additional-output'],
             **kwargs
         )
-        results_without_conditions = self.prepare_results_without_condition(
+        results_without_conditions = self.prepare_results_without_condition_with_display(
             output_id=output_id,
             check_sections=['additional-output'],
             **kwargs
@@ -250,7 +250,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
 
         return f'<h2>Conditions Summary</h2>{table}'
 
-    def prepare_results_with_condition_and_display(
+    def prepare_results_with_condition(
         self,
         output_id: t.Optional[str] = None,
         check_sections: t.Optional[t.Sequence[CheckResultSection]] = None,
@@ -273,7 +273,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         results = t.cast(
             t.List[check_types.CheckResult],
             self.value.select_results(
-                self.value.results_with_conditions & self.value.results_with_display
+                self.value.results_with_conditions
             )
         )
         results_with_condition_and_display = [
@@ -282,6 +282,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
                 check_sections=check_sections,
                 include_plotlyjs=False,
                 include_requirejs=False,
+                display_nothing_found=False,
                 **kwargs
             )
             for it in results
@@ -289,7 +290,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         content = Html.light_hr.join(results_with_condition_and_display)
         return f'<h2>Check With Conditions Output</h2>{content}'
 
-    def prepare_results_without_condition(
+    def prepare_results_without_condition_with_display(
         self,
         output_id: t.Optional[str] = None,
         check_sections: t.Optional[t.Sequence[CheckResultSection]] = None,
@@ -330,7 +331,9 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
 
     def prepare_failures_list(self) -> str:
         """Prepare subsection of the content that shows list of failures."""
-        results = self.value.select_results(self.value.failures | self.value.results_without_display)
+        results = self.value.select_results(
+            self.value.failures | (self.value.results_without_display & self.value.results_without_conditions)
+        )
 
         if not results:
             return ''

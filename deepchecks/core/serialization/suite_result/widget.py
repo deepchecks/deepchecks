@@ -69,10 +69,10 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         tab.set_title(2, 'Checks Without Output')
 
         tab.children = [
-            self.prepare_results_with_condition_and_display(
+            self.prepare_results_with_condition(
                 output_id=output_id, **kwargs
             ),
-            self.prepare_results_without_condition(
+            self.prepare_results_without_condition_with_display(
                 output_id=output_id,
                 check_sections=['additional-output'],
                 **kwargs
@@ -117,7 +117,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             value=self._html_serializer.prepare_failures_list()
         ))
 
-    def prepare_results_without_condition(
+    def prepare_results_without_condition_with_display(
         self,
         output_id: t.Optional[str] = None,
         check_sections: t.Optional[t.Sequence[CheckResultSection]] = None,
@@ -156,7 +156,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             *join(results_without_conditions, HTML(value=CommonHtml.light_hr))
         ]))
 
-    def prepare_results_with_condition_and_display(
+    def prepare_results_with_condition(
         self,
         output_id: t.Optional[str] = None,
         check_sections: t.Optional[t.Sequence[CheckResultSection]] = None,
@@ -184,6 +184,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             CheckResultWidgetSerializer(it).serialize(
                 output_id=output_id,
                 include=check_sections,
+                display_nothing_found=False,
                 **kwargs
             )
             for it in results
