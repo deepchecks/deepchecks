@@ -37,9 +37,10 @@ def test_detection_defaults(coco_train_visiondata, mock_trained_yolov5_object_de
 
 def test_detection_w_params(coco_train_visiondata, mock_trained_yolov5_object_detection, device):
     # params that should run normally
-    check = SingleDatasetScalarPerformance(reduce=torch.max, reduce_name='torch_max')
+    check = SingleDatasetScalarPerformance(reduce=torch.nansum, reduce_name='nan_sum')
     result = check.run(coco_train_visiondata, mock_trained_yolov5_object_detection, device=device)
     assert_that(type(result.value['score']), equal_to(float))
+    assert_that(result.value['score'], close_to(24.596, 0.001))
 
 
 def test_classification_defaults(mnist_dataset_train, mock_trained_mnist, device):
@@ -63,6 +64,7 @@ def test_classification_w_params(mnist_dataset_train, mock_trained_mnist, device
     check.add_condition_less_equal_to(0.2)
     result = check.run(mnist_dataset_train, mock_trained_mnist, device=device)
     assert_that(type(result.value['score']), equal_to(float))
+    assert_that(result.value['score'], close_to(0.993, 0.001))
     assert_that(result.conditions_results[0].is_pass)
     assert_that(result.conditions_results[1].is_pass, equal_to(False))
 
