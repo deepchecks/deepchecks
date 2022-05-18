@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains all prebuilt suites."""
-from .default_suites import (full_suite, model_evaluation, data_integrity,
+from .default_suites import (data_integrity, full_suite, model_evaluation,
                              single_dataset_integrity, train_test_leakage,
                              train_test_validation)
 

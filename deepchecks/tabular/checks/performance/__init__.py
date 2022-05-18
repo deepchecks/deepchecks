@@ -17,10 +17,12 @@ Module contains checks of model performance metrics.
 """
 import warnings
 
-from ..model_evaluation import (CalibrationScore, ConfusionMatrixReport, ModelErrorAnalysis,
-                                MultiModelPerformanceReport, PerformanceReport, RegressionErrorDistribution,
-                                RegressionSystematicError, RocReport, SegmentPerformance, SimpleModelComparison)
-
+from ..model_evaluation import (CalibrationScore, ConfusionMatrixReport,
+                                ModelErrorAnalysis,
+                                MultiModelPerformanceReport, PerformanceReport,
+                                RegressionErrorDistribution,
+                                RegressionSystematicError, RocReport,
+                                SegmentPerformance, SimpleModelComparison)
 
 __all__ = [
     'PerformanceReport',

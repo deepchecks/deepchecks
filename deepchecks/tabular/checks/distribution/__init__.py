@@ -16,8 +16,9 @@
 """
 import warnings
 
-from ..train_test_validation import TrainTestFeatureDrift, TrainTestLabelDrift, WholeDatasetDrift
 from ..model_evaluation import TrainTestPredictionDrift
+from ..train_test_validation import (TrainTestFeatureDrift,
+                                     TrainTestLabelDrift, WholeDatasetDrift)
 
 __all__ = [
     'TrainTestFeatureDrift',

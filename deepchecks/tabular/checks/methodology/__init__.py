@@ -19,12 +19,15 @@ Module contains checks for methodological flaws in the model building process.
 """
 import warnings
 
-from ..model_evaluation import BoostingOverfit, ModelInferenceTime, UnusedFeatures
-from ..train_test_validation import (DatasetsSizeComparison, DateTrainTestLeakageDuplicates,
-                                     DateTrainTestLeakageOverlap, IdentifierLeakage, IndexTrainTestLeakage,
-                                     SingleFeatureContributionTrainTest, TrainTestSamplesMix)
 from ..integrity import SingleFeatureContribution
-
+from ..model_evaluation import (BoostingOverfit, ModelInferenceTime,
+                                UnusedFeatures)
+from ..train_test_validation import (DatasetsSizeComparison,
+                                     DateTrainTestLeakageDuplicates,
+                                     DateTrainTestLeakageOverlap,
+                                     IdentifierLeakage, IndexTrainTestLeakage,
+                                     SingleFeatureContributionTrainTest,
+                                     TrainTestSamplesMix)
 
 __all__ = [
     'BoostingOverfit',
