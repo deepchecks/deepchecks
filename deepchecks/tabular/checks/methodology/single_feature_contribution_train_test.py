@@ -122,7 +122,7 @@ class SingleFeatureContributionTrainTest(TrainTestCheck):
         return CheckResult(value=ret_value, display=display, header='Single Feature Contribution Train-Test')
 
     def add_condition_feature_pps_difference_not_greater_than(self: FC, threshold: float = 0.2,
-                                                              include_negative_diff: bool=True) -> FC:
+                                                              include_negative_diff: bool = True) -> FC:
         """Add new condition.
 
         Add condition that will check that difference between train

@@ -10,6 +10,7 @@
 #
 """Module contains the simple feature distribution check."""
 from collections import defaultdict
+from copy import copy
 from typing import Callable, Dict, Hashable, TypeVar, Union
 
 import numpy as np
@@ -232,7 +233,8 @@ class SimpleFeatureContribution(TrainTestCheck):
 
         return (col.round() != col).any()
 
-    def add_condition_feature_pps_difference_not_greater_than(self: SFC, threshold: float = 0.2) -> SFC:
+    def add_condition_feature_pps_difference_not_greater_than(self: SFC, threshold: float = 0.2,
+                                                              include_negative_diff: bool = False) -> SFC:
         """Add new condition.
 
         Add condition that will check that difference between train
@@ -244,27 +246,38 @@ class SimpleFeatureContribution(TrainTestCheck):
         ----------
         threshold : float , default: 0.2
             train test ps difference upper bound.
+        include_negative_diff: bool, default True
+            This parameter decides whether the condition checks the absolute value of the difference, or just the
+            positive value.
+            The difference is calculated as train PPS minus test PPS. This is because we're interested in the case
+            where the test dataset is less predictive of the label than the train dataset, as this could indicate
+            leakage of labels into the train dataset.
+
 
         Returns
         -------
         SFC
         """
 
-        def condition(value: Dict[Hashable, Dict[Hashable, float]]) -> ConditionResult:
+        def condition(value: Union[Dict[Hashable, Dict[Hashable, float]],
+                                   Dict[Hashable, Dict[Hashable, Dict[Hashable, float]]]],
+                      ) -> ConditionResult:
+
             if self.per_class is True:
-                failed_features = {
-                    feature_name: format_number(pps_value)
-                    for feature_name, pps_value in
-                    zip(value.keys(), [max(value[f]['train-test difference'].values()) for f in value.keys()])
-                    if np.abs(pps_value) > threshold
-                }
+                diff_dict = {f: max(value[f]['train-test difference'].values()) for f in value.keys()}
+                if include_negative_diff is True:
+                    diff_dict = {f: max(np.abs(value[f]['train-test difference'].values())) for f in value.keys()}
 
             else:
-                failed_features = {
-                    feature_name: format_number(pps_value)
-                    for feature_name, pps_value in value['train-test difference'].items()
-                    if np.abs(pps_value) > threshold
-                }
+                diff_dict = copy(value['train-test difference'])
+                if include_negative_diff is True:
+                    diff_dict = {k: np.abs(v) for k, v in diff_dict.items()}
+
+            failed_features = {
+                feature_name: format_number(pps_value)
+                for feature_name, pps_value in diff_dict.items()
+                if pps_value > threshold
+            }
 
             if failed_features:
                 message = f'Features with PPS difference above threshold: {failed_features}'

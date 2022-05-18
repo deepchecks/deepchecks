@@ -331,3 +331,138 @@ def test_train_test_condition_pps_train_fail_per_class(coco_train_visiondata, co
         details='Features in train dataset with PPS above threshold: {\'RMS Contrast\': \'0.83\', '
                 '\'Brightness\': \'0.5\', \'Mean Blue Relative Intensity\': \'0.33\'}'
     ))
+
+def test_train_test_condition_pps_diff_pass(coco_train_visiondata):
+    # Arrange
+    train, test = coco_train_visiondata, coco_train_visiondata
+    condition_value = 0.01
+    check = SimpleFeatureContribution(per_class=False, random_state=42
+                                      ).add_condition_feature_pps_difference_not_greater_than(condition_value)
+
+    # Act
+    result = check.run(train_dataset=train,
+                       test_dataset=test)
+    condition_result, *_ = check.conditions_decision(result)
+
+    # Assert
+    assert_that(condition_result, equal_condition_result(
+        is_pass=True,
+        name=f'Train-Test properties\' Predictive Power Score difference is not greater than {condition_value}'
+    ))
+
+
+def test_train_test_condition_pps_positive_diff_fail(coco_train_visiondata, coco_test_visiondata):
+    # Arrange
+    train, test = coco_train_visiondata, coco_test_visiondata
+    condition_value = 0.09
+    check = SimpleFeatureContribution(per_class=False, random_state=42
+                                      ).add_condition_feature_pps_difference_not_greater_than(condition_value)
+    train = copy(train)
+    train.batch_to_images = get_coco_batch_to_images_with_bias(train.batch_to_labels)
+
+    # Act
+    result = check.run(train_dataset=train,
+                       test_dataset=test)
+    condition_result, *_ = check.conditions_decision(result)
+
+    # Assert
+    assert_that(condition_result, equal_condition_result(
+        is_pass=False,
+        name=f'Train-Test properties\' Predictive Power Score difference is not greater than {condition_value}',
+        details=(
+            'Features with PPS difference above threshold: '
+            '{\'Mean Red Relative Intensity\': \'0.1\'}'
+        )
+    ))
+
+
+def test_train_test_condition_pps_diff_fail(coco_train_visiondata, coco_test_visiondata):
+    # Arrange
+    train, test = coco_train_visiondata, coco_test_visiondata
+    condition_value = 0.09
+    check = SimpleFeatureContribution(per_class=False, random_state=42).\
+        add_condition_feature_pps_difference_not_greater_than(condition_value, include_negative_diff=False)
+    train = copy(train)
+    train.batch_to_images = get_coco_batch_to_images_with_bias(train.batch_to_labels)
+
+    # Act
+    result = check.run(train_dataset=train,
+                       test_dataset=test)
+    condition_result, *_ = check.conditions_decision(result)
+
+    # Assert
+    assert_that(condition_result, equal_condition_result(
+        is_pass=False,
+        name=f'Train-Test properties\' Predictive Power Score difference is not greater than {condition_value}',
+        details=(
+            'Features with PPS difference above threshold: '
+            '{\'Mean Red Relative Intensity\': \'0.1\'}'
+        )
+    ))
+
+
+def test_train_test_condition_pps_diff_pass_per_class(mnist_dataset_train):
+    # Arrange
+    train, test = mnist_dataset_train, mnist_dataset_train
+    condition_value = 0.3
+    check = SimpleFeatureContribution(per_class=True, random_state=42
+                                      ).add_condition_feature_pps_difference_not_greater_than(condition_value)
+
+    # Act
+    result = check.run(train_dataset=train,
+                       test_dataset=test)
+    condition_result, *_ = check.conditions_decision(result)
+
+    # Assert
+    assert_that(condition_result, equal_condition_result(
+        is_pass=True,
+        name=f'Train-Test properties\' Predictive Power Score difference is not greater than {condition_value}'
+    ))
+
+
+def test_train_test_condition_pps_positive_diff_fail_per_class(coco_train_visiondata, coco_test_visiondata):
+    # Arrange
+    train, test = coco_train_visiondata, coco_test_visiondata
+    condition_value = 0.4
+    check = SimpleFeatureContribution(per_class=True, random_state=42).\
+        add_condition_feature_pps_difference_not_greater_than(condition_value, include_negative_diff=False)
+    train = copy(train)
+    train.batch_to_images = get_coco_batch_to_images_with_bias_one_class(train.batch_to_labels)
+
+    # Act
+    result = check.run(train_dataset=train,
+                       test_dataset=test)
+    condition_result, *_ = check.conditions_decision(result)
+
+    # Assert
+    assert_that(condition_result, equal_condition_result(
+        is_pass=False,
+        name=f'Train-Test properties\' Predictive Power Score difference is not greater than {condition_value}',
+        details='Features with PPS difference above threshold: {\'RMS Contrast\': \'0.83\', '
+                '\'Brightness\': \'0.5\'}'
+    ))
+
+
+def test_train_test_condition_pps_diff_fail_per_class(coco_train_visiondata, coco_test_visiondata):
+    # Arrange
+    train, test = coco_train_visiondata, coco_test_visiondata
+    condition_value = 0.3
+    check = SimpleFeatureContribution(per_class=True, random_state=42
+                                      ).add_condition_feature_pps_difference_not_greater_than(condition_value)
+    train = copy(train)
+    train.batch_to_images = get_coco_batch_to_images_with_bias_one_class(train.batch_to_labels)
+
+    # Act
+    result = check.run(train_dataset=train,
+                       test_dataset=test)
+    condition_result, *_ = check.conditions_decision(result)
+
+    # Assert
+    assert_that(condition_result, equal_condition_result(
+        is_pass=False,
+        name=f'Train-Test properties\' Predictive Power Score difference is not greater than {condition_value}',
+        details='Features with PPS difference above threshold: {\'RMS Contrast\': \'0.83\', '
+                '\'Brightness\': \'0.5\', \'Mean Blue Relative Intensity\': \'0.33\'}'
+    ))
+
+

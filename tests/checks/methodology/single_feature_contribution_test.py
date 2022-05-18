@@ -214,6 +214,7 @@ def test_train_test_condition_pps_positive_difference_fail():
         details='Features with PPS difference above threshold: {\'x2\': \'0.31\'}'
     ))
 
+
 def test_train_test_condition_pps_difference_pass():
     # Arrange
     df, df2, expected = util_generate_second_similar_dataframe_and_expected()
