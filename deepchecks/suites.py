@@ -30,5 +30,6 @@ __all__ = [
     'train_test_leakage',
     'train_test_validation',
     'model_evaluation',
-    'full_suite'
+    'full_suite',
+    'data_integrity',
 ]

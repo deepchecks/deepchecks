@@ -2,47 +2,30 @@
 Tabular Checks
 ==============
 
-Distribution
-------------
+
+Data Integrity
+--------------
 
 .. toctree::
     :maxdepth: 1
     :glob:
 
-    tabular/distribution/plot_*
+    tabular/data_integrity/plot_*
 
-Integrity
----------
-
-.. toctree::
-    :maxdepth: 1
-    :glob:
-
-    tabular/integrity/plot_*
-
-Methodology
------------
+Train Test Validation
+---------------------
 
 .. toctree::
     :maxdepth: 1
     :glob:
 
-    tabular/methodology/plot_*
+    tabular/train_test_validation/plot_*
 
-Overview
---------
-
-.. toctree::
-    :maxdepth: 1
-    :glob:
-
-    tabular/overview/plot_*
-
-Performance
------------
+Model Evaluation
+----------------
 
 .. toctree::
     :maxdepth: 1
     :glob:
 
-    tabular/performance/plot_*
+    tabular/model_evaluation/plot_*
