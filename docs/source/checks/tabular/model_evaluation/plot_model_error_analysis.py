@@ -34,7 +34,7 @@ Related Checks:
 When the important segments of the data are known in advance (when we know that some population segments have
 different behaviours and business importance, for example income levels or state of residence) it is possible to just
 have a look at the performance at various pre-defined segments. In deepchecks, this can be done using the
-:doc:`Segment Performance </checks_gallery/tabular/performance/plot_segment_performance>` check, which shows the
+:doc:`Segment Performance </checks_gallery/tabular/model_evaluation/plot_segment_performance>` check, which shows the
 performance for segments defined by combination of values from two pre-defined columns.
 
 
@@ -59,7 +59,7 @@ result
 #%%
 # The check has found that the features 'hours-per-week', 'age' and 'relationship' are the most predictive of
 # differences in the model error. We can further investigate the model performance by passing two of these columns
-# to the :doc:`Segment Performance </checks_gallery/tabular/performance/plot_segment_performance>` check:
+# to the :doc:`Segment Performance </checks_gallery/tabular/model_evaluation/plot_segment_performance>` check:
 
 from deepchecks.tabular.checks import SegmentPerformance
 
