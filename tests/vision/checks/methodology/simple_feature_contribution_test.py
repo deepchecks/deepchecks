@@ -17,7 +17,7 @@ from hamcrest import assert_that, close_to, equal_to, has_entries
 
 from deepchecks.vision.checks import SimpleFeatureContribution
 from deepchecks.vision.utils.transformations import un_normalize_batch
-from tests.checks.utils import equal_condition_result
+from tests.base.utils import equal_condition_result
 from tests.vision.vision_conftest import *
 
 

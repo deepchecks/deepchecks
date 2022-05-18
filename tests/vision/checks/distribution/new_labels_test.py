@@ -15,7 +15,7 @@ from hamcrest import assert_that, close_to, has_entries, has_items, has_length
 
 from deepchecks.vision.checks.distribution import NewLabels
 from deepchecks.vision.utils.test_utils import get_modified_dataloader
-from tests.checks.utils import equal_condition_result
+from tests.base.utils import equal_condition_result
 
 
 def get_modification_func_classification(new_labels):

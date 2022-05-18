@@ -14,7 +14,7 @@ from hamcrest import (assert_that, calling, close_to, equal_to, has_entries,
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks import TrainTestLabelDrift
-from tests.checks.utils import equal_condition_result
+from tests.base.utils import equal_condition_result
 
 
 def test_no_drift_classification(mnist_dataset_train, device):

@@ -94,6 +94,7 @@ docs.error.log
 # Automatically downloaded files
 *coco128*
 *MNIST*
+*ultralytics_yolov5_v6.1*
 
 # build folders of sphinx gallery
 docs/source/user-guide/general/customizations/examples/
