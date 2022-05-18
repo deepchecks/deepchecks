@@ -9,21 +9,18 @@
 # ----------------------------------------------------------------------------
 #
 """Contains unit tests for the Dataset class."""
-import logging
 import typing as t
 import warnings
 
 import numpy as np
 import pandas as pd
-import pytest
 from hamcrest import (all_of, assert_that, calling, contains_exactly, equal_to,
                       greater_than, has_item, has_length, has_property,
-                      instance_of, is_, not_none, raises, contains_string)
+                      instance_of, is_, not_none, raises)
 from sklearn.datasets import load_iris, make_classification
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.dataset import Dataset
-from deepchecks.tabular.dataset import logger as ds_logger
 from deepchecks.tabular.utils.validation import ensure_dataframe_type
 
 

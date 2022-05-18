@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module for base vision context."""
-import logging
 import warnings
 from typing import Mapping, Union
 
@@ -23,12 +22,10 @@ from deepchecks.core.errors import (DatasetValidationError,
                                     DeepchecksNotSupportedError,
                                     DeepchecksValueError, ModelValidationError,
                                     ValidationError)
-from deepchecks.vision.vision_data import TaskType, VisionData
+from deepchecks.vision.vision_data import VisionData
+from deepchecks.vision.task_type import TaskType
 
 __all__ = ['Context']
-
-
-logger = logging.getLogger('deepchecks')
 
 
 class Context:

@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """The dataset module containing the tabular Dataset class and its functions."""
-import logging
 # pylint: disable=inconsistent-quotes,protected-access
 import typing as t
 import warnings
@@ -32,7 +31,6 @@ from deepchecks.utils.typing import Hashable
 __all__ = ['Dataset']
 
 
-logger = logging.getLogger('deepchecks.dataset')
 TDataset = t.TypeVar('TDataset', bound='Dataset')
 
 

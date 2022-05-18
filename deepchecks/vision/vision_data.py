@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """The vision/dataset module containing the vision Dataset class and its functions."""
-import logging
 # pylint: disable=protected-access
 import random
 import warnings
@@ -34,7 +33,6 @@ from deepchecks.vision.utils.transformations import get_transforms_handler
 __all__ = ['VisionData']
 
 
-logger = logging.getLogger('deepchecks')
 VD = TypeVar('VD', bound='VisionData')
 
 
@@ -89,7 +87,7 @@ class VisionData:
             self.validate_label(batch)
         except DeepchecksNotImplementedError:
             self._label_formatter_error = 'batch_to_labels() was not implemented, some checks will not run'
-            warnings.warn(self._image_formatter_error)
+            warnings.warn(self._label_formatter_error)
         except ValidationError as ex:
             self._label_formatter_error = f'batch_to_labels() was not implemented correctly, the validation has ' \
                                           f'failed with the error: "{ex}". To test your label formatting use the ' \
