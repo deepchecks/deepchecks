@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-===========================================================
 Data Integrity Suite on Avocado Sales Data - Quickstart
-===========================================================
+*******************************************************
 
 The deepchecks integrity suite is relevant any time you have new data that you wish to validate.
 He're we'll use the avocado prices dataset, to demonstrate how you can run 
