@@ -84,3 +84,12 @@ hotfix
 pyplot
 plt
 func
+jupyter
+Jupyter
+nbextension
+jupyterlab
+getoutput
+urlobj
+qs
+urlobj
+labextension

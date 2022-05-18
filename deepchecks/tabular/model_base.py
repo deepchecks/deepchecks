@@ -18,7 +18,7 @@ from deepchecks.core.errors import (DeepchecksNotSupportedError,
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.tabular.context import Context
 from deepchecks.tabular.dataset import Dataset
-from deepchecks.utils.ipython import ProgressBar
+from deepchecks.utils.ipython import create_progress_bar
 
 __all__ = [
     'ModelComparisonSuite',
@@ -63,19 +63,22 @@ class ModelComparisonSuite(BaseSuite):
         context = ModelComparisonContext(train_datasets, test_datasets, models)
 
         # Create progress bar
-        progress_bar = ProgressBar(self.name, len(self.checks), 'Check')
+        progress_bar = create_progress_bar(
+            list(self.checks.values()),
+            name=self.name,
+            unit='Check'
+        )
 
         # Run all checks
         results = []
-        for check in self.checks.values():
+
+        for check in progress_bar:
             try:
                 check_result = check.run_logic(context)
                 results.append(check_result)
             except Exception as exp:
                 results.append(CheckFailure(check, exp))
-            progress_bar.inc_progress()
 
-        progress_bar.close()
         return SuiteResult(self.name, results)
 
 

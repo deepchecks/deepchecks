@@ -8,25 +8,31 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+# pylint: disable=assignment-from-none
 """Utils module containing useful global functions."""
+import contextlib
+import io
 import os
 import re
 import subprocess
 import sys
+import typing as t
 from functools import lru_cache
 
 import tqdm
 from IPython import get_ipython
+from IPython.display import display
 from tqdm.notebook import tqdm as tqdm_notebook
 
 __all__ = [
     'is_notebook',
     'is_widgets_enabled',
     'is_headless',
-    'ProgressBar',
+    'create_progress_bar',
+    'create_dummy_progress_bar',
     'is_colab_env',
     'is_kaggle_env',
-    'is_widgets_use_possible'
+    'is_widgets_use_possible',
 ]
 
 
@@ -74,6 +80,13 @@ def is_headless() -> bool:
 @lru_cache(maxsize=None)
 def is_widgets_enabled() -> bool:
     """Check if we're running in jupyter and having jupyter widgets extension enabled."""
+    # TODO:
+    # this is not the right way to verify whether widgets are enabled or not:
+    #  - there is always a possibility that a user had started the jupyter server
+    #    with not default config path
+    #  - there are two extension types:
+    #      + classical notebook extensions (managed by 'jupyter nbextension');
+    #      + jupyterlab extensions (managed by 'jupyter labextension');
     if not is_notebook():
         return False
     else:
@@ -116,39 +129,189 @@ def is_widgets_use_possible() -> bool:
     )
 
 
-class ProgressBar:
-    """Progress bar for display while running suite.
+def create_progress_bar(
+    iterable: t.Sequence[t.Any],
+    name: str,
+    unit: str,
+):
+    """Create a tqdm progress bar instance."""
+    kwargs = {
+        'iterable': iterable,
+        'desc': name,
+        'unit': f' {unit}',
+        'leave': True,
+    }
 
-    Parameters
-    ----------
-    name : str
-    length : int
-    """
+    iterlen = len(iterable)
+    barlen = iterlen if iterlen > 5 else 5
 
-    def __init__(self, name, length, unit):
-        """Initialize progress bar."""
-        self.unit = unit
-        shared_args = {'total': length, 'desc': name, 'unit': f' {unit}', 'leave': False, 'file': sys.stdout}
-        if is_widgets_enabled():
-            self.pbar = tqdm_notebook(**shared_args, colour='#9d60fb')
-        else:
-            # Normal tqdm with colour in notebooks produce bug that the cleanup doesn't remove all characters. so
-            # until bug fixed, doesn't add the colour to regular tqdm
-            self.pbar = tqdm.tqdm(**shared_args, bar_format=f'{{l_bar}}{{bar:{length}}}{{r_bar}}')
+    if is_widgets_enabled():
+        return tqdm_notebook(
+            **kwargs,
+            colour='#9d60fb',
+            file=sys.stdout
+        )
 
-    def set_text(self, text):
-        """Set current running check.
+    elif is_notebook():
 
-        Parameters
-        ----------
-        text: str
-        """
-        self.pbar.set_postfix({self.unit: text})
+        class PB(tqdm.tqdm):
+            """Custom progress bar."""
 
-    def close(self):
-        """Close the progress bar."""
-        self.pbar.close()
+            def __init__(self, **kwargs):
+                self.display_handler = display({'text/plain': ''}, raw=True, display_id=True)
+                kwargs['file'] = io.StringIO()
+                super().__init__(**kwargs)
 
-    def inc_progress(self):
-        """Increase progress bar value by 1."""
-        self.pbar.update(1)
+            def refresh(self, nolock=False, lock_args=None):
+                value = super().refresh(nolock, lock_args)
+                self.display_handler.update({'text/plain': self.fp.getvalue()}, raw=True)
+                self.fp.seek(0)
+                return value
+
+            def close(self, *args, **kwargs):
+                value = super().close(*args, **kwargs)
+                self.display_handler.update({'text/plain': self.fp.getvalue()}, raw=True)
+                self.fp.seek(0)
+                return value
+
+        return PB(
+            **kwargs,
+            bar_format='{{desc}}:\n|{{bar:{0}}}{{r_bar}}'.format(barlen),  # pylint: disable=consider-using-f-string
+        )
+
+    else:
+        return tqdm.tqdm(
+            **kwargs,
+            bar_format='{{desc}}:\n|{{bar:{0}}}{{r_bar}}'.format(barlen),  # pylint: disable=consider-using-f-string
+        )
+
+
+@contextlib.contextmanager
+def create_dummy_progress_bar(name: str, unit: str):
+    """Create a tqdm progress bar instance that has only one step."""
+    for _ in create_progress_bar(
+        list(range(1)),
+        name=name,
+        unit=unit
+    ):
+        yield
+
+
+# TODO:
+# NOTE:
+#   take a look at the 'is_widgets_enabled' function
+#   to understand why this code below is needed
+
+# class JupyterServerInfo(t.NamedTuple):
+#     url: str
+#     directory: str
+
+
+# class JupyterLabExtensionInfo(t.TypedDict):
+#     name: str
+#     description: str
+#     url: str
+#     enabled: bool
+#     core: bool
+#     latest_version: str
+#     installed_version: str
+#     status: str
+
+
+# class NotebookExtensionsInfo(t.TypedDict):
+#     load_extensions: t.Dict[str, bool]  # name of extension -> is enabled flag
+
+
+# def get_jupyter_server_info() -> t.List[JupyterServerInfo]:
+#     try:
+#         output = subprocess.getoutput('jupyter server list').split('\n')
+#         return [
+#             JupyterServerInfo(*list(map(str.strip, it.split('::'))))
+#             for it in output[1:]
+#         ]
+#     except BaseException:
+#         return []
+
+
+# def get_jupyterlab_extensions_config() -> t.List[t.Tuple[
+#     JupyterServerInfo,
+#     t.List[JupyterLabExtensionInfo]
+# ]]:
+#     output = []
+
+#     for server in get_jupyter_server_info():
+#         urlobj = urlparse(server.url)
+#         url = '{}://{}/lab/api/extensions?token={}'.format(
+#             urlobj.scheme,
+#             urlobj.netloc,
+#             _extract_jupyter_token(urlobj.query)
+#         )
+#         try:
+#             with urllib.request.urlopen(url) as f:
+#                 output.append((server, json.load(f)))
+#         except:
+#             pass
+
+#     return output
+
+
+# def get_notebooks_extensions_config() -> t.List[t.Tuple[
+#     JupyterServerInfo,
+#     NotebookExtensionsInfo
+# ]]:
+#     output = []
+
+#     for server in get_jupyter_server_info():
+#         urlobj = urlparse(server.url)
+#         url = '{}://{}/api/config/notebook?token={}'.format(
+#             urlobj.scheme,
+#             urlobj.netloc,
+#             _extract_jupyter_token(urlobj.query)
+#         )
+#         try:
+#             with urllib.request.urlopen(url) as f:
+#                 output.append((server, json.load(f)))
+#         except BaseException:
+#             pass
+
+#     return output
+
+
+# def _extract_jupyter_token(url) -> str:
+#     query = parse_qs(url)
+#     token = (query.get('token') or [])
+#     return (token[0] if len(token) > 0 else '')
+
+
+# def is_widgets_enabled() -> bool:
+#     lab_config = get_jupyterlab_extensions_config()
+#     notebook_config = get_notebooks_extensions_config()
+
+#     is_lab_extension_enabled = False
+#     is_notebook_extension_enabled = False
+
+#     for _, extensions_list in lab_config:
+#         is_widgets_extension_enabled = any([
+#             config
+#             for config in extensions_list
+#             if (
+#                 config['name'] == '@jupyter-widgets/jupyterlab-manager'
+#                 and config['enabled']
+#             )
+#         ])
+#         if is_widgets_extension_enabled is True:
+#             is_lab_extension_enabled = True
+#             break
+
+#     for _, config in notebook_config:
+#         extensions = config.get('load_extensions') or {}
+#         if extensions.get('jupyter-js-widgets/extension') is True:
+#             is_notebook_extension_enabled = True
+#             break
+
+#     if len(lab_config) > 1 or len(notebook_config) > 1:
+#         warnings.warn('')  # TODO:
+#     elif is_lab_extension_enabled is False or is_notebook_extension_enabled:
+#         warnings.warn('')  # TODO:
+
+#     return is_lab_extension_enabled or is_notebook_extension_enabled
