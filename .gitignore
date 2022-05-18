@@ -95,6 +95,9 @@ docs.error.log
 *coco128*
 *MNIST*
 
+# docs build files
+docs/source/_build
+
 # build folders of sphinx gallery
 docs/source/user-guide/general/customizations/examples/
 docs/source/user-guide/general/exporting_results/examples/

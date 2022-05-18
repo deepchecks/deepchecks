@@ -135,6 +135,8 @@ result
 # let's inspect the suite's structure
 integ_suite
 
+#%%
+
 # and remove the condition:
 integ_suite[3].clean_conditions()
 
