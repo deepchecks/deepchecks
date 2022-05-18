@@ -87,9 +87,18 @@ class MixedNulls(SingleDatasetCheck):
 
         for column_name in list(df.columns):
             column_data = df[column_name]
-            # Pandas version 1.3.X and lower doesn't support counting separate NaN values in value_counts
+            # Pandas version 1.3.X and lower doesn't support counting separate NaN types in value_counts (numpy nan,
+            # pandas nan, None, etc.)
             if parse_version(pd.__version__) < parse_version('1.4.0'):
-                column_counts = Counter(column_data)
+                column_counts: pd.Series = column_data.value_counts(dropna=True)
+                # Nan values are not equal to each other, so in order to group them together by type, first we
+                # transform the using the id function:
+                # np.nan != np.nan
+                # id(np.nan) == id(np.nan) != id(pd.NA)
+                unique_nans = [x for x in column_data.unique() if pd.isnull(x)]
+                column_id_counts = column_data.apply(id).value_counts()
+                nan_counts = pd.Series({nan: column_id_counts[id(nan)] for nan in unique_nans})
+                column_counts = column_counts.append(nan_counts)
             else:
                 # Get counts of all values in series including NaNs
                 column_counts: pd.Series = column_data.value_counts(dropna=False)
