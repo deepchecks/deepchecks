@@ -17,6 +17,7 @@ import plotly.graph_objects as go
 
 import deepchecks.ppscore as pps
 from deepchecks.utils.plot import colors
+from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
 
 
@@ -40,14 +41,28 @@ def get_pps_figure(per_class: bool):
     return fig
 
 
-def pps_df_to_trace(s_pps: pd.Series, name: str):
-    """If name is train/test use our defined colors, else will use plotly defaults."""
+def pd_series_to_trace(s_pps: pd.Series, name: str):
+    """Create bar plotly bar trace out of pandas Series."""
     name = name.capitalize() if name else None
     return go.Bar(x=s_pps.index,
                   y=s_pps,
                   name=name,
                   marker_color=colors.get(name),
-                  text=s_pps.round(2),
+                  text='<b>' + s_pps.round(2).astype(str) + '</b>',
+                  textposition='outside'
+                  )
+
+
+def pd_series_to_trace_with_diff(s_pps: pd.Series, name: str, diffs: pd.Series):
+    """Create bar plotly bar trace out of pandas Series, with difference shown in percentages."""
+    diffs_text = '(' + diffs.apply(format_percent, floating_point=0, add_positive_prefix=True) + ')'
+    text = s_pps.round(2).astype(str) + '<br>' + diffs_text
+    name = name.capitalize() if name else None
+    return go.Bar(x=s_pps.index,
+                  y=s_pps,
+                  name=name,
+                  marker_color=colors.get(name),
+                  text='<b>' + text + '</b>',
                   textposition='outside'
                   )
 
@@ -106,15 +121,8 @@ def get_single_feature_contribution(train_df: pd.DataFrame, train_label_name: Op
     s_pps_test_to_display = s_pps_test[s_difference_to_display.index]
 
     fig = get_pps_figure(per_class=False)
-    fig.add_trace(pps_df_to_trace(s_pps_train_to_display, 'train'))
-    fig.add_trace(pps_df_to_trace(s_pps_test_to_display, 'test'))
-    fig.add_trace(go.Scatter(x=s_difference_to_display.index,
-                             y=s_difference_to_display,
-                             name='Train-Test Difference (abs)',
-                             marker=dict(symbol='circle', size=15),
-                             line=dict(color='#aa57b5', width=5),
-                             text=s_difference_to_display.round(2)
-                             ))
+    fig.add_trace(pd_series_to_trace(s_pps_train_to_display, 'train'))
+    fig.add_trace(pd_series_to_trace_with_diff(s_pps_test_to_display, 'test', s_pps_test_to_display))
 
     ret_value = {'train': s_pps_train.to_dict(), 'test': s_pps_test.to_dict(),
                  'train-test difference': s_difference.to_dict()}
@@ -211,8 +219,8 @@ def get_single_feature_contribution_per_class(train_df: pd.DataFrame, train_labe
 
             fig = get_pps_figure(per_class=True)
             fig.update_layout(title=f'{feature}: Predictive Power Score (PPS) Per Class')
-            fig.add_trace(pps_df_to_trace(s_train_to_display, 'train'))
-            fig.add_trace(pps_df_to_trace(s_test_to_display, 'test'))
+            fig.add_trace(pd_series_to_trace(s_train_to_display, 'train'))
+            fig.add_trace(pd_series_to_trace_with_diff(s_test_to_display, 'test', s_difference_to_display))
             display.append(fig)
 
     return ret_value, display

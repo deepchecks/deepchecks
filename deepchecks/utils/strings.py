@@ -412,15 +412,21 @@ def truncate_zero_percent(ratio: float, floating_point: int):
     return f'{ratio * 100:.{floating_point}f}'.rstrip('0').rstrip('.') + '%'
 
 
-def format_percent(ratio: float, floating_point: int = 2, scientific_notation_threshold: int = 4) -> str:
+def format_percent(ratio: float, floating_point: int = 2, scientific_notation_threshold: int = 4,
+                   add_positive_prefix: bool = False) -> str:
     """Format percent for elegant display.
 
     Parameters
     ----------
     ratio : float
         Ratio to be displayed as percent
-    floating_point : int , default: 2
+    floating_point: int , default: 2
         Number of floating points to display
+    scientific_notation_threshold: int, default: 4
+        Max number of floating points for which to show number as float. If number of floating points is larger than
+        this parameter, scientific notation (e.g. "10E-5%") will be shown.
+    add_positive_prefix: bool, default: False
+        add plus sign before positive percentages (minus sign is always added for negative percentages).
     Returns
     -------
     str
@@ -431,7 +437,7 @@ def format_percent(ratio: float, floating_point: int = 2, scientific_notation_th
         ratio = -ratio
         prefix = '-'
     else:
-        prefix = ''
+        prefix = '+' if add_positive_prefix and ratio != 0 else ''
 
     if int(ratio) == ratio:
         result = f'{int(ratio) * 100}%'
