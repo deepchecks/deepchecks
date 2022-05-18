@@ -43,6 +43,13 @@ __all__ = [
     'DatasetsSizeComparison',
 ]
 
+warnings.filterwarnings(
+    action='once',
+    message=r'deepchecks.tabular.checks.methodology is deprecated.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.tabular.checks.methodology.*'
+)
+
 warnings.warn(
                 'deepchecks.tabular.checks.methodology is deprecated and will be removed in deepchecks 0.8 version. '
                 'Use deepchecks.tabular.checks.model_evaluation, deepchecks.tabular.checks.train_test_validation,'

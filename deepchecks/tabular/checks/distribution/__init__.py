@@ -27,6 +27,13 @@ __all__ = [
     'TrainTestPredictionDrift'
 ]
 
+warnings.filterwarnings(
+    action='once',
+    message=r'deepchecks.tabular.checks.distribution is deprecated.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.tabular.checks.distribution.*'
+)
+
 warnings.warn(
                 'deepchecks.tabular.checks.distribution is deprecated. Use '
                 'deepchecks.tabular.checks.train_test_validation instead.',
