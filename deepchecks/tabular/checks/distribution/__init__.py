@@ -8,11 +8,16 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module containing all data distribution checks."""
-from .train_test_feature_drift import TrainTestFeatureDrift
-from .train_test_label_drift import TrainTestLabelDrift
-from .train_test_prediction_drift import TrainTestPredictionDrift
-from .whole_dataset_drift import WholeDatasetDrift
+"""Module containing all data distribution checks.
+
+.. deprecated:: 0.6.5
+        :mod:`deepchecks.tabular.checks.distribution is deprecated and will be removed in deepchecks 0.8 version.
+        Use :mod:`deepchecks.tabular.checks.train_test_validation` instead.
+"""
+import warnings
+
+from ..train_test_validation import TrainTestFeatureDrift, TrainTestLabelDrift, WholeDatasetDrift
+from ..model_evaluation import TrainTestPredictionDrift
 
 __all__ = [
     'TrainTestFeatureDrift',
@@ -20,3 +25,9 @@ __all__ = [
     'TrainTestLabelDrift',
     'TrainTestPredictionDrift'
 ]
+
+warnings.warn(
+                'deepchecks.tabular.checks.distribution is deprecated. Use '
+                'deepchecks.tabular.checks.train_test_validation instead.',
+                DeprecationWarning
+            )

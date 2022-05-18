@@ -8,11 +8,3 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module contains all prebuilt suites."""
-from .default_suites import (full_suite, model_evaluation, data_integrity,
-                             single_dataset_integrity, train_test_leakage,
-                             train_test_validation)
-
-__all__ = ['single_dataset_integrity', 'train_test_leakage', 'train_test_validation',
-           'model_evaluation', 'full_suite', 'data_integrity'
-           ]
