@@ -10,9 +10,7 @@
 .. autosummary::
     :toctree: generated
     :template: autosummary/check-module.rst
-    
-    distribution
+
     integrity
-    methodology
-    overview
-    performance
+    train_test_validation
+    model_evaluation

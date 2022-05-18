@@ -68,16 +68,16 @@ condition_results
 # To remove a condition, start by printing the Suite and identifing the Check's ID,
 # and the Condition's ID:
 
-from deepchecks.tabular.suites import train_test_leakage
+from deepchecks.tabular.suites import train_test_validation
 
-suite = train_test_leakage()
+suite = train_test_validation()
 suite
 
 #%%
 # After we found the IDs we can remove the Condition:
 
 # Access check by id
-check = suite[2]
+check = suite[10]
 # Remove condition by id
 check.remove_condition(0)
 
@@ -150,7 +150,7 @@ check = DatasetsSizeComparison().add_condition(condition_name, custom_condition)
 # runs the condition for us automatically and prints out a Conditions Summary table
 # (for all the conditions defined on the checks within the suite):
 
-from deepchecks import Suite
+from deepchecks.tabular import Suite
 
 # Using suite to run check & condition
 suite = Suite('Suite for Condition',

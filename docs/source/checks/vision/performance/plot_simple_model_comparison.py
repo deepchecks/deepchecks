@@ -34,7 +34,7 @@ uniform           Generates predictions uniformly at random from the list of uni
 ================  ===================================
 
 Similiar to the :doc:`tabular simple model comparison check
-</checks_gallery/tabular/performance/plot_simple_model_comparison>`,
+</checks_gallery/tabular/model_evaluation/plot_simple_model_comparison>`,
 there is no simple model which is more "correct" to use, each gives a different baseline
 to compare to, and you may experiment with the different types and see how it performs
 on your data.
