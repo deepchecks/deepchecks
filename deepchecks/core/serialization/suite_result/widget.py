@@ -178,7 +178,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         """
         results = t.cast(
             t.List[check_types.CheckResult],
-            self.value.select_results(self.value.results_with_conditions)
+            self.value.select_results(self.value.results_with_conditions & self.value.results_with_display)
         )
         results_with_condition_and_display = [
             CheckResultWidgetSerializer(it).serialize(
