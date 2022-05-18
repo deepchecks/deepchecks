@@ -22,8 +22,8 @@ from deepchecks.core.errors import (DatasetValidationError,
                                     DeepchecksNotSupportedError,
                                     DeepchecksValueError, ModelValidationError,
                                     ValidationError)
-from deepchecks.vision.vision_data import VisionData
 from deepchecks.vision.task_type import TaskType
+from deepchecks.vision.vision_data import VisionData
 
 __all__ = ['Context']
 
