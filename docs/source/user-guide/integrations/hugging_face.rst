@@ -3,14 +3,14 @@ HuggingFace Transformers
 
 This tutorial demonstrates how deepchecks.vision can be used on a Hugging Face transformer model. We will use deepchecks
 to compare the performance of the `DETR ResNet <https://huggingface.co/facebook/detr-resnet-50>`__ transformers model
-against the widely used `YOLOv3 <https://arxiv.org/abs/1804.02767>`__ model on the `COCO <https://cocodataset.org/>`__
+against the widely used `YOLOv5s <https://arxiv.org/abs/1804.02767>`__ model on the `COCO <https://cocodataset.org/>`__
 dataset.
 
-Load COCO and YOLOv3
+Load COCO and YOLOv5s
 ------------------------
 
 We'll start by loading from ``deepchecks.vision.datasets.detection.coco`` a sample of the COCO dataset (coco 128) and
-the YOLO model, both downloaded from `ultralytics <https://github.com/ultralytics/yolov3>`__ repository.
+the YOLO model, both downloaded from `ultralytics <https://github.com/ultralytics/yolov5>`__ repository.
 
 .. code-block:: python
 
@@ -32,7 +32,7 @@ evaluate the model's performance for various IoU thresholds and bounding box siz
     yolo_map_result.show()
 
 .. image:: /_static/yolo_map.png
-   :alt: Mean Average Precision Report for Yolov3
+   :alt: Mean Average Precision Report for Yolov5
    :align: center
 
 
@@ -73,7 +73,7 @@ on the format required by deepchecks can be found in the
     """
 
     # This is the list of classes returned by the DETR model. Stored in order to convert to the same class order as the
-    # COCO dataset used by the YOLOv3 model.
+    # COCO dataset used by the YOLOv5s model.
     DETR_CLASSES = [
         'N/A', 'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus',
         'train', 'truck', 'boat', 'traffic light', 'fire hydrant', 'N/A',
@@ -197,7 +197,7 @@ We can now create COCODETRData objects for the training and test data, and run t
 Great! We can see that the labels match the object locations, and that the labels an detections align.
 
 
-Benchmarking YOLOv3 Against DETR ResNet
+Benchmarking YOLOv5s Against DETR ResNet
 ------------------------------------------
 
 Now that we have everything in place, we can run the
@@ -221,7 +221,7 @@ Comparing to the results achieved earlier with YOLO:
     yolo_map_result.show()
 
 .. image:: /_static/yolo_map.png
-   :alt: Mean Average Precision Report for Yolov3
+   :alt: Mean Average Precision Report for Yolov5
    :align: center
 
 We can clearly see an improvement in the DETR model! We can further see that the greatest improvement has been achieved
