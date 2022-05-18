@@ -17,7 +17,7 @@ import warnings
 
 from deepchecks.tabular import Suite
 from deepchecks.tabular.checks import (BoostingOverfit, CalibrationScore,
-                                       CategoryMismatchTrainTest, ColumnsInfo,
+                                       CategoryMismatchTrainTest,
                                        ConflictingLabels,
                                        ConfusionMatrixReport, DataDuplicates,
                                        DatasetsSizeComparison,
@@ -28,7 +28,7 @@ from deepchecks.tabular.checks import (BoostingOverfit, CalibrationScore,
                                        IndexTrainTestLeakage, IsSingleValue,
                                        MixedDataTypes, MixedNulls,
                                        ModelErrorAnalysis, ModelInferenceTime,
-                                       ModelInfo, NewLabelTrainTest,
+                                       NewLabelTrainTest,
                                        OutlierSampleDetection,
                                        PerformanceReport,
                                        RegressionErrorDistribution,
@@ -50,7 +50,7 @@ __all__ = ['single_dataset_integrity', 'train_test_leakage', 'train_test_validat
 
 def single_dataset_integrity() -> Suite:
     """
-    (Deprecated) Create a suite that is meant to detect integrity issues within a single dataset.
+    Create a suite that is meant to detect integrity issues within a single dataset (Deprecated) .
 
     .. deprecated:: 0.7.0
             `single_dataset_integrity` is deprecated and will be removed in deepchecks 0.8 version, it is replaced by
@@ -82,7 +82,7 @@ def data_integrity() -> Suite:
 
 def train_test_leakage() -> Suite:
     """
-    (Deprecated) Create a suite that is meant to detect data leakage between the training dataset and the test dataset.
+    Create a suite that is meant to detect data leakage between the training dataset and the test dataset (Deprecated).
 
     .. deprecated:: 0.7.0
             `train_test_leakage` is deprecated and will be removed in deepchecks 0.8 version, it is replaced by
