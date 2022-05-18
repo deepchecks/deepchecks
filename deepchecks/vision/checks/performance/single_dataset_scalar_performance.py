@@ -45,25 +45,24 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck):
         super().__init__(**kwargs)
         self.metric = metric
         self.reduce = reduce
-        if 'metric_name' in kwargs:
-            self.metric_name = kwargs['metric_name']
 
-        if 'reduce_name' in kwargs:
-            self.reduce_name = kwargs['reduce_name']
+        self.metric_name = kwargs.get('metric_name') or (metric.__class__.__name__ if metric else None)
+        self.reduce_name = kwargs.get('reduce_name') or (reduce.__name__ if reduce else None)
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind.TRAIN):
         """Initialize the metric for the check, and validate task type is relevant."""
         if self.metric is None:
             if context.train.task_type == TaskType.CLASSIFICATION:
                 self.metric = Accuracy()
-                if not hasattr(self, 'metric_name'):
+                if self.metric_name is None:
                     self.metric_name = 'accuracy'
             elif context.train.task_type == TaskType.OBJECT_DETECTION:
                 self.metric = ObjectDetectionAveragePrecision()
-                if not hasattr(self, 'metric_name'):
+                if self.metric_name is None:
                     self.metric_name = 'object_detection_average_precision'
                 if self.reduce is None:
                     self.reduce = torch.nanmean
+                    self.reduce_name = 'nan_mean'
             else:
                 raise DeepchecksValueError('For task types other then classification or object detection, '
                                            'pass a metric explicitly')
@@ -80,7 +79,8 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck):
         metric_result = self.metric.compute()
         if self.reduce is not None:
             if isinstance(metric_result, float):
-                warnings.warn(SyntaxWarning('Metric result is already scalar, skipping reduce operation'))
+                warnings.warn(SyntaxWarning('Metric result is already scalar, skipping reduce operation.'
+                                            'Pass reduce=None to prevent this'))
                 result_value = metric_result
             else:
                 result_value = float(self.reduce(metric_result))
@@ -90,48 +90,38 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck):
             raise DeepchecksValueError(f'The metric {self.metric.__class__} return a non-scalar value, '
                                        f'please specify a reduce function or choose a different metric')
 
-        metric_name = self.metric_name if hasattr(self, 'metric_name') else self.metric.__class__.__name__
-        if hasattr(self, 'reduce_name'):
-            reduce_name = self.reduce_name
-        elif self.reduce is None:
-            reduce_name = None
-        else:
-            reduce_name = self.reduce.__name__
-
         result_dict = {'score': result_value,
-                       'metric': metric_name,
-                       'reduce': reduce_name}
+                       'metric': self.metric_name,
+                       'reduce': self.reduce_name}
         return CheckResult(result_dict)
 
     def add_condition_greater_than(self, threshold: float) -> ConditionResult:
         """Add condition - the result is greater than the threshold."""
         def condition(check_result):
+            details = f'The score {self.metric_name} is {check_result["score"]}'
             if check_result['score'] > threshold:
-                return ConditionResult(ConditionCategory.PASS)
+                return ConditionResult(ConditionCategory.PASS, details)
             else:
-                details = f'The score is not greater than {threshold}'
                 return ConditionResult(ConditionCategory.FAIL, details)
         return self.add_condition(f'Score is greater than {threshold}', condition)
 
     def add_condition_greater_equal_to(self, threshold: float) -> ConditionResult:
         """Add condition - the result is greater than the threshold."""
-
         def condition(check_result):
+            details = f'The score {self.metric_name} is {check_result["score"]}'
             if check_result['score'] >= threshold:
-                return ConditionResult(ConditionCategory.PASS)
+                return ConditionResult(ConditionCategory.PASS, details)
             else:
-                details = f'The score is not greater than or equal to {threshold}'
                 return ConditionResult(ConditionCategory.FAIL, details)
-
         return self.add_condition(f'Score is greater than or equal to {threshold}', condition)
 
     def add_condition_less_than(self, threshold: float) -> ConditionResult:
         """Add condition - the result is greater than the threshold."""
         def condition(check_result):
+            details = f'The score {self.metric_name} is {check_result["score"]}'
             if check_result['score'] < threshold:
-                return ConditionResult(ConditionCategory.PASS)
+                return ConditionResult(ConditionCategory.PASS, details)
             else:
-                details = f'The score is not less than {threshold}'
                 return ConditionResult(ConditionCategory.FAIL, details)
         return self.add_condition(f'Score is less than {threshold}', condition)
 
@@ -139,10 +129,10 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck):
         """Add condition - the result is greater than the threshold."""
 
         def condition(check_result):
+            details = f'The score {self.metric_name} is {check_result["score"]}'
             if check_result['score'] <= threshold:
-                return ConditionResult(ConditionCategory.PASS)
+                return ConditionResult(ConditionCategory.PASS, details)
             else:
-                details = f'The score is not less than or equal to {threshold}'
                 return ConditionResult(ConditionCategory.FAIL, details)
 
         return self.add_condition(f'Score is less than or equal to {threshold}', condition)
