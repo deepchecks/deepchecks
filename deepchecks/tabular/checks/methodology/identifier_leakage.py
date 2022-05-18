@@ -94,7 +94,10 @@ class IdentifierLeakage(SingleDatasetCheck):
 
         figure = px.bar(s_ppscore, x=s_ppscore.index, y='ppscore', color='ppscore',
                         color_continuous_scale=red_heavy_colorscale)
-        figure.update_layout(width=700, height=400)
+        figure.update_layout(
+            # width=700, 
+            # height=400
+        )
         figure.update_layout(
             dict(
                 xaxis=xaxis_layout,

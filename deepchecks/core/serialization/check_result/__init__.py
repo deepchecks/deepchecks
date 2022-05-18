@@ -10,3 +10,7 @@
 #
 """Subpackage with a set of serializers for the CheckResult type."""
 __all__ = []
+
+
+FIGURE_CONTAINER_MAX_WIDTH = '900px'
+FIGURE_CONTAINER_MAX_HEIGHT = '400px'

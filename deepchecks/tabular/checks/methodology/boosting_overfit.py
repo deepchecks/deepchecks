@@ -186,8 +186,11 @@ class BoostingOverfit(TrainTestCheck):
         fig.add_trace(go.Scatter(x=estimator_steps, y=np.array(test_scores),
                                  mode='lines+markers',
                                  name='Test score'))
-        fig.update_layout(title_text=f'{scorer.name} score compared to number of boosting iteration',
-                          width=800, height=500)
+        fig.update_layout(
+            title_text=f'{scorer.name} score compared to number of boosting iteration',
+            # width=800, 
+            # height=500
+        )
         fig.update_xaxes(title='Number of boosting iterations')
         fig.update_yaxes(title=scorer.name)
 

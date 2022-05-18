@@ -87,7 +87,7 @@ class RegressionErrorDistribution(SingleDatasetCheck):
                 nbins=self.n_bins,
                 title='Histogram of prediction errors',
                 labels={'x': f'{dataset.label_name} prediction error', 'y': 'Count'},
-                width=700, height=500
+                # width=700, height=500
             ),
             'Largest over estimation errors:', n_largest,
             'Largest under estimation errors:', n_smallest

@@ -19,8 +19,10 @@ from plotly.basedatatypes import BaseFigure
 from deepchecks.core import check_result as check_types
 from deepchecks.core.serialization.abc import WidgetSerializer
 from deepchecks.core.serialization.common import normalize_widget_style
+from deepchecks.utils.strings import get_random_string
 
 from . import html
+from . import FIGURE_CONTAINER_MAX_WIDTH, FIGURE_CONTAINER_MAX_HEIGHT
 
 __all__ = ['CheckResultSerializer']
 
@@ -149,10 +151,22 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
         """Return 'Go To Top' link."""
         return HTML(value=super().go_to_top_link(output_id))
 
+    # @classmethod
+    # def handle_figure(cls, item: BaseFigure, index: int, **kwargs) -> Widget:
+    #     return go.FigureWidget(data=item)
+
     @classmethod
-    def handle_figure(cls, item: BaseFigure, index: int, **kwargs) -> go.FigureWidget:
+    def handle_figure(cls, item: BaseFigure, index: int, **kwargs) -> Widget:
         """Handle plotly figure item."""
-        return go.FigureWidget(data=item)
+        class_id = get_random_string(n=25)
+        class_name = f'id-{class_id}-deepchecks-widget-wrapper'
+        w = FIGURE_CONTAINER_MAX_WIDTH
+        h = FIGURE_CONTAINER_MAX_HEIGHT
+        style = f'<style>.{class_name} {{max-width: {w}; max-height: {h};}}</style>'
+        return VBox(children=(
+            HTML(value=style),
+            go.FigureWidget(data=item).add_class(class_name)
+        ))
 
     @classmethod
     def handle_string(cls, item: str, index: int, **kwargs) -> HTML:

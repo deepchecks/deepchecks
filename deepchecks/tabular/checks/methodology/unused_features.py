@@ -178,8 +178,11 @@ class UnusedFeatures(TrainTestCheck):
             ))
 
             fig.update_yaxes(autorange='reversed')
-            fig.update_layout(title_text='Unused features compared to top important features',
-                              width=800, height=500)
+            fig.update_layout(
+                title_text='Unused features compared to top important features',
+                # width=800, 
+                # height=500
+            )
 
             last_important_feature_index_to_plot = min(last_important_feature_index, self.n_top_fi_to_show - 1)
 

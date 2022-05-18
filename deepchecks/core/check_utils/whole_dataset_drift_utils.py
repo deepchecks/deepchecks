@@ -160,9 +160,8 @@ def build_drift_plot(score):
         title='Drift Score - Whole Dataset Total',
         xaxis=x_axis,
         yaxis=y_axis,
-        width=700,
+        # width=700,
         height=200
-
     ))
 
     drift_plot.add_traces(bar_traces)
@@ -222,8 +221,8 @@ def display_dist(train_column: pd.Series, test_column: pd.Series, fi_ser: pd.Ser
             yanchor='top',
             y=0.9,
             xanchor='left'),
-        width=700,
-        height=300
+        # width=700,
+        # height=300
     )
 
     fig.update_layout(layout)
