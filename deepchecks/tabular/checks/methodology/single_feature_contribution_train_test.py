@@ -10,6 +10,8 @@
 #
 """The single_feature_contribution check module."""
 import typing as t
+from copy import copy
+import numpy as np
 
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.check_utils.single_feature_contribution_utils import \
@@ -119,7 +121,8 @@ class SingleFeatureContributionTrainTest(TrainTestCheck):
 
         return CheckResult(value=ret_value, display=display, header='Single Feature Contribution Train-Test')
 
-    def add_condition_feature_pps_difference_not_greater_than(self: FC, threshold: float = 0.2) -> FC:
+    def add_condition_feature_pps_difference_not_greater_than(self: FC, threshold: float = 0.2,
+                                                              include_negative_diff: bool=True) -> FC:
         """Add new condition.
 
         Add condition that will check that difference between train
@@ -127,14 +130,25 @@ class SingleFeatureContributionTrainTest(TrainTestCheck):
 
         Parameters
         ----------
-        threshold : float , default: 0.2
-            train test ps difference upper bound.
+        threshold: float, default: 0.2
+            train test pps difference upper bound.
+        include_negative_diff: bool, default True
+            This parameter decides whether the condition checks the absolute value of the difference, or just the
+            positive value.
+            The difference is calculated as train PPS minus test PPS. This is because we're interested in the case
+            where the test dataset is less predictive of the label than the train dataset, as this could indicate
+            leakage of labels into the train dataset.
         """
 
         def condition(value: t.Dict[Hashable, t.Dict[Hashable, float]]) -> ConditionResult:
+
+            diff_dict = copy(value['train-test difference'])
+            if include_negative_diff is True:
+                diff_dict = {k: np.abs(v) for k, v in diff_dict.items()}
+
             failed_features = {
                 feature_name: format_number(pps_diff)
-                for feature_name, pps_diff in value['train-test difference'].items()
+                for feature_name, pps_diff in diff_dict.items()
                 if pps_diff > threshold
             }
 
