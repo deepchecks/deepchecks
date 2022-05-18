@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 
 from deepchecks.tabular import Dataset
-from deepchecks.tabular.checks.train_test_validation import IdentifierLeakage
+from deepchecks.tabular.checks import IdentifierLeakage
 
 #%%
 # Generating Data

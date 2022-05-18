@@ -92,7 +92,7 @@ def train_test_leakage() -> Suite:
         'the train_test_leakage suite is deprecated, use the train_test_validation suite instead',
         DeprecationWarning
     )
-    return data_integrity()
+    return train_test_validation()
 
 
 def train_test_validation() -> Suite:

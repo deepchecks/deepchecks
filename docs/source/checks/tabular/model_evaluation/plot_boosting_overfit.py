@@ -86,7 +86,7 @@ clf.fit(train_ds.data[train_ds.features], train_ds.data[train_ds.label_name])
 #%%
 # Run the check
 # ==============
-from deepchecks.tabular.checks.model_evaluation.boosting_overfit import BoostingOverfit
+from deepchecks.tabular.checks import BoostingOverfit
 
 result = BoostingOverfit().run(train_ds, validation_ds, clf)
 result

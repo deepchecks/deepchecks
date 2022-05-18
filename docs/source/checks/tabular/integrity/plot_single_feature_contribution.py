@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 
 from deepchecks.tabular import Dataset
-from deepchecks.tabular.checks.integrity import SingleFeatureContribution
+from deepchecks.tabular.checks import SingleFeatureContribution
 
 #%%
 # Generating Data

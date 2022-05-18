@@ -36,7 +36,7 @@ model = load_fitted_model()
 # Run the check
 # =============
 
-from deepchecks.tabular.checks.model_evaluation import PerformanceReport
+from deepchecks.tabular.checks import PerformanceReport
 
 check = PerformanceReport()
 check.run(train_dataset, test_dataset, model)

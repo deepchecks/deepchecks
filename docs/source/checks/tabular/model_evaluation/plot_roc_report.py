@@ -16,7 +16,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 
 from deepchecks.tabular import Dataset
-from deepchecks.tabular.checks.model_evaluation import RocReport
+from deepchecks.tabular.checks import RocReport
 
 
 def custom_formatwarning(msg, *args, **kwargs):

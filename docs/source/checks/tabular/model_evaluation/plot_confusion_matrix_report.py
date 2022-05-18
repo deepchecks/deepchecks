@@ -14,7 +14,7 @@ from sklearn.ensemble import AdaBoostClassifier
 from sklearn.model_selection import train_test_split
 
 from deepchecks.tabular import Dataset
-from deepchecks.tabular.checks.model_evaluation import ConfusionMatrixReport
+from deepchecks.tabular.checks import ConfusionMatrixReport
 
 #%%
 # Generating data

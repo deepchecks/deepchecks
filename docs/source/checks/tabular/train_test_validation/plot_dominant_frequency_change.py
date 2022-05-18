@@ -29,7 +29,7 @@ next most frequent value. The ``dominance_ratio`` is a configurable parameter of
 
 """
 
-from deepchecks.tabular.checks.train_test_validation import DominantFrequencyChange
+from deepchecks.tabular.checks import DominantFrequencyChange
 from deepchecks.tabular.datasets.classification import iris
 
 #%%

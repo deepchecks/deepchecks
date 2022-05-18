@@ -11,7 +11,7 @@ from datetime import datetime
 import pandas as pd
 
 from deepchecks.tabular import Dataset, Suite
-from deepchecks.tabular.checks.train_test_validation import DateTrainTestLeakageOverlap
+from deepchecks.tabular.checks import DateTrainTestLeakageOverlap
 
 
 def dataset_from_dict(d: dict, datetime_name: str = None) -> Dataset:

@@ -8,7 +8,7 @@ Model Info
 
 from sklearn.ensemble import AdaBoostClassifier
 
-from deepchecks.tabular.checks.model_evaluation import ModelInfo
+from deepchecks.tabular.checks import ModelInfo
 
 #%%
 clf = AdaBoostClassifier(learning_rate=1.2)

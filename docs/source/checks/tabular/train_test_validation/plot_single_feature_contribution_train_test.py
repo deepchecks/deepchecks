@@ -119,8 +119,7 @@ relate_column_to_label(test_dataset, 'numDigits', 0.1)
 #%%
 # Run the check
 # =============
-from deepchecks.tabular.checks.train_test_validation import \
-    SingleFeatureContributionTrainTest
+from deepchecks.tabular.checks import SingleFeatureContributionTrainTest
 
 result = SingleFeatureContributionTrainTest().run(train_dataset=train_dataset, test_dataset=test_dataset)
 result

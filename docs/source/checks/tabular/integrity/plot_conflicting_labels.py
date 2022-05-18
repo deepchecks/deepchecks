@@ -23,7 +23,7 @@ import pandas as pd
 
 from deepchecks.tabular import Dataset
 # %%
-from deepchecks.tabular.checks.integrity import ConflictingLabels
+from deepchecks.tabular.checks import ConflictingLabels
 from deepchecks.tabular.datasets.classification.phishing import load_data
 
 #%%

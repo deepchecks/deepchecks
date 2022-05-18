@@ -19,8 +19,6 @@ from datetime import datetime
 
 import pandas as pd
 
-from deepchecks.tabular import Dataset, Suite
-from deepchecks.tabular.checks.integrity.data_duplicates import DataDuplicates
 from deepchecks.tabular.datasets.classification.phishing import load_data
 
 #%%

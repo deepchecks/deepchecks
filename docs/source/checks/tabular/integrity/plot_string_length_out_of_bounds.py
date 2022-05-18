@@ -8,8 +8,7 @@ String Length Out Of Bounds
 
 import pandas as pd
 
-from deepchecks.tabular.checks.integrity.string_length_out_of_bounds import \
-    StringLengthOutOfBounds
+from deepchecks.tabular.checks import StringLengthOutOfBounds
 
 #%%
 

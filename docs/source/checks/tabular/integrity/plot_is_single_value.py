@@ -11,7 +11,7 @@ Is Single Value
 import pandas as pd
 from sklearn.datasets import load_iris
 
-from deepchecks.tabular.checks.integrity.is_single_value import IsSingleValue
+from deepchecks.tabular.checks import IsSingleValue
 
 #%%
 # Load Data

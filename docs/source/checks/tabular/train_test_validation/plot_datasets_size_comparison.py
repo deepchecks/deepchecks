@@ -11,7 +11,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 from deepchecks.tabular import Dataset
-from deepchecks.tabular.checks.train_test_validation import DatasetsSizeComparison
+from deepchecks.tabular.checks import DatasetsSizeComparison
 
 #%%
 

@@ -14,7 +14,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 
 from deepchecks.tabular import Dataset
-from deepchecks.tabular.checks.model_evaluation import MultiModelPerformanceReport
+from deepchecks.tabular.checks import MultiModelPerformanceReport
 
 #%%
 

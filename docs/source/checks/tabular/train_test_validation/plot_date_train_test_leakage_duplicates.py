@@ -11,8 +11,7 @@ from datetime import datetime
 import pandas as pd
 
 from deepchecks.tabular import Dataset, Suite
-from deepchecks.tabular.checks.train_test_validation import \
-    DateTrainTestLeakageDuplicates
+from deepchecks.tabular.checks import DateTrainTestLeakageDuplicates
 
 
 def dataset_from_dict(d: dict, datetime_name: str = None) -> Dataset:

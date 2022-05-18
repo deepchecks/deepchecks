@@ -33,8 +33,7 @@ import pandas as pd
 from sklearn.datasets import load_iris
 
 from deepchecks.tabular import Dataset
-from deepchecks.tabular.checks.integrity.outlier_sample_detection import \
-    OutlierSampleDetection
+from deepchecks.tabular.checks import OutlierSampleDetection
 
 # %%
 # Prepare data

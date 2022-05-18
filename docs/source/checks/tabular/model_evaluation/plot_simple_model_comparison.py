@@ -55,7 +55,7 @@ model = load_fitted_model()
 # for regression tasks. For classification we will see the metrics per class, and for
 # regression we'll have a single result per metric.
 
-from deepchecks.tabular.checks.model_evaluation import SimpleModelComparison
+from deepchecks.tabular.checks import SimpleModelComparison
 
 # Using tree model as a simple model, and changing the tree depth from the default 3 to 5
 check = SimpleModelComparison(simple_model_type='tree', max_depth=5)

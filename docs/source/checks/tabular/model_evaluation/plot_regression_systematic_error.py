@@ -13,7 +13,7 @@ from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.model_selection import train_test_split
 
 from deepchecks.tabular import Dataset
-from deepchecks.tabular.checks.model_evaluation import RegressionSystematicError
+from deepchecks.tabular.checks import RegressionSystematicError
 
 #%%
 # Generating data

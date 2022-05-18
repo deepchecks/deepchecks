@@ -9,7 +9,7 @@ New Label
 import pandas as pd
 
 from deepchecks.tabular import Dataset
-from deepchecks.tabular.checks.train_test_validation import NewLabelTrainTest
+from deepchecks.tabular.checks import NewLabelTrainTest
 
 #%%
 

@@ -9,7 +9,7 @@ New Category
 import pandas as pd
 
 from deepchecks.tabular import Dataset
-from deepchecks.tabular.checks.train_test_validation import CategoryMismatchTrainTest
+from deepchecks.tabular.checks import CategoryMismatchTrainTest
 
 #%%
 

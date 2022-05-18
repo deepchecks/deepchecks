@@ -30,6 +30,6 @@ model
 
 #%%
 
-from deepchecks.tabular.checks.model_evaluation import SegmentPerformance
+from deepchecks.tabular.checks import SegmentPerformance
 
 SegmentPerformance(feature_1='workclass', feature_2='hours-per-week').run(validation_ds, model)
