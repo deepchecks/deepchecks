@@ -19,7 +19,10 @@ from deepchecks import ConditionResult
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksNotSupportedError
-from deepchecks.utils.distribution.drift import calc_drift_and_plot
+from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS,
+                                                 SUPPORTED_NUMERIC_METHODS,
+                                                 calc_drift_and_plot,
+                                                 get_drift_method)
 from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.utils.label_prediction_properties import (
     DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES,
@@ -53,7 +56,10 @@ class TrainTestPredictionDrift(TrainTestCheck):
 
     For numerical distributions, we use the Earth Movers Distance.
     See https://en.wikipedia.org/wiki/Wasserstein_metric
-    For categorical distributions, we use the Population Stability Index (PSI).
+
+    For categorical distributions, we use the Cramer's V.
+    See https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V
+    We also support Population Stability Index (PSI).
     See https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf.
 
 
@@ -68,7 +74,7 @@ class TrainTestPredictionDrift(TrainTestCheck):
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
         disproportionally. This filter is applied to both distributions, in both margins.
     max_num_categories_for_drift: int, default: 10
-        Only for non-continues columns. Max number of allowed categories. If there are more,
+        Only for categorical columns. Max number of allowed categories. If there are more,
         they are binned into an "Other" category. If None, there is no limit.
     max_num_categories_for_display: int, default: 10
         Max number of categories to show in plot.
@@ -78,6 +84,9 @@ class TrainTestPredictionDrift(TrainTestCheck):
         - 'train_largest': Show the largest train categories.
         - 'test_largest': Show the largest test categories.
         - 'largest_difference': Show the largest difference between categories.
+    categorical_drift_method: str, default: "cramer_v"
+        decides which method to use on categorical variables. Possible values are:
+        "cramers_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
     max_num_categories: int, default: None
         Deprecated. Please use max_num_categories_for_drift and max_num_categories_for_display instead
     """
@@ -89,6 +98,7 @@ class TrainTestPredictionDrift(TrainTestCheck):
             max_num_categories_for_drift: int = 10,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
+            categorical_drift_method='cramer_v',
             max_num_categories: int = None,  # Deprecated
             **kwargs
     ):
@@ -98,6 +108,7 @@ class TrainTestPredictionDrift(TrainTestCheck):
             validate_properties(prediction_properties)
         self.user_prediction_properties = prediction_properties
         self.margin_quantile_filter = margin_quantile_filter
+        self.categorical_drift_method = categorical_drift_method
         if max_num_categories is not None:
             warnings.warn(
                 f'{self.__class__.__name__}: max_num_categories is deprecated. please use max_num_categories_for_drift '
@@ -187,7 +198,8 @@ class TrainTestPredictionDrift(TrainTestCheck):
                 margin_quantile_filter=self.margin_quantile_filter,
                 max_num_categories_for_drift=self.max_num_categories_for_drift,
                 max_num_categories_for_display=self.max_num_categories_for_display,
-                show_categories_by=self.show_categories_by
+                show_categories_by=self.show_categories_by,
+                categorical_drift_method=self.categorical_drift_method,
             )
             values_dict[name] = {
                 'Drift score': value,
@@ -208,23 +220,24 @@ class TrainTestPredictionDrift(TrainTestCheck):
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Prediction Drift')
 
-    def add_condition_drift_score_not_greater_than(self, max_allowed_psi_score: float = 0.15,
-                                                   max_allowed_earth_movers_score: float = 0.075
+    def add_condition_drift_score_not_greater_than(self, max_allowed_categorical_score: float = 0.15,
+                                                   max_allowed_numeric_score: float = 0.075
                                                    ) -> 'TrainTestPredictionDrift':
         """
         Add condition - require prediction properties drift score to not be more than a certain threshold.
 
         The industry standard for PSI limit is above 0.2.
+        Cramer's V does not have a common industry standard.
         Earth movers does not have a common industry standard.
         The threshold was lowered by 25% compared to feature drift defaults due to the higher importance of prediction
         drift.
 
         Parameters
         ----------
-        max_allowed_psi_score: float , default: 0.15
-            the max threshold for the PSI score
-        max_allowed_earth_movers_score: float , default: 0.075
-            the max threshold for the Earth Mover's Distance score
+        max_allowed_categorical_score: float , default: 0.15
+            the max threshold for the categorical variable drift score
+        max_allowed_numeric_score: float ,  default: 0.075
+            the max threshold for the numeric variable drift score
         Returns
         -------
         ConditionResult
@@ -232,17 +245,19 @@ class TrainTestPredictionDrift(TrainTestCheck):
         """
 
         def condition(result: Dict) -> ConditionResult:
+            cat_method, num_method = get_drift_method(result)
             not_passing_categorical_columns = {props: f'{d["Drift score"]:.2}' for props, d in result.items() if
-                                               d['Drift score'] > max_allowed_psi_score and d['Method'] == 'PSI'}
+                                               d['Drift score'] > max_allowed_categorical_score
+                                               and d['Method'] in SUPPORTED_CATEGORICAL_METHODS}
             not_passing_numeric_columns = {props: f'{d["Drift score"]:.2}' for props, d in result.items() if
-                                           d['Drift score'] > max_allowed_earth_movers_score
-                                           and d['Method'] == "Earth Mover's Distance"}
+                                           d['Drift score'] > max_allowed_numeric_score
+                                           and d['Method'] in SUPPORTED_NUMERIC_METHODS}
             return_str = ''
             if not_passing_categorical_columns:
-                return_str += f'Found non-continues prediction properties with PSI drift score above threshold:' \
+                return_str += f'Found categorical prediction properties with {cat_method} above threshold:' \
                               f' {not_passing_categorical_columns}\n'
             if not_passing_numeric_columns:
-                return_str += f'Found continues prediction properties with Earth Mover\'s drift score above' \
+                return_str += f'Found numeric prediction properties with {num_method} above' \
                               f' threshold: {not_passing_numeric_columns}\n'
 
             if return_str:
@@ -250,6 +265,6 @@ class TrainTestPredictionDrift(TrainTestCheck):
             else:
                 return ConditionResult(ConditionCategory.PASS)
 
-        return self.add_condition(f'PSI <= {max_allowed_psi_score} and Earth Mover\'s Distance <= '
-                                  f'{max_allowed_earth_movers_score} for prediction drift',
+        return self.add_condition(f'categorical drift score <= {max_allowed_categorical_score} and '
+                                  f'numerical drift score <= {max_allowed_numeric_score} for prediction drift',
                                   condition)

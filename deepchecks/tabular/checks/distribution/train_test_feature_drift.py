@@ -18,7 +18,10 @@ from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
-from deepchecks.utils.distribution.drift import calc_drift_and_plot
+from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS,
+                                                 SUPPORTED_NUMERIC_METHODS,
+                                                 calc_drift_and_plot,
+                                                 get_drift_method)
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['TrainTestFeatureDrift']
@@ -30,10 +33,14 @@ class TrainTestFeatureDrift(TrainTestCheck):
 
     Check calculates a drift score for each column in test dataset, by comparing its distribution to the train
     dataset.
+
     For numerical columns, we use the Earth Movers Distance.
     See https://en.wikipedia.org/wiki/Wasserstein_metric
-    For categorical columns, we use the Population Stability Index (PSI).
-    See https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf
+
+    For categorical distributions, we use the Cramer's V.
+    See https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V
+    We also support Population Stability Index (PSI).
+    See https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf.
 
 
     Parameters
@@ -64,6 +71,9 @@ class TrainTestFeatureDrift(TrainTestCheck):
         - 'train_largest': Show the largest train categories.
         - 'test_largest': Show the largest test categories.
         - 'largest_difference': Show the largest difference between categories.
+    categorical_drift_method: str, default: "cramer_v"
+        decides which method to use on categorical variables. Possible values are:
+        "cramers_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
     n_samples : int , default: 100_000
         Number of samples to use for drift computation and plot.
     random_state : int , default: 42
@@ -82,6 +92,7 @@ class TrainTestFeatureDrift(TrainTestCheck):
             max_num_categories_for_drift: int = 10,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
+            categorical_drift_method='cramer_v',
             n_samples: int = 100_000,
             random_state: int = 42,
             max_num_categories: int = None,  # Deprecated
@@ -107,6 +118,7 @@ class TrainTestFeatureDrift(TrainTestCheck):
         else:
             raise DeepchecksValueError('sort_feature_by must be either "feature importance" or "drift score"')
         self.n_top_columns = n_top_columns
+        self.categorical_drift_method = categorical_drift_method
         self.n_samples = n_samples
         self.random_state = random_state
 
@@ -178,7 +190,8 @@ class TrainTestFeatureDrift(TrainTestCheck):
                 margin_quantile_filter=self.margin_quantile_filter,
                 max_num_categories_for_drift=self.max_num_categories_for_drift,
                 max_num_categories_for_display=self.max_num_categories_for_display,
-                show_categories_by=self.show_categories_by
+                show_categories_by=self.show_categories_by,
+                categorical_drift_method=self.categorical_drift_method,
             )
             values_dict[column] = {
                 'Drift score': value,
@@ -207,21 +220,22 @@ class TrainTestFeatureDrift(TrainTestCheck):
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Drift')
 
-    def add_condition_drift_score_not_greater_than(self, max_allowed_psi_score: float = 0.2,
-                                                   max_allowed_earth_movers_score: float = 0.1,
+    def add_condition_drift_score_not_greater_than(self, max_allowed_categorical_score: float = 0.2,
+                                                   max_allowed_numeric_score: float = 0.1,
                                                    number_of_top_features_to_consider: int = 5):
         """
         Add condition - require drift score to not be more than a certain threshold.
 
         The industry standard for PSI limit is above 0.2.
+        Cramer's V does not have a common industry standard.
         Earth movers does not have a common industry standard.
 
         Parameters
         ----------
-        max_allowed_psi_score: float , default: 0.2
-            the max threshold for the PSI score
-        max_allowed_earth_movers_score: float , default: 0.1
-            the max threshold for the Earth Mover's Distance score
+        max_allowed_categorical_score: float , default: 0.2
+            the max threshold for the categorical variable drift score
+        max_allowed_numeric_score: float ,  default: 0.1
+            the max threshold for the numeric variable drift score
         number_of_top_features_to_consider: int , default: 5
             the number of top features for which exceed the threshold will fail the
             condition.
@@ -232,6 +246,7 @@ class TrainTestFeatureDrift(TrainTestCheck):
         """
 
         def condition(result: Dict) -> ConditionResult:
+            cat_method, num_method = get_drift_method(result)
             if all(x['Importance'] is not None for x in result.values()):
                 columns_to_consider = \
                     [col_name for col_name, fi in sorted(result.items(), key=lambda item: item[1]['Importance'],
@@ -242,17 +257,19 @@ class TrainTestFeatureDrift(TrainTestCheck):
                                                          reverse=True)]
             columns_to_consider = columns_to_consider[:number_of_top_features_to_consider]
             not_passing_categorical_columns = {column: f'{d["Drift score"]:.2}' for column, d in result.items() if
-                                               d['Drift score'] > max_allowed_psi_score and d['Method'] == 'PSI'
+                                               d['Drift score'] > max_allowed_categorical_score and
+                                               d['Method'] in SUPPORTED_CATEGORICAL_METHODS
                                                and column in columns_to_consider}
             not_passing_numeric_columns = {column: f'{d["Drift score"]:.2}' for column, d in result.items() if
-                                           d['Drift score'] > max_allowed_earth_movers_score
-                                           and d['Method'] == "Earth Mover's Distance"
+                                           d['Drift score'] > max_allowed_numeric_score
+                                           and d['Method'] in SUPPORTED_NUMERIC_METHODS
                                            and column in columns_to_consider}
             return_str = ''
             if not_passing_categorical_columns:
-                return_str += f'Found categorical columns with PSI above threshold: {not_passing_categorical_columns}\n'
+                return_str += f'Found categorical columns with {cat_method} above threshold: ' \
+                              f'{not_passing_categorical_columns}\n'
             if not_passing_numeric_columns:
-                return_str += f'Found numeric columns with Earth Mover\'s Distance above threshold: ' \
+                return_str += f'Found numeric columns with {num_method} above threshold: ' \
                               f'{not_passing_numeric_columns}'
 
             if return_str:
@@ -260,6 +277,6 @@ class TrainTestFeatureDrift(TrainTestCheck):
             else:
                 return ConditionResult(ConditionCategory.PASS)
 
-        return self.add_condition(f'PSI <= {max_allowed_psi_score} and Earth Mover\'s Distance <= '
-                                  f'{max_allowed_earth_movers_score}',
+        return self.add_condition(f'categorical drift score <= {max_allowed_categorical_score} and '
+                                  f'numerical drift score <= {max_allowed_numeric_score}',
                                   condition)

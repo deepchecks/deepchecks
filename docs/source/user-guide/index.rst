@@ -52,3 +52,5 @@ Integrations
     integrations/spark_databricks
     integrations/pytest
     integrations/h2o
+    integrations/airflow
+    general/exporting_results/examples/plot_exports_output_to_wandb

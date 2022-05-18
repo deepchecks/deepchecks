@@ -86,6 +86,8 @@ extensions = [
 ]
 
 redirects = {
+    "index": "getting-started/get-started.html",
+    "getting-started/index": "get-started.html",
     "examples/guides/quickstart_in_5_minutes": "../../user-guide/tabular/auto_tutorials/plot_quickstart_in_5_minutes.html",
     "user-guide/key_concepts": "../user-guide/general/deepchecks_hierarchy.html",
     "user-guide/when_should_you_use": "../getting-started/when_should_you_use.html",
