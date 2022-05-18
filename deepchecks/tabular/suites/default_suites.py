@@ -68,12 +68,12 @@ def data_integrity() -> Suite:
     return Suite(
         'Data Integrity Suite',
         IsSingleValue().add_condition_not_single_value(),
+        SpecialCharacters().add_condition_ratio_of_special_characters_not_grater_than(),
         MixedNulls().add_condition_different_nulls_not_more_than(),
         MixedDataTypes().add_condition_rare_type_ratio_not_in_range(),
         StringMismatch().add_condition_no_variants(),
         DataDuplicates().add_condition_ratio_not_greater_than(),
         StringLengthOutOfBounds().add_condition_ratio_of_outliers_not_greater_than(),
-        SpecialCharacters().add_condition_ratio_of_special_characters_not_grater_than(),
         ConflictingLabels().add_condition_ratio_of_conflicting_labels_not_greater_than(),
         OutlierSampleDetection(),
         SingleFeatureContribution().add_condition_feature_pps_not_greater_than()
@@ -100,20 +100,20 @@ def train_test_validation() -> Suite:
     distribution and leakage checks."""
     return Suite(
         'Train Test Validation Suite',
-        CategoryMismatchTrainTest().add_condition_new_category_ratio_not_greater_than(),
         DatasetsSizeComparison().add_condition_test_train_size_ratio_not_smaller_than(),
+        NewLabelTrainTest().add_condition_new_labels_not_greater_than(),
+        DominantFrequencyChange().add_condition_ratio_of_change_not_greater_than(),
+        CategoryMismatchTrainTest().add_condition_new_category_ratio_not_greater_than(),
+        StringMismatchComparison().add_condition_no_new_variants(),
         DateTrainTestLeakageDuplicates().add_condition_leakage_ratio_not_greater_than(),
         DateTrainTestLeakageOverlap().add_condition_leakage_ratio_not_greater_than(),
-        DominantFrequencyChange().add_condition_ratio_of_change_not_greater_than(),
-        IdentifierLeakage().add_condition_pps_not_greater_than(),
         IndexTrainTestLeakage().add_condition_ratio_not_greater_than(),
-        NewLabelTrainTest().add_condition_new_labels_not_greater_than(),
+        IdentifierLeakage().add_condition_pps_not_greater_than(),
+        TrainTestSamplesMix().add_condition_duplicates_ratio_not_greater_than(),
         SingleFeatureContributionTrainTest().add_condition_feature_pps_difference_not_greater_than()
         .add_condition_feature_pps_in_train_not_greater_than(),
-        StringMismatchComparison().add_condition_no_new_variants(),
         TrainTestFeatureDrift().add_condition_drift_score_not_greater_than(),
         TrainTestLabelDrift().add_condition_drift_score_not_greater_than(),
-        TrainTestSamplesMix().add_condition_duplicates_ratio_not_greater_than(),
         WholeDatasetDrift().add_condition_overall_drift_value_not_greater_than(),
     )
 
@@ -122,19 +122,19 @@ def model_evaluation() -> Suite:
     """Create a suite that is meant to test model performance and overfit."""
     return Suite(
         'Model Evaluation Suite',
-        BoostingOverfit().add_condition_test_score_percent_decline_not_greater_than(),
-        CalibrationScore(),
-        ConfusionMatrixReport(),
-        ModelErrorAnalysis().add_condition_segments_performance_relative_difference_not_greater_than(),
-        ModelInferenceTime().add_condition_inference_time_is_not_greater_than(),
         PerformanceReport().add_condition_train_test_relative_degradation_not_greater_than(),
+        RocReport().add_condition_auc_not_less_than(),
+        ConfusionMatrixReport(),
+        # SegmentPerformance(),
+        # TrainTestPredictionDrift().add_condition_drift_score_not_greater_than(),
+        SimpleModelComparison().add_condition_gain_not_less_than(),
+        ModelErrorAnalysis().add_condition_segments_performance_relative_difference_not_greater_than(),
+        CalibrationScore(),
         RegressionSystematicError().add_condition_systematic_error_ratio_to_rmse_not_greater_than(),
         RegressionErrorDistribution().add_condition_kurtosis_not_less_than(),
-        RocReport().add_condition_auc_not_less_than(),
-        # SegmentPerformance(),
-        SimpleModelComparison().add_condition_gain_not_less_than(),
-        # TrainTestPredictionDrift().add_condition_drift_score_not_greater_than(),
         UnusedFeatures().add_condition_number_of_high_variance_unused_features_not_greater_than(),
+        BoostingOverfit().add_condition_test_score_percent_decline_not_greater_than(),
+        ModelInferenceTime().add_condition_inference_time_is_not_greater_than(),
     )
 
 
