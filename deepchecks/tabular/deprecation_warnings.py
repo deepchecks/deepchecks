@@ -19,7 +19,8 @@ warnings.filterwarnings(
     module=r'deepchecks.*'
 )
 
-# Warning filters for deprecated functions in deepchecks.tabular.checks
+# Added in 0.7Warning filters for deprecated functions in deepchecks.tabular.checks
+# Should be removed in 0.8
 warnings.filterwarnings(
     action='once',
     message=r'deepchecks\.tabular\.checks\.performance is deprecated.*',
