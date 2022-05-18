@@ -167,6 +167,7 @@ def widget_to_html_string(
     """
     buffer = io.StringIO()
     widget_to_html(widget, buffer, title, requirejs)
+    buffer.seek(0)
     return buffer.getvalue()
 
 

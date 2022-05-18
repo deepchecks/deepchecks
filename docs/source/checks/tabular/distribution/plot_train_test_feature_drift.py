@@ -47,7 +47,7 @@ between distribution of 2 given sets. We exprimented with various approaches
 and found that for detecting drift in a single feature, the following 2
 methods give the best results:
 
-* `Population Stability Index (PSI) <https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf>`__
+* `Cramer's V <https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V>`__
 * `Wasserstein metric (Earth Movers Distance) <https://en.wikipedia.org/wiki/Wasserstein_metric>`__
 
 For numerical features, the check uses the Earth Movers Distance method
@@ -167,8 +167,8 @@ result.value
 # below 0.1. A condition is deepchecks' way to enforce that results are OK,
 # and we don't have a problem in our data or model!
 
-check_cond = check.add_condition_drift_score_not_greater_than(max_allowed_psi_score=0.2, 
-                                                              max_allowed_earth_movers_score=0.1)
+check_cond = check.add_condition_drift_score_not_greater_than(max_allowed_categorical_score=0.2, 
+                                                              max_allowed_numeric_score=0.1)
 
 #%%
 
