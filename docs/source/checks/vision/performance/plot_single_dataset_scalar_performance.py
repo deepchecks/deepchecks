@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Single Dataset Scalar Performance
-******************************
+*********************************
 
 This notebooks provides an overview for using and understanding single dataset scalar performance check.
 
@@ -19,7 +19,7 @@ This check returns a metric result as a single scalar, which is especially usefu
 Some metrics return a single score, but others return a tensor of scores.
 
 For example, Precision returns a tensor in the size of the number of classes. In that case, we will use a
-reduce function- a function that aggregates the scores into a scalar.
+reduce function - a function that aggregates the scores into a scalar.
 In this example we use 'nanmean' that returns the mean over the classes, while ignoring NaNs.
 
 """
@@ -67,6 +67,7 @@ from torch import nanmean
 check = SingleDatasetScalarPerformance(Precision(), nanmean, metric_name='precision', reduce_name='mean')
 result = check.run(train_ds, mnist_model)
 result.value
+
 #%%
 # Define a Condition
 # ==================
