@@ -42,8 +42,10 @@ train_ds = mnist.load_dataset(train=True, object_type='VisionData')
 # -------------
 # We will run the check with the model defined above.
 #
-# The check will use the default classification metric - ignite's Accuracy.
+# The check will use the default classification metric -
+# `ignite.Accuracy <https://pytorch.org/ignite/generated/ignite.metrics.Accuracy.html>`__.
 # The default metric returns a scalar, therefore we will use the reduce function default - None.
+
 
 check = SingleDatasetScalarPerformance()
 result = check.run(train_ds, mnist_model)
@@ -75,6 +77,6 @@ result.value
 check = SingleDatasetScalarPerformance()
 check.add_condition_greater_than(0.5)
 result = check.run(train_ds, mnist_model)
-result
+result.show(show_additional_outputs=False)
 
 

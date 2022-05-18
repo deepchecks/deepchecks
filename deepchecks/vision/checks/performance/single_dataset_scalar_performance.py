@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing a check for computing a scalar performance metric for a single dataset."""
+import numbers
 import typing as t
 import warnings
 
@@ -36,18 +37,25 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck):
         reduce: torch function, default: None
         The function to reduce the scores tensor into a single scalar. For metrics that return a scalar use None
         (default).
+        metric_name: str, default: None
+        A name for the metric to show in the check results.
+        reduce_name: str, default: None
+        A name for the reduce function to show in the check results.
+
     """
 
     def __init__(self,
                  metric: Metric = None,
                  reduce: t.Callable = None,
+                 metric_name: str = None,
+                 reduce_name: str = None,
                  **kwargs):
         super().__init__(**kwargs)
         self.metric = metric
         self.reduce = reduce
 
-        self.metric_name = kwargs.get('metric_name') or (metric.__class__.__name__ if metric else None)
-        self.reduce_name = kwargs.get('reduce_name') or (reduce.__name__ if reduce else None)
+        self.metric_name = metric_name or (metric.__class__.__name__ if metric else None)
+        self.reduce_name = reduce_name or (reduce.__name__ if reduce else None)
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind.TRAIN):
         """Initialize the metric for the check, and validate task type is relevant."""
@@ -78,10 +86,10 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck):
         """Compute the metric result using the ignite metrics compute method and reduce to a scalar."""
         metric_result = self.metric.compute()
         if self.reduce is not None:
-            if isinstance(metric_result, float):
+            if isinstance(metric_result, numbers.Real):
                 warnings.warn(SyntaxWarning('Metric result is already scalar, skipping reduce operation.'
                                             'Pass reduce=None to prevent this'))
-                result_value = metric_result
+                result_value = float(metric_result)
             else:
                 result_value = float(self.reduce(metric_result))
         elif isinstance(metric_result, float):
