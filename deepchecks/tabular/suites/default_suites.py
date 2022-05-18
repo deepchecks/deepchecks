@@ -142,8 +142,6 @@ def full_suite() -> Suite:
     """Create a suite that includes many of the implemented checks, for a quick overview of your model and data."""
     return Suite(
         'Full Suite',
-        ModelInfo(),
-        ColumnsInfo(),
         model_evaluation(),
         train_test_validation(),
         data_integrity(),
