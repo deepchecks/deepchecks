@@ -52,7 +52,7 @@ def single_dataset_integrity() -> Suite:
     """
     Create a suite that is meant to detect integrity issues within a single dataset.
 
-    .. deprecated:: 0.6.5
+    .. deprecated:: 0.7.0
             `single_dataset_integrity` is deprecated and will be removed in deepchecks 0.8 version, it is replaced by
             `data_integrity` suite.
     """
@@ -84,7 +84,7 @@ def train_test_leakage() -> Suite:
     """
     Create a suite that is meant to detect data leakage between the training dataset and the test dataset.
 
-    .. deprecated:: 0.6.5
+    .. deprecated:: 0.7.0
             `train_test_leakage` is deprecated and will be removed in deepchecks 0.8 version, it is replaced by
             `train_test_validation` suite.
     """

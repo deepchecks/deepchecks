@@ -11,7 +11,7 @@
 """
 Module contains checks for methodological flaws in the model building process.
 
-.. deprecated:: 0.6.5
+.. deprecated:: 0.7.0
         :mod:`deepchecks.tabular.checks.methodology is deprecated and will be removed in deepchecks 0.8 version.
         Use :mod:`deepchecks.tabular.checks.model_evaluation`, :mod:`deepchecks.tabular.checks.train_test_validation`,
         :mod:`deepchecks.tabular.checks.integrity` instead.
