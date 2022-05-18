@@ -41,14 +41,11 @@ from deepchecks.tabular.checks import (BoostingOverfit, CalibrationScore,
                                        TrainTestFeatureDrift,
                                        TrainTestLabelDrift,
                                        TrainTestSamplesMix, UnusedFeatures,
-                                       WholeDatasetDrift)
+                                       WholeDatasetDrift,
+                                       SingleFeatureContribution)
 
 __all__ = ['single_dataset_integrity', 'train_test_leakage', 'train_test_validation',
            'model_evaluation', 'full_suite']
-
-from deepchecks.tabular.checks.integrity.single_feature_contribution import SingleFeatureContribution
-from deepchecks.tabular.checks.model_evaluation.segment_performance import SegmentPerformance
-from deepchecks.tabular.checks.model_evaluation.train_test_prediction_drift import TrainTestPredictionDrift
 
 
 def single_dataset_integrity() -> Suite:

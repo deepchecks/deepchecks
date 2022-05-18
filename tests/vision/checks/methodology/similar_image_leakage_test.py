@@ -18,7 +18,7 @@ from torch.utils.data import DataLoader
 
 from deepchecks.vision.checks import SimilarImageLeakage
 from deepchecks.vision.utils.test_utils import get_modified_dataloader
-from tests.checks.utils import equal_condition_result
+from tests.base.utils import equal_condition_result
 
 
 def test_no_similar_object_detection(coco_train_visiondata, coco_test_visiondata):
