@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains Mixed Nulls check."""
-from collections import Counter, defaultdict
+from collections import defaultdict
 from typing import Dict, Iterable, List, Union
 
 import pandas as pd
@@ -92,7 +92,7 @@ class MixedNulls(SingleDatasetCheck):
             if parse_version(pd.__version__) < parse_version('1.4.0'):
                 column_counts: pd.Series = column_data.value_counts(dropna=True)
                 # Nan values are not equal to each other, so in order to group them together by type, first we
-                # transform the using the id function:
+                # transform them using the id function:
                 # np.nan != np.nan
                 # id(np.nan) == id(np.nan) != id(pd.NA)
                 unique_nans = [x for x in column_data.unique() if pd.isnull(x)]
