@@ -18,7 +18,7 @@ from hamcrest import (assert_that, calling, equal_to, has_entry, has_items,
 from sklearn.model_selection import train_test_split
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.tabular.checks.methodology import TrainTestSamplesMix
+from deepchecks.tabular.checks.train_test_validation import TrainTestSamplesMix
 from deepchecks.tabular.dataset import Dataset
 from tests.base.utils import equal_condition_result
 
