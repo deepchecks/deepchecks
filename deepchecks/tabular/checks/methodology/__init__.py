@@ -8,19 +8,26 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module contains checks for methodological flaws in the model building process."""
-from .boosting_overfit import BoostingOverfit
-from .datasets_size_comparison import DatasetsSizeComparison
-from .date_train_test_leakage_duplicates import DateTrainTestLeakageDuplicates
-from .date_train_test_leakage_overlap import DateTrainTestLeakageOverlap
-from .identifier_leakage import IdentifierLeakage
-from .index_leakage import IndexTrainTestLeakage
-from .model_inference_time import ModelInferenceTime
-from .single_feature_contribution import SingleFeatureContribution
-from .single_feature_contribution_train_test import \
-    SingleFeatureContributionTrainTest
-from .train_test_samples_mix import TrainTestSamplesMix
-from .unused_features import UnusedFeatures
+"""
+Module contains checks for methodological flaws in the model building process.
+
+.. deprecated:: 0.7.0
+        :mod:`deepchecks.tabular.checks.methodology is deprecated and will be removed in deepchecks 0.8 version.
+        Use :mod:`deepchecks.tabular.checks.model_evaluation`, :mod:`deepchecks.tabular.checks.train_test_validation`,
+        :mod:`deepchecks.tabular.checks.integrity` instead.
+
+"""
+import warnings
+
+from ..data_integrity import SingleFeatureContribution
+from ..model_evaluation import (BoostingOverfit, ModelInferenceTime,
+                                UnusedFeatures)
+from ..train_test_validation import (DatasetsSizeComparison,
+                                     DateTrainTestLeakageDuplicates,
+                                     DateTrainTestLeakageOverlap,
+                                     IdentifierLeakage, IndexTrainTestLeakage,
+                                     SingleFeatureContributionTrainTest,
+                                     TrainTestSamplesMix)
 
 __all__ = [
     'BoostingOverfit',
@@ -35,3 +42,11 @@ __all__ = [
     'ModelInferenceTime',
     'DatasetsSizeComparison',
 ]
+
+
+warnings.warn(
+                'deepchecks.tabular.checks.methodology is deprecated and will be removed in deepchecks 0.8 version. '
+                'Use deepchecks.tabular.checks.model_evaluation, deepchecks.tabular.checks.train_test_validation,'
+                'deepchecks.tabular.checks.integrity` instead.',
+                DeprecationWarning
+            )

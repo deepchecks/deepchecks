@@ -22,7 +22,7 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks.performance.robustness_report import \
     RobustnessReport
 from deepchecks.vision.datasets.detection.coco import COCOData, CocoDataset
-from tests.checks.utils import equal_condition_result
+from tests.base.utils import equal_condition_result
 from tests.vision.vision_conftest import *
 
 
