@@ -37,13 +37,6 @@ __all__ = [
     'ModelErrorAnalysis'
 ]
 
-warnings.filterwarnings(
-    action='once',
-    message=r'deepchecks.tabular.checks.performance is deprecated.*',
-    category=DeprecationWarning,
-    module=r'deepchecks.tabular.checks.performance.*'
-)
-
 warnings.warn(
                 'deepchecks.tabular.checks.performance is deprecated. Use deepchecks.tabular.checks.model_evaluation '
                 'instead.',

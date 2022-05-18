@@ -9,6 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Package for tabular functionality."""
+from deepchecks.tabular import \
+    deprecation_warnings  # pylint: disable=unused-import # noqa: F401
 from .base_checks import (ModelComparisonCheck, ModelOnlyCheck,
                           SingleDatasetCheck, TrainTestCheck)
 from .context import Context

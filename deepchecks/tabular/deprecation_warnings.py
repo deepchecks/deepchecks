@@ -18,3 +18,46 @@ warnings.filterwarnings(
     category=DeprecationWarning,
     module=r'deepchecks.*'
 )
+
+# Warning filters for deprecated functions in deepchecks.tabular.checks
+warnings.filterwarnings(
+    action='once',
+    message=r'deepchecks\.tabular\.checks\.performance is deprecated.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.*'
+)
+
+warnings.filterwarnings(
+    action='once',
+    message=r'deepchecks.tabular.checks.overview is deprecated.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.*'
+)
+
+warnings.filterwarnings(
+    action='once',
+    message=r'deepchecks.tabular.checks.methodology is deprecated.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.tabular.checks.methodology.*'
+)
+
+warnings.filterwarnings(
+    action='once',
+    message=r'deepchecks.tabular.checks.distribution is deprecated.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.*'
+)
+
+warnings.filterwarnings(
+    action='always',
+    message=r'the single_dataset_integrity suite is deprecated.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.*'
+)
+
+warnings.filterwarnings(
+    action='always',
+    message=r'the train_test_leakage suite is deprecated.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.*'
+)

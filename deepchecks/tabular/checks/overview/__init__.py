@@ -25,13 +25,6 @@ __all__ = [
     'ColumnsInfo'
 ]
 
-warnings.filterwarnings(
-    action='once',
-    message=r'deepchecks.tabular.checks.overview is deprecated.*',
-    category=DeprecationWarning,
-    module=r'deepchecks.tabular.checks.overview.*'
-)
-
 warnings.warn(
                 'deepchecks.tabular.checks.overview is deprecated. Use deepchecks.tabular.checks.model_evaluation '
                 'and deepchecks.tabular.checks.integrity instead.',
