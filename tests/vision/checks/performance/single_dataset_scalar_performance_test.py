@@ -12,7 +12,7 @@
 import warnings
 
 import torch
-from hamcrest import (assert_that, calling, equal_to, greater_than_or_equal_to,
+from hamcrest import (assert_that, calling, equal_to, greater_than_or_equal_to, close_to,
                       raises)
 from ignite.metrics import Accuracy, Precision
 
@@ -32,7 +32,7 @@ def test_detection_defaults(coco_train_visiondata, mock_trained_yolov5_object_de
     # scalar
     assert_that(type(result.value['score']), equal_to(float))
     # metric
-    assert_that(result.value['score'], greater_than_or_equal_to(0))
+    assert_that(result.value['score'], close_to(0.39, 0.001))
 
 
 def test_detection_w_params(coco_train_visiondata, mock_trained_yolov5_object_detection, device):
@@ -53,7 +53,7 @@ def test_classification_defaults(mnist_dataset_train, mock_trained_mnist, device
     # scalar
     assert_that(type(result.value['score']), equal_to(float))
     # metric
-    assert_that(result.value['score'], greater_than_or_equal_to(0))
+    assert_that(result.value['score'], close_to(0.98, 0.001))
 
 
 def test_classification_w_params(mnist_dataset_train, mock_trained_mnist, device):
