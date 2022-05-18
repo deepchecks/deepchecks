@@ -17,7 +17,7 @@ Module contains check of overall overview of datasets and model.
 """
 import warnings
 
-from ..integrity import ColumnsInfo
+from ..data_integrity import ColumnsInfo
 from ..model_evaluation import ModelInfo
 
 __all__ = [

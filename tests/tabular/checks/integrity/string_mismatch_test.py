@@ -14,7 +14,7 @@ import pandas as pd
 from hamcrest import assert_that, has_entries, has_entry, has_items, has_length
 
 from deepchecks.core import ConditionCategory
-from deepchecks.tabular.checks.integrity import StringMismatch
+from deepchecks.tabular.checks.data_integrity import StringMismatch
 from deepchecks.tabular.dataset import Dataset
 from tests.base.utils import equal_condition_result
 

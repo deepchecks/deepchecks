@@ -18,7 +18,7 @@ from deepchecks.core.errors import (DatasetValidationError,
                                     DeepchecksNotSupportedError,
                                     DeepchecksValueError)
 from deepchecks.tabular.checks.train_test_validation import SingleFeatureContributionTrainTest
-from deepchecks.tabular.checks.integrity import SingleFeatureContribution
+from deepchecks.tabular.checks.data_integrity import SingleFeatureContribution
 from deepchecks.tabular.dataset import Dataset
 from tests.base.utils import equal_condition_result
 

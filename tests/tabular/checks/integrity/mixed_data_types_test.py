@@ -17,7 +17,7 @@ from hamcrest import (assert_that, calling, close_to, has_entries, has_entry,
 
 from deepchecks.core import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.tabular.checks.integrity.mixed_data_types import MixedDataTypes
+from deepchecks.tabular.checks.data_integrity.mixed_data_types import MixedDataTypes
 from deepchecks.tabular.dataset import Dataset
 from tests.base.utils import equal_condition_result
 

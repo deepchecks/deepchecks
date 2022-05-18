@@ -14,7 +14,7 @@ import pandas as pd
 from hamcrest import assert_that, calling, equal_to, has_length, raises
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.tabular.checks.integrity import ColumnsInfo
+from deepchecks.tabular.checks.data_integrity import ColumnsInfo
 from deepchecks.tabular.dataset import Dataset
 
 

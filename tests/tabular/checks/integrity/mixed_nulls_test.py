@@ -15,7 +15,7 @@ from hamcrest import (assert_that, calling, has_entry, has_items, has_length,
                       is_, raises)
 
 from deepchecks.core.errors import DatasetValidationError, DeepchecksValueError
-from deepchecks.tabular.checks.integrity.mixed_nulls import MixedNulls
+from deepchecks.tabular.checks.data_integrity.mixed_nulls import MixedNulls
 from deepchecks.tabular.dataset import Dataset
 from tests.base.utils import equal_condition_result
 

@@ -50,7 +50,7 @@ __all__ = ['single_dataset_integrity', 'train_test_leakage', 'train_test_validat
 
 def single_dataset_integrity() -> Suite:
     """
-    Create a suite that is meant to detect integrity issues within a single dataset.
+    (Deprecated) Create a suite that is meant to detect integrity issues within a single dataset.
 
     .. deprecated:: 0.7.0
             `single_dataset_integrity` is deprecated and will be removed in deepchecks 0.8 version, it is replaced by
@@ -82,7 +82,7 @@ def data_integrity() -> Suite:
 
 def train_test_leakage() -> Suite:
     """
-    Create a suite that is meant to detect data leakage between the training dataset and the test dataset.
+    (Deprecated) Create a suite that is meant to detect data leakage between the training dataset and the test dataset.
 
     .. deprecated:: 0.7.0
             `train_test_leakage` is deprecated and will be removed in deepchecks 0.8 version, it is replaced by

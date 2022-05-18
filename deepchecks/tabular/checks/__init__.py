@@ -9,11 +9,11 @@
 # ----------------------------------------------------------------------------
 #
 """Module importing all tabular checks."""
-from .integrity import (ColumnsInfo, ConflictingLabels, DataDuplicates,
-                        IsSingleValue, MixedDataTypes, MixedNulls,
-                        OutlierSampleDetection, SingleFeatureContribution,
-                        SpecialCharacters, StringLengthOutOfBounds,
-                        StringMismatch)
+from .data_integrity import (ColumnsInfo, ConflictingLabels, DataDuplicates,
+                             IsSingleValue, MixedDataTypes, MixedNulls,
+                             OutlierSampleDetection, SingleFeatureContribution,
+                             SpecialCharacters, StringLengthOutOfBounds,
+                             StringMismatch)
 from .model_evaluation import (BoostingOverfit, CalibrationScore,
                                ConfusionMatrixReport, ModelErrorAnalysis,
                                ModelInferenceTime, ModelInfo,

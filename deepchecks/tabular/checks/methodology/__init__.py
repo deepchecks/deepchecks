@@ -19,7 +19,7 @@ Module contains checks for methodological flaws in the model building process.
 """
 import warnings
 
-from ..integrity import SingleFeatureContribution
+from ..data_integrity import SingleFeatureContribution
 from ..model_evaluation import (BoostingOverfit, ModelInferenceTime,
                                 UnusedFeatures)
 from ..train_test_validation import (DatasetsSizeComparison,

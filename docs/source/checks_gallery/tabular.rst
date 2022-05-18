@@ -2,14 +2,6 @@
 Tabular Checks
 ==============
 
-Model Evaluation
-----------------
-
-.. toctree::
-    :maxdepth: 1
-    :glob:
-
-    tabular/model_evaluation/plot_*
 
 Data Integrity
 --------------
@@ -18,7 +10,7 @@ Data Integrity
     :maxdepth: 1
     :glob:
 
-    tabular/integrity/plot_*
+    tabular/data_integrity/plot_*
 
 Train Test Validation
 ---------------------
@@ -28,3 +20,12 @@ Train Test Validation
     :glob:
 
     tabular/train_test_validation/plot_*
+
+Model Evaluation
+----------------
+
+.. toctree::
+    :maxdepth: 1
+    :glob:
+
+    tabular/model_evaluation/plot_*
