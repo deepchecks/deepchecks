@@ -25,6 +25,6 @@ __all__ = [
 ]
 
 warnings.warn(
-    "deepchecks.vision.checks.methodology is deprecated. Use deepchecks.vision.checks.train_test_validation instead.",
+    'deepchecks.vision.checks.methodology is deprecated. Use deepchecks.vision.checks.train_test_validation instead.',
     DeprecationWarning
 )

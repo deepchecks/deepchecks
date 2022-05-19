@@ -27,4 +27,4 @@ __all__ = ['ClassPerformance', 'ConfusionMatrixReport', 'MeanAveragePrecisionRep
            'RobustnessReport', 'SimpleModelComparison', 'TrainTestLabelDrift', 'ImageDatasetDrift',
            'ImagePropertyDrift', 'ModelErrorAnalysis', 'TrainTestPredictionDrift', 'ImageSegmentPerformance',
            'SimpleFeatureContribution', 'ImagePropertyOutliers', 'LabelPropertyOutliers', 'HeatmapComparison',
-           'SimilarImageLeakage', 'NewLabels']
+           'SimilarImageLeakage', 'NewLabels', 'SingleDatasetScalarPerformance']
