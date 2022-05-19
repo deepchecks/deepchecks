@@ -139,7 +139,7 @@ def create_progress_bar(
         'iterable': iterable,
         'desc': name,
         'unit': f' {unit}',
-        'leave': True,
+        'leave': False,
     }
 
     iterlen = len(iterable)
@@ -170,7 +170,7 @@ def create_progress_bar(
 
             def close(self, *args, **kwargs):
                 value = super().close(*args, **kwargs)
-                self.display_handler.update({'text/plain': self.fp.getvalue()}, raw=True)
+                self.display_handler.update({'text/plain': ''}, raw=True)
                 self.fp.seek(0)
                 return value
 
