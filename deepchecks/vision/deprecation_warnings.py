@@ -18,3 +18,33 @@ warnings.filterwarnings(
     category=DeprecationWarning,
     module=r'deepchecks.*'
 )
+
+# Added in 0.7 Warning filters for deprecated functions in deepchecks.tabular.checks
+# Should be removed in 0.8
+warnings.filterwarnings(
+    action='once',
+    message=r'deepchecks.vision.checks.performance is deprecated.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.*'
+)
+
+warnings.filterwarnings(
+    action='once',
+    message=r'deepchecks.vision.checks.methodology is deprecated.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.tabular.checks.methodology.*'
+)
+
+warnings.filterwarnings(
+    action='once',
+    message=r'deepchecks.vision.checks.distribution is deprecated.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.*'
+)
+
+warnings.filterwarnings(
+    action='always',
+    message=r'the integrity_validation suite is deprecated.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.*'
+)

@@ -9,7 +9,7 @@ Distribution
     :maxdepth: 1
     :glob:
 
-    vision/distribution/plot_*
+    vision/data_integrity/plot_*
 
 Methodology
 -----------
@@ -18,7 +18,7 @@ Methodology
     :maxdepth: 1
     :glob:
 
-    vision/methodology/plot_*
+    vision/model_evaluation/plot_*
 
 Performance
 -----------
@@ -27,4 +27,4 @@ Performance
     :maxdepth: 1
     :glob:
 
-    vision/performance/plot_*
+    vision/train_test_validation/plot_*

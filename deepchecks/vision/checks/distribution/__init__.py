@@ -8,15 +8,20 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module containing the distribution checks in the vision package."""
-from .heatmap_comparison import HeatmapComparison
-from .image_dataset_drift import ImageDatasetDrift
-from .image_property_drift import ImagePropertyDrift
-from .image_property_outliers import ImagePropertyOutliers
-from .label_property_outliers import LabelPropertyOutliers
-from .new_labels import NewLabels
-from .train_test_label_drift import TrainTestLabelDrift
-from .train_test_prediction_drift import TrainTestPredictionDrift
+"""Module containing the distribution checks in the vision package.
+
+.. deprecated:: 0.7.0
+        :mod:`deepchecks.vision.checks.distribution is deprecated and will be removed in deepchecks 0.8 version.
+        Use :mod:`deepchecks.vision.checks.train_test_validation`, :mod:`deepchecks.vision.checks.data_integrity`
+        and :mod:`deepchecks.vision.checks.model_evaluation` instead.
+"""
+import warnings
+
+from ..data_integrity import ImagePropertyOutliers, LabelPropertyOutliers
+from ..model_evaluation import TrainTestPredictionDrift
+from ..train_test_validation import (HeatmapComparison, ImageDatasetDrift,
+                                     ImagePropertyDrift, NewLabels,
+                                     TrainTestLabelDrift)
 
 __all__ = [
     'TrainTestLabelDrift',
@@ -28,3 +33,10 @@ __all__ = [
     'LabelPropertyOutliers',
     'NewLabels'
 ]
+
+warnings.warn(
+                'deepchecks.vision.checks.distribution is deprecated. Use '
+                'deepchecks.vision.checks.train_test_validation, deepchecks.vision.checks.data_integrity'
+                'and deepchecks.vision.checks.model_evaluation instead.',
+                DeprecationWarning
+            )
