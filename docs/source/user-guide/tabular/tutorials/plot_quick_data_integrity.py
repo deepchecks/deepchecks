@@ -4,15 +4,13 @@ Data Integrity Suite on Avocado Sales Data - Quickstart
 *******************************************************
 
 The deepchecks integrity suite is relevant any time you have new data that you wish to validate.
-He're we'll use the avocado prices dataset, to demonstrate how you can run 
+Here we'll use the avocado prices dataset, to demonstrate how you can run
 the suite with only a few simple lines of code, and see which kind of insights it can find.
 
-.. code:: python
+.. code-block:: bash
 
     # Before we start, if you don't have deepchecks installed yet, make sure to run:
-    import sys
-    !{sys.executable} -m pip install deepchecks -U --quiet #--user
-
+    pip install deepchecks -U --quiet #--user
 """
 
 #%%
@@ -43,14 +41,13 @@ def add_dirty_data(df):
     df['Is Ripe'] = True
     return df
 
+
 dirty_df = add_dirty_data(data)
 
 #%%
 # Run Deepchecks for Data Integrity
 # ====================================
-
-
-#%%
+#
 # Define a Dataset Object
 # ------------------------
 #
@@ -63,20 +60,22 @@ from deepchecks.tabular import Dataset
 # otherwise they will be automatically inferred - less recommended.
 # The label can be passed as a column name or a separate pd.Series / pd.DataFrame
 ds = Dataset(dirty_df, cat_features = ['type'], datetime_name='Date', label = 'AveragePrice')
+
 #%%
 # Run the Deepchecks Suite
 # --------------------------
 #
 # Validate your data with the :class:`deepchecks.tabular.suites.single_dataset_integrity` suite.
-# It runs on a single dataset, so you can run it on any batch of data (e.g. train data, test data, a new batch of data that recently arrived)
+# It runs on a single dataset, so you can run it on any batch of data (e.g. train data, test data, a new batch of data
+# that recently arrived)
 #
 # Check out the :doc:`when should you use </getting-started/when_should_you_use>`
 # deepchecks guide for some more info about the existing suites and when to use them.
 
-from deepchecks.tabular.suites import single_dataset_integrity
+from deepchecks.tabular.suites import data_integrity
 
 # Run Suite:
-integ_suite = single_dataset_integrity()
+integ_suite = data_integrity()
 integ_suite.run(ds)
 
 #%%
@@ -143,7 +142,7 @@ integ_suite[3].clean_conditions()
 #%%
 # Now we can re-run the suite using:
 #
-# .. code:: python
+# .. code-block:: python
 #
 #    integ_suite.run(ds)
 #
