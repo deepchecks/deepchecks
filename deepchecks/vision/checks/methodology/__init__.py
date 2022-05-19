@@ -8,11 +8,23 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module containing the distribution checks in the vision package."""
-from .similar_image_leakage import SimilarImageLeakage
-from .simple_feature_contribution import SimpleFeatureContribution
+"""Module containing the methodology checks in the vision package.
+
+.. deprecated:: 0.7.0
+        `deepchecks.vision.checks.distribution is deprecated and will be removed in deepchecks 0.8 version.
+        Use `deepchecks.vision.checks.train_test_validation` instead.
+"""
+import warnings
+
+from ..train_test_validation import (SimilarImageLeakage,
+                                     SimpleFeatureContribution)
 
 __all__ = [
     'SimpleFeatureContribution',
     'SimilarImageLeakage'
 ]
+
+warnings.warn(
+    'deepchecks.vision.checks.methodology is deprecated. Use deepchecks.vision.checks.train_test_validation instead.',
+    DeprecationWarning
+)

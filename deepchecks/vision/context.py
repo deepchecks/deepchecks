@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module for base vision context."""
-import logging
+import warnings
 from typing import Mapping, Union
 
 import torch
@@ -22,12 +22,10 @@ from deepchecks.core.errors import (DatasetValidationError,
                                     DeepchecksNotSupportedError,
                                     DeepchecksValueError, ModelValidationError,
                                     ValidationError)
-from deepchecks.vision.vision_data import TaskType, VisionData
+from deepchecks.vision.task_type import TaskType
+from deepchecks.vision.vision_data import VisionData
 
 __all__ = ['Context']
-
-
-logger = logging.getLogger('deepchecks')
 
 
 class Context:
@@ -82,8 +80,8 @@ class Context:
 
         if model is not None:
             if not isinstance(model, nn.Module):
-                logger.warning('Model is not a torch.nn.Module. Deepchecks can\'t validate that model is in '
-                               'evaluation state.')
+                warnings.warn('Deepchecks can\'t validate that model is in evaluation state. Make sure it is to '
+                              'avoid unexpected behavior.')
             elif model.training:
                 raise DatasetValidationError('Model is not in evaluation state. Please set model training '
                                              'parameter to False or run model.eval() before passing it.')
@@ -103,7 +101,7 @@ class Context:
 
                     if msg:
                         self._prediction_formatter_error[dataset_type] = msg
-                        logger.warning(msg)
+                        warnings.warn(msg)
 
         # The copy does 2 things: Sample n_samples if parameter exists, and shuffle the data.
         # we shuffle because the data in VisionData is set to be sampled in a fixed order (in the init), so if the user

@@ -9,9 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """The vision/dataset module containing the vision Dataset class and its functions."""
-import logging
 # pylint: disable=protected-access
 import random
+import warnings
 from abc import abstractmethod
 from collections import defaultdict
 from copy import copy
@@ -33,7 +33,6 @@ from deepchecks.vision.utils.transformations import get_transforms_handler
 __all__ = ['VisionData']
 
 
-logger = logging.getLogger('deepchecks')
 VD = TypeVar('VD', bound='VisionData')
 
 
@@ -68,7 +67,6 @@ class VisionData:
         self._num_classes = num_classes
         self._label_map = label_map
         self._transform_field = transform_field
-        self._warned_labels = set()
         self._image_formatter_error = None
         self._label_formatter_error = None
         self._get_classes_error = None
@@ -78,23 +76,23 @@ class VisionData:
             self.validate_image_data(batch)
         except DeepchecksNotImplementedError:
             self._image_formatter_error = 'batch_to_images() was not implemented, some checks will not run'
-            logger.warning(self._image_formatter_error)
+            warnings.warn(self._image_formatter_error)
         except ValidationError as ex:
             self._image_formatter_error = f'batch_to_images() was not implemented correctly, the validation has ' \
                                           f'failed with the error: "{ex}". To test your image formatting use the ' \
                                           f'function `validate_image_data(batch)`'
-            logger.warning(self._image_formatter_error)
+            warnings.warn(self._image_formatter_error)
 
         try:
             self.validate_label(batch)
         except DeepchecksNotImplementedError:
             self._label_formatter_error = 'batch_to_labels() was not implemented, some checks will not run'
-            logger.warning(self._image_formatter_error)
+            warnings.warn(self._label_formatter_error)
         except ValidationError as ex:
             self._label_formatter_error = f'batch_to_labels() was not implemented correctly, the validation has ' \
                                           f'failed with the error: "{ex}". To test your label formatting use the ' \
                                           f'function `validate_label(batch)`'
-            logger.warning(self._label_formatter_error)
+            warnings.warn(self._label_formatter_error)
 
         try:
             if self._label_formatter_error is None:
@@ -103,12 +101,12 @@ class VisionData:
                 self._get_classes_error = 'Must have valid labels formatter to use `get_classes`'
         except DeepchecksNotImplementedError:
             self._get_classes_error = 'get_classes() was not implemented, some checks will not run'
-            logger.warning(self._get_classes_error)
+            warnings.warn(self._get_classes_error)
         except ValidationError as ex:
             self._get_classes_error = f'get_classes() was not implemented correctly, the validation has ' \
                                       f'failed with the error: "{ex}". To test your formatting use the ' \
                                       f'function `validate_get_classes(batch)`'
-            logger.warning(self._get_classes_error)
+            warnings.warn(self._get_classes_error)
 
         self._classes_indices = None
         self._current_index = None
@@ -329,10 +327,8 @@ class VisionData:
         if self._label_map is None:
             return str(class_id)
         elif class_id not in self._label_map:
-            if class_id not in self._warned_labels:
-                # We want to warn one time per class
-                self._warned_labels.add(class_id)
-                logger.warning('Class id %s is not in the label map.', class_id)
+            warnings.warn(f'Class id {class_id} is not in the label map. Add it to map in order to show the class '
+                          f'name instead of id')
             return str(class_id)
         else:
             return self._label_map[class_id]

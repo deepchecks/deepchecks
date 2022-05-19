@@ -11,6 +11,6 @@ checks
     :toctree: generated
     :template: autosummary/check-module.rst
     
-    distribution
-    methodology
-    performance
+    data_integrity
+    train_test_validation
+    model_evaluation

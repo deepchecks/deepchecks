@@ -11,6 +11,7 @@ Feature Importance
 
 What is Feature Importance?
 ===========================
+
 Feature importance is a ranking that represents the significance of input features to the model's predictions.
 A feature with higher importance has more influence on the prediction of the model.
 Feature importance can be general (meaning, for all model predictions, on average) or local (meaning, for a specific
@@ -22,28 +23,36 @@ for decision trees).
 
 Why Does Deepchecks Use Feature Importance?
 ===========================================
+
 Deepchecks uses your model's feature importance for 2 main reasons:
-* Help you find issues with your model or data, as in the check :doc:`UnusedFeatures </checks_gallery/tabular/methodology/plot_unused_features>`
+* Help you find issues with your model or data, as in the check :doc:`UnusedFeatures </checks_gallery/tabular/model_evaluation/plot_unused_features>`
 * Display the most relevant information the check has found (for instance, if deepchecks found drift in many features,
-as in the check :doc:`TrainTestFeatureDrift </checks_gallery/tabular/distribution/plot_train_test_feature_drift>`,
+as in the check :doc:`TrainTestFeatureDrift </checks_gallery/tabular/train_test_validation/plot_train_test_feature_drift>`,
 it would only display the features with the highest importance)
 
-Note
-----
-For most checks, deepchecks does not *require* the usage of feature importance, and that you can
-shorten or `even skip <#what-if-the-feature-importance-calculation-takes-too-long>`__ this phase of the calculation.
+
+.. note::
+
+	Most checks don't *require* the usage of feature importance. For those, you can
+	shorten or `even skip <#what-if-the-feature-importance-calculation-takes-too-long>`__ this phase of the calculation.
+
 
 How Does Deepchecks Get Feature Importance?
 ===========================================
+
 There are 3 ways in which deepchecks can get your model's feature importance:
+
 
 Your Model Has a Built-in Feature Importance
 --------------------------------------------
+
 First of all, deepchecks searches for your model's built-in feature importance, as some scikit-learn models have.
 Deepchecks looks for the attribute ``feature_importances_`` or ``coef_`` and uses that information if it exists.
 
+
 You Insert Your Own Feature Importance Data
 -------------------------------------------
+
 This can be done by using the ``features_importance`` parameter in the ``run`` function, available in all
 checks and suites.
 Deepchecks expects this data to be a ``pandas.Series`` where the index is feature names and the value is the calculated
@@ -52,8 +61,10 @@ importance.
 >>> check = UnusedFeatures()
 >>> check.run(ds_train, ds_test, model, feature_importance=pd.Series({'feat1': 0.3, 'feat2': 0.7}))
 
+
 Deepchecks Calculates the Feature Importance for You
 ----------------------------------------------------
+
 If there's no built-in feature importance in the model or the user has not supplied feature importance data of their
 own, deepchecks will calculate feature importance using scikit-learn's `permutation_importance <https://scikit-learn.org/stable/modules/generated/sklearn.inspection.permutation_importance.html>`_.
 
@@ -65,7 +76,8 @@ function, available in all checks and suites.
 
 
 What if the Feature Importance Calculation Takes Too Long?
-=========================================================
+==========================================================
+
 Feature importance is a complex calculation which can take a lot of time, depending on the number of features and
 samples in your data.
 However, besides for cetrain checks, deepchecks does not require feature importance.
