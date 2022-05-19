@@ -10,11 +10,11 @@
 #
 """Module containing methods for calculating correlation between features."""
 
+import math
 # TODO: get a vector without nulls
 from collections import Counter
-from typing import Union, List
+from typing import List, Union
 
-import math
 import numpy as np
 import pandas as pd
 from scipy.stats import entropy
@@ -28,9 +28,9 @@ def conditional_entropy(x: Union[List, np.ndarray, pd.Series], y: Union[List, np
         Parameters:
         -----------
         x: Union[List, np.ndarray, pd.Series]
-            A sequence of measurements
+            A sequence of numerical_feature
         y: Union[List, np.ndarray, pd.Series]
-            A sequence of measurements
+            A sequence of numerical_feature
         Returns:
         --------
         float
@@ -52,17 +52,17 @@ def theil_u_correlation(x: Union[List, np.ndarray, pd.Series], y: Union[List, np
         Calculates the Theil's U correlation of y to x.
 
         Theil's U is an asymmetric measure ranges [0,1] based on entropy which answers the question: how well does
-        feature y explains feature x? For much information see https://en.wikipedia.org/wiki/Uncertainty_coefficient
+        feature y explains feature x? For more information see https://en.wikipedia.org/wiki/Uncertainty_coefficient
         Parameters:
         -----------
         x: Union[List, np.ndarray, pd.Series]
-            A sequence of measurements
+            A sequence of a categorical feature values
         y: Union[List, np.ndarray, pd.Series]
-            A sequence of measurements
+            A sequence of a categorical feature values
         Returns:
         --------
         float
-            Representing the conditional entropy
+            Representing the theil_u correlation between y and x
     """
     s_xy = conditional_entropy(x, y)
     x_values_counter = Counter(x)
@@ -73,3 +73,40 @@ def theil_u_correlation(x: Union[List, np.ndarray, pd.Series], y: Union[List, np
         return 1
     else:
         return (s_x - s_xy) / s_x
+
+
+def correlation_ratio(categorical_feature: Union[List, np.ndarray, pd.Series],
+                      numerical_feature: Union[List, np.ndarray, pd.Series]) -> float:
+    """
+        Calculates the correlation ratio of numerical_feature to categorical_feature.
+
+        Correlation ratio is an asymmetric variance based method which answers the question: how well does a
+        numeric feature explains a categorical feature? returns a value in [0,1].
+        For more information see https://en.wikipedia.org/wiki/Uncertainty_coefficient
+        Parameters:
+        -----------
+        categorical_feature: Union[List, np.ndarray, pd.Series]
+            A sequence of a categorical feature values
+        numerical_feature: Union[List, np.ndarray, pd.Series]
+            A sequence of a numerical feature values
+        Returns:
+        --------
+        float
+            Representing the correlation ratio between the features.
+    """
+    fcat, _ = pd.factorize(categorical_feature)
+    cat_num = np.max(fcat) + 1
+    y_avg_array = np.zeros(cat_num)
+    n_array = np.zeros(cat_num)
+    for i in range(0, cat_num):
+        cat_measures = numerical_feature[np.argwhere(fcat == i).flatten()]
+        n_array[i] = len(cat_measures)
+        y_avg_array[i] = np.average(cat_measures)
+    y_total_avg = np.sum(np.multiply(y_avg_array, n_array)) / np.sum(n_array)
+    numerator = np.sum(np.multiply(n_array, np.power(np.subtract(y_avg_array, y_total_avg), 2)))
+    denominator = np.sum(np.power(np.subtract(numerical_feature, y_total_avg), 2))
+    if numerator == 0:
+        eta = 0.0
+    else:
+        eta = np.sqrt(numerator / denominator)
+    return eta
