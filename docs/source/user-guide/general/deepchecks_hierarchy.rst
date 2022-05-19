@@ -12,7 +12,7 @@ models. They are the basic building block of the deepchecks package,
 covering all kinds of common issues, such as:
 
 - :doc:`/checks_gallery/tabular/model_evaluation/plot_model_error_analysis`
-- :doc:`/checks_gallery/tabular/integrity/plot_label_ambiguity`
+- :doc:`/checks_gallery/tabular/data_integrity/plot_label_ambiguity`
 - :doc:`/checks_gallery/tabular/train_test_validation/plot_date_train_test_leakage_overlap`
 
 Each check can have two types of results:
