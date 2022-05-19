@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains Mixed Nulls check."""
-from collections import defaultdict
 from typing import Dict, Iterable, List, Union
 
 import pandas as pd

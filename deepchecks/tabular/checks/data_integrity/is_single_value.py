@@ -11,8 +11,6 @@
 """Module contains is_single_value check."""
 from typing import List, Union
 
-import pandas as pd
-
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.dataframes import select_from_dataframe

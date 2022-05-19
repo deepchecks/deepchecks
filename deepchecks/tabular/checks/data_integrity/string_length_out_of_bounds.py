@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """String length outlier check."""
-from collections import defaultdict
 from typing import Dict, List, Tuple, Union
 
 import numpy as np

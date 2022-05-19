@@ -106,7 +106,8 @@ class StringMismatch(SingleDatasetCheck):
 
         # Create dataframe to display graph
         if display_results:
-            df_graph = pd.DataFrame(display_results, columns=['Column Name', 'Base form', 'Value', 'Count', '% In data'])
+            df_graph = pd.DataFrame(display_results, columns=['Column Name', 'Base form', 'Value', 'Count',
+                                                              '% In data'])
             df_graph = df_graph.set_index(['Column Name', 'Base form'])
             df_graph = column_importance_sorter_df(df_graph, dataset, context.features_importance,
                                                    self.n_top_columns, col='Column Name')
