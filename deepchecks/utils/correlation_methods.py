@@ -11,7 +11,6 @@
 """Module containing methods for calculating correlation between features."""
 
 import math
-# TODO: get a vector without nulls
 from collections import Counter
 from typing import List, Union
 
@@ -28,9 +27,9 @@ def conditional_entropy(x: Union[List, np.ndarray, pd.Series], y: Union[List, np
         Parameters:
         -----------
         x: Union[List, np.ndarray, pd.Series]
-            A sequence of numerical_feature
+            A sequence of numerical_feature without nulls
         y: Union[List, np.ndarray, pd.Series]
-            A sequence of numerical_feature
+            A sequence of numerical_feature without nulls
         Returns:
         --------
         float
@@ -56,9 +55,9 @@ def theil_u_correlation(x: Union[List, np.ndarray, pd.Series], y: Union[List, np
         Parameters:
         -----------
         x: Union[List, np.ndarray, pd.Series]
-            A sequence of a categorical feature values
+            A sequence of a categorical feature values without nulls
         y: Union[List, np.ndarray, pd.Series]
-            A sequence of a categorical feature values
+            A sequence of a categorical feature values without nulls
         Returns:
         --------
         float
@@ -86,9 +85,9 @@ def correlation_ratio(categorical_feature: Union[List, np.ndarray, pd.Series],
         Parameters:
         -----------
         categorical_feature: Union[List, np.ndarray, pd.Series]
-            A sequence of a categorical feature values
+            A sequence of a categorical feature values without nulls
         numerical_feature: Union[List, np.ndarray, pd.Series]
-            A sequence of a numerical feature values
+            A sequence of a numerical feature values without nulls
         Returns:
         --------
         float
