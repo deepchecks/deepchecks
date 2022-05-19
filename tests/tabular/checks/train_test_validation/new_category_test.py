@@ -15,7 +15,8 @@ from hamcrest import (assert_that, calling, equal_to, has_items, has_length,
                       raises)
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.tabular.checks.train_test_validation import CategoryMismatchTrainTest
+from deepchecks.tabular.checks.train_test_validation import \
+    CategoryMismatchTrainTest
 from deepchecks.tabular.dataset import Dataset
 from tests.base.utils import equal_condition_result
 

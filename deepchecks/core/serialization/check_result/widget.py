@@ -21,8 +21,7 @@ from deepchecks.core.serialization.abc import WidgetSerializer
 from deepchecks.core.serialization.common import normalize_widget_style
 from deepchecks.utils.strings import get_random_string
 
-from . import html
-from . import FIGURE_CONTAINER_MAX_WIDTH, FIGURE_CONTAINER_MAX_HEIGHT
+from . import FIGURE_CONTAINER_MAX_HEIGHT, FIGURE_CONTAINER_MAX_WIDTH, html
 
 __all__ = ['CheckResultSerializer']
 

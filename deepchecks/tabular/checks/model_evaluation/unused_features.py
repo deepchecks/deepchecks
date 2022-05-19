@@ -180,7 +180,7 @@ class UnusedFeatures(TrainTestCheck):
             fig.update_yaxes(autorange='reversed')
             fig.update_layout(
                 title_text='Unused features compared to top important features',
-                # width=800, 
+                # width=800,
                 # height=500
             )
 

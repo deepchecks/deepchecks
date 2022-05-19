@@ -312,18 +312,18 @@ class RobustnessReport(SingleDatasetCheck):
 
         fig \
             .update_layout(
-                font=dict(size=12), 
-                # height=300, 
-                # width=400 * len(metrics), 
+                font=dict(size=12),
+                # height=300,
+                # width=400 * len(metrics),
                 autosize=False,
                 title=dict(
-                    text='Performance Comparison', 
+                    text='Performance Comparison',
                     font=dict(size=20)),
                 margin=dict(l=0, b=0),
                 showlegend=False
             ).update_xaxes(
-                title=None, 
-                type='category', 
+                title=None,
+                type='category',
                 tickangle=30
             )
         return fig
@@ -353,19 +353,19 @@ class RobustnessReport(SingleDatasetCheck):
 
         fig \
             .update_layout(
-                font=dict(size=12), 
-                # height=300, 
+                font=dict(size=12),
+                # height=300,
                 # width=600 * len(metrics),
                 title=dict(
-                    text='Top Affected Classes', 
-                    font=dict(size=20)), 
+                    text='Top Affected Classes',
+                    font=dict(size=20)),
                 margin=dict(l=0, b=0),
                 showlegend=False
             ).update_xaxes(
-                title=None, 
-                type='category', 
-                tickangle=30, 
-                tickprefix='Class ', 
+                title=None,
+                type='category',
+                tickangle=30,
+                tickprefix='Class ',
                 automargin=True
             ).update_yaxes(
                 automargin=True
