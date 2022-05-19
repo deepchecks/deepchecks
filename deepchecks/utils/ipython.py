@@ -10,7 +10,6 @@
 #
 # pylint: disable=assignment-from-none
 """Utils module containing useful global functions."""
-import contextlib
 import io
 import os
 import re
@@ -29,10 +28,10 @@ __all__ = [
     'is_widgets_enabled',
     'is_headless',
     'create_progress_bar',
-    'create_dummy_progress_bar',
     'is_colab_env',
     'is_kaggle_env',
     'is_widgets_use_possible',
+    'ProgressBarGroup'
 ]
 
 
@@ -129,20 +128,57 @@ def is_widgets_use_possible() -> bool:
     )
 
 
+class PlainNotebookProgressBar(tqdm.tqdm):
+    """Custom progress bar."""
+
+    def __init__(self, **kwargs):
+        self.display_handler = display({'text/plain': ''}, raw=True, display_id=True)
+        kwargs['file'] = io.StringIO()
+        super().__init__(**kwargs)
+
+    def refresh(self, nolock=False, lock_args=None):
+        """Refresh progress bar."""
+        value = super().refresh(nolock, lock_args)
+        self.display_handler.update({'text/plain': self.fp.getvalue()}, raw=True)
+        self.fp.seek(0)
+        return value
+
+    def close(self, *args, **kwargs):
+        """Close progress bar."""
+        value = super().close(*args, **kwargs)
+        self.display_handler.update({'text/plain': ''}, raw=True)
+        self.fp.seek(0)
+        return value
+
+
 def create_progress_bar(
-    iterable: t.Sequence[t.Any],
     name: str,
     unit: str,
-):
+    total: t.Optional[int] = None,
+    iterable: t.Optional[t.Sequence[t.Any]] = None,
+) -> t.Union[
+    tqdm_notebook,
+    PlainNotebookProgressBar,
+    tqdm.tqdm
+]:
     """Create a tqdm progress bar instance."""
     kwargs = {
         'iterable': iterable,
+        'total': total,
         'desc': name,
         'unit': f' {unit}',
         'leave': False,
     }
 
-    iterlen = len(iterable)
+    if iterable is not None:
+        iterlen = len(iterable)
+    elif total is not None:
+        iterlen = total
+    else:
+        raise ValueError(
+            'at least one of the parameters iterable | total must be not None'
+        )
+
     barlen = iterlen if iterlen > 5 else 5
 
     if is_widgets_enabled():
@@ -153,28 +189,7 @@ def create_progress_bar(
         )
 
     elif is_notebook():
-
-        class PB(tqdm.tqdm):
-            """Custom progress bar."""
-
-            def __init__(self, **kwargs):
-                self.display_handler = display({'text/plain': ''}, raw=True, display_id=True)
-                kwargs['file'] = io.StringIO()
-                super().__init__(**kwargs)
-
-            def refresh(self, nolock=False, lock_args=None):
-                value = super().refresh(nolock, lock_args)
-                self.display_handler.update({'text/plain': self.fp.getvalue()}, raw=True)
-                self.fp.seek(0)
-                return value
-
-            def close(self, *args, **kwargs):
-                value = super().close(*args, **kwargs)
-                self.display_handler.update({'text/plain': ''}, raw=True)
-                self.fp.seek(0)
-                return value
-
-        return PB(
+        return PlainNotebookProgressBar(
             **kwargs,
             bar_format='{{desc}}:\n|{{bar:{0}}}{{r_bar}}'.format(barlen),  # pylint: disable=consider-using-f-string
         )
@@ -186,15 +201,93 @@ def create_progress_bar(
         )
 
 
-@contextlib.contextmanager
-def create_dummy_progress_bar(name: str, unit: str):
-    """Create a tqdm progress bar instance that has only one step."""
-    for _ in create_progress_bar(
-        list(range(1)),
-        name=name,
-        unit=unit
-    ):
-        yield
+class DummyProgressBar:
+    """Dummy progress bar that has only one step."""
+
+    def __init__(self, name: str, unit: str = '') -> None:
+        self.pb = create_progress_bar(
+            iterable=list(range(1)),
+            name=name,
+            unit=unit
+        )
+
+    def __enter__(self, *args, **kwargs):
+        """Enter context."""
+        return self
+
+    def __exit__(self, *args, **kwargs):
+        """Exit context."""
+        for _ in self.pb:
+            pass
+
+
+class ProgressBarGroup:
+    """Progress Bar Factory.
+
+    Utility class that makes sure that all progress bars in the
+    group will be closed simultaneously.
+    """
+
+    register: t.List[t.Union[
+        DummyProgressBar,
+        tqdm_notebook,
+        PlainNotebookProgressBar,
+        tqdm.tqdm
+    ]]
+
+    def __init__(self) -> None:
+        self.register = []
+
+    def create(
+        self,
+        name: str,
+        unit: str,
+        total: t.Optional[int] = None,
+        iterable: t.Optional[t.Sequence[t.Any]] = None,
+    ) -> t.Union[
+        tqdm_notebook,
+        PlainNotebookProgressBar,
+        tqdm.tqdm
+    ]:
+        """Create progress bar instance."""
+        pb = create_progress_bar(
+            name=name,
+            unit=unit,
+            total=total,
+            iterable=iterable
+        )
+        pb.__original_close__, pb.close = (
+            pb.close,
+            lambda *args, s=pb, **kwargs: s.refresh()
+        )
+        self.register.append(pb)
+        return pb
+
+    def create_dummy(
+        self,
+        name: str,
+        unit: str = ''
+    ) -> DummyProgressBar:
+        """Create dummy progress bar instance."""
+        dpb = DummyProgressBar(name=name, unit=unit)
+        dpb.__original_close__, dpb.pb.close = (
+            dpb.pb.close,
+            lambda *args, s=dpb.pb, **kwargs: s.refresh()
+        )
+        self.register.append(dpb)
+        return dpb
+
+    def __enter__(self, *args, **kwargs):
+        """Enter context."""
+        return self
+
+    def __exit__(self, *args, **kwargs):
+        """Enter context and close all progress bars.."""
+        for pb in self.register:
+            if hasattr(pb, '__original_close__'):
+                pb.__original_close__()
+            elif hasattr(pb, 'close'):
+                pb.close()
 
 
 # TODO:

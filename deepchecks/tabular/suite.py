@@ -82,7 +82,7 @@ class Suite(BaseSuite):
                           scorers_per_class=scorers_per_class)
 
         progress_bar = create_progress_bar(
-            list(self.checks.values()),
+            iterable=list(self.checks.values()),
             name=self.name,
             unit='Check'
         )

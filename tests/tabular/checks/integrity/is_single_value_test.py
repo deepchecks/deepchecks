@@ -14,7 +14,8 @@ import pandas as pd
 from hamcrest import assert_that, calling, equal_to, has_items, raises
 
 from deepchecks.core.errors import DatasetValidationError, DeepchecksValueError
-from deepchecks.tabular.checks.data_integrity.is_single_value import IsSingleValue
+from deepchecks.tabular.checks.data_integrity.is_single_value import \
+    IsSingleValue
 from tests.base.utils import equal_condition_result
 
 

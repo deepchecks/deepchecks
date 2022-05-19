@@ -18,8 +18,7 @@ from torch import nn
 from deepchecks.core.check_result import CheckResult
 from deepchecks.core.checks import (DatasetKind, ModelOnlyBaseCheck,
                                     SingleDatasetBaseCheck, TrainTestBaseCheck)
-from deepchecks.utils.ipython import (create_dummy_progress_bar,
-                                      create_progress_bar)
+from deepchecks.utils.ipython import ProgressBarGroup
 from deepchecks.vision import \
     deprecation_warnings  # pylint: disable=unused-import # noqa: F401
 from deepchecks.vision.batch_wrapper import Batch
@@ -52,40 +51,40 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         """Run check."""
         assert self.context_type is not None
 
-        with create_dummy_progress_bar(name='Validating Input', unit=''):
-            # Context is copying the data object, then not using the original after the init
-            context: Context = self.context_type(
-                dataset,
-                model=model,
-                device=device,
-                random_state=random_state,
-                n_samples=n_samples
-            )
-            self.initialize_run(context, DatasetKind.TRAIN)
+        with ProgressBarGroup() as progressbar_factory:
 
-        train_pbar = create_progress_bar(
-            context.train,
-            name='Ingesting Batches',
-            unit='Batch'
-        )
+            with progressbar_factory.create_dummy(name='Validating Input'):
+                # Context is copying the data object, then not using the original after the init
+                context: Context = self.context_type(
+                    dataset,
+                    model=model,
+                    device=device,
+                    random_state=random_state,
+                    n_samples=n_samples
+                )
+                self.initialize_run(context, DatasetKind.TRAIN)
 
-        context.train.init_cache()
-        batch_start_index = 0
+            context.train.init_cache()
+            batch_start_index = 0
 
-        for batch in train_pbar:
-            batch = Batch(batch, context, DatasetKind.TRAIN, batch_start_index)
-            context.train.update_cache(batch)
-            self.update(context, batch, DatasetKind.TRAIN)
-            batch_start_index += len(batch)
+            for batch in progressbar_factory.create(
+                iterable=context.train,
+                name='Ingesting Batches',
+                unit='Batch'
+            ):
+                batch = Batch(batch, context, DatasetKind.TRAIN, batch_start_index)
+                context.train.update_cache(batch)
+                self.update(context, batch, DatasetKind.TRAIN)
+                batch_start_index += len(batch)
 
-        with create_dummy_progress_bar(name='Computing Check', unit='Check'):
-            result = self.compute(context, DatasetKind.TRAIN)
-            if isinstance(result, CheckResult):
-                footnote = context.get_is_sampled_footnote(DatasetKind.TRAIN)
-                if footnote:
-                    result.display.append(footnote)
-            result = self.finalize_check_result(result)
-            return result
+            with progressbar_factory.create_dummy(name='Computing Check', unit='Check'):
+                result = self.compute(context, DatasetKind.TRAIN)
+                if isinstance(result, CheckResult):
+                    footnote = context.get_is_sampled_footnote(DatasetKind.TRAIN)
+                    if footnote:
+                        result.display.append(footnote)
+                result = self.finalize_check_result(result)
+                return result
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
         """Initialize run before starting updating on batches. Optional."""
@@ -120,56 +119,56 @@ class TrainTestCheck(TrainTestBaseCheck):
         """Run check."""
         assert self.context_type is not None
 
-        with create_dummy_progress_bar(name='Validating Input', unit=''):
-            # Context is copying the data object, then not using the original after the init
-            context: Context = self.context_type(
-                train_dataset,
-                test_dataset,
-                model=model,
-                device=device,
-                random_state=random_state,
-                n_samples=n_samples
+        with ProgressBarGroup() as progressbar_factory:
+
+            with progressbar_factory.create_dummy(name='Validating Input'):
+                # Context is copying the data object, then not using the original after the init
+                context: Context = self.context_type(
+                    train_dataset,
+                    test_dataset,
+                    model=model,
+                    device=device,
+                    random_state=random_state,
+                    n_samples=n_samples
+                )
+                self.initialize_run(context)
+
+            train_pbar = progressbar_factory.create(
+                iterable=context.train,
+                name='Ingesting Batches - Train Dataset',
+                unit='Batch'
             )
-            self.initialize_run(context)
 
-        train_pbar = create_progress_bar(
-            context.train,
-            name='Ingesting Batches - Train Dataset',
-            unit='Batch'
-        )
+            context.train.init_cache()
+            batch_start_index = 0
 
-        context.train.init_cache()
-        batch_start_index = 0
+            for batch in train_pbar:
+                batch = Batch(batch, context, DatasetKind.TRAIN, batch_start_index)
+                context.train.update_cache(batch)
+                self.update(context, batch, DatasetKind.TRAIN)
+                batch_start_index += len(batch)
 
-        for batch in train_pbar:
-            batch = Batch(batch, context, DatasetKind.TRAIN, batch_start_index)
-            context.train.update_cache(batch)
-            self.update(context, batch, DatasetKind.TRAIN)
-            batch_start_index += len(batch)
+            context.test.init_cache()
+            batch_start_index = 0
 
-        test_pbar = create_progress_bar(
-            context.test,
-            name='Ingesting Batches - Test Dataset',
-            unit='Batch'
-        )
+            for batch in progressbar_factory.create(
+                iterable=context.test,
+                name='Ingesting Batches - Test Dataset',
+                unit='Batch'
+            ):
+                batch = Batch(batch, context, DatasetKind.TEST, batch_start_index)
+                context.test.update_cache(batch)
+                self.update(context, batch, DatasetKind.TEST)
+                batch_start_index += len(batch)
 
-        context.test.init_cache()
-        batch_start_index = 0
-
-        for batch in test_pbar:
-            batch = Batch(batch, context, DatasetKind.TEST, batch_start_index)
-            context.test.update_cache(batch)
-            self.update(context, batch, DatasetKind.TEST)
-            batch_start_index += len(batch)
-
-        with create_dummy_progress_bar(name='Computing Check', unit='Check'):
-            result = self.compute(context)
-            if isinstance(result, CheckResult):
-                footnote = context.get_is_sampled_footnote()
-                if footnote:
-                    result.display.append(footnote)
-            result = self.finalize_check_result(result)
-            return result
+            with progressbar_factory.create_dummy(name='Computing Check', unit='Check'):
+                result = self.compute(context)
+                if isinstance(result, CheckResult):
+                    footnote = context.get_is_sampled_footnote()
+                    if footnote:
+                        result.display.append(footnote)
+                result = self.finalize_check_result(result)
+                return result
 
     def initialize_run(self, context: Context):
         """Initialize run before starting updating on batches. Optional."""
@@ -198,17 +197,19 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
         """Run check."""
         assert self.context_type is not None
 
-        with create_dummy_progress_bar(name='Validating Input', unit=''):
-            context: Context = self.context_type(
-                model=model,
-                device=device,
-                random_state=random_state
-            )
-            self.initialize_run(context)
+        with ProgressBarGroup() as progressbar_factory:
 
-        with create_dummy_progress_bar(name='Computing Check', unit='Check'):
-            result = self.finalize_check_result(self.compute(context))
-            return result
+            with progressbar_factory.create_dummy(name='Validating Input'):
+                context: Context = self.context_type(
+                    model=model,
+                    device=device,
+                    random_state=random_state
+                )
+                self.initialize_run(context)
+
+            with progressbar_factory.create_dummy(name='Computing Check', unit='Check'):
+                result = self.finalize_check_result(self.compute(context))
+                return result
 
     def initialize_run(self, context: Context):
         """Initialize run before starting updating on batches. Optional."""

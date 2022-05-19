@@ -64,7 +64,7 @@ class ModelComparisonSuite(BaseSuite):
 
         # Create progress bar
         progress_bar = create_progress_bar(
-            list(self.checks.values()),
+            iterable=list(self.checks.values()),
             name=self.name,
             unit='Check'
         )
