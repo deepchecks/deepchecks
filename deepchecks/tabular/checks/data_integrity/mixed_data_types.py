@@ -58,7 +58,8 @@ class MixedDataTypes(SingleDatasetCheck):
         Returns
         -------
         CheckResult
-            DataFrame with rows ('strings', 'numbers') for any column with mixed types.
+            value is a dict with column name as key and dict of 'strings' and 'numbers' ratio for any column with
+            mixed data types.
             numbers will also include hidden numbers in string representation.
         """
         if dataset_type == 'train':
@@ -76,8 +77,8 @@ class MixedDataTypes(SingleDatasetCheck):
         for column_name in df.columns:
             column_data = df[column_name].dropna()
             mix = self._get_data_mix(column_data)
+            result_dict[column_name] = mix
             if mix:
-                result_dict[column_name] = mix
                 # Format percents for display
                 display_dict[column_name] = {k: format_percent(v) for k, v in mix.items()}
 
@@ -134,16 +135,23 @@ class MixedDataTypes(SingleDatasetCheck):
             considered a problem.
         """
         def condition(result):
+            no_mix_columns = []
             failing_columns = []
             for col, ratios in result.items():
+                # Columns without a mix contains empty dict for ratios
+                if not ratios:
+                    no_mix_columns.append(col)
+                    continue
                 rarer_ratio = min(ratios['strings'], ratios['numbers'])
                 if ratio_range[0] < rarer_ratio < ratio_range[1]:
                     failing_columns.append(col)
             if failing_columns:
-                details = f'Found columns with non-negligible quantities of samples with a different data type from ' \
-                          f'the majority of samples: {failing_columns}'
+                details = f'Found {len(failing_columns)} columns with non-negligible quantities of samples with a ' \
+                          f'different data type from the majority of samples: {failing_columns}'
                 return ConditionResult(ConditionCategory.WARN, details)
-            return ConditionResult(ConditionCategory.PASS)
+            details = f'Found {len(result) - len(no_mix_columns)} columns with negligible types mix, ' \
+                      f'and {len(no_mix_columns)} columns without any types mix'
+            return ConditionResult(ConditionCategory.PASS, details)
 
         name = f'Rare data types in column are either more than {format_percent(ratio_range[1])} or less ' \
                f'than {format_percent(ratio_range[0])} of the data'

@@ -79,7 +79,8 @@ def test_condition_no_more_than_fail():
         equal_condition_result(
             is_pass=False,
             name='Not more than 2 string variants',
-            details='Found columns with amount of variants above threshold: {\'col1\': [\'deep\']}',
+            details='Found 1 columns with amount of variants above threshold out of 1 string columns: '
+                    '{\'col1\': [\'deep\']}',
             category=ConditionCategory.WARN)
     ))
 
@@ -94,6 +95,7 @@ def test_condition_no_more_than_pass():
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
+                               details='Passed for 1 string columns',
                                name='Not more than 4 string variants')
     ))
 
@@ -110,7 +112,8 @@ def test_condition_no_variants_fail():
         equal_condition_result(
             is_pass=False,
             name='No string variants',
-            details='Found columns with amount of variants above threshold: {\'col1\': [\'deep\', \'foo\']}',
+            details='Found 1 columns with amount of variants above threshold out of 1 string columns: '
+                    '{\'col1\': [\'deep\', \'foo\']}',
             category=ConditionCategory.WARN)
     ))
 
@@ -125,6 +128,7 @@ def test_condition_no_variants_pass():
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
+                               details='Passed for 1 string columns',
                                name='No string variants')
     ))
 
@@ -140,7 +144,8 @@ def test_condition_percent_variants_no_more_than_fail():
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                name='Ratio of variants is not greater than 10%',
-                               details='Found columns with variants ratio above threshold: {\'col1\': \'75%\'}')
+                               details='Found 1 columns with variants ratio above threshold out of 1 string columns: '
+                                       '{\'col1\': \'75%\'}')
     ))
 
 
@@ -154,6 +159,7 @@ def test_condition_percent_variants_no_more_than_pass():
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
+                               details='Passed for 1 string columns',
                                name='Ratio of variants is not greater than 50%')
     ))
 

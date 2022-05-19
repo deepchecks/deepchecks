@@ -80,14 +80,15 @@ class StringMismatch(SingleDatasetCheck):
 
         sampling_footnote = context.get_is_sampled_footnote(self.n_samples)
 
-        results = []
-        result_dict = defaultdict(dict)
+        display_results = []
+        result_dict = {}
 
         for column_name in df.columns:
             column: pd.Series = df[column_name]
             if not is_string_column(column):
                 continue
 
+            result_dict[column_name] = {}
             value_counts = column.value_counts()
             uniques = column.unique()
             base_form_to_variants = get_base_form_to_variants_dict(uniques)
@@ -98,14 +99,14 @@ class StringMismatch(SingleDatasetCheck):
                 for variant in variants:
                     count = value_counts[variant]
                     percent = count / len(column)
-                    results.append([column_name, base_form, variant, count, format_percent(percent)])
+                    display_results.append([column_name, base_form, variant, count, format_percent(percent)])
                     result_dict[column_name][base_form].append({
                         'variant': variant, 'count': count, 'percent': percent
                     })
 
         # Create dataframe to display graph
-        if results:
-            df_graph = pd.DataFrame(results, columns=['Column Name', 'Base form', 'Value', 'Count', '% In data'])
+        if display_results:
+            df_graph = pd.DataFrame(display_results, columns=['Column Name', 'Base form', 'Value', 'Count', '% In data'])
             df_graph = df_graph.set_index(['Column Name', 'Base form'])
             df_graph = column_importance_sorter_df(df_graph, dataset, context.features_importance,
                                                    self.n_top_columns, col='Column Name')
@@ -151,9 +152,11 @@ class StringMismatch(SingleDatasetCheck):
                     not_passing_columns[col] = format_percent(variants_percent_sum)
 
             if not_passing_columns:
-                details = f'Found columns with variants ratio above threshold: {not_passing_columns}'
+                details = f'Found {len(not_passing_columns)} columns with variants ratio above threshold out of ' \
+                          f'{len(result)} string columns: {not_passing_columns}'
                 return ConditionResult(ConditionCategory.FAIL, details)
-            return ConditionResult(ConditionCategory.PASS)
+            details = f'Passed for {len(result)} string columns'
+            return ConditionResult(ConditionCategory.PASS, details)
 
         name = f'Ratio of variants is not greater than {format_percent(max_ratio)}'
         return self.add_condition(name, condition, max_ratio=max_ratio)
@@ -168,6 +171,9 @@ def _condition_variants_number(result, num_max_variants: int, max_cols_to_show: 
                     not_passing_variants[col].append(base_form)
     if not_passing_variants:
         variants_to_show = dict(itertools.islice(not_passing_variants.items(), max_cols_to_show))
-        details = f'Found columns with amount of variants above threshold: {variants_to_show}'
+        details = f'Found {len(not_passing_variants)} columns with amount of variants above threshold out of ' \
+                  f'{len(result)} string columns: {variants_to_show}'
         return ConditionResult(ConditionCategory.WARN, details)
-    return ConditionResult(ConditionCategory.PASS)
+
+    details = f'Passed for {len(result)} string columns'
+    return ConditionResult(ConditionCategory.PASS, details)

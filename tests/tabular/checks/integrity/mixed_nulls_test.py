@@ -12,7 +12,7 @@
 import numpy as np
 import pandas as pd
 from hamcrest import (assert_that, calling, has_entry, has_items, has_length,
-                      is_, raises)
+                      is_, raises, equal_to, has_entries, close_to)
 
 from deepchecks.core.errors import DatasetValidationError, DeepchecksValueError
 from deepchecks.tabular.checks.data_integrity.mixed_nulls import MixedNulls
@@ -27,7 +27,7 @@ def test_single_column_no_nulls():
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value, has_length(0))
+    assert_that(result.value, equal_to({'col1': {}}))
 
 
 def test_single_column_one_null_type():
@@ -36,8 +36,7 @@ def test_single_column_one_null_type():
     dataframe = pd.DataFrame(data=data)
     # Act
     result = MixedNulls().run(dataframe)
-    # Assert - Single null type is allowed so return is 0
-    assert_that(result.value, has_length(0))
+    assert_that(result.value, equal_to({'col1': {'null': {'count': 2, 'percent': 0.5}}}))
 
 
 def test_empty_dataframe():
@@ -147,7 +146,7 @@ def test_ignore_columns_single():
     # Act
     result = MixedNulls(ignore_columns='col3').run(dataframe)
     # Assert - Only col 2 should have results
-    assert_that(result.value, has_entry('col2', has_length(3)))
+    assert_that(result.value, has_entries(col1=has_length(0), col2=has_length(3)))
 
 
 def test_ignore_columns_multi():
@@ -157,7 +156,7 @@ def test_ignore_columns_multi():
     # Act
     result = MixedNulls(ignore_columns=['col3', 'col2']).run(dataframe)
     # Assert
-    assert_that(result.value, has_length(0))
+    assert_that(result.value, equal_to({'col1': {}}))
 
 
 def test_dataset_no_nulls():
@@ -167,7 +166,7 @@ def test_dataset_no_nulls():
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value, has_length(0))
+    assert_that(result.value, has_entries(col1=equal_to({}), col2=equal_to({}), col3=equal_to({})))
 
 
 def test_dataset_1_column_nulls():
@@ -176,8 +175,9 @@ def test_dataset_1_column_nulls():
     dataframe = pd.DataFrame(data=data)
     # Act
     result = MixedNulls().run(dataframe)
-    # Assert - Single null is allowed so still empty return
-    assert_that(result.value, has_length(0))
+    # Assert
+    assert_that(result.value, has_entries(col1=has_length(1),
+                                          col2=equal_to({}), col3=equal_to({})))
 
 
 def test_dataset_2_columns_single_nulls():
@@ -186,8 +186,8 @@ def test_dataset_2_columns_single_nulls():
     dataframe = pd.DataFrame(data=data)
     # Act
     result = MixedNulls().run(dataframe)
-    # Assert - Single null is allowed so still empty return
-    assert_that(result.value, has_length(0))
+    # Assert
+    assert_that(result.value, has_entries(col1=has_length(1), col2=has_length(1), col3=equal_to({})))
 
 
 def test_condition_max_nulls_not_passed():
@@ -202,7 +202,8 @@ def test_condition_max_nulls_not_passed():
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                name='Not more than 3 different null types',
-                               details='Found columns with amount of null types above threshold: {\'col1\': 5}')
+                               details='Found 1 columns with amount of null types above threshold out of 1 columns: '
+                                       '[\'col1\']'),
     ))
 
 
@@ -217,6 +218,7 @@ def test_condition_max_nulls_passed():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
+                               details='Passed for 1 columns',
                                name='Not more than 10 different null types')
     ))
 

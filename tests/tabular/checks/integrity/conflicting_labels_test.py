@@ -88,7 +88,7 @@ def test_label_ambiguity_condition():
     # Assert
     assert_that(condition_result, has_items(
         equal_condition_result(is_pass=False,
-                               details='Found ratio of samples with multiple labels above threshold: 50%',
+                               details='Ratio of samples with conflicting labels: 50%',
                                name='Ambiguous sample ratio is not greater than 0%')
     ))
 
@@ -111,5 +111,6 @@ def test_label_ambiguity_condition_pass():
     # Assert
     assert_that(condition_result, has_items(
         equal_condition_result(is_pass=True,
+                               details='Ratio of samples with conflicting labels: 50%',
                                name='Ambiguous sample ratio is not greater than 70%')
     ))

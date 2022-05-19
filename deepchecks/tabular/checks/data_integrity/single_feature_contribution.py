@@ -125,10 +125,12 @@ class SingleFeatureContribution(SingleDatasetCheck):
             }
 
             if failed_features:
-                message = f'Features with PPS above threshold: {failed_features}'
+                message = f'Found {len(failed_features)} features with PPS above threshold out of {len(value)} ' \
+                          f' features: {failed_features}'
                 return ConditionResult(ConditionCategory.FAIL, message)
             else:
-                return ConditionResult(ConditionCategory.PASS)
+                message = f'Passed for {len(value)} features'
+                return ConditionResult(ConditionCategory.PASS, message)
 
         return self.add_condition(f'Features\' Predictive Power Score is not greater than {format_number(threshold)}',
                                   condition)

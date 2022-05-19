@@ -61,7 +61,8 @@ class SpecialCharacters(SingleDatasetCheck):
         Returns
         -------
         CheckResult
-            DataFrame with ('invalids') for any column with special_characters chars.
+            value is dict of column as key and percent of special characters samples as value
+            display is DataFrame with ('invalids') for any column with special_characters chars.
         """
         if dataset_type == 'train':
             dataset = context.train
@@ -70,7 +71,7 @@ class SpecialCharacters(SingleDatasetCheck):
 
         df = select_from_dataframe(dataset.data, self.columns, self.ignore_columns)
 
-        # Result value: { Column Name: {invalid: pct}}
+        # Result value: { Column Name: pct}
         display_array = []
         result = {}
 
@@ -85,6 +86,8 @@ class SpecialCharacters(SingleDatasetCheck):
                     sorted(special_samples.items(), key=lambda x: x[1], reverse=True)[:self.n_most_common]
                 top_n_samples_values = [item[0] for item in top_n_samples_items]
                 display_array.append([column_name, percent, top_n_samples_values])
+            else:
+                result[column_name] = 0
 
         df_graph = pd.DataFrame(display_array,
                                 columns=['Column Name', '% Special-Only Samples', 'Most Common Special-Only Samples'])
@@ -107,16 +110,13 @@ class SpecialCharacters(SingleDatasetCheck):
                f'than {format_percent(max_ratio)}'
 
         def condition(result):
-            not_passed = {}
-            if result:
-                for column_name, ratio in result.items():
-                    if ratio > max_ratio:
-                        not_passed[column_name] = format_percent(ratio)
-
+            not_passed = {k: format_percent(v) for k, v in result.items() if v > max_ratio}
             if not_passed:
-                return ConditionResult(ConditionCategory.WARN,
-                                       f'Found columns with ratio above threshold: {not_passed}')
-            return ConditionResult(ConditionCategory.PASS)
+                details = f'Found {len(not_passed)} columns with ratio above threshold out of {len(result)} ' \
+                          f'columns: {not_passed}'
+                return ConditionResult(ConditionCategory.WARN, details)
+            details = f'Passed for {len(result)} columns'
+            return ConditionResult(ConditionCategory.PASS, details)
 
         return self.add_condition(name, condition)
 
