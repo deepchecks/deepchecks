@@ -40,7 +40,7 @@ def load_adult_model(**context):
 
 
 def dataset_integrity_step(**context):
-    from deepchecks.tabular.suites import single_dataset_integrity
+    from deepchecks.tabular.suites import data_integrity
     from deepchecks.tabular.datasets.classification.adult import _CAT_FEATURES, _target
     from deepchecks.tabular import Dataset
 
@@ -50,8 +50,8 @@ def dataset_integrity_step(**context):
     ds_train = Dataset(adult_train, label=_target, cat_features=_CAT_FEATURES)
     ds_test = Dataset(adult_test, label=_target, cat_features=_CAT_FEATURES)
 
-    train_results = single_dataset_integrity().run(ds_train)
-    test_results = single_dataset_integrity().run(ds_test)
+    train_results = data_integrity().run(ds_train)
+    test_results = data_integrity().run(ds_test)
 
     try:
         os.mkdir('suite_results')
