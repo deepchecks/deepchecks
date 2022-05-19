@@ -11,8 +11,8 @@
 """Module containing all data distribution checks.
 
 .. deprecated:: 0.7.0
-        :mod:`deepchecks.tabular.checks.distribution is deprecated and will be removed in deepchecks 0.8 version.
-        Use :mod:`deepchecks.tabular.checks.train_test_validation` instead.
+        `deepchecks.tabular.checks.distribution is deprecated and will be removed in deepchecks 0.8 version.
+        Use `deepchecks.tabular.checks.train_test_validation` instead.
 """
 import warnings
 

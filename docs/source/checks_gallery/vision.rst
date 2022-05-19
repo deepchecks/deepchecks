@@ -2,8 +2,8 @@
 Vision Checks
 =============
 
-Distribution
-------------
+Data Integrity
+--------------
 
 .. toctree::
     :maxdepth: 1
@@ -11,8 +11,17 @@ Distribution
 
     vision/data_integrity/plot_*
 
-Methodology
------------
+Train Test Validation
+---------------------
+
+.. toctree::
+    :maxdepth: 1
+    :glob:
+
+    vision/train_test_validation/plot_*
+
+Model Evaluation
+----------------
 
 .. toctree::
     :maxdepth: 1
@@ -20,11 +29,3 @@ Methodology
 
     vision/model_evaluation/plot_*
 
-Performance
------------
-
-.. toctree::
-    :maxdepth: 1
-    :glob:
-
-    vision/train_test_validation/plot_*

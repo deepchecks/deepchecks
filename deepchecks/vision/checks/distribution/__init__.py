@@ -11,9 +11,9 @@
 """Module containing the distribution checks in the vision package.
 
 .. deprecated:: 0.7.0
-        :mod:`deepchecks.vision.checks.distribution is deprecated and will be removed in deepchecks 0.8 version.
-        Use :mod:`deepchecks.vision.checks.train_test_validation`, :mod:`deepchecks.vision.checks.data_integrity`
-        and :mod:`deepchecks.vision.checks.model_evaluation` instead.
+        `deepchecks.vision.checks.distribution is deprecated and will be removed in deepchecks 0.8 version.
+        Use `deepchecks.vision.checks.train_test_validation`, `deepchecks.vision.checks.data_integrity`
+        and `deepchecks.vision.checks.model_evaluation` instead.
 """
 import warnings
 

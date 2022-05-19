@@ -11,8 +11,8 @@
 """Module containing the methodology checks in the vision package.
 
 .. deprecated:: 0.7.0
-        :mod:`deepchecks.vision.checks.distribution is deprecated and will be removed in deepchecks 0.8 version.
-        Use :mod:`deepchecks.vision.checks.train_test_validation` instead.
+        `deepchecks.vision.checks.distribution is deprecated and will be removed in deepchecks 0.8 version.
+        Use `deepchecks.vision.checks.train_test_validation` instead.
 """
 import warnings
 
