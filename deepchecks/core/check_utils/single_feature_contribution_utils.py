@@ -122,7 +122,7 @@ def get_single_feature_contribution(train_df: pd.DataFrame, train_label_name: Op
 
     fig = get_pps_figure(per_class=False)
     fig.add_trace(pd_series_to_trace(s_pps_train_to_display, 'train'))
-    fig.add_trace(pd_series_to_trace_with_diff(s_pps_test_to_display, 'test', s_pps_test_to_display))
+    fig.add_trace(pd_series_to_trace_with_diff(s_pps_test_to_display, 'test', s_difference_to_display))
 
     ret_value = {'train': s_pps_train.to_dict(), 'test': s_pps_test.to_dict(),
                  'train-test difference': s_difference.to_dict()}
