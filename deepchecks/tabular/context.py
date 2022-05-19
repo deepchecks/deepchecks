@@ -9,7 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Module for base tabular context."""
-from typing import Callable, Mapping, Optional, Union
+from collections import defaultdict
+import typing as t
 
 import pandas as pd
 
@@ -29,6 +30,57 @@ __all__ = [
     'Context'
 ]
 
+
+class FakeModel:
+    train: pd.DataFrame
+    test: pd.DataFrame
+    ind_map: t.Dict[str, t.Dict[int, t.Any]]
+    y_pred: t.Dict[str, pd.Series]
+    y_proba: t.Dict[str, pd.Series]
+
+    def __init__(self,
+                 train: Dataset,
+                 test: Dataset,
+                 y_pred_train,
+                 y_pred_test,
+                 y_proba_train,
+                 y_proba_test,):
+        self.ind_map = defaultdict(dict)
+        if train is not None:
+            self.train = train.data
+            self.train.data_type = 'train'
+            self.train._metadata += ['data_type']
+            for i, ind in enumerate(self.train.index):
+                self.ind_map['train'][i] = ind
+        if test is not None:
+            self.test = test.data
+            self.test.data_type = 'test'
+            self.test._metadata += ['data_type']
+            for i, ind in enumerate(self.test.index):
+                self.ind_map['test'][i] = ind
+        self.y_pred = {}
+        self.y_pred['train'] = y_pred_train
+        self.y_pred['test'] = y_pred_test
+        self.y_proba = {}
+        self.y_proba['train'] = y_proba_train
+        self.y_proba['test'] = y_proba_test
+
+    def _get_index_to_predict(self, data: pd.DataFrame):
+        data_type = data.data_type
+        print(data.data_type)
+        if data_type in ['test', 'train']:
+            return data_type, [self.ind_map[data_type][i] for i in data.index]
+        if data_type is None:
+            raise ValueError('recived dataframe without metadata of train/test'
+                            ' for FakeModel instance')
+
+    def predict(self, data: pd.DataFrame):
+        data_type, indexes_to_predict = self._get_index_to_predict(data)
+        return self.y_pred[data_type][indexes_to_predict]
+
+    def predict_proba(self, data: pd.DataFrame):
+        data_type, indexes_to_predict = self._get_index_to_predict(data)
+        return self.y_proba[data_type][indexes_to_predict]
 
 class Context:
     """Contains all the data + properties the user has passed to a check/suite, and validates it seamlessly.
@@ -59,15 +111,19 @@ class Context:
     """
 
     def __init__(self,
-                 train: Union[Dataset, pd.DataFrame] = None,
-                 test: Union[Dataset, pd.DataFrame] = None,
+                 train: t.Union[Dataset, pd.DataFrame] = None,
+                 test: t.Union[Dataset, pd.DataFrame] = None,
                  model: BasicModel = None,
                  model_name: str = '',
                  features_importance: pd.Series = None,
                  feature_importance_force_permutation: bool = False,
                  feature_importance_timeout: int = 120,
-                 scorers: Mapping[str, Union[str, Callable]] = None,
-                 scorers_per_class: Mapping[str, Union[str, Callable]] = None
+                 scorers: t.Mapping[str, t.Union[str, t.Callable]] = None,
+                 scorers_per_class: t.Mapping[str, t.Union[str, t.Callable]] = None,
+                 y_pred_train = None,
+                 y_pred_test = None,
+                 y_proba_train = None,
+                 y_proba_test = None,
                  ):
         # Validations
         if train is None and test is None and model is None:
@@ -102,7 +158,23 @@ class Context:
         if features_importance is not None:
             if not isinstance(features_importance, pd.Series):
                 raise DeepchecksValueError('features_importance must be a pandas Series')
-
+        # TODO: a little trickery
+        if model is not None and hasattr(model, 'predict_proba'):
+            if train is not None:
+                y_proba_train = model.predict_proba(train.features_columns)
+            if test is not None:
+                y_proba_test = model.predict_proba(test.features_columns)
+        if model is not None and hasattr(model, 'predict'):
+            if train is not None:
+                y_pred_train = model.predict(train.features_columns)
+            if test is not None:
+                y_pred_test = model.predict(test.features_columns)
+        model = None
+        # we do it after validation because the model we are creating isn't valid (we are always valid just not here)
+        if model is None and \
+            pd.Series([y_pred_train, y_pred_test, y_proba_train, y_proba_test]).isna().any():
+            model = FakeModel(train=train, test=test, y_pred_train=y_pred_train, y_pred_test=y_pred_test,
+                              y_proba_test=y_proba_test, y_proba_train=y_proba_train)
         self._train = train
         self._test = test
         self._model = model
@@ -158,7 +230,7 @@ class Context:
         return self._task_type
 
     @property
-    def features_importance(self) -> Optional[pd.Series]:
+    def features_importance(self) -> t.Optional[pd.Series]:
         """Return features importance, or None if not possible."""
         if not self._calculated_importance:
             if self._model and (self._train or self._test):
@@ -176,7 +248,7 @@ class Context:
         return self._features_importance
 
     @property
-    def features_importance_type(self) -> Optional[str]:
+    def features_importance_type(self) -> t.Optional[str]:
         """Return feature importance type if feature importance is available, else None."""
         # Calling first feature_importance, because _importance_type is assigned only after feature importance is
         # calculated.
@@ -220,7 +292,7 @@ class Context:
                 self.train.label_type == 'classification_label'):
             raise ModelValidationError('Check is irrelevant for classification tasks')
 
-    def get_scorers(self, alternative_scorers: Mapping[str, Union[str, Callable]] = None, class_avg=True):
+    def get_scorers(self, alternative_scorers: t.Mapping[str, t.Union[str, t.Callable]] = None, class_avg=True):
         """Return initialized & validated scorers in a given priority.
 
         If receive `alternative_scorers` return them,
@@ -242,7 +314,7 @@ class Context:
         scorers = alternative_scorers or user_scorers or get_default_scorers(self.task_type, class_avg)
         return init_validate_scorers(scorers, self.model, self.train, class_avg, self.task_type)
 
-    def get_single_scorer(self, alternative_scorers: Mapping[str, Union[str, Callable]] = None, class_avg=True):
+    def get_single_scorer(self, alternative_scorers: t.Mapping[str, t.Union[str, t.Callable]] = None, class_avg=True):
         """Return initialized & validated single scorer in a given priority.
 
         If receive `alternative_scorers` use them,
