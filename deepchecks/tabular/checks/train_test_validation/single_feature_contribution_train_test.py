@@ -11,6 +11,7 @@
 """The single_feature_contribution check module."""
 import typing as t
 from copy import copy
+
 import numpy as np
 
 from deepchecks.core import CheckResult, ConditionResult
