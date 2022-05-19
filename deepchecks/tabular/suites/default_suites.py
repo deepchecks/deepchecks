@@ -33,6 +33,7 @@ from deepchecks.tabular.checks import (BoostingOverfit, CalibrationScore,
                                        PerformanceReport,
                                        RegressionErrorDistribution,
                                        RegressionSystematicError, RocReport,
+                                       SegmentPerformance,
                                        SimpleModelComparison,
                                        SingleFeatureContribution,
                                        SingleFeatureContributionTrainTest,
@@ -41,10 +42,9 @@ from deepchecks.tabular.checks import (BoostingOverfit, CalibrationScore,
                                        StringMismatchComparison,
                                        TrainTestFeatureDrift,
                                        TrainTestLabelDrift,
+                                       TrainTestPredictionDrift,
                                        TrainTestSamplesMix, UnusedFeatures,
-                                       WholeDatasetDrift,
-                                       SegmentPerformance,
-                                       TrainTestPredictionDrift)
+                                       WholeDatasetDrift)
 
 __all__ = ['single_dataset_integrity', 'train_test_leakage', 'train_test_validation',
            'model_evaluation', 'full_suite']
