@@ -56,7 +56,7 @@ def pd_series_to_trace(s_pps: pd.Series, name: str):
 def pd_series_to_trace_with_diff(s_pps: pd.Series, name: str, diffs: pd.Series):
     """Create bar plotly bar trace out of pandas Series, with difference shown in percentages."""
     diffs_text = '(' + diffs.apply(format_percent, floating_point=0, add_positive_prefix=True) + ')'
-    text = s_pps.round(2).astype(str) + '<br>' + diffs_text
+    text = diffs_text + '<br>' + s_pps.round(2).astype(str)
     name = name.capitalize() if name else None
     return go.Bar(x=s_pps.index,
                   y=s_pps,
@@ -115,14 +115,14 @@ def get_single_feature_contribution(train_df: pd.DataFrame, train_label_name: Op
     s_pps_test = df_pps_test.set_index('x', drop=True)['ppscore']
     s_difference = s_pps_train - s_pps_test
 
-    s_difference_to_display = np.abs(s_difference).sort_values(ascending=False).head(n_show_top)
-
-    s_pps_train_to_display = s_pps_train[s_difference_to_display.index]
-    s_pps_test_to_display = s_pps_test[s_difference_to_display.index]
+    sorted_order_for_display = np.abs(s_difference).sort_values(ascending=False).head(n_show_top).index
+    s_pps_train_to_display = s_pps_train[sorted_order_for_display]
+    s_pps_test_to_display = s_pps_test[sorted_order_for_display]
+    s_difference_to_display = s_difference[sorted_order_for_display]
 
     fig = get_pps_figure(per_class=False)
     fig.add_trace(pd_series_to_trace(s_pps_train_to_display, 'train'))
-    fig.add_trace(pd_series_to_trace_with_diff(s_pps_test_to_display, 'test', s_difference_to_display))
+    fig.add_trace(pd_series_to_trace_with_diff(s_pps_test_to_display, 'test', -s_difference_to_display))
 
     ret_value = {'train': s_pps_train.to_dict(), 'test': s_pps_test.to_dict(),
                  'train-test difference': s_difference.to_dict()}
@@ -211,16 +211,16 @@ def get_single_feature_contribution_per_class(train_df: pd.DataFrame, train_labe
 
         # display only if not all scores are above min_pps_to_show
         if any(s_train > min_pps_to_show) or any(s_test > min_pps_to_show):
-            s_difference_to_display = np.abs(s_difference).apply(lambda x: 0 if x < 0 else x)
-            s_difference_to_display = s_difference_to_display.sort_values(ascending=False).head(n_show_top)
+            sorted_order_for_display = np.abs(s_difference).sort_values(ascending=False).head(n_show_top).index
 
-            s_train_to_display = s_train[s_difference_to_display.index]
-            s_test_to_display = s_test[s_difference_to_display.index]
+            s_train_to_display = s_train[sorted_order_for_display]
+            s_test_to_display = s_test[sorted_order_for_display]
+            s_difference_to_display = s_difference[sorted_order_for_display]
 
             fig = get_pps_figure(per_class=True)
             fig.update_layout(title=f'{feature}: Predictive Power Score (PPS) Per Class')
             fig.add_trace(pd_series_to_trace(s_train_to_display, 'train'))
-            fig.add_trace(pd_series_to_trace_with_diff(s_test_to_display, 'test', s_difference_to_display))
+            fig.add_trace(pd_series_to_trace_with_diff(s_test_to_display, 'test', -s_difference_to_display))
             display.append(fig)
 
     return ret_value, display
