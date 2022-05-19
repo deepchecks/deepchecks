@@ -11,6 +11,6 @@
     :toctree: generated
     :template: autosummary/check-module.rst
 
-    integrity
+    data_integrity
     train_test_validation
     model_evaluation

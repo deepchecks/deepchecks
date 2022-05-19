@@ -12,8 +12,8 @@
 Module contains checks of model performance metrics.
 
 .. deprecated:: 0.7.0
-        :mod:`deepchecks.tabular.checks.performance is deprecated and will be removed in deepchecks 0.8 version.
-        Use :mod:`deepchecks.tabular.checks.model_evaluation` instead.
+        `deepchecks.tabular.checks.performance is deprecated and will be removed in deepchecks 0.8 version.
+        Use `deepchecks.tabular.checks.model_evaluation` instead.
 """
 import warnings
 

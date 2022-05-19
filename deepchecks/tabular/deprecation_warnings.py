@@ -19,7 +19,7 @@ warnings.filterwarnings(
     module=r'deepchecks.*'
 )
 
-# Added in 0.7Warning filters for deprecated functions in deepchecks.tabular.checks
+# Added in 0.7 Warning filters for deprecated functions in deepchecks.tabular.checks
 # Should be removed in 0.8
 warnings.filterwarnings(
     action='once',
