@@ -67,6 +67,17 @@ def test_segment_performance_illegal_features(diabetes_split_dataset_and_model):
     )
 
 
+def test_segment_performance_non_cat_or_num(city_arrogance_split_dataset_and_model):
+    # Arrange
+    _, val, model = city_arrogance_split_dataset_and_model
+
+    # Act & Assert
+    assert_that(
+        calling(SegmentPerformance(feature_1='city', feature_2='sex').run).with_args(val, model),
+        raises(DeepchecksValueError, r'\"feature_1\" must be numerical or categorical, but it neither.')
+    )
+
+
 def test_segment_top_features(diabetes_split_dataset_and_model):
     # Arrange
     _, val, model = diabetes_split_dataset_and_model
