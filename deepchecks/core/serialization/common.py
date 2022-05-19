@@ -145,7 +145,8 @@ def aggregate_conditions(
             icon = cond_result.get_icon() if include_icon else cond_result.category.value
             check_header = check_result.get_header()
 
-            if output_id:
+            # If there is no display we won't generate a section to link to
+            if output_id and check_result.display:
                 link = f'<a href=#{check_result.get_check_id(output_id)}>{check_header}</a>'
             else:
                 link = check_header
