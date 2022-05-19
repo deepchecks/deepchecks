@@ -126,7 +126,7 @@ class SingleFeatureContribution(SingleDatasetCheck):
 
             if failed_features:
                 message = f'Found {len(failed_features)} features with PPS above threshold out of {len(value)} ' \
-                          f' features: {failed_features}'
+                          f'features: {failed_features}'
                 return ConditionResult(ConditionCategory.FAIL, message)
             else:
                 message = f'Passed for {len(value)} features'

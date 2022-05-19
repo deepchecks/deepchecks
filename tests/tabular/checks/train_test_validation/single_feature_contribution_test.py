@@ -155,7 +155,8 @@ def test_all_features_pps_upper_bound_condition_that_should_not_pass():
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name=f'Features\' Predictive Power Score is not greater than {condition_value}',
-        details='Features with PPS above threshold: {\'x2\': \'0.84\', \'x4\': \'0.53\', \'x5\': \'0.42\'}'
+        details='Found 3 features with PPS above threshold out of 5 features: '
+                '{\'x2\': \'0.84\', \'x4\': \'0.53\', \'x5\': \'0.42\'}'
     ))
 
 
@@ -172,6 +173,7 @@ def test_all_features_pps_upper_bound_condition_that_should_pass():
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
+        details='Passed for 5 features',
         name=f'Features\' Predictive Power Score is not greater than {condition_value}',
     ))
 

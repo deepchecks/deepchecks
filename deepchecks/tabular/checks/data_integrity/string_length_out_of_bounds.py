@@ -248,7 +248,7 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
             for column_name in result.keys():
                 column = result[column_name]
                 total_outliers = sum((outlier['n_samples'] for outlier in column['outliers']))
-                ratio = total_outliers / column['n_samples']
+                ratio = total_outliers / column['n_samples'] if total_outliers > 0 else 0
                 if ratio > max_ratio:
                     not_passing_columns[column_name] = format_percent(ratio)
             if not_passing_columns:

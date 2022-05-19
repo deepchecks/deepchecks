@@ -197,3 +197,18 @@ def test_condition_ratio_pass():
                                details='Passed for 1 columns',
                                name='Ratio of outliers not greater than 10% string length outliers')
     ))
+
+
+def test_condition_pass_on_no_outliers():
+    # Arrange
+    col_data = ['a', 'b'] * 100
+    df = pd.DataFrame(data={'col1': col_data})
+    check = StringLengthOutOfBounds().add_condition_ratio_of_outliers_not_greater_than(0)
+    # Act
+    result = check.run(df)
+    # Assert
+    assert_that(result.conditions_results, has_items(
+        equal_condition_result(is_pass=True,
+                               details='Passed for 1 columns',
+                               name='Ratio of outliers not greater than 0% string length outliers')
+    ))

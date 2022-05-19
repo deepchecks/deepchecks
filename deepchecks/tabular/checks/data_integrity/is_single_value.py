@@ -48,7 +48,7 @@ class IsSingleValue(SingleDatasetCheck):
         Returns
         -------
         CheckResult
-            value of result is a dict of all columns with number of uniques values as: {column: number_of_uniques, ...}
+            value of result is a dict of all columns with number of unique values in format {column: number_of_uniques}
             display is a series with columns that have only one unique
         """
         # Validate parameters

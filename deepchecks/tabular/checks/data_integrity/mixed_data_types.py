@@ -58,8 +58,8 @@ class MixedDataTypes(SingleDatasetCheck):
         Returns
         -------
         CheckResult
-            value is a dict with column name as key and dict of 'strings' and 'numbers' ratio for any column with
-            mixed data types.
+            value is a dict where the key is the column name as key and the value is the ratio 'strings' and 'numbers'
+            for any column with mixed data types.
             numbers will also include hidden numbers in string representation.
         """
         if dataset_type == 'train':

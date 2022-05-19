@@ -70,8 +70,8 @@ class MixedNulls(SingleDatasetCheck):
         CheckResult
             Value is dict with columns as key, and dict of null values as value:
             {column: {null_value: {count: x, percent: y}, ...}, ...}
-            display is DataFrame with columns ('Column Name', 'Value', 'Count', 'Percentage') for any column which
-            have more than 1 null values.
+            display is DataFrame with columns ('Column Name', 'Value', 'Count', 'Percentage') for any column that
+            has more than 1 null values.
         """
         if dataset_type == 'train':
             dataset = context.train
