@@ -286,8 +286,6 @@ class ProgressBarGroup:
         for pb in self.register:
             if hasattr(pb, '__original_close__'):
                 pb.__original_close__()
-            elif hasattr(pb, 'close'):
-                pb.close()
 
 
 # TODO:
