@@ -18,7 +18,7 @@ from deepchecks.utils import ipython
 
 
 def test_progress_bar_creation():
-    with patch('deepchecks.utils.ipython.is_notebook', return_value=True):
+    with patch('deepchecks.utils.ipython.is_zmq_interactive_shell', return_value=True):
         with patch('deepchecks.utils.ipython.is_widgets_enabled', return_value=True):
             assert_that(
                 ipython.create_progress_bar(
@@ -31,7 +31,7 @@ def test_progress_bar_creation():
 
 
 def test_progress_bar_creation_with_disabled_widgets():
-    with patch('deepchecks.utils.ipython.is_notebook', return_value=True):
+    with patch('deepchecks.utils.ipython.is_zmq_interactive_shell', return_value=True):
         with patch('deepchecks.utils.ipython.is_widgets_enabled', return_value=False):
             assert_that(
                 ipython.create_progress_bar(
@@ -44,7 +44,7 @@ def test_progress_bar_creation_with_disabled_widgets():
 
 
 def test_progress_bar_creation_in_not_notebook_env():
-    with patch('deepchecks.utils.ipython.is_notebook', return_value=False):
+    with patch('deepchecks.utils.ipython.is_zmq_interactive_shell', return_value=False):
         assert_that(
             ipython.create_progress_bar(
                 iterable=list(range(10)),

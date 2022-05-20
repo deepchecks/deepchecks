@@ -19,8 +19,10 @@ import typing as t
 from functools import lru_cache
 
 import tqdm
+from ipykernel.zmqshell import ZMQInteractiveShell
 from IPython import get_ipython
 from IPython.display import display
+from IPython.terminal.interactiveshell import TerminalInteractiveShell
 from tqdm.notebook import tqdm as tqdm_notebook
 
 __all__ = [
@@ -31,6 +33,8 @@ __all__ = [
     'is_colab_env',
     'is_kaggle_env',
     'is_widgets_use_possible',
+    'is_terminal_interactive_shell',
+    'is_zmq_interactive_shell',
     'ProgressBarGroup'
 ]
 
@@ -49,6 +53,18 @@ def is_notebook() -> bool:
         return hasattr(shell, 'config')
     except NameError:
         return False  # Probably standard Python interpreter
+
+
+@lru_cache(maxsize=None)
+def is_terminal_interactive_shell() -> bool:
+    """Check whether we are in a terminal interactive shell or not."""
+    return isinstance(get_ipython(), TerminalInteractiveShell)
+
+
+@lru_cache(maxsize=None)
+def is_zmq_interactive_shell() -> bool:
+    """Check whether we are in a web-based interactive shell or not."""
+    return isinstance(get_ipython(), ZMQInteractiveShell)
 
 
 @lru_cache(maxsize=None)
@@ -181,14 +197,14 @@ def create_progress_bar(
 
     barlen = iterlen if iterlen > 5 else 5
 
-    if is_widgets_enabled():
+    if is_zmq_interactive_shell() and is_widgets_enabled():
         return tqdm_notebook(
             **kwargs,
             colour='#9d60fb',
             file=sys.stdout
         )
 
-    elif is_notebook():
+    elif is_zmq_interactive_shell():
         return PlainNotebookProgressBar(
             **kwargs,
             bar_format='{{desc}}:\n|{{bar:{0}}}{{r_bar}}'.format(barlen),  # pylint: disable=consider-using-f-string
