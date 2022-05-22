@@ -107,7 +107,7 @@ class CategoryMismatchTrainTest(TrainTestCheck):
 
         else:
             display = None
-        return CheckResult(new_categories, display=display)
+        return CheckResult({'new_categories': new_categories, 'test_count': n_test_samples}, display=display)
 
     def add_condition_new_categories_not_greater_than(self, max_new: int = 0):
         """Add condition - require column not to have greater than given number of different new categories.
@@ -118,17 +118,20 @@ class CategoryMismatchTrainTest(TrainTestCheck):
             Number of different categories value types which is the maximum allowed.
         """
         def condition(result: Dict) -> ConditionResult:
-            # not_passing_columns = {feature: len(new_categories) for feature, new_categories in result.items()
-            #                        if len(new_categories) > max_new}
-            num_new_per_column = [(feature, len(new_categories)) for feature, new_categories in result.items()]
+            columns_new_categories = result['new_categories']
+            num_new_per_column = [(feature, len(new_categories)) for feature, new_categories
+                                  in columns_new_categories.items()]
             sorted_columns = sorted(num_new_per_column, key=lambda x: x[1], reverse=True)
             failing = [(feature, num_new) for feature, num_new in sorted_columns if num_new > max_new]
             if failing:
                 return ConditionResult(ConditionCategory.FAIL,
                                        f'Found {len(failing)} columns with number of new categories above threshold '
-                                       f'out of {len(result)} categorical columns:\n{dict(failing)}')
+                                       f'out of {len(columns_new_categories)} categorical columns:\n{dict(failing)}')
             else:
-                return ConditionResult(ConditionCategory.PASS, )
+                details = f'Passed for {len(columns_new_categories)} categorical columns'
+                if len(columns_new_categories) > 0:
+                    details += f'Top columns with new categories:\n{dict(sorted_columns[:5])}'
+                return ConditionResult(ConditionCategory.PASS, details)
 
         return self.add_condition(f'Number of new category values is not greater than {max_new}',
                                   condition)
@@ -142,17 +145,21 @@ class CategoryMismatchTrainTest(TrainTestCheck):
             Number of different categories value types which is the maximum allowed.
         """
         def new_category_count_condition(result: Dict) -> ConditionResult:
-            not_passing_columns = {}
-            for column_name in result.keys():
-                column = result[column_name]
-                n_new_samples = column['n_new'] / column['n_total_samples']
-                if n_new_samples > max_ratio:
-                    not_passing_columns[column_name] = format_percent(n_new_samples)
-            if not_passing_columns:
+            columns_new_categories = result['new_categories']
+            ratio_new_per_column = [(feature, len(new_categories) / result['test_count']) for feature, new_categories
+                                    in columns_new_categories.items()]
+            sorted_columns = sorted(ratio_new_per_column, key=lambda x: x[1], reverse=True)
+            failing = [(feature, ratio_new) for feature, ratio_new in sorted_columns if ratio_new > max_ratio]
+
+            if failing:
                 return ConditionResult(ConditionCategory.FAIL,
-                                       f'Found columns with ratio of new category samples above threshold: '
-                                       f'{not_passing_columns}')
+                                       f'Found {len(failing)} columns with ratio of new category samples above '
+                                       f'threshold out of {len(columns_new_categories)} categorical columns:\n'
+                                       f'{dict(failing)}')
             else:
+                details = f'Passed for {len(columns_new_categories)} categorical columns'
+                if len(columns_new_categories) > 0:
+                    details += f'Top columns with new categories:\n{dict(sorted_columns[:5])}'
                 return ConditionResult(ConditionCategory.PASS)
 
         return self.add_condition(
