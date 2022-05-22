@@ -322,10 +322,14 @@ def condition(result: Dict, include_classes=None, average=False, max_gain=None, 
     task_type = result['type']
     scorers_perfect = result['scorers_perfect']
 
-    fails = {}
+    passed_condition = True
     if task_type in [ModelType.MULTICLASS, ModelType.BINARY] and not average:
+        passed_metrics = {}
+        failed_classes = defaultdict(dict)
+        perfect_metrics = []
         for metric, classes_scores in scores.items():
-            failed_classes = {}
+            gains = {}
+            metric_passed = True
             for clas, models_scores in classes_scores.items():
                 # Skip if class is not in class list
                 if include_classes is not None and clas not in include_classes:
@@ -335,33 +339,57 @@ def condition(result: Dict, include_classes=None, average=False, max_gain=None, 
                 if models_scores['Origin'] == scorers_perfect[metric]:
                     continue
 
-                gain = get_gain(models_scores['Simple'],
-                                models_scores['Origin'],
-                                scorers_perfect[metric],
-                                max_gain)
-                if gain < min_allowed_gain:
-                    failed_classes[clas] = format_percent(gain)
-            if failed_classes:
-                fails[metric] = failed_classes
+                gains[clas] = get_gain(models_scores['Simple'],
+                                       models_scores['Origin'],
+                                       scorers_perfect[metric],
+                                       max_gain)
+                # Save dict of failed classes and metrics gain
+                if gains[clas] < min_allowed_gain:
+                    failed_classes[clas][metric] = format_percent(gains[clas])
+                    metric_passed = False
+
+            if metric_passed and gains:
+                avg_gain = sum(gains.values()) / len(gains)
+                passed_metrics[metric] = format_percent(avg_gain)
+            elif metric_passed and not gains:
+                perfect_metrics.append(metric)
+
+        if failed_classes:
+            msg = f'Found classes with failed metric\'s gain: {dict(failed_classes)}'
+            passed_condition = False
+        elif passed_metrics:
+            msg = f'All classes passed, average gain for metrics: {passed_metrics}'
+        else:
+            msg = f'Found metrics with perfect score, no gain is calculated: {perfect_metrics}'
     else:
+        passed_metrics = {}
+        failed_metrics = {}
+        perfect_metrics = []
         if task_type in [ModelType.MULTICLASS, ModelType.BINARY]:
             scores = average_scores(scores, include_classes)
         for metric, models_scores in scores.items():
             # If origin model is perfect, skip the gain calculation
             if models_scores['Origin'] == scorers_perfect[metric]:
+                perfect_metrics.append(metric)
                 continue
             gain = get_gain(models_scores['Simple'],
                             models_scores['Origin'],
                             scorers_perfect[metric],
                             max_gain)
             if gain < min_allowed_gain:
-                fails[metric] = format_percent(gain)
+                failed_metrics[metric] = format_percent(gain)
+            else:
+                passed_metrics[metric] = format_percent(gain)
+        if failed_metrics:
+            msg = f'Found failed metrics: {failed_metrics}'
+            passed_condition = False
+        elif passed_metrics:
+            msg = f'All metrics passed, metric\'s gain: {passed_metrics}'
+        else:
+            msg = f'Found metrics with perfect score, no gain is calculated: {perfect_metrics}'
 
-    if fails:
-        msg = f'Found metrics with gain below threshold: {fails}'
-        return ConditionResult(ConditionCategory.FAIL, msg)
-    else:
-        return ConditionResult(ConditionCategory.PASS)
+    category = ConditionCategory.PASS if passed_condition else ConditionCategory.FAIL
+    return ConditionResult(category, msg)
 
 
 def average_scores(scores, include_classes):

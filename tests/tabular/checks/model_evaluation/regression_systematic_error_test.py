@@ -74,7 +74,7 @@ def test_condition_error_ratio_not_greater_than_not_passed(diabetes_split_datase
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                name='Bias ratio is not greater than 0.01',
-                               details='Found bias ratio above threshold: 0.93')
+                               details='Found bias ratio 0.93')
     ))
 
 
@@ -88,6 +88,7 @@ def test_condition_error_ratio_not_greater_than_passed(diabetes_split_dataset_an
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
+                               details='Found bias ratio 1.40E-4',
                                name='Bias ratio is not greater than 0.01')
     ))
 
@@ -103,5 +104,5 @@ def test_condition_error_ratio_not_greater_than_not_passed_0_max(diabetes_split_
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                name='Bias ratio is not greater than 0',
-                               details='Found bias ratio above threshold: 1.40E-4')
+                               details='Found bias ratio 1.40E-4')
     ))
