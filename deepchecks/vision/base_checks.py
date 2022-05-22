@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module for vision base checks."""
-import logging
 from typing import Any, Optional, Union
 
 import torch

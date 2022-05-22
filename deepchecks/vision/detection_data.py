@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """The vision/dataset module containing the vision Dataset class and its functions."""
-import logging
 from abc import abstractmethod
 from typing import List
 

@@ -33,10 +33,7 @@ __all__ = [
 def _common_member(a, b):
     a_set = set(a)
     b_set = set(b)
-    if (a_set & b_set):
-        return True 
-    else:
-        return False
+    return a_set & b_set
 
 class FakeModel:
     train: pd.DataFrame
@@ -90,10 +87,9 @@ class FakeModel:
         raise DeepchecksValueError(f'Unexpected dataset kind {dataset_kind}')
 
     def _validate_data(self, data: pd.DataFrame, dataset_kind: DatasetKind):
-        data_no_nan = data.fillna('nan')
-        sub_index = list(data_no_nan.index)[:10]
-        return (data_no_nan.loc[sub_index] == \
-            self._get_dataset(dataset_kind.loc[sub_index])).all().all()
+        sub_index = list(data.index)[:10]
+        return (data.loc[sub_index].fillna('nan') == \
+            self._get_dataset(dataset_kind).loc[sub_index].fillna('nan')).all().all()
 
     def _get_dataset_kind(self, data: pd.DataFrame):
         assert isinstance(data, pd.DataFrame)
@@ -109,7 +105,6 @@ class FakeModel:
     def _get_index_to_predict(self, data: pd.DataFrame):
         dataset_kind = self._get_dataset_kind(data)
         return dataset_kind, [self.ind_map[dataset_kind][i] for i in data.index]
-        
 
     def _predict(self, data: pd.DataFrame):
         dataset_kind, indexes_to_predict = self._get_index_to_predict(data)
