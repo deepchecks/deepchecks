@@ -13,6 +13,7 @@
 import warnings
 from typing import Dict
 
+import numpy as np
 import pandas as pd
 
 from deepchecks import ConditionCategory
@@ -103,12 +104,12 @@ class TrainTestPredictionDrift(TrainTestCheck):
         test_dataset = context.test
         model = context.model
 
-        train_prediction = model.predict(train_dataset.features_columns)
-        test_prediction = model.predict(test_dataset.features_columns)
+        train_prediction = np.array(model.predict(train_dataset.features_columns))
+        test_prediction = np.array(model.predict(test_dataset.features_columns))
 
         drift_score, method, display = calc_drift_and_plot(
-            train_column=pd.Series(train_prediction),
-            test_column=pd.Series(test_prediction),
+            train_column=pd.Series(train_prediction.flatten()),
+            test_column=pd.Series(test_prediction.flatten()),
             value_name='model predictions',
             column_type='categorical' if train_dataset.label_type == 'classification_label' else 'numerical',
             margin_quantile_filter=self.margin_quantile_filter,
