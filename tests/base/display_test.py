@@ -87,7 +87,8 @@ def test_check_result_repr(iris_dataset):
 
     # Assert
     assert_that(check.__repr__(), is_('MixedNulls'))
-    assert_that(check_res.__repr__(), is_('Mixed Nulls: defaultdict(<class \'dict\'>, {})'))
+    assert_that(check_res.__repr__(), is_('Mixed Nulls: {\'sepal length (cm)\': {}, \'sepal width (cm)\': {}, '
+                                          '\'petal length (cm)\': {}, \'petal width (cm)\': {}, \'target\': {}}'))
 
 
 def test_check_result_init(iris_dataset):

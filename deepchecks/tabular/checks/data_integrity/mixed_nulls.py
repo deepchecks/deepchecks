@@ -56,7 +56,7 @@ class MixedNulls(SingleDatasetCheck):
         **kwargs
     ):
         super().__init__(**kwargs)
-        self.null_string_list = self._validate_null_string_list(null_string_list)
+        self.null_string_list = null_string_list
         self.check_nan = check_nan
         self.columns = columns
         self.ignore_columns = ignore_columns
@@ -80,6 +80,7 @@ class MixedNulls(SingleDatasetCheck):
         df = dataset.data
 
         df = select_from_dataframe(df, self.columns, self.ignore_columns)
+        null_string_list = self._validate_null_string_list(self.null_string_list)
 
         # Result value
         display_array = []
@@ -105,7 +106,7 @@ class MixedNulls(SingleDatasetCheck):
 
             # Filter out values not in the nulls list
             null_counts = {value: count for value, count in column_counts.items() if
-                           (self.check_nan and pd.isnull(value)) or (string_baseform(value) in self.null_string_list)}
+                           (self.check_nan and pd.isnull(value)) or (string_baseform(value) in null_string_list)}
 
             result_dict[column_name] = {}
             # Save the column nulls info
