@@ -11,6 +11,7 @@
 """Module for base tabular context."""
 from collections import defaultdict
 import typing as t
+import warnings
 
 import pandas as pd
 
@@ -31,7 +32,25 @@ __all__ = [
 ]
 
 
-class FakeModel:
+class _FakeModel:
+    """Contains all the data + properties the user has passed to a check/suite, and validates it seamlessly.
+
+    Parameters
+    ----------
+    train :Dataset
+        Dataset, representing data an estimator was fitted on
+    test : Dataset
+        Dataset, representing data an estimator predicts on
+    model_name: str , default: ''
+        The name of the model
+    features_importance: pd.Series , default: None
+        pass manual features importance
+    feature_importance_force_permutation : bool , default: False
+        force calculation of permutation features importance
+    feature_importance_timeout : int , default: 120
+        timeout in second for the permutation features importance calculation
+    """
+
     train: pd.DataFrame
     test: pd.DataFrame
     ind_map: t.Dict[str, t.Dict[t.Any, int]]
@@ -52,7 +71,9 @@ class FakeModel:
             if set(train.data.index) & set(test.data.index):
                 train.data.index = map(lambda x: f'train-{x}', list(train.data.index))
                 test.data.index = map(lambda x: f'test-{x}', list(test.data.index))
-                # TODO add some warning
+                warnings.warn('train and test datasets have common index - adding "train"/"test"'
+                              ' prefixes. To avoid that provide datasets with no common indexes '
+                              'or don\'t use static predictions feature.')
 
         if train is not None:
             self.train = train.data
@@ -202,7 +223,7 @@ class Context:
         # we do it after validation because the model we are creating isn't valid (we are always valid just not here)
         if model is None and \
             not pd.Series([y_pred_train, y_pred_test, y_proba_train, y_proba_test]).isna().all():
-            model = FakeModel(train=train, test=test, y_pred_train=y_pred_train, y_pred_test=y_pred_test,
+            model = _FakeModel(train=train, test=test, y_pred_train=y_pred_train, y_pred_test=y_pred_test,
                               y_proba_test=y_proba_test, y_proba_train=y_proba_train)
         self._train = train
         self._test = test
