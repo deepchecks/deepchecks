@@ -149,8 +149,8 @@ class MixedDataTypes(SingleDatasetCheck):
                 details = f'Found {len(failing_columns)} columns with non-negligible quantities of samples with a ' \
                           f'different data type from the majority of samples: {failing_columns}'
                 return ConditionResult(ConditionCategory.WARN, details)
-            details = f'Found {len(result) - len(no_mix_columns)} columns with negligible types mix, ' \
-                      f'and {len(no_mix_columns)} columns without any types mix'
+            details = f'{len(result)} columns passed: found {len(result) - len(no_mix_columns)} columns with ' \
+                      f'negligible types mix, and {len(no_mix_columns)} columns without any types mix'
             return ConditionResult(ConditionCategory.PASS, details)
 
         name = f'Rare data types in column are either more than {format_percent(ratio_range[1])} or less ' \

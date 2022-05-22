@@ -16,6 +16,7 @@ from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.check_utils.single_feature_contribution_utils import (
     get_pps_figure, pps_df_to_trace)
 from deepchecks.tabular import Context, SingleDatasetCheck
+from deepchecks.tabular.utils.integrity_messages import get_condition_passed_message
 from deepchecks.utils.strings import format_number
 from deepchecks.utils.typing import Hashable
 
@@ -129,8 +130,7 @@ class SingleFeatureContribution(SingleDatasetCheck):
                           f'features: {failed_features}'
                 return ConditionResult(ConditionCategory.FAIL, message)
             else:
-                message = f'Passed for {len(value)} features'
-                return ConditionResult(ConditionCategory.PASS, message)
+                return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(value))
 
         return self.add_condition(f'Features\' Predictive Power Score is not greater than {format_number(threshold)}',
                                   condition)

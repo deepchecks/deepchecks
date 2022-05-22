@@ -17,6 +17,7 @@ from pkg_resources import parse_version
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, SingleDatasetCheck
+from deepchecks.tabular.utils.integrity_messages import get_condition_passed_message
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import (N_TOP_MESSAGE,
                                        column_importance_sorter_df)
@@ -170,8 +171,7 @@ class MixedNulls(SingleDatasetCheck):
                           f'of {len(result)} columns: {not_passing_columns}'
                 return ConditionResult(ConditionCategory.FAIL, details)
             else:
-                details = f'Passed for {len(result)} columns'
-                return ConditionResult(ConditionCategory.PASS, details)
+                return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))
 
         return self.add_condition(f'Not more than {max_allowed_null_types} different null types',
                                   condition)

@@ -18,6 +18,7 @@ from scipy import stats
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
+from deepchecks.tabular.utils.integrity_messages import get_condition_passed_message
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import (N_TOP_MESSAGE,
                                        column_importance_sorter_df,
@@ -256,8 +257,7 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
                           f'{len(result)} columns: {not_passing_columns}'
                 return ConditionResult(ConditionCategory.WARN, details)
             else:
-                details = f'Passed for {len(result)} columns'
-                return ConditionResult(ConditionCategory.PASS, details)
+                return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))
 
         return self.add_condition(
             f'Ratio of outliers not greater than {format_percent(max_ratio)} string length outliers',

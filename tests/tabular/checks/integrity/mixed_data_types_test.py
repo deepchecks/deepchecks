@@ -125,7 +125,8 @@ def test_condition_pass_all_columns():
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               details='Found 1 columns with negligible types mix, and 1 columns without any types mix',
+                               details='2 columns passed: found 1 columns with negligible types mix, and 1 columns '
+                                       'without any types mix',
                                name='Rare data types in column are either more than 10% or less than 1% of the data')
     ))
 

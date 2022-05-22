@@ -17,6 +17,7 @@ import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
+from deepchecks.tabular.utils.integrity_messages import get_condition_passed_message
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import (N_TOP_MESSAGE,
                                        column_importance_sorter_df)
@@ -156,8 +157,7 @@ class StringMismatch(SingleDatasetCheck):
                 details = f'Found {len(not_passing_columns)} columns with variants ratio above threshold out of ' \
                           f'{len(result)} string columns: {not_passing_columns}'
                 return ConditionResult(ConditionCategory.FAIL, details)
-            details = f'Passed for {len(result)} string columns'
-            return ConditionResult(ConditionCategory.PASS, details)
+            return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))
 
         name = f'Ratio of variants is not greater than {format_percent(max_ratio)}'
         return self.add_condition(name, condition, max_ratio=max_ratio)
@@ -176,5 +176,4 @@ def _condition_variants_number(result, num_max_variants: int, max_cols_to_show: 
                   f'{len(result)} string columns: {variants_to_show}'
         return ConditionResult(ConditionCategory.WARN, details)
 
-    details = f'Passed for {len(result)} string columns'
-    return ConditionResult(ConditionCategory.PASS, details)
+    return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))
