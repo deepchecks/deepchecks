@@ -13,7 +13,8 @@ from hamcrest import assert_that, has_length
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
-from deepchecks.tabular.checks.model_evaluation import MultiModelPerformanceReport
+from deepchecks.tabular.checks.model_evaluation import \
+    MultiModelPerformanceReport
 
 
 @pytest.fixture
