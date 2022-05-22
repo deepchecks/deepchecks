@@ -30,11 +30,21 @@ __all__ = [
     'Context'
 ]
 
+def union2(dict1, dict2):
+    return dict(list(dict1.items()) + list(dict2.items()))
+
+def common_member(a, b):
+    a_set = set(a)
+    b_set = set(b)
+    if (a_set & b_set):
+        return True 
+    else:
+        return False
 
 class FakeModel:
     train: pd.DataFrame
     test: pd.DataFrame
-    ind_map: t.Dict[str, t.Dict[int, t.Any]]
+    ind_map: t.Dict[str, t.Dict[t.Any, int]]
     y_pred: t.Dict[str, pd.Series]
     y_proba: t.Dict[str, pd.Series]
 
@@ -46,39 +56,51 @@ class FakeModel:
                  y_proba_train,
                  y_proba_test,):
         self.ind_map = defaultdict(dict)
+
+        if train is not None and test is not None:
+            if common_member(train.data.index, test.data.index):
+                train.data.index = map(lambda x: f'train-{x}', list(train.data.index))
+                test.data.index = map(lambda x: f'test-{x}', list(test.data.index))
+                # TODO add some warning
+
         if train is not None:
             self.train = train.data
-            self.train.data_type = 'train'
-            self.train._metadata += ['data_type']
             for i, ind in enumerate(self.train.index):
-                self.ind_map['train'][i] = ind
+                self.ind_map['train'][ind] = i
+
         if test is not None:
             self.test = test.data
-            self.test.data_type = 'test'
-            self.test._metadata += ['data_type']
             for i, ind in enumerate(self.test.index):
-                self.ind_map['test'][i] = ind
-        self.y_pred = {}
-        self.y_pred['train'] = y_pred_train
-        self.y_pred['test'] = y_pred_test
-        self.y_proba = {}
-        self.y_proba['train'] = y_proba_train
-        self.y_proba['test'] = y_proba_test
+                self.ind_map['test'][ind] = i
+
+        if y_pred_train is not None or y_pred_test is not None:
+            self.y_pred = {}
+            self.y_pred['train'] = y_pred_train
+            self.y_pred['test'] = y_pred_test
+            self.predict = self._predict
+
+        if y_proba_train is not None or y_proba_train is not None:
+            self.y_proba = {}
+            self.y_proba['train'] = y_proba_train
+            self.y_proba['test'] = y_proba_test
+            self.predict_proba = self._predict_proba
+
+    def _get_dataset(self, data: pd.DataFrame):
+        if set(data.index).issubset(list(self.ind_map['train'].keys())):
+            return 'train'
+        if set(data.index).issubset(list(self.ind_map['test'].keys())):
+            return 'test'
 
     def _get_index_to_predict(self, data: pd.DataFrame):
-        data_type = data.data_type
-        print(data.data_type)
-        if data_type in ['test', 'train']:
-            return data_type, [self.ind_map[data_type][i] for i in data.index]
-        if data_type is None:
-            raise ValueError('recived dataframe without metadata of train/test'
-                            ' for FakeModel instance')
+        data_type = self._get_dataset(data)
+        return data_type, [self.ind_map[data_type][i] for i in data.index]
+        
 
-    def predict(self, data: pd.DataFrame):
+    def _predict(self, data: pd.DataFrame):
         data_type, indexes_to_predict = self._get_index_to_predict(data)
         return self.y_pred[data_type][indexes_to_predict]
 
-    def predict_proba(self, data: pd.DataFrame):
+    def _predict_proba(self, data: pd.DataFrame):
         data_type, indexes_to_predict = self._get_index_to_predict(data)
         return self.y_proba[data_type][indexes_to_predict]
 
@@ -172,7 +194,7 @@ class Context:
         model = None
         # we do it after validation because the model we are creating isn't valid (we are always valid just not here)
         if model is None and \
-            pd.Series([y_pred_train, y_pred_test, y_proba_train, y_proba_test]).isna().any():
+            not pd.Series([y_pred_train, y_pred_test, y_proba_train, y_proba_test]).isna().all():
             model = FakeModel(train=train, test=test, y_pred_train=y_pred_train, y_pred_test=y_pred_test,
                               y_proba_test=y_proba_test, y_proba_train=y_proba_train)
         self._train = train

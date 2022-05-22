@@ -50,7 +50,6 @@ class CalibrationScore(SingleDatasetCheck):
 
         # Expect predict_proba to return in order of the sorted classes.
         y_pred = model.predict_proba(ds_x)
-
         briers_scores = {}
 
         if len(dataset.classes) == 2:
