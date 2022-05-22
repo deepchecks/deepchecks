@@ -17,7 +17,7 @@
 
    <p align="center">
       <a href="https://deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=logo">
-      <img src="../../docs/images/deepchecks-logo-with-white-wide-back.png">
+      <img src="../../docs/source/images/general/deepchecks-logo-with-white-wide-back.png">
       </a>
    </p>
 
@@ -32,7 +32,7 @@
 .. raw:: html
 
    <p align="center">
-      <img src="../../docs/images/april-fools-swindler-detection.png">
+      <img src="../../docs/source/images/general/april-fools-swindler-detection.png">
    </p>
 
 
