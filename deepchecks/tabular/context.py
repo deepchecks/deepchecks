@@ -33,7 +33,7 @@ __all__ = [
 ]
 
 
-class _FakeModel:
+class _DummyModel:
     """Contains all the data + properties the user has passed to a check/suite, and validates it seamlessly.
 
     Parameters
@@ -77,12 +77,12 @@ class _FakeModel:
                               'or don\'t use static predictions feature.')
 
         if train is not None:
-            self.train = train.data
+            self.train = train.features_columns
             for i, ind in enumerate(self.train.index):
                 self.ind_map[DatasetKind.TRAIN][ind] = i
 
         if test is not None:
-            self.test = test.data
+            self.test = test.features_columns
             for i, ind in enumerate(self.test.index):
                 self.ind_map[DatasetKind.TEST][ind] = i
 
@@ -117,7 +117,7 @@ class _FakeModel:
             dataset_kind = DatasetKind.TRAIN
         elif set(data.index).issubset(list(self.ind_map[DatasetKind.TEST].keys())):
             dataset_kind = DatasetKind.TEST
-        if dataset_kind is None or self._validate_data(data, dataset_kind):
+        if dataset_kind is None or not self._validate_data(data, dataset_kind):
             raise DeepchecksValueError('New data recieved for static model predictions.')  # TODO write something cooler
         return dataset_kind
 
@@ -218,22 +218,10 @@ class Context:
         if features_importance is not None:
             if not isinstance(features_importance, pd.Series):
                 raise DeepchecksValueError('features_importance must be a pandas Series')
-        # TODO: a little trickery
-        if model is not None and hasattr(model, 'predict_proba'):
-            if train is not None:
-                y_proba_train = model.predict_proba(train.features_columns)
-            if test is not None:
-                y_proba_test = model.predict_proba(test.features_columns)
-        if model is not None and hasattr(model, 'predict'):
-            if train is not None:
-                y_pred_train = model.predict(train.features_columns)
-            if test is not None:
-                y_pred_test = model.predict(test.features_columns)
-        model = None
         # we do it after validation because the model we are creating isn't valid (we are always valid just not here)
         if model is None and \
-           any([y_pred_train, y_pred_test, y_proba_train, y_proba_test]):
-            model = _FakeModel(train=train, test=test, y_pred_train=y_pred_train, y_pred_test=y_pred_test,
+           not pd.Series([y_pred_train, y_pred_test, y_proba_train, y_proba_test]).isna().all():
+            model = _DummyModel(train=train, test=test, y_pred_train=y_pred_train, y_pred_test=y_pred_test,
                                y_proba_test=y_proba_test, y_proba_train=y_proba_train)
         self._train = train
         self._test = test
