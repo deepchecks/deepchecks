@@ -11,7 +11,6 @@
 """Tabular integrity checks' messages utilities."""
 from typing import Sized
 
-
 __all__ = ['get_condition_passed_message']
 
 
