@@ -52,3 +52,5 @@ def test_correlation_ratio():
     c_sname_size = correlation_methods.correlation_ratio(df['sName'], df['Size'])
     assert_that(c_sname_age, close_to(0, 0.00001))  # sName groups all age values to a single group
     assert_that(c_sname_size, close_to(0, 0.00001))  # sName groups all size values to a single group
+
+
