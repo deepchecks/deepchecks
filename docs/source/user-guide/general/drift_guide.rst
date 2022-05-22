@@ -24,7 +24,7 @@ So Why Is Drift So Important?
 -----------------------------
 
 Machine learning models are meant to predict on unseen data, based on previous known data (more accurately, this refers
-to supervised machine learning models, for which drift is relevant).
+to supervised machine learning models, for which drift is most relevant).
 If the data, or the relationships between the different variables and target label, has changed, our model may not be as
 accurate as it was before.
 
@@ -84,8 +84,8 @@ There are several solutions to distribution drift. They are also dependent on th
 Retrain Your Model
 ^^^^^^^^^^^^^^^^^^
 
-If you have either kind of drift, retraining your model on new data, that better represents the current distribution
-of data, is the most straight-forward solution.
+If you have either kind of drift, retraining your model on new data that better represents the current distribution
+, is the most straight-forward solution.
 However, this solution may require additional resources such as manual labeling of new data, or might not be possible
 if labels on the newer data are not available yet.
 
@@ -147,8 +147,8 @@ The main advantage of this method is that it can also uncover covariate drift, m
 affect the distribution of each individual variable, but does affect the relationship between them.
 
 For example, you're predicting the income of a person from his city and education. Let's say a tech giant now moved into city A. This means that:
-1. Given that a person lives in city A, he's more likely to have a more advanced degree (educated people moved to city A) - this is multivariate drift.
-2. Given his education, a resident of city A now earns more. - this is concept drift.
+1. Given that a person lives in city A, he's more likely to have a more advanced degree (educated people moved to city A) - this is multivariate drift and can be detected by the Domain Classifier. 
+2. Given his education, a resident of city A now earns more. - this is concept drift, and can be detected only once the labels (income) have arrived. 
 
 
 How Can I Use Deepchecks to Detect Drift?
