@@ -30,10 +30,6 @@ __all__ = [
     'Context'
 ]
 
-def _common_member(a, b):
-    a_set = set(a)
-    b_set = set(b)
-    return a_set & b_set
 
 class FakeModel:
     train: pd.DataFrame
@@ -52,7 +48,8 @@ class FakeModel:
         self.ind_map = defaultdict(dict)
 
         if train is not None and test is not None:
-            if _common_member(train.data.index, test.data.index):
+            # check if datasets have same indexes
+            if set(train.data.index) & set(test.data.index):
                 train.data.index = map(lambda x: f'train-{x}', list(train.data.index))
                 test.data.index = map(lambda x: f'test-{x}', list(test.data.index))
                 # TODO add some warning
