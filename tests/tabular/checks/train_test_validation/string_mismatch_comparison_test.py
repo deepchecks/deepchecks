@@ -11,7 +11,7 @@
 """Contains unit tests for the string_mismatch check."""
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, has_entries, has_entry, has_items, has_length
+from hamcrest import assert_that, has_entries, has_entry, has_items, has_length, equal_to
 
 from deepchecks.tabular.checks import StringMismatchComparison
 from deepchecks.tabular.dataset import Dataset
@@ -55,7 +55,7 @@ def test_no_mismatch():
     result = StringMismatchComparison().run(pd.DataFrame(data=data), pd.DataFrame(data=compared_data)).value
 
     # Assert
-    assert_that(result, has_length(0))
+    assert_that(result, equal_to({'col1': {}}))
 
 
 def test_no_mismatch_on_numeric_column():
@@ -67,7 +67,7 @@ def test_no_mismatch_on_numeric_column():
     result = StringMismatchComparison().run(pd.DataFrame(data=data), pd.DataFrame(data=compared_data)).value
 
     # Assert
-    assert_that(result, has_length(0))
+    assert_that(result, equal_to({'col1': {}}))
 
 
 def test_no_mismatch_on_numeric_string_column():
@@ -94,7 +94,7 @@ def test_condition_no_new_variants_fail():
     assert_that(result, equal_condition_result(
         is_pass=False,
         name='No new variants allowed in test data',
-        details='Found columns with ratio of variants above threshold: {\'col1\': \'14.29%\'}'
+        details='Found 1 columns with ratio of variants above threshold out of 1 columns: {\'col1\': \'14.29%\'}'
     ))
 
 
@@ -111,6 +111,7 @@ def test_condition_no_new_variants_pass():
     # Assert
     assert_that(result, equal_condition_result(
         is_pass=True,
+        details='Passed for 1 relevant columns',
         name='No new variants allowed in test data'
     ))
 
@@ -129,7 +130,7 @@ def test_condition_percent_new_variants_fail():
     assert_that(result, equal_condition_result(
         is_pass=False,
         name='Ratio of new variants in test data is not greater than 10%',
-        details='Found columns with ratio of variants above threshold: {\'col1\': \'25%\'}'
+        details='Found 1 columns with ratio of variants above threshold out of 1 columns: {\'col1\': \'25%\'}'
     ))
 
 
@@ -143,6 +144,7 @@ def test_condition_percent_new_variants_pass():
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
+                               details='Passed for 1 relevant columns',
                                name='Ratio of new variants in test data is not greater than 50%')
     ))
 

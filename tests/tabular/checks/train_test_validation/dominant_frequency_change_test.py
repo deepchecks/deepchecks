@@ -43,7 +43,7 @@ def test_no_leakage(iris_split_dataset_and_model):
     # Act X
     result = check.run(train_dataset=train_ds, test_dataset=val_ds).value
     # Assert
-    assert_that(result, empty())
+    assert_that(result, equal_to({'sepal length (cm)': None, 'petal length (cm)': None, 'petal width (cm)': None}))
 
 
 def test_leakage(iris_clean):
@@ -92,7 +92,8 @@ def test_show_none_dominance_ratio(iris_split_dataset_and_model):
     # Act
     result = check.run(train_dataset=train_ds, test_dataset=val_ds).value
     # Assert
-    assert_that(result, empty())
+    assert_that(result, equal_to({'sepal length (cm)': None, 'sepal width (cm)': None, 'petal length (cm)': None,
+                                  'petal width (cm)': None}))
 
 
 def test_show_none_ratio_change_thres(iris_split_dataset_and_model):
@@ -134,7 +135,7 @@ def test_condition_ratio_not_less_than_not_passed(iris_clean):
                            features=iris_clean.feature_names,
                            label='target')
 
-    check = DominantFrequencyChange().add_condition_p_value_not_less_than(p_value_threshold = 0.0001)
+    check = DominantFrequencyChange().add_condition_p_value_not_less_than(p_value_threshold=0.0001)
 
     # Act
     result = check.conditions_decision(check.run(train_dataset, test_dataset))
@@ -143,7 +144,7 @@ def test_condition_ratio_not_less_than_not_passed(iris_clean):
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                name='P value is not less than 0.0001',
-                               details='Found columns with p-value below threshold: '
+                               details='Found 2 columns with p-value below threshold out of 3 columns: '
                                        '{\'sepal width (cm)\': \'7.63E-20\', \'petal length (cm)\': \'2.26E-11\'}'
     )))
 
@@ -160,6 +161,7 @@ def test_condition_ratio_not_less_than_passed(iris_split_dataset_and_model):
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
+                               details='Passed for 4 relevant columns',
                                name='P value is not less than 0.0001')
     ))
 
@@ -177,7 +179,7 @@ def test_condition_ratio_of_change_not_greater_than_not_passed(iris_split_datase
     assert_that(result, equal_condition_result(
             is_pass=False,
             name='Change in ratio of dominant value in data is not greater than 5%',
-            details='Found columns with % difference in dominant value above threshold: '
+            details='Found 1 columns with % difference in dominant value above threshold out of 4 columns: '
                     '{\'sepal width (cm)\': \'8%\'}'
     ))
 
@@ -194,5 +196,6 @@ def test_condition_ratio_of_change_not_greater_than_passed(iris_split_dataset_an
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
+                               details='Passed for 3 relevant columns',
                                name='Change in ratio of dominant value in data is not greater than 25%')
     ))

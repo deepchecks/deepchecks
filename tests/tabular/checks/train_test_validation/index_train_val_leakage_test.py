@@ -95,5 +95,6 @@ def test_condition_leakage_passesl():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
+                               details='No index leakage found',
                                name='Ratio of leaking indices is not greater than 0%')
     ))

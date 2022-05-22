@@ -124,16 +124,13 @@ class IdentifierLeakage(SingleDatasetCheck):
             Maximum allowed string length outliers ratio.
         """
         def compare_pps(result: Dict):
-            not_passing_columns = {}
-            for column_name in result.keys():
-                score = result[column_name]
-                if score > max_pps:
-                    not_passing_columns[column_name] = format_number(score)
+            not_passing_columns = {k: format_number(score) for k, score in result.items() if score > max_pps}
             if not_passing_columns:
                 return ConditionResult(ConditionCategory.FAIL,
-                                       f'Found columns with PPS above threshold: {not_passing_columns}')
+                                       f'Found {len(not_passing_columns)} columns with PPS above threshold out of '
+                                       f'{len(result)} columns: {not_passing_columns}')
             else:
-                return ConditionResult(ConditionCategory.PASS)
+                return ConditionResult(ConditionCategory.PASS, f'Passed for {len(result)} relevant columns')
 
         return self.add_condition(
             f'Identifier columns PPS is not greater than {format_number(max_pps)}', compare_pps)

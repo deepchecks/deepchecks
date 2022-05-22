@@ -88,11 +88,11 @@ class CategoryMismatchTrainTest(TrainTestCheck):
             new_category_values = sorted(list((set(unique_test_values) - set(unique_training_values))))
             if new_category_values:
                 new_category_counts = dict(test_column.value_counts()[new_category_values])
-                new_categories_ratio = sum(count for _, count in new_category_counts) / n_test_samples
+                new_categories_ratio = sum(new_category_counts.values()) / n_test_samples
                 sorted_new_categories = dict(sorted(new_category_counts.items(), key=lambda x: x[1], reverse=True))
                 new_categories[feature] = sorted_new_categories
                 display_data.append([feature, len(new_category_values), new_categories_ratio,
-                                     sorted_new_categories.keys()[:self.max_new_categories_to_show]])
+                                     list(sorted_new_categories.keys())[:self.max_new_categories_to_show]])
             else:
                 new_categories[feature] = {}
 
@@ -120,7 +120,7 @@ class CategoryMismatchTrainTest(TrainTestCheck):
         def condition(result: Dict) -> ConditionResult:
             columns_new_categories = result['new_categories']
             num_new_per_column = [(feature, len(new_categories)) for feature, new_categories
-                                  in columns_new_categories.items()]
+                                  in columns_new_categories.items() if len(new_categories) > 0]
             sorted_columns = sorted(num_new_per_column, key=lambda x: x[1], reverse=True)
             failing = [(feature, num_new) for feature, num_new in sorted_columns if num_new > max_new]
             if failing:
@@ -128,9 +128,9 @@ class CategoryMismatchTrainTest(TrainTestCheck):
                                        f'Found {len(failing)} columns with number of new categories above threshold '
                                        f'out of {len(columns_new_categories)} categorical columns:\n{dict(failing)}')
             else:
-                details = f'Passed for {len(columns_new_categories)} categorical columns'
+                details = f'Passed for {len(columns_new_categories)} categorical columns.'
                 if len(columns_new_categories) > 0:
-                    details += f'Top columns with new categories:\n{dict(sorted_columns[:5])}'
+                    details += f' Top columns with new categories:\n{dict(sorted_columns[:5])}'
                 return ConditionResult(ConditionCategory.PASS, details)
 
         return self.add_condition(f'Number of new category values is not greater than {max_new}',
@@ -149,7 +149,8 @@ class CategoryMismatchTrainTest(TrainTestCheck):
             ratio_new_per_column = [(feature, len(new_categories) / result['test_count']) for feature, new_categories
                                     in columns_new_categories.items()]
             sorted_columns = sorted(ratio_new_per_column, key=lambda x: x[1], reverse=True)
-            failing = [(feature, ratio_new) for feature, ratio_new in sorted_columns if ratio_new > max_ratio]
+            failing = [(feature, format_percent(ratio_new)) for feature, ratio_new in sorted_columns
+                       if ratio_new > max_ratio]
 
             if failing:
                 return ConditionResult(ConditionCategory.FAIL,

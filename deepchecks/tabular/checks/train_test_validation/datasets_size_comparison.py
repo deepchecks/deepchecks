@@ -64,7 +64,7 @@ class DatasetsSizeComparison(TrainTestCheck):
             current instance of the DatasetsSizeComparison check.
         """
         def condition(check_result: dict) -> ConditionResult:
-            details = f'Test dataset size is {check_result["Test"]}'
+            details = f'Test dataset contains {check_result["Test"]} samples'
             category = ConditionCategory.FAIL if check_result['Test'] <= value else ConditionCategory.PASS
             return ConditionResult(category, details)
 
@@ -108,15 +108,15 @@ class DatasetsSizeComparison(TrainTestCheck):
         """
 
         def condition(check_result: dict) -> ConditionResult:
-            diff = check_result['Test'] - check_result['Train']
+            diff = check_result['Train'] - check_result['Test']
             if diff < 0:
-                details = f'Train dataset is smaller than test dataset by {diff}'
+                details = f'Train dataset is smaller than test dataset by {diff} samples'
                 category = ConditionCategory.FAIL
             elif diff == 0:
-                details = 'Train dataset is equal to test dataset'
+                details = f'Train and test datasets both have {check_result["Train"]} samples'
                 category = ConditionCategory.PASS
             else:
-                details = f'Train dataset is larger than test dataset by +{diff}'
+                details = f'Train dataset is larger than test dataset by +{diff} samples'
                 category = ConditionCategory.PASS
             return ConditionResult(category, details)
 
