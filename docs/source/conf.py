@@ -86,13 +86,13 @@ extensions = [
 ]
 
 redirects = {
-    "index": "getting-started/get-started.html",
-    "getting-started/index": "get-started.html",
+    "index": "getting-started/welcome.html",
+    "getting-started/index": "welcome.html",
     "examples/guides/quickstart_in_5_minutes": "../../user-guide/tabular/auto_tutorials/plot_quickstart_in_5_minutes.html",
     "user-guide/key_concepts": "../user-guide/general/deepchecks_hierarchy.html",
     "user-guide/when_should_you_use": "../getting-started/when_should_you_use.html",
     "examples/checks/distribution/index": "../../../checks_gallery/tabular/index.html",
-    "examples/checks/distribution/train_test_feature_drift": "../../../checks_gallery/tabular/distribution/plot_train_test_feature_drift.html",
+    "examples/checks/distribution/train_test_feature_drift": "../../../checks_gallery/tabular/train_test_validation/plot_train_test_feature_drift.html",
     "examples/checks/integrity/index": "../../../checks_gallery/tabular/index.html",
     "examples/checks/methodology/index": "../../../checks_gallery/tabular/index.html",
     "examples/checks/overview/index": "../../../checks_gallery/tabular/index.html",
@@ -127,7 +127,7 @@ sphinx_gallery_conf = {
     ),
     "pypandoc": True,
     "default_thumb_file": os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                       "_static/sphx_glr_deepchecks_icon.png"),
+                                       "_static/images/general/sphx_glr_deepchecks_icon.png"),
     "doc_module": "deepchecks",
     "backreferences_dir": os.path.join(PROJECT_DIR, "docs/source/api/generated/backreferences"),
     "reference_url": {'deepchecks': None},
@@ -254,7 +254,7 @@ autodoc_typehints_format = 'short'
 napoleon_preprocess_types = False
 
 # Report warnings for all validation checks
-numpydoc_validation_checks = {"PR01", "PR02", "PR03", "RT03"}
+# numpydoc_validation_checks = {"PR01", "PR02", "PR03", "RT03"}
 
 
 # -- Copybutton settings --------------------------------------------------
@@ -374,7 +374,7 @@ html_sidebars = {
 
 # Path to logo and favicon
 #
-html_logo = "./_static/deepchecks_logo.svg"
+html_logo = "./_static/images/general/deepchecks_logo.svg"
 html_favicon = "./_static/favicons/favicon.ico"
 
 # If true, the reST sources are included in the HTML build as _sources/name. The default is True.

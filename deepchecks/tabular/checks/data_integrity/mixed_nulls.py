@@ -1,0 +1,181 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
+"""Module contains Mixed Nulls check."""
+from collections import defaultdict
+from typing import Dict, Iterable, List, Union
+
+import pandas as pd
+from pkg_resources import parse_version
+
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
+from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.tabular import Context, SingleDatasetCheck
+from deepchecks.utils.dataframes import select_from_dataframe
+from deepchecks.utils.features import (N_TOP_MESSAGE,
+                                       column_importance_sorter_df)
+from deepchecks.utils.strings import format_percent, string_baseform
+from deepchecks.utils.typing import Hashable
+
+__all__ = ['MixedNulls']
+
+
+DEFAULT_NULL_VALUES = {'none', 'null', 'nan', 'na', '', '\x00', '\x00\x00'}
+
+
+class MixedNulls(SingleDatasetCheck):
+    """Search for various types of null values, including string representations of null.
+
+    Parameters
+    ----------
+    null_string_list : Iterable[str] , default: None
+        List of strings to be considered alternative null representations
+    check_nan : bool , default: True
+        Whether to add to null list to check also NaN values
+    columns : Union[Hashable, List[Hashable]] , default: None
+        Columns to check, if none are given checks all columns except ignored ones.
+    ignore_columns : Union[Hashable, List[Hashable]] , default: None
+        Columns to ignore, if none given checks based on columns variable
+    n_top_columns : int , optional
+        amount of columns to show ordered by feature importance (date, index, label are first)
+    """
+
+    def __init__(
+        self,
+        null_string_list: Iterable[str] = None,
+        check_nan: bool = True,
+        columns: Union[Hashable, List[Hashable], None] = None,
+        ignore_columns: Union[Hashable, List[Hashable], None] = None,
+        n_top_columns: int = 10,
+        **kwargs
+    ):
+        super().__init__(**kwargs)
+        self.null_string_list = null_string_list
+        self.check_nan = check_nan
+        self.columns = columns
+        self.ignore_columns = ignore_columns
+        self.n_top_columns = n_top_columns
+
+    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
+        """Run check.
+
+        Returns
+        -------
+        CheckResult
+            DataFrame with columns ('Column Name', 'Value', 'Count', 'Percentage') for any column which
+            have more than 1 null values.
+        """
+        if dataset_type == 'train':
+            dataset = context.train
+        else:
+            dataset = context.test
+        df = dataset.data
+
+        df = select_from_dataframe(df, self.columns, self.ignore_columns)
+        null_string_list: set = self._validate_null_string_list(self.null_string_list)
+
+        # Result value
+        display_array = []
+        result_dict = defaultdict(dict)
+
+        for column_name in list(df.columns):
+            column_data = df[column_name]
+            # Pandas version 1.3.X and lower doesn't support counting separate NaN types in value_counts (numpy nan,
+            # pandas nan, None, etc.)
+            if parse_version(pd.__version__) < parse_version('1.4.0'):
+                column_counts: pd.Series = column_data.value_counts(dropna=True)
+                # Nan values are not equal to each other, so in order to group them together by type, first we
+                # transform them using the id function:
+                # np.nan != np.nan
+                # id(np.nan) == id(np.nan) != id(pd.NA)
+                unique_nans = [x for x in column_data.unique() if pd.isnull(x)]
+                column_id_counts = column_data.apply(id).value_counts()
+                nan_counts = pd.Series({nan: column_id_counts[id(nan)] for nan in unique_nans})
+                column_counts = column_counts.append(nan_counts)
+            else:
+                # Get counts of all values in series including NaNs
+                column_counts: pd.Series = column_data.value_counts(dropna=False)
+
+            # Filter out values not in the nulls list
+            null_counts = {value: count for value, count in column_counts.items()
+                           if (self.check_nan and pd.isnull(value)) or (string_baseform(value) in null_string_list)}
+
+            if len(null_counts) < 2:
+                continue
+            # Save the column info
+            for null_value, count in null_counts.items():
+                percent = count / len(column_data)
+                display_array.append([column_name, null_value, count, format_percent(percent)])
+                result_dict[column_name][null_value] = {'count': count, 'percent': percent}
+
+        # Create dataframe to display table
+        if display_array:
+            df_graph = pd.DataFrame(display_array, columns=['Column Name', 'Value', 'Count', 'Percent of data'])
+            df_graph = df_graph.set_index(['Column Name', 'Value'])
+            df_graph = column_importance_sorter_df(df_graph, dataset, context.features_importance,
+                                                   self.n_top_columns, col='Column Name')
+            display = [N_TOP_MESSAGE % self.n_top_columns, df_graph]
+        else:
+            display = None
+
+        return CheckResult(result_dict, display=display)
+
+    def _validate_null_string_list(self, nsl) -> set:
+        """Validate the object given is a list of strings. If null is given return default list of null values.
+
+        Parameters
+        ----------
+        nsl
+            Object to validate
+
+        Returns
+        -------
+        set
+            Returns list of null values as set object
+        """
+        result: set
+        if nsl:
+            if not isinstance(nsl, Iterable):
+                raise DeepchecksValueError('null_string_list must be an iterable')
+            if len(nsl) == 0:
+                raise DeepchecksValueError("null_string_list can't be empty list")
+            if any((not isinstance(string, str) for string in nsl)):
+                raise DeepchecksValueError("null_string_list must contain only items of type 'str'")
+            result = set(nsl)
+        else:
+            # Default values
+            result = set(DEFAULT_NULL_VALUES)
+
+        return result
+
+    def add_condition_different_nulls_not_more_than(self, max_allowed_null_types: int = 1):
+        """Add condition - require column not to have more than given number of different null values.
+
+        Parameters
+        ----------
+        max_allowed_null_types : int , default: 1
+            Number of different null value types which is the maximum allowed.
+        """
+        def condition(result: Dict) -> ConditionResult:
+            not_passing_columns = {}
+            for column in result.keys():
+                nulls = result[column]
+                num_nulls = len(nulls)
+                if num_nulls > max_allowed_null_types:
+                    not_passing_columns[column] = num_nulls
+            if not_passing_columns:
+                return ConditionResult(ConditionCategory.FAIL,
+                                       'Found columns with amount of null types above threshold: '
+                                       f'{not_passing_columns}')
+            else:
+                return ConditionResult(ConditionCategory.PASS)
+
+        return self.add_condition(f'Not more than {max_allowed_null_types} different null types',
+                                  condition)

@@ -167,6 +167,7 @@ def widget_to_html_string(
     """
     buffer = io.StringIO()
     widget_to_html(widget, buffer, title, requirejs)
+    buffer.seek(0)
     return buffer.getvalue()
 
 
@@ -234,7 +235,7 @@ def get_random_string(n: int = 5):
     return ''.join(random.choices(ascii_uppercase + digits, k=n))
 
 
-def string_baseform(string: str) -> str:
+def string_baseform(string: Hashable) -> Hashable:
     """Remove special characters from given string, leaving only a-z, A-Z, 0-9 characters.
 
     Parameters

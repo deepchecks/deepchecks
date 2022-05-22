@@ -9,27 +9,29 @@
 # ----------------------------------------------------------------------------
 #
 """Module importing all tabular checks."""
-from .distribution import (TrainTestFeatureDrift, TrainTestLabelDrift,
-                           TrainTestPredictionDrift, WholeDatasetDrift)
-from .integrity import (CategoryMismatchTrainTest, ConflictingLabels,
-                        DataDuplicates, DominantFrequencyChange, IsSingleValue,
-                        MixedDataTypes, MixedNulls, NewLabelTrainTest,
-                        OutlierSampleDetection, SpecialCharacters,
-                        StringLengthOutOfBounds, StringMismatch,
-                        StringMismatchComparison)
-from .methodology import (BoostingOverfit, DatasetsSizeComparison,
-                          DateTrainTestLeakageDuplicates,
-                          DateTrainTestLeakageOverlap, IdentifierLeakage,
-                          IndexTrainTestLeakage, ModelInferenceTime,
-                          SingleFeatureContribution,
-                          SingleFeatureContributionTrainTest,
-                          TrainTestSamplesMix, UnusedFeatures)
-from .overview import ColumnsInfo, ModelInfo
-from .performance import (CalibrationScore, ConfusionMatrixReport,
-                          ModelErrorAnalysis, MultiModelPerformanceReport,
-                          PerformanceReport, RegressionErrorDistribution,
-                          RegressionSystematicError, RocReport,
-                          SegmentPerformance, SimpleModelComparison)
+from .data_integrity import (ColumnsInfo, ConflictingLabels, DataDuplicates,
+                             IsSingleValue, MixedDataTypes, MixedNulls,
+                             OutlierSampleDetection, SingleFeatureContribution,
+                             SpecialCharacters, StringLengthOutOfBounds,
+                             StringMismatch)
+from .model_evaluation import (BoostingOverfit, CalibrationScore,
+                               ConfusionMatrixReport, ModelErrorAnalysis,
+                               ModelInferenceTime, ModelInfo,
+                               MultiModelPerformanceReport, PerformanceReport,
+                               RegressionErrorDistribution,
+                               RegressionSystematicError, RocReport,
+                               SegmentPerformance, SimpleModelComparison,
+                               TrainTestPredictionDrift, UnusedFeatures)
+from .train_test_validation import (CategoryMismatchTrainTest,
+                                    DatasetsSizeComparison,
+                                    DateTrainTestLeakageDuplicates,
+                                    DateTrainTestLeakageOverlap,
+                                    DominantFrequencyChange, IdentifierLeakage,
+                                    IndexTrainTestLeakage, NewLabelTrainTest,
+                                    SingleFeatureContributionTrainTest,
+                                    StringMismatchComparison,
+                                    TrainTestFeatureDrift, TrainTestLabelDrift,
+                                    TrainTestSamplesMix, WholeDatasetDrift)
 
 __all__ = [
     # integrity checks

@@ -23,7 +23,7 @@ from deepchecks.utils.strings import generate_check_docs_link
 checks_dirs = ["deepchecks/tabular/checks", "deepchecks/vision/checks"]
 
 ignored_files = [
-    "deepchecks/vision/checks/distribution/abstract_property_outliers.py",
+    "deepchecks/vision/checks/data_integrity/abstract_property_outliers.py",
     ]
 
 
