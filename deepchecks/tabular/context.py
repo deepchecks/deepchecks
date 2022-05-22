@@ -10,7 +10,6 @@
 #
 """Module for base tabular context."""
 from collections import defaultdict
-from re import sub
 import typing as t
 
 import pandas as pd
