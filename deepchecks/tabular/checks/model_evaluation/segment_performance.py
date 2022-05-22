@@ -100,6 +100,12 @@ class SegmentPerformance(SingleDatasetCheck):
             if self.feature_1 not in columns or self.feature_2 not in columns:
                 raise DeepchecksValueError('"feature_1" and "feature_2" must be in dataset columns')
 
+        if self.feature_1 not in (dataset.numerical_features + dataset.cat_features):
+            raise DeepchecksValueError('"feature_1" must be numerical or categorical, but it neither.')
+
+        if self.feature_2 not in (dataset.numerical_features + dataset.cat_features):
+            raise DeepchecksValueError('"feature_2" must be numerical or categorical, but it neither.')
+
         feature_1_filters = partition_column(dataset, self.feature_1, max_segments=self.max_segments)
         feature_2_filters = partition_column(dataset, self.feature_2, max_segments=self.max_segments)
 
