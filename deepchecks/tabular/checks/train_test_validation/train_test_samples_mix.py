@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """The data_sample_leakage_report check module."""
-from typing import List
+from typing import Any, List
 
 import pandas as pd
 
@@ -50,9 +50,8 @@ class TrainTestSamplesMix(TrainTestCheck):
         columns = test_dataset.features + [test_dataset.label_name]
 
         # For pandas.groupby in python 3.6, there is problem with comparing numpy nan, so replace with placeholder
-        na_filler = '__deepchecks_na_filler__'
-        train_df = train_dataset.data.fillna(value=na_filler)
-        test_df = test_dataset.data.fillna(value=na_filler)
+        train_df = fillna(train_dataset.data)
+        test_df = fillna(test_dataset.data)
 
         train_uniques = _create_unique_frame(train_df, columns, text_prefix='Train indices: ')
         test_uniques = _create_unique_frame(test_df, columns, text_prefix='Test indices: ')
@@ -60,7 +59,7 @@ class TrainTestSamplesMix(TrainTestCheck):
         duplicates_df, test_dup_count = _create_train_test_joined_duplicate_frame(train_uniques, test_uniques, columns)
 
         # Replace filler back to none
-        duplicates_df = duplicates_df.applymap(lambda x: None if x == na_filler else x)
+        duplicates_df = duplicates_df.applymap(lambda x: None if x == NAN_REPLACEMENT else x)
         dup_ratio = test_dup_count / test_dataset.n_samples
         user_msg = f'{format_percent(dup_ratio)} ({test_dup_count} / {test_dataset.n_samples}) \
                      of test data samples appear in train data'
@@ -141,3 +140,21 @@ def _get_dup_info(index_arr: list, text_prefix: str) -> dict:
         text = f'{text[:30]}.. Tot. {(len(index_arr))}'
 
     return {'text': f'{text_prefix}{text}', 'count': len(index_arr)}
+
+
+NAN_REPLACEMENT = '__deepchecks_na_filler__'
+
+
+def fillna(
+    df: pd.DataFrame,
+    value: Any = NAN_REPLACEMENT
+) -> pd.DataFrame:
+    """Fill nan values."""
+    return pd.DataFrame({
+        name: (
+            column.cat.add_categories([value]).fillna(value=value)
+            if isinstance(column.dtype, pd.CategoricalDtype)
+            else column.fillna(value=value)
+        )
+        for name, column in df.iteritems()
+    })
