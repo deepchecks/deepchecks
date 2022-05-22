@@ -16,8 +16,7 @@ from hamcrest import assert_that, instance_of, matches_regexp, only_contains
 from deepchecks.core import CheckResult, ConditionCategory
 from deepchecks.tabular.checks.model_evaluation import ModelInferenceTime
 from deepchecks.tabular.dataset import Dataset
-from tests.base.utils import (SCIENTIFIC_NOTATION_REGEXP,
-                              equal_condition_result)
+from tests.base.utils import SCIENTIFIC_NOTATION_REGEXP, equal_condition_result
 
 
 def test_model_inference_time_check(

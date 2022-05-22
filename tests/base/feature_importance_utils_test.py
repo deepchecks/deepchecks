@@ -14,8 +14,8 @@ import warnings
 import pandas as pd
 import pytest
 from hamcrest import (any_of, assert_that, calling, close_to, contains_exactly,
-                      contains_string, equal_to, has_length, is_,
-                      none, not_none, raises)
+                      contains_string, equal_to, has_length, is_, none,
+                      not_none, raises)
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.neural_network import MLPClassifier
