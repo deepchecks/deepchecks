@@ -3,7 +3,7 @@
    :alt: Deepchecks Logo
    :align: center
 
-.. image:: /_static/images/general/checks_and_conditions.png
+.. image:: /_static/images/general/checks-and-conditions.png
    :alt: Deepchecks Suite of Checks
    :align: center
 
