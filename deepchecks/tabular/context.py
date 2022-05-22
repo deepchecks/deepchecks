@@ -10,6 +10,7 @@
 #
 """Module for base tabular context."""
 from collections import defaultdict
+from re import sub
 import typing as t
 
 import pandas as pd
@@ -30,10 +31,7 @@ __all__ = [
     'Context'
 ]
 
-def union2(dict1, dict2):
-    return dict(list(dict1.items()) + list(dict2.items()))
-
-def common_member(a, b):
+def _common_member(a, b):
     a_set = set(a)
     b_set = set(b)
     if (a_set & b_set):
@@ -58,7 +56,7 @@ class FakeModel:
         self.ind_map = defaultdict(dict)
 
         if train is not None and test is not None:
-            if common_member(train.data.index, test.data.index):
+            if _common_member(train.data.index, test.data.index):
                 train.data.index = map(lambda x: f'train-{x}', list(train.data.index))
                 test.data.index = map(lambda x: f'test-{x}', list(test.data.index))
                 # TODO add some warning
@@ -66,43 +64,61 @@ class FakeModel:
         if train is not None:
             self.train = train.data
             for i, ind in enumerate(self.train.index):
-                self.ind_map['train'][ind] = i
+                self.ind_map[DatasetKind.TRAIN][ind] = i
 
         if test is not None:
             self.test = test.data
             for i, ind in enumerate(self.test.index):
-                self.ind_map['test'][ind] = i
+                self.ind_map[DatasetKind.TEST][ind] = i
 
         if y_pred_train is not None or y_pred_test is not None:
             self.y_pred = {}
-            self.y_pred['train'] = y_pred_train
-            self.y_pred['test'] = y_pred_test
+            self.y_pred[DatasetKind.TRAIN] = y_pred_train
+            self.y_pred[DatasetKind.TEST] = y_pred_test
             self.predict = self._predict
 
         if y_proba_train is not None or y_proba_train is not None:
             self.y_proba = {}
-            self.y_proba['train'] = y_proba_train
-            self.y_proba['test'] = y_proba_test
+            self.y_proba[DatasetKind.TRAIN] = y_proba_train
+            self.y_proba[DatasetKind.TEST] = y_proba_test
             self.predict_proba = self._predict_proba
 
-    def _get_dataset(self, data: pd.DataFrame):
-        if set(data.index).issubset(list(self.ind_map['train'].keys())):
-            return 'train'
-        if set(data.index).issubset(list(self.ind_map['test'].keys())):
-            return 'test'
+    def _get_dataset(self, dataset_kind: DatasetKind):
+        if dataset_kind == DatasetKind.TRAIN:
+            return self.train
+        if dataset_kind == DatasetKind.TEST:
+            return self.test
+        raise DeepchecksValueError(f'Unexpected dataset kind {dataset_kind}')
+
+    def _validate_data(self, data: pd.DataFrame, dataset_kind: DatasetKind):
+        data_no_nan = data.fillna('nan')
+        sub_index = list(data_no_nan.index)[:10]
+        return (data_no_nan.loc[sub_index] == \
+            self._get_dataset(dataset_kind.loc[sub_index])).all().all()
+
+    def _get_dataset_kind(self, data: pd.DataFrame):
+        assert isinstance(data, pd.DataFrame)
+        dataset_kind = None
+        if set(data.index).issubset(list(self.ind_map[DatasetKind.TRAIN].keys())):
+            dataset_kind = DatasetKind.TRAIN
+        if set(data.index).issubset(list(self.ind_map[DatasetKind.TEST].keys())):
+            dataset_kind = DatasetKind.TEST
+        if dataset_kind is None or self._validate_data(data, dataset_kind):
+            raise DeepchecksValueError('New data recieved for static model predictions.') # TODO write something cooler
+        return dataset_kind
 
     def _get_index_to_predict(self, data: pd.DataFrame):
-        data_type = self._get_dataset(data)
-        return data_type, [self.ind_map[data_type][i] for i in data.index]
+        dataset_kind = self._get_dataset_kind(data)
+        return dataset_kind, [self.ind_map[dataset_kind][i] for i in data.index]
         
 
     def _predict(self, data: pd.DataFrame):
-        data_type, indexes_to_predict = self._get_index_to_predict(data)
-        return self.y_pred[data_type][indexes_to_predict]
+        dataset_kind, indexes_to_predict = self._get_index_to_predict(data)
+        return self.y_pred[dataset_kind][indexes_to_predict]
 
     def _predict_proba(self, data: pd.DataFrame):
-        data_type, indexes_to_predict = self._get_index_to_predict(data)
-        return self.y_proba[data_type][indexes_to_predict]
+        dataset_kind, indexes_to_predict = self._get_index_to_predict(data)
+        return self.y_proba[dataset_kind][indexes_to_predict]
 
 class Context:
     """Contains all the data + properties the user has passed to a check/suite, and validates it seamlessly.
