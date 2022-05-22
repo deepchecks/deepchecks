@@ -81,7 +81,7 @@ def test_condition_fail(iris_labeled_dataset, iris_adaboost):
         equal_condition_result(
             is_pass=False,
             name='The performance difference of the detected segments must not be greater than 5%',
-            details='Found change in Accuracy in features above threshold: {\'petal length (cm)\': \'10.91%\', '
+            details='Accuracy difference for failed features: {\'petal length (cm)\': \'10.91%\', '
                     '\'petal width (cm)\': \'8.33%\'}',
             category=ConditionCategory.WARN
         )
@@ -101,6 +101,7 @@ def test_condition_pass(iris_labeled_dataset, iris_adaboost):
     assert_that(condition_result, has_items(
         equal_condition_result(
             is_pass=True,
+            details='Average Accuracy difference: 9.62%',
             name='The performance difference of the detected segments must not be greater than 200%',
         )
     ))

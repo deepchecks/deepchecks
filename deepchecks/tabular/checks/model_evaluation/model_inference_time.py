@@ -94,15 +94,10 @@ class ModelInferenceTime(SingleDatasetCheck):
         MI
         """
         def condition(avarage_time: float) -> ConditionResult:
-            if avarage_time >= value:
-                return ConditionResult(ConditionCategory.FAIL, details=(
-                    'Found average inference time (in seconds) above threshold: '
-                    f'{format_number(avarage_time, floating_point=8)}'
-                ))
-            else:
-                return ConditionResult(ConditionCategory.PASS)
+            details = f'Found average inference time (seconds): {format_number(avarage_time, floating_point=8)}'
+            category = ConditionCategory.FAIL if avarage_time > value else ConditionCategory.PASS
+            return ConditionResult(category=category, details=details)
 
         return self.add_condition(condition_func=condition, name=(
-            'Average model inference time for one sample is not '
-            f'greater than {format_number(value, floating_point=8)}'
+            f'Average model inference time for one sample is not greater than {format_number(value, floating_point=8)}'
         ))

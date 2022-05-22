@@ -206,8 +206,8 @@ def test_condition_class_performance_imbalance_ratio_not_greater_than_not_passed
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details=re.compile('Relative ratio difference between highest and '
-                                                  'lowest in Test dataset classes is 14.29%'),
+                               details=re.compile('Test dataset\'s relative ratio difference between highest and '
+                                                  'lowest classes is 14.29%'),
                                name='Relative ratio difference between labels \'F1\' '
                                     'score is not greater than 0%')
     ))
@@ -222,6 +222,8 @@ def test_condition_class_performance_imbalance_ratio_not_greater_than_passed(iri
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
+                               details=re.compile('Test dataset\'s relative ratio difference between highest and '
+                                                  'lowest classes is 14.29%'),
                                name='Relative ratio difference between labels \'F1\' '
                                'score is not greater than 100%')
     ))
