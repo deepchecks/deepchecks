@@ -172,7 +172,7 @@ result = [draw_bounding_boxes(prepare(inp[i]), torch.stack(targets[i]['boxes']),
 show(result)
 
 #%%
-# .. image :: /_static/tomatoes.png
+# .. image :: /_static/images/tutorials/tomatoes.png
 #     :alt: Tomatoes with bbox
 #
 # Downloading a Pre-trained Model

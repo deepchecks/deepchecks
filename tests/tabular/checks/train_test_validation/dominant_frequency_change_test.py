@@ -17,7 +17,8 @@ from hamcrest import (assert_that, calling, close_to, empty, equal_to,
 from sklearn.model_selection import train_test_split
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.tabular.checks.train_test_validation import DominantFrequencyChange
+from deepchecks.tabular.checks.train_test_validation import \
+    DominantFrequencyChange
 from deepchecks.tabular.dataset import Dataset
 from tests.base.utils import equal_condition_result
 
