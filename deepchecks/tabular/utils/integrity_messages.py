@@ -15,6 +15,7 @@ __all__ = ['get_condition_passed_message']
 
 
 def get_condition_passed_message(sized):
+    """Get a message for a condition that passed that specifies the number of columns passed."""
     if isinstance(sized, int):
         num_columns = sized
     elif isinstance(sized, Sized):
