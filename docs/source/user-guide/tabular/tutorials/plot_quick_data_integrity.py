@@ -53,13 +53,13 @@ dirty_df = add_dirty_data(data)
 # Define a Dataset Object
 # ------------------------
 #
-# Create a Dataset, including the relevant metadata (label, date, index, etc.).
+# Create a deepchecks Dataset, including the relevant metadata (label, date, index, etc.).
 # Check out :class:`deepchecks.tabular.Dataset` to see all of the columns that can be declared.
 
 from deepchecks.tabular import Dataset
 
 # We explicitly state the categorical features,
-# otherwise they will be automatically inferred - less recommended.
+# otherwise they will be automatically inferred, which may not work perfectly and is not recommended.
 # The label can be passed as a column name or a separate pd.Series / pd.DataFrame
 ds = Dataset(dirty_df, cat_features = ['type'], datetime_name='Date', label = 'AveragePrice')
 
@@ -121,7 +121,7 @@ result
 # Let's fix also the duplicate values:
 dirty_df.drop_duplicates(inplace=True)
 dirty_df.drop('Is Ripe', axis=1, inplace=True)
-ds = Dataset(dirty_df, cat_features = ['type'], datetime_name='Date', label = 'AveragePrice')
+ds = Dataset(dirty_df, cat_features=['type'], datetime_name='Date', label='AveragePrice')
 result = DataDuplicates().add_condition_ratio_not_greater_than(0).run(ds)
 result
 
@@ -143,11 +143,9 @@ integ_suite[3].clean_conditions()
 
 #%%
 # Now we can re-run the suite using:
-#
-# .. code-block:: python
-#
-#    integ_suite.run(ds)
-#
+integ_suite.run(ds)
+
+#%%
 # and all of the conditions will pass.
 #
 # *Note: the check we manipulated will still run as part of the Suite, however
