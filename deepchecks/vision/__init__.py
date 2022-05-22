@@ -9,8 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Package for vision functionality."""
-import logging
-
 from .base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
 from .batch_wrapper import Batch
 from .classification_data import ClassificationData

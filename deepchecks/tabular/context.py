@@ -14,6 +14,7 @@ import typing as t
 import warnings
 
 import pandas as pd
+import numpy as np
 
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import (DatasetValidationError,
@@ -37,33 +38,33 @@ class _FakeModel:
 
     Parameters
     ----------
-    train :Dataset
+    train: Dataset
         Dataset, representing data an estimator was fitted on
-    test : Dataset
+    test: Dataset
         Dataset, representing data an estimator predicts on
-    model_name: str , default: ''
-        The name of the model
-    features_importance: pd.Series , default: None
-        pass manual features importance
-    feature_importance_force_permutation : bool , default: False
-        force calculation of permutation features importance
-    feature_importance_timeout : int , default: 120
-        timeout in second for the permutation features importance calculation
+    y_pred_train: np.ndarray
+        Array of the model prediction over the train dataset.
+    y_pred_test: np.ndarray
+        Array of the model prediction over the test dataset.
+    y_proba_train: np.ndarray
+        Array of the model prediction probabilities over the train dataset.
+    y_proba_test: np.ndarray
+        Array of the model prediction probabilities over the test dataset.
     """
 
     train: pd.DataFrame
     test: pd.DataFrame
     ind_map: t.Dict[str, t.Dict[t.Any, int]]
-    y_pred: t.Dict[str, pd.Series]
-    y_proba: t.Dict[str, pd.Series]
+    y_pred: t.Dict[str, np.ndarray]
+    y_proba: t.Dict[str, np.ndarray]
 
     def __init__(self,
                  train: Dataset,
                  test: Dataset,
-                 y_pred_train,
-                 y_pred_test,
-                 y_proba_train,
-                 y_proba_test,):
+                 y_pred_train: np.ndarray,
+                 y_pred_test: np.ndarray,
+                 y_proba_train: np.ndarray,
+                 y_proba_test: np.ndarray,):
         self.ind_map = defaultdict(dict)
 
         if train is not None and test is not None:
@@ -106,8 +107,8 @@ class _FakeModel:
 
     def _validate_data(self, data: pd.DataFrame, dataset_kind: DatasetKind):
         sub_index = list(data.index)[:10]
-        return (data.loc[sub_index].fillna('nan') == \
-            self._get_dataset(dataset_kind).loc[sub_index].fillna('nan')).all().all()
+        return (data.loc[sub_index].fillna('nan') ==
+                self._get_dataset(dataset_kind).loc[sub_index].fillna('nan')).all().all()
 
     def _get_dataset_kind(self, data: pd.DataFrame):
         assert isinstance(data, pd.DataFrame)
@@ -117,7 +118,7 @@ class _FakeModel:
         elif set(data.index).issubset(list(self.ind_map[DatasetKind.TEST].keys())):
             dataset_kind = DatasetKind.TEST
         if dataset_kind is None or self._validate_data(data, dataset_kind):
-            raise DeepchecksValueError('New data recieved for static model predictions.') # TODO write something cooler
+            raise DeepchecksValueError('New data recieved for static model predictions.')  # TODO write something cooler
         return dataset_kind
 
     def _get_index_to_predict(self, data: pd.DataFrame):
@@ -132,16 +133,17 @@ class _FakeModel:
         dataset_kind, indexes_to_predict = self._get_index_to_predict(data)
         return self.y_proba[dataset_kind][indexes_to_predict]
 
+
 class Context:
     """Contains all the data + properties the user has passed to a check/suite, and validates it seamlessly.
 
     Parameters
     ----------
-    train : Union[Dataset, pd.DataFrame] , default: None
+    train: Union[Dataset, pd.DataFrame] , default: None
         Dataset or DataFrame object, representing data an estimator was fitted on
-    test : Union[Dataset, pd.DataFrame] , default: None
+    test: Union[Dataset, pd.DataFrame] , default: None
         Dataset or DataFrame object, representing data an estimator predicts on
-    model : BasicModel , default: None
+    model: BasicModel , default: None
         A scikit-learn-compatible fitted estimator instance
     model_name: str , default: ''
         The name of the model
@@ -158,6 +160,14 @@ class Context:
         See <a href=
         "https://scikit-learn.org/stable/modules/model_evaluation.html#from-binary-to-multiclass-and-multilabel">
         scikit-learn docs</a>
+    y_pred_train: np.ndarray , default: None
+        Array of the model prediction over the train dataset.
+    y_pred_test: np.ndarray , default: None
+        Array of the model prediction over the test dataset.
+    y_proba_train: np.ndarray , default: None
+        Array of the model prediction probabilities over the train dataset.
+    y_proba_test: np.ndarray , default: None
+        Array of the model prediction probabilities over the test dataset.
     """
 
     def __init__(self,
@@ -170,10 +180,10 @@ class Context:
                  feature_importance_timeout: int = 120,
                  scorers: t.Mapping[str, t.Union[str, t.Callable]] = None,
                  scorers_per_class: t.Mapping[str, t.Union[str, t.Callable]] = None,
-                 y_pred_train = None,
-                 y_pred_test = None,
-                 y_proba_train = None,
-                 y_proba_test = None,
+                 y_pred_train: np.ndarray = None,
+                 y_pred_test: np.ndarray = None,
+                 y_proba_train: np.ndarray = None,
+                 y_proba_test: np.ndarray = None,
                  ):
         # Validations
         if train is None and test is None and model is None:
@@ -222,9 +232,9 @@ class Context:
         model = None
         # we do it after validation because the model we are creating isn't valid (we are always valid just not here)
         if model is None and \
-            any([y_pred_train, y_pred_test, y_proba_train, y_proba_test]):
+           any([y_pred_train, y_pred_test, y_proba_train, y_proba_test]):
             model = _FakeModel(train=train, test=test, y_pred_train=y_pred_train, y_pred_test=y_pred_test,
-                              y_proba_test=y_proba_test, y_proba_train=y_proba_train)
+                               y_proba_test=y_proba_test, y_proba_train=y_proba_train)
         self._train = train
         self._test = test
         self._model = model
