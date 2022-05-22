@@ -114,7 +114,7 @@ class _FakeModel:
         dataset_kind = None
         if set(data.index).issubset(list(self.ind_map[DatasetKind.TRAIN].keys())):
             dataset_kind = DatasetKind.TRAIN
-        if set(data.index).issubset(list(self.ind_map[DatasetKind.TEST].keys())):
+        elif set(data.index).issubset(list(self.ind_map[DatasetKind.TEST].keys())):
             dataset_kind = DatasetKind.TEST
         if dataset_kind is None or self._validate_data(data, dataset_kind):
             raise DeepchecksValueError('New data recieved for static model predictions.') # TODO write something cooler
@@ -222,7 +222,7 @@ class Context:
         model = None
         # we do it after validation because the model we are creating isn't valid (we are always valid just not here)
         if model is None and \
-            not pd.Series([y_pred_train, y_pred_test, y_proba_train, y_proba_test]).isna().all():
+            any([y_pred_train, y_pred_test, y_proba_train, y_proba_test]):
             model = _FakeModel(train=train, test=test, y_pred_train=y_pred_train, y_pred_test=y_pred_test,
                               y_proba_test=y_proba_test, y_proba_train=y_proba_train)
         self._train = train
