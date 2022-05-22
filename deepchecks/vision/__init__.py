@@ -21,8 +21,6 @@ from .simple_classification_data import (SimpleClassificationData,
 from .suite import Suite
 from .vision_data import VisionData
 
-logger = logging.getLogger("deepchecks")
-
 
 try:
     import torch  # noqa: F401

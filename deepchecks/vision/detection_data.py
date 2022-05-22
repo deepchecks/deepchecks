@@ -19,8 +19,6 @@ from deepchecks.core.errors import (DeepchecksNotImplementedError,
                                     ValidationError)
 from deepchecks.vision.vision_data import TaskType, VisionData
 
-logger = logging.getLogger('deepchecks')
-
 
 class DetectionData(VisionData):
     """The DetectionData class is used to load and preprocess data for a object detection task.

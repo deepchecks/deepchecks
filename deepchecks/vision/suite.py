@@ -32,9 +32,6 @@ from deepchecks.vision.vision_data import VisionData
 __all__ = ['Suite']
 
 
-logger = logging.getLogger('deepchecks')
-
-
 class Suite(BaseSuite):
     """Tabular suite to run checks of types: TrainTestCheck, SingleDatasetCheck, ModelOnlyCheck."""
 

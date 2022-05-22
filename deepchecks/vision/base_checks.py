@@ -25,8 +25,6 @@ from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.context import Context
 from deepchecks.vision.vision_data import VisionData
 
-logger = logging.getLogger('deepchecks')
-
 
 __all__ = [
     'SingleDatasetCheck',
