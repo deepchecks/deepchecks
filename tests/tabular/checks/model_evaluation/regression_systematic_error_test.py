@@ -13,7 +13,8 @@ from hamcrest import assert_that, calling, close_to, has_items, raises
 
 from deepchecks.core.errors import (DeepchecksNotSupportedError,
                                     DeepchecksValueError, ModelValidationError)
-from deepchecks.tabular.checks.model_evaluation import RegressionSystematicError
+from deepchecks.tabular.checks.model_evaluation import \
+    RegressionSystematicError
 from deepchecks.tabular.dataset import Dataset
 from tests.base.utils import equal_condition_result
 

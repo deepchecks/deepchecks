@@ -157,7 +157,7 @@ out = torchvision.utils.make_grid(inputs)
 imshow(out, title=[class_names[x] for x in classes])
 
 #%%
-# .. image :: /_static/ants-bees.png
+# .. image :: /_static/images/tutorials/ants-bees.png
 #   :width: 400
 #   :alt: Ants and Bees
 #
