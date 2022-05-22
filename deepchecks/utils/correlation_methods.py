@@ -10,10 +10,10 @@
 #
 """Module containing methods for calculating correlation between variables."""
 
+import math
 from collections import Counter
 from typing import List, Union
 
-import math
 import numpy as np
 import pandas as pd
 from scipy.stats import entropy
