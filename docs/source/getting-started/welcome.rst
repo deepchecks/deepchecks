@@ -1,9 +1,9 @@
-.. image:: /_static/deepchecks-logo-with-white-wide-back.png
+.. image:: /_static/images/general/deepchecks-logo-with-white-wide-back.png
    :target: https://deepchecks.com/?utm_source=docs.deepchecks.com&utm_medium=referral&utm_campaign=welcome
    :alt: Deepchecks Logo
    :align: center
 
-.. image:: /_static/checks_and_conditions.png
+.. image:: /_static/images/general/checks_and_conditions.png
    :alt: Deepchecks Suite of Checks
    :align: center
 
@@ -73,7 +73,7 @@ Computer Vision
 While you're in the research phase, and want to validate your data, find potential methodological 
 problems, and/or validate your model and evaluate it.
 
-.. image:: /_static/pipeline_when_to_validate.svg
+.. image:: /_static/images/general/pipeline_when_to_validate.svg
    :alt: When To Validate - ML Pipeline Schema
    :align: center
 
