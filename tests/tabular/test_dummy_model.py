@@ -9,11 +9,14 @@
 # ----------------------------------------------------------------------------
 #
 import pandas as pd
-from hamcrest import assert_that, has_items
+from hamcrest import assert_that, calling, has_items, raises
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
+from deepchecks.core.check_result import CheckResult
 
 from deepchecks.core.condition import ConditionCategory
+from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.tabular.base_checks import TrainTestCheck
 from deepchecks.tabular.checks.model_evaluation.model_error_analysis import \
     ModelErrorAnalysis
 from deepchecks.tabular.checks.model_evaluation.regression_error_distribution import \
@@ -21,6 +24,7 @@ from deepchecks.tabular.checks.model_evaluation.regression_error_distribution im
 from deepchecks.tabular.checks.model_evaluation.roc_report import RocReport
 from deepchecks.tabular.checks.model_evaluation.simple_model_comparison import \
     SimpleModelComparison
+from deepchecks.tabular.context import Context
 from deepchecks.tabular.dataset import Dataset
 from tests.base.utils import equal_condition_result
 from tests.tabular.checks.model_evaluation.simple_model_comparison_test import \
@@ -127,3 +131,27 @@ def test_simple_model_comparison_regression_random_state(diabetes_split_dataset_
                        y_proba_train=y_proba_train, y_proba_test=y_proba_test).value
     # Assert
     assert_regression(result)
+
+def test_new_data(diabetes_split_dataset_and_model):
+    class NewDataCheck(TrainTestCheck):
+        def run_logic(self, context: Context) -> CheckResult:
+            model= context.model
+            row = context.train.features_columns.head(1)
+            row['s1'] = [0]
+            return_value = model.predict(row)
+            return CheckResult(return_value)
+    # Arrange
+    train, test, clf = diabetes_split_dataset_and_model
+    y_pred_train, y_pred_test, y_proba_train, y_proba_test = \
+        _dummify_model(train, test, clf)
+
+    # Act
+    assert_that(
+        calling(NewDataCheck().run)
+            .with_args(train_dataset=test, test_dataset=train,          
+                       y_pred_train=y_pred_train, y_pred_test=y_pred_test,
+                       y_proba_train=y_proba_train, y_proba_test=y_proba_test),
+        raises(
+            DeepchecksValueError,
+            r'New data recieved for static model predictions.')
+    )
