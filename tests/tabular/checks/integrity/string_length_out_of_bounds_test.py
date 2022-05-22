@@ -194,7 +194,7 @@ def test_condition_ratio_pass():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               details='Passed for 1 suitable column',
+                               details='Passed for 1 relevant column',
                                name='Ratio of outliers not greater than 10% string length outliers')
     ))
 
@@ -209,6 +209,6 @@ def test_condition_pass_on_no_outliers():
     # Assert
     assert_that(result.conditions_results, has_items(
         equal_condition_result(is_pass=True,
-                               details='Passed for 1 suitable column',
+                               details='Passed for 1 relevant column',
                                name='Ratio of outliers not greater than 0% string length outliers')
     ))

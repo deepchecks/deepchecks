@@ -128,5 +128,5 @@ def test_condition_pass():
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               details='Passed for 3 suitable columns',
+                               details='Passed for 3 relevant columns',
                                name='Does not contain only a single value')))

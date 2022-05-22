@@ -218,7 +218,7 @@ def test_condition_max_nulls_passed():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               details='Passed for 1 suitable column',
+                               details='Passed for 1 relevant column',
                                name='Not more than 10 different null types')
     ))
 

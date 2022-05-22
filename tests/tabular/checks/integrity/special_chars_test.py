@@ -186,6 +186,6 @@ def test_condition_pass(diabetes_split_dataset_and_model):
     # Assert
     assert_that(results, has_items(equal_condition_result(
         is_pass=True,
-        details='Passed for 11 suitable columns',
+        details='Passed for 11 relevant columns',
         name='Ratio of entirely special character samples not greater than 0.1%',
     )))
