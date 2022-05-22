@@ -173,7 +173,7 @@ def test_all_features_pps_upper_bound_condition_that_should_pass():
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
-        details='Passed for 5 suitable columns',
+        details='Passed for 5 relevant columns',
         name=f'Features\' Predictive Power Score is not greater than {condition_value}',
     ))
 

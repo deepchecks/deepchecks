@@ -95,7 +95,7 @@ def test_condition_no_more_than_pass():
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               details='Passed for 1 suitable column',
+                               details='Passed for 1 relevant column',
                                name='Not more than 4 string variants')
     ))
 
@@ -128,7 +128,7 @@ def test_condition_no_variants_pass():
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               details='Passed for 1 suitable column',
+                               details='Passed for 1 relevant column',
                                name='No string variants')
     ))
 
@@ -159,7 +159,7 @@ def test_condition_percent_variants_no_more_than_pass():
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               details='Passed for 1 suitable column',
+                               details='Passed for 1 relevant column',
                                name='Ratio of variants is not greater than 50%')
     ))
 
