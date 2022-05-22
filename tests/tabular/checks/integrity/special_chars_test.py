@@ -12,7 +12,7 @@
 import numpy as np
 import pandas as pd
 from hamcrest import (assert_that, calling, close_to, has_items, has_length,
-                      raises)
+                      raises, equal_to)
 
 from deepchecks.core import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
@@ -29,7 +29,7 @@ def test_single_column_no_invalid():
     # Act
     result = SpecialCharacters().run(dataframe)
     # Assert
-    assert_that(result.value, has_length(0))
+    assert_that(result.value, equal_to({'col1': 0}))
 
 
 def test_single_column_invalid():
@@ -39,20 +39,18 @@ def test_single_column_invalid():
     # Act
     result = SpecialCharacters().run(dataframe)
     # Assert
-    assert_that(result.value, has_length(1))
-    assert_that(result.value['col1'], close_to(0.25, 0.001))
+    assert_that(result.value, equal_to({'col1': 0.25}))
     assert_that(result.display[1].iloc[0]['Most Common Special-Only Samples'], has_items('#@$%'))
 
 
 def test_single_column_multi_invalid():
     # Arrange
-    data = {'col1': ['1', 'bar!', 'ca\nt', '\n ']}
+    data = {'col1': ['1', 'bar!', 'ca\nt', '\n ', '!']}
     dataframe = pd.DataFrame(data=data)
     # Act
     result = SpecialCharacters().run(dataframe)
     # Assert
-    assert_that(result.value, has_length(1))
-    assert_that(result.value['col1'], close_to(0.25, 0.001))
+    assert_that(result.value, equal_to({'col1': 0.4}))
 
 
 def test_double_column_one_invalid():
@@ -62,8 +60,7 @@ def test_double_column_one_invalid():
     # Act
     result = SpecialCharacters().run(dataframe)
     # Assert
-    assert_that(result.value, has_length(1))
-    assert_that(result.value['col1'], close_to(1, 0.001))
+    assert_that(result.value, equal_to({'col1': 1, 'col2': 0}))
     assert_that(result.display[1].iloc[0]['Most Common Special-Only Samples'], has_items('!!!', '?!'))
 
 
@@ -74,18 +71,17 @@ def test_double_column_ignored_invalid():
     # Act
     result = SpecialCharacters(ignore_columns=['col1']).run(dataframe)
     # Assert
-    assert_that(result.value, has_length(0))
+    assert_that(result.value, equal_to({'col2': 0}))
 
 
 def test_double_column_specific_invalid():
     # Arrange
-    data = {'col1': ['1', 'bar^', '^?!'], 'col2': [6, 66, 666.66]}
+    data = {'col1': ['1', 'bar^', '^?!', 'cat'], 'col2': [6, 66, 666.66, 3]}
     dataframe = pd.DataFrame(data=data)
     # Act
     result = SpecialCharacters(columns=['col1']).run(dataframe)
     # Assert
-    assert_that(result.value, has_length(1))
-    assert_that(result.value['col1'], close_to(0.333, 0.001))
+    assert_that(result.value, equal_to({'col1': 0.25}))
     assert_that(result.display[1].iloc[0]['Most Common Special-Only Samples'], has_items('^?!'))
 
 
@@ -106,9 +102,7 @@ def test_double_column_double_invalid():
     # Act
     result = SpecialCharacters().run(dataframe)
     # Assert
-    assert_that(result.value, has_length(2))
-    assert_that(result.value['col1'], close_to(0.25, 0.001))
-    assert_that(result.value['col2'], close_to(0.25, 0.001))
+    assert_that(result.value, equal_to({'col1': 0.25, 'col2': 0.25}))
     assert_that(result.display[1].loc['col1']['Most Common Special-Only Samples'], has_items('{}'))
     assert_that(result.display[1].loc['col2']['Most Common Special-Only Samples'], has_items('&!'))
 
@@ -135,7 +129,7 @@ def test_nan():
     # Act
     result = SpecialCharacters().run(dataframe)
     # Assert
-    assert_that(result.value, has_length(2))
+    assert_that(result.value, equal_to({'col1': 0.2, 'col2': 0.2}))
     assert_that(result.display[1].loc['col1']['Most Common Special-Only Samples'], has_items('{}'))
     assert_that(result.display[1].loc['col2']['Most Common Special-Only Samples'], has_items('&!'))
 
@@ -155,8 +149,8 @@ def test_condition_fail_all(diabetes_split_dataset_and_model):
     assert_that(results, has_items(equal_condition_result(
         is_pass=False,
         name='Ratio of entirely special character samples not greater than 0.1%',
-        details='Found columns with ratio above threshold: {\'age\': \'34.12%\', \'sex\': \'34.12%\', '
-                '\'bmi\': \'34.12%\', \'bp\': \'34.12%\'}',
+        details='Found 4 columns with ratio above threshold out of 11 columns: {\'age\': \'34.12%\', \'sex\': '
+                '\'34.12%\', \'bmi\': \'34.12%\', \'bp\': \'34.12%\'}',
         category=ConditionCategory.WARN
     )))
 
@@ -176,7 +170,8 @@ def test_condition_fail_some(diabetes_split_dataset_and_model):
     assert_that(results, has_items(equal_condition_result(
         is_pass=False,
         name='Ratio of entirely special character samples not greater than 30%',
-        details='Found columns with ratio above threshold: {\'sex\': \'34.12%\', \'bmi\': \'34.12%\'}',
+        details='Found 2 columns with ratio above threshold out of 11 columns: '
+                '{\'sex\': \'34.12%\', \'bmi\': \'34.12%\'}',
         category=ConditionCategory.WARN
     )))
 
@@ -192,5 +187,6 @@ def test_condition_pass(diabetes_split_dataset_and_model):
     # Assert
     assert_that(results, has_items(equal_condition_result(
         is_pass=True,
+        details='Passed for 11 relevant columns',
         name='Ratio of entirely special character samples not greater than 0.1%',
     )))
