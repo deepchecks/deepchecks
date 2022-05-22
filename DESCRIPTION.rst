@@ -2,7 +2,7 @@
 |build| |Documentation Status| |pkgVersion| |pyVersions|
 |Maintainability| |Coverage Status|
 
-..  image:: https://raw.githubusercontent.com/deepchecks/deepchecks/main/docs/source/images/general/deepchecks-logo-with-white-wide-back.png
+..  image:: https://raw.githubusercontent.com/deepchecks/deepchecks/main/docs/source/_static/images/general/deepchecks-logo-with-white-wide-back.png
     :target: https://github.com/deepchecks/deepchecks
 
 Deepchecks is a Python package for comprehensively validating your machine learning models and data with minimal effort.

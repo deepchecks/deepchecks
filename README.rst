@@ -31,7 +31,7 @@
 
    <p align="center">
       <a href="https://deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=logo">
-      <img src="docs/source/images/general/deepchecks-logo-with-white-wide-back.png">
+      <img src="docs/source/_static/images/general/deepchecks-logo-with-white-wide-back.png">
       </a>
    </p>
 
@@ -47,7 +47,7 @@
 .. raw:: html
 
    <p align="center">
-      <img src="docs/source/images/general/checks-and-conditions.png">
+      <img src="docs/source/_static/images/general/checks-and-conditions.png">
    </p>
 
 
@@ -126,7 +126,7 @@ Which will result in a report that looks like this:
 .. raw:: html
 
    <p align="center">
-      <img src="docs/source/images/general/full_suite_output.gif" width="750">
+      <img src="docs/source/_static/images/general/full_suite_output.gif" width="750">
    </p>
 
 See the `full example here`_.
@@ -188,7 +188,7 @@ Will produce output of the type:
       sorted by feature importance and showing only the top 5 features, according to feature importance.
       If available, the plot titles also show the feature importance (FI) rank.</p>
       <p align="left">
-        <img src="docs/source/images/general/train-test-drift-output.png">
+        <img src="docs/source/_static/images/general/train-test-drift-output.png">
       </p>
 
 🗝️ Key Concepts
@@ -259,7 +259,7 @@ of checks and optional conditions.
 .. raw:: html
 
    <p align="center">
-      <img src="/docs/source/images/general/diagram.svg">
+      <img src="/docs/source/_static/images/general/diagram.svg">
    </p>
 
 
