@@ -14,7 +14,7 @@ import typing as t
 import deepchecks.ppscore as pps
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.check_utils.single_feature_contribution_utils import (
-    get_pps_figure, pps_df_to_trace)
+    get_pps_figure, pd_series_to_trace)
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.strings import format_number
 from deepchecks.utils.typing import Hashable
@@ -91,7 +91,7 @@ class SingleFeatureContribution(SingleDatasetCheck):
         top_to_show = s_ppscore.head(self.n_top_features)
 
         fig = get_pps_figure(per_class=False)
-        fig.add_trace(pps_df_to_trace(top_to_show, dataset_type))
+        fig.add_trace(pd_series_to_trace(top_to_show, dataset_type))
 
         text = [
             'The Predictive Power Score (PPS) is used to estimate the ability of a feature to predict the '
