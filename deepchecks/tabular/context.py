@@ -74,7 +74,7 @@ class _DummyModel:
                 test.data.index = map(lambda x: f'test-{x}', list(test.data.index))
                 warnings.warn('train and test datasets have common index - adding "train"/"test"'
                               ' prefixes. To avoid that provide datasets with no common indexes '
-                              'or don\'t use static predictions feature.')
+                              'or don\'t use the static predictions feature.')
 
         if train is not None:
             self.train = train.features_columns
@@ -112,11 +112,12 @@ class _DummyModel:
 
     def _get_dataset_kind(self, data: pd.DataFrame):
         assert isinstance(data, pd.DataFrame)
-        dataset_kind = None
         if set(data.index).issubset(list(self.ind_map[DatasetKind.TRAIN].keys())):
             dataset_kind = DatasetKind.TRAIN
         elif set(data.index).issubset(list(self.ind_map[DatasetKind.TEST].keys())):
             dataset_kind = DatasetKind.TEST
+        else:
+            dataset_kind = None
         if dataset_kind is None or not self._validate_data(data, dataset_kind):
             raise DeepchecksValueError('New data recieved for static model predictions.')  # TODO write something cooler
         return dataset_kind
@@ -222,7 +223,7 @@ class Context:
         if model is None and \
            not pd.Series([y_pred_train, y_pred_test, y_proba_train, y_proba_test]).isna().all():
             model = _DummyModel(train=train, test=test, y_pred_train=y_pred_train, y_pred_test=y_pred_test,
-                               y_proba_test=y_proba_test, y_proba_train=y_proba_train)
+                                y_proba_test=y_proba_test, y_proba_train=y_proba_train)
         self._train = train
         self._test = test
         self._model = model

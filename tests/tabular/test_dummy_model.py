@@ -8,20 +8,24 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-from hamcrest import assert_that, has_items, instance_of
 import pandas as pd
+from hamcrest import assert_that, has_items
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
+
 from deepchecks.core.condition import ConditionCategory
-
-from deepchecks.tabular.checks.model_evaluation.model_error_analysis import ModelErrorAnalysis
-from tests.base.utils import equal_condition_result
-from deepchecks.tabular.checks.model_evaluation.regression_error_distribution import RegressionErrorDistribution
+from deepchecks.tabular.checks.model_evaluation.model_error_analysis import \
+    ModelErrorAnalysis
+from deepchecks.tabular.checks.model_evaluation.regression_error_distribution import \
+    RegressionErrorDistribution
 from deepchecks.tabular.checks.model_evaluation.roc_report import RocReport
-from deepchecks.tabular.checks.model_evaluation.simple_model_comparison import SimpleModelComparison
-
+from deepchecks.tabular.checks.model_evaluation.simple_model_comparison import \
+    SimpleModelComparison
 from deepchecks.tabular.dataset import Dataset
-from tests.tabular.checks.model_evaluation.simple_model_comparison_test import assert_regression
+from tests.base.utils import equal_condition_result
+from tests.tabular.checks.model_evaluation.simple_model_comparison_test import \
+    assert_regression
+
 
 def _dummify_model(train, test, model):
     y_pred_train = y_pred_test = y_proba_train = y_proba_test = None
