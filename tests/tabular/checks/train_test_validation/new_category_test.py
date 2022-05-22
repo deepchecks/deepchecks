@@ -230,5 +230,7 @@ def test_condition_count_pass():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
+                               details='Passed for 2 categorical columns. Top columns with new categories:\n'
+                                       '{\'col1\': 0.25, \'col2\': 0.0}',
                                name='Ratio of samples with a new category is not greater than 30%')
     ))

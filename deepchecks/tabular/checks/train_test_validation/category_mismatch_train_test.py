@@ -158,10 +158,10 @@ class CategoryMismatchTrainTest(TrainTestCheck):
                                        f'threshold out of {len(columns_new_categories)} categorical columns:\n'
                                        f'{dict(failing)}')
             else:
-                details = f'Passed for {len(columns_new_categories)} categorical columns'
+                details = f'Passed for {len(columns_new_categories)} categorical columns.'
                 if len(columns_new_categories) > 0:
-                    details += f'Top columns with new categories:\n{dict(sorted_columns[:5])}'
-                return ConditionResult(ConditionCategory.PASS)
+                    details += f' Top columns with new categories:\n{dict(sorted_columns[:5])}'
+                return ConditionResult(ConditionCategory.PASS, details)
 
         return self.add_condition(
             f'Ratio of samples with a new category is not greater than {format_percent(max_ratio)}',

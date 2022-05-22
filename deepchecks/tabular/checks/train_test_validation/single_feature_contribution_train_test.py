@@ -154,10 +154,11 @@ class SingleFeatureContributionTrainTest(TrainTestCheck):
             }
 
             if failed_features:
-                message = f'Features with PPS difference above threshold: {failed_features}'
+                message = f'Found {len(failed_features)} features with PPS difference above threshold out of ' \
+                          f'{len(value)} features: {failed_features}'
                 return ConditionResult(ConditionCategory.FAIL, message)
             else:
-                return ConditionResult(ConditionCategory.PASS)
+                return ConditionResult(ConditionCategory.PASS, f'Passed for {len(diff_dict)} relevant features')
 
         return self.add_condition(f'Train-Test features\' Predictive Power Score difference is not greater than '
                                   f'{format_number(threshold)}', condition)
@@ -185,10 +186,11 @@ class SingleFeatureContributionTrainTest(TrainTestCheck):
             }
 
             if failed_features:
-                message = f'Features in train dataset with PPS above threshold: {failed_features}'
+                message = f'Found {len(failed_features)} features in train dataset with PPS above threshold out' \
+                          f' of {len(value["train"])} features: {failed_features}'
                 return ConditionResult(ConditionCategory.FAIL, message)
             else:
-                return ConditionResult(ConditionCategory.PASS)
+                return ConditionResult(ConditionCategory.PASS, f'Passed for {len(value["train"])} relevant features')
 
         return self.add_condition(f'Train features\' Predictive Power Score is not greater than '
                                   f'{format_number(threshold)}', condition)

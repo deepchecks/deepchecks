@@ -53,7 +53,7 @@ def test_test_dataset_size_check_with_condition_that_should_not_pass(iris_split_
     assert_that(actual=condition_result, matcher=equal_condition_result( # type: ignore
         is_pass=False,
         name='Test dataset size is not smaller than 10000',
-        details=r'Test dataset size is 50',
+        details='Test dataset contains 50 samples',
         category=ConditionCategory.FAIL
     ))
 
