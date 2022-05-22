@@ -77,6 +77,6 @@ See Also
 .. _List of Tabular Suites: https://github.com/deepchecks/deepchecks/tree/main/deepchecks/tabular/suites
 .. _List of Vision Suites: https://github.com/deepchecks/deepchecks/tree/main/deepchecks/vision/suites
 
-.. image:: /_static/diagram.svg
+.. image:: /_static/images/general/diagram.svg
    :alt: Deepchecks Diagram
    :align: center
