@@ -57,7 +57,7 @@ class CategoryMismatchTrainTest(TrainTestCheck):
         Returns
         -------
         CheckResult
-            value is a dictionary that shows columns with new categories
+            value is a dictionary that lists new categories for each cat feature with its count
             displays a dataframe that shows columns with new categories
         """
         test_dataset = context.test
@@ -70,7 +70,8 @@ class CategoryMismatchTrainTest(TrainTestCheck):
         # After filtering the columns drop cat features that don't exist anymore
         cat_features = set(cat_features).intersection(set(train_df.columns))
 
-        new_categories = []
+        new_categories = {}
+        display_data = []
         n_test_samples = test_dataset.n_samples
 
         for feature in cat_features:
@@ -84,43 +85,28 @@ class CategoryMismatchTrainTest(TrainTestCheck):
             unique_training_values = train_column.unique()
             unique_test_values = test_column.unique()
 
-            new_category_values = sorted(set(unique_test_values).difference(set(unique_training_values)))
-            new_category_samples = dict(test_column.value_counts()[new_category_values])
-            sorted_new_categories = sorted(new_category_values,
-                                           key=lambda x, count=new_category_samples: count[x],
-                                           reverse=True)
-
+            new_category_values = sorted(list((set(unique_test_values) - set(unique_training_values))))
             if new_category_values:
-                n_new_cat = len(test_column[test_column.isin(new_category_values)])
+                new_category_counts = dict(test_column.value_counts()[new_category_values])
+                new_categories_ratio = sum(count for _, count in new_category_counts) / n_test_samples
+                sorted_new_categories = dict(sorted(new_category_counts.items(), key=lambda x: x[1], reverse=True))
+                new_categories[feature] = sorted_new_categories
+                display_data.append([feature, len(new_category_values), new_categories_ratio,
+                                     sorted_new_categories.keys()[:self.max_new_categories_to_show]])
+            else:
+                new_categories[feature] = {}
 
-                new_categories.append({'name': feature,
-                                       'n_new': n_new_cat,
-                                       'n_total_samples': n_test_samples,
-                                       'new_categories': sorted_new_categories})
+        # Display
+        if display_data:
+            display = pd.DataFrame(data=display_data,
+                                   columns=['Column',
+                                            'Number of new categories',
+                                            'Percent of new categories in sample',
+                                            'New categories examples'])\
+                                    .set_index(['Column'])
 
-        if new_categories:
-            dataframe = pd.DataFrame(data=[[new_category['name'],
-                                            len(new_category['new_categories']),
-                                            format_percent(
-                                                new_category['n_new']/new_category['n_total_samples']),
-                                            new_category['new_categories'][:self.max_new_categories_to_show]]
-                                           for new_category in new_categories[:self.max_features_to_show]],
-                                     columns=['Column',
-                                              'Number of new categories',
-                                              'Percent of new categories in sample',
-                                              'New categories examples'])
-            dataframe = dataframe.set_index(['Column'])
-
-            display = dataframe
-
-            new_categories = dict(map(lambda category: (category['name'], {
-                'n_new': category['n_new'],
-                'n_total_samples': category['n_total_samples'],
-                'new_categories': category['new_categories']
-            }), new_categories))
         else:
             display = None
-            new_categories = {}
         return CheckResult(new_categories, display=display)
 
     def add_condition_new_categories_not_greater_than(self, max_new: int = 0):
@@ -132,18 +118,17 @@ class CategoryMismatchTrainTest(TrainTestCheck):
             Number of different categories value types which is the maximum allowed.
         """
         def condition(result: Dict) -> ConditionResult:
-            not_passing_columns = {}
-            for column_name in result.keys():
-                column = result[column_name]
-                num_categories = len(column['new_categories'])
-                if num_categories > max_new:
-                    not_passing_columns[column_name] = num_categories
-            if not_passing_columns:
+            # not_passing_columns = {feature: len(new_categories) for feature, new_categories in result.items()
+            #                        if len(new_categories) > max_new}
+            num_new_per_column = [(feature, len(new_categories)) for feature, new_categories in result.items()]
+            sorted_columns = sorted(num_new_per_column, key=lambda x: x[1], reverse=True)
+            failing = [(feature, num_new) for feature, num_new in sorted_columns if num_new > max_new]
+            if failing:
                 return ConditionResult(ConditionCategory.FAIL,
-                                       f'Found columns with number of new categories above threshold: '
-                                       f'{not_passing_columns}')
+                                       f'Found {len(failing)} columns with number of new categories above threshold '
+                                       f'out of {len(result)} categorical columns:\n{dict(failing)}')
             else:
-                return ConditionResult(ConditionCategory.PASS)
+                return ConditionResult(ConditionCategory.PASS, )
 
         return self.add_condition(f'Number of new category values is not greater than {max_new}',
                                   condition)
