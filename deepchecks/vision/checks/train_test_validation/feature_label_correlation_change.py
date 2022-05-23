@@ -191,18 +191,18 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
 
         if self.per_class is True:
             ret_value, display = get_feature_label_correlation_per_class(df_train,
-                                                                           'target',
+                                                                         'target',
                                                                          df_test,
-                                                                           'target',
+                                                                         'target',
                                                                          self.ppscore_params,
                                                                          self.n_top_properties,
                                                                          min_pps_to_show=self.min_pps_to_show,
                                                                          random_state=self.random_state)
         else:
             ret_value, display = get_feature_label_correlation(df_train,
-                                                                 'target',
+                                                               'target',
                                                                df_test,
-                                                                 'target',
+                                                               'target',
                                                                self.ppscore_params,
                                                                self.n_top_properties,
                                                                min_pps_to_show=self.min_pps_to_show,
