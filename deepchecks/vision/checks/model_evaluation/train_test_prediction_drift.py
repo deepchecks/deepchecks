@@ -19,15 +19,13 @@ from deepchecks import ConditionResult
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksNotSupportedError
-from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS,
-                                                 SUPPORTED_NUMERIC_METHODS,
-                                                 calc_drift_and_plot,
-                                                 get_drift_method)
+from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERIC_METHODS,
+                                                 calc_drift_and_plot, get_drift_method)
 from deepchecks.vision import Batch, Context, TrainTestCheck
-from deepchecks.vision.utils.label_prediction_properties import (
-    DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES,
-    DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES, get_column_type,
-    properties_flatten, validate_properties)
+from deepchecks.vision.utils.label_prediction_properties import (DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES,
+                                                                 DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES,
+                                                                 get_column_type, properties_flatten,
+                                                                 validate_properties)
 from deepchecks.vision.vision_data import TaskType
 
 __all__ = ['TrainTestPredictionDrift']

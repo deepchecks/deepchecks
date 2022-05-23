@@ -16,9 +16,7 @@ import numpy as np
 from PyNomaly import loop
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
-from deepchecks.core.errors import (DeepchecksProcessError,
-                                    DeepchecksTimeoutError,
-                                    DeepchecksValueError,
+from deepchecks.core.errors import (DeepchecksProcessError, DeepchecksTimeoutError, DeepchecksValueError,
                                     NotEnoughSamplesError)
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils import gower_distance
@@ -177,10 +175,15 @@ class OutlierSampleDetection(SingleDatasetCheck):
 def _condition_outliers_number(quantiles_vector: np.ndarray, outlier_score_threshold: float,
                                max_outliers_ratio: float = 0):
     max_outliers_ratio = max(round(max_outliers_ratio, 3), 0.001)
+    score_at_max_outliers_ratio = quantiles_vector[int(1000 - max_outliers_ratio * 1000)]
+    category = ConditionCategory.WARN if score_at_max_outliers_ratio > outlier_score_threshold \
+        else ConditionCategory.PASS
 
-    if quantiles_vector[int(1000 - max_outliers_ratio * 1000)] > outlier_score_threshold:
-        ratio_above_threshold = round((1000 - np.argmax(quantiles_vector > outlier_score_threshold)) / 1000, 3)
-        details = f'{format_percent(ratio_above_threshold)} of dataset samples above outlier threshold'
-        return ConditionResult(ConditionCategory.WARN, details)
+    quantiles_above_threshold = quantiles_vector > outlier_score_threshold
+    if quantiles_above_threshold.any():
+        ratio_above_threshold = round((1000 - np.argmax(quantiles_above_threshold)) / 1000, 3)
     else:
-        return ConditionResult(ConditionCategory.PASS)
+        ratio_above_threshold = 0
+    details = f'{format_percent(ratio_above_threshold)} of dataset samples above outlier threshold'
+
+    return ConditionResult(category, details)

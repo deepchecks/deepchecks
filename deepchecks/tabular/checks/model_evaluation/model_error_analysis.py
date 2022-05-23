@@ -18,10 +18,8 @@ from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
 from deepchecks.utils.metrics import ModelType
-from deepchecks.utils.performance.error_model import (error_model_display,
-                                                      model_error_contribution)
-from deepchecks.utils.single_sample_metrics import (per_sample_cross_entropy,
-                                                    per_sample_mse)
+from deepchecks.utils.performance.error_model import error_model_display, model_error_contribution
+from deepchecks.utils.single_sample_metrics import per_sample_cross_entropy, per_sample_mse
 from deepchecks.utils.strings import format_percent
 
 __all__ = ['ModelErrorAnalysis']
@@ -183,7 +181,7 @@ class ModelErrorAnalysis(TrainTestCheck):
         """
 
         def condition(result: Dict) -> ConditionResult:
-            fails = {}
+            features_diff = {}
             feature_res = result['feature_segments']
             for feature in feature_res.keys():
                 # If only one segment identified, skip
@@ -192,15 +190,17 @@ class ModelErrorAnalysis(TrainTestCheck):
                 performance_diff = (
                     abs(feature_res[feature]['segment1']['score'] - feature_res[feature]['segment2']['score']) /
                     abs(max(feature_res[feature]['segment1']['score'], feature_res[feature]['segment2']['score'])))
-                if performance_diff > max_ratio_change:
-                    fails[feature] = format_percent(performance_diff)
+                features_diff[feature] = performance_diff
 
-            if fails:
-                sorted_fails = dict(sorted(fails.items(), key=lambda item: item[1]))
-                msg = f'Found change in {result["scorer_name"]} in features above threshold: {sorted_fails}'
+            failed_features = {f: format_percent(p) for f, p in features_diff.items() if p > max_ratio_change}
+            if failed_features:
+                sorted_fails = dict(sorted(failed_features.items(), key=lambda item: item[1]))
+                msg = f'{result["scorer_name"]} difference for failed features: {sorted_fails}'
                 return ConditionResult(ConditionCategory.WARN, msg)
             else:
-                return ConditionResult(ConditionCategory.PASS)
+                avg_diff = format_percent(sum(features_diff.values()) / len(features_diff))
+                msg = f'Average {result["scorer_name"]} difference: {avg_diff}'
+                return ConditionResult(ConditionCategory.PASS, msg)
 
         return self.add_condition(f'The performance difference of the detected segments must'
                                   f' not be greater than {format_percent(max_ratio_change)}', condition)

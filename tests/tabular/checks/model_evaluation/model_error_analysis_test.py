@@ -10,18 +10,14 @@
 #
 """Tests for segment performance check."""
 import numpy as np
-from hamcrest import (assert_that, calling, close_to, has_items, has_length,
-                      instance_of, raises)
+from hamcrest import assert_that, calling, close_to, has_items, has_length, instance_of, raises
 from scipy.special import softmax
 from sklearn.metrics import log_loss
 
 from deepchecks import CheckFailure
 from deepchecks.core import ConditionCategory
-from deepchecks.core.errors import (DeepchecksNotSupportedError,
-                                    DeepchecksProcessError,
-                                    DeepchecksValueError)
-from deepchecks.tabular.checks.model_evaluation.model_error_analysis import \
-    ModelErrorAnalysis
+from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksProcessError, DeepchecksValueError
+from deepchecks.tabular.checks.model_evaluation.model_error_analysis import ModelErrorAnalysis
 from deepchecks.utils.single_sample_metrics import per_sample_cross_entropy
 from tests.base.utils import equal_condition_result
 
@@ -81,7 +77,7 @@ def test_condition_fail(iris_labeled_dataset, iris_adaboost):
         equal_condition_result(
             is_pass=False,
             name='The performance difference of the detected segments must not be greater than 5%',
-            details='Found change in Accuracy in features above threshold: {\'petal length (cm)\': \'10.91%\', '
+            details='Accuracy difference for failed features: {\'petal length (cm)\': \'10.91%\', '
                     '\'petal width (cm)\': \'8.33%\'}',
             category=ConditionCategory.WARN
         )
@@ -101,6 +97,7 @@ def test_condition_pass(iris_labeled_dataset, iris_adaboost):
     assert_that(condition_result, has_items(
         equal_condition_result(
             is_pass=True,
+            details='Average Accuracy difference: 9.62%',
             name='The performance difference of the detected segments must not be greater than 200%',
         )
     ))

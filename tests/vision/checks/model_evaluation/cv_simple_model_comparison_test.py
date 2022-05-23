@@ -8,8 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-from hamcrest import (assert_that, calling, close_to, equal_to, has_items,
-                      is_in, raises)
+from hamcrest import assert_that, calling, close_to, equal_to, has_items, is_in, raises
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks import SimpleModelComparison

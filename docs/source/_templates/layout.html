@@ -67,7 +67,8 @@
     <script>
         require.config({
             paths: {
-                "docsearchLib": "https://cdn.jsdelivr.net/npm/@docsearch/js@3?noext"
+                "docsearchLib": "https://cdn.jsdelivr.net/npm/@docsearch/js@3?noext",
+                "clipboardjs": "/_static/clipboard.min"
             }
         }
 
@@ -80,9 +81,13 @@
                 }
             });
         });
+        require(["clipboardjs"], function(clipboardJS) {
+            window.ClipboardJS=clipboardJS
+        });
     </script>
     <div style="display:none;" id="dc-submodule">{{ submodule }}</div>
-
+    <script data-url_root="/" id="documentation_options" src="/_static/documentation_options.js"></script>
+    <script src="/_static/copybutton.js"></script>
 {% endblock %}
 
 {% block docs_main %}

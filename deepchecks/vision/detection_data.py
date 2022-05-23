@@ -14,8 +14,7 @@ from typing import List
 
 import torch
 
-from deepchecks.core.errors import (DeepchecksNotImplementedError,
-                                    ValidationError)
+from deepchecks.core.errors import DeepchecksNotImplementedError, ValidationError
 from deepchecks.vision.vision_data import TaskType, VisionData
 
 

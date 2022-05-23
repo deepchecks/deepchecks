@@ -12,10 +12,8 @@
 from hamcrest import assert_that, calling, close_to, has_items, raises
 
 from deepchecks.core import ConditionCategory
-from deepchecks.core.errors import (DeepchecksNotSupportedError,
-                                    DeepchecksValueError, ModelValidationError)
-from deepchecks.tabular.checks.model_evaluation import \
-    RegressionErrorDistribution
+from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError, ModelValidationError
+from deepchecks.tabular.checks.model_evaluation import RegressionErrorDistribution
 from deepchecks.tabular.dataset import Dataset
 from tests.base.utils import equal_condition_result
 
@@ -74,7 +72,7 @@ def test_condition_absolute_kurtosis_not_greater_than_not_passed(diabetes_split_
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                name='Kurtosis value is not less than -0.1',
-                               details='Found kurtosis below threshold: -0.92572',
+                               details='Found kurtosis value -0.92572',
                                category=ConditionCategory.WARN)
     ))
 
@@ -89,6 +87,7 @@ def test_condition_absolute_kurtosis_not_greater_than_passed(diabetes_split_data
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
+                               details='Found kurtosis value 0.02867',
                                name='Kurtosis value is not less than -0.1')
     ))
 
@@ -104,6 +103,6 @@ def test_condition_absolute_kurtosis_not_greater_than_not_passed_0_max(diabetes_
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                name='Kurtosis value is not less than 1',
-                               details='Found kurtosis below threshold: 0.02867',
+                               details='Found kurtosis value 0.02867',
                                category=ConditionCategory.WARN)
     ))

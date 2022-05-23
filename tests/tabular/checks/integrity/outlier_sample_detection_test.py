@@ -11,8 +11,7 @@
 """Contains unit tests for the outlier_sample_detection check."""
 import numpy as np
 import pandas as pd
-from hamcrest import (assert_that, calling, greater_than, has_item, has_items,
-                      has_length, raises)
+from hamcrest import assert_that, calling, greater_than, has_item, has_items, has_length, raises
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.checks import OutlierSampleDetection
@@ -45,6 +44,7 @@ def test_condition_with_argument():
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
+                               details='8.3% of dataset samples above outlier threshold',
                                name='Not more than 10% of dataset over outlier score 0.7')
     ))
 
@@ -59,6 +59,7 @@ def test_condition_without_argument():
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
+                               details='0% of dataset samples above outlier threshold',
                                name='No samples in dataset over outlier score of 0.7')
     ))
 

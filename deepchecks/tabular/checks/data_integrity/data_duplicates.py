@@ -123,10 +123,9 @@ class DataDuplicates(SingleDatasetCheck):
             Maximum ratio of duplicates.
         """
         def max_ratio_condition(result: float) -> ConditionResult:
-            if result > max_ratio:
-                return ConditionResult(ConditionCategory.WARN, f'Found {format_percent(result)} duplicate data')
-            else:
-                return ConditionResult(ConditionCategory.PASS)
+            details = f'Found {format_percent(result)} duplicate data'
+            category = ConditionCategory.WARN if result > max_ratio else ConditionCategory.PASS
+            return ConditionResult(category, details)
 
         return self.add_condition(f'Duplicate data ratio is not greater than {format_percent(max_ratio)}',
                                   max_ratio_condition)

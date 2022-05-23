@@ -19,13 +19,9 @@ import pandas as pd
 from pandas.core.dtypes.common import is_numeric_dtype
 from sklearn.model_selection import train_test_split
 
-from deepchecks.core.errors import (DatasetValidationError,
-                                    DeepchecksNotSupportedError,
-                                    DeepchecksValueError)
+from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.features import (infer_categorical_features,
-                                       infer_numerical_features,
-                                       is_categorical)
+from deepchecks.utils.features import infer_categorical_features, infer_numerical_features, is_categorical
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['Dataset']

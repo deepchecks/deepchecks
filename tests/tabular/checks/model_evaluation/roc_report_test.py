@@ -11,13 +11,11 @@
 """Contains unit tests for the roc_report check."""
 import numpy as np
 import pandas as pd
-from hamcrest import (assert_that, calling, close_to, has_entries, has_items,
-                      has_length, raises)
+from hamcrest import assert_that, calling, close_to, has_entries, has_items, has_length, raises
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 
-from deepchecks.core.errors import (DeepchecksNotSupportedError,
-                                    DeepchecksValueError, ModelValidationError)
+from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError, ModelValidationError
 from deepchecks.tabular.checks.model_evaluation import RocReport
 from deepchecks.tabular.dataset import Dataset
 from tests.base.utils import equal_condition_result
@@ -113,6 +111,7 @@ def test_condition_ratio_more_than_passed(iris_clean):
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
+                               details='All classes passed, average AUC is 0.9',
                                name='AUC score for all the classes is not less than 0.7')
     ))
 
@@ -122,5 +121,6 @@ def test_condition_ratio_more_than_passed(iris_clean):
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
+                               details='All classes passed, average AUC is 1',
                                name='AUC score for all the classes except: [1] is not less than 0.8')
     ))

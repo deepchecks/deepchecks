@@ -265,6 +265,7 @@ class PerformanceReport(TrainTestCheck):
             if score not in set(check_result['Metric']):
                 raise DeepchecksValueError(f'Data was not calculated using the scoring function: {score}')
 
+            passed_condition = True
             datasets_details = []
             for dataset in ['Test', 'Train']:
                 data = check_result.loc[check_result['Dataset'] == dataset].loc[check_result['Metric'] == score]
@@ -281,18 +282,17 @@ class PerformanceReport(TrainTestCheck):
 
                 relative_difference = abs((min_value - max_value) / max_value)
 
-                if relative_difference >= threshold:
-                    details = (
-                        f'Relative ratio difference between highest and lowest in {dataset} dataset '
-                        f'classes is {format_percent(relative_difference)}, using {score} metric. '
-                        f'Lowest class - {min_class_name}: {format_number(min_value)}; '
-                        f'Highest class - {max_class_name}: {format_number(max_value)}'
-                    )
-                    datasets_details.append(details)
-            if datasets_details:
-                return ConditionResult(ConditionCategory.FAIL, details='\n'.join(datasets_details))
-            else:
-                return ConditionResult(ConditionCategory.PASS)
+                passed_condition &= relative_difference < threshold
+                details = (
+                    f'{dataset} dataset\'s relative ratio difference between highest and lowest '
+                    f'classes is {format_percent(relative_difference)}, using {score} metric. '
+                    f'Lowest class - {min_class_name}: {format_number(min_value)}; '
+                    f'Highest class - {max_class_name}: {format_number(max_value)}'
+                )
+                datasets_details.append(details)
+
+            category = ConditionCategory.PASS if passed_condition else ConditionCategory.FAIL
+            return ConditionResult(category, '\n'.join(datasets_details))
 
         return self.add_condition(
             name=(

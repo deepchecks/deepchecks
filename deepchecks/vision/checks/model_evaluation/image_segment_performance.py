@@ -25,10 +25,8 @@ from deepchecks.core.condition import ConditionCategory
 from deepchecks.utils import plot
 from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.vision import Batch, Context, SingleDatasetCheck
-from deepchecks.vision.metrics_utils import (get_scorers_list,
-                                             metric_results_to_df)
-from deepchecks.vision.utils.image_properties import (default_image_properties,
-                                                      validate_properties)
+from deepchecks.vision.metrics_utils import get_scorers_list, metric_results_to_df
+from deepchecks.vision.utils.image_properties import default_image_properties, validate_properties
 
 __all__ = ['ImageSegmentPerformance']
 

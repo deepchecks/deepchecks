@@ -20,13 +20,11 @@ from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
 from typing_extensions import Protocol, runtime_checkable
 
-from deepchecks.core import \
-    check_result as check_types  # pylint: disable=unused-import
+from deepchecks.core import check_result as check_types  # pylint: disable=unused-import
 from deepchecks.core.serialization import common
 
 try:
-    from wandb.sdk.data_types.base_types.wb_value import \
-        WBValue  # pylint: disable=unused-import
+    from wandb.sdk.data_types.base_types.wb_value import WBValue  # pylint: disable=unused-import
 except ImportError:
     pass
 

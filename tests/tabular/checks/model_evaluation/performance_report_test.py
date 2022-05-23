@@ -12,19 +12,16 @@
 import re
 from typing import List
 
-from hamcrest import (assert_that, calling, close_to, has_items, instance_of,
-                      raises)
+from hamcrest import assert_that, calling, close_to, has_items, instance_of, raises
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.model_selection import train_test_split
 
 from deepchecks.core import ConditionResult
-from deepchecks.core.errors import (DatasetValidationError,
-                                    DeepchecksNotSupportedError,
-                                    DeepchecksValueError, ModelValidationError)
+from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
+                                    ModelValidationError)
 from deepchecks.tabular.checks.model_evaluation import PerformanceReport
 from deepchecks.tabular.dataset import Dataset
-from deepchecks.utils.metrics import (DEFAULT_REGRESSION_SCORERS,
-                                      MULTICLASS_SCORERS_NON_AVERAGE)
+from deepchecks.utils.metrics import DEFAULT_REGRESSION_SCORERS, MULTICLASS_SCORERS_NON_AVERAGE
 from tests.base.utils import equal_condition_result
 
 
@@ -206,8 +203,8 @@ def test_condition_class_performance_imbalance_ratio_not_greater_than_not_passed
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details=re.compile('Relative ratio difference between highest and '
-                                                  'lowest in Test dataset classes is 14.29%'),
+                               details=re.compile('Test dataset\'s relative ratio difference between highest and '
+                                                  'lowest classes is 14.29%'),
                                name='Relative ratio difference between labels \'F1\' '
                                     'score is not greater than 0%')
     ))
@@ -222,6 +219,8 @@ def test_condition_class_performance_imbalance_ratio_not_greater_than_passed(iri
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
+                               details=re.compile('Test dataset\'s relative ratio difference between highest and '
+                                                  'lowest classes is 14.29%'),
                                name='Relative ratio difference between labels \'F1\' '
                                'score is not greater than 100%')
     ))
