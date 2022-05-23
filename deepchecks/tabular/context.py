@@ -20,8 +20,8 @@ from deepchecks.core import DatasetKind
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
                                     ModelValidationError)
 from deepchecks.tabular.dataset import Dataset
-from deepchecks.tabular.utils.validation import (ensure_predictions_proba, ensure_predictions_shape, model_type_validation,
-                                                 validate_model)
+from deepchecks.tabular.utils.validation import (ensure_predictions_proba, ensure_predictions_shape,
+                                                 model_type_validation, validate_model)
 from deepchecks.utils.features import calculate_feature_importance_or_none
 from deepchecks.utils.metrics import ModelType, get_default_scorers, init_validate_scorers, task_type_check
 from deepchecks.utils.typing import BasicModel
@@ -109,7 +109,7 @@ class _DummyModel:
         raise DeepchecksValueError(f'Unexpected dataset kind {dataset_kind}')
 
     def _validate_data(self, data: pd.DataFrame, dataset_kind: DatasetKind):
-        # validate that the data isn't a new data by compairing a sample of rows.
+        # validate that the data isn't a new data by comparing a sample of rows.
         sub_index = list(data.index)[:10]
         return (data.loc[sub_index].fillna('nan') ==
                 self._get_dataset(dataset_kind).loc[sub_index].fillna('nan')).all().all()
