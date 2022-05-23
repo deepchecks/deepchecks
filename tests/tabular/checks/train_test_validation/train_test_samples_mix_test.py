@@ -13,8 +13,7 @@ Contains unit tests for the data_sample_leakage_report check
 """
 import numpy as np
 import pandas as pd
-from hamcrest import (assert_that, calling, equal_to, has_entry, has_items,
-                      raises)
+from hamcrest import assert_that, calling, equal_to, has_entry, has_items, raises
 from sklearn.model_selection import train_test_split
 
 from deepchecks.core.errors import DeepchecksValueError
@@ -131,3 +130,33 @@ def test_condition_ratio_not_greater_than_passed(diabetes_split_dataset_and_mode
                                name='Percentage of test data samples that appear in train data '
                                     'not greater than 10%')
     ))
+
+
+def test_train_test_simple_mix_with_categorical_data(iris_clean):
+    # Arrange
+    x, y = iris_clean.data, iris_clean.target
+
+    x["cat_column"] = x["sepal length (cm)"].astype("category")
+    x["cat_column"][::2] = np.nan
+
+    x_train, x_test, y_train, y_test = train_test_split(
+        x, y,
+        test_size=0.3,
+        random_state=55
+    )
+    train_dataset = Dataset(
+        pd.concat([x_train, y_train], axis=1),
+        features=iris_clean.feature_names,
+        label='target'
+    )
+    test_dataset = Dataset(
+        pd.concat([x_test, y_test], axis=1),
+        features=iris_clean.feature_names,
+        label='target'
+    )
+
+    # Run
+    TrainTestSamplesMix().run(
+        test_dataset=test_dataset,
+        train_dataset=train_dataset
+    )

@@ -21,8 +21,7 @@ from plotly.subplots import make_subplots
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision import Batch, Context, TrainTestCheck
-from deepchecks.vision.utils.image_functions import (
-    apply_heatmap_image_properties, numpy_grayscale_to_heatmap_figure)
+from deepchecks.vision.utils.image_functions import apply_heatmap_image_properties, numpy_grayscale_to_heatmap_figure
 from deepchecks.vision.vision_data import TaskType, VisionData
 
 __all__ = ['HeatmapComparison']

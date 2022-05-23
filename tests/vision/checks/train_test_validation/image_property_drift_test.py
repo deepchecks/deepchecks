@@ -9,15 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """Image Property Drift check tests"""
-from hamcrest import (all_of, assert_that, calling, close_to, contains_exactly,
-                      equal_to, greater_than, has_entries, has_key, has_length,
-                      has_properties, has_property, instance_of,
-                      matches_regexp, raises)
+from hamcrest import (all_of, assert_that, calling, close_to, contains_exactly, equal_to, greater_than, has_entries,
+                      has_key, has_length, has_properties, has_property, instance_of, matches_regexp, raises)
 
 from deepchecks.core import CheckResult
 from deepchecks.core.condition import ConditionCategory
-from deepchecks.core.errors import (DeepchecksNotImplementedError,
-                                    DeepchecksValueError)
+from deepchecks.core.errors import DeepchecksNotImplementedError, DeepchecksValueError
 from deepchecks.vision.checks import ImagePropertyDrift
 from deepchecks.vision.datasets.classification.mnist import MNISTData
 from deepchecks.vision.utils.image_properties import default_image_properties

@@ -15,12 +15,10 @@ from datetime import datetime
 
 import numpy as np
 import pandas as pd
-from hamcrest import (assert_that, calling, close_to, equal_to, has_items,
-                      raises)
+from hamcrest import assert_that, calling, close_to, equal_to, has_items, raises
 
 from deepchecks.core.errors import DatasetValidationError, DeepchecksValueError
-from deepchecks.tabular.checks.train_test_validation import (
-    DateTrainTestLeakageDuplicates, DateTrainTestLeakageOverlap)
+from deepchecks.tabular.checks.train_test_validation import DateTrainTestLeakageDuplicates, DateTrainTestLeakageOverlap
 from deepchecks.tabular.dataset import Dataset
 from tests.base.utils import equal_condition_result
 

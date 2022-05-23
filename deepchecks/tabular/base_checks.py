@@ -14,11 +14,9 @@ from functools import wraps
 from typing import Any, List, Mapping, Union
 
 from deepchecks.core.check_result import CheckFailure, CheckResult
-from deepchecks.core.checks import (BaseCheck, ModelOnlyBaseCheck,
-                                    SingleDatasetBaseCheck, TrainTestBaseCheck)
+from deepchecks.core.checks import BaseCheck, ModelOnlyBaseCheck, SingleDatasetBaseCheck, TrainTestBaseCheck
 from deepchecks.core.errors import DeepchecksNotSupportedError
-from deepchecks.tabular import \
-    deprecation_warnings  # pylint: disable=unused-import # noqa: F401
+from deepchecks.tabular import deprecation_warnings  # pylint: disable=unused-import # noqa: F401
 from deepchecks.tabular.context import Context
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.model_base import ModelComparisonContext

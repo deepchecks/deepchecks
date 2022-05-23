@@ -31,7 +31,7 @@ def test_single_column_dataset_more_than_single_value():
     df = pd.DataFrame({'a': [3, 4]})
 
     # Act & Assert
-    helper_test_df_and_result(df, None)
+    helper_test_df_and_result(df, {'a': 2})
 
 
 def test_single_column_dataset_single_value():
@@ -39,7 +39,7 @@ def test_single_column_dataset_single_value():
     df = pd.DataFrame({'a': ['b', 'b']})
 
     # Act & Assert
-    helper_test_df_and_result(df, ['a'])
+    helper_test_df_and_result(df, {'a': 1})
 
 
 def test_multi_column_dataset_single_value():
@@ -47,7 +47,7 @@ def test_multi_column_dataset_single_value():
     df = pd.DataFrame({'a': ['b', 'b', 'b'], 'b': ['a', 'a', 'a'], 'f': [1, 2, 3]})
 
     # Act & Assert
-    helper_test_df_and_result(df, ['a', 'b'])
+    helper_test_df_and_result(df, {'a': 1, 'b': 1, 'f': 3})
 
 
 def test_multi_column_dataset_single_value_with_ignore():
@@ -55,7 +55,7 @@ def test_multi_column_dataset_single_value_with_ignore():
     df = pd.DataFrame({'a': ['b', 'b', 'b'], 'b': ['a', 'a', 'a'], 'f': [1, 2, 3]})
 
     # Act & Assert
-    helper_test_df_and_result(df, None, ignore_columns=['a', 'b'])
+    helper_test_df_and_result(df, {'f': 3}, ignore_columns=['a', 'b'])
 
 
 def test_empty_df_single_value():
@@ -65,43 +65,22 @@ def test_empty_df_single_value():
 
 
 def test_single_value_object(iris_dataset):
-    # Arrange
-    sv = IsSingleValue()
-
-    # Act
-    result = sv.run(iris_dataset)
-
-    # Assert
-    assert_that(not result.value)
-
-
-def test_single_value_ignore_columns():
-    # Arrange
-    sv = IsSingleValue(ignore_columns=['b', 'a'])
-    df = pd.DataFrame({'a': ['b', 'b', 'b'], 'b':['a', 'a', 'a'], 'f':[1, 2, 3]})
-
-    # Act
-    result = sv.run(df)
-
-    # Assert
-    assert_that(not result.value)
+    # Act & Assert
+    helper_test_df_and_result(iris_dataset, {'sepal length (cm)': 35, 'sepal width (cm)': 23, 'petal length (cm)': 43,
+                                             'petal width (cm)': 22, 'target': 3})
 
 
 def test_single_value_ignore_column():
     # Arrange
-    sv = IsSingleValue(ignore_columns='bbb')
-    df = pd.DataFrame({'a': ['b', 'b', 'b'], 'bbb':['a', 'a', 'a'], 'f':[1, 2, 3]})
+    df = pd.DataFrame({'a': ['b', 'b', 'b'], 'bbb': ['a', 'a', 'a'], 'f': [1, 2, 3]})
 
-    # Act
-    result = sv.run(df)
-
-    # Assert
-    assert_that(result.value)
+    # Act & Assert
+    helper_test_df_and_result(df, {'a': 1, 'f': 3}, ignore_columns='bbb')
 
 
 def test_wrong_ignore_columns_single_value():
     # Arrange
-    df = pd.DataFrame({'a': ['b', 'b', 'b'], 'bbb':['a', 'a', 'a'], 'f':[1, 2, 3]})
+    df = pd.DataFrame({'a': ['b', 'b', 'b'], 'bbb': ['a', 'a', 'a'], 'f': [1, 2, 3]})
 
     # Act
     cls = IsSingleValue(ignore_columns=['bbb', 'd'])
@@ -118,16 +97,9 @@ def test_wrong_input_single_value():
 
 
 def test_nans(df_with_fully_nan, df_with_single_nan_in_col):
-    # Arrange
-    sv = IsSingleValue()
-
-    # Act
-    full_result = sv.run(df_with_fully_nan)
-    single_result = sv.run(df_with_single_nan_in_col)
-
-    # Assert
-    assert_that(full_result.value)
-    assert_that(not single_result.value)
+    # Act & Assert
+    helper_test_df_and_result(df_with_fully_nan, {'col1': 1, 'col2': 1})
+    helper_test_df_and_result(df_with_single_nan_in_col, {'col1': 11, 'col2': 11})
 
 
 def test_condition_fail():
@@ -141,7 +113,7 @@ def test_condition_fail():
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details='Found columns with a single value: [\'a\', \'bbb\']',
+                               details='Found 2 columns with a single value out of 3 columns: [\'a\', \'bbb\']',
                                name='Does not contain only a single value')))
 
 
@@ -156,4 +128,5 @@ def test_condition_pass():
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
+                               details='Passed for 3 relevant columns',
                                name='Does not contain only a single value')))

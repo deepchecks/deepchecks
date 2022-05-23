@@ -12,10 +12,8 @@ from typing import List
 
 import numpy as np
 
-from deepchecks.vision.metrics_utils.detection_precision_recall import \
-    AveragePrecisionRecall
-from deepchecks.vision.metrics_utils.iou_utils import (
-    compute_pairwise_ious, group_class_detection_label, jaccard_iou)
+from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePrecisionRecall
+from deepchecks.vision.metrics_utils.iou_utils import compute_pairwise_ious, group_class_detection_label, jaccard_iou
 
 
 class ObjectDetectionAveragePrecision(AveragePrecisionRecall):

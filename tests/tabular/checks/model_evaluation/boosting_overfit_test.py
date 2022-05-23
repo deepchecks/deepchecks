@@ -17,8 +17,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
-from deepchecks.tabular.checks.model_evaluation.boosting_overfit import \
-    BoostingOverfit
+from deepchecks.tabular.checks.model_evaluation.boosting_overfit import BoostingOverfit
 from deepchecks.tabular.dataset import Dataset
 from tests.base.utils import equal_condition_result
 
@@ -210,6 +209,7 @@ def test_condition_score_decline_not_greater_than_pass(diabetes, diabetes_model)
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
+        details='Found score decline of -3.64%',
         name='Test score over iterations doesn\'t decline by more than 5% from the best score'
     ))
 
@@ -226,5 +226,5 @@ def test_condition_score_percentage_decline_not_greater_than_not_pass(diabetes, 
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name='Test score over iterations doesn\'t decline by more than 1% from the best score',
-        details='Found score decline above threshold: -3.64%'
+        details='Found score decline of -3.64%'
     ))

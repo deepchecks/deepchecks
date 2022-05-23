@@ -13,8 +13,7 @@
 import io
 import traceback
 import warnings
-from typing import (TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union,
-                    cast)
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union, cast
 
 import jsonpickle
 import jsonpickle.ext.pandas as jsonpickle_pd
@@ -27,28 +26,18 @@ from plotly.basedatatypes import BaseFigure
 
 from deepchecks.core.condition import ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.core.serialization.check_failure.html import \
-    CheckFailureSerializer as CheckFailureHtmlSerializer
-from deepchecks.core.serialization.check_failure.json import \
-    CheckFailureSerializer as CheckFailureJsonSerializer
-from deepchecks.core.serialization.check_failure.widget import \
-    CheckFailureSerializer as CheckFailureWidgetSerializer
-from deepchecks.core.serialization.check_result.html import \
-    CheckResultSerializer as CheckResultHtmlSerializer
-from deepchecks.core.serialization.check_result.json import \
-    CheckResultSerializer as CheckResultJsonSerializer
-from deepchecks.core.serialization.check_result.widget import \
-    CheckResultSerializer as CheckResultWidgetSerializer
-from deepchecks.utils.ipython import (is_colab_env, is_kaggle_env, is_notebook,
-                                      is_widgets_enabled)
-from deepchecks.utils.strings import (create_new_file_name, widget_to_html,
-                                      widget_to_html_string)
-from deepchecks.utils.wandb_utils import wandb_run
+from deepchecks.core.serialization.check_failure.html import CheckFailureSerializer as CheckFailureHtmlSerializer
+from deepchecks.core.serialization.check_failure.json import CheckFailureSerializer as CheckFailureJsonSerializer
+from deepchecks.core.serialization.check_failure.widget import CheckFailureSerializer as CheckFailureWidgetSerializer
+from deepchecks.core.serialization.check_result.html import CheckResultSerializer as CheckResultHtmlSerializer
+from deepchecks.core.serialization.check_result.json import CheckResultSerializer as CheckResultJsonSerializer
+from deepchecks.core.serialization.check_result.widget import CheckResultSerializer as CheckResultWidgetSerializer
+from deepchecks.utils.ipython import is_colab_env, is_kaggle_env, is_notebook, is_widgets_enabled
+from deepchecks.utils.strings import create_new_file_name, widget_to_html, widget_to_html_string
+from deepchecks.utils.wandb_utils import set_wandb_run_state
 
-from .serialization.check_failure.ipython import \
-    CheckFailureSerializer as CheckFailureIPythonSerializer
-from .serialization.check_result.ipython import \
-    CheckResultSerializer as CheckResultIPythonSerializer
+from .serialization.check_failure.ipython import CheckFailureSerializer as CheckFailureIPythonSerializer
+from .serialization.check_result.ipython import CheckResultSerializer as CheckResultIPythonSerializer
 
 # registers jsonpickle pandas extension for pandas support in the to_json function
 jsonpickle_pd.register_handlers()
@@ -85,8 +74,7 @@ class BaseCheckResult:
         BaseCheckResult
             A check output object.
         """
-        from deepchecks.core.check_json import (CheckFailureJson,
-                                                CheckResultJson)
+        from deepchecks.core.check_json import CheckFailureJson, CheckResultJson
 
         if isinstance(json_dict, str):
             json_dict = jsonpickle.loads(json_dict)
@@ -405,18 +393,24 @@ class CheckResult(BaseCheckResult):
         # NOTE: Wandb is not a default dependency
         # user should install it manually therefore we are
         # doing import within method to prevent premature ImportError
-        from .serialization.check_result.wandb import CheckResultSerializer as WandbSerializer
-        assert self.check is not None
-            
-        metadata = {'header': self.get_header(), **self.check.metadata()}
-        metadata.update(kwargs)
-        
-        with wandb_run(
-            use_existing=dedicated_run is False, 
-            project='deepchecks',
-            **metadata,
-        ) as run:
-            run.log(WandbSerializer(self).serialize())
+        try:
+            import wandb
+
+            from .serialization.check_result.wandb import CheckResultSerializer as WandbSerializer
+        except ImportError as error:
+            raise ImportError(
+                'Wandb serializer requires the wandb python package. '
+                'To get it, run "pip install wandb".'
+            ) from error
+        else:
+            dedicated_run = set_wandb_run_state(
+                dedicated_run,
+                {'header': self.get_header(), **self.check.metadata()},
+                **kwargs
+            )
+            wandb.log(WandbSerializer(self).serialize())
+            if dedicated_run:  # TODO: create context manager for this
+                wandb.finish()
 
     def to_json(self, with_display: bool = True) -> str:
         """Return check result as json.
@@ -663,18 +657,24 @@ class CheckFailure(BaseCheckResult):
         # NOTE: Wandb is not a default dependency
         # user should install it manually therefore we are
         # doing import within method to prevent premature ImportError
-        from .serialization.check_failure.wandb import CheckFailureSerializer as WandbSerializer
-        assert self.check is not None
-        
-        metadata = {'header': self.get_header(), **self.check.metadata()}
-        metadata.update(kwargs)
-        
-        with wandb_run(
-            use_existing=dedicated_run is False, 
-            project='deepchecks',
-            **metadata,
-        ) as run:
-            run.log(WandbSerializer(self).serialize())
+        try:
+            import wandb
+
+            from .serialization.check_failure.wandb import CheckFailureSerializer as WandbSerializer
+        except ImportError as error:
+            raise ImportError(
+                'Wandb serializer requires the wandb python package. '
+                'To get it, run "pip install wandb".'
+            ) from error
+        else:
+            dedicated_run = set_wandb_run_state(
+                dedicated_run,
+                {'header': self.header, **self.check.metadata()},
+                **kwargs
+            )
+            wandb.log(WandbSerializer(self).serialize())
+            if dedicated_run:
+                wandb.finish()
 
     def __repr__(self):
         """Return string representation."""
