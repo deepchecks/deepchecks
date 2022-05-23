@@ -34,7 +34,7 @@ from deepchecks.utils.ipython import (is_colab_env, is_kaggle_env, is_notebook,
                                       is_widgets_enabled)
 from deepchecks.utils.strings import (create_new_file_name, get_random_string,
                                       widget_to_html, widget_to_html_string)
-from deepchecks.utils.wandb_utils import set_wandb_run_state
+from deepchecks.utils.wandb_utils import wandb_run
 
 from .serialization.suite_result.ipython import \
     SuiteResultSerializer as SuiteResultIPythonSerializer
@@ -259,9 +259,8 @@ class SuiteResult:
 
         Parameters
         ----------
-        dedicated_run : bool , default: None
-            If to initiate and finish a new wandb run.
-            If None it will be dedicated if wandb.run is None.
+        dedicated_run : bool
+            whether to create a separate wandb run or not
         kwargs: Keyword arguments to pass to wandb.init.
                 Default project name is deepchecks.
                 Default config is the suite name.
@@ -272,25 +271,17 @@ class SuiteResult:
         # doing import within method to prevent premature ImportError
         # TODO:
         # Previous implementation used ProgressBar to show serialization progress
-        try:
-            import wandb
-
-            from deepchecks.core.serialization.suite_result.wandb import \
-                SuiteResultSerializer as WandbSerializer
-        except ImportError as error:
-            raise ImportError(
-                'Wandb serializer requires the wandb python package. '
-                'To get it, run "pip install wandb".'
-            ) from error
-        else:
-            dedicated_run = set_wandb_run_state(
-                dedicated_run,
-                {'name': self.name},
-                **kwargs
-            )
-            wandb.log(WandbSerializer(self).serialize())
-            if dedicated_run:  # TODO: create context manager for this
-                wandb.finish()
+        from deepchecks.core.serialization.suite_result.wandb import SuiteResultSerializer as WandbSerializer
+        
+        metadata = {'name': self.name}
+        metadata.update(kwargs)
+        
+        with wandb_run(
+            use_existing=dedicated_run is False, 
+            project='deepchecks',
+            **metadata,
+        ) as run:
+            run.log(WandbSerializer(self).serialize())
 
     def get_failures(self) -> Dict[str, CheckFailure]:
         """Get all the failed checks.
