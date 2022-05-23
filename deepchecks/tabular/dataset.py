@@ -93,6 +93,7 @@ class Dataset:
     _set_index_from_dataframe_index: t.Optional[bool]
     _datetime_name: t.Optional[Hashable]
     _set_datetime_from_dataframe_index: t.Optional[bool]
+    _convert_datetime: t.Optional[bool]
     _datetime_column: t.Optional[pd.Series]
     _cat_features: t.List[Hashable]
     _data: pd.DataFrame
@@ -236,6 +237,7 @@ class Dataset:
         self._label_name = label_name
         self._index_name = index_name
         self._set_index_from_dataframe_index = set_index_from_dataframe_index
+        self._convert_datetime = convert_datetime
         self._datetime_name = datetime_name
         self._set_datetime_from_dataframe_index = set_datetime_from_dataframe_index
         self._datetime_args = datetime_args or {}
@@ -426,7 +428,7 @@ class Dataset:
         return cls(new_data, features=features, cat_features=cat_features, label=label_name,
                    index_name=index, set_index_from_dataframe_index=self._set_index_from_dataframe_index,
                    datetime_name=date, set_datetime_from_dataframe_index=self._set_datetime_from_dataframe_index,
-                   convert_datetime=False, max_categorical_ratio=self._max_categorical_ratio,
+                   convert_datetime=self._convert_datetime, max_categorical_ratio=self._max_categorical_ratio,
                    max_categories=self._max_categories, label_type=self.label_type)
 
     def sample(self: TDataset, n_samples: int, replace: bool = False, random_state: t.Optional[int] = None,

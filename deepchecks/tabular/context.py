@@ -50,19 +50,20 @@ class _DummyModel:
         Array of the model prediction probabilities over the test dataset.
     """
 
-    train: pd.DataFrame
-    test: pd.DataFrame
+    context: 'Context'
     ind_map: t.Dict[str, t.Dict[t.Any, int]]
     y_pred: t.Dict[str, np.ndarray]
     y_proba: t.Dict[str, np.ndarray]
 
     def __init__(self,
+                 context: 'Context',
                  train: Dataset,
                  test: Dataset,
                  y_pred_train: np.ndarray,
                  y_pred_test: np.ndarray,
                  y_proba_train: np.ndarray,
                  y_proba_test: np.ndarray,):
+        self.context = context
         self.ind_map = defaultdict(dict)
 
         if train is not None and test is not None:
@@ -78,20 +79,18 @@ class _DummyModel:
         self.y_proba = {}
 
         if train is not None:
-            self.train = train.features_columns
-            for i, ind in enumerate(self.train.index):
+            for i, ind in enumerate(train.data.index):
                 self.ind_map[DatasetKind.TRAIN][ind] = i
             if y_pred_train is not None:
-                self.y_pred[DatasetKind.TRAIN] = ensure_predictions_shape(y_pred_train, self.train)
+                self.y_pred[DatasetKind.TRAIN] = ensure_predictions_shape(y_pred_train, train.features_columns)
                 if y_proba_train is not None:
                     self.y_proba[DatasetKind.TRAIN] = ensure_predictions_proba(y_proba_train, y_pred_train)
 
         if test is not None:
-            self.test = test.features_columns
-            for i, ind in enumerate(self.test.index):
+            for i, ind in enumerate(test.data.index):
                 self.ind_map[DatasetKind.TEST][ind] = i
             if y_pred_test is not None:
-                self.y_pred[DatasetKind.TEST] = ensure_predictions_shape(y_pred_test, self.test)
+                self.y_pred[DatasetKind.TEST] = ensure_predictions_shape(y_pred_test, test.features_columns)
                 if y_proba_test is not None:
                     self.y_proba[DatasetKind.TEST] = ensure_predictions_proba(y_proba_test, y_pred_test)
 
@@ -101,18 +100,11 @@ class _DummyModel:
         if y_proba_train is not None or y_proba_test is not None:
             self.predict_proba = self._predict_proba
 
-    def _get_dataset(self, dataset_kind: DatasetKind):
-        if dataset_kind == DatasetKind.TRAIN:
-            return self.train
-        if dataset_kind == DatasetKind.TEST:
-            return self.test
-        raise DeepchecksValueError(f'Unexpected dataset kind {dataset_kind}')
-
     def _validate_data(self, data: pd.DataFrame, dataset_kind: DatasetKind):
         # validate that the data isn't a new data by comparing a sample of rows.
         sub_index = list(data.index)[:10]
         return (data.loc[sub_index].fillna('nan') ==
-                self._get_dataset(dataset_kind).loc[sub_index].fillna('nan')).all().all()
+                self.context.get_data_by_kind(dataset_kind).features_columns.loc[sub_index].fillna('nan')).all().all()
 
     def _get_dataset_kind(self, data: pd.DataFrame):
         assert isinstance(data, pd.DataFrame)
@@ -221,7 +213,8 @@ class Context:
                                          'initialize it as train')
         if model is None and \
            not pd.Series([y_pred_train, y_pred_test, y_proba_train, y_proba_test]).isna().all():
-            model = _DummyModel(train=train, test=test, y_pred_train=y_pred_train, y_pred_test=y_pred_test,
+            model = _DummyModel(context=self, train=train, test=test,
+                                y_pred_train=y_pred_train, y_pred_test=y_pred_test,
                                 y_proba_test=y_proba_test, y_proba_train=y_proba_train)
         if model is not None:
             # Here validate only type of model, later validating it can predict on the data if needed

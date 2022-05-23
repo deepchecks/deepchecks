@@ -146,12 +146,12 @@ def test_train_test_simple_mix_with_categorical_data(iris_clean):
     )
     train_dataset = Dataset(
         pd.concat([x_train, y_train], axis=1),
-        features=iris_clean.feature_names,
+        features=iris_clean.feature_names + ["cat_column"],
         label='target'
     )
     test_dataset = Dataset(
         pd.concat([x_test, y_test], axis=1),
-        features=iris_clean.feature_names,
+        features=iris_clean.feature_names + ["cat_column"],
         label='target'
     )
 
