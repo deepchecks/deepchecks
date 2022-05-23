@@ -36,6 +36,11 @@ as in many cases the label is unknown for some time after the prediction is made
 It is important to note that not all changes in data represent drift. For example, periodic changes in data due to daily, weekly or
 seasonal changes are usually not considered drift, as they as they are often present in the training data.
 
+.. image:: /_static/images/general/patterns-of-concept-drift.png
+   :alt: Different change patterns in data
+   :align: center
+
+Different change patterns in data. `Source <https://www.iosrjournals.org/iosr-jce/papers/Vol17-issue1/Version-2/D017122026.pdf>`_.
 
 Which Types of Drift Are There?
 ================================
@@ -67,6 +72,13 @@ In many cases, label drift alone might not be of interest. However, it may affec
 classes may be more prevalent now that they were in your train dataset.
 
 For more on the different types of drift, `see here <https://deepchecks.com/data-drift-vs-concept-drift-what-are-the-main-differences/>`_
+
+.. image:: /_static/images/general/types-of-drift.png
+   :alt: Different types of drift
+   :align: center
+
+Different types of drift. Adapted from `this source <https://www.win.tue.nl/~mpechen/publications/pubs/Gama_ACMCS_AdaptationCD_accepted.pdf>`_.
+
 
 What Can You Do in Case of Drift?
 ---------------------------------
