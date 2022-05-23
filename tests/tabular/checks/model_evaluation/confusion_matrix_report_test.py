@@ -12,8 +12,7 @@
 import numpy as np
 from hamcrest import assert_that, calling, raises
 
-from deepchecks.core.errors import (DeepchecksNotSupportedError,
-                                    DeepchecksValueError, ModelValidationError)
+from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError, ModelValidationError
 from deepchecks.tabular.checks.model_evaluation import ConfusionMatrixReport
 
 

@@ -31,7 +31,7 @@
 
    <p align="center">
       <a href="https://deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=logo">
-      <img src="/docs/images/deepchecks-logo-with-white-wide-back.png">
+      <img src="/docs/source/_static/images/general/deepchecks-logo-with-white-wide-back.png">
       </a>
    </p>
 
@@ -51,7 +51,7 @@
 .. raw:: html
 
    <p align="center">
-      <img src="/docs/images/checks-and-conditions.png">
+      <img src="/docs/source/_static/images/general/checks-and-conditions.png">
    </p>
 
 
@@ -191,7 +191,7 @@ Example for a model evaluation check calculating mAP:
       </tbody>
       </table>
       <p align="left">
-        <img src="/docs/images/vision-checks/mAP-over-IoU.png">
+        <img src="/docs/source/_static/images/vision-checks/mAP-over-IoU.png">
       </p>
 
 Property Distribution Checks
@@ -242,12 +242,12 @@ Example of a property distribution check and its output:
                  </tr>
                  <tr>
                    <th><h5>Image</h5></th>
-                   <td><img src="/docs/images/vision-checks/brightness-outlier-1.png"></td>
-                   <td><img src="/docs/images/vision-checks/brightness-outlier-2.png"></td>
-                   <td><img src="/docs/images/vision-checks/brightness-outlier-3.png"></td>
-                   <td><img src="/docs/images/vision-checks/brightness-outlier-4.png"></td>
-                   <td><img src="/docs/images/vision-checks/brightness-outlier-5.png"></td>
-                   <td><img src="/docs/images/vision-checks/brightness-outlier-6.png"></td>
+                   <td><img src="/docs/source/_static/images/vision-checks/brightness-outlier-1.png"></td>
+                   <td><img src="/docs/source/_static/images/vision-checks/brightness-outlier-2.png"></td>
+                   <td><img src="/docs/source/_static/images/vision-checks/brightness-outlier-3.png"></td>
+                   <td><img src="/docs/source/_static/images/vision-checks/brightness-outlier-4.png"></td>
+                   <td><img src="/docs/source/_static/images/vision-checks/brightness-outlier-5.png"></td>
+                   <td><img src="/docs/source/_static/images/vision-checks/brightness-outlier-6.png"></td>
                  </tr>
                  </table>
 

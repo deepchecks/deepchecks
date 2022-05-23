@@ -11,15 +11,11 @@
 """Contains unit tests for the single_feature_contribution check."""
 import numpy as np
 import pandas as pd
-from hamcrest import (assert_that, calling, close_to, equal_to, has_entries,
-                      has_length, raises)
+from hamcrest import assert_that, calling, close_to, equal_to, has_entries, has_length, raises
 
-from deepchecks.core.errors import (DatasetValidationError,
-                                    DeepchecksNotSupportedError,
-                                    DeepchecksValueError)
+from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.tabular.checks.data_integrity import SingleFeatureContribution
-from deepchecks.tabular.checks.train_test_validation import \
-    SingleFeatureContributionTrainTest
+from deepchecks.tabular.checks.train_test_validation import SingleFeatureContributionTrainTest
 from deepchecks.tabular.dataset import Dataset
 from tests.base.utils import equal_condition_result
 
@@ -156,7 +152,8 @@ def test_all_features_pps_upper_bound_condition_that_should_not_pass():
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name=f'Features\' Predictive Power Score is not greater than {condition_value}',
-        details='Features with PPS above threshold: {\'x2\': \'0.84\', \'x4\': \'0.53\', \'x5\': \'0.42\'}'
+        details='Found 3 features with PPS above threshold out of 5 features: '
+                '{\'x2\': \'0.84\', \'x4\': \'0.53\', \'x5\': \'0.42\'}'
     ))
 
 
@@ -173,14 +170,54 @@ def test_all_features_pps_upper_bound_condition_that_should_pass():
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
+        details='Passed for 5 relevant columns',
         name=f'Features\' Predictive Power Score is not greater than {condition_value}',
+    ))
+
+
+def test_train_test_condition_pps_positive_difference_pass():
+    # Arrange
+    df, df2, expected = util_generate_second_similar_dataframe_and_expected()
+    condition_value = 0.4
+    check = SingleFeatureContributionTrainTest(random_state=42).\
+        add_condition_feature_pps_difference_not_greater_than(threshold=condition_value, include_negative_diff=False)
+
+    # Act
+    result = SingleFeatureContributionTrainTest(random_state=42).run(
+        train_dataset=Dataset(df, label='label'), test_dataset=Dataset(df2, label='label'))
+    condition_result, *_ = check.conditions_decision(result)
+
+    # Assert
+    assert_that(condition_result, equal_condition_result(
+        is_pass=True,
+        name=f'Train-Test features\' Predictive Power Score difference is not greater than {condition_value}'
+    ))
+
+
+def test_train_test_condition_pps_positive_difference_fail():
+    # Arrange
+    df, df2, expected = util_generate_second_similar_dataframe_and_expected()
+    condition_value = 0.01
+    check = SingleFeatureContributionTrainTest(random_state=42).\
+        add_condition_feature_pps_difference_not_greater_than(condition_value, include_negative_diff=False)
+
+    # Act
+    result = SingleFeatureContributionTrainTest(random_state=42).run(train_dataset=Dataset(df, label='label'),
+                                                                     test_dataset=Dataset(df2, label='label'))
+    condition_result, *_ = check.conditions_decision(result)
+
+    # Assert
+    assert_that(condition_result, equal_condition_result(
+        is_pass=False,
+        name=f'Train-Test features\' Predictive Power Score difference is not greater than {condition_value}',
+        details='Features with PPS difference above threshold: {\'x2\': \'0.31\'}'
     ))
 
 
 def test_train_test_condition_pps_difference_pass():
     # Arrange
     df, df2, expected = util_generate_second_similar_dataframe_and_expected()
-    condition_value = 0.4
+    condition_value = 0.6
     check = SingleFeatureContributionTrainTest(random_state=42
                                                ).add_condition_feature_pps_difference_not_greater_than(condition_value)
 
@@ -199,7 +236,7 @@ def test_train_test_condition_pps_difference_pass():
 def test_train_test_condition_pps_difference_fail():
     # Arrange
     df, df2, expected = util_generate_second_similar_dataframe_and_expected()
-    condition_value = 0.01
+    condition_value = 0.4
     check = SingleFeatureContributionTrainTest(random_state=42
                                                ).add_condition_feature_pps_difference_not_greater_than(condition_value)
 
@@ -212,7 +249,7 @@ def test_train_test_condition_pps_difference_fail():
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name=f'Train-Test features\' Predictive Power Score difference is not greater than {condition_value}',
-        details='Features with PPS difference above threshold: {\'x2\': \'0.31\'}'
+        details='Features with PPS difference above threshold: {\'x3\': \'0.54\'}'
     ))
 
 

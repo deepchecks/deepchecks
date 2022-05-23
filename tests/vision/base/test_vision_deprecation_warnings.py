@@ -14,8 +14,7 @@ import warnings
 
 import pytest
 
-from deepchecks.vision.checks import (ImagePropertyDrift, TrainTestLabelDrift,
-                                      TrainTestPredictionDrift)
+from deepchecks.vision.checks import ImagePropertyDrift, TrainTestLabelDrift, TrainTestPredictionDrift
 
 
 def test_deprecation_warning_label_drift():

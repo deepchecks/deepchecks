@@ -9,13 +9,10 @@
 # ----------------------------------------------------------------------------
 #
 """Tests for segment performance check."""
-from hamcrest import (assert_that, calling, close_to, equal_to, has_entries,
-                      has_property, raises)
+from hamcrest import assert_that, calling, close_to, equal_to, has_entries, has_property, raises
 
-from deepchecks.core.errors import (DeepchecksNotSupportedError,
-                                    DeepchecksValueError)
-from deepchecks.tabular.checks.model_evaluation.segment_performance import \
-    SegmentPerformance
+from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
+from deepchecks.tabular.checks.model_evaluation.segment_performance import SegmentPerformance
 from deepchecks.tabular.dataset import Dataset
 
 
@@ -64,6 +61,17 @@ def test_segment_performance_illegal_features(diabetes_split_dataset_and_model):
     assert_that(
         calling(SegmentPerformance(feature_1='AGE', feature_2='sex').run).with_args(val, model),
         raises(DeepchecksValueError, r'\"feature_1\" and \"feature_2\" must be in dataset columns')
+    )
+
+
+def test_segment_performance_non_cat_or_num(city_arrogance_split_dataset_and_model):
+    # Arrange
+    _, val, model = city_arrogance_split_dataset_and_model
+
+    # Act & Assert
+    assert_that(
+        calling(SegmentPerformance(feature_1='city', feature_2='sex').run).with_args(val, model),
+        raises(DeepchecksValueError, r'\"feature_1\" must be numerical or categorical, but it neither.')
     )
 
 

@@ -16,8 +16,7 @@ from imgaug import augmenters as iaa
 from torch.utils.data import DataLoader
 from torchvision import datasets
 
-from deepchecks.vision.datasets.classification.mnist import (MODULE_DIR,
-                                                             MNISTData)
+from deepchecks.vision.datasets.classification.mnist import MODULE_DIR, MNISTData
 
 
 class MNIST(datasets.MNIST):

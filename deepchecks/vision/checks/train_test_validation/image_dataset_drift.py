@@ -15,12 +15,9 @@ from typing import Any, Dict, List
 import pandas as pd
 
 from deepchecks.core import CheckResult, DatasetKind
-from deepchecks.core.check_utils.whole_dataset_drift_utils import \
-    run_whole_dataset_drift
+from deepchecks.core.check_utils.whole_dataset_drift_utils import run_whole_dataset_drift
 from deepchecks.vision import Batch, Context, TrainTestCheck
-from deepchecks.vision.utils.image_properties import (default_image_properties,
-                                                      get_column_type,
-                                                      validate_properties)
+from deepchecks.vision.utils.image_properties import default_image_properties, get_column_type, validate_properties
 
 __all__ = ['ImageDatasetDrift']
 

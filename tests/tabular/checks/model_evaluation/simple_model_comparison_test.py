@@ -9,8 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Contains unit tests for the confusion_matrix_report check."""
-from hamcrest import (assert_that, calling, close_to, has_entries, has_entry,
-                      has_items, is_, raises)
+from hamcrest import assert_that, calling, close_to, has_entries, has_entry, has_items, is_, raises
 from sklearn.metrics import f1_score, make_scorer, recall_score
 
 from deepchecks.core.errors import DeepchecksValueError
@@ -112,7 +111,7 @@ def test_condition_ratio_not_less_than_not_passed(diabetes_split_dataset_and_mod
         equal_condition_result(
             is_pass=False,
             name='Model performance gain over simple model is not less than 40%',
-            details='Found metrics with gain below threshold: {\'Neg RMSE\': \'24.32%\'}')
+            details='Found failed metrics: {\'Neg RMSE\': \'24.32%\'}')
     ))
 
 
@@ -127,7 +126,7 @@ def test_condition_failed_for_multiclass(iris_split_dataset_and_model):
         equal_condition_result(
             is_pass=False,
             name='Model performance gain over simple model is not less than 80%',
-            details='Found metrics with gain below threshold: {\'F1\': {1: \'78.15%\'}}')
+            details='Found classes with failed metric\'s gain: {1: {\'F1\': \'78.15%\'}}')
     ))
 
 
@@ -141,6 +140,7 @@ def test_condition_pass_for_multiclass_avg(iris_split_dataset_and_model):
     assert_that(result.conditions_results, has_items(
         equal_condition_result(
             is_pass=True,
+            details='All metrics passed, metric\'s gain: {\'F1\': \'89.74%\'}',
             name='Model performance gain over simple model is not less than 43%')
     ))
 
@@ -157,10 +157,11 @@ def test_condition_pass_for_multiclass_avg_with_classes(iris_split_dataset_and_m
         equal_condition_result(
             is_pass=False,
             name='Model performance gain over simple model is not less than 100%',
-            details='Found metrics with gain below threshold: {\'F1\': {1: \'78.15%\', 2: \'85.71%\'}}'
+            details='Found classes with failed metric\'s gain: {1: {\'F1\': \'78.15%\'}, 2: {\'F1\': \'85.71%\'}}'
         ),
         equal_condition_result(
             is_pass=True,
+            details='Found metrics with perfect score, no gain is calculated: [\'F1\']',
             name='Model performance gain over simple model is not less than 100% for classes [0]',
         )
     ))
@@ -176,6 +177,7 @@ def test_condition_pass_for_new_test_classes(city_arrogance_split_dataset_and_mo
     assert_that(result.conditions_results, has_items(
         equal_condition_result(
             is_pass=True,
+            details='Found metrics with perfect score, no gain is calculated: [\'F1\']',
             name='Model performance gain over simple model is not less than 100%',
         )
     ))
@@ -194,6 +196,7 @@ def test_condition_ratio_not_less_than_passed(diabetes_split_dataset_and_model):
     assert_that(condition_result, has_items(
         equal_condition_result(
             is_pass=True,
+            details='All metrics passed, metric\'s gain: {\'Neg RMSE\': \'49.7%\'}',
             name='Model performance gain over simple model is not less than 10%'
         )
     ))

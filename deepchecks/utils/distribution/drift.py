@@ -18,10 +18,8 @@ from plotly.subplots import make_subplots
 from scipy.stats import chi2_contingency, wasserstein_distance
 
 from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
-from deepchecks.utils.distribution.plot import (drift_score_bar_traces,
-                                                feature_distribution_traces)
-from deepchecks.utils.distribution.preprocessing import \
-    preprocess_2_cat_cols_to_same_bins
+from deepchecks.utils.distribution.plot import drift_score_bar_traces, feature_distribution_traces
+from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
 from deepchecks.utils.strings import format_percent
 
 __all__ = ['calc_drift_and_plot', 'get_drift_method']

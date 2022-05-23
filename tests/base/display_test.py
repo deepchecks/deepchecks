@@ -19,8 +19,7 @@ import jsonpickle
 import pandas as pd
 import plotly.express
 import plotly.io as pio
-from hamcrest import (all_of, any_of, assert_that, calling, greater_than,
-                      has_entries, has_length, instance_of, is_,
+from hamcrest import (all_of, any_of, assert_that, calling, greater_than, has_entries, has_length, instance_of, is_,
                       matches_regexp, not_none, raises)
 from ipywidgets import VBox, Widget
 from plotly.graph_objs import FigureWidget
@@ -87,7 +86,8 @@ def test_check_result_repr(iris_dataset):
 
     # Assert
     assert_that(check.__repr__(), is_('MixedNulls'))
-    assert_that(check_res.__repr__(), is_('Mixed Nulls: defaultdict(<class \'dict\'>, {})'))
+    assert_that(check_res.__repr__(), is_('Mixed Nulls: {\'sepal length (cm)\': {}, \'sepal width (cm)\': {}, '
+                                          '\'petal length (cm)\': {}, \'petal width (cm)\': {}, \'target\': {}}'))
 
 
 def test_check_result_init(iris_dataset):

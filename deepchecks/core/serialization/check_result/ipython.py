@@ -14,8 +14,7 @@ import typing as t
 from IPython.display import HTML, Image
 
 from deepchecks.core import check_result as check_types
-from deepchecks.core.serialization.abc import (IPythonFormatter,
-                                               IPythonSerializer)
+from deepchecks.core.serialization.abc import IPythonFormatter, IPythonSerializer
 from deepchecks.core.serialization.common import flatten
 
 from . import html

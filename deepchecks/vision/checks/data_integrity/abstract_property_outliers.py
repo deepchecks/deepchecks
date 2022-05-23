@@ -20,9 +20,7 @@ import numpy as np
 
 from deepchecks import CheckResult
 from deepchecks.core import DatasetKind
-from deepchecks.core.errors import (DeepchecksProcessError,
-                                    DeepchecksValueError,
-                                    NotEnoughSamplesError)
+from deepchecks.core.errors import DeepchecksProcessError, DeepchecksValueError, NotEnoughSamplesError
 from deepchecks.utils.outliers import iqr_outliers_range
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Batch, Context, SingleDatasetCheck

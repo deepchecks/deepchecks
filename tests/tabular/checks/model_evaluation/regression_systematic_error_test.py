@@ -11,10 +11,8 @@
 """Contains unit tests for the RegressionSystematicError check."""
 from hamcrest import assert_that, calling, close_to, has_items, raises
 
-from deepchecks.core.errors import (DeepchecksNotSupportedError,
-                                    DeepchecksValueError, ModelValidationError)
-from deepchecks.tabular.checks.model_evaluation import \
-    RegressionSystematicError
+from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError, ModelValidationError
+from deepchecks.tabular.checks.model_evaluation import RegressionSystematicError
 from deepchecks.tabular.dataset import Dataset
 from tests.base.utils import equal_condition_result
 
@@ -74,7 +72,7 @@ def test_condition_error_ratio_not_greater_than_not_passed(diabetes_split_datase
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                name='Bias ratio is not greater than 0.01',
-                               details='Found bias ratio above threshold: 0.93')
+                               details='Found bias ratio 0.93')
     ))
 
 
@@ -88,6 +86,7 @@ def test_condition_error_ratio_not_greater_than_passed(diabetes_split_dataset_an
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
+                               details='Found bias ratio 1.40E-4',
                                name='Bias ratio is not greater than 0.01')
     ))
 
@@ -103,5 +102,5 @@ def test_condition_error_ratio_not_greater_than_not_passed_0_max(diabetes_split_
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                name='Bias ratio is not greater than 0',
-                               details='Found bias ratio above threshold: 1.40E-4')
+                               details='Found bias ratio 1.40E-4')
     ))

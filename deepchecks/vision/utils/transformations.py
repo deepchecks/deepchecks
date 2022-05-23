@@ -20,8 +20,7 @@ import torch
 import torchvision.transforms as T
 from PIL import Image
 
-from deepchecks.core.errors import (DeepchecksNotSupportedError,
-                                    DeepchecksValueError)
+from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.vision.vision_data import TaskType
 
 __all__ = ['get_transforms_handler', 'un_normalize_batch', 'AbstractTransformations',
