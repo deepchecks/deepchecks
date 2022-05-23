@@ -15,10 +15,10 @@ from .datasets_size_comparison import DatasetsSizeComparison
 from .date_train_test_leakage_duplicates import DateTrainTestLeakageDuplicates
 from .date_train_test_leakage_overlap import DateTrainTestLeakageOverlap
 from .dominant_frequency_change import DominantFrequencyChange
+from .feature_label_correlation_change import FeatureLabelCorrelationChange
 from .identifier_leakage import IdentifierLeakage
 from .index_leakage import IndexTrainTestLeakage
 from .new_label_train_test import NewLabelTrainTest
-from .feature_label_correlation_change import FeatureLabelCorrelationChange
 from .string_mismatch_comparison import StringMismatchComparison
 from .train_test_feature_drift import TrainTestFeatureDrift
 from .train_test_label_drift import TrainTestLabelDrift

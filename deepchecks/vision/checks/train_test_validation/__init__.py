@@ -9,12 +9,12 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+from .feature_label_correlation_change import FeatureLabelCorrelationChange
 from .heatmap_comparison import HeatmapComparison
 from .image_dataset_drift import ImageDatasetDrift
 from .image_property_drift import ImagePropertyDrift
 from .new_labels import NewLabels
 from .similar_image_leakage import SimilarImageLeakage
-from .feature_label_correlation_change import FeatureLabelCorrelationChange
 from .train_test_label_drift import TrainTestLabelDrift
 
 __all__ = [

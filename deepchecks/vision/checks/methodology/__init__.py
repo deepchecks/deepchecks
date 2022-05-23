@@ -16,7 +16,7 @@
 """
 import warnings
 
-from ..train_test_validation import SimilarImageLeakage, FeatureLabelCorrelationChange
+from ..train_test_validation import FeatureLabelCorrelationChange, SimilarImageLeakage
 
 __all__ = [
     'FeatureLabelCorrelationChange',
