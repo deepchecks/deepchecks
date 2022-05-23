@@ -75,7 +75,8 @@ def theil_u_correlation(x: Union[List, np.ndarray, pd.Series], y: Union[List, np
 
 
 def correlation_ratio(categorical_variable: Union[List, np.ndarray, pd.Series],
-                      numerical_variable: Union[List, np.ndarray, pd.Series]) -> float:
+                      numerical_variable: Union[List, np.ndarray, pd.Series],
+                      indexes_to_ignore: Union[List[bool], np.ndarray] = None) -> float:
     """
     Calculate the correlation ratio of numerical_variable to categorical_variable.
 
@@ -85,14 +86,19 @@ def correlation_ratio(categorical_variable: Union[List, np.ndarray, pd.Series],
     Parameters:
     -----------
     categorical_variable: Union[List, np.ndarray, pd.Series]
-        A sequence of a categorical variable values without nulls
+        A sequence of a categorical variable values without nulls in indexes not ignored
     numerical_variable: Union[List, np.ndarray, pd.Series]
-        A sequence of a numerical variable values without nulls
+        A sequence of a numerical variable values without nulls in indexes not ignored
+    indexes_to_ignore: Union[List[bool], np.ndarray[bool]] default: None
+        A sequence of boolean values indicating which elements to ignore. If None includes all indexes.
     Returns:
     --------
     float
         Representing the correlation ratio between the variables.
     """
+    if indexes_to_ignore:
+        numerical_variable = numerical_variable[~np.asarray(indexes_to_ignore)]
+        categorical_variable = categorical_variable[~np.asarray(indexes_to_ignore)]
     fcat, _ = pd.factorize(categorical_variable)
     cat_num = np.max(fcat) + 1
     y_avg_array = np.zeros(cat_num)

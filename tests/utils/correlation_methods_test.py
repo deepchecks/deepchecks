@@ -44,9 +44,12 @@ def test_theil_u():
 
 def test_correlation_ratio():
     c_lname_age = correlation_methods.correlation_ratio(df['lName'], df['Age'])
-    assert_that(c_lname_age, close_to(0.28867, 0.001))
     c_lname_size = correlation_methods.correlation_ratio(df['lName'], df['Size'])
+    assert_that(c_lname_age, close_to(0.28867, 0.001))
     assert_that(c_lname_size, close_to(0.995, 0.001))
+
+    c_lname_age = correlation_methods.correlation_ratio(df['lName'], df['Age'], [False, True, True, False, False])
+    assert_that(c_lname_age, close_to(0, 0.001))
 
     c_sname_age = correlation_methods.correlation_ratio(df['sName'], df['Age'])
     c_sname_size = correlation_methods.correlation_ratio(df['sName'], df['Size'])
