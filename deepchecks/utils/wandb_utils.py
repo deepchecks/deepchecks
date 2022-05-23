@@ -16,63 +16,39 @@ import typing as t
 __all__ = ['wandb_run']
 
 
-# def set_wandb_run_state(dedicated_run: bool, default_config: dict, **kwargs: t.Any):
-#     """Set wandb run state.
-
-#     Parameters
-#     ----------
-#     dedicated_run : bool
-#         If to initiate and finish a new wandb run.
-#         If None it will be dedicated if wandb.run is None.
-#     default_config : dict
-#         Default config dict.
-#     kwargs: Keyword arguments to pass to wandb.init - relevent if wandb_init is True.
-#             Default project name is deepchecks.
-#             Default config is the check metadata (params, train/test/ name etc.).
-
-#     Returns
-#     -------
-#     bool
-#         If deticated run
-#     """
-#     try:
-#         import wandb
-#     except ImportError as error:
-#         raise ImportError(
-#             '"set_wandb_run_state" requires the wandb python package. '
-#             'To get it, run "pip install wandb".'
-#         ) from error
-#     else:
-#         if dedicated_run is None:
-#             dedicated_run = wandb.run is None
-#         if dedicated_run:
-#             kwargs['project'] = kwargs.get('project', 'deepchecks')
-#             kwargs['config'] = kwargs.get('config', default_config)
-#             wandb.init(**kwargs)
-#             wandb.run._label(repo='Deepchecks')  # pylint: disable=protected-access
-#         return dedicated_run
-
-
 @contextlib.contextmanager
 def wandb_run(
     project: t.Optional[str] = None,
     use_existing: bool = False,
     **kwargs
-):
-    """"""
+) -> t.Iterator[t.Any]:
+    """Create new one or use existing wandb run instance.
+
+    Parameters
+    ----------
+    project : Optional[str], default None
+        project name
+    use_existing : bool, default False
+        whether to create a separate wandb run or use existing one
+    **kwargs :
+        additional parameters that will be passed to the 'wandb.init'
+
+    Returns
+    -------
+    Iterator[wandb.sdk.wandb_run.Run]
+    """
     try:
         import wandb
     except ImportError as error:
         raise ImportError(
-            '"set_wandb_run_state" requires the wandb python package. '
+            '"wandb_run" requires the wandb python package. '
             'To get it, run "pip install wandb".'
         ) from error
     else:
         if wandb.run is not None and use_existing is True:
             yield wandb.run
-            return
-        if use_existing is False:
+        else:
             kwargs = {'project': project or 'deepchecks', **kwargs}
-            with wandb.init(**kwargs) as run:
+            with t.cast(t.ContextManager, wandb.init(**kwargs)) as run:
                 wandb.run._label(repo='Deepchecks')  # pylint: disable=protected-access
                 yield run

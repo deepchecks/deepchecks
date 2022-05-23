@@ -28,7 +28,7 @@ from deepchecks.core.serialization.suite_result.json import SuiteResultSerialize
 from deepchecks.core.serialization.suite_result.widget import SuiteResultSerializer as SuiteResultWidgetSerializer
 from deepchecks.utils.ipython import is_colab_env, is_kaggle_env, is_notebook, is_widgets_enabled
 from deepchecks.utils.strings import create_new_file_name, get_random_string, widget_to_html, widget_to_html_string
-from deepchecks.utils.wandb_utils import set_wandb_run_state
+from deepchecks.utils.wandb_utils import wandb_run
 
 from .serialization.suite_result.ipython import SuiteResultSerializer as SuiteResultIPythonSerializer
 
@@ -54,7 +54,14 @@ class SuiteResult:
         self.results = results
         self.extra_info = extra_info or []
 
-        # TODO: add comment about code below
+        # NOTE:
+        # we collect results indexes in order to facilitate results
+        # filtering and selection via the `select_results` method
+        #
+        # Examples:
+        # >>
+        # >> sr.select_result(sr.results_with_conditions | sr.results_with_display)
+        # >> sr.select_results(sr.results_without_conditions & sr.results_with_display)
 
         self.results_with_conditions: Set[int] = set()
         self.results_without_conditions: Set[int] = set()
@@ -224,20 +231,26 @@ class SuiteResult:
         """
         return SuiteResultWidgetSerializer(self).serialize(output_id=unique_id)
 
-    def to_json(self, with_display: bool = True):
+    def to_json(self, with_display: Optional[bool] = None):
         """Return check result as json.
 
         Parameters
         ----------
         with_display : bool
             controls if to serialize display of checks or not
+            (the parameter is deprecated and does not have any effect since version 0.6.4,
+            it will be removed in future versions)
 
         Returns
         -------
         str
         """
-        # TODO: not sure if the `with_display` parameter is needed
-        # add deprecation warning if it is not needed
+        if with_display is not None:
+            warnings.warn(
+                '"with_display" parameter is deprecated and does not have any effect '
+                'since version 0.6.4, it will be removed in future versions',
+                DeprecationWarning
+            )
         return jsonpickle.dumps(
             SuiteResultJsonSerializer(self).serialize(),
             unpicklable=False
@@ -245,7 +258,7 @@ class SuiteResult:
 
     def to_wandb(
         self,
-        dedicated_run: Optional[bool] = None,
+        dedicated_run: bool = True,
         **kwargs
     ):
         """Export suite result to wandb.
@@ -264,24 +277,16 @@ class SuiteResult:
         # doing import within method to prevent premature ImportError
         # TODO:
         # Previous implementation used ProgressBar to show serialization progress
-        try:
-            import wandb
+        from deepchecks.core.serialization.suite_result.wandb import SuiteResultSerializer as WandbSerializer
 
-            from deepchecks.core.serialization.suite_result.wandb import SuiteResultSerializer as WandbSerializer
-        except ImportError as error:
-            raise ImportError(
-                'Wandb serializer requires the wandb python package. '
-                'To get it, run "pip install wandb".'
-            ) from error
-        else:
-            dedicated_run = set_wandb_run_state(
-                dedicated_run,
-                {'name': self.name},
-                **kwargs
-            )
-            wandb.log(WandbSerializer(self).serialize())
-            if dedicated_run:  # TODO: create context manager for this
-                wandb.finish()
+        wandb_kwargs = {'config': {'name': self.name}}
+        wandb_kwargs.update(**kwargs)
+
+        with wandb_run(
+            use_existing=dedicated_run is False,
+            **wandb_kwargs
+        ) as run:
+            run.log(WandbSerializer(self).serialize())
 
     def get_failures(self) -> Dict[str, CheckFailure]:
         """Get all the failed checks.

@@ -34,7 +34,7 @@ from deepchecks.core.serialization.check_result.json import CheckResultSerialize
 from deepchecks.core.serialization.check_result.widget import CheckResultSerializer as CheckResultWidgetSerializer
 from deepchecks.utils.ipython import is_colab_env, is_kaggle_env, is_notebook, is_widgets_enabled
 from deepchecks.utils.strings import create_new_file_name, widget_to_html, widget_to_html_string
-from deepchecks.utils.wandb_utils import set_wandb_run_state
+from deepchecks.utils.wandb_utils import wandb_run
 
 from .serialization.check_failure.ipython import CheckFailureSerializer as CheckFailureIPythonSerializer
 from .serialization.check_result.ipython import CheckResultSerializer as CheckResultIPythonSerializer
@@ -384,7 +384,7 @@ class CheckResult(BaseCheckResult):
 
         Parameters
         ----------
-        dedicated_run : bool
+        dedicated_run : bool, default True
             whether to create a separate wandb run or not
         kwargs: Keyword arguments to pass to wandb.init.
                 Default project name is deepchecks.
@@ -393,24 +393,17 @@ class CheckResult(BaseCheckResult):
         # NOTE: Wandb is not a default dependency
         # user should install it manually therefore we are
         # doing import within method to prevent premature ImportError
-        try:
-            import wandb
+        assert self.check is not None
+        from .serialization.check_result.wandb import CheckResultSerializer as WandbSerializer
 
-            from .serialization.check_result.wandb import CheckResultSerializer as WandbSerializer
-        except ImportError as error:
-            raise ImportError(
-                'Wandb serializer requires the wandb python package. '
-                'To get it, run "pip install wandb".'
-            ) from error
-        else:
-            dedicated_run = set_wandb_run_state(
-                dedicated_run,
-                {'header': self.get_header(), **self.check.metadata()},
-                **kwargs
-            )
-            wandb.log(WandbSerializer(self).serialize())
-            if dedicated_run:  # TODO: create context manager for this
-                wandb.finish()
+        wandb_kwargs = {'config': {'header': self.get_header(), **self.check.metadata()}}
+        wandb_kwargs.update(**kwargs)
+
+        with wandb_run(
+            use_existing=dedicated_run is False,
+            **wandb_kwargs
+        ) as run:
+            run.log(WandbSerializer(self).serialize())
 
     def to_json(self, with_display: bool = True) -> str:
         """Return check result as json.
@@ -611,7 +604,7 @@ class CheckFailure(BaseCheckResult):
         """Return CheckFailure as a ipywidgets.Widget instance."""
         return CheckFailureWidgetSerializer(self).serialize()
 
-    def to_json(self, with_display: bool = True):
+    def to_json(self, with_display: Optional[bool] = None):
         """Return check failure as json.
 
         Returned JSON string will have next structure:
@@ -631,13 +624,19 @@ class CheckFailure(BaseCheckResult):
         ----------
         with_display : bool
             controls if to serialize display or not
+            (the parameter is deprecated and does not have any effect since version 0.6.4,
+            it will be removed in future versions)
 
         Returns
         -------
         str
         """
-        # TODO: not sure if the `with_display` parameter is needed
-        # add deprecation warning if it is not needed
+        if with_display is not None:
+            warnings.warn(
+                '"with_display" parameter is deprecated and does not have any effect '
+                'since version 0.6.4, it will be removed in future versions',
+                DeprecationWarning
+            )
         return jsonpickle.dumps(
             CheckFailureJsonSerializer(self).serialize(),
             unpicklable=False
@@ -648,7 +647,7 @@ class CheckFailure(BaseCheckResult):
 
         Parameters
         ----------
-        dedicated_run : bool
+        dedicated_run : bool, default True
             whether to create a separate wandb run or not
         kwargs: Keyword arguments to pass to wandb.init.
                 Default project name is deepchecks.
@@ -657,24 +656,17 @@ class CheckFailure(BaseCheckResult):
         # NOTE: Wandb is not a default dependency
         # user should install it manually therefore we are
         # doing import within method to prevent premature ImportError
-        try:
-            import wandb
+        assert self.check is not None
+        from .serialization.check_failure.wandb import CheckFailureSerializer as WandbSerializer
 
-            from .serialization.check_failure.wandb import CheckFailureSerializer as WandbSerializer
-        except ImportError as error:
-            raise ImportError(
-                'Wandb serializer requires the wandb python package. '
-                'To get it, run "pip install wandb".'
-            ) from error
-        else:
-            dedicated_run = set_wandb_run_state(
-                dedicated_run,
-                {'header': self.header, **self.check.metadata()},
-                **kwargs
-            )
-            wandb.log(WandbSerializer(self).serialize())
-            if dedicated_run:
-                wandb.finish()
+        wandb_kwargs = {'config': {'header': self.get_header(), **self.check.metadata()}}
+        wandb_kwargs.update(**kwargs)
+
+        with wandb_run(
+            use_existing=dedicated_run is False,
+            **wandb_kwargs
+        ) as run:
+            run.log(WandbSerializer(self).serialize())
 
     def __repr__(self):
         """Return string representation."""
