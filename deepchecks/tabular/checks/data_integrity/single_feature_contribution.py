@@ -14,8 +14,10 @@ import typing as t
 import deepchecks.ppscore as pps
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.check_utils.single_feature_contribution_utils import (
-    get_pps_figure, pps_df_to_trace)
+    get_pps_figure, pd_series_to_trace)
 from deepchecks.tabular import Context, SingleDatasetCheck
+from deepchecks.tabular.utils.integrity_messages import \
+    get_condition_passed_message
 from deepchecks.utils.strings import format_number
 from deepchecks.utils.typing import Hashable
 
@@ -91,7 +93,7 @@ class SingleFeatureContribution(SingleDatasetCheck):
         top_to_show = s_ppscore.head(self.n_top_features)
 
         fig = get_pps_figure(per_class=False)
-        fig.add_trace(pps_df_to_trace(top_to_show, dataset_type))
+        fig.add_trace(pd_series_to_trace(top_to_show, dataset_type))
 
         text = [
             'The Predictive Power Score (PPS) is used to estimate the ability of a feature to predict the '
@@ -125,10 +127,11 @@ class SingleFeatureContribution(SingleDatasetCheck):
             }
 
             if failed_features:
-                message = f'Features with PPS above threshold: {failed_features}'
+                message = f'Found {len(failed_features)} features with PPS above threshold out of {len(value)} ' \
+                          f'features: {failed_features}'
                 return ConditionResult(ConditionCategory.FAIL, message)
             else:
-                return ConditionResult(ConditionCategory.PASS)
+                return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(value))
 
         return self.add_condition(f'Features\' Predictive Power Score is not greater than {format_number(threshold)}',
                                   condition)

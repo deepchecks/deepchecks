@@ -139,4 +139,5 @@ def test_condition():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
+                               details='Found 0% duplicate data',
                                name='Duplicate data ratio is not greater than 0%')))

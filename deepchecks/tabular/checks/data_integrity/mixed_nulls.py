@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains Mixed Nulls check."""
-from collections import defaultdict
 from typing import Dict, Iterable, List, Union
 
 import pandas as pd
@@ -18,6 +17,8 @@ from pkg_resources import parse_version
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, SingleDatasetCheck
+from deepchecks.tabular.utils.integrity_messages import \
+    get_condition_passed_message
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import (N_TOP_MESSAGE,
                                        column_importance_sorter_df)
@@ -69,8 +70,10 @@ class MixedNulls(SingleDatasetCheck):
         Returns
         -------
         CheckResult
-            DataFrame with columns ('Column Name', 'Value', 'Count', 'Percentage') for any column which
-            have more than 1 null values.
+            Value is dict with columns as key, and dict of null values as value:
+            {column: {null_value: {count: x, percent: y}, ...}, ...}
+            display is DataFrame with columns ('Column Name', 'Value', 'Count', 'Percentage') for any column that
+            has more than 1 null values.
         """
         if dataset_type == 'train':
             dataset = context.train
@@ -79,11 +82,11 @@ class MixedNulls(SingleDatasetCheck):
         df = dataset.data
 
         df = select_from_dataframe(df, self.columns, self.ignore_columns)
-        null_string_list: set = self._validate_null_string_list(self.null_string_list)
+        null_string_list = self._validate_null_string_list(self.null_string_list)
 
         # Result value
         display_array = []
-        result_dict = defaultdict(dict)
+        result_dict = {}
 
         for column_name in list(df.columns):
             column_data = df[column_name]
@@ -104,12 +107,11 @@ class MixedNulls(SingleDatasetCheck):
                 column_counts: pd.Series = column_data.value_counts(dropna=False)
 
             # Filter out values not in the nulls list
-            null_counts = {value: count for value, count in column_counts.items()
-                           if (self.check_nan and pd.isnull(value)) or (string_baseform(value) in null_string_list)}
+            null_counts = {value: count for value, count in column_counts.items() if
+                           (self.check_nan and pd.isnull(value)) or (string_baseform(value) in null_string_list)}
 
-            if len(null_counts) < 2:
-                continue
-            # Save the column info
+            result_dict[column_name] = {}
+            # Save the column nulls info
             for null_value, count in null_counts.items():
                 percent = count / len(column_data)
                 display_array.append([column_name, null_value, count, format_percent(percent)])
@@ -164,18 +166,13 @@ class MixedNulls(SingleDatasetCheck):
             Number of different null value types which is the maximum allowed.
         """
         def condition(result: Dict) -> ConditionResult:
-            not_passing_columns = {}
-            for column in result.keys():
-                nulls = result[column]
-                num_nulls = len(nulls)
-                if num_nulls > max_allowed_null_types:
-                    not_passing_columns[column] = num_nulls
+            not_passing_columns = [k for k, v in result.items() if len(v) > max_allowed_null_types]
             if not_passing_columns:
-                return ConditionResult(ConditionCategory.FAIL,
-                                       'Found columns with amount of null types above threshold: '
-                                       f'{not_passing_columns}')
+                details = f'Found {len(not_passing_columns)} columns with amount of null types above threshold out ' \
+                          f'of {len(result)} columns: {not_passing_columns}'
+                return ConditionResult(ConditionCategory.FAIL, details)
             else:
-                return ConditionResult(ConditionCategory.PASS)
+                return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))
 
         return self.add_condition(f'Not more than {max_allowed_null_types} different null types',
                                   condition)

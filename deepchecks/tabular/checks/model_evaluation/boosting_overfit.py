@@ -217,12 +217,9 @@ class BoostingOverfit(TrainTestCheck):
             max_score = max(result['test'])
             last_score = result['test'][-1]
             pct_diff = (max_score - last_score) / abs(max_score)
-
-            if pct_diff > threshold:
-                message = f'Found score decline above threshold: -{format_percent(pct_diff)}'
-                return ConditionResult(ConditionCategory.FAIL, message)
-            else:
-                return ConditionResult(ConditionCategory.PASS)
+            details = f'Found score decline of {format_percent(-pct_diff)}'
+            category = ConditionCategory.FAIL if pct_diff > threshold else ConditionCategory.PASS
+            return ConditionResult(category, details)
 
         name = f'Test score over iterations doesn\'t decline by more than {format_percent(threshold)} ' \
                f'from the best score'

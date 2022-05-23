@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 # Disable wildcard import check for hamcrest
 from hamcrest import (assert_that, calling, close_to, has_entries, has_entry,
-                      has_items, has_length, raises)
+                      has_items, has_length, raises, equal_to)
 
 from deepchecks.core import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
@@ -30,7 +30,7 @@ def test_single_column_no_mix():
     # Act
     result = MixedDataTypes().run(dataframe)
     # Assert
-    assert_that(result.value, has_length(0))
+    assert_that(result.value, equal_to({'col1': {}}))
 
 
 def test_single_column_explicit_mix():
@@ -40,9 +40,9 @@ def test_single_column_explicit_mix():
     # Act
     result = MixedDataTypes().run(dataframe)
     # Assert
-    assert_that(result.value, has_entry('col1', has_entries({
+    assert_that(result.value, has_entries({'col1': has_entries({
         'strings': close_to(0.66, 0.01), 'numbers': close_to(0.33, 0.01)
-    })))
+    })}))
 
 
 def test_single_column_stringed_mix():
@@ -52,9 +52,9 @@ def test_single_column_stringed_mix():
     # Act
     result = MixedDataTypes().run(dataframe)
     # Assert
-    assert_that(result.value, has_entry('col1', has_entries({
+    assert_that(result.value, has_entries({'col1': has_entries({
         'strings': close_to(0.66, 0.01), 'numbers': close_to(0.33, 0.01)
-    })))
+    })}))
 
 
 def test_double_column_one_mix():
@@ -64,9 +64,10 @@ def test_double_column_one_mix():
     # Act
     result = MixedDataTypes().run(dataframe)
     # Assert
-    assert_that(result.value, has_entry('col1', has_entries({
-        'strings': close_to(0.66, 0.01), 'numbers': close_to(0.33, 0.01)
-    })))
+    assert_that(result.value, has_entries({
+        'col1': has_entries({'strings': close_to(0.66, 0.01), 'numbers': close_to(0.33, 0.01)}),
+        'col2': equal_to({})
+    }))
 
 
 def test_double_column_ignored_mix():
@@ -76,7 +77,7 @@ def test_double_column_ignored_mix():
     # Act
     result = MixedDataTypes(ignore_columns=['col1']).run(dataframe)
     # Assert
-    assert_that(result.value, has_length(0))
+    assert_that(result.value, equal_to({'col2': {}}))
 
 
 def test_double_column_specific_mix():
@@ -87,7 +88,7 @@ def test_double_column_specific_mix():
     result = MixedDataTypes(columns=['col1']).run(dataframe)
     # Assert
     assert_that(result.value, has_length(1))
-    assert_that(result.value, has_entry('col1', has_entries({
+    assert_that(result.value, has_entries(col1=has_entries({
         'strings': close_to(0.66, 0.01), 'numbers': close_to(0.33, 0.01)
     })))
 
@@ -124,8 +125,10 @@ def test_condition_pass_all_columns():
     result = check.conditions_decision(check.run(dataframe))
     # Assert
     assert_that(result, has_items(
-        equal_condition_result(is_pass=True, name='Rare data types in column are either more than 10% or less '
-                                                  'than 1% of the data')
+        equal_condition_result(is_pass=True,
+                               details='2 columns passed: found 1 columns with negligible types mix, and 1 columns '
+                                       'without any types mix',
+                               name='Rare data types in column are either more than 10% or less than 1% of the data')
     ))
 
 
@@ -141,7 +144,7 @@ def test_condition_pass_fail_single_column():
         equal_condition_result(is_pass=False,
                                name='Rare data types in column are either more than 40% or less '
                                     'than 1% of the data',
-                               details='Found columns with non-negligible quantities of samples with a different '
+                               details='Found 1 columns with non-negligible quantities of samples with a different '
                                        'data type from the majority of samples: [\'col1\']',
                                category=ConditionCategory.WARN)
     ))
@@ -159,7 +162,7 @@ def test_condition_pass_fail_ignore_column():
         equal_condition_result(is_pass=False,
                                name='Rare data types in column are either more than 40% or'
                                     ' less than 1% of the data',
-                               details='Found columns with non-negligible quantities of samples with a different '
+                               details='Found 1 columns with non-negligible quantities of samples with a different '
                                        'data type from the majority of samples: [\'col1\']',
                                category=ConditionCategory.WARN)
     ))
@@ -187,7 +190,7 @@ def test_no_mix_nan():
     # Act
     result = MixedDataTypes().run(dataframe)
     # Assert
-    assert_that(result.value, has_length(0))
+    assert_that(result.value, equal_to({'col1': {}, 'col2': {}}))
 
 
 def test_mix_nan():
@@ -197,4 +200,8 @@ def test_mix_nan():
     # Act
     result = MixedDataTypes().run(dataframe)
     # Assert
-    assert_that(result.value, has_length(1))
+    assert_that(result.value, has_entries({
+        'col1': has_entries({'strings': close_to(0.5, 0.01), 'numbers': close_to(0.5, 0.01)}),
+        'col2': equal_to({})
+    }))
+

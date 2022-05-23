@@ -73,7 +73,7 @@ def test_drift_max_drift_score_condition_fail_psi(drifted_data_and_model):
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name='categorical drift score <= 0.15 and numerical drift score <= 0.075',
-        details='Found model prediction PSI above threshold: 0.79'
+        details='Found model prediction PSI drift score of 0.79'
     ))
 
 
@@ -91,5 +91,6 @@ def test_drift_max_drift_score_condition_pass_threshold(drifted_data_and_model):
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
+        details='Found model prediction PSI drift score of 0.79',
         name='categorical drift score <= 1 and numerical drift score <= 1'
     ))

@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """String length outlier check."""
-from collections import defaultdict
 from typing import Dict, List, Tuple, Union
 
 import numpy as np
@@ -19,6 +18,8 @@ from scipy import stats
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
+from deepchecks.tabular.utils.integrity_messages import \
+    get_condition_passed_message
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import (N_TOP_MESSAGE,
                                        column_importance_sorter_df,
@@ -105,7 +106,7 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
         df = select_from_dataframe(dataset.data, self.columns, self.ignore_columns)
 
         display_format = []
-        results = defaultdict(lambda: {'outliers': []})
+        results = {}
 
         for column_name in df.columns:
             column: Series = df[column_name].dropna()
@@ -115,6 +116,7 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
                                                               max_categories=self.min_unique_values):
                 continue
 
+            results[column_name] = {'outliers': []}
             string_length_column = column.map(lambda x: len(str(x)))
 
             # If not a lot of unique values, calculate the percentiles for existing values.
@@ -220,18 +222,16 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
             not_passing_columns = {}
             for column_name in result.keys():
                 column = result[column_name]
-                total_outliers = 0
-                for outlier in column['outliers']:
-                    total_outliers += outlier['n_samples']
-
+                total_outliers = sum((outlier['n_samples'] for outlier in column['outliers']))
                 if total_outliers > max_outliers:
                     not_passing_columns[column_name] = total_outliers
             if not_passing_columns:
-                return ConditionResult(ConditionCategory.FAIL,
-                                       f'Found columns with number of outliers above threshold: '
-                                       f'{not_passing_columns}')
+                details = f'Found {len(not_passing_columns)} columns with number of outliers above threshold out of ' \
+                          f'{len(result)} columns: {not_passing_columns}'
+                return ConditionResult(ConditionCategory.FAIL, details)
             else:
-                return ConditionResult(ConditionCategory.PASS)
+                details = f'Passed for {len(result)} columns'
+                return ConditionResult(ConditionCategory.PASS, details)
 
         return self.add_condition(
             f'Number of outliers not greater than {max_outliers} string length outliers',
@@ -249,19 +249,16 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
             not_passing_columns = {}
             for column_name in result.keys():
                 column = result[column_name]
-                total_outliers = 0
-                for outlier in column['outliers']:
-                    total_outliers += outlier['n_samples']
-
-                ratio = total_outliers / column['n_samples']
+                total_outliers = sum((outlier['n_samples'] for outlier in column['outliers']))
+                ratio = total_outliers / column['n_samples'] if total_outliers > 0 else 0
                 if ratio > max_ratio:
                     not_passing_columns[column_name] = format_percent(ratio)
             if not_passing_columns:
-                return ConditionResult(ConditionCategory.WARN,
-                                       f'Found columns with outliers ratio above threshold: '
-                                       f'{not_passing_columns}')
+                details = f'Found {len(not_passing_columns)} columns with outliers ratio above threshold out of ' \
+                          f'{len(result)} columns: {not_passing_columns}'
+                return ConditionResult(ConditionCategory.WARN, details)
             else:
-                return ConditionResult(ConditionCategory.PASS)
+                return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))
 
         return self.add_condition(
             f'Ratio of outliers not greater than {format_percent(max_ratio)} string length outliers',
