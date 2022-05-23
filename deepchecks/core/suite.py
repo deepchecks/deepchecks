@@ -20,24 +20,17 @@ import jsonpickle
 from IPython.core.display import display, display_html
 from ipywidgets import Widget
 
-from deepchecks.core.check_result import (BaseCheckResult, CheckFailure,
-                                          CheckResult)
+from deepchecks.core.check_result import BaseCheckResult, CheckFailure, CheckResult
 from deepchecks.core.checks import BaseCheck
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.core.serialization.suite_result.html import \
-    SuiteResultSerializer as SuiteResultHtmlSerializer
-from deepchecks.core.serialization.suite_result.json import \
-    SuiteResultSerializer as SuiteResultJsonSerializer
-from deepchecks.core.serialization.suite_result.widget import \
-    SuiteResultSerializer as SuiteResultWidgetSerializer
-from deepchecks.utils.ipython import (is_colab_env, is_kaggle_env, is_notebook,
-                                      is_widgets_enabled)
-from deepchecks.utils.strings import (create_new_file_name, get_random_string,
-                                      widget_to_html, widget_to_html_string)
+from deepchecks.core.serialization.suite_result.html import SuiteResultSerializer as SuiteResultHtmlSerializer
+from deepchecks.core.serialization.suite_result.json import SuiteResultSerializer as SuiteResultJsonSerializer
+from deepchecks.core.serialization.suite_result.widget import SuiteResultSerializer as SuiteResultWidgetSerializer
+from deepchecks.utils.ipython import is_colab_env, is_kaggle_env, is_notebook, is_widgets_enabled
+from deepchecks.utils.strings import create_new_file_name, get_random_string, widget_to_html, widget_to_html_string
 from deepchecks.utils.wandb_utils import set_wandb_run_state
 
-from .serialization.suite_result.ipython import \
-    SuiteResultSerializer as SuiteResultIPythonSerializer
+from .serialization.suite_result.ipython import SuiteResultSerializer as SuiteResultIPythonSerializer
 
 __all__ = ['BaseSuite', 'SuiteResult']
 
@@ -275,8 +268,7 @@ class SuiteResult:
         try:
             import wandb
 
-            from deepchecks.core.serialization.suite_result.wandb import \
-                SuiteResultSerializer as WandbSerializer
+            from deepchecks.core.serialization.suite_result.wandb import SuiteResultSerializer as WandbSerializer
         except ImportError as error:
             raise ImportError(
                 'Wandb serializer requires the wandb python package. '

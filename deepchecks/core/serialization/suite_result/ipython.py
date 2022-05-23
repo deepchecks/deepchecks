@@ -15,13 +15,10 @@ from IPython.display import HTML
 
 from deepchecks.core import check_result as check_types
 from deepchecks.core import suite
-from deepchecks.core.serialization.abc import (IPythonFormatter,
-                                               IPythonSerializer)
+from deepchecks.core.serialization.abc import IPythonFormatter, IPythonSerializer
 from deepchecks.core.serialization.check_result.html import CheckResultSection
-from deepchecks.core.serialization.check_result.ipython import \
-    CheckResultSerializer
-from deepchecks.core.serialization.common import (Html, flatten,
-                                                  form_output_anchor, join)
+from deepchecks.core.serialization.check_result.ipython import CheckResultSerializer
+from deepchecks.core.serialization.common import Html, flatten, form_output_anchor, join
 
 from . import html
 

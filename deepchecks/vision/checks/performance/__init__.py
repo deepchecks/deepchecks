@@ -16,10 +16,8 @@
 """
 import warnings
 
-from ..model_evaluation import (ClassPerformance, ConfusionMatrixReport,
-                                ImageSegmentPerformance,
-                                MeanAveragePrecisionReport,
-                                MeanAverageRecallReport, ModelErrorAnalysis,
+from ..model_evaluation import (ClassPerformance, ConfusionMatrixReport, ImageSegmentPerformance,
+                                MeanAveragePrecisionReport, MeanAverageRecallReport, ModelErrorAnalysis,
                                 RobustnessReport, SimpleModelComparison)
 
 __all__ = [

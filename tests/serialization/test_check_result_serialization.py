@@ -14,29 +14,21 @@ import typing as t
 
 import pandas as pd
 import wandb
-from hamcrest import (all_of, assert_that, calling, contains_string, equal_to,
-                      greater_than, has_entries, has_item, has_length,
-                      has_property, instance_of, matches_regexp, only_contains,
-                      raises, starts_with)
+from hamcrest import (all_of, assert_that, calling, contains_string, equal_to, greater_than, has_entries, has_item,
+                      has_length, has_property, instance_of, matches_regexp, only_contains, raises, starts_with)
 from IPython.display import Image
 from ipywidgets import HTML, VBox
 from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
 
-from deepchecks.core.serialization.check_result.html import \
-    CheckResultSerializer as HtmlSerializer
-from deepchecks.core.serialization.check_result.ipython import \
-    CheckResultSerializer as IPythonSerializer
-from deepchecks.core.serialization.check_result.json import \
-    CheckResultSerializer as JsonSerializer
-from deepchecks.core.serialization.check_result.wandb import \
-    CheckResultSerializer as WandbSerializer
-from deepchecks.core.serialization.check_result.widget import \
-    CheckResultSerializer as WidgetSerializer
+from deepchecks.core.serialization.check_result.html import CheckResultSerializer as HtmlSerializer
+from deepchecks.core.serialization.check_result.ipython import CheckResultSerializer as IPythonSerializer
+from deepchecks.core.serialization.check_result.json import CheckResultSerializer as JsonSerializer
+from deepchecks.core.serialization.check_result.wandb import CheckResultSerializer as WandbSerializer
+from deepchecks.core.serialization.check_result.widget import CheckResultSerializer as WidgetSerializer
 from deepchecks.core.serialization.common import plotlyjs_script
 from deepchecks.utils.strings import get_random_string
-from tests.common import (DummyCheck, create_check_result,
-                          instance_of_ipython_formatter)
+from tests.common import DummyCheck, create_check_result, instance_of_ipython_formatter
 
 # ===========================================
 

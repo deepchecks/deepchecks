@@ -20,12 +20,8 @@ from hamcrest import any_of, instance_of
 from deepchecks.core.check_result import CheckFailure, CheckResult
 from deepchecks.core.checks import BaseCheck
 from deepchecks.core.condition import ConditionCategory, ConditionResult
-from deepchecks.core.serialization.abc import (HTMLFormatter,
-                                               IPythonDisplayFormatter,
-                                               JPEGFormatter, JSONFormatter,
-                                               MarkdownFormatter,
-                                               MimeBundleFormatter,
-                                               PNGFormatter)
+from deepchecks.core.serialization.abc import (HTMLFormatter, IPythonDisplayFormatter, JPEGFormatter, JSONFormatter,
+                                               MarkdownFormatter, MimeBundleFormatter, PNGFormatter)
 from deepchecks.core.suite import SuiteResult
 
 

@@ -10,8 +10,7 @@
 #
 """Test functions of the VISION train test prediction drift."""
 import torch.nn as nn
-from hamcrest import (assert_that, calling, close_to, equal_to, has_entries,
-                      raises)
+from hamcrest import assert_that, calling, close_to, equal_to, has_entries, raises
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks import TrainTestPredictionDrift

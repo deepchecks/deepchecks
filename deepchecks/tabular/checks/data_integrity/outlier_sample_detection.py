@@ -17,9 +17,7 @@ import numpy as np
 from PyNomaly import loop
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
-from deepchecks.core.errors import (DeepchecksProcessError,
-                                    DeepchecksTimeoutError,
-                                    DeepchecksValueError,
+from deepchecks.core.errors import (DeepchecksProcessError, DeepchecksTimeoutError, DeepchecksValueError,
                                     NotEnoughSamplesError)
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils import gower_distance

@@ -14,11 +14,7 @@ from hamcrest import assert_that, calling, instance_of, raises
 from torch.utils.data import DataLoader
 
 from deepchecks.vision import VisionData
-from deepchecks.vision.datasets.classification.mnist import (DATA_PATH,
-                                                             MODEL_PATH,
-                                                             MNistNet,
-                                                             load_dataset,
-                                                             load_model)
+from deepchecks.vision.datasets.classification.mnist import DATA_PATH, MODEL_PATH, MNistNet, load_dataset, load_model
 
 
 def test_dataset_load():

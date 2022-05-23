@@ -11,8 +11,13 @@
 """Tests for Mixed Nulls check"""
 import numpy as np
 import pandas as pd
+<<<<<<< HEAD
 from hamcrest import (assert_that, calling, close_to, equal_to, has_entries,
                       has_entry, has_items, has_length, is_, raises)
+=======
+from hamcrest import (assert_that, calling, close_to, equal_to, has_entries, has_entry, has_items, has_length, is_,
+                      raises)
+>>>>>>> main
 
 from deepchecks.core.errors import DatasetValidationError, DeepchecksValueError
 from deepchecks.tabular.checks.data_integrity.mixed_nulls import MixedNulls
