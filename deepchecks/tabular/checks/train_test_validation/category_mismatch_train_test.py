@@ -130,8 +130,8 @@ class CategoryMismatchTrainTest(TrainTestCheck):
                                        f' of new categories above threshold:\n{dict(failing)}')
             else:
                 details = get_condition_passed_message(result)
-                if len(columns_new_categories) > 0:
-                    details += f'. Top columns with new categories:\n{dict(sorted_columns[:5])}'
+                if len(sorted_columns) > 0:
+                    details += f'. Top columns with new categories count:\n{dict(sorted_columns[:5])}'
                 return ConditionResult(ConditionCategory.PASS, details)
 
         return self.add_condition(f'Number of new category values is not greater than {max_new}',
@@ -159,8 +159,9 @@ class CategoryMismatchTrainTest(TrainTestCheck):
                                        f'of new category samples above threshold:\n{dict(failing)}')
             else:
                 details = get_condition_passed_message(result)
-                if len(columns_new_categories) > 0:
-                    details += f'. Top columns with new categories:\n{dict(sorted_columns[:5])}'
+                if len(sorted_columns) > 0:
+                    columns_to_show = {feature: format_percent(ratio) for feature, ratio in sorted_columns[:5]}
+                    details += f'. Top columns with new categories ratio:\n{columns_to_show}'
                 return ConditionResult(ConditionCategory.PASS, details)
 
         return self.add_condition(
