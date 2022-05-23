@@ -213,7 +213,7 @@ def test_train_test_condition_pps_positive_difference_fail():
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name=f'Train-Test features\' Predictive Power Score difference is not greater than {condition_value}',
-        details='Found 1 features with PPS difference above threshold out of 3 features: {\'x2\': \'0.31\'}'
+        details='Found 1 out of 3 features with PPS difference above threshold: {\'x2\': \'0.31\'}'
     ))
 
 
@@ -253,7 +253,7 @@ def test_train_test_condition_pps_difference_fail():
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name=f'Train-Test features\' Predictive Power Score difference is not greater than {condition_value}',
-        details='Found 1 features with PPS difference above threshold out of 3 features: {\'x3\': \'0.54\'}'
+        details='Found 1 out of 3 features with PPS difference above threshold: {\'x3\': \'0.54\'}'
     ))
 
 
@@ -293,5 +293,5 @@ def test_train_test_condition_pps_train_fail():
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name=f'Train features\' Predictive Power Score is not greater than {condition_value}',
-        details='Found 1 features in train dataset with PPS above threshold out of 5 features: {\'x2\': \'0.84\'}'
+        details='Found 1 out of 5 features in train dataset with PPS above threshold: {\'x2\': \'0.84\'}'
     ))

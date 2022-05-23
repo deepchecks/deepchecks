@@ -78,6 +78,7 @@ class DominantFrequencyChange(TrainTestCheck):
         for column in train_dataset.features:
             top_ref = baseline_df[column].value_counts(dropna=False)
             top_test = test_df[column].value_counts(dropna=False)
+            p_dict[column] = None
 
             if len(top_ref) == 1 or top_ref.iloc[0] > top_ref.iloc[1] * self.dominance_ratio:
                 value = top_ref.index[0]
@@ -103,8 +104,6 @@ class DominantFrequencyChange(TrainTestCheck):
                                       'Train data #': count_ref,
                                       'Test data #': count_test,
                                       'P value': p_val}
-            else:
-                p_dict[column] = None
 
         dominants = {k: v for k, v in p_dict.items() if v is not None}
         if dominants:
@@ -190,8 +189,8 @@ class DominantFrequencyChange(TrainTestCheck):
                               if v is not None and v['P value'] < p_value_threshold}
             if failed_columns:
                 return ConditionResult(ConditionCategory.FAIL,
-                                       f'Found {len(failed_columns)} columns with p-value below threshold out of '
-                                       f'{len(result)} columns: {failed_columns}')
+                                       f'Found {len(failed_columns)} out of {len(result)} columns with p-value below '
+                                       f'threshold: {failed_columns}')
             else:
                 return ConditionResult(ConditionCategory.PASS, f'Passed for {len(result)} relevant columns')
 
@@ -219,8 +218,8 @@ class DominantFrequencyChange(TrainTestCheck):
                     failed_columns[column] = format_percent(diff, 2)
             if failed_columns:
                 return ConditionResult(ConditionCategory.FAIL,
-                                       f'Found {len(failed_columns)} columns with % difference in dominant value above '
-                                       f'threshold out of {len(result)} columns: {failed_columns}')
+                                       f'Found {len(failed_columns)} out of {len(result)} columns with % difference '
+                                       f'in dominant value above threshold: {failed_columns}')
             else:
                 return ConditionResult(ConditionCategory.PASS, f'Passed for {len(result)} relevant columns')
 

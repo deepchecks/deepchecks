@@ -180,8 +180,8 @@ def _condition_percent_limit(result, ratio: float):
             not_passing_columns[col] = format_percent(sum_percent)
 
     if not_passing_columns:
-        details = f'Found {len(not_passing_columns)} columns with ratio of variants above threshold out of ' \
-                  f'{len(result)} columns: {not_passing_columns}'
+        details = f'Found {len(not_passing_columns)} out of {len(result)} columns with ratio of variants above ' \
+                  f'threshold: {not_passing_columns}'
         return ConditionResult(ConditionCategory.FAIL, details)
     return ConditionResult(ConditionCategory.PASS, f'Passed for {len(result)} relevant columns')
 

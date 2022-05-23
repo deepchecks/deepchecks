@@ -125,8 +125,8 @@ class CategoryMismatchTrainTest(TrainTestCheck):
             failing = [(feature, num_new) for feature, num_new in sorted_columns if num_new > max_new]
             if failing:
                 return ConditionResult(ConditionCategory.FAIL,
-                                       f'Found {len(failing)} columns with number of new categories above threshold '
-                                       f'out of {len(columns_new_categories)} categorical columns:\n{dict(failing)}')
+                                       f'Found {len(failing)} out of {len(columns_new_categories)} columns with number'
+                                       f' of new categories above threshold:\n{dict(failing)}')
             else:
                 details = f'Passed for {len(columns_new_categories)} categorical columns.'
                 if len(columns_new_categories) > 0:
@@ -154,9 +154,8 @@ class CategoryMismatchTrainTest(TrainTestCheck):
 
             if failing:
                 return ConditionResult(ConditionCategory.FAIL,
-                                       f'Found {len(failing)} columns with ratio of new category samples above '
-                                       f'threshold out of {len(columns_new_categories)} categorical columns:\n'
-                                       f'{dict(failing)}')
+                                       f'Found {len(failing)} out of {len(columns_new_categories)} columns with ratio '
+                                       f'of new category samples above threshold:\n{dict(failing)}')
             else:
                 details = f'Passed for {len(columns_new_categories)} categorical columns.'
                 if len(columns_new_categories) > 0:

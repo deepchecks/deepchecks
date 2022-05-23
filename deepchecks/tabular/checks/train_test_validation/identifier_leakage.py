@@ -127,8 +127,8 @@ class IdentifierLeakage(SingleDatasetCheck):
             not_passing_columns = {k: format_number(score) for k, score in result.items() if score > max_pps}
             if not_passing_columns:
                 return ConditionResult(ConditionCategory.FAIL,
-                                       f'Found {len(not_passing_columns)} columns with PPS above threshold out of '
-                                       f'{len(result)} columns: {not_passing_columns}')
+                                       f'Found {len(not_passing_columns)} out of {len(result)} columns with PPS above'
+                                       f' threshold: {not_passing_columns}')
             else:
                 return ConditionResult(ConditionCategory.PASS, f'Passed for {len(result)} relevant columns')
 

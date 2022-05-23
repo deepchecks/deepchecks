@@ -18,6 +18,7 @@ from deepchecks.tabular import Context, TrainTestCheck
 
 __all__ = ['DatasetsSizeComparison']
 
+from deepchecks.utils.strings import format_number
 
 T = t.TypeVar('T', bound='DatasetsSizeComparison')
 
@@ -89,7 +90,7 @@ class DatasetsSizeComparison(TrainTestCheck):
 
         def condition(check_result: dict) -> ConditionResult:
             test_train_ratio = check_result['Test'] / check_result['Train']
-            details = f'Test-Train size ratio is {test_train_ratio}'
+            details = f'Test-Train size ratio is {format_number(test_train_ratio)}'
             category = ConditionCategory.FAIL if test_train_ratio <= ratio else ConditionCategory.PASS
             return ConditionResult(category, details)
 
