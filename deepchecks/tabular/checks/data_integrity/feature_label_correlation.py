@@ -8,30 +8,30 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""The single_feature_contribution check module."""
+"""The feature label correlation check module."""
 import typing as t
 
 import deepchecks.ppscore as pps
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
-from deepchecks.core.check_utils.single_feature_contribution_utils import get_pps_figure, pd_series_to_trace
+from deepchecks.core.check_utils.feature_label_correlation_utils import get_pps_figure, pd_series_to_trace
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.tabular.utils.integrity_messages import get_condition_passed_message
 from deepchecks.utils.strings import format_number
 from deepchecks.utils.typing import Hashable
 
-__all__ = ['SingleFeatureContribution']
+__all__ = ['FeatureLabelCorrelation']
 
 
-FC = t.TypeVar('FC', bound='SingleFeatureContribution')
+FLC = t.TypeVar('FLC', bound='FeatureLabelCorrelation')
 
 
 pps_url = 'https://docs.deepchecks.com/en/stable/examples/tabular/' \
-          'checks/methodology/single_feature_contribution_train_test' \
+          'checks/train_test_validation/feature_label_correlation_change' \
           '.html?utm_source=display_output&utm_medium=referral&utm_campaign=check_link'
 pps_html = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
 
 
-class SingleFeatureContribution(SingleDatasetCheck):
+class FeatureLabelCorrelation(SingleDatasetCheck):
     """Return the PPS (Predictive Power Score) of all features in relation to the label.
 
     The PPS represents the ability of a feature to single-handedly predict another feature or label.
@@ -103,9 +103,9 @@ class SingleFeatureContribution(SingleDatasetCheck):
         # display only if not all scores are 0
         display = [fig, *text] if s_ppscore.sum() else None
 
-        return CheckResult(value=s_ppscore.to_dict(), display=display, header='Single Feature Contribution')
+        return CheckResult(value=s_ppscore.to_dict(), display=display, header='Feature Label Correlation')
 
-    def add_condition_feature_pps_not_greater_than(self: FC, threshold: float = 0.8) -> FC:
+    def add_condition_feature_pps_not_greater_than(self: FLC, threshold: float = 0.8) -> FLC:
         """
         Add condition that will check that pps of the specified feature(s) is not greater than X.
 
@@ -115,7 +115,7 @@ class SingleFeatureContribution(SingleDatasetCheck):
             pps upper bound
         Returns
         -------
-        FC
+        FLC
         """
         def condition(value: t.Dict[Hashable, float]) -> ConditionResult:
             failed_features = {

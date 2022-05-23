@@ -10,7 +10,7 @@
 #
 """Module importing all tabular checks."""
 from .data_integrity import (ColumnsInfo, ConflictingLabels, DataDuplicates, IsSingleValue, MixedDataTypes, MixedNulls,
-                             OutlierSampleDetection, SingleFeatureContribution, SpecialCharacters,
+                             OutlierSampleDetection, FeatureLabelCorrelation, SpecialCharacters,
                              StringLengthOutOfBounds, StringMismatch)
 from .model_evaluation import (BoostingOverfit, CalibrationScore, ConfusionMatrixReport, ModelErrorAnalysis,
                                ModelInferenceTime, ModelInfo, MultiModelPerformanceReport, PerformanceReport,
@@ -18,7 +18,7 @@ from .model_evaluation import (BoostingOverfit, CalibrationScore, ConfusionMatri
                                SimpleModelComparison, TrainTestPredictionDrift, UnusedFeatures)
 from .train_test_validation import (CategoryMismatchTrainTest, DatasetsSizeComparison, DateTrainTestLeakageDuplicates,
                                     DateTrainTestLeakageOverlap, DominantFrequencyChange, IdentifierLeakage,
-                                    IndexTrainTestLeakage, NewLabelTrainTest, SingleFeatureContributionTrainTest,
+                                    IndexTrainTestLeakage, NewLabelTrainTest, FeatureLabelCorrelationChange,
                                     StringMismatchComparison, TrainTestFeatureDrift, TrainTestLabelDrift,
                                     TrainTestSamplesMix, WholeDatasetDrift)
 
@@ -41,8 +41,8 @@ __all__ = [
     # methodology checks
     'BoostingOverfit',
     'UnusedFeatures',
-    'SingleFeatureContribution',
-    'SingleFeatureContributionTrainTest',
+    'FeatureLabelCorrelation',
+    'FeatureLabelCorrelationChange',
     'IndexTrainTestLeakage',
     'TrainTestSamplesMix',
     'DateTrainTestLeakageDuplicates',

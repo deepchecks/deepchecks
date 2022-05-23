@@ -19,8 +19,8 @@ from pandas.core.dtypes.common import is_float_dtype
 
 from deepchecks import ConditionResult
 from deepchecks.core import CheckResult, DatasetKind
-from deepchecks.core.check_utils.single_feature_contribution_utils import (get_single_feature_contribution,
-                                                                           get_single_feature_contribution_per_class)
+from deepchecks.core.check_utils.feature_label_correlation_utils import (get_feature_label_correlation,
+                                                                         get_feature_label_correlation_per_class)
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import ModelValidationError
 from deepchecks.utils.strings import format_number
@@ -30,17 +30,17 @@ from deepchecks.vision.utils.image_functions import crop_image
 from deepchecks.vision.utils.image_properties import default_image_properties, validate_properties
 from deepchecks.vision.vision_data import TaskType
 
-__all__ = ['SimpleFeatureContribution']
+__all__ = ['FeatureLabelCorrelationChange']
 
 pps_url = 'https://docs.deepchecks.com/en/stable/examples/vision/' \
-          'checks/methodology/simple_feature_contribution' \
+          'checks/train_test_validation/feature_label_correlation_change' \
           '.html?utm_source=display_output&utm_medium=referral&utm_campaign=check_link'
 pps_html = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
 
-SFC = TypeVar('SFC', bound='SimpleFeatureContribution')
+FLC = TypeVar('FLC', bound='FeatureLabelCorrelationChange')
 
 
-class SimpleFeatureContribution(TrainTestCheck):
+class FeatureLabelCorrelationChange(TrainTestCheck):
     """
     Return the Predictive Power Score of image properties, in order to estimate their ability to predict the label.
 
@@ -190,28 +190,28 @@ class SimpleFeatureContribution(TrainTestCheck):
         ]
 
         if self.per_class is True:
-            ret_value, display = get_single_feature_contribution_per_class(df_train,
+            ret_value, display = get_feature_label_correlation_per_class(df_train,
                                                                            'target',
-                                                                           df_test,
+                                                                         df_test,
                                                                            'target',
-                                                                           self.ppscore_params,
-                                                                           self.n_top_properties,
-                                                                           min_pps_to_show=self.min_pps_to_show,
-                                                                           random_state=self.random_state)
+                                                                         self.ppscore_params,
+                                                                         self.n_top_properties,
+                                                                         min_pps_to_show=self.min_pps_to_show,
+                                                                         random_state=self.random_state)
         else:
-            ret_value, display = get_single_feature_contribution(df_train,
+            ret_value, display = get_feature_label_correlation(df_train,
                                                                  'target',
-                                                                 df_test,
+                                                               df_test,
                                                                  'target',
-                                                                 self.ppscore_params,
-                                                                 self.n_top_properties,
-                                                                 min_pps_to_show=self.min_pps_to_show,
-                                                                 random_state=self.random_state)
+                                                               self.ppscore_params,
+                                                               self.n_top_properties,
+                                                               min_pps_to_show=self.min_pps_to_show,
+                                                               random_state=self.random_state)
 
         if display:
             display += text
 
-        return CheckResult(value=ret_value, display=display, header='Simple Feature Contribution')
+        return CheckResult(value=ret_value, display=display, header='Feature Label Correlation Change')
 
     @staticmethod
     def is_float_column(col: pd.Series) -> bool:
@@ -232,8 +232,8 @@ class SimpleFeatureContribution(TrainTestCheck):
 
         return (col.round() != col).any()
 
-    def add_condition_feature_pps_difference_not_greater_than(self: SFC, threshold: float = 0.2,
-                                                              include_negative_diff: bool = False) -> SFC:
+    def add_condition_feature_pps_difference_not_greater_than(self: FLC, threshold: float = 0.2,
+                                                              include_negative_diff: bool = False) -> FLC:
         """Add new condition.
 
         Add condition that will check that difference between train
@@ -287,7 +287,7 @@ class SimpleFeatureContribution(TrainTestCheck):
         return self.add_condition(f'Train-Test properties\' Predictive Power Score difference is not greater than '
                                   f'{format_number(threshold)}', condition)
 
-    def add_condition_feature_pps_in_train_not_greater_than(self: SFC, threshold: float = 0.2) -> SFC:
+    def add_condition_feature_pps_in_train_not_greater_than(self: FLC, threshold: float = 0.2) -> FLC:
         """Add new condition.
 
         Add condition that will check that train dataset property pps is not greater than X. If per_class is True, the

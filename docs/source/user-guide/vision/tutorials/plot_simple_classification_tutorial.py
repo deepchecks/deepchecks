@@ -91,15 +91,15 @@ result
 # Looking at the results we see two checks whose conditions have failed:
 #
 # 1. Similar Image Leakage
-# 2. Simple Feature Contribution
+# 2. Feature Label Correlation
 #
 # The first has clearly failed due to the naturally occurring similarity between different ocean / lake image,
 # and the prevailing green of some forest images. We may wish to remove some of these duplicate images but for this
 # dataset they make sense.
 #
-# The second failure is more interesting. The :doc:`Simple Feature Contribution
-# </checks_gallery/vision/train_test_validation/plot_simple_feature_contribution>` check computes various :doc:`simple
-# image properties </user-guide/vision/vision_properties>` and checks if the image label can be inferred using a
+# The second failure is more interesting. The :doc:`Feature Label Correlation Change
+# </checks_gallery/vision/train_test_validation/plot_feature_label_correlation>` check computes various :doc:`image
+# properties </user-guide/vision/vision_properties>` and checks if the image label can be inferred using a
 # simple model (for example, a Classification Tree) using the property values. The ability to predict the label using
 # these properties is measures by the Predictive Power Score (PPS) and this measure is compared between the training
 # and test dataset. In this case, the condition alerts us to the fact that this PPS for the "RMS Contrast" property was
@@ -107,7 +107,7 @@ result
 #
 # We'll show the relevant plot again for ease of discussion:
 
-check_idx = np.where([result.results[i].check.name() == 'Simple Feature Contribution'
+check_idx = np.where([result.results[i].check.name() == 'Feature Label Correlation'
                       for i in range(len(result.results))])[0][0]
 result.results[check_idx]
 

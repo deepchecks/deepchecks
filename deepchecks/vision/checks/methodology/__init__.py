@@ -16,10 +16,10 @@
 """
 import warnings
 
-from ..train_test_validation import SimilarImageLeakage, SimpleFeatureContribution
+from ..train_test_validation import SimilarImageLeakage, FeatureLabelCorrelationChange
 
 __all__ = [
-    'SimpleFeatureContribution',
+    'FeatureLabelCorrelationChange',
     'SimilarImageLeakage'
 ]
 

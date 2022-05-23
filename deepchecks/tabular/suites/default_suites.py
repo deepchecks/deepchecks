@@ -23,8 +23,8 @@ from deepchecks.tabular.checks import (BoostingOverfit, CalibrationScore, Catego
                                        MixedDataTypes, MixedNulls, ModelErrorAnalysis, ModelInferenceTime,
                                        NewLabelTrainTest, OutlierSampleDetection, PerformanceReport,
                                        RegressionErrorDistribution, RegressionSystematicError, RocReport,
-                                       SegmentPerformance, SimpleModelComparison, SingleFeatureContribution,
-                                       SingleFeatureContributionTrainTest, SpecialCharacters, StringLengthOutOfBounds,
+                                       SegmentPerformance, SimpleModelComparison, FeatureLabelCorrelation,
+                                       FeatureLabelCorrelationChange, SpecialCharacters, StringLengthOutOfBounds,
                                        StringMismatch, StringMismatchComparison, TrainTestFeatureDrift,
                                        TrainTestLabelDrift, TrainTestPredictionDrift, TrainTestSamplesMix,
                                        UnusedFeatures, WholeDatasetDrift)
@@ -61,7 +61,7 @@ def data_integrity() -> Suite:
         StringLengthOutOfBounds().add_condition_ratio_of_outliers_not_greater_than(),
         ConflictingLabels().add_condition_ratio_of_conflicting_labels_not_greater_than(),
         OutlierSampleDetection(),
-        SingleFeatureContribution().add_condition_feature_pps_not_greater_than()
+        FeatureLabelCorrelation().add_condition_feature_pps_not_greater_than()
     )
 
 
@@ -95,7 +95,7 @@ def train_test_validation() -> Suite:
         IndexTrainTestLeakage().add_condition_ratio_not_greater_than(),
         IdentifierLeakage().add_condition_pps_not_greater_than(),
         TrainTestSamplesMix().add_condition_duplicates_ratio_not_greater_than(),
-        SingleFeatureContributionTrainTest().add_condition_feature_pps_difference_not_greater_than()
+        FeatureLabelCorrelationChange().add_condition_feature_pps_difference_not_greater_than()
         .add_condition_feature_pps_in_train_not_greater_than(),
         TrainTestFeatureDrift().add_condition_drift_score_not_greater_than(),
         TrainTestLabelDrift().add_condition_drift_score_not_greater_than(),

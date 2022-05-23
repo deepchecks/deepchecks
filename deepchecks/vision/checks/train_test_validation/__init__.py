@@ -14,7 +14,7 @@ from .image_dataset_drift import ImageDatasetDrift
 from .image_property_drift import ImagePropertyDrift
 from .new_labels import NewLabels
 from .similar_image_leakage import SimilarImageLeakage
-from .simple_feature_contribution import SimpleFeatureContribution
+from .feature_label_correlation_change import FeatureLabelCorrelationChange
 from .train_test_label_drift import TrainTestLabelDrift
 
 __all__ = [
@@ -23,6 +23,6 @@ __all__ = [
     'ImagePropertyDrift',
     'NewLabels',
     'SimilarImageLeakage',
-    'SimpleFeatureContribution',
+    'FeatureLabelCorrelationChange',
     'TrainTestLabelDrift'
 ]

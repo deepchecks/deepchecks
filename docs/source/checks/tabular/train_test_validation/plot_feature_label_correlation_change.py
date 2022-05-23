@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Single Feature Contribution Train Test
+Feature Label Correlation Change
 **************************************
 
-This notebook provides an overview for using and understanding the "Single
-Feature Contribution Train Test" check.
+This notebook provides an overview for using and understanding the "Feature Label Correlation Change" check.
 
 **Structure:**
 
@@ -51,8 +50,8 @@ What is a problematic result?
 
    For example: a coffee shop chain trained a model to predict the number of
    coffee cups ordered in a store, and the model was trained on data from a
-   specific state, and tested on data from all states. Running the Single
-   Feature Contribution check on this split found that there was a high
+   specific state, and tested on data from all states. Running the Feature
+   Label Correlation check on this split found that there was a high
    difference in the PPS score of the feature "time_in_day" - it had a
    much higher predictive power on the training data than on the test data.
    Investigating this topic led to detection of the problem - the time in
@@ -100,7 +99,7 @@ The process of calculating the PPS is the following:
 # Generate data
 # =============
 # We'll add to a given dataset a direct relation between two features and the label,
-# in order to see the Single Feature Contribution Train Test check in action.
+# in order to see the Feature Label Correlation Change check in action.
 
 from deepchecks.tabular.datasets.classification.phishing import load_data
 
@@ -119,9 +118,9 @@ relate_column_to_label(test_dataset, 'numDigits', 0.1)
 #%%
 # Run the check
 # =============
-from deepchecks.tabular.checks import SingleFeatureContributionTrainTest
+from deepchecks.tabular.checks import FeatureLabelCorrelationChange
 
-result = SingleFeatureContributionTrainTest().run(train_dataset=train_dataset, test_dataset=test_dataset)
+result = FeatureLabelCorrelationChange().run(train_dataset=train_dataset, test_dataset=test_dataset)
 result
 
 #%%
@@ -155,6 +154,6 @@ result.value
 #
 # Let's add the conditions, and re-run the check:
 
-check = SingleFeatureContributionTrainTest().add_condition_feature_pps_difference_not_greater_than().add_condition_feature_pps_in_train_not_greater_than()
+check = FeatureLabelCorrelationChange().add_condition_feature_pps_difference_not_greater_than().add_condition_feature_pps_in_train_not_greater_than()
 result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
 result.show(show_additional_outputs=False)

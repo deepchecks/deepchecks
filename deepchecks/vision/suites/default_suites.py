@@ -19,7 +19,7 @@ from deepchecks.vision import Suite
 from deepchecks.vision.checks import (ClassPerformance, ConfusionMatrixReport, HeatmapComparison, ImageDatasetDrift,
                                       ImagePropertyDrift, ImagePropertyOutliers, ImageSegmentPerformance,
                                       LabelPropertyOutliers, MeanAveragePrecisionReport, MeanAverageRecallReport,
-                                      ModelErrorAnalysis, NewLabels, SimilarImageLeakage, SimpleFeatureContribution,
+                                      ModelErrorAnalysis, NewLabels, SimilarImageLeakage, FeatureLabelCorrelationChange,
                                       SimpleModelComparison, TrainTestLabelDrift, TrainTestPredictionDrift)
 
 __all__ = ['train_test_validation', 'model_evaluation', 'full_suite', 'integrity_validation', 'data_integrity']
@@ -36,7 +36,7 @@ def train_test_validation(**kwargs) -> Suite:
         TrainTestLabelDrift(**kwargs).add_condition_drift_score_not_greater_than(),
         ImagePropertyDrift(**kwargs).add_condition_drift_score_not_greater_than(),
         ImageDatasetDrift(**kwargs),
-        SimpleFeatureContribution(**kwargs).add_condition_feature_pps_difference_not_greater_than(),
+        FeatureLabelCorrelationChange(**kwargs).add_condition_feature_pps_difference_not_greater_than(),
     )
 
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Single Feature Contribution
+Feature Label Correlation
 ***************************
 """
 
@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 
 from deepchecks.tabular import Dataset
-from deepchecks.tabular.checks import SingleFeatureContribution
+from deepchecks.tabular.checks import FeatureLabelCorrelation
 
 #%%
 # Generating Data
@@ -31,11 +31,11 @@ ds = Dataset(df, label='label', cat_features=[])
 # Running single_feature_contribution check
 # =========================================
 
-SingleFeatureContribution().run(ds)
+FeatureLabelCorrelation().run(ds)
 
 #%%
-# Using the SingleFeatureContribution check class
+# Using the FeatureLabelCorrelation check class
 # ===============================================
 
-my_check = SingleFeatureContribution(ppscore_params={'sample': 10})
+my_check = FeatureLabelCorrelation(ppscore_params={'sample': 10})
 my_check.run(dataset=ds)
