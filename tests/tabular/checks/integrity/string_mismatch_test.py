@@ -144,7 +144,7 @@ def test_condition_percent_variants_no_more_than_fail():
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                name='Ratio of variants is not greater than 10%',
-                               details='Found 1 out of 1 columns with variants ratio above threshold: '
+                               details='Found 1 out of 1 relevant columns with variants ratio above threshold: '
                                        '{\'col1\': \'75%\'}')
     ))
 

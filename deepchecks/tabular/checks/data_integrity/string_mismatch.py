@@ -151,8 +151,8 @@ class StringMismatch(SingleDatasetCheck):
                     not_passing_columns[col] = format_percent(variants_percent_sum)
 
             if not_passing_columns:
-                details = f'Found {len(not_passing_columns)} out of {len(result)} columns with variants ratio above ' \
-                          f'threshold: {not_passing_columns}'
+                details = f'Found {len(not_passing_columns)} out of {len(result)} relevant columns with variants ratio ' \
+                          f'above threshold: {not_passing_columns}'
                 return ConditionResult(ConditionCategory.FAIL, details)
             return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))
 

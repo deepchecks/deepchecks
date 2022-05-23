@@ -250,8 +250,8 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
                 if ratio > max_ratio:
                     not_passing_columns[column_name] = format_percent(ratio)
             if not_passing_columns:
-                details = f'Found {len(not_passing_columns)} out of {len(result)} columns with outliers ratio above ' \
-                          f'threshold: {not_passing_columns}'
+                details = f'Found {len(not_passing_columns)} out of {len(result)} relevant columns with outliers ratio ' \
+                          f'above threshold: {not_passing_columns}'
                 return ConditionResult(ConditionCategory.WARN, details)
             else:
                 return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))

@@ -18,6 +18,7 @@ from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
+from deepchecks.tabular.utils.messages import get_condition_passed_message
 from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERIC_METHODS,
                                                  calc_drift_and_plot, get_drift_method)
 from deepchecks.utils.strings import format_number
@@ -278,7 +279,7 @@ class TrainTestFeatureDrift(TrainTestCheck):
                                f'above threshold: {not_passing_numeric_columns}'
                 return ConditionResult(ConditionCategory.FAIL, details)
             else:
-                details = f'Passed for {len(result)} columns.'
+                details = get_condition_passed_message(result) + '.'
                 if cat_drift_columns:
                     column = next(iter(cat_drift_columns))
                     details += f' Column {column} has the highest categorical drift score: ' \

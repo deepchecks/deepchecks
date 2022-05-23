@@ -135,7 +135,7 @@ def test_drift_max_drift_score_condition_pass_threshold(drifted_data_and_model):
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
-        details='Passed for 4 columns. Column categorical_with_drift has the highest categorical drift score: 0.22 '
-                'Column numeric_with_drift has the highest numerical drift score: 0.34',
+        details='Passed for 4 relevant columns. Column categorical_with_drift has the highest categorical drift score: '
+                '0.22 Column numeric_with_drift has the highest numerical drift score: 0.34',
         name='categorical drift score <= 1 and numerical drift score <= 1'
     ))

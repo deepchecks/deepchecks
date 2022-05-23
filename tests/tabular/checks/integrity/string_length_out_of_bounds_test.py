@@ -172,7 +172,7 @@ def test_condition_ratio_fail():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details='Found 1 out of 1 columns with outliers ratio above threshold: '
+                               details='Found 1 out of 1 relevant columns with outliers ratio above threshold: '
                                        '{\'col1\': \'0.99%\'}',
                                name='Ratio of outliers not greater than 0.1% string length outliers',
                                category=ConditionCategory.WARN)

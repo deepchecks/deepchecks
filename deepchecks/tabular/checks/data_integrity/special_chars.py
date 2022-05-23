@@ -112,7 +112,7 @@ class SpecialCharacters(SingleDatasetCheck):
         def condition(result):
             not_passed = {k: format_percent(v) for k, v in result.items() if v > max_ratio}
             if not_passed:
-                details = f'Found {len(not_passed)} out of {len(result)} columns with ratio above threshold: ' \
+                details = f'Found {len(not_passed)} out of {len(result)} relevant columns with ratio above threshold: '\
                           f'{not_passed}'
                 return ConditionResult(ConditionCategory.WARN, details)
             return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))
