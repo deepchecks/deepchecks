@@ -30,7 +30,7 @@ accurate as it was before.
 
 Detecting drift is an important warning sign that our model may be not as accurate on the new data compared to the training data, and that it should be
 adjusted or retrained on different data.
-In production environments, detecting drift (and other measured derived from drift, such as model confidence) is often the only way to know that our model performance is deteriorating,
+In production environments, detecting drift (and other measures derived from drift, such as model confidence) is often the only way to know that our model performance is deteriorating,
 as in many cases the label is unknown for some time after the prediction is made.
 
 It is important to note that not all changes in data represent drift. For example, periodic changes in data due to daily, weekly or
@@ -253,7 +253,7 @@ Tabular Checks
 
     from deepchecks.tabular.checks import TrainTestPredictionDrift
     check = TrainTestPredictionDrift()
-    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
+    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset, model=model)
 
 
 Computer Vision Checks
@@ -289,4 +289,4 @@ Computer Vision Checks
 
     from deepchecks.vision.checks import TrainTestPredictionDrift
     check = TrainTestPredictionDrift()
-    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
+    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset, model=model)
