@@ -15,14 +15,11 @@ from collections import OrderedDict
 from deepchecks.core import check_result as check_types
 from deepchecks.core import suite
 from deepchecks.core.serialization.abc import WandbSerializer
-from deepchecks.core.serialization.check_failure.wandb import \
-    CheckFailureSerializer
-from deepchecks.core.serialization.check_result.wandb import \
-    CheckResultSerializer
+from deepchecks.core.serialization.check_failure.wandb import CheckFailureSerializer
+from deepchecks.core.serialization.check_result.wandb import CheckResultSerializer
 
 if t.TYPE_CHECKING:
-    from wandb.sdk.data_types.base_types.wb_value import \
-        WBValue  # pylint: disable=unused-import
+    from wandb.sdk.data_types.base_types.wb_value import WBValue  # pylint: disable=unused-import
 
 
 class SuiteResultSerializer(WandbSerializer['suite.SuiteResult']):

@@ -13,11 +13,9 @@ import typing as t
 
 import deepchecks.ppscore as pps
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
-from deepchecks.core.check_utils.single_feature_contribution_utils import (
-    get_pps_figure, pd_series_to_trace)
+from deepchecks.core.check_utils.single_feature_contribution_utils import get_pps_figure, pd_series_to_trace
 from deepchecks.tabular import Context, SingleDatasetCheck
-from deepchecks.tabular.utils.integrity_messages import \
-    get_condition_passed_message
+from deepchecks.tabular.utils.integrity_messages import get_condition_passed_message
 from deepchecks.utils.strings import format_number
 from deepchecks.utils.typing import Hashable
 

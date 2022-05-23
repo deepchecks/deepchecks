@@ -19,8 +19,7 @@ import jsonpickle
 import pandas as pd
 import plotly.express
 import plotly.io as pio
-from hamcrest import (all_of, any_of, assert_that, calling, greater_than,
-                      has_entries, has_length, instance_of, is_,
+from hamcrest import (all_of, any_of, assert_that, calling, greater_than, has_entries, has_length, instance_of, is_,
                       matches_regexp, not_none, raises)
 from ipywidgets import VBox, Widget
 from plotly.graph_objs import FigureWidget

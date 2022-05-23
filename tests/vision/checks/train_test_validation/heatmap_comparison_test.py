@@ -11,8 +11,7 @@
 """Test functions of the heatmap comparison check."""
 from hamcrest import assert_that, calling, close_to, raises
 
-from deepchecks.core.errors import (DeepchecksNotSupportedError,
-                                    DeepchecksValueError)
+from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.vision.checks import HeatmapComparison
 
 

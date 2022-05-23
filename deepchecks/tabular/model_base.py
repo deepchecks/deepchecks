@@ -13,8 +13,7 @@
 from typing import Any, List, Mapping, Tuple, Union
 
 from deepchecks.core.check_result import CheckFailure
-from deepchecks.core.errors import (DeepchecksNotSupportedError,
-                                    DeepchecksValueError)
+from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.tabular.context import Context
 from deepchecks.tabular.dataset import Dataset
@@ -32,8 +31,7 @@ class ModelComparisonSuite(BaseSuite):
     @classmethod
     def supported_checks(cls) -> Tuple:
         """Return tuple of supported check types of this suite."""
-        from deepchecks.tabular.base_checks import \
-            ModelComparisonCheck  # pylint: disable=import-outside-toplevel
+        from deepchecks.tabular.base_checks import ModelComparisonCheck  # pylint: disable=import-outside-toplevel
         return tuple([ModelComparisonCheck])
 
     def run(self,

@@ -11,8 +11,7 @@
 """Contains unit tests for the outlier_sample_detection check."""
 import numpy as np
 import pandas as pd
-from hamcrest import (assert_that, calling, greater_than, has_item, has_items,
-                      has_length, raises)
+from hamcrest import assert_that, calling, greater_than, has_item, has_items, has_length, raises
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.checks import OutlierSampleDetection

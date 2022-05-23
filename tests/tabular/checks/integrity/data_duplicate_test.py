@@ -11,13 +11,11 @@
 """Tests for Mixed Nulls check"""
 import numpy as np
 import pandas as pd
-from hamcrest import (assert_that, calling, close_to, equal_to, has_items,
-                      raises)
+from hamcrest import assert_that, calling, close_to, equal_to, has_items, raises
 
 from deepchecks.core import ConditionCategory
 from deepchecks.core.errors import DatasetValidationError, DeepchecksValueError
-from deepchecks.tabular.checks.data_integrity.data_duplicates import \
-    DataDuplicates
+from deepchecks.tabular.checks.data_integrity.data_duplicates import DataDuplicates
 from tests.base.utils import equal_condition_result
 
 

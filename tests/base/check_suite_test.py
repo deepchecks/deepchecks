@@ -11,8 +11,7 @@
 """suites tests"""
 import random
 
-from hamcrest import (assert_that, calling, equal_to, has_length, instance_of,
-                      is_, raises)
+from hamcrest import assert_that, calling, equal_to, has_length, instance_of, is_, raises
 
 from deepchecks.core import CheckFailure, CheckResult
 from deepchecks.core.errors import DeepchecksValueError

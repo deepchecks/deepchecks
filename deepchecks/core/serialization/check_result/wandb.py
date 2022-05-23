@@ -18,11 +18,8 @@ from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
 
 from deepchecks.core import check_result as check_types
-from deepchecks.core.serialization.abc import (ABCDisplayItemsHandler,
-                                               WandbSerializer)
-from deepchecks.core.serialization.common import (aggregate_conditions,
-                                                  concatv_images,
-                                                  normalize_value, prettify)
+from deepchecks.core.serialization.abc import ABCDisplayItemsHandler, WandbSerializer
+from deepchecks.core.serialization.common import aggregate_conditions, concatv_images, normalize_value, prettify
 
 try:
     import wandb
@@ -34,8 +31,7 @@ except ImportError as e:
 
 
 if t.TYPE_CHECKING:
-    from wandb.sdk.data_types.base_types.wb_value import \
-        WBValue  # pylint: disable=unused-import
+    from wandb.sdk.data_types.base_types.wb_value import WBValue  # pylint: disable=unused-import
 
 
 __all__ = ['CheckResultSerializer']

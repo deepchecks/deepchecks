@@ -16,8 +16,7 @@ from .batch_wrapper import Batch
 from .classification_data import ClassificationData
 from .context import Context
 from .detection_data import DetectionData
-from .simple_classification_data import (SimpleClassificationData,
-                                         SimpleClassificationDataset)
+from .simple_classification_data import SimpleClassificationData, SimpleClassificationDataset
 from .suite import Suite
 from .vision_data import VisionData
 
