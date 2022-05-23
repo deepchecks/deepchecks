@@ -71,7 +71,8 @@ For more on the different types of drift, `see here <https://deepchecks.com/data
 What Can You Do in Case of Drift?
 ---------------------------------
 
-There are several solutions to distribution drift. They are also dependent on the information you have.
+When suspecting drift in your data, you must first understand which type of drift it is. However, this is not a trivial
+question:
 
 * If your drifted data has labels, you can easily know which type of drift you are facing.
 * However, the more common case is when you don't have your data labels yet. In this case, we can only try and measure
@@ -79,20 +80,20 @@ There are several solutions to distribution drift. They are also dependent on th
   If we detect drift, we have no way to know whether this drift is a simple data drift, label drift or concept drift, as
   we don't know the true labels.
 
-(Feels disconnected to the rest here)
+In deepchecks, we show you a drift score and the drift on your most :doc:`important features </user-guide/tabular/feature_importance.rst>`,
+giving you an insight on the severity of your drift, even if your not still sure of its source. Now you can implement one of the following solutions:
 
 Retrain Your Model
 ^^^^^^^^^^^^^^^^^^
 
-If you have either kind of drift, retraining your model on new data that better represents the current distribution
-, is the most straight-forward solution.
+If you have either kind of drift, retraining your model on new data that better represents the current distribution,
+is the most straight-forward solution.
 However, this solution may require additional resources such as manual labeling of new data, or might not be possible
 if labels on the newer data are not available yet.
 
 Retraining is usually necessary in cases of concept drift. However, retraining may still be of use even for label drift,
 as the model may perform better when knowing the correct distribution of the label (this is not relevant when the
 training dataset is sampled so labels are evenly distributed)
-
 
 Adjust Your Prediction
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -116,8 +117,8 @@ How Do You Detect Drift?
 =========================
 
 In general, drift detection is done by comparing the newer and older data, and seeing whether they are derived from
-the same underlying distribution. This is actually not a "yes or no" question - Instead, we ask "what is the probability
-that these 2 distributions are the same?".
+the same underlying distribution. This is actually not a "yes or no" question - Instead, we ask "how much are these
+distributions different?".
 
 There are many methods to detect drift. Here, we will elaborate on 2:
 
@@ -139,7 +140,8 @@ will usually detect drift multiple times if it occures in several features.
 Detection by Domain Classifier
 ------------------------------
 
-This is a method to detect multivariate drift, meaning that it can run on several variables, and even on the whole dataset.
+Training a `Domain Classifier <https://arxiv.org/abs/2004.03045>`__ is a method to detect multivariate drift, meaning that it
+can run on several variables, and even on the whole dataset.
 This is done by training a model to classify if a sample came from the train dataset or the new (test or production) dataset.
 If the classifier can easily predict which sample is from which dataset, it would mean that there are significant differences between these datasets.
 
