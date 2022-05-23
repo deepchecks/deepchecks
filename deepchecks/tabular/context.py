@@ -37,9 +37,9 @@ class _DummyModel:
     Parameters
     ----------
     train: Dataset
-        Dataset, representing data an estimator was fitted on
+        Dataset, representing data an estimator was fitted on.
     test: Dataset
-        Dataset, representing data an estimator predicts on
+        Dataset, representing data an estimator predicts on.
     y_pred_train: np.ndarray
         Array of the model prediction over the train dataset.
     y_pred_test: np.ndarray
@@ -50,22 +50,23 @@ class _DummyModel:
         Array of the model prediction probabilities over the test dataset.
     """
 
-    context: 'Context'
-    ind_map: t.Dict[str, t.Dict[t.Any, int]]
-    y_pred: t.Dict[str, np.ndarray]
-    y_proba: t.Dict[str, np.ndarray]
+    train: Dataset
+    test: Dataset
+    available_datasets: t.List[DatasetKind]
+    predictions: pd.DataFrame
+    proba: pd.DataFrame
 
     def __init__(self,
-                 context: 'Context',
                  train: Dataset,
                  test: Dataset,
                  y_pred_train: np.ndarray,
                  y_pred_test: np.ndarray,
                  y_proba_train: np.ndarray,
                  y_proba_test: np.ndarray,):
-        self.context = context
-        self.ind_map = defaultdict(dict)
+        self.train = train
+        self.test = test
 
+        self.ind_map = defaultdict(dict)
         if train is not None and test is not None:
             # check if datasets have same indexes
             if set(train.data.index) & set(test.data.index):
@@ -75,62 +76,52 @@ class _DummyModel:
                               ' prefixes. To avoid that provide datasets with no common indexes '
                               'or pass the model object instead of the predictions.')
 
-        self.y_pred = {}
-        self.y_proba = {}
+        predictions = []
+        probas = []
 
         if train is not None:
-            for i, ind in enumerate(train.data.index):
-                self.ind_map[DatasetKind.TRAIN][ind] = i
             if y_pred_train is not None:
-                self.y_pred[DatasetKind.TRAIN] = ensure_predictions_shape(y_pred_train, train.features_columns)
+                ensure_predictions_shape(y_pred_train, train.data)
+                predictions.append(pd.Series(dict(zip(train.data.index, y_pred_train))))
                 if y_proba_train is not None:
-                    self.y_proba[DatasetKind.TRAIN] = ensure_predictions_proba(y_proba_train, y_pred_train)
+                    ensure_predictions_proba(y_proba_train, y_pred_train)
+                    probas.append(pd.DataFrame(data=y_proba_train, index=train.data.index))
 
         if test is not None:
-            for i, ind in enumerate(test.data.index):
-                self.ind_map[DatasetKind.TEST][ind] = i
             if y_pred_test is not None:
-                self.y_pred[DatasetKind.TEST] = ensure_predictions_shape(y_pred_test, test.features_columns)
-                if y_proba_test is not None:
-                    self.y_proba[DatasetKind.TEST] = ensure_predictions_proba(y_proba_test, y_pred_test)
+                ensure_predictions_shape(y_pred_test, test.data)
+                predictions.append(pd.Series(dict(zip(test.data.index, y_pred_test))))
+                if y_proba_train is not None:
+                    ensure_predictions_proba(y_proba_test, y_pred_test)
+                    probas.append(pd.DataFrame(data=y_proba_test, index=test.data.index))
 
-        if y_pred_train is not None or y_pred_test is not None:
+        self.predictions = pd.concat(predictions, axis=0) if predictions else None
+        self.probas = pd.concat(probas, axis=0) if probas else None
+
+        if self.predictions is not None:
             self.predict = self._predict
 
-        if y_proba_train is not None or y_proba_test is not None:
+        if self.probas is not None:
             self.predict_proba = self._predict_proba
 
-    def _validate_data(self, data: pd.DataFrame, dataset_kind: DatasetKind):
-        # validate that the data isn't a new data by comparing a sample of rows.
+    def _validate_data(self, data: pd.DataFrame):
+        orig_data = pd.concat([dataset.features_columns
+                              for dataset in[self.train, self.test] if dataset is not None], axis=0)
         sub_index = list(data.index)[:10]
-        return (data.loc[sub_index].fillna('nan') ==
-                self.context.get_data_by_kind(dataset_kind).features_columns.loc[sub_index].fillna('nan')).all().all()
-
-    def _get_dataset_kind(self, data: pd.DataFrame):
-        assert isinstance(data, pd.DataFrame)
-        if set(data.index).issubset(list(self.ind_map[DatasetKind.TRAIN].keys())):
-            dataset_kind = DatasetKind.TRAIN
-        elif set(data.index).issubset(list(self.ind_map[DatasetKind.TEST].keys())):
-            dataset_kind = DatasetKind.TEST
-        else:
-            dataset_kind = None
-        if dataset_kind is None or not self._validate_data(data, dataset_kind):
+        if (set(data.index).issubset(list(orig_data.index)) and
+            not (data.loc[sub_index].fillna('nan') ==
+                 orig_data.loc[sub_index].fillna('nan')).all().all()):
             raise DeepchecksValueError('New data recieved for static model predictions.')  # TODO write something cooler
-        return dataset_kind
-
-    def _get_index_to_predict(self, data: pd.DataFrame):
-        dataset_kind = self._get_dataset_kind(data)
-        return dataset_kind, [self.ind_map[dataset_kind][i] for i in data.index]
 
     def _predict(self, data: pd.DataFrame):
-        '''Predict on given data by the data indexes.'''
-        dataset_kind, indexes_to_predict = self._get_index_to_predict(data)
-        return self.y_pred[dataset_kind][indexes_to_predict]
+        """Predict on given data by the data indexes."""
+        self._validate_data(data)
+        return self.predictions.loc[data.index].to_numpy()
 
     def _predict_proba(self, data: pd.DataFrame):
-        '''Predict probabilities on given data by the data indexes.'''
-        dataset_kind, indexes_to_predict = self._get_index_to_predict(data)
-        return self.y_proba[dataset_kind][indexes_to_predict]
+        """Predict probabilities on given data by the data indexes."""
+        self._validate_data(data)
+        return self.probas.loc[data.index].to_numpy()
 
 
 class Context:
@@ -213,7 +204,7 @@ class Context:
                                          'initialize it as train')
         if model is None and \
            not pd.Series([y_pred_train, y_pred_test, y_proba_train, y_proba_test]).isna().all():
-            model = _DummyModel(context=self, train=train, test=test,
+            model = _DummyModel(train=train, test=test,
                                 y_pred_train=y_pred_train, y_pred_test=y_pred_test,
                                 y_proba_test=y_proba_test, y_proba_train=y_proba_train)
         if model is not None:

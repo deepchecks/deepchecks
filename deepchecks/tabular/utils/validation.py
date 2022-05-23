@@ -10,8 +10,8 @@
 #
 """Tabular objects validation utilities."""
 import typing as t
-import numpy as np
 
+import numpy as np
 import pandas as pd
 
 from deepchecks import tabular
