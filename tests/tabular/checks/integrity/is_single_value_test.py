@@ -113,7 +113,7 @@ def test_condition_fail():
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details='Found 2 columns with a single value out of 3 columns: [\'a\', \'bbb\']',
+                               details='Found 2 out of 3 columns with a single value: [\'a\', \'bbb\']',
                                name='Does not contain only a single value')))
 
 

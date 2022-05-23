@@ -18,7 +18,7 @@ from scipy import stats
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
-from deepchecks.tabular.utils.integrity_messages import get_condition_passed_message
+from deepchecks.tabular.utils.messages import get_condition_passed_message
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df, is_categorical
 from deepchecks.utils.strings import format_number, format_percent, is_string_column
@@ -222,8 +222,8 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
                 if total_outliers > max_outliers:
                     not_passing_columns[column_name] = total_outliers
             if not_passing_columns:
-                details = f'Found {len(not_passing_columns)} columns with number of outliers above threshold out of ' \
-                          f'{len(result)} columns: {not_passing_columns}'
+                details = f'Found {len(not_passing_columns)} out of {len(result)} columns with number of outliers ' \
+                          f'above threshold: {not_passing_columns}'
                 return ConditionResult(ConditionCategory.FAIL, details)
             else:
                 details = f'Passed for {len(result)} columns'
@@ -250,8 +250,8 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
                 if ratio > max_ratio:
                     not_passing_columns[column_name] = format_percent(ratio)
             if not_passing_columns:
-                details = f'Found {len(not_passing_columns)} columns with outliers ratio above threshold out of ' \
-                          f'{len(result)} columns: {not_passing_columns}'
+                details = f'Found {len(not_passing_columns)} out of {len(result)} relevant columns with outliers ' \
+                          f'ratio above threshold: {not_passing_columns}'
                 return ConditionResult(ConditionCategory.WARN, details)
             else:
                 return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))

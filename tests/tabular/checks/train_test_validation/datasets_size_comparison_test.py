@@ -38,7 +38,7 @@ def test_test_dataset_size_check_with_condition_that_should_pass(iris_split_data
     assert_that(actual=condition_result, matcher=equal_condition_result( # type: ignore
         is_pass=True,
         name='Test dataset size is not smaller than 10',
-        details='',
+        details='Test dataset contains 50 samples',
         category=ConditionCategory.PASS
     ))
 
@@ -53,7 +53,7 @@ def test_test_dataset_size_check_with_condition_that_should_not_pass(iris_split_
     assert_that(actual=condition_result, matcher=equal_condition_result( # type: ignore
         is_pass=False,
         name='Test dataset size is not smaller than 10000',
-        details=r'Test dataset size is 50',
+        details='Test dataset contains 50 samples',
         category=ConditionCategory.FAIL
     ))
 
@@ -68,7 +68,7 @@ def test_test_dataset_size_check_with_size_ratio_condition_that_should_pass(iris
     assert_that(actual=condition_result, matcher=equal_condition_result( # type: ignore
         is_pass=True,
         name='Test-Train size ratio is not smaller than 0.2',
-        details='',
+        details='Test-Train size ratio is 0.5',
         category=ConditionCategory.PASS
     ))
 
@@ -101,6 +101,7 @@ def test_condition_train_not_smaller_than_test_pass(iris):
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
+        details='Train dataset is larger than test dataset by +50 samples',
         name='Train dataset is not smaller than test dataset'
     ))
 
@@ -119,5 +120,5 @@ def test_condition_train_not_smaller_than_test_fail(iris):
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name='Train dataset is not smaller than test dataset',
-        details='Train dataset is smaller than test dataset by 50'
+        details='Train dataset is smaller than test dataset by -50 samples'
     ))

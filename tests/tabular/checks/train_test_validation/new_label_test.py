@@ -136,6 +136,7 @@ def test_condition_number_of_new_labels_pass():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
+                               details='Found 1 new labels in test data: [5]',
                                name='Number of new label values is not greater than 3')
     ))
 
@@ -156,7 +157,7 @@ def test_condition_number_of_new_labels_fail():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details='Found 1 new labels: [5]',
+                               details='Found 1 new labels in test data: [5]',
                                name='Number of new label values is not greater than 0')
     ))
 
@@ -177,6 +178,7 @@ def test_condition_ratio_of_new_label_samples_pass():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
+                               details='Found 25% of labels in test data are new labels: [5]',
                                name='Ratio of samples with new label is not greater than 30%')
     ))
 
@@ -197,6 +199,6 @@ def test_condition_ratio_of_new_label_samples_fail():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details='Found new labels in test data: [5]\nmaking 25% of samples.',
+                               details='Found 25% of labels in test data are new labels: [5]',
                                name='Ratio of samples with new label is not greater than 10%')
     ))
