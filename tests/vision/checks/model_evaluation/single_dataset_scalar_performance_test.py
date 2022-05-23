@@ -12,8 +12,7 @@
 import warnings
 
 import torch
-from hamcrest import (assert_that, calling, close_to, equal_to,
-                      greater_than_or_equal_to, raises)
+from hamcrest import assert_that, calling, close_to, equal_to, greater_than_or_equal_to, raises
 from ignite.metrics import Accuracy, Precision
 
 from deepchecks.core.errors import DeepchecksValueError

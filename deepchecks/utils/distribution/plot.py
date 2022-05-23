@@ -23,8 +23,7 @@ from typing import Dict, List, Tuple
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.dataframes import un_numpy
-from deepchecks.utils.distribution.preprocessing import \
-    preprocess_2_cat_cols_to_same_bins
+from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
 from deepchecks.utils.plot import colors
 
 # For numerical plots, below this number of unique values we draw bar plots, else KDE

@@ -8,8 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-from hamcrest import (all_of, any_of, assert_that, calling, close_to,
-                      contains_exactly, equal_to, has_entries, has_key,
+from hamcrest import (all_of, any_of, assert_that, calling, close_to, contains_exactly, equal_to, has_entries, has_key,
                       has_length, has_properties, instance_of, is_, raises)
 from hamcrest.core.matcher import Matcher
 

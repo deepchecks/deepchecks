@@ -9,8 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 import numpy as np
-from hamcrest import (assert_that, close_to, equal_to, has_entries, has_items,
-                      has_length, matches_regexp)
+from hamcrest import assert_that, close_to, equal_to, has_entries, has_items, has_length, matches_regexp
 from ignite.metrics import Precision, Recall
 
 from deepchecks.vision.checks import ImageSegmentPerformance

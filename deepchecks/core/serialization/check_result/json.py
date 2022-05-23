@@ -19,10 +19,8 @@ from typing_extensions import TypedDict
 
 from deepchecks.core import check_result as check_types
 from deepchecks.core import checks  # pylint: disable=unused-import
-from deepchecks.core.serialization.abc import (ABCDisplayItemsHandler,
-                                               JsonSerializer)
-from deepchecks.core.serialization.common import (aggregate_conditions,
-                                                  normalize_value)
+from deepchecks.core.serialization.abc import ABCDisplayItemsHandler, JsonSerializer
+from deepchecks.core.serialization.common import aggregate_conditions, normalize_value
 
 __all__ = ['CheckResultSerializer']
 

@@ -14,8 +14,8 @@ from hamcrest import assert_that, calling, instance_of, is_, raises
 from torch.utils.data import DataLoader
 
 from deepchecks import vision
-from deepchecks.vision.datasets.detection.coco import (
-    DATA_DIR, CocoDataset, download_coco128_from_ultralytics, load_dataset)
+from deepchecks.vision.datasets.detection.coco import (DATA_DIR, CocoDataset, download_coco128_from_ultralytics,
+                                                       load_dataset)
 
 
 def patch_side_effect(*args, **kwargs):

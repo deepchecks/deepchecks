@@ -143,7 +143,7 @@ integ_suite[3].clean_conditions()
 
 #%%
 # Now we can re-run the suite using:
-integ_suite.run(ds)
+res = integ_suite.run(ds)
 
 #%%
 # and all of the conditions will pass.

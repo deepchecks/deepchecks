@@ -27,8 +27,7 @@ from sklearn.pipeline import Pipeline
 from deepchecks import tabular
 from deepchecks.core import errors
 from deepchecks.tabular.utils.validation import validate_model
-from deepchecks.utils.metrics import (DeepcheckScorer, get_default_scorers,
-                                      init_validate_scorers, task_type_check)
+from deepchecks.utils.metrics import DeepcheckScorer, get_default_scorers, init_validate_scorers, task_type_check
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.validation import ensure_hashable_or_mutable_sequence
 

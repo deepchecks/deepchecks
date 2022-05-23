@@ -19,8 +19,8 @@ from torch.utils.data import DataLoader, Dataset
 from deepchecks.core.errors import ValidationError
 from deepchecks.vision.datasets.detection import coco
 from deepchecks.vision.utils import image_properties
-from deepchecks.vision.utils.detection_formatters import (
-    convert_batch_of_bboxes, convert_bbox, verify_bbox_format_notation)
+from deepchecks.vision.utils.detection_formatters import (convert_batch_of_bboxes, convert_bbox,
+                                                          verify_bbox_format_notation)
 from deepchecks.vision.vision_data import VisionData
 
 

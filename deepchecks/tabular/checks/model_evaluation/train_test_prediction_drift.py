@@ -19,11 +19,12 @@ import pandas as pd
 from deepchecks import ConditionCategory
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.tabular import Context, TrainTestCheck
-from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS,
-                                                 SUPPORTED_NUMERIC_METHODS,
+from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERIC_METHODS,
                                                  calc_drift_and_plot)
 
 __all__ = ['TrainTestPredictionDrift']
+
+from deepchecks.utils.strings import format_number
 
 
 class TrainTestPredictionDrift(TrainTestCheck):
@@ -158,11 +159,9 @@ class TrainTestPredictionDrift(TrainTestCheck):
             has_failed = (drift_score > max_allowed_categorical_score and method in SUPPORTED_CATEGORICAL_METHODS) or \
                          (drift_score > max_allowed_numeric_score and method in SUPPORTED_NUMERIC_METHODS)
 
-            if has_failed:
-                return_str = f'Found model prediction {method} above threshold: {drift_score:.2f}'
-                return ConditionResult(ConditionCategory.FAIL, return_str)
-
-            return ConditionResult(ConditionCategory.PASS)
+            details = f'Found model prediction {method} drift score of {format_number(drift_score)}'
+            category = ConditionCategory.FAIL if has_failed else ConditionCategory.PASS
+            return ConditionResult(category, details)
 
         return self.add_condition(f'categorical drift score <= {max_allowed_categorical_score} and '
                                   f'numerical drift score <= {max_allowed_numeric_score}',

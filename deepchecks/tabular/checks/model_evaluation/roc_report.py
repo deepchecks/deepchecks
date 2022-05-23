@@ -129,16 +129,15 @@ class RocReport(SingleDatasetCheck):
 
         """
         def condition(result: Dict) -> ConditionResult:
-            failed_classes = {}
-            for item in result.items():
-                class_name, score = item
-                if score < min_auc:
-                    failed_classes[class_name] = format_number(score)
+            failed_classes = {class_name: format_number(score)
+                              for class_name, score in result.items() if score < min_auc}
             if failed_classes:
                 return ConditionResult(ConditionCategory.FAIL,
                                        f'Found classes with AUC below threshold: {failed_classes}')
             else:
-                return ConditionResult(ConditionCategory.PASS)
+                avg_auc = sum(result.values()) / len(result)
+                details = f'All classes passed, average AUC is {format_number(avg_auc)}'
+                return ConditionResult(ConditionCategory.PASS, details)
 
         if self.excluded_classes:
             suffix = f' except: {self.excluded_classes}'
