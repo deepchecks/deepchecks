@@ -17,8 +17,7 @@ import pandas as pd
 from deepchecks.core.check_result import CheckFailure
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.core.suite import BaseSuite, SuiteResult
-from deepchecks.tabular.base_checks import (ModelOnlyCheck, SingleDatasetCheck,
-                                            TrainTestCheck)
+from deepchecks.tabular.base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
 from deepchecks.tabular.context import Context
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.utils.ipython import create_progress_bar

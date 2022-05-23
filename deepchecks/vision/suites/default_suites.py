@@ -16,20 +16,11 @@ It is possible to customize these suites by editing the checks and conditions in
 import warnings
 
 from deepchecks.vision import Suite
-from deepchecks.vision.checks import (ClassPerformance, ConfusionMatrixReport,
-                                      HeatmapComparison, ImageDatasetDrift,
-                                      ImagePropertyDrift,
-                                      ImagePropertyOutliers,
-                                      ImageSegmentPerformance,
-                                      LabelPropertyOutliers,
-                                      MeanAveragePrecisionReport,
-                                      MeanAverageRecallReport,
-                                      ModelErrorAnalysis, NewLabels,
-                                      SimilarImageLeakage,
-                                      SimpleFeatureContribution,
-                                      SimpleModelComparison,
-                                      TrainTestLabelDrift,
-                                      TrainTestPredictionDrift)
+from deepchecks.vision.checks import (ClassPerformance, ConfusionMatrixReport, HeatmapComparison, ImageDatasetDrift,
+                                      ImagePropertyDrift, ImagePropertyOutliers, ImageSegmentPerformance,
+                                      LabelPropertyOutliers, MeanAveragePrecisionReport, MeanAverageRecallReport,
+                                      ModelErrorAnalysis, NewLabels, SimilarImageLeakage, SimpleFeatureContribution,
+                                      SimpleModelComparison, TrainTestLabelDrift, TrainTestPredictionDrift)
 
 __all__ = ['train_test_validation', 'model_evaluation', 'full_suite', 'integrity_validation', 'data_integrity']
 

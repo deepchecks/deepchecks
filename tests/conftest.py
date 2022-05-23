@@ -24,12 +24,10 @@ from hamcrest.core.matcher import Matcher
 from lightgbm import LGBMClassifier, LGBMRegressor
 from sklearn.compose import ColumnTransformer
 from sklearn.datasets import load_diabetes, load_iris
-from sklearn.ensemble import (AdaBoostClassifier, GradientBoostingRegressor,
-                              RandomForestClassifier)
+from sklearn.ensemble import AdaBoostClassifier, GradientBoostingRegressor, RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import (FunctionTransformer, KBinsDiscretizer,
-                                   OrdinalEncoder)
+from sklearn.preprocessing import FunctionTransformer, KBinsDiscretizer, OrdinalEncoder
 from sklearn.tree import DecisionTreeClassifier
 from tqdm import tqdm
 from xgboost import XGBClassifier, XGBRegressor

@@ -15,8 +15,7 @@ from typing import List, Union
 
 import torch
 
-from deepchecks.core.errors import (DeepchecksNotImplementedError,
-                                    ValidationError)
+from deepchecks.core.errors import DeepchecksNotImplementedError, ValidationError
 from deepchecks.vision.vision_data import TaskType, VisionData
 
 logger = logging.getLogger('deepchecks')

@@ -15,16 +15,14 @@ import warnings
 from abc import abstractmethod
 from collections import defaultdict
 from copy import copy
-from typing import (Any, Callable, Dict, Iterator, List, Optional, Sequence,
-                    Type, TypeVar, Union)
+from typing import Any, Callable, Dict, Iterator, List, Optional, Sequence, Type, TypeVar, Union
 
 import numpy as np
 import torch
 from torch.utils.data import BatchSampler, DataLoader, Dataset, Sampler
 
-from deepchecks.core.errors import (DeepchecksBaseError,
-                                    DeepchecksNotImplementedError,
-                                    DeepchecksValueError, ValidationError)
+from deepchecks.core.errors import (DeepchecksBaseError, DeepchecksNotImplementedError, DeepchecksValueError,
+                                    ValidationError)
 from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.utils.image_functions import ImageInfo
@@ -484,8 +482,7 @@ class VisionData:
         device
             Device to run the model on.
         """
-        from deepchecks.vision.utils.validation import \
-            validate_extractors  # pylint: disable=import-outside-toplevel
+        from deepchecks.vision.utils.validation import validate_extractors  # pylint: disable=import-outside-toplevel
         validate_extractors(self, model, device=device)
 
     def __iter__(self):

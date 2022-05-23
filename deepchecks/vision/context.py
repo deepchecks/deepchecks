@@ -17,11 +17,8 @@ from ignite.metrics import Metric
 from torch import nn
 
 from deepchecks.core import DatasetKind
-from deepchecks.core.errors import (DatasetValidationError,
-                                    DeepchecksNotImplementedError,
-                                    DeepchecksNotSupportedError,
-                                    DeepchecksValueError, ModelValidationError,
-                                    ValidationError)
+from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotImplementedError, DeepchecksNotSupportedError,
+                                    DeepchecksValueError, ModelValidationError, ValidationError)
 from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.vision_data import VisionData
 

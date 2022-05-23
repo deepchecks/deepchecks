@@ -10,8 +10,7 @@
 #
 from datetime import datetime
 
-from hamcrest import (assert_that, calling, equal_to, instance_of,
-                      matches_regexp, raises)
+from hamcrest import assert_that, calling, equal_to, instance_of, matches_regexp, raises
 
 from deepchecks.utils.strings import format_datetime, get_ellipsis
 

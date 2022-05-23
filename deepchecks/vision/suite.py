@@ -23,8 +23,7 @@ from deepchecks.core.checks import DatasetKind
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.utils.ipython import ProgressBarGroup
-from deepchecks.vision.base_checks import (ModelOnlyCheck, SingleDatasetCheck,
-                                           TrainTestCheck)
+from deepchecks.vision.base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
 from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.context import Context
 from deepchecks.vision.vision_data import VisionData
