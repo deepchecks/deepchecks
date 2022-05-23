@@ -11,11 +11,13 @@
 """Tests for Invalid Chars check"""
 import numpy as np
 import pandas as pd
+
 <<<<<<< HEAD
-from hamcrest import (assert_that, calling, close_to, equal_to, has_items,
-                      has_length, raises)
+from hamcrest import assert_that, calling, close_to, equal_to, has_items, has_length, raises
+
 =======
 from hamcrest import assert_that, calling, close_to, equal_to, has_items, has_length, raises
+
 >>>>>>> main
 
 from deepchecks.core import ConditionCategory

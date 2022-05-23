@@ -11,11 +11,13 @@
 """Contains unit tests for the string_length_out_of_bounds check."""
 import numpy as np
 import pandas as pd
+
 <<<<<<< HEAD
-from hamcrest import (assert_that, equal_to, has_entries, has_entry, has_items,
-                      has_length)
+from hamcrest import assert_that, equal_to, has_entries, has_entry, has_items, has_length
+
 =======
 from hamcrest import assert_that, equal_to, has_entries, has_entry, has_items, has_length
+
 >>>>>>> main
 
 from deepchecks.core import ConditionCategory

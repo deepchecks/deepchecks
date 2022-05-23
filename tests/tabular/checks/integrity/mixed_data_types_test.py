@@ -11,12 +11,14 @@
 """Tests for Mixed Types check"""
 import numpy as np
 import pandas as pd
+
 # Disable wildcard import check for hamcrest
 <<<<<<< HEAD
-from hamcrest import (assert_that, calling, close_to, equal_to, has_entries,
-                      has_entry, has_items, has_length, raises)
+from hamcrest import assert_that, calling, close_to, equal_to, has_entries, has_entry, has_items, has_length, raises
+
 =======
 from hamcrest import assert_that, calling, close_to, equal_to, has_entries, has_entry, has_items, has_length, raises
+
 >>>>>>> main
 
 from deepchecks.core import ConditionCategory
