@@ -12,8 +12,8 @@
 import numpy as np
 import pandas as pd
 # Disable wildcard import check for hamcrest
-from hamcrest import (assert_that, calling, close_to, has_entries, has_entry,
-                      has_items, has_length, raises, equal_to)
+from hamcrest import (assert_that, calling, close_to, equal_to, has_entries,
+                      has_entry, has_items, has_length, raises)
 
 from deepchecks.core import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
