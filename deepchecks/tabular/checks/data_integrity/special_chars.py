@@ -17,7 +17,7 @@ from pandas.api.types import infer_dtype
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
-from deepchecks.tabular.utils.integrity_messages import get_condition_passed_message
+from deepchecks.tabular.utils.messages import get_condition_passed_message
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.utils.strings import format_percent, string_baseform
@@ -112,8 +112,8 @@ class SpecialCharacters(SingleDatasetCheck):
         def condition(result):
             not_passed = {k: format_percent(v) for k, v in result.items() if v > max_ratio}
             if not_passed:
-                details = f'Found {len(not_passed)} columns with ratio above threshold out of {len(result)} ' \
-                          f'columns: {not_passed}'
+                details = f'Found {len(not_passed)} out of {len(result)} columns with ratio above threshold: ' \
+                          f'{not_passed}'
                 return ConditionResult(ConditionCategory.WARN, details)
             return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))
 

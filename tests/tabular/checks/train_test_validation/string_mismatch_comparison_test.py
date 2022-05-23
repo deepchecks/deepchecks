@@ -111,7 +111,7 @@ def test_condition_no_new_variants_pass():
     # Assert
     assert_that(result, equal_condition_result(
         is_pass=True,
-        details='Passed for 1 relevant columns',
+        details='Passed for 1 relevant column',
         name='No new variants allowed in test data'
     ))
 
@@ -144,7 +144,7 @@ def test_condition_percent_new_variants_pass():
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               details='Passed for 1 relevant columns',
+                               details='Passed for 1 relevant column',
                                name='Ratio of new variants in test data is not greater than 50%')
     ))
 

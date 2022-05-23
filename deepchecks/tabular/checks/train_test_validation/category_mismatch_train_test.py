@@ -15,6 +15,7 @@ import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, TrainTestCheck
+from deepchecks.tabular.utils.messages import get_condition_passed_message
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
@@ -128,9 +129,9 @@ class CategoryMismatchTrainTest(TrainTestCheck):
                                        f'Found {len(failing)} out of {len(columns_new_categories)} columns with number'
                                        f' of new categories above threshold:\n{dict(failing)}')
             else:
-                details = f'Passed for {len(columns_new_categories)} categorical columns.'
+                details = get_condition_passed_message(result)
                 if len(columns_new_categories) > 0:
-                    details += f' Top columns with new categories:\n{dict(sorted_columns[:5])}'
+                    details += f'. Top columns with new categories:\n{dict(sorted_columns[:5])}'
                 return ConditionResult(ConditionCategory.PASS, details)
 
         return self.add_condition(f'Number of new category values is not greater than {max_new}',
@@ -157,9 +158,9 @@ class CategoryMismatchTrainTest(TrainTestCheck):
                                        f'Found {len(failing)} out of {len(columns_new_categories)} columns with ratio '
                                        f'of new category samples above threshold:\n{dict(failing)}')
             else:
-                details = f'Passed for {len(columns_new_categories)} categorical columns.'
+                details = get_condition_passed_message(result)
                 if len(columns_new_categories) > 0:
-                    details += f' Top columns with new categories:\n{dict(sorted_columns[:5])}'
+                    details += f'. Top columns with new categories:\n{dict(sorted_columns[:5])}'
                 return ConditionResult(ConditionCategory.PASS, details)
 
         return self.add_condition(

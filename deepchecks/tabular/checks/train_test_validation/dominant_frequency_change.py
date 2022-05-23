@@ -18,6 +18,7 @@ from scipy.stats import chi2_contingency, fisher_exact
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, TrainTestCheck
+from deepchecks.tabular.utils.messages import get_condition_passed_message
 from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.utils.strings import format_number, format_percent
 
@@ -191,7 +192,7 @@ class DominantFrequencyChange(TrainTestCheck):
                                        f'Found {len(failed_columns)} out of {len(result)} columns with p-value below '
                                        f'threshold: {failed_columns}')
             else:
-                return ConditionResult(ConditionCategory.PASS, f'Passed for {len(result)} relevant columns')
+                return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))
 
         return self.add_condition(f'P value is not less than {p_value_threshold}',
                                   condition)
@@ -220,7 +221,7 @@ class DominantFrequencyChange(TrainTestCheck):
                                        f'Found {len(failed_columns)} out of {len(result)} columns with % difference '
                                        f'in dominant value above threshold: {failed_columns}')
             else:
-                return ConditionResult(ConditionCategory.PASS, f'Passed for {len(result)} relevant columns')
+                return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))
 
         return self.add_condition(f'Change in ratio of dominant value in data is not greater'
                                   f' than {format_percent(percent_change_threshold)}',
