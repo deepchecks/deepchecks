@@ -14,8 +14,7 @@ import typing as t
 import numpy as np
 
 from deepchecks.vision import Batch, VisionData
-from deepchecks.vision.checks.data_integrity.abstract_property_outliers import \
-    AbstractPropertyOutliers
+from deepchecks.vision.checks.data_integrity.abstract_property_outliers import AbstractPropertyOutliers
 from deepchecks.vision.utils.image_properties import default_image_properties
 
 __all__ = ['ImagePropertyOutliers']

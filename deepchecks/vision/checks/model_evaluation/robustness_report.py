@@ -29,11 +29,8 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils import plot
 from deepchecks.utils.strings import format_percent, split_camel_case
 from deepchecks.vision import Batch, Context, SingleDatasetCheck, VisionData
-from deepchecks.vision.metrics_utils import (calculate_metrics,
-                                             get_scorers_list,
-                                             metric_results_to_df)
-from deepchecks.vision.utils.image_functions import (ImageInfo, draw_bboxes,
-                                                     prepare_thumbnail)
+from deepchecks.vision.metrics_utils import calculate_metrics, get_scorers_list, metric_results_to_df
+from deepchecks.vision.utils.image_functions import ImageInfo, draw_bboxes, prepare_thumbnail
 from deepchecks.vision.utils.transformations import AbstractTransformations
 from deepchecks.vision.utils.validation import set_seeds
 from deepchecks.vision.vision_data import TaskType

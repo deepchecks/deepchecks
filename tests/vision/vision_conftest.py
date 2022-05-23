@@ -22,20 +22,15 @@ from torchvision import datasets
 
 from deepchecks.core import DatasetKind
 from deepchecks.vision import Batch, Context, VisionData
-from deepchecks.vision.datasets.classification.mnist import \
-    MODULE_DIR as mnist_dir
+from deepchecks.vision.datasets.classification.mnist import MODULE_DIR as mnist_dir
 from deepchecks.vision.datasets.classification.mnist import MNISTData
-from deepchecks.vision.datasets.classification.mnist import \
-    load_dataset as load_mnist_dataset
-from deepchecks.vision.datasets.classification.mnist import \
-    load_model as load_mnist_net_model
+from deepchecks.vision.datasets.classification.mnist import load_dataset as load_mnist_dataset
+from deepchecks.vision.datasets.classification.mnist import load_model as load_mnist_net_model
 from deepchecks.vision.datasets.detection.coco import DATA_DIR as coco_root
 from deepchecks.vision.datasets.detection.coco import LABEL_MAP as coco_labels
 from deepchecks.vision.datasets.detection.coco import COCOData, CocoDataset
-from deepchecks.vision.datasets.detection.coco import \
-    load_dataset as load_coco_dataset
-from deepchecks.vision.datasets.detection.coco import \
-    load_model as load_yolov5_model
+from deepchecks.vision.datasets.detection.coco import load_dataset as load_coco_dataset
+from deepchecks.vision.datasets.detection.coco import load_model as load_yolov5_model
 from deepchecks.vision.vision_data import TaskType
 from tests.vision.assets.coco_detections_dict import coco_detections_dict
 from tests.vision.assets.mnist_predictions_dict import mnist_predictions_dict

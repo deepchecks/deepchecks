@@ -14,15 +14,12 @@ from typing import Callable, Mapping, Optional, Union
 import pandas as pd
 
 from deepchecks.core import DatasetKind
-from deepchecks.core.errors import (DatasetValidationError,
-                                    DeepchecksNotSupportedError,
-                                    DeepchecksValueError, ModelValidationError)
+from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
+                                    ModelValidationError)
 from deepchecks.tabular.dataset import Dataset
-from deepchecks.tabular.utils.validation import (model_type_validation,
-                                                 validate_model)
+from deepchecks.tabular.utils.validation import model_type_validation, validate_model
 from deepchecks.utils.features import calculate_feature_importance_or_none
-from deepchecks.utils.metrics import (ModelType, get_default_scorers,
-                                      init_validate_scorers, task_type_check)
+from deepchecks.utils.metrics import ModelType, get_default_scorers, init_validate_scorers, task_type_check
 from deepchecks.utils.typing import BasicModel
 
 __all__ = [

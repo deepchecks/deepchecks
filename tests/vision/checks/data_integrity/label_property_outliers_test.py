@@ -8,16 +8,14 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-from hamcrest import (all_of, any_of, assert_that, calling, contains_exactly,
-                      equal_to, has_entries, has_key, has_length,
-                      has_properties, instance_of, is_, raises)
+from hamcrest import (all_of, any_of, assert_that, calling, contains_exactly, equal_to, has_entries, has_key,
+                      has_length, has_properties, instance_of, is_, raises)
 from hamcrest.core.matcher import Matcher
 
 from deepchecks import CheckResult
 from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.vision.checks import LabelPropertyOutliers
-from deepchecks.vision.utils.label_prediction_properties import \
-    DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES
+from deepchecks.vision.utils.label_prediction_properties import DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES
 from tests.vision.vision_conftest import *
 
 

@@ -13,8 +13,7 @@ import types
 import albumentations
 import numpy as np
 import torchvision.transforms as T
-from hamcrest import (assert_that, calling, close_to, has_entries, has_items,
-                      has_length, raises)
+from hamcrest import assert_that, calling, close_to, has_entries, has_items, has_length, raises
 from ignite.metrics import Precision
 from PIL import Image
 

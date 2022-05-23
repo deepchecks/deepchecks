@@ -17,14 +17,10 @@ import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
-from deepchecks.tabular.utils.integrity_messages import \
-    get_condition_passed_message
+from deepchecks.tabular.utils.integrity_messages import get_condition_passed_message
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.features import (N_TOP_MESSAGE,
-                                       column_importance_sorter_df)
-from deepchecks.utils.strings import (format_percent,
-                                      get_base_form_to_variants_dict,
-                                      is_string_column)
+from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
+from deepchecks.utils.strings import format_percent, get_base_form_to_variants_dict, is_string_column
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['StringMismatch']

@@ -13,8 +13,7 @@ Contains unit tests for the data_sample_leakage_report check
 """
 import numpy as np
 import pandas as pd
-from hamcrest import (assert_that, calling, equal_to, has_entry, has_items,
-                      raises)
+from hamcrest import assert_that, calling, equal_to, has_entry, has_items, raises
 from sklearn.model_selection import train_test_split
 
 from deepchecks.core.errors import DeepchecksValueError

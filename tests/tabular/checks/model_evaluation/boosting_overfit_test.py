@@ -17,8 +17,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
-from deepchecks.tabular.checks.model_evaluation.boosting_overfit import \
-    BoostingOverfit
+from deepchecks.tabular.checks.model_evaluation.boosting_overfit import BoostingOverfit
 from deepchecks.tabular.dataset import Dataset
 from tests.base.utils import equal_condition_result
 

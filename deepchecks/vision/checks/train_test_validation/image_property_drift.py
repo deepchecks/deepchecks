@@ -20,9 +20,7 @@ from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.vision import Batch, Context, TrainTestCheck
-from deepchecks.vision.utils.image_properties import (default_image_properties,
-                                                      get_column_type,
-                                                      validate_properties)
+from deepchecks.vision.utils.image_properties import default_image_properties, get_column_type, validate_properties
 
 __all__ = ['ImagePropertyDrift']
 

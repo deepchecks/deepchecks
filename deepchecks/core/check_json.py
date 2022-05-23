@@ -19,8 +19,7 @@ import pandas as pd
 import plotly
 
 from deepchecks.core.check_result import CheckFailure, CheckResult
-from deepchecks.core.condition import (Condition, ConditionCategory,
-                                       ConditionResult)
+from deepchecks.core.condition import Condition, ConditionCategory, ConditionResult
 from deepchecks.utils.html import imagetag
 
 __all__ = [

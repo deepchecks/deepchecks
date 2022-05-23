@@ -19,10 +19,8 @@ from ignite.engine import Engine
 from ignite.metrics import Metric, Precision, Recall
 
 from deepchecks.core import DatasetKind
-from deepchecks.core.errors import (DeepchecksNotSupportedError,
-                                    DeepchecksValueError)
-from deepchecks.vision.metrics_utils.object_detection_precision_recall import \
-    ObjectDetectionAveragePrecision
+from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
+from deepchecks.vision.metrics_utils.object_detection_precision_recall import ObjectDetectionAveragePrecision
 from deepchecks.vision.vision_data import TaskType, VisionData
 
 __all__ = [

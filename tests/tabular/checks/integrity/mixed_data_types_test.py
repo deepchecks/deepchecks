@@ -12,13 +12,11 @@
 import numpy as np
 import pandas as pd
 # Disable wildcard import check for hamcrest
-from hamcrest import (assert_that, calling, close_to, equal_to, has_entries,
-                      has_entry, has_items, has_length, raises)
+from hamcrest import assert_that, calling, close_to, equal_to, has_entries, has_entry, has_items, has_length, raises
 
 from deepchecks.core import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.tabular.checks.data_integrity.mixed_data_types import \
-    MixedDataTypes
+from deepchecks.tabular.checks.data_integrity.mixed_data_types import MixedDataTypes
 from deepchecks.tabular.dataset import Dataset
 from tests.base.utils import equal_condition_result
 

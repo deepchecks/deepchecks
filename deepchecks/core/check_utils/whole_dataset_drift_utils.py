@@ -30,12 +30,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OrdinalEncoder
 
 from deepchecks.tabular import Dataset
-from deepchecks.utils.distribution.plot import (drift_score_bar_traces,
-                                                feature_distribution_traces)
-from deepchecks.utils.distribution.rare_category_encoder import \
-    RareCategoryEncoder
-from deepchecks.utils.features import (N_TOP_MESSAGE,
-                                       calculate_feature_importance_or_none)
+from deepchecks.utils.distribution.plot import drift_score_bar_traces, feature_distribution_traces
+from deepchecks.utils.distribution.rare_category_encoder import RareCategoryEncoder
+from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none
 from deepchecks.utils.function import run_available_kwargs
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable

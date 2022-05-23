@@ -11,8 +11,7 @@
 import gower
 import numpy as np
 import pandas as pd
-from hamcrest import (assert_that, greater_than, has_item, has_length,
-                      less_than_or_equal_to)
+from hamcrest import assert_that, greater_than, has_item, has_length, less_than_or_equal_to
 
 from deepchecks.utils import gower_distance
 
