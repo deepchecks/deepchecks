@@ -14,9 +14,7 @@ import warnings
 
 import pytest
 
-from deepchecks.tabular.checks import (TrainTestFeatureDrift,
-                                       TrainTestLabelDrift,
-                                       TrainTestPredictionDrift,
+from deepchecks.tabular.checks import (TrainTestFeatureDrift, TrainTestLabelDrift, TrainTestPredictionDrift,
                                        WholeDatasetDrift)
 
 

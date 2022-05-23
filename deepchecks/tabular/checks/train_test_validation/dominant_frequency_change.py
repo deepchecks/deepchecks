@@ -18,8 +18,7 @@ from scipy.stats import chi2_contingency, fisher_exact
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, TrainTestCheck
-from deepchecks.utils.features import (N_TOP_MESSAGE,
-                                       column_importance_sorter_df)
+from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.utils.strings import format_number, format_percent
 
 __all__ = ['DominantFrequencyChange']

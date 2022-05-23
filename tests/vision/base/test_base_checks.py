@@ -15,8 +15,7 @@ from hamcrest import assert_that, calling, is_, raises
 
 from deepchecks import CheckResult
 from deepchecks.core import DatasetKind
-from deepchecks.vision.base_checks import (ModelOnlyCheck, SingleDatasetCheck,
-                                           TrainTestCheck)
+from deepchecks.vision.base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
 from deepchecks.vision.datasets.detection import coco
 
 

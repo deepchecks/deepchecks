@@ -11,15 +11,11 @@
 """Contains unit tests for the single_feature_contribution check."""
 import numpy as np
 import pandas as pd
-from hamcrest import (assert_that, calling, close_to, equal_to, has_entries,
-                      has_length, raises)
+from hamcrest import assert_that, calling, close_to, equal_to, has_entries, has_length, raises
 
-from deepchecks.core.errors import (DatasetValidationError,
-                                    DeepchecksNotSupportedError,
-                                    DeepchecksValueError)
+from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.tabular.checks.data_integrity import SingleFeatureContribution
-from deepchecks.tabular.checks.train_test_validation import \
-    SingleFeatureContributionTrainTest
+from deepchecks.tabular.checks.train_test_validation import SingleFeatureContributionTrainTest
 from deepchecks.tabular.dataset import Dataset
 from tests.base.utils import equal_condition_result
 
@@ -156,7 +152,8 @@ def test_all_features_pps_upper_bound_condition_that_should_not_pass():
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name=f'Features\' Predictive Power Score is not greater than {condition_value}',
-        details='Features with PPS above threshold: {\'x2\': \'0.84\', \'x4\': \'0.53\', \'x5\': \'0.42\'}'
+        details='Found 3 features with PPS above threshold out of 5 features: '
+                '{\'x2\': \'0.84\', \'x4\': \'0.53\', \'x5\': \'0.42\'}'
     ))
 
 
@@ -173,6 +170,7 @@ def test_all_features_pps_upper_bound_condition_that_should_pass():
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
+        details='Passed for 5 relevant columns',
         name=f'Features\' Predictive Power Score is not greater than {condition_value}',
     ))
 

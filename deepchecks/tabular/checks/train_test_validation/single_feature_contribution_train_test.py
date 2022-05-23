@@ -15,8 +15,7 @@ from copy import copy
 import numpy as np
 
 from deepchecks.core import CheckResult, ConditionResult
-from deepchecks.core.check_utils.single_feature_contribution_utils import \
-    get_single_feature_contribution
+from deepchecks.core.check_utils.single_feature_contribution_utils import get_single_feature_contribution
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.strings import format_number

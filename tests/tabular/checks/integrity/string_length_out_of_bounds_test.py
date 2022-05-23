@@ -11,7 +11,7 @@
 """Contains unit tests for the string_length_out_of_bounds check."""
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, has_items, has_length
+from hamcrest import assert_that, equal_to, has_entries, has_entry, has_items, has_length
 
 from deepchecks.core import ConditionCategory
 from deepchecks.tabular.checks import StringLengthOutOfBounds
@@ -27,7 +27,7 @@ def test_no_outliers():
     # Act
     result = StringLengthOutOfBounds().run(df).value
     # Assert
-    assert_that(result, has_length(0))
+    assert_that(result, equal_to({'col1': {'outliers': []}}))
 
 
 def test_single_outlier():
@@ -39,20 +39,20 @@ def test_single_outlier():
     # Act
     result = StringLengthOutOfBounds().run(df).value
     # Assert
-    assert_that(result, has_length(1))
+    assert_that(result, has_entries(col1=has_entry('outliers', has_length(1))))
 
 
-def test_outlier_multi_column():
+def test_outlier_skip_categorical_column():
     # Arrange
     col_data = ['a', 'b'] * 100
     col_data.append('abcd'*1000)
-    data = {'col1': ['hi']*201,
+    data = {'categorical': ['hi']*201,
             'col2': col_data}
     df = pd.DataFrame(data=data)
     # Act
     result = StringLengthOutOfBounds().run(df).value
     # Assert
-    assert_that(result, has_length(1))
+    assert_that(result, has_entries(col2=has_entry('outliers', has_length(1))))
 
 
 def test_outlier_multiple_outliers():
@@ -65,8 +65,7 @@ def test_outlier_multiple_outliers():
     # Act
     result = StringLengthOutOfBounds().run(df).value
     # Assert
-    assert_that(result, has_length(1))
-    assert_that(result['col1']['outliers'][0]['n_samples'], 2)
+    assert_that(result, has_entries(col1=has_entries(outliers=has_length(1))))
 
 
 def test_outlier_multiple_outlier_ranges():
@@ -79,8 +78,9 @@ def test_outlier_multiple_outlier_ranges():
     # Act
     result = StringLengthOutOfBounds().run(df).value
     # Assert
-    assert_that(result, has_length(1))
-    assert_that(result['col1']['outliers'], has_length(2))
+    assert_that(result, has_entries(col1=has_entries(outliers=equal_to(
+        [{'range': {'min': 1, 'max': 1}, 'n_samples': 1}, {'range': {'min': 15, 'max': 15}, 'n_samples': 1}]
+    ))))
 
 
 def test_fi_n_top(diabetes_split_dataset_and_model):
@@ -113,8 +113,7 @@ def test_nan():
     # Act
     result = StringLengthOutOfBounds().run(df).value
     # Assert
-    assert_that(result, has_length(1))
-    assert_that(result['col1']['outliers'][0]['n_samples'], 2)
+    assert_that(result, has_entries(col1=has_entries(outliers=has_length(1), n_samples=202)))
 
 
 def test_condition_count_fail():
@@ -132,7 +131,8 @@ def test_condition_count_fail():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details='Found columns with number of outliers above threshold: {\'col1\': 2}',
+                               details='Found 1 columns with number of outliers above threshold out of 1 columns: '
+                                       '{\'col1\': 2}',
                                name='Number of outliers not greater than 1 string length outliers')
     ))
 
@@ -152,6 +152,7 @@ def test_condition_count_pass():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
+                               details='Passed for 1 columns',
                                name='Number of outliers not greater than 10 string length outliers')
     ))
 
@@ -171,7 +172,8 @@ def test_condition_ratio_fail():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details='Found columns with outliers ratio above threshold: {\'col1\': \'0.99%\'}',
+                               details='Found 1 columns with outliers ratio above threshold out of 1 columns: '
+                                       '{\'col1\': \'0.99%\'}',
                                name='Ratio of outliers not greater than 0.1% string length outliers',
                                category=ConditionCategory.WARN)
     ))
@@ -192,5 +194,21 @@ def test_condition_ratio_pass():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
+                               details='Passed for 1 relevant column',
                                name='Ratio of outliers not greater than 10% string length outliers')
+    ))
+
+
+def test_condition_pass_on_no_outliers():
+    # Arrange
+    col_data = ['a', 'b'] * 100
+    df = pd.DataFrame(data={'col1': col_data})
+    check = StringLengthOutOfBounds().add_condition_ratio_of_outliers_not_greater_than(0)
+    # Act
+    result = check.run(df)
+    # Assert
+    assert_that(result.conditions_results, has_items(
+        equal_condition_result(is_pass=True,
+                               details='Passed for 1 relevant column',
+                               name='Ratio of outliers not greater than 0% string length outliers')
     ))

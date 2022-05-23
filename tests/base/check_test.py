@@ -10,8 +10,8 @@
 #
 """Tests for BaseCheck class."""
 # pylint: disable=protected-access
-from hamcrest import (all_of, assert_that, calling, contains_exactly, equal_to,
-                      has_items, has_length, has_property, is_, is_not, raises)
+from hamcrest import (all_of, assert_that, calling, contains_exactly, equal_to, has_items, has_length, has_property,
+                      is_, is_not, raises)
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError

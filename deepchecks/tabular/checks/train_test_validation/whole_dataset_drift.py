@@ -12,8 +12,7 @@
 import warnings
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
-from deepchecks.core.check_utils.whole_dataset_drift_utils import \
-    run_whole_dataset_drift
+from deepchecks.core.check_utils.whole_dataset_drift_utils import run_whole_dataset_drift
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.strings import format_number
 

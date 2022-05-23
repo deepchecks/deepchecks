@@ -12,10 +12,8 @@
 from hamcrest import assert_that, calling, close_to, has_items, raises
 
 from deepchecks.core import ConditionCategory
-from deepchecks.core.errors import (DeepchecksNotSupportedError,
-                                    DeepchecksValueError, ModelValidationError)
-from deepchecks.tabular.checks.model_evaluation import \
-    RegressionErrorDistribution
+from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError, ModelValidationError
+from deepchecks.tabular.checks.model_evaluation import RegressionErrorDistribution
 from deepchecks.tabular.dataset import Dataset
 from tests.base.utils import equal_condition_result
 

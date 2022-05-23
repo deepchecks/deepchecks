@@ -16,8 +16,7 @@
 """
 import warnings
 
-from ..train_test_validation import (SimilarImageLeakage,
-                                     SimpleFeatureContribution)
+from ..train_test_validation import SimilarImageLeakage, SimpleFeatureContribution
 
 __all__ = [
     'SimpleFeatureContribution',
