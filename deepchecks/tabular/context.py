@@ -52,7 +52,6 @@ class _DummyModel:
 
     train: Dataset
     test: Dataset
-    available_datasets: t.List[DatasetKind]
     predictions: pd.DataFrame
     proba: pd.DataFrame
 
