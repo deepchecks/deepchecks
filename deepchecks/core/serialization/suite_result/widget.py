@@ -113,7 +113,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
     def prepare_failures_list(self) -> HTML:
         """Prepare failures list widget."""
         return normalize_widget_style(HTML(
-            value=self._html_serializer.prepare_failures_list()
+            value=self._html_serializer.prepare_failures_list() or '<p>No outputs to show.</p>'
         ))
 
     def prepare_results_without_condition(
@@ -148,12 +148,19 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             )
             for it in results
         ]
-        return normalize_widget_style(VBox(children=[
-            HTML(value='<h2>Check Without Conditions Output</h2>'),
-            self.prepare_navigation_for_unconditioned_results(output_id),
-            HTML(value=CommonHtml.light_hr),
-            *join(results_without_conditions, HTML(value=CommonHtml.light_hr))
-        ]))
+        if len(results_without_conditions) > 0:
+            children = (
+                HTML(value='<h2>Check Without Conditions Output</h2>'),
+                self.prepare_navigation_for_unconditioned_results(output_id),
+                HTML(value=CommonHtml.light_hr),
+                *join(results_without_conditions, HTML(value=CommonHtml.light_hr))
+            )
+        else:
+            children = (
+                HTML(value='<p>No outputs to show.</p>'),
+            )
+
+        return normalize_widget_style(VBox(children=children))
 
     def prepare_results_with_condition_and_display(
         self,
@@ -187,16 +194,18 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             )
             for it in results
         ]
-        output = (
-            join(results_with_condition_and_display, HTML(value=CommonHtml.light_hr))
-            if len(results_with_condition_and_display) > 0
-            else (HTML(value='<p>Nothing to show</p>'),)
-        )
-        return normalize_widget_style(VBox(children=[
-            self.prepare_conditions_table(output_id=output_id),
-            HTML(value='<h2>Check With Conditions Output</h2>'),
-            *output
-        ]))
+
+        if len(results_with_condition_and_display) > 0:
+            children = (
+                self.prepare_conditions_table(output_id=output_id),
+                HTML(value='<h2>Check With Conditions Output</h2>'),
+                *join(results_with_condition_and_display, HTML(value=CommonHtml.light_hr))
+            )
+        else:
+            children = (
+                HTML(value='<p>No outputs to show.</p>'),
+            )
+        return normalize_widget_style(VBox(children=children))
 
     def prepare_navigation_for_unconditioned_results(
         self,
