@@ -14,46 +14,22 @@ This notebooks provides an overview for using and understanding feature drift ch
 
 What is a feature drift?
 ========================
-Data drift is simply a change in the distribution of data over time. It is
+Drift is simply a change in the distribution of data over time, and it is
 also one of the top reasons of a machine learning model performance degrades
 over time.
 
-Causes of data drift include:
+Feature drift is a data drift such drift in a single feature in the dataset.
 
-* Upstream process changes, such as a sensor being replaced that changes the
-  units of measurement from inches to centimeters.
-* Data quality issues, such as a broken sensor always reading 0.
-* Natural drift in the data, such as mean temperature changing with the seasons.
-* Change in relation between features, or covariate shift.
+For more information on drift, please visit our :doc:`drift guide </user-guide/general/drift_guide.rst>`
 
-Feature drift is such drift in a single feature in the dataset.
-
-In the context of machine learning, drift between the training set and the
-test set will likely make the model to be prone to errors. In other words,
-this means that the model was trained on data that is different from the
-current test data, thus it will probably make more mistakes predicting the
-target variable.
-
-How deepchecks detects feature drift
+How Deepchecks Detects Feature Drift
 ------------------------------------
-There are many methods to detect feature drift. Some of them include
-training a classifier that detects which samples come from a known
-distribution and defines the drift by the accuracy of this classifier. For
-more information, refer to the :doc:`Whole Dataset Drift check
-</checks_gallery/tabular/train_test_validation/plot_whole_dataset_drift>`.
 
-Other approaches include statistical methods aim to measure difference
-between distribution of 2 given sets. We exprimented with various approaches
-and found that for detecting drift in a single feature, the following 2
-methods give the best results:
+This check detects feature drift by using :doc:`univariate measures </user-guide/general/drift_guide.rst#detection-by-univariate-measure>`
+on each feature column separately.
+Another possible method for drift detection is by :doc:`domain classifier </user-guide/general/drift_guide.rst#detection-by-domain-classifier>`
+which is used in the :doc:`Whole Dataset Drift check </checks_gallery/tabular/train_test_validation/plot_whole_dataset_drift>`.
 
-* `Cramer's V <https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V>`__
-* `Wasserstein metric (Earth Movers Distance) <https://en.wikipedia.org/wiki/Wasserstein_metric>`__
-
-For numerical features, the check uses the Earth Movers Distance method
-and for the categorical features it uses the PSI. The check calculates drift
-between train dataset and test dataset per feature, using these 2 statistical
-measures.
 """
 
 #%%

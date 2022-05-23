@@ -8,53 +8,30 @@ dataset drift check.
 
 **Structure:**
 
-* `What is a dataset drift? <#what-is-a-dataset-drift>`__
+* `What Is Multivariate Drift? <#what-is-a-multivariate-drift>`__
 * `Loading the Data <#loading-the-data>`__
-* `Run the check <#run-the-check>`__
-* `Define a condition <#define-a-condition>`__
+* `Run the Check <#run-the-check>`__
+* `Define a Condition <#define-a-condition>`__
 
-What is a dataset drift?
+What Is Multivariate Drift?
 ========================
-A whole dataset drift, or a multivariate dataset drift, occurs when the
-statistical properties of our input feature change, denoted by a change
-in the distribution P(X).
 
-Causes of data drift include:
+Drift is simply a change in the distribution of data over time, and it is
+also one of the top reasons of a machine learning model performance degrades
+over time.
 
-* Upstream process changes, such as a sensor being replaced that changes
-  the units of measurement from inches to centimeters.
-* Data quality issues, such as a broken sensor always reading 0.
-* Natural drift in the data, such as mean temperature changing with the seasons.
-* Change in relation between features, or covariate shift.
+A multivariate drift is a drift that occurs in more than one feature at a time,
+and may even affect the relationships between those features, which are undetectable by
+univariate drift methods.
 
-The difference between a :doc:`feature drift
-</checks_gallery/tabular/train_test_validation/plot_train_test_feature_drift>`
-(or univariate dataset drift) and a multivariate drift is that in the
-latter the data drift occures in more that one feature.
+For more information on drift, please visit our :doc:`drift guide </user-guide/general/drift_guide.rst>`
 
-In the context of machine learning, drift between the training set and the
-test means that the model was trained on data that is different from the
-current test data, thus it will probably make more mistakes predicting the
-target variable.
-
-How deepchecks detects dataset drift
+How Deepchecks Detects Dataset Drift
 ------------------------------------
-There are many methods to detect feature drift. Some of them are statistical
-methods that aim to measure difference between distribution of 2 given sets.
-This methods are more suited to univariate distributions and are primarily
-used to detect drift between 2 subsets of a single feature.
 
-Measuring a multivariate data drift is a bit more challenging. In the whole
-dataset drift check, the multivariate drift is measured by training a classifier
-that detects which samples come from a known distribution and defines the
-drift by the accuracy of this classifier.
-
-Practically, the check concatanates the train and the test sets, and assigns
-label 0 to samples that come from the training set, and 1 to those who are
-from the test set. Then, we train a binary classifer of type
-`Histogram-based Gradient Boosting Classification Tree
-<https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.HistGradientBoostingClassifier.html>`__, and measure the
-drift score from the AUC score of this classifier.
+This check detects multivariate drift by using a :doc:`domain classifier </user-guide/general/drift_guide.rst#detection-by-domain-classifier>`.
+Other methods to detect drift include :doc:`univariate measures </user-guide/general/drift_guide.rst#detection-by-univariate-measure>`
+which is used in other checks, such as :doc:`Train Test Feature Drift check </checks_gallery/tabular/train_test_validation/plot_train_test_feature_drift>`.
 """
 
 #%%
@@ -89,7 +66,7 @@ test_ds.data[label_name] = encoder.transform(test_ds.data[label_name])
 train_ds.label_name
 
 #%%
-# Run the check
+# Run the Check
 # =============
 from deepchecks.tabular.checks import WholeDatasetDrift
 
@@ -129,7 +106,7 @@ check.run(train_dataset=train_drifted_ds, test_dataset=test_drifted_ds)
 # contributed the most to that drift. This is reasonable since the sampling
 # was biased based on that feature.
 #
-# Define a condition
+# Define a Condition
 # ==================
 # Now, we define a condition that enforce the whole dataset drift score must be
 # below 0.1. A condition is deepchecks' way to validate model and data quality,

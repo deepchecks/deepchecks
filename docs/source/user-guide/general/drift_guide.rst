@@ -124,6 +124,7 @@ There are many methods to detect drift. Here, we will elaborate on 2:
 
 Detection by Univariate Measure
 --------------------------------
+
 This is the simplest and most common drift detection method.
 This is done by taking only one variable at a time (that can either be a data feature, the label or even the prediction)
 and measuring the difference between newer and older samples of the variable.
@@ -135,7 +136,7 @@ In deepchecks, we found that the best results are given by:
 
 These methods have the advantage of being simple to use and produce explainable results. However, they are limited by
 checking each feature one at a time, and cannot detect drift in the relations between features. Also, these methods
-will usually detect drift multiple times if it occures in several features.
+will usually detect drift multiple times if it occurs in several features.
 
 Detection by Domain Classifier
 ------------------------------
@@ -149,25 +150,34 @@ The main advantage of this method is that it can also uncover covariate drift, m
 affect the distribution of each individual variable, but does affect the relationship between them.
 
 For example, you're predicting the income of a person from his city and education. Let's say a tech giant now moved into city A. This means that:
-1. Given that a person lives in city A, he's more likely to have a more advanced degree (educated people moved to city A) - this is multivariate drift and can be detected by the Domain Classifier. 
-2. Given his education, a resident of city A now earns more. - this is concept drift, and can be detected only once the labels (income) have arrived. 
 
+#. Given that a person lives in city A, he's more likely to have a more advanced degree (educated people moved to city A) - this is multivariate drift and can be detected by the Domain Classifier.
+#. Given his education, a resident of city A now earns more - this is concept drift, and can be detected only once the labels (income) have arrived.
+
+In deepchecks (in checks :doc:`Whole Dataset Drift</checks_gallery/tabular/train_test_validation/plot_whole_dataset_drift>` and
+:doc:`Image Dataset Drift</checks_gallery/vision/train_test_validation/plot_image_dataset_drift>`) we check concatenate
+the train and the test sets, and assign label 0 to samples that come from the training set, and 1 to those who are
+from the test set. Then, we train a binary classifer of type
+`Histogram-based Gradient Boosting Classification Tree
+<https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.HistGradientBoostingClassifier.html>`__, and measure the
+drift score from the AUC score of this classifier.
 
 How Can I Use Deepchecks to Detect Drift?
 =========================================
+
 Deepchecks can test your data for both concept drift and label drift, by using a variety of methods.
 
 Tabular Data
 ------------
 
 To detect `data <#data-drift>`__ or `concept drift <#concept-drift>`__, deepchecks offers the
-:doc:`Feature Drift check </checks_gallery/tabular/distribution/plot_train_test_feature_drift>` which uses univariate
-`statistical test <#detection-by-statistical-test>`__ and the :doc:`Whole Dataset Drift check</checks_gallery/tabular/distribution/plot_whole_dataset_drift>`
+:doc:`Feature Drift check </checks_gallery/tabular/train_test_validation/plot_train_test_feature_drift>` which uses univariate
+`statistical test <#detection-by-statistical-test>`__ and the :doc:`Whole Dataset Drift check</checks_gallery/tabular/train_test_validation/plot_whole_dataset_drift>`
 which uses a `domain classifier <#detection-by-domain-classifier>`__ in order to detect multivariate drift.
 
-For label drift, deepchecks offers the :doc:`Label Drift check </checks_gallery/tabular/distribution/plot_train_test_label_drift>`, which also uses univariate `statistical test <#detection-by-statistical-test>`__.
+For label drift, deepchecks offers the :doc:`Label Drift check </checks_gallery/tabular/train_test_validation/plot_train_test_label_drift>`, which also uses univariate `statistical test <#detection-by-statistical-test>`__.
 
-In cases where the label is not available, we strongly recommend to also use the :doc:`Prediction Drift check</checks_gallery/tabular/distribution/plot_train_test_prediction_drift>`,
+In cases where the label is not available, we strongly recommend to also use the :doc:`Prediction Drift check</checks_gallery/tabular/model_evaluation/plot_train_test_prediction_drift>`,
 which uses the same methods but on the model's predictions, and can detect possible changes in the distribution of the label.
 
 For code examples, see `here <#tabular-checks>`__
@@ -182,13 +192,13 @@ All of the computer vision checks use the :doc:`image and label properties</user
 drift, as image data and labels are not simple one-dimensional variables.
 
 To detect `data <#data-drift>`__ or `concept drift <#concept-drift>`__, deepchecks offers the
-:doc:`Image Property Drift check </checks_gallery/vision/distribution/plot_image_property_drift>` which uses univariate
-`statistical test <#detection-by-statistical-test>`__ and the :doc:`Image Dataset Drift check</checks_gallery/vision/distribution/plot_image_dataset_drift>`
+:doc:`Image Property Drift check </checks_gallery/vision/train_test_validation/plot_image_property_drift>` which uses univariate
+`statistical test <#detection-by-statistical-test>`__ and the :doc:`Image Dataset Drift check</checks_gallery/vision/train_test_validation/plot_image_dataset_drift>`
 which uses a `domain classifier <#detection-by-domain-classifier>`__ in order to detect multivariate drift.
 
-For label drift, deepchecks offers the :doc:`Label Drift check </checks_gallery/vision/distribution/plot_train_test_label_drift>`, which also uses univariate `statistical test <#detection-by-statistical-test>`__.
+For label drift, deepchecks offers the :doc:`Label Drift check </checks_gallery/vision/train_test_validation/plot_train_test_label_drift>`, which also uses univariate `statistical test <#detection-by-statistical-test>`__.
 
-In cases where the label is not available, we strongly recommend to also use the :doc:`Prediction Drift check</checks_gallery/vision/distribution/plot_train_test_prediction_drift>`,
+In cases where the label is not available, we strongly recommend to also use the :doc:`Prediction Drift check</checks_gallery/vision/model_evaluation/plot_train_test_prediction_drift>`,
 which uses the same methods but on the model's predictions, and can detect possible changes in the distribution of the label.
 
 For code examples, see `here <#computer-vision-checks>`__
@@ -200,10 +210,71 @@ Code Examples
 
 Tabular Checks
 --------------
-TBC
+
+:doc:`TrainTestFeatureDrift </checks_gallery/tabular/train_test_validation/plot_train_test_feature_drift>`:
+
+.. code-block:: python
+
+    from deepchecks.tabular.checks import TrainTestFeatureDrift
+    check = TrainTestFeatureDrift()
+    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
+
+:doc:`WholeDatasetDrift </checks_gallery/tabular/train_test_validation/plot_whole_dataset_drift>`:
+
+.. code-block:: python
+
+    from deepchecks.tabular.checks import WholeDatasetDrift
+    check = WholeDatasetDrift()
+    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
+
+:doc:`TrainTestLabelDrift </checks_gallery/tabular/train_test_validation/plot_train_test_label_drift>`:
+
+.. code-block:: python
+
+    from deepchecks.tabular.checks import TrainTestLabelDrift
+    check = TrainTestLabelDrift()
+    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
+
+:doc:`TrainTestPredictionDrift </checks_gallery/tabular/model_evaluation/plot_train_test_prediction_drift>`:
+
+.. code-block:: python
+
+    from deepchecks.tabular.checks import TrainTestPredictionDrift
+    check = TrainTestPredictionDrift()
+    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
 
 
 Computer Vision Checks
 ----------------------
 
-TBC
+:doc:`ImagePropertyDrift </checks_gallery/vision/train_test_validation/plot_image_property_drift>`:
+
+.. code-block:: python
+
+    from deepchecks.vision.checks import ImagePropertyDrift
+    check = TrainTestPropertyDrift()
+    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
+
+:doc:`ImageDatasetDrift </checks_gallery/vision/train_test_validation/plot_image_dataset_drift>`:
+
+.. code-block:: python
+
+    from deepchecks.vision.checks import ImageDatasetDrift
+    check = ImageDatasetDrift()
+    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
+
+:doc:`TrainTestLabelDrift </checks_gallery/vision/train_test_validation/plot_train_test_label_drift>`:
+
+.. code-block:: python
+
+    from deepchecks.vision.checks import TrainTestLabelDrift
+    check = TrainTestLabelDrift()
+    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
+
+:doc:`TrainTestPredictionDrift </checks_gallery/vision/model_evaluation/plot_train_test_prediction_drift>`:
+
+.. code-block:: python
+
+    from deepchecks.vision.checks import TrainTestPredictionDrift
+    check = TrainTestPredictionDrift()
+    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
