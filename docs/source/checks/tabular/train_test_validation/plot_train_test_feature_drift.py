@@ -18,9 +18,9 @@ Drift is simply a change in the distribution of data over time, and it is
 also one of the top reasons of a machine learning model performance degrades
 over time.
 
-Feature drift is a data drift such drift in a single feature in the dataset.
+Feature drift is a data drift that occurs in a single feature in the dataset.
 
-For more information on drift, please visit our :doc:`drift guide </user-guide/general/drift_guide.rst>`
+For more information on drift, please visit our :doc:`drift guide </user-guide/general/drift_guide.rst>`.
 
 How Deepchecks Detects Feature Drift
 ------------------------------------

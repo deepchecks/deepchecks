@@ -171,8 +171,8 @@ Tabular Data
 ------------
 
 To detect `data <#data-drift>`__ or `concept drift <#concept-drift>`__, deepchecks offers the
-:doc:`Feature Drift check </checks_gallery/tabular/train_test_validation/plot_train_test_feature_drift>` which uses univariate
-`statistical test <#detection-by-statistical-test>`__ and the :doc:`Whole Dataset Drift check</checks_gallery/tabular/train_test_validation/plot_whole_dataset_drift>`
+:doc:`Feature Drift check </checks_gallery/tabular/train_test_validation/plot_train_test_feature_drift>` which uses
+`univariate measures <#detection-by-univariate-measure>`__ and the :doc:`Whole Dataset Drift check</checks_gallery/tabular/train_test_validation/plot_whole_dataset_drift>`
 which uses a `domain classifier <#detection-by-domain-classifier>`__ in order to detect multivariate drift.
 
 For label drift, deepchecks offers the :doc:`Label Drift check </checks_gallery/tabular/train_test_validation/plot_train_test_label_drift>`, which also uses univariate `statistical test <#detection-by-statistical-test>`__.
@@ -192,8 +192,8 @@ All of the computer vision checks use the :doc:`image and label properties</user
 drift, as image data and labels are not simple one-dimensional variables.
 
 To detect `data <#data-drift>`__ or `concept drift <#concept-drift>`__, deepchecks offers the
-:doc:`Image Property Drift check </checks_gallery/vision/train_test_validation/plot_image_property_drift>` which uses univariate
-`statistical test <#detection-by-statistical-test>`__ and the :doc:`Image Dataset Drift check</checks_gallery/vision/train_test_validation/plot_image_dataset_drift>`
+:doc:`Image Property Drift check </checks_gallery/vision/train_test_validation/plot_image_property_drift>` which uses
+`univariate measures <#detection-by-univariate-measure>`__ and the :doc:`Image Dataset Drift check</checks_gallery/vision/train_test_validation/plot_image_dataset_drift>`
 which uses a `domain classifier <#detection-by-domain-classifier>`__ in order to detect multivariate drift.
 
 For label drift, deepchecks offers the :doc:`Label Drift check </checks_gallery/vision/train_test_validation/plot_train_test_label_drift>`, which also uses univariate `statistical test <#detection-by-statistical-test>`__.

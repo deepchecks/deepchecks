@@ -20,7 +20,7 @@ over time.
 
 Label drift is when drift occurs in the label itself.
 
-For more information on drift, please visit our :doc:`drift guide </user-guide/general/drift_guide.rst>`
+For more information on drift, please visit our :doc:`drift guide </user-guide/general/drift_guide.rst>`.
 
 How Deepchecks Detects Label Drift
 ------------------------------------

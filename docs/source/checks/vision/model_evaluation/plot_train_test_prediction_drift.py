@@ -3,62 +3,46 @@
 Train Test Prediction Drift
 ***************************
 
-This notebooks provides an overview for using and understanding the vision prediction drift check.
+This notebooks provides an overview for using and understanding the tabular prediction drift check.
 
 **Structure:**
 
-* `What is a prediction drift? <#what-is-a-prediction-drift>`__
+* `What Is Prediction Drift? <#what-is-prediction-drift>`__
 * `Which Prediction Properties Are Used? <#which-prediction-properties-are-used>`__
-* `Run check on a Classification task <#run-the-check-on-a-classification-task-mnist>`__
-* `Run check on an Object Detection task <#run-the-check-on-an-object-detection-task-coco>`__
+* `Run Check on a Classification Task <#run-the-check-on-a-classification-task-mnist>`__
+* `Run Check on an Object Detection Task <#run-the-check-on-an-object-detection-task-coco>`__
 
-What Is a Prediction Drift?
-===========================
-The term drift (and all it's derivatives) is used to describe any change in the data compared
-to the data the model was trained on. Prediction drift refers to the case in which a change
-in the data (data/feature drift) has happened and as a result, the distribution of the
-models' prediction has changed.
+What Is Prediction Drift?
+========================
+Drift is simply a change in the distribution of data over time, and it is
+also one of the top reasons of a machine learning model performance degrades
+over time.
 
+Prediction drift is when drift occurs in the prediction itself.
 Calculating prediction drift is especially useful in cases
 in which labels are not available for the test dataset, and so a drift in the predictions
-is out only indication that a changed has happened in the data that actually affects model
-predictions. If labels are available, it's also recommended to run the :doc:`Label Drift Check
-</examples/vision/checks/distribution/examples/plot_train_test_label_drift>.
+is our only indication that a changed has happened in the data that actually affects model
+predictions. If labels are available, it's also recommended to run the
+:doc:`Label Drift check </checks_gallery/vision/train_test_validation/plot_train_test_label_drift>`.
 
-There are two main causes for prediction drift:
+For more information on drift, please visit our :doc:`drift guide </user-guide/general/drift_guide.rst>`
 
-* A change in the sample population. In this case, the underline phenomenon we're trying
-  to predict behaves the same, but we're not getting the same types of samples. For example,
-  cronuts becoming more popular in a food classification dataset.
-* Concept drift, which means that the underline relation between the data and
-  the label has changed.
-  For example, the arctic hare changes its fur color during the winter. A dataset that was trained on summertime hares,
-  would have difficulty identifying them in winter.
-  Important to note that concept drift won't necessarily result in prediction drift, unless it affects features that
-  are of high importance to the model.
+How Deepchecks Detects Prediction Drift
+------------------------------------
 
-How Does the TrainTestPredictionDrift Check Work?
-=================================================
-There are many methods to detect drift, that usually include statistical methods
-that aim to measure difference between 2 distributions.
-We experimented with various approaches and found that for detecting drift between 2
-one-dimensional distributions, the following 2 methods give the best results:
+This check detects prediction drift by using :doc:`univariate measures </user-guide/general/drift_guide.rst#detection-by-univariate-measure>`
+on the prediction properties.
 
-* For numerical features, the `Cramer's V <https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V>`__
-* For categorical features, the `Wasserstein Distance (Earth Mover's Distance) <https://en.wikipedia.org/wiki/Wasserstein_metric>`__
+Using Prediction Properties to Detect Prediction Drift
+------------------------------------------------------
 
-However, one does not simply measure drift on a prediction, as they may be complex structures. These methods are
-implemented on label properties, as described in the next section.
-
-Different measurement on predictions
-====================================
 In computer vision specifically, our predictions may be complex, and measuring their drift
-is not a straightforward task. Therefore, we calculate drift on different properties of the
-labels, on which we can directly measure drift.
-
+is not a straightforward task. Therefore, we calculate drift on different :doc:`properties of the prediction</user-guide/vision-properties>`,
+on which we can directly measure drift.
 
 Which Prediction Properties Are Used?
 =================================
+
 ================  ===================================  ==========
 Task Type         Property name                        What is it
 ================  ===================================  ==========
@@ -69,7 +53,7 @@ Object Detection  Number of Bounding Boxes Per Image   Number of bounding box ob
 ================  ===================================  ==========
 
 
-Run the check on a Classification task (MNIST)
+Run the Check on a Classification Task (MNIST)
 ==============================================
 """
 
@@ -202,7 +186,7 @@ ClassPerformance().run(mod_train_ds, mod_test_ds, model)
 # imbalance indicated earlier by the label drift check.
 
 #%%
-# Run the check on an Object Detection task (COCO)
+# Run the Check on an Object Detection Task (COCO)
 # ================================================
 
 from deepchecks.vision.datasets.detection.coco import load_dataset, load_model
