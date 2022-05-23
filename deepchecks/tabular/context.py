@@ -21,7 +21,7 @@ from deepchecks.core.errors import (DatasetValidationError,
                                     DeepchecksNotSupportedError,
                                     DeepchecksValueError, ModelValidationError)
 from deepchecks.tabular.dataset import Dataset
-from deepchecks.tabular.utils.validation import (model_type_validation,
+from deepchecks.tabular.utils.validation import (ensure_predictions_proba, ensure_predictions_shape, model_type_validation,
                                                  validate_model)
 from deepchecks.utils.features import calculate_feature_importance_or_none
 from deepchecks.utils.metrics import (ModelType, get_default_scorers,
@@ -34,7 +34,7 @@ __all__ = [
 
 
 class _DummyModel:
-    """Contains all the data + properties the user has passed to a check/suite, and validates it seamlessly.
+    """Dummy model class used for inference with static predictions from the user.
 
     Parameters
     ----------
@@ -76,26 +76,31 @@ class _DummyModel:
                               ' prefixes. To avoid that provide datasets with no common indexes '
                               'or pass the model object instead of the predictions.')
 
+        self.y_pred = {}
+        self.y_proba = {}
+
         if train is not None:
             self.train = train.features_columns
             for i, ind in enumerate(self.train.index):
                 self.ind_map[DatasetKind.TRAIN][ind] = i
+            if y_pred_train is not None:
+                self.y_pred[DatasetKind.TRAIN] = ensure_predictions_shape(y_pred_train, self.train)
+                if y_proba_train is not None:
+                    self.y_proba[DatasetKind.TRAIN] = ensure_predictions_proba(y_proba_train, y_pred_train)
 
         if test is not None:
             self.test = test.features_columns
             for i, ind in enumerate(self.test.index):
                 self.ind_map[DatasetKind.TEST][ind] = i
+            if y_pred_test is not None:
+                self.y_pred[DatasetKind.TEST] = ensure_predictions_shape(y_pred_test, self.test)
+                if y_proba_test is not None:
+                    self.y_proba[DatasetKind.TEST] = ensure_predictions_proba(y_proba_test, y_pred_test)
 
         if y_pred_train is not None or y_pred_test is not None:
-            self.y_pred = {}
-            self.y_pred[DatasetKind.TRAIN] = y_pred_train
-            self.y_pred[DatasetKind.TEST] = y_pred_test
             self.predict = self._predict
 
-        if y_proba_train is not None or y_proba_train is not None:
-            self.y_proba = {}
-            self.y_proba[DatasetKind.TRAIN] = y_proba_train
-            self.y_proba[DatasetKind.TEST] = y_proba_test
+        if y_proba_train is not None or y_proba_test is not None:
             self.predict_proba = self._predict_proba
 
     def _get_dataset(self, dataset_kind: DatasetKind):
@@ -128,10 +133,12 @@ class _DummyModel:
         return dataset_kind, [self.ind_map[dataset_kind][i] for i in data.index]
 
     def _predict(self, data: pd.DataFrame):
+        '''Predict on given data by the data indexes.'''
         dataset_kind, indexes_to_predict = self._get_index_to_predict(data)
         return self.y_pred[dataset_kind][indexes_to_predict]
 
     def _predict_proba(self, data: pd.DataFrame):
+        '''Predict probabilities on given data by the data indexes.'''
         dataset_kind, indexes_to_predict = self._get_index_to_predict(data)
         return self.y_proba[dataset_kind][indexes_to_predict]
 

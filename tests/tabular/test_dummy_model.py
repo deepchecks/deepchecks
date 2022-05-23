@@ -15,7 +15,7 @@ from sklearn.model_selection import train_test_split
 from deepchecks.core.check_result import CheckResult
 
 from deepchecks.core.condition import ConditionCategory
-from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.core.errors import DeepchecksValueError, ValidationError
 from deepchecks.tabular.base_checks import TrainTestCheck
 from deepchecks.tabular.checks.model_evaluation.model_error_analysis import \
     ModelErrorAnalysis
@@ -148,10 +148,41 @@ def test_new_data(diabetes_split_dataset_and_model):
     # Act
     assert_that(
         calling(NewDataCheck().run)
-            .with_args(train_dataset=test, test_dataset=train,          
+            .with_args(train_dataset=train, test_dataset=test,          
                        y_pred_train=y_pred_train, y_pred_test=y_pred_test,
                        y_proba_train=y_proba_train, y_proba_test=y_proba_test),
         raises(
             DeepchecksValueError,
             r'New data recieved for static model predictions.')
+    )
+
+def test_bad_pred_shape(diabetes_split_dataset_and_model):
+    # Arrange
+    train, test, clf = diabetes_split_dataset_and_model
+    y_pred_train, _, _, _ = \
+        _dummify_model(train, test, clf)
+
+    # Act
+    assert_that(
+        calling(RegressionErrorDistribution().run)
+            .with_args(dataset=test, y_pred_train=y_pred_train),
+        raises(
+            ValidationError,
+            r'Prediction array excpected to be of shape \(146,\) but was: \(296,\)')
+    )
+
+def test_bad_pred_proba(iris_labeled_dataset, iris_adaboost):
+    # Arrange
+    y_pred_train, _, y_proba_train, _ = \
+        _dummify_model(iris_labeled_dataset, None, iris_adaboost)
+
+    y_proba_train[0][2] = 2
+
+    # Act
+    assert_that(
+        calling(RocReport().run)
+            .with_args(dataset=iris_labeled_dataset, y_pred_train=y_pred_train, y_proba_train=y_proba_train),
+        raises(
+            ValidationError,
+            r'Prediction propabilities array didn\'t match predictions result')
     )

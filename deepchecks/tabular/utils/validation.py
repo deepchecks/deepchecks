@@ -10,6 +10,7 @@
 #
 """Tabular objects validation utilities."""
 import typing as t
+import numpy as np
 
 import pandas as pd
 
@@ -20,7 +21,9 @@ from deepchecks.utils.typing import BasicModel
 __all__ = [
     'model_type_validation',
     'validate_model',
-    'ensure_dataframe_type'
+    'ensure_dataframe_type',
+    'ensure_predictions_shape',
+    'ensure_predictions_proba',
 ]
 
 supported_models_link = ('https://docs.deepchecks.com/en/stable/user-guide/supported_models.html'
@@ -107,3 +110,17 @@ def ensure_dataframe_type(obj: t.Any) -> pd.DataFrame:
         raise errors.DeepchecksValueError(
             f'dataset must be of type DataFrame or Dataset, but got: {type(obj).__name__}'
         )
+
+def ensure_predictions_shape(pred: np.ndarray, data: pd.DataFrame) -> np.ndarray:
+    """Ensure the predictions are in the right shape and if so return them. else raise error."""
+    if pred.shape != (len(data), ):
+        raise errors.ValidationError(f'Prediction array excpected to be of shape {(len(data), )} '
+                                     f'but was: {pred.shape}')
+    return pred
+
+def ensure_predictions_proba(pred_proba: np.ndarray, pred: np.ndarray) -> np.ndarray:
+    """Ensure the predictions are in the right shape and if so return them. else raise error."""
+    if pred.shape != pred_proba.shape:  # binary case
+        if (np.argmax(pred_proba, axis=-1) != pred).any():
+            raise errors.ValidationError(f'Prediction propabilities array didn\'t match predictions result')
+    return pred_proba
