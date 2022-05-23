@@ -894,7 +894,7 @@ class Dataset:
             raise DeepchecksValueError(
                 f'non-empty instance of Dataset or DataFrame was expected, instead got {type(obj).__name__}'
             )
-        return obj
+        return obj.copy(obj.data)
 
     @classmethod
     def datasets_share_features(cls, *datasets: 'Dataset') -> bool:

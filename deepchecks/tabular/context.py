@@ -9,12 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """Module for base tabular context."""
-from collections import defaultdict
 import typing as t
 import warnings
+from collections import defaultdict
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import (DatasetValidationError,
@@ -74,7 +74,7 @@ class _DummyModel:
                 test.data.index = map(lambda x: f'test-{x}', list(test.data.index))
                 warnings.warn('train and test datasets have common index - adding "train"/"test"'
                               ' prefixes. To avoid that provide datasets with no common indexes '
-                              'or don\'t use the static predictions feature.')
+                              'or pass the model object instead of the predictions.')
 
         if train is not None:
             self.train = train.features_columns
@@ -106,6 +106,7 @@ class _DummyModel:
         raise DeepchecksValueError(f'Unexpected dataset kind {dataset_kind}')
 
     def _validate_data(self, data: pd.DataFrame, dataset_kind: DatasetKind):
+        # validate that the data isn't a new data by compairing a sample of rows.
         sub_index = list(data.index)[:10]
         return (data.loc[sub_index].fillna('nan') ==
                 self._get_dataset(dataset_kind).loc[sub_index].fillna('nan')).all().all()
@@ -213,17 +214,16 @@ class Context:
         if test and not train:
             raise DatasetValidationError('Can\'t initialize context with only test. if you have single dataset, '
                                          'initialize it as train')
+        if model is None and \
+           not pd.Series([y_pred_train, y_pred_test, y_proba_train, y_proba_test]).isna().all():
+            model = _DummyModel(train=train, test=test, y_pred_train=y_pred_train, y_pred_test=y_pred_test,
+                                y_proba_test=y_proba_test, y_proba_train=y_proba_train)
         if model is not None:
             # Here validate only type of model, later validating it can predict on the data if needed
             model_type_validation(model)
         if features_importance is not None:
             if not isinstance(features_importance, pd.Series):
                 raise DeepchecksValueError('features_importance must be a pandas Series')
-        # we do it after validation because the model we are creating isn't valid (we are always valid just not here)
-        if model is None and \
-           not pd.Series([y_pred_train, y_pred_test, y_proba_train, y_proba_test]).isna().all():
-            model = _DummyModel(train=train, test=test, y_pred_train=y_pred_train, y_pred_test=y_pred_test,
-                                y_proba_test=y_proba_test, y_proba_train=y_proba_train)
         self._train = train
         self._test = test
         self._model = model

@@ -19,7 +19,6 @@ from .simple_classification_data import (SimpleClassificationData,
 from .suite import Suite
 from .vision_data import VisionData
 
-
 try:
     import torch  # noqa: F401
     import torchvision  # noqa: F401
