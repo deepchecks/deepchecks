@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """
-Contains unit tests for the single_feature_contribution check
+Contains unit tests for the data leakage checks
 """
 from datetime import datetime
 

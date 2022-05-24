@@ -8,31 +8,31 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""The single_feature_contribution check module."""
+"""The feature label correlation change check module."""
 import typing as t
 from copy import copy
 
 import numpy as np
 
 from deepchecks.core import CheckResult, ConditionResult
-from deepchecks.core.check_utils.single_feature_contribution_utils import get_single_feature_contribution
+from deepchecks.core.check_utils.feature_label_correlation_utils import get_feature_label_correlation
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.tabular.utils.messages import get_condition_passed_message
 from deepchecks.utils.strings import format_number
 from deepchecks.utils.typing import Hashable
 
-__all__ = ['SingleFeatureContributionTrainTest']
+__all__ = ['FeatureLabelCorrelationChange']
 
-FC = t.TypeVar('FC', bound='SingleFeatureContributionTrainTest')
+FLC = t.TypeVar('FLC', bound='FeatureLabelCorrelationChange')
 
 pps_url = 'https://docs.deepchecks.com/en/stable/examples/tabular/' \
-          'checks/methodology/single_feature_contribution_train_test' \
+          'checks/train_test_validation/feature_label_correlation_change' \
           '.html?utm_source=display_output&utm_medium=referral&utm_campaign=check_link'
 pps_html = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
 
 
-class SingleFeatureContributionTrainTest(TrainTestCheck):
+class FeatureLabelCorrelationChange(TrainTestCheck):
     """
     Return the Predictive Power Score of all features, in order to estimate each feature's ability to predict the label.
 
@@ -109,21 +109,21 @@ class SingleFeatureContributionTrainTest(TrainTestCheck):
             'the target label.'
         ]
 
-        ret_value, display = get_single_feature_contribution(train_dataset.data[relevant_columns],
-                                                             train_dataset.label_name,
-                                                             test_dataset.data[relevant_columns],
-                                                             test_dataset.label_name, self.ppscore_params,
-                                                             self.n_top_features,
-                                                             min_pps_to_show=self.min_pps_to_show,
-                                                             random_state=self.random_state)
+        ret_value, display = get_feature_label_correlation(train_dataset.data[relevant_columns],
+                                                           train_dataset.label_name,
+                                                           test_dataset.data[relevant_columns],
+                                                           test_dataset.label_name, self.ppscore_params,
+                                                           self.n_top_features,
+                                                           min_pps_to_show=self.min_pps_to_show,
+                                                           random_state=self.random_state)
 
         if display:
             display += text
 
-        return CheckResult(value=ret_value, display=display, header='Single Feature Contribution Train-Test')
+        return CheckResult(value=ret_value, display=display, header='Feature Label Correlation Change')
 
-    def add_condition_feature_pps_difference_not_greater_than(self: FC, threshold: float = 0.2,
-                                                              include_negative_diff: bool = True) -> FC:
+    def add_condition_feature_pps_difference_not_greater_than(self: FLC, threshold: float = 0.2,
+                                                              include_negative_diff: bool = True) -> FLC:
         """Add new condition.
 
         Add condition that will check that difference between train
@@ -163,7 +163,7 @@ class SingleFeatureContributionTrainTest(TrainTestCheck):
         return self.add_condition(f'Train-Test features\' Predictive Power Score difference is not greater than '
                                   f'{format_number(threshold)}', condition)
 
-    def add_condition_feature_pps_in_train_not_greater_than(self: FC, threshold: float = 0.7) -> FC:
+    def add_condition_feature_pps_in_train_not_greater_than(self: FLC, threshold: float = 0.7) -> FLC:
         """Add new condition.
 
         Add condition that will check that train dataset feature pps is not greater than X.
@@ -175,7 +175,7 @@ class SingleFeatureContributionTrainTest(TrainTestCheck):
 
         Returns
         -------
-        FC
+        FLC
         """
 
         def condition(value: t.Dict[Hashable, t.Dict[Hashable, float]]) -> ConditionResult:
