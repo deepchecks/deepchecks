@@ -120,7 +120,7 @@ result.value
 # ======================
 # Inspect suite and remove condition
 # ----------------------------------
-# We can see that the single feature contribution failed, both for test and for
+# We can see that the Feature Label Correlation check failed, both for test and for
 # train. Since this is a very simple dataset with few features and this behavior
 # is not necessarily problematic, we will remove the existing conditions for the PPS
 

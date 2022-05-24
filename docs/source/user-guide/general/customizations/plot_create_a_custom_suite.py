@@ -140,7 +140,7 @@ customized_suite.add(
 
 #%%
 
-# lets remove all condition for the SingleFeatureContributionTrainTest:
+# lets remove all condition for the FeatureLabelCorrelationChange:
 customized_suite[3].clean_conditions()
 
 # and update the suite's name:
