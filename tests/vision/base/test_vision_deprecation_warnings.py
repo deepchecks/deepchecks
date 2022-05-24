@@ -11,9 +11,10 @@
 """Contains unit tests for the vision package deprecation warnings."""
 
 import warnings
+
 import pytest
 
-from deepchecks.vision.checks import TrainTestLabelDrift, TrainTestPredictionDrift, ImagePropertyDrift
+from deepchecks.vision.checks import ImagePropertyDrift, TrainTestLabelDrift, TrainTestPredictionDrift
 
 
 def test_deprecation_warning_label_drift():

@@ -1,6 +1,6 @@
 pandas>=1.1.5
 numpy>=1.19
-scikit-learn>=0.24.2
+scikit-learn>=0.23.2
 jsonpickle>=2
 PyNomaly>=0.3.3
 
@@ -25,5 +25,7 @@ importlib_resources>=1.3; python_version < '3.9'
 statsmodels>=0.11.0
 scipy>=1.4.1
 dataclasses>=0.6; python_version < '3.7'
-plotly>=5.5.0
-matplotlib>=3.2.2
+# jupyterlab-plotly extension that is used to display plotly figures in jupyterlab env
+# is incompatiable with plotly version >5.5.0 therefore sticking to the version 5.5.0 for now
+plotly==5.5.0
+matplotlib>=3.3.4

@@ -9,20 +9,20 @@
 # ----------------------------------------------------------------------------
 #
 """The vision/dataset module containing the vision Dataset class and its functions."""
-from abc import abstractmethod
 import logging
+from abc import abstractmethod
 from typing import List
 
 import torch
 
-from deepchecks.core.errors import DeepchecksNotImplementedError, DeepchecksValueError, ValidationError
-from deepchecks.vision.vision_data import VisionData, TaskType
+from deepchecks.core.errors import DeepchecksNotImplementedError, ValidationError
+from deepchecks.vision.vision_data import TaskType, VisionData
 
 logger = logging.getLogger('deepchecks')
 
 
 class DetectionData(VisionData):
-    """The ClassificationData class is used to load and preprocess data for a object detection task.
+    """The DetectionData class is used to load and preprocess data for a object detection task.
 
     It is a subclass of the VisionData class. The DetectionData class is containing additional data and general
     methods intended for easily accessing metadata relevant for validating a computer vision object detection ML models.
@@ -30,7 +30,7 @@ class DetectionData(VisionData):
 
     @property
     def task_type(self) -> TaskType:
-        """Return the task type."""
+        """Return the task type (object_detection)."""
         return TaskType.OBJECT_DETECTION
 
     @abstractmethod
@@ -121,6 +121,7 @@ class DetectionData(VisionData):
 
     def get_classes(self, batch_labels: List[torch.Tensor]):
         """Get a labels batch and return classes inside it."""
+
         def get_classes_from_single_label(tensor: torch.Tensor):
             return list(tensor[:, 0].type(torch.IntTensor).tolist()) if len(tensor) > 0 else []
 
@@ -143,17 +144,23 @@ class DetectionData(VisionData):
         """
         labels = self.batch_to_labels(batch)
         if not isinstance(labels, list):
-            raise DeepchecksValueError('Check requires object detection label to be a list with an entry for each '
-                                       'sample')
+            raise ValidationError('Check requires object detection label to be a list with an entry for each '
+                                  'sample')
         if len(labels) == 0:
-            raise DeepchecksValueError('Check requires object detection label to be a non-empty list')
+            raise ValidationError('Check requires object detection label to be a non-empty list')
         if not isinstance(labels[0], torch.Tensor):
-            raise DeepchecksValueError('Check requires object detection label to be a list of torch.Tensor')
+            raise ValidationError('Check requires object detection label to be a list of torch.Tensor')
         if len(labels[0].shape) != 2:
-            raise DeepchecksValueError('Check requires object detection label to be a list of 2D tensors')
+            raise ValidationError('Check requires object detection label to be a list of 2D tensors')
         if labels[0].shape[1] != 5:
-            raise DeepchecksValueError('Check requires object detection label to be a list of 2D tensors, when '
-                                       'each row has 5 columns: [class_id, x, y, width, height]')
+            raise ValidationError('Check requires object detection label to be a list of 2D tensors, when '
+                                  'each row has 5 columns: [class_id, x, y, width, height]')
+        if torch.min(labels[0]) < 0:
+            raise ValidationError('Found one of coordinates to be negative, check requires object detection '
+                                  'bounding box coordinates to be of format [class_id, x, y, width, height].')
+        if torch.max(labels[0][:, 0] % 1) > 0:
+            raise ValidationError('Class_id must be a positive integer. Object detection labels per image should '
+                                  'be a Bx5 tensor of format [class_id, x, y, width, height].')
 
     def validate_prediction(self, batch, model, device):
         """
@@ -186,3 +193,13 @@ class DetectionData(VisionData):
         if batch_predictions[0].shape[1] != 6:
             raise ValidationError('Check requires detection predictions to be a list of 2D tensors, when '
                                   'each row has 6 columns: [x, y, width, height, class_probability, class_id]')
+        if torch.min(batch_predictions[0]) < 0:
+            raise ValidationError('Found one of coordinates to be negative, Check requires object detection '
+                                  'bounding box predictions to be of format [x, y, width, height, confidence,'
+                                  ' class_id]. ')
+        if torch.min(batch_predictions[0][:, 4]) < 0 or torch.max(batch_predictions[0][:, 4]) > 1:
+            raise ValidationError('Confidence must be between 0 and 1. Object detection predictions per image '
+                                  'should be a Bx6 tensor of format [x, y, width, height, confidence, class_id].')
+        if torch.max(batch_predictions[0][:, 5] % 1) > 0:
+            raise ValidationError('Class_id must be a positive integer. Object detection predictions per image '
+                                  'should be a Bx6 tensor of format [x, y, width, height, confidence, class_id].')

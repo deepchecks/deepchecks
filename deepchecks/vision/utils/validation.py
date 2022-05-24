@@ -12,21 +12,19 @@
 import os
 import random
 import traceback
+
+import imgaug
 import numpy as np
 import torch
-import imgaug
+from IPython.display import HTML, display
 
 from deepchecks.core.errors import ValidationError
 from deepchecks.utils.ipython import is_headless, is_notebook
 from deepchecks.utils.strings import create_new_file_name
-from deepchecks.vision.utils.detection_formatters import DEFAULT_PREDICTION_FORMAT
 from deepchecks.vision.batch_wrapper import apply_to_tensor
-from deepchecks.vision.vision_data import TaskType
-from deepchecks.vision.utils.image_functions import ensure_image, draw_bboxes, prepare_thumbnail
-from deepchecks.vision.vision_data import VisionData
-
-from IPython.display import display, HTML
-
+from deepchecks.vision.utils.detection_formatters import DEFAULT_PREDICTION_FORMAT
+from deepchecks.vision.utils.image_functions import draw_bboxes, ensure_image, prepare_thumbnail
+from deepchecks.vision.vision_data import TaskType, VisionData
 
 __all__ = ['set_seeds', 'validate_extractors']
 
@@ -82,7 +80,7 @@ def validate_extractors(dataset: VisionData, model, device=None, image_save_loca
         dataset.validate_label(batch)
         labels = dataset.batch_to_labels(batch)
     except ValidationError as ex:
-        label_formatter_error = str(ex)
+        label_formatter_error = 'Fail! ' + str(ex)
     except Exception:  # pylint: disable=broad-except
         label_formatter_error = 'Got exception \n' + traceback.format_exc()
 
@@ -90,7 +88,7 @@ def validate_extractors(dataset: VisionData, model, device=None, image_save_loca
         dataset.validate_image_data(batch)
         images = dataset.batch_to_images(batch)
     except ValidationError as ex:
-        image_formatter_error = str(ex)
+        image_formatter_error = 'Fail! ' + str(ex)
     except Exception:  # pylint: disable=broad-except
         image_formatter_error = 'Got exception \n' + traceback.format_exc()
 

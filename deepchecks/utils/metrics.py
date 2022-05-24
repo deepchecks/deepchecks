@@ -12,22 +12,20 @@
 
 # TODO: move tabular functionality to the tabular sub-package
 
-import typing as t
 import enum
+import typing as t
 import warnings
 from numbers import Number
 
 import numpy as np
-from sklearn.metrics import get_scorer, make_scorer, f1_score, precision_score, recall_score
-from sklearn.base import ClassifierMixin, BaseEstimator
-
+from sklearn.base import BaseEstimator, ClassifierMixin
+from sklearn.metrics import f1_score, get_scorer, make_scorer, precision_score, recall_score
 
 from deepchecks import tabular  # pylint: disable=unused-import; it is used for type annotations
 from deepchecks.core import errors
-from deepchecks.utils.strings import is_string_column
 from deepchecks.utils.simple_models import PerfectModel
+from deepchecks.utils.strings import is_string_column
 from deepchecks.utils.typing import BasicModel, ClassificationModel
-
 
 __all__ = [
     'ModelType',

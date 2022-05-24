@@ -9,11 +9,11 @@
 # ----------------------------------------------------------------------------
 #
 """Test metrics utils"""
-from hamcrest import equal_to, assert_that, calling, raises
+from hamcrest import assert_that, calling, equal_to, raises
 from sklearn.svm import SVC
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.utils.metrics import task_type_check, ModelType
+from deepchecks.utils.metrics import ModelType, task_type_check
 
 
 def test_task_type_check_binary(iris_dataset_single_class, iris_random_forest_single_class):

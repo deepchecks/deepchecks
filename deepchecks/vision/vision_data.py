@@ -11,36 +11,27 @@
 """The vision/dataset module containing the vision Dataset class and its functions."""
 # pylint: disable=protected-access
 import random
+import warnings
+from abc import abstractmethod
 from collections import defaultdict
 from copy import copy
-from abc import abstractmethod
-from enum import Enum
-from typing import Any, List, Optional, Dict, TypeVar, Union, Iterator, Sequence
+from typing import Any, Callable, Dict, Iterator, List, Optional, Sequence, Type, TypeVar, Union
 
-import logging
 import numpy as np
 import torch
-from torch.utils.data import DataLoader, BatchSampler, Sampler
+from torch.utils.data import BatchSampler, DataLoader, Dataset, Sampler
 
-
-from deepchecks.core.errors import DeepchecksNotImplementedError, DeepchecksValueError, ValidationError, \
-    DeepchecksBaseError
+from deepchecks.core.errors import (DeepchecksBaseError, DeepchecksNotImplementedError, DeepchecksValueError,
+                                    ValidationError)
 from deepchecks.vision.batch_wrapper import Batch
+from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.utils.image_functions import ImageInfo
-from deepchecks.vision.utils.transformations import add_augmentation_in_start, get_transforms_handler
+from deepchecks.vision.utils.transformations import get_transforms_handler
 
-logger = logging.getLogger('deepchecks')
+__all__ = ['VisionData']
+
+
 VD = TypeVar('VD', bound='VisionData')
-
-__all__ = ['TaskType', 'VisionData']
-
-
-class TaskType(Enum):
-    """Enum containing supported task types."""
-
-    CLASSIFICATION = 'classification'
-    OBJECT_DETECTION = 'object_detection'
-    OTHER = 'other'
 
 
 class VisionData:
@@ -61,19 +52,19 @@ class VisionData:
         Name of transforms field in the dataset which holds transformations of both data and label.
     """
 
-    def __init__(self,
-                 data_loader: DataLoader,
-                 num_classes: Optional[int] = None,
-                 label_map: Optional[Dict[int, str]] = None,
-                 transform_field: Optional[str] = 'transforms'):
-
+    def __init__(
+        self,
+        data_loader: DataLoader,
+        num_classes: Optional[int] = None,
+        label_map: Optional[Dict[int, str]] = None,
+        transform_field: Optional[str] = 'transforms'
+    ):
         # Create data loader that uses IndicesSequentialSampler, which always return batches in the same order
         self._data_loader, self._sampler = self._get_data_loader_sequential(data_loader)
 
         self._num_classes = num_classes
         self._label_map = label_map
         self._transform_field = transform_field
-        self._warned_labels = set()
         self._image_formatter_error = None
         self._label_formatter_error = None
         self._get_classes_error = None
@@ -83,23 +74,23 @@ class VisionData:
             self.validate_image_data(batch)
         except DeepchecksNotImplementedError:
             self._image_formatter_error = 'batch_to_images() was not implemented, some checks will not run'
-            logger.warning(self._image_formatter_error)
+            warnings.warn(self._image_formatter_error)
         except ValidationError as ex:
             self._image_formatter_error = f'batch_to_images() was not implemented correctly, the validation has ' \
                                           f'failed with the error: "{ex}". To test your image formatting use the ' \
                                           f'function `validate_image_data(batch)`'
-            logger.warning(self._image_formatter_error)
+            warnings.warn(self._image_formatter_error)
 
         try:
             self.validate_label(batch)
         except DeepchecksNotImplementedError:
             self._label_formatter_error = 'batch_to_labels() was not implemented, some checks will not run'
-            logger.warning(self._image_formatter_error)
+            warnings.warn(self._label_formatter_error)
         except ValidationError as ex:
             self._label_formatter_error = f'batch_to_labels() was not implemented correctly, the validation has ' \
                                           f'failed with the error: "{ex}". To test your label formatting use the ' \
                                           f'function `validate_label(batch)`'
-            logger.warning(self._label_formatter_error)
+            warnings.warn(self._label_formatter_error)
 
         try:
             if self._label_formatter_error is None:
@@ -108,15 +99,75 @@ class VisionData:
                 self._get_classes_error = 'Must have valid labels formatter to use `get_classes`'
         except DeepchecksNotImplementedError:
             self._get_classes_error = 'get_classes() was not implemented, some checks will not run'
-            logger.warning(self._get_classes_error)
+            warnings.warn(self._get_classes_error)
         except ValidationError as ex:
             self._get_classes_error = f'get_classes() was not implemented correctly, the validation has ' \
                                       f'failed with the error: "{ex}". To test your formatting use the ' \
                                       f'function `validate_get_classes(batch)`'
-            logger.warning(self._get_classes_error)
+            warnings.warn(self._get_classes_error)
 
         self._classes_indices = None
         self._current_index = None
+
+    @classmethod
+    def from_dataset(
+        cls: Type[VD],
+        data: Dataset,
+        batch_size: int = 64,
+        shuffle: bool = True,
+        num_workers: int = 0,
+        pin_memory: bool = True,
+        collate_fn: Optional[Callable] = None,
+        num_classes: Optional[int] = None,
+        label_map: Optional[Dict[int, str]] = None,
+        transform_field: Optional[str] = 'transforms'
+    ) -> VD:
+        """Create VisionData instance from a Dataset instance.
+
+        Parameters
+        ----------
+        data : Dataset
+            instance of a Dataset.
+        batch_size: int, default 64
+            how many samples per batch to load.
+        shuffle : bool, default True:
+            set to ``True`` to have the data reshuffled at every epoch.
+        num_workers  int, default 0:
+            how many subprocesses to use for data loading.
+            ``0`` means that the data will be loaded in the main process.
+        pin_memory bool, default True
+            If ``True``, the data loader will copy Tensors into CUDA pinned memory
+            before returning them.
+        collate_fn : Optional[Callable]
+            merges a list of samples to form a mini-batch of Tensor(s).
+        num_classes : Optional[int], default None
+            Number of classes in the dataset. If not provided, will be inferred from the dataset.
+        label_map : Optional[Dict[int, str]], default None
+            A dictionary mapping class ids to their names.
+        transform_field : Optional[str], default: 'transforms'
+            Name of transforms field in the dataset which holds transformations of both data and label.
+
+        Returns
+        -------
+        VisionData
+        """
+        def batch_collate(batch):
+            imgs, labels = zip(*batch)
+            return list(imgs), list(labels)
+
+        return cls(
+            data_loader=DataLoader(
+                dataset=data,
+                batch_size=batch_size,
+                shuffle=shuffle,
+                num_workers=num_workers,
+                pin_memory=pin_memory,
+                collate_fn=collate_fn or batch_collate
+            ),
+            num_classes=num_classes,
+            label_map=label_map,
+            transform_field=transform_field
+        )
 
     @abstractmethod
     def get_classes(self, batch_labels: Union[List[torch.Tensor], torch.Tensor]) -> List[List[int]]:
@@ -240,7 +291,7 @@ class VisionData:
 
     @property
     def task_type(self) -> TaskType:
-        """Return the task type."""
+        """Return the task type: classification, object_detection or other."""
         return TaskType.OTHER
 
     @property
@@ -274,10 +325,8 @@ class VisionData:
         if self._label_map is None:
             return str(class_id)
         elif class_id not in self._label_map:
-            if class_id not in self._warned_labels:
-                # We want to warn one time per class
-                self._warned_labels.add(class_id)
-                logger.warning('Class id %s is not in the label map.', class_id)
+            warnings.warn(f'Class id {class_id} is not in the label map. Add it to map in order to show the class '
+                          f'name instead of id')
             return str(class_id)
         else:
             return self._label_map[class_id]
@@ -291,20 +340,15 @@ class VisionData:
                   f'transformations field is named otherwise, you cat set it by using "transform_field" parameter'
             raise DeepchecksValueError(msg)
         transform = dataset_ref.__getattribute__(self._transform_field)
-        return get_transforms_handler(transform)
+        return get_transforms_handler(transform, self.task_type)
 
     def get_augmented_dataset(self, aug) -> VD:
         """Return a copy of the vision data object with the augmentation in the start of it."""
-        dataset_ref = self._data_loader.dataset
-        # If no field exists raise error
-        if not hasattr(dataset_ref, self._transform_field):
-            msg = f'Underlying Dataset instance does not contain "{self._transform_field}" attribute. If your ' \
-                  f'transformations field is named otherwise, you cat set it by using "transform_field" parameter'
-            raise DeepchecksValueError(msg)
+        transform_handler = self.get_transform_type()
         new_vision_data = self.copy()
         new_dataset_ref = new_vision_data.data_loader.dataset
         transform = new_dataset_ref.__getattribute__(self._transform_field)
-        new_transform = add_augmentation_in_start(aug, transform)
+        new_transform = transform_handler.add_augmentation_in_start(aug, transform)
         new_dataset_ref.__setattr__(self._transform_field, new_transform)
         return new_vision_data
 
@@ -404,8 +448,8 @@ class VisionData:
         sample_min = np.min(sample)
         sample_max = np.max(sample)
         if sample_min < 0 or sample_max > 255 or sample_max <= 1:
-            raise ValidationError(f'Image data found to be in range [{sample_min}, {sample_max}] instead of expected '
-                                  f'range [0, 255].')
+            raise ValidationError(f'Image data should be in uint8 format(integers between 0 and 255). '
+                                  f'Found values in range [{sample_min}, {sample_max}].')
 
     def validate_get_classes(self, batch):
         """Validate that the get_classes function returns data in the correct format.

@@ -9,15 +9,15 @@
 # ----------------------------------------------------------------------------
 #
 """Module for calculating detection precision and recall."""
+import warnings
 from abc import abstractmethod
 from collections import defaultdict
-from typing import List, Tuple, Union, Optional, Dict
-import warnings
+from typing import Dict, List, Optional, Tuple, Union
 
-from ignite.metrics import Metric
-from ignite.metrics.metric import sync_all_reduce, reinit__is_reduced
-import torch
 import numpy as np
+import torch
+from ignite.metrics import Metric
+from ignite.metrics.metric import reinit__is_reduced, sync_all_reduce
 
 
 def _dict_conc(test_list):
@@ -35,7 +35,7 @@ def _dict_conc(test_list):
     return result
 
 
-class AveragePrecision(Metric):
+class AveragePrecisionRecall(Metric):
     """Abstract class to calculate average precision and recall for various vision tasks.
 
     Parameters
@@ -329,11 +329,11 @@ class AveragePrecision(Metric):
         with warnings.catch_warnings():
             warnings.simplefilter(action="ignore", category=RuntimeWarning)
             res = np.nanmean(res[:, :, :], axis=0)
-        if get_mean_val:
-            return np.nanmean(res[res > -1])
-        if zeroed_negative:
-            res = res.clip(min=0)
-        return res[0][0]
+            if get_mean_val:
+                return np.nanmean(res[res > -1])
+            if zeroed_negative:
+                res = res.clip(min=0)
+            return res[0][0]
 
     @abstractmethod
     def get_confidences(self, detections) -> List[float]:

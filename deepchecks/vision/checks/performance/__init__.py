@@ -8,15 +8,17 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module containing the performance check in the vision package."""
-from .class_performance import ClassPerformance
-from .mean_average_precision_report import MeanAveragePrecisionReport
-from .mean_average_recall_report import MeanAverageRecallReport
-from .robustness_report import RobustnessReport
-from .confusion_matrix import ConfusionMatrixReport
-from .simple_model_comparison import SimpleModelComparison
-from .model_error_analysis import ModelErrorAnalysis
-from .image_segment_performance import ImageSegmentPerformance
+"""Module containing the performance check in the vision package.
+
+.. deprecated:: 0.7.0
+        `deepchecks.vision.checks.performance is deprecated and will be removed in deepchecks 0.8 version.
+        Use `deepchecks.vision.checks.model_evaluation` instead.
+"""
+import warnings
+
+from ..model_evaluation import (ClassPerformance, ConfusionMatrixReport, ImageSegmentPerformance,
+                                MeanAveragePrecisionReport, MeanAverageRecallReport, ModelErrorAnalysis,
+                                RobustnessReport, SimpleModelComparison)
 
 __all__ = [
     "ClassPerformance",
@@ -28,3 +30,8 @@ __all__ = [
     "ModelErrorAnalysis",
     "ImageSegmentPerformance",
 ]
+
+warnings.warn(
+    "deepchecks.vision.checks.performance is deprecated. Use deepchecks.vision.checks.model_evaluation instead.",
+    DeprecationWarning
+)

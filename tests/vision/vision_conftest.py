@@ -14,27 +14,27 @@ from hashlib import md5
 import numpy as np
 import pytest
 import torch
+import torchvision.transforms as T
+from PIL import Image
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.dataloader import default_collate
-from PIL import Image
+from torchvision import datasets
 
 from deepchecks.core import DatasetKind
-from deepchecks.vision import VisionData, Context, Batch
-
-from deepchecks.vision.datasets.detection.coco import (
-    load_model as load_yolov5_model,
-    load_dataset as load_coco_dataset, COCOData
-)
-from deepchecks.vision.datasets.classification.mnist import (
-    load_model as load_mnist_net_model,
-    load_dataset as load_mnist_dataset, MNISTData
-)
+from deepchecks.vision import Batch, Context, VisionData
+from deepchecks.vision.datasets.classification.mnist import MODULE_DIR as mnist_dir
+from deepchecks.vision.datasets.classification.mnist import MNISTData
+from deepchecks.vision.datasets.classification.mnist import load_dataset as load_mnist_dataset
+from deepchecks.vision.datasets.classification.mnist import load_model as load_mnist_net_model
+from deepchecks.vision.datasets.detection.coco import DATA_DIR as coco_root
+from deepchecks.vision.datasets.detection.coco import LABEL_MAP as coco_labels
+from deepchecks.vision.datasets.detection.coco import COCOData, CocoDataset
+from deepchecks.vision.datasets.detection.coco import load_dataset as load_coco_dataset
+from deepchecks.vision.datasets.detection.coco import load_model as load_yolov5_model
 from deepchecks.vision.vision_data import TaskType
-
-from tests.vision.utils_tests.mnist_imgaug import mnist_dataset_imgaug
 from tests.vision.assets.coco_detections_dict import coco_detections_dict
 from tests.vision.assets.mnist_predictions_dict import mnist_predictions_dict
-
+from tests.vision.utils_tests.mnist_imgaug import mnist_dataset_imgaug
 
 # Fix bug with torch.hub path on windows
 PROJECT_DIR = pathlib.Path(__file__).absolute().parent.parent.parent
@@ -61,7 +61,9 @@ __all__ = ['device',
            'mnist_test_only_images',
            'mnist_train_custom_task',
            'mnist_test_custom_task',
-           'coco_train_custom_task'
+           'coco_train_custom_task',
+           'mnist_dataset_train_torch',
+           'coco_train_visiondata_torch',
            ]
 
 
@@ -104,6 +106,28 @@ def mnist_dataset_train():
     """Return MNist dataset as VisionData object."""
     return load_mnist_dataset(train=True, object_type='VisionData', shuffle=False)
 
+@pytest.fixture(scope='session')
+def mnist_dataset_train_torch():
+    """Return MNist dataset as VisionData object."""
+    mean = (0.1307,)
+    std = (0.3081,)
+    dataset = datasets.MNIST(
+            str(mnist_dir),
+            train=True,
+            download=True,
+            transform=T.Compose([
+                T.ToTensor(),
+                T.Normalize(mean, std),
+            ]),
+        )
+    loader = DataLoader(
+        dataset,
+        batch_size=64,
+        shuffle=False,
+        pin_memory=True,
+        generator=torch.Generator()
+    )
+    return MNISTData(loader, num_classes=len(datasets.MNIST.classes), transform_field='transform')
 
 @pytest.fixture(scope='session')
 def mnist_data_loader_test():
@@ -233,6 +257,40 @@ def coco_train_dataloader():
 @pytest.fixture(scope='session')
 def coco_train_visiondata():
     return load_coco_dataset(train=True, object_type='VisionData', shuffle=False)
+
+
+@pytest.fixture(scope='session')
+def coco_train_visiondata_torch():
+    coco_dir, dataset_name = CocoDataset.download_coco128(coco_root)
+
+    def batch_collate(batch):
+        imgs, labels = zip(*batch)
+        return list(imgs), list(labels)
+
+    class CocoTorchDataset(CocoDataset):
+        def apply_transform(self, img, bboxes):
+            if self.transforms is not None:
+                transformed = self.transforms(img)
+            return transformed, bboxes
+
+    dataloader = DataLoader(
+        dataset=CocoTorchDataset(
+            root=str(coco_dir),
+            name=dataset_name,
+            train=True,
+            transforms=T.Compose([
+                lambda x: x
+            ])
+        ),
+        batch_size=32,
+        shuffle=True,
+        num_workers=0,
+        collate_fn=batch_collate,
+        pin_memory=True,
+        generator=torch.Generator()
+    )
+
+    return COCOData(data_loader=dataloader, num_classes=80, label_map=coco_labels)
 
 
 @pytest.fixture(scope='session')

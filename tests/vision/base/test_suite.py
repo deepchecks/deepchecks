@@ -13,26 +13,17 @@ import typing as t
 from collections import defaultdict
 
 import torch
+from hamcrest import all_of, assert_that, calling, equal_to, has_entries, instance_of, is_, raises
 from torch.utils.data import DataLoader
-from hamcrest import (
-    assert_that,
-    calling,
-    raises,
-    equal_to,
-    has_entries,
-    instance_of,
-    all_of,
-    is_,
-)
 
 from deepchecks.core import CheckResult, DatasetKind
-from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError, DeepchecksNotSupportedError
+from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError
+from deepchecks.vision.base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
+from deepchecks.vision.datasets.classification import mnist
+from deepchecks.vision.datasets.detection import coco
+from deepchecks.vision.suite import Suite
 from deepchecks.vision.suites.default_suites import full_suite
 from deepchecks.vision.vision_data import TaskType
-from deepchecks.vision.base_checks import SingleDatasetCheck, TrainTestCheck, ModelOnlyCheck
-from deepchecks.vision.suite import Suite
-from deepchecks.vision.datasets.detection import coco
-from deepchecks.vision.datasets.classification import mnist
 from tests.conftest import get_expected_results_length, validate_suite_result
 
 

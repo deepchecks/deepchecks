@@ -24,8 +24,10 @@ Tabular
     :maxdepth: 2
     :caption: Tabular
 
+    tabular/auto_tutorials/index
     tabular/dataset_object
     tabular/supported_models
+    tabular/feature_importance
 
 Vision
 -------
@@ -34,5 +36,22 @@ Vision
     :maxdepth: 2
     :caption: Vision
 
+    vision/auto_tutorials/index
     vision/data-classes/index
     vision/vision_properties
+
+
+
+Integrations
+------------
+
+.. toctree::
+    :maxdepth: 2
+    :caption: Integrations
+
+    integrations/spark_databricks
+    integrations/pytest
+    integrations/h2o
+    integrations/hugging_face
+    integrations/airflow
+    general/exporting_results/examples/plot_exports_output_to_wandb

@@ -8,11 +8,11 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-from hamcrest import has_items, assert_that, has_length, close_to
+from hamcrest import assert_that, close_to, has_items, has_length
 
+from deepchecks.vision import VisionData
 from deepchecks.vision.metrics_utils.metrics import calculate_metrics
 from deepchecks.vision.metrics_utils.object_detection_precision_recall import ObjectDetectionAveragePrecision
-from deepchecks.vision import VisionData
 
 
 def test_default_ap_ignite_complient(coco_test_visiondata: VisionData, mock_trained_yolov5_object_detection, device):

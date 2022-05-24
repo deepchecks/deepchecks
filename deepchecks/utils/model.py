@@ -10,9 +10,10 @@
 #
 """module for model functions utils."""
 from typing import Union
-from deepchecks.utils.typing import BasicModel
+
 from sklearn.pipeline import Pipeline
 
+from deepchecks.utils.typing import BasicModel
 
 __all__ = ['get_model_of_pipeline']
 

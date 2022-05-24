@@ -11,9 +11,9 @@ Each check enables you to inspect a specific aspect of your data and
 models. They are the basic building block of the deepchecks package,
 covering all kinds of common issues, such as:
 
-- :doc:`/checks_gallery/tabular/performance/plot_model_error_analysis`
-- :doc:`/checks_gallery/tabular/integrity/plot_label_ambiguity`
-- :doc:`/checks_gallery/tabular/methodology/plot_date_train_test_leakage_overlap`
+- :doc:`/checks_gallery/tabular/model_evaluation/plot_model_error_analysis`
+- :doc:`/checks_gallery/tabular/data_integrity/plot_conflicting_labels`
+- :doc:`/checks_gallery/tabular/train_test_validation/plot_date_train_test_leakage_overlap`
 
 Each check can have two types of results:
 
@@ -26,9 +26,9 @@ Each check can have two types of results:
 See Also
 ---------
 
-- :doc:`Checks Demonstrations </checks_gallery/tabular//index>` - example notebooks demonstrating all of the checks implemented in the package.
+- :doc:`Checks Demonstrations </checks_gallery/tabular/index>` - example notebooks demonstrating all of the checks implemented in the package.
 - :doc:`Checks API Reference </api/deepchecks.tabular.checks>` - where all the check parameters and implemented conditions can be found.
-- :doc:`/auto_tutorials/tabular/plot_add_a_custom_check` - for a tutorial of how to implement your own check
+- :doc:`/user-guide/tabular/auto_tutorials/plot_add_a_custom_check` - for a tutorial of how to implement your own check
 
 
 Condition
@@ -77,6 +77,6 @@ See Also
 .. _List of Tabular Suites: https://github.com/deepchecks/deepchecks/tree/main/deepchecks/tabular/suites
 .. _List of Vision Suites: https://github.com/deepchecks/deepchecks/tree/main/deepchecks/vision/suites
 
-.. image:: /_static/diagram.svg
+.. image:: /_static/images/general/diagram.svg
    :alt: Deepchecks Diagram
    :align: center

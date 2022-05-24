@@ -35,8 +35,10 @@ check
 # `Add a Custom Condition <#add-a-custom-condition>`__ or if you would like to
 # run the conditions outside of suite you can execute:
 
-from deepchecks.tabular import Dataset
 import pandas as pd
+
+from deepchecks.tabular import Dataset
+
 # Dummy data
 train_dataset = Dataset(pd.DataFrame(data={'x': [1,2,3,4,5,6,7,8,9]}))
 test_dataset = Dataset(pd.DataFrame(data={'x': [1,2,3]}))
@@ -66,16 +68,16 @@ condition_results
 # To remove a condition, start by printing the Suite and identifing the Check's ID,
 # and the Condition's ID:
 
-from deepchecks.tabular.suites import train_test_leakage
+from deepchecks.tabular.suites import train_test_validation
 
-suite = train_test_leakage()
+suite = train_test_validation()
 suite
 
 #%%
 # After we found the IDs we can remove the Condition:
 
 # Access check by id
-check = suite[2]
+check = suite[10]
 # Remove condition by id
 check.remove_condition(0)
 
@@ -98,9 +100,10 @@ suite
 # Let's look at the check ``DatasetsSizeComparison`` and see it's return value in
 # order to write a condition for it.
 
-from deepchecks.tabular.checks import DatasetsSizeComparison
-from deepchecks.tabular import Dataset
 import pandas as pd
+
+from deepchecks.tabular import Dataset
+from deepchecks.tabular.checks import DatasetsSizeComparison
 
 # We'll use dummy data for the purpose of this demonstration
 train_dataset = Dataset(pd.DataFrame(data={'x': [1,2,3,4,5,6,7,8,9]}))
@@ -147,7 +150,7 @@ check = DatasetsSizeComparison().add_condition(condition_name, custom_condition)
 # runs the condition for us automatically and prints out a Conditions Summary table
 # (for all the conditions defined on the checks within the suite):
 
-from deepchecks import Suite
+from deepchecks.tabular import Suite
 
 # Using suite to run check & condition
 suite = Suite('Suite for Condition',
@@ -163,7 +166,7 @@ suite.run(train_dataset, test_dataset)
 # as either fail or warn, by passing the category to the ConditionResult object.
 # For example we can even write condition which sets the category based on severity of the result:
 
-from deepchecks.core import ConditionResult, ConditionCategory
+from deepchecks.core import ConditionCategory, ConditionResult
 
 # Our parameters for the condition
 low_threshold = 0.3

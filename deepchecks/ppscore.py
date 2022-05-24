@@ -30,25 +30,17 @@
 # 8080labs/ppscore: zenodo release (1.2.0). Zenodo. https://doi.org/10.5281/zenodo.4091345
 
 # pylint: skip-file
+import warnings
 
+warnings.filterwarnings('ignore', message='The least populated class in y has only')
 
 import numpy as np
-
-from sklearn import tree
-from sklearn import preprocessing
-from sklearn.model_selection import cross_val_score
-from sklearn.metrics import mean_absolute_error, f1_score
-
 import pandas as pd
-from pandas.api.types import (
-    is_numeric_dtype,
-    is_bool_dtype,
-    is_object_dtype,
-    is_categorical_dtype,
-    is_string_dtype,
-    is_datetime64_any_dtype,
-    is_timedelta64_dtype,
-)
+from pandas.api.types import (is_bool_dtype, is_categorical_dtype, is_datetime64_any_dtype, is_numeric_dtype,
+                              is_object_dtype, is_string_dtype, is_timedelta64_dtype)
+from sklearn import preprocessing, tree
+from sklearn.metrics import f1_score, mean_absolute_error
+from sklearn.model_selection import cross_val_score
 
 from deepchecks.utils.typing import Hashable
 

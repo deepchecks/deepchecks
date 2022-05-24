@@ -84,9 +84,12 @@ json.loads(serialized_output)
 # Display the CheckResult Output from a JSON
 # ------------------------------------------
 # The serialized JSON can be used to reproduce the run in other Python scopes,
-# by using the ``display_from_json`` function
+# by using the ``from_json`` function
 
-CheckResult.display_from_json(serialized_output)
+
+from deepchecks.utils.json_utils import from_json
+
+from_json(serialized_output)
 
 #%%
 # Exporting a Suite's Output (SuiteResult) to JSON
@@ -126,4 +129,4 @@ len(json.loads(suite_json)['results'])
 # JSON Structure <#export-a-check-s-output-checkresult-to-a-json-format>`__ we saw
 # before for each check
 
-json.loads(json.loads(suite_json)['results'][0])
+json.loads(suite_json)['results'][0]

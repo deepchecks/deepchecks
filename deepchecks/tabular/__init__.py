@@ -9,19 +9,11 @@
 # ----------------------------------------------------------------------------
 #
 """Package for tabular functionality."""
-from .dataset import Dataset
+from .base_checks import ModelComparisonCheck, ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
 from .context import Context
+from .dataset import Dataset
+from .model_base import ModelComparisonContext, ModelComparisonSuite
 from .suite import Suite
-from .base_checks import (
-    SingleDatasetCheck,
-    TrainTestCheck,
-    ModelOnlyCheck,
-    ModelComparisonCheck,
-)
-from .model_base import (
-    ModelComparisonContext,
-    ModelComparisonSuite
-)
 
 __all__ = [
     "Dataset",

@@ -12,28 +12,16 @@
 import copy
 
 import torch
+from hamcrest import (all_of, assert_that, calling, equal_to, has_properties, has_property, instance_of, is_, raises,
+                      same_instance)
 from torch import nn
-from hamcrest import (
-    assert_that,
-    calling,
-    raises,
-    equal_to,
-    has_properties,
-    has_property,
-    instance_of,
-    same_instance,
-    all_of,
-    is_
-)
 
 from deepchecks.core import DatasetKind
-from deepchecks.core.errors import DeepchecksValueError, ValidationError, ModelValidationError
-from deepchecks.core.errors import DeepchecksNotSupportedError
-from deepchecks.core.errors import DatasetValidationError
-from deepchecks.vision.base_checks import Context
+from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
+                                    ModelValidationError, ValidationError)
 from deepchecks.vision import ClassificationData, DetectionData
+from deepchecks.vision.base_checks import Context
 from deepchecks.vision.vision_data import TaskType, VisionData
-
 
 
 def test_vision_context_initialization_for_classification_task(mnist_dataset_train, mnist_dataset_test,

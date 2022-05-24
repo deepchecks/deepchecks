@@ -9,23 +9,18 @@
 # ----------------------------------------------------------------------------
 #
 """Contains unit tests for the Dataset class."""
-import logging
 import typing as t
+import warnings
 
 import numpy as np
 import pandas as pd
-import pytest
-from sklearn.datasets import load_iris
-from sklearn.datasets import make_classification
-from hamcrest import (
-    assert_that, instance_of, equal_to, is_,
-    calling, raises, not_none, has_property, all_of, contains_exactly, has_item, has_length
-)
+from hamcrest import (all_of, assert_that, calling, contains_exactly, equal_to, greater_than, has_item, has_length,
+                      has_property, instance_of, is_, not_none, raises)
+from sklearn.datasets import load_iris, make_classification
 
-from deepchecks.tabular.dataset import Dataset, logger as ds_logger
-from deepchecks.tabular.utils.validation import ensure_dataframe_type
 from deepchecks.core.errors import DeepchecksValueError
-
+from deepchecks.tabular.dataset import Dataset
+from deepchecks.tabular.utils.validation import ensure_dataframe_type
 
 
 def assert_dataset(dataset: Dataset, args):
@@ -844,7 +839,7 @@ def test__ensure_not_empty_dataset__with_dataframe(iris: pd.DataFrame):
     ds = Dataset.cast_to_dataset(iris)
     # Assert
     assert_that(ds, instance_of(Dataset))
-    assert_that(ds.features, has_length(0))
+    assert_that(ds.features, has_length(greater_than(0)))
     assert_that(ds.label_name, equal_to(None))
     assert_that(ds.n_samples, equal_to(len(iris)))
 
@@ -1041,19 +1036,18 @@ def random_classification_dataframe(n_samples=100, n_features=5) -> pd.DataFrame
     return df
 
 
-def test_cat_features_warning(iris, caplog):
+def test_cat_features_warning(iris):
     # Test that warning is raised when cat_features is None
-    with caplog.at_level(logging.WARNING):
+    with warnings.catch_warnings(record=True) as w:
         Dataset(iris)
-    assert_that(caplog.records, has_item(has_property('message',
-                    "It is recommended to initialize Dataset with categorical features by doing "
-                    "\"Dataset(df, cat_features=categorical_list)\". No categorical features were "
+        assert_that(w, has_length(1))
+        assert_that(str(w[0].message), equal_to("It is recommended to initialize Dataset with categorical features by "
+                    "doing \"Dataset(df, cat_features=categorical_list)\". No categorical features were "
                     "passed, therefore heuristically inferring categorical features in the data.\n"
-                    "0 categorical features were inferred")
-    ))
+                    "0 categorical features were inferred"))
 
     # Test that warning is not raised when cat_features is not None
-    caplog.clear()
-    with caplog.at_level(logging.WARNING):
+    with warnings.catch_warnings(record=True) as w:
         Dataset(iris, cat_features=[])
-    assert_that(caplog.records, has_length(0))
+        assert_that(w, has_length(0))
+

@@ -9,21 +9,24 @@
 # ----------------------------------------------------------------------------
 #
 """String functions."""
+import io
 import itertools
 import os
 import random
-import typing as t
 import re
-from datetime import datetime
-from string import ascii_uppercase, digits
+import sys
+import typing as t
 from collections import defaultdict
-from decimal import Decimal
 from copy import copy
-from packaging.version import Version
+from datetime import datetime
+from decimal import Decimal
+from string import ascii_uppercase, digits
 
-from ipywidgets import Widget
-from ipywidgets.embed import embed_minimal_html, dependency_state
+import numpy as np
 import pandas as pd
+from ipywidgets import Widget
+from ipywidgets.embed import dependency_state, embed_minimal_html
+from packaging.version import Version
 from pandas.core.dtypes.common import is_numeric_dtype
 
 import deepchecks
@@ -54,7 +57,13 @@ __all__ = [
     'create_new_file_name',
     'widget_to_html',
     'generate_check_docs_link',
+    'widget_to_html_string',
+    'format_number_if_not_nan',
 ]
+
+# Creating a translation table for the string.translate() method to be used in string base form method
+DEL_CHARS = ''.join(c for c in map(chr, range(sys.maxunicode)) if not c.isalnum())
+DEL_MAP = str.maketrans('', '', DEL_CHARS)
 
 
 def get_ellipsis(long_string: str, max_length: int):
@@ -91,19 +100,25 @@ def get_docs_summary(obj, with_doc_link: bool = True):
     str
         the object summary.
     """
-    summary = ''
     if hasattr(obj.__class__, '__doc__'):
         docs = obj.__class__.__doc__ or ''
         # Take first non-whitespace line.
         summary = next((s for s in docs.split('\n') if not re.match('^\\s*$', s)), '')
 
-    if with_doc_link:
-        link = generate_check_docs_link(obj)
-        summary += f' <a href="{link}" target="_blank">Read More...</a>'
-    return summary
+        if with_doc_link:
+            link = generate_check_docs_link(obj)
+            summary += f' <a href="{link}" target="_blank">Read More...</a>'
+
+        return summary
+    return ''
 
 
-def widget_to_html(widget: Widget, html_out: t.Any, title: str = None, requirejs: bool = True):
+def widget_to_html(
+    widget: Widget,
+    html_out: t.Union[str, t.TextIO],
+    title: t.Optional[str] = None,
+    requirejs: bool = True
+):
     """Save widget as html file.
 
     Parameters
@@ -124,10 +139,36 @@ def widget_to_html(widget: Widget, html_out: t.Any, title: str = None, requirejs
         html_formatted = re.sub('html_title', '{title}', html_formatted)
         html_formatted = re.sub('widget_snippet', '{snippet}', html_formatted)
         embed_url = None if requirejs else ''
-        embed_minimal_html(html_out, views=[widget], title=title,
+        embed_minimal_html(html_out, views=[widget], title=title or '',
                            template=html_formatted,
                            requirejs=requirejs, embed_url=embed_url,
                            state=dependency_state(widget))
+
+
+def widget_to_html_string(
+    widget: Widget,
+    title: t.Optional[str] = None,
+    requirejs: bool = True
+) -> str:
+    """Transform widget into html string.
+
+    Parameters
+    ----------
+    widget: Widget
+        The widget to save as html.
+    title: str , default: None
+        The title of the html file.
+    requirejs: bool , default: True
+        If to save with all javascript dependencies
+
+    Returns
+    -------
+    str
+    """
+    buffer = io.StringIO()
+    widget_to_html(widget, buffer, title, requirejs)
+    buffer.seek(0)
+    return buffer.getvalue()
 
 
 def generate_check_docs_link(check):
@@ -194,7 +235,7 @@ def get_random_string(n: int = 5):
     return ''.join(random.choices(ascii_uppercase + digits, k=n))
 
 
-def string_baseform(string: str) -> str:
+def string_baseform(string: Hashable) -> Hashable:
     """Remove special characters from given string, leaving only a-z, A-Z, 0-9 characters.
 
     Parameters
@@ -208,7 +249,7 @@ def string_baseform(string: str) -> str:
     """
     if not isinstance(string, str):
         return string
-    return re.sub('[^A-Za-z0-9]+', '', string).lower()
+    return string.translate(DEL_MAP).lower()
 
 
 def is_string_column(column: pd.Series) -> bool:
@@ -371,15 +412,21 @@ def truncate_zero_percent(ratio: float, floating_point: int):
     return f'{ratio * 100:.{floating_point}f}'.rstrip('0').rstrip('.') + '%'
 
 
-def format_percent(ratio: float, floating_point: int = 2, scientific_notation_threshold: int = 4) -> str:
+def format_percent(ratio: float, floating_point: int = 2, scientific_notation_threshold: int = 4,
+                   add_positive_prefix: bool = False) -> str:
     """Format percent for elegant display.
 
     Parameters
     ----------
     ratio : float
         Ratio to be displayed as percent
-    floating_point : int , default: 2
+    floating_point: int , default: 2
         Number of floating points to display
+    scientific_notation_threshold: int, default: 4
+        Max number of floating points for which to show number as float. If number of floating points is larger than
+        this parameter, scientific notation (e.g. "10E-5%") will be shown.
+    add_positive_prefix: bool, default: False
+        add plus sign before positive percentages (minus sign is always added for negative percentages).
     Returns
     -------
     str
@@ -390,7 +437,7 @@ def format_percent(ratio: float, floating_point: int = 2, scientific_notation_th
         ratio = -ratio
         prefix = '-'
     else:
-        prefix = ''
+        prefix = '+' if add_positive_prefix and ratio != 0 else ''
 
     if int(ratio) == ratio:
         result = f'{int(ratio) * 100}%'
@@ -445,6 +492,25 @@ def format_number(x, floating_point: int = 2) -> str:
     else:
         ret_x = round(x, floating_point)
         return add_commas(ret_x).rstrip('0')
+
+
+def format_number_if_not_nan(x, floating_point: int = 2):
+    """Format number if it is not nan for elegant display.
+
+    Parameters
+    ----------
+    x
+        Number to be displayed
+    floating_point : int , default: 2
+        Number of floating points to display
+    Returns
+    -------
+    str
+        String of beautified number if number is not nan
+    """
+    if np.isnan(x):
+        return x
+    return format_number(x, floating_point)
 
 
 def format_list(l: t.List[Hashable], max_elements_to_show: int = 10, max_string_length: int = 40) -> str:

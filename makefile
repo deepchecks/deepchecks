@@ -181,8 +181,8 @@ doc-requirements: $(ENV)
 
 
 dev-requirements: $(ENV)
-	@echo "####  installing development dependencies, it could take some time, please wait! #### "
-	@$(PIP) install -q -r ./requirements/dev-requirements.txt
+	@echo "####  installing development dependencies, it could take some time, please wait! ####"
+	@$(PIP) install -r ./requirements/dev-requirements.txt
 
 
 ### Static Analysis ######################################################
@@ -253,6 +253,10 @@ tox: requirements dev-requirements
 	$(TOX)
 
 
+freeze: requirements dev-requirements
+	@$(PIP) freeze
+
+
 ### Cleanup ######################################################
 
 .PHONY: clean clean-env clean-all clean-build clean-test clean-dist clean-docs trailing-spaces
@@ -297,6 +301,7 @@ clean-docs: $(DOCS)
 
 trailing-spaces:
 	@find ./deepchecks/ -name "*.py" -type f -print0 | xargs -0 sed -i "s/[[:space:]]*$$//"
+	@find ./tests/ -name "*.py" -type f -print0 | xargs -0 sed -i "s/[[:space:]]*$$//"
 
 
 ### Release ######################################################
@@ -371,9 +376,9 @@ show-docs: $(DOCS_BUILD)/html
 
 
 license-check:
-	@wget https://dlcdn.apache.org/skywalking/eyes/0.2.0/skywalking-license-eye-0.2.0-bin.tgz && tar -xzvf skywalking-license-eye-0.2.0-bin.tgz
-	@mv skywalking-license-eye-0.2.0-bin/bin/linux/license-eye ./
-	@rm -rf skywalking-license-eye-0.2.0-bin && rm -f skywalking-license-eye-0.2.0-bin.tgz
+	@wget https://dlcdn.apache.org/skywalking/eyes/0.3.0/skywalking-license-eye-0.3.0-bin.tgz && tar -xzvf skywalking-license-eye-0.3.0-bin.tgz
+	@mv skywalking-license-eye-0.3.0-bin/bin/linux/license-eye ./
+	@rm -rf skywalking-license-eye-0.3.0-bin && rm -f skywalking-license-eye-0.3.0-bin.tgz
 	./license-eye -c .licenserc_fix.yaml header check
 	@rm license-eye
 

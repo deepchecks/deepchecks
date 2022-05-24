@@ -15,8 +15,8 @@ removed in the nexts versions.
 """
 # flake8: noqa
 import warnings
-from deepchecks.tabular.suites import * # pylint: disable=wildcard-import
 
+from deepchecks.tabular.suites import *  # pylint: disable=wildcard-import
 
 warnings.warn(
     'Ability to import tabular suites from the `deepchecks.suites` '
@@ -30,5 +30,6 @@ __all__ = [
     'train_test_leakage',
     'train_test_validation',
     'model_evaluation',
-    'full_suite'
+    'full_suite',
+    'data_integrity',
 ]

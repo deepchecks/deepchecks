@@ -12,37 +12,28 @@
 import itertools
 import typing as t
 
-import torch
-from torch.utils.data import DataLoader
-from hamcrest import (
-    assert_that,
-    calling,
-    raises,
-    equal_to,
-    has_entries,
-    instance_of,
-    all_of,
-    contains_exactly
-)
 import albumentations as A
 import imgaug.augmenters as iaa
+import torch
+from hamcrest import all_of, assert_that, calling, contains_exactly, equal_to, has_entries, instance_of, raises
+from torch.utils.data import DataLoader
 
-from deepchecks.core.errors import ValidationError, DeepchecksValueError, DeepchecksNotImplementedError
+from deepchecks.core.errors import DeepchecksNotImplementedError, DeepchecksValueError, ValidationError
 from deepchecks.vision.classification_data import ClassificationData
-from deepchecks.vision.vision_data import TaskType
+from deepchecks.vision.datasets.classification import mnist
 from deepchecks.vision.datasets.classification.mnist import MNISTData
 from deepchecks.vision.datasets.detection import coco
-from deepchecks.vision.datasets.classification import mnist
 from deepchecks.vision.datasets.detection.coco import COCOData
 from deepchecks.vision.detection_data import DetectionData
-from deepchecks.vision.vision_data import VisionData
 from deepchecks.vision.utils.transformations import AlbumentationsTransformations, ImgaugTransformations
+from deepchecks.vision.vision_data import TaskType, VisionData
 from tests.vision.vision_conftest import run_update_loop
 
 
 class SimpleDetectionData(DetectionData):
     def batch_to_labels(self, batch):
-        return batch[1]
+        return [torch.cat(
+            (batch[1][0][:, 4:], batch[1][0][:, :4]), 1)]
 
 
 class SimpleClassificationData(ClassificationData):
@@ -74,12 +65,12 @@ def test_vision_data_task_type_inference():
 def test_initialization_of_vision_data_with_classification_dataset_that_contains_incorrect_labels():
     # Arrange
     loader_with_string_labels = DataLoader(dataset=[
-        (torch.tensor([[1,2,3],[1,2,3],[1,2,3]]), "1"),
-        (torch.tensor([[1,2,3],[1,2,3],[1,2,3]]), "2"),
+        (torch.tensor([[1, 2, 3], [1, 2, 3], [1, 2, 3]]), "1"),
+        (torch.tensor([[1, 2, 3], [1, 2, 3], [1, 2, 3]]), "2"),
     ])
     loader_with_labels_of_incorrect_shape = DataLoader(dataset=[
-        (torch.tensor([[1,2,3],[1,2,3],[1,2,3]]), torch.tensor([1,2])),
-        (torch.tensor([[1,2,3],[1,2,3],[1,2,3]]), torch.tensor([2,3])),
+        (torch.tensor([[1, 2, 3], [1, 2, 3], [1, 2, 3]]), torch.tensor([1, 2])),
+        (torch.tensor([[1, 2, 3], [1, 2, 3], [1, 2, 3]]), torch.tensor([2, 3])),
     ])
     bad_type_data = SimpleClassificationData(loader_with_string_labels)
     bad_shape_data = SimpleClassificationData(loader_with_labels_of_incorrect_shape)
@@ -177,8 +168,8 @@ def test_vision_data_label_comparison_for_detection_task():
         imgs, labels = zip(*batch)
         return list(imgs), list(labels)
 
-    first_loader = DataLoader([(first_X, first_label),], collate_fn=batch_collate)
-    second_loader = DataLoader([(second_X, second_label),], collate_fn=batch_collate)
+    first_loader = DataLoader([(first_X, first_label), ], collate_fn=batch_collate)
+    second_loader = DataLoader([(second_X, second_label), ], collate_fn=batch_collate)
 
     first_dataset = SimpleDetectionData(first_loader)
     second_dataset = SimpleDetectionData(second_loader)
@@ -275,6 +266,7 @@ def test_sampler(mnist_dataset_train):
     assert_that(total, equal_to(500))
     assert_that(sampled.num_samples, equal_to(500))
     assert_that(sampled.is_sampled(), equal_to(True))
+
 
 def test_data_at_batch_index_to_dataset_index(mnist_dataset_train):
     # Arrange
@@ -391,19 +383,19 @@ def test_detection_data_bad_implementation():
     detection_data.dummy_batch = True
 
     assert_that(calling(detection_data.validate_label).with_args(7),
-                raises(DeepchecksValueError,
+                raises(ValidationError,
                        'Check requires object detection label to be a list with an entry for each sample'))
     assert_that(calling(detection_data.validate_label).with_args([]),
-                raises(DeepchecksValueError,
+                raises(ValidationError,
                        'Check requires object detection label to be a non-empty list'))
     assert_that(calling(detection_data.validate_label).with_args([8]),
-                raises(DeepchecksValueError,
+                raises(ValidationError,
                        'Check requires object detection label to be a list of torch.Tensor'))
     assert_that(calling(detection_data.validate_label).with_args([torch.Tensor([])]),
-                raises(DeepchecksValueError,
+                raises(ValidationError,
                        'Check requires object detection label to be a list of 2D tensors'))
-    assert_that(calling(detection_data.validate_label).with_args([torch.Tensor([[1,2],[1,2]])]),
-                raises(DeepchecksValueError,
+    assert_that(calling(detection_data.validate_label).with_args([torch.Tensor([[1, 2], [1, 2]])]),
+                raises(ValidationError,
                        'Check requires object detection label to be a list of 2D tensors, when '
                        'each row has 5 columns: \[class_id, x, y, width, height\]'))
 
@@ -419,7 +411,36 @@ def test_detection_data_bad_implementation():
     assert_that(calling(detection_data.validate_prediction).with_args([torch.Tensor([])], None, None),
                 raises(ValidationError,
                        'Check requires detection predictions to be a list of 2D tensors'))
-    assert_that(calling(detection_data.validate_prediction).with_args([torch.Tensor([[1,2],[1,2]])], None, None),
+    assert_that(calling(detection_data.validate_prediction).with_args([torch.Tensor([[1, 2], [1, 2]])], None, None),
                 raises(ValidationError,
                        'Check requires detection predictions to be a list of 2D tensors, when '
                        'each row has 6 columns: \[x, y, width, height, class_probability, class_id\]'))
+
+
+def test_vision_data_initialization_from_dataset_instance(coco_train_dataloader: DataLoader):
+    visiondata = VisionData.from_dataset(data=coco_train_dataloader.dataset)
+    assert_that(visiondata.data_loader, instance_of(DataLoader))
+    assert_that(len(coco_train_dataloader.dataset) == len(visiondata.data_loader.dataset))
+    assert_that(len(list(visiondata)) == 1)
+    assert_that(visiondata.num_samples == len(visiondata.data_loader.dataset))
+
+
+class MyDetectionTaskData(DetectionData):
+    def batch_to_images(self, batch):
+        return batch[0]
+
+    def batch_to_labels(self, batch):
+        return [torch.tensor([[1, 2, 3, 4, -5]])]
+
+    def infer_on_batch(self, batch, model, device):
+        return [torch.tensor([[1, 2, 3, 4, 5, 6]])]
+
+
+def test_validation_bad_batch_to_label(coco_train_dataloader: DataLoader):
+    vision_data = MyDetectionTaskData(coco_train_dataloader)
+    assert_that(vision_data._label_formatter_error, equal_to('batch_to_labels() was not implemented correctly, '
+                                                             'the validation has failed with the error: \"Found one '
+                                                             'of coordinates to be negative, check requires object '
+                                                             'detection bounding box coordinates to be of format ['
+                                                             'class_id, x, y, width, height].\". To test your label '
+                                                             'formatting use the function `validate_label(batch)`'))

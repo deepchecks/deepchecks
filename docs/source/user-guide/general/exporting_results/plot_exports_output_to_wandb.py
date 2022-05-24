@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Export Outputs to Weights & Biases (wandb)
-******************************************
+Weights & Biases (wandb)
+************************
 
 In this guide, we will demonstrate how to export the Check's and the Suite's output to wandb.
 
@@ -68,6 +68,7 @@ help(CheckResult.to_wandb)
 # To use this function you first need to login to your wandb account
 
 import wandb
+
 wandb.login()
 
 #%%

@@ -11,10 +11,11 @@
 """Contains unit tests for the tabular package deprecation warnings."""
 
 import warnings
+
 import pytest
 
-from deepchecks.tabular.checks import TrainTestLabelDrift, TrainTestPredictionDrift, TrainTestFeatureDrift, \
-    WholeDatasetDrift
+from deepchecks.tabular.checks import (TrainTestFeatureDrift, TrainTestLabelDrift, TrainTestPredictionDrift,
+                                       WholeDatasetDrift)
 
 
 def test_deprecation_warning_label_drift():

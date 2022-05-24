@@ -11,7 +11,7 @@
 """The dataset module containing the tabular Dataset class and its functions."""
 # pylint: disable=inconsistent-quotes,protected-access
 import typing as t
-import logging
+import warnings
 from functools import lru_cache
 
 import numpy as np
@@ -19,16 +19,14 @@ import pandas as pd
 from pandas.core.dtypes.common import is_numeric_dtype
 from sklearn.model_selection import train_test_split
 
+from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.features import infer_numerical_features, is_categorical, infer_categorical_features
+from deepchecks.utils.features import infer_categorical_features, infer_numerical_features, is_categorical
 from deepchecks.utils.typing import Hashable
-from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError, DeepchecksNotSupportedError
-
 
 __all__ = ['Dataset']
 
 
-logger = logging.getLogger('deepchecks.dataset')
 TDataset = t.TypeVar('TDataset', bound='Dataset')
 
 
@@ -578,7 +576,7 @@ class Dataset:
             if len(categorical_columns) > len(columns_to_print):
                 message += '... For full list use dataset.cat_features'
 
-        logger.warning(message)
+        warnings.warn(message)
 
         return categorical_columns
 
@@ -883,7 +881,11 @@ class Dataset:
             if the provided value cannot be transformed into Dataset instance;
         """
         if isinstance(obj, pd.DataFrame):
-            obj = Dataset(obj, features=[], cat_features=[])
+            warnings.warn(
+                'Received a "pandas.DataFrame" instance. It is recommended to pass a "deepchecks.tabular.Dataset" '
+                'instance by doing "Dataset(dataframe)"'
+            )
+            obj = Dataset(obj)
         elif not isinstance(obj, Dataset):
             raise DeepchecksValueError(
                 f'non-empty instance of Dataset or DataFrame was expected, instead got {type(obj).__name__}'
@@ -1057,3 +1059,11 @@ class Dataset:
 
         """
         return self.n_samples
+
+    def len_when_sampled(self, n_samples: int):
+        """Return number of samples in the sampled dataframe this dataset is sampled with n_samples samples."""
+        return min(len(self), n_samples)
+
+    def is_sampled(self, n_samples: int):
+        """Return True if the dataset number of samples will decrease when sampled with n_samples samples."""
+        return len(self) > n_samples

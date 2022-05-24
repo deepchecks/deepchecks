@@ -1,6 +1,3 @@
-.. meta::
-    :http-equiv=refresh: 0; url=get-started.html
-
 Getting Started
 ***************
 
@@ -9,6 +6,6 @@ Getting Started
     :titlesonly:
     :maxdepth: 1
 
-    get-started
+    welcome
     installation
     when_should_you_use

@@ -94,13 +94,19 @@ docs.error.log
 # Automatically downloaded files
 *coco128*
 *MNIST*
+*ultralytics_yolov5_v6.1*
+
+# docs build files
+docs/source/_build
 
 # build folders of sphinx gallery
 docs/source/user-guide/general/customizations/examples/
 docs/source/user-guide/general/exporting_results/examples/
-docs/source/checks_gallery/
-docs/source/auto_tutorials/tabular
-docs/source/auto_tutorials/vision
+docs/source/checks_gallery/tabular/
+docs/source/checks_gallery/vision/
+
+docs/source/user-guide/tabular/auto_tutorials
+docs/source/user-guide/vision/auto_tutorials
 
 # build artifacts from running docs (vision and wandb export)
 docs/source/tutorials/vision/*.html

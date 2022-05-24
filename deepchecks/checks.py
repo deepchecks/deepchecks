@@ -15,8 +15,8 @@ removed in the nexts versions.
 """
 # flake8: noqa
 import warnings
-from deepchecks.tabular.checks import *  # pylint: disable=wildcard-import
 
+from deepchecks.tabular.checks import *  # pylint: disable=wildcard-import
 
 warnings.warn(
     'Ability to import tabular checks from the `deepchecks.checks` '
@@ -38,14 +38,14 @@ __all__ = [
     'DataDuplicates',
     'CategoryMismatchTrainTest',
     'NewLabelTrainTest',
-    'LabelAmbiguity',
+    'ConflictingLabels',
     'OutlierSampleDetection',
 
     # methodology checks
     'BoostingOverfit',
     'UnusedFeatures',
-    'SingleFeatureContribution',
-    'SingleFeatureContributionTrainTest',
+    'FeatureLabelCorrelation',
+    'FeatureLabelCorrelationChange',
     'IndexTrainTestLeakage',
     'TrainTestSamplesMix',
     'DateTrainTestLeakageDuplicates',

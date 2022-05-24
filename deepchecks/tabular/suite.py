@@ -10,23 +10,20 @@
 #
 """Module for base tabular abstractions."""
 # pylint: disable=broad-except
-from typing import Callable, Union, Tuple, Mapping, Optional
+from typing import Callable, Mapping, Optional, Tuple, Union
 
 import pandas as pd
 
-from deepchecks.tabular.dataset import Dataset
+from deepchecks.core.check_result import CheckFailure
+from deepchecks.core.errors import DeepchecksNotSupportedError
+from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.tabular.base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
 from deepchecks.tabular.context import Context
+from deepchecks.tabular.dataset import Dataset
+from deepchecks.utils.ipython import create_progress_bar
 from deepchecks.utils.typing import BasicModel
-from deepchecks.core.check_result import CheckFailure
-from deepchecks.core.suite import BaseSuite, SuiteResult
-from deepchecks.core.display_suite import ProgressBar
-from deepchecks.core.errors import DeepchecksNotSupportedError
 
-
-__all__ = [
-    'Suite',
-]
+__all__ = ['Suite']
 
 
 class Suite(BaseSuite):
@@ -82,14 +79,18 @@ class Suite(BaseSuite):
                           feature_importance_timeout=feature_importance_timeout,
                           scorers=scorers,
                           scorers_per_class=scorers_per_class)
-        # Create progress bar
-        progress_bar = ProgressBar(self.name, len(self.checks), 'Check')
+
+        progress_bar = create_progress_bar(
+            iterable=list(self.checks.values()),
+            name=self.name,
+            unit='Check'
+        )
 
         # Run all checks
         results = []
-        for check in self.checks.values():
+        for check in progress_bar:
             try:
-                progress_bar.set_text(check.name())
+                progress_bar.set_postfix({'Check': check.name()}, refresh=False)
                 if isinstance(check, TrainTestCheck):
                     if train_dataset is not None and test_dataset is not None:
                         check_result = check.run_logic(context)
@@ -132,9 +133,7 @@ class Suite(BaseSuite):
                     raise TypeError(f'Don\'t know how to handle type {check.__class__.__name__} in suite.')
             except Exception as exp:
                 results.append(CheckFailure(check, exp))
-            progress_bar.inc_progress()
 
-        progress_bar.close()
         return SuiteResult(self.name, results)
 
     @classmethod

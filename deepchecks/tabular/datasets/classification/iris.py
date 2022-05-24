@@ -10,20 +10,22 @@
 #
 """The data set contains 3 classes of 50 instances each, where each class refers to a type of iris plant."""
 import typing as t
+from urllib.request import urlopen
+
+import joblib
 import pandas as pd
 import sklearn
 from sklearn.ensemble import RandomForestClassifier
-import joblib
-from urllib.request import urlopen
+
 from deepchecks.tabular.dataset import Dataset
 
 __all__ = ['load_data', 'load_fitted_model']
 
-_MODEL_URL = 'https://figshare.com/ndownloader/files/32653100'
+_MODEL_URL = 'https://figshare.com/ndownloader/files/35122762'
 _FULL_DATA_URL = 'https://figshare.com/ndownloader/files/32652977'
 _TRAIN_DATA_URL = 'https://figshare.com/ndownloader/files/32653172'
 _TEST_DATA_URL = 'https://figshare.com/ndownloader/files/32653130'
-_MODEL_VERSION = '1.0.1'
+_MODEL_VERSION = '1.0.2'
 _target = 'target'
 _CAT_FEATURES = []
 
@@ -124,7 +126,7 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
         return train, test
 
 
-def load_fitted_model():
+def load_fitted_model(pretrained=True):
     """Load and return a fitted classification model to predict the flower type in the iris dataset.
 
     Returns
@@ -133,7 +135,7 @@ def load_fitted_model():
         the model/pipeline that was trained on the iris dataset.
 
     """
-    if sklearn.__version__ == '1.0.1':
+    if sklearn.__version__ == _MODEL_VERSION and pretrained:
         with urlopen(_MODEL_URL) as f:
             model = joblib.load(f)
     else:
@@ -145,4 +147,4 @@ def load_fitted_model():
 
 def _build_model():
     """Build the model to fit."""
-    return RandomForestClassifier()
+    return RandomForestClassifier(random_state=0)

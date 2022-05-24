@@ -10,24 +10,26 @@
 #
 """The phishing dataset contains a slightly synthetic dataset of urls - some regular and some used for phishing."""
 import typing as t
-import pandas as pd
+from urllib.request import urlopen
+
 import joblib
+import pandas as pd
 import sklearn
-from sklearn.ensemble import RandomForestClassifier
+from category_encoders import OneHotEncoder
 from sklearn.compose import ColumnTransformer
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
-from category_encoders import OneHotEncoder
-from urllib.request import urlopen
+
 from deepchecks.tabular.dataset import Dataset
 
 __all__ = ['load_data', 'load_fitted_model']
 
-_MODEL_URL = 'https://ndownloader.figshare.com/files/33080447'
+_MODEL_URL = 'https://figshare.com/ndownloader/files/35122765'
 _FULL_DATA_URL = 'https://figshare.com/ndownloader/files/33079757'
 _TRAIN_DATA_URL = 'https://ndownloader.figshare.com/files/33079781'
 _TEST_DATA_URL = 'https://ndownloader.figshare.com/files/33079787'
-_MODEL_VERSION = '1.0.1'
+_MODEL_VERSION = '1.0.2'
 _target = 'target'
 _CAT_FEATURES = ['ext']
 _NON_FEATURES = ['month', 'has_ip', 'urlIsLive']
@@ -41,7 +43,7 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
         t.Union[t.Tuple, t.Union[Dataset, pd.DataFrame]]:
     """Load and returns the phishing url dataset (classification).
 
-    The phishing url dataset contains slighly synthetic dataset of urls - some regular and some used for phishing.
+    The phishing url dataset contains slightly synthetic dataset of urls - some regular and some used for phishing.
 
     The dataset is based on the `great project <https://github.com/Rohith-2/url_classification_dl>`_ by
     `Rohith Ramakrishnan <https://www.linkedin.com/in/rohith-ramakrishnan-54094a1a0/>`_ and others, accompanied by
@@ -189,7 +191,7 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
         return train, test
 
 
-def load_fitted_model():
+def load_fitted_model(pretrained=True):
     """Load and return a fitted regression model to predict the target in the phishing dataset.
 
     Returns
@@ -198,7 +200,7 @@ def load_fitted_model():
         the model/pipeline that was trained on the phishing dataset.
 
     """
-    if sklearn.__version__ == _MODEL_VERSION:
+    if sklearn.__version__ == _MODEL_VERSION and pretrained:
         with urlopen(_MODEL_URL) as f:
             model = joblib.load(f)
     else:
@@ -265,4 +267,4 @@ def _build_model():
                                                            OneHotEncoder())]),
                                           _CAT_FEATURES)])),
         ('model',
-         RandomForestClassifier(criterion='entropy', n_estimators=40))])
+         RandomForestClassifier(criterion='entropy', n_estimators=40, random_state=0))])

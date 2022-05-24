@@ -9,25 +9,24 @@
 # ----------------------------------------------------------------------------
 #
 """Module representing the MNIST dataset."""
-import typing as t
-import pathlib
 import logging
+import pathlib
+import typing as t
 import warnings
 from typing import Iterable, List, Union
 
+import albumentations as A
 import numpy as np
 import torch
 import torch.nn.functional as F
-import albumentations as A
 from albumentations.pytorch import ToTensorV2
-from torchvision import datasets
 from torch import nn
 from torch.utils.data import DataLoader
+from torchvision import datasets
 from typing_extensions import Literal
 
 from deepchecks.vision.classification_data import ClassificationData
 from deepchecks.vision.utils.transformations import un_normalize_batch
-
 
 __all__ = ['load_dataset', 'load_model', 'MNistNet', 'MNIST', 'MNISTData']
 
@@ -134,7 +133,7 @@ def load_model(pretrained: bool = True, path: pathlib.Path = None) -> 'MNistNet'
     """
     # TODO: should we put downloadable pre-trained model into our repo?
     if path and not path.exists():
-        LOGGER.warning('Path for MNIST model not found: %s', str(path))
+        raise RuntimeError(f'Path for MNIST model not found: {str(path)}')
 
     path = path or MODEL_PATH
 

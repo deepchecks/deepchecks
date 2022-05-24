@@ -29,10 +29,11 @@ we suggest using any of:
 
 #%%
 
+from sklearn.metrics import make_scorer, precision_score, recall_score
+
+from deepchecks.tabular import Suite
 # importing all existing checks for demonstration simplicity
 from deepchecks.tabular.checks import *
-from deepchecks.tabular import Suite
-from sklearn.metrics import precision_score, recall_score, make_scorer
 
 # The Suite's first argument is its name, and then all of the check objects.
 # Some checks can receive arguments when initialized (all check arguments have default values)
@@ -87,14 +88,16 @@ new_custom_suite
 # Load Datasets and Train a Simple Model
 # --------------------------------------
 
+import numpy as np
 # General imports
 import pandas as pd
-import numpy as np
+
 np.random.seed(22)
 
-from deepchecks.tabular.datasets.classification import iris
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
+
+from deepchecks.tabular.datasets.classification import iris
 
 # Load pre-split Datasets
 train_dataset, test_dataset = iris.load_data(as_train_test=True)
@@ -137,7 +140,7 @@ customized_suite.add(
 
 #%%
 
-# lets remove all condition for the SingleFeatureContributionTrainTest:
+# lets remove all condition for the FeatureLabelCorrelationChange:
 customized_suite[3].clean_conditions()
 
 # and update the suite's name:

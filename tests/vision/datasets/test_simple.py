@@ -12,14 +12,13 @@ import pathlib
 from shutil import rmtree
 
 import numpy as np
-import pytest
 import PIL.Image as pilimage
+import pytest
+from hamcrest import all_of, assert_that, calling, equal_to, has_length, has_property, instance_of, raises
 from torch.utils.data import DataLoader
-from hamcrest import assert_that, instance_of, has_length, all_of, has_property, equal_to, calling, raises
 
 from deepchecks.utils.strings import get_random_string
 from deepchecks.vision import simple_classification_data as simple
-
 
 PARENT_FOLDER = pathlib.Path(__file__).absolute().parent
 
