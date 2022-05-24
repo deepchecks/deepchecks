@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module for vision base checks."""
-import logging
 from typing import Any, Optional, Union
 
 import torch
@@ -22,9 +21,6 @@ from deepchecks.vision import deprecation_warnings  # pylint: disable=unused-imp
 from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.context import Context
 from deepchecks.vision.vision_data import VisionData
-
-logger = logging.getLogger('deepchecks')
-
 
 __all__ = [
     'SingleDatasetCheck',

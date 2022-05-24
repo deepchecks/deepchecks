@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Outlier detection functions."""
-import logging
 import time
 from typing import List, Union
 
@@ -26,7 +25,7 @@ from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['OutlierSampleDetection']
-logger = logging.getLogger('deepchecks')
+
 DATASET_TIME_EVALUATION_SIZE = 100
 MINIMUM_NUM_NEAREST_NEIGHBORS = 5
 

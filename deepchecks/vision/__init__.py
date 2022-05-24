@@ -9,8 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Package for vision functionality."""
-import logging
-
 from .base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
 from .batch_wrapper import Batch
 from .classification_data import ClassificationData
@@ -19,9 +17,6 @@ from .detection_data import DetectionData
 from .simple_classification_data import SimpleClassificationData, SimpleClassificationDataset
 from .suite import Suite
 from .vision_data import VisionData
-
-logger = logging.getLogger("deepchecks")
-
 
 try:
     import torch  # noqa: F401
