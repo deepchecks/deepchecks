@@ -18,6 +18,7 @@ from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.check_utils.feature_label_correlation_utils import get_feature_label_correlation
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck
+from deepchecks.tabular.utils.messages import get_condition_passed_message
 from deepchecks.utils.strings import format_number
 from deepchecks.utils.typing import Hashable
 
@@ -153,10 +154,11 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
             }
 
             if failed_features:
-                message = f'Features with PPS difference above threshold: {failed_features}'
+                message = f'Found {len(failed_features)} out of {len(diff_dict)} features with PPS difference above ' \
+                          f'threshold: {failed_features}'
                 return ConditionResult(ConditionCategory.FAIL, message)
             else:
-                return ConditionResult(ConditionCategory.PASS)
+                return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(diff_dict))
 
         return self.add_condition(f'Train-Test features\' Predictive Power Score difference is not greater than '
                                   f'{format_number(threshold)}', condition)
@@ -184,10 +186,11 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
             }
 
             if failed_features:
-                message = f'Features in train dataset with PPS above threshold: {failed_features}'
+                message = f'Found {len(failed_features)} out of {len(value["train"])} features in train dataset with ' \
+                          f'PPS above threshold: {failed_features}'
                 return ConditionResult(ConditionCategory.FAIL, message)
             else:
-                return ConditionResult(ConditionCategory.PASS)
+                return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(value['train']))
 
         return self.add_condition(f'Train features\' Predictive Power Score is not greater than '
                                   f'{format_number(threshold)}', condition)

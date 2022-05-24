@@ -43,7 +43,7 @@ def test_no_new_category():
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
-    assert_that(result, has_length(0))
+    assert_that(result, equal_to({'new_categories': {'col1': {}}, 'test_count': 4}))
 
 
 def test_new_category():
@@ -57,9 +57,7 @@ def test_new_category():
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
-    assert_that(result, has_length(1))
-    assert_that(result['col1']['n_new'], equal_to(1))
-    assert_that(result['col1']['n_total_samples'], equal_to(4))
+    assert_that(result, equal_to({'new_categories': {'col1': {'d': 1}}, 'test_count': 4}))
 
 
 def test_missing_category():
@@ -73,7 +71,7 @@ def test_missing_category():
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
-    assert_that(result, has_length(0))
+    assert_that(result, equal_to({'new_categories': {'col1': {}}, 'test_count': 3}))
 
 
 def test_missing_new_category():
@@ -87,9 +85,7 @@ def test_missing_new_category():
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
-    assert_that(result, has_length(1))
-    assert_that(result['col1']['n_new'], equal_to(1))
-    assert_that(result['col1']['n_total_samples'], equal_to(4))
+    assert_that(result, equal_to({'new_categories': {'col1': {'e': 1}}, 'test_count': 4}))
 
 
 def test_multiple_categories():
@@ -104,9 +100,7 @@ def test_multiple_categories():
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
-    assert_that(result, has_length(1))
-    assert_that(result['col1']['n_new'], equal_to(1))
-    assert_that(result['col1']['n_total_samples'], equal_to(4))
+    assert_that(result, equal_to({'new_categories': {'col1': {'e': 1}, 'col2': {}}, 'test_count': 4}))
 
 
 def test_ignore_column():
@@ -121,7 +115,7 @@ def test_ignore_column():
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
-    assert_that(result, has_length(0))
+    assert_that(result, equal_to({'new_categories': {'col2': {}}, 'test_count': 4}))
 
 
 def test_specific_column():
@@ -136,9 +130,7 @@ def test_specific_column():
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
-    assert_that(result, has_length(1))
-    assert_that(result['col1']['n_new'], equal_to(1))
-    assert_that(result['col1']['n_total_samples'], equal_to(4))
+    assert_that(result, equal_to({'new_categories': {'col1': {'e': 1}}, 'test_count': 4}))
 
 
 def test_nan(df_with_single_nans_in_different_rows, df_with_single_nan_in_col):
@@ -154,9 +146,7 @@ def test_nan(df_with_single_nans_in_different_rows, df_with_single_nan_in_col):
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
-    assert_that(result, has_length(1))
-    assert_that(result['col2']['n_new'], equal_to(1))
-    assert_that(result['col2']['n_total_samples'], equal_to(11))
+    assert_that(result, equal_to({'new_categories': {'col1': {}, 'col2': {5: 1}}, 'test_count': 11}))
 
 
 def test_condition_categories_fail():
@@ -174,7 +164,8 @@ def test_condition_categories_fail():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details='Found columns with number of new categories above threshold: {\'col1\': 1}',
+                               details='Found 1 out of 2 columns with number of new categories above threshold:'
+                                       '\n{\'col1\': 1}',
                                name='Number of new category values is not greater than 0')
     ))
 
@@ -194,6 +185,8 @@ def test_condition_categories_pass():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
+                               details='Passed for 2 relevant columns. Top columns with new categories count:\n'
+                                       '{\'col1\': 1}',
                                name='Number of new category values is not greater than 1')
     ))
 
@@ -214,7 +207,8 @@ def test_condition_count_fail():
     assert_that(result, has_items(
         equal_condition_result(
             is_pass=False,
-            details='Found columns with ratio of new category samples above threshold: {\'col1\': \'25%\'}',
+            details='Found 1 out of 2 columns with ratio of new category samples above threshold:'
+                    '\n{\'col1\': \'25%\'}',
             name='Ratio of samples with a new category is not greater than 10%')
     ))
 
@@ -234,5 +228,7 @@ def test_condition_count_pass():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
+                               details='Passed for 2 relevant columns. Top columns with new categories ratio:\n'
+                                       '{\'col1\': \'25%\', \'col2\': \'0%\'}',
                                name='Ratio of samples with a new category is not greater than 30%')
     ))

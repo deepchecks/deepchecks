@@ -13,7 +13,7 @@ from typing import List, Union
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
-from deepchecks.tabular.utils.integrity_messages import get_condition_passed_message
+from deepchecks.tabular.utils.messages import get_condition_passed_message
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.typing import Hashable
 
@@ -82,8 +82,8 @@ class IsSingleValue(SingleDatasetCheck):
         def condition(result):
             single_value_cols = [k for k, v in result.items() if v == 1]
             if single_value_cols:
-                details = f'Found {len(single_value_cols)} columns with a single value out of {len(result)} ' \
-                          f'columns: {single_value_cols}'
+                details = f'Found {len(single_value_cols)} out of {len(result)} columns with a single value: ' \
+                          f'{single_value_cols}'
                 return ConditionResult(ConditionCategory.FAIL, details)
             else:
                 return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))

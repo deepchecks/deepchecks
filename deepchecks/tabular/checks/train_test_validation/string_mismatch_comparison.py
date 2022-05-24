@@ -9,13 +9,13 @@
 # ----------------------------------------------------------------------------
 #
 """String mismatch functions."""
-from collections import defaultdict
 from typing import List, Union
 
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, TrainTestCheck
+from deepchecks.tabular.utils.messages import get_condition_passed_message
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.utils.strings import format_percent, get_base_form_to_variants_dict, is_string_column
@@ -83,7 +83,7 @@ class StringMismatchComparison(TrainTestCheck):
         sampling_footnote = context.get_is_sampled_footnote(self.n_samples)
 
         display_mismatches = []
-        result_dict = defaultdict(dict)
+        result_dict = {}
 
         # Get shared columns
         columns = set(df.columns).intersection(baseline_df.columns)
@@ -95,6 +95,7 @@ class StringMismatchComparison(TrainTestCheck):
             if not is_string_column(tested_column) or not is_string_column(baseline_column):
                 continue
 
+            result_dict[column_name] = {}
             tested_counts = tested_column.value_counts()
             baseline_counts = baseline_column.value_counts()
             tested_baseforms = get_base_form_to_variants_dict(tested_column.unique())
@@ -177,9 +178,10 @@ def _condition_percent_limit(result, ratio: float):
             not_passing_columns[col] = format_percent(sum_percent)
 
     if not_passing_columns:
-        details = f'Found columns with ratio of variants above threshold: {not_passing_columns}'
+        details = f'Found {len(not_passing_columns)} out of {len(result)} relevant columns with ratio of variants ' \
+                  f'above threshold: {not_passing_columns}'
         return ConditionResult(ConditionCategory.FAIL, details)
-    return ConditionResult(ConditionCategory.PASS)
+    return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))
 
 
 def _percentage_in_series(series, counts, values):
