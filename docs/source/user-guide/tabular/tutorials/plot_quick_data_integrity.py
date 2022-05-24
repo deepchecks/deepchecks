@@ -23,10 +23,6 @@ from deepchecks.tabular import datasets
 
 # load data
 data = datasets.regression.avocado.load_data(data_format='DataFrame', as_train_test=False)
-#%%
-
-# drop unused columns (remove after fix...)
-data = data.drop(columns=['Unnamed: 0'])
 
 #%%
 # Insert a few typcial problems to dataset for demonstration.
