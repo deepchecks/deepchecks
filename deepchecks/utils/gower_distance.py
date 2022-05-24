@@ -93,7 +93,10 @@ def calculate_nearest_neighbours_distances(cat_data: pd.DataFrame, numeric_data:
     numeric_data = np.asarray(numeric_data.fillna(value=np.nan))
     numeric_feature_ranges = np.nanmax(numeric_data, axis=0) - np.nanmin(numeric_data, axis=0)
     numeric_data = np.nan_to_num(numeric_data, nan=np.inf)
-    np.seterr(invalid='ignore')  # operation include usage of math involving inf
+
+    # do not warn on operations that include usage of math involving inf
+    original_error_state = np.geterr()['invalid']
+    np.seterr(invalid='ignore')
 
     for i in range(num_samples):  # TODO: parallelize this loop
         dist_to_sample_i = _calculate_distances_to_sample(i, cat_data, numeric_data, numeric_feature_ranges,
@@ -104,6 +107,7 @@ def calculate_nearest_neighbours_distances(cat_data: pd.DataFrame, numeric_data:
         indexes[i, :] = min_dist_indexes_ordered
         distances[i, :] = dist_to_sample_i[min_dist_indexes_ordered]
 
+    np.seterr(invalid=original_error_state)
     return np.nan_to_num(distances, nan=np.nan, posinf=np.nan, neginf=np.nan), indexes
 
 
