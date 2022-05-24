@@ -92,7 +92,8 @@ def calculate_nearest_neighbours_distances(cat_data: pd.DataFrame, numeric_data:
     # handle numerical - calculate ranges per feature and fill numerical nan to minus np.inf
     numeric_data = np.asarray(numeric_data.fillna(value=np.nan))
     numeric_feature_ranges = np.nanmax(numeric_data, axis=0) - np.nanmin(numeric_data, axis=0)
-    numeric_data = np.nan_to_num(numeric_data, nan=np.NINF)
+    numeric_data = np.nan_to_num(numeric_data, nan=np.inf)
+    np.seterr(invalid='ignore')  # operation include usage of math involving inf
 
     for i in range(num_samples):  # TODO: parallelize this loop
         dist_to_sample_i = _calculate_distances_to_sample(i, cat_data, numeric_data, numeric_feature_ranges,
@@ -131,9 +132,9 @@ def _calculate_distances_to_sample(sample_index: int, cat_data: np.ndarray, nume
     numeric_feat_dist_to_sample = numeric_data - numeric_data[sample_index, :]
     np.abs(numeric_feat_dist_to_sample, out=numeric_feat_dist_to_sample)
     # if a numeric feature value is null for one of the two samples, the distance over it is ignored
-    null_distance_locations = numeric_feat_dist_to_sample == np.inf
-    null_numeric_features_per_sample = np.sum(null_distance_locations, axis=1)
-    numeric_feat_dist_to_sample[null_distance_locations] = 0
+    null_dist_locations = np.logical_or(numeric_feat_dist_to_sample == np.inf, numeric_feat_dist_to_sample == np.nan)
+    null_numeric_features_per_sample = fast_sum_by_row(null_dist_locations)
+    numeric_feat_dist_to_sample[null_dist_locations] = 0
     numeric_feat_dist_to_sample = numeric_feat_dist_to_sample.astype('float64')
     np.divide(numeric_feat_dist_to_sample, numeric_feature_ranges, out=numeric_feat_dist_to_sample)
 
