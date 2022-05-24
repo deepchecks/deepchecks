@@ -13,7 +13,6 @@ from typing import Dict, Iterable, List, Union
 
 import numpy as np
 import pandas as pd
-from pkg_resources import parse_version
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
