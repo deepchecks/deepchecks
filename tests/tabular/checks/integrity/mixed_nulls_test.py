@@ -75,7 +75,7 @@ def test_check_nan_false_param():
     # Act
     result = MixedNulls(null_string_list=['earth'], check_nan=False).run(dataframe)
     # Assert
-    assert_that(result.value, has_entry('col1', has_length(3)))
+    assert_that(result.value, has_entry('col1', has_length(4)))
 
 
 def test_single_column_two_null_types():

@@ -11,6 +11,7 @@
 """Module contains Mixed Nulls check."""
 from typing import Dict, Iterable, List, Union
 
+import numpy as np
 import pandas as pd
 from pkg_resources import parse_version
 
@@ -88,25 +89,11 @@ class MixedNulls(SingleDatasetCheck):
 
         for column_name in list(df.columns):
             column_data = df[column_name]
-            # Pandas version 1.3.X and lower doesn't support counting separate NaN types in value_counts (numpy nan,
-            # pandas nan, None, etc.)
-            if parse_version(pd.__version__) < parse_version('1.4.0'):
-                column_counts: pd.Series = column_data.value_counts(dropna=True)
-                # Nan values are not equal to each other, so in order to group them together by type, first we
-                # transform them using the id function:
-                # np.nan != np.nan
-                # id(np.nan) == id(np.nan) != id(pd.NA)
-                unique_nans = [x for x in column_data.unique() if pd.isnull(x)]
-                column_id_counts = column_data.apply(id).value_counts()
-                nan_counts = pd.Series({nan: column_id_counts[id(nan)] for nan in unique_nans})
-                column_counts = column_counts.append(nan_counts)
-            else:
-                # Get counts of all values in series including NaNs
-                column_counts: pd.Series = column_data.value_counts(dropna=False)
 
-            # Filter out values not in the nulls list
-            null_counts = {value: count for value, count in column_counts.items() if
-                           (self.check_nan and pd.isnull(value)) or (string_baseform(value) in null_string_list)}
+            string_null_counts = {value: count for value, count in column_data.value_counts(dropna=True).iteritems()
+                                  if string_baseform(value) in null_string_list}
+            nan_data_counts = column_data[column_data.isna()].apply(nan_type).value_counts().to_dict()
+            null_counts = {**string_null_counts, **nan_data_counts}
 
             result_dict[column_name] = {}
             # Save the column nulls info
@@ -174,3 +161,13 @@ class MixedNulls(SingleDatasetCheck):
 
         return self.add_condition(f'Not more than {max_allowed_null_types} different null types',
                                   condition)
+
+
+def nan_type(x):
+    if x is np.nan:
+        return 'numpy.nan'
+    elif x is pd.NA:
+        return 'pandas.NA'
+    elif x is pd.NaT:
+        return 'pandas.NaT'
+    return str(x)
