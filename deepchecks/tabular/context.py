@@ -11,7 +11,6 @@
 """Module for base tabular context."""
 import typing as t
 import warnings
-from collections import defaultdict
 
 import numpy as np
 import pandas as pd
@@ -50,8 +49,7 @@ class _DummyModel:
         Array of the model prediction probabilities over the test dataset.
     """
 
-    train: Dataset
-    test: Dataset
+    features: t.List[pd.DataFrame]
     predictions: pd.DataFrame
     proba: pd.DataFrame
 
@@ -62,10 +60,7 @@ class _DummyModel:
                  y_pred_test: np.ndarray,
                  y_proba_train: np.ndarray,
                  y_proba_test: np.ndarray,):
-        self.train = train
-        self.test = test
 
-        self.ind_map = defaultdict(dict)
         if train is not None and test is not None:
             # check if datasets have same indexes
             if set(train.data.index) & set(test.data.index):
@@ -75,27 +70,31 @@ class _DummyModel:
                               ' prefixes. To avoid that provide datasets with no common indexes '
                               'or pass the model object instead of the predictions.')
 
+        features = []
         predictions = []
         probas = []
 
         if train is not None:
+            features.append(train.features_columns)
             if y_pred_train is not None:
                 ensure_predictions_shape(y_pred_train, train.data)
-                predictions.append(pd.Series(dict(zip(train.data.index, y_pred_train))))
+                predictions.append(pd.Series(y_pred_train, index=train.data.index))
                 if y_proba_train is not None:
                     ensure_predictions_proba(y_proba_train, y_pred_train)
                     probas.append(pd.DataFrame(data=y_proba_train, index=train.data.index))
 
         if test is not None:
+            features.append(test.features_columns)
             if y_pred_test is not None:
                 ensure_predictions_shape(y_pred_test, test.data)
-                predictions.append(pd.Series(dict(zip(test.data.index, y_pred_test))))
-                if y_proba_train is not None:
+                predictions.append(pd.Series(y_pred_test, index=test.data.index))
+                if y_proba_test is not None:
                     ensure_predictions_proba(y_proba_test, y_pred_test)
                     probas.append(pd.DataFrame(data=y_proba_test, index=test.data.index))
 
         self.predictions = pd.concat(predictions, axis=0) if predictions else None
         self.probas = pd.concat(probas, axis=0) if probas else None
+        self.features = features
 
         if self.predictions is not None:
             self.predict = self._predict
@@ -104,13 +103,19 @@ class _DummyModel:
             self.predict_proba = self._predict_proba
 
     def _validate_data(self, data: pd.DataFrame):
-        orig_data = pd.concat([dataset.features_columns
-                              for dataset in[self.train, self.test] if dataset is not None], axis=0)
-        sub_index = list(data.index)[:10]
-        if (set(data.index).issubset(list(orig_data.index)) and
-            not (data.loc[sub_index].fillna('nan') ==
-                 orig_data.loc[sub_index].fillna('nan')).all().all()):
-            raise DeepchecksValueError('New data recieved for static model predictions.')  # TODO write something cooler
+        # Validate only up to 10000 samples
+        data = data.sample(min(10_000, len(data)))
+        for df_features in self.features:
+            # If all indices are found than test for equality
+            if set(data.index).issubset(set(df_features.index)):
+                # If equal than data is valid, can return
+                if df_features.loc[data.index].fillna('').equals(data.fillna('')):
+                    return
+                else:
+                    raise DeepchecksValueError('Data that has not been seen before passed for inference with static '
+                                               'predictions. Pass a real model to resolve this')
+        raise DeepchecksValueError('Data with indices that has not been seen before passed for inference with static '
+                                   'predictions. Pass a real model to resolve this')
 
     def _predict(self, data: pd.DataFrame):
         """Predict on given data by the data indexes."""

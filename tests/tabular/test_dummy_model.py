@@ -80,8 +80,7 @@ def test_roc_condition_ratio_more_than_passed(iris_clean):
     ds = Dataset(pd.concat([x_test, y_test], axis=1),
                  features=iris_clean.feature_names,
                  label='target')
-    y_pred_train, y_pred_test, y_proba_train, y_proba_test = \
-        _dummify_model(ds, None, clf)
+    y_pred_train, y_pred_test, y_proba_train, y_proba_test = _dummify_model(ds, None, clf)
 
     check = RocReport().add_condition_auc_not_less_than()
     result = check.conditions_decision(check.run(ds,           
@@ -101,8 +100,7 @@ def test_regression_error_absolute_kurtosis_not_greater_than_not_passed(diabetes
     _, test, clf = diabetes_split_dataset_and_model
     test = Dataset(test.data.copy(), label='target')
     test._data[test.label_name] =300
-    y_pred_train, y_pred_test, y_proba_train, y_proba_test = \
-        _dummify_model(test, None, clf)
+    y_pred_train, y_pred_test, y_proba_train, y_proba_test = _dummify_model(test, None, clf)
 
     check = RegressionErrorDistribution().add_condition_kurtosis_not_less_than()
 
@@ -121,10 +119,9 @@ def test_regression_error_absolute_kurtosis_not_greater_than_not_passed(diabetes
 
 #  copied from simple_model_comparison_test
 def test_simple_model_comparison_regression_random_state(diabetes_split_dataset_and_model):
-    train_ds, test_ds, clf = diabetes_split_dataset_and_model
-    y_pred_train, y_pred_test, y_proba_train, y_proba_test = \
-        _dummify_model(train_ds, test_ds, clf)
     # Arrange
+    train_ds, test_ds, clf = diabetes_split_dataset_and_model
+    y_pred_train, y_pred_test, y_proba_train, y_proba_test = _dummify_model(train_ds, test_ds, clf)
     check = SimpleModelComparison(simple_model_type='random', random_state=0)
     # Act X
     result = check.run(train_ds, test_ds, 
@@ -136,15 +133,14 @@ def test_simple_model_comparison_regression_random_state(diabetes_split_dataset_
 def test_new_data(diabetes_split_dataset_and_model):
     class NewDataCheck(TrainTestCheck):
         def run_logic(self, context: Context) -> CheckResult:
-            model= context.model
+            model = context.model
             row = context.train.features_columns.head(1)
             row['s1'] = [0]
             return_value = model.predict(row)
             return CheckResult(return_value)
     # Arrange
     train, test, clf = diabetes_split_dataset_and_model
-    y_pred_train, y_pred_test, y_proba_train, y_proba_test = \
-        _dummify_model(train, test, clf)
+    y_pred_train, y_pred_test, y_proba_train, y_proba_test = _dummify_model(train, test, clf)
 
     # Act
     assert_that(
@@ -154,14 +150,14 @@ def test_new_data(diabetes_split_dataset_and_model):
                        y_proba_train=y_proba_train, y_proba_test=y_proba_test),
         raises(
             DeepchecksValueError,
-            r'New data recieved for static model predictions.')
+            r'Data that has not been seen before passed for inference with static predictions. Pass a real model to '
+            r'resolve this')
     )
 
 def test_bad_pred_shape(diabetes_split_dataset_and_model):
     # Arrange
     train, test, clf = diabetes_split_dataset_and_model
-    y_pred_train, _, _, _ = \
-        _dummify_model(train, test, clf)
+    y_pred_train, _, _, _ = _dummify_model(train, test, clf)
 
     # Act
     assert_that(
@@ -174,8 +170,7 @@ def test_bad_pred_shape(diabetes_split_dataset_and_model):
 
 def test_bad_pred_proba(iris_labeled_dataset, iris_adaboost):
     # Arrange
-    y_pred_train, _, y_proba_train, _ = \
-        _dummify_model(iris_labeled_dataset, None, iris_adaboost)
+    y_pred_train, _, y_proba_train, _ = _dummify_model(iris_labeled_dataset, None, iris_adaboost)
 
     y_proba_train[0][2] = 2
 
