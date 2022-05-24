@@ -202,8 +202,7 @@ def test_condition_max_nulls_not_passed():
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                name='Not more than 3 different null types',
-                               details='Found 1 columns with amount of null types above threshold out of 1 columns: '
-                                       '[\'col1\']'),
+                               details='Found 1 out of 1 columns with amount of null types above threshold: [\'col1\']')
     ))
 
 

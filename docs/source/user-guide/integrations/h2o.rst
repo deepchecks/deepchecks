@@ -11,8 +11,7 @@ Check out our interactive `example notebook <https://colab.research.google.com/g
 demonstrating how to effortlessly test your H2O model with deepchecks in the exact same way
 you can test any sklearn model! The notebook itself is available on Github `here <https://github.com/deepchecks/deepchecks/blob/main/examples/integrations/h2o/deepchecks_h2o_tutorial.ipynb>`__.
 
-The example notebook includes:
--------------------------
+**The example notebook includes:**
 
 1. Training a simple H2O model.
 2. Demonstrating how use deepchecks on the H2O model to run a check. We'll run a deepchecks model performance check , that generates a detailed plot for model comparison (we'll compare the H2O model's performance to a a scikit-learn based model).

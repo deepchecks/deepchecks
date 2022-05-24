@@ -22,7 +22,7 @@ from deepchecks.utils.distribution.plot import drift_score_bar_traces, feature_d
 from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
 from deepchecks.utils.strings import format_percent
 
-__all__ = ['calc_drift_and_plot', 'get_drift_method']
+__all__ = ['calc_drift_and_plot', 'get_drift_method', 'SUPPORTED_CATEGORICAL_METHODS', 'SUPPORTED_NUMERIC_METHODS']
 
 
 PSI_MIN_PERCENTAGE = 0.01
