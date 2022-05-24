@@ -28,12 +28,6 @@ df['x5'] = df['label'].apply(lambda x: 'v1' if x < 0 else 'v2')
 ds = Dataset(df, label='label', cat_features=[])
 
 #%%
-# Running single_feature_contribution check
-# =========================================
-
-FeatureLabelCorrelation().run(ds)
-
-#%%
 # Using the FeatureLabelCorrelation check class
 # ===============================================
 

@@ -107,7 +107,7 @@ result
 #
 # We'll show the relevant plot again for ease of discussion:
 
-check_idx = np.where([result.results[i].check.name() == 'Feature Label Correlation'
+check_idx = np.where([result.results[i].check.name() == 'Feature Label Correlation Change'
                       for i in range(len(result.results))])[0][0]
 result.results[check_idx]
 

@@ -242,7 +242,7 @@ class MyCustomSegmentationData(VisionData):
 
 #%%
 # Now we are able to run checks that use only the image data, since it's in the standard Deepchecks format.
-# Let's run SimpleFeatureContribution check with our task
+# Let's run FeatureLabelCorrelationChange check with our task
 
 from deepchecks.vision.checks import FeatureLabelCorrelationChange
 

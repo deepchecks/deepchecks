@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Contains unit tests for the single_feature_contribution check."""
+"""Contains unit tests for the feature label correlation check."""
 import numpy as np
 import pandas as pd
 from hamcrest import assert_that, calling, close_to, equal_to, has_entries, has_length, raises
@@ -42,14 +42,14 @@ def util_generate_second_similar_dataframe_and_expected():
                      'x4': close_to(0, 0.1), 'x5': close_to(0, 0.1)}
 
 
-def test_assert_single_feature_contribution():
+def test_assert_feature_label_correlation():
     df, expected = util_generate_dataframe_and_expected()
     result = FeatureLabelCorrelation(random_state=42).run(dataset=Dataset(df, label='label'))
 
     assert_that(result.value, has_entries(expected))
 
 
-def test_show_top_single_feature_contribution():
+def test_show_top_feature_label_correlation():
     # Arrange
     df, expected = util_generate_dataframe_and_expected()
     check = FeatureLabelCorrelation(n_show_top=3, random_state=42)
@@ -78,7 +78,7 @@ def test_dataset_no_label():
                'There is no label defined to use. Did you pass a DataFrame instead of a Dataset?'))
 
 
-def test_trainval_assert_single_feature_contribution():
+def test_trainval_assert_feature_label_correlation():
     df, df2, expected = util_generate_second_similar_dataframe_and_expected()
     result = FeatureLabelCorrelationChange(random_state=42).run(train_dataset=Dataset(df, label='label'),
                                                                 test_dataset=Dataset(df2, label='label'))
@@ -86,7 +86,7 @@ def test_trainval_assert_single_feature_contribution():
     assert_that(result.value['train-test difference'], has_entries(expected))
 
 
-def test_trainval_assert_single_feature_contribution_min_pps():
+def test_trainval_assert_feature_label_correlation_min_pps():
     df, df2, expected = util_generate_second_similar_dataframe_and_expected()
     result = FeatureLabelCorrelationChange(random_state=42,
                                            min_pps_to_show=2).run(train_dataset=Dataset(df, label='label'),
@@ -95,7 +95,7 @@ def test_trainval_assert_single_feature_contribution_min_pps():
     assert_that(result.display, equal_to([]))
 
 
-def test_trainval_show_top_single_feature_contribution():
+def test_trainval_show_top_feature_label_correlation():
     df, df2, expected = util_generate_second_similar_dataframe_and_expected()
     result = FeatureLabelCorrelationChange(n_show_top=3, random_state=42).run(
         train_dataset=Dataset(df, label='label'), test_dataset=Dataset(df2, label='label'))
