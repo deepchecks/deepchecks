@@ -189,12 +189,6 @@ def feature_distribution_traces(
         if train_test_uniques.size < MAX_NUMERICAL_UNIQUE_FOR_BARS:
             traces, y_layout = _create_distribution_bar_graphs(train_column, test_column, 20, show_categories_by)
             x_range = (x_range[0] - 5, x_range[1] + 5)
-            # In case of single value widen the range, else plotly draw the bars really wide.
-            # if x_range[0] == x_range[1]:
-            #     x_range = (x_range[0] - 5, x_range[0] + 5)
-            # # In case of multi values still widen the range, else plotly hide the bars in the edges.
-            # else:
-            #     x_range = None
             xaxis_layout = dict(ticks='outside', tickmode='array', tickvals=train_test_uniques, range=x_range)
             return traces, xaxis_layout, y_layout
 
