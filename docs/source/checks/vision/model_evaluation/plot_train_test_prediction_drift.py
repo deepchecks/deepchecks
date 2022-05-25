@@ -15,7 +15,7 @@ This notebooks provides an overview for using and understanding the vision predi
 What Is Prediction Drift?
 ========================
 Drift is simply a change in the distribution of data over time, and it is
-also one of the top reasons of a machine learning model performance degrades
+also one of the top reasons why machine learning model's performance degrades
 over time.
 
 Prediction drift is when drift occurs in the prediction itself.

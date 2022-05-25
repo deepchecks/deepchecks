@@ -15,7 +15,7 @@ This notebooks provides an overview for using and understanding the tabular pred
 What Is Prediction Drift?
 ========================
 Drift is simply a change in the distribution of data over time, and it is
-also one of the top reasons why machine learning model's performance tends to degrade
+also one of the top reasons why machine learning model's performance degrades
 over time.
 
 Prediction drift is when drift occurs in the prediction itself.

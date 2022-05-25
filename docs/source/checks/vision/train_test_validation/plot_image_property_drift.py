@@ -17,7 +17,7 @@ This notebooks provides an overview for using and understanding the image proper
 What Is Image Drift?
 =================================
 Drift is simply a change in the distribution of data over time, and it is
-also one of the top reasons of a machine learning model performance degrades
+also one of the top reasons why machine learning model's performance degrades
 over time.
 
 Image drift is a data drift that occurs in images in the dataset.

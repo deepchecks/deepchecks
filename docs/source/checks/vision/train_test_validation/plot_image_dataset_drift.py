@@ -18,7 +18,7 @@ What Is Image Dataset Drift?
 ============================
 
 Drift is simply a change in the distribution of data over time, and it is
-also one of the top reasons of a machine learning model performance degrades
+also one of the top reasons why machine learning model's performance degrades
 over time.
 
 Image dataset drift is a drift that occurs in more than one image property at a time,
