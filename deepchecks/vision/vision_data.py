@@ -230,9 +230,28 @@ class VisionData:
         self.batch_to_labels(batch)
 
     def validate_prediction(self, batch, model, device):
-        """Validate a batch of predictions."""
-        # default implementation just calling the function to see it runs
-        self.infer_on_batch(batch, model, device)
+        """
+        Validate the prediction.
+
+        Parameters
+        ----------
+        batch : t.Any
+            Batch from DataLoader
+        model : t.Any
+        device : torch.Device
+
+        Raises
+        ------
+        ValidationError
+            If predictions format is invalid (depends on validate_infered_batch_predictions implementations)
+        DeepchecksNotImplementedError
+            If infer_on_batch not implemented
+        """
+        self.validate_infered_batch_predictions(self.infer_on_batch(batch, model, device))
+
+    def validate_infered_batch_predictions(batch_predictions):
+        """Validate the infered predictions from the batch."""
+        # isn't relevant for this class but is still a function we want to inherit
 
     def update_cache(self, batch: Batch):
         """Get labels and update the classes' metadata info."""

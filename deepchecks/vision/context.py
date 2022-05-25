@@ -10,7 +10,7 @@
 #
 """Module for base vision context."""
 import warnings
-from typing import Mapping, Union
+from typing import Dict, List, Mapping, Union
 
 import torch
 from ignite.metrics import Metric
@@ -61,7 +61,9 @@ class Context:
                  scorers_per_class: Mapping[str, Metric] = None,
                  device: Union[str, torch.device, None] = None,
                  random_state: int = 42,
-                 n_samples: int = None
+                 n_samples: int = None,
+                 train_predictions: Union[List[torch.Tensor], torch.Tensor] = None,
+                 test_predictions: Union[List[torch.Tensor], torch.Tensor] = None,
                  ):
         # Validations
         if train is None and test is None and model is None:
@@ -81,6 +83,7 @@ class Context:
 
         self._prediction_formatter_error = {}
         if model is not None:
+            self._static_predictions = None
             if not isinstance(model, nn.Module):
                 warnings.warn('Deepchecks can\'t validate that model is in evaluation state. Make sure it is to '
                               'avoid unexpected behavior.')
@@ -97,9 +100,28 @@ class Context:
                         msg = f'infer_on_batch() was not implemented in {dataset_type} ' \
                            f'dataset, some checks will not run'
                     except ValidationError as ex:
-                        msg = f'infer_on_batch() was not implemented correctly in {dataset_type}, the ' \
+                        msg = f'infer_on_batch() was not implemented correctly in the {dataset_type} dataset, the ' \
                            f'validation has failed with the error: {ex}. To test your prediction formatting use the ' \
                            f'function `vision_data.validate_prediction(batch, model, device)`'
+
+                    if msg:
+                        self._prediction_formatter_error[dataset_type] = msg
+                        warnings.warn(msg)
+
+        elif train_predictions is not None or test_predictions is not None:
+            self._static_predictions = {}
+            for dataset, dataset_type, predictions in zip([train, test],
+                                                          [DatasetKind.TRAIN, DatasetKind.TEST],
+                                                          [train_predictions, test_predictions]):
+                if dataset is not None:
+                    try:
+                        dataset.validate_infered_batch_predictions(predictions)
+                        msg = None
+                        self._static_predictions[dataset_type] = predictions
+                    except ValidationError as ex:
+                        msg = f'the predictions given were not in a currect format in the {dataset_type} dataset, the ' \
+                           f'validation has failed with the error: {ex}. To test your prediction formatting use the ' \
+                           f'function `vision_data.validate_infered_batch_predictions(predictions)`'
 
                     if msg:
                         self._prediction_formatter_error[dataset_type] = msg
@@ -145,6 +167,11 @@ class Context:
         if self._model is None:
             raise DeepchecksNotSupportedError('Check is irrelevant for Datasets without model')
         return self._model
+
+    @property
+    def static_predictions(self) -> Dict:
+        """Return the static_predictions."""
+        return self._static_predictions
 
     @property
     def model_name(self):

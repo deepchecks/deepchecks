@@ -49,15 +49,22 @@ class Batch:
             self._labels = dataset.batch_to_labels(self._batch)
         return self._labels
 
+    def _do_static_pred(self):
+        pass
+
     @property
     def predictions(self):
         """Return predictions for the batch, formatted in deepchecks format."""
         if self._predictions is None:
             dataset = self._context.get_data_by_kind(self._dataset_kind)
-            # Calling model will raise error if model was not given
-            model = self._context.model
-            self._context.assert_predictions_valid(self._dataset_kind)
-            self._predictions = dataset.infer_on_batch(self._batch, model, self._context.device)
+            if self._context.static_predictions is not None:
+                self._context.assert_predictions_valid(self._dataset_kind)
+                self._predictions = self._do_static_pred()
+            else:
+                # Calling model will raise error if model was not given
+                model = self._context.model
+                self._context.assert_predictions_valid(self._dataset_kind)
+                self._predictions = dataset.infer_on_batch(self._batch, model, self._context.device)
         return self._predictions
 
     @property
@@ -81,7 +88,7 @@ class Batch:
         """For given index in this batch returns the real index in the underlying dataset object. Can be used to \
         later get samples for display."""
         dataset = self._context.get_data_by_kind(self._dataset_kind)
-        return dataset.batch_index_to_dataset_index(self.batch_start_index + index)
+        return dataset.to_dataset_index(self.batch_start_index + index)
 
 
 T = TypeVar('T')
