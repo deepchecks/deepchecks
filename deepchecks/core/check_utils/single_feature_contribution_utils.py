@@ -21,12 +21,13 @@ from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
 
 
-def get_pps_figure(per_class: bool):
+def get_pps_figure(per_class: bool, n_of_features: int):
     """If per_class is True, then no title is defined on the figure."""
     fig = go.Figure()
     fig.update_layout(
         yaxis_title='Predictive Power Score (PPS)',
-        yaxis_range=[0, 1.05],
+        yaxis_range=(0, 1.05),
+        xaxis_range=(-3, n_of_features + 2),
         legend=dict(x=1.0, y=1.0),
         barmode='group',
         # width=800, height=500
@@ -120,7 +121,7 @@ def get_single_feature_contribution(train_df: pd.DataFrame, train_label_name: Op
     s_pps_test_to_display = s_pps_test[sorted_order_for_display]
     s_difference_to_display = s_difference[sorted_order_for_display]
 
-    fig = get_pps_figure(per_class=False)
+    fig = get_pps_figure(per_class=False, n_of_features=n_show_top)
     fig.add_trace(pd_series_to_trace(s_pps_train_to_display, 'train'))
     fig.add_trace(pd_series_to_trace_with_diff(s_pps_test_to_display, 'test', -s_difference_to_display))
 
@@ -217,7 +218,7 @@ def get_single_feature_contribution_per_class(train_df: pd.DataFrame, train_labe
             s_test_to_display = s_test[sorted_order_for_display]
             s_difference_to_display = s_difference[sorted_order_for_display]
 
-            fig = get_pps_figure(per_class=True)
+            fig = get_pps_figure(per_class=True, n_of_features=n_show_top)
             fig.update_layout(title=f'{feature}: Predictive Power Score (PPS) Per Class')
             fig.add_trace(pd_series_to_trace(s_train_to_display, 'train'))
             fig.add_trace(pd_series_to_trace_with_diff(s_test_to_display, 'test', -s_difference_to_display))

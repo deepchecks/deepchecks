@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """A module containing utils for plotting distributions."""
+import typing as t
 from functools import cmp_to_key
 from numbers import Number
 
@@ -16,6 +17,7 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objs as go
 from scipy.stats import gaussian_kde
+from typing_extensions import Literal as L
 
 __all__ = ['feature_distribution_traces', 'drift_score_bar_traces', 'get_density']
 
@@ -114,19 +116,26 @@ def drift_score_bar_traces(drift_score: float, bar_max: float = None) -> Tuple[L
         showticklabels=False,
         zeroline=False,
         color='black',
+        autorange=True,
+        rangemode='normal',
         fixedrange=True
     )
 
     return bars, xaxis, yaxis
 
 
-def feature_distribution_traces(train_column,
-                                test_column,
-                                column_name,
-                                is_categorical: bool = False,
-                                max_num_categories: int = 10,
-                                show_categories_by: str = 'largest_difference',
-                                quantile_cut: float = 0.02) -> Tuple[List[go.Trace], Dict, Dict]:
+CategoriesSortingKind = t.Union[L['train_largest'], L['test_largest'], L['largest_difference']]  # noqa: F821
+
+
+def feature_distribution_traces(
+    train_column: t.Union[np.ndarray, pd.Series],
+    test_column: t.Union[np.ndarray, pd.Series],
+    column_name: str,
+    is_categorical: bool = False,
+    max_num_categories: int = 10,
+    show_categories_by: CategoriesSortingKind = 'largest_difference',
+    quantile_cut: float = 0.02
+) -> Tuple[List[go.Trace], Dict, Dict]:
     """Create traces for comparison between train and test column.
 
     Parameters
@@ -149,6 +158,7 @@ def feature_distribution_traces(train_column,
         - 'largest_difference': Show the largest difference between categories.
     quantile_cut : float , default: 0.02
         in which quantile to cut the edges of the plot
+
     Returns
     -------
     List[Union[go.Bar, go.Scatter]]
@@ -163,7 +173,7 @@ def feature_distribution_traces(train_column,
     if is_categorical:
         traces, y_layout = _create_distribution_bar_graphs(train_column, test_column, max_num_categories,
                                                            show_categories_by)
-        xaxis_layout = dict(type='category')
+        xaxis_layout = dict(type='category', range=(-3, max_num_categories + 2))
         return traces, xaxis_layout, y_layout
     else:
         train_uniques, train_uniques_counts = np.unique(train_column, return_counts=True)
@@ -211,9 +221,7 @@ def feature_distribution_traces(train_column,
                 x=train_uniques,
                 y=_create_bars_data_for_mixed_kde_plot(train_uniques_counts, np.max(test_density)),
                 width=[bars_width] * train_uniques.size,
-                marker=dict(
-                    color=colors['Train'],
-                ),
+                marker=dict(color=colors['Train']),
                 name='Train Dataset',
             ))
         else:
@@ -262,13 +270,27 @@ def _create_distribution_scatter_plot(xs, ys, mean, median, is_train):
     return traces
 
 
-def _create_distribution_bar_graphs(train_column, test_column, max_num_categories: int, show_categories_by: str):
-    expected, actual, categories_list = \
-        preprocess_2_cat_cols_to_same_bins(dist1=train_column, dist2=test_column)
+def _create_distribution_bar_graphs(
+    train_column: t.Union[np.ndarray, pd.Series],
+    test_column: t.Union[np.ndarray, pd.Series],
+    max_num_categories: int,
+    show_categories_by: CategoriesSortingKind
+) -> t.Tuple[t.Any, t.Any]:
+    """
+    Create distribution bar graphs.
+
+    Returns
+    -------
+    Tuple[Any, Any]:
+        a tuple instance with figues traces, yaxis layout
+    """
+    expected, actual, categories_list = preprocess_2_cat_cols_to_same_bins(
+        dist1=train_column,
+        dist2=test_column
+    )
 
     expected_percents, actual_percents = expected / len(train_column), actual / len(test_column)
 
-    # Get sorting lambda function according to the parameter show_categories_by:
     if show_categories_by == 'train_largest':
         sort_func = lambda tup: tup[0]
     elif show_categories_by == 'test_largest':
@@ -276,57 +298,60 @@ def _create_distribution_bar_graphs(train_column, test_column, max_num_categorie
     elif show_categories_by == 'largest_difference':
         sort_func = lambda tup: np.abs(tup[0] - tup[1])
     else:
-        raise DeepchecksValueError(f'show_categories_by must be either "train_largest", "test_largest" '
-                                   f'or "largest_difference", instead got: {show_categories_by}')
+        raise DeepchecksValueError(
+            'show_categories_by must be either "train_largest", "test_largest" '
+            f'or "largest_difference", instead got: {show_categories_by}'
+        )
 
     # Sort the lists together according to the parameter show_categories_by (done by sorting zip and then using it again
     # to return the lists to the original 3 separate ones).
     # Afterwards, leave only the first max_num_categories values in each list.
+    distribution = sorted(
+        zip(expected_percents, actual_percents, categories_list),
+        key=sort_func,
+        reverse=True
+    )
     expected_percents, actual_percents, categories_list = zip(
-        *list(sorted(zip(expected_percents, actual_percents, categories_list), key=sort_func, reverse=True))[
-         :max_num_categories])
+        *distribution[:max_num_categories]
+    )
 
     # fixes plotly widget bug with numpy values by converting them to native values
     # https://github.com/plotly/plotly.py/issues/3470
-    categories_list = [un_numpy(cat) for cat in categories_list]
-    cat_df = pd.DataFrame({'Train dataset': expected_percents, 'Test dataset': actual_percents},
-                          index=categories_list)
+    cat_df = pd.DataFrame(
+        {'Train dataset': expected_percents, 'Test dataset': actual_percents},
+        index=[un_numpy(cat) for cat in categories_list]
+    )
 
     # Creating sorting function which works on both numbers and strings
     def sort_int_and_strings(a, b):
         # If both numbers or both same type using regular operator
-        if a.__class__ == b.__class__ or (isinstance(a, Number) and isinstance(b, Number)):
+        if type(a) is type(b) or (isinstance(a, Number) and isinstance(b, Number)):
             return -1 if a < b else 1
         # Sort numbers before strings
         return -1 if isinstance(a, Number) else 1
 
     cat_df = cat_df.reindex(sorted(cat_df.index, key=cmp_to_key(sort_int_and_strings)))
 
-    train_bar = go.Bar(
-        x=cat_df.index,
-        y=cat_df['Train dataset'],
-        marker=dict(
-            color=colors['Train'],
+    traces = [
+        go.Bar(
+            x=cat_df.index,
+            y=cat_df['Train dataset'],
+            marker=dict(color=colors['Train']),
+            name='Train Dataset',
         ),
-        name='Train Dataset',
+        go.Bar(
+            x=cat_df.index,
+            y=cat_df['Test dataset'],
+            marker=dict(color=colors['Test']),
+            name='Test Dataset',
+        )
+    ]
+
+    yaxis_layout = dict(
+        fixedrange=True,
+        autorange=True,
+        rangemode='normal',
+        title='Frequency'
     )
-
-    test_bar = go.Bar(
-        x=cat_df.index,
-        y=cat_df['Test dataset'],
-        marker=dict(
-            color=colors['Test'],
-        ),
-        name='Test Dataset',
-    )
-
-    traces = [train_bar, test_bar]
-
-    max_y = max(*expected_percents, *actual_percents)
-    y_lim = 1 if max_y > 0.5 else max_y * 1.1
-
-    yaxis_layout = dict(fixedrange=True,
-                        range=(0, y_lim),
-                        title='Frequency')
 
     return traces, yaxis_layout

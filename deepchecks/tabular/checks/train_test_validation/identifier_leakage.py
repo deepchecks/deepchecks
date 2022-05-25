@@ -79,10 +79,16 @@ class IdentifierLeakage(SingleDatasetCheck):
         df_pps = df_pps.set_index('x', drop=True)
         s_ppscore = df_pps['ppscore']
 
-        xaxis_layout = dict(title='Identifiers', type='category')
-        yaxis_layout = dict(fixedrange=True,
-                            range=(0, 1),
-                            title='predictive power score (PPS)')
+        xaxis_layout = dict(
+            title='Identifiers',
+            type='category',
+            range=(-3, len(s_ppscore.index) + 2)
+        )
+        yaxis_layout = dict(
+            fixedrange=True,
+            range=(0, 1),
+            title='predictive power score (PPS)'
+        )
 
         red_heavy_colorscale = [
             [0, 'rgb(255, 255, 255)'],  # jan

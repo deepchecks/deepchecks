@@ -307,7 +307,7 @@ class RobustnessReport(SingleDatasetCheck):
                                  textposition='auto', marker=dict(color=plot.metric_colors[index])),
                           col=index + 1, row=1)
 
-        fig \
+        return fig \
             .update_layout(
                 font=dict(size=12),
                 # height=300,
@@ -321,24 +321,30 @@ class RobustnessReport(SingleDatasetCheck):
             ).update_xaxes(
                 title=None,
                 type='category',
-                tickangle=30
+                tickangle=30,
+                range=(-2, 3)
             )
-        return fig
 
     def _create_top_affected_graph(self, top_affected_dict, dataset):
         metrics = sorted(top_affected_dict.keys())
         fig = make_subplots(rows=1, cols=len(metrics), subplot_titles=metrics)
+        max_n_of_classes = 0
 
         for index, metric in enumerate(metrics):
             metric_classes = top_affected_dict[metric]
+
             # Take the worst affected classes
             x = []
             y = []
             custom_data = []
+
             for class_info in metric_classes:
                 x.append(dataset.label_id_to_name(class_info['class']))
                 y.append(class_info['value'])
                 custom_data.append([format_percent(class_info['diff']), class_info['samples']])
+
+            if len(x) > max_n_of_classes:
+                max_n_of_classes = len(x)
 
             # Plotly have a bug that if all y values are zero text position 'auto' doesn't work
             textposition = 'outside' if sum(y) == 0 else 'auto'
@@ -348,7 +354,7 @@ class RobustnessReport(SingleDatasetCheck):
                                  marker=dict(color=plot.metric_colors[index])),
                           row=1, col=index + 1)
 
-        fig \
+        return fig \
             .update_layout(
                 font=dict(size=12),
                 # height=300,
@@ -363,12 +369,11 @@ class RobustnessReport(SingleDatasetCheck):
                 type='category',
                 tickangle=30,
                 tickprefix='Class ',
-                automargin=True
+                automargin=True,
+                range=(-2, max_n_of_classes + 1)
             ).update_yaxes(
                 automargin=True
             )
-
-        return fig
 
 
 def augmentation_name(aug):

@@ -194,7 +194,7 @@ class ABCDisplayItemsHandler(Protocol):
         -------
         List[Any]
         """
-        return [cls.handle_item(it, index) for index, it in enumerate(display)]
+        return [cls.handle_item(it, index, **kwargs) for index, it in enumerate(display)]
 
     @classmethod
     @abc.abstractmethod
