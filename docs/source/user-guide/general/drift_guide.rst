@@ -25,8 +25,7 @@ So Why Is Drift So Important?
 
 Machine learning models are meant to predict on unseen data, based on previous known data (more accurately, this refers
 to supervised machine learning models, for which drift is most relevant).
-If the data, or the relationships between the different variables and target label, has changed, our model may not be as
-accurate as it was before.
+If the data, or the relationships between the different variables and target label, has changed, our model's performance may degrade.
 
 Detecting drift is an important warning sign that our model may be not as accurate on the new data compared to the training data, and that it should be
 adjusted or retrained on different data.
