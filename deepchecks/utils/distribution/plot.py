@@ -178,18 +178,23 @@ def feature_distribution_traces(
     else:
         train_uniques, train_uniques_counts = np.unique(train_column, return_counts=True)
         test_uniques, test_uniques_counts = np.unique(test_column, return_counts=True)
-        x_range = (min(train_column.min(), test_column.min()), max(train_column.max(), test_column.max()))
+        
+        x_range = (
+            min(train_column.min(), test_column.min()), 
+            max(train_column.max(), test_column.max())
+        )
 
         # If there are less than 20 total unique values, draw bar graph
         train_test_uniques = np.unique(np.concatenate([train_uniques, test_uniques]))
         if train_test_uniques.size < MAX_NUMERICAL_UNIQUE_FOR_BARS:
             traces, y_layout = _create_distribution_bar_graphs(train_column, test_column, 20, show_categories_by)
+            x_range = (x_range[0] - 5, x_range[1] + 5)
             # In case of single value widen the range, else plotly draw the bars really wide.
-            if x_range[0] == x_range[1]:
-                x_range = (x_range[0] - 5, x_range[0] + 5)
-            # In case of multi values still widen the range, else plotly hide the bars in the edges.
-            else:
-                x_range = None
+            # if x_range[0] == x_range[1]:
+            #     x_range = (x_range[0] - 5, x_range[0] + 5)
+            # # In case of multi values still widen the range, else plotly hide the bars in the edges.
+            # else:
+            #     x_range = None
             xaxis_layout = dict(ticks='outside', tickmode='array', tickvals=train_test_uniques, range=x_range)
             return traces, xaxis_layout, y_layout
 
