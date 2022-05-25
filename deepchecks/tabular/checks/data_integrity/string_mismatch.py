@@ -17,7 +17,7 @@ import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
-from deepchecks.tabular.utils.integrity_messages import get_condition_passed_message
+from deepchecks.tabular.utils.messages import get_condition_passed_message
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.utils.strings import format_percent, get_base_form_to_variants_dict, is_string_column
@@ -151,8 +151,8 @@ class StringMismatch(SingleDatasetCheck):
                     not_passing_columns[col] = format_percent(variants_percent_sum)
 
             if not_passing_columns:
-                details = f'Found {len(not_passing_columns)} columns with variants ratio above threshold out of ' \
-                          f'{len(result)} string columns: {not_passing_columns}'
+                details = f'Found {len(not_passing_columns)} out of {len(result)} relevant columns with variants ' \
+                          f'ratio above threshold: {not_passing_columns}'
                 return ConditionResult(ConditionCategory.FAIL, details)
             return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))
 
@@ -169,8 +169,8 @@ def _condition_variants_number(result, num_max_variants: int, max_cols_to_show: 
                     not_passing_variants[col].append(base_form)
     if not_passing_variants:
         variants_to_show = dict(itertools.islice(not_passing_variants.items(), max_cols_to_show))
-        details = f'Found {len(not_passing_variants)} columns with amount of variants above threshold out of ' \
-                  f'{len(result)} string columns: {variants_to_show}'
+        details = f'Found {len(not_passing_variants)} out of {len(result)} columns with amount of variants above ' \
+                  f'threshold: {variants_to_show}'
         return ConditionResult(ConditionCategory.WARN, details)
 
     return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))

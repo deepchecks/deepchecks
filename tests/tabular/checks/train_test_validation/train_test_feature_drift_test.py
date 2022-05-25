@@ -94,8 +94,10 @@ def test_drift_max_drift_score_condition_fail(drifted_data_and_model):
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name='categorical drift score <= 0.2 and numerical drift score <= 0.1',
-        details='Found categorical columns with PSI above threshold: {\'categorical_with_drift\': \'0.22\'}\n'
-                'Found numeric columns with Earth Mover\'s Distance above threshold: {\'numeric_with_drift\': \'0.34\'}'
+        details='Failed for 2 columns out of 4. '
+                'Found 1 categorical columns with PSI above threshold: {\'categorical_with_drift\': \'0.22\'} '
+                'Found 1 numeric columns with Earth Mover\'s Distance above threshold: '
+                '{\'numeric_with_drift\': \'0.34\'}'
     ))
 
 
@@ -112,8 +114,10 @@ def test_drift_max_drift_score_condition_fail_cramer(drifted_data_and_model):
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name='categorical drift score <= 0.2 and numerical drift score <= 0.1',
-        details='Found categorical columns with Cramer\'s V above threshold: {\'categorical_with_drift\': \'0.23\'}\n'
-                'Found numeric columns with Earth Mover\'s Distance above threshold: {\'numeric_with_drift\': \'0.34\'}'
+        details='Failed for 2 columns out of 4. '
+                'Found 1 categorical columns with Cramer\'s V above threshold: {\'categorical_with_drift\': \'0.23\'} '
+                'Found 1 numeric columns with Earth Mover\'s Distance above threshold: '
+                '{\'numeric_with_drift\': \'0.34\'}'
     ))
 
 
@@ -131,5 +135,7 @@ def test_drift_max_drift_score_condition_pass_threshold(drifted_data_and_model):
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
+        details='Passed for 4 relevant columns. Column categorical_with_drift has the highest categorical drift score: '
+                '0.22 Column numeric_with_drift has the highest numerical drift score: 0.34',
         name='categorical drift score <= 1 and numerical drift score <= 1'
     ))

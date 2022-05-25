@@ -9,15 +9,18 @@
 # ----------------------------------------------------------------------------
 #
 """Module for base tabular context."""
-from typing import Callable, Mapping, Optional, Union
+import typing as t
+import warnings
 
+import numpy as np
 import pandas as pd
 
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
                                     ModelValidationError)
 from deepchecks.tabular.dataset import Dataset
-from deepchecks.tabular.utils.validation import model_type_validation, validate_model
+from deepchecks.tabular.utils.validation import (ensure_predictions_proba, ensure_predictions_shape,
+                                                 model_type_validation, validate_model)
 from deepchecks.utils.features import calculate_feature_importance_or_none
 from deepchecks.utils.metrics import ModelType, get_default_scorers, init_validate_scorers, task_type_check
 from deepchecks.utils.typing import BasicModel
@@ -27,16 +30,114 @@ __all__ = [
 ]
 
 
+class _DummyModel:
+    """Dummy model class used for inference with static predictions from the user.
+
+    Parameters
+    ----------
+    train: Dataset
+        Dataset, representing data an estimator was fitted on.
+    test: Dataset
+        Dataset, representing data an estimator predicts on.
+    y_pred_train: np.ndarray
+        Array of the model prediction over the train dataset.
+    y_pred_test: np.ndarray
+        Array of the model prediction over the test dataset.
+    y_proba_train: np.ndarray
+        Array of the model prediction probabilities over the train dataset.
+    y_proba_test: np.ndarray
+        Array of the model prediction probabilities over the test dataset.
+    """
+
+    features: t.List[pd.DataFrame]
+    predictions: pd.DataFrame
+    proba: pd.DataFrame
+
+    def __init__(self,
+                 train: Dataset,
+                 test: Dataset,
+                 y_pred_train: np.ndarray,
+                 y_pred_test: np.ndarray,
+                 y_proba_train: np.ndarray,
+                 y_proba_test: np.ndarray,):
+
+        if train is not None and test is not None:
+            # check if datasets have same indexes
+            if set(train.data.index) & set(test.data.index):
+                train.data.index = map(lambda x: f'train-{x}', list(train.data.index))
+                test.data.index = map(lambda x: f'test-{x}', list(test.data.index))
+                warnings.warn('train and test datasets have common index - adding "train"/"test"'
+                              ' prefixes. To avoid that provide datasets with no common indexes '
+                              'or pass the model object instead of the predictions.')
+
+        features = []
+        predictions = []
+        probas = []
+
+        if train is not None:
+            features.append(train.features_columns)
+            if y_pred_train is not None:
+                ensure_predictions_shape(y_pred_train, train.data)
+                predictions.append(pd.Series(y_pred_train, index=train.data.index))
+                if y_proba_train is not None:
+                    ensure_predictions_proba(y_proba_train, y_pred_train)
+                    probas.append(pd.DataFrame(data=y_proba_train, index=train.data.index))
+
+        if test is not None:
+            features.append(test.features_columns)
+            if y_pred_test is not None:
+                ensure_predictions_shape(y_pred_test, test.data)
+                predictions.append(pd.Series(y_pred_test, index=test.data.index))
+                if y_proba_test is not None:
+                    ensure_predictions_proba(y_proba_test, y_pred_test)
+                    probas.append(pd.DataFrame(data=y_proba_test, index=test.data.index))
+
+        self.predictions = pd.concat(predictions, axis=0) if predictions else None
+        self.probas = pd.concat(probas, axis=0) if probas else None
+        self.features = features
+
+        if self.predictions is not None:
+            self.predict = self._predict
+
+        if self.probas is not None:
+            self.predict_proba = self._predict_proba
+
+    def _validate_data(self, data: pd.DataFrame):
+        # Validate only up to 10000 samples
+        data = data.sample(min(10_000, len(data)))
+        for df_features in self.features:
+            # If all indices are found than test for equality
+            if set(data.index).issubset(set(df_features.index)):
+                # If equal than data is valid, can return
+                if df_features.loc[data.index].fillna('').equals(data.fillna('')):
+                    return
+                else:
+                    raise DeepchecksValueError('Data that has not been seen before passed for inference with static '
+                                               'predictions. Pass a real model to resolve this')
+        raise DeepchecksValueError('Data with indices that has not been seen before passed for inference with static '
+                                   'predictions. Pass a real model to resolve this')
+
+    def _predict(self, data: pd.DataFrame):
+        """Predict on given data by the data indexes."""
+        self._validate_data(data)
+        return self.predictions.loc[data.index].to_numpy()
+
+    def _predict_proba(self, data: pd.DataFrame):
+        """Predict probabilities on given data by the data indexes."""
+        self._validate_data(data)
+        return self.probas.loc[data.index].to_numpy()
+
+
 class Context:
     """Contains all the data + properties the user has passed to a check/suite, and validates it seamlessly.
 
     Parameters
     ----------
-    train : Union[Dataset, pd.DataFrame] , default: None
+    train: Union[Dataset, pd.DataFrame] , default: None
         Dataset or DataFrame object, representing data an estimator was fitted on
-    test : Union[Dataset, pd.DataFrame] , default: None
+    test: Union[Dataset, pd.DataFrame] , default: None
         Dataset or DataFrame object, representing data an estimator predicts on
-    model : BasicModel , default: None
+    model: BasicModel , default: None
         A scikit-learn-compatible fitted estimator instance
     model_name: str , default: ''
         The name of the model
@@ -53,18 +154,30 @@ class Context:
         See <a href=
         "https://scikit-learn.org/stable/modules/model_evaluation.html#from-binary-to-multiclass-and-multilabel">
         scikit-learn docs</a>
+    y_pred_train: np.ndarray , default: None
+        Array of the model prediction over the train dataset.
+    y_pred_test: np.ndarray , default: None
+        Array of the model prediction over the test dataset.
+    y_proba_train: np.ndarray , default: None
+        Array of the model prediction probabilities over the train dataset.
+    y_proba_test: np.ndarray , default: None
+        Array of the model prediction probabilities over the test dataset.
     """
 
     def __init__(self,
-                 train: Union[Dataset, pd.DataFrame] = None,
-                 test: Union[Dataset, pd.DataFrame] = None,
+                 train: t.Union[Dataset, pd.DataFrame] = None,
+                 test: t.Union[Dataset, pd.DataFrame] = None,
                  model: BasicModel = None,
                  model_name: str = '',
                  features_importance: pd.Series = None,
                  feature_importance_force_permutation: bool = False,
                  feature_importance_timeout: int = 120,
-                 scorers: Mapping[str, Union[str, Callable]] = None,
-                 scorers_per_class: Mapping[str, Union[str, Callable]] = None
+                 scorers: t.Mapping[str, t.Union[str, t.Callable]] = None,
+                 scorers_per_class: t.Mapping[str, t.Union[str, t.Callable]] = None,
+                 y_pred_train: np.ndarray = None,
+                 y_pred_test: np.ndarray = None,
+                 y_proba_train: np.ndarray = None,
+                 y_proba_test: np.ndarray = None,
                  ):
         # Validations
         if train is None and test is None and model is None:
@@ -93,13 +206,17 @@ class Context:
         if test and not train:
             raise DatasetValidationError('Can\'t initialize context with only test. if you have single dataset, '
                                          'initialize it as train')
+        if model is None and \
+           not pd.Series([y_pred_train, y_pred_test, y_proba_train, y_proba_test]).isna().all():
+            model = _DummyModel(train=train, test=test,
+                                y_pred_train=y_pred_train, y_pred_test=y_pred_test,
+                                y_proba_test=y_proba_test, y_proba_train=y_proba_train)
         if model is not None:
             # Here validate only type of model, later validating it can predict on the data if needed
             model_type_validation(model)
         if features_importance is not None:
             if not isinstance(features_importance, pd.Series):
                 raise DeepchecksValueError('features_importance must be a pandas Series')
-
         self._train = train
         self._test = test
         self._model = model
@@ -155,7 +272,7 @@ class Context:
         return self._task_type
 
     @property
-    def features_importance(self) -> Optional[pd.Series]:
+    def features_importance(self) -> t.Optional[pd.Series]:
         """Return features importance, or None if not possible."""
         if not self._calculated_importance:
             if self._model and (self._train or self._test):
@@ -173,7 +290,7 @@ class Context:
         return self._features_importance
 
     @property
-    def features_importance_type(self) -> Optional[str]:
+    def features_importance_type(self) -> t.Optional[str]:
         """Return feature importance type if feature importance is available, else None."""
         # Calling first feature_importance, because _importance_type is assigned only after feature importance is
         # calculated.
@@ -217,7 +334,7 @@ class Context:
                 self.train.label_type == 'classification_label'):
             raise ModelValidationError('Check is irrelevant for classification tasks')
 
-    def get_scorers(self, alternative_scorers: Mapping[str, Union[str, Callable]] = None, class_avg=True):
+    def get_scorers(self, alternative_scorers: t.Mapping[str, t.Union[str, t.Callable]] = None, class_avg=True):
         """Return initialized & validated scorers in a given priority.
 
         If receive `alternative_scorers` return them,
@@ -239,7 +356,7 @@ class Context:
         scorers = alternative_scorers or user_scorers or get_default_scorers(self.task_type, class_avg)
         return init_validate_scorers(scorers, self.model, self.train, class_avg, self.task_type)
 
-    def get_single_scorer(self, alternative_scorers: Mapping[str, Union[str, Callable]] = None, class_avg=True):
+    def get_single_scorer(self, alternative_scorers: t.Mapping[str, t.Union[str, t.Callable]] = None, class_avg=True):
         """Return initialized & validated single scorer in a given priority.
 
         If receive `alternative_scorers` use them,

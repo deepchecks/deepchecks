@@ -75,7 +75,7 @@ def test_check_nan_false_param():
     # Act
     result = MixedNulls(null_string_list=['earth'], check_nan=False).run(dataframe)
     # Assert
-    assert_that(result.value, has_entry('col1', has_length(3)))
+    assert_that(result.value, has_entry('col1', has_length(4)))
 
 
 def test_single_column_two_null_types():
@@ -202,8 +202,7 @@ def test_condition_max_nulls_not_passed():
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                name='Not more than 3 different null types',
-                               details='Found 1 columns with amount of null types above threshold out of 1 columns: '
-                                       '[\'col1\']'),
+                               details='Found 1 out of 1 columns with amount of null types above threshold: [\'col1\']')
     ))
 
 

@@ -83,8 +83,8 @@ See the :doc:`When Should You Use </getting-started/when_should_you_use>` sectio
 📊 Which Types of Checks Exist?
 =================================
 
-Check out our :doc:`/checks_gallery/tabular/index` to see all the available checks for Tabular and
-:doc:`/checks_gallery/vision/index` for CV.
+Check out our :doc:`/checks_gallery/tabular` to see all the available checks for Tabular and
+:doc:`/checks_gallery/vision` for CV.
 
 They are checks for different phases in the ML workflow:
 

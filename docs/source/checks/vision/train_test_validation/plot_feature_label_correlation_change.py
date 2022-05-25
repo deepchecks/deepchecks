@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Simple Feature Contribution
-***************************
+Feature Label Correlation Change
+********************************
 
-This notebook provides an overview for using and understanding the "Simple Feature
-Contribution Train Test" check.
+This notebook provides an overview for using and understanding the "Feature Label Correlation Change" check.
 
 **Structure:**
 
@@ -110,7 +109,7 @@ or the following blog post: `RIP correlation. Introducing the Predictive Power S
 
 import numpy as np
 
-from deepchecks.vision.checks import SimpleFeatureContribution
+from deepchecks.vision.checks import FeatureLabelCorrelationChange
 from deepchecks.vision.datasets.classification.mnist import load_dataset
 
 #%%
@@ -158,7 +157,7 @@ test_ds.batch_to_images = mnist_batch_to_images_with_bias_mod(2)
 # Run after bias
 # -----------------
 
-check = SimpleFeatureContribution()
+check = FeatureLabelCorrelationChange()
 check.run(train_ds, test_ds)
 
 #%%
@@ -177,7 +176,7 @@ test_ds = load_dataset(train=False, object_type='VisionData')
 
 #%%
 
-check = SimpleFeatureContribution(per_class=False)
+check = FeatureLabelCorrelationChange(per_class=False)
 check.run(train_ds, test_ds)
 
 #%%
@@ -209,7 +208,7 @@ test_ds.batch_to_images = coco_batch_to_images_with_bias_mod(2)
 # Re-run after bias
 # -----------------
 
-check = SimpleFeatureContribution(per_class=False)
+check = FeatureLabelCorrelationChange(per_class=False)
 check.run(train_ds, test_ds)
 
 #%%
@@ -229,7 +228,7 @@ check.run(train_ds, test_ds)
 #
 # Let's add the conditions, and re-run the check:
 
-check = SimpleFeatureContribution(per_class=False).add_condition_feature_pps_difference_not_greater_than(0.1) \
+check = FeatureLabelCorrelationChange(per_class=False).add_condition_feature_pps_difference_not_greater_than(0.1) \
         .add_condition_feature_pps_in_train_not_greater_than()
 result = check.run(train_dataset=train_ds, test_dataset=test_ds)
 result.show(show_additional_outputs=False)

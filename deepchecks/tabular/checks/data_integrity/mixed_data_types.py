@@ -145,8 +145,8 @@ class MixedDataTypes(SingleDatasetCheck):
                 if ratio_range[0] < rarer_ratio < ratio_range[1]:
                     failing_columns.append(col)
             if failing_columns:
-                details = f'Found {len(failing_columns)} columns with non-negligible quantities of samples with a ' \
-                          f'different data type from the majority of samples: {failing_columns}'
+                details = f'Found {len(failing_columns)} out of {len(result)} columns with non-negligible quantities ' \
+                          f'of samples with a different data type from the majority of samples: {failing_columns}'
                 return ConditionResult(ConditionCategory.WARN, details)
             details = f'{len(result)} columns passed: found {len(result) - len(no_mix_columns)} columns with ' \
                       f'negligible types mix, and {len(no_mix_columns)} columns without any types mix'

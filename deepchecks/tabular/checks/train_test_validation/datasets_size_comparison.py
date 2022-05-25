@@ -18,6 +18,7 @@ from deepchecks.tabular import Context, TrainTestCheck
 
 __all__ = ['DatasetsSizeComparison']
 
+from deepchecks.utils.strings import format_number
 
 T = t.TypeVar('T', bound='DatasetsSizeComparison')
 
@@ -64,11 +65,9 @@ class DatasetsSizeComparison(TrainTestCheck):
             current instance of the DatasetsSizeComparison check.
         """
         def condition(check_result: dict) -> ConditionResult:
-            return (
-                ConditionResult(ConditionCategory.FAIL, f'Test dataset size is {check_result["Test"]}')
-                if check_result['Test'] <= value
-                else ConditionResult(ConditionCategory.PASS)
-            )
+            details = f'Test dataset contains {check_result["Test"]} samples'
+            category = ConditionCategory.FAIL if check_result['Test'] <= value else ConditionCategory.PASS
+            return ConditionResult(category, details)
 
         return self.add_condition(
             name=f'Test dataset size is not smaller than {value}',
@@ -91,10 +90,9 @@ class DatasetsSizeComparison(TrainTestCheck):
 
         def condition(check_result: dict) -> ConditionResult:
             test_train_ratio = check_result['Test'] / check_result['Train']
-            if test_train_ratio <= ratio:
-                return ConditionResult(ConditionCategory.FAIL, f'Test-Train size ratio is {test_train_ratio}')
-            else:
-                return ConditionResult(ConditionCategory.PASS)
+            details = f'Test-Train size ratio is {format_number(test_train_ratio)}'
+            category = ConditionCategory.FAIL if test_train_ratio <= ratio else ConditionCategory.PASS
+            return ConditionResult(category, details)
 
         return self.add_condition(
             name=f'Test-Train size ratio is not smaller than {ratio}',
@@ -111,11 +109,17 @@ class DatasetsSizeComparison(TrainTestCheck):
         """
 
         def condition(check_result: dict) -> ConditionResult:
-            if check_result['Train'] < check_result['Test']:
-                diff = check_result['Test'] - check_result['Train']
-                return ConditionResult(ConditionCategory.FAIL, f'Train dataset is smaller than test dataset by {diff}')
+            diff = check_result['Train'] - check_result['Test']
+            if diff < 0:
+                details = f'Train dataset is smaller than test dataset by {diff} samples'
+                category = ConditionCategory.FAIL
+            elif diff == 0:
+                details = f'Train and test datasets both have {check_result["Train"]} samples'
+                category = ConditionCategory.PASS
             else:
-                return ConditionResult(ConditionCategory.PASS)
+                details = f'Train dataset is larger than test dataset by +{diff} samples'
+                category = ConditionCategory.PASS
+            return ConditionResult(category, details)
 
         return self.add_condition(
             name='Train dataset is not smaller than test dataset',

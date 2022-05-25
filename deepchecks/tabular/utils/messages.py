@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Tabular integrity checks' messages utilities."""
+"""Tabular checks' messages utilities."""
 from typing import Sized
 
 __all__ = ['get_condition_passed_message']

@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """
-Contains unit tests for the single_feature_contribution check
+Contains unit tests for the index leakage check
 """
 import numpy as np
 import pandas as pd
@@ -94,5 +94,6 @@ def test_condition_leakage_passesl():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
+                               details='No index leakage found',
                                name='Ratio of leaking indices is not greater than 0%')
     ))

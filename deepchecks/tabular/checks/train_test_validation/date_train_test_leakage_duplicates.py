@@ -78,10 +78,11 @@ class DateTrainTestLeakageDuplicates(TrainTestCheck):
             Maximum ratio of leakage.
         """
         def max_ratio_condition(result: float) -> ConditionResult:
-            if result > max_ratio:
-                return ConditionResult(ConditionCategory.FAIL, f'Found {format_percent(result)} leaked dates')
-            else:
-                return ConditionResult(ConditionCategory.PASS)
+            if result == 0:
+                return ConditionResult(ConditionCategory.PASS, 'No leaked dates found')
+            details = f'Found {format_percent(result)} leaked dates'
+            category = ConditionCategory.FAIL if result > max_ratio else ConditionCategory.PASS
+            return ConditionResult(category, details)
 
         return self.add_condition(f'Date leakage ratio is not greater than {format_percent(max_ratio)}',
                                   max_ratio_condition)
