@@ -49,7 +49,7 @@ In machine learning, we usually refer to 3 types of drift:
 
 Concept Drift
 -------------
-Concept drift happens when the underline relation between the data and the label has changed. In layman terms, this means that our
+Concept drift is a change in the underlying relation between the data and the label. In layman terms, this means that our
 data has changed in a way that affects our label, meaning a model trained on previous data will have difficulty predicting
 on the new data, as the label can't be predicted in the same way anymore.
 
@@ -187,7 +187,7 @@ To detect `data <#data-drift>`__ or `concept drift <#concept-drift>`__, deepchec
 `univariate measures <#detection-by-univariate-measure>`__ and the :doc:`Whole Dataset Drift check</checks_gallery/tabular/train_test_validation/plot_whole_dataset_drift>`
 which uses a `domain classifier <#detection-by-domain-classifier>`__ in order to detect multivariate drift.
 
-For label drift, deepchecks offers the :doc:`Label Drift check </checks_gallery/tabular/train_test_validation/plot_train_test_label_drift>`, which also uses univariate `statistical test <#detection-by-statistical-test>`__.
+For label drift, deepchecks offers the :doc:`Label Drift check </checks_gallery/tabular/train_test_validation/plot_train_test_label_drift>`, which also uses `univariate measures <#detection-by-univariate-measure>`__.
 
 In cases where the label is not available, we strongly recommend to also use the :doc:`Prediction Drift check</checks_gallery/tabular/model_evaluation/plot_train_test_prediction_drift>`,
 which uses the same methods but on the model's predictions, and can detect possible changes in the distribution of the label.
@@ -208,7 +208,7 @@ To detect `data <#data-drift>`__ or `concept drift <#concept-drift>`__, deepchec
 `univariate measures <#detection-by-univariate-measure>`__ and the :doc:`Image Dataset Drift check</checks_gallery/vision/train_test_validation/plot_image_dataset_drift>`
 which uses a `domain classifier <#detection-by-domain-classifier>`__ in order to detect multivariate drift.
 
-For label drift, deepchecks offers the :doc:`Label Drift check </checks_gallery/vision/train_test_validation/plot_train_test_label_drift>`, which also uses univariate `statistical test <#detection-by-statistical-test>`__.
+For label drift, deepchecks offers the :doc:`Label Drift check </checks_gallery/vision/train_test_validation/plot_train_test_label_drift>`, which also uses `univariate measures <#detection-by-univariate-measure>`__.
 
 In cases where the label is not available, we strongly recommend to also use the :doc:`Prediction Drift check</checks_gallery/vision/model_evaluation/plot_train_test_prediction_drift>`,
 which uses the same methods but on the model's predictions, and can detect possible changes in the distribution of the label.
