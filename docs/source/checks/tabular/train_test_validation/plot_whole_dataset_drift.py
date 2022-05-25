@@ -23,6 +23,7 @@ over time.
 A multivariate drift is a drift that occurs in more than one feature at a time,
 and may even affect the relationships between those features, which are undetectable by
 univariate drift methods.
+The whole dataset drift check tries to detect multivariate drift between the two input datasets.
 
 For more information on drift, please visit our :doc:`drift guide </user-guide/general/drift_guide.rst>`.
 
