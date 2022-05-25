@@ -15,7 +15,7 @@ This notebooks provides an overview for using and understanding feature drift ch
 What is a feature drift?
 ========================
 Drift is simply a change in the distribution of data over time, and it is
-also one of the top reasons of a machine learning model performance degrades
+also one of the top reasons why machine learning model's performance degrades
 over time.
 
 Feature drift is a data drift that occurs in a single feature in the dataset.

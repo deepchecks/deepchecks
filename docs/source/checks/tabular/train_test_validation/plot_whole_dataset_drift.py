@@ -14,7 +14,7 @@ dataset drift check.
 * `Define a Condition <#define-a-condition>`__
 
 What Is Multivariate Drift?
-========================
+==============================
 
 Drift is simply a change in the distribution of data over time, and it is
 also one of the top reasons of a machine learning model performance degrades
