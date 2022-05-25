@@ -17,7 +17,7 @@ Distribution drift is a change in the underlying distribution of the data, the l
 and can occur either gradually or suddenly.
 
 Common reasons for drift can be natural changes in the data, such as shopping habits changing for an online retailer
-(for example, during the covid pandemic, virtual shopping has risen significantly and buyer patterns have changed), or
+(for example, during the covid pandemic, online shopping rose significantly and buyer patterns changed), or
 data acquisition and processing issues, such as a camera settings changing accidentally to have lower exposure.
 
 So Why Is Drift So Important?
@@ -69,7 +69,7 @@ but here we discuss a change that means that the label can still be accurately p
 distribution has changed.
 
 In many cases, label drift alone might not be of interest. However, it may affect your model's accuracy, as less-accurate
-classes may be more prevalent now that they were in your train dataset.
+classes may be more prevalent now than they were in your train dataset.
 
 For more on the different types of drift, `see here <https://deepchecks.com/data-drift-vs-concept-drift-what-are-the-main-differences/>`_
 
@@ -132,7 +132,7 @@ In general, drift detection is done by comparing the newer and older data, and s
 the same underlying distribution. This is actually not a "yes or no" question - Instead, we ask "how much are these
 distributions different?".
 
-There are many methods to detect drift. Here, we will elaborate on 2:
+There are many methods to detect drift. Here, we will elaborate on two of them:
 
 Detection by Univariate Measure
 --------------------------------
@@ -194,8 +194,8 @@ which uses the same methods but on the model's predictions, and can detect possi
 
 For code examples, see `here <#tabular-checks>`__
 
-All of these checks appear in the `deepchecks interactive demo <https://checks-demo.deepchecks.com>`__, where you can
-insert corruption into the data and see the check at work.
+All of these checks appear also in the `deepchecks interactive demo <https://checks-demo.deepchecks.com>`__, where you can
+insert corruption into the data and see the checks at work.
 
 Computer Vision Data
 --------------------

@@ -3,7 +3,7 @@
 Train Test Prediction Drift
 ***************************
 
-This notebooks provides an overview for using and understanding the tabular prediction drift check.
+This notebooks provides an overview for using and understanding the vision prediction drift check.
 
 **Structure:**
 
@@ -21,7 +21,7 @@ over time.
 Prediction drift is when drift occurs in the prediction itself.
 Calculating prediction drift is especially useful in cases
 in which labels are not available for the test dataset, and so a drift in the predictions
-is our only indication that a changed has happened in the data that actually affects model
+is a direct indication that a change that happened in the data has affected the model's
 predictions. If labels are available, it's also recommended to run the
 :doc:`Label Drift check </checks_gallery/vision/train_test_validation/plot_train_test_label_drift>`.
 
