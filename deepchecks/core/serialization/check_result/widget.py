@@ -19,9 +19,8 @@ from plotly.basedatatypes import BaseFigure
 from deepchecks.core import check_result as check_types
 from deepchecks.core.serialization.abc import WidgetSerializer
 from deepchecks.core.serialization.common import normalize_widget_style
-from deepchecks.utils.strings import get_random_string
 
-from . import FIGURE_CONTAINER_MAX_HEIGHT, FIGURE_CONTAINER_MAX_WIDTH, html
+from . import html
 
 __all__ = ['CheckResultSerializer']
 
@@ -47,9 +46,6 @@ class CheckResultSerializer(WidgetSerializer['check_types.CheckResult']):
         self,
         output_id: t.Optional[str] = None,
         check_sections: t.Optional[t.Sequence[html.CheckResultSection]] = None,
-        use_figure_wrapper: bool = True,
-        figure_container_max_width: t.Optional[str] = FIGURE_CONTAINER_MAX_WIDTH,
-        figure_container_max_height: t.Optional[str] = FIGURE_CONTAINER_MAX_HEIGHT,
         **kwargs
     ) -> VBox:
         """Serialize a CheckResult instance into ipywidgets.Widget instance.
@@ -61,15 +57,6 @@ class CheckResultSerializer(WidgetSerializer['check_types.CheckResult']):
         check_sections : Optional[Sequence[Literal['condition-table', 'additional-output']]], default None
             sequence of check result sections to include into theoutput,
             in case of 'None' all sections will be included
-        use_figure_wrapper : bool, default True
-            whether to wrapper a plotly figure into a container wrapper with
-            limited width and height
-        figure_container_max_width : Optional[str]
-            plotly figure wrapper container max width in px
-            (does not have effect if use_figure_wrapper is set to False)
-        figure_container_max_height : Optional[str]
-            plotly figure wrapper container max width in px
-            (does not have effect if use_figure_wrapper is set to False)
 
         Returns
         -------
@@ -82,12 +69,7 @@ class CheckResultSerializer(WidgetSerializer['check_types.CheckResult']):
             sections.append(self.prepare_conditions_table(output_id=output_id))
 
         if 'additional-output' in sections_to_include:
-            sections.append(self.prepare_additional_output(
-                output_id=output_id,
-                use_figure_wrapper=use_figure_wrapper,
-                figure_container_max_height=figure_container_max_height,
-                figure_container_max_width=figure_container_max_width
-            ))
+            sections.append(self.prepare_additional_output(output_id=output_id))
 
         return normalize_widget_style(VBox(children=sections))
 
@@ -131,28 +113,13 @@ class CheckResultSerializer(WidgetSerializer['check_types.CheckResult']):
         ))
         return widget
 
-    def prepare_additional_output(
-        self,
-        output_id: t.Optional[str] = None,
-        use_figure_wrapper: bool = True,
-        figure_container_max_width: t.Optional[str] = FIGURE_CONTAINER_MAX_WIDTH,
-        figure_container_max_height: t.Optional[str] = FIGURE_CONTAINER_MAX_HEIGHT
-    ) -> VBox:
+    def prepare_additional_output(self, output_id: t.Optional[str] = None) -> VBox:
         """Prepare additional output widget.
 
         Parameters
         ----------
         output_id : Optional[str], default None
             unique output identifier that will be used to form anchor links
-        use_figure_wrapper : bool, default True
-            whether to wrapper a plotly figure into a container wrapper with
-            limited width and height
-        figure_container_max_width : Optional[str]
-            plotly figure wrapper container max width in px
-            (does not have effect if use_figure_wrapper is set to False)
-        figure_container_max_height : Optional[str]
-            plotly figure wrapper container max width in px
-            (does not have effect if use_figure_wrapper is set to False)
 
         Returns
         -------
@@ -161,9 +128,6 @@ class CheckResultSerializer(WidgetSerializer['check_types.CheckResult']):
         return VBox(children=DisplayItemsHandler.handle_display(
             self.value.display,
             output_id,
-            use_figure_wrapper=use_figure_wrapper,
-            figure_container_max_width=figure_container_max_width,
-            figure_container_max_height=figure_container_max_height
         ))
 
 
@@ -186,28 +150,8 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
         return HTML(value=super().go_to_top_link(output_id))
 
     @classmethod
-    def handle_figure(
-        cls,
-        item: BaseFigure,
-        index: int,
-        use_figure_wrapper: bool = True,
-        figure_container_max_width: t.Optional[str] = FIGURE_CONTAINER_MAX_WIDTH,
-        figure_container_max_height: t.Optional[str] = FIGURE_CONTAINER_MAX_HEIGHT,
-        **kwargs
-    ) -> Widget:
-        """Handle plotly figure item."""
-        if use_figure_wrapper is False:
-            return go.FigureWidget(data=item)
-        else:
-            class_id = get_random_string(n=25)
-            class_name = f'id-{class_id}-deepchecks-widget-wrapper'
-            w = figure_container_max_width
-            h = figure_container_max_height
-            style = f'<style>.{class_name} {{max-width: {w}; max-height: {h};}}</style>'
-            return VBox(children=(
-                HTML(value=style),
-                go.FigureWidget(data=item).add_class(class_name)
-            ))
+    def handle_figure(cls, item: BaseFigure, index: int, **kwargs) -> Widget:  # pylint: disable=unused-argument
+        return go.FigureWidget(data=item)
 
     @classmethod
     def handle_string(cls, item: str, index: int, **kwargs) -> HTML:

@@ -14,7 +14,7 @@ import abc
 import io
 import warnings
 from collections import OrderedDict
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Dict, List, Optional, Set, Tuple, Union
 
 import jsonpickle
 from IPython.core.display import display, display_html
@@ -43,26 +43,22 @@ class SuiteResult:
     name: str
     results: List[BaseCheckResult]
     extra_info: Optional[List[str]]
-    serialization_kwargs: Optional[Dict[str, Any]]
     """
 
     name: str
     extra_info: List[str]
     results: List[BaseCheckResult]
-    serialization_kwargs: Dict[str, Any]
 
     def __init__(
         self,
         name: str,
         results: List[BaseCheckResult],
         extra_info: Optional[List[str]] = None,
-        serialization_kwargs: Optional[Dict[str, Any]] = None
     ):
         """Initialize suite result."""
         self.name = name
         self.results = results
         self.extra_info = extra_info or []
-        self.serialization_kwargs = serialization_kwargs or {}
 
         # TODO: add comment about code below
 
@@ -147,7 +143,6 @@ class SuiteResult:
                 )
             display(*SuiteResultIPythonSerializer(self).serialize(
                 output_id=output_id,
-                **self.serialization_kwargs
             ))
 
     def show(
@@ -206,7 +201,6 @@ class SuiteResult:
                 full_html=True,
                 include_requirejs=requirejs,
                 include_plotlyjs=True,
-                **self.serialization_kwargs
             )
             if isinstance(file, str):
                 with open(file, 'w', encoding='utf-8') as f:
@@ -236,7 +230,6 @@ class SuiteResult:
         """
         return SuiteResultWidgetSerializer(self).serialize(
             output_id=unique_id,
-            **self.serialization_kwargs
         )
 
     def to_json(self, with_display: bool = True):
@@ -254,7 +247,7 @@ class SuiteResult:
         # TODO: not sure if the `with_display` parameter is needed
         # add deprecation warning if it is not needed
         return jsonpickle.dumps(
-            SuiteResultJsonSerializer(self).serialize(**self.serialization_kwargs),
+            SuiteResultJsonSerializer(self).serialize(),
             unpicklable=False
         )
 
@@ -295,7 +288,7 @@ class SuiteResult:
                 {'name': self.name},
                 **kwargs
             )
-            wandb.log(WandbSerializer(self).serialize(**self.serialization_kwargs))
+            wandb.log(WandbSerializer(self).serialize())
             if dedicated_run:  # TODO: create context manager for this
                 wandb.finish()
 

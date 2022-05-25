@@ -59,13 +59,6 @@ class BaseCheckResult:
 
     check: Optional['BaseCheck']
     header: Optional[str]
-    serialization_kwargs: Dict[str, Any]
-
-    def __init__(
-        self,
-        serialization_kwargs: Optional[Dict[str, Any]] = None
-    ) -> None:
-        self.serialization_kwargs = serialization_kwargs or {}
 
     @staticmethod
     def from_json(json_dict: Union[str, Dict]) -> 'BaseCheckResult':
@@ -140,10 +133,7 @@ class CheckResult(BaseCheckResult):
         value,
         header: Optional[str] = None,
         display: Optional[List[TDisplayItem]] = None,  # pylint: disable=redefined-outer-name
-        serialization_kwargs: Optional[Dict[str, Any]] = None
     ):
-        super().__init__(serialization_kwargs)
-
         self.value = value
         self.header = header
         self.conditions_results = []
@@ -254,8 +244,7 @@ class CheckResult(BaseCheckResult):
                 )
             display(*CheckResultIPythonSerializer(self).serialize(
                 output_id=unique_id,
-                check_sections=check_sections,  # type: ignore
-                **self.serialization_kwargs
+                check_sections=check_sections  # type: ignore
             ))
 
     def save_as_html(
@@ -302,8 +291,7 @@ class CheckResult(BaseCheckResult):
                 output_id=unique_id,
                 full_html=True,
                 include_requirejs=requirejs,
-                include_plotlyjs=True,
-                **self.serialization_kwargs
+                include_plotlyjs=True
             )
             if isinstance(file, str):
                 with open(file, 'w', encoding='utf-8') as f:
@@ -384,8 +372,7 @@ class CheckResult(BaseCheckResult):
         )
         return CheckResultWidgetSerializer(self).serialize(
             output_id=unique_id,
-            check_sections=check_sections,  # type: ignore
-            **self.serialization_kwargs
+            check_sections=check_sections  # type: ignore
         )
 
     def to_wandb(
@@ -422,7 +409,7 @@ class CheckResult(BaseCheckResult):
                 {'header': self.get_header(), **self.check.metadata()},
                 **kwargs
             )
-            wandb.log(WandbSerializer(self).serialize(**self.serialization_kwargs))
+            wandb.log(WandbSerializer(self).serialize())
             if dedicated_run:  # TODO: create context manager for this
                 wandb.finish()
 
@@ -455,8 +442,7 @@ class CheckResult(BaseCheckResult):
         """
         return jsonpickle.dumps(
             CheckResultJsonSerializer(self).serialize(
-                with_display=with_display,
-                **self.serialization_kwargs
+                with_display=with_display
             ),
             unpicklable=False
         )
@@ -483,7 +469,7 @@ class CheckResult(BaseCheckResult):
         )
 
     def _repr_json_(self, **kwargs):
-        return CheckResultJsonSerializer(self).serialize(**self.serialization_kwargs)
+        return CheckResultJsonSerializer(self).serialize()
 
     def _repr_mimebundle_(self, **kwargs):
         return {
@@ -521,10 +507,8 @@ class CheckFailure(BaseCheckResult):
         self,
         check: 'BaseCheck',
         exception: Exception,
-        header_suffix: str = '',
-        serialization_kwargs: Optional[Dict[str, Any]] = None
+        header_suffix: str = ''
     ):
-        super().__init__(serialization_kwargs)
         self.check = check
         self.exception = exception
         self.header = check.name() + header_suffix
@@ -556,7 +540,7 @@ class CheckFailure(BaseCheckResult):
         elif is_widgets_enabled() and as_widget and not is_kaggle_env():
             return self.to_widget()
         else:
-            display(*CheckFailureIPythonSerializer(self).serialize(**self.serialization_kwargs))
+            display(*CheckFailureIPythonSerializer(self).serialize())
 
     def save_as_html(
         self,
@@ -594,8 +578,7 @@ class CheckFailure(BaseCheckResult):
             )
         else:
             html = CheckFailureHtmlSerializer(self).serialize(
-                full_html=True,
-                **self.serialization_kwargs
+                full_html=True
             )
 
             if isinstance(file, str):
@@ -666,7 +649,7 @@ class CheckFailure(BaseCheckResult):
         # TODO: not sure if the `with_display` parameter is needed
         # add deprecation warning if it is not needed
         return jsonpickle.dumps(
-            CheckFailureJsonSerializer(self).serialize(**self.serialization_kwargs),
+            CheckFailureJsonSerializer(self).serialize(),
             unpicklable=False
         )
 
@@ -700,7 +683,7 @@ class CheckFailure(BaseCheckResult):
                 {'header': self.header, **self.check.metadata()},
                 **kwargs
             )
-            wandb.log(WandbSerializer(self).serialize(**self.serialization_kwargs))
+            wandb.log(WandbSerializer(self).serialize())
             if dedicated_run:
                 wandb.finish()
 
@@ -709,10 +692,10 @@ class CheckFailure(BaseCheckResult):
         return self.get_header() + ': ' + str(self.exception)
 
     def _repr_html_(self):
-        return CheckFailureHtmlSerializer(self).serialize(**self.serialization_kwargs)
+        return CheckFailureHtmlSerializer(self).serialize()
 
     def _repr_json_(self):
-        return CheckFailureJsonSerializer(self).serialize(**self.serialization_kwargs)
+        return CheckFailureJsonSerializer(self).serialize()
 
     def _repr_mimebundle_(self, **kwargs):
         return {
@@ -722,7 +705,7 @@ class CheckFailure(BaseCheckResult):
 
     def _ipython_display_(self):
         """Display the check failure."""
-        display(*CheckFailureIPythonSerializer(self).serialize(**self.serialization_kwargs))
+        display(*CheckFailureIPythonSerializer(self).serialize())
 
     def print_traceback(self):
         """Print the traceback of the failure."""
