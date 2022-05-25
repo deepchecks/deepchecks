@@ -153,12 +153,10 @@ class WholeDatasetDrift(TrainTestCheck):
 
         def condition(result: dict):
             drift_score = result['domain_classifier_drift_score']
-            if drift_score > max_drift_value:
-                message = f'Found drift value of: {format_number(drift_score)}, corresponding to a domain classifier ' \
-                          f'AUC of: {format_number(result["domain_classifier_auc"])}'
-                return ConditionResult(ConditionCategory.FAIL, message)
-            else:
-                return ConditionResult(ConditionCategory.PASS)
+            details = f'Found drift value of: {format_number(drift_score)}, corresponding to a domain classifier ' \
+                      f'AUC of: {format_number(result["domain_classifier_auc"])}'
+            category = ConditionCategory.FAIL if drift_score > max_drift_value else ConditionCategory.PASS
+            return ConditionResult(category, details)
 
         return self.add_condition(f'Drift value is not greater than {format_number(max_drift_value)}',
                                   condition)

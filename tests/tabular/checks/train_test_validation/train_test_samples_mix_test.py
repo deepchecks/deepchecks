@@ -127,6 +127,7 @@ def test_condition_ratio_not_greater_than_passed(diabetes_split_dataset_and_mode
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
+                               details='No samples mix found',
                                name='Percentage of test data samples that appear in train data '
                                     'not greater than 10%')
     ))
@@ -146,12 +147,12 @@ def test_train_test_simple_mix_with_categorical_data(iris_clean):
     )
     train_dataset = Dataset(
         pd.concat([x_train, y_train], axis=1),
-        features=iris_clean.feature_names,
+        features=iris_clean.feature_names + ["cat_column"],
         label='target'
     )
     test_dataset = Dataset(
         pd.concat([x_test, y_test], axis=1),
-        features=iris_clean.feature_names,
+        features=iris_clean.feature_names + ["cat_column"],
         label='target'
     )
 

@@ -18,6 +18,7 @@ from scipy.stats import chi2_contingency, fisher_exact
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, TrainTestCheck
+from deepchecks.tabular.utils.messages import get_condition_passed_message
 from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.utils.strings import format_number, format_percent
 
@@ -77,6 +78,7 @@ class DominantFrequencyChange(TrainTestCheck):
         for column in train_dataset.features:
             top_ref = baseline_df[column].value_counts(dropna=False)
             top_test = test_df[column].value_counts(dropna=False)
+            p_dict[column] = None
 
             if len(top_ref) == 1 or top_ref.iloc[0] > top_ref.iloc[1] * self.dominance_ratio:
                 value = top_ref.index[0]
@@ -103,8 +105,9 @@ class DominantFrequencyChange(TrainTestCheck):
                                       'Test data #': count_test,
                                       'P value': p_val}
 
-        if len(p_dict):
-            sorted_p_df = pd.DataFrame.from_dict(p_dict, orient='index')
+        dominants = {k: v for k, v in p_dict.items() if v is not None}
+        if dominants:
+            sorted_p_df = pd.DataFrame.from_dict(dominants, orient='index')
             sorted_p_df.index.name = 'Column'
             sorted_p_df = column_importance_sorter_df(
                 sorted_p_df,
@@ -182,16 +185,14 @@ class DominantFrequencyChange(TrainTestCheck):
         """
 
         def condition(result: Dict) -> ConditionResult:
-            failed_columns = {}
-            for column, values in result.items():
-                p_val = values['P value']
-                if p_val < p_value_threshold:
-                    failed_columns[column] = format_number(p_val)
+            failed_columns = {k: format_number(v['P value']) for k, v in result.items()
+                              if v is not None and v['P value'] < p_value_threshold}
             if failed_columns:
                 return ConditionResult(ConditionCategory.FAIL,
-                                       f'Found columns with p-value below threshold: {failed_columns}')
+                                       f'Found {len(failed_columns)} out of {len(result)} columns with p-value below '
+                                       f'threshold: {failed_columns}')
             else:
-                return ConditionResult(ConditionCategory.PASS)
+                return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))
 
         return self.add_condition(f'P value is not less than {p_value_threshold}',
                                   condition)
@@ -212,15 +213,15 @@ class DominantFrequencyChange(TrainTestCheck):
         def condition(result: Dict) -> ConditionResult:
             failed_columns = {}
             for column, values in result.items():
-                diff = values['Test data %'] - values['Train data %']
+                diff = values['Test data %'] - values['Train data %'] if values is not None else 0
                 if diff > percent_change_threshold:
                     failed_columns[column] = format_percent(diff, 2)
             if failed_columns:
                 return ConditionResult(ConditionCategory.FAIL,
-                                       'Found columns with % difference in dominant value above threshold: '
-                                       f'{failed_columns}')
+                                       f'Found {len(failed_columns)} out of {len(result)} columns with % difference '
+                                       f'in dominant value above threshold: {failed_columns}')
             else:
-                return ConditionResult(ConditionCategory.PASS)
+                return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))
 
         return self.add_condition(f'Change in ratio of dominant value in data is not greater'
                                   f' than {format_percent(percent_change_threshold)}',

@@ -35,7 +35,7 @@ dataset = Dataset(df, label='label', index_name='x1', datetime_name='x2')
 IdentifierLeakage().run(dataset)
 
 #%%
-# Using the ``SingleFeatureContribution`` check class
+# Using the ``IdentifierLeakage`` check class
 # ===================================================
 
 my_check = IdentifierLeakage(ppscore_params={'sample': 10})

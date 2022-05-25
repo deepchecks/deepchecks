@@ -59,7 +59,7 @@ class Context:
                  model_name: str = '',
                  scorers: Mapping[str, Metric] = None,
                  scorers_per_class: Mapping[str, Metric] = None,
-                 device: Union[str, torch.device, None] = 'cpu',
+                 device: Union[str, torch.device, None] = None,
                  random_state: int = 42,
                  n_samples: int = None
                  ):
@@ -72,9 +72,14 @@ class Context:
         if train and test:
             train.validate_shared_label(test)
 
+        if device is None:
+            device = 'cpu'
+            if torch.cuda.is_available():
+                warnings.warn('Checks will run on the cpu by default.'
+                              'To make use of cuda devices, use the device parameter in the run function.')
         self._device = torch.device(device) if isinstance(device, str) else (device if device else torch.device('cpu'))
-        self._prediction_formatter_error = {}
 
+        self._prediction_formatter_error = {}
         if model is not None:
             if not isinstance(model, nn.Module):
                 warnings.warn('Deepchecks can\'t validate that model is in evaluation state. Make sure it is to '

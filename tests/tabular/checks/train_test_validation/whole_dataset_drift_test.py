@@ -84,6 +84,7 @@ def test_max_drift_score_condition_pass(drifted_data):
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
+        details='Found drift value of: 0, corresponding to a domain classifier AUC of: 0.5',
         name='Drift value is not greater than 0.25',
     ))
 

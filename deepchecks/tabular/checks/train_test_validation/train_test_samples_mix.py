@@ -77,12 +77,12 @@ class TrainTestSamplesMix(TrainTestCheck):
         """
         def condition(result: dict) -> ConditionResult:
             ratio = result['ratio']
-            if ratio > max_ratio:
-                return ConditionResult(ConditionCategory.FAIL,
-                                       f'Percent of test data samples that appear in train data: '
-                                       f'{format_percent(ratio)}')
-            else:
-                return ConditionResult(ConditionCategory.PASS)
+            if ratio == 0:
+                return ConditionResult(ConditionCategory.PASS, 'No samples mix found')
+
+            details = f'Percent of test data samples that appear in train data: {format_percent(ratio)}'
+            category = ConditionCategory.FAIL if ratio > max_ratio else ConditionCategory.PASS
+            return ConditionResult(category, details)
 
         return self.add_condition(f'Percentage of test data samples that appear in train data '
                                   f'not greater than {format_percent(max_ratio)}',
