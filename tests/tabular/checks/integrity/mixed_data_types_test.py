@@ -142,8 +142,8 @@ def test_condition_pass_fail_single_column():
         equal_condition_result(is_pass=False,
                                name='Rare data types in column are either more than 40% or less '
                                     'than 1% of the data',
-                               details='Found 1 columns with non-negligible quantities of samples with a different '
-                                       'data type from the majority of samples: [\'col1\']',
+                               details='Found 1 out of 1 columns with non-negligible quantities of samples with a '
+                                       'different data type from the majority of samples: [\'col1\']',
                                category=ConditionCategory.WARN)
     ))
 
@@ -160,8 +160,8 @@ def test_condition_pass_fail_ignore_column():
         equal_condition_result(is_pass=False,
                                name='Rare data types in column are either more than 40% or'
                                     ' less than 1% of the data',
-                               details='Found 1 columns with non-negligible quantities of samples with a different '
-                                       'data type from the majority of samples: [\'col1\']',
+                               details='Found 1 out of 1 columns with non-negligible quantities of samples with a '
+                                       'different data type from the majority of samples: [\'col1\']',
                                category=ConditionCategory.WARN)
     ))
 

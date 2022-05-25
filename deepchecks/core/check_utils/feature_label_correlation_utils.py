@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module containing common SingleFeatureContribution (PPS) utils."""
+"""Module containing common feature label correlation (PPS) utils."""
 from typing import Optional
 
 import numpy as np
@@ -68,14 +68,14 @@ def pd_series_to_trace_with_diff(s_pps: pd.Series, name: str, diffs: pd.Series):
                   )
 
 
-def get_single_feature_contribution(train_df: pd.DataFrame, train_label_name: Optional[Hashable],
-                                    test_df: pd.DataFrame,
-                                    test_label_name: Optional[Hashable], ppscore_params: dict,
-                                    n_show_top: int,
-                                    min_pps_to_show: float = 0.05,
-                                    random_state: int = None):
+def get_feature_label_correlation(train_df: pd.DataFrame, train_label_name: Optional[Hashable],
+                                  test_df: pd.DataFrame,
+                                  test_label_name: Optional[Hashable], ppscore_params: dict,
+                                  n_show_top: int,
+                                  min_pps_to_show: float = 0.05,
+                                  random_state: int = None):
     """
-    Calculate the PPS for train, test and difference for single feature contribution checks.
+    Calculate the PPS for train, test and difference for feature label correlation checks.
 
     The PPS represents the ability of a feature to single-handedly predict another feature or label.
     This function calculates the PPS per feature for both train and test, and returns the data and display graph.
@@ -134,14 +134,14 @@ def get_single_feature_contribution(train_df: pd.DataFrame, train_label_name: Op
     return ret_value, display
 
 
-def get_single_feature_contribution_per_class(train_df: pd.DataFrame, train_label_name: Optional[Hashable],
-                                              test_df: pd.DataFrame,
-                                              test_label_name: Optional[Hashable], ppscore_params: dict,
-                                              n_show_top: int,
-                                              min_pps_to_show: float = 0.05,
-                                              random_state: int = None):
+def get_feature_label_correlation_per_class(train_df: pd.DataFrame, train_label_name: Optional[Hashable],
+                                            test_df: pd.DataFrame,
+                                            test_label_name: Optional[Hashable], ppscore_params: dict,
+                                            n_show_top: int,
+                                            min_pps_to_show: float = 0.05,
+                                            random_state: int = None):
     """
-    Calculate the PPS for train, test and difference for single feature contribution checks per class.
+    Calculate the PPS for train, test and difference for feature label correlation checks per class.
 
     The PPS represents the ability of a feature to single-handedly predict another feature or label.
     This function calculates the PPS per feature for both train and test, and returns the data and display graph.

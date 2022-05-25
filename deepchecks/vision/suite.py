@@ -10,7 +10,6 @@
 #
 """Module for base vision abstractions."""
 # pylint: disable=broad-except,not-callable
-import logging
 from collections import OrderedDict
 from typing import Dict, Mapping, Optional, Tuple, Union
 
@@ -29,9 +28,6 @@ from deepchecks.vision.context import Context
 from deepchecks.vision.vision_data import VisionData
 
 __all__ = ['Suite']
-
-
-logger = logging.getLogger('deepchecks')
 
 
 class Suite(BaseSuite):

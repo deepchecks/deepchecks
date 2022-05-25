@@ -218,14 +218,13 @@ def task_type_check(
                 if label_col.nunique() > 2
                 else ModelType.BINARY
             )
-    elif isinstance(model, ClassificationModel):
+    if isinstance(model, ClassificationModel):
         return (
             ModelType.MULTICLASS
             if label_col.nunique() > 2
             else ModelType.BINARY
         )
-    else:
-        return ModelType.REGRESSION
+    return ModelType.REGRESSION
 
 
 def get_default_scorers(model_type, class_avg: bool = True):

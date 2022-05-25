@@ -18,6 +18,7 @@ import deepchecks.ppscore as pps
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DatasetValidationError
 from deepchecks.tabular import Context, SingleDatasetCheck
+from deepchecks.tabular.utils.messages import get_condition_passed_message
 from deepchecks.utils.strings import format_number
 
 __all__ = ['IdentifierLeakage']
@@ -133,16 +134,13 @@ class IdentifierLeakage(SingleDatasetCheck):
             Maximum allowed string length outliers ratio.
         """
         def compare_pps(result: Dict):
-            not_passing_columns = {}
-            for column_name in result.keys():
-                score = result[column_name]
-                if score > max_pps:
-                    not_passing_columns[column_name] = format_number(score)
+            not_passing_columns = {k: format_number(score) for k, score in result.items() if score > max_pps}
             if not_passing_columns:
                 return ConditionResult(ConditionCategory.FAIL,
-                                       f'Found columns with PPS above threshold: {not_passing_columns}')
+                                       f'Found {len(not_passing_columns)} out of {len(result)} columns with PPS above'
+                                       f' threshold: {not_passing_columns}')
             else:
-                return ConditionResult(ConditionCategory.PASS)
+                return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))
 
         return self.add_condition(
             f'Identifier columns PPS is not greater than {format_number(max_pps)}', compare_pps)

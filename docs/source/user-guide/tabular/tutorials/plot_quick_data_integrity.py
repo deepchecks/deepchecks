@@ -23,10 +23,6 @@ from deepchecks.tabular import datasets
 
 # load data
 data = datasets.regression.avocado.load_data(data_format='DataFrame', as_train_test=False)
-#%%
-
-# drop unused columns (remove after fix...)
-data = data.drop(columns=['Unnamed: 0'])
 
 #%%
 # Insert a few typcial problems to dataset for demonstration.
@@ -143,7 +139,7 @@ integ_suite[3].clean_conditions()
 
 #%%
 # Now we can re-run the suite using:
-integ_suite.run(ds)
+res = integ_suite.run(ds)
 
 #%%
 # and all of the conditions will pass.

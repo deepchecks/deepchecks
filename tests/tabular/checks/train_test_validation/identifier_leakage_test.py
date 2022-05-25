@@ -118,6 +118,7 @@ def test_condition_pps_pass():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
+                               details='Passed for 2 relevant columns',
                                name='Identifier columns PPS is not greater than 0.5')
     ))
 
@@ -132,6 +133,6 @@ def test_condition_pps_fail():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details='Found columns with PPS above threshold: {\'x2\': \'0.42\'}',
+                               details='Found 1 out of 2 columns with PPS above threshold: {\'x2\': \'0.42\'}',
                                name='Identifier columns PPS is not greater than 0.2')
     ))
