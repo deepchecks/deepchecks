@@ -245,12 +245,6 @@ class SuiteResult:
         -------
         str
         """
-        if with_display is not None:
-            warnings.warn(
-                '"with_display" parameter is deprecated and does not have any effect '
-                'since version 0.6.4, it will be removed in future versions',
-                DeprecationWarning
-            )
         return jsonpickle.dumps(
             SuiteResultJsonSerializer(self).serialize(),
             unpicklable=False

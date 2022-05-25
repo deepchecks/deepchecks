@@ -604,7 +604,7 @@ class CheckFailure(BaseCheckResult):
         """Return CheckFailure as a ipywidgets.Widget instance."""
         return CheckFailureWidgetSerializer(self).serialize()
 
-    def to_json(self, with_display: Optional[bool] = None):
+    def to_json(self):
         """Return check failure as json.
 
         Returned JSON string will have next structure:
@@ -620,23 +620,10 @@ class CheckFailure(BaseCheckResult):
         >>        params: Dict[Any, Any]
         >>        summary: str
 
-        Parameters
-        ----------
-        with_display : bool
-            controls if to serialize display or not
-            (the parameter is deprecated and does not have any effect since version 0.6.4,
-            it will be removed in future versions)
-
         Returns
         -------
         str
         """
-        if with_display is not None:
-            warnings.warn(
-                '"with_display" parameter is deprecated and does not have any effect '
-                'since version 0.6.4, it will be removed in future versions',
-                DeprecationWarning
-            )
         return jsonpickle.dumps(
             CheckFailureJsonSerializer(self).serialize(),
             unpicklable=False
