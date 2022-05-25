@@ -178,9 +178,9 @@ def feature_distribution_traces(
     else:
         train_uniques, train_uniques_counts = np.unique(train_column, return_counts=True)
         test_uniques, test_uniques_counts = np.unique(test_column, return_counts=True)
-        
+
         x_range = (
-            min(train_column.min(), test_column.min()), 
+            min(train_column.min(), test_column.min()),
             max(train_column.max(), test_column.max())
         )
 
