@@ -49,16 +49,24 @@ In machine learning, we usually refer to 3 types of drift:
 
 Concept Drift
 -------------
-Concept drift is a change in the underlying relation between the data and the label. In layman terms, this means that our
-data has changed in a way that affects our label, meaning a model trained on previous data will have difficulty predicting
-on the new data, as the label can't be predicted in the same way anymore.
+Concept drift is a change in the underlying relation between the data and the label.
 
-Concept drift will almost always require some changes to the model, and will require retraining it on newer data.
+For example, in a dataset predicting a person's salary, the level of education is highly linked to higher income.
+With experience being more and more important in the current job market, the predictive ability of the level of
+education to the person's expected salary changes.
+
+Concept drift will almost always require some changes to the model, usually by retraining of the model on newer data.
 
 Data Drift
 ----------
 Data drift is any change in the distribution of the data. It usually refers to changes that do not significantly affect the label.
-However, even when not affecting the model, data drift is important, as it can expose other undetected issues.
+However, even when not affecting the model's performance, data drift is important, as it can expose other undetected issues.
+
+To continue the previous example, when predicting income using the level of education, it may be that people of lower
+social-economic status are starting to get higher education. This means that the distribution of level of education
+changes, but not the target label of what income they have. This will not affect our model, but gives us insights on
+how our population changes, and may lead us to act (for instance, to understand we need to know more of this phenomenon
+and get additional features that describe social-economic status)
 
 Moreover, when labels are not available (as happens in many cases), data drift cannot be discerned from concept drift.
 
@@ -67,6 +75,10 @@ Label Drift
 Label drift is the change in the distribution of the label itself. Note that this can also be caused by concept drift,
 but here we discuss a change that means that the label can still be accurately predicted from the data, but its
 distribution has changed.
+
+Continuing the example of predicting income using the level of education, in this case we would observe more people
+getting higher incomes, and see that those people still have high education - the data and label changed in a way that
+the higher income label is now more prevalent, but our model's predictions remain as accurate as before.
 
 In many cases, label drift alone might not be of interest. However, it may affect your model's accuracy, as less-accurate
 classes may be more prevalent now than they were in your train dataset.
@@ -83,8 +95,8 @@ Different types of drift. Adapted from `this source <https://www.win.tue.nl/~mpe
 What Can You Do in Case of Drift?
 ---------------------------------
 
-When suspecting drift in your data, you must first understand which type of drift it is. However, this is not a trivial
-question:
+When suspecting drift in your data, you must first understand what was affected by the drift (whether it was the
+features, labels or maybe just the predictions). However, this is not trivial:
 
 * If your drifted data has labels, you can easily know which type of drift you are facing.
 * However, the more common case is when you don't have your data labels yet. In this case, we can only try and measure
@@ -105,7 +117,11 @@ if labels on the newer data are not available yet.
 
 Retraining is usually necessary in cases of concept drift. However, retraining may still be of use even for label drift,
 as the model may perform better when knowing the correct distribution of the label (this is not relevant when the
-training dataset is sampled so labels are evenly distributed)
+training dataset is sampled so labels are evenly distributed).
+
+.. note::
+    If you're retraining to compensate for drift, you can also over-sample or give higher weights to newer or more
+    out-of-distribution data, in order for you model to adjust to the new data distribution.
 
 Adjust Your Prediction
 ^^^^^^^^^^^^^^^^^^^^^^
