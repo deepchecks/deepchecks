@@ -16,7 +16,7 @@ import typing as t
 __all__ = ['wandb_run']
 
 
-WANDB_INSTALLATION_CMD = 'pip install "wandb>=0.12.15" "protobuf>=3.12.0,<4.0dev"'
+WANDB_INSTALLATION_CMD = 'pip install wandb'
 
 
 @contextlib.contextmanager
