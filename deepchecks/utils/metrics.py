@@ -21,12 +21,12 @@ import numpy as np
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.metrics import f1_score, get_scorer, make_scorer, precision_score, recall_score
 
+from deepchecks import tabular  # pylint: disable=unused-import; it is used for type annotations
 from deepchecks.core import errors
 from deepchecks.utils.simple_models import PerfectModel
 from deepchecks.utils.strings import is_string_column
 from deepchecks.utils.typing import BasicModel, ClassificationModel
 
-from deepchecks import tabular  # pylint: disable=unused-import; it is used for type annotations
 
 __all__ = [
     'ModelType',
