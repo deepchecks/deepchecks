@@ -19,7 +19,6 @@ __all__ = ['wandb_run']
 @contextlib.contextmanager
 def wandb_run(
     project: t.Optional[str] = None,
-    use_existing: bool = False,
     **kwargs
 ) -> t.Iterator[t.Any]:
     """Create new one or use existing wandb run instance.
@@ -28,8 +27,6 @@ def wandb_run(
     ----------
     project : Optional[str], default None
         project name
-    use_existing : bool, default False
-        whether to create a separate wandb run or use existing one
     **kwargs :
         additional parameters that will be passed to the 'wandb.init'
 
@@ -45,7 +42,7 @@ def wandb_run(
             'To get it, run "pip install wandb".'
         ) from error
     else:
-        if wandb.run is not None and use_existing is True:
+        if wandb.run is not None:
             yield wandb.run
         else:
             kwargs = {'project': project or 'deepchecks', **kwargs}

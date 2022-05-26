@@ -231,28 +231,27 @@ class SuiteResult:
         """
         return SuiteResultWidgetSerializer(self).serialize(output_id=unique_id)
 
-    def to_json(self, with_display: Optional[bool] = None):
+    def to_json(self, with_display: bool = True):
         """Return check result as json.
 
         Parameters
         ----------
-        with_display : bool
-            controls if to serialize display of checks or not
-            (the parameter is deprecated and does not have any effect since version 0.6.4,
-            it will be removed in future versions)
+        with_display : bool, default True
+            whether to include serialized `CheckResult.display` items into 
+            the output or not
 
         Returns
         -------
         str
         """
         return jsonpickle.dumps(
-            SuiteResultJsonSerializer(self).serialize(),
+            SuiteResultJsonSerializer(self).serialize(with_display=with_display),
             unpicklable=False
         )
 
     def to_wandb(
         self,
-        dedicated_run: bool = True,
+        dedicated_run: Optional[bool] = None,
         **kwargs
     ):
         """Export suite result to wandb.
@@ -261,6 +260,7 @@ class SuiteResult:
         ----------
         dedicated_run : bool
             whether to create a separate wandb run or not
+            (deprecated parameter, does not have any effect anymore)
         kwargs: Keyword arguments to pass to wandb.init.
                 Default project name is deepchecks.
                 Default config is the suite name.
@@ -273,13 +273,16 @@ class SuiteResult:
         # Previous implementation used ProgressBar to show serialization progress
         from deepchecks.core.serialization.suite_result.wandb import SuiteResultSerializer as WandbSerializer
 
+        if dedicated_run is not None:
+            warnings.warn(
+                '"dedicated_run" parameter is deprecated and does not have effect anymore. '
+                'It will be remove in next versions.'
+            )
+
         wandb_kwargs = {'config': {'name': self.name}}
         wandb_kwargs.update(**kwargs)
 
-        with wandb_run(
-            use_existing=dedicated_run is False,
-            **wandb_kwargs
-        ) as run:
+        with wandb_run(**wandb_kwargs) as run:
             run.log(WandbSerializer(self).serialize())
 
     def get_failures(self) -> Dict[str, CheckFailure]:

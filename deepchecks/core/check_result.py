@@ -377,7 +377,7 @@ class CheckResult(BaseCheckResult):
 
     def to_wandb(
         self,
-        dedicated_run: bool = True,
+        dedicated_run: Optional[bool] = None,
         **kwargs: Any
     ):
         """Export check result to wandb.
@@ -385,7 +385,8 @@ class CheckResult(BaseCheckResult):
         Parameters
         ----------
         dedicated_run : bool, default True
-            whether to create a separate wandb run or not
+            whether to create a separate wandb run or not 
+            (deprecated parameter, does not have any effect anymore)
         kwargs: Keyword arguments to pass to wandb.init.
                 Default project name is deepchecks.
                 Default config is the check metadata (params, train/test/ name etc.).
@@ -396,13 +397,16 @@ class CheckResult(BaseCheckResult):
         assert self.check is not None
         from .serialization.check_result.wandb import CheckResultSerializer as WandbSerializer
 
+        if dedicated_run is not None:
+            warnings.warn(
+                '"dedicated_run" parameter is deprecated and does not have effect anymore. '
+                'It will be remove in next versions.'
+            )
+
         wandb_kwargs = {'config': {'header': self.get_header(), **self.check.metadata()}}
         wandb_kwargs.update(**kwargs)
 
-        with wandb_run(
-            use_existing=dedicated_run is False,
-            **wandb_kwargs
-        ) as run:
+        with wandb_run(**wandb_kwargs) as run:
             run.log(WandbSerializer(self).serialize())
 
     def to_json(self, with_display: bool = True) -> str:
@@ -629,13 +633,14 @@ class CheckFailure(BaseCheckResult):
             unpicklable=False
         )
 
-    def to_wandb(self, dedicated_run: bool = True, **kwargs: Any):
+    def to_wandb(self, dedicated_run: Optional[bool] = None, **kwargs: Any):
         """Export check result to wandb.
 
         Parameters
         ----------
         dedicated_run : bool, default True
             whether to create a separate wandb run or not
+            (deprecated parameter, does not have any effect anymore)
         kwargs: Keyword arguments to pass to wandb.init.
                 Default project name is deepchecks.
                 Default config is the check metadata (params, train/test/ name etc.).
@@ -646,13 +651,16 @@ class CheckFailure(BaseCheckResult):
         assert self.check is not None
         from .serialization.check_failure.wandb import CheckFailureSerializer as WandbSerializer
 
+        if dedicated_run is not None:
+            warnings.warn(
+                '"dedicated_run" parameter is deprecated and does not have effect anymore. '
+                'It will be remove in next versions.'
+            )
+
         wandb_kwargs = {'config': {'header': self.get_header(), **self.check.metadata()}}
         wandb_kwargs.update(**kwargs)
 
-        with wandb_run(
-            use_existing=dedicated_run is False,
-            **wandb_kwargs
-        ) as run:
+        with wandb_run(**wandb_kwargs) as run:
             run.log(WandbSerializer(self).serialize())
 
     def __repr__(self):
