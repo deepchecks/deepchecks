@@ -37,8 +37,8 @@ class SuiteResultSerializer(JsonSerializer['suite.SuiteResult']):
         self.value = value
 
     def serialize(
-        self, 
-        with_display: bool = True, 
+        self,
+        with_display: bool = True,
         **kwargs
     ) -> t.Union[t.Dict[t.Any, t.Any], t.List[t.Any]]:
         """Serialize a SuiteResult instance into JSON format.
@@ -46,7 +46,7 @@ class SuiteResultSerializer(JsonSerializer['suite.SuiteResult']):
         Parameters
         ----------
         with_display : bool, default True
-            whether to include serialized `CheckResult.display` items into 
+            whether to include serialized `CheckResult.display` items into
             the output or not
 
         Returns

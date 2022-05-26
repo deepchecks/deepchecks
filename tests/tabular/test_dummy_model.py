@@ -12,23 +12,19 @@ import pandas as pd
 from hamcrest import assert_that, calling, has_items, raises
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
-from deepchecks.core.check_result import CheckResult
 
+from deepchecks.core.check_result import CheckResult
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError, ValidationError
 from deepchecks.tabular.base_checks import TrainTestCheck
-from deepchecks.tabular.checks.model_evaluation.model_error_analysis import \
-    ModelErrorAnalysis
-from deepchecks.tabular.checks.model_evaluation.regression_error_distribution import \
-    RegressionErrorDistribution
+from deepchecks.tabular.checks.model_evaluation.model_error_analysis import ModelErrorAnalysis
+from deepchecks.tabular.checks.model_evaluation.regression_error_distribution import RegressionErrorDistribution
 from deepchecks.tabular.checks.model_evaluation.roc_report import RocReport
-from deepchecks.tabular.checks.model_evaluation.simple_model_comparison import \
-    SimpleModelComparison
+from deepchecks.tabular.checks.model_evaluation.simple_model_comparison import SimpleModelComparison
 from deepchecks.tabular.context import Context
 from deepchecks.tabular.dataset import Dataset
 from tests.base.utils import equal_condition_result
-from tests.tabular.checks.model_evaluation.simple_model_comparison_test import \
-    assert_regression
+from tests.tabular.checks.model_evaluation.simple_model_comparison_test import assert_regression
 
 
 def _dummify_model(train, test, model):
@@ -83,7 +79,7 @@ def test_roc_condition_ratio_more_than_passed(iris_clean):
     y_pred_train, y_pred_test, y_proba_train, y_proba_test = _dummify_model(ds, None, clf)
 
     check = RocReport().add_condition_auc_not_less_than()
-    result = check.conditions_decision(check.run(ds,           
+    result = check.conditions_decision(check.run(ds,
                                                  y_pred_train=y_pred_train, y_pred_test=y_pred_test,
                                                  y_proba_train=y_proba_train, y_proba_test=y_proba_test))
 
@@ -105,7 +101,7 @@ def test_regression_error_absolute_kurtosis_not_greater_than_not_passed(diabetes
     check = RegressionErrorDistribution().add_condition_kurtosis_not_less_than()
 
     # Act
-    result = check.conditions_decision(check.run(test,           
+    result = check.conditions_decision(check.run(test,
                                                  y_pred_train=y_pred_train, y_pred_test=y_pred_test,
                                                  y_proba_train=y_proba_train, y_proba_test=y_proba_test))
 
@@ -124,7 +120,7 @@ def test_simple_model_comparison_regression_random_state(diabetes_split_dataset_
     y_pred_train, y_pred_test, y_proba_train, y_proba_test = _dummify_model(train_ds, test_ds, clf)
     check = SimpleModelComparison(simple_model_type='random', random_state=0)
     # Act X
-    result = check.run(train_ds, test_ds, 
+    result = check.run(train_ds, test_ds,
                        y_pred_train=y_pred_train, y_pred_test=y_pred_test,
                        y_proba_train=y_proba_train, y_proba_test=y_proba_test).value
     # Assert
@@ -145,7 +141,7 @@ def test_new_data(diabetes_split_dataset_and_model):
     # Act
     assert_that(
         calling(NewDataCheck().run)
-            .with_args(train_dataset=train, test_dataset=test,          
+            .with_args(train_dataset=train, test_dataset=test,
                        y_pred_train=y_pred_train, y_pred_test=y_pred_test,
                        y_proba_train=y_proba_train, y_proba_test=y_proba_test),
         raises(

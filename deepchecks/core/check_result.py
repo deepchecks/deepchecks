@@ -385,7 +385,7 @@ class CheckResult(BaseCheckResult):
         Parameters
         ----------
         dedicated_run : bool, default True
-            whether to create a separate wandb run or not 
+            whether to create a separate wandb run or not
             (deprecated parameter, does not have any effect anymore)
         kwargs: Keyword arguments to pass to wandb.init.
                 Default project name is deepchecks.

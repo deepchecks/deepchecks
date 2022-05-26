@@ -237,7 +237,7 @@ class SuiteResult:
         Parameters
         ----------
         with_display : bool, default True
-            whether to include serialized `CheckResult.display` items into 
+            whether to include serialized `CheckResult.display` items into
             the output or not
 
         Returns
