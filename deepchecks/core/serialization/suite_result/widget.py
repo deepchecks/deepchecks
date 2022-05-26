@@ -21,7 +21,7 @@ from deepchecks.core.serialization.abc import WidgetSerializer
 from deepchecks.core.serialization.check_result.html import CheckResultSection
 from deepchecks.core.serialization.check_result.widget import CheckResultSerializer as CheckResultWidgetSerializer
 from deepchecks.core.serialization.common import Html as CommonHtml
-from deepchecks.core.serialization.common import join, normalize_widget_style
+from deepchecks.core.serialization.common import join, normalize_widget_style, sort_check_results
 from deepchecks.core.serialization.dataframe.widget import DataFrameSerializer
 
 from . import html
@@ -192,7 +192,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                 include=check_sections,
                 **kwargs
             )
-            for it in results
+            for it in sort_check_results(results)
         ]
 
         if len(results_with_condition_and_display) > 0:

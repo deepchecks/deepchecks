@@ -21,7 +21,7 @@ from deepchecks.core.serialization.abc import HtmlSerializer
 from deepchecks.core.serialization.check_result.html import CheckResultSection
 from deepchecks.core.serialization.check_result.html import CheckResultSerializer as CheckResultHtmlSerializer
 from deepchecks.core.serialization.common import (Html, aggregate_conditions, form_output_anchor, plotlyjs_script,
-                                                  requirejs_script)
+                                                  requirejs_script, sort_check_results)
 from deepchecks.core.serialization.dataframe.html import DataFrameSerializer as DataFrameHtmlSerializer
 
 __all__ = ['SuiteResultSerializer']
@@ -280,7 +280,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
                 include_requirejs=False,
                 **kwargs
             )
-            for it in results
+            for it in sort_check_results(results)
         ]
         content = Html.light_hr.join(results_with_condition_and_display)
         return f'<h2>Check With Conditions Output</h2>{content}'

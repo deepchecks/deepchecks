@@ -18,7 +18,7 @@ from deepchecks.core import suite
 from deepchecks.core.serialization.abc import IPythonFormatter, IPythonSerializer
 from deepchecks.core.serialization.check_result.html import CheckResultSection
 from deepchecks.core.serialization.check_result.ipython import CheckResultSerializer
-from deepchecks.core.serialization.common import Html, flatten, form_output_anchor, join
+from deepchecks.core.serialization.common import Html, flatten, form_output_anchor, join, sort_check_results
 
 from . import html
 
@@ -166,7 +166,7 @@ class SuiteResultSerializer(IPythonSerializer['suite.SuiteResult']):
                 check_sections=check_sections,
                 **kwargs
             )
-            for it in results
+            for it in sort_check_results(results)
         ]
         content = join(
             results_with_condition_and_display,
