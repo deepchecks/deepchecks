@@ -14,7 +14,7 @@ import abc
 import io
 import warnings
 from collections import OrderedDict
-from typing import Dict, List, Optional, Set, Tuple, Union
+from typing import Dict, List, Optional, Sequence, Set, Tuple, Union
 
 import jsonpickle
 from IPython.core.display import display, display_html
@@ -51,7 +51,7 @@ class SuiteResult:
     def __init__(self, name: str, results, extra_info: Optional[List[str]] = None):
         """Initialize suite result."""
         self.name = name
-        self.results = results
+        self.results = sort_check_results(results)
         self.extra_info = extra_info or []
 
         # TODO: add comment about code below
@@ -394,3 +394,33 @@ class BaseSuite:
             raise DeepchecksValueError(f'No index {index} in suite')
         self.checks.pop(index)
         return self
+
+
+def sort_check_results(
+    check_results: Sequence[BaseCheckResult]
+) -> List[BaseCheckResult]:
+    """Sort sequence of 'CheckResult' instances.
+
+    Returns
+    -------
+    List[check_types.CheckResult]
+    """
+    order = []
+    check_results_index = {}
+
+    for index, it in enumerate(check_results):
+        check_results_index[index] = it
+
+        if isinstance(it, CheckResult):
+            order.append((index, it.priority))
+        elif isinstance(it, CheckFailure):
+            order.append((index, 998))
+        else:
+            order.append((index, 999))
+
+    order = sorted(order, key=lambda it: it[1])
+
+    return [
+        check_results_index[index]
+        for index, _ in order
+    ]
