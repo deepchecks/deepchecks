@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module for vision base checks."""
-from typing import Any, Optional, Union
+from typing import Any, List, Optional, Union
 
 import torch
 from torch import nn
@@ -40,7 +40,9 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         model: Optional[nn.Module] = None,
         device: Union[str, torch.device, None] = None,
         random_state: int = 42,
-        n_samples: Optional[int] = 10_000
+        n_samples: Optional[int] = 10_000,
+        train_predictions: Union[List[torch.Tensor], torch.Tensor] = None,
+        test_predictions: Union[List[torch.Tensor], torch.Tensor] = None,
     ) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
@@ -54,7 +56,9 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
                     model=model,
                     device=device,
                     random_state=random_state,
-                    n_samples=n_samples
+                    n_samples=n_samples,
+                    train_predictions=train_predictions,
+                    test_predictions=test_predictions,
                 )
                 self.initialize_run(context, DatasetKind.TRAIN)
 
@@ -69,7 +73,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
                 batch = Batch(batch, context, DatasetKind.TRAIN, batch_start_index)
                 context.train.update_cache(batch)
                 self.update(context, batch, DatasetKind.TRAIN)
-                batch_start_index += len(batch)
+                batch_start_index += len(batch[0])
 
             with progressbar_factory.create_dummy(name='Computing Check', unit='Check'):
                 result = self.compute(context, DatasetKind.TRAIN)
@@ -108,7 +112,9 @@ class TrainTestCheck(TrainTestBaseCheck):
         model: Optional[nn.Module] = None,
         device: Union[str, torch.device, None] = None,
         random_state: int = 42,
-        n_samples: Optional[int] = 10_000
+        n_samples: Optional[int] = 10_000,
+        train_predictions: Union[List[torch.Tensor], torch.Tensor] = None,
+        test_predictions: Union[List[torch.Tensor], torch.Tensor] = None,
     ) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
@@ -123,7 +129,9 @@ class TrainTestCheck(TrainTestBaseCheck):
                     model=model,
                     device=device,
                     random_state=random_state,
-                    n_samples=n_samples
+                    n_samples=n_samples,
+                    train_predictions=train_predictions,
+                    test_predictions=test_predictions,
                 )
                 self.initialize_run(context)
 
@@ -140,7 +148,7 @@ class TrainTestCheck(TrainTestBaseCheck):
                 batch = Batch(batch, context, DatasetKind.TRAIN, batch_start_index)
                 context.train.update_cache(batch)
                 self.update(context, batch, DatasetKind.TRAIN)
-                batch_start_index += len(batch)
+                batch_start_index += len(batch[0])
 
             context.test.init_cache()
             batch_start_index = 0
@@ -153,7 +161,7 @@ class TrainTestCheck(TrainTestBaseCheck):
                 batch = Batch(batch, context, DatasetKind.TEST, batch_start_index)
                 context.test.update_cache(batch)
                 self.update(context, batch, DatasetKind.TEST)
-                batch_start_index += len(batch)
+                batch_start_index += len(batch[0])
 
             with progressbar_factory.create_dummy(name='Computing Check', unit='Check'):
                 result = self.compute(context)

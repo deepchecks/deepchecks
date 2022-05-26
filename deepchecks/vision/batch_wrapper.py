@@ -52,13 +52,13 @@ class Batch:
         return self._labels
 
     def _do_static_pred(self):
+        preds = self._context.static_predictions[self._dataset_kind]
         dataset = self._context.get_data_by_kind(self._dataset_kind)
-        indexes = [dataset.to_dataset_index(self.batch_start_index + index)
-                   for index in range(len(self._batch))]
-        preds = itemgetter(*indexes)(self._context.static_predictions[self._dataset_kind])
-        if dataset.task_type == TaskType.CLASSIFICATION:
-            return torch.Tensor(preds)
-        return list(preds)
+        indexes = [dataset.to_dataset_index(self.batch_start_index + index)[0]
+                   for index in range(len(self._batch[0]))]
+        if isinstance(preds, torch.Tensor):
+            return preds[indexes]
+        return itemgetter(*indexes)(preds)
 
     @property
     def predictions(self):
@@ -96,7 +96,7 @@ class Batch:
         """For given index in this batch returns the real index in the underlying dataset object. Can be used to \
         later get samples for display."""
         dataset = self._context.get_data_by_kind(self._dataset_kind)
-        return dataset.to_dataset_index(self.batch_start_index + index)
+        return dataset.to_dataset_index(self.batch_start_index + index)[0]
 
 
 T = TypeVar('T')
