@@ -9,11 +9,11 @@ PACKAGE = deepchecks
 # Requirements file
 REQUIRE = requirements.txt
 
-# python3 binary takes predecence over python binary,
+# python3 binary takes precedence over python binary,
 # this variable is used when setting python variable, (Line 18)
 # and on 'env' goal ONLY
 # If your python path binary name is not python/python3,
-# override using ext_python=XXX and it'll propogate into python variable, too
+# override using ext_python=XXX and it'll propagate into python variable, too
 ext_py := $(shell which python3 || which python)
 
 # Override by putting in commandline python=XXX when needed.
