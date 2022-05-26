@@ -9,11 +9,13 @@
 # ----------------------------------------------------------------------------
 #
 """Contains code for BatchWrapper."""
+from operator import itemgetter
 from typing import TYPE_CHECKING, Any, Callable, Iterable, Tuple, TypeVar, cast
 
 import torch
 
 from deepchecks.core import DatasetKind
+from deepchecks.vision.task_type import TaskType
 
 if TYPE_CHECKING:
     from deepchecks.vision.context import Context
@@ -50,7 +52,13 @@ class Batch:
         return self._labels
 
     def _do_static_pred(self):
-        pass
+        dataset = self._context.get_data_by_kind(self._dataset_kind)
+        indexes = [dataset.to_dataset_index(self.batch_start_index + index)
+                   for index in range(len(self._batch))]
+        preds = itemgetter(*indexes)(self._context.static_predictions[self._dataset_kind])
+        if dataset.task_type == TaskType.CLASSIFICATION:
+            return torch.Tensor(preds)
+        return list(preds)
 
     @property
     def predictions(self):
