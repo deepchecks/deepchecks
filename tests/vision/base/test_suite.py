@@ -234,7 +234,7 @@ def test_suite_model_only_check():
 
 
 def test_full_suite_execution_mnist(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
-    suite = full_suite()
+    suite = full_suite(imaginery_kwarg='just to make sure all checks have kwargs in the init')
     arguments = (
         dict(train_dataset=mnist_dataset_train, test_dataset=mnist_dataset_test,
             model=mock_trained_mnist, device=device),
