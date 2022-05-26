@@ -23,9 +23,8 @@ data acquisition and processing issues, such as a camera settings changing accid
 So Why Is Drift So Important?
 -----------------------------
 
-Machine learning models are meant to predict on unseen data, based on previous known data (more accurately, this refers
-to supervised machine learning models, for which drift is most relevant).
-If the data, or the relationships between the different variables and target label, has changed, our model's performance may degrade.
+Machine learning models are meant to predict on unseen data, based on previous known data. If the data, or the
+relationships between the different variables and target label, has changed, our model's performance may degrade.
 
 Detecting drift is an important warning sign that our model may be not as accurate on the new data compared to the training data, and that it should be
 adjusted or retrained on different data.
@@ -63,9 +62,7 @@ However, even when not affecting the model's performance, data drift is importan
 
 To continue the previous example, when predicting income using the level of education, it may be that people of lower
 social-economic status are starting to get higher education. This means that the distribution of level of education
-changes, but not it's effect on income (the target label). This will not necessarily affect our model, but gives us insights on
-how our population changes, and may lead us to act (for instance, to understand we need to know more of this phenomenon
-and get additional features that describe social-economic status). #TODO shorten
+changes, but not it's effect on income (the target label).
 
 Moreover, when labels are not available (as happens in many cases), data drift cannot be discerned from concept drift.
 
