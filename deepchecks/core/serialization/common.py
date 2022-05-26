@@ -47,7 +47,7 @@ __all__ = [
     'plotlyjs_script',
     'requirejs_script',
     'flatten',
-    'join'
+    'join',
 ]
 
 
@@ -131,6 +131,7 @@ def aggregate_conditions(
     pd.Dataframe:
         the condition table.
     """
+    # NOTE: if you modified this function also modify 'sort_check_results'
     check_results = (
         [check_results]
         if isinstance(check_results, check_types.CheckResult)
@@ -159,11 +160,11 @@ def aggregate_conditions(
 
     df = pd.DataFrame(
         data=data,
-        columns=['Status', 'Check', 'Condition', 'More Info', 'sort']
+        columns=['Status', 'Check', 'Condition', 'More Info', '$priority']
     )
 
-    df.sort_values(by=['sort'], inplace=True)
-    df.drop('sort', axis=1, inplace=True)
+    df.sort_values(by=['$priority'], inplace=True)
+    df.drop('$priority', axis=1, inplace=True)
 
     if include_check_name is False:
         df.drop('Check', axis=1, inplace=True)

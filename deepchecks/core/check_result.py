@@ -172,8 +172,9 @@ class CheckResult(BaseCheckResult):
 
         * if at least one condition did not pass and is of category 'FAIL', return 1.
         * if at least one condition did not pass and is of category 'WARN', return 2.
-        * if check result do not have assigned conditions, return 3.
+        * if at least one condition did not pass and is of category 'ERROR', return 3.
         * if all conditions passed, return 4.
+        * if check result do not have assigned conditions, return 5.
 
         Returns
         -------
@@ -181,13 +182,15 @@ class CheckResult(BaseCheckResult):
             priority of the check result.
         """
         if not self.have_conditions:
-            return 3
+            return 5
 
         for c in self.conditions_results:
             if c.is_pass is False and c.category == ConditionCategory.FAIL:
                 return 1
             if c.is_pass is False and c.category == ConditionCategory.WARN:
                 return 2
+            if c.is_pass is False and c.category == ConditionCategory.ERROR:
+                return 3
 
         return 4
 
