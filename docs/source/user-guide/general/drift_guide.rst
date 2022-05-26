@@ -63,20 +63,21 @@ However, even when not affecting the model's performance, data drift is importan
 
 To continue the previous example, when predicting income using the level of education, it may be that people of lower
 social-economic status are starting to get higher education. This means that the distribution of level of education
-changes, but not the target label of what income they have. This will not affect our model, but gives us insights on
+changes, but not it's effect on income (the target label). This will not necessarily affect our model, but gives us insights on
 how our population changes, and may lead us to act (for instance, to understand we need to know more of this phenomenon
-and get additional features that describe social-economic status)
+and get additional features that describe social-economic status). #TODO shorten
 
 Moreover, when labels are not available (as happens in many cases), data drift cannot be discerned from concept drift.
 
 Label Drift
 -----------
 Label drift is the change in the distribution of the label itself. Note that this can also be caused by concept drift,
-but here we discuss a change that means that the label can still be accurately predicted from the data, but its
-distribution has changed.
+but here we discuss a change in which the label can still be accurately predicted from the data, but its
+distribution has changed. Meaning, the change in the distribution of the label is caused by external reasons,
+that in turn affect the distribution of the data accordingly.
 
 Continuing the example of predicting income using the level of education, in this case we would observe more people
-getting higher incomes, and see that those people still have high education - the data and label changed in a way that
+getting higher incomes, and see that those people do have high education; the data and label changed in a way that
 the higher income label is now more prevalent, but our model's predictions remain as accurate as before.
 
 In many cases, label drift alone might not be of interest. However, it may affect your model's accuracy, as less-accurate
