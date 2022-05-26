@@ -422,5 +422,5 @@ def sort_check_results(
 
     return [
         check_results_index[index]
-        for index, _ in order
+        for _, index in order
     ]
