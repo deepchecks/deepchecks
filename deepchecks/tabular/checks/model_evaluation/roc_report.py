@@ -108,12 +108,12 @@ class RocReport(SingleDatasetCheck):
         if len(dataset_classes) == 2:
             fig.update_layout(
                 title_text='Receiver operating characteristic for binary data',
-                # width=900, height=500
+                height=500
             )
         else:
             fig.update_layout(
                 title_text='Receiver operating characteristic for multi-class data',
-                # width=900, height=500
+                height=500
             )
 
         footnote = """<span style="font-size:0.8em"><i>

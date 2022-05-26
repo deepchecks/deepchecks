@@ -90,7 +90,7 @@ class FeatureLabelCorrelation(SingleDatasetCheck):
         s_ppscore = df_pps.set_index('x', drop=True)['ppscore']
         top_to_show = s_ppscore.head(self.n_top_features)
 
-        fig = get_pps_figure(per_class=False, n_of_features=self.n_top_features)
+        fig = get_pps_figure(per_class=False, n_of_features=len(top_to_show))
         fig.add_trace(pd_series_to_trace(top_to_show, dataset_type))
 
         text = [

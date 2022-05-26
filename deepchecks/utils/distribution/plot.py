@@ -171,9 +171,29 @@ def feature_distribution_traces(
         general layout
     """
     if is_categorical:
-        traces, y_layout = _create_distribution_bar_graphs(train_column, test_column, max_num_categories,
-                                                           show_categories_by)
-        xaxis_layout = dict(type='category', range=(-3, max_num_categories + 2))
+        n_of_categories = len(set(train_column).union(test_column))
+        range_max = (
+            max_num_categories
+            if n_of_categories > max_num_categories
+            else n_of_categories
+        )
+        traces, y_layout = _create_distribution_bar_graphs(
+            train_column,
+            test_column,
+            max_num_categories,
+            show_categories_by
+        )
+        xaxis_layout = dict(
+            type='category',
+            # NOTE:
+            # the range, in this case, is needed to fix a problem with
+            # too wide bars when there are only one or two of them`s on
+            # the plot, plus it also centralizes them`s on the plot
+            # The min value of the range (range(min. max)) is bigger because
+            # otherwise bars will not be centralized on the plot, they will
+            # appear on the left part of the plot (that is probably because of zero)
+            range=(-3, range_max + 2)
+        )
         return traces, xaxis_layout, y_layout
     else:
         train_uniques, train_uniques_counts = np.unique(train_column, return_counts=True)

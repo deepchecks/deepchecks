@@ -27,10 +27,17 @@ def get_pps_figure(per_class: bool, n_of_features: int):
     fig.update_layout(
         yaxis_title='Predictive Power Score (PPS)',
         yaxis_range=(0, 1.05),
+        # NOTE:
+        # the range, in this case, is needed to fix a problem with
+        # too wide bars when there are only one or two of them`s on
+        # the plot, plus it also centralizes them`s on the plot
+        # The min value of the range (range(min. max)) is bigger because
+        # otherwise bars will not be centralized on the plot, they will
+        # appear on the left part of the plot (that is probably because of zero)
         xaxis_range=(-3, n_of_features + 2),
         legend=dict(x=1.0, y=1.0),
         barmode='group',
-        # width=800, height=500
+        height=500
     )
     if per_class:
         fig.update_layout(xaxis_title='Class')
@@ -121,7 +128,7 @@ def get_feature_label_correlation(train_df: pd.DataFrame, train_label_name: Opti
     s_pps_test_to_display = s_pps_test[sorted_order_for_display]
     s_difference_to_display = s_difference[sorted_order_for_display]
 
-    fig = get_pps_figure(per_class=False, n_of_features=n_show_top)
+    fig = get_pps_figure(per_class=False, n_of_features=len(sorted_order_for_display))
     fig.add_trace(pd_series_to_trace(s_pps_train_to_display, 'train'))
     fig.add_trace(pd_series_to_trace_with_diff(s_pps_test_to_display, 'test', -s_difference_to_display))
 
@@ -218,7 +225,7 @@ def get_feature_label_correlation_per_class(train_df: pd.DataFrame, train_label_
             s_test_to_display = s_test[sorted_order_for_display]
             s_difference_to_display = s_difference[sorted_order_for_display]
 
-            fig = get_pps_figure(per_class=True, n_of_features=n_show_top)
+            fig = get_pps_figure(per_class=True, n_of_features=len(sorted_order_for_display))
             fig.update_layout(title=f'{feature}: Predictive Power Score (PPS) Per Class')
             fig.add_trace(pd_series_to_trace(s_train_to_display, 'train'))
             fig.add_trace(pd_series_to_trace_with_diff(s_test_to_display, 'test', -s_difference_to_display))

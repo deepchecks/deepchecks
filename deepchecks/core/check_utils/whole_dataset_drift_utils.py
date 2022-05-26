@@ -166,7 +166,6 @@ def build_drift_plot(score):
         title='Drift Score - Whole Dataset Total',
         xaxis=x_axis,
         yaxis=y_axis,
-        # width=700,
         height=200
     ))
 
@@ -244,6 +243,5 @@ def display_dist(
             yanchor='top',
             y=0.9,
             xanchor='left'),
-        # width=700,
-        # height=300
+        height=300
     ))

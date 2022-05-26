@@ -83,6 +83,13 @@ class IdentifierLeakage(SingleDatasetCheck):
         xaxis_layout = dict(
             title='Identifiers',
             type='category',
+            # NOTE:
+            # the range, in this case, is needed to fix a problem with
+            # too wide bars when there are only one or two of them`s on
+            # the plot, plus it also centralizes them`s on the plot
+            # The min value of the range (range(min. max)) is bigger because
+            # otherwise bars will not be centralized on the plot, they will
+            # appear on the left part of the plot (that is probably because of zero)
             range=(-3, len(s_ppscore.index) + 2)
         )
         yaxis_layout = dict(
@@ -102,8 +109,7 @@ class IdentifierLeakage(SingleDatasetCheck):
         figure = px.bar(s_ppscore, x=s_ppscore.index, y='ppscore', color='ppscore',
                         color_continuous_scale=red_heavy_colorscale)
         figure.update_layout(
-            # width=700,
-            # height=400
+            height=400
         )
         figure.update_layout(
             dict(

@@ -188,8 +188,7 @@ class BoostingOverfit(TrainTestCheck):
                                  name='Test score'))
         fig.update_layout(
             title_text=f'{scorer.name} score compared to number of boosting iteration',
-            # width=800,
-            # height=500
+            height=500
         )
         fig.update_xaxes(title='Number of boosting iterations')
         fig.update_yaxes(title=scorer.name)

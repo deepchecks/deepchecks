@@ -310,8 +310,7 @@ class RobustnessReport(SingleDatasetCheck):
         return fig \
             .update_layout(
                 font=dict(size=12),
-                # height=300,
-                # width=400 * len(metrics),
+                height=300,
                 autosize=False,
                 title=dict(
                     text='Performance Comparison',
@@ -322,6 +321,13 @@ class RobustnessReport(SingleDatasetCheck):
                 title=None,
                 type='category',
                 tickangle=30,
+                # NOTE:
+                # the range, in this case, is needed to fix a problem with
+                # too wide bars when there are only one or two of them`s on
+                # the plot, plus it also centralizes them`s on the plot
+                # The min value of the range (range(min. max)) is bigger because
+                # otherwise bars will not be centralized on the plot, they will
+                # appear on the left part of the plot (that is probably because of zero)
                 range=(-2, 3)
             )
 
@@ -357,8 +363,7 @@ class RobustnessReport(SingleDatasetCheck):
         return fig \
             .update_layout(
                 font=dict(size=12),
-                # height=300,
-                # width=600 * len(metrics),
+                height=300,
                 title=dict(
                     text='Top Affected Classes',
                     font=dict(size=20)),
@@ -370,6 +375,13 @@ class RobustnessReport(SingleDatasetCheck):
                 tickangle=30,
                 tickprefix='Class ',
                 automargin=True,
+                # NOTE:
+                # the range, in this case, is needed to fix a problem with
+                # too wide bars when there are only one or two of them`s on
+                # the plot, plus it also centralizes them`s on the plot
+                # The min value of the range (range(min. max)) is bigger because
+                # otherwise bars will not be centralized on the plot, they will
+                # appear on the left part of the plot (that is probably because of zero)
                 range=(-2, max_n_of_classes + 1)
             ).update_yaxes(
                 automargin=True

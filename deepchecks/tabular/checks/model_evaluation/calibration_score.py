@@ -95,8 +95,7 @@ class CalibrationScore(SingleDatasetCheck):
 
         fig.update_layout(
             title_text='Calibration plots (reliability curve)',
-            # width=700,
-            # height=500
+            height=500
         )
         fig.update_yaxes(title='Fraction of positives')
         fig.update_xaxes(title='Mean predicted value')
