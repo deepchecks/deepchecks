@@ -36,8 +36,18 @@ class SuiteResultSerializer(JsonSerializer['suite.SuiteResult']):
             )
         self.value = value
 
-    def serialize(self, **kwargs) -> t.Union[t.Dict[t.Any, t.Any], t.List[t.Any]]:
+    def serialize(
+        self,
+        with_display: bool = True,
+        **kwargs
+    ) -> t.Union[t.Dict[t.Any, t.Any], t.List[t.Any]]:
         """Serialize a SuiteResult instance into JSON format.
+
+        Parameters
+        ----------
+        with_display : bool, default True
+            whether to include serialized `CheckResult.display` items into
+            the output or not
 
         Returns
         -------
@@ -47,7 +57,7 @@ class SuiteResultSerializer(JsonSerializer['suite.SuiteResult']):
 
         for it in self.value.results:
             if isinstance(it, check_types.CheckResult):
-                results.append(CheckResultSerializer(it).serialize())
+                results.append(CheckResultSerializer(it).serialize(with_display=with_display))
             elif isinstance(it, check_types.CheckFailure):
                 results.append(CheckFailureSerializer(it).serialize())
             else:
