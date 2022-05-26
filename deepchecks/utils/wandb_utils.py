@@ -16,6 +16,9 @@ import typing as t
 __all__ = ['wandb_run']
 
 
+WANDB_INSTALLATION_CMD = 'pip install "wandb>=0.12.15" "protobuf>=3.12.0,<4.0dev"'
+
+
 @contextlib.contextmanager
 def wandb_run(
     project: t.Optional[str] = None,
@@ -39,7 +42,7 @@ def wandb_run(
     except ImportError as error:
         raise ImportError(
             '"wandb_run" requires the wandb python package. '
-            'To get it, run "pip install wandb".'
+            f'To get it, run - {WANDB_INSTALLATION_CMD}.'
         ) from error
     else:
         if wandb.run is not None:

@@ -20,13 +20,14 @@ from plotly.basedatatypes import BaseFigure
 from deepchecks.core import check_result as check_types
 from deepchecks.core.serialization.abc import ABCDisplayItemsHandler, WandbSerializer
 from deepchecks.core.serialization.common import aggregate_conditions, concatv_images, normalize_value, prettify
+from deepchecks.utils.wandb_utils import WANDB_INSTALLATION_CMD
 
 try:
     import wandb
 except ImportError as e:
     raise ImportError(
         'Wandb serializer requires the wandb python package. '
-        'To get it, run "pip install wandb".'
+        f'To get it, run - {WANDB_INSTALLATION_CMD}.'
     ) from e
 
 
