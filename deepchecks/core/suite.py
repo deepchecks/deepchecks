@@ -412,13 +412,13 @@ def sort_check_results(
         check_results_index[index] = it
 
         if isinstance(it, CheckResult):
-            order.append((index, it.priority))
+            order.append((it.priority, index))
         elif isinstance(it, CheckFailure):
-            order.append((index, 998))
+            order.append((998, index))
         else:
-            order.append((index, 999))
+            order.append((999, index))
 
-    order = sorted(order, key=lambda it: it[1])
+    order = sorted(order)
 
     return [
         check_results_index[index]
