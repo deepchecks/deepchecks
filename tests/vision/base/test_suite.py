@@ -250,7 +250,7 @@ def test_full_suite_execution_mnist(mnist_dataset_train, mnist_dataset_test, moc
 
 def test_full_suite_execution_coco(coco_train_visiondata, coco_test_visiondata,
                                    mock_trained_yolov5_object_detection, device):
-    suite = full_suite()
+    suite = full_suite(imaginery_kwarg='just to make sure all checks have kwargs in the init')
     args = {'train_dataset': coco_train_visiondata, 'test_dataset': coco_test_visiondata,
             'model':mock_trained_yolov5_object_detection, 'device': device}
     arguments = (

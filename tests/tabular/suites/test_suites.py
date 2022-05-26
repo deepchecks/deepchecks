@@ -59,7 +59,7 @@ def test_generic_suite(
     diabetes_train, diabetes_test, diabetes_model = diabetes_split_dataset_and_model
     city_train, city_test, city_model = city_arrogance_split_dataset_and_model
     iris_train_single, iris_test_single, iris_model_single= iris_split_dataset_and_model_single_feature
-    suite = suites.full_suite()
+    suite = suites.full_suite(imaginery_kwarg='just to make sure all checks have kwargs in the init')
 
     arguments = (
         dict(train_dataset=iris_train_single, test_dataset=iris_test_single, model=iris_model_single),
