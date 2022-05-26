@@ -54,9 +54,9 @@ class SimilarImageLeakage(TrainTestCheck):
             self,
             n_top_show: int = 10,
             hash_size: int = 8,
-            similarity_threshold: float = 0.1
-    ):
-        super().__init__()
+            similarity_threshold: float = 0.1,
+            **kwargs):
+        super().__init__(**kwargs)
         if not (isinstance(n_top_show, int) and (n_top_show >= 0)):
             raise DeepchecksValueError('n_top_show must be a positive integer')
         self.n_top_show = n_top_show
