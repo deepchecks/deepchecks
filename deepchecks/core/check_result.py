@@ -132,7 +132,7 @@ class CheckResult(BaseCheckResult):
         self,
         value,
         header: Optional[str] = None,
-        display: Optional[List[TDisplayItem]] = None  # pylint: disable=redefined-outer-name
+        display: Optional[List[TDisplayItem]] = None,  # pylint: disable=redefined-outer-name
     ):
         self.value = value
         self.header = header
@@ -441,7 +441,9 @@ class CheckResult(BaseCheckResult):
         str
         """
         return jsonpickle.dumps(
-            CheckResultJsonSerializer(self).serialize(with_display=with_display),
+            CheckResultJsonSerializer(self).serialize(
+                with_display=with_display
+            ),
             unpicklable=False
         )
 
@@ -501,7 +503,12 @@ class CheckFailure(BaseCheckResult):
 
     """
 
-    def __init__(self, check: 'BaseCheck', exception: Exception, header_suffix: str = ''):
+    def __init__(
+        self,
+        check: 'BaseCheck',
+        exception: Exception,
+        header_suffix: str = ''
+    ):
         self.check = check
         self.exception = exception
         self.header = check.name() + header_suffix
@@ -570,7 +577,9 @@ class CheckFailure(BaseCheckResult):
                 requirejs=requirejs
             )
         else:
-            html = CheckFailureHtmlSerializer(self).serialize(full_html=True)
+            html = CheckFailureHtmlSerializer(self).serialize(
+                full_html=True
+            )
 
             if isinstance(file, str):
                 with open(file, 'w', encoding='utf-8') as f:

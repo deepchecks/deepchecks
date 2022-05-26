@@ -307,27 +307,50 @@ class RobustnessReport(SingleDatasetCheck):
                                  textposition='auto', marker=dict(color=plot.metric_colors[index])),
                           col=index + 1, row=1)
 
-        title = 'Performance Comparison'
-        (fig.update_layout(font=dict(size=12), height=300, width=400 * len(metrics), autosize=False,
-                           title=dict(text=title, font=dict(size=20)), margin=dict(l=0, b=0),
-                           showlegend=False)
-         .update_xaxes(title=None, type='category', tickangle=30))
-        return fig
+        return fig \
+            .update_layout(
+                font=dict(size=12),
+                height=300,
+                autosize=False,
+                title=dict(
+                    text='Performance Comparison',
+                    font=dict(size=20)),
+                margin=dict(l=0, b=0),
+                showlegend=False
+            ).update_xaxes(
+                title=None,
+                type='category',
+                tickangle=30,
+                # NOTE:
+                # the range, in this case, is needed to fix a problem with
+                # too wide bars when there are only one or two of them`s on
+                # the plot, plus it also centralizes them`s on the plot
+                # The min value of the range (range(min. max)) is bigger because
+                # otherwise bars will not be centralized on the plot, they will
+                # appear on the left part of the plot (that is probably because of zero)
+                range=(-2, 3)
+            )
 
     def _create_top_affected_graph(self, top_affected_dict, dataset):
         metrics = sorted(top_affected_dict.keys())
         fig = make_subplots(rows=1, cols=len(metrics), subplot_titles=metrics)
+        max_n_of_classes = 0
 
         for index, metric in enumerate(metrics):
             metric_classes = top_affected_dict[metric]
+
             # Take the worst affected classes
             x = []
             y = []
             custom_data = []
+
             for class_info in metric_classes:
                 x.append(dataset.label_id_to_name(class_info['class']))
                 y.append(class_info['value'])
                 custom_data.append([format_percent(class_info['diff']), class_info['samples']])
+
+            if len(x) > max_n_of_classes:
+                max_n_of_classes = len(x)
 
             # Plotly have a bug that if all y values are zero text position 'auto' doesn't work
             textposition = 'outside' if sum(y) == 0 else 'auto'
@@ -337,14 +360,32 @@ class RobustnessReport(SingleDatasetCheck):
                                  marker=dict(color=plot.metric_colors[index])),
                           row=1, col=index + 1)
 
-        title = 'Top Affected Classes'
-        (fig.update_layout(font=dict(size=12), height=300, width=600 * len(metrics),
-                           title=dict(text=title, font=dict(size=20)), margin=dict(l=0, b=0),
-                           showlegend=False)
-         .update_xaxes(title=None, type='category', tickangle=30, tickprefix='Class ', automargin=True)
-         .update_yaxes(automargin=True))
-
-        return fig
+        return fig \
+            .update_layout(
+                font=dict(size=12),
+                height=300,
+                title=dict(
+                    text='Top Affected Classes',
+                    font=dict(size=20)),
+                margin=dict(l=0, b=0),
+                showlegend=False
+            ).update_xaxes(
+                title=None,
+                type='category',
+                tickangle=30,
+                tickprefix='Class ',
+                automargin=True,
+                # NOTE:
+                # the range, in this case, is needed to fix a problem with
+                # too wide bars when there are only one or two of them`s on
+                # the plot, plus it also centralizes them`s on the plot
+                # The min value of the range (range(min. max)) is bigger because
+                # otherwise bars will not be centralized on the plot, they will
+                # appear on the left part of the plot (that is probably because of zero)
+                range=(-2, max_n_of_classes + 1)
+            ).update_yaxes(
+                automargin=True
+            )
 
 
 def augmentation_name(aug):

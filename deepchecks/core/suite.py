@@ -42,13 +42,19 @@ class SuiteResult:
     ----------
     name: str
     results: List[BaseCheckResult]
+    extra_info: Optional[List[str]]
     """
 
     name: str
     extra_info: List[str]
     results: List[BaseCheckResult]
 
-    def __init__(self, name: str, results, extra_info: Optional[List[str]] = None):
+    def __init__(
+        self,
+        name: str,
+        results: List[BaseCheckResult],
+        extra_info: Optional[List[str]] = None,
+    ):
         """Initialize suite result."""
         self.name = name
         self.results = results
@@ -194,7 +200,7 @@ class SuiteResult:
                 output_id=unique_id or get_random_string(n=25),
                 full_html=True,
                 include_requirejs=requirejs,
-                include_plotlyjs=True
+                include_plotlyjs=True,
             )
             if isinstance(file, str):
                 with open(file, 'w', encoding='utf-8') as f:
@@ -222,7 +228,9 @@ class SuiteResult:
         -------
         Widget
         """
-        return SuiteResultWidgetSerializer(self).serialize(output_id=unique_id)
+        return SuiteResultWidgetSerializer(self).serialize(
+            output_id=unique_id,
+        )
 
     def to_json(self, with_display: bool = True):
         """Return check result as json.

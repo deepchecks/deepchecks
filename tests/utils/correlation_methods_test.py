@@ -10,7 +10,7 @@
 #
 
 import pandas as pd
-from hamcrest import (assert_that, close_to)
+from hamcrest import assert_that, close_to
 
 from deepchecks.utils import correlation_methods
 

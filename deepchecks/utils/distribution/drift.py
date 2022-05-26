@@ -308,7 +308,6 @@ def calc_drift_and_plot(train_column: pd.Series,
             yanchor='top',
             y=0.6),
         height=400,
-        width=700,
         title=dict(text=plot_title or value_name, x=0.5, xanchor='center'),
         bargroupgap=0)
 
