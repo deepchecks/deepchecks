@@ -35,7 +35,7 @@ def test_dataset_no_label(iris, iris_adaboost):
     assert_that(
         calling(CalibrationScore().run).with_args(ds, iris_adaboost),
         raises(DeepchecksNotSupportedError,
-               'There is no label defined to use. Did you pass a DataFrame instead of a Dataset?')
+               'There is no label defined to use on the dataset')
     )
 
 

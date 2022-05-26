@@ -34,8 +34,7 @@ def test_dataset_no_label(iris_dataset_no_label, iris_adaboost):
     # Assert
     assert_that(
         calling(RocReport().run).with_args(iris_dataset_no_label, iris_adaboost),
-        raises(DeepchecksNotSupportedError, 'There is no label defined to use. Did you pass a DataFrame instead '
-                                            'of a Dataset?')
+        raises(DeepchecksNotSupportedError, 'There is no label defined to use on the dataset')
     )
 
 

@@ -501,7 +501,7 @@ class Dataset:
         random_state : int , default: 42
             The random state to use for shuffling.
         shuffle : bool , default: True
-            Whether or not to shuffle the data before splitting.
+            Whether to shuffle the data before splitting.
         stratify : t.Union[t.List, pd.Series, np.ndarray, bool] , default: False
             If True, data is split in a stratified fashion, using the class labels. If array-like, data is split in
             a stratified fashion, using this as class labels.
@@ -793,8 +793,7 @@ class Dataset:
         DeepchecksNotSupportedError
         """
         if not self.label_name:
-            raise DeepchecksNotSupportedError('There is no label defined to use. Did you pass a DataFrame '
-                                              'instead of a Dataset?')
+            raise DeepchecksNotSupportedError('There is no label defined to use on the dataset')
 
     def assert_features(self):
         """Check if features are defined (not empty) and if not raise error.
@@ -804,8 +803,7 @@ class Dataset:
         DeepchecksNotSupportedError
         """
         if not self.features:
-            raise DeepchecksNotSupportedError('There are no features defined to use. Did you pass a DataFrame '
-                                              'instead of a Dataset?')
+            raise DeepchecksNotSupportedError('There are no features defined to use on the dataset')
 
     def assert_datetime(self):
         """Check if datetime is defined and if not raise error.
@@ -815,8 +813,7 @@ class Dataset:
         DeepchecksNotSupportedError
         """
         if not (self._set_datetime_from_dataframe_index or self._datetime_name):
-            raise DatasetValidationError('There is no datetime defined to use. Did you pass a DataFrame instead '
-                                         'of a Dataset?')
+            raise DatasetValidationError('There is no datetime defined to use on the dataset')
 
     def assert_index(self):
         """Check if index is defined and if not raise error.
@@ -826,8 +823,7 @@ class Dataset:
         DeepchecksNotSupportedError
         """
         if not (self._set_index_from_dataframe_index or self._index_name):
-            raise DatasetValidationError('There is no index defined to use. Did you pass a DataFrame instead '
-                                         'of a Dataset?')
+            raise DatasetValidationError('There is no index defined to use on the dataset')
 
     def select(
             self: TDataset,
