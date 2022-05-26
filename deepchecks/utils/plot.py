@@ -207,7 +207,7 @@ def create_confusion_matrix_figure(confusion_matrix: np.ndarray, x: np.ndarray,
                 texttemplate=texttemplate))
     fig.data[0].colorbar.title = colorbar_title
     fig.update_layout(title=plot_title)
-    fig.update_layout(width=600, height=600)
+    fig.update_layout(height=600)
     fig.update_xaxes(title='Predicted Value', type='category', scaleanchor='y', constrain='domain')
     fig.update_yaxes(title='True value', type='category', constrain='domain', autorange='reversed')
 

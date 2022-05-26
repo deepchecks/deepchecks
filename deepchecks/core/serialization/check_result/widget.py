@@ -69,7 +69,7 @@ class CheckResultSerializer(WidgetSerializer['check_types.CheckResult']):
             sections.append(self.prepare_conditions_table(output_id=output_id))
 
         if 'additional-output' in sections_to_include:
-            sections.append(self.prepare_additional_output(output_id))
+            sections.append(self.prepare_additional_output(output_id=output_id))
 
         return normalize_widget_style(VBox(children=sections))
 
@@ -127,7 +127,7 @@ class CheckResultSerializer(WidgetSerializer['check_types.CheckResult']):
         """
         return VBox(children=DisplayItemsHandler.handle_display(
             self.value.display,
-            output_id
+            output_id,
         ))
 
 
@@ -150,8 +150,7 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
         return HTML(value=super().go_to_top_link(output_id))
 
     @classmethod
-    def handle_figure(cls, item: BaseFigure, index: int, **kwargs) -> go.FigureWidget:
-        """Handle plotly figure item."""
+    def handle_figure(cls, item: BaseFigure, index: int, **kwargs) -> Widget:  # pylint: disable=unused-argument
         return go.FigureWidget(data=item)
 
     @classmethod

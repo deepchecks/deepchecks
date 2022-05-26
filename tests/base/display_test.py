@@ -122,7 +122,10 @@ def test_check_result_display_plotly(iris):
     # Assert
     assert_that(display, instance_of(VBox))
     assert_that(display.children[3], instance_of(VBox)) # additional output wiidget
-    assert_that(display.children[3].children[1], instance_of(FigureWidget)) # plotly figure widget
+    assert_that(
+        display.children[3].children[1],
+        any_of(instance_of(FigureWidget), instance_of(VBox))
+    ) # plotly figure widget
 
 
 def test_check_result_to_json():

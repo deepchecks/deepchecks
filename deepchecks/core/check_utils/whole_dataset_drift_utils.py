@@ -11,12 +11,11 @@
 """Module containing common WholeDatasetDriftCheck (domain classifier drift) utils."""
 
 import warnings
-from typing import List
+from typing import Container, List
 
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 
@@ -100,12 +99,22 @@ def run_whole_dataset_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
     if top_fi is not None and len(top_fi):
         score = values_dict['domain_classifier_drift_score']
 
-        displays = [feature_importance_note, build_drift_plot(score),
-                    '<h3>Main features contributing to drift</h3>',
-                    N_TOP_MESSAGE % n_top_columns]
-        displays += [display_dist(train_sample_df[feature], test_sample_df[feature], top_fi, cat_features,
-                                  max_num_categories_for_display, show_categories_by)
-                     for feature in top_fi.index]
+        displays = [
+            feature_importance_note,
+            build_drift_plot(score),
+            '<h3>Main features contributing to drift</h3>',
+            N_TOP_MESSAGE % n_top_columns,
+            *(
+                display_dist(
+                    train_sample_df[feature],
+                    test_sample_df[feature],
+                    top_fi,
+                    cat_features,
+                    max_num_categories_for_display,
+                    show_categories_by)
+                for feature in top_fi.index
+            )
+        ]
     else:
         displays = None
 
@@ -157,60 +166,75 @@ def build_drift_plot(score):
         title='Drift Score - Whole Dataset Total',
         xaxis=x_axis,
         yaxis=y_axis,
-        width=700,
         height=200
-
     ))
 
     drift_plot.add_traces(bar_traces)
     return drift_plot
 
 
-def display_dist(train_column: pd.Series, test_column: pd.Series, fi_ser: pd.Series, cat_features,
-                 max_num_categories, show_categories_by):
-    """Display a distribution comparison plot for the given columns."""
-    column_name = train_column.name
+def display_dist(
+    train_column: pd.Series,
+    test_column: pd.Series,
+    fi: pd.Series,
+    cat_features: Container[str],
+    max_num_categories: int,
+    show_categories_by: str
+):
+    """Create a distribution comparison plot for the given columns."""
+    column_name = train_column.name or ''
+    column_fi = fi.loc[column_name]
+    title = f'Feature: {column_name} - Explains {format_percent(column_fi)} of dataset difference'
 
-    title = f'Feature: {column_name} - Explains {format_percent(fi_ser.loc[column_name])} of dataset difference'
-    dist_traces, xaxis_layout, yaxis_layout = \
-        feature_distribution_traces(train_column.dropna(),
-                                    test_column.dropna(),
-                                    column_name,
-                                    is_categorical=column_name in cat_features,
-                                    max_num_categories=max_num_categories,
-                                    show_categories_by=show_categories_by)
+    dist_traces, xaxis_layout, yaxis_layout = feature_distribution_traces(
+        train_column.dropna(),
+        test_column.dropna(),
+        column_name,
+        is_categorical=column_name in cat_features,
+        max_num_categories=max_num_categories,
+        show_categories_by=show_categories_by
+    )
 
     all_categories = list(set(train_column).union(set(test_column)))
     add_footnote = column_name in cat_features and len(all_categories) > max_num_categories
 
-    if add_footnote:
-        fig = make_subplots(rows=2, cols=1, vertical_spacing=0.6, shared_yaxes=False, shared_xaxes=False,
-                            row_heights=[0.8, 0.2],
-                            subplot_titles=[title])
-
+    if not add_footnote:
+        fig = go.Figure()
         fig.add_traces(dist_traces)
+    else:
 
-        param_to_print_dict = {
-            'train_largest': 'largest categories (by train)',
-            'test_largest': 'largest categories (by test)',
-            'largest_difference': 'largest difference between categories'
-        }
+        if show_categories_by == 'train_largest':
+            categories_order_description = 'largest categories (by train)'
+        elif show_categories_by == 'test_largest':
+            categories_order_description = 'largest categories (by test)'
+        elif show_categories_by == 'largest_difference':
+            categories_order_description = 'largest difference between categories'
+        else:
+            raise ValueError(f'Unsupported "show_categories_by" value - {show_categories_by}')
+
         train_data_percents = dist_traces[0].y.sum()
         test_data_percents = dist_traces[1].y.sum()
 
-        fig.add_annotation(
-            x=0, y=-0.2, showarrow=False, xref='paper', yref='paper', xanchor='left',
-            text=f'* Showing the top {max_num_categories} {param_to_print_dict[show_categories_by]} out of '
-                 f'total {len(all_categories)} categories.'
-                 f'<br>Shown data is {format_percent(train_data_percents)} of train data and '
-                 f'{format_percent(test_data_percents)} of test data.'
+        annotation = (
+            f'* Showing the top {max_num_categories} {categories_order_description} out of '
+            f'total {len(all_categories)} categories.'
+            f'<br>Shown data is {format_percent(train_data_percents)} of train data and '
+            f'{format_percent(test_data_percents)} of test data.'
         )
 
-    else:
-        fig = go.Figure()
-        fig.add_traces(dist_traces)
+        fig = (
+            go.Figure()
+            .add_traces(dist_traces)
+            .add_annotation(
+                x=0, y=-0.4,
+                showarrow=False,
+                xref='paper',
+                yref='paper',
+                xanchor='left',
+                text=annotation)
+        )
 
-    layout = go.Layout(
+    return fig.update_layout(go.Layout(
         title=title,
         xaxis=xaxis_layout,
         yaxis=yaxis_layout,
@@ -219,10 +243,5 @@ def display_dist(train_column: pd.Series, test_column: pd.Series, fi_ser: pd.Ser
             yanchor='top',
             y=0.9,
             xanchor='left'),
-        width=700,
         height=300
-    )
-
-    fig.update_layout(layout)
-
-    return fig
+    ))

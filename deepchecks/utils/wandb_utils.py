@@ -10,43 +10,45 @@
 #
 # pylint: disable=import-outside-toplevel
 """Wandb utils module."""
-from typing import Any
+import contextlib
+import typing as t
 
-__all__ = ['set_wandb_run_state']
+__all__ = ['wandb_run']
 
 
-def set_wandb_run_state(dedicated_run: bool, default_config: dict, **kwargs: Any):
-    """Set wandb run state.
+WANDB_INSTALLATION_CMD = 'pip install wandb'
+
+
+@contextlib.contextmanager
+def wandb_run(
+    project: t.Optional[str] = None,
+    **kwargs
+) -> t.Iterator[t.Any]:
+    """Create new one or use existing wandb run instance.
 
     Parameters
     ----------
-    dedicated_run : bool
-        If to initiate and finish a new wandb run.
-        If None it will be dedicated if wandb.run is None.
-    default_config : dict
-        Default config dict.
-    kwargs: Keyword arguments to pass to wandb.init - relevent if wandb_init is True.
-            Default project name is deepchecks.
-            Default config is the check metadata (params, train/test/ name etc.).
+    project : Optional[str], default None
+        project name
+    **kwargs :
+        additional parameters that will be passed to the 'wandb.init'
 
     Returns
     -------
-    bool
-        If deticated run
+    Iterator[wandb.sdk.wandb_run.Run]
     """
     try:
         import wandb
     except ImportError as error:
         raise ImportError(
-            '"set_wandb_run_state" requires the wandb python package. '
-            'To get it, run "pip install wandb".'
+            '"wandb_run" requires the wandb python package. '
+            f'To get it, run - {WANDB_INSTALLATION_CMD}.'
         ) from error
     else:
-        if dedicated_run is None:
-            dedicated_run = wandb.run is None
-        if dedicated_run:
-            kwargs['project'] = kwargs.get('project', 'deepchecks')
-            kwargs['config'] = kwargs.get('config', default_config)
-            wandb.init(**kwargs)
-            wandb.run._label(repo='Deepchecks')  # pylint: disable=protected-access
-        return dedicated_run
+        if wandb.run is not None:
+            yield wandb.run
+        else:
+            kwargs = {'project': project or 'deepchecks', **kwargs}
+            with t.cast(t.ContextManager, wandb.init(**kwargs)) as run:
+                wandb.run._label(repo='Deepchecks')  # pylint: disable=protected-access
+                yield run

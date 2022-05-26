@@ -28,7 +28,7 @@ from deepchecks.core.serialization.suite_result.json import SuiteResultSerialize
 from deepchecks.core.serialization.suite_result.widget import SuiteResultSerializer as SuiteResultWidgetSerializer
 from deepchecks.utils.ipython import is_colab_env, is_kaggle_env, is_notebook, is_widgets_enabled
 from deepchecks.utils.strings import create_new_file_name, get_random_string, widget_to_html, widget_to_html_string
-from deepchecks.utils.wandb_utils import set_wandb_run_state
+from deepchecks.utils.wandb_utils import wandb_run
 
 from .serialization.suite_result.ipython import SuiteResultSerializer as SuiteResultIPythonSerializer
 
@@ -42,19 +42,32 @@ class SuiteResult:
     ----------
     name: str
     results: List[BaseCheckResult]
+    extra_info: Optional[List[str]]
     """
 
     name: str
     extra_info: List[str]
     results: List[BaseCheckResult]
 
-    def __init__(self, name: str, results, extra_info: Optional[List[str]] = None):
+    def __init__(
+        self,
+        name: str,
+        results: List[BaseCheckResult],
+        extra_info: Optional[List[str]] = None,
+    ):
         """Initialize suite result."""
         self.name = name
         self.results = results
         self.extra_info = extra_info or []
 
-        # TODO: add comment about code below
+        # NOTE:
+        # we collect results indexes in order to facilitate results
+        # filtering and selection via the `select_results` method
+        #
+        # Examples:
+        # >>
+        # >> sr.select_result(sr.results_with_conditions | sr.results_with_display)
+        # >> sr.select_results(sr.results_without_conditions & sr.results_with_display)
 
         self.results_with_conditions: Set[int] = set()
         self.results_without_conditions: Set[int] = set()
@@ -194,7 +207,7 @@ class SuiteResult:
                 output_id=unique_id or get_random_string(n=25),
                 full_html=True,
                 include_requirejs=requirejs,
-                include_plotlyjs=True
+                include_plotlyjs=True,
             )
             if isinstance(file, str):
                 with open(file, 'w', encoding='utf-8') as f:
@@ -222,24 +235,25 @@ class SuiteResult:
         -------
         Widget
         """
-        return SuiteResultWidgetSerializer(self).serialize(output_id=unique_id)
+        return SuiteResultWidgetSerializer(self).serialize(
+            output_id=unique_id,
+        )
 
     def to_json(self, with_display: bool = True):
         """Return check result as json.
 
         Parameters
         ----------
-        with_display : bool
-            controls if to serialize display of checks or not
+        with_display : bool, default True
+            whether to include serialized `CheckResult.display` items into
+            the output or not
 
         Returns
         -------
         str
         """
-        # TODO: not sure if the `with_display` parameter is needed
-        # add deprecation warning if it is not needed
         return jsonpickle.dumps(
-            SuiteResultJsonSerializer(self).serialize(),
+            SuiteResultJsonSerializer(self).serialize(with_display=with_display),
             unpicklable=False
         )
 
@@ -252,9 +266,9 @@ class SuiteResult:
 
         Parameters
         ----------
-        dedicated_run : bool , default: None
-            If to initiate and finish a new wandb run.
-            If None it will be dedicated if wandb.run is None.
+        dedicated_run : bool
+            whether to create a separate wandb run or not
+            (deprecated parameter, does not have any effect anymore)
         kwargs: Keyword arguments to pass to wandb.init.
                 Default project name is deepchecks.
                 Default config is the suite name.
@@ -265,24 +279,19 @@ class SuiteResult:
         # doing import within method to prevent premature ImportError
         # TODO:
         # Previous implementation used ProgressBar to show serialization progress
-        try:
-            import wandb
+        from deepchecks.core.serialization.suite_result.wandb import SuiteResultSerializer as WandbSerializer
 
-            from deepchecks.core.serialization.suite_result.wandb import SuiteResultSerializer as WandbSerializer
-        except ImportError as error:
-            raise ImportError(
-                'Wandb serializer requires the wandb python package. '
-                'To get it, run "pip install wandb".'
-            ) from error
-        else:
-            dedicated_run = set_wandb_run_state(
-                dedicated_run,
-                {'name': self.name},
-                **kwargs
+        if dedicated_run is not None:
+            warnings.warn(
+                '"dedicated_run" parameter is deprecated and does not have effect anymore. '
+                'It will be remove in next versions.'
             )
-            wandb.log(WandbSerializer(self).serialize())
-            if dedicated_run:  # TODO: create context manager for this
-                wandb.finish()
+
+        wandb_kwargs = {'config': {'name': self.name}}
+        wandb_kwargs.update(**kwargs)
+
+        with wandb_run(**wandb_kwargs) as run:
+            run.log(WandbSerializer(self).serialize())
 
     def get_failures(self) -> Dict[str, CheckFailure]:
         """Get all the failed checks.
