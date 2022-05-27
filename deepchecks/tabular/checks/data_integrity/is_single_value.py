@@ -32,7 +32,7 @@ class IsSingleValue(SingleDatasetCheck):
         Columns to ignore, if none given checks based
         on columns variable.
     ignore_nan : bool, default True
-        whethere to ignore NaN values in a column or not
+        whether to ignore NaN values in a column or not
     """
 
     def __init__(
