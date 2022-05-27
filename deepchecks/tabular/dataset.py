@@ -17,6 +17,7 @@ from functools import lru_cache
 import numpy as np
 import pandas as pd
 from pandas.core.dtypes.common import is_numeric_dtype
+from pandas.api.types import infer_dtype
 from sklearn.model_selection import train_test_split
 
 from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError
@@ -257,9 +258,9 @@ class Dataset:
 
         if cat_features is not None:
             if set(cat_features).intersection(set(self._features)) != set(cat_features):
-                raise DeepchecksValueError(f'Categorical features must be a subset of features. '
+                raise DeepchecksValueError('Categorical features must be a subset of features. '
                                            f'Categorical features {set(cat_features) - set(self._features)} '
-                                           f'have not been found in feature list.')
+                                           'have not been found in feature list.')
             self._cat_features = list(cat_features)
         else:
             self._cat_features = self._infer_categorical_features(
@@ -1051,6 +1052,67 @@ class Dataset:
                 return False
 
         return True
+    
+    def __repr__(self) -> str:
+        
+        data = self.data
+        columns = [*self.features, self.label_name]
+        categorical_features = self.cat_features
+        numerical_features = self.numerical_features
+
+        features_data = []
+
+        for feature_name in t.cast(t.List[str], columns):
+            if feature_name == self.index_name:
+                kind = 'Index'
+            elif feature_name == self.label_name:
+                kind = t.cast(str, self.label_type).replace('_', ' ').capitalize()
+            elif feature_name in categorical_features:
+                kind = 'Categorical'
+            elif feature_name in numerical_features:
+                kind = 'Numerical'
+            elif feature_name == self.datetime_name:
+                kind = 'Datetime'
+            else:
+                kind = 'Unknown'
+            
+            features_data.append([
+                feature_name,
+                infer_dtype(data[feature_name], skipna=True),
+                kind
+            ])
+
+        features_info = pd.DataFrame(
+            data=features_data,
+            columns=['Column', 'DType', 'DKind'],
+        )
+        
+        features_to_show = self.features[:5]
+        columns_to_show = [*features_to_show, self.label_name]
+        rows_to_show = [*data.index[:25], *data.index[:-6:-1]]
+        data_to_show = data.loc[rows_to_show, columns_to_show].reset_index()
+        data_to_show['...'] = '...'
+        data_to_show.iloc[25] = '...'
+        data_to_show = data_to_show[['index', *features_to_show, '...', self.label_name]]
+        data_shape = f'Real Shape: {data.shape}'
+
+        try:
+            import tabulate
+            features_info = features_info.to_markdown(tablefmt="presto")
+            data_to_show = data_to_show.to_markdown(tablefmt="presto", index=False)
+        except ImportError:
+            features_info = features_info.to_string(col_space=10, show_dimensions=False)
+            data_to_show = data_to_show.to_string(col_space=10, show_dimensions=False)
+        
+        title_template = '{:-^40}\n\n'
+
+        return ''.join((
+            title_template.format(' Dataset Description '),
+            f'{features_info}\n\n\n',
+            title_template.format(' Dataset Content '),
+            f'{data_to_show}\n\n',
+            f'{data_shape}',
+        ))
 
     def __len__(self) -> int:
         """Return number of samples in the member dataframe.
