@@ -249,6 +249,7 @@ class VisionData:
         """
         self.validate_infered_batch_predictions(self.infer_on_batch(batch, model, device))
 
+    @staticmethod
     def validate_infered_batch_predictions(batch_predictions):
         """Validate the infered predictions from the batch."""
         # isn't relevant for this class but is still a function we want to inherit
