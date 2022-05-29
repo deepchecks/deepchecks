@@ -16,6 +16,7 @@ General
     general/deepchecks_hierarchy
     general/customizations/examples/index
     general/exporting_results/examples/index
+    general/drift_guide
 
 Tabular
 -------

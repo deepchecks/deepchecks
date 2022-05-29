@@ -25,9 +25,9 @@ For more information on drift, please visit our :doc:`drift guide </user-guide/g
 How Deepchecks Detects Feature Drift
 ------------------------------------
 
-This check detects feature drift by using :ref:`drift_detection_by_univatriate_measure`
+This check detects feature drift by using :ref:`univariate measures <drift_detection_by_univariate_measure>`
 on each feature column separately.
-Another possible method for drift detection is by :ref:`drift_detection_by_domain_classifier`
+Another possible method for drift detection is by :ref:`a domain classifier <drift_detection_by_domain_classifier>`
 which is used in the :doc:`Whole Dataset Drift check </checks_gallery/tabular/train_test_validation/plot_whole_dataset_drift>`.
 
 """

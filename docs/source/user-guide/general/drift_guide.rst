@@ -4,35 +4,39 @@
 Drift User Guide
 ====================
 
-**In This Guide, You Can Learn:**
+This guide will help you understand what drift is and how you can detect in using deepchecks.
 
-* `What Is Distribution Drift and How Can You Detect It? <#what-is-distribution-drift>`__
-* `How Can You Use Deepchecks to Detect Drift? <#how-can-i-use-deepchecks-to-detect-drift>`__
+**Structure:**
 
+* `Which Types of Drift Are There? <#which-types-of-drift-are-there>`__
+* `How Do You Detect Drift? <#how-do-you-detect-drift>`__
+* `How Can I Use Deepchecks to Detect Drift? <#how-can-i-use-deepchecks-to-detect-drift>`__
+* `What Can You Do in Case of Drift? <#what-can-you-do-in-case-of-drift>`__
+* `Code Examples <#code-examples>`__
 
 What Is Distribution Drift?
 ==========================
 
-Distribution drift is a change in the underlying distribution of the data, the label or of the relationship between them. Drift happens over time,
-and can occur either gradually or suddenly.
+Distribution drift is a change in the distribution of the data, the label or the relationship between them. Drift
+happens over time, and can occur either gradually or suddenly.
 
 Common reasons for drift can be natural changes in the data, such as shopping habits changing for an online retailer
 (for example, during the covid pandemic, online shopping rose significantly and buyer patterns changed), or
-data acquisition and processing issues, such as a camera settings changing accidentally to have lower exposure.
+data acquisition and processing issues, such as camera settings changing accidentally to have lower exposure.
 
 So Why Is Drift So Important?
 -----------------------------
 
-Machine learning models are meant to predict on unseen data, based on previous known data. If the data, or the
-relationships between the different variables and target label, has changed, our model's performance may degrade.
+Machine learning models are meant to predict on unseen data, based on previous known data. If the data or the
+relationships between features and the target label have changed, our model's performance may degrade.
 
-Detecting drift is an important warning sign that our model may be not as accurate on the new data compared to the training data, and that it should be
+Detecting drift is an important warning sign that our model may be not as accurate on newer data (compared to the training data), and that it should be
 adjusted or retrained on different data.
 In production environments, detecting drift (and other measures derived from drift, such as model confidence) is often the only way to know that our model performance is deteriorating,
 as in many cases the label is unknown for some time after the prediction is made.
 
 It is important to note that not all changes in data represent drift. For example, periodic changes in data due to daily, weekly or
-seasonal changes are usually not considered drift, as they as they are often present in the training data.
+seasonal changes are usually not considered drift, as they are often present in the training data.
 
 .. image:: /_static/images/general/patterns-of-concept-drift.png
    :alt: Different change patterns in data
@@ -46,9 +50,9 @@ Which Types of Drift Are There?
 
 In machine learning, we usually refer to 2 types of drift:
 
-
 Data Drift
 ----------
+
 Data drift is any change in the distribution of the data.
 
 For example, in a dataset predicting a person's income, the target (income) is highly correlated with high level of
@@ -56,20 +60,17 @@ education (advanced academic degrees). A government plan to help people of lower
 would create a data drift that changes how the data distributes. However, this will not change the relation between a
 person's salary and their level of education, as these new graduates will be able to work in better paying professions.
 
-
 Concept Drift
 -------------
+
 Concept drift is a change in the underlying relation between the data and the label.
 
 Continuing the example of predicting income using the level of education, let's assume that a change in the job market
-(for example, the rise of high-tech companies) cause a drift in the data: suddenly, job experience is becoming more
+(for example, the rise of high-tech companies) caused drift in the data: suddenly, job experience became more
 significant for programming jobs than a degree in computer science. Now, the relation between the level of education
-and the income has changed - and a person's salary can't be predicted from their level of education as well as it was previous data.
+and the income has changed - and a person's salary can't be predicted from their level of education as accurately as it was on previous data.
 
 Concept drift will almost always require some changes to the model, usually by retraining of the model on newer data.
-
-.. note::
-    When labels are not available (as happens in many cases), data drift cannot be discerned from concept drift.
 
 For more on the different types of drift, `see here <https://deepchecks.com/data-drift-vs-concept-drift-what-are-the-main-differences/>`_
 
@@ -88,7 +89,7 @@ distributions different?".
 
 There are many methods to detect drift. Here, we will elaborate on two of them:
 
-.. _drift_detection_by_univatriate_measure:
+.. _drift_detection_by_univariate_measure:
 Detection by Univariate Measure
 --------------------------------
 
@@ -111,7 +112,7 @@ Detection by Domain Classifier
 
 Training a `Domain Classifier <https://arxiv.org/abs/2004.03045>`__ is a method to detect multivariate drift, meaning that it
 can run on several variables, and even on the whole dataset.
-This is done by training a model to classify if a sample came from the train dataset or the new (test or production) dataset.
+This is done by training a model to classify whether a sample came from the train dataset or the newer (test or production) dataset.
 If the classifier can easily predict which sample is from which dataset, it would mean that there are significant differences between these datasets.
 
 The main advantage of this method is that it can also uncover covariate drift, meaning drift in the data that does not
@@ -123,9 +124,8 @@ the train and the test sets, and assign label 0 to samples that come from the tr
 from the test set. Then, we train a binary classifer of type
 `Histogram-based Gradient Boosting Classification Tree
 <https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.HistGradientBoostingClassifier.html>`__.
-We normalize the AUC score of this classifier and use it as the drift score, as the higher the AUC, the better the model,
+We then normalize the AUC score of this classifier and use it as the drift score, as the higher the AUC, the better the model,
 meaning the datasets are significantly different.
-
 
 How Can I Use Deepchecks to Detect Drift?
 =========================================
@@ -183,7 +183,7 @@ What Can You Do in Case of Drift?
 When suspecting drift in your data, you must first understand what changed in the data - were it the features, the labels,
 or maybe just the predictions.
 In deepchecks, we show a drift score for each feature, starting with your most :doc:`important features </user-guide/tabular/feature_importance>`,
-giving you an idea of the severity of your drift, even if your not still sure of its source.
+giving you an idea of the severity of your drift, even if you're not still sure of its source.
 
 It is recommended to manually explore your data and try to understand the root cause of your changes, in order to
 estimate the effect of the change on your model's performance.
