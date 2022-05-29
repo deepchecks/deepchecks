@@ -104,14 +104,21 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
         """
         def condition(df: pd.DataFrame):
             not_passed = defaultdict(dict)
+            min_score_info = np.inf, None, None
             for index, column in zip(df.index, df.columns):
-                if df.loc[index, column] < min_score:
-                    not_passed[index][column] = format_number(df.loc[index, column], 3)
+                score = df.loc[index, column]
+                if score < min_score:
+                    not_passed[index][column] = format_number(score, 3)
+                # Tracking the smallest score to print if condition passed
+                if score < min_score_info[0]:
+                    min_score_info = score, index, column
             if len(not_passed):
-                details = f'Found scores below threshold:\n' \
-                          f'{dict(not_passed)}'
+                details = f'Found scores below threshold:\n{dict(not_passed)}'
                 return ConditionResult(ConditionCategory.FAIL, details)
-            return ConditionResult(ConditionCategory.PASS)
+
+            details = f'Found lowest score of {format_number(min_score_info[0])} for area {min_score_info[1]} ' \
+                      f'and metric {min_score_info[2]}'
+            return ConditionResult(ConditionCategory.PASS, details)
 
         return self.add_condition(f'Scores are not less than {min_score}', condition)
 
@@ -126,9 +133,8 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
         def condition(df: pd.DataFrame):
             df = df.reset_index()
             value = df.loc[df['Area size'] == 'All', :]['mAP@[.50::.95] (avg.%)'][0]
-            if value < min_score:
-                details = f'mAP score is: {format_number(value)}'
-                return ConditionResult(ConditionCategory.FAIL, details)
-            return ConditionResult(ConditionCategory.PASS)
+            details = f'mAP score is: {format_number(value)}'
+            category = ConditionCategory.FAIL if value < min_score else ConditionCategory.PASS
+            return ConditionResult(category, details)
 
         return self.add_condition(f'mAP score is not less than {min_score}', condition)

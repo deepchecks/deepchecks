@@ -190,7 +190,23 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets, mock_train
         is_pass=False,
         name='categorical drift score <= 0.15 and numerical drift score <= 0.075 for prediction drift',
         details='Found categorical prediction properties with PSI ' +
-                'above threshold: {\'Samples Per Class\': \'4.0\'}\n'
+                'above threshold: {\'Samples Per Class\': \'3.95\'}\n'
+    ))
+
+
+def test_condition_pass(mnist_dataset_train, mock_trained_mnist, device):
+    # Arrange
+    train, test = mnist_dataset_train, mnist_dataset_train
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI').add_condition_drift_score_not_greater_than()
+
+    # Act
+    result = check.run(train, test, mock_trained_mnist, device=device)
+
+    # Assert
+    assert_that(result.conditions_results[0], equal_condition_result(
+        is_pass=True,
+        name='categorical drift score <= 0.15 and numerical drift score <= 0.075 for prediction drift',
+        details='Property "Samples Per Class" has the highest categorical drift score: 0\n'
     ))
 
 

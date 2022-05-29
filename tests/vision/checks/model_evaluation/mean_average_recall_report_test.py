@@ -58,6 +58,7 @@ def test_coco(coco_test_visiondata, mock_trained_yolov5_object_detection, device
     assert_that(df.loc['Large (area < 96^2)', 'AR@100 (%)'], close_to(0.549, 0.001))
 
     assert_that(result.conditions_results[0], equal_condition_result(
+        details='Found lowest score of 0.22 for area Small (area < 32^2) and metric AR@10 (%)',
         is_pass=True,
         name='Scores are not less than 0.1'
     ))

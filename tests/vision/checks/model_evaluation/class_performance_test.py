@@ -153,7 +153,7 @@ def test_condition_test_performance_not_less_than_pass(mnist_dataset_train,
     result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
                        device=device)
 
-    assert_that(result.conditions_results[0].is_pass, is_(True))
+    assert_that(result.conditions_results[0].is_pass, is_(False))
 
 
 def test_condition_test_performance_not_less_than_fail(mnist_dataset_train,

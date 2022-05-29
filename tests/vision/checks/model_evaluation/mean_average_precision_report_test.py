@@ -61,6 +61,7 @@ def test_coco(coco_test_visiondata, mock_trained_yolov5_object_detection, device
 
     assert_that(result.conditions_results[0], equal_condition_result(
         is_pass=True,
+        details='Found lowest score of 0.34 for area Small (area < 32^2) and metric mAP@.50 (%)',
         name='Scores are not less than 0.1'
     ))
 
@@ -73,6 +74,7 @@ def test_coco(coco_test_visiondata, mock_trained_yolov5_object_detection, device
 
     assert_that(result.conditions_results[2], equal_condition_result(
         is_pass=True,
+        details='mAP score is: 0.41',
         name='mAP score is not less than 0.3'
     ))
 

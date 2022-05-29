@@ -21,6 +21,7 @@ from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERIC_METHODS,
                                                  calc_drift_and_plot, get_drift_method)
+from deepchecks.utils.strings import format_number
 from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.utils.label_prediction_properties import (DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES,
                                                                  DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES,
@@ -244,24 +245,39 @@ class TrainTestPredictionDrift(TrainTestCheck):
 
         def condition(result: Dict) -> ConditionResult:
             cat_method, num_method = get_drift_method(result)
-            not_passing_categorical_columns = {props: f'{d["Drift score"]:.2}' for props, d in result.items() if
-                                               d['Drift score'] > max_allowed_categorical_score
-                                               and d['Method'] in SUPPORTED_CATEGORICAL_METHODS}
-            not_passing_numeric_columns = {props: f'{d["Drift score"]:.2}' for props, d in result.items() if
-                                           d['Drift score'] > max_allowed_numeric_score
-                                           and d['Method'] in SUPPORTED_NUMERIC_METHODS}
-            return_str = ''
-            if not_passing_categorical_columns:
-                return_str += f'Found categorical prediction properties with {cat_method} above threshold:' \
-                              f' {not_passing_categorical_columns}\n'
-            if not_passing_numeric_columns:
-                return_str += f'Found numeric prediction properties with {num_method} above' \
-                              f' threshold: {not_passing_numeric_columns}\n'
+            cat_drift_props = {prop: d['Drift score'] for prop, d in result.items()
+                               if d['Method'] in SUPPORTED_CATEGORICAL_METHODS}
+            cat_drift_props = dict(sorted(cat_drift_props.items(), key=lambda item: item[1], reverse=True))
+            not_passing_categorical_props = {props: format_number(d)
+                                             for props, d in cat_drift_props.items()
+                                             if d > max_allowed_categorical_score}
 
-            if return_str:
-                return ConditionResult(ConditionCategory.FAIL, return_str)
+            num_drift_props = {prop: d['Drift score'] for prop, d in result.items()
+                               if d['Method'] in SUPPORTED_NUMERIC_METHODS}
+            num_drift_props = dict(sorted(num_drift_props.items(), key=lambda item: item[1], reverse=True))
+            not_passing_numeric_props = {prop: format_number(d) for prop, d in num_drift_props.items()
+                                         if d > max_allowed_numeric_score}
+
+            if not_passing_categorical_props or not_passing_numeric_props:
+                details = ''
+                if not_passing_categorical_props:
+                    details += f'Found categorical prediction properties with {cat_method} above threshold:' \
+                                  f' {not_passing_categorical_props}\n'
+                if not_passing_numeric_props:
+                    details += f'Found numeric prediction properties with {num_method} above' \
+                                  f' threshold: {not_passing_numeric_props}\n'
+                return ConditionResult(ConditionCategory.FAIL, details)
             else:
-                return ConditionResult(ConditionCategory.PASS)
+                details = ''
+                if cat_drift_props:
+                    prop = next(iter(cat_drift_props))
+                    details += f'Property "{prop}" has the highest categorical drift score: ' \
+                               f'{format_number(cat_drift_props[prop])}\n'
+                if num_drift_props:
+                    prop = next(iter(num_drift_props))
+                    details += f'Property "{prop}" has the highest numerical drift score: ' \
+                               f'{format_number(num_drift_props[prop])}'
+                return ConditionResult(ConditionCategory.PASS, details)
 
         return self.add_condition(f'categorical drift score <= {max_allowed_categorical_score} and '
                                   f'numerical drift score <= {max_allowed_numeric_score} for prediction drift',

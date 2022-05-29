@@ -11,6 +11,7 @@
 """Module containing class performance check."""
 from typing import Dict, List, TypeVar
 
+import numpy as np
 import pandas as pd
 import plotly.express as px
 from ignite.metrics import Metric
@@ -154,13 +155,17 @@ class ClassPerformance(TrainTestCheck):
             Minimum score to pass the check.
         """
         def condition(check_result: pd.DataFrame):
-            not_passed = check_result.loc[check_result['Value'] < min_score]
-            not_passed_test = check_result.loc[check_result['Dataset'] == 'Test']
-            if len(not_passed):
+            test_scores = check_result.loc[check_result['Dataset'] == 'Test']
+            not_passed_test = test_scores.loc[test_scores['Value'] < min_score]
+            if len(not_passed_test):
                 details = f'Found metrics with scores below threshold:\n' \
                           f'{not_passed_test[["Class Name", "Metric", "Value"]].to_dict("records")}'
                 return ConditionResult(ConditionCategory.FAIL, details)
-            return ConditionResult(ConditionCategory.PASS)
+            else:
+                min_metric = test_scores.iloc[test_scores['Value'].idmin()]
+                details = f'Found minimum score for {min_metric["Metric"]} metric of value ' \
+                          f'{format_number(min_metric["Value"])} for class {min_metric["Class Name"]}'
+                return ConditionResult(ConditionCategory.PASS, details)
 
         return self.add_condition(f'Scores are not less than {min_score}', condition)
 
@@ -182,44 +187,38 @@ class ClassPerformance(TrainTestCheck):
         def condition(check_result: pd.DataFrame) -> ConditionResult:
             test_scores = check_result.loc[check_result['Dataset'] == 'Test']
             train_scores = check_result.loc[check_result['Dataset'] == 'Train']
+            max_degradation = ('', -np.inf)
 
-            if check_result.get('Class Name') is not None:
-                classes = check_result['Class Name'].unique()
-            else:
-                classes = None
+            def update_max_degradation(diffs, class_name):
+                nonlocal max_degradation
+                max_scorer, max_diff = sorted(list(diffs.items()), key=lambda x: x[1], reverse=True)[0]
+                if max_diff > max_degradation[1]:
+                    max_degradation = f'Found max degradation of {format_percent(max_diff)} for metric ' \
+                                      f'{max_scorer} and class {class_name}', max_diff
+
+            classes = check_result['Class Name'].unique()
             explained_failures = []
-            if classes is not None:
-                for class_name in classes:
-                    test_scores_class = test_scores.loc[test_scores['Class Name'] == class_name]
-                    train_scores_class = train_scores.loc[train_scores['Class Name'] == class_name]
-                    test_scores_dict = dict(zip(test_scores_class['Metric'], test_scores_class['Value']))
-                    train_scores_dict = dict(zip(train_scores_class['Metric'], train_scores_class['Value']))
-                    # Calculate percentage of change from train to test
-                    diff = {score_name: _ratio_of_change_calc(score, test_scores_dict[score_name])
-                            for score_name, score in train_scores_dict.items()}
-                    failed_scores = [k for k, v in diff.items() if v > threshold]
-                    if failed_scores:
-                        for score_name in failed_scores:
-                            explained_failures.append(f'{score_name} for class {class_name} '
-                                                      f'(train={format_number(train_scores_dict[score_name])} '
-                                                      f'test={format_number(test_scores_dict[score_name])})')
-            else:
-                test_scores_dict = dict(zip(test_scores['Metric'], test_scores['Value']))
-                train_scores_dict = dict(zip(train_scores['Metric'], train_scores['Value']))
+            for class_name in classes:
+                test_scores_class = test_scores.loc[test_scores['Class Name'] == class_name]
+                train_scores_class = train_scores.loc[train_scores['Class Name'] == class_name]
+                test_scores_dict = dict(zip(test_scores_class['Metric'], test_scores_class['Value']))
+                train_scores_dict = dict(zip(train_scores_class['Metric'], train_scores_class['Value']))
                 # Calculate percentage of change from train to test
                 diff = {score_name: _ratio_of_change_calc(score, test_scores_dict[score_name])
                         for score_name, score in train_scores_dict.items()}
+                update_max_degradation(diff, class_name)
                 failed_scores = [k for k, v in diff.items() if v > threshold]
-                if failed_scores:
-                    for score_name in failed_scores:
-                        explained_failures.append(f'{score_name}: '
-                                                  f'train={format_number(train_scores_dict[score_name])}, '
-                                                  f'test={format_number(test_scores_dict[score_name])}')
+                for score_name in failed_scores:
+                    explained_failures.append(f'{score_name} for class {class_name} '
+                                              f'(train={format_number(train_scores_dict[score_name])} '
+                                              f'test={format_number(test_scores_dict[score_name])})')
+
             if explained_failures:
                 message = '\n'.join(explained_failures)
                 return ConditionResult(ConditionCategory.FAIL, message)
             else:
-                return ConditionResult(ConditionCategory.PASS)
+                message = max_degradation[0]
+                return ConditionResult(ConditionCategory.PASS, message)
 
         return self.add_condition(f'Train-Test scores relative degradation is not greater than {threshold}',
                                   condition)
@@ -258,6 +257,7 @@ class ClassPerformance(TrainTestCheck):
             if score not in set(check_result['Metric']):
                 raise DeepchecksValueError(f'Data was not calculated using the scoring function: {score}')
 
+            condition_passed = True
             datasets_details = []
             for dataset in ['Test', 'Train']:
                 data = check_result.loc[(check_result['Dataset'] == dataset) & (check_result['Metric'] == score)]
@@ -273,19 +273,18 @@ class ClassPerformance(TrainTestCheck):
                 max_value = max_row['Value']
 
                 relative_difference = abs((min_value - max_value) / max_value)
+                condition_passed &= relative_difference < threshold
 
-                if relative_difference >= threshold:
-                    details = (
-                        f'Relative ratio difference between highest and lowest in {dataset} dataset '
-                        f'classes is {format_percent(relative_difference)}, using {score} metric. '
-                        f'Lowest class - {min_class_name}: {format_number(min_value)}; '
-                        f'Highest class - {max_class_name}: {format_number(max_value)}'
-                    )
-                    datasets_details.append(details)
-            if datasets_details:
-                return ConditionResult(ConditionCategory.FAIL, details='\n'.join(datasets_details))
-            else:
-                return ConditionResult(ConditionCategory.PASS)
+                details = (
+                    f'Relative ratio difference between highest and lowest in {dataset} dataset '
+                    f'classes is {format_percent(relative_difference)}, using {score} metric. '
+                    f'Lowest class - {min_class_name}: {format_number(min_value)}; '
+                    f'Highest class - {max_class_name}: {format_number(max_value)}'
+                )
+                datasets_details.append(details)
+
+            category = ConditionCategory.PASS if condition_passed else ConditionCategory.FAIL
+            return ConditionResult(category, details='\n'.join(datasets_details))
 
         return self.add_condition(
             name=(
