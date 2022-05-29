@@ -55,7 +55,7 @@ class Batch:
         preds = self._context.static_predictions[self._dataset_kind]
         dataset = self._context.get_data_by_kind(self._dataset_kind)
         indexes = [dataset.to_dataset_index(self.batch_start_index + index)[0]
-                   for index in range(len(self._batch[0]))]
+                   for index in range(len(self))]
         if isinstance(preds, torch.Tensor):
             return preds[indexes]
         return itemgetter(*indexes)(preds)
@@ -90,7 +90,13 @@ class Batch:
 
     def __len__(self):
         """Return length of batch."""
-        return len(self._batch)
+        dataset = self._context.get_data_by_kind(self._dataset_kind)
+        dataset_len = len(dataset.data_loader.dataset)
+        dataloader_len = len(dataset.data_loader)
+        max_len = int(dataset_len / dataloader_len + 0.5)
+        if self.batch_start_index + max_len > dataset_len:  # last batch
+            return dataset_len - self.batch_start_index
+        return max_len
 
     def get_index_in_dataset(self, index: int) -> int:
         """For given index in this batch returns the real index in the underlying dataset object. Can be used to \

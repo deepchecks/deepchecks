@@ -92,8 +92,6 @@ class ClassPerformance(TrainTestCheck):
         """Update the metrics by passing the batch to ignite metric update method."""
         label = batch.labels
         prediction = batch.predictions
-        print(len(label))
-        print(len(prediction))
         for _, metric in self._data_metrics[dataset_kind].items():
             metric.update((prediction, label))
 

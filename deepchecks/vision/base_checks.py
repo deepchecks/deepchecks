@@ -73,7 +73,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
                 batch = Batch(batch, context, DatasetKind.TRAIN, batch_start_index)
                 context.train.update_cache(batch)
                 self.update(context, batch, DatasetKind.TRAIN)
-                batch_start_index += len(batch[0])
+                batch_start_index += len(batch)
 
             with progressbar_factory.create_dummy(name='Computing Check', unit='Check'):
                 result = self.compute(context, DatasetKind.TRAIN)
@@ -148,7 +148,7 @@ class TrainTestCheck(TrainTestBaseCheck):
                 batch = Batch(batch, context, DatasetKind.TRAIN, batch_start_index)
                 context.train.update_cache(batch)
                 self.update(context, batch, DatasetKind.TRAIN)
-                batch_start_index += len(batch[0])
+                batch_start_index += len(batch)
 
             context.test.init_cache()
             batch_start_index = 0
@@ -161,7 +161,7 @@ class TrainTestCheck(TrainTestBaseCheck):
                 batch = Batch(batch, context, DatasetKind.TEST, batch_start_index)
                 context.test.update_cache(batch)
                 self.update(context, batch, DatasetKind.TEST)
-                batch_start_index += len(batch[0])
+                batch_start_index += len(batch)
 
             with progressbar_factory.create_dummy(name='Computing Check', unit='Check'):
                 result = self.compute(context)
