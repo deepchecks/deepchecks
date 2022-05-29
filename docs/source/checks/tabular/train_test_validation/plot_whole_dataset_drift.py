@@ -25,13 +25,13 @@ and may even affect the relationships between those features, which are undetect
 univariate drift methods.
 The whole dataset drift check tries to detect multivariate drift between the two input datasets.
 
-For more information on drift, please visit our :doc:`drift guide </user-guide/general/drift_guide.rst>`.
+For more information on drift, please visit our :doc:`drift guide </user-guide/general/drift_guide>`.
 
 How Deepchecks Detects Dataset Drift
 ------------------------------------
 
-This check detects multivariate drift by using a :doc:`domain classifier </user-guide/general/drift_guide.rst#detection-by-domain-classifier>`.
-Other methods to detect drift include :doc:`univariate measures </user-guide/general/drift_guide.rst#detection-by-univariate-measure>`
+This check detects multivariate drift by using a :doc:`domain classifier </user-guide/general/drift_guide#detection-by-domain-classifier>`.
+Other methods to detect drift include :doc:`univariate measures </user-guide/general/drift_guide#detection-by-univariate-measure>`
 which is used in other checks, such as :doc:`Train Test Feature Drift check </checks_gallery/tabular/train_test_validation/plot_train_test_feature_drift>`.
 """
 

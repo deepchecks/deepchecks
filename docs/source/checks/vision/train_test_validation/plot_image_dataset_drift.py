@@ -25,13 +25,13 @@ Image dataset drift is a drift that occurs in more than one image property at a 
 and may even affect the relationships between those properties, which are undetectable by
 univariate drift methods.
 
-For more information on drift, please visit our :doc:`drift guide </user-guide/general/drift_guide.rst>`.
+For more information on drift, please visit our :doc:`drift guide </user-guide/general/drift_guide>`.
 
 How Deepchecks Detects Dataset Drift
 ------------------------------------
 
-This check detects multivariate drift by using a :doc:`domain classifier </user-guide/general/drift_guide.rst#detection-by-domain-classifier>`.
-Other methods to detect drift include :doc:`univariate measures </user-guide/general/drift_guide.rst#detection-by-univariate-measure>`
+This check detects multivariate drift by using a :doc:`domain classifier </user-guide/general/drift_guide#detection-by-domain-classifier>`.
+Other methods to detect drift include :doc:`univariate measures </user-guide/general/drift_guide#detection-by-univariate-measure>`
 which is used in other checks, such as :doc:`Image Property Drift check </checks_gallery/vision/train_test_validation/plot_image_property_drift>`.
 
 Using Properties to Detect Image Drift

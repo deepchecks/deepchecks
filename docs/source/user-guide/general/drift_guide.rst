@@ -101,7 +101,7 @@ features, labels or maybe just the predictions). However, this is not trivial:
   If we detect drift, we have no way to know whether this drift is a simple data drift, label drift or concept drift, as
   we don't know the true labels.
 
-In deepchecks, we show you a drift score and the drift on your most :doc:`important features </user-guide/tabular/feature_importance.rst>`,
+In deepchecks, we show you a drift score and the drift on your most :doc:`important features </user-guide/tabular/feature_importance>`,
 giving you an insight on the severity of your drift, even if your not still sure of its source. Now you can implement one of the following solutions:
 
 Retrain Your Model

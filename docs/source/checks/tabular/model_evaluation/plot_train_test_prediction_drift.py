@@ -25,12 +25,12 @@ is our only indication that a changed has happened in the data that actually aff
 predictions. If labels are available, it's also recommended to run the
 :doc:`Label Drift check </checks_gallery/tabular/train_test_validation/plot_train_test_label_drift>`.
 
-For more information on drift, please visit our :doc:`drift guide </user-guide/general/drift_guide.rst>`.
+For more information on drift, please visit our :doc:`drift guide </user-guide/general/drift_guide>`.
 
 How Deepchecks Detects Prediction Drift
 ------------------------------------
 
-This check detects prediction drift by using :doc:`univariate measures </user-guide/general/drift_guide.rst#detection-by-univariate-measure>`
+This check detects prediction drift by using :doc:`univariate measures </user-guide/general/drift_guide#detection-by-univariate-measure>`
 on the prediction output.
 """
 
