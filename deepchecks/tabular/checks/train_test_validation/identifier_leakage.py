@@ -18,6 +18,7 @@ import deepchecks.ppscore as pps
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DatasetValidationError
 from deepchecks.tabular import Context, SingleDatasetCheck
+from deepchecks.tabular.dataset import _get_dataset_docs_tag
 from deepchecks.tabular.utils.messages import get_condition_passed_message
 from deepchecks.utils.strings import format_number
 
@@ -67,7 +68,8 @@ class IdentifierLeakage(SingleDatasetCheck):
 
         if len(relevant_data.columns) == 1:
             raise DatasetValidationError(
-                'Check is irrelevant for Datasets without index or date column'
+                'Dataset does not contain an index or a datetime',
+                html=f'Dataset does not contain an index or a datetime. see {_get_dataset_docs_tag()}'
             )
 
         df_pps = pps.predictors(

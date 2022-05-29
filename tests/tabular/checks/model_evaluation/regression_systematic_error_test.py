@@ -30,7 +30,7 @@ def test_dataset_no_label(diabetes_dataset_no_label, diabetes_model):
     # Assert
     assert_that(
         calling(RegressionSystematicError().run).with_args(diabetes_dataset_no_label, diabetes_model),
-        raises(DeepchecksNotSupportedError, 'There is no label defined to use on the dataset')
+        raises(DeepchecksNotSupportedError, 'Dataset does not contain a label column')
     )
 
 

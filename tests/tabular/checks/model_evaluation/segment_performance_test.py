@@ -33,7 +33,7 @@ def test_dataset_no_label(iris, iris_adaboost):
     assert_that(
         calling(SegmentPerformance().run).with_args(iris_dataset, iris_adaboost),
         raises(DeepchecksNotSupportedError,
-               'There is no label defined to use on the dataset')
+               'Dataset does not contain a label column')
     )
 
 

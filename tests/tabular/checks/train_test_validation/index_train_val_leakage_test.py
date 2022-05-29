@@ -58,7 +58,7 @@ def test_dataset_no_index():
     ds = dataset_from_dict({'col1': [1, 2, 3, 4, 10, 11]})
     assert_that(
         calling(IndexTrainTestLeakage().run).with_args(ds, ds),
-        raises(DatasetValidationError, 'There is no index defined to use on the dataset'))
+        raises(DatasetValidationError, 'Dataset does not contain an index'))
 
 
 def test_nan():

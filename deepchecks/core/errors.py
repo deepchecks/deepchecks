@@ -19,9 +19,10 @@ __all__ = ['DeepchecksValueError', 'DeepchecksNotSupportedError', 'DeepchecksPro
 class DeepchecksBaseError(Exception):
     """Base exception class for all 'Deepchecks' error types."""
 
-    def __init__(self, message: str):
+    def __init__(self, message: str, html: str = None):
         super().__init__(message)
         self.message = message
+        self.html = html or message
 
 
 class DeepchecksValueError(DeepchecksBaseError):

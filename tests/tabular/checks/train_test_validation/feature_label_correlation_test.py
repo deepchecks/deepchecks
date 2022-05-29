@@ -74,7 +74,7 @@ def test_dataset_no_label():
     df = Dataset(df)
     assert_that(
         calling(FeatureLabelCorrelation(random_state=42).run).with_args(dataset=df),
-        raises(DeepchecksNotSupportedError, 'There is no label defined to use on the dataset'))
+        raises(DeepchecksNotSupportedError, 'Dataset does not contain a label column'))
 
 
 def test_trainval_assert_feature_label_correlation():
@@ -119,7 +119,7 @@ def test_trainval_dataset_no_label():
             train_dataset=Dataset(df),
             test_dataset=Dataset(df2)),
         raises(
-            DeepchecksNotSupportedError, 'There is no label defined to use on the dataset')
+            DeepchecksNotSupportedError, 'Dataset does not contain a label column')
     )
 
 
