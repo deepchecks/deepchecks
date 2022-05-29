@@ -52,21 +52,24 @@ Data Drift
 Data drift is any change in the distribution of the data.
 
 For example, in a dataset predicting a person's income, the target (income) is highly correlated with high level of
-education (advanced degrees). If people of lower social-economic status would start to get higher education, the
-distribution of level of education changes, but not it's effect on income (the target label).
+education (advanced academic degrees). A government plan to help people of lower social-economic status to get higher education,
+would create a data drift that changes how the data distributes. However, this will not change the relation between a
+person's salary and their level of education, as these new graduates will be able to work in better paying professions.
 
 
 Concept Drift
 -------------
 Concept drift is a change in the underlying relation between the data and the label.
 
-Continuing the example of predicting income using the level of education, let's assume that in older the level of education is highly linked to higher income.
-With experience being more and more important in the current job market, the predictive ability of the level of
-education to the person's expected salary changes.
+Continuing the example of predicting income using the level of education, let's assume that a change in the job market
+(for example, the rise of high-tech companies) cause a drift in the data: suddenly, job experience is becoming more
+significant for programming jobs than a degree in computer science. Now, the relation between the level of education
+and the income has changed - and a person's salary can't be predicted from their level of education as well as it was previous data.
 
 Concept drift will almost always require some changes to the model, usually by retraining of the model on newer data.
 
-When labels are not available (as happens in many cases), data drift cannot be discerned from concept drift.
+.. note::
+    When labels are not available (as happens in many cases), data drift cannot be discerned from concept drift.
 
 For more on the different types of drift, `see here <https://deepchecks.com/data-drift-vs-concept-drift-what-are-the-main-differences/>`_
 
@@ -75,56 +78,6 @@ For more on the different types of drift, `see here <https://deepchecks.com/data
    :align: center
 
 Different types of drift. Adapted from `this source <https://www.win.tue.nl/~mpechen/publications/pubs/Gama_ACMCS_AdaptationCD_accepted.pdf>`_.
-
-
-What Can You Do in Case of Drift?
-=================================
-
-When suspecting drift in your data, you must first understand what was affected by the drift (whether it was the
-features, labels or maybe just the predictions). However, this is not trivial:
-
-* If your drifted data has labels, you can easily know which type of drift you are facing.
-* However, the more common case is when you don't have your data labels yet. In this case, we can only try and measure
-  drift on the data (features) or the model's output.
-  If we detect drift, we have no way to know whether this drift is a simple data drift, label drift or concept drift, as
-  we don't know the true labels.
-
-In deepchecks, we show you a drift score and the drift on your most :doc:`important features </user-guide/tabular/feature_importance>`,
-giving you an insight on the severity of your drift, even if your not still sure of its source. Now you can implement one of the following solutions:
-
-Retrain Your Model
-^^^^^^^^^^^^^^^^^^
-
-If you have either kind of drift, retraining your model on new data that better represents the current distribution,
-is the most straight-forward solution.
-However, this solution may require additional resources such as manual labeling of new data, or might not be possible
-if labels on the newer data are not available yet.
-
-Retraining is usually necessary in cases of concept drift. However, retraining may still be of use even for label drift,
-as the model may perform better when knowing the correct distribution of the label (this is not relevant when the
-training dataset is sampled so labels are evenly distributed).
-
-.. note::
-    If you're retraining to compensate for drift, you can also over-sample or give higher weights to newer or more
-    out-of-distribution data, in order for you model to adjust to the new data distribution.
-
-Adjust Your Prediction
-^^^^^^^^^^^^^^^^^^^^^^
-
-When retraining is not an option, or if a quick action needs to be taken, adjustments to the output of the models may
-still help in cases of concept drift. This can be done by either recalibrating your model's output, or by changing your
-decision thresholds on the model's scores.
-
-However, these methods assume that there's still enough similarity between your training data and your current data,
-which may not always be the case.
-
-Do Nothing
-^^^^^^^^^^
-
-Not all drift is necessarily bad, and each case should be examined separately. Sometimes, data drift may be simply
-explained by label drift (for example, in a dataset of food images, a drift in brightness of images can simply mean
-that people are eating more eggs, which are whiter than other foods).
-
 
 How Do You Detect Drift?
 =========================
@@ -169,17 +122,15 @@ In deepchecks (in checks :doc:`Whole Dataset Drift</checks_gallery/tabular/train
 the train and the test sets, and assign label 0 to samples that come from the training set, and 1 to those who are
 from the test set. Then, we train a binary classifer of type
 `Histogram-based Gradient Boosting Classification Tree
-<https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.HistGradientBoostingClassifier.html>`__, and measure the
-drift score from the AUC score of this classifier.
+<https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.HistGradientBoostingClassifier.html>`__.
+We normalize the AUC score of this classifier and use it as the drift score, as the higher the AUC, the better the model,
+meaning the datasets are significantly different.
+
 
 How Can I Use Deepchecks to Detect Drift?
 =========================================
 
-.. image:: /_static/images/general/deepchecks_label_drift.png
-   :alt: Output of the TrainTestLabelDrift check
-   :align: center
-
-Deepchecks can test your data for both concept drift and label drift, by using a variety of methods.
+Deepchecks can test your data for both concept drift and data drift, by using a variety of methods.
 
 Tabular Data
 ------------
@@ -189,7 +140,8 @@ To detect `data <#data-drift>`__ or `concept drift <#concept-drift>`__, deepchec
 `univariate measures <#detection-by-univariate-measure>`__ and the :doc:`Whole Dataset Drift check</checks_gallery/tabular/train_test_validation/plot_whole_dataset_drift>`
 which uses a `domain classifier <#detection-by-domain-classifier>`__ in order to detect multivariate drift.
 
-For label drift, deepchecks offers the :doc:`Label Drift check </checks_gallery/tabular/train_test_validation/plot_train_test_label_drift>`, which also uses `univariate measures <#detection-by-univariate-measure>`__.
+For drift in your label's distribution, deepchecks offers the :doc:`Label Drift check </checks_gallery/tabular/train_test_validation/plot_train_test_label_drift>`,
+which also uses `univariate measures <#detection-by-univariate-measure>`__.
 
 In cases where the label is not available, we strongly recommend to also use the :doc:`Prediction Drift check</checks_gallery/tabular/model_evaluation/plot_train_test_prediction_drift>`,
 which uses the same methods but on the model's predictions, and can detect possible changes in the distribution of the label.
@@ -213,13 +165,64 @@ To detect `data <#data-drift>`__ or `concept drift <#concept-drift>`__, deepchec
 `univariate measures <#detection-by-univariate-measure>`__ and the :doc:`Image Dataset Drift check</checks_gallery/vision/train_test_validation/plot_image_dataset_drift>`
 which uses a `domain classifier <#detection-by-domain-classifier>`__ in order to detect multivariate drift.
 
-For label drift, deepchecks offers the :doc:`Label Drift check </checks_gallery/vision/train_test_validation/plot_train_test_label_drift>`,
+For drift in your label's distribution, deepchecks offers the :doc:`Label Drift check </checks_gallery/vision/train_test_validation/plot_train_test_label_drift>`,
 which also uses `univariate measures <#detection-by-univariate-measure>`__.
 
 In cases where the label is not available, we strongly recommend to also use the :doc:`Prediction Drift check</checks_gallery/vision/model_evaluation/plot_train_test_prediction_drift>`,
 which uses the same methods but on the model's predictions, and can detect possible changes in the distribution of the label.
 
 For code examples, see `here <#computer-vision-checks>`__
+
+What Can You Do in Case of Drift?
+=================================
+
+.. image:: /_static/images/general/deepchecks_label_drift.png
+   :alt: Output of the TrainTestLabelDrift check
+   :align: center
+
+When suspecting drift in your data, you must first understand what changed in the data - were it the features, the labels,
+or maybe just the predictions.
+In deepchecks, we show you a drift score and the drift on your most :doc:`important features </user-guide/tabular/feature_importance>`,
+giving you an insight on the severity of your drift, even if your not still sure of its source.
+
+It is recommended to manually explore your data and try to understand the root cause of your changes, in order to
+estimate the effect of the change on your model's performance.
+After you have deeper insights on your data, you can choose to act in one of the following ways:
+
+
+Retrain Your Model
+^^^^^^^^^^^^^^^^^^
+
+If you have either kind of drift, retraining your model on new data that better represents the current distribution,
+is the most straight-forward solution.
+However, this solution may require additional resources such as manual labeling of new data, or might not be possible
+if labels on the newer data are not available yet.
+
+Retraining is usually necessary in cases of concept drift. However, retraining may still be of use even for label drift
+(data drift that caused a change in the label's distribution, but not in the ability to predict the label from the data),
+as the model may perform better when knowing the correct distribution of the label (this is not relevant when the
+training dataset is sampled so labels are evenly distributed).
+
+.. note::
+    If you're retraining to compensate for drift, you can also over-sample or give higher weights to newer or more
+    out-of-distribution data, in order for you model to adjust to the new data distribution.
+
+Adjust Your Prediction
+^^^^^^^^^^^^^^^^^^^^^^
+
+When retraining is not an option, or if a quick action needs to be taken, adjustments to the output of the models may
+still help in cases of concept drift. This can be done by either recalibrating your model's output, or by changing your
+decision thresholds on the model's scores.
+
+However, these methods assume that there's still enough similarity between your training data and your current data,
+which may not always be the case.
+
+Do Nothing
+^^^^^^^^^^
+
+Not all drift is necessarily bad, and each case should be examined separately. Sometimes, data drift may be simply
+explained by changes in your label distribution (for example, in a dataset of food images, a drift in brightness of images can simply mean
+that people are eating more eggs, which are whiter than other foods).
 
 
 Code Examples
