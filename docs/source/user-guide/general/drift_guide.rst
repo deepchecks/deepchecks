@@ -198,9 +198,9 @@ is the most straight-forward solution.
 However, this solution may require additional resources such as manual labeling of new data, or might not be possible
 if labels on the newer data are not available yet.
 
-Retraining is usually necessary in cases of concept drift. However, retraining may still be of use even for label drift
-(data drift that caused a change in the label's distribution, but not in the ability to predict the label from the data),
-as the model may perform better when knowing the correct distribution of the label (this is not relevant when the
+Retraining is usually necessary in cases of concept drift. However, retraining may still be of use even for other cases, such as
+data drift that caused a change in the label's distribution, but not in the ability to predict the label from the data.
+In this cas, retraining the model with the correct distribution of the label can improve the model's performance (this is not relevant when the
 training dataset is sampled so labels are evenly distributed).
 
 .. note::
