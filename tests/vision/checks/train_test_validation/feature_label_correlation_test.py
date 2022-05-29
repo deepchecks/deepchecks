@@ -74,13 +74,13 @@ def test_is_float_column():
     assert_that(FeatureLabelCorrelationChange.is_float_column(col), equal_to(True))
 
 
-def test_no_drift_classification(mnist_dataset_train):
+def test_no_drift_classification(mnist_dataset_train, device):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_train
     check = FeatureLabelCorrelationChange(per_class=False, random_state=42)
 
     # Act
-    result = check.run(train, test)
+    result = check.run(train, test, device=device)
 
     # Assert
     assert_that(result.value, has_entries({
@@ -90,7 +90,7 @@ def test_no_drift_classification(mnist_dataset_train):
     }))
 
 
-def test_drift_classification(mnist_dataset_train, mnist_dataset_test):
+def test_drift_classification(mnist_dataset_train, mnist_dataset_test, device):
     mnist_dataset_test.batch_to_images = mnist_batch_to_images_with_bias
 
     train, test = mnist_dataset_train, mnist_dataset_test
@@ -98,7 +98,7 @@ def test_drift_classification(mnist_dataset_train, mnist_dataset_test):
     check = FeatureLabelCorrelationChange(per_class=False, random_state=42)
 
     # Act
-    result = check.run(train, test)
+    result = check.run(train, test, device=device)
 
     # Assert
     assert_that(result.value, has_entries({
@@ -108,13 +108,13 @@ def test_drift_classification(mnist_dataset_train, mnist_dataset_test):
     }))
 
 
-def test_no_drift_object_detection(coco_train_visiondata):
+def test_no_drift_object_detection(coco_train_visiondata, device):
     # Arrange
     train, test = coco_train_visiondata, coco_train_visiondata
     check = FeatureLabelCorrelationChange(per_class=False, random_state=42)
 
     # Act
-    result = check.run(train, test)
+    result = check.run(train, test, device=device)
 
     # Assert
     assert_that(result.value, has_entries({
@@ -124,7 +124,7 @@ def test_no_drift_object_detection(coco_train_visiondata):
     }))
 
 
-def test_drift_object_detection(coco_train_visiondata, coco_test_visiondata):
+def test_drift_object_detection(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
     train, test = coco_train_visiondata, coco_test_visiondata
     check = FeatureLabelCorrelationChange(per_class=False, random_state=42)
@@ -132,7 +132,7 @@ def test_drift_object_detection(coco_train_visiondata, coco_test_visiondata):
     train.batch_to_images = get_coco_batch_to_images_with_bias(train.batch_to_labels)
 
     # Act
-    result = check.run(train, test)
+    result = check.run(train, test, device=device)
 
     # Assert
     assert_that(result.value, has_entries({
@@ -142,13 +142,13 @@ def test_drift_object_detection(coco_train_visiondata, coco_test_visiondata):
     }))
 
 
-def test_no_drift_classification_per_class(mnist_dataset_train):
+def test_no_drift_classification_per_class(mnist_dataset_train, device):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_train
     check = FeatureLabelCorrelationChange(per_class=True, random_state=42)
 
     # Act
-    result = check.run(train, test, n_samples=None)
+    result = check.run(train, test, n_samples=None, device=device)
 
     # Assert
     assert_that(result.value, has_entries({
@@ -158,7 +158,7 @@ def test_no_drift_classification_per_class(mnist_dataset_train):
     }))
 
 
-def test_drift_classification_per_class(mnist_dataset_train, mnist_dataset_test):
+def test_drift_classification_per_class(mnist_dataset_train, mnist_dataset_test, device):
     mnist_dataset_test.batch_to_images = mnist_batch_to_images_with_bias
 
     train, test = mnist_dataset_train, mnist_dataset_test
@@ -166,7 +166,7 @@ def test_drift_classification_per_class(mnist_dataset_train, mnist_dataset_test)
     check = FeatureLabelCorrelationChange(per_class=True, random_state=42)
 
     # Act
-    result = check.run(train, test, n_samples=None)
+    result = check.run(train, test, n_samples=None, device=device)
 
     # Assert
     assert_that(result.value, has_entries({
@@ -176,13 +176,13 @@ def test_drift_classification_per_class(mnist_dataset_train, mnist_dataset_test)
     }))
 
 
-def test_no_drift_object_detection_per_class(coco_train_visiondata):
+def test_no_drift_object_detection_per_class(coco_train_visiondata, device):
     # Arrange
     train, test = coco_train_visiondata, coco_train_visiondata
     check = FeatureLabelCorrelationChange(per_class=True, random_state=42)
 
     # Act
-    result = check.run(train, test)
+    result = check.run(train, test, device=device)
 
     # Assert
     assert_that(result.value, has_entries({
@@ -192,13 +192,13 @@ def test_no_drift_object_detection_per_class(coco_train_visiondata):
     }))
 
 
-def test_no_drift_object_detection_per_class_min_pps(coco_train_visiondata):
+def test_no_drift_object_detection_per_class_min_pps(coco_train_visiondata, device):
     # Arrange
     train, test = coco_train_visiondata, coco_train_visiondata
     check = FeatureLabelCorrelationChange(per_class=True, random_state=42, min_pps_to_show=2)
 
     # Act
-    result = check.run(train, test)
+    result = check.run(train, test, device=device)
 
     # Assert
     assert_that(result.value, has_entries({
@@ -209,7 +209,7 @@ def test_no_drift_object_detection_per_class_min_pps(coco_train_visiondata):
     assert_that(result.display, equal_to([]))
 
 
-def test_drift_object_detections_min_pps(coco_train_visiondata, coco_test_visiondata):
+def test_drift_object_detections_min_pps(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
     train, test = coco_train_visiondata, coco_test_visiondata
     check = FeatureLabelCorrelationChange(per_class=False, random_state=42, min_pps_to_show=2)
@@ -217,7 +217,7 @@ def test_drift_object_detections_min_pps(coco_train_visiondata, coco_test_vision
     train.batch_to_images = get_coco_batch_to_images_with_bias(train.batch_to_labels)
 
     # Act
-    result = check.run(train, test)
+    result = check.run(train, test, device=device)
 
     # Assert
     assert_that(result.value, has_entries({
@@ -228,7 +228,7 @@ def test_drift_object_detections_min_pps(coco_train_visiondata, coco_test_vision
     assert_that(result.display, equal_to([]))
 
 
-def test_drift_object_detection_per_class(coco_train_visiondata, coco_test_visiondata):
+def test_drift_object_detection_per_class(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
     train, test = coco_train_visiondata, coco_test_visiondata
     check = FeatureLabelCorrelationChange(per_class=True, random_state=42)
@@ -236,7 +236,7 @@ def test_drift_object_detection_per_class(coco_train_visiondata, coco_test_visio
     train.batch_to_images = get_coco_batch_to_images_with_bias(train.batch_to_labels)
 
     # Act
-    result = check.run(train, test)
+    result = check.run(train, test, device=device)
 
     # Assert
     assert_that(result.value, has_entries({
@@ -246,7 +246,7 @@ def test_drift_object_detection_per_class(coco_train_visiondata, coco_test_visio
     }))
 
 
-def test_train_test_condition_pps_train_pass(coco_train_visiondata):
+def test_train_test_condition_pps_train_pass(coco_train_visiondata, device):
     # Arrange
     train, test = coco_train_visiondata, coco_train_visiondata
     condition_value = 0.3
@@ -255,7 +255,7 @@ def test_train_test_condition_pps_train_pass(coco_train_visiondata):
 
     # Act
     result = check.run(train_dataset=train,
-                       test_dataset=test)
+                       test_dataset=test, device=device)
     condition_result, *_ = check.conditions_decision(result)
 
     # Assert
@@ -265,7 +265,7 @@ def test_train_test_condition_pps_train_pass(coco_train_visiondata):
     ))
 
 
-def test_train_test_condition_pps_train_fail(coco_train_visiondata, coco_test_visiondata):
+def test_train_test_condition_pps_train_fail(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
     train, test = coco_train_visiondata, coco_test_visiondata
     condition_value = 0.09
@@ -276,7 +276,7 @@ def test_train_test_condition_pps_train_fail(coco_train_visiondata, coco_test_vi
 
     # Act
     result = check.run(train_dataset=train,
-                       test_dataset=test)
+                       test_dataset=test, device=device)
     condition_result, *_ = check.conditions_decision(result)
 
     # Assert
@@ -291,7 +291,7 @@ def test_train_test_condition_pps_train_fail(coco_train_visiondata, coco_test_vi
     ))
 
 
-def test_train_test_condition_pps_train_pass_per_class(mnist_dataset_train):
+def test_train_test_condition_pps_train_pass_per_class(mnist_dataset_train, device):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_train
     condition_value = 0.3
@@ -300,7 +300,7 @@ def test_train_test_condition_pps_train_pass_per_class(mnist_dataset_train):
 
     # Act
     result = check.run(train_dataset=train,
-                       test_dataset=test)
+                       test_dataset=test, device=device)
     condition_result, *_ = check.conditions_decision(result)
 
     # Assert
@@ -310,7 +310,7 @@ def test_train_test_condition_pps_train_pass_per_class(mnist_dataset_train):
     ))
 
 
-def test_train_test_condition_pps_train_fail_per_class(coco_train_visiondata, coco_test_visiondata):
+def test_train_test_condition_pps_train_fail_per_class(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
     train, test = coco_train_visiondata, coco_test_visiondata
     condition_value = 0.3
@@ -321,7 +321,7 @@ def test_train_test_condition_pps_train_fail_per_class(coco_train_visiondata, co
 
     # Act
     result = check.run(train_dataset=train,
-                       test_dataset=test)
+                       test_dataset=test, device=device)
     condition_result, *_ = check.conditions_decision(result)
 
     # Assert
@@ -332,7 +332,7 @@ def test_train_test_condition_pps_train_fail_per_class(coco_train_visiondata, co
                 '\'Brightness\': \'0.5\', \'Mean Blue Relative Intensity\': \'0.33\'}'
     ))
 
-def test_train_test_condition_pps_diff_pass(coco_train_visiondata):
+def test_train_test_condition_pps_diff_pass(coco_train_visiondata, device):
     # Arrange
     train, test = coco_train_visiondata, coco_train_visiondata
     condition_value = 0.01
@@ -341,7 +341,7 @@ def test_train_test_condition_pps_diff_pass(coco_train_visiondata):
 
     # Act
     result = check.run(train_dataset=train,
-                       test_dataset=test)
+                       test_dataset=test, device=device)
     condition_result, *_ = check.conditions_decision(result)
 
     # Assert
@@ -351,7 +351,7 @@ def test_train_test_condition_pps_diff_pass(coco_train_visiondata):
     ))
 
 
-def test_train_test_condition_pps_positive_diff_fail(coco_train_visiondata, coco_test_visiondata):
+def test_train_test_condition_pps_positive_diff_fail(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
     train, test = coco_train_visiondata, coco_test_visiondata
     condition_value = 0.09
@@ -362,7 +362,7 @@ def test_train_test_condition_pps_positive_diff_fail(coco_train_visiondata, coco
 
     # Act
     result = check.run(train_dataset=train,
-                       test_dataset=test)
+                       test_dataset=test, device=device)
     condition_result, *_ = check.conditions_decision(result)
 
     # Assert
@@ -376,7 +376,7 @@ def test_train_test_condition_pps_positive_diff_fail(coco_train_visiondata, coco
     ))
 
 
-def test_train_test_condition_pps_diff_fail(coco_train_visiondata, coco_test_visiondata):
+def test_train_test_condition_pps_diff_fail(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
     train, test = coco_train_visiondata, coco_test_visiondata
     condition_value = 0.09
@@ -387,7 +387,7 @@ def test_train_test_condition_pps_diff_fail(coco_train_visiondata, coco_test_vis
 
     # Act
     result = check.run(train_dataset=train,
-                       test_dataset=test)
+                       test_dataset=test, device=device)
     condition_result, *_ = check.conditions_decision(result)
 
     # Assert
@@ -401,7 +401,7 @@ def test_train_test_condition_pps_diff_fail(coco_train_visiondata, coco_test_vis
     ))
 
 
-def test_train_test_condition_pps_diff_pass_per_class(mnist_dataset_train):
+def test_train_test_condition_pps_diff_pass_per_class(mnist_dataset_train, device):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_train
     condition_value = 0.3
@@ -410,7 +410,7 @@ def test_train_test_condition_pps_diff_pass_per_class(mnist_dataset_train):
 
     # Act
     result = check.run(train_dataset=train,
-                       test_dataset=test)
+                       test_dataset=test, device=device)
     condition_result, *_ = check.conditions_decision(result)
 
     # Assert
@@ -420,7 +420,7 @@ def test_train_test_condition_pps_diff_pass_per_class(mnist_dataset_train):
     ))
 
 
-def test_train_test_condition_pps_positive_diff_fail_per_class(coco_train_visiondata, coco_test_visiondata):
+def test_train_test_condition_pps_positive_diff_fail_per_class(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
     train, test = coco_train_visiondata, coco_test_visiondata
     condition_value = 0.4
@@ -431,7 +431,7 @@ def test_train_test_condition_pps_positive_diff_fail_per_class(coco_train_vision
 
     # Act
     result = check.run(train_dataset=train,
-                       test_dataset=test)
+                       test_dataset=test, device=device)
     condition_result, *_ = check.conditions_decision(result)
 
     # Assert
@@ -443,7 +443,7 @@ def test_train_test_condition_pps_positive_diff_fail_per_class(coco_train_vision
     ))
 
 
-def test_train_test_condition_pps_diff_fail_per_class(coco_train_visiondata, coco_test_visiondata):
+def test_train_test_condition_pps_diff_fail_per_class(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
     train, test = coco_train_visiondata, coco_test_visiondata
     condition_value = 0.3
@@ -454,7 +454,7 @@ def test_train_test_condition_pps_diff_fail_per_class(coco_train_visiondata, coc
 
     # Act
     result = check.run(train_dataset=train,
-                       test_dataset=test)
+                       test_dataset=test, device=device)
     condition_result, *_ = check.conditions_decision(result)
 
     # Assert

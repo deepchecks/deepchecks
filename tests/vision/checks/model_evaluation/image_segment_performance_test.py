@@ -17,9 +17,9 @@ from tests.base.utils import equal_condition_result
 from tests.vision.vision_conftest import *
 
 
-def test_mnist(mnist_dataset_train, mock_trained_mnist):
+def test_mnist(mnist_dataset_train, mock_trained_mnist, device):
     # Act
-    result = ImageSegmentPerformance().run(mnist_dataset_train, mock_trained_mnist, n_samples=None)
+    result = ImageSegmentPerformance().run(mnist_dataset_train, mock_trained_mnist, n_samples=None, device=device)
     # Assert
     assert_that(result.value, has_entries({
         'Brightness': has_length(5),
@@ -31,9 +31,9 @@ def test_mnist(mnist_dataset_train, mock_trained_mnist):
     }))
 
 
-def test_mnist_no_display(mnist_dataset_train, mock_trained_mnist):
+def test_mnist_no_display(mnist_dataset_train, mock_trained_mnist, device):
     # Act
-    result = ImageSegmentPerformance().run(mnist_dataset_train, mock_trained_mnist, n_samples=1)
+    result = ImageSegmentPerformance().run(mnist_dataset_train, mock_trained_mnist, n_samples=1, device=device)
     # Assert
     assert_that(result.value, has_entries({
         'Brightness': has_length(1),
@@ -44,9 +44,10 @@ def test_mnist_no_display(mnist_dataset_train, mock_trained_mnist):
     assert_that(result.display[0], matches_regexp('<i>Note'))  #
 
 
-def test_mnist_top_display(mnist_dataset_train, mock_trained_mnist):
+def test_mnist_top_display(mnist_dataset_train, mock_trained_mnist, device):
     # Act
-    result = ImageSegmentPerformance(n_to_show=1).run(mnist_dataset_train, mock_trained_mnist, n_samples=None)
+    result = ImageSegmentPerformance(n_to_show=1).run(mnist_dataset_train, mock_trained_mnist, n_samples=None,
+                                                      device=device)
     # Assert
     assert_that(result.value, has_entries({
         'Brightness': has_length(5),
@@ -61,10 +62,10 @@ def test_mnist_top_display(mnist_dataset_train, mock_trained_mnist):
     assert_that(result.display[0].data[0].name, equal_to('Precision'))
 
 
-def test_mnist_alt_metrics(mnist_dataset_train, mock_trained_mnist):
+def test_mnist_alt_metrics(mnist_dataset_train, mock_trained_mnist, device):
     # Act
     result = ImageSegmentPerformance(alternative_metrics={'p': Precision(), 'r': Recall()}) \
-        .run(mnist_dataset_train, mock_trained_mnist, n_samples=None)
+        .run(mnist_dataset_train, mock_trained_mnist, n_samples=None, device=device)
     # Assert
     assert_that(result.value, has_entries({
         'Brightness': has_length(5),
@@ -80,12 +81,12 @@ def test_mnist_alt_metrics(mnist_dataset_train, mock_trained_mnist):
     assert_that(result.display[0].data[3].name, equal_to('r'))
 
 
-def test_coco_and_condition(coco_train_visiondata, mock_trained_yolov5_object_detection):
+def test_coco_and_condition(coco_train_visiondata, mock_trained_yolov5_object_detection, device):
     # Arrange
     check = ImageSegmentPerformance().add_condition_score_from_mean_ratio_not_less_than(0.5) \
         .add_condition_score_from_mean_ratio_not_less_than(0.1)
     # Act
-    result = check.run(coco_train_visiondata, mock_trained_yolov5_object_detection)
+    result = check.run(coco_train_visiondata, mock_trained_yolov5_object_detection, device=device)
     # Assert result
     assert_that(result.value, has_entries({
         'Mean Blue Relative Intensity': has_length(5),
