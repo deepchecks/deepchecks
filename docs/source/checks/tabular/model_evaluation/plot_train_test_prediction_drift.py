@@ -7,45 +7,31 @@ This notebooks provides an overview for using and understanding the tabular pred
 
 **Structure:**
 
-* `What is prediction drift? <#what-is-prediction-drift>`__
+* `What Is Prediction Drift? <#what-is-prediction-drift>`__
 * `Generate Data <#generate-data>`__
 * `Build Model <#build-model>`__
 * `Run check <#run-check>`__
 
 What Is Prediction Drift?
-===========================
-The term drift (and all it's derivatives) is used to describe any change in the data compared
-to the data the model was trained on. Prediction drift refers to the case in which a change
-in the data (data/feature drift) has happened and as a result, the distribution of the
-models' prediction has changed.
+========================
+Drift is simply a change in the distribution of data over time, and it is
+also one of the top reasons why machine learning model's performance degrades
+over time.
 
+Prediction drift is when drift occurs in the prediction itself.
 Calculating prediction drift is especially useful in cases
 in which labels are not available for the test dataset, and so a drift in the predictions
 is our only indication that a changed has happened in the data that actually affects model
-predictions. If labels are available, it's also recommended to run the `Label Drift Check
-</examples/tabular/checks/distribution/examples/plot_train_test_label_drift.html>`__.
+predictions. If labels are available, it's also recommended to run the
+:doc:`Label Drift check </checks_gallery/tabular/train_test_validation/plot_train_test_label_drift>`.
 
-There are two main causes for prediction drift:
+For more information on drift, please visit our :doc:`drift guide </user-guide/general/drift_guide>`.
 
-* A change in the sample population. In this case, the underline phenomenon we're trying
-  to predict behaves the same, but we're not getting the same types of samples. For example,
-  Iris Virginica stops growing and is not being predicted by the model trained to classify Iris species.
-* Concept drift, which means that the underline relation between the data and
-  the label has changed.
-  For example, we're trying to predict income based on food spending, but ongoing inflation effect prices.
-  It's important to note that concept drift won't necessarily result in prediction drift, unless it affects features that
-  are of high importance to the model.
+How Deepchecks Detects Prediction Drift
+------------------------------------
 
-How Does the TrainTestPredictionDrift Check Work?
-=================================================
-There are many methods to detect drift, that usually include statistical methods
-that aim to measure difference between 2 distributions.
-We experimented with various approaches and found that for detecting drift between 2
-one-dimensional distributions, the following 2 methods give the best results:
-
-* For regression problems, the `ramer's V <https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V>`__
-* For classification problems, the `Wasserstein Distance (Earth Mover's Distance) <https://en.wikipedia.org/wiki/Wasserstein_metric>`__
-
+This check detects prediction drift by using :ref:`univariate measures <drift_detection_by_univariate_measure>`
+on the prediction output.
 """
 
 #%%
