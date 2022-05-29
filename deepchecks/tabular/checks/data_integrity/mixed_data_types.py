@@ -18,7 +18,7 @@ from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
-from deepchecks.utils.strings import format_percent, is_string_column
+from deepchecks.utils.strings import format_list, format_number, format_percent, get_ellipsis, is_string_column
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['MixedDataTypes']
@@ -79,7 +79,13 @@ class MixedDataTypes(SingleDatasetCheck):
             result_dict[column_name] = mix
             if mix:
                 # Format percents for display
-                display_dict[column_name] = {k: format_percent(v) for k, v in mix.items()}
+                formated_mix = {}
+                formated_mix['strings'] = format_percent(mix['strings'])
+                formated_mix['numbers'] = format_percent(mix['numbers'])
+                formated_mix['strings unique examples'] = [get_ellipsis(strr, 15) for strr in mix['strings_examples']]
+                formated_mix['numbers unique examples'] = '[' + format_list([format_number(float(num))
+                                                                             for num in mix['numbers_examples']]) + ']'
+                display_dict[column_name] = formated_mix
 
         if display_dict:
             df_graph = pd.DataFrame.from_dict(display_dict)
@@ -106,11 +112,11 @@ class MixedDataTypes(SingleDatasetCheck):
             try:
                 float(x)
                 if len(numbers_in_col) < 3:
-                    numbers_in_col.append(x)
+                    numbers_in_col.add(x)
                 return True
             except ValueError:
                 if len(strings_in_col) < 3:
-                    strings_in_col.append(x)
+                    strings_in_col.add(x)
                 return False
 
         nums = sum(column_data.apply(is_float))

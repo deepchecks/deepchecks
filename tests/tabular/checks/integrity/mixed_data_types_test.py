@@ -199,7 +199,8 @@ def test_mix_nan():
     result = MixedDataTypes().run(dataframe)
     # Assert
     assert_that(result.value, has_entries({
-        'col1': has_entries({'strings': close_to(0.5, 0.01), 'numbers': close_to(0.5, 0.01)}),
+        'col1': has_entries({'strings': close_to(0.5, 0.01), 'numbers': close_to(0.5, 0.01),
+                             'strings_examples': equal_to({'cat'}),
+                             'numbers_examples': equal_to({'1'})}),
         'col2': equal_to({})
     }))
-
