@@ -24,7 +24,7 @@ from tests.vision.vision_conftest import *
 def mnist_batch_to_images_with_bias(batch):
     """Create function which inverse the data normalization."""
     tensor = batch[0]
-    tensor = tensor.permute(0, 2, 3, 1)
+    tensor = tensor.permute(0, 2, 3, 1).cpu().detach()
     ret = un_normalize_batch(tensor, (0.1307,), (0.3081,))
     for i, label in enumerate(batch[1]):
         ret[i] = ret[i].clip(min=5 * label, max=180 + 5 * label)
