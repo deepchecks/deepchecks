@@ -91,21 +91,26 @@ class MixedDataTypes(SingleDatasetCheck):
 
         return CheckResult(result_dict, display=display)
 
-    @classmethod
-    def _get_data_mix(cls, column_data: pd.Series) -> dict:
+    def _get_data_mix(self, column_data: pd.Series) -> dict:
         if is_string_column(column_data):
-            return cls._check_mixed_percentage(column_data)
+            return self._check_mixed_percentage(column_data)
         return {}
 
-    @classmethod
-    def _check_mixed_percentage(cls, column_data: pd.Series) -> dict:
+    def _check_mixed_percentage(self, column_data: pd.Series) -> dict:
         total_rows = column_data.count()
+
+        numbers_in_col = set()
+        strings_in_col = set()
 
         def is_float(x) -> bool:
             try:
                 float(x)
+                if len(numbers_in_col) < 3:
+                    numbers_in_col.append(x)
                 return True
             except ValueError:
+                if len(strings_in_col) < 3:
+                    strings_in_col.append(x)
                 return False
 
         nums = sum(column_data.apply(is_float))
@@ -116,7 +121,8 @@ class MixedDataTypes(SingleDatasetCheck):
         nums_pct = nums / total_rows
         strs_pct = (np.abs(nums - total_rows)) / total_rows
 
-        return {'strings': strs_pct, 'numbers': nums_pct}
+        return {'strings': strs_pct, 'numbers': nums_pct,
+                'strings_examples': strings_in_col, 'numbers_examples': numbers_in_col}
 
     def add_condition_rare_type_ratio_not_in_range(self, ratio_range: Tuple[float, float] = (0.01, 0.1)):
         """Add condition - Whether the ratio of rarer data type (strings or numbers) is not in the "danger zone".
