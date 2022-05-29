@@ -149,68 +149,14 @@ suite_result
 # -------------------
 # We can run a single check on a dataset, and see the results.
 
-from deepchecks.tabular.checks import IsSingleValue, DataDuplicates
+# If we want to run only that check (possible with or without condition)
+from deepchecks.tabular.checks import WholeDatasetDrift
 
-# first let's see how the check runs:
-IsSingleValue().run(ds)
-
-#%%
-
-# we can also add a condition:
-single_value_with_condition = IsSingleValue().add_condition_not_single_value()
-result = single_value_with_condition.run(ds)
-result
+check_with_condition = WholeDatasetDrift().add_condition_overall_drift_value_not_greater_than(0.4)
+# check = WholeDatasetDrift()
+dataset_drift_result = check_with_condition.run(train_ds, test_ds)
 
 #%%
-
 # We can also inspect and use the result's value:
-result.value
 
-#%%
-# Now let's remove the single value column and rerun (notice that we're using directly 
-# the ``data`` attribute that stores the dataframe inside the Dataset)
-
-ds.data.drop('Is Ripe', axis=1, inplace=True)
-result = single_value_with_condition.run(ds)
-result
-
-#%%
-
-# Alternatively we can fix the dataframe directly, and create a new dataset.
-# Let's fix also the duplicate values:
-dirty_df.drop_duplicates(inplace=True)
-dirty_df.drop('Is Ripe', axis=1, inplace=True)
-ds = Dataset(dirty_df, cat_features=['type'], datetime_name='Date', label='AveragePrice')
-result = DataDuplicates().add_condition_ratio_not_greater_than(0).run(ds)
-result
-
-#%%
-# Rerun Suite on the Fixed Dataset
-# ---------------------------------
-# Finally, we'll choose to keep the "organic" multiple spellings as they represent different sources.
-# So we'll customaize the suite by removing the condition from it (or delete check completely).
-# Alternatively - we can customize it by creating a new Suite with the desired checks and conditions.
-# See :doc:`/user-guide/general/customizations/examples/customizing-suites` for more info.
-
-# let's inspect the suite's structure
-integ_suite
-
-#%%
-
-# and remove the condition:
-integ_suite[3].clean_conditions()
-
-#%%
-# Now we can re-run the suite using:
-res = integ_suite.run(ds)
-
-#%%
-# and all of the conditions will pass.
-#
-# *Note: the check we manipulated will still run as part of the Suite, however
-# it won't appear in the Conditions Summary since it no longer has any
-# conditions defined on it. You can still see its display results in the 
-# Additional Outputs section*
-#
-# For more info about working with conditions, see the detailed
-# :doc:`/user-guide/general/customizations/examples/plot_configure_checks_conditions' guide.
+dataset_drift_result.value
