@@ -154,7 +154,7 @@ insert corruption into the data and see the checks at work.
 Computer Vision Data
 --------------------
 
-In computer vision specifically, we can't measure drift on images directly, as the individual pixel has little
+In computer vision we can't measure drift on images directly, as the individual pixel has little
 value when estimating drift. Also, labels in computer vision are sometimes complex structures as well (for example, in
 object detection, an image can have any number of bounding boxes).
 Therefore, the computer vision checks use :doc:`image and label properties</user-guide/vision/vision_properties>` to estimate
@@ -182,8 +182,8 @@ What Can You Do in Case of Drift?
 
 When suspecting drift in your data, you must first understand what changed in the data - were it the features, the labels,
 or maybe just the predictions.
-In deepchecks, we show you a drift score and the drift on your most :doc:`important features </user-guide/tabular/feature_importance>`,
-giving you an insight on the severity of your drift, even if your not still sure of its source.
+In deepchecks, we show a drift score for each feature, starting with your most :doc:`important features </user-guide/tabular/feature_importance>`,
+giving you an idea of the severity of your drift, even if your not still sure of its source.
 
 It is recommended to manually explore your data and try to understand the root cause of your changes, in order to
 estimate the effect of the change on your model's performance.
