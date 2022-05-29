@@ -30,8 +30,8 @@ For more information on drift, please visit our :doc:`drift guide </user-guide/g
 How Deepchecks Detects Dataset Drift
 ------------------------------------
 
-This check detects multivariate drift by using a :doc:`domain classifier </user-guide/general/drift_guide#detection-by-domain-classifier>`.
-Other methods to detect drift include :doc:`univariate measures </user-guide/general/drift_guide#detection-by-univariate-measure>`
+This check detects multivariate drift by using a :ref:`drift_detection_by_domain_classifier`.
+Other methods to detect drift include :ref:`drift_detection_by_univatriate_measure`
 which is used in other checks, such as :doc:`Train Test Feature Drift check </checks_gallery/tabular/train_test_validation/plot_train_test_feature_drift>`.
 """
 

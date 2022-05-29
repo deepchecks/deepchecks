@@ -25,7 +25,7 @@ For more information on drift, please visit our :doc:`drift guide </user-guide/g
 How Deepchecks Detects Label Drift
 ------------------------------------
 
-This check detects label drift by using :doc:`univariate measures </user-guide/general/drift_guide#detection-by-univariate-measure>`
+This check detects label drift by using :ref:`drift_detection_by_univatriate_measure`
 on the label properties.
 
 Using Label Properties to Detect Label Drift

@@ -38,47 +38,35 @@ seasonal changes are usually not considered drift, as they as they are often pre
    :alt: Different change patterns in data
    :align: center
 
+
 Different change patterns in data. `Source <https://www.iosrjournals.org/iosr-jce/papers/Vol17-issue1/Version-2/D017122026.pdf>`_.
 
 Which Types of Drift Are There?
 ================================
 
-In machine learning, we usually refer to 3 types of drift:
+In machine learning, we usually refer to 2 types of drift:
+
+
+Data Drift
+----------
+Data drift is any change in the distribution of the data.
+
+For example, in a dataset predicting a person's income, the target (income) is highly correlated with high level of
+education (advanced degrees). If people of lower social-economic status would start to get higher education, the
+distribution of level of education changes, but not it's effect on income (the target label).
+
 
 Concept Drift
 -------------
 Concept drift is a change in the underlying relation between the data and the label.
 
-For example, in a dataset predicting a person's salary, the level of education is highly linked to higher income.
+Continuing the example of predicting income using the level of education, let's assume that in older the level of education is highly linked to higher income.
 With experience being more and more important in the current job market, the predictive ability of the level of
 education to the person's expected salary changes.
 
 Concept drift will almost always require some changes to the model, usually by retraining of the model on newer data.
 
-Data Drift
-----------
-Data drift is any change in the distribution of the data. It usually refers to changes that do not significantly affect the label.
-However, even when not affecting the model's performance, data drift is important, as it can expose other undetected issues.
-
-To continue the previous example, when predicting income using the level of education, it may be that people of lower
-social-economic status are starting to get higher education. This means that the distribution of level of education
-changes, but not it's effect on income (the target label).
-
-Moreover, when labels are not available (as happens in many cases), data drift cannot be discerned from concept drift.
-
-Label Drift
------------
-Label drift is the change in the distribution of the label itself. Note that this can also be caused by concept drift,
-but here we discuss a change in which the label can still be accurately predicted from the data, but its
-distribution has changed. Meaning, the change in the distribution of the label is caused by external reasons,
-that in turn affect the distribution of the data accordingly.
-
-Continuing the example of predicting income using the level of education, in this case we would observe more people
-getting higher incomes, and see that those people do have high education; the data and label changed in a way that
-the higher income label is now more prevalent, but our model's predictions remain as accurate as before.
-
-In many cases, label drift alone might not be of interest. However, it may affect your model's accuracy, as less-accurate
-classes may be more prevalent now than they were in your train dataset.
+When labels are not available (as happens in many cases), data drift cannot be discerned from concept drift.
 
 For more on the different types of drift, `see here <https://deepchecks.com/data-drift-vs-concept-drift-what-are-the-main-differences/>`_
 
@@ -147,6 +135,7 @@ distributions different?".
 
 There are many methods to detect drift. Here, we will elaborate on two of them:
 
+.. _drift_detection_by_univatriate_measure:
 Detection by Univariate Measure
 --------------------------------
 
@@ -163,6 +152,7 @@ These methods have the advantage of being simple to use and produce explainable 
 checking each feature one at a time, and cannot detect drift in the relations between features. Also, these methods
 will usually detect drift multiple times if it occurs in several features.
 
+.. _drift_detection_by_domain_classifier:
 Detection by Domain Classifier
 ------------------------------
 
@@ -174,13 +164,8 @@ If the classifier can easily predict which sample is from which dataset, it woul
 The main advantage of this method is that it can also uncover covariate drift, meaning drift in the data that does not
 affect the distribution of each individual variable, but does affect the relationship between them.
 
-For example, you're predicting the income of a person from his city and education. Let's say a tech giant now moved into city A. This means that:
-
-#. Given that a person lives in city A, he's more likely to have a more advanced degree (educated people moved to city A) - this is multivariate drift and can be detected by the Domain Classifier.
-#. Given his education, a resident of city A now earns more - this is concept drift, and can be detected only once the labels (income) have arrived.
-
 In deepchecks (in checks :doc:`Whole Dataset Drift</checks_gallery/tabular/train_test_validation/plot_whole_dataset_drift>` and
-:doc:`Image Dataset Drift</checks_gallery/vision/train_test_validation/plot_image_dataset_drift>`) we check concatenate
+:doc:`Image Dataset Drift</checks_gallery/vision/train_test_validation/plot_image_dataset_drift>`) we merge
 the train and the test sets, and assign label 0 to samples that come from the training set, and 1 to those who are
 from the test set. Then, we train a binary classifer of type
 `Histogram-based Gradient Boosting Classification Tree
@@ -217,7 +202,10 @@ insert corruption into the data and see the checks at work.
 Computer Vision Data
 --------------------
 
-All of the computer vision checks use the :doc:`image and label properties</user-guide/vision/vision_properties>` to estimate
+In computer vision specifically, we can't measure drift on images directly, as the individual pixel has little
+value when estimating drift. Also, labels in computer vision are sometimes complex structures as well (for example, in
+object detection, an image can have any number of bounding boxes).
+Therefore, the computer vision checks use :doc:`image and label properties</user-guide/vision/vision_properties>` to estimate
 drift, as image data and labels are not simple one-dimensional variables.
 
 To detect `data <#data-drift>`__ or `concept drift <#concept-drift>`__, deepchecks offers the
@@ -225,7 +213,8 @@ To detect `data <#data-drift>`__ or `concept drift <#concept-drift>`__, deepchec
 `univariate measures <#detection-by-univariate-measure>`__ and the :doc:`Image Dataset Drift check</checks_gallery/vision/train_test_validation/plot_image_dataset_drift>`
 which uses a `domain classifier <#detection-by-domain-classifier>`__ in order to detect multivariate drift.
 
-For label drift, deepchecks offers the :doc:`Label Drift check </checks_gallery/vision/train_test_validation/plot_train_test_label_drift>`, which also uses `univariate measures <#detection-by-univariate-measure>`__.
+For label drift, deepchecks offers the :doc:`Label Drift check </checks_gallery/vision/train_test_validation/plot_train_test_label_drift>`,
+which also uses `univariate measures <#detection-by-univariate-measure>`__.
 
 In cases where the label is not available, we strongly recommend to also use the :doc:`Prediction Drift check</checks_gallery/vision/model_evaluation/plot_train_test_prediction_drift>`,
 which uses the same methods but on the model's predictions, and can detect possible changes in the distribution of the label.

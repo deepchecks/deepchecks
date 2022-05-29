@@ -30,7 +30,7 @@ For more information on drift, please visit our :doc:`drift guide </user-guide/g
 How Deepchecks Detects Prediction Drift
 ------------------------------------
 
-This check detects prediction drift by using :doc:`univariate measures </user-guide/general/drift_guide#detection-by-univariate-measure>`
+This check detects prediction drift by using :ref:`drift_detection_by_univatriate_measure`
 on the prediction properties.
 
 Using Prediction Properties to Detect Prediction Drift
