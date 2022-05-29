@@ -35,7 +35,7 @@ which is used in the :doc:`Image Dataset Drift check </checks_gallery/vision/tra
 Using Properties to Detect Image Drift
 --------------------------------------------
 In computer vision specifically, we can't measure drift on out images directly, as the individual pixel has little
-value when estimating drift. Therefore, we calculate drift on different :doc:`properties of the image</user-guide/vision/vision-properties>`,
+value when estimating drift. Therefore, we calculate drift on different :doc:`properties of the image</user-guide/vision/vision_properties>`,
 on which we can directly measure drift.
 
 

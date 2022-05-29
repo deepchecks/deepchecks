@@ -90,7 +90,7 @@ Different types of drift. Adapted from `this source <https://www.win.tue.nl/~mpe
 
 
 What Can You Do in Case of Drift?
----------------------------------
+=================================
 
 When suspecting drift in your data, you must first understand what was affected by the drift (whether it was the
 features, labels or maybe just the predictions). However, this is not trivial:
@@ -190,6 +190,10 @@ drift score from the AUC score of this classifier.
 How Can I Use Deepchecks to Detect Drift?
 =========================================
 
+.. image:: /_static/images/general/deepchecks_label_drift.png
+   :alt: Output of the TrainTestLabelDrift check
+   :align: center
+
 Deepchecks can test your data for both concept drift and label drift, by using a variety of methods.
 
 Tabular Data
@@ -213,7 +217,7 @@ insert corruption into the data and see the checks at work.
 Computer Vision Data
 --------------------
 
-All of the computer vision checks use the :doc:`image and label properties</user-guide/vision/vision-properties>` to estimate
+All of the computer vision checks use the :doc:`image and label properties</user-guide/vision/vision_properties>` to estimate
 drift, as image data and labels are not simple one-dimensional variables.
 
 To detect `data <#data-drift>`__ or `concept drift <#concept-drift>`__, deepchecks offers the
