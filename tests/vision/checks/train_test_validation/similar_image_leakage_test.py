@@ -21,43 +21,43 @@ from deepchecks.vision.utils.test_utils import get_modified_dataloader
 from tests.base.utils import equal_condition_result
 
 
-def test_no_similar_object_detection(coco_train_visiondata, coco_test_visiondata):
+def test_no_similar_object_detection(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
     train, test = coco_train_visiondata, coco_test_visiondata
     check = SimilarImageLeakage()
 
     # Act
-    result = check.run(train, test)
+    result = check.run(train, test, device=device)
 
     # Assert
     assert_that(result.value, equal_to([]))
 
 
-def test_no_similar_classification(mnist_dataset_train, mnist_dataset_test):
+def test_no_similar_classification(mnist_dataset_train, mnist_dataset_test, device):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_test
     check = SimilarImageLeakage(hash_size=32, similarity_threshold=0.02)
 
     # Act
-    result = check.run(train, test, n_samples=500, random_state=42)
+    result = check.run(train, test, n_samples=500, random_state=42, device=device)
 
     # Assert
     assert_that(result.value, equal_to([]))
 
 
-def test_all_identical_object_detection(coco_train_visiondata):
+def test_all_identical_object_detection(coco_train_visiondata, device):
     # Arrange
     train, test = coco_train_visiondata, coco_train_visiondata
     check = SimilarImageLeakage()
 
     # Act
-    result = check.run(train, test)
+    result = check.run(train, test, device=device)
 
     # Assert
     assert_that(set(result.value), equal_to(set(list(zip(range(64), range(64))))))
 
 
-def test_similar_object_detection(coco_train_visiondata, coco_test_visiondata):
+def test_similar_object_detection(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
     train, test = coco_train_visiondata, coco_test_visiondata
     check = SimilarImageLeakage()
@@ -81,13 +81,13 @@ def test_similar_object_detection(coco_train_visiondata, coco_test_visiondata):
     test._data_loader = get_modified_dataloader(test, get_modification_func())
 
     # Act
-    result = check.run(train, test)
+    result = check.run(train, test, device=device)
 
     # Assert
     assert_that(set(result.value), equal_to(set(zip(range(5), range(5))).union({(0, 30)})))
 
 
-def test_train_test_condition_pass(coco_train_visiondata, coco_test_visiondata):
+def test_train_test_condition_pass(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
     train, test = coco_train_visiondata, coco_test_visiondata
     condition_value = 5
@@ -95,7 +95,7 @@ def test_train_test_condition_pass(coco_train_visiondata, coco_test_visiondata):
 
     # Act
     result = check.run(train_dataset=train,
-                       test_dataset=test)
+                       test_dataset=test, device=device)
     condition_result, *_ = check.conditions_decision(result)
 
     # Assert
@@ -105,7 +105,7 @@ def test_train_test_condition_pass(coco_train_visiondata, coco_test_visiondata):
     ))
 
 
-def test_train_test_condition_fail(coco_train_visiondata, coco_test_visiondata):
+def test_train_test_condition_fail(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
     train, test = coco_train_visiondata, coco_train_visiondata
     condition_value = 5
@@ -113,7 +113,7 @@ def test_train_test_condition_fail(coco_train_visiondata, coco_test_visiondata):
 
     # Act
     result = check.run(train_dataset=train,
-                       test_dataset=test)
+                       test_dataset=test, device=device)
     condition_result, *_ = check.conditions_decision(result)
 
     # Assert
