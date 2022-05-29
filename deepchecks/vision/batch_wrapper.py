@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Contains code for BatchWrapper."""
+from operator import itemgetter
 from typing import TYPE_CHECKING, Any, Callable, Iterable, Tuple, TypeVar, cast
 
 import torch
@@ -49,15 +50,29 @@ class Batch:
             self._labels = dataset.batch_to_labels(self._batch)
         return self._labels
 
+    def _do_static_pred(self):
+        preds = self._context.static_predictions[self._dataset_kind]
+        dataset = self._context.get_data_by_kind(self._dataset_kind)
+        indexes = [dataset.to_dataset_index(self.batch_start_index + index)[0]
+                   for index in range(len(self))]
+        if isinstance(preds, torch.Tensor):
+            return preds[indexes]
+        return itemgetter(*indexes)(preds)
+
     @property
     def predictions(self):
         """Return predictions for the batch, formatted in deepchecks format."""
         if self._predictions is None:
             dataset = self._context.get_data_by_kind(self._dataset_kind)
-            # Calling model will raise error if model was not given
-            model = self._context.model
-            self._context.assert_predictions_valid(self._dataset_kind)
-            self._predictions = dataset.infer_on_batch(self._batch, model, self._context.device)
+            if self._context.static_predictions is not None:
+                self._context.assert_predictions_valid(self._dataset_kind)
+                self._predictions = self._do_static_pred()
+            else:
+                # Calling model will raise error if model was not given
+                # (assert_predictions_valid doesn't raise an error if no model was given)
+                model = self._context.model
+                self._context.assert_predictions_valid(self._dataset_kind)
+                self._predictions = dataset.infer_on_batch(self._batch, model, self._context.device)
         return self._predictions
 
     @property
@@ -75,13 +90,19 @@ class Batch:
 
     def __len__(self):
         """Return length of batch."""
-        return len(self._batch)
+        dataset = self._context.get_data_by_kind(self._dataset_kind)
+        dataset_len = dataset.num_samples
+        dataloader_len = len(dataset.data_loader)
+        max_len = int(dataset_len / dataloader_len + 0.5)
+        if self.batch_start_index + max_len > dataset_len:  # last batch
+            return dataset_len - self.batch_start_index
+        return max_len
 
     def get_index_in_dataset(self, index: int) -> int:
         """For given index in this batch returns the real index in the underlying dataset object. Can be used to \
         later get samples for display."""
         dataset = self._context.get_data_by_kind(self._dataset_kind)
-        return dataset.batch_index_to_dataset_index(self.batch_start_index + index)
+        return dataset.to_dataset_index(self.batch_start_index + index)[0]
 
 
 T = TypeVar('T')
