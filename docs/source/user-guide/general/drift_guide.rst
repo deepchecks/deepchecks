@@ -213,7 +213,7 @@ insert corruption into the data and see the checks at work.
 Computer Vision Data
 --------------------
 
-All of the computer vision checks use the :doc:`image and label properties</user-guide/vision-properties>` to estimate
+All of the computer vision checks use the :doc:`image and label properties</user-guide/vision/vision-properties>` to estimate
 drift, as image data and labels are not simple one-dimensional variables.
 
 To detect `data <#data-drift>`__ or `concept drift <#concept-drift>`__, deepchecks offers the
