@@ -224,7 +224,7 @@ def generate_check_docs_link(check):
     module_parts.remove('checks')
     # Add to the check name prefix of 'plot_'
     module_parts[-1] = f'plot_{module_parts[-1]}'
-    return get_docs_link() + '/'.join([*module_parts]) + link_postfix
+    return get_docs_link() + 'checks_gallery/' + '/'.join([*module_parts]) + link_postfix
 
 
 def get_random_string(n: int = 5):
