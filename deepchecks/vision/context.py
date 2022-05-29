@@ -102,7 +102,7 @@ class Context:
                     except ValidationError as ex:
                         msg = f'infer_on_batch() was not implemented correctly in the {dataset_type} dataset, the ' \
                            f'validation has failed with the error: {ex}. To test your prediction formatting use the ' \
-                           f'function `vision_data.validate_prediction(batch, model, device)`'
+                           'function `vision_data.validate_prediction(batch, model, device)`'
 
                     if msg:
                         self._prediction_formatter_error[dataset_type] = msg
@@ -119,9 +119,9 @@ class Context:
                         msg = None
                         self._static_predictions[dataset_type] = predictions
                     except ValidationError as ex:
-                        msg = f'the predictions given were not in a currect format in the {dataset_type} dataset, the ' \
-                           f'validation has failed with the error: {ex}. To test your prediction formatting use the ' \
-                           f'function `vision_data.validate_infered_batch_predictions(predictions)`'
+                        msg = f'the predictions given were not in a currect format in the {dataset_type} dataset, ' \
+                            f'the validation has failed with the error: {ex}. To test your prediction formatting' \
+                            ' use the function `vision_data.validate_infered_batch_predictions(predictions)`'
 
                     if msg:
                         self._prediction_formatter_error[dataset_type] = msg

@@ -15,7 +15,6 @@ from typing import TYPE_CHECKING, Any, Callable, Iterable, Tuple, TypeVar, cast
 import torch
 
 from deepchecks.core import DatasetKind
-from deepchecks.vision.task_type import TaskType
 
 if TYPE_CHECKING:
     from deepchecks.vision.context import Context
