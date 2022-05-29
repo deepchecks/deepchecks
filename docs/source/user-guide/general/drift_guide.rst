@@ -189,7 +189,6 @@ It is recommended to manually explore your data and try to understand the root c
 estimate the effect of the change on your model's performance.
 After you have deeper insights on your data, you can choose to act in one of the following ways:
 
-
 Retrain Your Model
 ^^^^^^^^^^^^^^^^^^
 
