@@ -69,6 +69,7 @@ class Batch:
                 self._predictions = self._do_static_pred()
             else:
                 # Calling model will raise error if model was not given
+                # (assert_predictions_valid doesn't raise an error if no model was given)
                 model = self._context.model
                 self._context.assert_predictions_valid(self._dataset_kind)
                 self._predictions = dataset.infer_on_batch(self._batch, model, self._context.device)
@@ -90,7 +91,7 @@ class Batch:
     def __len__(self):
         """Return length of batch."""
         dataset = self._context.get_data_by_kind(self._dataset_kind)
-        dataset_len = len(dataset.data_loader.dataset)
+        dataset_len = dataset.num_samples
         dataloader_len = len(dataset.data_loader)
         max_len = int(dataset_len / dataloader_len + 0.5)
         if self.batch_start_index + max_len > dataset_len:  # last batch

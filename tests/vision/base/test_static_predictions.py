@@ -74,6 +74,24 @@ def test_class_performance_mnist_largest(mnist_dataset_train, mnist_dataset_test
     assert_that(first_row['Class'], equal_to(1))
 
 
+# copied from class_performance_test but sampled
+def test_class_performance_mnist_largest_sampled(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
+    # Arrange
+    train_preds, tests_preds = _create_static_predictions(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist)
+    check = ClassPerformance(n_to_show=2, show_only='largest')
+    # Act
+    result = check.run(mnist_dataset_train, mnist_dataset_test,
+                       train_predictions=train_preds, test_predictions=tests_preds,
+                       device=device)
+    first_row = result.value.sort_values(by='Number of samples', ascending=False).iloc[0]
+    # Assert
+    assert_that(len(set(result.value['Class'])), equal_to(2))
+    assert_that(len(result.value), equal_to(8))
+    assert_that(first_row['Value'], close_to(0.987, 0.001))
+    assert_that(first_row['Number of samples'], equal_to(1138))
+    assert_that(first_row['Class'], equal_to(1))
+
+
 # copied from image_segment_performance_test
 def test_image_segment_performance_coco_and_condition(coco_train_visiondata, mock_trained_yolov5_object_detection):
     # Arrange
