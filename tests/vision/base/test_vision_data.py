@@ -391,9 +391,7 @@ def test_detection_data_bad_implementation():
     assert_that(calling(detection_data.validate_label).with_args([8]),
                 raises(ValidationError,
                        'Check requires object detection label to be a list of torch.Tensor'))
-    assert_that(calling(detection_data.validate_label).with_args([torch.Tensor([])]),
-                raises(ValidationError,
-                       'Check requires object detection label to be a list of 2D tensors'))
+    assert_that(detection_data.validate_label([torch.Tensor([])]), equal_to(None))
     assert_that(calling(detection_data.validate_label).with_args([torch.Tensor([[1, 2], [1, 2]])]),
                 raises(ValidationError,
                        'Check requires object detection label to be a list of 2D tensors, when '
@@ -408,9 +406,7 @@ def test_detection_data_bad_implementation():
     assert_that(calling(detection_data.validate_prediction).with_args([8], None, None),
                 raises(ValidationError,
                        'Check requires detection predictions to be a list of torch.Tensor'))
-    assert_that(calling(detection_data.validate_prediction).with_args([torch.Tensor([])], None, None),
-                raises(ValidationError,
-                       'Check requires detection predictions to be a list of 2D tensors'))
+    assert_that(detection_data.validate_prediction([torch.Tensor([])], None, None), equal_to(None))
     assert_that(calling(detection_data.validate_prediction).with_args([torch.Tensor([[1, 2], [1, 2]])], None, None),
                 raises(ValidationError,
                        'Check requires detection predictions to be a list of 2D tensors, when '
