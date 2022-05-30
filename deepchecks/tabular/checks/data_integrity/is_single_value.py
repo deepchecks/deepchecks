@@ -11,6 +11,8 @@
 """Module contains is_single_value check."""
 from typing import List, Union
 
+import pandas as pd
+
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.tabular.utils.messages import get_condition_passed_message
@@ -71,7 +73,10 @@ class IsSingleValue(SingleDatasetCheck):
             # get names of columns with one unique value
             # pylint: disable=unsubscriptable-object
             cols_with_single = is_single_unique_value[is_single_unique_value].index.to_list()
-            uniques = df.loc[:, cols_with_single].head(1)
+            uniques = pd.DataFrame({
+                column_name: [column.sort_values(kind='mergesort').values[0]]
+                for column_name, column in df.loc[:, cols_with_single].items()
+            })
             uniques.index = ['Single unique value']
             display = ['The following columns have only one unique value', uniques]
         else:
