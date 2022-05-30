@@ -251,7 +251,6 @@ class TrainTestFeatureDrift(TrainTestCheck):
         ConditionResult
             False if any column has passed the max threshold, True otherwise
         """
-
         if max_allowed_psi_score is not None:
             warnings.warn(
                 f'{self.__class__.__name__}: max_allowed_psi_score is deprecated. please use '
