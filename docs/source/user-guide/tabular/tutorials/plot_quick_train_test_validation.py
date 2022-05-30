@@ -50,7 +50,7 @@ datetime_name = 'issue_d'
 # Split Data
 # -------------
 
-# Use data for from June and July for train and August for test:
+# Use data from June and July for train and August for test:
 train_df = data[data['issue_d'].dt.month.isin([6, 7])]
 test_df = data[data['issue_d'].dt.month.isin([8])]
 
@@ -92,7 +92,7 @@ columns_metadata = {'cat_features' : categorical_features, 'index_name': index_n
 # Run the Deepchecks Suite
 # --------------------------
 #
-# Validate your data with the :class:`deepchecks.tabular.suites.train_test_validation` suite.
+# Validate your data with the :func:`deepchecks.tabular.suites.train_test_validation` suite.
 # It runs on two datasets, so you can use it to compare any two batches of data (e.g. train data, test data, a new batch of data
 # that recently arrived)
 #

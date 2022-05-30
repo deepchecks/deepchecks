@@ -63,7 +63,7 @@ ds = Dataset(dirty_df, cat_features = ['type'], datetime_name='Date', label = 'A
 # Run the Deepchecks Suite
 # --------------------------
 #
-# Validate your data with the :class:`deepchecks.tabular.suites.data_integrity` suite.
+# Validate your data with the :func:`deepchecks.tabular.suites.data_integrity` suite.
 # It runs on a single dataset, so you can run it on any batch of data (e.g. train data, test data, a new batch of data
 # that recently arrived)
 #
