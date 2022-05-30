@@ -96,7 +96,7 @@ def test_condition_pass_for_multiclass_avg(mnist_dataset_train, mnist_dataset_te
     # Arrange
     check = SimpleModelComparison().add_condition_gain_not_less_than(0.43, average=True)
     # Act X
-    result = check.run(train_ds, test_ds, clf)
+    result = check.run(train_ds, test_ds, clf, device=device)
     # Assert
     assert_that(result.conditions_results, has_items(
         equal_condition_result(
@@ -112,7 +112,7 @@ def test_condition_pass_for_multiclass_avg_with_classes(mnist_dataset_train, mni
     # Arrange
     check = SimpleModelComparison().add_condition_gain_not_less_than(1, average=True, classes=[0])
     # Act X
-    result = check.run(train_ds, test_ds, clf)
+    result = check.run(train_ds, test_ds, clf, device=device)
     # Assert
     assert_that(result.conditions_results, has_items(
         equal_condition_result(

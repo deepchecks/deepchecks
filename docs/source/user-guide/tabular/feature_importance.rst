@@ -25,8 +25,9 @@ Why Does Deepchecks Use Feature Importance?
 ===========================================
 
 Deepchecks uses your model's feature importance for 2 main reasons:
+
 * Help you find issues with your model or data, as in the check :doc:`UnusedFeatures </checks_gallery/tabular/model_evaluation/plot_unused_features>`
-* Display the most relevant information the check has found (for instance, if deepchecks found drift in many features,
+* Prioritize the display according to the most relevant information the check has found (for instance, if deepchecks found drift in many features,
 as in the check :doc:`TrainTestFeatureDrift </checks_gallery/tabular/train_test_validation/plot_train_test_feature_drift>`,
 it would only display the features with the highest importance)
 
@@ -76,14 +77,15 @@ function, available in all checks and suites.
 
 
 What if the Feature Importance Calculation Takes Too Long?
-==========================================================
+=============================================================
 
-Feature importance is a complex calculation which can take a lot of time, depending on the number of features and
+Permutation feature importance is a complex calculation which can take a lot of time, depending on the number of features and
 samples in your data.
-However, besides for cetrain checks, deepchecks does not require feature importance.
+However, except for certain checks, deepchecks does not require feature importance.
 Therefore, if you want deepchecks to skip the calculation of feature importance, you can use the
-``feature_importance_timeout`` parameter in the ``run`` function, available in all checks and suites. If
-deepchecks projects the feature importance calculation to take more than this parameter, the process will be skipped.
+``feature_importance_timeout`` parameter in the ``run`` function, available in all checks and suites.
+Before running the permutation feature importance, deepchecks predicts the calculation time. If the predicted time
+is bigger than ``feature_importance_timeout``, the process will be skipped.
 Configuring this parameter to 0 will ensure the calculation is always skipped.
 
 >>> check = WholeDatasetDrift()

@@ -111,23 +111,27 @@ class ClassificationData(VisionData):
         if len(label_shape) != 1:
             raise ValidationError('Check requires classification label to be a 1D tensor')
 
-    def validate_prediction(self, batch, model, device, n_classes: int = None, eps: float = 1e-3):
+    @staticmethod
+    def validate_infered_batch_predictions(batch_predictions, n_classes: int = None, eps: float = 1e-3):
         """
-        Validate the prediction.
+        Validate the infered predictions from the batch.
 
         Parameters
         ----------
-        batch : t.Any
-            Batch as outputed from DataLoader
-        model: t.Any
-            Model to run on batch
-        device: torch.device
-        n_classes : int
+        batch_predictions : t.Any
+            The infered predictions from the batch
+        n_classes : int , default: None
             Number of classes.
         eps : float , default: 1e-3
             Epsilon value to be used in the validation, by default 1e-3
+
+        Raises
+        ------
+        ValidationError
+            If predictions format is invalid
+        DeepchecksNotImplementedError
+            If infer_on_batch not implemented
         """
-        batch_predictions = self.infer_on_batch(batch, model, device)
         if not isinstance(batch_predictions, torch.Tensor):
             raise ValidationError('Check requires classification predictions to be a torch.Tensor')
         pred_shape = batch_predictions.shape

@@ -3,46 +3,36 @@
 Train Test Label Drift
 **********************
 
-This notebooks provides an overview for using and understanding the vision label drift check.
+This notebooks provides an overview for using and understanding label drift check.
 
 **Structure:**
 
-* `What is a label drift? <#what-is-a-label-drift>`__
+* `What Is Label Drift? <#what-is-label-drift>`__
 * `Which Label Properties Are Used? <#which-label-properties-are-used>`__
 * `Run check on a Classification task <#run-the-check-on-a-classification-task-mnist>`__
 * `Run check on an Object Detection task <#run-the-check-on-an-object-detection-task-coco>`__
 
-What is a label drift?
-======================
-The term drift (and all it's derivatives) is used to describe any change in the data
-compared to the data the model was trained on. Specifically, label drift indicates
-changes in the label we are trying to predict.
+What Is Label Drift?
+========================
+Drift is simply a change in the distribution of data over time, and it is
+also one of the top reasons why machine learning model's performance degrades
+over time.
 
-Causes of label drift include:
+Label drift is when drift occurs in the label itself.
 
-* Natural drift in the data, such as a certain class becoming more prevalent in the test set.
-  For example, cronuts becoming more popular in a food classification dataset.
-* Labeling issues, such as an analyst drawing incorrect bounding boxes for an object
-  detection task.
+For more information on drift, please visit our :doc:`drift guide </user-guide/general/drift_guide>`.
 
-How Does the TrainTestLabelDrift Check Work?
-============================================
-There are many methods to detect drift, that usually include statistical methods
-that aim to measure difference between 2 distributions.
-We experimented with various approaches and found that for detecting drift between 2
-one-dimensional distributions, the following 2 methods give the best results:
+How Deepchecks Detects Label Drift
+------------------------------------
 
-* For numerical features, the `Cramer's V <https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V>`__
-* For categorical features, the `Wasserstein Distance (Earth Mover's Distance) <https://en.wikipedia.org/wiki/Wasserstein_metric>`__
-
-However, one does not simply measure drift on a label, as they may be complex structures. These methods are implemented
-on label properties, as described in the next section.
+This check detects label drift by using :ref:`univariate measures <drift_detection_by_univariate_measure>`
+on the label properties.
 
 Using Label Properties to Detect Label Drift
 --------------------------------------------
 In computer vision specifically, our labels may be complex, and measuring their drift
-is not a straightforward task. Therefore, we calculate drift on different properties of the
-labels, on which we can directly measure drift.
+is not a straightforward task. Therefore, we calculate drift on different :doc:`properties of the label</user-guide/vision/vision_properties>`,
+on which we can directly measure drift.
 
 Which Label Properties Are Used?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

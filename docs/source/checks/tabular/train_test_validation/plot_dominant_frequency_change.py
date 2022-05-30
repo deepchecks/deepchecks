@@ -15,7 +15,7 @@ What is a Dominant Frequency Change?
 ====================================
 Dominant Frequency Change is a data integrity check which simply checks whether dominant values have increased
 significantly between test data and train data. Sharp changes in dominant values can indicate a problem with the
-data collection or data processing pipeline (for example, a sharp incrase in a common null or constant value),
+data collection or data processing pipeline (for example, a sharp increase in a common null or constant value),
 and will cause the model to fail to generalize well. This check goal is to catch these issues early in the pipeline.
 
 This check compares the dominant values of each feature in the test data to the dominant values of the same feature in

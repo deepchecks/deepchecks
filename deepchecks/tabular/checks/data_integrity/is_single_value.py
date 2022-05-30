@@ -11,6 +11,8 @@
 """Module contains is_single_value check."""
 from typing import List, Union
 
+import pandas as pd
+
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.tabular.utils.messages import get_condition_passed_message
@@ -31,17 +33,21 @@ class IsSingleValue(SingleDatasetCheck):
     ignore_columns : Union[Hashable, List[Hashable]] , default: None
         Columns to ignore, if none given checks based
         on columns variable.
+    ignore_nan : bool, default True
+        Whether to ignore NaN values in a column when counting the number of unique values.
     """
 
     def __init__(
         self,
         columns: Union[Hashable, List[Hashable], None] = None,
         ignore_columns: Union[Hashable, List[Hashable], None] = None,
+        ignore_nan: bool = True,
         **kwargs
     ):
         super().__init__(**kwargs)
         self.columns = columns
         self.ignore_columns = ignore_columns
+        self.ignore_nan = ignore_nan
 
     def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
         """Run check.
@@ -60,14 +66,17 @@ class IsSingleValue(SingleDatasetCheck):
 
         df = select_from_dataframe(df, self.columns, self.ignore_columns)
 
-        num_unique_per_col = df.nunique(dropna=False)
+        num_unique_per_col = df.nunique(dropna=self.ignore_nan)
         is_single_unique_value = (num_unique_per_col == 1)
 
         if is_single_unique_value.any():
             # get names of columns with one unique value
             # pylint: disable=unsubscriptable-object
             cols_with_single = is_single_unique_value[is_single_unique_value].index.to_list()
-            uniques = df.loc[:, cols_with_single].head(1)
+            uniques = pd.DataFrame({
+                column_name: [column.sort_values(kind='mergesort').values[0]]
+                for column_name, column in df.loc[:, cols_with_single].items()
+            })
             uniques.index = ['Single unique value']
             display = ['The following columns have only one unique value', uniques]
         else:
