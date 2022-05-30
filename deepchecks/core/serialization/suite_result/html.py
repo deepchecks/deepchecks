@@ -17,6 +17,7 @@ import pandas as pd
 
 from deepchecks.core import check_result as check_types
 from deepchecks.core import errors, suite
+from deepchecks.core.errors import DeepchecksBaseError
 from deepchecks.core.serialization.abc import HtmlSerializer
 from deepchecks.core.serialization.check_result.html import CheckResultSection
 from deepchecks.core.serialization.check_result.html import CheckResultSerializer as CheckResultHtmlSerializer
@@ -337,17 +338,15 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             if not isinstance(it, check_types.CheckFailure):
                 data.append([it.get_header(), 'Nothing found', 2])
             else:
+                message = it.exception.html if isinstance(it.exception, DeepchecksBaseError) else str(it.exception)
                 error_types = (
                     errors.DatasetValidationError,
                     errors.ModelValidationError,
                     errors.DeepchecksProcessError,
-                    str  # in case of serialized exception
                 )
-                message = (
-                    str(it.exception)
-                    if isinstance(it.exception, error_types)
-                    else f'{type(it.exception).__name__}: {str(it.exception)}'
-                )
+                if isinstance(it.exception, error_types):
+                    message = f'{type(it.exception).__name__}: {message}'
+
                 data.append((it.header, message, 1))
 
         df = pd.DataFrame(data=data, columns=['Check', 'Reason', 'priority'])
