@@ -198,7 +198,7 @@ def test_with_drift_object_detection_defected_alternative_measurements():
     # Arrange
     def prop(predictions):
         return [int(x[0][0]) if len(x) != 0 else 0 for x in predictions]
-    
+
     alternative_measurements = [
         {'name': 'test', 'method': prop, 'output_type': 'continuous'},
         {'name234': 'test', 'method': prop, 'output_type': 'continuous'},
