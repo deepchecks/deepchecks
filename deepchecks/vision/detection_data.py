@@ -147,15 +147,21 @@ class DetectionData(VisionData):
             raise ValidationError('Check requires object detection label to be a non-empty list')
         if not isinstance(labels[0], torch.Tensor):
             raise ValidationError('Check requires object detection label to be a list of torch.Tensor')
-        if len(labels[0].shape) != 2:
+        sample_idx = 0
+        # Find a non empty tensor to validate
+        while labels[sample_idx].shape[0] == 0:
+            sample_idx += 1
+            if sample_idx == len(labels):
+                return  # No labels to validate
+        if len(labels[sample_idx].shape) != 2:
             raise ValidationError('Check requires object detection label to be a list of 2D tensors')
-        if labels[0].shape[1] != 5:
+        if labels[sample_idx].shape[1] != 5:
             raise ValidationError('Check requires object detection label to be a list of 2D tensors, when '
                                   'each row has 5 columns: [class_id, x, y, width, height]')
-        if torch.min(labels[0]) < 0:
+        if torch.min(labels[sample_idx]) < 0:
             raise ValidationError('Found one of coordinates to be negative, check requires object detection '
                                   'bounding box coordinates to be of format [class_id, x, y, width, height].')
-        if torch.max(labels[0][:, 0] % 1) > 0:
+        if torch.max(labels[sample_idx][:, 0] % 1) > 0:
             raise ValidationError('Class_id must be a positive integer. Object detection labels per image should '
                                   'be a Bx5 tensor of format [class_id, x, y, width, height].')
 
@@ -183,18 +189,24 @@ class DetectionData(VisionData):
             raise ValidationError('Check requires detection predictions to be a non-empty list')
         if not isinstance(batch_predictions[0], torch.Tensor):
             raise ValidationError('Check requires detection predictions to be a list of torch.Tensor')
-        if len(batch_predictions[0].shape) != 2:
+        sample_idx = 0
+        # Find a non empty tensor to validate
+        while batch_predictions[sample_idx].shape[0] == 0:
+            sample_idx += 1
+            if sample_idx == len(batch_predictions):
+                return  # No predictions to validate
+        if len(batch_predictions[sample_idx].shape) != 2:
             raise ValidationError('Check requires detection predictions to be a list of 2D tensors')
-        if batch_predictions[0].shape[1] != 6:
+        if batch_predictions[sample_idx].shape[1] != 6:
             raise ValidationError('Check requires detection predictions to be a list of 2D tensors, when '
                                   'each row has 6 columns: [x, y, width, height, class_probability, class_id]')
-        if torch.min(batch_predictions[0]) < 0:
+        if torch.min(batch_predictions[sample_idx]) < 0:
             raise ValidationError('Found one of coordinates to be negative, Check requires object detection '
                                   'bounding box predictions to be of format [x, y, width, height, confidence,'
                                   ' class_id]. ')
-        if torch.min(batch_predictions[0][:, 4]) < 0 or torch.max(batch_predictions[0][:, 4]) > 1:
+        if torch.min(batch_predictions[sample_idx][:, 4]) < 0 or torch.max(batch_predictions[sample_idx][:, 4]) > 1:
             raise ValidationError('Confidence must be between 0 and 1. Object detection predictions per image '
                                   'should be a Bx6 tensor of format [x, y, width, height, confidence, class_id].')
-        if torch.max(batch_predictions[0][:, 5] % 1) > 0:
+        if torch.max(batch_predictions[sample_idx][:, 5] % 1) > 0:
             raise ValidationError('Class_id must be a positive integer. Object detection predictions per image '
                                   'should be a Bx6 tensor of format [x, y, width, height, confidence, class_id].')
