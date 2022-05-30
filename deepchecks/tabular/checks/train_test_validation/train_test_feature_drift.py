@@ -218,11 +218,13 @@ class TrainTestFeatureDrift(TrainTestCheck):
         displays = [headnote] + [displays_dict[col] for col in columns_order
                                  if col in train_dataset.cat_features + train_dataset.numerical_features]
 
-        return CheckResult(value=values_dict, display=displays, header='Train Test Drift')
+        return CheckResult(value=values_dict, display=displays, header='Train Test Feature Drift')
 
     def add_condition_drift_score_not_greater_than(self, max_allowed_categorical_score: float = 0.2,
                                                    max_allowed_numeric_score: float = 0.1,
-                                                   number_of_top_features_to_consider: int = 5):
+                                                   number_of_top_features_to_consider: int = 5,
+                                                   max_allowed_psi_score: float = None,
+                                                   max_allowed_earth_movers_score: float = None):
         """
         Add condition - require drift score to not be more than a certain threshold.
 
@@ -239,11 +241,32 @@ class TrainTestFeatureDrift(TrainTestCheck):
         number_of_top_features_to_consider: int , default: 5
             the number of top features for which exceed the threshold will fail the
             condition.
+        max_allowed_psi_score: float, default None
+            Deprecated. Please use max_allowed_categorical_score instead
+        max_allowed_earth_movers_score: float, default None
+            Deprecated. Please use max_allowed_numeric_score instead
+
         Returns
         -------
         ConditionResult
             False if any column has passed the max threshold, True otherwise
         """
+        if max_allowed_psi_score is not None:
+            warnings.warn(
+                f'{self.__class__.__name__}: max_allowed_psi_score is deprecated. please use '
+                f'max_allowed_categorical_score instead',
+                DeprecationWarning
+            )
+            if max_allowed_categorical_score is not None:
+                max_allowed_categorical_score = max_allowed_psi_score
+        if max_allowed_earth_movers_score is not None:
+            warnings.warn(
+                f'{self.__class__.__name__}: max_allowed_earth_movers_score is deprecated. please use '
+                f'max_allowed_numeric_score instead',
+                DeprecationWarning
+            )
+            if max_allowed_numeric_score is not None:
+                max_allowed_numeric_score = max_allowed_earth_movers_score
 
         def condition(result: Dict) -> ConditionResult:
             cat_method, num_method = get_drift_method(result)
