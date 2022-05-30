@@ -74,7 +74,7 @@ class IsSingleValue(SingleDatasetCheck):
             # pylint: disable=unsubscriptable-object
             cols_with_single = is_single_unique_value[is_single_unique_value].index.to_list()
             uniques = pd.DataFrame({
-                column_name: [column.dropna().values[0]]
+                column_name: [column.sort_values(kind='mergesort').values[0]]
                 for column_name, column in df.loc[:, cols_with_single].items()
             })
             uniques.index = ['Single unique value']
