@@ -13,12 +13,14 @@
 import typing as t
 import warnings
 from functools import lru_cache
+from typing_extensions import Literal as L
 
 import numpy as np
 import pandas as pd
 from pandas.core.dtypes.common import is_numeric_dtype
 from pandas.api.types import infer_dtype
 from sklearn.model_selection import train_test_split
+from IPython.display import HTML, display_html
 
 from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.utils.dataframes import select_from_dataframe
@@ -1062,8 +1064,12 @@ class Dataset:
 
         return True
     
-    def __repr__(self) -> str:
-        
+    @property
+    def _dataset_description(self) -> t.Tuple[
+        t.List[t.Union[str, int]],
+        pd.DataFrame, 
+        pd.DataFrame
+    ]:
         data = self.data
         datetime_name = self.datetime_name
         index_name = self.index_name
@@ -1077,9 +1083,10 @@ class Dataset:
         if label_name is not None:
             columns = [*columns, label_name]
         
-        is_index_str = isinstance(index_name, str)
-        is_index_int = isinstance(index_name, int)
+        is_index_name_str = isinstance(index_name, str)
+        is_index_name_int = isinstance(index_name, int)
         is_multiindex = isinstance(data.index, pd.MultiIndex)
+        
         unamed_index_levels = {
             level
             for level, name in enumerate(data.index.names)
@@ -1089,11 +1096,11 @@ class Dataset:
         if index_name in data.columns:
             columns = [index_name, *columns]
         
-        elif (is_index_str or is_index_int) and index_name in data.index.names:
+        elif (is_index_name_str or is_index_name_int) and index_name in data.index.names:
             data = data.reset_index()
             columns = [index_name, *columns]
 
-        elif is_index_int and is_multiindex and index_name in unamed_index_levels:
+        elif is_index_name_int and is_multiindex and index_name in unamed_index_levels:
             data = data.reset_index()
             index_name = f'level_{index_name}'
             columns = [index_name, *columns]
@@ -1102,6 +1109,28 @@ class Dataset:
             data = data.reset_index()
             index_name = 'index'
             columns = [index_name, *columns]
+        
+        is_datetime_name_str = isinstance(datetime_name, str)
+        is_datetime_name_int = isinstance(index_name, int)
+        
+        if datetime_name in columns:
+            pos = columns.index(datetime_name)
+            columns[1], columns[pos] = columns[pos], columns[1]
+        
+        elif datetime_name in data.columns:
+            index_name, *other_columns = columns
+            columns = [index_name, datetime_name, *other_columns]
+        
+        elif (is_datetime_name_str or is_datetime_name_int) and datetime_name in data.index.names:
+            data = data.reset_index()
+            index_name, *other_columns = columns
+            columns = [index_name, datetime_name, *other_columns]
+        
+        elif is_datetime_name_int and is_multiindex and datetime_name in unamed_index_levels:
+            data = data.reset_index()
+            datetime_name = f'level_{index_name}'
+            index_name, *other_columns = columns
+            columns = [index_name, datetime_name, *other_columns]
 
         columns_info = []
 
@@ -1129,22 +1158,30 @@ class Dataset:
             data=columns_info,
             columns=['Column', 'DType', 'Kind'],
         )
-
-        max_columns_to_show = 7
-        max_rows_to_show = 30
+        
+        return columns, columns_info, data.loc[:, columns]
+    
+    def __repr__(
+        self, 
+        max_columns_to_show: int = 7,
+        max_rows_to_show: int = 25,
+        fmt: t.Union[L['string'], L['html']] = 'string'
+    ) -> str:
+        """Represent a dataset instance."""        
+        columns, columns_info, data = self._dataset_description
 
         columns_to_show = (
-            [*columns[:6], columns[::-1][0]]
+            [*columns[:max_columns_to_show - 1], columns[::-1][0]]
             if len(columns) > max_columns_to_show
             else columns
         )
         rows_to_show = (
-            [*data.index[:25], *data.index[:-6:-1]]
+            [*data.index[:max_rows_to_show - 5], *data.index[:-6:-1]]
             if len(data) > max_rows_to_show
             else list(data.index)
         )
         
-        data_shape = f'Real Shape: {data[columns].shape}'
+        data_shape = f'Real Shape: {data.shape}'
         data_to_show = data.loc[rows_to_show, columns_to_show]
 
         if len(columns_to_show) != len(columns):
@@ -1152,25 +1189,45 @@ class Dataset:
             data_to_show = data_to_show[[*columns_to_show[:-1], '...', columns_to_show[-1]]]
 
         if len(rows_to_show) != len(data.index):
-            data_to_show.iloc[25] = '...'
+            data_to_show.iloc[max_rows_to_show - 5] = '...'
         
-        try:
-            import tabulate
-            features_info = columns_info.to_markdown(tablefmt="presto")
-            data_to_show = data_to_show.to_markdown(tablefmt="presto", index=False)
-        except ImportError:
-            features_info = columns_info.to_string(col_space=10, show_dimensions=False)
-            data_to_show = data_to_show.to_string(col_space=10, show_dimensions=False)
+        if fmt == 'string':
         
-        title_template = '{:-^40}\n\n'
+            try:
+                import tabulate  # NOTE: is an optional pandas dependency that is used by `to_markdown` method
+                features_info = columns_info.to_markdown(tablefmt="presto")
+                data_to_show = data_to_show.to_markdown(tablefmt="presto", index=False)
+            except ImportError:
+                features_info = columns_info.to_string(col_space=10, show_dimensions=False)
+                data_to_show = data_to_show.to_string(col_space=10, index=False, show_dimensions=False)
+            
+            title_template = '{:-^40}\n\n'
 
-        return ''.join((
-            title_template.format(' Dataset Description '),
-            f'{features_info}\n\n\n',
-            title_template.format(' Dataset Content '),
-            f'{data_to_show}\n\n',
-            f'{data_shape}',
-        ))
+            return ''.join((
+                title_template.format(' Dataset Description '),
+                f'{features_info}\n\n\n',
+                title_template.format(' Dataset Content '),
+                f'{data_to_show}\n\n',
+                f'{data_shape}',
+            ))
+        
+        elif fmt == 'html':
+            features_info = columns_info.to_html(notebook=True)
+            data_to_show = data_to_show.to_html(index=False, notebook=True)
+            return ''.join([
+                '<h4><b>Dataset Description</b></h4>',
+                features_info,
+                '<h4><b>Dataset Content</b></h4>',
+                data_to_show
+            ])
+
+        else:
+            raise ValueError(
+                '"fmt" parameter supports only next values [string, html]'
+            )
+    
+    def _ipython_display_(self):
+        display_html(HTML(self.__repr__(fmt='html')))
 
     def __len__(self) -> int:
         """Return number of samples in the member dataframe.
