@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing class performance check."""
-import traceback
 from typing import Dict, List, TypeVar
 
 import numpy as np
