@@ -74,7 +74,10 @@ from deepchecks.tabular.suites import data_integrity
 
 # Run Suite:
 integ_suite = data_integrity()
-integ_suite.run(ds)
+suite_result = integ_suite.run(ds)
+# Note: the result can be saved as html using suite_result.save_as_html()
+# or exported to json using suite_result.to_json()
+suite_result
 
 #%%
 # We can inspect the suite outputs and see that there are a few problems we'd like to fix.
@@ -127,7 +130,7 @@ result
 # Finally, we'll choose to keep the "organic" multiple spellings as they represent different sources.
 # So we'll customaize the suite by removing the condition from it (or delete check completely).
 # Alternatively - we can customize it by creating a new Suite with the desired checks and conditions.
-# See :doc:`/user-guide/general/customizations/examples/customizing-suites` for more info.
+# See :doc:`/user-guide/general/customizations/examples/plot_create_a_custom_suite` for more info.
 
 # let's inspect the suite's structure
 integ_suite
@@ -150,4 +153,4 @@ res = integ_suite.run(ds)
 # Additional Outputs section*
 #
 # For more info about working with conditions, see the detailed
-# :doc:`/user-guide/general/customizations/examples/plot_configure_checks_conditions' guide.
+# :doc:`/user-guide/general/customizations/examples/plot_configure_checks_conditions` guide.

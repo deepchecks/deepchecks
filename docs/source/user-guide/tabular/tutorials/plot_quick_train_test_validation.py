@@ -68,9 +68,14 @@ test_df = data[data['issue_d'].dt.month.isin([8])]
 from deepchecks.tabular import Dataset
 
 # We explicitly state the categorical features,
-# otherwise they will be automatically inferred, which may not work perfectly and is not recommended.
-# The label can be passed as a column name or a separate pd.Series / pd.DataFrame
-# If existing, we should define also the index column and datetime column in the Dataset
+# otherwise they will be automatically inferred,
+# which may not work perfectly and is not recommended.
+
+# The label can be passed as a column name or
+# as a separate pd.Series / pd.DataFrame
+
+# all metadata attributes are optional.
+# Some checks require specific attributes and otherwise will not run.
 
 train_ds = Dataset(train_df, label=label,cat_features=categorical_features, \
                    index_name=index_name, datetime_name=datetime_name)
@@ -98,9 +103,9 @@ from deepchecks.tabular.suites import train_test_validation
 
 validation_suite = train_test_validation()
 suite_result = validation_suite.run(train_ds, test_ds)
-suite_result
 # Note: the result can be saved as html using suite_result.save_as_html()
 # or exported to json using suite_result.to_json()
+suite_result
 
 #%%
 # We can see that we have a problem in the way we've split our data!
@@ -134,12 +139,15 @@ suite_result
 #%%
 #
 # Ok, the data leakage is fixed.
-# However, in the current split We see we have a multivariate drift, detected by the WholeDatasetDrift check.
+#
+# However, we can see that we have a multivariate drift in the current split, detected by the WholeDatasetDrift check.
 # The drift is detected mainly with a combination of the interest rate (``int_rate``) and loan grade (``sub_grade``).
+#
 # We can consider examining other sampling techniques (e.g. using only data from the same year), ideally achieving one in which the training data's
 # univariate and multivariate distribution is similar to the data on which the model will run (test / production data).
-# If we are planning on training a model with these splits, this drfit is worth investigating.
-# Otherwise, we can 
+#
+# If we are planning on training a model with these splits, this drift is worth understanding (is it known? can we do something about it?).
+# Otherwise, we can consider sampling or splitting the data differently, and using deepchecks to validate it.
 
 
 
@@ -147,6 +155,7 @@ suite_result
 #%%
 # Run a Single Check
 # -------------------
+#
 # We can run a single check on a dataset, and see the results.
 
 # If we want to run only that check (possible with or without condition)
@@ -160,3 +169,31 @@ dataset_drift_result = check_with_condition.run(train_ds, test_ds)
 # We can also inspect and use the result's value:
 
 dataset_drift_result.value
+
+#%%
+# and see if the conditions have passed
+dataset_drift_result.passed_conditions()
+
+#%%
+# Create a Custom Suite
+# ----------------------
+#
+# To create our own suite, we can simply write all of the checks, and add optional conditions.
+
+from deepchecks.tabular import Suite
+from deepchecks.tabular.checks import TrainTestFeatureDrift, WholeDatasetDrift, \
+ TrainTestPredictionDrift, TrainTestLabelDrift
+
+drift_suite = Suite('drift suite',
+TrainTestFeatureDrift().add_condition_drift_score_not_greater_than(
+  max_allowed_categorical_score=0.2, max_allowed_numeric_score=0.1),
+WholeDatasetDrift().add_condition_overall_drift_value_not_greater_than(0.4),
+TrainTestLabelDrift(),
+TrainTestPredictionDrift()
+)
+
+#%%
+#
+# we can run our new suite using:
+
+result = drift_suite.run(train_ds, test_ds)
