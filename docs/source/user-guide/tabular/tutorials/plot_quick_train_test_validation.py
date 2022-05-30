@@ -138,7 +138,7 @@ suite_result
 
 #%%
 #
-# Ok, the data leakage is fixed.
+# Ok, the date leakage doesn't exist anymore!
 #
 # However, we can see that we have a multivariate drift in the current split, detected by the WholeDatasetDrift check.
 # The drift is detected mainly with a combination of the interest rate (``int_rate``) and loan grade (``sub_grade``).
