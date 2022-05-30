@@ -39,7 +39,10 @@ class ImageDatasetDrift(TrainTestCheck):
     image_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
         Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
-        representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'
+        representing attributes of said method. 'output_type' must be one of:
+        - 'numeric' - for continuous ordinal outputs.
+        - 'categorical' - for discrete, non-ordinal outputs. These can still be numbers,
+          but that these numbers have not inherent value.
     n_top_properties : int , default: 3
         Amount of properties to show ordered by domain classifier feature importance. This limit is used together
         (AND) with min_feature_importance, so less than n_top_columns features can be displayed.
@@ -69,8 +72,7 @@ class ImageDatasetDrift(TrainTestCheck):
     ):
         super().__init__(**kwargs)
         if image_properties:
-            validate_properties(image_properties)
-            self.image_properties = image_properties
+            self.image_properties = validate_properties(image_properties)
         else:
             self.image_properties = default_image_properties
 

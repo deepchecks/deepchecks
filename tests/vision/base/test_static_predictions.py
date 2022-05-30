@@ -10,13 +10,13 @@
 #
 #
 import copy
+
 import numpy as np
-
 import torch
-from hamcrest import (assert_that, calling, close_to, equal_to, has_entries, has_items, has_length,
-                      has_properties, has_property, instance_of, is_, raises)
-from deepchecks.core.check_result import CheckResult
+from hamcrest import (assert_that, calling, close_to, equal_to, has_entries, has_items, has_length, has_properties,
+                      has_property, instance_of, is_, raises)
 
+from deepchecks.core.check_result import CheckResult
 from deepchecks.vision.base_checks import SingleDatasetCheck
 from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.checks.model_evaluation.class_performance import ClassPerformance

@@ -11,7 +11,7 @@
 """Module contains the simple feature distribution check."""
 from collections import defaultdict
 from copy import copy
-from typing import Callable, Dict, Hashable, TypeVar, Union
+from typing import Any, Dict, Hashable, List, Optional, TypeVar, Union
 
 import numpy as np
 import pandas as pd
@@ -69,7 +69,10 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
     image_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
         Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
-        representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'
+        representing attributes of said method. 'output_type' must be one of:
+        - 'numeric' - for continuous ordinal outputs.
+        - 'categorical' - for discrete, non-ordinal outputs. These can still be numbers,
+          but that these numbers have not inherent value.
     per_class : bool, default: True
         boolean that indicates whether the results of this check should be calculated for all classes or per class in
         label. If True, the conditions will be run per class as well.
@@ -85,7 +88,7 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
 
     def __init__(
             self,
-            image_properties: Dict[str, Callable] = None,
+            image_properties: Optional[List[Dict[str, Any]]] = None,
             n_top_properties: int = 3,
             per_class: bool = True,
             random_state: int = None,
@@ -96,8 +99,7 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
         super().__init__(**kwargs)
 
         if image_properties:
-            validate_properties(image_properties)
-            self.image_properties = image_properties
+            self.image_properties = validate_properties(image_properties)
         else:
             self.image_properties = default_image_properties
 
