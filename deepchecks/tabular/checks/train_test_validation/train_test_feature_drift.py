@@ -17,7 +17,7 @@ from typing import List, Union
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
-from deepchecks.utils.distribution.drift import (calc_drift_and_plot, drift_condition)
+from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['TrainTestFeatureDrift']
