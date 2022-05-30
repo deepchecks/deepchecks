@@ -110,7 +110,6 @@ class TrainTestLabelDrift(TrainTestCheck):
             if label_properties is not None
             else None
         )
-        self.user_label_properties = label_properties
         self.margin_quantile_filter = margin_quantile_filter
         if max_num_categories is not None:
             warnings.warn(
