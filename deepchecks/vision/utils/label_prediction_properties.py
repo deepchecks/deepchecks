@@ -9,7 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing measurements for labels and predictions."""
-from typing import List, Sequence
+from typing import List, Sequence, Dict, Any
+import warnings
 
 import torch
 
@@ -46,8 +47,8 @@ DEFAULT_CLASSIFICATION_LABEL_PROPERTIES = [
 
 DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES = [
     {'name': 'Samples Per Class', 'method': _get_samples_per_class_object_detection, 'output_type': 'class_id'},
-    {'name': 'Bounding Box Area (in pixels)', 'method': _get_bbox_area, 'output_type': 'continuous'},
-    {'name': 'Number of Bounding Boxes Per Image', 'method': _count_num_bboxes, 'output_type': 'continuous'},
+    {'name': 'Bounding Box Area (in pixels)', 'method': _get_bbox_area, 'output_type': 'numerical'},
+    {'name': 'Number of Bounding Boxes Per Image', 'method': _count_num_bboxes, 'output_type': 'numerical'},
 ]
 
 
@@ -70,32 +71,91 @@ def _get_predicted_bbox_area(predictions: List[torch.Tensor]) -> List[List[int]]
 
 
 DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES = [
-    {'name': 'Samples Per Class', 'method': _get_samples_per_predicted_class_classification, 'output_type': 'class_id'}
+    {
+        'name': 'Samples Per Class', 
+        'method': _get_samples_per_predicted_class_classification, 
+        'output_type': 'class_id'
+    }
 ]
 
 DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES = [
-    {'name': 'Samples Per Class', 'method': _get_samples_per_predicted_class_object_detection,
-     'output_type': 'class_id'},
-    {'name': 'Bounding Box Area (in pixels)', 'method': _get_predicted_bbox_area, 'output_type': 'continuous'},
-    {'name': 'Number of Bounding Boxes Per Image', 'method': _count_num_bboxes, 'output_type': 'continuous'},
+    {
+        'name': 'Samples Per Class', 
+        'method': _get_samples_per_predicted_class_object_detection,
+        'output_type': 'class_id'
+    },
+    {
+        'name': 'Bounding Box Area (in pixels)', 
+        'method': _get_predicted_bbox_area, 
+        'output_type': 'numerical'},
+    {
+        'name': 'Number of Bounding Boxes Per Image', 
+        'method': _count_num_bboxes, 
+        'output_type': 'numerical'
+    },
 ]
 
 
 # Helper functions
 
-def validate_properties(properties):
+def validate_properties(properties: List[Dict[str, Any]]):
     """Validate structure of measurements."""
-    expected_keys = ['name', 'method', 'output_type']
-    output_types = ['discrete', 'continuous', 'class_id']
+    
     if not isinstance(properties, list):
         raise DeepchecksValueError(
-            f'Expected properties to be a list, instead got {properties.__class__.__name__}')
-    for label_property in properties:
-        if not isinstance(label_property, dict) or any(
-                key not in label_property.keys() for key in expected_keys):
-            raise DeepchecksValueError(f'Property must be of type dict, and include keys {expected_keys}')
-        if label_property['output_type'] not in output_types:
-            raise DeepchecksValueError(f'Property field "output_type" must be one of {output_types}')
+            'Expected properties to be a list, '
+            f'instead got {type(properties).__name__}'
+        )
+    
+    if len(properties) == 0:
+        raise DeepchecksValueError('Properties list can\'t be empty')    
+    
+    expected_keys = ('name', 'method', 'output_type')
+    deprecated_output_types = ('discrete', 'continuous')
+    output_types = ('categorical', 'numerical', 'class_id')
+
+    errors = []
+    list_of_warnings = []
+    
+    for index, label_property in enumerate(properties):
+        
+        if not isinstance(label_property, dict):
+            errors.append(
+                f'Item #{index}: property must be of type dict, '
+                f'and include keys {expected_keys}.'
+            )
+        
+        property_name = label_property.get('name') or f'#{index}'
+        difference = set(expected_keys).difference(set(label_property.keys()))
+
+        if len(difference) > 0:
+            errors.append(
+                f'Property {property_name}: dictionary must include keys {expected_keys}. '
+                f'Next keys are missed {list(difference)}'
+            )
+        
+        property_output_type = label_property['output_type']
+        
+        if property_output_type in deprecated_output_types:
+            list_of_warnings.append(
+                f'Property {property_name}: output types {deprecated_output_types} are deprecated, '
+                f'use instead {output_types}'
+            )
+        elif property_output_type not in output_types:
+            errors.append(
+                f'Property {property_name}: field "output_type" must be one of {output_types}, '
+                f'instead got {property_output_type}'
+            )
+    
+    if len(errors) > 0:
+        errors = '\n+ '.join(errors)
+        raise DeepchecksValueError(f'List of properties contains next problems:\n+ {errors}')
+    
+    if len(list_of_warnings) > 0:
+        concatenated_warnings = '\n+ '.join(list_of_warnings)
+        warnings.warn(f'Property Warnings:\n+ {concatenated_warnings}')
+    
+    return properties
 
 
 def get_column_type(output_type):

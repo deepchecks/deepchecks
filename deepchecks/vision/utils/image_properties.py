@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the image formatter class for the vision module."""
-from typing import List, Tuple
+from typing import List, Tuple, Dict, Any
 
 import numpy as np
 from skimage.color import rgb2gray
@@ -127,32 +127,64 @@ def get_dimension(img) -> int:
 
 
 default_image_properties = [
-    {'name': 'Aspect Ratio', 'method': aspect_ratio, 'output_type': 'continuous'},
-    {'name': 'Area', 'method': area, 'output_type': 'continuous'},
-    {'name': 'Brightness', 'method': brightness, 'output_type': 'continuous'},
-    {'name': 'RMS Contrast', 'method': rms_contrast, 'output_type': 'continuous'},
-    {'name': 'Mean Red Relative Intensity', 'method': mean_red_relative_intensity, 'output_type': 'continuous'},
-    {'name': 'Mean Green Relative Intensity', 'method': mean_green_relative_intensity, 'output_type': 'continuous'},
-    {'name': 'Mean Blue Relative Intensity', 'method': mean_blue_relative_intensity, 'output_type': 'continuous'}
+    {'name': 'Aspect Ratio', 'method': aspect_ratio, 'output_type': 'numerical'},
+    {'name': 'Area', 'method': area, 'output_type': 'numerical'},
+    {'name': 'Brightness', 'method': brightness, 'output_type': 'numerical'},
+    {'name': 'RMS Contrast', 'method': rms_contrast, 'output_type': 'numerical'},
+    {'name': 'Mean Red Relative Intensity', 'method': mean_red_relative_intensity, 'output_type': 'numerical'},
+    {'name': 'Mean Green Relative Intensity', 'method': mean_green_relative_intensity, 'output_type': 'numerical'},
+    {'name': 'Mean Blue Relative Intensity', 'method': mean_blue_relative_intensity, 'output_type': 'numerical'}
 ]
 
 
-def validate_properties(properties):
+def validate_properties(properties: List[Dict[str, Any]]):
     """Validate structure of measurements."""
-    expected_keys = ['name', 'method', 'output_type']
-    output_types = ['discrete', 'continuous']
+    
     if not isinstance(properties, list):
         raise DeepchecksValueError(
-            f'Expected properties to be a list, instead got {properties.__class__.__name__}')
+            'Expected properties to be a list, '
+            f'instead got {type(properties).__name__}'
+        )
+    
     if len(properties) == 0:
-        raise DeepchecksValueError('Properties list can\'t be empty')
-    for label_property in properties:
-        if not isinstance(label_property, dict) or any(
-                key not in label_property.keys() for key in expected_keys):
-            raise DeepchecksValueError(f'Property must be of type dict, and include keys {expected_keys}')
-        if label_property['output_type'] not in output_types:
-            raise DeepchecksValueError(f'Property field "output_type" must be one of {output_types}')
+        raise DeepchecksValueError('Properties list can\'t be empty')    
+    
+    expected_keys = ('name', 'method', 'output_type')
+    output_types = ('categorical', 'numerical')
 
+    errors = []
+    
+    for index, label_property in enumerate(properties):
+        
+        if not isinstance(label_property, dict):
+            errors.append(
+                f'Item #{index}: property must be of type dict, '
+                f'and include keys {expected_keys}.'
+            )
+        
+        property_name = label_property.get('name') or f'#{index}'
+        difference = set(expected_keys).difference(set(label_property.keys()))
+
+        if len(difference) > 0:
+            errors.append(
+                f'Property {property_name}: dictionary must include keys {expected_keys}. '
+                f'Next keys are missed {list(difference)}'
+            )
+        
+        property_output_type = label_property['output_type']
+        
+        if property_output_type not in output_types:
+            errors.append(
+                f'Property {property_name}: field "output_type" must be one of {output_types}, '
+                f'instead got {property_output_type}'
+            )
+    
+    if len(errors) > 0:
+        errors = '\n+ '.join(errors)
+        raise DeepchecksValueError(f'List of properties contains next problems:\n+ {errors}')
+    
+    return properties
+    
 
 def get_column_type(output_type):
     """Get column type to use in drift functions."""
