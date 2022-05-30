@@ -71,7 +71,7 @@ def test_dataset_no_label():
     assert_that(
         calling(IdentifierLeakage().run).with_args(dataset=df),
         raises(DeepchecksNotSupportedError,
-               'There is no label defined to use. Did you pass a DataFrame instead of a Dataset?')
+               'Dataset does not contain a label column')
     )
 
 
@@ -82,7 +82,7 @@ def test_dataset_only_label():
         calling(IdentifierLeakage().run).with_args(dataset=df),
         raises(
             DatasetValidationError,
-            'Check is irrelevant for Datasets without index or date column')
+            'Dataset does not contain an index or a datetime')
     )
 
 
