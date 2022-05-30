@@ -283,6 +283,7 @@ def calculate_condition_logic(result, include_classes=None, average=False, max_g
 
     # Save min gain info to print when condition pass
     min_gain = (np.inf, '')
+
     def update_min_gain(gain, metric, class_name=None):
         nonlocal min_gain
         if gain < min_gain[0]:
