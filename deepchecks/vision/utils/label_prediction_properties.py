@@ -121,8 +121,9 @@ def validate_properties(properties: List[Dict[str, Any]]):
         if not isinstance(label_property, dict):
             errors.append(
                 f'Item #{index}: property must be of type dict, '
-                f'and include keys {expected_keys}.'
+                f'and include keys {expected_keys}. Instead got {type(label_property).__name__}'
             )
+            continue
 
         property_name = label_property.get('name') or f'#{index}'
         difference = set(expected_keys).difference(set(label_property.keys()))
@@ -132,6 +133,7 @@ def validate_properties(properties: List[Dict[str, Any]]):
                 f'Property {property_name}: dictionary must include keys {expected_keys}. '
                 f'Next keys are missed {list(difference)}'
             )
+            continue
 
         property_output_type = label_property['output_type']
 
@@ -160,7 +162,14 @@ def validate_properties(properties: List[Dict[str, Any]]):
 def get_column_type(output_type):
     """Get column type to use in drift functions."""
     # TODO smarter mapping based on data?
-    mapper = {'continuous': 'numerical', 'discrete': 'categorical', 'class_id': 'categorical'}
+    # NOTE/TODO: this function is kept only for backward compatibility, remove it later
+    mapper = {
+        'continuous': 'numerical',
+        'discrete': 'categorical',
+        'class_id': 'categorical',
+        'numerical': 'numerical',
+        'categorical': 'categorical',
+    }
     return mapper[output_type]
 
 

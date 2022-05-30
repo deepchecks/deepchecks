@@ -153,30 +153,33 @@ def validate_properties(properties: List[Dict[str, Any]]):
 
     errors = []
 
-    for index, label_property in enumerate(properties):
+    for index, image_property in enumerate(properties):
 
-        if not isinstance(label_property, dict):
+        if not isinstance(image_property, dict):
             errors.append(
                 f'Item #{index}: property must be of type dict, '
-                f'and include keys {expected_keys}.'
+                f'and include keys {expected_keys}. Instead got {type(image_property).__name__}'
             )
+            continue
 
-        property_name = label_property.get('name') or f'#{index}'
-        difference = set(expected_keys).difference(set(label_property.keys()))
+        property_name = image_property.get('name') or f'#{index}'
+        difference = set(expected_keys).difference(set(image_property.keys()))
 
         if len(difference) > 0:
             errors.append(
                 f'Property {property_name}: dictionary must include keys {expected_keys}. '
                 f'Next keys are missed {list(difference)}'
             )
+            continue
 
-        property_output_type = label_property['output_type']
+        property_output_type = image_property['output_type']
 
         if property_output_type not in output_types:
             errors.append(
                 f'Property {property_name}: field "output_type" must be one of {output_types}, '
                 f'instead got {property_output_type}'
             )
+            continue
 
     if len(errors) > 0:
         errors = '\n+ '.join(errors)
@@ -187,6 +190,12 @@ def validate_properties(properties: List[Dict[str, Any]]):
 
 def get_column_type(output_type):
     """Get column type to use in drift functions."""
-    # TODO smarter mapping based on data?
-    mapper = {'continuous': 'numerical', 'discrete': 'categorical'}
+    # TODO: smarter mapping based on data?
+    # NOTE/TODO: this function is kept only for backward compatibility, remove it later
+    mapper = {
+        'continuous': 'numerical',
+        'discrete': 'categorical',
+        'numerical': 'numerical',
+        'categorical': 'categorical'
+    }
     return mapper[output_type]
