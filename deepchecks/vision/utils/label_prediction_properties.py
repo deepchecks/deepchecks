@@ -126,12 +126,12 @@ def validate_properties(properties: List[Dict[str, Any]]):
             continue
 
         property_name = label_property.get('name') or f'#{index}'
-        difference = set(expected_keys).difference(set(label_property.keys()))
+        difference = sorted(set(expected_keys).difference(set(label_property.keys())))
 
         if len(difference) > 0:
             errors.append(
                 f'Property {property_name}: dictionary must include keys {expected_keys}. '
-                f'Next keys are missed {list(difference)}'
+                f'Next keys are missed {difference}'
             )
             continue
 

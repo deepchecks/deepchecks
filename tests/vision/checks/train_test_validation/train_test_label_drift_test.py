@@ -234,10 +234,14 @@ def test_with_drift_object_detection_defected_alternative_properties():
     ]
 
     # Assert
-    assert_that(calling(TrainTestLabelDrift).with_args(alternative_properties),
-                raises(DeepchecksValueError,
-                       r"Property must be of type dict, and include keys \['name', 'method', 'output_type'\]")
-                )
+    assert_that(
+        calling(TrainTestLabelDrift).with_args(alternative_properties),
+        raises(
+            DeepchecksValueError,
+            r"List of properties contains next problems:\n"
+            rf"\+ Property #1: dictionary must include keys \('name', 'method', 'output_type'\)\. "
+            fr"Next keys are missed \['name'\]")
+    )
 
 
 def test_with_drift_object_detection_defected_alternative_properties2():

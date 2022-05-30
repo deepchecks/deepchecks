@@ -198,16 +198,21 @@ def test_with_drift_object_detection_defected_alternative_measurements():
     # Arrange
     def prop(predictions):
         return [int(x[0][0]) if len(x) != 0 else 0 for x in predictions]
+    
     alternative_measurements = [
         {'name': 'test', 'method': prop, 'output_type': 'continuous'},
         {'name234': 'test', 'method': prop, 'output_type': 'continuous'},
     ]
 
     # Assert
-    assert_that(calling(TrainTestPredictionDrift).with_args(alternative_measurements),
-                raises(DeepchecksValueError,
-                       r"Property must be of type dict, and include keys \['name', 'method', 'output_type'\]")
-                )
+    assert_that(
+        calling(TrainTestPredictionDrift).with_args(alternative_measurements),
+        raises(
+            DeepchecksValueError,
+            r"List of properties contains next problems:\n"
+            rf"\+ Property #1: dictionary must include keys \('name', 'method', 'output_type'\)\. "
+            fr"Next keys are missed \['name'\]")
+    )
 
 
 def test_with_drift_object_detection_defected_alternative_measurements2():
