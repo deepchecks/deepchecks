@@ -8,6 +8,7 @@ Is Single Value
 # Imports
 # =======
 
+import numpy as np
 import pandas as pd
 from sklearn.datasets import load_iris
 
@@ -41,3 +42,14 @@ sv.run(df)
 
 sv_ignore = IsSingleValue(ignore_columns=['b','c'])
 sv_ignore.run(df)
+
+#%%
+
+# Ignoring NaN values
+
+IsSingleValue(ignore_nan=True).run(pd.DataFrame({
+    'a': [3, np.nan], 
+    'b': [2, 2],
+    'c': [None, np.nan], 
+    'd': ['a', 4]
+}))

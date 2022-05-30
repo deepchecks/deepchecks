@@ -18,9 +18,9 @@ from deepchecks.tabular.checks.data_integrity.is_single_value import IsSingleVal
 from tests.base.utils import equal_condition_result
 
 
-def helper_test_df_and_result(df, expected_result_value, ignore_columns=None):
+def helper_test_df_and_result(df, expected_result_value, ignore_columns=None, ignore_nan=True):
     # Act
-    result = IsSingleValue(ignore_columns=ignore_columns).run(df)
+    result = IsSingleValue(ignore_columns=ignore_columns, ignore_nan=ignore_nan).run(df)
 
     # Assert
     assert_that(result.value, equal_to(expected_result_value))
@@ -98,8 +98,14 @@ def test_wrong_input_single_value():
 
 def test_nans(df_with_fully_nan, df_with_single_nan_in_col):
     # Act & Assert
-    helper_test_df_and_result(df_with_fully_nan, {'col1': 1, 'col2': 1})
-    helper_test_df_and_result(df_with_single_nan_in_col, {'col1': 11, 'col2': 11})
+    helper_test_df_and_result(df_with_fully_nan, {'col1': 1, 'col2': 1}, ignore_nan=False)
+    helper_test_df_and_result(df_with_single_nan_in_col, {'col1': 11, 'col2': 11}, ignore_nan=False)
+
+
+def test_ignore_nans(df_with_fully_nan, df_with_single_nan_in_col):
+    # Act & Assert
+    helper_test_df_and_result(df_with_fully_nan, {'col1': 0, 'col2': 0}, ignore_nan=True)
+    helper_test_df_and_result(df_with_single_nan_in_col, {'col1': 10, 'col2': 11}, ignore_nan=True)
 
 
 def test_condition_fail():
@@ -120,7 +126,7 @@ def test_condition_fail():
 def test_condition_pass():
     # Arrange
     df = pd.DataFrame({'a': ['b', 'asadf', 'b'], 'bbb': ['a', 'a', np.nan], 'f': [1, 2, 3]})
-    check = IsSingleValue().add_condition_not_single_value()
+    check = IsSingleValue(ignore_nan=False).add_condition_not_single_value()
 
     # Act
     result = check.conditions_decision(check.run(df))
