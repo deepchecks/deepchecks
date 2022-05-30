@@ -23,6 +23,7 @@ from sklearn.model_selection import train_test_split
 from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import infer_categorical_features, infer_numerical_features, is_categorical
+from deepchecks.utils.strings import get_docs_link
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['Dataset']
@@ -502,7 +503,7 @@ class Dataset:
         random_state : int , default: 42
             The random state to use for shuffling.
         shuffle : bool , default: True
-            Whether or not to shuffle the data before splitting.
+            Whether to shuffle the data before splitting.
         stratify : t.Union[t.List, pd.Series, np.ndarray, bool] , default: False
             If True, data is split in a stratified fashion, using the class labels. If array-like, data is split in
             a stratified fashion, using this as class labels.
@@ -794,8 +795,10 @@ class Dataset:
         DeepchecksNotSupportedError
         """
         if not self.label_name:
-            raise DeepchecksNotSupportedError('There is no label defined to use. Did you pass a DataFrame '
-                                              'instead of a Dataset?')
+            raise DeepchecksNotSupportedError(
+                'Dataset does not contain a label column',
+                html=f'Dataset does not contain a label column. see {_get_dataset_docs_tag()}'
+            )
 
     def assert_features(self):
         """Check if features are defined (not empty) and if not raise error.
@@ -805,8 +808,10 @@ class Dataset:
         DeepchecksNotSupportedError
         """
         if not self.features:
-            raise DeepchecksNotSupportedError('There are no features defined to use. Did you pass a DataFrame '
-                                              'instead of a Dataset?')
+            raise DeepchecksNotSupportedError(
+                'Dataset does not contain any feature columns',
+                html=f'Dataset does not contain any feature columns. see {_get_dataset_docs_tag()}'
+            )
 
     def assert_datetime(self):
         """Check if datetime is defined and if not raise error.
@@ -816,8 +821,10 @@ class Dataset:
         DeepchecksNotSupportedError
         """
         if not (self._set_datetime_from_dataframe_index or self._datetime_name):
-            raise DatasetValidationError('There is no datetime defined to use. Did you pass a DataFrame instead '
-                                         'of a Dataset?')
+            raise DatasetValidationError(
+                'Dataset does not contain a datetime',
+                html=f'Dataset does not contain a datetime. see {_get_dataset_docs_tag()}'
+            )
 
     def assert_index(self):
         """Check if index is defined and if not raise error.
@@ -827,8 +834,10 @@ class Dataset:
         DeepchecksNotSupportedError
         """
         if not (self._set_index_from_dataframe_index or self._index_name):
-            raise DatasetValidationError('There is no index defined to use. Did you pass a DataFrame instead '
-                                         'of a Dataset?')
+            raise DatasetValidationError(
+                'Dataset does not contain an index',
+                html=f'Dataset does not contain an index. see {_get_dataset_docs_tag()}'
+            )
 
     def select(
             self: TDataset,
@@ -1180,3 +1189,10 @@ class Dataset:
     def is_sampled(self, n_samples: int):
         """Return True if the dataset number of samples will decrease when sampled with n_samples samples."""
         return len(self) > n_samples
+
+
+def _get_dataset_docs_tag():
+    """Return link to documentation for Dataset class."""
+    link = get_docs_link() + 'user-guide/tabular/dataset_object.html?html?utm_source=display_output' \
+                             '&utm_medium=referral&utm_campaign=check_link'
+    return f'<a href="{link}" target="_blank">Dataset docs</a>'

@@ -59,7 +59,7 @@
 
 {%- block body_tag %}
 
-<body>
+<body data-spy="scroll" data-target="#bd-toc-nav">
     <!-- Google Tag Manager (noscript) -->
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NNKXRJQ" height="0" width="0"
             style="display:none;visibility:hidden"></iframe></noscript>
@@ -68,7 +68,7 @@
         require.config({
             paths: {
                 "docsearchLib": "https://cdn.jsdelivr.net/npm/@docsearch/js@3?noext",
-                "clipboardjs": "/_static/clipboard.min"
+                "clipboardjs": "/{{ version }}/_static/clipboard.min"
             }
         }
 
@@ -86,8 +86,8 @@
         });
     </script>
     <div style="display:none;" id="dc-submodule">{{ submodule }}</div>
-    <script data-url_root="/" id="documentation_options" src="/_static/documentation_options.js"></script>
-    <script src="/_static/copybutton.js"></script>
+    <script data-url_root="/" id="documentation_options" src="/{{ version }}/_static/documentation_options.js"></script>
+    <script src="/{{ version }}/_static/copybutton.js"></script>
 {% endblock %}
 
 {% block docs_main %}

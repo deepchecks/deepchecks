@@ -59,6 +59,7 @@ __all__ = [
     'generate_check_docs_link',
     'widget_to_html_string',
     'format_number_if_not_nan',
+    'get_docs_link',
 ]
 
 # Creating a translation table for the string.translate() method to be used in string base form method
@@ -171,6 +172,23 @@ def widget_to_html_string(
     return buffer.getvalue()
 
 
+def get_docs_link():
+    """Return the link to the docs with current version.
+
+    Returns
+    -------
+    str
+        the link to the docs.
+    """
+    if deepchecks.__version__ and deepchecks.__version__ != 'dev':
+        version_obj: Version = Version(deepchecks.__version__)
+        # The version in the docs url is without the hotfix part
+        version = f'{version_obj.major}.{version_obj.minor}'
+    else:
+        version = 'stable'
+    return f'https://docs.deepchecks.com/{version}/'
+
+
 def generate_check_docs_link(check):
     """Create from check object a link to its example page in the docs."""
     if not isinstance(check, core.BaseCheck):
@@ -192,11 +210,7 @@ def generate_check_docs_link(check):
         # not builtin check, cannot generate link to the docs
         return ''
 
-    link_template = (
-        'https://docs.deepchecks.com/{version}/checks_gallery/{path}.html'
-        '?utm_source=display_output&utm_medium=referral'
-        '&utm_campaign=check_link'
-    )
+    link_postfix = '.html?utm_source=display_output&utm_medium=referral&utm_campaign=check_link'
 
     # compare check full name and link to the notebook to
     # understand how link is formatted:
@@ -204,19 +218,13 @@ def generate_check_docs_link(check):
     # - deepchecks.tabular.checks.integrity.StringMismatchComparison
     # - https://docs.deepchecks.com/{version}/checks_gallery/tabular/integrity/plot_string_mismatch_comparison.html # noqa: E501 # pylint: disable=line-too-long
 
-    # Remove deepchecks from the start
+    # Remove 'deepchecks' from the start and 'checks' from the middle
     module_path = module_path[len('deepchecks.'):]
     module_parts = module_path.split('.')
-    module_parts[-1] = f'plot_{module_parts[-1]}'
     module_parts.remove('checks')
-    url = '/'.join([*module_parts])
-    if deepchecks.__version__ and deepchecks.__version__ != 'dev':
-        version_obj: Version = Version(deepchecks.__version__)
-        # The version in the docs url is without the hotfix part
-        version = f'{version_obj.major}.{version_obj.minor}'
-    else:
-        version = 'stable'
-    return link_template.format(version=version, path=url)
+    # Add to the check name prefix of 'plot_'
+    module_parts[-1] = f'plot_{module_parts[-1]}'
+    return get_docs_link() + 'checks_gallery/' + '/'.join([*module_parts]) + link_postfix
 
 
 def get_random_string(n: int = 5):
