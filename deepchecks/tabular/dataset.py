@@ -1056,52 +1056,101 @@ class Dataset:
     def __repr__(self) -> str:
         
         data = self.data
-        columns = [*self.features, self.label_name]
+        datetime_name = self.datetime_name
+        index_name = self.index_name
+        label_name = self.label_name
+        features = self.features
         categorical_features = self.cat_features
         numerical_features = self.numerical_features
+        
+        columns = features[::]
 
-        features_data = []
+        if label_name is not None:
+            columns = [*columns, label_name]
+        
+        is_index_str = isinstance(index_name, str)
+        is_index_int = isinstance(index_name, int)
+        is_multiindex = isinstance(data.index, pd.MultiIndex)
+        unamed_index_levels = {
+            level
+            for level, name in enumerate(data.index.names)
+            if name is None
+        }
+        
+        if index_name in data.columns:
+            columns = [index_name, *columns]
+        
+        elif (is_index_str or is_index_int) and index_name in data.index.names:
+            data = data.reset_index()
+            columns = [index_name, *columns]
+
+        elif is_index_int and is_multiindex and index_name in unamed_index_levels:
+            data = data.reset_index()
+            index_name = f'level_{index_name}'
+            columns = [index_name, *columns]
+        
+        else:
+            data = data.reset_index()
+            index_name = 'index'
+            columns = [index_name, *columns]
+
+        columns_info = []
 
         for feature_name in t.cast(t.List[str], columns):
-            if feature_name == self.index_name:
+            if feature_name == index_name:
                 kind = 'Index'
-            elif feature_name == self.label_name:
+            elif feature_name == label_name:
                 kind = t.cast(str, self.label_type).replace('_', ' ').capitalize()
             elif feature_name in categorical_features:
                 kind = 'Categorical'
             elif feature_name in numerical_features:
                 kind = 'Numerical'
-            elif feature_name == self.datetime_name:
+            elif feature_name == datetime_name:
                 kind = 'Datetime'
             else:
                 kind = 'Unknown'
             
-            features_data.append([
+            columns_info.append([
                 feature_name,
                 infer_dtype(data[feature_name], skipna=True),
                 kind
             ])
 
-        features_info = pd.DataFrame(
-            data=features_data,
-            columns=['Column', 'DType', 'DKind'],
+        columns_info = pd.DataFrame(
+            data=columns_info,
+            columns=['Column', 'DType', 'Kind'],
+        )
+
+        max_columns_to_show = 7
+        max_rows_to_show = 30
+
+        columns_to_show = (
+            [*columns[:6], columns[::-1][0]]
+            if len(columns) > max_columns_to_show
+            else columns
+        )
+        rows_to_show = (
+            [*data.index[:25], *data.index[:-6:-1]]
+            if len(data) > max_rows_to_show
+            else list(data.index)
         )
         
-        features_to_show = self.features[:5]
-        columns_to_show = [*features_to_show, self.label_name]
-        rows_to_show = [*data.index[:25], *data.index[:-6:-1]]
-        data_to_show = data.loc[rows_to_show, columns_to_show].reset_index()
-        data_to_show['...'] = '...'
-        data_to_show.iloc[25] = '...'
-        data_to_show = data_to_show[['index', *features_to_show, '...', self.label_name]]
-        data_shape = f'Real Shape: {data.shape}'
+        data_shape = f'Real Shape: {data[columns].shape}'
+        data_to_show = data.loc[rows_to_show, columns_to_show]
 
+        if len(columns_to_show) != len(columns):
+            data_to_show['...'] = '...'
+            data_to_show = data_to_show[[*columns_to_show[:-1], '...', columns_to_show[-1]]]
+
+        if len(rows_to_show) != len(data.index):
+            data_to_show.iloc[25] = '...'
+        
         try:
             import tabulate
-            features_info = features_info.to_markdown(tablefmt="presto")
+            features_info = columns_info.to_markdown(tablefmt="presto")
             data_to_show = data_to_show.to_markdown(tablefmt="presto", index=False)
         except ImportError:
-            features_info = features_info.to_string(col_space=10, show_dimensions=False)
+            features_info = columns_info.to_string(col_space=10, show_dimensions=False)
             data_to_show = data_to_show.to_string(col_space=10, show_dimensions=False)
         
         title_template = '{:-^40}\n\n'
