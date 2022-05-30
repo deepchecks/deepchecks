@@ -387,8 +387,7 @@ def test_detection_data_bad_implementation():
                        'Check requires object detection label to be a list with an entry for each sample'))
     assert_that(calling(detection_data.validate_label).with_args([]),
                 raises(ValidationError,
-                       'Check requires object detection label to be a non-empty list, with one entry for '
-                       'each sample'))
+                       'Check requires object detection label to be a non-empty list'))
     assert_that(calling(detection_data.validate_label).with_args([8]),
                 raises(ValidationError,
                        'Check requires object detection label to be a list of torch.Tensor'))

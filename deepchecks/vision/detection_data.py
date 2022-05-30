@@ -144,8 +144,7 @@ class DetectionData(VisionData):
             raise ValidationError('Check requires object detection label to be a list with an entry for each '
                                   'sample')
         if len(labels) == 0:
-            raise ValidationError('Check requires object detection label to be a non-empty list, with one entry for '
-                                  'each sample')
+            raise ValidationError('Check requires object detection label to be a non-empty list')
         if not isinstance(labels[0], torch.Tensor):
             raise ValidationError('Check requires object detection label to be a list of torch.Tensor')
         sample_idx = 0
@@ -187,8 +186,7 @@ class DetectionData(VisionData):
             raise ValidationError('Check requires detection predictions to be a list with an entry for each'
                                   ' sample')
         if len(batch_predictions) == 0:
-            raise ValidationError('Check requires detection predictions to be a non-empty list, with one entry for '
-                                  'each sample')
+            raise ValidationError('Check requires detection predictions to be a non-empty list')
         if not isinstance(batch_predictions[0], torch.Tensor):
             raise ValidationError('Check requires detection predictions to be a list of torch.Tensor')
         sample_idx = 0
