@@ -159,25 +159,23 @@ class DetectionData(VisionData):
             raise ValidationError('Class_id must be a positive integer. Object detection labels per image should '
                                   'be a Bx5 tensor of format [class_id, x, y, width, height].')
 
-    def validate_prediction(self, batch, model, device):
+    @staticmethod
+    def validate_infered_batch_predictions(batch_predictions):
         """
-        Validate the prediction.
+        Validate the infered predictions from the batch.
 
         Parameters
         ----------
-        batch : t.Any
-            Batch from DataLoader
-        model : t.Any
-        device : torch.Device
+        batch_predictions : t.Any
+            The infered predictions from the batch
 
         Raises
         ------
-        DeepchecksValueError
+        ValidationError
             If predictions format is invalid
         DeepchecksNotImplementedError
             If infer_on_batch not implemented
         """
-        batch_predictions = self.infer_on_batch(batch, model, device)
         if not isinstance(batch_predictions, list):
             raise ValidationError('Check requires detection predictions to be a list with an entry for each'
                                   ' sample')
