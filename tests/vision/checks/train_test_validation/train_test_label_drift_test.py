@@ -152,7 +152,7 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets):
         name='categorical drift score <= 0.1 and numerical drift score <= 0.075',
         details='Failed for 1 out of 1 label properties.\n'
                 'Found 1 categorical label properties with Cramer\'s V above threshold: {\'Samples Per '
-                'Class\': \'0.18\'}\n'
+                'Class\': \'0.18\'}'
     ))
 
 

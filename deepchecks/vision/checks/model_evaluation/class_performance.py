@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing class performance check."""
+import traceback
 from typing import Dict, List, TypeVar
 
 import numpy as np
@@ -20,6 +21,7 @@ from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils import plot
+from deepchecks.utils.function import get_max_entry_from_dict
 from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.metrics_utils.metrics import filter_classes_for_display, get_scorers_list, metric_results_to_df
@@ -191,18 +193,21 @@ class ClassPerformance(TrainTestCheck):
 
             def update_max_degradation(diffs, class_name):
                 nonlocal max_degradation
-                max_scorer, max_diff = sorted(list(diffs.items()), key=lambda x: x[1], reverse=True)[0]
+                max_scorer, max_diff = get_max_entry_from_dict(diffs)
                 if max_diff > max_degradation[1]:
                     max_degradation = f'Found max degradation of {format_percent(max_diff)} for metric ' \
                                       f'{max_scorer} and class {class_name}', max_diff
 
             classes = check_result['Class Name'].unique()
             explained_failures = []
+
             for class_name in classes:
                 test_scores_class = test_scores.loc[test_scores['Class Name'] == class_name]
                 train_scores_class = train_scores.loc[train_scores['Class Name'] == class_name]
                 test_scores_dict = dict(zip(test_scores_class['Metric'], test_scores_class['Value']))
                 train_scores_dict = dict(zip(train_scores_class['Metric'], train_scores_class['Value']))
+                if len(test_scores_dict) == 0 or len(train_scores_dict) == 0:
+                    continue
                 # Calculate percentage of change from train to test
                 diff = {score_name: _ratio_of_change_calc(score, test_scores_dict[score_name])
                         for score_name, score in train_scores_dict.items()}
