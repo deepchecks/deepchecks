@@ -673,12 +673,15 @@ class Dataset:
         t.Optional[pd.Series]
             Series of the datetime column
         """
-        if self._set_datetime_from_dataframe_index is True:
-            return self._datetime_column
+        if self._set_datetime_from_dataframe_index is True and self._datetime_column is not None:
+            column = self._datetime_column
+            column.name = column.name or self.datetime_name or 'datetime'
+            return column
         elif self._datetime_name is not None:
             return self.data[self._datetime_name]
-        else:  # No meaningful Datetime to use: Datetime column not configured, and _set_datetime_from_dataframe_index
-            # is False
+        else:
+            # No meaningful Datetime to use:
+            # Datetime column not configured, and _set_datetime_from_dataframe_index is False
             return
 
     @property
@@ -1065,102 +1068,107 @@ class Dataset:
 
         return True
 
-    @property
-    def _dataset_description(self) -> t.Tuple[
-        t.List[t.Union[str, int]],
+    def _get_dataset_description(
+        self,
+        max_rows_to_show: int = 25,
+        max_columns_to_show: int = 7,
+        use_head_tail_separator: bool = False
+    ) -> t.Tuple[
         pd.DataFrame,
         pd.DataFrame
     ]:
-        data = self.data
-        datetime_name = self.datetime_name
-        index_name = self.index_name
-        label_name = self.label_name
+        tail = 5 if max_rows_to_show > 15 else 2
+        head = max_rows_to_show - tail
+
+        rows_to_show = (
+            [*self.data.index[:head], *self.data.index[:-tail-1:-1]]
+            if len(self.data) > max_rows_to_show
+            else list(self.data.index)
+        )
+
+        data = self.data.iloc[rows_to_show, :]
+
         features = self.features
         categorical_features = self.cat_features
         numerical_features = self.numerical_features
 
-        columns = features[::]
+        label_column = t.cast(pd.Series, self.data[self.label_name]) if self.label_name else None
+        index_column = self.index_col
+        datetime_column = self.datetime_col
 
-        if label_name is not None:
-            columns = [*columns, label_name]
+        dataset_columns = []
+        dataset_columns_info = []
 
-        is_index_name_str = isinstance(index_name, str)
-        is_index_name_int = isinstance(index_name, int)
-        is_multiindex = isinstance(data.index, pd.MultiIndex)
-
-        unamed_index_levels = {
-            level
-            for level, name in enumerate(data.index.names)
-            if name is None
-        }
-
-        if index_name in data.columns:
-            columns = [index_name, *columns]
-
-        elif (is_index_name_str or is_index_name_int) and index_name in data.index.names:
-            data = data.reset_index()
-            columns = [index_name, *columns]
-
-        elif is_index_name_int and is_multiindex and index_name in unamed_index_levels:
-            data = data.reset_index()
-            index_name = f'level_{index_name}'
-            columns = [index_name, *columns]
-
+        if index_column is not None:
+            index_name = index_column.name
+            with warnings.catch_warnings():
+                warnings.simplefilter(action='ignore')
+                data.loc[:, index_name] = index_column.loc[rows_to_show]
+            index_column_info = [index_name, infer_dtype(index_column, skipna=True), 'Index']
+            dataset_columns.append(index_name)
+            dataset_columns_info.append(index_column_info)
         else:
-            data = data.reset_index()
-            index_name = 'index'
-            columns = [index_name, *columns]
+            index_name = None
 
-        is_datetime_name_str = isinstance(datetime_name, str)
-        is_datetime_name_int = isinstance(index_name, int)
+        if datetime_column is not None:
+            datetime_name = datetime_column.name
+            with warnings.catch_warnings():
+                warnings.simplefilter(action='ignore')
+                data.loc[:, datetime_name] = datetime_column.loc[rows_to_show]
+            datetime_column_info = [datetime_name, infer_dtype(datetime_column, skipna=True), 'Datetime']
+            dataset_columns.append(datetime_name)
+            dataset_columns_info.append(datetime_column_info)
+        else:
+            datetime_name = None
 
-        if datetime_name in columns:
-            pos = columns.index(datetime_name)
-            columns[1], columns[pos] = columns[pos], columns[1]
+        label_name = label_column.name if label_column is not None else None
 
-        elif datetime_name in data.columns:
-            index_name, *other_columns = columns
-            columns = [index_name, datetime_name, *other_columns]
+        for feature_name in t.cast(t.List[str], features):
+            if feature_name in (index_name, datetime_name, label_name):
+                continue
 
-        elif (is_datetime_name_str or is_datetime_name_int) and datetime_name in data.index.names:
-            data = data.reset_index()
-            index_name, *other_columns = columns
-            columns = [index_name, datetime_name, *other_columns]
-
-        elif is_datetime_name_int and is_multiindex and datetime_name in unamed_index_levels:
-            data = data.reset_index()
-            datetime_name = f'level_{index_name}'
-            index_name, *other_columns = columns
-            columns = [index_name, datetime_name, *other_columns]
-
-        columns_info = []
-
-        for feature_name in t.cast(t.List[str], columns):
-            if feature_name == index_name:
-                kind = 'Index'
-            elif feature_name == label_name:
-                kind = t.cast(str, self.label_type).replace('_', ' ').capitalize()
-            elif feature_name in categorical_features:
+            if feature_name in categorical_features:
                 kind = 'Categorical'
             elif feature_name in numerical_features:
                 kind = 'Numerical'
-            elif feature_name == datetime_name:
-                kind = 'Datetime'
             else:
                 kind = 'Unknown'
 
-            columns_info.append([
-                feature_name,
-                infer_dtype(data[feature_name], skipna=True),
-                kind
+            dataset_columns.append(feature_name)
+            dataset_columns_info.append([feature_name, infer_dtype(data[feature_name], skipna=True), kind])
+
+        if label_column is not None:
+            label_name = label_column.name
+            with warnings.catch_warnings():
+                warnings.simplefilter(action='ignore')
+                data.loc[:, label_name] = label_column.loc[rows_to_show]
+            dataset_columns.append(label_name)
+            dataset_columns_info.append([
+                label_name,
+                infer_dtype(label_column, skipna=True),
+                t.cast(str, self.label_type).replace('_', ' ').capitalize()
             ])
 
-        columns_info = pd.DataFrame(
-            data=columns_info,
+        data = data.loc[:, dataset_columns]
+        dataset_columns_info = pd.DataFrame(
+            data=dataset_columns_info,
             columns=['Column', 'DType', 'Kind'],
         )
 
-        return columns, columns_info, data.loc[:, columns]
+        columns_to_show = (
+            [*dataset_columns[:max_columns_to_show-1], dataset_columns[-1]]
+            if len(dataset_columns) > max_columns_to_show
+            else dataset_columns
+        )
+
+        if use_head_tail_separator is True:
+            if len(rows_to_show) != len(self.data.index):
+                data.iloc[head, :] = '...'
+            if len(columns_to_show) != len(dataset_columns):
+                columns_to_show = [*columns_to_show[:-1], '...', columns_to_show[-1]]
+                data['...'] = '...'
+
+        return dataset_columns_info, data.loc[:, columns_to_show].reset_index(drop=True)
 
     def __repr__(
         self,
@@ -1169,39 +1177,26 @@ class Dataset:
         fmt: DatasetReprFmt = 'string'
     ) -> str:
         """Represent a dataset instance."""
-        columns, columns_info, data = self._dataset_description
-
-        columns_to_show = (
-            [*columns[:max_columns_to_show - 1], columns[::-1][0]]
-            if len(columns) > max_columns_to_show
-            else columns
-        )
-        rows_to_show = (
-            [*data.index[:max_rows_to_show - 5], *data.index[:-6:-1]]
-            if len(data) > max_rows_to_show
-            else list(data.index)
+        dataset_columns_info, dataset_subset = self._get_dataset_description(
+            max_columns_to_show=max_columns_to_show,
+            max_rows_to_show=max_rows_to_show,
+            use_head_tail_separator=True
         )
 
-        data_shape = f'Real Shape: {data.shape}'
-        data_to_show = data.loc[rows_to_show, columns_to_show]
-
-        if len(columns_to_show) != len(columns):
-            data_to_show['...'] = '...'
-            data_to_show = data_to_show[[*columns_to_show[:-1], '...', columns_to_show[-1]]]
-
-        if len(rows_to_show) != len(data.index):
-            data_to_show.iloc[max_rows_to_show - 5] = '...'
+        n_of_columns = len(dataset_columns_info)
+        n_of_rows = len(self.data.index)
+        data_shape = f'Real Shape: {(n_of_rows, n_of_columns)}'
 
         if fmt == 'string':
 
             try:
                 # NOTE: is an optional pandas dependency that is used by `to_markdown` method
                 import tabulate  # pylint: disable=unused-import, import-outside-toplevel # noqa: F401
-                features_info = columns_info.to_markdown(tablefmt="presto")
-                data_to_show = data_to_show.to_markdown(tablefmt="presto", index=False)
+                features_info = dataset_columns_info.to_markdown(tablefmt="presto")
+                data_to_show = dataset_subset.to_markdown(tablefmt="presto", index=False)
             except ImportError:
-                features_info = columns_info.to_string(col_space=10, show_dimensions=False)
-                data_to_show = data_to_show.to_string(col_space=10, index=False, show_dimensions=False)
+                features_info = dataset_columns_info.to_string(col_space=10, show_dimensions=False)
+                data_to_show = dataset_subset.to_string(col_space=10, index=False, show_dimensions=False)
 
             title_template = '{:-^40}\n\n'
 
@@ -1214,8 +1209,8 @@ class Dataset:
             ))
 
         elif fmt == 'html':
-            features_info = columns_info.to_html(notebook=True)
-            data_to_show = data_to_show.to_html(index=False, notebook=True)
+            features_info = dataset_columns_info.to_html(notebook=True)
+            data_to_show = dataset_subset.to_html(index=False, notebook=True)
             return ''.join([
                 '<h4><b>Dataset Description</b></h4>',
                 features_info,
