@@ -194,7 +194,10 @@ def validate_properties(properties: List[Dict[str, Any]]):
 
     if len(list_of_warnings) > 0:
         concatenated_warnings = '\n+ '.join(list_of_warnings)
-        warnings.warn(f'Property Warnings:\n+ {concatenated_warnings}')
+        warnings.warn(
+            f'Property Warnings:\n+ {concatenated_warnings}', 
+            category=DeprecationWarning
+        )
 
     return properties
 
