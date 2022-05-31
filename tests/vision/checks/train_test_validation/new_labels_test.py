@@ -11,7 +11,7 @@
 """New Labels check tests"""
 from copy import copy
 
-from hamcrest import assert_that, close_to, has_entries, has_items, has_length
+from hamcrest import assert_that, close_to, has_entries, has_items, has_length, equal_to
 
 from deepchecks.vision.checks import NewLabels
 from deepchecks.vision.utils.test_utils import get_modified_dataloader
@@ -57,9 +57,8 @@ def test_object_detection_coco(coco_train_visiondata, coco_test_visiondata, devi
     # Act
     result = NewLabels().run(coco_train_visiondata, coco_test_visiondata, device=device)
     # Assert
-    assert_that(result.value, has_entries(
-        {'donut': close_to(14, 1), 'tennis racket': close_to(7, 1), 'all_labels': close_to(387, 1)}
-    ))
+    assert_that(result.value['new_labels'], has_entries({'donut': 14, 'tennis racket': 7}))
+    assert_that(result.value, has_entries(all_labels_count=387))
 
 
 def test_object_detection_coco_with_condition(coco_train_visiondata, coco_test_visiondata, device):
@@ -85,8 +84,8 @@ def test_object_detection_coco_new_labels(coco_train_visiondata, coco_test_visio
     # Act
     result = NewLabels().run(coco_train_visiondata, test, device=device)
     # Assert
-    assert_that(result.value, has_entries(
-        {'donut': close_to(14, 1), '-5': close_to(2, 1), 'all_labels': close_to(387, 1)}))
+    assert_that(result.value['new_labels'], has_entries({'donut': 14, 'tennis racket': 7}))
+    assert_that(result.value, has_entries(all_labels_count=387))
 
 
 def test_classification_mnist_with_condition(mnist_dataset_train, mnist_dataset_test, device):
@@ -98,9 +97,9 @@ def test_classification_mnist_with_condition(mnist_dataset_train, mnist_dataset_
     assert_that(check.conditions_decision(result), has_items(
         equal_condition_result(is_pass=True,
                                name='Percentage of new labels in the test set not above 0%.',
-                               details='')
+                               details='No new labels were found in test set.')
     ))
-    assert_that(result.value, has_length(1))
+    assert_that(result.value['new_labels'], has_length(0))
 
 
 def test_classification_mnist_change_label(mnist_dataset_train, mnist_dataset_test, device):
@@ -110,8 +109,7 @@ def test_classification_mnist_change_label(mnist_dataset_train, mnist_dataset_te
     # Act
     result = NewLabels().run(mnist_dataset_train, test, device=device)
     # Assert
-    assert_that(result.value, has_entries(
-        {'-3': close_to(1010, 1)}))
+    assert_that(result.value, equal_to({'new_labels': {'-3': 1010}, 'all_labels_count': 10000}))
 
 
 def test_classification_mnist_change_label_with_condition(mnist_dataset_train, mnist_dataset_test, device):
@@ -128,8 +126,7 @@ def test_classification_mnist_change_label_with_condition(mnist_dataset_train, m
                                details='10.1% of labels found in test set were not in train set.'
                                        ' New labels most common in test set: [\'-3\']')
     ))
-    assert_that(result.value, has_entries(
-        {'-3': close_to(1010, 1)}))
+    assert_that(result.value, equal_to({'new_labels': {'-3': 1010}, 'all_labels_count': 10000}))
 
 
 def test_classification_mnist_new_labels(mnist_dataset_train, mnist_dataset_test, device):
@@ -140,6 +137,5 @@ def test_classification_mnist_new_labels(mnist_dataset_train, mnist_dataset_test
     # Act
     result = NewLabels().run(mnist_dataset_train, test, device=device)
     # Assert
-    assert_that(result.value, has_entries(
-        {'-1': close_to(286, 1)}
-    ))
+    assert_that(result.value, equal_to({'new_labels': {'-5': 286, '-3': 286, '-1': 286, '-2': 286, '-4': 285},
+                                        'all_labels_count': 10000}))

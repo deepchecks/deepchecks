@@ -169,12 +169,10 @@ class SimilarImageLeakage(TrainTestCheck):
 
         def condition(value: List[Tuple[int, int]]) -> ConditionResult:
             num_similar_images = len(set(t[1] for t in value))
-
-            if num_similar_images > threshold:
-                message = f'Number of similar images between train and test datasets: {num_similar_images}'
-                return ConditionResult(ConditionCategory.FAIL, message)
-            else:
-                return ConditionResult(ConditionCategory.PASS)
+            message = f'Number of similar images between train and test datasets: {num_similar_images}' \
+                if num_similar_images > 0 else 'Found 0 similar images between train and test datasets'
+            category = ConditionCategory.FAIL if num_similar_images > threshold else ConditionCategory.PASS
+            return ConditionResult(category, message)
 
         return self.add_condition(f'Number of similar images between train and test is not greater than '
                                   f'{threshold}', condition)

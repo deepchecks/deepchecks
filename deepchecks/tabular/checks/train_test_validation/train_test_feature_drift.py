@@ -12,16 +12,12 @@
 
 import warnings
 from collections import OrderedDict
-from typing import Dict, List, Union
+from typing import List, Union
 
-from deepchecks.core import CheckResult, ConditionResult
-from deepchecks.core.condition import ConditionCategory
+from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
-from deepchecks.tabular.utils.messages import get_condition_passed_message
-from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERIC_METHODS,
-                                                 calc_drift_and_plot, get_drift_method)
-from deepchecks.utils.strings import format_number
+from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['TrainTestFeatureDrift']
@@ -268,50 +264,8 @@ class TrainTestFeatureDrift(TrainTestCheck):
             if max_allowed_numeric_score is not None:
                 max_allowed_numeric_score = max_allowed_earth_movers_score
 
-        def condition(result: Dict) -> ConditionResult:
-            cat_method, num_method = get_drift_method(result)
-            if all(x['Importance'] is not None for x in result.values()):
-                columns_to_consider = \
-                    [col_name for col_name, fi in sorted(result.items(), key=lambda item: item[1]['Importance'],
-                                                         reverse=True)]
-            else:
-                columns_to_consider = \
-                    [col_name for col_name, fi in sorted(result.items(), key=lambda item: item[1]['Drift score'],
-                                                         reverse=True)]
-            columns_to_consider = columns_to_consider[:number_of_top_features_to_consider]
-            cat_drift_columns = {column: d['Drift score'] for column, d in result.items()
-                                 if d['Method'] in SUPPORTED_CATEGORICAL_METHODS}
-            cat_drift_columns = dict(sorted(cat_drift_columns.items(), key=lambda item: item[1], reverse=True))
-            not_passing_categorical_columns = {column: format_number(d) for column, d in cat_drift_columns.items()
-                                               if d > max_allowed_categorical_score and column in columns_to_consider}
-
-            num_drift_columns = {column: d['Drift score'] for column, d in result.items()
-                                 if d['Method'] in SUPPORTED_NUMERIC_METHODS}
-            num_drift_columns = dict(sorted(num_drift_columns.items(), key=lambda item: item[1], reverse=True))
-            not_passing_numeric_columns = {column: format_number(d) for column, d in num_drift_columns.items()
-                                           if d > max_allowed_numeric_score and column in columns_to_consider}
-
-            if not_passing_numeric_columns or not_passing_categorical_columns:
-                details = f'Failed for {len(not_passing_categorical_columns) + len(not_passing_numeric_columns)} ' \
-                          f'columns out of {len(result)}.'
-                if not_passing_categorical_columns:
-                    details += f' Found {len(not_passing_categorical_columns)} categorical columns with {cat_method} ' \
-                               f'above threshold: {not_passing_categorical_columns}'
-                if not_passing_numeric_columns:
-                    details += f' Found {len(not_passing_numeric_columns)} numeric columns with {num_method} ' \
-                               f'above threshold: {not_passing_numeric_columns}'
-                return ConditionResult(ConditionCategory.FAIL, details)
-            else:
-                details = get_condition_passed_message(result) + '.'
-                if cat_drift_columns:
-                    column = next(iter(cat_drift_columns))
-                    details += f' Column {column} has the highest categorical drift score: ' \
-                               f'{format_number(cat_drift_columns[column])}'
-                if num_drift_columns:
-                    column = next(iter(num_drift_columns))
-                    details += f' Column {column} has the highest numerical drift score: ' \
-                               f'{format_number(num_drift_columns[column])}'
-                return ConditionResult(ConditionCategory.PASS, details)
+        condition = drift_condition(max_allowed_categorical_score, max_allowed_numeric_score, 'column', 'columns',
+                                    number_of_top_features_to_consider)
 
         return self.add_condition(f'categorical drift score <= {max_allowed_categorical_score} and '
                                   f'numerical drift score <= {max_allowed_numeric_score}',
