@@ -91,7 +91,7 @@ class Suite(BaseSuite):
                           feature_importance_force_permutation=feature_importance_force_permutation,
                           feature_importance_timeout=feature_importance_timeout,
                           scorers=scorers,
-                          scorers_per_class=scorers_per_class,             
+                          scorers_per_class=scorers_per_class,
                           y_pred_train=y_pred_train, y_pred_test=y_pred_test,
                           y_proba_train=y_proba_train, y_proba_test=y_proba_test)
 
