@@ -24,6 +24,7 @@ from ipywidgets import Widget
 from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
 
+from deepchecks.core.checks import ReduceMixin
 from deepchecks.core.condition import ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.serialization.check_failure.html import CheckFailureSerializer as CheckFailureHtmlSerializer
@@ -193,6 +194,12 @@ class CheckResult(BaseCheckResult):
                 return 3
 
         return 4
+
+    def reduce_output(self) -> Dict[str, int]:
+        """Return the check result as a reduced dict."""
+        if isinstance(self.check, ReduceMixin):
+            return self.check.reduce_output(self)
+        raise DeepchecksValueError('Check be an instance of ReduceMixin to use this function')
 
     def display_check(
         self,

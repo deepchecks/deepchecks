@@ -189,7 +189,7 @@ def prepare_thumbnail(
         image = ensure_image(image, copy=False)
 
     img_bytes = io.BytesIO()
-    image.save(fp=img_bytes, format='PNG')
+    image.save(img_bytes, optimize=True, quality=60, format='jpeg')
     img_bytes.seek(0)
     tag = imagetag(img_bytes.read())
     img_bytes.close()
