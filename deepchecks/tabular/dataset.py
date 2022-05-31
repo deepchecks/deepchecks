@@ -1068,7 +1068,7 @@ class Dataset:
 
     def _get_dataset_description(
         self,
-        max_rows_to_show: int = 25,
+        max_rows_to_show: int = 10,
         max_columns_to_show: int = 7,
         use_head_tail_separator: bool = False
     ) -> t.Tuple[
@@ -1121,15 +1121,19 @@ class Dataset:
             if feature_name in (index_name, datetime_name, label_name):
                 continue
 
+            feature_dtype = infer_dtype(data[feature_name], skipna=True)
+
             if feature_name in categorical_features:
                 kind = 'Categorical Feature'
             elif feature_name in numerical_features:
                 kind = 'Numerical Feature'
+            elif feature_dtype == 'string':
+                kind = 'Textual Feature'
             else:
                 kind = 'Other Feature'
 
             dataset_columns.append(feature_name)
-            dataset_columns_info.append([feature_name, infer_dtype(data[feature_name], skipna=True), kind])
+            dataset_columns_info.append([feature_name, feature_dtype, kind])
 
         if label_column is not None:
             label_name = label_column.name
@@ -1165,7 +1169,7 @@ class Dataset:
     def __repr__(
         self,
         max_columns_to_show: int = 7,
-        max_rows_to_show: int = 25,
+        max_rows_to_show: int = 10,
         fmt: DatasetReprFmt = 'string'
     ) -> str:
         """Represent a dataset instance."""
