@@ -674,9 +674,7 @@ class Dataset:
             Series of the datetime column
         """
         if self._set_datetime_from_dataframe_index is True and self._datetime_column is not None:
-            column = self._datetime_column
-            column.name = column.name or self.datetime_name or 'datetime'
-            return column
+            return self._datetime_column
         elif self._datetime_name is not None:
             return self.data[self._datetime_name]
         else:
@@ -1086,7 +1084,7 @@ class Dataset:
             else list(self.data.index)
         )
 
-        data = self.data.iloc[rows_to_show, :]
+        data = self.data.iloc[rows_to_show, :].copy()
 
         features = self.features
         categorical_features = self.cat_features
@@ -1101,9 +1099,7 @@ class Dataset:
 
         if index_column is not None:
             index_name = index_column.name
-            with warnings.catch_warnings():
-                warnings.simplefilter(action='ignore')
-                data.loc[:, index_name] = index_column.loc[rows_to_show]
+            data.loc[:, index_name] = index_column.loc[rows_to_show]
             index_column_info = [index_name, infer_dtype(index_column, skipna=True), 'Index']
             dataset_columns.append(index_name)
             dataset_columns_info.append(index_column_info)
@@ -1112,9 +1108,7 @@ class Dataset:
 
         if datetime_column is not None:
             datetime_name = datetime_column.name
-            with warnings.catch_warnings():
-                warnings.simplefilter(action='ignore')
-                data.loc[:, datetime_name] = datetime_column.loc[rows_to_show]
+            data.loc[:, datetime_name] = datetime_column.loc[rows_to_show]
             datetime_column_info = [datetime_name, infer_dtype(datetime_column, skipna=True), 'Datetime']
             dataset_columns.append(datetime_name)
             dataset_columns_info.append(datetime_column_info)
@@ -1139,9 +1133,7 @@ class Dataset:
 
         if label_column is not None:
             label_name = label_column.name
-            with warnings.catch_warnings():
-                warnings.simplefilter(action='ignore')
-                data.loc[:, label_name] = label_column.loc[rows_to_show]
+            data.loc[:, label_name] = label_column.loc[rows_to_show]
             dataset_columns.append(label_name)
             dataset_columns_info.append([
                 label_name,
