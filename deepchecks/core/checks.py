@@ -59,7 +59,7 @@ class ReduceMixin(abc.ABC):
         Returns
         -------
         Dict[str, float]
-            reduced dictionary in format Dict[str, float] (i.e {'AUC': 0.1}), based on the check's original returned value
+            reduced dictionary in format {str: float} (i.e {'AUC': 0.1}), based on the check's original returned value
         """
         raise NotImplementedError('Must implement reduce_output function')
 
