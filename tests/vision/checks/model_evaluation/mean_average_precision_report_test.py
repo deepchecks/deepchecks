@@ -61,15 +61,14 @@ def test_coco(coco_test_visiondata, mock_trained_yolov5_object_detection, device
 
     assert_that(result.conditions_results[0], equal_condition_result(
         is_pass=True,
-        details='Found lowest score of 0.34 for area Small (area < 32^2) and metric mAP@.50 (%)',
+        details='Found lowest score of 0.21 for area Small (area < 32^2) and IoU mAP@[.50::.95] (avg.%)',
         name='Scores are not less than 0.1'
     ))
 
     assert_that(result.conditions_results[1], equal_condition_result(
         is_pass=False,
         name='Scores are not less than 0.4',
-        details="Found scores below threshold:\n{'Small (area < 32^2)': {'mAP@.50 (%)': '0.342'}, "
-                "'Medium (32^2 < area < 96^2)': {'mAP@.75 (%)': '0.35'}}"
+        details='Found lowest score of 0.21 for area Small (area < 32^2) and IoU mAP@[.50::.95] (avg.%)'
     ))
 
     assert_that(result.conditions_results[2], equal_condition_result(
