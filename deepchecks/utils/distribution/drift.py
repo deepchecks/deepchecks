@@ -19,9 +19,9 @@ from scipy.stats import chi2_contingency, wasserstein_distance
 
 from deepchecks import ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
+from deepchecks.utils.dict_funcs import get_max_entry_from_dict
 from deepchecks.utils.distribution.plot import drift_score_bar_traces, feature_distribution_traces
 from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
-from deepchecks.utils.function import get_max_entry_from_dict
 from deepchecks.utils.strings import format_number, format_percent
 
 __all__ = ['calc_drift_and_plot', 'get_drift_method', 'SUPPORTED_CATEGORICAL_METHODS', 'SUPPORTED_NUMERIC_METHODS',

@@ -18,8 +18,8 @@ import pandas as pd
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
+from deepchecks.utils.dict_funcs import get_max_entry_from_dict
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
-from deepchecks.utils.function import get_max_entry_from_dict
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.utils.image_properties import default_image_properties, get_column_type, validate_properties

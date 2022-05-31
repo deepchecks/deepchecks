@@ -22,7 +22,7 @@ from deepchecks.core.check_utils.feature_label_correlation_utils import (get_fea
                                                                          get_feature_label_correlation_per_class)
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import ModelValidationError
-from deepchecks.utils.function import get_max_entry_from_dict
+from deepchecks.utils.dict_funcs import get_max_entry_from_dict
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Context, TrainTestCheck
 from deepchecks.vision.batch_wrapper import Batch

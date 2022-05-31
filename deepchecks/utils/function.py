@@ -12,7 +12,7 @@
 from inspect import signature
 from typing import Any, Callable, Dict
 
-__all__ = ['run_available_kwargs', 'initvars', 'get_max_entry_from_dict', 'sort_dict']
+__all__ = ['run_available_kwargs', 'initvars']
 
 
 def run_available_kwargs(func: Callable, **kwargs):
@@ -55,26 +55,3 @@ def initvars(
         for k, v in vars(obj).items()
         if k in params and v != params[k].default
     }
-
-
-def get_max_entry_from_dict(x: dict):
-    """Get from dictionary the entry with maximal value.
-
-    Returns
-    -------
-    Tuple: key, value
-    """
-    if not x:
-        return None, None
-    max_key = max(x, key=x.get)
-    return max_key, x[max_key]
-
-
-def sort_dict(x: dict, reverse=True):
-    """Sort dictionary by values.
-
-    Returns
-    -------
-    Dict: sorted dictionary
-    """
-    return dict(sorted(x.items(), key=lambda item: item[1], reverse=reverse))
