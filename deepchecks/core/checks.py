@@ -48,7 +48,7 @@ class CheckMetadata(TypedDict):
 class ReduceMixin(abc.ABC):
     """Mixin for reduce_output function."""
 
-    def reduce_output(self, check_result: 'check_types.CheckResult') -> Dict[str, int]:
+    def reduce_output(self, check_result: 'check_types.CheckResult') -> Dict[str, float]:
         """Return the check result as a reduced dict."""
         raise NotImplementedError('Must implement reduce_output function')
 

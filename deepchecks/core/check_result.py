@@ -195,7 +195,7 @@ class CheckResult(BaseCheckResult):
 
         return 4
 
-    def reduce_output(self) -> Dict[str, int]:
+    def reduce_output(self) -> Dict[str, float]:
         """Return the check result as a reduced dict."""
         if isinstance(self.check, ReduceMixin):
             return self.check.reduce_output(self)
