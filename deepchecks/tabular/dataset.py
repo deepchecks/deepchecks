@@ -1126,7 +1126,7 @@ class Dataset:
             elif feature_name in numerical_features:
                 kind = 'Numerical'
             else:
-                kind = 'Unknown'
+                kind = 'Other Feature'
 
             dataset_columns.append(feature_name)
             dataset_columns_info.append([feature_name, infer_dtype(data[feature_name], skipna=True), kind])
