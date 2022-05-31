@@ -10,7 +10,6 @@
 #
 """Module containing mean average recall report check."""
 import math
-from collections import defaultdict
 from typing import Tuple, TypeVar
 
 import numpy as np
