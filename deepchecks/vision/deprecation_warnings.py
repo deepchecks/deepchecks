@@ -48,3 +48,20 @@ warnings.filterwarnings(
     category=DeprecationWarning,
     module=r'deepchecks.*'
 )
+
+# Added in 0.7 Warning filters for drift conditions
+# Should be removed in 0.8
+
+warnings.filterwarnings(
+    action='once',
+    message=r'.*max_allowed_psi_score is deprecated.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.*'
+)
+
+warnings.filterwarnings(
+    action='once',
+    message=r'.*max_allowed_earth_movers_score is deprecated.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.*'
+)
