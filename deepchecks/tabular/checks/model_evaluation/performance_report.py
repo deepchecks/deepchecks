@@ -147,7 +147,7 @@ class PerformanceReport(TrainTestCheck, ReduceMixin):
         )
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, int]:
-        """Return the values of the metrics for the test dataset in [metric: value] format."""
+        """Return the values of the metrics for the test dataset in {metric: value} format."""
         df = check_result.value
         df = df[df['Dataset'] == DatasetKind.TEST.value]
         return dict(zip(df['Metric'], df['Value']))
