@@ -16,17 +16,13 @@ deepchecks.tabular
     datasets
 
 .. rubric:: Classes
-
-.. autosummary::
-    :toctree: generated
-    :caption: Classes
     
-    Dataset
-    Context
-    Suite
-    SingleDatasetCheck
-    TrainTestCheck
-    ModelOnlyCheck
-    ModelComparisonContext
-    ModelComparisonCheck
-    ModelComparisonSuite
+.. autoclass:: Dataset
+.. autoclass:: Context
+.. autoclass:: Suite
+.. autoclass:: SingleDatasetCheck
+.. autoclass:: TrainTestCheck
+.. autoclass:: ModelOnlyCheck
+.. autoclass:: ModelComparisonContext
+.. autoclass:: ModelComparisonCheck
+.. autoclass:: ModelComparisonSuite
