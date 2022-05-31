@@ -81,7 +81,7 @@ jobs:
       - name: Setup env and dev requirements
         run: make env requirements dev-requirements && pip install scikit-learn==${{ matrix.scikit-version }}
       - name: Run suite test
-        run: make test tests/tabular/suites
+        run: make test args=tests/tabular/suites
 
   dependencies-license-check:
     runs-on: ubuntu-latest
