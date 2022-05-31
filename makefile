@@ -209,7 +209,11 @@ docstring: dev-requirements
 
 
 test: requirements dev-requirements
-	$(PYTEST) $(args) $(TESTDIR)
+	@if [ ! -z $(args) ]; then \
+		$(PYTEST) $(args); \
+	else \
+		$(PYTEST) $(TESTDIR); \
+	fi;
 
 
 test-win:
@@ -224,7 +228,7 @@ test-win:
 		-r ./requirements/vision-requirements.txt \
 		-r ./requirements/nlp-requirements.txt \
 		-r ./requirements/dev-requirements.txt
-	python -m pytest $(WIN_TESTDIR)
+	@$(PIP_WIN) -m pytest $(WIN_TESTDIR)
 
 
 coverage: requirements dev-requirements
