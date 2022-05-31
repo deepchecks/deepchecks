@@ -68,6 +68,20 @@ jobs:
     - name: Run Tests
       run: make test-win
 
+  scikit-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        scikit-version: [ '0.23.2', '1.0.2', '1.1.0' ]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+        with:
+          python-version: "3.9"
+      - name: Set Up Env
+        run: make env && pip install scikit-learn==${{ matrix.scikit-version }}
+      - name: Run suite test
+        run: pytest tests/tabular/suites
 
   dependencies-license-check:
     runs-on: ubuntu-latest
