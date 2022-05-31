@@ -49,7 +49,18 @@ class ReduceMixin(abc.ABC):
     """Mixin for reduce_output function."""
 
     def reduce_output(self, check_result: 'check_types.CheckResult') -> Dict[str, float]:
-        """Return the check result as a reduced dict."""
+        """Return the check result as a reduced dict. Being Used for monitoring.
+
+        Parameters
+        ----------
+        check_result : CheckResult
+            The check result.
+
+        Returns
+        -------
+        Dict[str, float]
+            dictionary that represents the result as a constant format i.e {'AUC': 0.1} / {'feature 1 PSI': 0.3}.
+        """
         raise NotImplementedError('Must implement reduce_output function')
 
 
