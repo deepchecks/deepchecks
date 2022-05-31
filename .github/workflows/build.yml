@@ -78,8 +78,8 @@ jobs:
       - uses: actions/setup-python@v3
         with:
           python-version: "3.9"
-      - name: Set Up Env
-        run: make env && pip install scikit-learn==${{ matrix.scikit-version }}
+      - name: Setup env and dev requirements
+        run: make env requirements dev-requirements && pip install scikit-learn==${{ matrix.scikit-version }}
       - name: Run suite test
         run: pytest tests/tabular/suites
 
