@@ -228,7 +228,7 @@ test-win:
 		-r ./requirements/vision-requirements.txt \
 		-r ./requirements/nlp-requirements.txt \
 		-r ./requirements/dev-requirements.txt
-	@$(PIP_WIN) -m pytest $(WIN_TESTDIR)
+	python -m pytest $(WIN_TESTDIR)
 
 
 coverage: requirements dev-requirements
