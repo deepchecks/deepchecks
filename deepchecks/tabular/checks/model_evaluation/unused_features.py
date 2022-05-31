@@ -25,7 +25,6 @@ from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
 from deepchecks.utils.function import run_available_kwargs
-from deepchecks.utils.typing import BasicModel
 
 __all__ = ['UnusedFeatures']
 
