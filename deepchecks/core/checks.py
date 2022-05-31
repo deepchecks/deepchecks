@@ -59,7 +59,7 @@ class ReduceMixin(abc.ABC):
         Returns
         -------
         Dict[str, float]
-            dictionary that represents the result as a constant format i.e {'AUC': 0.1} / {'feature 1 PSI': 0.3}.
+            reduced dictionary in format Dict[str, float] (i.e {'AUC': 0.1}), based on the check's original returned value
         """
         raise NotImplementedError('Must implement reduce_output function')
 
