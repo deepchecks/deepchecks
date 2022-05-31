@@ -1122,7 +1122,7 @@ class Dataset:
                 continue
 
             if feature_name in categorical_features:
-                kind = 'Categorical'
+                kind = 'Categorical Feature'
             elif feature_name in numerical_features:
                 kind = 'Numerical Feature'
             else:
