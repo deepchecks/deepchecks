@@ -69,7 +69,8 @@ class TrainTestPredictionDrift(TrainTestCheck):
         representing attributes of said method. 'output_type' must be one of:
         - 'numeric' - for continuous ordinal outputs.
         - 'categorical' - for discrete, non-ordinal outputs. These can still be numbers,
-          but that these numbers have not inherent value.
+          but these numbers do not have inherent value.
+        For more on image / label properties, see the :ref:`property guide </user-guide/vision/vision_properties.rst>`
         - 'class_id' - for properties that return the class_id. This is used because these
           properties are later matched with the VisionData.label_map, if one was given.
     margin_quantile_filter: float, default: 0.025

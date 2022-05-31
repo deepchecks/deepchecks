@@ -42,7 +42,8 @@ class ImageDatasetDrift(TrainTestCheck):
         representing attributes of said method. 'output_type' must be one of:
         - 'numeric' - for continuous ordinal outputs.
         - 'categorical' - for discrete, non-ordinal outputs. These can still be numbers,
-          but that these numbers have not inherent value.
+          but these numbers do not have inherent value.
+        For more on image / label properties, see the :ref:`property guide </user-guide/vision/vision_properties.rst>`
     n_top_properties : int , default: 3
         Amount of properties to show ordered by domain classifier feature importance. This limit is used together
         (AND) with min_feature_importance, so less than n_top_columns features can be displayed.

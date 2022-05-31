@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the image formatter class for the vision module."""
+import warnings
 from typing import Any, Dict, List, Tuple
 
 import numpy as np
@@ -149,8 +150,10 @@ def validate_properties(properties: List[Dict[str, Any]]):
         raise DeepchecksValueError('Properties list can\'t be empty')
 
     expected_keys = ('name', 'method', 'output_type')
+    deprecated_output_types = ('discrete', 'continuous')
     output_types = ('categorical', 'numerical')
 
+    list_of_warnings = []
     errors = []
 
     for index, image_property in enumerate(properties):
@@ -174,16 +177,24 @@ def validate_properties(properties: List[Dict[str, Any]]):
 
         property_output_type = image_property['output_type']
 
-        if property_output_type not in output_types:
+        if property_output_type in deprecated_output_types:
+            list_of_warnings.append(
+                f'Property {property_name}: output types {deprecated_output_types} are deprecated, '
+                f'use instead {output_types}'
+            )
+        elif property_output_type not in output_types:
             errors.append(
                 f'Property {property_name}: field "output_type" must be one of {output_types}, '
                 f'instead got {property_output_type}'
             )
-            continue
 
     if len(errors) > 0:
         errors = '\n+ '.join(errors)
         raise DeepchecksValueError(f'List of properties contains next problems:\n+ {errors}')
+
+    if len(list_of_warnings) > 0:
+        concatenated_warnings = '\n+ '.join(list_of_warnings)
+        warnings.warn(f'Property Warnings:\n+ {concatenated_warnings}')
 
     return properties
 
