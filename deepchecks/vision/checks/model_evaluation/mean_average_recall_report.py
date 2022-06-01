@@ -10,9 +10,9 @@
 #
 """Module containing mean average recall report check."""
 import math
-from collections import defaultdict
 from typing import Tuple, TypeVar
 
+import numpy as np
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
@@ -36,7 +36,7 @@ class MeanAverageRecallReport(SingleDatasetCheck):
         Slices for small/medium/large buckets.
     """
 
-    def __init__(self, area_range: Tuple = (32**2, 96**2), **kwargs):
+    def __init__(self, area_range: Tuple = (32 ** 2, 96 ** 2), **kwargs):
         super().__init__(**kwargs)
         self._area_range = area_range
 
@@ -62,16 +62,14 @@ class MeanAverageRecallReport(SingleDatasetCheck):
                                      f'Medium ({small_area}^2 < area < {large_area}^2)',
                                      f'Large (area < {large_area}^2)'],
                                     ['all', 'small', 'medium', 'large']):
-            area_scores = [title]
-            area_scores.append(self._ap_metric.get_classes_scores_at(res, area=area_name, max_dets=1))
-            area_scores.append(self._ap_metric.get_classes_scores_at(res, area=area_name, max_dets=10))
-            area_scores.append(self._ap_metric.get_classes_scores_at(res, area=area_name, max_dets=100))
+            rows.append([
+                title,
+                self._ap_metric.get_classes_scores_at(res, area=area_name, max_dets=1),
+                self._ap_metric.get_classes_scores_at(res, area=area_name, max_dets=10),
+                self._ap_metric.get_classes_scores_at(res, area=area_name, max_dets=100)
+            ])
 
-            rows.append(area_scores)
-
-        results = pd.DataFrame(columns=['Area size', 'AR@1 (%)', 'AR@10 (%)', 'AR@100 (%)'])
-        for i in range(len(rows)):
-            results.loc[i] = rows[i]
+        results = pd.DataFrame(data=rows, columns=['Area size', 'AR@1 (%)', 'AR@10 (%)', 'AR@100 (%)'])
         results = results.set_index('Area size')
 
         return CheckResult(value=results, display=[results])
@@ -84,15 +82,17 @@ class MeanAverageRecallReport(SingleDatasetCheck):
         min_score : float
             Minimum score to pass the check.
         """
+
         def condition(df: pd.DataFrame):
-            not_passed = defaultdict(dict)
-            for index, column in zip(df.index, df.columns):
-                if df.loc[index, column] < min_score:
-                    not_passed[index][column] = format_number(df.loc[index, column], 3)
-            if len(not_passed):
-                details = f'Found scores below threshold:\n' \
-                          f'{dict(not_passed)}'
-                return ConditionResult(ConditionCategory.FAIL, details)
-            return ConditionResult(ConditionCategory.PASS)
+            min_col_per_row = df.idxmin(axis=1)
+            min_score_per_row = [df.loc[r, c] for r, c in min_col_per_row.items()]
+            loc_min_row = np.argmin(min_score_per_row)
+            score = min_score_per_row[loc_min_row]
+            area = min_col_per_row.index[loc_min_row]
+            iou = min_col_per_row[loc_min_row]
+            category = ConditionCategory.FAIL if score < min_score else ConditionCategory.PASS
+
+            details = f'Found lowest score of {format_number(score)} for area {area} and IoU {iou}'
+            return ConditionResult(category, details)
 
         return self.add_condition(f'Scores are not less than {min_score}', condition)

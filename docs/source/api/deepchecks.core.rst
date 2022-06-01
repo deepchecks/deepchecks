@@ -17,15 +17,11 @@ deepchecks.core
 
 .. rubric:: Classes
 
-.. autosummary::
-    :caption: Classes
-    :toctree: generated
-
-    BaseCheck
-    CheckResult
-    CheckFailure
-    Condition
-    ConditionResult
-    ConditionCategory
-    BaseSuite
-    SuiteResult
+.. autoclass:: BaseCheck
+.. autoclass:: CheckResult
+.. autoclass:: CheckFailure
+.. autoclass:: Condition
+.. autoclass:: ConditionResult
+.. autoclass:: ConditionCategory
+.. autoclass:: BaseSuite
+.. autoclass:: SuiteResult

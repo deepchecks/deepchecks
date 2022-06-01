@@ -10,7 +10,6 @@
 #
 """Module containing mean average precision report check."""
 import math
-from collections import defaultdict
 from typing import Tuple, TypeVar
 
 import numpy as np
@@ -64,16 +63,14 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
                                      f'Medium ({small_area}^2 < area < {large_area}^2)',
                                      f'Large (area < {large_area}^2)'],
                                     ['all', 'small', 'medium', 'large']):
-            area_scores = [title]
-            area_scores.append(self._ap_metric.get_classes_scores_at(res, area=area_name, max_dets=100))
-            area_scores.append(self._ap_metric.get_classes_scores_at(res, iou=0.5, area=area_name, max_dets=100))
-            area_scores.append(self._ap_metric.get_classes_scores_at(res, iou=0.75, area=area_name, max_dets=100))
+            rows.append([
+                title,
+                self._ap_metric.get_classes_scores_at(res, area=area_name, max_dets=100),
+                self._ap_metric.get_classes_scores_at(res, iou=0.5, area=area_name, max_dets=100),
+                self._ap_metric.get_classes_scores_at(res, iou=0.75, area=area_name, max_dets=100)
+            ])
 
-            rows.append(area_scores)
-
-        results = pd.DataFrame(columns=['Area size', 'mAP@[.50::.95] (avg.%)', 'mAP@.50 (%)', 'mAP@.75 (%)'])
-        for i in range(len(rows)):
-            results.loc[i] = rows[i]
+        results = pd.DataFrame(data=rows, columns=['Area size', 'mAP@[.50::.95] (avg.%)', 'mAP@.50 (%)', 'mAP@.75 (%)'])
         results = results.set_index('Area size')
 
         filtered_res = self._ap_metric.filter_res(res, area='all', max_dets=100)
@@ -95,7 +92,7 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
         return CheckResult(value=results, display=[results, fig])
 
     def add_condition_mean_average_precision_not_less_than(self: MPR, min_score: float) -> MPR:
-        """Add condition - mAP scores for in different area thresholds is not less than given score.
+        """Add condition - mAP scores in different area thresholds is not less than given score.
 
         Parameters
         ----------
@@ -103,15 +100,16 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
             Minimum score to pass the check.
         """
         def condition(df: pd.DataFrame):
-            not_passed = defaultdict(dict)
-            for index, column in zip(df.index, df.columns):
-                if df.loc[index, column] < min_score:
-                    not_passed[index][column] = format_number(df.loc[index, column], 3)
-            if len(not_passed):
-                details = f'Found scores below threshold:\n' \
-                          f'{dict(not_passed)}'
-                return ConditionResult(ConditionCategory.FAIL, details)
-            return ConditionResult(ConditionCategory.PASS)
+            min_col_per_row = df.idxmin(axis=1)
+            min_score_per_row = [df.loc[r, c] for r, c in min_col_per_row.items()]
+            loc_min_row = np.argmin(min_score_per_row)
+            score = min_score_per_row[loc_min_row]
+            area = min_col_per_row.index[loc_min_row]
+            iou = min_col_per_row[loc_min_row]
+            category = ConditionCategory.FAIL if score < min_score else ConditionCategory.PASS
+
+            details = f'Found lowest score of {format_number(score)} for area {area} and IoU {iou}'
+            return ConditionResult(category, details)
 
         return self.add_condition(f'Scores are not less than {min_score}', condition)
 
@@ -126,9 +124,8 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
         def condition(df: pd.DataFrame):
             df = df.reset_index()
             value = df.loc[df['Area size'] == 'All', :]['mAP@[.50::.95] (avg.%)'][0]
-            if value < min_score:
-                details = f'mAP score is: {format_number(value)}'
-                return ConditionResult(ConditionCategory.FAIL, details)
-            return ConditionResult(ConditionCategory.PASS)
+            details = f'mAP score is: {format_number(value)}'
+            category = ConditionCategory.FAIL if value < min_score else ConditionCategory.PASS
+            return ConditionResult(category, details)
 
         return self.add_condition(f'mAP score is not less than {min_score}', condition)

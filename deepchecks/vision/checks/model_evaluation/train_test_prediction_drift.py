@@ -15,12 +15,9 @@ from typing import Any, Dict, List
 
 import pandas as pd
 
-from deepchecks import ConditionResult
 from deepchecks.core import CheckResult, DatasetKind
-from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksNotSupportedError
-from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERIC_METHODS,
-                                                 calc_drift_and_plot, get_drift_method)
+from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition
 from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.utils.label_prediction_properties import (DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES,
                                                                  DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES,
@@ -272,26 +269,8 @@ class TrainTestPredictionDrift(TrainTestCheck):
             if max_allowed_numeric_score is not None:
                 max_allowed_numeric_score = max_allowed_earth_movers_score
 
-        def condition(result: Dict) -> ConditionResult:
-            cat_method, num_method = get_drift_method(result)
-            not_passing_categorical_columns = {props: f'{d["Drift score"]:.2}' for props, d in result.items() if
-                                               d['Drift score'] > max_allowed_categorical_score
-                                               and d['Method'] in SUPPORTED_CATEGORICAL_METHODS}
-            not_passing_numeric_columns = {props: f'{d["Drift score"]:.2}' for props, d in result.items() if
-                                           d['Drift score'] > max_allowed_numeric_score
-                                           and d['Method'] in SUPPORTED_NUMERIC_METHODS}
-            return_str = ''
-            if not_passing_categorical_columns:
-                return_str += f'Found categorical prediction properties with {cat_method} above threshold:' \
-                              f' {not_passing_categorical_columns}\n'
-            if not_passing_numeric_columns:
-                return_str += f'Found numeric prediction properties with {num_method} above' \
-                              f' threshold: {not_passing_numeric_columns}\n'
-
-            if return_str:
-                return ConditionResult(ConditionCategory.FAIL, return_str)
-            else:
-                return ConditionResult(ConditionCategory.PASS)
+        condition = drift_condition(max_allowed_categorical_score, max_allowed_numeric_score,
+                                    'prediction property', 'prediction properties')
 
         return self.add_condition(f'categorical drift score <= {max_allowed_categorical_score} and '
                                   f'numerical drift score <= {max_allowed_numeric_score} for prediction drift',

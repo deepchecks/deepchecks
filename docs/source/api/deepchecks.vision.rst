@@ -17,16 +17,12 @@ deepchecks.vision
     utils
 
 .. rubric:: Classes
-
-.. autosummary::
-    :toctree: generated
-    :caption: Classes
     
-    VisionData
-    ClassificationData
-    DetectionData
-    Context
-    SingleDatasetCheck
-    TrainTestCheck
-    ModelOnlyCheck
-    Suite
+.. autoclass:: VisionData
+.. autoclass:: ClassificationData
+.. autoclass:: DetectionData
+.. autoclass:: Context
+.. autoclass:: SingleDatasetCheck
+.. autoclass:: TrainTestCheck
+.. autoclass:: ModelOnlyCheck
+.. autoclass:: Suite

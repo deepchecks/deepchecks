@@ -46,6 +46,7 @@ class CalibrationScore(SingleDatasetCheck):
         context.assert_classification_task()
         ds_x = dataset.features_columns
         ds_y = dataset.label_col
+        dataset_classes = dataset.classes
         model = t.cast(ClassificationModel, context.model)
 
         # Expect predict_proba to return in order of the sorted classes.
@@ -53,10 +54,10 @@ class CalibrationScore(SingleDatasetCheck):
 
         briers_scores = {}
 
-        if len(dataset.classes) == 2:
-            briers_scores[0] = brier_score_loss(ds_y == dataset.classes[1], y_pred[:, 1])
+        if len(dataset_classes) == 2:
+            briers_scores[0] = brier_score_loss(ds_y == dataset_classes[1], y_pred[:, 1])
         else:
-            for class_index, class_name in enumerate(dataset.classes):
+            for class_index, class_name in enumerate(dataset_classes):
                 prob_pos = y_pred[:, class_index]
                 clf_score = brier_score_loss(ds_y == class_name, prob_pos)
                 briers_scores[class_name] = clf_score
@@ -70,7 +71,9 @@ class CalibrationScore(SingleDatasetCheck):
                     name='Perfectly calibrated',
                 ))
 
-        if len(dataset.classes) == 2:
+        if len(dataset_classes) == 2:
+            # Calibration curve must get labels of {0, 1} therefore in order to support other labels, apply mapping
+            ds_y = ds_y.apply(lambda x: 0 if x == dataset_classes[0] else 1)
             fraction_of_positives, mean_predicted_value = calibration_curve(ds_y, y_pred[:, 1], n_bins=10)
 
             fig.add_trace(go.Scatter(
@@ -80,7 +83,7 @@ class CalibrationScore(SingleDatasetCheck):
                 name=f'(brier:{briers_scores[0]:9.4f})',
             ))
         else:
-            for class_index, class_name in enumerate(dataset.classes):
+            for class_index, class_name in enumerate(dataset_classes):
                 prob_pos = y_pred[:, class_index]
 
                 fraction_of_positives, mean_predicted_value = \

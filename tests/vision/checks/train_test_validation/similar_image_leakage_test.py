@@ -101,6 +101,7 @@ def test_train_test_condition_pass(coco_train_visiondata, coco_test_visiondata, 
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
+        details='Found 0 similar images between train and test datasets',
         name=f'Number of similar images between train and test is not greater than {condition_value}'
     ))
 
