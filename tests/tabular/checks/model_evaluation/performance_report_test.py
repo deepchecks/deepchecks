@@ -13,6 +13,7 @@ import re
 from typing import List
 
 from hamcrest import assert_that, calling, close_to, has_items, instance_of, raises
+import numpy as np
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.model_selection import train_test_split
 
@@ -163,6 +164,18 @@ def test_classification_reduced(iris_split_dataset_and_model):
     assert_that(result['F1'], close_to(0.913, 0.001))
     assert_that(result['Precision'], close_to(0.929, 0.001))
     assert_that(result['Recall'], close_to(0.916, 0.001))
+
+
+def test_classification_reduced_param(iris_split_dataset_and_model):
+    # Arrange
+    train, test, model = iris_split_dataset_and_model
+    check = PerformanceReport(reduce=np.min)
+    # Act X
+    result = check.run(train, test, model).reduce_output()
+    # Assert
+    assert_that(result['F1'], close_to(0.857, 0.001))
+    assert_that(result['Precision'], close_to(0.789, 0.001))
+    assert_that(result['Recall'], close_to(0.75, 0.001))
 
 
 def test_condition_min_score_not_passed(iris_split_dataset_and_model):

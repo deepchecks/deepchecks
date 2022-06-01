@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing performance report check."""
-from typing import Callable, Dict, TypeVar, cast
+from typing import Callable, Dict, TypeVar, Union, cast
 
 import pandas as pd
 import plotly.express as px
@@ -36,7 +36,9 @@ class PerformanceReport(TrainTestCheck, ReduceMixin):
     alternative_scorers : Dict[str, Callable], default: None
         An optional dictionary of scorer name to scorer functions.
         If none given, using default scorers
-
+    reduce: Union[Callable, str], default: 'mean'
+        An optional argument only used for the reduce_output function when using
+        non-average scorers.
     Notes
     -----
     Scorers are a convention of sklearn to evaluate a model.
@@ -72,9 +74,13 @@ class PerformanceReport(TrainTestCheck, ReduceMixin):
         my_mse_scorer = make_scorer(my_mse, greater_is_better=False)
     """
 
-    def __init__(self, alternative_scorers: Dict[str, Callable] = None, **kwargs):
+    def __init__(self,
+                 alternative_scorers: Dict[str, Callable] = None,
+                 reduce: Union[Callable, str] = 'mean',
+                 **kwargs):
         super().__init__(**kwargs)
         self.user_scorers = alternative_scorers
+        self.reduce = reduce
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check.
@@ -150,7 +156,7 @@ class PerformanceReport(TrainTestCheck, ReduceMixin):
         """Return the values of the metrics for the test dataset in {metric: value} format."""
         df = check_result.value
         df = df[df['Dataset'] == DatasetKind.TEST.value]
-        df = df.groupby('Metric').mean().reset_index()
+        df = df.groupby('Metric').aggregate(self.reduce).reset_index()
         return dict(zip(df['Metric'], df['Value']))
 
     def add_condition_test_performance_not_less_than(self: PR, min_score: float) -> PR:
