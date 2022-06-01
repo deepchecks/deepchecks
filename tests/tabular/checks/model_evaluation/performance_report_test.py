@@ -153,6 +153,18 @@ def test_regression_reduced(diabetes_split_dataset_and_model):
     assert_that(result['R2'], close_to(0.427, 0.001))
 
 
+def test_classification_reduced(iris_split_dataset_and_model):
+    # Arrange
+    train, test, model = iris_split_dataset_and_model
+    check = PerformanceReport()
+    # Act X
+    result = check.run(train, test, model).reduce_output()
+    # Assert
+    assert_that(result['F1'], close_to(0.913, 0.001))
+    assert_that(result['Precision'], close_to(0.929, 0.001))
+    assert_that(result['Recall'], close_to(0.916, 0.001))
+
+
 def test_condition_min_score_not_passed(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
