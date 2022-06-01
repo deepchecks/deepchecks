@@ -262,6 +262,7 @@ def test_train_test_condition_pps_train_pass(coco_train_visiondata, device):
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
+        details='0 PPS found for all features in train dataset',
         name=f'Train properties\' Predictive Power Score is not greater than {condition_value}'
     ))
 
@@ -307,6 +308,7 @@ def test_train_test_condition_pps_train_pass_per_class(mnist_dataset_train, devi
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
+        details='Found highest PPS in train dataset 0.06 for feature Brightness and class 1',
         name=f'Train properties\' Predictive Power Score is not greater than {condition_value}'
     ))
 
@@ -329,9 +331,11 @@ def test_train_test_condition_pps_train_fail_per_class(coco_train_visiondata, co
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name=f'Train properties\' Predictive Power Score is not greater than {condition_value}',
-        details='Features in train dataset with PPS above threshold: {\'RMS Contrast\': \'0.83\', '
-                '\'Brightness\': \'0.5\', \'Mean Blue Relative Intensity\': \'0.33\'}'
+        details='Features and classes in train dataset with PPS above threshold: {\'RMS Contrast\': {\'clock\': '
+                '\'0.83\'}, \'Brightness\': {\'clock\': \'0.5\', \'teddy bear\': \'0.5\'}, '
+                '\'Mean Blue Relative Intensity\': {\'clock\': \'0.33\'}}'
     ))
+
 
 def test_train_test_condition_pps_diff_pass(coco_train_visiondata, device):
     # Arrange
@@ -348,6 +352,7 @@ def test_train_test_condition_pps_diff_pass(coco_train_visiondata, device):
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
+        details='0 PPS found for all features',
         name=f'Train-Test properties\' Predictive Power Score difference is not greater than {condition_value}'
     ))
 
@@ -416,6 +421,7 @@ def test_train_test_condition_pps_diff_pass_per_class(mnist_dataset_train, devic
 
     # Assert
     assert_that(condition_result, equal_condition_result(
+        details='0 PPS found for all features',
         is_pass=True,
         name=f'Train-Test properties\' Predictive Power Score difference is not greater than {condition_value}'
     ))
@@ -439,8 +445,8 @@ def test_train_test_condition_pps_positive_diff_fail_per_class(coco_train_vision
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name=f'Train-Test properties\' Predictive Power Score difference is not greater than {condition_value}',
-        details='Features with PPS difference above threshold: {\'RMS Contrast\': \'0.83\', '
-                '\'Brightness\': \'0.5\'}'
+        details='Features and classes with PPS difference above threshold: {\'RMS Contrast\': {\'clock\': \'0.83\'}, '
+                '\'Brightness\': {\'clock\': \'0.5\', \'teddy bear\': \'0.5\'}}'
     ))
 
 
@@ -462,8 +468,9 @@ def test_train_test_condition_pps_diff_fail_per_class(coco_train_visiondata, coc
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name=f'Train-Test properties\' Predictive Power Score difference is not greater than {condition_value}',
-        details='Features with PPS difference above threshold: {\'RMS Contrast\': \'0.83\', '
-                '\'Brightness\': \'0.5\', \'Mean Blue Relative Intensity\': \'0.33\'}'
+        details='Features and classes with PPS difference above threshold: {\'RMS Contrast\': {\'clock\': \'0.83\'}, '
+                '\'Brightness\': {\'clock\': \'0.5\', \'teddy bear\': \'0.5\'}, \'Mean Blue Relative Intensity\': '
+                '{\'clock\': \'0.33\'}}'
     ))
 
 

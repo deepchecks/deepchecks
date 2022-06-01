@@ -86,7 +86,7 @@ def test_condition_failed_for_multiclass(mnist_dataset_train, mnist_dataset_test
         equal_condition_result(
             is_pass=False,
             name='Model performance gain over simple model is not less than 97.3%',
-            details='Found metrics with gain below threshold: {\'F1\': {9: \'97.27%\'}}')
+            details='Found metrics with gain below threshold: {\'F1\': {\'9\': \'97.27%\'}}')
 
     ))
 
@@ -101,6 +101,7 @@ def test_condition_pass_for_multiclass_avg(mnist_dataset_train, mnist_dataset_te
     assert_that(result.conditions_results, has_items(
         equal_condition_result(
             is_pass=True,
+            details='Found minimal gain of 98.08% for metric F1',
             name='Model performance gain over simple model is not less than 43%')
     ))
 

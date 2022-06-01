@@ -209,7 +209,11 @@ docstring: dev-requirements
 
 
 test: requirements dev-requirements
-	$(PYTEST) $(args) $(TESTDIR)
+	@if [ ! -z $(args) ]; then \
+		$(PYTEST) $(args); \
+	else \
+		$(PYTEST) $(TESTDIR); \
+	fi;
 
 
 test-win:

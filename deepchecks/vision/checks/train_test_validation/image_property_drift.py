@@ -18,7 +18,9 @@ import pandas as pd
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
+from deepchecks.utils.dict_funcs import get_max_entry_from_dict
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
+from deepchecks.utils.strings import format_number
 from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.utils.image_properties import default_image_properties, get_column_type, validate_properties
 
@@ -212,7 +214,7 @@ class ImagePropertyDrift(TrainTestCheck):
 
             displays = [headnote] + [figures[col] for col in columns_order if col in figures]
         else:
-            drifts = None
+            drifts = {}
             displays = []
 
         return CheckResult(
@@ -246,13 +248,19 @@ class ImagePropertyDrift(TrainTestCheck):
                 if drift_score > max_allowed_drift_score
             ]
             if len(failed_properties) > 0:
-                failed_properties = ';\n'.join(f'{p}={d:.2f}' for p, d in failed_properties)
+                failed_properties = ';\n'.join(f'{p}={format_number(d)}' for p, d in failed_properties)
                 return ConditionResult(
                     ConditionCategory.FAIL,
                     'Earth Mover\'s Distance is above the threshold '
                     f'for the next properties:\n{failed_properties}'
                 )
-            return ConditionResult(ConditionCategory.PASS)
+            else:
+                if not result:
+                    details = 'Did not calculate drift score on any property'
+                else:
+                    prop, score = get_max_entry_from_dict(result)
+                    details = f'Found property {prop} with largest Earth Mover\'s Distance score {format_number(score)}'
+                return ConditionResult(ConditionCategory.PASS, details)
 
         return self.add_condition(
             f'Earth Mover\'s Distance <= {max_allowed_drift_score} for image properties drift',
