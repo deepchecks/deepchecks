@@ -127,7 +127,7 @@ class _DummyModel:
         self._validate_data(data)
         return self.probas.loc[data.index].to_numpy()
 
-    def fit(*args, **kwargs):
+    def fit(self, *args, **kwargs):
         """Just for python 3.6 (sklearn validates fit method)."""
 
 
