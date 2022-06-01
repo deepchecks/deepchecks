@@ -150,6 +150,7 @@ class PerformanceReport(TrainTestCheck, ReduceMixin):
         """Return the values of the metrics for the test dataset in {metric: value} format."""
         df = check_result.value
         df = df[df['Dataset'] == DatasetKind.TEST.value]
+        df = df.groupby('Metric').mean().reset_index()
         return dict(zip(df['Metric'], df['Value']))
 
     def add_condition_test_performance_not_less_than(self: PR, min_score: float) -> PR:
