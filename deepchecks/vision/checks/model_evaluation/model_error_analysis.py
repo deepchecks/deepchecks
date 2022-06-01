@@ -41,7 +41,11 @@ class ModelErrorAnalysis(TrainTestCheck):
     image_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
         Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
-        representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'
+        representing attributes of said method. 'output_type' must be one of:
+        - 'numeric' - for continuous ordinal outputs.
+        - 'categorical' - for discrete, non-ordinal outputs. These can still be numbers,
+          but these numbers do not have inherent value.
+        For more on image / label properties, see the :ref:`property guide </user-guide/vision/vision_properties.rst>`
     max_properties_to_show : int , default: 3
         maximal number of properties to show error distribution for.
     min_property_contribution : float , default: 0.15
@@ -81,8 +85,7 @@ class ModelErrorAnalysis(TrainTestCheck):
         if image_properties is None:
             self.image_properties = default_image_properties
         else:
-            validate_properties(image_properties)
-            self.image_properties = image_properties
+            self.image_properties = validate_properties(image_properties)
 
     def initialize_run(self, context: Context):
         """Initialize property and score lists."""
