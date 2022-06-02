@@ -75,3 +75,10 @@ def test_cramers_v_single_value_columns():
     res = cramers_v(dist1=dist1, dist2=dist2)
     assert_that(res, equal_to(0))
 
+
+def test_cramers_v_with_nones():
+    dist1 = np.array(['a'] * 200 + ['b'] * 800 + [None] * 100)
+    dist2 = np.array(['a'] * 400 + ['b'] * 600)
+    res = cramers_v(dist1=dist1, dist2=dist2)
+    assert_that(res, close_to(0.3, 0.01))
+
