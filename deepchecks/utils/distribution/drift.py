@@ -76,7 +76,7 @@ def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.S
     dist1_counts, dist2_counts, _ = preprocess_2_cat_cols_to_same_bins(dist1=dist1, dist2=dist2)
     contingency_matrix = pd.DataFrame([dist1_counts, dist2_counts])
 
-    # If columns have single value in both (causing division by 0 when dividing by kcorr-1), return 0 drift score:
+    # If columns have the same single value in both (causing division by 0), return 0 drift score:
     if contingency_matrix.shape[1] == 1:
         return 0
 
