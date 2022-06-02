@@ -12,6 +12,7 @@
 # pylint: disable=broad-except
 from typing import Callable, Mapping, Optional, Tuple, Union
 
+import numpy as np
 import pandas as pd
 
 from deepchecks.core.check_result import CheckFailure
@@ -43,7 +44,11 @@ class Suite(BaseSuite):
             feature_importance_force_permutation: bool = False,
             feature_importance_timeout: int = None,
             scorers: Mapping[str, Union[str, Callable]] = None,
-            scorers_per_class: Mapping[str, Union[str, Callable]] = None
+            scorers_per_class: Mapping[str, Union[str, Callable]] = None,
+            y_pred_train: np.ndarray = None,
+            y_pred_test: np.ndarray = None,
+            y_proba_train: np.ndarray = None,
+            y_proba_test: np.ndarray = None,
     ) -> SuiteResult:
         """Run all checks.
 
@@ -68,6 +73,14 @@ class Suite(BaseSuite):
             See <a href=
             "https://scikit-learn.org/stable/modules/model_evaluation.html#from-binary-to-multiclass-and-multilabel">
             scikit-learn docs</a>
+        y_pred_train: np.ndarray , default: None
+            Array of the model prediction over the train dataset.
+        y_pred_test: np.ndarray , default: None
+            Array of the model prediction over the test dataset.
+        y_proba_train: np.ndarray , default: None
+            Array of the model prediction probabilities over the train dataset.
+        y_proba_test: np.ndarray , default: None
+            Array of the model prediction probabilities over the test dataset.
         Returns
         -------
         SuiteResult
@@ -78,7 +91,9 @@ class Suite(BaseSuite):
                           feature_importance_force_permutation=feature_importance_force_permutation,
                           feature_importance_timeout=feature_importance_timeout,
                           scorers=scorers,
-                          scorers_per_class=scorers_per_class)
+                          scorers_per_class=scorers_per_class,
+                          y_pred_train=y_pred_train, y_pred_test=y_pred_test,
+                          y_proba_train=y_proba_train, y_proba_test=y_proba_test)
 
         progress_bar = create_progress_bar(
             iterable=list(self.checks.values()),

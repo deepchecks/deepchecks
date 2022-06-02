@@ -65,3 +65,10 @@ warnings.filterwarnings(
     category=DeprecationWarning,
     module=r'deepchecks.*'
 )
+
+warnings.filterwarnings(
+    action='always',
+    message=r'.*Property Warnings:.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.vision.utils.*'
+)
