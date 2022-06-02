@@ -24,11 +24,10 @@ from deepchecks.tabular.checks.model_evaluation.simple_model_comparison import S
 from deepchecks.tabular.checks.model_evaluation.unused_features import UnusedFeatures
 from deepchecks.tabular.context import Context
 from deepchecks.tabular.dataset import Dataset
-from tests.base.utils import equal_condition_result
-from tests.tabular.checks.model_evaluation.simple_model_comparison_test import assert_regression
-
 from deepchecks.tabular.suites.default_suites import full_suite
+from tests.base.utils import equal_condition_result
 from tests.conftest import get_expected_results_length, validate_suite_result
+from tests.tabular.checks.model_evaluation.simple_model_comparison_test import assert_regression
 
 
 def _dummify_model(train, test, model):

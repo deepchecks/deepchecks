@@ -16,7 +16,6 @@ import torch
 from hamcrest import (assert_that, calling, close_to, equal_to, has_entries, has_items, has_length, has_properties,
                       has_property, instance_of, is_, raises)
 
-from deepchecks.vision.suites.default_suites import full_suite
 from deepchecks.core.check_result import CheckResult
 from deepchecks.vision.base_checks import SingleDatasetCheck
 from deepchecks.vision.batch_wrapper import Batch
@@ -24,10 +23,10 @@ from deepchecks.vision.checks.model_evaluation.class_performance import ClassPer
 from deepchecks.vision.checks.model_evaluation.image_segment_performance import ImageSegmentPerformance
 from deepchecks.vision.checks.model_evaluation.train_test_prediction_drift import TrainTestPredictionDrift
 from deepchecks.vision.context import Context
+from deepchecks.vision.suites.default_suites import full_suite
 from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.vision_data import VisionData
 from tests.base.utils import equal_condition_result
-
 from tests.conftest import get_expected_results_length, validate_suite_result
 
 
