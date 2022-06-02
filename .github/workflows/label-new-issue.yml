@@ -11,4 +11,4 @@ jobs:
       - uses: andymckay/labeler@1.0.4
         with:
           add-labels: "Needs Triage"
-          ignore-if-labeled: true
+          ignore-if-labeled: false
