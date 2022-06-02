@@ -26,10 +26,10 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.serialization.suite_result.html import SuiteResultSerializer as SuiteResultHtmlSerializer
 from deepchecks.core.serialization.suite_result.json import SuiteResultSerializer as SuiteResultJsonSerializer
 from deepchecks.core.serialization.suite_result.widget import SuiteResultSerializer as SuiteResultWidgetSerializer
+from deepchecks.utils.display import display_in_gui
 from deepchecks.utils.ipython import is_colab_env, is_kaggle_env, is_notebook, is_widgets_enabled
 from deepchecks.utils.strings import create_new_file_name, get_random_string, widget_to_html, widget_to_html_string
 from deepchecks.utils.wandb_utils import wandb_run
-
 from .serialization.suite_result.ipython import SuiteResultSerializer as SuiteResultIPythonSerializer
 
 __all__ = ['BaseSuite', 'SuiteResult']
@@ -161,11 +161,7 @@ class SuiteResult:
         if is_notebook():
             self._ipython_display_(as_widget=as_widget, unique_id=unique_id)
         else:
-            warnings.warn(
-                'You are running in a non-interactive python shell. '
-                'In order to show result you have to use '
-                'an IPython shell (etc Jupyter)'
-            )
+            display_in_gui(self)
 
     def save_as_html(
         self,
