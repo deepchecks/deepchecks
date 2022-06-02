@@ -23,9 +23,11 @@ from deepchecks.vision.checks.model_evaluation.class_performance import ClassPer
 from deepchecks.vision.checks.model_evaluation.image_segment_performance import ImageSegmentPerformance
 from deepchecks.vision.checks.model_evaluation.train_test_prediction_drift import TrainTestPredictionDrift
 from deepchecks.vision.context import Context
+from deepchecks.vision.suites.default_suites import full_suite
 from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.vision_data import VisionData
 from tests.base.utils import equal_condition_result
+from tests.conftest import get_expected_results_length, validate_suite_result
 
 
 class _StaticPred(SingleDatasetCheck):
@@ -168,3 +170,17 @@ def test_train_test_prediction_with_drift_object_detection_change_max_cat(coco_t
         )
         }
     ))
+
+
+def test_suite(coco_train_visiondata, coco_test_visiondata,
+               mock_trained_yolov5_object_detection, device):
+    train_preds, test_preds = _create_static_predictions(coco_train_visiondata,
+                                                         coco_test_visiondata,
+                                                         mock_trained_yolov5_object_detection)
+
+    args = dict(train_dataset=coco_train_visiondata, test_dataset=coco_test_visiondata,
+                train_predictions=train_preds, test_predictions=test_preds)
+    suite = full_suite()
+    result = suite.run(**args)
+    length = get_expected_results_length(suite, args)
+    validate_suite_result(result, length)

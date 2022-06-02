@@ -21,9 +21,12 @@ from deepchecks.tabular.checks.model_evaluation.model_error_analysis import Mode
 from deepchecks.tabular.checks.model_evaluation.regression_error_distribution import RegressionErrorDistribution
 from deepchecks.tabular.checks.model_evaluation.roc_report import RocReport
 from deepchecks.tabular.checks.model_evaluation.simple_model_comparison import SimpleModelComparison
+from deepchecks.tabular.checks.model_evaluation.unused_features import UnusedFeatures
 from deepchecks.tabular.context import Context
 from deepchecks.tabular.dataset import Dataset
+from deepchecks.tabular.suites.default_suites import full_suite
 from tests.base.utils import equal_condition_result
+from tests.conftest import get_expected_results_length, validate_suite_result
 from tests.tabular.checks.model_evaluation.simple_model_comparison_test import assert_regression
 
 
@@ -178,3 +181,16 @@ def test_bad_pred_proba(iris_labeled_dataset, iris_adaboost):
             ValidationError,
             r'Prediction propabilities array didn\'t match predictions result')
     )
+
+
+def test_suite(diabetes_split_dataset_and_model):
+    train, test, clf = diabetes_split_dataset_and_model
+    y_pred_train, y_pred_test, y_proba_train, y_proba_test = _dummify_model(train, test, clf)
+
+    args = dict(train_dataset=train, test_dataset=test,
+                y_pred_train=y_pred_train, y_pred_test=y_pred_test,
+                y_proba_train=y_proba_train, y_proba_test=y_proba_test)
+    suite = full_suite()
+    result = suite.run(**args)
+    length = get_expected_results_length(suite, args)
+    validate_suite_result(result, length)

@@ -45,6 +45,25 @@ class CheckMetadata(TypedDict):
     summary: str
 
 
+class ReduceMixin(abc.ABC):
+    """Mixin for reduce_output function."""
+
+    def reduce_output(self, check_result: 'check_types.CheckResult') -> Dict[str, float]:
+        """Return the check result as a reduced dict. Being Used for monitoring.
+
+        Parameters
+        ----------
+        check_result : CheckResult
+            The check result.
+
+        Returns
+        -------
+        Dict[str, float]
+            reduced dictionary in format {str: float} (i.e {'AUC': 0.1}), based on the check's original returned value
+        """
+        raise NotImplementedError('Must implement reduce_output function')
+
+
 class BaseCheck(abc.ABC):
     """Base class for check."""
 

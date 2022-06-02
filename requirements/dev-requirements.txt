@@ -1,6 +1,6 @@
 twine
 
-pylint
+pylint==2.13.5
 pydocstyle 
 flake8 
 flake8-spellcheck 

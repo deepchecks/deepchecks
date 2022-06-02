@@ -150,8 +150,9 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets):
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name='categorical drift score <= 0.1 and numerical drift score <= 0.075',
-        details='Found categorical label properties with Cramer\'s V above threshold: {\'Samples Per '
-                'Class\': \'0.18\'}\n'
+        details='Failed for 1 out of 1 label properties.\n'
+                'Found 1 categorical label properties with Cramer\'s V above threshold: {\'Samples Per '
+                'Class\': \'0.18\'}'
     ))
 
 
@@ -234,10 +235,14 @@ def test_with_drift_object_detection_defected_alternative_properties():
     ]
 
     # Assert
-    assert_that(calling(TrainTestLabelDrift).with_args(alternative_properties),
-                raises(DeepchecksValueError,
-                       r"Property must be of type dict, and include keys \['name', 'method', 'output_type'\]")
-                )
+    assert_that(
+        calling(TrainTestLabelDrift).with_args(alternative_properties),
+        raises(
+            DeepchecksValueError,
+            r"List of properties contains next problems:\n"
+            rf"\+ Property #1: dictionary must include keys \('name', 'method', 'output_type'\)\. "
+            fr"Next keys are missed \['name'\]")
+    )
 
 
 def test_with_drift_object_detection_defected_alternative_properties2():

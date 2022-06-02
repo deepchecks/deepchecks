@@ -68,6 +68,20 @@ jobs:
     - name: Run Tests
       run: make test-win
 
+  scikit-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        scikit-version: [ '0.23.2', '1.0.2', '1.1.0' ]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+        with:
+          python-version: "3.9"
+      - name: Setup env and dev requirements
+        run: make env requirements dev-requirements && pip install scikit-learn==${{ matrix.scikit-version }}
+      - name: Run suite test
+        run: make test args=tests/tabular/suites
 
   dependencies-license-check:
     runs-on: ubuntu-latest
@@ -93,7 +107,7 @@ jobs:
       with:
         requirements: 'requirements-all.txt'
         fail: 'Copyleft,Other,Error'
-        exclude: '(pyzmq.*23\.0\.0|debugpy.*1\.6\.0|certifi.*2022\.5\.18\.1|tqdm.*4\.64\.0|webencodings.*0\.5\.1|torch.*1\.10\.2.*|torchaudio.*0\.10\.2.*|torchvision.*0\.11\.3.*|terminado.*0\.15\.0)'
+        exclude: '(pyzmq.*23\.1\.0|debugpy.*1\.6\.0|certifi.*2022\.5\.18\.1|tqdm.*4\.64\.0|webencodings.*0\.5\.1|torch.*1\.10\.2.*|torchaudio.*0\.10\.2.*|torchvision.*0\.11\.3.*|terminado.*0\.15\.0)'
         # pyzmq is Revised BSD https://github.com/zeromq/pyzmq/blob/main/examples/LICENSE
         # debugpy is MIT https://github.com/microsoft/debugpy/blob/main/LICENSE
         # certifi is MPL-2.0 https://github.com/certifi/python-certifi/blob/master/LICENSE

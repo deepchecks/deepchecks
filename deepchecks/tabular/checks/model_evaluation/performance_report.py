@@ -15,6 +15,7 @@ import pandas as pd
 import plotly.express as px
 
 from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.core.checks import DatasetKind, ReduceMixin
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, TrainTestCheck
@@ -27,7 +28,7 @@ __all__ = ['PerformanceReport']
 PR = TypeVar('PR', bound='PerformanceReport')
 
 
-class PerformanceReport(TrainTestCheck):
+class PerformanceReport(TrainTestCheck, ReduceMixin):
     """Summarize given scores on a dataset and model.
 
     Parameters
@@ -144,6 +145,12 @@ class PerformanceReport(TrainTestCheck):
             header='Performance Report',
             display=fig
         )
+
+    def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
+        """Return the values of the metrics for the test dataset in {metric: value} format."""
+        df = check_result.value
+        df = df[df['Dataset'] == DatasetKind.TEST.value]
+        return dict(zip(df['Metric'], df['Value']))
 
     def add_condition_test_performance_not_less_than(self: PR, min_score: float) -> PR:
         """Add condition - metric scores are not less than given score.

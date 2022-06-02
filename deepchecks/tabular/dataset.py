@@ -16,8 +16,11 @@ from functools import lru_cache
 
 import numpy as np
 import pandas as pd
+from IPython.display import HTML, display_html
+from pandas.api.types import infer_dtype
 from pandas.core.dtypes.common import is_numeric_dtype
 from sklearn.model_selection import train_test_split
+from typing_extensions import Literal as L
 
 from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.utils.dataframes import select_from_dataframe
@@ -29,6 +32,7 @@ __all__ = ['Dataset']
 
 
 TDataset = t.TypeVar('TDataset', bound='Dataset')
+DatasetReprFmt = t.Union[L['string'], L['html']]  # noqa: F821
 
 
 class Dataset:
@@ -258,9 +262,9 @@ class Dataset:
 
         if cat_features is not None:
             if set(cat_features).intersection(set(self._features)) != set(cat_features):
-                raise DeepchecksValueError(f'Categorical features must be a subset of features. '
+                raise DeepchecksValueError('Categorical features must be a subset of features. '
                                            f'Categorical features {set(cat_features) - set(self._features)} '
-                                           f'have not been found in feature list.')
+                                           'have not been found in feature list.')
             self._cat_features = list(cat_features)
         else:
             self._cat_features = self._infer_categorical_features(
@@ -669,12 +673,13 @@ class Dataset:
         t.Optional[pd.Series]
             Series of the datetime column
         """
-        if self._set_datetime_from_dataframe_index is True:
+        if self._set_datetime_from_dataframe_index is True and self._datetime_column is not None:
             return self._datetime_column
         elif self._datetime_name is not None:
             return self.data[self._datetime_name]
-        else:  # No meaningful Datetime to use: Datetime column not configured, and _set_datetime_from_dataframe_index
-            # is False
+        else:
+            # No meaningful Datetime to use:
+            # Datetime column not configured, and _set_datetime_from_dataframe_index is False
             return
 
     @property
@@ -1060,6 +1065,114 @@ class Dataset:
                 return False
 
         return True
+
+    def _dataset_description(self) -> pd.DataFrame:
+        data = self.data
+        features = self.features
+        categorical_features = self.cat_features
+        numerical_features = self.numerical_features
+
+        label_column = t.cast(pd.Series, data[self.label_name]) if self.label_name else None
+        index_column = self.index_col
+        datetime_column = self.datetime_col
+
+        label_name = None
+        index_name = None
+        datetime_name = None
+
+        dataset_columns_info = []
+
+        if index_column is not None:
+            index_name = index_column.name
+            dataset_columns_info.append([
+                index_name,
+                infer_dtype(index_column, skipna=True),
+                'Index',
+                'set from dataframe index' if self._set_index_from_dataframe_index is True else ''
+            ])
+
+        if datetime_column is not None:
+            datetime_name = datetime_column.name
+            dataset_columns_info.append([
+                datetime_name,
+                infer_dtype(datetime_column, skipna=True),
+                'Datetime',
+                'set from DataFrame index' if self._set_datetime_from_dataframe_index is True else ''
+            ])
+
+        if label_column is not None:
+            label_name = label_column.name
+            dataset_columns_info.append([
+                label_name,
+                infer_dtype(label_column, skipna=True),
+                t.cast(str, self.label_type).replace('_', ' ').capitalize(),
+                ''
+            ])
+
+        all_columns = pd.Series(features + list(self.data.columns)).unique()
+
+        for feature_name in t.cast(t.Iterable[str], all_columns):
+            if feature_name in (index_name, datetime_name, label_name):
+                continue
+
+            feature_dtype = infer_dtype(data[feature_name], skipna=True)
+
+            if feature_name in categorical_features:
+                kind = 'Categorical Feature'
+            elif feature_name in numerical_features:
+                kind = 'Numerical Feature'
+            elif feature_name in features:
+                kind = 'Other Feature'
+            else:
+                kind = 'Dataset Column'
+
+            dataset_columns_info.append([feature_name, feature_dtype, kind, ''])
+
+        return pd.DataFrame(
+            data=dataset_columns_info,
+            columns=['Column', 'DType', 'Kind', 'Additional Info'],
+        )
+
+    def __repr__(
+        self,
+        max_cols: int = 8,
+        max_rows: int = 10,
+        fmt: DatasetReprFmt = 'string'
+    ) -> str:
+        """Represent a dataset instance."""
+        info = self._dataset_description()
+        columns = list(info[info['Additional Info'] == '']['Column'])
+        data = self.data.loc[:, columns]  # Sorting horizontally
+        kwargs = dict(max_cols=max_cols, col_space=15)
+
+        if fmt == 'string':
+            features_info = info.to_string(max_rows=50, **kwargs)
+            data_to_show = data.to_string(show_dimensions=True, max_rows=max_rows, **kwargs)
+            title_template = '{:-^40}\n\n'
+            return ''.join((
+                title_template.format(' Dataset Description '),
+                f'{features_info}\n\n\n',
+                title_template.format(' Dataset Content '),
+                f'{data_to_show}\n\n',
+            ))
+
+        elif fmt == 'html':
+            features_info = info.to_html(notebook=True, max_rows=50, **kwargs)
+            data_to_show = data.to_html(notebook=True, max_rows=max_rows, **kwargs)
+            return ''.join([
+                '<h4><b>Dataset Description</b></h4>',
+                features_info,
+                '<h4><b>Dataset Content</b></h4>',
+                data_to_show
+            ])
+
+        else:
+            raise ValueError(
+                '"fmt" parameter supports only next values [string, html]'
+            )
+
+    def _ipython_display_(self):
+        display_html(HTML(self.__repr__(fmt='html')))
 
     def __len__(self) -> int:
         """Return number of samples in the member dataframe.
