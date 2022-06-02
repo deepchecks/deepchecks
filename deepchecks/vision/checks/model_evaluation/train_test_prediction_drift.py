@@ -63,7 +63,13 @@ class TrainTestPredictionDrift(TrainTestCheck):
     prediction_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
         Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
-        representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'/'class_id'
+        representing attributes of said method. 'output_type' must be one of:
+        - 'numeric' - for continuous ordinal outputs.
+        - 'categorical' - for discrete, non-ordinal outputs. These can still be numbers,
+          but these numbers do not have inherent value.
+        For more on image / label properties, see the :ref:`property guide </user-guide/vision/vision_properties.rst>`
+        - 'class_id' - for properties that return the class_id. This is used because these
+          properties are later matched with the VisionData.label_map, if one was given.
     margin_quantile_filter: float, default: 0.025
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
@@ -99,9 +105,11 @@ class TrainTestPredictionDrift(TrainTestCheck):
     ):
         super().__init__(**kwargs)
         # validate prediction properties:
-        if prediction_properties is not None:
+        self.user_prediction_properties = (
             validate_properties(prediction_properties)
-        self.user_prediction_properties = prediction_properties
+            if prediction_properties is not None
+            else None
+        )
         self.margin_quantile_filter = margin_quantile_filter
         self.categorical_drift_method = categorical_drift_method
         if max_num_categories is not None:
