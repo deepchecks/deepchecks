@@ -8,21 +8,27 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-# pylint: disable=assignment-from-none
+# pylint: disable=assignment-from-none,broad-except,import-outside-toplevel
 """Utils module containing useful global functions."""
 import io
+import json
 import os
-import re
 import subprocess
 import sys
 import typing as t
+import urllib.request
+import warnings
 from functools import lru_cache
+from urllib.parse import parse_qs, urlparse
 
 import tqdm
 from ipykernel.zmqshell import ZMQInteractiveShell
 from IPython import get_ipython
 from IPython.display import display
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
+from jupyter_core.paths import jupyter_config_path
+from jupyter_server.extension.config import ExtensionConfigManager
+from jupyter_server.extension.manager import ExtensionManager, ExtensionPackage
 from tqdm.notebook import tqdm as tqdm_notebook
 
 __all__ = [
@@ -95,28 +101,8 @@ def is_headless() -> bool:
 @lru_cache(maxsize=None)
 def is_widgets_enabled() -> bool:
     """Check if we're running in jupyter and having jupyter widgets extension enabled."""
-    # TODO:
-    # this is not the right way to verify whether widgets are enabled or not:
-    #  - there is always a possibility that a user had started the jupyter server
-    #    with not default config path
-    #  - there are two extension types:
-    #      + classical notebook extensions (managed by 'jupyter nbextension');
-    #      + jupyterlab extensions (managed by 'jupyter labextension');
-    if not is_notebook():
-        return False
-    else:
-        # Test if widgets extension are in list
-        try:
-            # The same widget can appear multiple times from different config locations, than if there are both
-            # disabled and enabled, regard it as disabled
-            output = subprocess.getoutput('jupyter nbextension list').split('\n')
-            disabled_regex = re.compile(r'\s*(jupyter-js-widgets/extension).*(disabled).*')
-            enabled_regex = re.compile(r'\s*(jupyter-js-widgets/extension).*(enabled).*')
-            found_disabled = any((disabled_regex.match(s) for s in output))
-            found_enabled = any((enabled_regex.match(s) for s in output))
-            return not found_disabled and found_enabled
-        except Exception:  # pylint: disable=broad-except
-            return False
+    warnings.warn('', category=DeprecationWarning)
+    return is_widgets_use_possible()
 
 
 @lru_cache(maxsize=None)
@@ -129,19 +115,6 @@ def is_colab_env() -> bool:
 def is_kaggle_env() -> bool:
     """Check if we are in the kaggle enviroment."""
     return os.environ.get('KAGGLE_KERNEL_RUN_TYPE') is not None
-
-
-@lru_cache(maxsize=None)
-def is_widgets_use_possible() -> bool:
-    """Verify if widgets use is possible within the current environment."""
-    # NOTE:
-    # - google colab has no support for widgets but good support for viewing html pages in the output
-    # - can't display plotly widgets in kaggle notebooks
-    return (
-        is_widgets_enabled()
-        and not is_colab_env()
-        and not is_kaggle_env()
-    )
 
 
 class PlainNotebookProgressBar(tqdm.tqdm):
@@ -304,121 +277,375 @@ class ProgressBarGroup:
                 pb.__original_close__()
 
 
-# TODO:
-# NOTE:
-#   take a look at the 'is_widgets_enabled' function
-#   to understand why this code below is needed
-
-# class JupyterServerInfo(t.NamedTuple):
-#     url: str
-#     directory: str
+class JupyterLabExtensionInfo(t.TypedDict):
+    name: str
+    enabled: bool
+    installed_version: str
+    status: str
 
 
-# class JupyterLabExtensionInfo(t.TypedDict):
-#     name: str
-#     description: str
-#     url: str
-#     enabled: bool
-#     core: bool
-#     latest_version: str
-#     installed_version: str
-#     status: str
+class NotebookExtensionInfo(t.TypedDict):
+    name: str
+    enabled: bool
+    status: str
 
 
-# class NotebookExtensionsInfo(t.TypedDict):
-#     load_extensions: t.Dict[str, bool]  # name of extension -> is enabled flag
+def is_jupyter_server_extension_enabled(name: str) -> bool:
+    """Find out whether provided jupyter server extension is enabled."""
+    extensions = get_jupyter_server_extensions()
+
+    if name not in extensions:
+        return False
+
+    extension = extensions.get(name)
+
+    return (
+        extension.enabled and extension.validate()
+        if extension is not None
+        else False
+    )
 
 
-# def get_jupyter_server_info() -> t.List[JupyterServerInfo]:
-#     try:
-#         output = subprocess.getoutput('jupyter server list').split('\n')
-#         return [
-#             JupyterServerInfo(*list(map(str.strip, it.split('::'))))
-#             for it in output[1:]
-#         ]
-#     except BaseException:
-#         return []
+def get_jupyter_server_extensions() -> t.Mapping[str, ExtensionPackage]:
+    """Get dictionary of jupyter server extensions."""
+    folders = t.cast(t.List[str], jupyter_config_path())
+    config_manager = ExtensionConfigManager(read_config_path=folders)
+    extension_manager = ExtensionManager(config_manager=config_manager)
+    return extension_manager.extensions
 
 
-# def get_jupyterlab_extensions_config() -> t.List[t.Tuple[
-#     JupyterServerInfo,
-#     t.List[JupyterLabExtensionInfo]
-# ]]:
-#     output = []
+def get_jupyter_server_url() -> t.Optional[str]:
+    """Get running jupyter server url.
 
-#     for server in get_jupyter_server_info():
-#         urlobj = urlparse(server.url)
-#         url = '{}://{}/lab/api/extensions?token={}'.format(
-#             urlobj.scheme,
-#             urlobj.netloc,
-#             _extract_jupyter_token(urlobj.query)
-#         )
-#         try:
-#             with urllib.request.urlopen(url) as f:
-#                 output.append((server, json.load(f)))
-#         except:
-#             pass
+    Returns
+    -------
+    None :
+        when there is no running jupyter server instance,
+        or when there is more than one running jupyter
+        server instance. In the second case, we cannot
+        determine which one is ours.
+    str :
+        jupyter server url string
+    """
+    try:
+        output = subprocess.getoutput('jupyter server list').split('\n')
+    except BaseException:
+        return
+    else:
+        urls = [
+            line
+            for line in output
+            if line.startswith('http') or line.startswith('https')
+        ]
 
-#     return output
+        if len(urls) > 1:
+            warnings.warn('')  # TODO:
+            return
+        if len(urls) == 0:
+            return
 
-
-# def get_notebooks_extensions_config() -> t.List[t.Tuple[
-#     JupyterServerInfo,
-#     NotebookExtensionsInfo
-# ]]:
-#     output = []
-
-#     for server in get_jupyter_server_info():
-#         urlobj = urlparse(server.url)
-#         url = '{}://{}/api/config/notebook?token={}'.format(
-#             urlobj.scheme,
-#             urlobj.netloc,
-#             _extract_jupyter_token(urlobj.query)
-#         )
-#         try:
-#             with urllib.request.urlopen(url) as f:
-#                 output.append((server, json.load(f)))
-#         except BaseException:
-#             pass
-
-#     return output
+        return urls[0].split('::')[0].strip()
 
 
-# def _extract_jupyter_token(url) -> str:
-#     query = parse_qs(url)
-#     token = (query.get('token') or [])
-#     return (token[0] if len(token) > 0 else '')
+def extract_jupyter_server_token(url: str) -> str:
+    """Extract token string from jupyter server url string."""
+    query = parse_qs(url)
+    token = (query.get('token') or [])
+    return (token[0] if len(token) > 0 else '')
 
 
-# def is_widgets_enabled() -> bool:
-#     lab_config = get_jupyterlab_extensions_config()
-#     notebook_config = get_notebooks_extensions_config()
+def is_jupyterlab_extension_enabled(name: str) -> bool:
+    """Find out whether provided nbclassic extension is enabled."""
+    server_url = get_jupyter_server_url()
+    extensions = None
 
-#     is_lab_extension_enabled = False
-#     is_notebook_extension_enabled = False
+    if server_url is not None:
+        extensions = request_jupyterlab_extensions(server_url)
 
-#     for _, extensions_list in lab_config:
-#         is_widgets_extension_enabled = any([
-#             config
-#             for config in extensions_list
-#             if (
-#                 config['name'] == '@jupyter-widgets/jupyterlab-manager'
-#                 and config['enabled']
-#             )
-#         ])
-#         if is_widgets_extension_enabled is True:
-#             is_lab_extension_enabled = True
-#             break
+    if extensions is None:
+        extensions = get_jupyterlab_extensions()
 
-#     for _, config in notebook_config:
-#         extensions = config.get('load_extensions') or {}
-#         if extensions.get('jupyter-js-widgets/extension') is True:
-#             is_notebook_extension_enabled = True
-#             break
+    return (
+        extensions[name]['enabled'] is True and extensions[name]['status'].upper() == 'OK'
+        if extensions is not None and name in extensions
+        else False
+    )
 
-#     if len(lab_config) > 1 or len(notebook_config) > 1:
-#         warnings.warn('')  # TODO:
-#     elif is_lab_extension_enabled is False or is_notebook_extension_enabled:
-#         warnings.warn('')  # TODO:
 
-#     return is_lab_extension_enabled or is_notebook_extension_enabled
+def request_jupyterlab_extensions(server_url: str) -> t.Optional[t.Mapping[str, JupyterLabExtensionInfo]]:
+    """Request dictionary of jupyterlab extensions from the jupyter server.
+
+    Parameters
+    ----------
+    server_url : str
+        jupyter server url
+
+    Returns
+    -------
+    None :
+        if an error is raised during output parsing or cmd execution
+    Mapping[str, JupyterLabExtensionInfo] :
+        map of extension name -> extension info
+    """
+    urlobj = urlparse(server_url)
+    url = '{}://{}/lab/api/extensions?token={}'.format(  # pylint: disable=consider-using-f-string
+        urlobj.scheme,
+        urlobj.netloc,
+        extract_jupyter_server_token(urlobj.query)
+    )
+    try:
+        with urllib.request.urlopen(url) as f:
+            return {e['name']: e for e in json.load(f)}
+    except BaseException:
+        return
+
+
+def get_jupyterlab_extensions(merge: bool = True) -> t.Optional[t.Mapping[str, t.Any]]:
+    """Get list of jupyterlab extensions by executing extension manager cli command.
+
+    Parameters
+    ----------
+    merge : bool, default True
+        whether to merge configurations from different directories or not.
+        Jupyter uses several locations for configuration storing and each
+        of them has a different priority, so if the same configuration option
+        is met in different configuration files, then will be used option
+        from the file with the higher priority. If set to False will return
+        list of extensions settings from each configuration storage directory.
+
+    Returns
+    -------
+    None :
+        if an error is raised during output parsing or cmd execution
+    Mapping[str, List[JupyterLabExtensionInfo]] :
+        map of configuration files -> list of extension if 'merge' is set to False
+    Mapping[str, JupyterLabExtensionInfo] :
+        map of extension name -> extension info if 'merge' is set to True
+
+    Output of the cmd has next format:
+
+        > JupyterLab v3.4.2
+        > /home/user/.local/share/jupyter/labextensions
+        >   jupyterlab-plotly v5.5.0 enabled OK
+        >   @jupyter-widgets/jupyterlab-manager v3.0.1 disabled OK (python, jupyterlab_widgets)
+        >
+        > /home/user/Projects/deepchecks/venv/share/jupyter/labextensions
+        >   jupyterlab_pygments v0.2.2 enabled OK (python, jupyterlab_pygments)
+        >   catboost-widget v1.0.0 enabled OK
+    """
+    try:
+        output = subprocess.getoutput('jupyter labextension list').split('\n')
+    except BaseException:
+        return
+    else:
+        data = {}
+
+        try:
+            line_index = 0
+            output_len = len(output)
+            while line_index < output_len:
+                # look for a line with path to the config directory
+                line = output[line_index]
+                is_config_directory_line = '/labextensions' in line
+                if not is_config_directory_line:
+                    # unknown line - skip
+                    line_index += 1
+                    continue
+                else:
+                    # collect extensions that are printed below config directory line
+                    config_folder = line.strip()
+                    extensions = []
+                    line_index += 1
+                    while line_index < output_len:
+                        line = output[line_index]
+                        is_extension_line = 'enabled' in line or 'disabled' in line
+                        if not is_extension_line:
+                            # unknown line, no more info about extensions
+                            # go back to the outer loop
+                            break
+                        else:
+                            # parse extension info line
+                            line_index += 1
+                            name, version, enabled, status, *_ = line.strip().split(' ')
+                            extensions.append(JupyterLabExtensionInfo(
+                                name=name,
+                                installed_version=version,
+                                enabled='enabled' in enabled,
+                                status='OK' if 'OK' in status else ''
+                            ))
+                    data[config_folder] = extensions
+        except ValueError:
+            return
+
+        if not merge:
+            return data
+
+        return dict(
+            (extension['name'], {'folder': folder_name, **extension})
+            for folder_name, extensions in list(data.items())[::-1]
+            for extension in extensions
+        )
+
+
+def is_nbclassic_extension_enabled(name: str) -> bool:
+    """Find out whether provided nbclassic extension is enabled."""
+    server_url = get_jupyter_server_url()
+    extensions = None
+
+    if server_url is not None:
+        extensions = request_nbclassic_extensions(server_url)
+
+    if extensions is None:
+        extensions = get_nbclassic_extensions()
+
+    return (
+        extensions[name]['enabled'] is True and extensions[name]['status'].upper() == 'OK'
+        if extensions is not None and name in extensions
+        else False
+    )
+
+
+def request_nbclassic_extensions(server_url: str) -> t.Optional[t.Mapping[str, NotebookExtensionInfo]]:
+    """Request a list of nbclassic extensions from the jupyter server.
+
+    Parameters
+    ----------
+    server_url : str
+        jupyter server url
+
+    Returns
+    -------
+    None :
+        if an error is raised during execution.
+    Mapping[str, JupyterLabExtensionInfo] :
+        map of extension name -> extension info
+    """
+    urlobj = urlparse(server_url)
+    url = '{}://{}/api/config/notebook?token={}'.format(  # pylint: disable=consider-using-f-string
+        urlobj.scheme,
+        urlobj.netloc,
+        extract_jupyter_server_token(urlobj.query)
+    )
+    try:
+        with urllib.request.urlopen(url) as f:
+            output = {}
+            for k, v in json.load(f)['load_extensions'].items():
+                name = k.replace('/extension', '')
+                output[name] = NotebookExtensionInfo(name=k, enabled=v, status='OK')
+            return output
+    except BaseException:
+        return
+
+
+def get_nbclassic_extensions(merge: bool = True) -> t.Optional[t.Mapping[str, t.Any]]:
+    """Get list of nbclassic extensions.
+
+    Parameters
+    ----------
+    merge : bool, default True
+        whether to merge configurations from different directories or not.
+        Jupyter uses several locations for configuration storing and each
+        of them has a different priority, so if the same configuration option
+        is met in different configuration files, then will be used option
+        from the file with the higher priority. If set to False will return
+        list of extensions settings from each configuration storage directory.
+
+    Returns
+    -------
+    None :
+        if an error is raised during execution
+    Mapping[str, List[NotebookExtensionInfo]] :
+        map of configuration files -> list of extension if 'merge' is set to False
+    Mapping[str, NotebookExtensionInfo] :
+        map of extension name -> extension info if 'merge' is set to True
+    """
+    from notebook.config_manager import BaseJSONConfigManager
+    from notebook.nbextensions import validate_nbextension
+
+    directories = [os.path.join(p, 'nbconfig') for p in jupyter_config_path()]
+    data = {}
+
+    try:
+        for d in directories:
+            config_manager = BaseJSONConfigManager(config_dir=d)
+            config = t.cast(t.Optional[t.Dict[str, t.Any]], config_manager.get('notebook'))
+
+            if config:
+                extensions = config.get('load_extensions')
+                if extensions:
+                    data[d] = [
+                        NotebookExtensionInfo(
+                            name=name,
+                            enabled=is_enabled,
+                            status='OK' if len(validate_nbextension(name)) == 0 else ''
+                        )
+                        for name, is_enabled in extensions.items()
+                    ]
+    except BaseException:
+        return
+
+    if not merge:
+        return data
+
+    return dict(
+        (extension['name'], {'folder': folder_name, **extension})
+        for folder_name, extensions in list(data.items())[::-1]
+        for extension in extensions
+    )
+
+
+def is_widgets_use_possible() -> bool:
+    """Find out whether ipywidgets use is possible within jupyter interactive REPL."""
+    is_jupyterlab_enabled = is_jupyter_server_extension_enabled('jupyterlab')
+    is_nbclassic_enabled = is_jupyter_server_extension_enabled('nbclassic')
+
+    if is_jupyterlab_enabled and is_nbclassic_enabled:
+        condition = (
+            is_jupyterlab_extension_enabled('@jupyter-widgets/jupyterlab-manager'),
+            is_nbclassic_extension_enabled('jupyter-js-widgets')
+        )
+        if all(condition):
+            return True
+        elif any(condition):
+            warnings.warn('')  # TODO:
+            return True
+        else:
+            return False
+    elif is_jupyterlab_enabled:
+        return is_jupyterlab_extension_enabled('@jupyter-widgets/jupyterlab-manager')
+    elif is_nbclassic_enabled:
+        return is_nbclassic_extension_enabled('jupyter-js-widgets')
+    else:
+        return False
+
+
+def is_interactive_output_use_possible() -> bool:
+    """Find out whether the use of interactive outputs is possible within jupyter interactive REPL."""
+    is_jupyterlab_enabled = is_jupyter_server_extension_enabled('jupyterlab')
+    is_nbclassic_enabled = is_jupyter_server_extension_enabled('nbclassic')
+
+    if is_jupyterlab_enabled and is_nbclassic_enabled:
+        is_jupyterlab_requirements_met = (
+            is_jupyterlab_extension_enabled('@jupyter-widgets/jupyterlab-manager')
+            and is_jupyterlab_extension_enabled('jupyterlab-plotly')
+        )
+        condition = (
+            is_jupyterlab_requirements_met,
+            is_nbclassic_extension_enabled('jupyter-js-widgets')
+        )
+        if all(condition):
+            return True
+        elif any(condition):
+            warnings.warn('')  # TODO:
+            return True
+        else:
+            return False
+    elif is_jupyterlab_enabled:
+        return (
+            is_jupyterlab_extension_enabled('@jupyter-widgets/jupyterlab-manager')
+            and is_jupyterlab_extension_enabled('jupyterlab-plotly')
+        )
+    elif is_nbclassic_enabled:
+        return is_nbclassic_extension_enabled('jupyter-js-widgets')
+    else:
+        return False
