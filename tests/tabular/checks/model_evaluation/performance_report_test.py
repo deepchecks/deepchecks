@@ -12,8 +12,8 @@
 import re
 from typing import List
 
-from hamcrest import assert_that, calling, close_to, has_items, instance_of, raises
 import numpy as np
+from hamcrest import assert_that, calling, close_to, has_items, instance_of, raises
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.model_selection import train_test_split
 
