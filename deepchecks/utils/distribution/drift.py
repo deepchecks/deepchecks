@@ -79,15 +79,18 @@ def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.S
     dist1_counts, dist2_counts, _ = preprocess_2_cat_cols_to_same_bins(dist1=dist1, dist2=dist2)
     contingency_matrix = pd.DataFrame([dist1_counts, dist2_counts])
 
-    chi2 = chi2_contingency(contingency_matrix)[0]
-    n = contingency_matrix.sum().sum()
-    phi2 = chi2/n
-    r, k = contingency_matrix.shape
+    # If columns have the same single value in both (causing division by 0), return 0 drift score:
+    if contingency_matrix.shape[1] == 1:
+        return 0
 
     # This is based on
     # https://stackoverflow.com/questions/46498455/categorical-features-correlation/46498792#46498792 # noqa: SC100
     # and reused in other sources
     # (https://towardsdatascience.com/the-search-for-categorical-correlation-a1cf7f1888c9) # noqa: SC100
+    chi2 = chi2_contingency(contingency_matrix)[0]
+    n = contingency_matrix.sum().sum()
+    phi2 = chi2/n
+    r, k = contingency_matrix.shape
     phi2corr = max(0, phi2 - ((k-1)*(r-1))/(n-1))
     rcorr = r - ((r-1)**2)/(n-1)
     kcorr = k - ((k-1)**2)/(n-1)

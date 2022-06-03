@@ -127,6 +127,9 @@ class _DummyModel:
         self._validate_data(data)
         return self.probas.loc[data.index].to_numpy()
 
+    def fit(self, *args, **kwargs):
+        """Just for python 3.6 (sklearn validates fit method)."""
+
 
 class Context:
     """Contains all the data + properties the user has passed to a check/suite, and validates it seamlessly.

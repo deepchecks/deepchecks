@@ -11,7 +11,7 @@
 """Module for base vision abstractions."""
 # pylint: disable=broad-except,not-callable
 from collections import OrderedDict
-from typing import Dict, Mapping, Optional, Tuple, Union
+from typing import Dict, List, Mapping, Optional, Tuple, Union
 
 import torch
 from ignite.metrics import Metric
@@ -48,6 +48,8 @@ class Suite(BaseSuite):
             device: Union[str, torch.device, None] = 'cpu',
             random_state: int = 42,
             n_samples: Optional[int] = 10_000,
+            train_predictions: Union[List[torch.Tensor], torch.Tensor] = None,
+            test_predictions: Union[List[torch.Tensor], torch.Tensor] = None,
     ) -> SuiteResult:
         """Run all checks.
 
@@ -96,7 +98,9 @@ class Suite(BaseSuite):
                     scorers_per_class=scorers_per_class,
                     device=device,
                     random_state=random_state,
-                    n_samples=n_samples
+                    n_samples=n_samples,
+                    train_predictions=train_predictions,
+                    test_predictions=test_predictions,
                 )
 
             # Initialize here all the checks that are not single dataset,

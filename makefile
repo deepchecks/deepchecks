@@ -6,8 +6,9 @@
 # Package = Source code Directory
 PACKAGE = deepchecks
 
-# Requirements file
-REQUIRE = requirements.txt
+# Requirements dir & requirements suffix file
+REQUIRE_DIR = ./requirements
+REQUIRE_FILE = requirements.txt
 
 # python3 binary takes precedence over python binary,
 # this variable is used when setting python variable, (Line 18)
@@ -71,7 +72,7 @@ COVER_ARG := --cov-report term-missing --cov=$(PKGDIR) \
 DOCS         := $(shell realpath ./docs)
 DOCS_SRC     := $(DOCS)/source
 DOCS_BUILD   := $(DOCS)/build
-DOCS_REQUIRE := $(DOCS)/$(REQUIRE)
+DOCS_REQUIRE := $(DOCS)/$(REQUIRE_FILE)
 
 # variables that will be passed to the documentation make file
 SPHINXOPTS   ?=
@@ -169,9 +170,9 @@ requirements: $(ENV)
 	@$(PIP) install -U pip
 	@$(PIP) install -q \
 		wheel setuptools \
-		-r ./requirements/requirements.txt \
-		-r ./requirements/vision-requirements.txt \
-		-r ./requirements/nlp-requirements.txt
+		-r $(REQUIRE_DIR)/$(REQUIRE_FILE) \
+		-r $(REQUIRE_DIR)/vision-$(REQUIRE_FILE) \
+		-r $(REQUIRE_DIR)/nlp-$(REQUIRE_FILE)
 	@$(PIP) install --no-deps -e .
 
 
@@ -182,7 +183,7 @@ doc-requirements: $(ENV)
 
 dev-requirements: $(ENV)
 	@echo "####  installing development dependencies, it could take some time, please wait! ####"
-	@$(PIP) install -r ./requirements/dev-requirements.txt
+	@$(PIP) install -r $(REQUIRE_DIR)/dev-$(REQUIRE_FILE) 
 
 
 ### Static Analysis ######################################################
@@ -224,10 +225,10 @@ test-win:
 			-f https://s3.amazonaws.com/pytorch/whl/torch_stable.html;
 	@$(PIP_WIN) install -U pip
 	@$(PIP_WIN) install -q \
-		-r ./requirements/requirements.txt \
-		-r ./requirements/vision-requirements.txt \
-		-r ./requirements/nlp-requirements.txt \
-		-r ./requirements/dev-requirements.txt
+		-r $(REQUIRE_DIR)/$(REQUIRE_FILE)  \
+		-r $(REQUIRE_DIR)/vision-$(REQUIRE_FILE)  \
+		-r $(REQUIRE_DIR)/nlp-$(REQUIRE_FILE)  \
+		-r $(REQUIRE_DIR)/dev-$(REQUIRE_FILE) 
 	python -m pytest $(WIN_TESTDIR)
 
 
