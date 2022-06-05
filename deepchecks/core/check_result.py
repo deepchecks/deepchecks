@@ -200,7 +200,7 @@ class CheckResult(BaseCheckResult):
         """Return the check result as a reduced dict."""
         if isinstance(self.check, ReduceMixin):
             return self.check.reduce_output(self)
-        raise DeepchecksValueError('Check be an instance of ReduceMixin to use this function')
+        raise DeepchecksValueError('Check needs to be an instance of ReduceMixin to use this function')
 
     def display_check(
         self,
