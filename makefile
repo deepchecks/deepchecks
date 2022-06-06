@@ -187,7 +187,7 @@ dev-requirements: $(ENV)
 
 quiet-dev-requirements: $(ENV)
 	@echo "####  installing development dependencies, it could take some time, please wait! ####"
-	@$(PIP) install -r $(REQUIRE_DIR)/dev-$(REQUIRE_FILE)
+	@$(PIP) install -r -q $(REQUIRE_DIR)/dev-$(REQUIRE_FILE)
 
 ### Static Analysis ######################################################
 
