@@ -185,6 +185,9 @@ dev-requirements: $(ENV)
 	@echo "####  installing development dependencies, it could take some time, please wait! ####"
 	@$(PIP) install -r $(REQUIRE_DIR)/dev-$(REQUIRE_FILE)
 
+quiet-dev-requirements: $(ENV)
+	@echo "####  installing development dependencies, it could take some time, please wait! ####"
+	@$(PIP) install -r $(REQUIRE_DIR)/dev-$(REQUIRE_FILE)
 
 ### Static Analysis ######################################################
 
@@ -194,13 +197,13 @@ dev-requirements: $(ENV)
 validate: pylint docstring
 
 
-pylint:
+pylint: quiet-dev-requirements
 	$(ANALIZE) $(SOURCES) $(TEST_CODE)
 	$(FLAKE8) $(SOURCES)
 	$(FLAKE8_RST) $(SOURCES)
 
 
-docstring:
+docstring: quiet-dev-requirements
 	$(PYTHON) -m pydocstyle --convention=pep257 --add-ignore=D107 $(SOURCES)
 
 
@@ -232,7 +235,7 @@ test-win:
 	python -m pytest $(WIN_TESTDIR)
 
 
-coverage: requirements dev-requirements
+coverage: requirements quiet-dev-requirements
 	$(COVERAGE) run --source deepchecks/,tests/ --omit ultralytics_yolov5_master/ -m pytest
 
 coveralls: coverage
