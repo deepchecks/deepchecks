@@ -8,13 +8,16 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module with html utility functions."""
-import base64
+name: Labels Blank issues
 
-__all__ = ['imagetag']
+on:
+  issues:
+    types: [opened]
 
-
-def imagetag(img: bytes) -> str:
-    """Return html image tag with embedded image."""
-    png = base64.b64encode(img).decode('ascii')
-    return f'<img src="data:image/png;base64,{png}"/>'
+jobs:
+  label-blank-issues:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: andymckay/labeler@1.0.4
+        with:
+          add-labels: "Needs Triage"

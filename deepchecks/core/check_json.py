@@ -20,7 +20,7 @@ import plotly
 
 from deepchecks.core.check_result import CheckFailure, CheckResult
 from deepchecks.core.condition import Condition, ConditionCategory, ConditionResult
-from deepchecks.utils.html import imagetag
+from deepchecks.utils.display import imagetag
 
 __all__ = [
     'CheckResultJson',
