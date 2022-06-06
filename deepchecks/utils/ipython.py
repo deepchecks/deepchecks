@@ -27,6 +27,7 @@ from IPython import get_ipython
 from IPython.display import display
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
 from tqdm.notebook import tqdm as tqdm_notebook
+from typing_extensions import TypedDict
 
 __all__ = [
     'is_notebook',
@@ -274,14 +275,14 @@ class ProgressBarGroup:
                 pb.__original_close__()
 
 
-class JupyterLabExtensionInfo(t.TypedDict):
+class JupyterLabExtensionInfo(TypedDict):
     name: str
     enabled: bool
     installed_version: str
     status: str
 
 
-class NotebookExtensionInfo(t.TypedDict):
+class NotebookExtensionInfo(TypedDict):
     name: str
     enabled: bool
     status: str
