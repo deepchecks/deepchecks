@@ -59,11 +59,10 @@ __all__ = [
     'generate_check_docs_link',
     'widget_to_html_string',
     'format_number_if_not_nan',
-    'get_docs_link',
-    'keep_only_alphanumeric'
+    'get_docs_link'
 ]
 
-# Creating a translation table for the string.translate() method to be used in keep_only_alphanumeric method
+# Creating a translation table for the string.translate() method to be used in string base-form method
 DEL_CHARS = ''.join(c for c in map(chr, range(sys.maxunicode)) if not c.isalnum())
 DEL_MAP = str.maketrans('', '', DEL_CHARS)
 
@@ -244,28 +243,15 @@ def get_random_string(n: int = 5):
     return ''.join(random.choices(ascii_uppercase + digits, k=n))
 
 
-def keep_only_alphanumeric(string: str) -> str:
-    """Remove all non-alphanumeric characters from string.
+def string_baseform(string: Hashable, allow_empty_result: bool = False) -> Hashable:
+    """Normalize the string input to a uniform form.
 
+    If input is a string containing alphanumeric characters or if allow_empty_result is set to True,
+    removes all non-alphanumeric characters and convert characters to lower form.
     Parameters
     ----------
-    string : str
-        string to remove special characters from
-    Returns
-    -------
-    str
-        alphanumeric characters of input in their original order.
-    """
-    return string.translate(DEL_MAP)
-
-
-def string_baseform(string: Hashable) -> Hashable:
-    """Normalize the string input to uniform form if possible.
-
-    If input is a string containing alphanumeric characters, removes all non-alphanumeric characters and convert
-    characters to lower form.
-    Parameters
-    ----------
+    allow_empty_result : bool , default : False
+        bool indicating whether to return empty result if no alphanumeric characters are present or the original input
     string : str
         string to remove special characters from
     Returns
@@ -275,8 +261,8 @@ def string_baseform(string: Hashable) -> Hashable:
     """
     if not isinstance(string, str):
         return string
-    lower_alphanumeric_form = keep_only_alphanumeric(string).lower()
-    if len(lower_alphanumeric_form) > 0:
+    lower_alphanumeric_form = string.translate(DEL_MAP).lower()
+    if len(lower_alphanumeric_form) > 0 or allow_empty_result:
         return lower_alphanumeric_form
     else:
         return string

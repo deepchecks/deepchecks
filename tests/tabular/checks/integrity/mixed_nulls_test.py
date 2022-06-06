@@ -139,6 +139,16 @@ def test_single_column_nulls_with_special_characters():
     assert_that(result.value, has_entry('col1', has_length(4)))
 
 
+def test_single_column_nulls_only_special_characters():
+    # Arrange
+    data = {'col1': ['', '!@#$', 'Nan!', '#nan', '<NaN>']}
+    dataframe = pd.DataFrame(data=data)
+    # Act
+    result = MixedNulls().run(dataframe)
+    # Assert
+    assert_that(result.value, has_entry('col1', has_length(4)))
+
+
 def test_ignore_columns_single():
     # Arrange
     data = {'col1': ['foo', 'bar', 'cat'], 'col2': ['nan', 'null', ''], 'col3': [np.nan, 'none', '3']}
