@@ -244,7 +244,10 @@ def get_random_string(n: int = 5):
 
 
 def string_baseform(string: Hashable) -> Hashable:
-    """Remove special characters from given string, leaving only a-z, A-Z, 0-9 characters.
+    """Normalize the string input to uniform form if possible.
+
+    If input is a string containing alphanumeric characters, removes all non-alphanumeric characters and convert
+    characters to lower form.
 
     Parameters
     ----------
@@ -253,11 +256,15 @@ def string_baseform(string: Hashable) -> Hashable:
     Returns
     -------
     str
-        string without special characters
+        original input if condition is not met or lower form alphanumeric characters of input.
     """
     if not isinstance(string, str):
         return string
-    return string.translate(DEL_MAP).lower()
+    lower_alphanumeric_form = string.translate(DEL_MAP).lower()
+    if len(lower_alphanumeric_form) > 0:
+        return lower_alphanumeric_form
+    else:
+        return string
 
 
 def is_string_column(column: pd.Series) -> bool:
