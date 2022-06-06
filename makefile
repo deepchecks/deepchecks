@@ -183,7 +183,7 @@ doc-requirements: $(ENV)
 
 dev-requirements: $(ENV)
 	@echo "####  installing development dependencies, it could take some time, please wait! ####"
-	@$(PIP) install -r $(REQUIRE_DIR)/dev-$(REQUIRE_FILE) 
+	@$(PIP) install -r $(REQUIRE_DIR)/dev-$(REQUIRE_FILE)
 
 
 ### Static Analysis ######################################################
@@ -194,13 +194,13 @@ dev-requirements: $(ENV)
 validate: pylint docstring
 
 
-pylint: dev-requirements
+pylint:
 	$(ANALIZE) $(SOURCES) $(TEST_CODE)
 	$(FLAKE8) $(SOURCES)
 	$(FLAKE8_RST) $(SOURCES)
 
 
-docstring: dev-requirements
+docstring:
 	$(PYTHON) -m pydocstyle --convention=pep257 --add-ignore=D107 $(SOURCES)
 
 

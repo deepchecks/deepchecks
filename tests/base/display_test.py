@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """display tests"""
+# pylint: disable=protected-access
 import contextlib
 import io
 import pathlib
@@ -30,7 +31,7 @@ from deepchecks.tabular.checks import ColumnsInfo, DataDuplicates, MixedNulls
 from deepchecks.utils.json_utils import from_json
 from tests.common import DummyCheck, create_check_result, create_suite_result
 
-pio.renderers.default = "json"
+pio.renderers.default = 'json'
 
 
 # display check
@@ -90,7 +91,7 @@ def test_check_result_repr(iris_dataset):
                                           '\'petal length (cm)\': {}, \'petal width (cm)\': {}, \'target\': {}}'))
 
 
-def test_check_result_init(iris_dataset):
+def test_check_result_init():
     assert_that(calling(CheckResult).with_args(value=None, display={}),
                 raises(DeepchecksValueError, 'Can\'t display item of type: <class \'dict\'>'))
 
@@ -99,6 +100,7 @@ def test_check_result_display_plt_func():
     # Arrange
     def display_func():
         return 'test'
+
     check_res = CheckResult(value=7, header='test', display=[display_func])
     check_res.check = DataDuplicates()
 
@@ -121,11 +123,11 @@ def test_check_result_display_plotly(iris):
 
     # Assert
     assert_that(display, instance_of(VBox))
-    assert_that(display.children[3], instance_of(VBox)) # additional output wiidget
+    assert_that(display.children[3], instance_of(VBox))  # additional output wiidget
     assert_that(
         display.children[3].children[1],
         any_of(instance_of(FigureWidget), instance_of(VBox))
-    ) # plotly figure widget
+    )  # plotly figure widget
 
 
 def test_check_result_to_json():
@@ -218,8 +220,8 @@ def test_check_result_ipython_display():
     # Assert
     with patch('deepchecks.core.check_result.is_widgets_enabled', Mock(return_value=True)):
         with patch('deepchecks.core.check_result.display_html') as mock:
-                result._ipython_display_()
-                mock.assert_called_once()
+            result._ipython_display_()
+            mock.assert_called_once()
 
 
 def test_check_result_repr_mimebundle():
