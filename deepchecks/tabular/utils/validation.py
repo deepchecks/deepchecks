@@ -122,7 +122,6 @@ def ensure_predictions_shape(pred: np.ndarray, data: pd.DataFrame) -> np.ndarray
 
 def ensure_predictions_proba(pred_proba: np.ndarray, pred: np.ndarray) -> np.ndarray:
     """Ensure the predictions are in the right shape and if so return them. else raise error."""
-    if pred.shape != pred_proba.shape:  # binary case
-        if (np.argmax(pred_proba, axis=-1) != pred).any():
-            raise errors.ValidationError('Prediction propabilities array didn\'t match predictions result')
+    if (np.argmax(pred_proba, axis=-1) != pred).any():
+        raise errors.ValidationError('Prediction propabilities array didn\'t match predictions result')
     return pred_proba
