@@ -146,7 +146,7 @@ def test_drift_max_drift_score_multi_columns_drift_pass(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
     check = TrainTestFeatureDrift(categorical_drift_method='PSI') \
-        .add_condition_drift_score_not_greater_than(num_features_exceeding_threshold=3)
+        .add_condition_drift_score_not_greater_than(allowed_num_features_exceeding_threshold=2)
     # Act
     result = check.run(train, test, model)
     condition_result, *_ = result.conditions_results

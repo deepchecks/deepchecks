@@ -324,7 +324,7 @@ def drift_condition(max_allowed_categorical_score: float,
                     max_allowed_numeric_score: float,
                     subject_single: str,
                     subject_multi: str,
-                    num_exceeding_threshold: int = 1):
+                    allowed_num_subjects_exceeding_threshold: int = 0):
     """Create a condition function to be used in drift check's conditions.
 
     Parameters
@@ -337,7 +337,7 @@ def drift_condition(max_allowed_categorical_score: float,
         String that represents the subject being tested as single (feature, column, property)
     subject_multi: str
         String that represents the subject being tested as multiple (features, columns, properties)
-    num_exceeding_threshold: int, default: 1
+    allowed_num_subjects_exceeding_threshold: int, default: 0
         Determines the number of properties with drift score above threshold needed to fail the condition.
     """
     def condition(result: dict):
@@ -352,7 +352,7 @@ def drift_condition(max_allowed_categorical_score: float,
                                      if d > max_allowed_numeric_score}
 
         num_failed = len(not_passing_categorical_props) + len(not_passing_numeric_props)
-        if num_failed >= num_exceeding_threshold:
+        if num_failed > allowed_num_subjects_exceeding_threshold:
             details = f'Failed for {num_failed} out of {len(result)} {subject_multi}.'
             if not_passing_categorical_props:
                 details += f'\nFound {len(not_passing_categorical_props)} categorical {subject_multi} with ' \
