@@ -135,8 +135,27 @@ def test_drift_max_drift_score_condition_pass_threshold(drifted_data_and_model):
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
-        details='Passed for 4 columns.\n'
+        details='Passed for 4 columns out of 4 columns.\n'
                 'Found column "categorical_with_drift" has the highest categorical drift score: 0.22\n'
                 'Found column "numeric_with_drift" has the highest numerical drift score: 0.34',
         name='categorical drift score <= 1 and numerical drift score <= 1'
+    ))
+
+
+def test_drift_max_drift_score_multi_columns_drift_pass(drifted_data_and_model):
+    # Arrange
+    train, test, model = drifted_data_and_model
+    check = TrainTestFeatureDrift(categorical_drift_method='PSI') \
+        .add_condition_drift_score_not_greater_than(allowed_num_features_exceeding_threshold=2)
+    # Act
+    result = check.run(train, test, model)
+    condition_result, *_ = result.conditions_results
+
+    # Assert
+    assert_that(condition_result, equal_condition_result(
+        is_pass=True,
+        details='Passed for 2 columns out of 4 columns.\n'
+                'Found column "categorical_with_drift" has the highest categorical drift score: 0.22\n'
+                'Found column "numeric_with_drift" has the highest numerical drift score: 0.34',
+        name='categorical drift score <= 0.2 and numerical drift score <= 0.1'
     ))

@@ -106,8 +106,8 @@ def test_calculate_importance_when_model_is_pipeline(iris_labeled_dataset):
         feature_importances, fi_type = calculate_feature_importance(clf, iris_labeled_dataset,
                                                                     permutation_kwargs={'timeout': 120})
         assert_that(w, has_length(1))
-        assert_that(str(w[0].message), equal_to('Cannot use model\'s built-in feature importance on a Scikit-learn Pipeline, '
-                                                'using permutation feature importance calculation instead'))
+        assert_that(str(w[0].message), equal_to('Cannot use model\'s built-in feature importance on a Scikit-learn '
+                                                'Pipeline, using permutation feature importance calculation instead'))
 
     # Assert
     assert_that(feature_importances.sum(), close_to(1, 0.000001))
