@@ -20,7 +20,7 @@ from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.tabular.utils.messages import get_condition_passed_message
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
-from deepchecks.utils.strings import format_percent, string_baseform
+from deepchecks.utils.strings import format_percent, keep_only_alphanumeric
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['SpecialCharacters']
@@ -125,7 +125,7 @@ def _get_special_samples(column_data: pd.Series) -> Union[dict, None]:
         return None
     samples_to_count = defaultdict(lambda: 0)
     for sample in column_data:
-        if isinstance(sample, str) and len(sample) > 0 and len(string_baseform(sample)) == 0:
+        if isinstance(sample, str) and len(sample) > 0 and len(keep_only_alphanumeric(sample)) == 0:
             samples_to_count[sample] = samples_to_count[sample] + 1
 
     return samples_to_count or None
