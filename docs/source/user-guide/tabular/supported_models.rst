@@ -39,6 +39,15 @@ Example of a simple regression model:
 ...     def predict(X: pd.DataFrame) -> pd.Series:
 ...         ...
 
+Instead of a model you can also pass the predict_proba as keyword arguments to the run function as follows:
+
+>>> train_proba = model.predict(train_dataset.features_columns)
+... test_proba = model.predict(test_dataset.features_columns)
+... 
+... suite.run(train_dataset=train_dataset, test_dataset=test_dataset,
+...           features_importance=feature_importance,
+...           y_pred_train=train_proba, y_pred_test=test_proba)
+
 Classification
 --------------
 
@@ -47,14 +56,20 @@ They both should expect an |array-like| of shape ``(n_samples, n_features)``, bu
 is expected to return an `ndarray` of shape ``(n_samples,)``, a vector containing the predicted class label for each sample, and ``predict_proba``
 is expected to return an `ndarray` of shape ``(n_samples, n_classes)``, an array containing the predicted probability of each class per sample.
 
-
-
 >>> class simple_classification_model:
 ...     def predict(X: np.ndarray) -> np.ndarray:
 ...         ...
 ...     def predict_proba(X: np.ndarray) -> np.ndarray:
 ...         ...
 
+Instead of a model you can also pass the predict_proba as keyword arguments to the run function as follows:
+
+>>> train_proba = model.predict_proba(train_dataset.features_columns)
+... test_proba = model.predict_proba(test_dataset.features_columns)
+... 
+... suite.run(train_dataset=train_dataset, test_dataset=test_dataset,
+...           features_importance=feature_importance,
+...           y_proba_train=train_proba, y_proba_test=test_proba)
 
 .. _supported_models__optional_model_interface:
 

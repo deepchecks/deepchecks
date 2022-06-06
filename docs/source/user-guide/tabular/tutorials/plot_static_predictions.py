@@ -27,7 +27,8 @@ model = load_fitted_model()
 # ======================
 # We will calculate the feature importance which is optional but will affect some displays and checks.
 # (feature importance can also be provided from other sources (e.g. using a custom model that give FI as a property, shap, etc))
-# We also calculating all the model predict_proba results (for regression we would provide the predic result, we can also provide the predict result explicitly for classification)
+#
+# We are also calculating all the model predict_proba results (for regression we would provide the predic result, we can also provide the predict result explicitly for classification)
 
 from deepchecks.utils.features import calculate_feature_importance
 
