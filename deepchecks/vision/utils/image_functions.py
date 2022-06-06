@@ -21,13 +21,13 @@ import plotly.graph_objects as go
 import torch
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.utils.html import imagetag
+from deepchecks.utils.display import imagetag
 
 from .detection_formatters import convert_bbox
 
 __all__ = ['ImageInfo', 'numpy_grayscale_to_heatmap_figure', 'ensure_image',
            'apply_heatmap_image_properties', 'draw_bboxes', 'prepare_thumbnail',
-           'crop_image', 'imagetag']
+           'crop_image']
 
 
 class ImageInfo:
