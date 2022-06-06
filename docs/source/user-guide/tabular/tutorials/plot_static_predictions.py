@@ -5,8 +5,8 @@ Using Pre-computed Predictions
 
 In some cases the model evaluation can take a long time i.e very large dataset.
 For this case you may calculate the predictions beforehand and pass them to the check/suite.
-This feature can also be  helpful if the Model inference happens on a production node and you can get the predictions using api.
-You can also use this feature for models that are not sklearn compatible.
+This feature can also be helpful if the Model inference happens on a production node and you can get the predictions using api.
+You can also use this feature to run deepchecks on models that are not sklearn compatible.
 
 * If the train dataset shares indices with the test dataset we will add train/test prefixes.
   This will cause the IndexTrainTestLeakage condition to pass even when leakage is present in cases where the DataFrame index is also defined as the deepchecks Dataset index. 
@@ -26,7 +26,7 @@ model = load_fitted_model()
 # Set Up The Required Data
 # ======================
 # We will calculate the feature importance which is optional but will affect some displays and checks.
-# (feature importance can also be provided from other sources (e.g. using a custom model that give FI as a property, shap, etc))
+# (feature importance can also be provided from other sources (e.g. using a custom model that has FI as a property, shap, etc))
 #
 # We are also calculating all the model predict_proba results (for regression we would provide the predic result, we can also provide the predict result explicitly for classification)
 
@@ -43,7 +43,7 @@ test_proba = model.predict_proba(test_dataset.features_columns)
 # Run the model_evaluation suite
 # ------------------------------
 #
-# We will now pass the feature importance and the predictions we calculated before hand.
+# We will now pass the feature importance and the predictions we calculated beforehand.
 
 from deepchecks.tabular.suites import model_evaluation
 
