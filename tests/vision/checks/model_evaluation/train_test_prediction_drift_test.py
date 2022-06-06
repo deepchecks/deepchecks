@@ -206,7 +206,7 @@ def test_condition_pass(mnist_dataset_train, mock_trained_mnist, device):
     assert_that(result.conditions_results[0], equal_condition_result(
         is_pass=True,
         name='categorical drift score <= 0.15 and numerical drift score <= 0.075 for prediction drift',
-        details='Passed for 1 prediction properties.\n'
+        details='Passed for 1 prediction properties out of 1 prediction properties.\n'
                 'Found prediction property "Samples Per Class" has the highest categorical drift score: 0'
     ))
 
