@@ -79,17 +79,14 @@ class _DummyModel:
                                             [y_proba_train, y_proba_test]):
             if dataset is not None:
                 features.append(dataset.features_columns)
+                if y_pred is None and y_proba is not None:
+                    y_pred = np.argmax(y_proba, axis=-1)
                 if y_pred is not None:
                     ensure_predictions_shape(y_pred, dataset.data)
                     predictions.append(pd.Series(y_pred, index=dataset.data.index))
                     if y_proba is not None:
                         ensure_predictions_proba(y_proba, y_pred)
                         probas.append(pd.DataFrame(data=y_proba, index=dataset.data.index))
-                elif y_proba is not None:
-                    y_pred = np.argmax(y_proba, axis=-1)
-                    ensure_predictions_shape(y_pred, dataset.data)
-                    predictions.append(pd.Series(y_pred, index=dataset.data.index))
-                    probas.append(pd.DataFrame(data=y_proba, index=dataset.data.index))
 
         self.predictions = pd.concat(predictions, axis=0) if predictions else None
         self.probas = pd.concat(probas, axis=0) if probas else None
