@@ -31,7 +31,7 @@ from typing_extensions import TypedDict
 
 __all__ = [
     'is_notebook',
-    'is_widgets_enabled',
+    'is_widgets_use_possible',
     'is_headless',
     'create_progress_bar',
     'is_colab_env',
@@ -99,7 +99,11 @@ def is_headless() -> bool:
 @lru_cache(maxsize=None)
 def is_widgets_enabled() -> bool:
     """Check if we're running in jupyter and having jupyter widgets extension enabled."""
-    warnings.warn('', category=DeprecationWarning)
+    warnings.warn(
+        '"is_widgets_enabled" is deprecated and will be remove in future, '
+        'use "is_widgets_use_possible" instead',
+        category=DeprecationWarning,
+    )
     return is_widgets_use_possible()
 
 
@@ -168,7 +172,7 @@ def create_progress_bar(
 
     barlen = iterlen if iterlen > 5 else 5
 
-    if is_zmq_interactive_shell() and is_widgets_enabled():
+    if is_zmq_interactive_shell() and is_widgets_use_possible():
         return tqdm_notebook(
             **kwargs,
             colour='#9d60fb',
@@ -356,7 +360,12 @@ def get_jupyter_server_url() -> t.Optional[str]:
         ]
 
         if len(urls) > 1:
-            warnings.warn('')  # TODO:
+            warnings.warn(
+                'Found more then one running jupyter server. '
+                'Not able to determine which one is used by current user, '
+                'and as result it can effect what kind of output (interactive, '
+                'non-interactive) will be used to display check/suite results'
+            )
             return
         if len(urls) == 0:
             return
@@ -619,6 +628,19 @@ def get_nbclassic_extensions(merge: bool = True) -> t.Optional[t.Mapping[str, t.
     )
 
 
+_WARNING_MESSAGE = (
+    '"Deepchecks" library was not able to identify whether '
+    'the use of interactive output is possible in the current '
+    'context or not, but decided to use it to show results '
+    'anyway. Therefore, if you encounter any problems with '
+    'interactive check/suite output, please use instead '
+    'non-interactive check/suite results output, it can be '
+    'done in the next way:\n\n'
+    '>>> result = Check().run(...) # or Suite().run(...)\n'
+    '>>> result.show(as_widget=False)'
+)
+
+
 def is_widgets_use_possible() -> bool:
     """Find out whether ipywidgets use is possible within jupyter interactive REPL."""
     is_jupyterlab_enabled = is_jupyter_server_extension_enabled('jupyterlab')
@@ -632,7 +654,7 @@ def is_widgets_use_possible() -> bool:
         if all(condition):
             return True
         elif any(condition):
-            warnings.warn('')  # TODO:
+            warnings.warn(_WARNING_MESSAGE)
             return True
         else:
             return False
@@ -661,7 +683,7 @@ def is_interactive_output_use_possible() -> bool:
         if all(condition):
             return True
         elif any(condition):
-            warnings.warn('')  # TODO:
+            warnings.warn(_WARNING_MESSAGE)
             return True
         else:
             return False
