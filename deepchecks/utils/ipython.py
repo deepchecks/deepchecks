@@ -26,9 +26,6 @@ from ipykernel.zmqshell import ZMQInteractiveShell
 from IPython import get_ipython
 from IPython.display import display
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
-from jupyter_core.paths import jupyter_config_path
-from jupyter_server.extension.config import ExtensionConfigManager
-from jupyter_server.extension.manager import ExtensionManager, ExtensionPackage
 from tqdm.notebook import tqdm as tqdm_notebook
 
 __all__ = [
@@ -294,6 +291,9 @@ def is_jupyter_server_extension_enabled(name: str) -> bool:
     """Find out whether provided jupyter server extension is enabled."""
     extensions = get_jupyter_server_extensions()
 
+    if extensions is None:
+        return False
+
     if name not in extensions:
         return False
 
@@ -306,12 +306,28 @@ def is_jupyter_server_extension_enabled(name: str) -> bool:
     )
 
 
-def get_jupyter_server_extensions() -> t.Mapping[str, ExtensionPackage]:
-    """Get dictionary of jupyter server extensions."""
-    folders = t.cast(t.List[str], jupyter_config_path())
-    config_manager = ExtensionConfigManager(read_config_path=folders)
-    extension_manager = ExtensionManager(config_manager=config_manager)
-    return extension_manager.extensions
+def get_jupyter_server_extensions() -> t.Optional[t.Mapping[str, t.Any]]:
+    """Get dictionary of jupyter server extensions.
+
+    Returns
+    -------
+    None :
+        when 'jupyter_server' and 'jupyter_core' are not available,
+        it means that 'Jupyter' is not installed
+    Mapping[str, jupyter_server.extension.manager.ExtensionPackage] :
+        map of extension name -> extension package instance
+    """
+    try:
+        from jupyter_core.paths import jupyter_config_path
+        from jupyter_server.extension.config import ExtensionConfigManager
+        from jupyter_server.extension.manager import ExtensionManager
+    except ImportError:
+        return
+    else:
+        folders = t.cast(t.List[str], jupyter_config_path())
+        config_manager = ExtensionConfigManager(read_config_path=folders)
+        extension_manager = ExtensionManager(config_manager=config_manager)
+        return extension_manager.extensions
 
 
 def get_jupyter_server_url() -> t.Optional[str]:
@@ -335,7 +351,7 @@ def get_jupyter_server_url() -> t.Optional[str]:
         urls = [
             line
             for line in output
-            if line.startswith('http') or line.startswith('https')
+            if line.strip().startswith('http') or line.strip().startswith('https')
         ]
 
         if len(urls) > 1:
@@ -344,11 +360,12 @@ def get_jupyter_server_url() -> t.Optional[str]:
         if len(urls) == 0:
             return
 
-        return urls[0].split('::')[0].strip()
+        url = urls[0].split('::')[0].strip()
+        return url.split(' ')[0]
 
 
 def extract_jupyter_server_token(url: str) -> str:
-    """Extract token string from jupyter server url string."""
+    """Extract token string from jupyter server url query params string."""
     query = parse_qs(url)
     token = (query.get('token') or [])
     return (token[0] if len(token) > 0 else '')
@@ -506,7 +523,7 @@ def is_nbclassic_extension_enabled(name: str) -> bool:
 
 
 def request_nbclassic_extensions(server_url: str) -> t.Optional[t.Mapping[str, NotebookExtensionInfo]]:
-    """Request a list of nbclassic extensions from the jupyter server.
+    """Request a dictionary of nbclassic extensions from the jupyter server.
 
     Parameters
     ----------
@@ -528,10 +545,13 @@ def request_nbclassic_extensions(server_url: str) -> t.Optional[t.Mapping[str, N
     )
     try:
         with urllib.request.urlopen(url) as f:
+            data = json.load(f)
             output = {}
-            for k, v in json.load(f)['load_extensions'].items():
+            if not data:
+                return {}
+            for k, v in data['load_extensions'].items():
                 name = k.replace('/extension', '')
-                output[name] = NotebookExtensionInfo(name=k, enabled=v, status='OK')
+                output[name] = NotebookExtensionInfo(name=name, enabled=v, status='OK')
             return output
     except BaseException:
         return
@@ -559,8 +579,12 @@ def get_nbclassic_extensions(merge: bool = True) -> t.Optional[t.Mapping[str, t.
     Mapping[str, NotebookExtensionInfo] :
         map of extension name -> extension info if 'merge' is set to True
     """
-    from notebook.config_manager import BaseJSONConfigManager
-    from notebook.nbextensions import validate_nbextension
+    try:
+        from jupyter_core.paths import jupyter_config_path
+        from notebook.config_manager import BaseJSONConfigManager
+        from notebook.nbextensions import validate_nbextension
+    except ImportError:
+        return
 
     directories = [os.path.join(p, 'nbconfig') for p in jupyter_config_path()]
     data = {}

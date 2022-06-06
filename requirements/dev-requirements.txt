@@ -25,6 +25,9 @@ catboost
 lightgbm
 xgboost
 
+jupyter
+jupyterlab
+notebook
 
 # YoloV5
 matplotlib>=3.2.2
