@@ -286,7 +286,7 @@ def split_camel_case(string: str) -> str:
 
 
 def to_snake_case(value: str) -> str:
-    """Transform camel case indentifier into snake case.
+    """Transform camel case indentifier into snake caseffff.
 
     Parameters
     ----------
