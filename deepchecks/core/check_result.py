@@ -242,7 +242,7 @@ class CheckResult(BaseCheckResult):
                 ),
                 raw=True
             )
-        elif is_interactive_output_use_possible() and as_widget and not is_kaggle_env():
+        elif not is_kaggle_env() and is_interactive_output_use_possible() and as_widget:
             return self.to_widget(
                 unique_id=unique_id,
                 show_additional_outputs=show_additional_outputs
@@ -540,7 +540,7 @@ class CheckFailure(BaseCheckResult):
                 ),
                 raw=True
             )
-        elif is_interactive_output_use_possible() and as_widget and not is_kaggle_env():
+        elif not is_kaggle_env() and is_interactive_output_use_possible() and as_widget:
             return self.to_widget()
         else:
             display(*CheckFailureIPythonSerializer(self).serialize())

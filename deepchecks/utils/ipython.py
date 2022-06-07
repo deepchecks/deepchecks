@@ -31,12 +31,11 @@ from typing_extensions import TypedDict
 
 __all__ = [
     'is_notebook',
-    'is_widgets_use_possible',
+    'is_widgets_enabled',
     'is_headless',
     'create_progress_bar',
     'is_colab_env',
     'is_kaggle_env',
-    'is_widgets_use_possible',
     'is_terminal_interactive_shell',
     'is_zmq_interactive_shell',
     'ProgressBarGroup'
@@ -94,17 +93,6 @@ def is_headless() -> bool:
         return True
     root.destroy()
     return False
-
-
-@lru_cache(maxsize=None)
-def is_widgets_enabled() -> bool:
-    """Check if we're running in jupyter and having jupyter widgets extension enabled."""
-    warnings.warn(
-        '"is_widgets_enabled" is deprecated and will be remove in future, '
-        'use "is_widgets_use_possible" instead',
-        category=DeprecationWarning,
-    )
-    return is_widgets_use_possible()
 
 
 @lru_cache(maxsize=None)
@@ -172,7 +160,7 @@ def create_progress_bar(
 
     barlen = iterlen if iterlen > 5 else 5
 
-    if is_zmq_interactive_shell() and is_widgets_use_possible():
+    if is_zmq_interactive_shell() and is_widgets_enabled():
         return tqdm_notebook(
             **kwargs,
             colour='#9d60fb',
@@ -633,7 +621,7 @@ _WARNING_MESSAGE = (
     'the use of interactive output is possible in the current '
     'context or not, but decided to use it to show results '
     'anyway. Therefore, if you encounter any problems with '
-    'interactive check/suite output, please use instead '
+    'interactive check/suite output, try to use instead '
     'non-interactive check/suite results output, it can be '
     'done in the next way:\n\n'
     '>>> result = Check().run(...) # or Suite().run(...)\n'
@@ -641,16 +629,97 @@ _WARNING_MESSAGE = (
 )
 
 
-def is_widgets_use_possible() -> bool:
+_EXTENSION_WARNING = (
+    '"{extension}" extension is not installed/enabled, '
+    'interactive check/suite output will not work for you{additional}. '
+    'In order to enable extension run next command "{enable_cmd}". '
+    'In order to install extension follow next instructions:\n{install_instructions}'
+)
+
+
+@lru_cache(maxsize=None)
+def _jupyterlab_widgets_warning(**kwargs):
+    warnings.filterwarnings(
+        action='once',
+        message=r'"@jupyter-widgets/jupyterlab-manager" extension is not installed/enabled.*',
+    )
+    warning_kwargs = dict(
+        extension='@jupyter-widgets/jupyterlab-manager',
+        enable_cmd='jupyter labextension enable @jupyter-widgets/jupyterlab-manager',
+        # TODO:
+        # I did not find any good instruction on internet
+        # probably better to write our own instruction for this
+        install_instructions=(
+            '+ https://pypi.org/project/jupyterlab-widgets/\n'
+            '+ https://jupyterlab.readthedocs.io/en/stable/user/extensions.html#installing-extensions\n'
+        )
+    )
+    warning_kwargs.update(**kwargs)
+    return _EXTENSION_WARNING.format(**kwargs)
+
+
+@lru_cache(maxsize=None)
+def _jupyterlab_plotly_warning(**kwargs):
+    warnings.filterwarnings(
+        action='once',
+        message=r'"jupyterlab-plotly" extension is not installed/enabled.*',
+    )
+    warning_kwargs = dict(
+        extension='jupyterlab-plotly',
+        enable_cmd='jupyter labextension enable jupyterlab-plotly',
+        # TODO:
+        # I did not find any good instruction on internet
+        # probably better to write our own instruction for this
+        install_instructions=(
+            '+ https://jupyterlab.readthedocs.io/en/stable/user/extensions.html#installing-extensions\n'
+        )
+    )
+    warning_kwargs.update(**kwargs)
+    return _EXTENSION_WARNING.format(**kwargs)
+
+
+@lru_cache(maxsize=None)
+def _nbclassic_widgets_warning(**kwargs):
+    warnings.filterwarnings(
+        action='once',
+        message=r'"jupyter-js-widgets" extension is not installed/enabled.*',
+    )
+    warning_kwargs = dict(
+        extension='jupyter-js-widgets',
+        enable_cmd='jupyter nbextension enable jupyter-js-widgets/extension',
+        # TODO:
+        # I did not find any good instruction on internet
+        # probably better to write our own instruction for this
+        install_instructions='+ https://pypi.org/project/jupyter-js-widgets-nbextension/\n'
+    )
+    warning_kwargs.update(**kwargs)
+    return _EXTENSION_WARNING.format(**kwargs)
+
+
+def is_widgets_enabled() -> bool:
     """Find out whether ipywidgets use is possible within jupyter interactive REPL."""
     is_jupyterlab_enabled = is_jupyter_server_extension_enabled('jupyterlab')
     is_nbclassic_enabled = is_jupyter_server_extension_enabled('nbclassic')
 
     if is_jupyterlab_enabled and is_nbclassic_enabled:
+        is_jupyterlab_widgets_enabled = is_jupyterlab_extension_enabled('@jupyter-widgets/jupyterlab-manager')
+        is_nbclassic_widgets_enabled = is_nbclassic_extension_enabled('jupyter-js-widgets')
+
+        if is_jupyterlab_widgets_enabled is False:
+            warnings.warn(_jupyterlab_widgets_warning(
+                additional=' if you use "Jupyter Lab"'
+            ))
+
+        if is_nbclassic_widgets_enabled is False:
+            warnings.warn(_nbclassic_widgets_warning(
+                additional=' if you use "Classical Notebooks"'
+            ))
+
         condition = (
-            is_jupyterlab_extension_enabled('@jupyter-widgets/jupyterlab-manager'),
-            is_nbclassic_extension_enabled('jupyter-js-widgets')
+            is_jupyterlab_widgets_enabled,
+            is_nbclassic_widgets_enabled
         )
+
         if all(condition):
             return True
         elif any(condition):
@@ -658,28 +727,51 @@ def is_widgets_use_possible() -> bool:
             return True
         else:
             return False
+
     elif is_jupyterlab_enabled:
-        return is_jupyterlab_extension_enabled('@jupyter-widgets/jupyterlab-manager')
+        is_extension_enabled = is_jupyterlab_extension_enabled('@jupyter-widgets/jupyterlab-manager')
+
+        if is_extension_enabled is False:
+            warnings.warn(_jupyterlab_widgets_warning(additional=''))
+
+        return is_extension_enabled
+
     elif is_nbclassic_enabled:
-        return is_nbclassic_extension_enabled('jupyter-js-widgets')
+        is_extension_enabled = is_nbclassic_extension_enabled('jupyter-js-widgets')
+
+        if is_extension_enabled is False:
+            warnings.warn(_nbclassic_widgets_warning(additional=''))
+
+        return is_extension_enabled
+
     else:
         return False
 
 
 def is_interactive_output_use_possible() -> bool:
-    """Find out whether the use of interactive outputs is possible within jupyter interactive REPL."""
+    """Find out whether the use of interactive outputs is possible within jupyter."""
     is_jupyterlab_enabled = is_jupyter_server_extension_enabled('jupyterlab')
     is_nbclassic_enabled = is_jupyter_server_extension_enabled('nbclassic')
 
     if is_jupyterlab_enabled and is_nbclassic_enabled:
-        is_jupyterlab_requirements_met = (
-            is_jupyterlab_extension_enabled('@jupyter-widgets/jupyterlab-manager')
-            and is_jupyterlab_extension_enabled('jupyterlab-plotly')
-        )
+        is_jupyterlab_plotly_enabled = is_jupyterlab_extension_enabled('jupyterlab-plotly')
+        is_jupyterlab_widgets_enabled = is_jupyterlab_extension_enabled('@jupyter-widgets/jupyterlab-manager')
+        is_nbclassic_widgets_enabled = is_nbclassic_extension_enabled('jupyter-js-widgets')
+
+        if is_jupyterlab_plotly_enabled is False:
+            warnings.warn(_jupyterlab_plotly_warning(additional=' if you use "Jupyter Lab"'))
+
+        if is_jupyterlab_widgets_enabled is False:
+            warnings.warn(_jupyterlab_widgets_warning(additional=' if you use "Jupyter Lab"'))
+
+        if is_nbclassic_widgets_enabled is False:
+            warnings.warn(_nbclassic_widgets_warning(additional=' if you use "Classical Notebooks"'))
+
         condition = (
-            is_jupyterlab_requirements_met,
-            is_nbclassic_extension_enabled('jupyter-js-widgets')
+            is_jupyterlab_widgets_enabled and is_jupyterlab_plotly_enabled,
+            is_nbclassic_widgets_enabled
         )
+
         if all(condition):
             return True
         elif any(condition):
@@ -687,12 +779,28 @@ def is_interactive_output_use_possible() -> bool:
             return True
         else:
             return False
+
     elif is_jupyterlab_enabled:
-        return (
-            is_jupyterlab_extension_enabled('@jupyter-widgets/jupyterlab-manager')
-            and is_jupyterlab_extension_enabled('jupyterlab-plotly')
+        is_plotly_enabled = is_jupyterlab_extension_enabled('jupyterlab-plotly')
+        is_widgets_enabled = is_jupyterlab_extension_enabled(  # pylint: disable=redefined-outer-name
+            '@jupyter-widgets/jupyterlab-manager'
         )
+
+        if is_plotly_enabled is False:
+            warnings.warn(_jupyterlab_plotly_warning(additional=''))
+
+        if is_widgets_enabled is False:
+            warnings.warn(_jupyterlab_widgets_warning(additional=''))
+
+        return is_plotly_enabled and is_widgets_enabled
+
     elif is_nbclassic_enabled:
-        return is_nbclassic_extension_enabled('jupyter-js-widgets')
+        is_extension_enabled = is_nbclassic_extension_enabled('jupyter-js-widgets')
+
+        if is_extension_enabled is False:
+            warnings.warn(_nbclassic_widgets_warning(additional=''))
+
+        return is_extension_enabled
+
     else:
         return False

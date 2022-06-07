@@ -141,7 +141,7 @@ class SuiteResult:
                 ),
                 raw=True
             )
-        elif is_interactive_output_use_possible() and as_widget and not is_kaggle_env():
+        elif not is_kaggle_env() and is_interactive_output_use_possible() and as_widget:
             display_html(self.to_widget(unique_id=output_id))
         else:
             if as_widget:
