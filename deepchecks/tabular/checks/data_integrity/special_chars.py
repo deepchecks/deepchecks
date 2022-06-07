@@ -125,7 +125,7 @@ def _get_special_samples(column_data: pd.Series) -> Union[dict, None]:
         return None
     samples_to_count = defaultdict(lambda: 0)
     for sample in column_data:
-        if isinstance(sample, str) and len(sample) > 0 and len(string_baseform(sample)) == 0:
+        if isinstance(sample, str) and len(sample) > 0 and len(string_baseform(sample, True)) == 0:
             samples_to_count[sample] = samples_to_count[sample] + 1
 
     return samples_to_count or None

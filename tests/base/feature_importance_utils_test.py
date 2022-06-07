@@ -54,8 +54,7 @@ def test_linear_regression(diabetes):
 def test_pipeline(iris_split_dataset_and_model_single_feature):
     _, test_ds, clf = iris_split_dataset_and_model_single_feature
     feature_importances, fi_type = calculate_feature_importance(clf, test_ds)
-    print(feature_importances)
-    assert_that(feature_importances['sepal length (cm)'], equal_to(1))
+    assert_that(feature_importances['sepal length (cm)'], equal_to(1))  # pylint: disable=e1136
     assert_that(feature_importances, has_length(1))
     assert_that(fi_type, is_('permutation_importance'))
     assert_that(hasattr(clf.steps[-1][1], 'feature_importances_'))

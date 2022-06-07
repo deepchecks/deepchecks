@@ -59,10 +59,10 @@ __all__ = [
     'generate_check_docs_link',
     'widget_to_html_string',
     'format_number_if_not_nan',
-    'get_docs_link',
+    'get_docs_link'
 ]
 
-# Creating a translation table for the string.translate() method to be used in string base form method
+# Creating a translation table for the string.translate() method to be used in string base-form method
 DEL_CHARS = ''.join(c for c in map(chr, range(sys.maxunicode)) if not c.isalnum())
 DEL_MAP = str.maketrans('', '', DEL_CHARS)
 
@@ -243,21 +243,29 @@ def get_random_string(n: int = 5):
     return ''.join(random.choices(ascii_uppercase + digits, k=n))
 
 
-def string_baseform(string: Hashable) -> Hashable:
-    """Remove special characters from given string, leaving only a-z, A-Z, 0-9 characters.
+def string_baseform(string: Hashable, allow_empty_result: bool = False) -> Hashable:
+    """Normalize the string input to a uniform form.
 
+    If input is a string containing alphanumeric characters or if allow_empty_result is set to True,
+    removes all non-alphanumeric characters and convert characters to lower form.
     Parameters
     ----------
+    allow_empty_result : bool , default : False
+        bool indicating whether to return empty result if no alphanumeric characters are present or the original input
     string : str
         string to remove special characters from
     Returns
     -------
     str
-        string without special characters
+        original input if condition is not met or lower form alphanumeric characters of input.
     """
     if not isinstance(string, str):
         return string
-    return string.translate(DEL_MAP).lower()
+    lower_alphanumeric_form = string.translate(DEL_MAP).lower()
+    if len(lower_alphanumeric_form) > 0 or allow_empty_result:
+        return lower_alphanumeric_form
+    else:
+        return string
 
 
 def is_string_column(column: pd.Series) -> bool:
