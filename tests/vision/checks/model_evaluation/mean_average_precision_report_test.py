@@ -30,10 +30,10 @@ def test_mnist_error(mnist_dataset_test, mock_trained_mnist, device):
 def test_coco(coco_test_visiondata, mock_trained_yolov5_object_detection, device):
     # Arrange
     check = MeanAveragePrecisionReport() \
-            .add_condition_mean_average_precision_not_less_than(0.1) \
-            .add_condition_mean_average_precision_not_less_than(0.4) \
-            .add_condition_average_mean_average_precision_not_less_than() \
-            .add_condition_average_mean_average_precision_not_less_than(0.5)
+            .add_condition_mean_average_precision_greater_than(0.1) \
+            .add_condition_mean_average_precision_greater_than(0.4) \
+            .add_condition_average_mean_average_precision_greater_than() \
+            .add_condition_average_mean_average_precision_greater_than(0.5)
 
     # Act
     result = check.run(coco_test_visiondata,
@@ -62,24 +62,24 @@ def test_coco(coco_test_visiondata, mock_trained_yolov5_object_detection, device
     assert_that(result.conditions_results[0], equal_condition_result(
         is_pass=True,
         details='Found lowest score of 0.21 for area Small (area < 32^2) and IoU mAP@[.50::.95] (avg.%)',
-        name='Scores are not less than 0.1'
+        name='Scores are greater than 0.1'
     ))
 
     assert_that(result.conditions_results[1], equal_condition_result(
         is_pass=False,
-        name='Scores are not less than 0.4',
+        name='Scores are greater than 0.4',
         details='Found lowest score of 0.21 for area Small (area < 32^2) and IoU mAP@[.50::.95] (avg.%)'
     ))
 
     assert_that(result.conditions_results[2], equal_condition_result(
         is_pass=True,
         details='mAP score is: 0.41',
-        name='mAP score is not less than 0.3'
+        name='mAP score is greater than 0.3'
     ))
 
     assert_that(result.conditions_results[3], equal_condition_result(
         is_pass=False,
-        name='mAP score is not less than 0.5',
+        name='mAP score is greater than 0.5',
         details="mAP score is: 0.41"
     ))
 

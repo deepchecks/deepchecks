@@ -59,6 +59,6 @@ result.value
 # We can define a condition that checks whether our model's mean average precision score is not less than
 # a given threshold for all bounding box sizes.
 
-check = MeanAveragePrecisionReport().add_condition_average_mean_average_precision_not_less_than(0.4)
+check = MeanAveragePrecisionReport().add_condition_average_mean_average_precision_greater_than(0.4)
 result = check.run(test_ds, yolo)
 result.show(show_additional_outputs=False)

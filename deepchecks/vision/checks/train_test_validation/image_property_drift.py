@@ -226,12 +226,12 @@ class ImagePropertyDrift(TrainTestCheck):
             header='Image Property Drift'
         )
 
-    def add_condition_drift_score_not_greater_than(
+    def add_condition_drift_score_less_than(
         self: TImagePropertyDrift,
         max_allowed_drift_score: float = 0.1
     ) -> TImagePropertyDrift:
         """
-        Add condition - require drift score to not be more than a certain threshold.
+        Add condition - require drift score to be less than a certain threshold.
 
         Parameters
         ----------
@@ -248,7 +248,7 @@ class ImagePropertyDrift(TrainTestCheck):
             failed_properties = [
                 (property_name, drift_score)
                 for property_name, drift_score in result.items()
-                if drift_score > max_allowed_drift_score
+                if drift_score >= max_allowed_drift_score
             ]
             if len(failed_properties) > 0:
                 failed_properties = ';\n'.join(f'{p}={format_number(d)}' for p, d in failed_properties)
@@ -266,6 +266,6 @@ class ImagePropertyDrift(TrainTestCheck):
                 return ConditionResult(ConditionCategory.PASS, details)
 
         return self.add_condition(
-            f'Earth Mover\'s Distance <= {max_allowed_drift_score} for image properties drift',
+            f'Earth Mover\'s Distance < {max_allowed_drift_score} for image properties drift',
             condition
         )

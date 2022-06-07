@@ -98,8 +98,8 @@ def test_class_performance_mnist_largest_sampled(mnist_dataset_train, mnist_data
 def test_image_segment_performance_coco_and_condition(coco_train_visiondata, mock_trained_yolov5_object_detection):
     # Arrange
     train_preds, _ = _create_static_predictions(coco_train_visiondata, None, mock_trained_yolov5_object_detection)
-    check = ImageSegmentPerformance().add_condition_score_from_mean_ratio_not_less_than(0.5) \
-        .add_condition_score_from_mean_ratio_not_less_than(0.1)
+    check = ImageSegmentPerformance().add_condition_score_from_mean_ratio_greater_than(0.5) \
+        .add_condition_score_from_mean_ratio_greater_than(0.1)
     # Act
     result = check.run(coco_train_visiondata, train_predictions=train_preds)
     # Assert result

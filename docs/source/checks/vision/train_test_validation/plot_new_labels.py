@@ -48,7 +48,7 @@ result.value
 # to 0.
 #
 
-check = NewLabels().add_condition_new_label_ratio_not_greater_than(0.05)
+check = NewLabels().add_condition_new_label_ratio_less_or_equal(0.05)
 check.run(coco_train, coco_test)
 
 # %%

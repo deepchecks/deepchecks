@@ -75,7 +75,7 @@ def test_image_property_drift_initialization_with_list_of_invalid_image_properti
 def test_image_property_drift_condition(coco_train_visiondata, coco_test_visiondata, device):
     result = (
         ImagePropertyDrift()
-        .add_condition_drift_score_not_greater_than()
+        .add_condition_drift_score_less_than()
         .run(coco_train_visiondata, coco_test_visiondata, device=device)
     )
 
@@ -88,7 +88,7 @@ def test_image_property_drift_condition(coco_train_visiondata, coco_test_visiond
 def test_image_property_drift_fail_condition(coco_train_visiondata, coco_test_visiondata, device):
     result = (
         ImagePropertyDrift()
-        .add_condition_drift_score_not_greater_than(0)
+        .add_condition_drift_score_less_than(0)
         .run(coco_train_visiondata, coco_test_visiondata, device=device)
     )
 
