@@ -345,11 +345,11 @@ def drift_condition(max_allowed_categorical_score: float,
         cat_drift_props = {prop: d['Drift score'] for prop, d in result.items()
                            if d['Method'] in SUPPORTED_CATEGORICAL_METHODS}
         not_passing_categorical_props = {props: format_number(d) for props, d in cat_drift_props.items()
-                                         if d > max_allowed_categorical_score}
+                                         if d >= max_allowed_categorical_score}
         num_drift_props = {prop: d['Drift score'] for prop, d in result.items()
                            if d['Method'] in SUPPORTED_NUMERIC_METHODS}
         not_passing_numeric_props = {prop: format_number(d) for prop, d in num_drift_props.items()
-                                     if d > max_allowed_numeric_score}
+                                     if d >= max_allowed_numeric_score}
 
         num_failed = len(not_passing_categorical_props) + len(not_passing_numeric_props)
         if num_failed > allowed_num_subjects_exceeding_threshold:

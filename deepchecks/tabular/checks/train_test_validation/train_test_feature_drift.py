@@ -216,13 +216,13 @@ class TrainTestFeatureDrift(TrainTestCheck):
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Feature Drift')
 
-    def add_condition_drift_score_not_greater_than(self, max_allowed_categorical_score: float = 0.2,
-                                                   max_allowed_numeric_score: float = 0.1,
-                                                   allowed_num_features_exceeding_threshold: int = 0,
-                                                   max_allowed_psi_score: float = None,
-                                                   max_allowed_earth_movers_score: float = None):
+    def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.2,
+                                            max_allowed_numeric_score: float = 0.1,
+                                            allowed_num_features_exceeding_threshold: int = 0,
+                                            max_allowed_psi_score: float = None,
+                                            max_allowed_earth_movers_score: float = None):
         """
-        Add condition - require drift score to not be more than a certain threshold.
+        Add condition - require drift score to be less than the threshold.
 
         The industry standard for PSI limit is above 0.2.
         Cramer's V does not have a common industry standard.
@@ -266,6 +266,6 @@ class TrainTestFeatureDrift(TrainTestCheck):
         condition = drift_condition(max_allowed_categorical_score, max_allowed_numeric_score, 'column', 'columns',
                                     allowed_num_features_exceeding_threshold)
 
-        return self.add_condition(f'categorical drift score <= {max_allowed_categorical_score} and '
-                                  f'numerical drift score <= {max_allowed_numeric_score}',
+        return self.add_condition(f'categorical drift score < {max_allowed_categorical_score} and '
+                                  f'numerical drift score < {max_allowed_numeric_score}',
                                   condition)

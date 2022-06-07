@@ -84,20 +84,20 @@ def train_test_validation(**kwargs) -> Suite:
     distribution and leakage checks."""
     return Suite(
         'Train Test Validation Suite',
-        DatasetsSizeComparison(**kwargs).add_condition_test_train_size_ratio_not_smaller_than(),
-        NewLabelTrainTest(**kwargs).add_condition_new_labels_not_greater_than(),
-        CategoryMismatchTrainTest(**kwargs).add_condition_new_category_ratio_not_greater_than(),
+        DatasetsSizeComparison(**kwargs).add_condition_test_train_size_ratio_greater_than(),
+        NewLabelTrainTest(**kwargs).add_condition_new_labels_number_less_or_equal(),
+        CategoryMismatchTrainTest(**kwargs).add_condition_new_category_ratio_less_or_equal(),
         StringMismatchComparison(**kwargs).add_condition_no_new_variants(),
-        DateTrainTestLeakageDuplicates(**kwargs).add_condition_leakage_ratio_not_greater_than(),
-        DateTrainTestLeakageOverlap(**kwargs).add_condition_leakage_ratio_not_greater_than(),
-        IndexTrainTestLeakage(**kwargs).add_condition_ratio_not_greater_than(),
-        IdentifierLeakage(**kwargs).add_condition_pps_not_greater_than(),
-        TrainTestSamplesMix(**kwargs).add_condition_duplicates_ratio_not_greater_than(),
-        FeatureLabelCorrelationChange(**kwargs).add_condition_feature_pps_difference_not_greater_than()
-        .add_condition_feature_pps_in_train_not_greater_than(),
-        TrainTestFeatureDrift(**kwargs).add_condition_drift_score_not_greater_than(),
-        TrainTestLabelDrift(**kwargs).add_condition_drift_score_not_greater_than(),
-        WholeDatasetDrift(**kwargs).add_condition_overall_drift_value_not_greater_than(),
+        DateTrainTestLeakageDuplicates(**kwargs).add_condition_leakage_ratio_less_or_equal(),
+        DateTrainTestLeakageOverlap(**kwargs).add_condition_leakage_ratio_less_or_equal(),
+        IndexTrainTestLeakage(**kwargs).add_condition_ratio_less_or_equal(),
+        IdentifierLeakage(**kwargs).add_condition_pps_less_or_equal(),
+        TrainTestSamplesMix(**kwargs).add_condition_duplicates_ratio_less_or_equal(),
+        FeatureLabelCorrelationChange(**kwargs).add_condition_feature_pps_difference_less_than()
+        .add_condition_feature_pps_in_train_less_than(),
+        TrainTestFeatureDrift(**kwargs).add_condition_drift_score_less_than(),
+        TrainTestLabelDrift(**kwargs).add_condition_drift_score_less_than(),
+        WholeDatasetDrift(**kwargs).add_condition_overall_drift_value_less_than(),
     )
 
 

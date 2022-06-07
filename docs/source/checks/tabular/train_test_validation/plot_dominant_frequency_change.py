@@ -56,6 +56,6 @@ check.run(test_ds, train_ds)
 # Define a Condition
 # ===================
 check = DominantFrequencyChange()
-check.add_condition_ratio_of_change_not_greater_than(0.1)
+check.add_condition_ratio_of_change_less_than(0.1)
 res = check.run(test_ds, train_ds)
 res.show(show_additional_outputs=False)

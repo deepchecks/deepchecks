@@ -64,7 +64,7 @@ def test_drift_regression_label(drifted_regression_label):
 def test_drift_max_drift_score_condition_fail_psi(drifted_classification_label):
     # Arrange
     train, test = drifted_classification_label
-    check = TrainTestLabelDrift(categorical_drift_method='PSI').add_condition_drift_score_not_greater_than()
+    check = TrainTestLabelDrift(categorical_drift_method='PSI').add_condition_drift_score_less_than()
 
     # Act
     result = check.run(train, test)
@@ -73,7 +73,7 @@ def test_drift_max_drift_score_condition_fail_psi(drifted_classification_label):
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name='categorical drift score <= 0.2 and numerical drift score <= 0.1 for label drift',
+        name='categorical drift score < 0.2 and numerical drift score < 0.1 for label drift',
         details='Label\'s drift score PSI is 0.24'
     ))
 
@@ -81,7 +81,7 @@ def test_drift_max_drift_score_condition_fail_psi(drifted_classification_label):
 def test_drift_max_drift_score_condition_fail_emd(drifted_regression_label):
     # Arrange
     train, test = drifted_regression_label
-    check = TrainTestLabelDrift(categorical_drift_method='PSI').add_condition_drift_score_not_greater_than()
+    check = TrainTestLabelDrift(categorical_drift_method='PSI').add_condition_drift_score_less_than()
 
     # Act
     result = check.run(train, test)
@@ -91,7 +91,7 @@ def test_drift_max_drift_score_condition_fail_emd(drifted_regression_label):
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         category=ConditionCategory.FAIL,
-        name='categorical drift score <= 0.2 and numerical drift score <= 0.1 for label drift',
+        name='categorical drift score < 0.2 and numerical drift score < 0.1 for label drift',
         details='Label\'s drift score Earth Mover\'s Distance is 0.34'
     ))
 
@@ -100,8 +100,8 @@ def test_drift_max_drift_score_condition_pass_threshold(non_drifted_classificati
     # Arrange
     train, test = non_drifted_classification_label
     check = TrainTestLabelDrift(categorical_drift_method='PSI') \
-        .add_condition_drift_score_not_greater_than(max_allowed_categorical_score=1,
-                                                    max_allowed_numeric_score=1)
+        .add_condition_drift_score_less_than(max_allowed_categorical_score=1,
+                                             max_allowed_numeric_score=1)
 
     # Act
     result = check.run(train, test)
@@ -111,5 +111,5 @@ def test_drift_max_drift_score_condition_pass_threshold(non_drifted_classificati
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
         details='Label\'s drift score PSI is 3.37E-3',
-        name='categorical drift score <= 1 and numerical drift score <= 1 for label drift'
+        name='categorical drift score < 1 and numerical drift score < 1 for label drift'
     ))

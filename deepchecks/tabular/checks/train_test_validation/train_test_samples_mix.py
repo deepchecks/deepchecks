@@ -67,8 +67,9 @@ class TrainTestSamplesMix(TrainTestCheck):
         result = {'ratio': dup_ratio, 'data': duplicates_df}
         return CheckResult(result, header='Train Test Samples Mix', display=display)
 
-    def add_condition_duplicates_ratio_not_greater_than(self, max_ratio: float = 0.1):
-        """Add condition - require max allowed ratio of test data samples to appear in train data.
+    def add_condition_duplicates_ratio_less_or_equal(self, max_ratio: float = 0.1):
+        """Add condition - require ratio of test data samples that appear in train data to be less or equal to the\
+         threshold.
 
         Parameters
         ----------
@@ -77,15 +78,13 @@ class TrainTestSamplesMix(TrainTestCheck):
         """
         def condition(result: dict) -> ConditionResult:
             ratio = result['ratio']
-            if ratio == 0:
-                return ConditionResult(ConditionCategory.PASS, 'No samples mix found')
-
-            details = f'Percent of test data samples that appear in train data: {format_percent(ratio)}'
-            category = ConditionCategory.FAIL if ratio > max_ratio else ConditionCategory.PASS
+            details = f'Percent of test data samples that appear in train data: {format_percent(ratio)}' if ratio else \
+                'No samples mix found'
+            category = ConditionCategory.PASS if ratio <= max_ratio else ConditionCategory.FAIL
             return ConditionResult(category, details)
 
         return self.add_condition(f'Percentage of test data samples that appear in train data '
-                                  f'not greater than {format_percent(max_ratio)}',
+                                  f'is less or equal to {format_percent(max_ratio)}',
                                   condition)
 
 
