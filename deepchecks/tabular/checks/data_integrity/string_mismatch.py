@@ -117,15 +117,15 @@ class StringMismatch(SingleDatasetCheck):
 
         return CheckResult(result_dict, display=display)
 
-    def add_condition_not_more_variants_than(self, num_max_variants: int):
-        """Add condition - no more than given number of variants are allowed (per string baseform).
+    def add_condition_number_variants_less_than_or_equal(self, num_max_variants: int):
+        """Add condition - number of variants (per string baseform) is less than or equal to threshold.
 
         Parameters
         ----------
         num_max_variants : int
             Maximum number of variants allowed.
         """
-        name = f'Not more than {num_max_variants} string variants'
+        name = f'Number of string variants is less than or equal to {num_max_variants}'
         return self.add_condition(name, _condition_variants_number, num_max_variants=num_max_variants)
 
     def add_condition_no_variants(self):
@@ -133,8 +133,8 @@ class StringMismatch(SingleDatasetCheck):
         name = 'No string variants'
         return self.add_condition(name, _condition_variants_number, num_max_variants=0)
 
-    def add_condition_ratio_variants_not_greater_than(self, max_ratio: float = 0.01):
-        """Add condition - percentage of variants in data is not allowed above given threshold.
+    def add_condition_ratio_variants_less_than_or_equal(self, max_ratio: float = 0.01):
+        """Add condition - percentage of variants in data is less than or equal to threshold.
 
         Parameters
         ----------
@@ -156,7 +156,7 @@ class StringMismatch(SingleDatasetCheck):
                 return ConditionResult(ConditionCategory.FAIL, details)
             return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))
 
-        name = f'Ratio of variants is not greater than {format_percent(max_ratio)}'
+        name = f'Ratio of variants is less than or equal to {format_percent(max_ratio)}'
         return self.add_condition(name, condition, max_ratio=max_ratio)
 
 

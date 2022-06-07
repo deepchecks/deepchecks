@@ -141,7 +141,7 @@ def test_all_features_pps_upper_bound_condition_that_should_not_pass():
     df, _ = util_generate_dataframe_and_expected()
     dataset = Dataset(df, label="label")
     condition_value = 0.4
-    check = FeatureLabelCorrelation(random_state=42).add_condition_feature_pps_not_greater_than(condition_value)
+    check = FeatureLabelCorrelation(random_state=42).add_condition_feature_pps_less_than(condition_value)
 
     # Act
     condition_result, *_ = check.conditions_decision(check.run(dataset))
@@ -160,7 +160,7 @@ def test_all_features_pps_upper_bound_condition_that_should_pass():
     df, expected = util_generate_dataframe_and_expected()
     dataset = Dataset(df, label="label")
     condition_value = 0.9
-    check = FeatureLabelCorrelation(random_state=42).add_condition_feature_pps_not_greater_than(condition_value)
+    check = FeatureLabelCorrelation(random_state=42).add_condition_feature_pps_less_than(condition_value)
 
     # Act
     condition_result, *_ = check.conditions_decision(check.run(dataset))

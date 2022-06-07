@@ -52,15 +52,15 @@ def data_integrity(**kwargs) -> Suite:
     return Suite(
         'Data Integrity Suite',
         IsSingleValue(**kwargs).add_condition_not_single_value(),
-        SpecialCharacters(**kwargs).add_condition_ratio_of_special_characters_not_grater_than(),
+        SpecialCharacters(**kwargs).add_condition_ratio_of_special_characters_less_than_or_equal(),
         MixedNulls(**kwargs).add_condition_different_nulls_not_more_than(),
         MixedDataTypes(**kwargs).add_condition_rare_type_ratio_not_in_range(),
         StringMismatch(**kwargs).add_condition_no_variants(),
-        DataDuplicates(**kwargs).add_condition_ratio_not_greater_than(),
-        StringLengthOutOfBounds(**kwargs).add_condition_ratio_of_outliers_not_greater_than(),
-        ConflictingLabels(**kwargs).add_condition_ratio_of_conflicting_labels_not_greater_than(),
+        DataDuplicates(**kwargs).add_condition_ratio_less_than_or_equal(),
+        StringLengthOutOfBounds(**kwargs).add_condition_ratio_of_outliers_less_than_or_equal(),
+        ConflictingLabels(**kwargs).add_condition_ratio_of_conflicting_labels_less_than_or_equal(),
         OutlierSampleDetection(**kwargs),
-        FeatureLabelCorrelation(**kwargs).add_condition_feature_pps_not_greater_than()
+        FeatureLabelCorrelation(**kwargs).add_condition_feature_pps_less_than()
     )
 
 

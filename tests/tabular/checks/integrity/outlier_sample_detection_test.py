@@ -23,7 +23,7 @@ from tests.base.utils import equal_condition_result
 def test_condition_input_validation():
     # Assert
     assert_that(
-        calling(OutlierSampleDetection().add_condition_outlier_ratio_not_greater_than).with_args(max_outliers_ratio=-1),
+        calling(OutlierSampleDetection().add_condition_outlier_ratio_less_than_or_equal).with_args(max_outliers_ratio=-1),
         raises(DeepchecksValueError, 'max_outliers_ratio must be between 0 and 1'))
 
 
@@ -39,13 +39,13 @@ def test_condition_with_argument():
     data = {'col1': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1000]}
     dataset = Dataset(pd.DataFrame(data=data), cat_features=[])
     # Act
-    check = OutlierSampleDetection(nearest_neighbors_percent=0.2).add_condition_outlier_ratio_not_greater_than(0.1)
+    check = OutlierSampleDetection(nearest_neighbors_percent=0.2).add_condition_outlier_ratio_less_than_or_equal(0.1)
     result = check.conditions_decision(check.run(dataset))
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
                                details='8.3% of dataset samples above outlier threshold',
-                               name='Not more than 10% of dataset over outlier score 0.7')
+                               name='Ratio of samples over outlier score 0.7 is less than 10%')
     ))
 
 

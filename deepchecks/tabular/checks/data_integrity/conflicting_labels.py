@@ -107,8 +107,8 @@ class ConflictingLabels(SingleDatasetCheck):
 
         return CheckResult(value=percent_ambiguous, display=display)
 
-    def add_condition_ratio_of_conflicting_labels_not_greater_than(self, max_ratio=0):
-        """Add condition - require ratio of samples with conflicting labels to not be more than max_ratio.
+    def add_condition_ratio_of_conflicting_labels_less_than_or_equal(self, max_ratio=0):
+        """Add condition - require ratio of samples with conflicting labels to less than or equal to max_ratio.
 
         Parameters
         ----------
@@ -118,8 +118,8 @@ class ConflictingLabels(SingleDatasetCheck):
 
         def max_ratio_condition(result: float) -> ConditionResult:
             details = f'Ratio of samples with conflicting labels: {format_percent(result)}'
-            category = ConditionCategory.FAIL if result > max_ratio else ConditionCategory.PASS
+            category = ConditionCategory.PASS if result <= max_ratio else ConditionCategory.FAIL
             return ConditionResult(category, details)
 
-        return self.add_condition(f'Ambiguous sample ratio is not greater than {format_percent(max_ratio)}',
+        return self.add_condition(f'Ambiguous sample ratio is less than or equal to {format_percent(max_ratio)}',
                                   max_ratio_condition)
