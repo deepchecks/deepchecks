@@ -103,15 +103,14 @@ def test_condition_ratio_not_greater_than_not_passed(iris_clean):
                            features=iris_clean.feature_names,
                            label='target')
 
-    check = TrainTestSamplesMix().add_condition_duplicates_ratio_not_greater_than(max_ratio=0.09)
+    check = TrainTestSamplesMix().add_condition_duplicates_ratio_less_or_equal(max_ratio=0.09)
 
     # Act
     result = check.conditions_decision(check.run(train_dataset, test_dataset))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Percentage of test data samples that appear in train data '
-                                    'not greater than 9%',
+                               name='Percentage of test data samples that appear in train data is less or equal to 9%',
                                details='Percent of test data samples that appear in train data: '
                                        '10%')
     ))
@@ -120,7 +119,7 @@ def test_condition_ratio_not_greater_than_not_passed(iris_clean):
 def test_condition_ratio_not_greater_than_passed(diabetes_split_dataset_and_model):
     # Arrange
     train_ds, val_ds, clf = diabetes_split_dataset_and_model
-    check = TrainTestSamplesMix().add_condition_duplicates_ratio_not_greater_than()
+    check = TrainTestSamplesMix().add_condition_duplicates_ratio_less_or_equal()
 
     # Act
     result = check.conditions_decision(check.run(train_ds, val_ds, clf))
@@ -128,8 +127,7 @@ def test_condition_ratio_not_greater_than_passed(diabetes_split_dataset_and_mode
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
                                details='No samples mix found',
-                               name='Percentage of test data samples that appear in train data '
-                                    'not greater than 10%')
+                               name='Percentage of test data samples that appear in train data is less or equal to 10%')
     ))
 
 

@@ -79,7 +79,7 @@ def test_label_ambiguity_condition():
         'label': [1, 1, 1, 1, 2, 1]*100
     }
     ds = Dataset(pd.DataFrame(data), label='label')
-    check = ConflictingLabels().add_condition_ratio_of_conflicting_labels_not_greater_than()
+    check = ConflictingLabels().add_condition_ratio_of_conflicting_labels_less_or_equal()
 
     # Act
     result = check.run(ds)
@@ -89,7 +89,7 @@ def test_label_ambiguity_condition():
     assert_that(condition_result, has_items(
         equal_condition_result(is_pass=False,
                                details='Ratio of samples with conflicting labels: 50%',
-                               name='Ambiguous sample ratio is not greater than 0%')
+                               name='Ambiguous sample ratio is less or equal to 0%')
     ))
 
 
@@ -102,7 +102,7 @@ def test_label_ambiguity_condition_pass():
         'label': [1, 1, 1, 1, 2, 1]*100
     }
     ds = Dataset(pd.DataFrame(data), label='label')
-    check = ConflictingLabels().add_condition_ratio_of_conflicting_labels_not_greater_than(.7)
+    check = ConflictingLabels().add_condition_ratio_of_conflicting_labels_less_or_equal(.7)
 
     # Act
     result = check.run(ds)
@@ -112,5 +112,5 @@ def test_label_ambiguity_condition_pass():
     assert_that(condition_result, has_items(
         equal_condition_result(is_pass=True,
                                details='Ratio of samples with conflicting labels: 50%',
-                               name='Ambiguous sample ratio is not greater than 70%')
+                               name='Ambiguous sample ratio is less or equal to 70%')
     ))

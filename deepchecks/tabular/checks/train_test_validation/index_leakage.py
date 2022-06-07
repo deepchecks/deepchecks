@@ -66,8 +66,8 @@ class IndexTrainTestLeakage(TrainTestCheck):
 
         return CheckResult(value=size_in_test, header='Index Train-Test Leakage', display=display)
 
-    def add_condition_ratio_not_greater_than(self, max_ratio: float = 0):
-        """Add condition - require index leakage ratio to not surpass max_ratio.
+    def add_condition_ratio_less_or_equal(self, max_ratio: float = 0):
+        """Add condition - require index leakage ratio to be less or equal to threshold.
 
         Parameters
         ----------
@@ -75,11 +75,9 @@ class IndexTrainTestLeakage(TrainTestCheck):
             Maximum ratio of index leakage.
         """
         def max_ratio_condition(result: float) -> ConditionResult:
-            if result == 0:
-                return ConditionResult(ConditionCategory.PASS, 'No index leakage found')
-            details = f'Found {format_percent(result)} of index leakage'
-            category = ConditionCategory.FAIL if result > max_ratio else ConditionCategory.PASS
+            details = f'Found {format_percent(result)} of index leakage' if result > 0 else 'No index leakage found'
+            category = ConditionCategory.PASS if result <= max_ratio else ConditionCategory.FAIL
             return ConditionResult(category, details)
 
-        return self.add_condition(f'Ratio of leaking indices is not greater than {format_percent(max_ratio)}',
+        return self.add_condition(f'Ratio of leaking indices is less or equal to {format_percent(max_ratio)}',
                                   max_ratio_condition)

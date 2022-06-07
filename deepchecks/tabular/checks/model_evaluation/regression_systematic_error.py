@@ -73,8 +73,8 @@ class RegressionSystematicError(SingleDatasetCheck):
 
         return CheckResult(value={'rmse': rmse, 'mean_error': diff_mean}, display=display)
 
-    def add_condition_systematic_error_ratio_to_rmse_not_greater_than(self, max_ratio: float = 0.01):
-        """Add condition - require the absolute mean systematic error to be not greater than (max_ratio * RMSE).
+    def add_condition_systematic_error_ratio_to_rmse_less_than(self, max_ratio: float = 0.01):
+        """Add condition - require the absolute mean systematic error is less than (max_ratio * RMSE).
 
         Parameters
         ----------
@@ -86,8 +86,8 @@ class RegressionSystematicError(SingleDatasetCheck):
             mean_error = result['mean_error']
             ratio = abs(mean_error) / rmse
             details = f'Found bias ratio {format_number(ratio)}'
-            category = ConditionCategory.FAIL if ratio > max_ratio else ConditionCategory.PASS
+            category = ConditionCategory.PASS if ratio < max_ratio else ConditionCategory.FAIL
             return ConditionResult(category, details)
 
-        return self.add_condition(f'Bias ratio is not greater than {format_number(max_ratio)}',
+        return self.add_condition(f'Bias ratio is less than {format_number(max_ratio)}',
                                   max_bias_condition)

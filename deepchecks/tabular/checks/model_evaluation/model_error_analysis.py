@@ -171,8 +171,8 @@ class ModelErrorAnalysis(TrainTestCheck):
 
         return CheckResult(value, display=display)
 
-    def add_condition_segments_performance_relative_difference_not_greater_than(self, max_ratio_change: float = 0.05):
-        """Add condition - require that the difference of performance between the segments does not exceed a ratio.
+    def add_condition_segments_performance_relative_difference_less_than(self, max_ratio_change: float = 0.05):
+        """Add condition - require that the difference of performance between the segments is less than threshold.
 
         Parameters
         ----------
@@ -192,7 +192,7 @@ class ModelErrorAnalysis(TrainTestCheck):
                     abs(max(feature_res[feature]['segment1']['score'], feature_res[feature]['segment2']['score'])))
                 features_diff[feature] = performance_diff
 
-            failed_features = {f: format_percent(p) for f, p in features_diff.items() if p > max_ratio_change}
+            failed_features = {f: format_percent(p) for f, p in features_diff.items() if p >= max_ratio_change}
             if failed_features:
                 sorted_fails = dict(sorted(failed_features.items(), key=lambda item: item[1]))
                 msg = f'{result["scorer_name"]} difference for failed features: {sorted_fails}'
@@ -202,5 +202,5 @@ class ModelErrorAnalysis(TrainTestCheck):
                 msg = f'Average {result["scorer_name"]} difference: {avg_diff}'
                 return ConditionResult(ConditionCategory.PASS, msg)
 
-        return self.add_condition(f'The performance difference of the detected segments must'
-                                  f' not be greater than {format_percent(max_ratio_change)}', condition)
+        return self.add_condition(f'The performance difference of the detected segments is '
+                                  f'less than {format_percent(max_ratio_change)}', condition)

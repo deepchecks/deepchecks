@@ -102,7 +102,7 @@ check.run(train_ds, test_ds, yolo)
 # returns a ConditionResult object.
 
 check = ClassPerformance(show_only='worst')
-check.add_condition_test_performance_not_less_than(0.2)
+check.add_condition_test_performance_greater_than(0.2)
 result = check.run(train_ds, test_ds, yolo)
 result
 

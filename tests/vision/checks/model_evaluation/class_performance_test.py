@@ -147,7 +147,7 @@ def test_condition_test_performance_not_less_than_pass(mnist_dataset_train,
                                                        mock_trained_mnist,
                                                        device):
     # Arrange
-    check = ClassPerformance(class_list_to_show=[1]).add_condition_test_performance_not_less_than(0.5)
+    check = ClassPerformance(class_list_to_show=[1]).add_condition_test_performance_greater_than(0.5)
 
     # Act
     result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
@@ -163,7 +163,7 @@ def test_condition_test_performance_not_less_than_fail(mnist_dataset_train,
     # Arrange
     check = ClassPerformance(n_to_show=2,
                              alternative_metrics={'p': Precision(), 'r': Recall()}) \
-        .add_condition_test_performance_not_less_than(1)
+        .add_condition_test_performance_greater_than(1)
 
     # Act
     result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
@@ -177,7 +177,7 @@ def test_condition_train_test_relative_degradation_not_greater_than_pass(mnist_d
                                                                          mock_trained_mnist,
                                                                          device):
     # Arrange
-    check = ClassPerformance(class_list_to_show=[1]).add_condition_train_test_relative_degradation_not_greater_than(0.1)
+    check = ClassPerformance(class_list_to_show=[1]).add_condition_train_test_relative_degradation_less_than(0.1)
 
     # Act
     result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
@@ -192,7 +192,7 @@ def test_condition_train_test_relative_degradation_not_greater_than_fail(mnist_d
                                                                          device):
     # Arrange
     check = ClassPerformance() \
-        .add_condition_train_test_relative_degradation_not_greater_than(0)
+        .add_condition_train_test_relative_degradation_less_than(0)
 
     # Act
     result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
@@ -207,7 +207,7 @@ def test_condition_class_performance_imbalance_ratio_not_greater_than(mnist_data
                                                                       device):
     # Arrange
     check = ClassPerformance() \
-        .add_condition_class_performance_imbalance_ratio_not_greater_than(0.5, 'Precision')
+        .add_condition_class_performance_imbalance_ratio_less_than(0.5, 'Precision')
 
     # Act
     result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
@@ -222,7 +222,7 @@ def test_condition_class_performance_imbalance_ratio_not_greater_than_fail(mnist
                                                                            device):
     # Arrange
     check = ClassPerformance() \
-        .add_condition_class_performance_imbalance_ratio_not_greater_than(0, 'Precision')
+        .add_condition_class_performance_imbalance_ratio_less_than(0, 'Precision')
 
     # Act
     result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,

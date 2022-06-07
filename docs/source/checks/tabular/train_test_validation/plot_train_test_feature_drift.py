@@ -143,8 +143,8 @@ result.value
 # below 0.1. A condition is deepchecks' way to enforce that results are OK,
 # and we don't have a problem in our data or model!
 
-check_cond = check.add_condition_drift_score_not_greater_than(max_allowed_categorical_score=0.2, 
-                                                              max_allowed_numeric_score=0.1)
+check_cond = check.add_condition_drift_score_less_than(max_allowed_categorical_score=0.2,
+                                                       max_allowed_numeric_score=0.1)
 
 #%%
 

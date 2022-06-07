@@ -65,6 +65,6 @@ DataDuplicates(ignore_columns=["scrape_date"], n_to_show=10).run(phishing_datase
 # goes wrong.
 
 check = DataDuplicates()
-check.add_condition_ratio_not_greater_than(0)
+check.add_condition_ratio_less_or_equal(0)
 result = check.run(phishing_dataset)
 result.show(show_additional_outputs=False)

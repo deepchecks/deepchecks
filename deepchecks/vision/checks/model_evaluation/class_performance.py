@@ -20,7 +20,7 @@ from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils import plot
-from deepchecks.utils.dict_funcs import get_max_entry_from_dict
+from deepchecks.utils.dict_funcs import get_dict_entry_by_value
 from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.metrics_utils.metrics import filter_classes_for_display, get_scorers_list, metric_results_to_df
@@ -147,8 +147,8 @@ class ClassPerformance(TrainTestCheck):
             display=fig
         )
 
-    def add_condition_test_performance_not_less_than(self: PR, min_score: float) -> PR:
-        """Add condition - metric scores are not less than given score.
+    def add_condition_test_performance_greater_than(self: PR, min_score: float) -> PR:
+        """Add condition - metric scores are greater than the threshold.
 
         Parameters
         ----------
@@ -157,7 +157,7 @@ class ClassPerformance(TrainTestCheck):
         """
         def condition(check_result: pd.DataFrame):
             test_scores = check_result.loc[check_result['Dataset'] == 'Test']
-            not_passed_test = test_scores.loc[test_scores['Value'] < min_score]
+            not_passed_test = test_scores.loc[test_scores['Value'] <= min_score]
             if len(not_passed_test):
                 details = f'Found metrics with scores below threshold:\n' \
                           f'{not_passed_test[["Class Name", "Metric", "Value"]].to_dict("records")}'
@@ -168,10 +168,10 @@ class ClassPerformance(TrainTestCheck):
                           f'{format_number(min_metric["Value"])} for class {min_metric["Class Name"]}'
                 return ConditionResult(ConditionCategory.PASS, details)
 
-        return self.add_condition(f'Scores are not less than {min_score}', condition)
+        return self.add_condition(f'Scores are greater than {min_score}', condition)
 
-    def add_condition_train_test_relative_degradation_not_greater_than(self: PR, threshold: float = 0.1) -> PR:
-        """Add condition that will check that test performance is not degraded by more than given percentage in train.
+    def add_condition_train_test_relative_degradation_less_than(self: PR, threshold: float = 0.1) -> PR:
+        """Add condition - test performance is not degraded by more than given percentage in train.
 
         Parameters
         ----------
@@ -192,7 +192,7 @@ class ClassPerformance(TrainTestCheck):
 
             def update_max_degradation(diffs, class_name):
                 nonlocal max_degradation
-                max_scorer, max_diff = get_max_entry_from_dict(diffs)
+                max_scorer, max_diff = get_dict_entry_by_value(diffs)
                 if max_diff > max_degradation[1]:
                     max_degradation = f'Found max degradation of {format_percent(max_diff)} for metric ' \
                                       f'{max_scorer} and class {class_name}', max_diff
@@ -211,7 +211,7 @@ class ClassPerformance(TrainTestCheck):
                 diff = {score_name: _ratio_of_change_calc(score, test_scores_dict[score_name])
                         for score_name, score in train_scores_dict.items()}
                 update_max_degradation(diff, class_name)
-                failed_scores = [k for k, v in diff.items() if v > threshold]
+                failed_scores = [k for k, v in diff.items() if v >= threshold]
                 for score_name in failed_scores:
                     explained_failures.append(f'{score_name} for class {class_name} '
                                               f'(train={format_number(train_scores_dict[score_name])} '
@@ -224,18 +224,15 @@ class ClassPerformance(TrainTestCheck):
                 message = max_degradation[0]
                 return ConditionResult(ConditionCategory.PASS, message)
 
-        return self.add_condition(f'Train-Test scores relative degradation is not greater than {threshold}',
+        return self.add_condition(f'Train-Test scores relative degradation is less than {threshold}',
                                   condition)
 
-    def add_condition_class_performance_imbalance_ratio_not_greater_than(
+    def add_condition_class_performance_imbalance_ratio_less_than(
         self: PR,
         threshold: float = 0.3,
         score: str = None
     ) -> PR:
-        """Add condition.
-
-        Verifying that relative ratio difference
-        between highest-class and lowest-class is not greater than 'threshold'.
+        """Add condition - relative ratio difference between highest-class and lowest-class is less than threshold.
 
         Parameters
         ----------
@@ -291,9 +288,6 @@ class ClassPerformance(TrainTestCheck):
             return ConditionResult(category, details='\n'.join(datasets_details))
 
         return self.add_condition(
-            name=(
-                f'Relative ratio difference between labels \'{score}\' score '
-                f'is not greater than {format_percent(threshold)}'
-            ),
+            name=f'Relative ratio difference between labels \'{score}\' score is less than {format_percent(threshold)}',
             condition_func=condition
         )

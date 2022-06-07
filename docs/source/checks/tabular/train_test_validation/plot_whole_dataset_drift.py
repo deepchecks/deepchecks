@@ -114,7 +114,7 @@ check.run(train_dataset=train_drifted_ds, test_dataset=test_drifted_ds)
 # and let you know if anything goes wrong.
 
 check = WholeDatasetDrift()
-check.add_condition_overall_drift_value_not_greater_than(0.1)
+check.add_condition_overall_drift_value_less_than(0.1)
 check.run(train_dataset=train_drifted_ds, test_dataset=test_drifted_ds)
 
 #%%

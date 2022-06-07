@@ -54,8 +54,8 @@ class DateTrainTestLeakageOverlap(TrainTestCheck):
 
         return CheckResult(value=return_value, header='Date Train-Test Leakage (overlap)', display=display)
 
-    def add_condition_leakage_ratio_not_greater_than(self, max_ratio: float = 0):
-        """Add condition - require leakage ratio to not surpass max_ratio.
+    def add_condition_leakage_ratio_less_or_equal(self, max_ratio: float = 0):
+        """Add condition - require leakage ratio be less or equal to the threshold.
 
         Parameters
         ----------
@@ -63,11 +63,9 @@ class DateTrainTestLeakageOverlap(TrainTestCheck):
             Maximum ratio of leakage.
         """
         def max_ratio_condition(result: float) -> ConditionResult:
-            if result == 0:
-                return ConditionResult(ConditionCategory.PASS, 'No leaked dates found')
-            details = f'Found {format_percent(result)} leaked dates'
-            category = ConditionCategory.FAIL if result > max_ratio else ConditionCategory.PASS
+            details = f'Found {format_percent(result)} leaked dates' if result > 0 else 'No leaked dates found'
+            category = ConditionCategory.PASS if result <= max_ratio else ConditionCategory.FAIL
             return ConditionResult(category, details)
 
-        return self.add_condition(f'Date leakage ratio is not greater than {format_percent(max_ratio)}',
+        return self.add_condition(f'Date leakage ratio is less or equal to {format_percent(max_ratio)}',
                                   max_ratio_condition)

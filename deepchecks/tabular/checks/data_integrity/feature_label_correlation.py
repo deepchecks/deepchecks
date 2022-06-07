@@ -105,9 +105,9 @@ class FeatureLabelCorrelation(SingleDatasetCheck):
 
         return CheckResult(value=s_ppscore.to_dict(), display=display, header='Feature Label Correlation')
 
-    def add_condition_feature_pps_not_greater_than(self: FLC, threshold: float = 0.8) -> FLC:
+    def add_condition_feature_pps_less_than(self: FLC, threshold: float = 0.8) -> FLC:
         """
-        Add condition that will check that pps of the specified feature(s) is not greater than X.
+        Add condition that will check that pps of the specified feature(s) is less than the threshold.
 
         Parameters
         ----------
@@ -121,7 +121,7 @@ class FeatureLabelCorrelation(SingleDatasetCheck):
             failed_features = {
                 feature_name: format_number(pps_value)
                 for feature_name, pps_value in value.items()
-                if pps_value > threshold
+                if pps_value >= threshold
             }
 
             if failed_features:
@@ -131,5 +131,5 @@ class FeatureLabelCorrelation(SingleDatasetCheck):
             else:
                 return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(value))
 
-        return self.add_condition(f'Features\' Predictive Power Score is not greater than {format_number(threshold)}',
+        return self.add_condition(f'Features\' Predictive Power Score is less than {format_number(threshold)}',
                                   condition)
