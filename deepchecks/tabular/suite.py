@@ -12,7 +12,6 @@
 # pylint: disable=broad-except
 from typing import Callable, Mapping, Optional, Tuple, Union
 
-import memory_profiler
 import numpy as np
 import pandas as pd
 
@@ -36,7 +35,6 @@ class Suite(BaseSuite):
         """Return tuple of supported check types of this suite."""
         return TrainTestCheck, SingleDatasetCheck, ModelOnlyCheck
 
-    @memory_profiler.profile
     def run(
             self,
             train_dataset: Optional[Union[Dataset, pd.DataFrame]] = None,
