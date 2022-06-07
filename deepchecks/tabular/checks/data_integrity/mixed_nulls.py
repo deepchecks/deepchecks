@@ -142,7 +142,7 @@ class MixedNulls(SingleDatasetCheck):
         return result
 
     def add_condition_different_nulls_less_equal_to(self, max_allowed_null_types: int = 1):
-        """Add condition - require column's number of different null values less or equal to threshold.
+        """Add condition - require column's number of different null values to be less or equal to threshold.
 
         Parameters
         ----------

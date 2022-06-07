@@ -207,7 +207,7 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
         return lower_range, upper_range
 
     def add_condition_number_of_outliers_less_or_equal(self, max_outliers: int = 0):
-        """Add condition - require column's number of string length outliers to be less or equal to threshold.
+        """Add condition - require column's number of string length outliers to be less or equal to the threshold.
 
         Parameters
         ----------

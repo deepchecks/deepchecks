@@ -107,7 +107,7 @@ class FeatureLabelCorrelation(SingleDatasetCheck):
 
     def add_condition_feature_pps_less_than(self: FLC, threshold: float = 0.8) -> FLC:
         """
-        Add condition that will check that pps of the specified feature(s) is less than threshold.
+        Add condition that will check that pps of the specified feature(s) is less than the threshold.
 
         Parameters
         ----------

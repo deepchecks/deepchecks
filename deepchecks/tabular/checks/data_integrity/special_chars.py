@@ -99,14 +99,14 @@ class SpecialCharacters(SingleDatasetCheck):
         return CheckResult(result, display=display)
 
     def add_condition_ratio_of_special_characters_less_or_equal(self, max_ratio: float = 0.001):
-        """Add condition - ratio of entirely special character in column is less or equal to threshold.
+        """Add condition - ratio of entirely special character in column is less or equal to the threshold.
 
         Parameters
         ----------
         max_ratio : float , default: 0.001
             Maximum ratio allowed.
         """
-        name = f'Ratio of entirely special character samples is less or equal to {format_percent(max_ratio)}'
+        name = f'Ratio of samples containing solely special character is less or equal to {format_percent(max_ratio)}'
 
         def condition(result):
             not_passed = {k: format_percent(v) for k, v in result.items() if v > max_ratio}
