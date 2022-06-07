@@ -155,8 +155,8 @@ class OutlierSampleDetection(SingleDatasetCheck):
         """
         if max_outliers_ratio > 1 or max_outliers_ratio < 0:
             raise DeepchecksValueError('max_outliers_ratio must be between 0 and 1')
-        name = f'Ratio of samples exceeding the outlier score threshold {format_number(outlier_score_threshold)} is less or equal to ' \
-               f'{format_percent(max_outliers_ratio)}'
+        name = f'Ratio of samples exceeding the outlier score threshold {format_number(outlier_score_threshold)} is ' \
+               f'less or equal to {format_percent(max_outliers_ratio)}'
         return self.add_condition(name, _condition_outliers_number, outlier_score_threshold=outlier_score_threshold,
                                   max_outliers_ratio=max_outliers_ratio)
 

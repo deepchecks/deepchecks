@@ -96,7 +96,7 @@ class RegressionErrorDistribution(SingleDatasetCheck):
         return CheckResult(value=kurtosis_value, display=display)
 
     def add_condition_kurtosis_greater_than(self, min_kurtosis: float = -0.1):
-        """Add condition - require min kurtosis value to be not less than min_kurtosis.
+        """Add condition - require min kurtosis value to be greater than the threshold.
 
         Parameters
         ----------
