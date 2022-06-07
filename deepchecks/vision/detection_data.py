@@ -10,7 +10,7 @@
 #
 """The vision/dataset module containing the vision Dataset class and its functions."""
 from abc import abstractmethod
-from typing import List
+from typing import Iterable, List
 
 import torch
 
@@ -140,8 +140,8 @@ class DetectionData(VisionData):
             If batch_to_labels not implemented
         """
         labels = self.batch_to_labels(batch)
-        if not isinstance(labels, list):
-            raise ValidationError('Check requires object detection label to be a list with an entry for each '
+        if not isinstance(labels, Iterable):
+            raise ValidationError('Check requires object detection label to be an Iterable with an entry for each '
                                   'sample')
         if len(labels) == 0:
             raise ValidationError('Check requires object detection label to be a non-empty list')

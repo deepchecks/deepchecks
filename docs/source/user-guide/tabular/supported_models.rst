@@ -40,13 +40,14 @@ Example of a simple regression model:
 ...         ...
 
 Instead of a model you can also pass the predict_proba as keyword arguments to the run function as follows:
+For more info check out :doc:`Using Pre-computed Predictions </user-guide/tabular/tutorials/plot_static_predictions>`
 
->>> train_proba = model.predict(train_dataset.features_columns)
-... test_proba = model.predict(test_dataset.features_columns)
+>>> train_pred = model.predict(train_dataset.features_columns)
+... test_pred = model.predict(test_dataset.features_columns)
 ... 
 ... suite.run(train_dataset=train_dataset, test_dataset=test_dataset,
 ...           features_importance=feature_importance,
-...           y_pred_train=train_proba, y_pred_test=test_proba)
+...           y_pred_train=train_pred, y_pred_test=test_pred)
 
 Classification
 --------------
@@ -63,6 +64,7 @@ is expected to return an `ndarray` of shape ``(n_samples, n_classes)``, an array
 ...         ...
 
 Instead of a model you can also pass the predict_proba as keyword arguments to the run function as follows:
+For more info check out :doc:`Using Pre-computed Predictions </user-guide/tabular/tutorials/plot_static_predictions>`
 
 >>> train_proba = model.predict_proba(train_dataset.features_columns)
 ... test_proba = model.predict_proba(test_dataset.features_columns)

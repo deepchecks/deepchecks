@@ -48,10 +48,19 @@ test_proba = model.predict_proba(test_dataset.features_columns)
 from deepchecks.tabular.suites import model_evaluation
 
 suite = model_evaluation()
+result = suite.run(train_dataset=train_dataset, test_dataset=test_dataset,
+                   features_importance=feature_importance,
+                   y_proba_train=train_proba, y_proba_test=test_proba)
+
 
 #%%
+# Observing the results:
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# The results can be saved as a html file with the following code:
 
-suite.run(train_dataset=train_dataset, test_dataset=test_dataset,
-          features_importance=feature_importance,
-          y_proba_train=train_proba, y_proba_test=test_proba)
+result.save_as_html('output.html')
 
+#%%
+# Or, if working inside a notebook, the output can be displayed directly by simply printing the result object:
+
+result
