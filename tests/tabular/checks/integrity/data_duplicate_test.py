@@ -113,7 +113,7 @@ def test_condition_fail():
     duplicate_data = pd.DataFrame({'col1': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
                                    'col2': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
                                    'col3': [2, 3, 4, 4, 4, 3, 4, 5, 6, 4]})
-    check = DataDuplicates().add_condition_ratio_less_than_or_equal(0.1)
+    check = DataDuplicates().add_condition_ratio_less_or_equal(0.1)
 
     # Act
     result = check.conditions_decision(check.run(duplicate_data))
@@ -121,7 +121,7 @@ def test_condition_fail():
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                details='Found 40% duplicate data',
-                               name='Duplicate data ratio is less than or equal to 10%',
+                               name='Duplicate data ratio is less or equal to 10%',
                                category=ConditionCategory.WARN)))
 
 
@@ -130,7 +130,7 @@ def test_condition():
     duplicate_data = pd.DataFrame({'col1': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
                                    'col2': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                                    'col3': [2, 3, 4, 4, 4, 3, 4, 5, 6, 4]})
-    check = DataDuplicates().add_condition_ratio_less_than_or_equal()
+    check = DataDuplicates().add_condition_ratio_less_or_equal()
 
     # Act
     result = check.conditions_decision(check.run(duplicate_data))
@@ -138,4 +138,4 @@ def test_condition():
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
                                details='Found 0% duplicate data',
-                               name='Duplicate data ratio is less than or equal to 0%')))
+                               name='Duplicate data ratio is less or equal to 0%')))

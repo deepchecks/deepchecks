@@ -114,8 +114,8 @@ class DataDuplicates(SingleDatasetCheck):
 
         return CheckResult(value=percent_duplicate, display=display)
 
-    def add_condition_ratio_less_than_or_equal(self, max_ratio: float = 0):
-        """Add condition - require duplicate ratio to be less than or equal to max_ratio.
+    def add_condition_ratio_less_or_equal(self, max_ratio: float = 0):
+        """Add condition - require duplicate ratio to be less or equal to max_ratio.
 
         Parameters
         ----------
@@ -127,5 +127,5 @@ class DataDuplicates(SingleDatasetCheck):
             category = ConditionCategory.PASS if result <= max_ratio else ConditionCategory.WARN
             return ConditionResult(category, details)
 
-        return self.add_condition(f'Duplicate data ratio is less than or equal to {format_percent(max_ratio)}',
+        return self.add_condition(f'Duplicate data ratio is less or equal to {format_percent(max_ratio)}',
                                   max_ratio_condition)

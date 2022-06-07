@@ -206,8 +206,8 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
 
         return lower_range, upper_range
 
-    def add_condition_number_of_outliers_less_than_or_equal(self, max_outliers: int = 0):
-        """Add condition - require column's number of string length outliers to be less than or equal to threshold.
+    def add_condition_number_of_outliers_less_or_equal(self, max_outliers: int = 0):
+        """Add condition - require column's number of string length outliers to be less or equal to threshold.
 
         Parameters
         ----------
@@ -230,11 +230,11 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
                 return ConditionResult(ConditionCategory.PASS, details)
 
         return self.add_condition(
-            f'Number of string length outliers is less than or equal to {max_outliers}',
+            f'Number of string length outliers is less or equal to {max_outliers}',
             compare_outlier_count)
 
-    def add_condition_ratio_of_outliers_less_than_or_equal(self, max_ratio: float = 0):
-        """Add condition - require column's ratio of string length outliers to be less than or equal to threshold.
+    def add_condition_ratio_of_outliers_less_or_equal(self, max_ratio: float = 0):
+        """Add condition - require column's ratio of string length outliers to be less or equal to threshold.
 
         Parameters
         ----------
@@ -257,7 +257,7 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
                 return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))
 
         return self.add_condition(
-            f'Ratio of string length outliers is less than or equal to {format_percent(max_ratio)}',
+            f'Ratio of string length outliers is less or equal to {format_percent(max_ratio)}',
             compare_outlier_ratio)
 
 

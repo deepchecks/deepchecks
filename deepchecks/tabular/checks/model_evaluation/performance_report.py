@@ -11,7 +11,6 @@
 """Module containing performance report check."""
 from typing import Callable, Dict, TypeVar, Union, cast
 
-import memory_profiler
 import pandas as pd
 import plotly.express as px
 
