@@ -50,12 +50,12 @@ def test_empty_dataframe():
 
 def test_different_null_types():
     # Arrange
-    data = {'col1': [np.NAN, np.NaN, pd.NA, '$$$$$$$$', 'NULL']}
+    data = {'col1': [np.NAN, np.NaN, pd.NA, 'value', 'NULL']}
     dataframe = pd.DataFrame(data=data)
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value, has_entry('col1', has_length(4)))
+    assert_that(result.value, has_entry('col1', has_length(3)))
 
 
 def test_null_list_param():
@@ -131,12 +131,22 @@ def test_mix_value_columns():
 
 def test_single_column_nulls_with_special_characters():
     # Arrange
-    data = {'col1': ['', '#@$', 'Nan!', '#nan', '<NaN>']}
+    data = {'col1': ['', 'value', 'Nan!', '#nan', '<NaN>']}
     dataframe = pd.DataFrame(data=data)
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value, has_entry('col1', has_length(5)))
+    assert_that(result.value, has_entry('col1', has_length(4)))
+
+
+def test_single_column_nulls_only_special_characters():
+    # Arrange
+    data = {'col1': ['', '!@#$', 'Nan!', '#nan', '<NaN>']}
+    dataframe = pd.DataFrame(data=data)
+    # Act
+    result = MixedNulls().run(dataframe)
+    # Assert
+    assert_that(result.value, has_entry('col1', has_length(4)))
 
 
 def test_ignore_columns_single():
