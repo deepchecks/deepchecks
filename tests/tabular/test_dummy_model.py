@@ -61,7 +61,7 @@ def test_model_error_analysis_condition_fail(iris_labeled_dataset, iris_adaboost
     assert_that(condition_result, has_items(
         equal_condition_result(
             is_pass=False,
-            name='The performance difference of the detected segments must not be greater than 5%',
+            name='The performance difference of the detected segments is less than 5%',
             details='Accuracy difference for failed features: {\'petal length (cm)\': \'10.91%\', '
                     '\'petal width (cm)\': \'8.33%\'}',
             category=ConditionCategory.WARN
@@ -88,8 +88,8 @@ def test_roc_condition_ratio_more_than_passed(iris_clean):
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               details='All classes passed, average AUC is 0.9',
-                               name='AUC score for all the classes is not less than 0.7')
+                               details='All classes passed, minimum AUC found is 0.71 for class 1',
+                               name='AUC score for all the classes is greater than 0.7')
     ))
 
 
@@ -110,7 +110,7 @@ def test_regression_error_absolute_kurtosis_not_greater_than_not_passed(diabetes
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Kurtosis value is not less than -0.1',
+                               name='Kurtosis value is greater than -0.1',
                                details='Found kurtosis value -0.92572',
                                category=ConditionCategory.WARN)
     ))

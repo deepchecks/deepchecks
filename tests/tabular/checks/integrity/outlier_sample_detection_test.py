@@ -45,7 +45,8 @@ def test_condition_with_argument():
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
                                details='8.3% of dataset samples above outlier threshold',
-                               name='Ratio of samples over outlier score 0.7 is less or equal to 10%')
+                               name='Ratio of samples exceeding the outlier score threshold 0.7 is less or equal to '
+                                    '10%')
     ))
 
 
