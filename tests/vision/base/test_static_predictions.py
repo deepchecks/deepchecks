@@ -132,11 +132,13 @@ def test_image_segment_performance_coco_and_condition(coco_train_visiondata, moc
     assert_that(result.conditions_results, has_items(
         equal_condition_result(
             is_pass=True,
-            name='No segment with ratio between score to mean less than 10%'
+            name='Segment\'s ratio between score to mean is greater than 10%',
+            details="Found minimum ratio for property Mean Green Relative Intensity: "
+                    "{'Range': '[0.34, 0.366)', 'Metric': 'Average Precision', 'Ratio': 0.44}"
         ),
         equal_condition_result(
             is_pass=False,
-            name='No segment with ratio between score to mean less than 50%',
+            name='Segment\'s ratio between score to mean is greater than 50%',
             details="Properties with failed segments: Mean Green Relative Intensity: "
                     "{'Range': '[0.34, 0.366)', 'Metric': 'Average Precision', 'Ratio': 0.44}"
         )
