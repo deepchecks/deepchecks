@@ -42,7 +42,7 @@ _FEATURES = _CAT_FEATURES + _NUM_FEATURES
 
 
 def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> t.Union[
-    t.Tuple, t.Union[Dataset, pd.DataFrame]]:
+        t.Tuple, t.Union[Dataset, pd.DataFrame]]:
     """Load and returns part of the Lending club dataset (classification).
 
     The partial data has 21668 records with 26 features and one binary target column, referring to whether the specified
