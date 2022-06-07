@@ -39,7 +39,7 @@ Example of a simple regression model:
 ...     def predict(X: pd.DataFrame) -> pd.Series:
 ...         ...
 
-Instead of a model you can also pass the predict_proba as keyword arguments to the run function as follows:
+Instead of passing a model object you can pass the precomputed predicted probabilities as keyword arguments to the run function as shown here:
 For more info check out :doc:`Using Pre-computed Predictions </user-guide/tabular/tutorials/plot_static_predictions>`
 
 >>> train_pred = model.predict(train_dataset.features_columns)
@@ -63,7 +63,7 @@ is expected to return an `ndarray` of shape ``(n_samples, n_classes)``, an array
 ...     def predict_proba(X: np.ndarray) -> np.ndarray:
 ...         ...
 
-Instead of a model you can also pass the predict_proba as keyword arguments to the run function as follows:
+Instead of a model you can also pass the model predicted probabilities(the output of predict_proba) as keyword arguments to the run function as follows:
 For more info check out :doc:`Using Pre-computed Predictions </user-guide/tabular/tutorials/plot_static_predictions>`
 
 >>> train_proba = model.predict_proba(train_dataset.features_columns)
@@ -72,6 +72,7 @@ For more info check out :doc:`Using Pre-computed Predictions </user-guide/tabula
 ... suite.run(train_dataset=train_dataset, test_dataset=test_dataset,
 ...           features_importance=feature_importance,
 ...           y_proba_train=train_proba, y_proba_test=test_proba)
+
 
 .. _supported_models__optional_model_interface:
 
