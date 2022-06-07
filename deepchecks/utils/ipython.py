@@ -655,7 +655,7 @@ def _jupyterlab_widgets_warning(**kwargs):
         )
     )
     warning_kwargs.update(**kwargs)
-    return _EXTENSION_WARNING.format(**kwargs)
+    return _EXTENSION_WARNING.format(**warning_kwargs)
 
 
 @lru_cache(maxsize=None)
@@ -675,7 +675,7 @@ def _jupyterlab_plotly_warning(**kwargs):
         )
     )
     warning_kwargs.update(**kwargs)
-    return _EXTENSION_WARNING.format(**kwargs)
+    return _EXTENSION_WARNING.format(**warning_kwargs)
 
 
 @lru_cache(maxsize=None)
@@ -693,7 +693,7 @@ def _nbclassic_widgets_warning(**kwargs):
         install_instructions='+ https://pypi.org/project/jupyter-js-widgets-nbextension/\n'
     )
     warning_kwargs.update(**kwargs)
-    return _EXTENSION_WARNING.format(**kwargs)
+    return _EXTENSION_WARNING.format(**warning_kwargs)
 
 
 def is_widgets_enabled() -> bool:
