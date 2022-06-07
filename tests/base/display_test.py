@@ -37,14 +37,15 @@ pio.renderers.default = 'json'
 # display check
 def test_check_run_display(iris_dataset):
     # Arrange
-    with patch('deepchecks.core.check_result.display') as mock:
-        check_res = ColumnsInfo(n_top_columns=4).run(iris_dataset)
-        assert_that(check_res.display_check(), is_(None))
-        mock.assert_called_once()
+    with patch('deepchecks.core.check_result.is_interactive_output_use_possible', return_value=False):
+        with patch('deepchecks.core.check_result.display') as mock:
+            check_res = ColumnsInfo(n_top_columns=4).run(iris_dataset)
+            assert_that(check_res.display_check(), is_(None))
+            mock.assert_called_once()
 
 
 def test_check_run_display_as_widget(iris_dataset):
-    with patch('deepchecks.core.check_result.is_widgets_enabled', Mock(return_value=True)):
+    with patch('deepchecks.core.check_result.is_interactive_output_use_possible', Mock(return_value=True)):
         # Arrange
         check_res = ColumnsInfo(n_top_columns=4).run(iris_dataset)
         dispaly_box = check_res.display_check(as_widget=True)
@@ -54,30 +55,33 @@ def test_check_run_display_as_widget(iris_dataset):
 
 
 def test_check_run_display_unique_id(iris_dataset):
-    with patch('deepchecks.core.check_result.display') as mock:
-        # Arrange
-        check_res = ColumnsInfo(n_top_columns=4).run(iris_dataset)
-        # Assert
-        assert_that(check_res.display_check(unique_id='qwerty'), is_(None))
-        mock.assert_called_once()
+    with patch('deepchecks.core.check_result.is_interactive_output_use_possible', return_value=False):
+        with patch('deepchecks.core.check_result.display') as mock:
+            # Arrange
+            check_res = ColumnsInfo(n_top_columns=4).run(iris_dataset)
+            # Assert
+            assert_that(check_res.display_check(unique_id='qwerty'), is_(None))
+            mock.assert_called_once()
 
 
 def test_check_run_display_condition(iris_dataset):
-    with patch('deepchecks.core.check_result.display') as mock:
-        # Arrange
-        check_res = DataDuplicates().add_condition_ratio_not_greater_than(0).run(iris_dataset)
-        # Assert
-        assert_that(check_res.display_check(unique_id='qwerty'), is_(None))
-        mock.assert_called_once()
+    with patch('deepchecks.core.check_result.is_interactive_output_use_possible', return_value=False):
+        with patch('deepchecks.core.check_result.display') as mock:
+            # Arrange
+            check_res = DataDuplicates().add_condition_ratio_not_greater_than(0).run(iris_dataset)
+            # Assert
+            assert_that(check_res.display_check(unique_id='qwerty'), is_(None))
+            mock.assert_called_once()
 
 
 def test_check_run_display_nothing_to_show(iris_dataset):
-    with patch('deepchecks.core.check_result.display') as mock:
-        # Arrange
-        check_res = MixedNulls().run(iris_dataset)
-        # Assert
-        check_res.display_check(unique_id='qwerty')
-        mock.assert_called_once()
+    with patch('deepchecks.core.check_result.is_interactive_output_use_possible', return_value=False):
+        with patch('deepchecks.core.check_result.display') as mock:
+            # Arrange
+            check_res = MixedNulls().run(iris_dataset)
+            # Assert
+            check_res.display_check(unique_id='qwerty')
+            mock.assert_called_once()
 
 
 def test_check_result_repr(iris_dataset):
@@ -105,10 +109,11 @@ def test_check_result_display_plt_func():
     check_res.check = DataDuplicates()
 
     # Assert
-    with patch('deepchecks.core.check_result.display') as mock:
-        assert_that(check_res.display_check(), is_(None))
-        mock.assert_called_once()
-    with patch('deepchecks.core.check_result.is_widgets_enabled', Mock(return_value=True)):
+    with patch('deepchecks.core.check_result.is_interactive_output_use_possible', return_value=False):
+        with patch('deepchecks.core.check_result.display') as mock:
+            assert_that(check_res.display_check(), is_(None))
+            mock.assert_called_once()
+    with patch('deepchecks.core.check_result.is_interactive_output_use_possible', Mock(return_value=True)):
         assert_that(check_res.display_check(as_widget=True), not_none())
 
 
@@ -118,7 +123,7 @@ def test_check_result_display_plotly(iris):
     check_res = CheckResult(value=7, header='test', display=[plot])
     check_res.check = DataDuplicates()
 
-    with patch('deepchecks.core.check_result.is_widgets_enabled', Mock(return_value=True)):
+    with patch('deepchecks.core.check_result.is_interactive_output_use_possible', Mock(return_value=True)):
         display = check_res.display_check(as_widget=True)
 
     # Assert
@@ -182,7 +187,7 @@ def test_check_result_show():
     cr.check = DataDuplicates()
 
     with patch('deepchecks.core.check_result.is_notebook', Mock(return_value=True)):
-        with patch('deepchecks.core.check_result.is_widgets_enabled', Mock(return_value=True)):
+        with patch('deepchecks.core.check_result.is_interactive_output_use_possible', Mock(return_value=True)):
             with patch('deepchecks.core.check_result.display_html') as mock:
                 # Assert
                 assert_that(cr.show(), is_(None))
@@ -218,7 +223,7 @@ def test_check_result_ipython_display():
     # Arrange
     result = create_check_result(value=[10, 20, 30])
     # Assert
-    with patch('deepchecks.core.check_result.is_widgets_enabled', Mock(return_value=True)):
+    with patch('deepchecks.core.check_result.is_interactive_output_use_possible', Mock(return_value=True)):
         with patch('deepchecks.core.check_result.display_html') as mock:
             result._ipython_display_()
             mock.assert_called_once()
@@ -326,7 +331,7 @@ def test_check_failure_display_with_enabled_widgets():
     # Arrange
     failure = CheckFailure(DummyCheck(), Exception('error message'))
     # Assert
-    with patch('deepchecks.core.check_result.is_widgets_enabled', Mock(return_value=True)):
+    with patch('deepchecks.core.check_result.is_interactive_output_use_possible', Mock(return_value=True)):
         w = failure.display_check(as_widget=True)
         assert_that(w, instance_of(Widget))
 
@@ -344,11 +349,12 @@ def test_check_failure_show():
     # Arrange
     failure = CheckFailure(DummyCheck(), Exception('error message'))
 
-    with patch('deepchecks.core.check_result.is_notebook', Mock(return_value=True)):
-        with patch('deepchecks.core.check_result.display') as mock:
-            # Assert
-            assert_that(failure.show(), is_(None))
-            mock.assert_called_once()
+    with patch('deepchecks.core.check_result.is_notebook', return_value=True):
+        with patch('deepchecks.core.check_result.is_interactive_output_use_possible', return_value=False):
+            with patch('deepchecks.core.check_result.display') as mock:
+                # Assert
+                assert_that(failure.show(), is_(None))
+                mock.assert_called_once()
 
 
 def test_check_failure_show_with_sphinx_gallery_env_enabled():
@@ -465,17 +471,18 @@ def test_suite_result_show():
     # Arrange
     suite_result = create_suite_result()
     # Assert
-    with patch('deepchecks.core.suite.is_notebook', Mock(return_value=True)):
-        with patch('deepchecks.core.suite.display') as mock:
-            suite_result.show()
-            mock.assert_called_once()
+    with patch('deepchecks.core.suite.is_notebook', return_value=True):
+        with patch('deepchecks.core.suite.is_interactive_output_use_possible', return_value=False):
+            with patch('deepchecks.core.suite.display') as mock:
+                suite_result.show()
+                mock.assert_called_once()
 
 
 def test_suite_result_ipython_display():
     # Arrange
     suite_result = create_suite_result()
     # Assert
-    with patch('deepchecks.core.suite.is_widgets_enabled', Mock(return_value=True)):
+    with patch('deepchecks.core.suite.is_interactive_output_use_possible', Mock(return_value=True)):
         with patch('deepchecks.core.suite.display_html') as mock:
             suite_result._ipython_display_()
             mock.assert_called_once()
@@ -485,7 +492,7 @@ def test_suite_result_ipython_display_with_as_widget_set_to_false():
     # Arrange
     suite_result = create_suite_result()
     # Assert
-    with patch('deepchecks.core.suite.is_widgets_enabled', Mock(return_value=True)):
+    with patch('deepchecks.core.suite.is_interactive_output_use_possible', Mock(return_value=True)):
         with patch('deepchecks.core.suite.display') as mock:
             suite_result._ipython_display_(as_widget=False)
             mock.assert_called_once()

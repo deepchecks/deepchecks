@@ -255,7 +255,7 @@ def test_request_jupyterlab_extensions(jupyterlab_extensions):  # pylint: disabl
         extensions_url = 'http://localhost:8889/lab/api/extensions?token=asdfg'
         extensions = ipython.request_jupyterlab_extensions(server_url)
 
-        mock.assert_called_once_with(extensions_url)
+        mock.assert_called_once_with(extensions_url, timeout=3)
         assert_that(extensions, not_none())
         assert_that(list(extensions.values()), assertion)
 
@@ -268,7 +268,7 @@ def test_request_jupyterlab_extensions_with_empty_output():
         extensions_url = 'http://localhost:8889/lab/api/extensions?token=asdfg'
         extensions = ipython.request_jupyterlab_extensions(server_url)
 
-        mock.assert_called_once_with(extensions_url)
+        mock.assert_called_once_with(extensions_url, timeout=3)
         assert_that(extensions, equal_to({}))
 
 
@@ -280,7 +280,7 @@ def test_request_jupyterlab_extensions_with_output_of_unknown_format():
         extensions_url = 'http://localhost:8889/lab/api/extensions?token=asdfg'
         extensions = ipython.request_jupyterlab_extensions(server_url)
 
-        mock.assert_called_once_with(extensions_url)
+        mock.assert_called_once_with(extensions_url, timeout=3)
         assert_that(extensions, none())
 
 
@@ -292,7 +292,7 @@ def test_request_nbclassic_extensions(nbclassic_extensions):  # pylint: disable=
         server_url = 'http://localhost:8889/?token=asdfg'
         extensions_url = 'http://localhost:8889/api/config/notebook?token=asdfg'
         extensions = ipython.request_nbclassic_extensions(server_url)
-        mock.assert_called_once_with(extensions_url)
+        mock.assert_called_once_with(extensions_url, timeout=3)
         assert_that(extensions, assertion)
 
 
@@ -303,7 +303,7 @@ def test_request_nbclassic_extensions_with_empty_output():
         server_url = 'http://localhost:8889/?token=asdfg'
         extensions_url = 'http://localhost:8889/api/config/notebook?token=asdfg'
         extensions = ipython.request_nbclassic_extensions(server_url)
-        mock.assert_called_once_with(extensions_url)
+        mock.assert_called_once_with(extensions_url, timeout=3)
         assert_that(extensions, equal_to({}))
 
 
@@ -314,7 +314,7 @@ def test_request_nbclassic_extensions_with_output_of_unknown_format():
         server_url = 'http://localhost:8889/?token=asdfg'
         extensions_url = 'http://localhost:8889/api/config/notebook?token=asdfg'
         extensions = ipython.request_nbclassic_extensions(server_url)
-        mock.assert_called_once_with(extensions_url)
+        mock.assert_called_once_with(extensions_url, timeout=3)
         assert_that(extensions, none())
 
 

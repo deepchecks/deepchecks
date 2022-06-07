@@ -409,7 +409,7 @@ def request_jupyterlab_extensions(server_url: str) -> t.Optional[t.Mapping[str, 
         extract_jupyter_server_token(urlobj.query)
     )
     try:
-        with urllib.request.urlopen(url) as f:
+        with urllib.request.urlopen(url, timeout=3) as f:
             return {e['name']: e for e in json.load(f)}
     except BaseException:
         return
@@ -542,7 +542,7 @@ def request_nbclassic_extensions(server_url: str) -> t.Optional[t.Mapping[str, N
         extract_jupyter_server_token(urlobj.query)
     )
     try:
-        with urllib.request.urlopen(url) as f:
+        with urllib.request.urlopen(url, timeout=3) as f:
             data = json.load(f)
             output = {}
             if not data:
@@ -701,49 +701,35 @@ def is_widgets_enabled() -> bool:
     is_jupyterlab_enabled = is_jupyter_server_extension_enabled('jupyterlab')
     is_nbclassic_enabled = is_jupyter_server_extension_enabled('nbclassic')
 
+    condition = []
+    jupyterlab_warnings_kwargs = {'additional': ''}
+    nbclassic_warnings_kwargs = {'additional': ''}
+
     if is_jupyterlab_enabled and is_nbclassic_enabled:
-        is_jupyterlab_widgets_enabled = is_jupyterlab_extension_enabled('@jupyter-widgets/jupyterlab-manager')
-        is_nbclassic_widgets_enabled = is_nbclassic_extension_enabled('jupyter-js-widgets')
+        jupyterlab_warnings_kwargs['additional'] = ' if you use "Jupyter Lab"'
+        nbclassic_warnings_kwargs['additional'] = ' if you use "Classical Notebooks"'
 
-        if is_jupyterlab_widgets_enabled is False:
-            warnings.warn(_jupyterlab_widgets_warning(
-                additional=' if you use "Jupyter Lab"'
-            ))
-
-        if is_nbclassic_widgets_enabled is False:
-            warnings.warn(_nbclassic_widgets_warning(
-                additional=' if you use "Classical Notebooks"'
-            ))
-
-        condition = (
-            is_jupyterlab_widgets_enabled,
-            is_nbclassic_widgets_enabled
-        )
-
-        if all(condition):
-            return True
-        elif any(condition):
-            warnings.warn(_WARNING_MESSAGE)
-            return True
-        else:
-            return False
-
-    elif is_jupyterlab_enabled:
+    if is_jupyterlab_enabled:
         is_extension_enabled = is_jupyterlab_extension_enabled('@jupyter-widgets/jupyterlab-manager')
 
         if is_extension_enabled is False:
-            warnings.warn(_jupyterlab_widgets_warning(additional=''))
+            warnings.warn(_jupyterlab_widgets_warning(**jupyterlab_warnings_kwargs))
 
-        return is_extension_enabled
+        condition.append(is_extension_enabled)
 
-    elif is_nbclassic_enabled:
+    if is_nbclassic_enabled:
         is_extension_enabled = is_nbclassic_extension_enabled('jupyter-js-widgets')
 
         if is_extension_enabled is False:
-            warnings.warn(_nbclassic_widgets_warning(additional=''))
+            warnings.warn(_nbclassic_widgets_warning(**nbclassic_warnings_kwargs))
 
-        return is_extension_enabled
+        condition.append(is_extension_enabled)
 
+    if len(condition) > 0 and all(condition):
+        return True
+    elif any(condition):
+        warnings.warn(_WARNING_MESSAGE)
+        return True
     else:
         return False
 
@@ -753,54 +739,39 @@ def is_interactive_output_use_possible() -> bool:
     is_jupyterlab_enabled = is_jupyter_server_extension_enabled('jupyterlab')
     is_nbclassic_enabled = is_jupyter_server_extension_enabled('nbclassic')
 
+    jupyterlab_warnings_kwargs = {'additional': ''}
+    nbclassic_warnings_kwargs = {'additional': ''}
+    condition = []
+
     if is_jupyterlab_enabled and is_nbclassic_enabled:
-        is_jupyterlab_plotly_enabled = is_jupyterlab_extension_enabled('jupyterlab-plotly')
-        is_jupyterlab_widgets_enabled = is_jupyterlab_extension_enabled('@jupyter-widgets/jupyterlab-manager')
-        is_nbclassic_widgets_enabled = is_nbclassic_extension_enabled('jupyter-js-widgets')
+        jupyterlab_warnings_kwargs['additional'] = ' if you use "Jupyter Lab"'
+        nbclassic_warnings_kwargs['additional'] = ' if you use "Classical Notebooks"'
 
-        if is_jupyterlab_plotly_enabled is False:
-            warnings.warn(_jupyterlab_plotly_warning(additional=' if you use "Jupyter Lab"'))
-
-        if is_jupyterlab_widgets_enabled is False:
-            warnings.warn(_jupyterlab_widgets_warning(additional=' if you use "Jupyter Lab"'))
-
-        if is_nbclassic_widgets_enabled is False:
-            warnings.warn(_nbclassic_widgets_warning(additional=' if you use "Classical Notebooks"'))
-
-        condition = (
-            is_jupyterlab_widgets_enabled and is_jupyterlab_plotly_enabled,
-            is_nbclassic_widgets_enabled
-        )
-
-        if all(condition):
-            return True
-        elif any(condition):
-            warnings.warn(_WARNING_MESSAGE)
-            return True
-        else:
-            return False
-
-    elif is_jupyterlab_enabled:
+    if is_jupyterlab_enabled:
         is_plotly_enabled = is_jupyterlab_extension_enabled('jupyterlab-plotly')
         is_widgets_enabled = is_jupyterlab_extension_enabled(  # pylint: disable=redefined-outer-name
             '@jupyter-widgets/jupyterlab-manager'
         )
 
         if is_plotly_enabled is False:
-            warnings.warn(_jupyterlab_plotly_warning(additional=''))
-
+            warnings.warn(_jupyterlab_plotly_warning(**jupyterlab_warnings_kwargs))
         if is_widgets_enabled is False:
-            warnings.warn(_jupyterlab_widgets_warning(additional=''))
+            warnings.warn(_jupyterlab_widgets_warning(**jupyterlab_warnings_kwargs))
 
-        return is_plotly_enabled and is_widgets_enabled
+        condition.append(is_plotly_enabled and is_widgets_enabled)
 
-    elif is_nbclassic_enabled:
+    if is_nbclassic_enabled:
         is_extension_enabled = is_nbclassic_extension_enabled('jupyter-js-widgets')
 
         if is_extension_enabled is False:
-            warnings.warn(_nbclassic_widgets_warning(additional=''))
+            warnings.warn(_nbclassic_widgets_warning(**nbclassic_warnings_kwargs))
 
-        return is_extension_enabled
+        condition.append(is_extension_enabled)
 
+    if len(condition) > 0 and all(condition):
+        return True
+    elif any(condition):
+        warnings.warn(_WARNING_MESSAGE)
+        return True
     else:
         return False
