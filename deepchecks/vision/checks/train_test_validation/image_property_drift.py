@@ -18,7 +18,7 @@ import pandas as pd
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
-from deepchecks.utils.dict_funcs import get_max_entry_from_dict
+from deepchecks.utils.dict_funcs import get_dict_entry_by_value
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Batch, Context, TrainTestCheck
@@ -261,7 +261,7 @@ class ImagePropertyDrift(TrainTestCheck):
                 if not result:
                     details = 'Did not calculate drift score on any property'
                 else:
-                    prop, score = get_max_entry_from_dict(result)
+                    prop, score = get_dict_entry_by_value(result)
                     details = f'Found property {prop} with largest Earth Mover\'s Distance score {format_number(score)}'
                 return ConditionResult(ConditionCategory.PASS, details)
 

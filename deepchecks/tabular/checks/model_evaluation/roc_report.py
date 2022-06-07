@@ -18,6 +18,7 @@ import sklearn
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular import Context, SingleDatasetCheck
+from deepchecks.utils.dict_funcs import get_dict_entry_by_value
 from deepchecks.utils.strings import format_number
 
 __all__ = ['RocReport']
@@ -123,7 +124,7 @@ class RocReport(SingleDatasetCheck):
 
         return CheckResult(roc_auc, header='ROC Report', display=[fig, footnote])
 
-    def add_condition_auc_not_less_than(self, min_auc: float = 0.7):
+    def add_condition_auc_greater_than(self, min_auc: float = 0.7):
         """Add condition - require min allowed AUC score per class.
 
         Parameters
@@ -134,20 +135,20 @@ class RocReport(SingleDatasetCheck):
         """
         def condition(result: Dict) -> ConditionResult:
             failed_classes = {class_name: format_number(score)
-                              for class_name, score in result.items() if score < min_auc}
+                              for class_name, score in result.items() if score <= min_auc}
             if failed_classes:
                 return ConditionResult(ConditionCategory.FAIL,
                                        f'Found classes with AUC below threshold: {failed_classes}')
             else:
-                avg_auc = sum(result.values()) / len(result)
-                details = f'All classes passed, average AUC is {format_number(avg_auc)}'
+                class_name, score = get_dict_entry_by_value(result, value_select_fn=min)
+                details = f'All classes passed, minimum AUC found is {format_number(score)} for class {class_name}'
                 return ConditionResult(ConditionCategory.PASS, details)
 
         if self.excluded_classes:
             suffix = f' except: {self.excluded_classes}'
         else:
             suffix = ''
-        return self.add_condition(f'AUC score for all the classes{suffix} is not less than {min_auc}',
+        return self.add_condition(f'AUC score for all the classes{suffix} is greater than {min_auc}',
                                   condition)
 
 

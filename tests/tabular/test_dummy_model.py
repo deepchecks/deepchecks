@@ -51,7 +51,7 @@ def test_model_error_analysis_condition_fail(iris_labeled_dataset, iris_adaboost
     y_pred_train, y_pred_test, y_proba_train, y_proba_test = \
         _dummify_model(iris_labeled_dataset, iris_labeled_dataset, iris_adaboost)
     # Act
-    check_result = ModelErrorAnalysis().add_condition_segments_performance_relative_difference_not_greater_than(
+    check_result = ModelErrorAnalysis().add_condition_segments_performance_relative_difference_less_than(
     ).run(iris_labeled_dataset, iris_labeled_dataset,
           y_pred_train=y_pred_train, y_pred_test=y_pred_test,
           y_proba_train=y_proba_train, y_proba_test=y_proba_test)
@@ -81,7 +81,7 @@ def test_roc_condition_ratio_more_than_passed(iris_clean):
                  label='target')
     y_pred_train, y_pred_test, y_proba_train, y_proba_test = _dummify_model(ds, None, clf)
 
-    check = RocReport().add_condition_auc_not_less_than()
+    check = RocReport().add_condition_auc_greater_than()
     result = check.conditions_decision(check.run(ds,
                                                  y_pred_train=y_pred_train, y_pred_test=y_pred_test,
                                                  y_proba_train=y_proba_train, y_proba_test=y_proba_test))
@@ -101,7 +101,7 @@ def test_regression_error_absolute_kurtosis_not_greater_than_not_passed(diabetes
     test._data[test.label_name] =300
     y_pred_train, y_pred_test, y_proba_train, y_proba_test = _dummify_model(test, None, clf)
 
-    check = RegressionErrorDistribution().add_condition_kurtosis_not_less_than()
+    check = RegressionErrorDistribution().add_condition_kurtosis_greater_than()
 
     # Act
     result = check.conditions_decision(check.run(test,

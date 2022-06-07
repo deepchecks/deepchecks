@@ -22,7 +22,7 @@ from deepchecks.core.check_utils.feature_label_correlation_utils import (get_fea
                                                                          get_feature_label_correlation_per_class)
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import ModelValidationError
-from deepchecks.utils.dict_funcs import get_max_entry_from_dict
+from deepchecks.utils.dict_funcs import get_dict_entry_by_value
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Context, TrainTestCheck
 from deepchecks.vision.batch_wrapper import Batch
@@ -278,7 +278,7 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
                     if failed_classes:
                         failed_features[feature] = failed_classes
                     # Get max diff to display when condition is passing
-                    max_class, max_pps = get_max_entry_from_dict(per_class_diff)
+                    max_class, max_pps = get_dict_entry_by_value(per_class_diff)
                     if max_pps > overall_max_pps[0]:
                         overall_max_pps = max_pps, f'Found highest PPS {format_number(max_pps)} for feature {feature}' \
                                                    f' and class {max_class}'
@@ -296,7 +296,7 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
                     message = f'Features with PPS difference above threshold: {failed_features}'
                     return ConditionResult(ConditionCategory.FAIL, message)
                 else:
-                    max_feature, max_pps = get_max_entry_from_dict(value['train-test difference'])
+                    max_feature, max_pps = get_dict_entry_by_value(value['train-test difference'])
                     message = f'Found highest PPS {format_number(max_pps)} for feature {max_feature}' \
                               if max_pps > 0 else '0 PPS found for all features'
                     return ConditionResult(ConditionCategory.PASS, message)
@@ -333,7 +333,7 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
                     if failed_classes:
                         failed_features[feature] = failed_classes
                     # Get max diff to display when condition is passing
-                    max_class, max_pps = get_max_entry_from_dict(pps_info['train'])
+                    max_class, max_pps = get_dict_entry_by_value(pps_info['train'])
                     if max_pps > overall_max_pps[0]:
                         overall_max_pps = max_pps, f'Found highest PPS in train dataset {format_number(max_pps)} for ' \
                                                    f'feature {feature} and class {max_class}'
@@ -356,7 +356,7 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
                     message = f'Features in train dataset with PPS above threshold: {failed_features}'
                     return ConditionResult(ConditionCategory.FAIL, message)
                 else:
-                    max_feature, max_pps = get_max_entry_from_dict(value['train-test difference'])
+                    max_feature, max_pps = get_dict_entry_by_value(value['train-test difference'])
                     message = f'Found highest PPS in train dataset {format_number(max_pps)} for feature {max_feature}' \
                         if max_pps > 0 else '0 PPS found for all features in train dataset'
                     return ConditionResult(ConditionCategory.PASS, message)

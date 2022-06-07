@@ -20,7 +20,7 @@ from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils import plot
-from deepchecks.utils.dict_funcs import get_max_entry_from_dict
+from deepchecks.utils.dict_funcs import get_dict_entry_by_value
 from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.metrics_utils.metrics import filter_classes_for_display, get_scorers_list, metric_results_to_df
@@ -192,7 +192,7 @@ class ClassPerformance(TrainTestCheck):
 
             def update_max_degradation(diffs, class_name):
                 nonlocal max_degradation
-                max_scorer, max_diff = get_max_entry_from_dict(diffs)
+                max_scorer, max_diff = get_dict_entry_by_value(diffs)
                 if max_diff > max_degradation[1]:
                     max_degradation = f'Found max degradation of {format_percent(max_diff)} for metric ' \
                                       f'{max_scorer} and class {class_name}', max_diff

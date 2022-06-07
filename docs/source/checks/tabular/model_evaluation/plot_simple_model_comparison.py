@@ -103,7 +103,7 @@ result.value
 # Let's add a condition to the check and see what happens when it fails:
 
 check = SimpleModelComparison(simple_model_type='tree')
-check.add_condition_gain_not_less_than(0.9)
+check.add_condition_gain_greater_than(0.9)
 result = check.run(train_dataset, test_dataset, model)
 result.show(show_additional_outputs=False)
 

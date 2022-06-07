@@ -64,14 +64,14 @@ def test_condition_absolute_kurtosis_not_greater_than_not_passed(diabetes_split_
     test = Dataset(test.data.copy(), label='target')
     test._data[test.label_name] =300
 
-    check = RegressionErrorDistribution().add_condition_kurtosis_not_less_than()
+    check = RegressionErrorDistribution().add_condition_kurtosis_greater_than()
 
     # Act
     result = check.conditions_decision(check.run(test, clf))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Kurtosis value is not less than -0.1',
+                               name='Kurtosis value is greater than -0.1',
                                details='Found kurtosis value -0.92572',
                                category=ConditionCategory.WARN)
     ))
@@ -80,7 +80,7 @@ def test_condition_absolute_kurtosis_not_greater_than_not_passed(diabetes_split_
 def test_condition_absolute_kurtosis_not_greater_than_passed(diabetes_split_dataset_and_model):
     _, test, clf = diabetes_split_dataset_and_model
 
-    check = RegressionErrorDistribution().add_condition_kurtosis_not_less_than()
+    check = RegressionErrorDistribution().add_condition_kurtosis_greater_than()
 
     # Act
     result = check.conditions_decision(check.run(test, clf))
@@ -88,21 +88,21 @@ def test_condition_absolute_kurtosis_not_greater_than_passed(diabetes_split_data
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
                                details='Found kurtosis value 0.02867',
-                               name='Kurtosis value is not less than -0.1')
+                               name='Kurtosis value is greater than -0.1')
     ))
 
 
 def test_condition_absolute_kurtosis_not_greater_than_not_passed_0_max(diabetes_split_dataset_and_model):
     _, test, clf = diabetes_split_dataset_and_model
 
-    check = RegressionErrorDistribution().add_condition_kurtosis_not_less_than(min_kurtosis=1)
+    check = RegressionErrorDistribution().add_condition_kurtosis_greater_than(min_kurtosis=1)
 
     # Act
     result = check.conditions_decision(check.run(test, clf))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Kurtosis value is not less than 1',
+                               name='Kurtosis value is greater than 1',
                                details='Found kurtosis value 0.02867',
                                category=ConditionCategory.WARN)
     ))

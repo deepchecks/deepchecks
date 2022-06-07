@@ -32,5 +32,5 @@ check.run(test_ds, clf)
 # Instantiating check instance with condition
 # ===========================================
 
-check = ModelInferenceTime().add_condition_inference_time_is_not_greater_than(0.00001)
+check = ModelInferenceTime().add_condition_inference_time_less_than(0.00001)
 check.run(test_ds, clf)
