@@ -54,8 +54,7 @@ def test_linear_regression(diabetes):
 def test_pipeline(iris_split_dataset_and_model_single_feature):
     _, test_ds, clf = iris_split_dataset_and_model_single_feature
     feature_importances, fi_type = calculate_feature_importance(clf, test_ds)
-    print(feature_importances)
-    assert_that(feature_importances['sepal length (cm)'], equal_to(1))
+    assert_that(feature_importances['sepal length (cm)'], equal_to(1))  # pylint: disable=e1136
     assert_that(feature_importances, has_length(1))
     assert_that(fi_type, is_('permutation_importance'))
     assert_that(hasattr(clf.steps[-1][1], 'feature_importances_'))
@@ -106,8 +105,8 @@ def test_calculate_importance_when_model_is_pipeline(iris_labeled_dataset):
         feature_importances, fi_type = calculate_feature_importance(clf, iris_labeled_dataset,
                                                                     permutation_kwargs={'timeout': 120})
         assert_that(w, has_length(1))
-        assert_that(str(w[0].message), equal_to('Cannot use model\'s built-in feature importance on a Scikit-learn Pipeline, '
-                                                'using permutation feature importance calculation instead'))
+        assert_that(str(w[0].message), equal_to('Cannot use model\'s built-in feature importance on a Scikit-learn '
+                                                'Pipeline, using permutation feature importance calculation instead'))
 
     # Assert
     assert_that(feature_importances.sum(), close_to(1, 0.000001))

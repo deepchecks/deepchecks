@@ -52,7 +52,7 @@ def test_model_error_analysis_condition_fail(iris_labeled_dataset, iris_adaboost
     _, _, y_proba_train, y_proba_test = \
         _dummify_model(iris_labeled_dataset, iris_labeled_dataset, iris_adaboost)
     # Act
-    check_result = ModelErrorAnalysis().add_condition_segments_performance_relative_difference_not_greater_than(
+    check_result = ModelErrorAnalysis().add_condition_segments_performance_relative_difference_less_than(
     ).run(iris_labeled_dataset, iris_labeled_dataset,
           y_proba_train=y_proba_train, y_proba_test=y_proba_test)
     condition_result = check_result.conditions_results
@@ -61,7 +61,7 @@ def test_model_error_analysis_condition_fail(iris_labeled_dataset, iris_adaboost
     assert_that(condition_result, has_items(
         equal_condition_result(
             is_pass=False,
-            name='The performance difference of the detected segments must not be greater than 5%',
+            name='The performance difference of the detected segments is less than 5%',
             details='Accuracy difference for failed features: {\'petal length (cm)\': \'10.91%\', '
                     '\'petal width (cm)\': \'8.33%\'}',
             category=ConditionCategory.WARN
@@ -81,15 +81,15 @@ def test_roc_condition_ratio_more_than_passed(iris_clean):
                  label='target')
     y_pred_train, y_pred_test, y_proba_train, y_proba_test = _dummify_model(ds, None, clf)
 
-    check = RocReport().add_condition_auc_not_less_than()
+    check = RocReport().add_condition_auc_greater_than()
     result = check.conditions_decision(check.run(ds,
                                                  y_pred_train=y_pred_train, y_pred_test=y_pred_test,
                                                  y_proba_train=y_proba_train, y_proba_test=y_proba_test))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               details='All classes passed, average AUC is 0.9',
-                               name='AUC score for all the classes is not less than 0.7')
+                               details='All classes passed, minimum AUC found is 0.71 for class 1',
+                               name='AUC score for all the classes is greater than 0.7')
     ))
 
 
@@ -101,7 +101,7 @@ def test_regression_error_absolute_kurtosis_not_greater_than_not_passed(diabetes
     test._data[test.label_name] =300
     y_pred_train, y_pred_test, y_proba_train, y_proba_test = _dummify_model(test, None, clf)
 
-    check = RegressionErrorDistribution().add_condition_kurtosis_not_less_than()
+    check = RegressionErrorDistribution().add_condition_kurtosis_greater_than()
 
     # Act
     result = check.conditions_decision(check.run(test,
@@ -110,7 +110,7 @@ def test_regression_error_absolute_kurtosis_not_greater_than_not_passed(diabetes
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Kurtosis value is not less than -0.1',
+                               name='Kurtosis value is greater than -0.1',
                                details='Found kurtosis value -0.92572',
                                category=ConditionCategory.WARN)
     ))

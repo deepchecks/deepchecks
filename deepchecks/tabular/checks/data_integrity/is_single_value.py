@@ -85,7 +85,7 @@ class IsSingleValue(SingleDatasetCheck):
         return CheckResult(num_unique_per_col.to_dict(), header='Single Value in Column', display=display)
 
     def add_condition_not_single_value(self):
-        """Add condition - not single value."""
+        """Add condition - no column contains only a single value."""
         name = 'Does not contain only a single value'
 
         def condition(result):

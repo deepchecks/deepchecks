@@ -102,7 +102,7 @@ result.value.sort_values(by=['Class', 'Metric']).head(10)
 # Let's add a condition to the check and see what happens when it fails:
 
 check = SimpleModelComparison(strategy='stratified')
-check.add_condition_gain_not_less_than(min_allowed_gain=0.99)
+check.add_condition_gain_greater_than(min_allowed_gain=0.99)
 result = check.run(train_ds, test_ds, mnist_model)
 result
 

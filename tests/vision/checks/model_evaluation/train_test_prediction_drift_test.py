@@ -169,7 +169,7 @@ def test_with_drift_object_detection_alternative_measurements(coco_train_visiond
 
 def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets, mock_trained_mnist, device):
     # Arrange
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI').add_condition_drift_score_not_greater_than()
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI').add_condition_drift_score_less_than()
     mod_train_ds, mod_test_ds = mnist_drifted_datasets
 
     def infer(batch, model, device):
@@ -188,7 +188,7 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets, mock_train
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name='categorical drift score <= 0.15 and numerical drift score <= 0.075 for prediction drift',
+        name='categorical drift score < 0.15 and numerical drift score < 0.075 for prediction drift',
         details='Failed for 1 out of 1 prediction properties.\n'
                 'Found 1 categorical prediction properties with PSI above threshold: {\'Samples Per Class\': \'3.95\'}'
     ))
@@ -197,7 +197,7 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets, mock_train
 def test_condition_pass(mnist_dataset_train, mock_trained_mnist, device):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_train
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI').add_condition_drift_score_not_greater_than()
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI').add_condition_drift_score_less_than()
 
     # Act
     result = check.run(train, test, mock_trained_mnist, device=device)
@@ -205,8 +205,8 @@ def test_condition_pass(mnist_dataset_train, mock_trained_mnist, device):
     # Assert
     assert_that(result.conditions_results[0], equal_condition_result(
         is_pass=True,
-        name='categorical drift score <= 0.15 and numerical drift score <= 0.075 for prediction drift',
-        details='Passed for 1 prediction properties.\n'
+        name='categorical drift score < 0.15 and numerical drift score < 0.075 for prediction drift',
+        details='Passed for 1 prediction properties out of 1 prediction properties.\n'
                 'Found prediction property "Samples Per Class" has the highest categorical drift score: 0'
     ))
 

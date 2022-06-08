@@ -201,7 +201,7 @@ class BoostingOverfit(TrainTestCheck):
         result = {'test': test_scores, 'train': train_scores}
         return CheckResult(result, display=[display_text, fig], header='Boosting Overfit')
 
-    def add_condition_test_score_percent_decline_not_greater_than(self, threshold: float = 0.05):
+    def add_condition_test_score_percent_decline_less_than(self, threshold: float = 0.05):
         """Add condition.
 
         Percent of decline between the maximal score achieved in any boosting iteration and the score achieved in the
@@ -217,11 +217,10 @@ class BoostingOverfit(TrainTestCheck):
             last_score = result['test'][-1]
             pct_diff = (max_score - last_score) / abs(max_score)
             details = f'Found score decline of {format_percent(-pct_diff)}'
-            category = ConditionCategory.FAIL if pct_diff > threshold else ConditionCategory.PASS
+            category = ConditionCategory.PASS if pct_diff < threshold else ConditionCategory.FAIL
             return ConditionResult(category, details)
 
-        name = f'Test score over iterations doesn\'t decline by more than {format_percent(threshold)} ' \
-               f'from the best score'
+        name = f'Test score over iterations is less than {format_percent(threshold)} from the best score'
         return self.add_condition(name, condition)
 
 

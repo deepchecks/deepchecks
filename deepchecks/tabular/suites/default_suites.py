@@ -52,15 +52,15 @@ def data_integrity(**kwargs) -> Suite:
     return Suite(
         'Data Integrity Suite',
         IsSingleValue(**kwargs).add_condition_not_single_value(),
-        SpecialCharacters(**kwargs).add_condition_ratio_of_special_characters_not_grater_than(),
-        MixedNulls(**kwargs).add_condition_different_nulls_not_more_than(),
+        SpecialCharacters(**kwargs).add_condition_ratio_of_special_characters_less_or_equal(),
+        MixedNulls(**kwargs).add_condition_different_nulls_less_equal_to(),
         MixedDataTypes(**kwargs).add_condition_rare_type_ratio_not_in_range(),
         StringMismatch(**kwargs).add_condition_no_variants(),
-        DataDuplicates(**kwargs).add_condition_ratio_not_greater_than(),
-        StringLengthOutOfBounds(**kwargs).add_condition_ratio_of_outliers_not_greater_than(),
-        ConflictingLabels(**kwargs).add_condition_ratio_of_conflicting_labels_not_greater_than(),
+        DataDuplicates(**kwargs).add_condition_ratio_less_or_equal(),
+        StringLengthOutOfBounds(**kwargs).add_condition_ratio_of_outliers_less_or_equal(),
+        ConflictingLabels(**kwargs).add_condition_ratio_of_conflicting_labels_less_or_equal(),
         OutlierSampleDetection(**kwargs),
-        FeatureLabelCorrelation(**kwargs).add_condition_feature_pps_not_greater_than()
+        FeatureLabelCorrelation(**kwargs).add_condition_feature_pps_less_than()
     )
 
 
@@ -84,20 +84,20 @@ def train_test_validation(**kwargs) -> Suite:
     distribution and leakage checks."""
     return Suite(
         'Train Test Validation Suite',
-        DatasetsSizeComparison(**kwargs).add_condition_test_train_size_ratio_not_smaller_than(),
-        NewLabelTrainTest(**kwargs).add_condition_new_labels_not_greater_than(),
-        CategoryMismatchTrainTest(**kwargs).add_condition_new_category_ratio_not_greater_than(),
+        DatasetsSizeComparison(**kwargs).add_condition_test_train_size_ratio_greater_than(),
+        NewLabelTrainTest(**kwargs).add_condition_new_labels_number_less_or_equal(),
+        CategoryMismatchTrainTest(**kwargs).add_condition_new_category_ratio_less_or_equal(),
         StringMismatchComparison(**kwargs).add_condition_no_new_variants(),
-        DateTrainTestLeakageDuplicates(**kwargs).add_condition_leakage_ratio_not_greater_than(),
-        DateTrainTestLeakageOverlap(**kwargs).add_condition_leakage_ratio_not_greater_than(),
-        IndexTrainTestLeakage(**kwargs).add_condition_ratio_not_greater_than(),
-        IdentifierLeakage(**kwargs).add_condition_pps_not_greater_than(),
-        TrainTestSamplesMix(**kwargs).add_condition_duplicates_ratio_not_greater_than(),
-        FeatureLabelCorrelationChange(**kwargs).add_condition_feature_pps_difference_not_greater_than()
-        .add_condition_feature_pps_in_train_not_greater_than(),
-        TrainTestFeatureDrift(**kwargs).add_condition_drift_score_not_greater_than(),
-        TrainTestLabelDrift(**kwargs).add_condition_drift_score_not_greater_than(),
-        WholeDatasetDrift(**kwargs).add_condition_overall_drift_value_not_greater_than(),
+        DateTrainTestLeakageDuplicates(**kwargs).add_condition_leakage_ratio_less_or_equal(),
+        DateTrainTestLeakageOverlap(**kwargs).add_condition_leakage_ratio_less_or_equal(),
+        IndexTrainTestLeakage(**kwargs).add_condition_ratio_less_or_equal(),
+        IdentifierLeakage(**kwargs).add_condition_pps_less_or_equal(),
+        TrainTestSamplesMix(**kwargs).add_condition_duplicates_ratio_less_or_equal(),
+        FeatureLabelCorrelationChange(**kwargs).add_condition_feature_pps_difference_less_than()
+        .add_condition_feature_pps_in_train_less_than(),
+        TrainTestFeatureDrift(**kwargs).add_condition_drift_score_less_than(),
+        TrainTestLabelDrift(**kwargs).add_condition_drift_score_less_than(),
+        WholeDatasetDrift(**kwargs).add_condition_overall_drift_value_less_than(),
     )
 
 
@@ -106,18 +106,18 @@ def model_evaluation(**kwargs) -> Suite:
     return Suite(
         'Model Evaluation Suite',
         PerformanceReport(**kwargs).add_condition_train_test_relative_degradation_not_greater_than(),
-        RocReport(**kwargs).add_condition_auc_not_less_than(),
+        RocReport(**kwargs).add_condition_auc_greater_than(),
         ConfusionMatrixReport(**kwargs),
         SegmentPerformance(**kwargs),
-        TrainTestPredictionDrift(**kwargs).add_condition_drift_score_not_greater_than(),
-        SimpleModelComparison(**kwargs).add_condition_gain_not_less_than(),
-        ModelErrorAnalysis(**kwargs).add_condition_segments_performance_relative_difference_not_greater_than(),
+        TrainTestPredictionDrift(**kwargs).add_condition_drift_score_less_than(),
+        SimpleModelComparison(**kwargs).add_condition_gain_greater_than(),
+        ModelErrorAnalysis(**kwargs).add_condition_segments_performance_relative_difference_less_than(),
         CalibrationScore(**kwargs),
-        RegressionSystematicError(**kwargs).add_condition_systematic_error_ratio_to_rmse_not_greater_than(),
-        RegressionErrorDistribution(**kwargs).add_condition_kurtosis_not_less_than(),
-        UnusedFeatures(**kwargs).add_condition_number_of_high_variance_unused_features_not_greater_than(),
-        BoostingOverfit(**kwargs).add_condition_test_score_percent_decline_not_greater_than(),
-        ModelInferenceTime(**kwargs).add_condition_inference_time_is_not_greater_than(),
+        RegressionSystematicError(**kwargs).add_condition_systematic_error_ratio_to_rmse_less_than(),
+        RegressionErrorDistribution(**kwargs).add_condition_kurtosis_greater_than(),
+        UnusedFeatures(**kwargs).add_condition_number_of_high_variance_unused_features_less_or_equal(),
+        BoostingOverfit(**kwargs).add_condition_test_score_percent_decline_less_than(),
+        ModelInferenceTime(**kwargs).add_condition_inference_time_less_than(),
     )
 
 

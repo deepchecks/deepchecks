@@ -124,7 +124,7 @@ def test_condition_count_fail():
     data = {'col1': col_data}
     df = pd.DataFrame(data=data)
     # Act
-    check = StringLengthOutOfBounds().add_condition_number_of_outliers_not_greater_than(1)
+    check = StringLengthOutOfBounds().add_condition_number_of_outliers_less_or_equal(1)
 
     # Act
     result = check.conditions_decision(check.run(df))
@@ -133,7 +133,7 @@ def test_condition_count_fail():
         equal_condition_result(is_pass=False,
                                details='Found 1 out of 1 columns with number of outliers above threshold: '
                                        '{\'col1\': 2}',
-                               name='Number of outliers not greater than 1 string length outliers')
+                               name='Number of string length outliers is less or equal to 1')
     ))
 
 
@@ -145,7 +145,7 @@ def test_condition_count_pass():
     data = {'col1': col_data}
     df = pd.DataFrame(data=data)
     # Act
-    check = StringLengthOutOfBounds().add_condition_number_of_outliers_not_greater_than(10)
+    check = StringLengthOutOfBounds().add_condition_number_of_outliers_less_or_equal(10)
 
     # Act
     result = check.conditions_decision(check.run(df))
@@ -153,7 +153,7 @@ def test_condition_count_pass():
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
                                details='Passed for 1 columns',
-                               name='Number of outliers not greater than 10 string length outliers')
+                               name='Number of string length outliers is less or equal to 10')
     ))
 
 
@@ -165,7 +165,7 @@ def test_condition_ratio_fail():
     data = {'col1': col_data}
     df = pd.DataFrame(data=data)
     # Act
-    check = StringLengthOutOfBounds().add_condition_ratio_of_outliers_not_greater_than(0.001)
+    check = StringLengthOutOfBounds().add_condition_ratio_of_outliers_less_or_equal(0.001)
 
     # Act
     result = check.conditions_decision(check.run(df))
@@ -174,7 +174,7 @@ def test_condition_ratio_fail():
         equal_condition_result(is_pass=False,
                                details='Found 1 out of 1 relevant columns with outliers ratio above threshold: '
                                        '{\'col1\': \'0.99%\'}',
-                               name='Ratio of outliers not greater than 0.1% string length outliers',
+                               name='Ratio of string length outliers is less or equal to 0.1%',
                                category=ConditionCategory.WARN)
     ))
 
@@ -187,7 +187,7 @@ def test_condition_ratio_pass():
     data = {'col1': col_data}
     df = pd.DataFrame(data=data)
     # Act
-    check = StringLengthOutOfBounds().add_condition_ratio_of_outliers_not_greater_than(0.1)
+    check = StringLengthOutOfBounds().add_condition_ratio_of_outliers_less_or_equal(0.1)
 
     # Act
     result = check.conditions_decision(check.run(df))
@@ -195,7 +195,7 @@ def test_condition_ratio_pass():
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
                                details='Passed for 1 relevant column',
-                               name='Ratio of outliers not greater than 10% string length outliers')
+                               name='Ratio of string length outliers is less or equal to 10%')
     ))
 
 
@@ -203,12 +203,12 @@ def test_condition_pass_on_no_outliers():
     # Arrange
     col_data = ['a', 'b'] * 100
     df = pd.DataFrame(data={'col1': col_data})
-    check = StringLengthOutOfBounds().add_condition_ratio_of_outliers_not_greater_than(0)
+    check = StringLengthOutOfBounds().add_condition_ratio_of_outliers_less_or_equal(0)
     # Act
     result = check.run(df)
     # Assert
     assert_that(result.conditions_results, has_items(
         equal_condition_result(is_pass=True,
                                details='Passed for 1 relevant column',
-                               name='Ratio of outliers not greater than 0% string length outliers')
+                               name='Ratio of string length outliers is less or equal to 0%')
     ))

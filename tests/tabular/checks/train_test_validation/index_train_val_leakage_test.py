@@ -72,14 +72,14 @@ def test_condition_leakage_fail():
     # Arrange
     train_ds = dataset_from_dict({'col1': [1, 2, 3, 4, 10, 11, np.nan]}, 'col1')
     val_ds = dataset_from_dict({'col1': [4, 5, 6, 7, np.nan]}, 'col1')
-    check = IndexTrainTestLeakage(n_index_to_show=1).add_condition_ratio_not_greater_than(max_ratio=0.19)
+    check = IndexTrainTestLeakage(n_index_to_show=1).add_condition_ratio_less_or_equal(max_ratio=0.19)
 
     result = check.conditions_decision(check.run(train_ds, val_ds))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                details='Found 20% of index leakage',
-                               name='Ratio of leaking indices is not greater than 19%')
+                               name='Ratio of leaking indices is less or equal to 19%')
     ))
 
 
@@ -87,12 +87,12 @@ def test_condition_leakage_passesl():
     # Arrange
     train_ds = dataset_from_dict({'col1': [1, 2, 3, 4, 10, 11]}, 'col1')
     val_ds = dataset_from_dict({'col1': [20, 5, 6, 7]}, 'col1')
-    check = IndexTrainTestLeakage(n_index_to_show=1).add_condition_ratio_not_greater_than()
+    check = IndexTrainTestLeakage(n_index_to_show=1).add_condition_ratio_less_or_equal()
 
     result = check.conditions_decision(check.run(train_ds, val_ds))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
                                details='No index leakage found',
-                               name='Ratio of leaking indices is not greater than 0%')
+                               name='Ratio of leaking indices is less or equal to 0%')
     ))

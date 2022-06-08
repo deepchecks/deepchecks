@@ -59,7 +59,7 @@ def test_classification_w_params(mnist_dataset_train, mock_trained_mnist, device
     # params that should run normally
     check = SingleDatasetScalarPerformance(Precision(), torch.max, reduce_name='max')
     check.add_condition_greater_than(0.5)
-    check.add_condition_less_equal_to(0.2)
+    check.add_condition_less_or_equal(0.2)
     result = check.run(mnist_dataset_train, mock_trained_mnist, device=device)
     assert_that(type(result.value['score']), equal_to(float))
     assert_that(result.value['score'], close_to(0.993, 0.001))

@@ -24,9 +24,9 @@ test = Dataset(test, features=['x1', 'x2', 'x3'], label='label')
 
 check_instance = (
     DatasetsSizeComparison()
-    .add_condition_train_dataset_not_smaller_than_test()
-    .add_condition_test_size_not_smaller_than(100)
-    .add_condition_test_train_size_ratio_not_smaller_than(0.2)
+    .add_condition_train_dataset_greater_or_equal_test()
+    .add_condition_test_size_greater_or_equal(100)
+    .add_condition_test_train_size_ratio_greater_than(0.2)
 )
 
 #%%

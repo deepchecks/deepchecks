@@ -64,5 +64,5 @@ check.run(modified_iris)
 # Now, we define a condition that enforces that the ratio of outlier samples in out dataset is below 0.001.
 
 check = OutlierSampleDetection()
-check.add_condition_outlier_ratio_not_greater_than(max_outliers_ratio=0.001, outlier_score_threshold=0.9)
+check.add_condition_outlier_ratio_less_or_equal(max_outliers_ratio=0.001, outlier_score_threshold=0.9)
 check.run(modified_iris)

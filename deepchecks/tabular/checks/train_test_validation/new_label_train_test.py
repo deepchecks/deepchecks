@@ -76,8 +76,8 @@ class NewLabelTrainTest(TrainTestCheck):
 
         return CheckResult(result, display=display)
 
-    def add_condition_new_labels_not_greater_than(self, max_new: int = 0):
-        """Add condition - require label column not to have greater than given number of different new labels.
+    def add_condition_new_labels_number_less_or_equal(self, max_new: int = 0):
+        """Add condition - require label column's number of different new labels to be less or equal to the threshold.
 
         Parameters
         ----------
@@ -89,15 +89,15 @@ class NewLabelTrainTest(TrainTestCheck):
                 new_labels = result['new_labels']
                 num_new_labels = len(new_labels)
                 details = f'Found {num_new_labels} new labels in test data: {new_labels}'
-                category = ConditionCategory.FAIL if num_new_labels > max_new else ConditionCategory.PASS
+                category = ConditionCategory.PASS if num_new_labels <= max_new else ConditionCategory.FAIL
                 return ConditionResult(category, details)
             return ConditionResult(ConditionCategory.PASS, 'No new labels found')
 
-        return self.add_condition(f'Number of new label values is not greater than {max_new}',
+        return self.add_condition(f'Number of new label values is less or equal to {max_new}',
                                   condition)
 
-    def add_condition_new_label_ratio_not_greater_than(self, max_ratio: float = 0):
-        """Add condition - require label column not to have greater than given number of ratio new label samples.
+    def add_condition_new_label_ratio_less_or_equal(self, max_ratio: float = 0):
+        """Add condition - require label column's ratio of new label samples to be less or equal to the threshold.
 
         Parameters
         ----------
@@ -109,10 +109,10 @@ class NewLabelTrainTest(TrainTestCheck):
                 new_labels = result['new_labels']
                 new_label_ratio = result['n_new_labels_samples'] / result['n_samples']
                 details = f'Found {format_percent(new_label_ratio)} of labels in test data are new labels: {new_labels}'
-                category = ConditionCategory.FAIL if new_label_ratio > max_ratio else ConditionCategory.PASS
+                category = ConditionCategory.PASS if new_label_ratio <= max_ratio else ConditionCategory.FAIL
                 return ConditionResult(category, details)
             return ConditionResult(ConditionCategory.PASS, 'No new labels found')
 
         return self.add_condition(
-            f'Ratio of samples with new label is not greater than {format_percent(max_ratio)}',
+            f'Ratio of samples with new label is less or equal to {format_percent(max_ratio)}',
             new_category_count_condition)

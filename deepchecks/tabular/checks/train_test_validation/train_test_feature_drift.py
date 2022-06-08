@@ -216,13 +216,13 @@ class TrainTestFeatureDrift(TrainTestCheck):
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Feature Drift')
 
-    def add_condition_drift_score_not_greater_than(self, max_allowed_categorical_score: float = 0.2,
-                                                   max_allowed_numeric_score: float = 0.1,
-                                                   number_of_top_features_to_consider: int = 5,
-                                                   max_allowed_psi_score: float = None,
-                                                   max_allowed_earth_movers_score: float = None):
+    def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.2,
+                                            max_allowed_numeric_score: float = 0.1,
+                                            allowed_num_features_exceeding_threshold: int = 0,
+                                            max_allowed_psi_score: float = None,
+                                            max_allowed_earth_movers_score: float = None):
         """
-        Add condition - require drift score to not be more than a certain threshold.
+        Add condition - require drift score to be less than the threshold.
 
         The industry standard for PSI limit is above 0.2.
         Cramer's V does not have a common industry standard.
@@ -231,12 +231,11 @@ class TrainTestFeatureDrift(TrainTestCheck):
         Parameters
         ----------
         max_allowed_categorical_score: float , default: 0.2
-            the max threshold for the categorical variable drift score
+            The max threshold for the categorical variable drift score
         max_allowed_numeric_score: float ,  default: 0.1
-            the max threshold for the numeric variable drift score
-        number_of_top_features_to_consider: int , default: 5
-            the number of top features for which exceed the threshold will fail the
-            condition.
+            The max threshold for the numeric variable drift score
+        allowed_num_features_exceeding_threshold: int , default: 0
+            Determines the number of features with drift score above threshold needed to fail the condition.
         max_allowed_psi_score: float, default None
             Deprecated. Please use max_allowed_categorical_score instead
         max_allowed_earth_movers_score: float, default None
@@ -245,7 +244,7 @@ class TrainTestFeatureDrift(TrainTestCheck):
         Returns
         -------
         ConditionResult
-            False if any column has passed the max threshold, True otherwise
+            False if more than allowed_num_features_exceeding_threshold drift scores are above threshold, True otherwise
         """
         if max_allowed_psi_score is not None:
             warnings.warn(
@@ -265,8 +264,8 @@ class TrainTestFeatureDrift(TrainTestCheck):
                 max_allowed_numeric_score = max_allowed_earth_movers_score
 
         condition = drift_condition(max_allowed_categorical_score, max_allowed_numeric_score, 'column', 'columns',
-                                    number_of_top_features_to_consider)
+                                    allowed_num_features_exceeding_threshold)
 
-        return self.add_condition(f'categorical drift score <= {max_allowed_categorical_score} and '
-                                  f'numerical drift score <= {max_allowed_numeric_score}',
+        return self.add_condition(f'categorical drift score < {max_allowed_categorical_score} and '
+                                  f'numerical drift score < {max_allowed_numeric_score}',
                                   condition)

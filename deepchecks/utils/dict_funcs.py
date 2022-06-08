@@ -10,11 +10,11 @@
 #
 """Contain common functions on dictionaries."""
 
-__all__ = ['get_max_entry_from_dict', 'sort_dict']
+__all__ = ['get_dict_entry_by_value', 'sort_dict']
 
 
-def get_max_entry_from_dict(x: dict):
-    """Get from dictionary the entry with maximal value.
+def get_dict_entry_by_value(x: dict, value_select_fn=max):
+    """Get from dictionary the entry with value that returned from value_select_fn.
 
     Returns
     -------
@@ -22,8 +22,9 @@ def get_max_entry_from_dict(x: dict):
     """
     if not x:
         return None, None
-    max_key = max(x, key=x.get)
-    return max_key, x[max_key]
+    value = value_select_fn(x.values())
+    index = list(x.values()).index(value)
+    return list(x.keys())[index], value
 
 
 def sort_dict(x: dict, reverse=True):

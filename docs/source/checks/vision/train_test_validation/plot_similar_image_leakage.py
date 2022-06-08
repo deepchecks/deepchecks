@@ -114,6 +114,6 @@ check.run(train_ds, test_ds_modified)
 # We can define on our check a condition that will validate no similar images where found. The default is that no
 # similar images are allowed at all, but this can be modified as shown here.
 
-check = SimilarImageLeakage().add_condition_similar_images_not_more_than(3)
+check = SimilarImageLeakage().add_condition_similar_images_less_or_equal(3)
 result = check.run(train_dataset=train_ds, test_dataset=test_ds_modified)
 result.show(show_additional_outputs=False)

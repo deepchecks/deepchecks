@@ -91,8 +91,8 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
 
         return CheckResult(value=results, display=[results, fig])
 
-    def add_condition_mean_average_precision_not_less_than(self: MPR, min_score: float) -> MPR:
-        """Add condition - mAP scores in different area thresholds is not less than given score.
+    def add_condition_mean_average_precision_greater_than(self: MPR, min_score: float) -> MPR:
+        """Add condition - mAP scores in different area thresholds is greater than given score.
 
         Parameters
         ----------
@@ -106,15 +106,15 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
             score = min_score_per_row[loc_min_row]
             area = min_col_per_row.index[loc_min_row]
             iou = min_col_per_row[loc_min_row]
-            category = ConditionCategory.FAIL if score < min_score else ConditionCategory.PASS
+            category = ConditionCategory.PASS if score > min_score else ConditionCategory.FAIL
 
             details = f'Found lowest score of {format_number(score)} for area {area} and IoU {iou}'
             return ConditionResult(category, details)
 
-        return self.add_condition(f'Scores are not less than {min_score}', condition)
+        return self.add_condition(f'Scores are greater than {min_score}', condition)
 
-    def add_condition_average_mean_average_precision_not_less_than(self: MPR, min_score: float = 0.3) -> MPR:
-        """Add condition - average mAP for IoU values between 0.5 to 0.9 in all areas is not less than given score.
+    def add_condition_average_mean_average_precision_greater_than(self: MPR, min_score: float = 0.3) -> MPR:
+        """Add condition - average mAP for IoU values between 0.5 to 0.9 in all areas is greater than given score.
 
         Parameters
         ----------
@@ -125,7 +125,7 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
             df = df.reset_index()
             value = df.loc[df['Area size'] == 'All', :]['mAP@[.50::.95] (avg.%)'][0]
             details = f'mAP score is: {format_number(value)}'
-            category = ConditionCategory.FAIL if value < min_score else ConditionCategory.PASS
+            category = ConditionCategory.PASS if value > min_score else ConditionCategory.FAIL
             return ConditionResult(category, details)
 
-        return self.add_condition(f'mAP score is not less than {min_score}', condition)
+        return self.add_condition(f'mAP score is greater than {min_score}', condition)

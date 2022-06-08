@@ -133,8 +133,8 @@ class IdentifierLeakage(SingleDatasetCheck):
 
         return CheckResult(value=s_ppscore.to_dict(), display=display)
 
-    def add_condition_pps_not_greater_than(self, max_pps: float = 0):
-        """Add condition - require columns not to have a greater pps than given max.
+    def add_condition_pps_less_or_equal(self, max_pps: float = 0):
+        """Add condition - require columns' pps to be less or equal to threshold.
 
         Parameters
         ----------
@@ -151,4 +151,4 @@ class IdentifierLeakage(SingleDatasetCheck):
                 return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))
 
         return self.add_condition(
-            f'Identifier columns PPS is not greater than {format_number(max_pps)}', compare_pps)
+            f'Identifier columns PPS is less or equal to {format_number(max_pps)}', compare_pps)

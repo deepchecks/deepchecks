@@ -63,7 +63,7 @@ def test_drift_classification_label_cramer(drifted_data_and_model):
 def test_drift_max_drift_score_condition_fail_psi(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI').add_condition_drift_score_not_greater_than()
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI').add_condition_drift_score_less_than()
 
     # Act
     result = check.run(train, test, model)
@@ -72,7 +72,7 @@ def test_drift_max_drift_score_condition_fail_psi(drifted_data_and_model):
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name='categorical drift score <= 0.15 and numerical drift score <= 0.075',
+        name='categorical drift score < 0.15 and numerical drift score < 0.075',
         details='Found model prediction PSI drift score of 0.79'
     ))
 
@@ -81,8 +81,8 @@ def test_drift_max_drift_score_condition_pass_threshold(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
     check = TrainTestPredictionDrift(categorical_drift_method='PSI') \
-        .add_condition_drift_score_not_greater_than(max_allowed_categorical_score=1,
-                                                    max_allowed_numeric_score=1)
+        .add_condition_drift_score_less_than(max_allowed_categorical_score=1,
+                                             max_allowed_numeric_score=1)
 
     # Act
     result = check.run(train, test, model)
@@ -92,5 +92,5 @@ def test_drift_max_drift_score_condition_pass_threshold(drifted_data_and_model):
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
         details='Found model prediction PSI drift score of 0.79',
-        name='categorical drift score <= 1 and numerical drift score <= 1'
+        name='categorical drift score < 1 and numerical drift score < 1'
     ))

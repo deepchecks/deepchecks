@@ -50,12 +50,12 @@ def test_empty_dataframe():
 
 def test_different_null_types():
     # Arrange
-    data = {'col1': [np.NAN, np.NaN, pd.NA, '$$$$$$$$', 'NULL']}
+    data = {'col1': [np.NAN, np.NaN, pd.NA, 'value', 'NULL']}
     dataframe = pd.DataFrame(data=data)
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value, has_entry('col1', has_length(4)))
+    assert_that(result.value, has_entry('col1', has_length(3)))
 
 
 def test_null_list_param():
@@ -131,12 +131,22 @@ def test_mix_value_columns():
 
 def test_single_column_nulls_with_special_characters():
     # Arrange
-    data = {'col1': ['', '#@$', 'Nan!', '#nan', '<NaN>']}
+    data = {'col1': ['', 'value', 'Nan!', '#nan', '<NaN>']}
     dataframe = pd.DataFrame(data=data)
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value, has_entry('col1', has_length(5)))
+    assert_that(result.value, has_entry('col1', has_length(4)))
+
+
+def test_single_column_nulls_only_special_characters():
+    # Arrange
+    data = {'col1': ['', '!@#$', 'Nan!', '#nan', '<NaN>']}
+    dataframe = pd.DataFrame(data=data)
+    # Act
+    result = MixedNulls().run(dataframe)
+    # Assert
+    assert_that(result.value, has_entry('col1', has_length(4)))
 
 
 def test_ignore_columns_single():
@@ -194,14 +204,14 @@ def test_condition_max_nulls_not_passed():
     # Arrange
     data = {'col1': ['', '#@$', 'Nan!', '#nan', '<NaN>']}
     dataset = Dataset(pd.DataFrame(data=data))
-    check = MixedNulls().add_condition_different_nulls_not_more_than(3)
+    check = MixedNulls().add_condition_different_nulls_less_equal_to(3)
 
     # Act
     result = check.conditions_decision(check.run(dataset))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Not more than 3 different null types',
+                               name='Number of different null types is less or equal to 3',
                                details='Found 1 out of 1 columns with amount of null types above threshold: [\'col1\']')
     ))
 
@@ -210,7 +220,7 @@ def test_condition_max_nulls_passed():
     # Arrange
     data = {'col1': ['', '#@$', 'Nan!', '#nan', '<NaN>']}
     dataset = Dataset(pd.DataFrame(data=data))
-    check = MixedNulls().add_condition_different_nulls_not_more_than(10)
+    check = MixedNulls().add_condition_different_nulls_less_equal_to(10)
 
     # Act
     result = check.conditions_decision(check.run(dataset))
@@ -218,7 +228,7 @@ def test_condition_max_nulls_passed():
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
                                details='Passed for 1 relevant column',
-                               name='Not more than 10 different null types')
+                               name='Number of different null types is less or equal to 10')
     ))
 
 

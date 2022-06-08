@@ -63,6 +63,6 @@ result.value
 # We can define a condition that checks whether our model's average recall score is not less than
 # a given threshold
 
-check = MeanAverageRecallReport().add_condition_test_average_recall_not_less_than(0.4)
+check = MeanAverageRecallReport().add_condition_test_average_recall_greater_than(0.4)
 result = check.run(test_ds, yolo)
 result.show(show_additional_outputs=False)

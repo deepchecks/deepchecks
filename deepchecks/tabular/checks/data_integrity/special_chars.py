@@ -98,16 +98,15 @@ class SpecialCharacters(SingleDatasetCheck):
 
         return CheckResult(result, display=display)
 
-    def add_condition_ratio_of_special_characters_not_grater_than(self, max_ratio: float = 0.001):
-        """Add condition - ratio of entirely special character in column.
+    def add_condition_ratio_of_special_characters_less_or_equal(self, max_ratio: float = 0.001):
+        """Add condition - ratio of entirely special character in column is less or equal to the threshold.
 
         Parameters
         ----------
         max_ratio : float , default: 0.001
             Maximum ratio allowed.
         """
-        name = f'Ratio of entirely special character samples not greater '\
-               f'than {format_percent(max_ratio)}'
+        name = f'Ratio of samples containing solely special character is less or equal to {format_percent(max_ratio)}'
 
         def condition(result):
             not_passed = {k: format_percent(v) for k, v in result.items() if v > max_ratio}
@@ -125,7 +124,7 @@ def _get_special_samples(column_data: pd.Series) -> Union[dict, None]:
         return None
     samples_to_count = defaultdict(lambda: 0)
     for sample in column_data:
-        if isinstance(sample, str) and len(sample) > 0 and len(string_baseform(sample)) == 0:
+        if isinstance(sample, str) and len(sample) > 0 and len(string_baseform(sample, True)) == 0:
             samples_to_count[sample] = samples_to_count[sample] + 1
 
     return samples_to_count or None

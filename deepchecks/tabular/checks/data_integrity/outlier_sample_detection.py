@@ -142,9 +142,9 @@ class OutlierSampleDetection(SingleDatasetCheck):
         quantiles_vector = np.quantile(prob_vector, np.array(range(1000)) / 1000, interpolation='higher')
         return CheckResult(quantiles_vector, display=[headnote, dataset_outliers])
 
-    def add_condition_outlier_ratio_not_greater_than(self, max_outliers_ratio: float = 0.005,
-                                                     outlier_score_threshold: float = 0.7):
-        """Add condition - no more than given ratio of samples over outlier score threshold are allowed.
+    def add_condition_outlier_ratio_less_or_equal(self, max_outliers_ratio: float = 0.005,
+                                                  outlier_score_threshold: float = 0.7):
+        """Add condition - ratio of samples over outlier score is less or equal to the threshold.
 
         Parameters
         ----------
@@ -155,8 +155,8 @@ class OutlierSampleDetection(SingleDatasetCheck):
         """
         if max_outliers_ratio > 1 or max_outliers_ratio < 0:
             raise DeepchecksValueError('max_outliers_ratio must be between 0 and 1')
-        name = f'Not more than {format_percent(max_outliers_ratio)} of dataset over ' \
-               f'outlier score {format_number(outlier_score_threshold)}'
+        name = f'Ratio of samples exceeding the outlier score threshold {format_number(outlier_score_threshold)} is ' \
+               f'less or equal to {format_percent(max_outliers_ratio)}'
         return self.add_condition(name, _condition_outliers_number, outlier_score_threshold=outlier_score_threshold,
                                   max_outliers_ratio=max_outliers_ratio)
 

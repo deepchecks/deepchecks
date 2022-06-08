@@ -84,7 +84,7 @@ def test_drift_no_model(drifted_data_and_model):
 def test_drift_max_drift_score_condition_fail(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check = TrainTestFeatureDrift(categorical_drift_method='PSI').add_condition_drift_score_not_greater_than()
+    check = TrainTestFeatureDrift(categorical_drift_method='PSI').add_condition_drift_score_less_than()
 
     # Act
     result = check.run(train, test, model)
@@ -93,7 +93,7 @@ def test_drift_max_drift_score_condition_fail(drifted_data_and_model):
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name='categorical drift score <= 0.2 and numerical drift score <= 0.1',
+        name='categorical drift score < 0.2 and numerical drift score < 0.1',
         details='Failed for 2 out of 4 columns.\n'
                 'Found 1 categorical columns with PSI above threshold: {\'categorical_with_drift\': \'0.22\'}\n'
                 'Found 1 numeric columns with Earth Mover\'s Distance above threshold: '
@@ -104,7 +104,7 @@ def test_drift_max_drift_score_condition_fail(drifted_data_and_model):
 def test_drift_max_drift_score_condition_fail_cramer(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check = TrainTestFeatureDrift(categorical_drift_method='cramer_v').add_condition_drift_score_not_greater_than()
+    check = TrainTestFeatureDrift(categorical_drift_method='cramer_v').add_condition_drift_score_less_than()
 
     # Act
     result = check.run(train, test, model)
@@ -113,7 +113,7 @@ def test_drift_max_drift_score_condition_fail_cramer(drifted_data_and_model):
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name='categorical drift score <= 0.2 and numerical drift score <= 0.1',
+        name='categorical drift score < 0.2 and numerical drift score < 0.1',
         details='Failed for 2 out of 4 columns.\n'
                 'Found 1 categorical columns with Cramer\'s V above threshold: {\'categorical_with_drift\': \'0.23\'}\n'
                 'Found 1 numeric columns with Earth Mover\'s Distance above threshold: '
@@ -125,8 +125,8 @@ def test_drift_max_drift_score_condition_pass_threshold(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
     check = TrainTestFeatureDrift(categorical_drift_method='PSI') \
-        .add_condition_drift_score_not_greater_than(max_allowed_categorical_score=1,
-                                                    max_allowed_numeric_score=1)
+        .add_condition_drift_score_less_than(max_allowed_categorical_score=1,
+                                             max_allowed_numeric_score=1)
 
     # Act
     result = check.run(train, test, model)
@@ -135,8 +135,27 @@ def test_drift_max_drift_score_condition_pass_threshold(drifted_data_and_model):
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
-        details='Passed for 4 columns.\n'
+        details='Passed for 4 columns out of 4 columns.\n'
                 'Found column "categorical_with_drift" has the highest categorical drift score: 0.22\n'
                 'Found column "numeric_with_drift" has the highest numerical drift score: 0.34',
-        name='categorical drift score <= 1 and numerical drift score <= 1'
+        name='categorical drift score < 1 and numerical drift score < 1'
+    ))
+
+
+def test_drift_max_drift_score_multi_columns_drift_pass(drifted_data_and_model):
+    # Arrange
+    train, test, model = drifted_data_and_model
+    check = TrainTestFeatureDrift(categorical_drift_method='PSI') \
+        .add_condition_drift_score_less_than(allowed_num_features_exceeding_threshold=2)
+    # Act
+    result = check.run(train, test, model)
+    condition_result, *_ = result.conditions_results
+
+    # Assert
+    assert_that(condition_result, equal_condition_result(
+        is_pass=True,
+        details='Passed for 2 columns out of 4 columns.\n'
+                'Found column "categorical_with_drift" has the highest categorical drift score: 0.22\n'
+                'Found column "numeric_with_drift" has the highest numerical drift score: 0.34',
+        name='categorical drift score < 0.2 and numerical drift score < 0.1'
     ))

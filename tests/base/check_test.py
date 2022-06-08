@@ -9,13 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """Tests for BaseCheck class."""
-# pylint: disable=protected-access
-from hamcrest import (all_of, assert_that, calling, contains_exactly, equal_to, has_items, has_length, has_property,
-                      is_, is_not, raises)
+# pylint: disable-all
+from hamcrest import (all_of, calling, contains_exactly, equal_to, has_items, has_length, has_property,
+                      is_, raises)
 
-from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
+from deepchecks.core import ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.tabular import Context, TrainTestCheck
 from tests.conftest import *
 
 

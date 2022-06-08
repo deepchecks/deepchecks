@@ -30,13 +30,13 @@ def train_test_validation(**kwargs) -> Suite:
     distribution and leakage checks."""
     return Suite(
         'Train Test Validation Suite',
-        NewLabels(**kwargs).add_condition_new_label_ratio_not_greater_than(),
-        SimilarImageLeakage(**kwargs).add_condition_similar_images_not_more_than(),
+        NewLabels(**kwargs).add_condition_new_label_ratio_less_or_equal(),
+        SimilarImageLeakage(**kwargs).add_condition_similar_images_less_or_equal(),
         HeatmapComparison(**kwargs),
-        TrainTestLabelDrift(**kwargs).add_condition_drift_score_not_greater_than(),
-        ImagePropertyDrift(**kwargs).add_condition_drift_score_not_greater_than(),
+        TrainTestLabelDrift(**kwargs).add_condition_drift_score_less_than(),
+        ImagePropertyDrift(**kwargs).add_condition_drift_score_less_than(),
         ImageDatasetDrift(**kwargs),
-        FeatureLabelCorrelationChange(**kwargs).add_condition_feature_pps_difference_not_greater_than(),
+        FeatureLabelCorrelationChange(**kwargs).add_condition_feature_pps_difference_less_than(),
     )
 
 
@@ -44,13 +44,13 @@ def model_evaluation(**kwargs) -> Suite:
     """Create a suite that is meant to test model performance and overfit."""
     return Suite(
         'Model Evaluation Suite',
-        ClassPerformance(**kwargs).add_condition_train_test_relative_degradation_not_greater_than(),
-        MeanAveragePrecisionReport(**kwargs).add_condition_average_mean_average_precision_not_less_than(),
+        ClassPerformance(**kwargs).add_condition_train_test_relative_degradation_less_than(),
+        MeanAveragePrecisionReport(**kwargs).add_condition_average_mean_average_precision_greater_than(),
         MeanAverageRecallReport(**kwargs),
-        TrainTestPredictionDrift(**kwargs).add_condition_drift_score_not_greater_than(),
-        SimpleModelComparison(**kwargs).add_condition_gain_not_less_than(),
+        TrainTestPredictionDrift(**kwargs).add_condition_drift_score_less_than(),
+        SimpleModelComparison(**kwargs).add_condition_gain_greater_than(),
         ConfusionMatrixReport(**kwargs),
-        ImageSegmentPerformance(**kwargs).add_condition_score_from_mean_ratio_not_less_than(),
+        ImageSegmentPerformance(**kwargs).add_condition_score_from_mean_ratio_greater_than(),
         ModelErrorAnalysis(**kwargs)
     )
 

@@ -201,7 +201,7 @@ def test_boosting_classifier_with_metric(iris):
 def test_condition_score_decline_not_greater_than_pass(diabetes, diabetes_model):
     # Arrange
     train, validation = diabetes
-    check = BoostingOverfit().add_condition_test_score_percent_decline_not_greater_than()
+    check = BoostingOverfit().add_condition_test_score_percent_decline_less_than()
 
     # Act
     condition_result, *_ = check.conditions_decision(check.run(train, validation, diabetes_model))
@@ -210,14 +210,14 @@ def test_condition_score_decline_not_greater_than_pass(diabetes, diabetes_model)
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
         details='Found score decline of -3.64%',
-        name='Test score over iterations doesn\'t decline by more than 5% from the best score'
+        name='Test score over iterations is less than 5% from the best score'
     ))
 
 
 def test_condition_score_percentage_decline_not_greater_than_not_pass(diabetes, diabetes_model):
     # Arrange
     train, validation = diabetes
-    check = BoostingOverfit().add_condition_test_score_percent_decline_not_greater_than(0.01)
+    check = BoostingOverfit().add_condition_test_score_percent_decline_less_than(0.01)
 
     # Act
     condition_result, *_ = check.conditions_decision(check.run(train, validation, diabetes_model))
@@ -225,6 +225,6 @@ def test_condition_score_percentage_decline_not_greater_than_not_pass(diabetes, 
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name='Test score over iterations doesn\'t decline by more than 1% from the best score',
+        name='Test score over iterations is less than 1% from the best score',
         details='Found score decline of -3.64%'
     ))

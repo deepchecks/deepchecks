@@ -82,14 +82,14 @@ def test_condition_ratio_more_than_not_passed(iris_clean):
                  features=iris_clean.feature_names,
                  label='target')
 
-    check = RocReport().add_condition_auc_not_less_than(min_auc=0.8)
+    check = RocReport().add_condition_auc_greater_than(min_auc=0.8)
 
     # Act
     result = check.conditions_decision(check.run(ds, clf))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='AUC score for all the classes is not less than 0.8',
+                               name='AUC score for all the classes is greater than 0.8',
                                details='Found classes with AUC below threshold: {1: \'0.71\'}')
     ))
 
@@ -104,22 +104,22 @@ def test_condition_ratio_more_than_passed(iris_clean):
                  features=iris_clean.feature_names,
                  label='target')
 
-    check = RocReport().add_condition_auc_not_less_than()
+    check = RocReport().add_condition_auc_greater_than()
 
     result = check.conditions_decision(check.run(ds, clf))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               details='All classes passed, average AUC is 0.9',
-                               name='AUC score for all the classes is not less than 0.7')
+                               details='All classes passed, minimum AUC found is 0.71 for class 1',
+                               name='AUC score for all the classes is greater than 0.7')
     ))
 
-    check = RocReport(excluded_classes=[1]).add_condition_auc_not_less_than(min_auc=0.8)
+    check = RocReport(excluded_classes=[1]).add_condition_auc_greater_than(min_auc=0.8)
 
     result = check.conditions_decision(check.run(ds, clf))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               details='All classes passed, average AUC is 1',
-                               name='AUC score for all the classes except: [1] is not less than 0.8')
+                               details='All classes passed, minimum AUC found is 1 for class 2',
+                               name='AUC score for all the classes except: [1] is greater than 0.8')
     ))
