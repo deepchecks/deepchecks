@@ -120,7 +120,7 @@ def load_fitted_model(pretrained=True):
     else:
         model = _build_model()
         train, _ = load_data()
-        model.fit(train.data[_FEATURES], train.data[_target])
+        model.fit(train.features_columns, train.data[_target])
     return model
 
 
