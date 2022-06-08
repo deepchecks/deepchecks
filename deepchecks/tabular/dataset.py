@@ -11,37 +11,42 @@
 """The dataset module containing the tabular Dataset class and its functions."""
 # pylint: disable=inconsistent-quotes,protected-access
 import typing as t
-import logging
+import warnings
 from functools import lru_cache
 
 import numpy as np
 import pandas as pd
+from IPython.display import HTML, display_html
+from pandas.api.types import infer_dtype
 from pandas.core.dtypes.common import is_numeric_dtype
 from sklearn.model_selection import train_test_split
+from typing_extensions import Literal as L
 
+from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.features import is_categorical, infer_categorical_features
+from deepchecks.utils.features import infer_categorical_features, infer_numerical_features, is_categorical
+from deepchecks.utils.strings import get_docs_link
 from deepchecks.utils.typing import Hashable
-from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError, DeepchecksNotSupportedError
-
 
 __all__ = ['Dataset']
 
 
-logger = logging.getLogger('deepchecks.dataset')
 TDataset = t.TypeVar('TDataset', bound='Dataset')
+DatasetReprFmt = t.Union[L['string'], L['html']]  # noqa: F821
 
 
 class Dataset:
-    """Dataset wraps pandas DataFrame together with ML related metadata.
+    """
+    Dataset wraps pandas DataFrame together with ML related metadata.
 
     The Dataset class is containing additional data and methods intended for easily accessing
     metadata relevant for the training or validating of an ML models.
 
     Parameters
     ----------
-    df : pd.DataFrame
-        A pandas DataFrame containing data relevant for the training or validating of a ML models.
+    df : Any
+        An object that can be casted to a pandas DataFrame
+         - containing data relevant for the training or validating of a ML models.
     label : t.Union[Hashable, pd.Series, pd.DataFrame, np.ndarray] , default: None
         label column provided either as a string with the name of an existing column in the DataFrame or a label
         object including the label data (pandas Series/DataFrame or a numpy array) that will be concatenated to the
@@ -93,6 +98,7 @@ class Dataset:
     _set_index_from_dataframe_index: t.Optional[bool]
     _datetime_name: t.Optional[Hashable]
     _set_datetime_from_dataframe_index: t.Optional[bool]
+    _convert_datetime: t.Optional[bool]
     _datetime_column: t.Optional[pd.Series]
     _cat_features: t.List[Hashable]
     _data: pd.DataFrame
@@ -102,7 +108,7 @@ class Dataset:
 
     def __init__(
             self,
-            df: pd.DataFrame,
+            df: t.Any,
             label: t.Union[Hashable, pd.Series, pd.DataFrame, np.ndarray] = None,
             features: t.Optional[t.Sequence[Hashable]] = None,
             cat_features: t.Optional[t.Sequence[Hashable]] = None,
@@ -118,7 +124,9 @@ class Dataset:
             label_type: str = None
     ):
 
-        self._data = df.copy()
+        if len(df) == 0:
+            raise DeepchecksValueError('Can\'t create a Dataset object with an empty dataframe')
+        self._data = pd.DataFrame(df).copy()
 
         # Validations
         if label is None:
@@ -234,6 +242,7 @@ class Dataset:
         self._label_name = label_name
         self._index_name = index_name
         self._set_index_from_dataframe_index = set_index_from_dataframe_index
+        self._convert_datetime = convert_datetime
         self._datetime_name = datetime_name
         self._set_datetime_from_dataframe_index = set_datetime_from_dataframe_index
         self._datetime_args = datetime_args or {}
@@ -253,9 +262,9 @@ class Dataset:
 
         if cat_features is not None:
             if set(cat_features).intersection(set(self._features)) != set(cat_features):
-                raise DeepchecksValueError(f'Categorical features must be a subset of features. '
+                raise DeepchecksValueError('Categorical features must be a subset of features. '
                                            f'Categorical features {set(cat_features) - set(self._features)} '
-                                           f'have not been found in feature list.')
+                                           'have not been found in feature list.')
             self._cat_features = list(cat_features)
         else:
             self._cat_features = self._infer_categorical_features(
@@ -283,6 +292,9 @@ class Dataset:
             )
         else:
             self._label_type = None
+
+        unassigned_cols = [col for col in self._features if col not in self._cat_features]
+        self._numerical_features = infer_numerical_features(self._data[unassigned_cols])
 
     @classmethod
     def from_numpy(
@@ -320,7 +332,7 @@ class Dataset:
         Examples
         --------
         >>> import numpy
-        >>> from deepchecks import Dataset
+        >>> from deepchecks.tabular import Dataset
 
         >>> features = numpy.array([[0.25, 0.3, 0.3],
         ...                        [0.14, 0.75, 0.3],
@@ -421,7 +433,7 @@ class Dataset:
         return cls(new_data, features=features, cat_features=cat_features, label=label_name,
                    index_name=index, set_index_from_dataframe_index=self._set_index_from_dataframe_index,
                    datetime_name=date, set_datetime_from_dataframe_index=self._set_datetime_from_dataframe_index,
-                   convert_datetime=False, max_categorical_ratio=self._max_categorical_ratio,
+                   convert_datetime=self._convert_datetime, max_categorical_ratio=self._max_categorical_ratio,
                    max_categories=self._max_categories, label_type=self.label_type)
 
     def sample(self: TDataset, n_samples: int, replace: bool = False, random_state: t.Optional[int] = None,
@@ -462,16 +474,6 @@ class Dataset:
         """
         return self.data.shape[0]
 
-    def __len__(self) -> int:
-        """Return number of samples in the member dataframe.
-
-        Returns
-        -------
-        int
-
-        """
-        return self.n_samples
-
     @property
     def label_type(self) -> t.Optional[str]:
         """Return the label type.
@@ -504,7 +506,7 @@ class Dataset:
         random_state : int , default: 42
             The random state to use for shuffling.
         shuffle : bool , default: True
-            Whether or not to shuffle the data before splitting.
+            Whether to shuffle the data before splitting.
         stratify : t.Union[t.List, pd.Series, np.ndarray, bool] , default: False
             If True, data is split in a stratified fashion, using the class labels. If array-like, data is split in
             a stratified fashion, using this as class labels.
@@ -570,21 +572,18 @@ class Dataset:
             columns=columns
         )
 
+        message = ('It is recommended to initialize Dataset with categorical features by doing '
+                   '"Dataset(df, cat_features=categorical_list)". No categorical features were passed, therefore '
+                   'heuristically inferring categorical features in the data.\n'
+                   f'{len(categorical_columns)} categorical features were inferred')
+
         if len(categorical_columns) > 0:
-            columns = list(map(str, categorical_columns))[:7]
-            stringified_columns = ", ".join(columns)
-            if len(categorical_columns) < 7:
-                logger.warning(
-                    'Automatically inferred these columns as categorical features: %s. \n',
-                    stringified_columns
-                )
-            else:
-                logger.warning(
-                    'Some columns have been inferred as categorical features: '
-                    '%s. \n and more... \n For the full list '
-                    'of columns, use dataset.cat_features',
-                    stringified_columns
-                )
+            columns_to_print = categorical_columns[:7]
+            message += ': ' + ', '.join(list(map(str, columns_to_print)))
+            if len(categorical_columns) > len(columns_to_print):
+                message += '... For full list use dataset.cat_features'
+
+        warnings.warn(message)
 
         return categorical_columns
 
@@ -630,11 +629,12 @@ class Dataset:
            If index column exists, returns a pandas Series of the index column.
         """
         if self._set_index_from_dataframe_index is True:
+            index_name = self.data.index.name or 'index'
             if self._index_name is None:
-                return pd.Series(self.data.index.get_level_values(0), name=self.data.index.name,
+                return pd.Series(self.data.index.get_level_values(0), name=index_name,
                                  index=self.data.index)
             elif isinstance(self._index_name, (str, int)):
-                return pd.Series(self.data.index.get_level_values(self._index_name), name=self.data.index.name,
+                return pd.Series(self.data.index.get_level_values(self._index_name), name=index_name,
                                  index=self.data.index)
             else:
                 raise DeepchecksValueError(f'Don\'t know to handle index_name of type {type(self._index_name)}')
@@ -656,11 +656,12 @@ class Dataset:
 
     def get_datetime_column_from_index(self, datetime_name):
         """Retrieve the datetime info from the index if _set_datetime_from_dataframe_index is True."""
+        index_name = self.data.index.name or 'datetime'
         if datetime_name is None:
-            return pd.Series(self.data.index.get_level_values(0), name='datetime',
+            return pd.Series(self.data.index.get_level_values(0), name=index_name,
                              index=self.data.index)
         elif isinstance(datetime_name, (str, int)):
-            return pd.Series(self.data.index.get_level_values(datetime_name), name='datetime',
+            return pd.Series(self.data.index.get_level_values(datetime_name), name=index_name,
                              index=self.data.index)
 
     @property
@@ -672,12 +673,13 @@ class Dataset:
         t.Optional[pd.Series]
             Series of the datetime column
         """
-        if self._set_datetime_from_dataframe_index is True:
+        if self._set_datetime_from_dataframe_index is True and self._datetime_column is not None:
             return self._datetime_column
         elif self._datetime_name is not None:
             return self.data[self._datetime_name]
-        else:  # No meaningful Datetime to use: Datetime column not configured, and _set_datetime_from_dataframe_index
-            # is False
+        else:
+            # No meaningful Datetime to use:
+            # Datetime column not configured, and _set_datetime_from_dataframe_index is False
             return
 
     @property
@@ -736,6 +738,17 @@ class Dataset:
         return list(self._cat_features)
 
     @property
+    def numerical_features(self) -> t.List[Hashable]:
+        """Return list of numerical feature names.
+
+         Returns
+        -------
+        t.List[Hashable]
+           List of categorical feature names.
+        """
+        return list(self._numerical_features)
+
+    @property
     @lru_cache(maxsize=128)
     def classes(self) -> t.Tuple[str, ...]:
         """Return the classes from label column in sorted list. if no label column defined, return empty list.
@@ -769,8 +782,10 @@ class Dataset:
             elif column in self._features:
                 if column in self.cat_features:
                     value = 'categorical feature'
-                else:
+                elif column in self.numerical_features:
                     value = 'numerical feature'
+                else:
+                    value = 'other feature'
             else:
                 value = 'other'
             columns[column] = value
@@ -784,8 +799,10 @@ class Dataset:
         DeepchecksNotSupportedError
         """
         if not self.label_name:
-            raise DeepchecksNotSupportedError('There is no label defined to use. Did you pass a DataFrame '
-                                              'instead of a Dataset?')
+            raise DeepchecksNotSupportedError(
+                'Dataset does not contain a label column',
+                html=f'Dataset does not contain a label column. see {_get_dataset_docs_tag()}'
+            )
 
     def assert_features(self):
         """Check if features are defined (not empty) and if not raise error.
@@ -795,8 +812,10 @@ class Dataset:
         DeepchecksNotSupportedError
         """
         if not self.features:
-            raise DeepchecksNotSupportedError('There are no features defined to use. Did you pass a DataFrame '
-                                              'instead of a Dataset?')
+            raise DeepchecksNotSupportedError(
+                'Dataset does not contain any feature columns',
+                html=f'Dataset does not contain any feature columns. see {_get_dataset_docs_tag()}'
+            )
 
     def assert_datetime(self):
         """Check if datetime is defined and if not raise error.
@@ -806,8 +825,10 @@ class Dataset:
         DeepchecksNotSupportedError
         """
         if not (self._set_datetime_from_dataframe_index or self._datetime_name):
-            raise DatasetValidationError('There is no datetime defined to use. Did you pass a DataFrame instead '
-                                         'of a Dataset?')
+            raise DatasetValidationError(
+                'Dataset does not contain a datetime',
+                html=f'Dataset does not contain a datetime. see {_get_dataset_docs_tag()}'
+            )
 
     def assert_index(self):
         """Check if index is defined and if not raise error.
@@ -817,8 +838,10 @@ class Dataset:
         DeepchecksNotSupportedError
         """
         if not (self._set_index_from_dataframe_index or self._index_name):
-            raise DatasetValidationError('There is no index defined to use. Did you pass a DataFrame instead '
-                                         'of a Dataset?')
+            raise DatasetValidationError(
+                'Dataset does not contain an index',
+                html=f'Dataset does not contain an index. see {_get_dataset_docs_tag()}'
+            )
 
     def select(
             self: TDataset,
@@ -855,7 +878,7 @@ class Dataset:
             return self.copy(new_data)
 
     @classmethod
-    def ensure_not_empty_dataset(cls, obj: t.Any) -> 'Dataset':
+    def cast_to_dataset(cls, obj: t.Any) -> 'Dataset':
         """Verify Dataset or transform to Dataset.
 
         Function verifies that provided value is a non-empty instance of Dataset,
@@ -872,18 +895,18 @@ class Dataset:
         DeepchecksValueError
             if the provided value is not a Dataset instance;
             if the provided value cannot be transformed into Dataset instance;
-        DatasetValidationError
-            if the provided value is empty Dataset instance;
         """
         if isinstance(obj, pd.DataFrame):
-            obj = Dataset(obj, features=[], cat_features=[])
+            warnings.warn(
+                'Received a "pandas.DataFrame" instance. It is recommended to pass a "deepchecks.tabular.Dataset" '
+                'instance by doing "Dataset(dataframe)"'
+            )
+            obj = Dataset(obj)
         elif not isinstance(obj, Dataset):
             raise DeepchecksValueError(
                 f'non-empty instance of Dataset or DataFrame was expected, instead got {type(obj).__name__}'
             )
-        if len(obj.data) == 0:
-            raise DatasetValidationError('dataset cannot be empty')
-        return obj
+        return obj.copy(obj.data)
 
     @classmethod
     def datasets_share_features(cls, *datasets: 'Dataset') -> bool:
@@ -1042,3 +1065,136 @@ class Dataset:
                 return False
 
         return True
+
+    def _dataset_description(self) -> pd.DataFrame:
+        data = self.data
+        features = self.features
+        categorical_features = self.cat_features
+        numerical_features = self.numerical_features
+
+        label_column = t.cast(pd.Series, data[self.label_name]) if self.label_name else None
+        index_column = self.index_col
+        datetime_column = self.datetime_col
+
+        label_name = None
+        index_name = None
+        datetime_name = None
+
+        dataset_columns_info = []
+
+        if index_column is not None:
+            index_name = index_column.name
+            dataset_columns_info.append([
+                index_name,
+                infer_dtype(index_column, skipna=True),
+                'Index',
+                'set from dataframe index' if self._set_index_from_dataframe_index is True else ''
+            ])
+
+        if datetime_column is not None:
+            datetime_name = datetime_column.name
+            dataset_columns_info.append([
+                datetime_name,
+                infer_dtype(datetime_column, skipna=True),
+                'Datetime',
+                'set from DataFrame index' if self._set_datetime_from_dataframe_index is True else ''
+            ])
+
+        if label_column is not None:
+            label_name = label_column.name
+            dataset_columns_info.append([
+                label_name,
+                infer_dtype(label_column, skipna=True),
+                t.cast(str, self.label_type).replace('_', ' ').capitalize(),
+                ''
+            ])
+
+        all_columns = pd.Series(features + list(self.data.columns)).unique()
+
+        for feature_name in t.cast(t.Iterable[str], all_columns):
+            if feature_name in (index_name, datetime_name, label_name):
+                continue
+
+            feature_dtype = infer_dtype(data[feature_name], skipna=True)
+
+            if feature_name in categorical_features:
+                kind = 'Categorical Feature'
+            elif feature_name in numerical_features:
+                kind = 'Numerical Feature'
+            elif feature_name in features:
+                kind = 'Other Feature'
+            else:
+                kind = 'Dataset Column'
+
+            dataset_columns_info.append([feature_name, feature_dtype, kind, ''])
+
+        return pd.DataFrame(
+            data=dataset_columns_info,
+            columns=['Column', 'DType', 'Kind', 'Additional Info'],
+        )
+
+    def __repr__(
+        self,
+        max_cols: int = 8,
+        max_rows: int = 10,
+        fmt: DatasetReprFmt = 'string'
+    ) -> str:
+        """Represent a dataset instance."""
+        info = self._dataset_description()
+        columns = list(info[info['Additional Info'] == '']['Column'])
+        data = self.data.loc[:, columns]  # Sorting horizontally
+        kwargs = dict(max_cols=max_cols, col_space=15)
+
+        if fmt == 'string':
+            features_info = info.to_string(max_rows=50, **kwargs)
+            data_to_show = data.to_string(show_dimensions=True, max_rows=max_rows, **kwargs)
+            title_template = '{:-^40}\n\n'
+            return ''.join((
+                title_template.format(' Dataset Description '),
+                f'{features_info}\n\n\n',
+                title_template.format(' Dataset Content '),
+                f'{data_to_show}\n\n',
+            ))
+
+        elif fmt == 'html':
+            features_info = info.to_html(notebook=True, max_rows=50, **kwargs)
+            data_to_show = data.to_html(notebook=True, max_rows=max_rows, **kwargs)
+            return ''.join([
+                '<h4><b>Dataset Description</b></h4>',
+                features_info,
+                '<h4><b>Dataset Content</b></h4>',
+                data_to_show
+            ])
+
+        else:
+            raise ValueError(
+                '"fmt" parameter supports only next values [string, html]'
+            )
+
+    def _ipython_display_(self):
+        display_html(HTML(self.__repr__(fmt='html')))
+
+    def __len__(self) -> int:
+        """Return number of samples in the member dataframe.
+
+        Returns
+        -------
+        int
+
+        """
+        return self.n_samples
+
+    def len_when_sampled(self, n_samples: int):
+        """Return number of samples in the sampled dataframe this dataset is sampled with n_samples samples."""
+        return min(len(self), n_samples)
+
+    def is_sampled(self, n_samples: int):
+        """Return True if the dataset number of samples will decrease when sampled with n_samples samples."""
+        return len(self) > n_samples
+
+
+def _get_dataset_docs_tag():
+    """Return link to documentation for Dataset class."""
+    link = get_docs_link() + 'user-guide/tabular/dataset_object.html?html?utm_source=display_output' \
+                             '&utm_medium=referral&utm_campaign=check_link'
+    return f'<a href="{link}" target="_blank">Dataset docs</a>'

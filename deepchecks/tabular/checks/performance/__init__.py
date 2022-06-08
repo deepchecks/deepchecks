@@ -8,17 +8,18 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module contains checks of model performance metrics."""
-from .performance_report import PerformanceReport, MultiModelPerformanceReport
-from .confusion_matrix_report import ConfusionMatrixReport
-from .roc_report import RocReport
-from .simple_model_comparison import SimpleModelComparison
-from .calibration_score import CalibrationScore
-from .segment_performance import SegmentPerformance
-from .regression_systematic_error import RegressionSystematicError
-from .regression_error_distribution import RegressionErrorDistribution
-from .model_error_analysis import ModelErrorAnalysis
+"""
+Module contains checks of model performance metrics.
 
+.. deprecated:: 0.7.0
+        `deepchecks.tabular.checks.performance is deprecated and will be removed in deepchecks 0.8 version.
+        Use `deepchecks.tabular.checks.model_evaluation` instead.
+"""
+import warnings
+
+from ..model_evaluation import (CalibrationScore, ConfusionMatrixReport, ModelErrorAnalysis,
+                                MultiModelPerformanceReport, PerformanceReport, RegressionErrorDistribution,
+                                RegressionSystematicError, RocReport, SegmentPerformance, SimpleModelComparison)
 
 __all__ = [
     'PerformanceReport',
@@ -32,3 +33,9 @@ __all__ = [
     'MultiModelPerformanceReport',
     'ModelErrorAnalysis'
 ]
+
+warnings.warn(
+                'deepchecks.tabular.checks.performance is deprecated. Use deepchecks.tabular.checks.model_evaluation '
+                'instead.',
+                DeprecationWarning
+            )

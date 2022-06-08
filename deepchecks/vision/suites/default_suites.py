@@ -13,46 +13,76 @@
 Each function returns a new suite that is initialized with a list of checks and default conditions.
 It is possible to customize these suites by editing the checks and conditions inside it after the suites' creation.
 """
-from deepchecks.vision.checks import ClassPerformance, TrainTestLabelDrift, MeanAveragePrecisionReport, \
-    MeanAverageRecallReport, ImagePropertyDrift, ImageDatasetDrift, SimpleModelComparison, ConfusionMatrixReport, \
-    RobustnessReport
+import warnings
+
 from deepchecks.vision import Suite
+from deepchecks.vision.checks import (ClassPerformance, ConfusionMatrixReport, FeatureLabelCorrelationChange,
+                                      HeatmapComparison, ImageDatasetDrift, ImagePropertyDrift, ImagePropertyOutliers,
+                                      ImageSegmentPerformance, LabelPropertyOutliers, MeanAveragePrecisionReport,
+                                      MeanAverageRecallReport, ModelErrorAnalysis, NewLabels, SimilarImageLeakage,
+                                      SimpleModelComparison, TrainTestLabelDrift, TrainTestPredictionDrift)
+
+__all__ = ['train_test_validation', 'model_evaluation', 'full_suite', 'integrity_validation', 'data_integrity']
 
 
-__all__ = ['train_test_validation', 'model_evaluation', 'full_suite']
-
-from deepchecks.vision.checks.distribution import HeatmapComparison
-
-
-def train_test_validation() -> Suite:
+def train_test_validation(**kwargs) -> Suite:
     """Create a suite that is meant to validate correctness of train-test split, including integrity, \
     distribution and leakage checks."""
     return Suite(
         'Train Test Validation Suite',
-        HeatmapComparison(),
-        TrainTestLabelDrift(),
-        ImagePropertyDrift().add_condition_drift_score_not_greater_than(),
-        ImageDatasetDrift()
+        NewLabels(**kwargs).add_condition_new_label_ratio_less_or_equal(),
+        SimilarImageLeakage(**kwargs).add_condition_similar_images_less_or_equal(),
+        HeatmapComparison(**kwargs),
+        TrainTestLabelDrift(**kwargs).add_condition_drift_score_less_than(),
+        ImagePropertyDrift(**kwargs).add_condition_drift_score_less_than(),
+        ImageDatasetDrift(**kwargs),
+        FeatureLabelCorrelationChange(**kwargs).add_condition_feature_pps_difference_less_than(),
     )
 
 
-def model_evaluation() -> Suite:
+def model_evaluation(**kwargs) -> Suite:
     """Create a suite that is meant to test model performance and overfit."""
     return Suite(
         'Model Evaluation Suite',
-        ClassPerformance(),
-        MeanAveragePrecisionReport(),
-        MeanAverageRecallReport(),
-        SimpleModelComparison(),
-        ConfusionMatrixReport(),
-        RobustnessReport().add_condition_degradation_not_greater_than()
+        ClassPerformance(**kwargs).add_condition_train_test_relative_degradation_less_than(),
+        MeanAveragePrecisionReport(**kwargs).add_condition_average_mean_average_precision_greater_than(),
+        MeanAverageRecallReport(**kwargs),
+        TrainTestPredictionDrift(**kwargs).add_condition_drift_score_less_than(),
+        SimpleModelComparison(**kwargs).add_condition_gain_greater_than(),
+        ConfusionMatrixReport(**kwargs),
+        ImageSegmentPerformance(**kwargs).add_condition_score_from_mean_ratio_greater_than(),
+        ModelErrorAnalysis(**kwargs)
     )
 
 
-def full_suite() -> Suite:
+def integrity_validation(**kwargs) -> Suite:
+    """Create a suite that is meant to validate integrity of the data.
+
+    .. deprecated:: 0.7.0
+            `integrity_validation` is deprecated and will be removed in deepchecks 0.8 version, it is replaced by
+            `data_integrity` suite.
+    """
+    warnings.warn(
+        'the integrity_validation suite is deprecated, use the data_integrity suite instead',
+        DeprecationWarning
+    )
+    return data_integrity(**kwargs)
+
+
+def data_integrity(**kwargs) -> Suite:
+    """Create a suite that includes integrity checks."""
+    return Suite(
+        'Data Integrity Suite',
+        ImagePropertyOutliers(**kwargs),
+        LabelPropertyOutliers(**kwargs)
+    )
+
+
+def full_suite(**kwargs) -> Suite:
     """Create a suite that includes many of the implemented checks, for a quick overview of your model and data."""
     return Suite(
         'Full Suite',
-        model_evaluation(),
-        train_test_validation(),
+        model_evaluation(**kwargs),
+        train_test_validation(**kwargs),
+        data_integrity(**kwargs)
     )

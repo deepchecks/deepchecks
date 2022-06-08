@@ -18,7 +18,7 @@ header:
     - '**/*.ipynb'
     - '.pylintrc'
     - 'LICENSE'
-    - 'VERSION'
+    - 'deepchecks/VERSION'
     - 'deepchecks.egg-info/PKG-INFO'
     - 'makefile'
     - 'examples/'
@@ -28,8 +28,11 @@ header:
     - 'MANIFEST.in'
     - '.github/ISSUE_TEMPLATE/'
     - '.github/pull_request_template.md'
+    - '.github/CODEOWNERS'
     - 'deepchecks/base/resources'
     - 'DESCRIPTION.rst'
+    - 'CITATION.cff'
+    - 'deepchecks/core/resources/requirejs.min.js'
   comment: on-failure
 
 dependency:

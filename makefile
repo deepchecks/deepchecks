@@ -6,14 +6,15 @@
 # Package = Source code Directory
 PACKAGE = deepchecks
 
-# Requirements file
-REQUIRE = requirements.txt
+# Requirements dir & requirements suffix file
+REQUIRE_DIR = ./requirements
+REQUIRE_FILE = requirements.txt
 
-# python3 binary takes predecence over python binary,
+# python3 binary takes precedence over python binary,
 # this variable is used when setting python variable, (Line 18)
 # and on 'env' goal ONLY
 # If your python path binary name is not python/python3,
-# override using ext_python=XXX and it'll propogate into python variable, too
+# override using ext_python=XXX and it'll propagate into python variable, too
 ext_py := $(shell which python3 || which python)
 
 # Override by putting in commandline python=XXX when needed.
@@ -55,10 +56,6 @@ SOURCES := $(or $(PACKAGE), $(wildcard *.py))
 
 # Test and Analyize
 TEST_CODE := tests/
-NOTEBOOK_CHECKS = ./docs/source/examples/checks
-NOTEBOOK_EXAMPLES = ./docs/source/examples/guides/*.ipynb
-NOTEBOOK_USECASES = ./docs/source/examples/use-cases/*.ipynb
-NOTEBOOK_SANITIZER_FILE = ./docs/source/examples/.nbval-sanitizer
 
 PYLINT_LOG = .pylint.log
 
@@ -75,7 +72,7 @@ COVER_ARG := --cov-report term-missing --cov=$(PKGDIR) \
 DOCS         := $(shell realpath ./docs)
 DOCS_SRC     := $(DOCS)/source
 DOCS_BUILD   := $(DOCS)/build
-DOCS_REQUIRE := $(DOCS)/$(REQUIRE)
+DOCS_REQUIRE := $(DOCS)/$(REQUIRE_FILE)
 
 # variables that will be passed to the documentation make file
 SPHINXOPTS   ?=
@@ -100,8 +97,8 @@ help:
 	@echo ""
 	@echo "validate"
 	@echo ""
-	@echo "    Run style checks 'pylint' , 'docstring' and 'notebook'"
-	@echo "    pylint docstring notebook - sub commands of validate"
+	@echo "    Run style checks 'pylint' , 'docstring'"
+	@echo "    pylint docstring - sub commands of validate"
 	@echo ""
 	@echo "test"
 	@echo ""
@@ -141,7 +138,7 @@ help:
 
 
 
-all: validate test notebook
+all: validate test
 
 
 env: $(ENV)
@@ -156,11 +153,16 @@ $(ENV):
 requirements: $(ENV)
 	@echo "####  installing dependencies, it could take some time, please wait! #### "
 
-	@if [ $(OS) = "Linux" ]; \
+	@if [ -x "$$(command -v nvidia-smi)" ]; \
+	then \
+		$(PIP) install -q\
+		 	"torch==1.10.1+cu111" "torchvision==0.11.2+cu111" "torchaudio==0.10.1" \
+		 	 -f https://s3.amazonaws.com/pytorch/whl/torch_stable.html; \
+	elif [ $(OS) = "Linux" ]; \
 	then \
 		$(PIP) install -q\
 			"torch==1.10.2+cpu" "torchvision==0.11.3+cpu" "torchaudio==0.10.2+cpu" \
-			-f https://download.pytorch.org/whl/cpu/torch_stable.html; \
+			-f https://s3.amazonaws.com/pytorch/whl/torch_stable.html; \
 	else \
 		$(PIP) install -q torch torchvision torchaudio; \
 	fi;
@@ -168,9 +170,9 @@ requirements: $(ENV)
 	@$(PIP) install -U pip
 	@$(PIP) install -q \
 		wheel setuptools \
-		-r ./requirements/requirements.txt \
-		-r ./requirements/vision-requirements.txt \
-		-r ./requirements/nlp-requirements.txt
+		-r $(REQUIRE_DIR)/$(REQUIRE_FILE) \
+		-r $(REQUIRE_DIR)/vision-$(REQUIRE_FILE) \
+		-r $(REQUIRE_DIR)/nlp-$(REQUIRE_FILE)
 	@$(PIP) install --no-deps -e .
 
 
@@ -180,9 +182,8 @@ doc-requirements: $(ENV)
 
 
 dev-requirements: $(ENV)
-	@echo "####  installing development dependencies, it could take some time, please wait! #### "
-	@$(PIP) install -q -r ./requirements/dev-requirements.txt
-
+	@echo "####  installing development dependencies, it could take some time, please wait! ####"
+	@$(PIP) install -q -r $(REQUIRE_DIR)/dev-$(REQUIRE_FILE)
 
 ### Static Analysis ######################################################
 
@@ -204,41 +205,31 @@ docstring: dev-requirements
 
 ### Testing ######################################################
 
-.PHONY: test coverage notebook
+.PHONY: test coverage
 
 
 test: requirements dev-requirements
-	$(PYTEST) $(args) $(TESTDIR)
+	@if [ ! -z $(args) ]; then \
+		$(PYTEST) $(args); \
+	else \
+		$(PYTEST) $(TESTDIR); \
+	fi;
 
 
 test-win:
 	@test -d $(WIN_ENV) || python -m venv $(WIN_ENV)
 	@$(WIN_ENV)\Scripts\activate.bat
-	@$(PIP_WIN) install -q torch torchvision torchaudio
+	$(PIP_WIN) install -q\
+			"torch==1.10.2+cpu" "torchvision==0.11.3+cpu" "torchaudio==0.10.2+cpu" \
+			-f https://s3.amazonaws.com/pytorch/whl/torch_stable.html;
 	@$(PIP_WIN) install -U pip
 	@$(PIP_WIN) install -q \
-		-r ./requirements/requirements.txt \
-		-r ./requirements/vision-requirements.txt \
-		-r ./requirements/nlp-requirements.txt \
-		-r ./requirements/dev-requirements.txt
+		-r $(REQUIRE_DIR)/$(REQUIRE_FILE)  \
+		-r $(REQUIRE_DIR)/vision-$(REQUIRE_FILE)  \
+		-r $(REQUIRE_DIR)/nlp-$(REQUIRE_FILE)  \
+		-r $(REQUIRE_DIR)/dev-$(REQUIRE_FILE) 
 	python -m pytest $(WIN_TESTDIR)
 
-
-notebook: requirements dev-requirements
-# Making sure the examples are running, without validating their outputs.
-	@$(JUPYTER) nbextension enable --py widgetsnbextension
-	@echo "+++ Number of notebooks to execute: $$(find ./docs/source/examples -name "*.ipynb" | wc -l) +++"
-	@echo "+++ Executing notebooks in $(PWD) +++"
-	$(PYTEST) --nbval-lax ./docs/source/examples
-
-	# For now, because of plotly - disabling the nbval and just validate that the notebooks are running
-#	$(pythonpath) $(TEST_RUNNER) --nbval $(NOTEBOOK_CHECKS) --sanitize-with $(NOTEBOOK_SANITIZER_FILE)
-
-
-regenerate-examples: requirements dev-requirements
-	@$(JUPYTER) nbextension enable --py widgetsnbextension
-	@echo "+++ Number of notebooks: $$(find ./docs/source/examples -name "*.ipynb" | wc -l) +++"
-	@$(JUPYTER) nbconvert --execute $$(find ./docs/source/examples -name "*.ipynb") --to notebook --inplace
 
 coverage: requirements dev-requirements
 	$(COVERAGE) run --source deepchecks/,tests/ --omit ultralytics_yolov5_master/ -m pytest
@@ -264,6 +255,10 @@ endif
 
 tox: requirements dev-requirements
 	$(TOX)
+
+
+freeze: requirements dev-requirements
+	@$(PIP) freeze
 
 
 ### Cleanup ######################################################
@@ -310,6 +305,7 @@ clean-docs: $(DOCS)
 
 trailing-spaces:
 	@find ./deepchecks/ -name "*.py" -type f -print0 | xargs -0 sed -i "s/[[:space:]]*$$//"
+	@find ./tests/ -name "*.py" -type f -print0 | xargs -0 sed -i "s/[[:space:]]*$$//"
 
 
 ### Release ######################################################
@@ -323,6 +319,7 @@ authors:
 
 
 dist: $(ENV)
+	$(PIP) install wheel twine
 	$(PYTHON) setup.py sdist
 	$(PYTHON) setup.py bdist_wheel
 
@@ -358,10 +355,11 @@ test-release: dist test-upload
 
 ### Documentation
 
-.PHONY: docs website dev-docs gen-static-notebooks license-check links-check
+.PHONY: docs validate-examples website dev-docs gen-static-notebooks license-check links-check
 
 
-docs: requirements doc-requirements $(DOCS_SRC)
+docs: requirements doc-requirements dev-requirements $(DOCS_SRC)
+	@export WANDB_MODE=offline
 	cd $(DOCS) && make html SPHINXBUILD=$(SPHINX_BUILD) SPHINXOPTS=$(SPHINXOPTS) 2> docs.error.log
 	@echo ""
 	@echo "++++++++++++++++++++++++"
@@ -375,15 +373,17 @@ docs: requirements doc-requirements $(DOCS_SRC)
 	@echo "- ERRORs: $$(grep "ERROR" $(DOCS)/docs.error.log | wc -l)"
 	@echo "- WARNINGs: $$(grep "WARNING" $(DOCS)/docs.error.log | wc -l)"
 
+validate-examples: doc-requirements
+	@$(PYTHON) $(TESTDIR)/examples_validation.py
 
 show-docs: $(DOCS_BUILD)/html
 	@cd $(DOCS_BUILD)/html && $(PYTHON) -m http.server
 
 
 license-check:
-	@wget https://dlcdn.apache.org/skywalking/eyes/0.2.0/skywalking-license-eye-0.2.0-bin.tgz && tar -xzvf skywalking-license-eye-0.2.0-bin.tgz
-	@mv skywalking-license-eye-0.2.0-bin/bin/linux/license-eye ./
-	@rm -rf skywalking-license-eye-0.2.0-bin && rm -f skywalking-license-eye-0.2.0-bin.tgz
+	@wget https://dlcdn.apache.org/skywalking/eyes/0.3.0/skywalking-license-eye-0.3.0-bin.tgz && tar -xzvf skywalking-license-eye-0.3.0-bin.tgz
+	@mv skywalking-license-eye-0.3.0-bin/bin/linux/license-eye ./
+	@rm -rf skywalking-license-eye-0.3.0-bin && rm -f skywalking-license-eye-0.3.0-bin.tgz
 	./license-eye -c .licenserc_fix.yaml header check
 	@rm license-eye
 

@@ -10,13 +10,28 @@
 {# submoduletype = tabular|vision... #}
 {% set submoduletype = splitname[1] %}
 
-Example
-~~~~~~~
+{% set path = getcwd() + '/source/checks/' + submoduletype + '/' + checktype + '/plot_' + to_snake_case(objname).lower() + '.py' %}
 
-.. nbgallery::
-   :name: rst-gallery
-   :glob:
+{%- if path_exists(path) %}
+Examples
+~~~~~~~~
 
-   {{objname}} Example Notebook </examples/{{ submoduletype }}/checks/{{ checktype }}/{{ to_snake_case(objname).lower() }}>
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer">
+
+.. only:: html
+
+ .. figure:: /checks_gallery/{{ submoduletype }}/{{ checktype}}/images/thumb/sphx_glr_plot_{{ to_snake_case(objname).lower() }}_thumb.png
+     :alt: {{ objname }}
+
+     :ref:`sphx_glr_checks_gallery_{{submoduletype}}_{{ checktype }}_plot_{{ to_snake_case(objname).lower() }}.py`
+
+.. raw:: html
+
+    </div>
+    <div style="clear:both"></div>
+{%- endif %}
+
 
 {% endblock %}

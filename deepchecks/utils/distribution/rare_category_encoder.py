@@ -9,13 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """Module of RareCategoryEncoder."""
-from typing import List, Optional
 from collections import defaultdict
+from typing import List, Optional
 
 import pandas as pd
 
 from deepchecks.utils.typing import Hashable
-
 
 __all__ = ['RareCategoryEncoder']
 
@@ -45,18 +44,24 @@ class RareCategoryEncoder:
         self.cols = cols
         self._col_mapping = None
 
-    def fit(self, data: pd.DataFrame):
+    def fit(self, data: pd.DataFrame, y=None):  # noqa # pylint: disable=unused-argument
         """Fit the encoder using given dataframe.
 
         Parameters
         ----------
         data : pd.DataFrame
             data to fit from
+        y :
+            Unused, but needed for sklearn pipeline
         """
+        self._col_mapping = {}
+
         if self.cols is not None:
-            self._col_mapping = data[self.cols].apply(self._fit_for_series, axis=0)
+            for col in self.cols:
+                self._col_mapping[col] = self._fit_for_series(data[col])
         else:
-            self._col_mapping = data.apply(self._fit_for_series, axis=0)
+            for col in data.columns:
+                self._col_mapping[col] = self._fit_for_series(data[col])
 
     def transform(self, data: pd.DataFrame):
         """Transform given data according to columns processed in `fit`.
@@ -78,15 +83,18 @@ class RareCategoryEncoder:
             data[self.cols] = data[self.cols].apply(lambda s: s.map(self._col_mapping[s.name]))
         else:
             data = data.apply(lambda s: s.map(self._col_mapping[s.name]))
+
         return data
 
-    def fit_transform(self, data: pd.DataFrame):
+    def fit_transform(self, data: pd.DataFrame, y=None):  # noqa # pylint: disable=unused-argument
         """Run `fit` and `transform` on given data.
 
         Parameters
         ----------
         data : pd.DataFrame
             data to fit on and transform
+        y :
+            Unused, but needed for sklearn pipeline
         Returns
         -------
         DataFrame
@@ -98,7 +106,7 @@ class RareCategoryEncoder:
     def _fit_for_series(self, series: pd.Series):
         top_values = list(series.value_counts().head(self.max_num_categories).index)
         other_value = self._get_unique_other_value(series)
-        mapper = pd.Series(defaultdict(lambda: other_value, {k: k for k in top_values}), name=series.name)
+        mapper = defaultdict(lambda: other_value, {k: k for k in top_values})
         return mapper
 
     def _get_unique_other_value(self, series: pd.Series):

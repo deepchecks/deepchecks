@@ -8,12 +8,25 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module contains check of overall overview of datasets and model."""
-from .model_info import ModelInfo
-from .columns_info import ColumnsInfo
+"""
+Module contains check of overall overview of datasets and model.
 
+.. deprecated:: 0.7.0
+        `deepchecks.tabular.checks.overview is deprecated and will be removed in deepchecks 0.8 version.
+        Use `deepchecks.tabular.checks.integrity` and :mod:`deepchecks.tabular.checks.model_evaluation` instead.
+"""
+import warnings
+
+from ..data_integrity import ColumnsInfo
+from ..model_evaluation import ModelInfo
 
 __all__ = [
     'ModelInfo',
     'ColumnsInfo'
 ]
+
+warnings.warn(
+                'deepchecks.tabular.checks.overview is deprecated. Use deepchecks.tabular.checks.model_evaluation '
+                'and deepchecks.tabular.checks.integrity instead.',
+                DeprecationWarning
+            )

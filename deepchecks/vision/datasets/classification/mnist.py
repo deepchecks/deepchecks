@@ -9,26 +9,26 @@
 # ----------------------------------------------------------------------------
 #
 """Module representing the MNIST dataset."""
-import typing as t
-import pathlib
 import logging
+import pathlib
+import typing as t
 import warnings
+from typing import Iterable, List, Union
 
+import albumentations as A
+import numpy as np
 import torch
 import torch.nn.functional as F
-import albumentations as A
 from albumentations.pytorch import ToTensorV2
-from torchvision import datasets
 from torch import nn
 from torch.utils.data import DataLoader
+from torchvision import datasets
 from typing_extensions import Literal
+
+from deepchecks.vision.classification_data import ClassificationData
 from deepchecks.vision.utils.transformations import un_normalize_batch
-from deepchecks.vision.utils import ImageFormatter
-from deepchecks.vision.utils.classification_formatters import ClassificationLabelFormatter
-from deepchecks.vision.dataset import VisionData
 
-
-__all__ = ['load_dataset', 'load_model', 'MNistNet', 'MNIST', 'mnist_image_formatter', 'mnist_prediction_formatter']
+__all__ = ['load_dataset', 'load_model', 'MNistNet', 'MNIST', 'MNISTData']
 
 
 MODELS_DIR = pathlib.Path(__file__).absolute().parent / 'models'
@@ -45,7 +45,7 @@ def load_dataset(
     shuffle: bool = True,
     pin_memory: bool = True,
     object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader'
-) -> t.Union[DataLoader, VisionData]:
+) -> t.Union[DataLoader, ClassificationData]:
     """Download MNIST dataset.
 
     Parameters
@@ -95,15 +95,33 @@ def load_dataset(
     if object_type == 'DataLoader':
         return loader
     elif object_type == 'VisionData':
-        return VisionData(
-            data_loader=loader,
-            num_classes=len(datasets.MNIST.classes),
-            label_formatter=ClassificationLabelFormatter(),
-            image_formatter=ImageFormatter(mnist_image_formatter(mean, std)),
-            transform_field='transform'
-        )
+        return MNISTData(loader, num_classes=len(datasets.MNIST.classes), transform_field='transform')
     else:
         raise TypeError(f'Unknown value of object_type - {object_type}')
+
+
+class MNISTData(ClassificationData):
+    """Class for loading MNIST dataset, inherits from :obj:`deepchecks.vision.classification_data.ClassificationData`.
+
+    Implement the necessary methods for the :obj:`deepchecks.vision.classification_data.ClassificationData` interface.
+    """
+
+    def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor]:
+        """Convert a batch of mnist data to labels."""
+        return batch[1]
+
+    def infer_on_batch(self, batch, model, device) -> Union[List[torch.Tensor], torch.Tensor]:
+        """Infer on a batch of mnist data."""
+        preds = model.to(device)(batch[0].to(device))
+        return nn.Softmax(dim=1)(preds)
+
+    def batch_to_images(self, batch) -> Iterable[np.ndarray]:
+        """Convert a batch of mnist data to images."""
+        mean = (0.1307,)
+        std = (0.3081,)
+        tensor = batch[0]
+        tensor = tensor.permute(0, 2, 3, 1)
+        return un_normalize_batch(tensor, mean, std)
 
 
 def load_model(pretrained: bool = True, path: pathlib.Path = None) -> 'MNistNet':
@@ -115,7 +133,7 @@ def load_model(pretrained: bool = True, path: pathlib.Path = None) -> 'MNistNet'
     """
     # TODO: should we put downloadable pre-trained model into our repo?
     if path and not path.exists():
-        LOGGER.warning('Path for MNIST model not found: %s', str(path))
+        raise RuntimeError(f'Path for MNIST model not found: {str(path)}')
 
     path = path or MODEL_PATH
 
@@ -207,18 +225,3 @@ class MNistNet(nn.Module):
         with warnings.catch_warnings():
             warnings.simplefilter(action='ignore', category=UserWarning)
             return F.log_softmax(x, dim=1)
-
-
-def mnist_image_formatter(mean, std):
-    """Create function which inverse the data normalization."""
-    def inverse_transform(batch):
-        tensor = batch[0]
-        tensor = tensor.permute(0, 2, 3, 1)
-        return un_normalize_batch(tensor, mean, std)
-    return inverse_transform
-
-
-def mnist_prediction_formatter(batch, model, device):
-    """Predict and format predictions of mnist."""
-    preds = model.to(device)(batch[0].to(device))
-    return nn.Softmax(dim=1)(preds)

@@ -9,14 +9,15 @@
 # ----------------------------------------------------------------------------
 #
 """Module for calculating detection precision and recall."""
+import warnings
+from abc import abstractmethod
 from collections import defaultdict
-from typing import List, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
-from ignite.metrics import Metric
-from ignite.metrics.metric import sync_all_reduce, reinit__is_reduced
-import torch
 import numpy as np
-from .iou_utils import compute_pairwise_ious
+import torch
+from ignite.metrics import Metric
+from ignite.metrics.metric import reinit__is_reduced, sync_all_reduce
 
 
 def _dict_conc(test_list):
@@ -34,8 +35,8 @@ def _dict_conc(test_list):
     return result
 
 
-class AveragePrecision(Metric):
-    """We are expecting to receive the predictions in the following format: [x, y, w, h, confidence, label].
+class AveragePrecisionRecall(Metric):
+    """Abstract class to calculate average precision and recall for various vision tasks.
 
     Parameters
     ----------
@@ -49,7 +50,7 @@ class AveragePrecision(Metric):
 
     def __init__(self, *args, max_dets: Union[List[int], Tuple[int]] = (1, 10, 100),
                  area_range: Tuple = (32**2, 96**2),
-                 return_option: int = 0, **kwargs):
+                 return_option: Optional[int] = 0, **kwargs):
         super().__init__(*args, **kwargs)
 
         self._evals = defaultdict(lambda: {"scores": [], "matched": [], "NP": []})
@@ -60,7 +61,7 @@ class AveragePrecision(Metric):
         else:
             self.area_ranges_names = ["small", "medium", "large", "all"]
         self.iou_thresholds = np.linspace(.5, 0.95, int(np.round((0.95 - .5) / .05)) + 1, endpoint=True)
-        self.max_dets = max_dets
+        self.max_detections_per_class = max_dets
         self.area_range = area_range
         self.i = 0
 
@@ -77,6 +78,11 @@ class AveragePrecision(Metric):
         y_pred, y = output
 
         for detected, ground_truth in zip(y_pred, y):
+            if isinstance(detected, torch.Tensor):
+                detected = detected.cpu()
+            if isinstance(ground_truth, torch.Tensor):
+                ground_truth = ground_truth.cpu()
+
             self._group_detections(detected, ground_truth)
             self.i += 1
 
@@ -84,26 +90,28 @@ class AveragePrecision(Metric):
     def compute(self):
         """Compute metric value."""
         # now reduce accumulations
-        sorted_classes = sorted(self._evals.keys())
+        sorted_classes = [int(class_id) for class_id in sorted(self._evals.keys())]
+        max_class = max(sorted_classes)
         for class_id in sorted_classes:
             acc = self._evals[class_id]
             acc["scores"] = _dict_conc(acc["scores"])
             acc["matched"] = _dict_conc(acc["matched"])
             acc["NP"] = _dict_conc(acc["NP"])
-        reses = {}
-        reses["precision"] = -np.ones((len(self.iou_thresholds),
-                                       len(self.area_ranges_names),
-                                       len(self.max_dets),
-                                       len(self._evals.keys())))
-        reses["recall"] = -np.ones((len(self.iou_thresholds),
-                                    len(self.area_ranges_names),
-                                    len(self.max_dets),
-                                    len(self._evals.keys())))
+        reses = {"precision": -np.ones((len(self.iou_thresholds),
+                                        len(self.area_ranges_names),
+                                        len(self.max_detections_per_class),
+                                        max_class + 1)),
+                 "recall": -np.ones((len(self.iou_thresholds),
+                                     len(self.area_ranges_names),
+                                     len(self.max_detections_per_class),
+                                     max_class + 1))}
         for iou_i, min_iou in enumerate(self.iou_thresholds):
-            for dets_i, dets in enumerate(self.max_dets):
+            for dets_i, dets in enumerate(self.max_detections_per_class):
                 for area_i, area_size in enumerate(self.area_ranges_names):
-                    precision_list = []
-                    recall_list = []
+                    precision_list = np.empty(max_class + 1)
+                    precision_list.fill(np.nan)
+                    recall_list = np.empty(max_class + 1)
+                    recall_list.fill(np.nan)
                     # run ap calculation per-class
                     for class_id in sorted_classes:
                         ev = self._evals[class_id]
@@ -111,120 +119,113 @@ class AveragePrecision(Metric):
                             self._compute_ap_recall(np.array(ev["scores"][(area_size, dets, min_iou)]),
                                                     np.array(ev["matched"][(area_size, dets, min_iou)]),
                                                     np.sum(np.array(ev["NP"][(area_size, dets, min_iou)])))
-                        precision_list.append(precision)
-                        recall_list.append(recall)
-                    reses["precision"][iou_i, area_i, dets_i] = np.array(precision_list)
-                    reses["recall"][iou_i, area_i, dets_i] = np.array(recall_list)
+                        precision_list[class_id] = precision
+                        recall_list[class_id] = recall
+                    reses["precision"][iou_i, area_i, dets_i] = precision_list
+                    reses["recall"][iou_i, area_i, dets_i] = recall_list
         if self.return_option == 0:
             return torch.tensor(self.get_classes_scores_at(reses["precision"],
-                                                           max_dets=self.max_dets[0],
+                                                           max_dets=self.max_detections_per_class[0],
                                                            area=self.area_ranges_names[0],
                                                            get_mean_val=False))
         elif self.return_option == 1:
             return torch.tensor(self.get_classes_scores_at(reses["recall"],
-                                                           max_dets=self.max_dets[0],
+                                                           max_dets=self.max_detections_per_class[0],
                                                            area=self.area_ranges_names[0],
                                                            get_mean_val=False))
         return [reses]
 
     def _group_detections(self, detected, ground_truth):
         """Group gts and dts on a imageXclass basis."""
-        bb_info = defaultdict(lambda: {"detected": [], "ground_truth": []})
-
-        for d in detected:
-            if isinstance(d[5], torch.Tensor):
-                c_id = d[5].item()
-            else:
-                c_id = d[5]
-            bb_info[c_id]["detected"].append(d)
-        for g in ground_truth:
-            if isinstance(g[0], torch.Tensor):
-                c_id = g[0].item()
-            else:
-                c_id = g[0]
-            bb_info[c_id]["ground_truth"].append(g)
-
-        # Calculating pairwise IoUs
-        ious = {k: compute_pairwise_ious(**v) for k, v in bb_info.items()}
+        # Calculating pairwise IoUs on classes
+        bb_info = self.group_class_detection_label(detected, ground_truth)
+        ious = {k: self.calc_pairwise_ious(v["detected"], v["ground_truth"]) for k, v in bb_info.items()}
 
         for class_id in ious.keys():
-            ev = self._evaluate_image(
+            image_evals = self._evaluate_image(
                 bb_info[class_id]["detected"],
                 bb_info[class_id]["ground_truth"],
                 ious[class_id]
             )
 
             acc = self._evals[class_id]
-            acc["scores"].append(ev["scores"])
-            acc["matched"].append(ev["matched"])
-            acc["NP"].append(ev["NP"])
+            acc["scores"].append(image_evals["scores"])
+            acc["matched"].append(image_evals["matched"])
+            acc["NP"].append(image_evals["NP"])
 
-    def _evaluate_image(self, det, gt, ious):
-        """Det - [x, y, w, h, confidence, label], gt - [label, x, y, w, h]."""
-        # Sort detections by increasing confidence
-        det = [self.Prediction(d) for d in det]
-        det_sort = np.argsort([-d.confidence for d in det], kind="stable")
+    def _evaluate_image(self, detections, ground_truths, ious):
+        """Evaluate image."""
+        # Sort detections by decreasing confidence
+        confidences = self.get_confidences(detections)
+        areas = self.get_detection_areas(detections)
+        sorted_confidence_ids = np.argsort(confidences, kind="stable")[::-1]
         orig_ious = ious
-        orig_gt = gt
+        orig_gt = ground_truths
+        ground_truth_area = np.array(self.get_labels_areas(ground_truths))
 
         scores = {}
         matched = {}
         n_gts = {}
         for min_iou in self.iou_thresholds:
-            for dets in self.max_dets:
-                for area_size in ["small", "medium", "large", "all"]:
+            for top_n_detections in self.max_detections_per_class:
+                for area_size in self.area_ranges_names:
                     # sort list of dts and chop by max dets
-                    dt = [det[idx] for idx in det_sort[:dets]]
-                    ious = orig_ious[det_sort[:dets]]
-                    gt_ignore = [self._is_ignore_area(g[3] * g[4], area_size) for g in orig_gt]
+                    top_detections_idx = sorted_confidence_ids[:top_n_detections]
+                    ious = orig_ious[top_detections_idx]
+                    ground_truth_to_ignore = [self._is_ignore_area(gt_area, area_size) for gt_area in ground_truth_area]
 
                     # sort gts by ignore last
-                    gt_sort = np.argsort(gt_ignore, kind="stable")
-                    gt = [orig_gt[idx] for idx in gt_sort]
-                    gt_ignore = [gt_ignore[idx] for idx in gt_sort]
+                    gt_sort = np.argsort(ground_truth_to_ignore, kind="stable")
+                    ground_truths = [orig_gt[idx] for idx in gt_sort]
+                    ground_truth_to_ignore = [ground_truth_to_ignore[idx] for idx in gt_sort]
 
                     ious = ious[:, gt_sort]
 
-                    gtm = {}
-                    dtm = {}
-
-                    for d_idx, _ in enumerate(dt):
-                        # information about best match so far (m=-1 -> unmatched)
-                        iou = min(min_iou, 1 - 1e-10)
-                        m = -1
-                        for g_idx, _ in enumerate(gt):
-                            # if this gt already matched, and not a crowd, continue
-                            if g_idx in gtm:
-                                continue
-                            # if dt matched to reg gt, and on ignore gt, stop
-                            if m > -1 and not gt_ignore[m] and gt_ignore[g_idx]:
-                                break
-                            # continue to next gt unless better match made
-                            if ious[d_idx, g_idx] < iou:
-                                continue
-                            # if match successful and best so far, store appropriately
-                            iou = ious[d_idx, g_idx]
-                            m = g_idx
-                        # if match made store id of match for both dt and gt
-                        if m == -1:
-                            continue
-                        dtm[d_idx] = m
-                        gtm[m] = d_idx
+                    detection_matches = \
+                        self._get_best_matches(top_detections_idx, min_iou, ground_truths, ground_truth_to_ignore, ious)
 
                     # generate ignore list for dts
-                    dt_ignore = [
-                        gt_ignore[dtm[d_idx]] if d_idx in dtm
-                        else self._is_ignore_area(d.bbox[2] * d.bbox[3], area_size)
-                        for d_idx, d in enumerate(dt)
+                    detections_to_ignore = [
+                        ground_truth_to_ignore[detection_matches[d_idx]] if d_idx in detection_matches
+                        else self._is_ignore_area(areas[real_index], area_size)
+                        for d_idx, real_index in enumerate(top_detections_idx)
                     ]
 
                     # get score for non-ignored dts
-                    scores[(area_size, dets, min_iou)] = [dt[d_idx].confidence for d_idx in range(len(dt))
-                                                          if not dt_ignore[d_idx]]
-                    matched[(area_size, dets, min_iou)] = [d_idx in dtm for d_idx in range(len(dt))
-                                                           if not dt_ignore[d_idx]]
-                    n_gts[(area_size, dets, min_iou)] = len([g_idx for g_idx in range(len(gt)) if not gt_ignore[g_idx]])
+                    scores[(area_size, top_n_detections, min_iou)] = \
+                        [confidences[real_index] for d_idx, real_index in enumerate(top_detections_idx)
+                         if not detections_to_ignore[d_idx]]
+                    matched[(area_size, top_n_detections, min_iou)] = \
+                        [d_idx in detection_matches for d_idx, real_index in enumerate(top_detections_idx)
+                         if not detections_to_ignore[d_idx]]
+                    n_gts[(area_size, top_n_detections, min_iou)] = \
+                        len([g_idx for g_idx in range(len(ground_truths)) if not ground_truth_to_ignore[g_idx]])
         return {"scores": scores, "matched": matched, "NP": n_gts}
+
+    def _get_best_matches(self, dt, min_iou, ground_truths, ground_truth_to_ignore, ious):
+        ground_truth_matched = {}
+        detection_matches = {}
+
+        for d_idx in range(len(dt)):
+            # information about best match so far (best_match=-1 -> unmatched)
+            best_iou = min(min_iou, 1 - 1e-10)
+            best_match = -1
+            for g_idx in range(len(ground_truths)):
+                # if this gt already matched, continue
+                if g_idx in ground_truth_matched:
+                    continue
+                # if dt matched and currently on ignore gt, stop
+                # this exists to allow for matching ignored ground truth, so that we ignore this detection
+                if best_match > -1 and ground_truth_to_ignore[g_idx]:
+                    break
+
+                if ious[d_idx, g_idx] >= best_iou:
+                    best_iou = ious[d_idx, g_idx]
+                    best_match = g_idx
+            if best_match != -1:
+                detection_matches[d_idx] = best_match
+                ground_truth_matched[best_match] = d_idx
+        return detection_matches
 
     def _compute_ap_recall(self, scores, matched, n_positives, recall_thresholds=None):
         if n_positives == 0:
@@ -270,13 +271,13 @@ class AveragePrecision(Metric):
             return not area_bb > self.area_range[1]
         return False
 
-    def filter_res(self, res: np.array, iou: float = None, area: str = None, max_dets: int = None):
+    def filter_res(self, res: np.ndarray, iou: float = None, area: str = None, max_dets: int = None):
         """Get the value of a result by the filtering values.
 
         Parameters
         ----------
         res: np.array
-            either prrecision or recall when using the '2' return option
+            either precision or recall when using the '2' return option
         iou : float, default: None
             filter by iou threshold
         area : str, default: None
@@ -296,18 +297,18 @@ class AveragePrecision(Metric):
             area_i = [i for i, area_name in enumerate(self.area_ranges_names) if area == area_name]
             res = res[:, area_i, :, :]
         if max_dets:
-            dets_i = [i for i, det in enumerate(self.max_dets) if max_dets == det]
+            dets_i = [i for i, det in enumerate(self.max_detections_per_class) if max_dets == det]
             res = res[:, :, dets_i, :]
         return res
 
-    def get_classes_scores_at(self, res: np.array, iou: float = None, area: str = None, max_dets: int = None,
+    def get_classes_scores_at(self, res: np.ndarray, iou: float = None, area: str = None, max_dets: int = None,
                               get_mean_val: bool = True, zeroed_negative: bool = True):
         """Get the mean value of the classes scores and the result values.
 
         Parameters
         ----------
         res: np.array
-            either prrecision or recall when using the '2' return option
+            either precision or recall when using the '2' return option
         iou : float, default: None
             filter by iou threshold
         area : str, default: None
@@ -325,18 +326,36 @@ class AveragePrecision(Metric):
            The mean value of the classes scores or the scores list.
         """
         res = self.filter_res(res, iou, area, max_dets)
-        res = np.mean(res[:, :, :], axis=0)
-        if get_mean_val:
-            return np.mean(res[res > -1])
-        if zeroed_negative:
-            res = res.clip(min=0)
-        return res[0][0]
+        with warnings.catch_warnings():
+            warnings.simplefilter(action="ignore", category=RuntimeWarning)
+            res = np.nanmean(res[:, :, :], axis=0)
+            if get_mean_val:
+                return np.nanmean(res[res > -1])
+            if zeroed_negative:
+                res = res.clip(min=0)
+            return res[0][0]
 
-    class Prediction:
-        """A class defining the prediction of a single image in an object detection task."""
+    @abstractmethod
+    def get_confidences(self, detections) -> List[float]:
+        """Get detections object of single image and should return confidence for each detection."""
+        pass
 
-        def __init__(self, det):
-            det_cpu = det.cpu()
-            self.bbox = det_cpu[:4]
-            self.confidence = det_cpu[4]
-            self.label = det_cpu[5]
+    @abstractmethod
+    def calc_pairwise_ious(self, detections, labels) -> Dict[int, np.ndarray]:
+        """Get single result from group_class_detection_label and return matrix of IOUs."""
+        pass
+
+    @abstractmethod
+    def group_class_detection_label(self, detections, labels) -> dict:
+        """Group detection and labels in dict of format {class_id: {'detected' [...], 'ground_truth': [...]}}."""
+        pass
+
+    @abstractmethod
+    def get_detection_areas(self, detections) -> List[int]:
+        """Get detection object of single image and should return area for each detection."""
+        pass
+
+    @abstractmethod
+    def get_labels_areas(self, labels) -> List[int]:
+        """Get labels object of single image and should return area for each label."""
+        pass

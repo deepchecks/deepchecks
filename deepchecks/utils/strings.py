@@ -9,21 +9,34 @@
 # ----------------------------------------------------------------------------
 #
 """String functions."""
+import io
+import itertools
+import os
 import random
-import typing as t
 import re
-from datetime import datetime
-from string import ascii_uppercase, digits
+import sys
+import typing as t
 from collections import defaultdict
-from decimal import Decimal
 from copy import copy
+from datetime import datetime
+from decimal import Decimal
+from string import ascii_uppercase, digits
 
+import numpy as np
 import pandas as pd
+from ipywidgets import Widget
+from ipywidgets.embed import dependency_state, embed_minimal_html
+from packaging.version import Version
 from pandas.core.dtypes.common import is_numeric_dtype
 
 import deepchecks
 from deepchecks import core
 from deepchecks.utils.typing import Hashable
+
+try:
+    from importlib.resources import files
+except ImportError:
+    from importlib_resources import files
 
 
 __all__ = [
@@ -40,8 +53,18 @@ __all__ = [
     'format_datetime',
     'get_docs_summary',
     'get_ellipsis',
-    'to_snake_case'
+    'to_snake_case',
+    'create_new_file_name',
+    'widget_to_html',
+    'generate_check_docs_link',
+    'widget_to_html_string',
+    'format_number_if_not_nan',
+    'get_docs_link'
 ]
+
+# Creating a translation table for the string.translate() method to be used in string base-form method
+DEL_CHARS = ''.join(c for c in map(chr, range(sys.maxunicode)) if not c.isalnum())
+DEL_MAP = str.maketrans('', '', DEL_CHARS)
 
 
 def get_ellipsis(long_string: str, max_length: int):
@@ -64,29 +87,109 @@ def get_ellipsis(long_string: str, max_length: int):
     return long_string[:max_length] + '...'
 
 
-def get_docs_summary(obj):
+def get_docs_summary(obj, with_doc_link: bool = True):
     """Return the docs summary if available.
 
     Parameters
     ----------
     obj
         an object
+    with_doc_link : bool , default: True
+        if to add doc link
     Returns
     -------
     str
         the object summary.
     """
-    summary = ''
     if hasattr(obj.__class__, '__doc__'):
         docs = obj.__class__.__doc__ or ''
         # Take first non-whitespace line.
         summary = next((s for s in docs.split('\n') if not re.match('^\\s*$', s)), '')
 
-    summary += _generate_check_docs_link_html(obj)
-    return summary
+        if with_doc_link:
+            link = generate_check_docs_link(obj)
+            summary += f' <a href="{link}" target="_blank">Read More...</a>'
+
+        return summary
+    return ''
 
 
-def _generate_check_docs_link_html(check):
+def widget_to_html(
+    widget: Widget,
+    html_out: t.Union[str, t.TextIO],
+    title: t.Optional[str] = None,
+    requirejs: bool = True
+):
+    """Save widget as html file.
+
+    Parameters
+    ----------
+    widget: Widget
+        The widget to save as html.
+    html_out: filename or file-like object
+        The file to write the HTML output to.
+    title: str , default: None
+        The title of the html file.
+    requirejs: bool , default: True
+        If to save with all javascript dependencies
+    """
+    my_resources = files('deepchecks.core')
+    with open(os.path.join(my_resources, 'resources', 'suite_output.html'), 'r', encoding='utf8') as html_file:
+        html_formatted = re.sub('{', '{{', html_file.read())
+        html_formatted = re.sub('}', '}}', html_formatted)
+        html_formatted = re.sub('html_title', '{title}', html_formatted)
+        html_formatted = re.sub('widget_snippet', '{snippet}', html_formatted)
+        embed_url = None if requirejs else ''
+        embed_minimal_html(html_out, views=[widget], title=title or '',
+                           template=html_formatted,
+                           requirejs=requirejs, embed_url=embed_url,
+                           state=dependency_state(widget))
+
+
+def widget_to_html_string(
+    widget: Widget,
+    title: t.Optional[str] = None,
+    requirejs: bool = True
+) -> str:
+    """Transform widget into html string.
+
+    Parameters
+    ----------
+    widget: Widget
+        The widget to save as html.
+    title: str , default: None
+        The title of the html file.
+    requirejs: bool , default: True
+        If to save with all javascript dependencies
+
+    Returns
+    -------
+    str
+    """
+    buffer = io.StringIO()
+    widget_to_html(widget, buffer, title, requirejs)
+    buffer.seek(0)
+    return buffer.getvalue()
+
+
+def get_docs_link():
+    """Return the link to the docs with current version.
+
+    Returns
+    -------
+    str
+        the link to the docs.
+    """
+    if deepchecks.__version__ and deepchecks.__version__ != 'dev':
+        version_obj: Version = Version(deepchecks.__version__)
+        # The version in the docs url is without the hotfix part
+        version = f'{version_obj.major}.{version_obj.minor}'
+    else:
+        version = 'stable'
+    return f'https://docs.deepchecks.com/{version}/'
+
+
+def generate_check_docs_link(check):
     """Create from check object a link to its example page in the docs."""
     if not isinstance(check, core.BaseCheck):
         return ''
@@ -107,25 +210,21 @@ def _generate_check_docs_link_html(check):
         # not builtin check, cannot generate link to the docs
         return ''
 
-    link_template = (
-        'https://docs.deepchecks.com/en/{version}/examples/{path}.html'
-        '?utm_source=display_output&utm_medium=referral'
-        '&utm_campaign=check_link'
-    )
+    link_postfix = '.html?utm_source=display_output&utm_medium=referral&utm_campaign=check_link'
 
     # compare check full name and link to the notebook to
     # understand how link is formatted:
     #
-    # - deepchecks.tabular.checks.integrity.new_category.CategoryMismatchTrainTest
-    # - docs.deepchecks.com/en/{version}/examples/tabular/checks/integrity/category_mismatch_train_test.html # noqa: E501 # pylint: disable=line-too-long
+    # - deepchecks.tabular.checks.integrity.StringMismatchComparison
+    # - https://docs.deepchecks.com/{version}/checks_gallery/tabular/integrity/plot_string_mismatch_comparison.html # noqa: E501 # pylint: disable=line-too-long
 
-    module_path = module_path.split('.')
-    check_name = to_snake_case(type(check).__name__).lower()
-    path_parts = [it for it in module_path if it != 'deepchecks']
-    url = '/'.join([*path_parts[:-1], check_name])
-    version = deepchecks.__version__ or 'stable'
-    link = link_template.format(version=version, path=url)
-    return f' <a href="{link}" target="_blank">Read More...</a>'
+    # Remove 'deepchecks' from the start and 'checks' from the middle
+    module_path = module_path[len('deepchecks.'):]
+    module_parts = module_path.split('.')
+    module_parts.remove('checks')
+    # Add to the check name prefix of 'plot_'
+    module_parts[-1] = f'plot_{module_parts[-1]}'
+    return get_docs_link() + 'checks_gallery/' + '/'.join([*module_parts]) + link_postfix
 
 
 def get_random_string(n: int = 5):
@@ -144,21 +243,29 @@ def get_random_string(n: int = 5):
     return ''.join(random.choices(ascii_uppercase + digits, k=n))
 
 
-def string_baseform(string: str) -> str:
-    """Remove special characters from given string, leaving only a-z, A-Z, 0-9 characters.
+def string_baseform(string: Hashable, allow_empty_result: bool = False) -> Hashable:
+    """Normalize the string input to a uniform form.
 
+    If input is a string containing alphanumeric characters or if allow_empty_result is set to True,
+    removes all non-alphanumeric characters and convert characters to lower form.
     Parameters
     ----------
+    allow_empty_result : bool , default : False
+        bool indicating whether to return empty result if no alphanumeric characters are present or the original input
     string : str
         string to remove special characters from
     Returns
     -------
     str
-        string without special characters
+        original input if condition is not met or lower form alphanumeric characters of input.
     """
     if not isinstance(string, str):
         return string
-    return re.sub('[^A-Za-z0-9]+', '', string).lower()
+    lower_alphanumeric_form = string.translate(DEL_MAP).lower()
+    if len(lower_alphanumeric_form) > 0 or allow_empty_result:
+        return lower_alphanumeric_form
+    else:
+        return string
 
 
 def is_string_column(column: pd.Series) -> bool:
@@ -321,15 +428,21 @@ def truncate_zero_percent(ratio: float, floating_point: int):
     return f'{ratio * 100:.{floating_point}f}'.rstrip('0').rstrip('.') + '%'
 
 
-def format_percent(ratio: float, floating_point: int = 2, scientific_notation_threshold: int = 4) -> str:
+def format_percent(ratio: float, floating_point: int = 2, scientific_notation_threshold: int = 4,
+                   add_positive_prefix: bool = False) -> str:
     """Format percent for elegant display.
 
     Parameters
     ----------
     ratio : float
         Ratio to be displayed as percent
-    floating_point : int , default: 2
+    floating_point: int , default: 2
         Number of floating points to display
+    scientific_notation_threshold: int, default: 4
+        Max number of floating points for which to show number as float. If number of floating points is larger than
+        this parameter, scientific notation (e.g. "10E-5%") will be shown.
+    add_positive_prefix: bool, default: False
+        add plus sign before positive percentages (minus sign is always added for negative percentages).
     Returns
     -------
     str
@@ -340,7 +453,7 @@ def format_percent(ratio: float, floating_point: int = 2, scientific_notation_th
         ratio = -ratio
         prefix = '-'
     else:
-        prefix = ''
+        prefix = '+' if add_positive_prefix and ratio != 0 else ''
 
     if int(ratio) == ratio:
         result = f'{int(ratio) * 100}%'
@@ -395,6 +508,25 @@ def format_number(x, floating_point: int = 2) -> str:
     else:
         ret_x = round(x, floating_point)
         return add_commas(ret_x).rstrip('0')
+
+
+def format_number_if_not_nan(x, floating_point: int = 2):
+    """Format number if it is not nan for elegant display.
+
+    Parameters
+    ----------
+    x
+        Number to be displayed
+    floating_point : int , default: 2
+        Number of floating points to display
+    Returns
+    -------
+    str
+        String of beautified number if number is not nan
+    """
+    if np.isnan(x):
+        return x
+    return format_number(x, floating_point)
 
 
 def format_list(l: t.List[Hashable], max_elements_to_show: int = 10, max_string_length: int = 40) -> str:
@@ -452,3 +584,31 @@ def format_datetime(
         return datetime.fromtimestamp(value).strftime(datetime_format)
     else:
         raise ValueError(f'Unsupported value type - {type(value).__name__}')
+
+
+def create_new_file_name(file_name: str, default_suffix: str = 'html'):
+    """Return file name that isn't already exist (adding (X)).
+
+    Parameters
+    ----------
+    file_name : str
+        the file name we want to add a (X) suffix if it exist.
+    default_suffix : str , default: 'html'
+        the file suffix to add if it wasn't provided in the file name.
+
+    Returns
+    -------
+    str
+        a new file name if the file exists
+    """
+    if '.' in file_name:
+        basename, ext = file_name.rsplit('.', 1)
+    else:
+        basename = file_name
+        ext = default_suffix
+    file_name = f'{basename}.{ext}'
+    c = itertools.count()
+    next(c)
+    while os.path.exists(file_name):
+        file_name = f'{basename} ({str(next(c))}).{ext}'
+    return file_name

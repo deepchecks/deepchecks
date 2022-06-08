@@ -16,30 +16,34 @@ on:
   pull_request: 
     branches: [ main ]
 
+env:
+  DISABLE_DEEPCHECKS_ANONYMOUS_TELEMETRY: "true"
+
 jobs:
   tests:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.6", "3.7", "3.8", "3.9"] #TODO: add 3.10 when scikit-learn have a wheel https://github.com/scikit-learn/scikit-learn/pull/21232
+        python-version: ["3.6", "3.7", "3.8", "3.9"] #TODO: add 3.10 when upgrading torch to 1.11
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
     - name: Set Up Env
       run: make env
+    - name: pip freeze
+      run: make freeze
     - name: Run Tests
       run: make test
   coverage:
     runs-on: ubuntu-latest
-    needs: tests
     name: coveralls
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v3
       with:
         python-version: "3.9"
     - name: Set Up Env
@@ -56,24 +60,38 @@ jobs:
         python-version: ["3.8"] #TODO: add 3.10 when scikit-learn have a wheel https://github.com/scikit-learn/scikit-learn/pull/21232
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
     - name: Run Tests
       run: make test-win
 
+  scikit-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        scikit-version: [ '0.23.2', '1.0.2', '1.1.0' ]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+        with:
+          python-version: "3.9"
+      - name: Setup env and dev requirements
+        run: make env requirements dev-requirements && pip install scikit-learn==${{ matrix.scikit-version }}
+      - name: Run suite test
+        run: make test args=tests/tabular/suites
 
   dependencies-license-check:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout the code
-      uses: actions/checkout@v2.3.4
+      uses: actions/checkout@v3
       with:
         fetch-depth: 0
     - name: Setup Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v3
       with:
         python-version: '3.7'
     - name: Get explicit and transitive dependencies
@@ -89,7 +107,7 @@ jobs:
       with:
         requirements: 'requirements-all.txt'
         fail: 'Copyleft,Other,Error'
-        exclude: '(pyzmq.*22\.3\.0|debugpy.*1\.5\.1|certifi.*2021\.10\.8|tqdm.*4\.62\.3|webencodings.*0\.5\.1|torch.*1\.10\.2.*|torchaudio.*0\.10\.2.*|torchvision.*0\.11\.3.*)'
+        exclude: '(pyzmq.*23\.1\.0|debugpy.*1\.6\.0|certifi.*2022\.5\.18\.1|tqdm.*4\.64\.0|webencodings.*0\.5\.1|torch.*1\.10\.2.*|torchaudio.*0\.10\.2.*|torchvision.*0\.11\.3.*|terminado.*0\.15\.0)'
         # pyzmq is Revised BSD https://github.com/zeromq/pyzmq/blob/main/examples/LICENSE
         # debugpy is MIT https://github.com/microsoft/debugpy/blob/main/LICENSE
         # certifi is MPL-2.0 https://github.com/certifi/python-certifi/blob/master/LICENSE
@@ -98,10 +116,23 @@ jobs:
         # torch is BSD https://github.com/pytorch/pytorch/blob/master/LICENSE
         # torchvision is BSD https://github.com/pytorch/vision/blob/main/LICENSE
         # torchaudio is BSD https://github.com/pytorch/audio/blob/main/LICENSE
+        # terminado is BSD https://github.com/jupyter/terminado/blob/main/LICENSE
 
     - name: Print report
       if: ${{ always() }}
       run: echo "${{ steps.license_check_report.outputs.report }}"
+  gpu-tests:
+    runs-on: [self-hosted, gpu]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.7'
+      - name: Set Up Env
+        run: make env
+      - name: Run Tests
+        run: make test
 
 
 #  documentation-check:

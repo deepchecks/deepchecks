@@ -10,27 +10,29 @@
 #
 """Module with all deepchecks error types."""
 
-
-__all__ = [
-    'DeepchecksValueError',
-    'DeepchecksNotSupportedError',
-    'DeepchecksProcessError',
-    'NumberOfFeaturesLimitError',
-    'DatasetValidationError',
-    'ModelValidationError'
-]
+__all__ = ['DeepchecksValueError', 'DeepchecksNotSupportedError', 'DeepchecksProcessError',
+           'NumberOfFeaturesLimitError', 'DatasetValidationError', 'ModelValidationError',
+           'DeepchecksNotImplementedError', 'ValidationError', 'DeepchecksBaseError', 'NotEnoughSamplesError',
+           'DeepchecksTimeoutError']
 
 
 class DeepchecksBaseError(Exception):
     """Base exception class for all 'Deepchecks' error types."""
 
-    def __init__(self, message: str):
+    def __init__(self, message: str, html: str = None):
         super().__init__(message)
         self.message = message
+        self.html = html or message
 
 
 class DeepchecksValueError(DeepchecksBaseError):
     """Exception class that represent a fault parameter was passed to Deepchecks."""
+
+    pass
+
+
+class DeepchecksNotImplementedError(DeepchecksBaseError):
+    """Exception class that represent a function that was not implemnted."""
 
     pass
 
@@ -48,7 +50,7 @@ class DeepchecksProcessError(DeepchecksBaseError):
 
 
 class NumberOfFeaturesLimitError(DeepchecksBaseError):
-    """Represents a situation when a dataset contains to much features to be used for calculation."""
+    """Represents a situation when a dataset contains too many features to be used for calculation."""
 
     pass
 
@@ -81,5 +83,11 @@ class ModelValidationError(DeepchecksBaseError):
     Should be used in a situation when a routine (like check instance, utility function, etc)
     expected and received a dataset instance that did not meet routine requirements.
     """
+
+    pass
+
+
+class NotEnoughSamplesError(DeepchecksBaseError):
+    """Represents a failure in calculation due to insufficient amount of samples."""
 
     pass

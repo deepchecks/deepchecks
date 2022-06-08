@@ -9,11 +9,10 @@
 # ----------------------------------------------------------------------------
 #
 from datetime import datetime
-from hamcrest import assert_that, calling, raises, matches_regexp, instance_of, equal_to
 
-from deepchecks.tabular.checks import ModelInfo
-from deepchecks.utils.strings import format_datetime, get_ellipsis, _generate_check_docs_link_html
-import deepchecks
+from hamcrest import assert_that, calling, equal_to, instance_of, matches_regexp, raises
+
+from deepchecks.utils.strings import format_datetime, get_ellipsis
 
 
 def test_get_ellipsis():
@@ -66,22 +65,3 @@ def test_format_datetime_with_unsuported_value_type():
         calling(format_datetime).with_args('hello'),
         raises(ValueError, r'Unsupported value type - str')
     )
-
-
-def test_generate_check_docs_link_html():
-    # Arrange - init some arbitrary check
-    check = ModelInfo()
-    version = deepchecks.__version__ or 'stable'
-    # Act
-    html = _generate_check_docs_link_html(check)
-    # Assert
-    assert_that(html, equal_to(f' <a href="https://docs.deepchecks.com/en/{version}/examples/tabular/checks/overview/'
-                               'model_info.html?utm_source=display_output&utm_medium=referral&utm_campaign=check_link" '
-                               'target="_blank">Read More...</a>'))
-
-
-def test_generate_check_docs_link_html_not_a_check():
-    # Act
-    html = _generate_check_docs_link_html('s')
-    # Assert
-    assert_that(html, equal_to(''))

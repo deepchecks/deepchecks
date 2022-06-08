@@ -8,41 +8,35 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-import torch
-from hamcrest import has_items, assert_that, has_length, close_to
+from hamcrest import assert_that, close_to, has_items, has_length
 
-from deepchecks.vision.datasets.detection.coco import yolo_prediction_formatter
-from deepchecks.vision.metrics_utils.metrics import calculate_metrics
-from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePrecision
-from deepchecks.vision.utils.detection_formatters import DetectionPredictionFormatter
 from deepchecks.vision import VisionData
+from deepchecks.vision.metrics_utils.metrics import calculate_metrics
+from deepchecks.vision.metrics_utils.object_detection_precision_recall import ObjectDetectionAveragePrecision
 
 
-def test_default_ap_ignite_complient(coco_test_visiondata: VisionData, trained_yolov5_object_detection):
-    res = calculate_metrics({'AveragePrecision': AveragePrecision()},
-                            coco_test_visiondata, trained_yolov5_object_detection,
-                            prediction_formatter=DetectionPredictionFormatter(yolo_prediction_formatter),
-                            device=torch.device('cpu'))
+def test_default_ap_ignite_complient(coco_test_visiondata: VisionData, mock_trained_yolov5_object_detection, device):
+    res = calculate_metrics({'AveragePrecision': ObjectDetectionAveragePrecision()},
+                            coco_test_visiondata, mock_trained_yolov5_object_detection,
+                            device=device)
     assert_that(res.keys(), has_length(1))
-    assert_that(res['AveragePrecision'], has_length(59))
+    assert_that(res['AveragePrecision'], has_length(80))
 
 
-def test_ar_ignite_complient(coco_test_visiondata: VisionData, trained_yolov5_object_detection):
-    res = calculate_metrics({'AveragePrecision': AveragePrecision(return_option=1)},
-                            coco_test_visiondata, trained_yolov5_object_detection,
-                            prediction_formatter=DetectionPredictionFormatter(yolo_prediction_formatter),
-                            device=torch.device('cpu'))
+def test_ar_ignite_complient(coco_test_visiondata: VisionData, mock_trained_yolov5_object_detection, device):
+    res = calculate_metrics({'AveragePrecision': ObjectDetectionAveragePrecision(return_option=1)},
+                            coco_test_visiondata, mock_trained_yolov5_object_detection,
+                            device=device)
 
     assert_that(res.keys(), has_length(1))
-    assert_that(res['AveragePrecision'], has_length(59))
+    assert_that(res['AveragePrecision'], has_length(80))
 
 
-def test_equal_pycocotools(coco_test_visiondata: VisionData, trained_yolov5_object_detection):
-    metric = AveragePrecision(return_option=None)
-    for batch in coco_test_visiondata.get_data_loader():
-        label = coco_test_visiondata.label_formatter(batch)
-        prediction = DetectionPredictionFormatter(yolo_prediction_formatter)(batch, trained_yolov5_object_detection,
-                                                                             torch.device('cpu'))
+def test_equal_pycocotools(coco_test_visiondata: VisionData, mock_trained_yolov5_object_detection, device):
+    metric = ObjectDetectionAveragePrecision(return_option=None)
+    for batch in coco_test_visiondata:
+        label = coco_test_visiondata.batch_to_labels(batch)
+        prediction = coco_test_visiondata.infer_on_batch(batch, mock_trained_yolov5_object_detection, device)
         metric.update((prediction, label))
     res = metric.compute()[0]
 
@@ -62,7 +56,7 @@ def test_equal_pycocotools(coco_test_visiondata: VisionData, trained_yolov5_obje
     assert_that(metric.get_classes_scores_at(res['recall'], area='medium', max_dets=100), close_to(0.423, 0.001))
     assert_that(metric.get_classes_scores_at(res['recall'], area='large', max_dets=100), close_to(0.549, 0.001))
 
-    # unrelated to coco but needed to check another param
+    # unrelated to pycoco but needed to check another param
     assert_that(metric.get_classes_scores_at(res['recall'], area='large', max_dets=100, get_mean_val=False,
                 zeroed_negative=False), has_items([-1]))
     assert_that(metric.get_classes_scores_at(res['recall'], get_mean_val=False, zeroed_negative=False), has_items([-1]))

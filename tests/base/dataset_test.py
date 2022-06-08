@@ -10,20 +10,17 @@
 #
 """Contains unit tests for the Dataset class."""
 import typing as t
-import random
+import warnings
 
 import numpy as np
 import pandas as pd
-from sklearn.datasets import load_iris
-from sklearn.datasets import make_classification
-from hamcrest import (
-    assert_that, instance_of, equal_to, is_,
-    calling, raises, not_none, has_property, all_of, contains_exactly, has_item, has_length
-)
+from hamcrest import (all_of, assert_that, calling, contains_exactly, equal_to, greater_than, has_item, has_length,
+                      has_property, instance_of, is_, not_none, raises)
+from sklearn.datasets import load_iris, make_classification
 
-from deepchecks.tabular import Dataset
-from deepchecks.utils.validation import ensure_dataframe_type
-from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError
+from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.tabular.dataset import Dataset
+from deepchecks.tabular.utils.validation import ensure_dataframe_type
 
 
 def assert_dataset(dataset: Dataset, args):
@@ -82,6 +79,12 @@ def assert_dataset(dataset: Dataset, args):
                 is_(True)
             )
 
+
+def test_that_cant_create_empty_dataset():
+    assert_that(calling(Dataset).with_args(pd.DataFrame()),
+                raises(DeepchecksValueError, 'Can\'t create a Dataset object with an empty dataframe'))
+
+
 def test_that_mutable_properties_modification_does_not_affect_dataset_state(iris):
     dataset = Dataset(
         df=iris,
@@ -96,17 +99,11 @@ def test_that_mutable_properties_modification_does_not_affect_dataset_state(iris
     features = dataset.features
     cat_features = dataset.cat_features
 
-    features.append("New value")
-    cat_features.append("New value")
+    features.append('New value')
+    cat_features.append('New value')
 
-    assert_that("New value" not in dataset.features)
-    assert_that("New value" not in dataset.cat_features)
-
-
-def test_dataset_empty_df(empty_df):
-    args = {'df': empty_df}
-    dataset = Dataset(**args)
-    assert_dataset(dataset, args)
+    assert_that('New value' not in dataset.features)
+    assert_that('New value' not in dataset.cat_features)
 
 
 def test_dataset_feature_columns(iris):
@@ -518,7 +515,7 @@ def test_dataset_initialization_from_numpy_arrays_of_different_length():
         calling(Dataset.from_numpy).with_args(iris.data, iris.target[:10]),
         raises(
             DeepchecksValueError,
-            "Number of samples of label and data must be equal"
+            'Number of samples of label and data must be equal'
         )
     )
 
@@ -540,7 +537,7 @@ def test_dataset_initialization_from_numpy_arrays_without_providing_args():
         raises(
             DeepchecksValueError,
             r"'from_numpy' constructor expecting to receive two numpy arrays \(or at least one\)\."
-            r"First array must contains the columns and second the labels\."
+            r'First array must contains the columns and second the labels\.'
         )
     )
 
@@ -564,7 +561,7 @@ def test_dataset_initialization_from_numpy_empty_arrays():
         raises(
             DeepchecksValueError,
             r"'from_numpy' constructor expecting columns \(args\[0\]\) "
-            r"to be not empty two dimensional array\."
+            r'to be not empty two dimensional array\.'
         )
     )
 
@@ -829,29 +826,20 @@ def test_sample_drop_nan_labels(iris):
     assert_that(sample, has_length(50))
 
 
-def test__ensure_not_empty_dataset(iris: pd.DataFrame):
-    # Arrange
-    ds = Dataset(iris)
-    # Act
-    ds = Dataset.ensure_not_empty_dataset(ds)
-
-
 def test__ensure_not_empty_dataset__with_empty_dataset():
-    # Arrange
-    ds = Dataset(pd.DataFrame())
     # Assert
     assert_that(
-        calling(Dataset.ensure_not_empty_dataset).with_args(ds),
-        raises(DatasetValidationError, r'dataset cannot be empty')
+        calling(Dataset.cast_to_dataset).with_args(pd.DataFrame()),
+        raises(DeepchecksValueError, 'Can\'t create a Dataset object with an empty dataframe')
     )
 
 
 def test__ensure_not_empty_dataset__with_dataframe(iris: pd.DataFrame):
     # Arrange
-    ds = Dataset.ensure_not_empty_dataset(iris)
+    ds = Dataset.cast_to_dataset(iris)
     # Assert
     assert_that(ds, instance_of(Dataset))
-    assert_that(ds.features, has_length(0))
+    assert_that(ds.features, has_length(greater_than(0)))
     assert_that(ds.label_name, equal_to(None))
     assert_that(ds.n_samples, equal_to(len(iris)))
 
@@ -859,8 +847,8 @@ def test__ensure_not_empty_dataset__with_dataframe(iris: pd.DataFrame):
 def test__ensure_not_empty_dataset__with_empty_dataframe():
     # Assert
     assert_that(
-        calling(Dataset.ensure_not_empty_dataset).with_args(pd.DataFrame()),
-        raises(DatasetValidationError, r'dataset cannot be empty')
+        calling(Dataset.cast_to_dataset).with_args(pd.DataFrame()),
+        raises(DeepchecksValueError, r'Can\'t create a Dataset object with an empty dataframe')
     )
 
 
@@ -889,7 +877,7 @@ def test__datasets_share_features__with_features_lists_ordered_differently():
 
 def test__datasets_share_features__with_wrong_args(iris: pd.DataFrame):
     # Arrange
-    ds = Dataset(iris, label="target")
+    ds = Dataset(iris, label='target')
     # Assert
     assert_that(
         calling(Dataset.datasets_share_features).with_args([ds]),
@@ -994,7 +982,7 @@ def test__datasets_share_categorical_features__with_differently_ordered_datasets
 
 
 def test__datasets_share_label():
-    ds = Dataset(random_classification_dataframe(), label="target")
+    ds = Dataset(random_classification_dataframe(), label='target')
     assert_that(
         Dataset.datasets_share_label(ds, ds),
         equal_to(True)
@@ -1003,7 +991,7 @@ def test__datasets_share_label():
 
 def test__datasets_share_label__with_wrong_args(iris: pd.DataFrame):
     # Arrange
-    ds = Dataset(iris, label="target")
+    ds = Dataset(iris, label='target')
     # Assert
     assert_that(
         calling(Dataset.datasets_share_label).with_args([ds]),
@@ -1014,9 +1002,9 @@ def test__datasets_share_label__with_wrong_args(iris: pd.DataFrame):
 def test__datasets_share_label__when_it_must_return_false(iris: pd.DataFrame):
     # Arrange
     df = random_classification_dataframe()
-    df.rename(columns={"target": "Y_target"}, inplace=True)
-    ds = Dataset(df, label="Y_target")
-    iris_ds = Dataset(iris, label="target")
+    df.rename(columns={'target': 'Y_target'}, inplace=True)
+    ds = Dataset(df, label='Y_target')
+    iris_ds = Dataset(iris, label='target')
     # Assert
     assert_that(
         Dataset.datasets_share_label(ds, iris_ds),
@@ -1027,9 +1015,9 @@ def test__datasets_share_label__when_it_must_return_false(iris: pd.DataFrame):
 def test__datasets_share_label__with_differently_ordered_datasets_list(iris: pd.DataFrame):
     # Arrange
     df = random_classification_dataframe()
-    df.rename(columns={"target": "Y_target"}, inplace=True)
-    ds = Dataset(df, label="Y_target")
-    iris_ds = Dataset(iris, label="target")
+    df.rename(columns={'target': 'Y_target'}, inplace=True)
+    ds = Dataset(df, label='Y_target')
+    iris_ds = Dataset(iris, label='target')
     # Assert
     assert_that(
         Dataset.datasets_share_label(ds, iris_ds),
@@ -1046,3 +1034,20 @@ def random_classification_dataframe(n_samples=100, n_features=5) -> pd.DataFrame
     df = pd.DataFrame(x,columns=[f'X{i}'for i in range(n_features)])
     df['target'] = y
     return df
+
+
+def test_cat_features_warning(iris):
+    # Test that warning is raised when cat_features is None
+    with warnings.catch_warnings(record=True) as w:
+        Dataset(iris)
+        assert_that(w, has_length(1))
+        assert_that(str(w[0].message), equal_to('It is recommended to initialize Dataset with categorical features by '
+                    'doing \"Dataset(df, cat_features=categorical_list)\". No categorical features were '
+                    'passed, therefore heuristically inferring categorical features in the data.\n'
+                    '0 categorical features were inferred'))
+
+    # Test that warning is not raised when cat_features is not None
+    with warnings.catch_warnings(record=True) as w:
+        Dataset(iris, cat_features=[])
+        assert_that(w, has_length(0))
+

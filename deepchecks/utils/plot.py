@@ -9,16 +9,31 @@
 # ----------------------------------------------------------------------------
 #
 """Utils module containing utilities for plotting."""
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import plotly.graph_objects as go
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import LinearSegmentedColormap
 
+from deepchecks.utils.strings import format_number_if_not_nan
 
-__all__ = ['create_colorbar_barchart_for_check', 'shifted_color_map', 'colors']
+__all__ = ['create_colorbar_barchart_for_check', 'shifted_color_map',
+           'create_confusion_matrix_figure', 'colors', 'hex_to_rgba']
 
-colors = {'Train': 'darkblue',
-          'Test': '#69b3a2'}
+
+colors = {'Train': '#00008b',  # dark blue
+          'Test': '#69b3a2',
+          'Baseline': '#b287a3',
+          'Generated': '#2191FB'}
+# iterable for displaying colors on metrics
+metric_colors = ['rgb(102, 197, 204)',
+                 'rgb(220, 176, 242)',
+                 'rgb(135, 197, 95)',
+                 'rgb(158, 185, 243)',
+                 'rgb(254, 136, 177)',
+                 'rgb(201, 219, 116)',
+                 'rgb(139, 224, 164)',
+                 'rgb(180, 151, 231)']
 
 
 def create_colorbar_barchart_for_check(
@@ -143,3 +158,57 @@ def shifted_color_map(cmap, start=0, midpoint=0.5, stop=1.0, name: str = 'shifte
     plt.register_cmap(cmap=newcmap)
 
     return newcmap
+
+
+def hex_to_rgba(h, alpha):
+    """Convert color value in hex format to rgba format with alpha transparency."""
+    return 'rgba' + str(tuple([int(h.lstrip('#')[i:i+2], 16) for i in (0, 2, 4)] + [alpha]))
+
+
+def create_confusion_matrix_figure(confusion_matrix: np.ndarray, x: np.ndarray,
+                                   y: np.ndarray, normalized: bool):
+    """Create a confusion matrix figure.
+
+    Parameters
+    ----------
+    confusion_matrix: np.ndarray
+        2D array containing the confusion matrix.
+    x: np.ndarray
+        array containing x axis data.
+    y: np.ndarray
+        array containing y axis data.
+    normalized: bool
+        if True will also show normalized values by the true values.
+
+    Returns
+    -------
+    plotly Figure object
+        confusion matrix figure
+
+    """
+    if normalized:
+        confusion_matrix_norm = confusion_matrix.astype('float') / \
+            confusion_matrix.sum(axis=1)[:, np.newaxis] * 100
+        z = np.vectorize(format_number_if_not_nan)(confusion_matrix_norm)
+        texttemplate = '%{z}%<br>(%{text})'
+        colorbar_title = '% out of<br>True Values'
+        plot_title = 'Percent Out of True Values (Count)'
+    else:
+        z = confusion_matrix
+        colorbar_title = None
+        texttemplate = '%{text}'
+        plot_title = 'Value Count'
+
+    fig = go.Figure(data=go.Heatmap(
+                x=x,
+                y=y,
+                z=z,
+                text=confusion_matrix,
+                texttemplate=texttemplate))
+    fig.data[0].colorbar.title = colorbar_title
+    fig.update_layout(title=plot_title)
+    fig.update_layout(height=600)
+    fig.update_xaxes(title='Predicted Value', type='category', scaleanchor='y', constrain='domain')
+    fig.update_yaxes(title='True value', type='category', constrain='domain', autorange='reversed')
+
+    return fig

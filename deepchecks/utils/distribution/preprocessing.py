@@ -9,25 +9,29 @@
 # ----------------------------------------------------------------------------
 #
 """Module of preprocessing functions."""
+import warnings
 # pylint: disable=invalid-name,unused-argument
 from collections import Counter
-import warnings
+from typing import List, Tuple, Union
 
 import numpy as np
 import pandas as pd
-from typing import List, Tuple
 
 with warnings.catch_warnings():
     warnings.simplefilter(action='ignore', category=FutureWarning)
     from category_encoders import OneHotEncoder
-from sklearn.base import TransformerMixin, BaseEstimator
+
+from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import MinMaxScaler
-from deepchecks.utils.typing import Hashable
-from deepchecks.utils.distribution.rare_category_encoder import RareCategoryEncoder
 
+from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.utils.distribution.rare_category_encoder import RareCategoryEncoder
+from deepchecks.utils.typing import Hashable
 
 __all__ = ['ScaledNumerics', 'preprocess_2_cat_cols_to_same_bins']
+
+OTHER_CATEGORY_NAME = 'Other rare categories'
 
 
 class ScaledNumerics(TransformerMixin, BaseEstimator):
@@ -108,26 +112,39 @@ class ScaledNumerics(TransformerMixin, BaseEstimator):
             return s
 
 
-def preprocess_2_cat_cols_to_same_bins(dist1: np.ndarray, dist2: np.ndarray, max_num_categories
+def preprocess_2_cat_cols_to_same_bins(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series],
+                                       max_num_categories: int = None, sort_by: str = 'difference'
                                        ) -> Tuple[np.ndarray, np.ndarray, List]:
     """
-    Preprocess distributions to the same bins in order to be able to be calculated by PSI.
+    Preprocess distributions to the same bins.
 
-    Function returns the value counts for each distribution and the categories list. If there are more than
-    max_num_categories, it encodes rare categories into an "OTHER" category. This is done according to the values of
-    dist1, which is treated as the "expected" distribution.
+    Function returns value counts for each distribution (with the same index) and the categories list.
+    Parameter max_num_categories can be used in order to limit the number of resulting bins.
 
     Function is for categorical data only.
 
     Parameters
     ----------
-    dist1 : np.ndarray
-        Parameters
-    dist2 : np.ndarray
-        list of values from the second distribution, treated as the actual distribution
-    max_num_categories
-        max number of allowed categories. If there are more, they are binned into an "Other" category.
+    dist1: Union[np.ndarray, pd.Series]
+        list of values from the first distribution.
+    dist2: Union[np.ndarray, pd.Series]
+        list of values from the second distribution.
+    max_num_categories: int, default: None
+        max number of allowed categories. If there are more categories than this number, categories are ordered by
+        magnitude and all the smaller categories are binned into an "Other" category.
         If max_num_categories=None, there is no limit.
+        > Note that if this parameter is used, the ordering of categories (and by extension, the decision which
+        categories are kept by name and which are binned to the "Other" category) is done by default according to the
+        values of dist1, which is treated as the "expected" distribution. This behavior can be changed by using the
+        sort_by parameter.
+    sort_by: str, default: 'difference'
+        Specify how categories should be sorted, affecting which categories will get into the "Other" category.
+        Possible values:
+        - 'dist1': Sort by the largest dist1 categories.
+        - 'difference': Sort by the largest difference between categories.
+        > Note that this parameter has no effect if max_num_categories = None or there are not enough unique categories.
+
+
     Returns
     -------
     dist1_percents
@@ -141,20 +158,33 @@ def preprocess_2_cat_cols_to_same_bins(dist1: np.ndarray, dist2: np.ndarray, max
     all_categories = list(set(dist1).union(set(dist2)))
 
     if max_num_categories is not None and len(all_categories) > max_num_categories:
-        dist1_counter = dict(Counter(dist1).most_common(max_num_categories))
-        dist1_counter['Other rare categories'] = len(dist1) - sum(dist1_counter.values())
-        categories_list = list(dist1_counter.keys())
-
+        dist1_counter = Counter(dist1)
         dist2_counter = Counter(dist2)
+
+        if sort_by == 'dist1':
+            sort_by_counter = dist1_counter
+        elif sort_by == 'difference':
+            sort_by_counter = Counter({key: abs(dist1_counter[key] - dist2_counter[key])
+                                       for key in set(dist1_counter.keys()).union(dist2_counter.keys())})
+        else:
+            raise DeepchecksValueError(f'sort_by got unexpected value: {sort_by}')
+
+        # Not using most_common func of Counter as it's not deterministic for equal values
+        categories_list = [x[0] for x in sorted(sort_by_counter.items(), key=lambda x: (-x[1], x[0]))][
+                          :max_num_categories]
+        dist1_counter = {k: dist1_counter[k] for k in categories_list}
+        dist1_counter[OTHER_CATEGORY_NAME] = len(dist1) - sum(dist1_counter.values())
         dist2_counter = {k: dist2_counter[k] for k in categories_list}
-        dist2_counter['Other rare categories'] = len(dist2) - sum(dist2_counter.values())
+        dist2_counter[OTHER_CATEGORY_NAME] = len(dist2) - sum(dist2_counter.values())
+        categories_list.append(OTHER_CATEGORY_NAME)
 
     else:
         dist1_counter = Counter(dist1)
         dist2_counter = Counter(dist2)
         categories_list = all_categories
 
-    dist1_percents = np.array([dist1_counter[k] for k in categories_list]) / len(dist1)
-    dist2_percents = np.array([dist2_counter[k] for k in categories_list]) / len(dist2)
+    # create an array from counters; this also aligns both counts to the same index
+    dist1_counts = np.array([dist1_counter[k] for k in categories_list])
+    dist2_counts = np.array([dist2_counter[k] for k in categories_list])
 
-    return dist1_percents, dist2_percents, categories_list
+    return dist1_counts, dist2_counts, categories_list

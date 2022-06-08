@@ -11,5 +11,4 @@
 """Module for classification datasets and models."""
 from . import mnist
 
-
 __all__ = ["mnist"]

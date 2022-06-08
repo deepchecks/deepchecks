@@ -11,52 +11,29 @@
 """Deepchecks."""
 import os
 import pathlib
+import sys
+import types
 import warnings
+from importlib._bootstrap import _init_module_attrs
+
 import matplotlib
 import plotly.io as pio
 
-
+from deepchecks.analytics.anonymous_telemetry import send_anonymous_import_event
+from deepchecks.core import (BaseCheck, BaseSuite, CheckFailure, CheckResult, Condition, ConditionCategory,
+                             ConditionResult, ModelOnlyBaseCheck, SingleDatasetBaseCheck, SuiteResult,
+                             TrainTestBaseCheck)
+# TODO: remove in further versions
+from deepchecks.tabular import (Context, Dataset, ModelComparisonCheck, ModelComparisonSuite, ModelOnlyCheck,
+                                SingleDatasetCheck, Suite, TrainTestCheck)
 from deepchecks.utils.ipython import is_notebook
-from deepchecks.tabular import (
-    Dataset,
-    Suite,
-    Context,
-    SingleDatasetCheck,
-    TrainTestCheck,
-    ModelOnlyCheck,
-    ModelComparisonCheck,
-    ModelComparisonSuite,
-)
-from deepchecks.core import (
-    BaseCheck,
-    BaseSuite,
-    CheckResult,
-    CheckFailure,
-    SuiteResult,
-    Condition,
-    ConditionResult,
-    ConditionCategory,
-    SingleDatasetBaseCheck,
-    TrainTestBaseCheck,
-    ModelOnlyBaseCheck
-)
-
-
-warnings.warn(
-    # TODO: better message
-    'Ability to import base tabular functionality from '
-    'the `deepchecks` directly is deprecated, please import from '
-    '`deepchecks.tabular` instead',
-    DeprecationWarning
-)
-
 
 __all__ = [
+    # core
     'BaseCheck',
     'SingleDatasetBaseCheck',
     'TrainTestBaseCheck',
     'ModelOnlyBaseCheck',
-    'ModelComparisonCheck',
     'CheckResult',
     'CheckFailure',
     'Condition',
@@ -64,15 +41,15 @@ __all__ = [
     'ConditionCategory',
     'BaseSuite',
     'SuiteResult',
-
-    # tabular checks
+    # tabular
+    'Dataset',
+    'Suite',
+    'Context',
     'SingleDatasetCheck',
     'TrainTestCheck',
     'ModelOnlyCheck',
-    'Dataset',
-    'Suite',
+    'ModelComparisonCheck',
     'ModelComparisonSuite',
-    'Context'
 ]
 
 
@@ -80,6 +57,7 @@ __all__ = [
 # we can't use a GUI backend. Thus we must use a non-GUI backend.
 if not is_notebook():
     matplotlib.use('Agg')
+
 
 # We can't rely on that the user will have an active internet connection, thus we change the default backend to
 # "notebook" If plotly detects the 'notebook-connected' backend.
@@ -92,9 +70,65 @@ if 'notebook_connected' in pio_backends:
 
 # Set version info
 try:
-    MODULE_DIR = pathlib.Path(__file__).absolute().parent.parent
+    MODULE_DIR = pathlib.Path(__file__).absolute().parent
     with open(os.path.join(MODULE_DIR, 'VERSION'), 'r', encoding='utf-8') as f:
         __version__ = f.read().strip()
-except Exception:  # pylint: disable=broad-except
+except:  # pylint: disable=bare-except # noqa
     # If version file can't be found, leave version empty
     __version__ = ''
+
+
+# Send an import event if not disabled
+send_anonymous_import_event()
+
+# ================================================================
+
+warnings.filterwarnings(
+    action='once',
+    message=r'Ability to import.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.*'
+)
+
+
+# NOTE:
+# Code below is a temporary hack that exists only to provide backward compatibility
+# and will be removed in the next versions.
+
+
+__original_module__ = sys.modules[__name__]
+
+
+class _SubstituteModule(types.ModuleType):
+    """Substitute module type to provide backward compatibility."""
+
+    ROUTINES = (
+        'Dataset',
+        'Suite',
+        'Context',
+        'SingleDatasetCheck',
+        'TrainTestCheck',
+        'ModelOnlyCheck',
+        'ModelComparisonCheck',
+        'ModelComparisonSuite',
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__dict__.update(__original_module__.__dict__)
+
+    def __getattribute__(self, name):
+        routines = object.__getattribute__(self, 'ROUTINES')
+        if name in routines:
+            warnings.warn(
+                'Ability to import base tabular functionality from '
+                'the `deepchecks` package directly is deprecated, please '
+                'import from `deepchecks.tabular` instead',
+                DeprecationWarning
+            )
+        return object.__getattribute__(self, name)
+
+
+__substitute_module__ = _SubstituteModule(__name__)
+_init_module_attrs(__original_module__.__spec__, __substitute_module__, override=True)
+sys.modules[__name__] = __substitute_module__

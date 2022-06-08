@@ -9,13 +9,13 @@
 # ----------------------------------------------------------------------------
 #
 """Tests for BaseCheck class."""
-# pylint: disable=protected-access
-from hamcrest import assert_that, has_property, contains_exactly, calling, raises, has_length, \
-    all_of, equal_to, has_items
+# pylint: disable-all
+from hamcrest import (all_of, calling, contains_exactly, equal_to, has_items, has_length, has_property,
+                      is_, raises)
 
-from deepchecks.core import ConditionResult, CheckResult, ConditionCategory
+from deepchecks.core import ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.tabular import TrainTestCheck
+from tests.conftest import *
 
 
 class DummyCheck(TrainTestCheck):
@@ -26,12 +26,12 @@ class DummyCheck(TrainTestCheck):
         self.param2 = param2
 
     def run_logic(self, context):
-        pass
+        return CheckResult(context)
 
 
 def test_add_condition():
     # Arrange & Act
-    check = DummyCheck().add_condition('condition A', lambda r: True)
+    check = DummyCheck().add_condition('condition A', lambda r: ConditionCategory.PASS)
 
     # Assert
     assert_that(check._conditions.values(), contains_exactly(
@@ -43,7 +43,7 @@ def test_add_multiple_conditions():
     # Arrange & Act
     check = (DummyCheck().add_condition('condition A', lambda r: True)
              .add_condition('condition B', lambda r: False)
-             .add_condition('condition C', lambda r: ConditionResult(True)))
+             .add_condition('condition C', lambda r: ConditionResult(ConditionCategory.PASS)))
 
     # Assert
     assert_that(check._conditions.values(), contains_exactly(
@@ -85,7 +85,7 @@ def test_remove_condition():
     # Arrange
     check = (DummyCheck().add_condition('condition A', lambda r: True)
              .add_condition('condition B', lambda r: False)
-             .add_condition('condition C', lambda r: ConditionResult(True)))
+             .add_condition('condition C', lambda r: ConditionResult(ConditionCategory.PASS)))
 
     # Act & Assert
     check.remove_condition(1)
@@ -111,8 +111,8 @@ def test_condition_decision():
 
     # Arrange
     check = (DummyCheck().add_condition('condition A', lambda _: True)
-             .add_condition('condition B', lambda _: ConditionResult(False, 'some result'))
-             .add_condition('condition C', lambda _: ConditionResult(False, 'my actual', ConditionCategory.WARN))
+             .add_condition('condition B', lambda _: ConditionResult(ConditionCategory.FAIL, 'some result'))
+             .add_condition('condition C', lambda _: ConditionResult(ConditionCategory.WARN, 'my actual'))
              .add_condition('condition F', lambda _: raise_(Exception('fail'))))
 
     decisions = check.conditions_decision(CheckResult(1))
@@ -122,7 +122,7 @@ def test_condition_decision():
         all_of(
             has_property('name', 'condition A'),
             has_property('is_pass', equal_to(True)),
-            has_property('category', ConditionCategory.FAIL),
+            has_property('category', ConditionCategory.PASS),
             has_property('details', '')
         ),
         all_of(
@@ -140,7 +140,7 @@ def test_condition_decision():
         all_of(
             has_property('name', 'condition F'),
             has_property('is_pass', equal_to(False)),
-            has_property('category', ConditionCategory.WARN),
+            has_property('category', ConditionCategory.ERROR),
             has_property('details', 'Exception in condition: Exception: fail')
         )
     ))
@@ -156,4 +156,29 @@ def test_params():
     assert_that(default_check.params(), equal_to({}))
     assert_that(parameter_check.params(), equal_to({'param2': 5}))
     assert_that(all_param_check.params(), equal_to({'param1': 8, 'param2': 9}))
+    assert_that(default_check.params(show_defaults=True), equal_to({'param1': 1, 'param2': 2}))
 
+
+def test_pass_feature_importance_incorrect(iris_split_dataset):
+    # Arrange
+    check = DummyCheck()
+    train, test = iris_split_dataset
+
+    # Act & Assert
+    assert_that(calling(check.run).with_args(train, test, features_importance='wrong type'),
+                raises(DeepchecksValueError, 'features_importance must be a pandas Series'))
+
+
+def test_pass_feature_importance_correct(iris_split_dataset):
+    # Arrange
+    check = DummyCheck()
+    train, test = iris_split_dataset
+    features_importance = pd.Series(data=np.random.rand(len(train.features)), index=train.features)
+
+    # Act
+    result = check.run(train, test, features_importance=features_importance)
+    context: Context = result.value
+
+    # Assert
+    assert_that(context._calculated_importance, is_(True))
+    assert_that(context._features_importance is not None)

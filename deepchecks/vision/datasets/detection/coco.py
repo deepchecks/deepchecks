@@ -15,12 +15,13 @@ import os
 import typing as t
 import warnings
 from pathlib import Path
+from typing import Iterable, List, Union
 
+import albumentations as A
 import numpy as np
 import torch
-import albumentations as A
-from PIL import Image
 from cv2 import cv2
+from PIL import Image
 from torch import nn
 from torch.utils.data import DataLoader
 from torchvision.datasets import VisionDataset
@@ -28,11 +29,9 @@ from torchvision.datasets.utils import download_and_extract_archive
 from typing_extensions import Literal
 
 from deepchecks import vision
-from deepchecks.vision.utils.detection_formatters import DetectionLabelFormatter
-from deepchecks.vision.utils import ImageFormatter
+from deepchecks.vision import DetectionData
 
-
-__all__ = ['load_dataset', 'load_model', 'yolo_prediction_formatter', 'yolo_label_formatter', 'yolo_image_formatter']
+__all__ = ['load_dataset', 'load_model', 'COCOData', 'CocoDataset']
 
 
 DATA_DIR = Path(__file__).absolute().parent
@@ -52,6 +51,43 @@ def load_model(pretrained: bool = True, device: t.Union[str, torch.device] = 'cp
     return model
 
 
+class COCOData(DetectionData):
+    """Class for loading the COCO dataset, inherits from :class:`~deepchecks.vision.DetectionData`.
+
+    Implement the necessary methods to load the dataset.
+    """
+
+    def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor]:
+        """Convert the batch to a list of labels."""
+        def move_class(tensor):
+            return torch.index_select(tensor, 1, torch.LongTensor([4, 0, 1, 2, 3]).to(tensor.device)) \
+                if len(tensor) > 0 else tensor
+
+        return [move_class(tensor) for tensor in batch[1]]
+
+    def infer_on_batch(self, batch, model, device) -> Union[List[torch.Tensor], torch.Tensor]:
+        """Infer on a batch of images."""
+        return_list = []
+
+        with warnings.catch_warnings():
+            warnings.simplefilter(action='ignore', category=UserWarning)
+
+            predictions: 'ultralytics.models.common.Detections' = model.to(device)(batch[0])  # noqa: F821
+
+            # yolo Detections objects have List[torch.Tensor] xyxy output in .pred
+            for single_image_tensor in predictions.pred:
+                pred_modified = torch.clone(single_image_tensor)
+                pred_modified[:, 2] = pred_modified[:, 2] - pred_modified[:, 0]  # w = x_right - x_left
+                pred_modified[:, 3] = pred_modified[:, 3] - pred_modified[:, 1]  # h = y_bottom - y_top
+                return_list.append(pred_modified)
+
+        return return_list
+
+    def batch_to_images(self, batch) -> Iterable[np.ndarray]:
+        """Convert the batch to a list of images."""
+        return [np.array(x) for x in batch[0]]
+
+
 def load_dataset(
         train: bool = True,
         batch_size: int = 32,
@@ -64,13 +100,13 @@ def load_dataset(
 
     Parameters
     ----------
-    train : bool
+    train : bool, default: True
         if `True` train dataset, otherwise test dataset
     batch_size : int, default: 32
         Batch size for the dataloader.
     num_workers : int, default: 0
         Number of workers for the dataloader.
-    shuffle : bool, default: False
+    shuffle : bool, default: True
         Whether to shuffle the dataset.
     pin_memory : bool, default: True
         If ``True``, the data loader will copy Tensors
@@ -114,11 +150,8 @@ def load_dataset(
     if object_type == 'DataLoader':
         return dataloader
     elif object_type == 'VisionData':
-        return vision.VisionData(
+        return COCOData(
             data_loader=dataloader,
-            label_formatter=DetectionLabelFormatter(yolo_label_formatter),
-            # To display images we need them as numpy array
-            image_formatter=ImageFormatter(lambda batch: [np.array(x) for x in batch[0]]),
             num_classes=80,
             label_map=LABEL_MAP
         )
@@ -241,10 +274,11 @@ class CocoDataset(VisionDataset):
 
     @classmethod
     def download_coco128(cls, root: t.Union[str, Path]) -> t.Tuple[Path, str]:
+        """Download coco128 and returns the root path and folder name."""
         root = root if isinstance(root, Path) else Path(root)
         coco_dir = root / 'coco128'
-        images_dir = root / 'images' / 'train2017'
-        labels_dir = root / 'labels' / 'train2017'
+        images_dir = coco_dir / 'images' / 'train2017'
+        labels_dir = coco_dir / 'labels' / 'train2017'
 
         if not (root.exists() and root.is_dir()):
             raise RuntimeError(f'root path does not exist or is not a dir - {root}')
@@ -252,18 +286,30 @@ class CocoDataset(VisionDataset):
         if images_dir.exists() and labels_dir.exists():
             return coco_dir, 'train2017'
 
-        url = 'https://ultralytics.com/assets/coco128.zip'
-        md5 = '90faf47c90d1cfa5161c4298d890df55'
+        return download_coco128_from_ultralytics(root)
 
-        with open(os.devnull, 'w', encoding='utf8') as f, contextlib.redirect_stdout(f):
-            download_and_extract_archive(
-                url,
-                download_root=str(root),
-                extract_root=str(root),
-                md5=md5
-            )
 
-        return coco_dir, 'train2017'
+def download_coco128_from_ultralytics(path: Path):
+    """Download coco from ultralytics using torchvision download_and_extract_archive."""
+    coco_dir = path / 'coco128'
+    url = 'https://ultralytics.com/assets/coco128.zip'
+    md5 = '90faf47c90d1cfa5161c4298d890df55'
+
+    with open(os.devnull, 'w', encoding='utf8') as f, contextlib.redirect_stdout(f):
+        download_and_extract_archive(
+            url,
+            download_root=str(path),
+            extract_root=str(path),
+            md5=md5
+        )
+
+    # Removing the README.txt file if it exists since it causes issues with sphinx-gallery
+    try:
+        os.remove(str(coco_dir / 'README.txt'))
+    except FileNotFoundError:
+        pass
+
+    return coco_dir, 'train2017'
 
 
 def yolo_prediction_formatter(batch, model, device) -> t.List[torch.Tensor]:
@@ -302,95 +348,84 @@ def yolo_image_formatter(batch):
 
 
 LABEL_MAP = {
-    0: 'unknown',
-    1: 'person',
-    2: 'bicycle',
-    3: 'car',
-    4: 'motorcycle',
-    5: 'airplane',
-    6: 'bus',
-    7: 'train',
-    8: 'truck',
-    9: 'boat',
-    10: 'traffic light',
-    11: 'fire hydrant',
-    13: 'stop sign',
-    14: 'parking meter',
-    15: 'bench',
-    16: 'bird',
-    17: 'cat',
-    18: 'dog',
-    19: 'horse',
-    20: 'sheep',
-    21: 'cow',
-    22: 'elephant',
-    23: 'bear',
-    24: 'zebra',
-    25: 'giraffe',
-    26: 'hat',
-    27: 'backpack',
-    28: 'umbrella',
-    29: 'shoe',
-    30: 'eye glasses',
-    31: 'handbag',
-    32: 'tie',
-    33: 'suitcase',
-    34: 'frisbee',
-    35: 'skis',
-    36: 'snowboard',
-    37: 'sports ball',
-    38: 'kite',
-    39: 'baseball bat',
-    40: 'baseball glove',
-    41: 'skateboard',
-    42: 'surfboard',
-    43: 'tennis racket',
-    44: 'bottle',
-    45: 'plate',
-    46: 'wine glass',
-    47: 'cup',
-    48: 'fork',
-    49: 'knife',
-    50: 'spoon',
-    51: 'bowl',
-    52: 'banana',
-    53: 'apple',
-    54: 'sandwich',
-    55: 'orange',
-    56: 'broccoli',
-    57: 'carrot',
-    58: 'hot dog',
-    59: 'pizza',
-    60: 'donut',
-    61: 'cake',
-    62: 'chair',
-    63: 'couch',
-    64: 'potted plant',
-    65: 'bed',
-    66: 'mirror',
-    67: 'dining table',
-    68: 'window',
-    69: 'desk',
-    70: 'toilet',
-    71: 'door',
-    72: 'tv',
-    73: 'laptop',
-    74: 'mouse',
-    75: 'remote',
-    76: 'keyboard',
-    77: 'cell phone',
-    78: 'microwave',
-    79: 'oven',
-    80: 'toaster',
-    81: 'sink',
-    82: 'refrigerator',
-    83: 'blender',
-    84: 'book',
-    85: 'clock',
-    86: 'vase',
-    87: 'scissors',
-    88: 'teddy bear',
-    89: 'hair drier',
-    90: 'toothbrush',
-    91: 'hairbrush'
+    0: 'person',
+    1: 'bicycle',
+    2: 'car',
+    3: 'motorcycle',
+    4: 'airplane',
+    5: 'bus',
+    6: 'train',
+    7: 'truck',
+    8: 'boat',
+    9: 'traffic light',
+    10: 'fire hydrant',
+    11: 'stop sign',
+    12: 'parking meter',
+    13: 'bench',
+    14: 'bird',
+    15: 'cat',
+    16: 'dog',
+    17: 'horse',
+    18: 'sheep',
+    19: 'cow',
+    20: 'elephant',
+    21: 'bear',
+    22: 'zebra',
+    23: 'giraffe',
+    24: 'backpack',
+    25: 'umbrella',
+    26: 'handbag',
+    27: 'tie',
+    28: 'suitcase',
+    29: 'frisbee',
+    30: 'skis',
+    31: 'snowboard',
+    32: 'sports ball',
+    33: 'kite',
+    34: 'baseball bat',
+    35: 'baseball glove',
+    36: 'skateboard',
+    37: 'surfboard',
+    38: 'tennis racket',
+    39: 'bottle',
+    40: 'wine glass',
+    41: 'cup',
+    42: 'fork',
+    43: 'knife',
+    44: 'spoon',
+    45: 'bowl',
+    46: 'banana',
+    47: 'apple',
+    48: 'sandwich',
+    49: 'orange',
+    50: 'broccoli',
+    51: 'carrot',
+    52: 'hot dog',
+    53: 'pizza',
+    54: 'donut',
+    55: 'cake',
+    56: 'chair',
+    57: 'couch',
+    58: 'potted plant',
+    59: 'bed',
+    60: 'dining table',
+    61: 'toilet',
+    62: 'tv',
+    63: 'laptop',
+    64: 'mouse',
+    65: 'remote',
+    66: 'keyboard',
+    67: 'cell phone',
+    68: 'microwave',
+    69: 'oven',
+    70: 'toaster',
+    71: 'sink',
+    72: 'refrigerator',
+    73: 'book',
+    74: 'clock',
+    75: 'vase',
+    76: 'scissors',
+    77: 'teddy bear',
+    78: 'hair drier',
+    79: 'toothbrush'
 }

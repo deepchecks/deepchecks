@@ -13,7 +13,6 @@
      ~
    -->
 
-
 .. raw:: html
 
    <p align="center">
@@ -32,25 +31,45 @@
 
    <p align="center">
       <a href="https://deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=logo">
-      <img src="docs/images/deepchecks-logo-with-white-wide-back.png">
+      <img src="docs/source/_static/images/general/deepchecks-logo-with-white-wide-back.png">
       </a>
    </p>
 
-
-============================================
-Test Suites for Validating ML Models & Data
-============================================
-
 |build| |Documentation Status| |pkgVersion| |pyVersions|
 |Maintainability| |Coverage Status|
+
+.. raw:: html
+
+   <h1 align="center">
+      Testing and Validating ML Models & Data
+   </h1>
+
+.. raw:: html
+
+   <p align="center">
+      <img src="docs/source/_static/images/general/checks-and-conditions.png">
+   </p>
+
+
+🧐 What is Deepchecks?
+==========================
 
 Deepchecks is a Python package for comprehensively validating your
 machine learning models and data with minimal effort. This includes
 checks related to various types of issues, such as model performance,
 data integrity, distribution mismatches, and more.
 
-Installation
-=============
+
+🖼️ Computer Vision & 🔢 Tabular Support
+==========================================
+**This README refers to the Tabular version** of deepchecks.
+
+Check out the `Deepchecks for Computer Vision & Images subpackage <deepchecks/vision>`__ for more details about deepchecks for CV, currently in *beta release*.
+
+
+💻 Installation
+=================
+
 
 Using pip
 ----------
@@ -58,6 +77,16 @@ Using pip
 .. code:: bash
 
    pip install deepchecks -U --user
+
+.. note::
+
+   To install deepchecks together with the **Computer Vision Submodule** that is currently in *beta release*, replace ``deepchecks`` with ``"deepchecks[vision]"`` as follows.
+   
+   .. code:: bash
+   
+      pip install "deepchecks[vision]" -U --user
+   
+   
 
 Using conda
 ------------
@@ -67,17 +96,17 @@ Using conda
    conda install -c conda-forge deepchecks
 
 
-Try it Out!
-============
+⏩ Try it Out!
+================
 
 Head over to the `Quickstart Notebook <https://docs.deepchecks.com/en/stable/
 examples/guides/quickstart_in_5_minutes.html?
 utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`__
-and choose the  |binder badge image|  or the  |colab badge image|  to have it up and running, and to then apply it on your own data and models.
+and see deepchecks output on a built-in dataset, or run it yourself to apply it on your own data and models.
 
 
-Usage Examples
-===============
+📊 Usage Examples
+====================
 
 Running a Suite
 ----------------
@@ -88,7 +117,7 @@ Example for running a suite on given `datasets`_ and with a `supported model`_:
 
 .. code:: python
 
-   from deepchecks.suites import full_suite
+   from deepchecks.tabular.suites import full_suite
    suite = full_suite()
    suite.run(train_dataset=train_dataset, test_dataset=test_dataset, model=model)
 
@@ -97,7 +126,7 @@ Which will result in a report that looks like this:
 .. raw:: html
 
    <p align="center">
-      <img src="docs/images/full_suite_output.gif" width="750">
+      <img src="docs/source/_static/images/general/full_suite_output.gif" width="750">
    </p>
 
 See the `full example here`_.
@@ -140,13 +169,13 @@ can be found in our `API Reference`_.
 
 .. code:: python
 
-   from deepchecks.checks import TrainTestFeatureDrift
+   from deepchecks.tabular.checks import TrainTestFeatureDrift
    import pandas as pd
 
    train_df = pd.read_csv('train_data.csv')
    test_df = pd.read_csv('test_data.csv')
    # Initialize and run desired check
-   TrainTestFeatureDrift().run(train_data, test_data)
+   TrainTestFeatureDrift().run(train_df, test_df)
 
 Will produce output of the type:
 
@@ -159,11 +188,11 @@ Will produce output of the type:
       sorted by feature importance and showing only the top 5 features, according to feature importance.
       If available, the plot titles also show the feature importance (FI) rank.</p>
       <p align="left">
-        <img src="docs/images/train-test-drift-output.png">
+        <img src="docs/source/_static/images/general/train-test-drift-output.png">
       </p>
 
-Key Concepts
-==============
+🗝️ Key Concepts
+==================
 
 Check
 ------
@@ -200,7 +229,7 @@ return value. An example for adding a condition would be:
 
 .. code:: python
 
-   from deepchecks.checks import BoostingOverfit
+   from deepchecks.tabular.checks import BoostingOverfit
    BoostingOverfit().add_condition_test_score_percent_decline_not_greater_than(threshold=0.05)
 
 which will return a check failure when running it if there is a difference of
@@ -230,22 +259,24 @@ of checks and optional conditions.
 .. raw:: html
 
    <p align="center">
-      <img src="/docs/images/diagram.svg">
+      <img src="/docs/source/_static/images/general/diagram.svg">
    </p>
 
 
 What Do You Need in Order to Start Validating?
-----------------------------------------------
+==============================================
 
 Environment
-~~~~~~~~~~~~
+-----------
 
 - The deepchecks package installed
 
 - JupyterLab or Jupyter Notebook
 
+
 Data / Model 
-~~~~~~~~~~~~
+------------
+
 
 Depending on your phase and what you wish to validate, you'll need a
 subset of the following:
@@ -259,14 +290,15 @@ subset of the following:
 
 -  A `supported model`_ (e.g. scikit-learn models, XGBoost, any model implementing the `predict` method in the required format)
 
-Supported Data Types
-~~~~~~~~~~~~~~~~~~~~
 
-Currently the package supports tabular data.
-Stay tuned for the upcoming Computer Vision release.
+Supported Data Types
+--------------------
+
+The package currently supports tabular data and is in *beta release* for the computer vision submodule.
+
 
 When Should I Run Deepchecks
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+----------------------------
 
 Deepchecks validation accompanies you from the initial phase when you
 have only raw data, through the data splits, and to the final stage of
@@ -274,16 +306,16 @@ having a trained model that you wish to evaluate. See more about typical usage s
 `docs <https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utme_content=what_do_you_need_in_order_to_start_validating>`__.
 
 
-Documentation
---------------
+📖 Documentation
+====================
 
 -  `https://docs.deepchecks.com/ <https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=documentation>`__
    - HTML documentation (stable release)
 -  `https://docs.deepchecks.com/en/latest <https://docs.deepchecks.com/en/latest/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=documentation>`__
    - HTML documentation (latest release)
 
-Community
-==========
+👭 Community
+================
 
 -  Join our `Slack
    Community <https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg>`__
@@ -295,7 +327,7 @@ Community
 
 
 .. |build| image:: https://github.com/deepchecks/deepchecks/actions/workflows/build.yml/badge.svg
-.. |Documentation Status| image:: https://readthedocs.org/projects/deepchecks/badge/?version=latest
+.. |Documentation Status| image:: https://readthedocs.org/projects/deepchecks/badge/?version=stable
    :target: https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=badge
 .. |pkgVersion| image:: https://img.shields.io/pypi/v/deepchecks
 .. |pyVersions| image:: https://img.shields.io/pypi/pyversions/deepchecks

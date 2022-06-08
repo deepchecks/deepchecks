@@ -3,35 +3,54 @@
 # This file only contains a selection of the most common options. For a full
 # list see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
-import typing as t
+import functools
 import inspect
 import os
-import sys
 import pathlib
-import functools
+import sys
+import typing as t
 from subprocess import check_output
 
+import plotly.io as pio
+from plotly.io._sg_scraper import plotly_sg_scraper
+
+import deepchecks
+from deepchecks import vision
+
+pio.renderers.default = 'sphinx_gallery'
 
 # -- Path setup --------------------------------------------------------------
 
 CURRENT_DIR = pathlib.Path(__file__).parent
 PROJECT_DIR = CURRENT_DIR.parent.parent
+VISION_DIR = f'{PROJECT_DIR.absolute()}{os.sep}vision'
 
 sys.path.insert(0, str(PROJECT_DIR.absolute()))
+sys.path.insert(0, VISION_DIR)
 
 from deepchecks.utils.strings import to_snake_case
 
-with open(os.path.join(PROJECT_DIR, 'VERSION')) as version_file:
+with open(os.path.join(PROJECT_DIR, 'deepchecks', 'VERSION')) as version_file:
     VERSION = version_file.read().strip()
 
 # -- Project information -----------------------------------------------------
 
 
 project = 'Deepchecks'
-copyright = '2021, Deepchecks'
+copyright = '2021-2022, Deepchecks'
 author = 'Deepchecks'
+os.environ['DEEPCHECKS_DISABLE_LATEST'] = 'true'
 is_readthedocs = os.environ.get("READTHEDOCS")
-version = os.environ.get("READTHEDOCS_VERSION") or VERSION
+
+version = None
+if os.environ.get("GITHUB_REF_NAME"):
+    if os.environ.get("GITHUB_REF_NAME") == 'main':
+        version = 'dev'
+    else:
+        # Taking the major and minor version from the branch name
+        version = os.environ.get("GITHUB_REF_NAME")[:3]
+
+version = version or VERSION
 language = os.environ.get("READTHEDOCS_LANGUAGE")
 
 GIT = {
@@ -52,15 +71,8 @@ except Exception as error:
 # ones.
 #
 extensions = [
-    'nbsphinx',
-
-    # by itself sphinx_gallery is not able to work with jupyter notebooks
-    # but nbsphinx extension is able to use some of it functionality to create
-    # thumbnail galleries. Link to the doc - https://nbsphinx.readthedocs.io/en/0.8.7/subdir/gallery.html
-    #
     'sphinx_gallery.load_style',
-    #
-
+    'sphinx_gallery.gen_gallery',
     'numpydoc',
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
@@ -69,7 +81,60 @@ extensions = [
     'sphinx.ext.githubpages',
     'sphinx_search.extension',
     'sphinx.ext.autosectionlabel',
+    "sphinx.ext.imgmath",
+    'sphinx_reredirects',
 ]
+
+redirects = {
+    "index": "getting-started/welcome.html",
+    "getting-started/index": "welcome.html",
+    "examples/guides/quickstart_in_5_minutes": "../../user-guide/tabular/auto_tutorials/plot_quickstart_in_5_minutes.html",
+    "user-guide/key_concepts": "../user-guide/general/deepchecks_hierarchy.html",
+    "user-guide/when_should_you_use": "../getting-started/when_should_you_use.html",
+    "examples/checks/distribution/index": "../../../checks_gallery/tabular/index.html",
+    "examples/checks/distribution/train_test_feature_drift": "../../../checks_gallery/tabular/train_test_validation/plot_train_test_feature_drift.html",
+    "examples/checks/integrity/index": "../../../checks_gallery/tabular/index.html",
+    "examples/checks/methodology/index": "../../../checks_gallery/tabular/index.html",
+    "examples/checks/overview/index": "../../../checks_gallery/tabular/index.html",
+    "examples/checks/performance/index": "../../../checks_gallery/tabular/index.html",
+    "user-guide/supported_models": "../user-guide/tabular/supported_models.html",
+    "examples/guides/create_a_custom_suite": "../../user-guide/general/customizations/examples/plot_create_a_custom_suite.html",
+    "examples/guides/export_outputs_to_wandb": "../../user-guide/general/exporting_results/examples/plot_exports_output_to_wandb.html",
+    "examples/guides/save_suite_result_as_html": "../../user-guide/general/exporting_results/examples/plot_save_suite_results_as_html.html",
+}
+imgmath_image_format = 'svg'
+
+sphinx_gallery_conf = {
+    "examples_dirs": [
+        "checks/vision",
+        "checks/tabular",
+        "user-guide/tabular/tutorials",
+        "user-guide/vision/tutorials",
+        "user-guide/general/customizations",
+        "user-guide/general/exporting_results",
+    ],  # path to your example scripts
+    "gallery_dirs": [
+        "checks_gallery/vision",
+        "checks_gallery/tabular",
+        "user-guide/tabular/auto_tutorials",
+        "user-guide/vision/auto_tutorials",
+        "user-guide/general/customizations/examples",
+        "user-guide/general/exporting_results/examples",
+    ], # path to where to save gallery generated output
+    "image_scrapers": (
+        "matplotlib",
+        plotly_sg_scraper,
+    ),
+    "pypandoc": True,
+    "default_thumb_file": os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                       "_static/images/general/sphx_glr_deepchecks_icon.png"),
+    "doc_module": "deepchecks",
+    "backreferences_dir": os.path.join(PROJECT_DIR, "docs/source/api/generated/backreferences"),
+    "reference_url": {'deepchecks': None},
+    # avoid generating too many cross links
+    "inspect_global_variables": True,
+    "remove_config_comments": True,
+}
 
 # Add any paths that contain templates here, relative to this directory.
 #
@@ -119,6 +184,7 @@ python_use_unqualified_type_names = True
 #
 # autosummary_generate = False
 
+
 # If true, autosummary overwrites existing files by generated stub pages.
 # Defaults to true (enabled).
 #
@@ -136,8 +202,21 @@ autosummary_ignore_module_all = False
 
 # A dictionary of values to pass into the template engine’s context
 # for autosummary stubs files.
-#
-autosummary_context = {'to_snake_case': to_snake_case}
+
+
+def path_exists(path: str):
+    return os.path.exists(path)
+
+
+def getswd(pth: str):
+    return os.getcwd()
+
+
+autosummary_context = {
+    'to_snake_case': to_snake_case, 
+    'path_exists': path_exists, 
+    'getcwd': os.getcwd
+}
 
 # TODO: explaine
 autosummary_filename_map = {
@@ -175,67 +254,7 @@ autodoc_typehints_format = 'short'
 napoleon_preprocess_types = False
 
 # Report warnings for all validation checks
-numpydoc_validation_checks = {"all"}
-
-# -- nbsphinx extension settings --------------------------------------------------
-
-nbsphinx_prolog = r"""
-
-.. raw:: html
-
-    <div style="
-        width: 100%;
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: flex-end;
-    ">
-        <span style="white-space: nowrap; margin-right: 10px;">
-            <a
-                href="{{  env.config.generate_binder_url(env.docname) }}"
-                style="vertical-align:text-bottom"
-                target="_blank" rel="noopener noreferrer">
-                <img
-                    alt="Binder badge"
-                    {% if env.config.html_context["is_readthedocs"] %}
-                    src="/{{ env.config.html_context["language"] }}/{{ env.config.html_context["version"] }}/_static/binder-badge.svg"
-                    {% else %}
-                    src="/_static/binder-badge.svg"
-                    {% endif %}
-                    style="vertical-align:text-bottom">
-            </a>
-        </span>
-        <span style="white-space: nowrap; margin-right: 10px;">
-            <a
-                href="{{  env.config.generate_colab_url(env.docname) }}"
-                style="vertical-align:text-bottom"
-                target="_blank" rel="noopener noreferrer">
-                <img
-                    alt="Colab badge"
-                    {% if env.config.html_context["is_readthedocs"] %}
-                    src="/{{ env.config.html_context["language"] }}/{{ env.config.html_context["version"] }}/_static/colab-badge.svg"
-                    {% else %}
-                    src="/_static/colab-badge.svg"
-                    {% endif %}
-                    style="vertical-align:text-bottom">
-            </a>
-        </span>
-    </div>
-
-{% set apipath = env.config.get_check_example_api_reference(env.docname) %}
-
-{% if apipath %}
-{{ apipath }}
-{% endif %}
-
-"""
-
-nbsphinx_requirejs_options = {
-    "src": "https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js",
-    "integrity": "sha512-VCK7oF67GXNc+J7zsu5o57jtxhLA75nSMHGaq8Q8TCOxDj4nMDw5dhQZvm9Cd9RN+3zgcodqbKcRc9gyPP8a2w==",
-    "crossorigin": "anonymous"
-}
-nbsphinx_assume_equations = False
+# numpydoc_validation_checks = {"PR01", "PR02", "PR03", "RT03"}
 
 
 # -- Copybutton settings --------------------------------------------------
@@ -253,7 +272,6 @@ copybutton_prompt_is_regexp = True
 
 # Continue copying lines as long as they end with this character
 copybutton_line_continuation_character = "\\"
-
 
 # -- Linkcode ----------------------------------------------------------------
 
@@ -351,12 +369,12 @@ html_css_files = ['css/custom.css',]
 
 #
 html_sidebars = {
-    "**": ["sidebar-nav-bs"]
+    "**": ["search-field.html", "sidebar-nav-bs"]
 }
 
 # Path to logo and favicon
 #
-html_logo = "./_static/deepchecks_logo.svg"
+html_logo = "./_static/images/general/deepchecks_logo.svg"
 html_favicon = "./_static/favicons/favicon.ico"
 
 # If true, the reST sources are included in the HTML build as _sources/name. The default is True.
@@ -370,10 +388,15 @@ html_copy_source = True
 html_theme_options = {
     "collapse_navigation": False,
     "navigation_depth": 6,
-    "navbar_end": ["search-field", "navbar-icon-links", "menu-dropdown", ],
+    "navbar_end": ["version-switcher", "navbar-icon-links", "menu-dropdown", ],
     # "page_sidebar_items": ["page-toc", "create-issue", "show-page-source"],
     "page_sidebar_items": ["page-toc", ],
     "icon_links_label": "Quick Links",
+    "switcher": {
+        "json_url": "https://docs.deepchecks.com/dev/_static/switcher.json",
+        "version_match": version,
+        "url_template": "https://docs.deepchecks.com/{version}/",
+    },
     "icon_links": [
         {
             "name": "GitHub",
@@ -403,7 +426,41 @@ html_context = {
 
 
 # -- Other -------------------------------------------------
+nitpick_ignore = []
 
+for line in open('nitpick-exceptions'):
+    if line.strip() == "" or line.startswith("#"):
+        continue
+    dtype, target = line.split(None, 1)
+    target = target.strip()
+    nitpick_ignore.append((dtype, target))
+
+def get_check_example_api_reference(filepath: str) -> t.Optional[str]:
+    if not (
+        filepath.startswith("docs/source/checks/tabular/")
+        or filepath.startswith("docs/source/checks/vision/")
+        or filepath.startswith("checks/tabular/")
+        or filepath.startswith("checks/vision/")
+    ):
+        return ''
+
+    notebook_name = snake_case_to_camel_case(
+        filepath.split("/")[-1][5:]
+            .replace(".txt", "")
+            .replace(".ipynb", "")
+            .replace(".py", "")
+    )
+
+    import deepchecks.checks
+    check_clazz = getattr(deepchecks.checks, notebook_name, None)
+
+    if check_clazz is None or not hasattr(check_clazz, "__module__"):
+        return
+
+    clazz_module = ".".join(check_clazz.__module__.split(".")[:-1])
+
+    apipath = f"<ul><li><a href='../../../../../api/generated/{clazz_module}.{notebook_name}.html'>API Reference - {notebook_name}</a></li></ul>"
+    return apipath
 
 def get_report_issue_url(pagename: str) -> str:
     template = (
@@ -417,121 +474,19 @@ def get_report_issue_url(pagename: str) -> str:
         labels="labels=chore/documentation",
     )
 
-
-def generate_colab_url(notebook_path: str) -> t.Optional[str]:
-    notebook_path = notebook_path.replace(".txt", "")
-    notebook_path = notebook_path if notebook_path.endswith(".ipynb") else notebook_path + ".ipynb"
-    notebook_name = notebook_path.split("/")[-1]
-
-    if not is_example_notebook(notebook_name):
-        return
-
-    template = (
-        "https://colab.research.google.com/github/{user}/{repo}/blob/{branch}/{notebook_path}"
-    )
-
-    return template.format(
-        user=GIT['user'],
-        repo=GIT['repo'],
-        branch=GIT['release'],
-        notebook_path=f"docs/source/{notebook_path}"
-    )
-
-
-def generate_binder_url(notebook_path: str) -> t.Optional[str]:
-    notebook_path = notebook_path.replace(".txt", "")
-    notebook_path = notebook_path if notebook_path.endswith(".ipynb") else notebook_path + ".ipynb"
-    notebook_name = notebook_path.split("/")[-1]
-
-    if not is_example_notebook(notebook_name):
-        return
-
-    template = (
-        "https://mybinder.org/v2/gh/{user}/{repo}/{branch}?labpath={filepath}"
-    )
-
-    return template.format(
-        user=GIT['user'],
-        repo=GIT['repo'],
-        branch=GIT['release'],
-        filepath=f"docs/source/{notebook_path}"
-    )
-
-
-@functools.lru_cache(maxsize=None)
-def get_example_notebooks() -> t.Tuple[pathlib.Path, ...]:
-    examples_folder = PROJECT_DIR / "docs/source/examples"
-
-    if not examples_folder.exists() or not examples_folder.is_dir():
-        raise RuntimeError("Did not find the folder with the example notebooks.")
-
-    return tuple(examples_folder.glob("**/*.ipynb"))
-
-
 @functools.lru_cache(maxsize=None)
 def snake_case_to_camel_case(val: str) -> str:
     return "".join(it.capitalize() for it in val.split("_") if it)
 
-
-def is_example_notebook(filepath: str) -> bool:
-    notebook_name = filepath.split("/")[-1].replace(".txt", "")
-    notebooks = {it.name for it in get_example_notebooks()}
-    return notebook_name in notebooks
-
-
-def get_check_example_api_reference(filepath: str) -> t.Optional[str]:
-    if not (
-        filepath.startswith("docs/source/examples/checks/")
-        or filepath.startswith("examples/checks/")
-    ):
-        return
-
-    notebook_name = snake_case_to_camel_case(
-        filepath.split("/")[-1]
-            .replace(".txt", "")
-            .replace(".ipynb", "")
-            .replace(".py", "")
-    )
-    type = filepath.split("/")[2]
-
-    import deepchecks.tabular.checks
-    import deepchecks.vision.checks
-    tabular_check_clazz = getattr(deepchecks.tabular.checks, notebook_name, None)
-    vision_check_clazz = getattr(deepchecks.vision.checks, notebook_name, None)
-
-    mapping = {
-        'tabular': tabular_check_clazz,
-        'vision': vision_check_clazz
-    }
-    if type not in mapping or mapping[type] is None or not hasattr(mapping[type], "__module__"):
-        return
-
-    clazz_module = ".".join(mapping[type].__module__.split("."))
-
-    apipath = f"/api/generated/{clazz_module}.{notebook_name}"
-    result = f"* :doc:`API Reference - {notebook_name} <{apipath}>`"
-    return result
-
-
 # -- Registration of hooks ---------
-
-
 def setup(app):
 
     def add_custom_routines(app, pagename, templatename, context, doctree):
         context["get_report_issue_url"] = get_report_issue_url
-        context["generate_colab_url"] = generate_colab_url
-        context["generate_binder_url"] = generate_binder_url
-        context["is_example_notebook"] = is_example_notebook
-        context["get_example_notebooks"] = get_example_notebooks
+        context["get_check_example_api_reference"] = get_check_example_api_reference
 
     # make custom routines available within html templates
     app.connect("html-page-context", add_custom_routines)
-
-    # make next functions available within nbsphinx prolog/epilog templates
-    app.config.generate_binder_url = generate_binder_url
-    app.config.generate_colab_url = generate_colab_url
-    app.config.get_check_example_api_reference = get_check_example_api_reference
 
     return {
         "parallel_read_safe": True,

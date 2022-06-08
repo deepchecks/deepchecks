@@ -15,11 +15,10 @@ removed in the nexts versions.
 """
 # flake8: noqa
 import warnings
+
 from deepchecks.tabular.checks import *  # pylint: disable=wildcard-import
 
-
 warnings.warn(
-    # TODO: better message
     'Ability to import tabular checks from the `deepchecks.checks` '
     'is deprecated, please import from `deepchecks.tabular.checks` instead',
     DeprecationWarning
@@ -39,13 +38,14 @@ __all__ = [
     'DataDuplicates',
     'CategoryMismatchTrainTest',
     'NewLabelTrainTest',
-    'LabelAmbiguity',
+    'ConflictingLabels',
+    'OutlierSampleDetection',
 
     # methodology checks
     'BoostingOverfit',
     'UnusedFeatures',
-    'SingleFeatureContribution',
-    'SingleFeatureContributionTrainTest',
+    'FeatureLabelCorrelation',
+    'FeatureLabelCorrelationChange',
     'IndexTrainTestLeakage',
     'TrainTestSamplesMix',
     'DateTrainTestLeakageDuplicates',
@@ -59,10 +59,10 @@ __all__ = [
     'ColumnsInfo',
 
     # distribution checks
-    'TrustScoreComparison',
     'TrainTestFeatureDrift',
     'TrainTestLabelDrift',
     'WholeDatasetDrift',
+    'TrainTestPredictionDrift',
 
     # performance checks
     'PerformanceReport',

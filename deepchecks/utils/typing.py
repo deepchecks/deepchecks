@@ -9,10 +9,10 @@
 # ----------------------------------------------------------------------------
 #
 """Type definitions."""
-# pylint: disable=invalid-hash-returned,invalid-name
-from typing_extensions import Protocol, runtime_checkable
 from typing import List
 
+# pylint: disable=invalid-hash-returned,invalid-name
+from typing_extensions import Protocol, runtime_checkable
 
 __all__ = ['Hashable', 'BasicModel', 'ClassificationModel']
 
@@ -46,7 +46,6 @@ class BasicModel(Protocol):
 
     def predict(self, X) -> List[Hashable]:
         """Predict on given X."""
-        ...
 
 
 @runtime_checkable
@@ -55,4 +54,3 @@ class ClassificationModel(BasicModel, Protocol):
 
     def predict_proba(self, X) -> List[Hashable]:
         """Predict probabilities on given X."""
-        ...

@@ -9,18 +9,16 @@
 # ----------------------------------------------------------------------------
 #
 """Module importing all vision checks."""
-from .performance import ClassPerformance, MeanAveragePrecisionReport, MeanAverageRecallReport, \
-                         RobustnessReport, ConfusionMatrixReport, SimpleModelComparison
-from .distribution import TrainTestLabelDrift, ImageDatasetDrift, ImagePropertyDrift
+from .data_integrity import ImagePropertyOutliers, LabelPropertyOutliers
+from .model_evaluation import (ClassPerformance, ConfusionMatrixReport, ImageSegmentPerformance,
+                               MeanAveragePrecisionReport, MeanAverageRecallReport, ModelErrorAnalysis,
+                               RobustnessReport, SimpleModelComparison, SingleDatasetScalarPerformance,
+                               TrainTestPredictionDrift)
+from .train_test_validation import (FeatureLabelCorrelationChange, HeatmapComparison, ImageDatasetDrift,
+                                    ImagePropertyDrift, NewLabels, SimilarImageLeakage, TrainTestLabelDrift)
 
-__all__ = [
-    'ClassPerformance',
-    'ConfusionMatrixReport',
-    'MeanAveragePrecisionReport',
-    'MeanAverageRecallReport',
-    'RobustnessReport',
-    'SimpleModelComparison',
-    'TrainTestLabelDrift',
-    'ImageDatasetDrift',
-    'ImagePropertyDrift'
-]
+__all__ = ['ClassPerformance', 'ConfusionMatrixReport', 'MeanAveragePrecisionReport', 'MeanAverageRecallReport',
+           'RobustnessReport', 'SimpleModelComparison', 'TrainTestLabelDrift', 'ImageDatasetDrift',
+           'ImagePropertyDrift', 'ModelErrorAnalysis', 'TrainTestPredictionDrift', 'ImageSegmentPerformance',
+           'FeatureLabelCorrelationChange', 'ImagePropertyOutliers', 'LabelPropertyOutliers', 'HeatmapComparison',
+           'SimilarImageLeakage', 'NewLabels', 'SingleDatasetScalarPerformance']
