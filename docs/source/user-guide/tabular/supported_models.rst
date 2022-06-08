@@ -40,7 +40,6 @@ Example of a simple regression model:
 ...         ...
 
 Instead of passing a model object you can pass the precomputed predicted probabilities as keyword arguments to the run function as shown here:
-For more info check out :doc:`Using Pre-computed Predictions </user-guide/tabular/tutorials/plot_static_predictions>`
 
 >>> train_pred = model.predict(train_dataset.features_columns)
 ... test_pred = model.predict(test_dataset.features_columns)
@@ -48,6 +47,9 @@ For more info check out :doc:`Using Pre-computed Predictions </user-guide/tabula
 ... suite.run(train_dataset=train_dataset, test_dataset=test_dataset,
 ...           features_importance=feature_importance,
 ...           y_pred_train=train_pred, y_pred_test=test_pred)
+
+For more info check out :doc:`Using Pre-computed Predictions </user-guide/tabular/tutorials/plot_static_predictions>`
+
 
 Classification
 --------------
@@ -64,7 +66,6 @@ is expected to return an `ndarray` of shape ``(n_samples, n_classes)``, an array
 ...         ...
 
 Instead of a model you can also pass the model predicted probabilities(the output of predict_proba) as keyword arguments to the run function as follows:
-For more info check out :doc:`Using Pre-computed Predictions </user-guide/tabular/tutorials/plot_static_predictions>`
 
 >>> train_proba = model.predict_proba(train_dataset.features_columns)
 ... test_proba = model.predict_proba(test_dataset.features_columns)
@@ -72,6 +73,8 @@ For more info check out :doc:`Using Pre-computed Predictions </user-guide/tabula
 ... suite.run(train_dataset=train_dataset, test_dataset=test_dataset,
 ...           features_importance=feature_importance,
 ...           y_proba_train=train_proba, y_proba_test=test_proba)
+
+For more info check out :doc:`Using Pre-computed Predictions </user-guide/tabular/tutorials/plot_static_predictions>`
 
 
 .. _supported_models__optional_model_interface:
