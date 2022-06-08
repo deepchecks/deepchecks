@@ -15,6 +15,7 @@ from deepchecks.core.errors import DatasetValidationError
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.correlation_methods import correlation_ratio
 from deepchecks.utils.distribution.drift import cramers_v
+from deepchecks.utils.dataframes import generalized_corrwith
 
 import pandas as pd
 
@@ -55,15 +56,17 @@ class FeatureFeatureCorrelation(SingleDatasetCheck):
         num_features = dataset.numerical_features
         cat_features = dataset.cat_features
 
+        encoded_cat_data = dataset.data.loc[:, cat_features].apply(lambda x: pd.factorize(x)[0])
+
         # Numerical-numerical correlations
         num_num_corr = dataset.data.loc[:, num_features].corr(method='spearman')
 
         # Numerical-categorical correlations
-        num_cat_corr = dataset.data.loc[:, num_features].corrwith(dataset.data.loc[:, cat_features],
-                                                                  method=correlation_ratio)
+        num_cat_corr = generalized_corrwith(dataset.data.loc[:, num_features], encoded_cat_data,
+                                            method=correlation_ratio)
 
         # Categorical-categorical correlations
-        cat_cat_corr = dataset.data.loc[:, cat_features].corr(method=cramers_v)
+        cat_cat_corr = encoded_cat_data.corr(method=cramers_v)
 
         # Compose results from all the features
         all_features = num_features + cat_features
