@@ -152,6 +152,7 @@ X_test['paclitaxel_in_blood_sample'] = 0
 #
 # What happens when we run our suite with this new, leaky feature in there?
 
+clf = AdaBoostClassifier()
 clf.fit(X_train, y_train)
 
 ds_train = Dataset(X_train, label=y_train, cat_features=[])
@@ -169,6 +170,7 @@ eval_suite.run(ds_train, ds_test, clf)
 X_train = X_train.drop(['paclitaxel_in_blood_sample', 'smoothness error', 'concavity error', 'texture error'], axis=1)
 X_test = X_test.drop(['paclitaxel_in_blood_sample', 'smoothness error', 'concavity error', 'texture error'], axis=1)
 
+clf = AdaBoostClassifier()
 clf.fit(X_train, y_train)
 
 ds_train = Dataset(X_train, label=y_train, cat_features=[])
