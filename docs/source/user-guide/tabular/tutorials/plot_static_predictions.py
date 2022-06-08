@@ -4,8 +4,9 @@
 Using Pre-computed Predictions
 ==============================
 
+There are several cases in which it's useful to compute the model predictions before using deepchecks.
+
 In some cases the model evaluation can take a long time i.e very large dataset.
-For this case you may calculate the predictions beforehand and pass them to the check/suite.
 This feature can also be helpful if the Model inference happens on a production node and you can get the predictions
 using api.
 You can also use this feature to run deepchecks on models that are not sklearn compatible.
@@ -32,9 +33,10 @@ model = load_fitted_model()
 # We will calculate the feature importance which is optional but will affect some displays and checks.
 # (feature importance can also be provided from other sources (e.g. using a custom model that has FI as a property, shap, etc))
 #
-# We are also calculating all the model predict_proba results (for regression we would provide the predict result,
-# we can also provide the predict result explicitly for classification). In order to pass the decisions, we can provide
-# them using the `y_pred_train` and `y_pred_test` arguments.
+# We are also calculating all the model predict_proba results.
+#
+# For regression we would provide the predict result, we can also provide the predict result explicitly for classification (on default argmax will be used to calculate them).
+# In order to pass the decisions, we can provide them using the `y_pred_train` and `y_pred_test` arguments.
 
 from deepchecks.utils.features import calculate_feature_importance
 
