@@ -154,7 +154,7 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
         tuple if as_train_test = True. Tuple of two objects represents the dataset splitted to train and test sets.
     """
     if not as_train_test:
-        dataset = pd.read_csv(_FULL_DATA_URL)
+        dataset = pd.read_csv(_FULL_DATA_URL, names=_FEATURES + [_target])
 
         if data_format == 'Dataset':
             dataset = Dataset(dataset, label=_target, cat_features=_CAT_FEATURES)

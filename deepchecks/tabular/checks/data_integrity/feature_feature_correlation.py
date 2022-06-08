@@ -18,10 +18,10 @@ from deepchecks.utils.distribution.drift import cramers_v
 
 import pandas as pd
 
-__all__ = ['CorrelatedFeatures']
+__all__ = ['FeatureFeatureCorrelation']
 
 
-class CorrelatedFeatures(SingleDatasetCheck):
+class FeatureFeatureCorrelation(SingleDatasetCheck):
     """Checks for pairwise correlation between the features.
         Extremely correlated pairs could indicate redundancy and even duplication.
 
@@ -56,13 +56,14 @@ class CorrelatedFeatures(SingleDatasetCheck):
         cat_features = dataset.cat_features
 
         # Numerical-numerical correlations
-        num_num_corr = dataset.data[:, num_features].corr(method='spearman')
+        num_num_corr = dataset.data.loc[:, num_features].corr(method='spearman')
 
         # Numerical-categorical correlations
-        num_cat_corr = dataset.data[:, num_features].corrwith(dataset.data[:, cat_features], method=correlation_ratio)
+        num_cat_corr = dataset.data.loc[:, num_features].corrwith(dataset.data.loc[:, cat_features],
+                                                                  method=correlation_ratio)
 
         # Categorical-categorical correlations
-        cat_cat_corr = dataset.data[:, cat_features].corr(method=cramers_v)
+        cat_cat_corr = dataset.data.loc[:, cat_features].corr(method=cramers_v)
 
         # Compose results from all the features
         all_features = num_features + cat_features
