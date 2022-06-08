@@ -111,7 +111,7 @@ def test_nan():
 def test_condition_pps_pass():
     df, expected = generate_dataframe_and_expected()
 
-    check = IdentifierLeakage().add_condition_pps_not_greater_than(0.5)
+    check = IdentifierLeakage().add_condition_pps_less_or_equal(0.5)
 
     # Act
     result = check.conditions_decision(check.run(Dataset(df, label='label', datetime_name='x2', index_name='x3')))
@@ -119,14 +119,14 @@ def test_condition_pps_pass():
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
                                details='Passed for 2 relevant columns',
-                               name='Identifier columns PPS is not greater than 0.5')
+                               name='Identifier columns PPS is less or equal to 0.5')
     ))
 
 
 def test_condition_pps_fail():
     df, expected = generate_dataframe_and_expected()
 
-    check = IdentifierLeakage().add_condition_pps_not_greater_than(0.2)
+    check = IdentifierLeakage().add_condition_pps_less_or_equal(0.2)
 
     # Act
     result = check.conditions_decision(check.run(Dataset(df, label='label', datetime_name='x2', index_name='x3')))
@@ -134,5 +134,5 @@ def test_condition_pps_fail():
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                details='Found 1 out of 2 columns with PPS above threshold: {\'x2\': \'0.42\'}',
-                               name='Identifier columns PPS is not greater than 0.2')
+                               name='Identifier columns PPS is less or equal to 0.2')
     ))

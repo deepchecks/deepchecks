@@ -120,7 +120,7 @@ def test_condition_percent_new_variants_fail():
     # Arrange
     base_data = {'col1': ['Deep', 'deep', 'deep!!!', 'earth', 'foo', 'bar', 'foo?']}
     tested_data = {'col1': ['Deep', 'deep', '$deeP$', 'earth', 'foo', 'bar', 'foo?', '?deep']}
-    check = StringMismatchComparison().add_condition_ratio_new_variants_not_greater_than(0.1)
+    check = StringMismatchComparison().add_condition_ratio_new_variants_less_or_equal(0.1)
 
     # Act
     test_df, base_df = pd.DataFrame(data=tested_data), pd.DataFrame(data=base_data)
@@ -129,7 +129,7 @@ def test_condition_percent_new_variants_fail():
     # Assert
     assert_that(result, equal_condition_result(
         is_pass=False,
-        name='Ratio of new variants in test data is not greater than 10%',
+        name='Ratio of new variants in test data is less or equal to 10%',
         details='Found 1 out of 1 relevant columns with ratio of variants above threshold: {\'col1\': \'25%\'}'
     ))
 
@@ -138,14 +138,14 @@ def test_condition_percent_new_variants_pass():
     # Arrange
     base_data = {'col1': ['Deep', 'deep', 'deep!!!', 'earth', 'foo', 'bar', 'foo?']}
     tested_data = {'col1': ['Deep', 'deep', '$deeP$', 'earth', 'foo', 'bar', 'foo?', '?deep']}
-    check = StringMismatchComparison().add_condition_ratio_new_variants_not_greater_than(0.5)
+    check = StringMismatchComparison().add_condition_ratio_new_variants_less_or_equal(0.5)
     # Act
     result = check.conditions_decision(check.run(pd.DataFrame(data=tested_data), pd.DataFrame(data=base_data)))
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
                                details='Passed for 1 relevant column',
-                               name='Ratio of new variants in test data is not greater than 50%')
+                               name='Ratio of new variants in test data is less or equal to 50%')
     ))
 
 

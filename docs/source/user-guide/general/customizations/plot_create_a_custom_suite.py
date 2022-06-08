@@ -48,7 +48,7 @@ new_custom_suite = Suite('Simple Suite For Model Performance',
     SimpleModelComparison(simple_model_type='constant', \
                           alternative_scorers={'Recall (Multiclass)': make_scorer(recall_score, average=None), \
                                                'Precision (Multiclass)': make_scorer(precision_score, average=None)} \
-                         ).add_condition_gain_not_less_than(0.3)
+                         ).add_condition_gain_greater_than(0.3)
     )
 # Let's see the suite:
 new_custom_suite
@@ -136,7 +136,7 @@ from deepchecks.tabular.checks import UnusedFeatures
 
 # and add a new check with a condition:
 customized_suite.add(
-    UnusedFeatures().add_condition_number_of_high_variance_unused_features_not_greater_than())
+    UnusedFeatures().add_condition_number_of_high_variance_unused_features_less_or_equal())
 
 #%%
 

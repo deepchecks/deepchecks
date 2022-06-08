@@ -181,9 +181,9 @@ class UnusedFeatures(TrainTestCheck):
 
         return CheckResult(return_value, header='Unused Features', display=display_list)
 
-    def add_condition_number_of_high_variance_unused_features_not_greater_than(
+    def add_condition_number_of_high_variance_unused_features_less_or_equal(
             self, max_high_variance_unused_features: int = 5):
-        """Add condition - require number of high variance unused features to be not greater than a given number.
+        """Add condition - require number of high variance unused features to be less or equal to threshold.
 
         Parameters
         ----------
@@ -193,11 +193,11 @@ class UnusedFeatures(TrainTestCheck):
         def max_high_variance_unused_features_condition(result: dict) -> ConditionResult:
             high_var_features = result['unused features']['high variance']
             details = f'Found {len(high_var_features)} high variance unused features'
-            category = ConditionCategory.WARN if len(high_var_features) > max_high_variance_unused_features else \
-                ConditionCategory.PASS
+            category = ConditionCategory.PASS if len(high_var_features) <= max_high_variance_unused_features else \
+                ConditionCategory.WARN
             return ConditionResult(category, details)
 
-        return self.add_condition(f'Number of high variance unused features is not greater than'
+        return self.add_condition(f'Number of high variance unused features is less or equal to'
                                   f' {max_high_variance_unused_features}',
                                   max_high_variance_unused_features_condition)
 

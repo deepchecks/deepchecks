@@ -131,10 +131,10 @@ class NewLabels(TrainTestCheck):
         }
         return CheckResult(result_value, display=displays)
 
-    def add_condition_new_label_ratio_not_greater_than(self, max_allowed_new_labels_ratio: float = 0.005):
+    def add_condition_new_label_ratio_less_or_equal(self, max_allowed_new_labels_ratio: float = 0.005):
         # Default value set to 0.005 because of sampling mechanism
         """
-        Add condition - Ratio of labels that appear only in the test set required to be below specified threshold.
+        Add condition - Ratio of labels that appear only in the test set required to be less or equal to the threshold.
 
         Parameters
         ----------
@@ -154,11 +154,12 @@ class NewLabels(TrainTestCheck):
             else:
                 message = 'No new labels were found in test set.'
 
-            category = ConditionCategory.FAIL if percent_new_labels > max_allowed_new_labels_ratio else \
-                ConditionCategory.PASS
+            category = ConditionCategory.PASS if percent_new_labels <= max_allowed_new_labels_ratio else \
+                ConditionCategory.FAIL
             return ConditionResult(category, message)
 
-        name = f'Percentage of new labels in the test set not above {format_percent(max_allowed_new_labels_ratio)}.'
+        name = f'Percentage of new labels in the test set is less or equal to ' \
+               f'{format_percent(max_allowed_new_labels_ratio)}'
         return self.add_condition(name, condition)
 
 

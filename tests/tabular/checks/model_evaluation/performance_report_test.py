@@ -234,7 +234,7 @@ def test_condition_degradation_ratio_not_greater_than_passed(iris_split_dataset_
 def test_condition_class_performance_imbalance_ratio_not_greater_than_not_passed(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
-    check = PerformanceReport().add_condition_class_performance_imbalance_ratio_not_greater_than(0)
+    check = PerformanceReport().add_condition_class_performance_imbalance_ratio_less_than(0)
     # Act X
     result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
     # Assert
@@ -242,15 +242,14 @@ def test_condition_class_performance_imbalance_ratio_not_greater_than_not_passed
         equal_condition_result(is_pass=False,
                                details=re.compile('Test dataset\'s relative ratio difference between highest and '
                                                   'lowest classes is 14.29%'),
-                               name='Relative ratio difference between labels \'F1\' '
-                                    'score is not greater than 0%')
+                               name='Relative ratio difference between labels \'F1\' score is less than 0%')
     ))
 
 
 def test_condition_class_performance_imbalance_ratio_not_greater_than_passed(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
-    check = PerformanceReport().add_condition_class_performance_imbalance_ratio_not_greater_than(1)
+    check = PerformanceReport().add_condition_class_performance_imbalance_ratio_less_than(1)
     # Act X
     result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
     # Assert
@@ -258,6 +257,5 @@ def test_condition_class_performance_imbalance_ratio_not_greater_than_passed(iri
         equal_condition_result(is_pass=True,
                                details=re.compile('Test dataset\'s relative ratio difference between highest and '
                                                   'lowest classes is 14.29%'),
-                               name='Relative ratio difference between labels \'F1\' '
-                               'score is not greater than 100%')
+                               name='Relative ratio difference between labels \'F1\' score is less than 100%')
     ))

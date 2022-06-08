@@ -130,12 +130,12 @@ class TrainTestPredictionDrift(TrainTestCheck):
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Prediction Drift')
 
-    def add_condition_drift_score_not_greater_than(self, max_allowed_categorical_score: float = 0.15,
-                                                   max_allowed_numeric_score: float = 0.075,
-                                                   max_allowed_psi_score: float = None,
-                                                   max_allowed_earth_movers_score: float = None):
+    def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.15,
+                                            max_allowed_numeric_score: float = 0.075,
+                                            max_allowed_psi_score: float = None,
+                                            max_allowed_earth_movers_score: float = None):
         """
-        Add condition - require drift score to not be more than a certain threshold.
+        Add condition - require drift score to be less than a certain threshold.
 
         The industry standard for PSI limit is above 0.2.
         Cramer's V does not have a common industry standard.
@@ -178,13 +178,13 @@ class TrainTestPredictionDrift(TrainTestCheck):
         def condition(result: Dict) -> ConditionResult:
             drift_score = result['Drift score']
             method = result['Method']
-            has_failed = (drift_score > max_allowed_categorical_score and method in SUPPORTED_CATEGORICAL_METHODS) or \
-                         (drift_score > max_allowed_numeric_score and method in SUPPORTED_NUMERIC_METHODS)
+            has_failed = (drift_score >= max_allowed_categorical_score and method in SUPPORTED_CATEGORICAL_METHODS) or \
+                         (drift_score >= max_allowed_numeric_score and method in SUPPORTED_NUMERIC_METHODS)
 
             details = f'Found model prediction {method} drift score of {format_number(drift_score)}'
             category = ConditionCategory.FAIL if has_failed else ConditionCategory.PASS
             return ConditionResult(category, details)
 
-        return self.add_condition(f'categorical drift score <= {max_allowed_categorical_score} and '
-                                  f'numerical drift score <= {max_allowed_numeric_score}',
+        return self.add_condition(f'categorical drift score < {max_allowed_categorical_score} and '
+                                  f'numerical drift score < {max_allowed_numeric_score}',
                                   condition)

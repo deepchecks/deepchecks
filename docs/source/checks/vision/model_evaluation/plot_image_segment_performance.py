@@ -53,7 +53,7 @@ print(f'brightness bins: {result.value["Brightness"]}')
 # The purpose of the condition is to catch properties segments that are significantly
 # worse than the mean - which might indicate a problem.
 
-check = ImageSegmentPerformance().add_condition_score_from_mean_ratio_not_less_than(0.5)
+check = ImageSegmentPerformance().add_condition_score_from_mean_ratio_greater_than(0.5)
 check.run(coco_data, model)
 
 #%%

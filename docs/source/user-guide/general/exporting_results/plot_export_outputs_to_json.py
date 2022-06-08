@@ -33,7 +33,7 @@ model = iris.load_fitted_model()
 
 from deepchecks.tabular.checks import WholeDatasetDrift
 
-result = WholeDatasetDrift().add_condition_overall_drift_value_not_greater_than(
+result = WholeDatasetDrift().add_condition_overall_drift_value_less_than(
 ).run(train_dataset, test_dataset, model)
 
 #%%

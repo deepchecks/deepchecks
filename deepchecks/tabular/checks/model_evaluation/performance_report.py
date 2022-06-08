@@ -245,15 +245,13 @@ class PerformanceReport(TrainTestCheck, ReduceMixin):
         return self.add_condition(f'Train-Test scores relative degradation is not greater than {threshold}',
                                   condition)
 
-    def add_condition_class_performance_imbalance_ratio_not_greater_than(
+    def add_condition_class_performance_imbalance_ratio_less_than(
         self: PR,
         threshold: float = 0.3,
         score: str = None
     ) -> PR:
-        """Add condition.
-
-        Verifying that relative ratio difference
-        between highest-class and lowest-class is not greater than 'threshold'.
+        """Add condition - Verifying that relative ratio difference between highest-class and lowest-class is less\
+        than 'threshold'.
 
         Parameters
         ----------
@@ -310,8 +308,7 @@ class PerformanceReport(TrainTestCheck, ReduceMixin):
 
         return self.add_condition(
             name=(
-                f'Relative ratio difference between labels \'{score}\' score '
-                f'is not greater than {format_percent(threshold)}'
+                f'Relative ratio difference between labels \'{score}\' score is less than {format_percent(threshold)}'
             ),
             condition_func=condition
         )

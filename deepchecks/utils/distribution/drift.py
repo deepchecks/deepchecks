@@ -19,7 +19,7 @@ from scipy.stats import chi2_contingency, wasserstein_distance
 
 from deepchecks import ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
-from deepchecks.utils.dict_funcs import get_max_entry_from_dict
+from deepchecks.utils.dict_funcs import get_dict_entry_by_value
 from deepchecks.utils.distribution.plot import drift_score_bar_traces, feature_distribution_traces
 from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
 from deepchecks.utils.strings import format_number, format_percent
@@ -345,11 +345,11 @@ def drift_condition(max_allowed_categorical_score: float,
         cat_drift_props = {prop: d['Drift score'] for prop, d in result.items()
                            if d['Method'] in SUPPORTED_CATEGORICAL_METHODS}
         not_passing_categorical_props = {props: format_number(d) for props, d in cat_drift_props.items()
-                                         if d > max_allowed_categorical_score}
+                                         if d >= max_allowed_categorical_score}
         num_drift_props = {prop: d['Drift score'] for prop, d in result.items()
                            if d['Method'] in SUPPORTED_NUMERIC_METHODS}
         not_passing_numeric_props = {prop: format_number(d) for prop, d in num_drift_props.items()
-                                     if d > max_allowed_numeric_score}
+                                     if d >= max_allowed_numeric_score}
 
         num_failed = len(not_passing_categorical_props) + len(not_passing_numeric_props)
         if num_failed > allowed_num_subjects_exceeding_threshold:
@@ -364,11 +364,11 @@ def drift_condition(max_allowed_categorical_score: float,
         else:
             details = f'Passed for {len(result) - num_failed} {subject_multi} out of {len(result)} {subject_multi}.'
             if cat_drift_props:
-                prop, score = get_max_entry_from_dict(cat_drift_props)
+                prop, score = get_dict_entry_by_value(cat_drift_props)
                 details += f'\nFound {subject_single} "{prop}" has the highest categorical drift score: ' \
                            f'{format_number(score)}'
             if num_drift_props:
-                prop, score = get_max_entry_from_dict(num_drift_props)
+                prop, score = get_dict_entry_by_value(num_drift_props)
                 details += f'\nFound {subject_single} "{prop}" has the highest numerical drift score: ' \
                            f'{format_number(score)}'
             return ConditionResult(ConditionCategory.PASS, details)

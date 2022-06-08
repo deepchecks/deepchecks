@@ -173,8 +173,8 @@ class DominantFrequencyChange(TrainTestCheck):
 
         return p_val
 
-    def add_condition_p_value_not_less_than(self, p_value_threshold: float = 0.0001):
-        """Add condition - require min p value allowed per column.
+    def add_condition_p_value_greater_than(self, p_value_threshold: float = 0.0001):
+        """Add condition - require p value allowed per column to be greater than threshold.
 
         Parameters
         ----------
@@ -186,7 +186,7 @@ class DominantFrequencyChange(TrainTestCheck):
 
         def condition(result: Dict) -> ConditionResult:
             failed_columns = {k: format_number(v['P value']) for k, v in result.items()
-                              if v is not None and v['P value'] < p_value_threshold}
+                              if v is not None and v['P value'] <= p_value_threshold}
             if failed_columns:
                 return ConditionResult(ConditionCategory.FAIL,
                                        f'Found {len(failed_columns)} out of {len(result)} columns with p-value below '
@@ -194,11 +194,11 @@ class DominantFrequencyChange(TrainTestCheck):
             else:
                 return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))
 
-        return self.add_condition(f'P value is not less than {p_value_threshold}',
+        return self.add_condition(f'P value is greater than {p_value_threshold}',
                                   condition)
 
-    def add_condition_ratio_of_change_not_greater_than(self, percent_change_threshold: float = 0.25):
-        """Add condition - require change in the ratio of the dominant value to be below the threshold.
+    def add_condition_ratio_of_change_less_than(self, percent_change_threshold: float = 0.25):
+        """Add condition - require change in the ratio of the dominant value to be less the threshold.
 
         Parameters
         ----------
@@ -214,7 +214,7 @@ class DominantFrequencyChange(TrainTestCheck):
             failed_columns = {}
             for column, values in result.items():
                 diff = values['Test data %'] - values['Train data %'] if values is not None else 0
-                if diff > percent_change_threshold:
+                if diff >= percent_change_threshold:
                     failed_columns[column] = format_percent(diff, 2)
             if failed_columns:
                 return ConditionResult(ConditionCategory.FAIL,
@@ -223,6 +223,6 @@ class DominantFrequencyChange(TrainTestCheck):
             else:
                 return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))
 
-        return self.add_condition(f'Change in ratio of dominant value in data is not greater'
+        return self.add_condition(f'Change in ratio of dominant value in data is less'
                                   f' than {format_percent(percent_change_threshold)}',
                                   condition)

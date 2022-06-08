@@ -223,13 +223,13 @@ class TrainTestPredictionDrift(TrainTestCheck):
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Prediction Drift')
 
-    def add_condition_drift_score_not_greater_than(self, max_allowed_categorical_score: float = 0.15,
-                                                   max_allowed_numeric_score: float = 0.075,
-                                                   max_allowed_psi_score: float = None,
-                                                   max_allowed_earth_movers_score: float = None
-                                                   ) -> 'TrainTestPredictionDrift':
+    def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.15,
+                                            max_allowed_numeric_score: float = 0.075,
+                                            max_allowed_psi_score: float = None,
+                                            max_allowed_earth_movers_score: float = None
+                                            ) -> 'TrainTestPredictionDrift':
         """
-        Add condition - require prediction properties drift score to not be more than a certain threshold.
+        Add condition - require prediction properties drift score to be less than the threshold.
 
         The industry standard for PSI limit is above 0.2.
         Cramer's V does not have a common industry standard.
@@ -272,6 +272,6 @@ class TrainTestPredictionDrift(TrainTestCheck):
         condition = drift_condition(max_allowed_categorical_score, max_allowed_numeric_score,
                                     'prediction property', 'prediction properties')
 
-        return self.add_condition(f'categorical drift score <= {max_allowed_categorical_score} and '
-                                  f'numerical drift score <= {max_allowed_numeric_score} for prediction drift',
+        return self.add_condition(f'categorical drift score < {max_allowed_categorical_score} and '
+                                  f'numerical drift score < {max_allowed_numeric_score} for prediction drift',
                                   condition)

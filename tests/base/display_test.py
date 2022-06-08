@@ -68,7 +68,7 @@ def test_check_run_display_condition(iris_dataset):
     with patch('deepchecks.core.check_result.is_interactive_output_use_possible', return_value=False):
         with patch('deepchecks.core.check_result.display') as mock:
             # Arrange
-            check_res = DataDuplicates().add_condition_ratio_not_greater_than(0).run(iris_dataset)
+            check_res = DataDuplicates().add_condition_ratio_less_or_equal(0).run(iris_dataset)
             # Assert
             assert_that(check_res.display_check(unique_id='qwerty'), is_(None))
             mock.assert_called_once()

@@ -106,7 +106,7 @@ check_result
 
 check_result = (
     ImagePropertyDrift()
-    .add_condition_drift_score_not_greater_than(0.001)
+    .add_condition_drift_score_less_than(0.001)
     .run(train_dataset, test_dataset)
 )
 check_result.show(show_additional_outputs=False)

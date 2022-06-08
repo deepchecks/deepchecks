@@ -138,10 +138,10 @@ class WholeDatasetDrift(TrainTestCheck):
 
         return CheckResult(value=values_dict, display=displays, header='Whole Dataset Drift')
 
-    def add_condition_overall_drift_value_not_greater_than(self, max_drift_value: float = 0.25):
+    def add_condition_overall_drift_value_less_than(self, max_drift_value: float = 0.25):
         """Add condition.
 
-        Overall drift score, calculated as (2 * AUC - 1) for the AUC of the dataset discriminator model, is not greater
+        Overall drift score, calculated as (2 * AUC - 1) for the AUC of the dataset discriminator model, is less
         than the specified value. This value is used as it scales the AUC value to the range [0, 1], where 0 indicates
         a random model (and no drift) and 1 indicates a perfect model (and completely distinguishable datasets).
 
@@ -155,8 +155,8 @@ class WholeDatasetDrift(TrainTestCheck):
             drift_score = result['domain_classifier_drift_score']
             details = f'Found drift value of: {format_number(drift_score)}, corresponding to a domain classifier ' \
                       f'AUC of: {format_number(result["domain_classifier_auc"])}'
-            category = ConditionCategory.FAIL if drift_score > max_drift_value else ConditionCategory.PASS
+            category = ConditionCategory.PASS if drift_score < max_drift_value else ConditionCategory.FAIL
             return ConditionResult(category, details)
 
-        return self.add_condition(f'Drift value is not greater than {format_number(max_drift_value)}',
+        return self.add_condition(f'Drift value is less than {format_number(max_drift_value)}',
                                   condition)
