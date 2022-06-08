@@ -33,6 +33,8 @@ _TRAIN_DATA_URL = 'https://ndownloader.figshare.com/files/35684222'
 _TEST_DATA_URL = 'https://ndownloader.figshare.com/files/35684816'
 _MODEL_VERSION = '1.0.2'
 _target = 'loan_status'
+_datetime_name = 'issue_d'
+_index_name = 'id'
 _CAT_FEATURES = ['addr_state', 'application_type', 'home_ownership', 'initial_list_status', 'purpose', 'term',
                  'verification_status', 'sub_grade']
 _NUM_FEATURES = ['fico_range_low', 'total_acc', 'pub_rec', 'revol_util', 'annual_inc', 'int_rate', 'dti', 'mort_acc',
@@ -80,7 +82,8 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> t.Uni
         dataset = pd.read_csv(_FULL_DATA_URL, index_col=False)
 
         if data_format == 'Dataset':
-            dataset = Dataset(dataset, label=_target, cat_features=_CAT_FEATURES)
+            dataset = Dataset(dataset, label=_target, cat_features=_CAT_FEATURES, index_name=_index_name,
+                              datetime_name=_datetime_name)
             return dataset
         elif data_format == 'Dataframe':
             return dataset
@@ -91,8 +94,10 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> t.Uni
         test = pd.read_csv(_TEST_DATA_URL, index_col=False)
 
         if data_format == 'Dataset':
-            train = Dataset(train, label=_target, cat_features=_CAT_FEATURES)
-            test = Dataset(test, label=_target, cat_features=_CAT_FEATURES)
+            train = Dataset(train, label=_target, cat_features=_CAT_FEATURES, index_name=_index_name,
+                            datetime_name=_datetime_name)
+            test = Dataset(test, label=_target, cat_features=_CAT_FEATURES, index_name=_index_name,
+                           datetime_name=_datetime_name)
             return train, test
         elif data_format == 'Dataframe':
             return train, test
