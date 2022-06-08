@@ -370,7 +370,7 @@ def extract_jupyter_server_token(url: str) -> str:
 
 
 def is_jupyterlab_extension_enabled(name: str) -> bool:
-    """Find out whether provided nbclassic extension is enabled."""
+    """Find out whether provided jupyterlab extension is enabled."""
     server_url = get_jupyter_server_url()
     extensions = None
 
