@@ -101,7 +101,7 @@ class UnusedFeatures(TrainTestCheck):
         feature_df.sort_values(by='Feature Importance', ascending=False, inplace=True)
 
         # For feature importance and variance, calculate their "ratio to average" per feature. The ratio to average
-        # is, for example, the amount of feature importance a feature has, divided by the the amount he would have
+        # is, for example, the amount of feature importance a feature has, divided by the amount he would have
         # if all features where equally important (which is basically 1 / n_of_features).
         feature_ratio_to_avg_df = feature_df / (1 / len(feature_importance))
 
