@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-Train Test Validation Scenario on Lending Club Data - 5 min Quickstart
-***********************************************************************
+Train Test Validation Scenario on Lending Club Data - Quickstart
+*********************************************************************
 
 The deepchecks train test validation suite is relevant any time you wish to 
-validate two subsets from the same data source:
-whether it's for comparing distributions across different train-test splits
-(e.g. before training a model or when splitting data for cross-validation),
-or for comparing a new data batch to previous data batches.
+validate two data subsets. For example:
 
-Here we'll use data from the lending club dataset 
+- Comparing distributions across different train-test splits (e.g. before 
+  training a model or when splitting data for cross-validation)
+- Comparing a new data batch to previous data batches.
+
+Here we'll use a loan's dataset 
 (:mod:`deepchecks.tabular.datasets.classification.lending_club`),
 to demonstrate how you can run the suite with only a few simple lines of code, 
 and see which kind of insights it can find.
@@ -29,10 +30,10 @@ and see which kind of insights it can find.
 # -----------
 
 
-from deepchecks.tabular import datasets
+from deepchecks.tabular.datasets.classification import lending_club
 import pandas as pd
 
-data = datasets.classification.lending_club.load_data(data_format='DataFrame', as_train_test=False)
+data = lending_club.load_data(data_format='Dataframe', as_train_test=False)
 data.head(2)
 
 
@@ -52,7 +53,7 @@ datetime_name = 'issue_d'
 # -------------
 
 # convert date column to datetime
-data[datetime_name] = pd.as_datetime(data[datetime_name])
+data[datetime_name] = pd.to_datetime(data[datetime_name])
 
 # Use data from June and July for train and August for test:
 train_df = data[data[datetime_name].dt.month.isin([6, 7])]
@@ -145,10 +146,12 @@ suite_result
 # Ok, the date leakage doesn't exist anymore!
 #
 # However, we can see that we have a multivariate drift in the current split, detected by the WholeDatasetDrift check.
-# The drift is detected mainly with a combination of the interest rate (``int_rate``) and loan grade (``sub_grade``).
+# The drift is detected mainly by a combination of features represneting the loan's interest rate (``int_rate``) 
+# and its grade (``sub_grade``).
 #
 # We can consider examining other sampling techniques (e.g. using only data from the same year), 
-# ideally achieving one in which the training data's # univariate and multivariate distribution is 
+# ideally achieving one in which the training data's
+# univariate and multivariate distribution is 
 # similar to the data on which the model will run (test / production data).
 #
 # If we are planning on training a model with these splits, this drift is worth understanding 
@@ -167,7 +170,7 @@ suite_result
 # If we want to run only that check (possible with or without condition)
 from deepchecks.tabular.checks import WholeDatasetDrift
 
-check_with_condition = WholeDatasetDrift().add_condition_overall_drift_value_not_greater_than(0.4)
+check_with_condition = WholeDatasetDrift().add_condition_overall_drift_value_less_than(0.4)
 # check = WholeDatasetDrift()
 dataset_drift_result = check_with_condition.run(train_ds, test_ds)
 
@@ -191,9 +194,9 @@ from deepchecks.tabular.checks import TrainTestFeatureDrift, WholeDatasetDrift, 
  TrainTestPredictionDrift, TrainTestLabelDrift
 
 drift_suite = Suite('drift suite',
-TrainTestFeatureDrift().add_condition_drift_score_not_greater_than(
+TrainTestFeatureDrift().add_condition_drift_score_less_than(
   max_allowed_categorical_score=0.2, max_allowed_numeric_score=0.1),
-WholeDatasetDrift().add_condition_overall_drift_value_not_greater_than(0.4),
+WholeDatasetDrift().add_condition_overall_drift_value_less_than(0.4),
 TrainTestLabelDrift(),
 TrainTestPredictionDrift()
 )
