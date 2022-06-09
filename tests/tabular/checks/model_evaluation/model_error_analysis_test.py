@@ -38,7 +38,7 @@ def test_dataset_no_label(iris_dataset_no_label, iris_adaboost):
     assert_that(
         calling(ModelErrorAnalysis().run).with_args(iris_dataset_no_label, iris_dataset_no_label, iris_adaboost),
         raises(DeepchecksNotSupportedError,
-               'There is no label defined to use. Did you pass a DataFrame instead of a Dataset?')
+               'Dataset does not contain a label column')
     )
 
 
@@ -68,7 +68,7 @@ def test_binary_string_model_info_object(iris_binary_string_split_dataset_and_mo
 
 def test_condition_fail(iris_labeled_dataset, iris_adaboost):
     # Act
-    check_result = ModelErrorAnalysis().add_condition_segments_performance_relative_difference_not_greater_than(
+    check_result = ModelErrorAnalysis().add_condition_segments_performance_relative_difference_less_than(
     ).run(iris_labeled_dataset, iris_labeled_dataset, iris_adaboost)
     condition_result = check_result.conditions_results
 
@@ -76,7 +76,7 @@ def test_condition_fail(iris_labeled_dataset, iris_adaboost):
     assert_that(condition_result, has_items(
         equal_condition_result(
             is_pass=False,
-            name='The performance difference of the detected segments must not be greater than 5%',
+            name='The performance difference of the detected segments is less than 5%',
             details='Accuracy difference for failed features: {\'petal length (cm)\': \'10.91%\', '
                     '\'petal width (cm)\': \'8.33%\'}',
             category=ConditionCategory.WARN
@@ -88,7 +88,7 @@ def test_condition_pass(iris_labeled_dataset, iris_adaboost):
     # Act
     condition_result = (
         ModelErrorAnalysis()
-        .add_condition_segments_performance_relative_difference_not_greater_than(2)
+        .add_condition_segments_performance_relative_difference_less_than(2)
         .run(iris_labeled_dataset, iris_labeled_dataset, iris_adaboost)
         .conditions_results
     )
@@ -98,7 +98,7 @@ def test_condition_pass(iris_labeled_dataset, iris_adaboost):
         equal_condition_result(
             is_pass=True,
             details='Average Accuracy difference: 9.62%',
-            name='The performance difference of the detected segments must not be greater than 200%',
+            name='The performance difference of the detected segments is less than 200%',
         )
     ))
 

@@ -59,9 +59,10 @@ __all__ = [
     'generate_check_docs_link',
     'widget_to_html_string',
     'format_number_if_not_nan',
+    'get_docs_link'
 ]
 
-# Creating a translation table for the string.translate() method to be used in string base form method
+# Creating a translation table for the string.translate() method to be used in string base-form method
 DEL_CHARS = ''.join(c for c in map(chr, range(sys.maxunicode)) if not c.isalnum())
 DEL_MAP = str.maketrans('', '', DEL_CHARS)
 
@@ -171,6 +172,23 @@ def widget_to_html_string(
     return buffer.getvalue()
 
 
+def get_docs_link():
+    """Return the link to the docs with current version.
+
+    Returns
+    -------
+    str
+        the link to the docs.
+    """
+    if deepchecks.__version__ and deepchecks.__version__ != 'dev':
+        version_obj: Version = Version(deepchecks.__version__)
+        # The version in the docs url is without the hotfix part
+        version = f'{version_obj.major}.{version_obj.minor}'
+    else:
+        version = 'stable'
+    return f'https://docs.deepchecks.com/{version}/'
+
+
 def generate_check_docs_link(check):
     """Create from check object a link to its example page in the docs."""
     if not isinstance(check, core.BaseCheck):
@@ -192,11 +210,7 @@ def generate_check_docs_link(check):
         # not builtin check, cannot generate link to the docs
         return ''
 
-    link_template = (
-        'https://docs.deepchecks.com/{version}/checks_gallery/{path}.html'
-        '?utm_source=display_output&utm_medium=referral'
-        '&utm_campaign=check_link'
-    )
+    link_postfix = '.html?utm_source=display_output&utm_medium=referral&utm_campaign=check_link'
 
     # compare check full name and link to the notebook to
     # understand how link is formatted:
@@ -204,19 +218,13 @@ def generate_check_docs_link(check):
     # - deepchecks.tabular.checks.integrity.StringMismatchComparison
     # - https://docs.deepchecks.com/{version}/checks_gallery/tabular/integrity/plot_string_mismatch_comparison.html # noqa: E501 # pylint: disable=line-too-long
 
-    # Remove deepchecks from the start
+    # Remove 'deepchecks' from the start and 'checks' from the middle
     module_path = module_path[len('deepchecks.'):]
     module_parts = module_path.split('.')
-    module_parts[-1] = f'plot_{module_parts[-1]}'
     module_parts.remove('checks')
-    url = '/'.join([*module_parts])
-    if deepchecks.__version__ and deepchecks.__version__ != 'dev':
-        version_obj: Version = Version(deepchecks.__version__)
-        # The version in the docs url is without the hotfix part
-        version = f'{version_obj.major}.{version_obj.minor}'
-    else:
-        version = 'stable'
-    return link_template.format(version=version, path=url)
+    # Add to the check name prefix of 'plot_'
+    module_parts[-1] = f'plot_{module_parts[-1]}'
+    return get_docs_link() + 'checks_gallery/' + '/'.join([*module_parts]) + link_postfix
 
 
 def get_random_string(n: int = 5):
@@ -235,21 +243,29 @@ def get_random_string(n: int = 5):
     return ''.join(random.choices(ascii_uppercase + digits, k=n))
 
 
-def string_baseform(string: Hashable) -> Hashable:
-    """Remove special characters from given string, leaving only a-z, A-Z, 0-9 characters.
+def string_baseform(string: Hashable, allow_empty_result: bool = False) -> Hashable:
+    """Normalize the string input to a uniform form.
 
+    If input is a string containing alphanumeric characters or if allow_empty_result is set to True,
+    removes all non-alphanumeric characters and convert characters to lower form.
     Parameters
     ----------
+    allow_empty_result : bool , default : False
+        bool indicating whether to return empty result if no alphanumeric characters are present or the original input
     string : str
         string to remove special characters from
     Returns
     -------
     str
-        string without special characters
+        original input if condition is not met or lower form alphanumeric characters of input.
     """
     if not isinstance(string, str):
         return string
-    return string.translate(DEL_MAP).lower()
+    lower_alphanumeric_form = string.translate(DEL_MAP).lower()
+    if len(lower_alphanumeric_form) > 0 or allow_empty_result:
+        return lower_alphanumeric_form
+    else:
+        return string
 
 
 def is_string_column(column: pd.Series) -> bool:

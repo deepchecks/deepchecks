@@ -15,11 +15,9 @@ from typing import Any, Dict, List
 
 import pandas as pd
 
-from deepchecks.core import CheckResult, ConditionResult, DatasetKind
-from deepchecks.core.condition import ConditionCategory
+from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import DeepchecksNotSupportedError
-from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERIC_METHODS,
-                                                 calc_drift_and_plot, get_drift_method)
+from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition
 from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.utils.label_prediction_properties import (DEFAULT_CLASSIFICATION_LABEL_PROPERTIES,
                                                                  DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES,
@@ -63,7 +61,13 @@ class TrainTestLabelDrift(TrainTestCheck):
     label_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
         Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
-        representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'/'class_id'
+        representing attributes of said method. 'output_type' must be one of:
+        - 'numeric' - for continuous ordinal outputs.
+        - 'categorical' - for discrete, non-ordinal outputs. These can still be numbers,
+          but these numbers do not have inherent value.
+        For more on image / label properties, see the :ref:`property guide </user-guide/vision/vision_properties.rst>`
+        - 'class_id' - for properties that return the class_id. This is used because these
+          properties are later matched with the VisionData.label_map, if one was given.
     margin_quantile_filter: float, default: 0.025
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
@@ -100,9 +104,11 @@ class TrainTestLabelDrift(TrainTestCheck):
     ):
         super().__init__(**kwargs)
         # validate label properties:
-        if label_properties is not None:
+        self.user_label_properties = (
             validate_properties(label_properties)
-        self.user_label_properties = label_properties
+            if label_properties is not None
+            else None
+        )
         self.margin_quantile_filter = margin_quantile_filter
         if max_num_categories is not None:
             warnings.warn(
@@ -217,11 +223,13 @@ class TrainTestLabelDrift(TrainTestCheck):
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Label Drift')
 
-    def add_condition_drift_score_not_greater_than(self, max_allowed_categorical_score: float = 0.15,
-                                                   max_allowed_numeric_score: float = 0.075
-                                                   ) -> 'TrainTestLabelDrift':
+    def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.15,
+                                            max_allowed_numeric_score: float = 0.075,
+                                            max_allowed_psi_score: float = None,
+                                            max_allowed_earth_movers_score: float = None
+                                            ) -> 'TrainTestLabelDrift':
         """
-        Add condition - require label properties drift score to not be more than a certain threshold.
+        Add condition - require label properties drift score to be less than a certain threshold.
 
         The industry standard for PSI limit is above 0.2.
         Cramer's V does not have a common industry standard.
@@ -234,33 +242,35 @@ class TrainTestLabelDrift(TrainTestCheck):
             the max threshold for the PSI score
         max_allowed_numeric_score: float ,  default: 0.075
             the max threshold for the Earth Mover's Distance score
+        max_allowed_psi_score: float, default None
+            Deprecated. Please use max_allowed_categorical_score instead
+        max_allowed_earth_movers_score: float, default None
+            Deprecated. Please use max_allowed_numeric_score instead
         Returns
         -------
         ConditionResult
             False if any column has passed the max threshold, True otherwise
         """
+        if max_allowed_psi_score is not None:
+            warnings.warn(
+                f'{self.__class__.__name__}: max_allowed_psi_score is deprecated. please use '
+                f'max_allowed_categorical_score instead',
+                DeprecationWarning
+            )
+            if max_allowed_categorical_score is not None:
+                max_allowed_categorical_score = max_allowed_psi_score
+        if max_allowed_earth_movers_score is not None:
+            warnings.warn(
+                f'{self.__class__.__name__}: max_allowed_earth_movers_score is deprecated. please use '
+                f'max_allowed_numeric_score instead',
+                DeprecationWarning
+            )
+            if max_allowed_numeric_score is not None:
+                max_allowed_numeric_score = max_allowed_earth_movers_score
 
-        def condition(result: Dict) -> ConditionResult:
-            cat_method, num_method = get_drift_method(result)
-            not_passing_categorical_columns = {props: f'{d["Drift score"]:.2}' for props, d in result.items() if
-                                               d['Drift score'] > max_allowed_categorical_score and
-                                               d['Method'] in SUPPORTED_CATEGORICAL_METHODS}
-            not_passing_numeric_columns = {props: f'{d["Drift score"]:.2}' for props, d in result.items() if
-                                           d['Drift score'] > max_allowed_numeric_score
-                                           and d['Method'] in SUPPORTED_NUMERIC_METHODS}
-            return_str = ''
-            if not_passing_categorical_columns:
-                return_str += f'Found categorical label properties with {cat_method} above threshold:' \
-                              f' {not_passing_categorical_columns}\n'
-            if not_passing_numeric_columns:
-                return_str += f'Found numeric label properties with {num_method} above' \
-                              f' threshold: {not_passing_numeric_columns}\n'
+        condition = drift_condition(max_allowed_categorical_score, max_allowed_numeric_score,
+                                    'label property', 'label properties')
 
-            if return_str:
-                return ConditionResult(ConditionCategory.FAIL, return_str)
-            else:
-                return ConditionResult(ConditionCategory.PASS)
-
-        return self.add_condition(f'categorical drift score <= {max_allowed_categorical_score} and '
-                                  f'numerical drift score <= {max_allowed_numeric_score}',
+        return self.add_condition(f'categorical drift score < {max_allowed_categorical_score} and '
+                                  f'numerical drift score < {max_allowed_numeric_score}',
                                   condition)

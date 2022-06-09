@@ -24,6 +24,7 @@ from ipywidgets import Widget
 from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
 
+from deepchecks.core.checks import ReduceMixin
 from deepchecks.core.condition import ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.serialization.check_failure.html import CheckFailureSerializer as CheckFailureHtmlSerializer
@@ -32,6 +33,7 @@ from deepchecks.core.serialization.check_failure.widget import CheckFailureSeria
 from deepchecks.core.serialization.check_result.html import CheckResultSerializer as CheckResultHtmlSerializer
 from deepchecks.core.serialization.check_result.json import CheckResultSerializer as CheckResultJsonSerializer
 from deepchecks.core.serialization.check_result.widget import CheckResultSerializer as CheckResultWidgetSerializer
+from deepchecks.utils.display import display_in_gui
 from deepchecks.utils.ipython import is_colab_env, is_kaggle_env, is_notebook, is_widgets_enabled
 from deepchecks.utils.strings import create_new_file_name, widget_to_html, widget_to_html_string
 from deepchecks.utils.wandb_utils import wandb_run
@@ -194,6 +196,12 @@ class CheckResult(BaseCheckResult):
 
         return 4
 
+    def reduce_output(self) -> Dict[str, float]:
+        """Return the check result as a reduced dict."""
+        if isinstance(self.check, ReduceMixin):
+            return self.check.reduce_output(self)
+        raise DeepchecksValueError('Check needs to be an instance of ReduceMixin to use this function')
+
     def display_check(
         self,
         unique_id: Optional[str] = None,
@@ -344,11 +352,7 @@ class CheckResult(BaseCheckResult):
 
             return TempSphinx()
         else:
-            warnings.warn(
-                'You are running in a non-interactive python shell. '
-                'In order to show result you have to use '
-                'an IPython shell (etc Jupyter)'
-            )
+            display_in_gui(self)
 
     def to_widget(
         self,

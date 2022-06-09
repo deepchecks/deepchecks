@@ -64,15 +64,18 @@ def test_image_property_drift_initialization_with_empty_list_of_image_properties
 def test_image_property_drift_initialization_with_list_of_invalid_image_properties():
     assert_that(
         calling(ImagePropertyDrift).with_args(image_properties=[{'hello': 'string'}]),
-        raises(DeepchecksValueError,
-               r"Property must be of type dict, and include keys \['name', 'method', 'output_type'\]")
+        raises(
+            DeepchecksValueError,
+            r"List of properties contains next problems:\n"
+            rf"\+ Property #0: dictionary must include keys \('name', 'method', 'output_type'\)\. "
+            fr"Next keys are missed \['method', 'name', 'output_type'\]")
     )
 
 
 def test_image_property_drift_condition(coco_train_visiondata, coco_test_visiondata, device):
     result = (
         ImagePropertyDrift()
-        .add_condition_drift_score_not_greater_than()
+        .add_condition_drift_score_less_than()
         .run(coco_train_visiondata, coco_test_visiondata, device=device)
     )
 
@@ -85,7 +88,7 @@ def test_image_property_drift_condition(coco_train_visiondata, coco_test_visiond
 def test_image_property_drift_fail_condition(coco_train_visiondata, coco_test_visiondata, device):
     result = (
         ImagePropertyDrift()
-        .add_condition_drift_score_not_greater_than(0)
+        .add_condition_drift_score_less_than(0)
         .run(coco_train_visiondata, coco_test_visiondata, device=device)
     )
 

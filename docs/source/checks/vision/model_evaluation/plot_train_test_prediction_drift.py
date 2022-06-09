@@ -157,7 +157,7 @@ check.run(mod_train_ds, mod_test_ds, model)
 # We could also add a condition to the check to alert us to changes in the prediction
 # distribution, such as the one that occurred here.
 
-check = TrainTestPredictionDrift().add_condition_drift_score_not_greater_than()
+check = TrainTestPredictionDrift().add_condition_drift_score_less_than()
 check.run(mod_train_ds, mod_test_ds, model)
 
 #%%

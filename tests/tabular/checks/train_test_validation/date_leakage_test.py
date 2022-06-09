@@ -115,11 +115,11 @@ def test_dataset_no_index():
     assert_that(
         calling(DateTrainTestLeakageDuplicates().run).with_args(ds, ds),
         raises(DatasetValidationError,
-               'There is no datetime defined to use. Did you pass a DataFrame instead of a Dataset?'))
+               'Dataset does not contain a datetime'))
     assert_that(
         calling(DateTrainTestLeakageOverlap().run).with_args(ds, ds),
         raises(DatasetValidationError,
-               'There is no datetime defined to use. Did you pass a DataFrame instead of a Dataset?'))
+               'Dataset does not contain a datetime'))
 
 
 def test_dates_from_val_before_train():
@@ -248,14 +248,14 @@ def test_condition_fail_on_overlap():
         datetime(2021, 10, 9, 0, 0)
     ]}, 'col1')
 
-    check = DateTrainTestLeakageOverlap().add_condition_leakage_ratio_not_greater_than(0.2)
+    check = DateTrainTestLeakageOverlap().add_condition_leakage_ratio_less_or_equal(0.2)
 
     # Act
     result = check.conditions_decision(check.run(train_ds, val_ds))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Date leakage ratio is not greater than 20%',
+                               name='Date leakage ratio is less or equal to 20%',
                                details='Found 27.27% leaked dates')
     ))
 
@@ -293,14 +293,14 @@ def test_condition_fail_on_overlap_date_in_index():
         datetime(2021, 10, 9, 0, 0)
     ]), set_datetime_from_dataframe_index=True)
 
-    check = DateTrainTestLeakageOverlap().add_condition_leakage_ratio_not_greater_than(0.2)
+    check = DateTrainTestLeakageOverlap().add_condition_leakage_ratio_less_or_equal(0.2)
 
     # Act
     result = check.conditions_decision(check.run(train_ds, val_ds))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Date leakage ratio is not greater than 20%',
+                               name='Date leakage ratio is less or equal to 20%',
                                details='Found 27.27% leaked dates')
     ))
 
@@ -334,14 +334,14 @@ def test_condition_on_overlap():
         datetime(2021, 10, 9, 0, 0)
     ]}, 'col1')
 
-    check = DateTrainTestLeakageOverlap().add_condition_leakage_ratio_not_greater_than()
+    check = DateTrainTestLeakageOverlap().add_condition_leakage_ratio_less_or_equal()
 
     # Act
     result = check.conditions_decision(check.run(train_ds, val_ds))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='Date leakage ratio is not greater than 0%',
+                               name='Date leakage ratio is less or equal to 0%',
                                details='No leaked dates found')
     ))
 
@@ -378,14 +378,14 @@ def test_condition_fail_on_duplicates():
         datetime(2021, 10, 9, 0, 0)
     ]}, 'col1')
 
-    check = DateTrainTestLeakageDuplicates().add_condition_leakage_ratio_not_greater_than(0.1)
+    check = DateTrainTestLeakageDuplicates().add_condition_leakage_ratio_less_or_equal(0.1)
 
     # Act
     result = check.conditions_decision(check.run(train_ds, val_ds))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Date leakage ratio is not greater than 10%',
+                               name='Date leakage ratio is less or equal to 10%',
                                details='Found 18.18% leaked dates')
     ))
 
@@ -419,13 +419,13 @@ def test_condition_pass_on_duplicates():
         datetime(2021, 10, 9, 0, 0)
     ]}, 'col1')
 
-    check = DateTrainTestLeakageDuplicates().add_condition_leakage_ratio_not_greater_than()
+    check = DateTrainTestLeakageDuplicates().add_condition_leakage_ratio_less_or_equal()
 
     # Act
     result = check.conditions_decision(check.run(train_ds, val_ds))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='Date leakage ratio is not greater than 0%',
+                               name='Date leakage ratio is less or equal to 0%',
                                details='No leaked dates found')
     ))

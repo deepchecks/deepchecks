@@ -243,12 +243,12 @@ class SimpleModelComparison(TrainTestCheck):
             metric.update((torch.stack(dummy_predictions), torch.LongTensor(labels)))
         return metrics
 
-    def add_condition_gain_not_less_than(self,
-                                         min_allowed_gain: float = 0.1,
-                                         max_gain: float = 50,
-                                         classes: List[Hashable] = None,
-                                         average: bool = False):
-        """Add condition - require minimum allowed gain between the model and the simple model.
+    def add_condition_gain_greater_than(self,
+                                        min_allowed_gain: float = 0.1,
+                                        max_gain: float = 50,
+                                        classes: List[Hashable] = None,
+                                        average: bool = False):
+        """Add condition - require gain between the model and the simple model to be greater than threshold.
 
         Parameters
         ----------
@@ -263,7 +263,7 @@ class SimpleModelComparison(TrainTestCheck):
             Used in classification models to flag if to run condition on average of classes, or on
             each class individually
         """
-        name = f'Model performance gain over simple model is not less than {format_percent(min_allowed_gain)}'
+        name = f'Model performance gain over simple model is greater than {format_percent(min_allowed_gain)}'
         if classes:
             name = name + f' for classes {str(classes)}'
         return self.add_condition(name,
@@ -275,33 +275,47 @@ class SimpleModelComparison(TrainTestCheck):
 
 
 def calculate_condition_logic(result, include_classes=None, average=False, max_gain=None,
-                              min_allowed_gain=0) -> ConditionResult:
+                              min_allowed_gain=None) -> ConditionResult:
     scores = result.loc[result['Model'] == 'Given Model']
     perfect_scores = result.loc[result['Model'] == 'Perfect Model']
     simple_scores = result.loc[result['Model'] == 'Simple Model']
-
     metrics = scores['Metric'].unique()
+
+    # Save min gain info to print when condition pass
+    min_gain = (np.inf, '')
+
+    def update_min_gain(gain, metric, class_name=None):
+        nonlocal min_gain
+        if gain < min_gain[0]:
+            message = f'Found minimal gain of {format_percent(gain)} for metric {metric}'
+            if class_name:
+                message += f' and class {class_name}'
+            min_gain = gain, message
 
     fails = {}
     if not average:
         for metric in metrics:
             failed_classes = {}
             for _, scores_row in scores.loc[scores['Metric'] == metric].iterrows():
-                if include_classes and scores_row['Class'] not in include_classes:
+                curr_class = scores_row['Class']
+                curr_class_name = scores_row['Class Name']
+                curr_value = scores_row['Value']
+                if include_classes and curr_class not in include_classes:
                     continue
                 perfect = perfect_scores.loc[(perfect_scores['Metric'] == metric) &
-                                             (perfect_scores['Class'] == scores_row['Class'])]['Value'].values[0]
-                if scores_row['Value'] == perfect:
+                                             (perfect_scores['Class'] == curr_class)]['Value'].values[0]
+                if curr_value == perfect:
                     continue
 
-                simple_score_value = simple_scores.loc[(simple_scores['Class'] == scores_row['Class']) &
+                simple_score_value = simple_scores.loc[(simple_scores['Class'] == curr_class) &
                                                        (simple_scores['Metric'] == metric)]['Value'].values[0]
                 gain = get_gain(simple_score_value,
-                                scores_row['Value'],
+                                curr_value,
                                 perfect,
                                 max_gain)
-                if gain < min_allowed_gain:
-                    failed_classes[scores_row['Class']] = format_percent(gain)
+                update_min_gain(gain, metric, curr_class_name)
+                if gain <= min_allowed_gain:
+                    failed_classes[curr_class_name] = format_percent(gain)
 
             if failed_classes:
                 fails[metric] = failed_classes
@@ -316,14 +330,15 @@ def calculate_condition_logic(result, include_classes=None, average=False, max_g
                             models_scores['Origin'],
                             metric_perfect_score,
                             max_gain)
-            if gain < min_allowed_gain:
+            update_min_gain(gain, metric)
+            if gain <= min_allowed_gain:
                 fails[metric] = format_percent(gain)
 
     if fails:
         msg = f'Found metrics with gain below threshold: {fails}'
         return ConditionResult(ConditionCategory.FAIL, msg)
     else:
-        return ConditionResult(ConditionCategory.PASS)
+        return ConditionResult(ConditionCategory.PASS, min_gain[1])
 
 
 def average_scores(scores, simple_model_scores, include_classes):

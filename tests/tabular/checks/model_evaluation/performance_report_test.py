@@ -13,6 +13,7 @@ import re
 from typing import List
 
 from hamcrest import assert_that, calling, close_to, has_items, instance_of, raises
+import numpy as np
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.model_selection import train_test_split
 
@@ -50,7 +51,7 @@ def test_dataset_no_label(iris_dataset_no_label, iris_adaboost):
     assert_that(
         calling(PerformanceReport().run).with_args(iris_dataset_no_label, iris_dataset_no_label, iris_adaboost),
         raises(DeepchecksNotSupportedError,
-               'There is no label defined to use. Did you pass a DataFrame instead of a Dataset?')
+               'Dataset does not contain a label column')
     )
 
 
@@ -141,6 +142,42 @@ def test_regression(diabetes_split_dataset_and_model):
             assert_that(metric_col['Value'].iloc[0], instance_of(float))
 
 
+def test_regression_reduced(diabetes_split_dataset_and_model):
+    # Arrange
+    train, test, model = diabetes_split_dataset_and_model
+    check = PerformanceReport()
+    # Act X
+    result = check.run(train, test, model).reduce_output()
+    # Assert
+    assert_that(result['Neg RMSE'], close_to(-57.412, 0.001))
+    assert_that(result['Neg MAE'], close_to(-45.5645, 0.001))
+    assert_that(result['R2'], close_to(0.427, 0.001))
+
+
+def test_classification_reduced(iris_split_dataset_and_model):
+    # Arrange
+    train, test, model = iris_split_dataset_and_model
+    check = PerformanceReport()
+    # Act X
+    result = check.run(train, test, model).reduce_output()
+    # Assert
+    assert_that(result['F1'], close_to(0.913, 0.001))
+    assert_that(result['Precision'], close_to(0.929, 0.001))
+    assert_that(result['Recall'], close_to(0.916, 0.001))
+
+
+def test_classification_reduced_param(iris_split_dataset_and_model):
+    # Arrange
+    train, test, model = iris_split_dataset_and_model
+    check = PerformanceReport(reduce=np.min)
+    # Act X
+    result = check.run(train, test, model).reduce_output()
+    # Assert
+    assert_that(result['F1'], close_to(0.857, 0.001))
+    assert_that(result['Precision'], close_to(0.789, 0.001))
+    assert_that(result['Recall'], close_to(0.75, 0.001))
+
+
 def test_condition_min_score_not_passed(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
@@ -197,7 +234,7 @@ def test_condition_degradation_ratio_not_greater_than_passed(iris_split_dataset_
 def test_condition_class_performance_imbalance_ratio_not_greater_than_not_passed(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
-    check = PerformanceReport().add_condition_class_performance_imbalance_ratio_not_greater_than(0)
+    check = PerformanceReport().add_condition_class_performance_imbalance_ratio_less_than(0)
     # Act X
     result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
     # Assert
@@ -205,15 +242,14 @@ def test_condition_class_performance_imbalance_ratio_not_greater_than_not_passed
         equal_condition_result(is_pass=False,
                                details=re.compile('Test dataset\'s relative ratio difference between highest and '
                                                   'lowest classes is 14.29%'),
-                               name='Relative ratio difference between labels \'F1\' '
-                                    'score is not greater than 0%')
+                               name='Relative ratio difference between labels \'F1\' score is less than 0%')
     ))
 
 
 def test_condition_class_performance_imbalance_ratio_not_greater_than_passed(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
-    check = PerformanceReport().add_condition_class_performance_imbalance_ratio_not_greater_than(1)
+    check = PerformanceReport().add_condition_class_performance_imbalance_ratio_less_than(1)
     # Act X
     result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
     # Assert
@@ -221,6 +257,5 @@ def test_condition_class_performance_imbalance_ratio_not_greater_than_passed(iri
         equal_condition_result(is_pass=True,
                                details=re.compile('Test dataset\'s relative ratio difference between highest and '
                                                   'lowest classes is 14.29%'),
-                               name='Relative ratio difference between labels \'F1\' '
-                               'score is not greater than 100%')
+                               name='Relative ratio difference between labels \'F1\' score is less than 100%')
     ))

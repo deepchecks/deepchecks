@@ -30,8 +30,7 @@ def test_dataset_no_label(diabetes_dataset_no_label, diabetes_model):
     # Assert
     assert_that(
         calling(RegressionSystematicError().run).with_args(diabetes_dataset_no_label, diabetes_model),
-        raises(DeepchecksNotSupportedError, 'There is no label defined to use. Did you pass a DataFrame instead '
-                                            'of a Dataset?')
+        raises(DeepchecksNotSupportedError, 'Dataset does not contain a label column')
     )
 
 
@@ -64,14 +63,14 @@ def test_condition_error_ratio_not_greater_than_not_passed(diabetes_split_datase
     test = Dataset(test.data.copy(), label='target')
     test._data[test.label_name] = 300
 
-    check = RegressionSystematicError().add_condition_systematic_error_ratio_to_rmse_not_greater_than()
+    check = RegressionSystematicError().add_condition_systematic_error_ratio_to_rmse_less_than()
 
     # Act
     result = check.conditions_decision(check.run(test, clf))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Bias ratio is not greater than 0.01',
+                               name='Bias ratio is less than 0.01',
                                details='Found bias ratio 0.93')
     ))
 
@@ -79,7 +78,7 @@ def test_condition_error_ratio_not_greater_than_not_passed(diabetes_split_datase
 def test_condition_error_ratio_not_greater_than_passed(diabetes_split_dataset_and_model):
     _, test, clf = diabetes_split_dataset_and_model
 
-    check = RegressionSystematicError().add_condition_systematic_error_ratio_to_rmse_not_greater_than()
+    check = RegressionSystematicError().add_condition_systematic_error_ratio_to_rmse_less_than()
 
     # Act
     result = check.conditions_decision(check.run(test, clf))
@@ -87,20 +86,20 @@ def test_condition_error_ratio_not_greater_than_passed(diabetes_split_dataset_an
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
                                details='Found bias ratio 1.40E-4',
-                               name='Bias ratio is not greater than 0.01')
+                               name='Bias ratio is less than 0.01')
     ))
 
 
 def test_condition_error_ratio_not_greater_than_not_passed_0_max(diabetes_split_dataset_and_model):
     _, test, clf = diabetes_split_dataset_and_model
 
-    check = RegressionSystematicError().add_condition_systematic_error_ratio_to_rmse_not_greater_than(max_ratio=0)
+    check = RegressionSystematicError().add_condition_systematic_error_ratio_to_rmse_less_than(max_ratio=0)
 
     # Act
     result = check.conditions_decision(check.run(test, clf))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Bias ratio is not greater than 0',
+                               name='Bias ratio is less than 0',
                                details='Found bias ratio 1.40E-4')
     ))

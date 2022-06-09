@@ -101,14 +101,14 @@ class NewLabels(TrainTestCheck):
         test_data = context.get_data_by_kind(DatasetKind.TEST)
 
         classes_in_train = context.get_data_by_kind(DatasetKind.TRAIN).classes_indices.keys()
-        classes_only_in_test = {key: len(value) for key, value in test_data.classes_indices.items()
-                                if key not in classes_in_train}
+        classes_only_in_test_count = {key: value for key, value in test_data.n_of_samples_per_class.items()
+                                      if key not in classes_in_train}
         # sort by number of appearances in test set in descending order
-        classes_only_in_test = dict(sorted(classes_only_in_test.items(), key=lambda item: -item[1]))
+        classes_only_in_test_count = dict(sorted(classes_only_in_test_count.items(), key=lambda item: -item[1]))
 
         # Create display
         displays = []
-        for class_id, num_occurrences in classes_only_in_test.items():
+        for class_id, num_occurrences in classes_only_in_test_count.items():
             # Create id of alphabetic characters
             sid = ''.join([choice(string.ascii_uppercase) for _ in range(3)])
             images_of_class_id = list(set(test_data.classes_indices[class_id]))[:self.max_images_to_display_per_label]
@@ -125,14 +125,16 @@ class NewLabels(TrainTestCheck):
             if len(displays) == self.max_new_labels_to_display:
                 break
 
-        output_summery = {test_data.label_id_to_name(key): value for key, value in classes_only_in_test.items()}
-        output_summery['all_labels'] = sum(test_data.n_of_samples_per_class.values())
-        return CheckResult(output_summery, display=displays)
+        result_value = {
+            'new_labels': {test_data.label_id_to_name(key): value for key, value in classes_only_in_test_count.items()},
+            'all_labels_count': sum(test_data.n_of_samples_per_class.values())
+        }
+        return CheckResult(result_value, display=displays)
 
-    def add_condition_new_label_ratio_not_greater_than(self, max_allowed_new_labels_ratio: float = 0.005):
+    def add_condition_new_label_ratio_less_or_equal(self, max_allowed_new_labels_ratio: float = 0.005):
         # Default value set to 0.005 because of sampling mechanism
         """
-        Add condition - Ratio of labels that appear only in the test set required to be below specified threshold.
+        Add condition - Ratio of labels that appear only in the test set required to be less or equal to the threshold.
 
         Parameters
         ----------
@@ -141,21 +143,23 @@ class NewLabels(TrainTestCheck):
         """
 
         def condition(result: Dict) -> ConditionResult:
-            total_labels_in_test_set = result['all_labels']
-            new_labels_in_test_set = sum(result.values()) - total_labels_in_test_set
-            present_new_labels = new_labels_in_test_set / total_labels_in_test_set
+            total_labels_in_test_set = result['all_labels_count']
+            new_labels_in_test_set = sum(result['new_labels'].values())
+            percent_new_labels = new_labels_in_test_set / total_labels_in_test_set
 
-            if present_new_labels > max_allowed_new_labels_ratio:
-                top_new_class = list(result.keys())[:3]
-                if 'all_labels' in top_new_class:
-                    top_new_class.remove('all_labels')
-                massage = f'{format_percent(present_new_labels)} of labels found in test set were not in train set. '
-                massage += f'New labels most common in test set: {top_new_class}'
-                return ConditionResult(ConditionCategory.FAIL, massage)
+            if new_labels_in_test_set > 0:
+                top_new_class = list(result['new_labels'].keys())[:3]
+                message = f'{format_percent(percent_new_labels)} of labels found in test set were not in train set. '
+                message += f'New labels most common in test set: {top_new_class}'
             else:
-                return ConditionResult(ConditionCategory.PASS)
+                message = 'No new labels were found in test set.'
 
-        name = f'Percentage of new labels in the test set not above {format_percent(max_allowed_new_labels_ratio)}.'
+            category = ConditionCategory.PASS if percent_new_labels <= max_allowed_new_labels_ratio else \
+                ConditionCategory.FAIL
+            return ConditionResult(category, message)
+
+        name = f'Percentage of new labels in the test set is less or equal to ' \
+               f'{format_percent(max_allowed_new_labels_ratio)}'
         return self.add_condition(name, condition)
 
 

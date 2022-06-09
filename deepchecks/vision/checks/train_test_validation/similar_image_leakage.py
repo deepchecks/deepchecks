@@ -151,10 +151,9 @@ class SimilarImageLeakage(TrainTestCheck):
 
         return CheckResult(value=similar_pairs, display=display, header='Similar Image Leakage')
 
-    def add_condition_similar_images_not_more_than(self: SIL, threshold: int = 0) -> SIL:
-        """Add new condition.
+    def add_condition_similar_images_less_or_equal(self: SIL, threshold: int = 0) -> SIL:
+        """Add condition - number of similar images is less or equal to the threshold.
 
-        Add condition that will check the number of similar images is not greater than X.
         The condition count how many unique images in test are similar to those in train.
 
         Parameters
@@ -169,15 +168,13 @@ class SimilarImageLeakage(TrainTestCheck):
 
         def condition(value: List[Tuple[int, int]]) -> ConditionResult:
             num_similar_images = len(set(t[1] for t in value))
+            message = f'Number of similar images between train and test datasets: {num_similar_images}' \
+                if num_similar_images > 0 else 'Found 0 similar images between train and test datasets'
+            category = ConditionCategory.PASS if num_similar_images <= threshold else ConditionCategory.FAIL
+            return ConditionResult(category, message)
 
-            if num_similar_images > threshold:
-                message = f'Number of similar images between train and test datasets: {num_similar_images}'
-                return ConditionResult(ConditionCategory.FAIL, message)
-            else:
-                return ConditionResult(ConditionCategory.PASS)
-
-        return self.add_condition(f'Number of similar images between train and test is not greater than '
-                                  f'{threshold}', condition)
+        return self.add_condition(f'Number of similar images between train and test is less or equal to {threshold}',
+                                  condition)
 
 
 HTML_TEMPLATE = """

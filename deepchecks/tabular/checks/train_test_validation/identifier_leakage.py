@@ -18,6 +18,7 @@ import deepchecks.ppscore as pps
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DatasetValidationError
 from deepchecks.tabular import Context, SingleDatasetCheck
+from deepchecks.tabular.dataset import _get_dataset_docs_tag
 from deepchecks.tabular.utils.messages import get_condition_passed_message
 from deepchecks.utils.strings import format_number
 
@@ -67,7 +68,8 @@ class IdentifierLeakage(SingleDatasetCheck):
 
         if len(relevant_data.columns) == 1:
             raise DatasetValidationError(
-                'Check is irrelevant for Datasets without index or date column'
+                'Dataset does not contain an index or a datetime',
+                html=f'Dataset does not contain an index or a datetime. see {_get_dataset_docs_tag()}'
             )
 
         df_pps = pps.predictors(
@@ -131,8 +133,8 @@ class IdentifierLeakage(SingleDatasetCheck):
 
         return CheckResult(value=s_ppscore.to_dict(), display=display)
 
-    def add_condition_pps_not_greater_than(self, max_pps: float = 0):
-        """Add condition - require columns not to have a greater pps than given max.
+    def add_condition_pps_less_or_equal(self, max_pps: float = 0):
+        """Add condition - require columns' pps to be less or equal to threshold.
 
         Parameters
         ----------
@@ -149,4 +151,4 @@ class IdentifierLeakage(SingleDatasetCheck):
                 return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))
 
         return self.add_condition(
-            f'Identifier columns PPS is not greater than {format_number(max_pps)}', compare_pps)
+            f'Identifier columns PPS is less or equal to {format_number(max_pps)}', compare_pps)

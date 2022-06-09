@@ -121,7 +121,7 @@ result
 dirty_df.drop_duplicates(inplace=True)
 dirty_df.drop('Is Ripe', axis=1, inplace=True)
 ds = Dataset(dirty_df, cat_features=['type'], datetime_name='Date', label='AveragePrice')
-result = DataDuplicates().add_condition_ratio_not_greater_than(0).run(ds)
+result = DataDuplicates().add_condition_ratio_less_or_equal(0).run(ds)
 result
 
 #%%

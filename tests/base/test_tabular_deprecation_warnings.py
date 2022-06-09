@@ -21,42 +21,42 @@ from deepchecks.tabular.checks import (TrainTestFeatureDrift, TrainTestLabelDrif
 def test_deprecation_warning_label_drift():
     # Test that warning is raised when max_num_categories has value:
     with pytest.warns(DeprecationWarning, match='max_num_categories'):
-        check = TrainTestLabelDrift(max_num_categories=10)
+        _ = TrainTestLabelDrift(max_num_categories=10)
 
     # Check to see no warnings are raised when deprecated feature doesn't exist:
     with warnings.catch_warnings():
-        warnings.simplefilter("error")
-        check = TrainTestLabelDrift()
+        warnings.simplefilter('error')
+        _ = TrainTestLabelDrift()
 
 
 def test_deprecation_warning_prediction_drift():
     # Test that warning is raised when max_num_categories has value:
     with pytest.warns(DeprecationWarning, match='max_num_categories'):
-        check = TrainTestPredictionDrift(max_num_categories=10)
+        _ = TrainTestPredictionDrift(max_num_categories=10)
 
     # Check to see no warnings are raised when deprecated feature doesn't exist:
     with warnings.catch_warnings():
-        warnings.simplefilter("error")
-        check = TrainTestPredictionDrift()
+        warnings.simplefilter('error')
+        _ = TrainTestPredictionDrift()
 
 
 def test_deprecation_warning_feature_drift():
     # Test that warning is raised when max_num_categories has value:
     with pytest.warns(DeprecationWarning, match='max_num_categories'):
-        check = TrainTestFeatureDrift(max_num_categories=10)
+        _ = TrainTestFeatureDrift(max_num_categories=10)
 
     # Check to see no warnings are raised when deprecated feature doesn't exist:
     with warnings.catch_warnings():
-        warnings.simplefilter("error")
-        check = TrainTestFeatureDrift()
+        warnings.simplefilter('error')
+        _ = TrainTestFeatureDrift()
 
 
 def test_deprecation_warning_whole_dataset_drift():
     # Test that warning is raised when max_num_categories has value:
     with pytest.warns(DeprecationWarning, match='max_num_categories'):
-        check = WholeDatasetDrift(max_num_categories=10)
+        _ = WholeDatasetDrift(max_num_categories=10)
 
     # Check to see no warnings are raised when deprecated feature doesn't exist:
     with warnings.catch_warnings():
-        warnings.simplefilter("error")
-        check = WholeDatasetDrift()
+        warnings.simplefilter('error')
+        _ = WholeDatasetDrift()

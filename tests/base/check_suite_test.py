@@ -20,7 +20,7 @@ from deepchecks.tabular import checks as tabular_checks
 
 
 class SimpleDatasetCheck(SingleDatasetCheck):
-    def run_logic(self, context, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context, dataset_type: str = "train") -> CheckResult:
         return CheckResult("Simple Check")
 
 
@@ -44,7 +44,7 @@ def test_run_suite_with_incorrect_args():
     args = {"train_dataset": None, "test_dataset": None,}
     assert_that(
         calling(suite.run).with_args(**args),
-        raises(DeepchecksValueError, r'At least one dataset \(or model\) must be passed to the method!')
+        raises(DeepchecksValueError, r"At least one dataset \(or model\) must be passed to the method!")
     )
 
 
@@ -72,7 +72,7 @@ def test_try_add_not_a_check_to_the_suite():
     suite = Suite("second suite")
     assert_that(
         calling(suite.add).with_args(object()),
-        raises(DeepchecksValueError, 'Suite received unsupported object type: object')
+        raises(DeepchecksValueError, "Suite received unsupported object type: object")
     )
 
 
@@ -110,7 +110,7 @@ def test_access_removed_check_by_index():
 
     assert_that(
         calling(suite.__getitem__).with_args(0),
-        raises(DeepchecksValueError, 'No index 0 in suite')
+        raises(DeepchecksValueError, "No index 0 in suite")
     )
 
 
@@ -119,7 +119,7 @@ def test_try_remove_unexisting_check_from_the_suite():
     assert_that(len(suite.checks), equal_to(2))
     assert_that(
         calling(suite.remove).with_args(3),
-        raises(DeepchecksValueError, 'No index 3 in suite')
+        raises(DeepchecksValueError, "No index 3 in suite")
     )
 
 
@@ -149,8 +149,7 @@ def test_check_suite_instantiation_by_extending_another_check_suite():
     ]
 
 
-def test_get_error(iris_split_dataset_and_model_custom,
-                   diabetes_split_dataset_and_model_custom):
+def test_get_error(iris_split_dataset_and_model_custom):
     iris_train, iris_test, iris_model = iris_split_dataset_and_model_custom
 
     suite = Suite(
@@ -160,4 +159,4 @@ def test_get_error(iris_split_dataset_and_model_custom,
 
     result = suite.run(train_dataset=iris_train, test_dataset=iris_test, model=iris_model)
     assert_that(result.get_failures(), has_length(1))
-    assert_that(result.get_failures()['Model Error Analysis'], instance_of(CheckFailure))
+    assert_that(result.get_failures()["Model Error Analysis"], instance_of(CheckFailure))

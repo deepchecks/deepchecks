@@ -23,6 +23,7 @@ from deepchecks import ConditionResult
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.utils import plot
+from deepchecks.utils.dict_funcs import get_dict_entry_by_value
 from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.vision import Batch, Context, SingleDatasetCheck
 from deepchecks.vision.metrics_utils import get_scorers_list, metric_results_to_df
@@ -39,7 +40,11 @@ class ImageSegmentPerformance(SingleDatasetCheck):
     image_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
         Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
-        representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'
+        representing attributes of said method. 'output_type' must be one of:
+        - 'numeric' - for continuous ordinal outputs.
+        - 'categorical' - for discrete, non-ordinal outputs. These can still be numbers,
+          but these numbers do not have inherent value.
+        For more on image / label properties, see the :ref:`property guide </user-guide/vision/vision_properties.rst>`
     alternative_metrics : Dict[str, Metric], default: None
         A dictionary of metrics, where the key is the metric name and the value is an ignite. Metric object whose score
         should be used. If None are given, use the default metrics.
@@ -62,8 +67,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
     ):
         super().__init__(**kwargs)
         if image_properties:
-            validate_properties(image_properties)
-            self.image_properties = image_properties
+            self.image_properties = validate_properties(image_properties)
         else:
             self.image_properties = default_image_properties
 
@@ -219,7 +223,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         _divide_to_bins(bins, batch_data)
         return bins
 
-    def add_condition_score_from_mean_ratio_not_less_than(self, ratio=0.8):
+    def add_condition_score_from_mean_ratio_greater_than(self, ratio=0.8):
         """Calculate for each property & metric the mean score and compares ratio between the lowest segment score and\
         the mean score.
 
@@ -229,7 +233,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
            Threshold of minimal ratio allowed between the lowest segment score of a property and the mean score.
         """
         def condition(result):
-            failed_props = {}
+            min_ratio_per_property = {}
             for prop_name, prop_bins in result.items():
                 # prop bins is a list of:
                 # [{count: int, start: float, stop: float, display_range: str, metrics: {name_1: float,...}}, ...]
@@ -249,24 +253,26 @@ class ImageSegmentPerformance(SingleDatasetCheck):
                             min_ratio = np.inf if min_metric_bin['metrics'][metric] > 0 else -np.inf
                     else:
                         min_ratio = min_metric_bin['metrics'][metric] / mean_scores[metric]
-                    # Only if below threshold add to list
-                    if min_ratio < ratio:
-                        min_scores.append({'Range': min_metric_bin['display_range'],
-                                           'Metric': metric,
-                                           'Ratio': round(min_ratio, 2)})
-                # Take the lowest ratio between the failed metrics
-                if min_scores:
-                    absolutely_min_bin = sorted(min_scores, key=lambda b: b['Ratio'])[0]
-                    failed_props[prop_name] = absolutely_min_bin
 
-            if not failed_props:
-                return ConditionResult(ConditionCategory.PASS)
-            else:
+                    min_scores.append({'Range': min_metric_bin['display_range'],
+                                       'Metric': metric,
+                                       'Ratio': round(min_ratio, 2)})
+
+                # Take the lowest ratio between the failed metrics
+                min_ratio_per_property[prop_name] = sorted(min_scores, key=lambda b: b['Ratio'])[0]
+
+            failed_props = {p: b for p, b in min_ratio_per_property.items() if b['Ratio'] <= ratio}
+            if failed_props:
                 props = ', '.join(sorted([f'{p}: {m}' for p, m in failed_props.items()]))
                 msg = f'Properties with failed segments: {props}'
                 return ConditionResult(ConditionCategory.FAIL, details=msg)
+            else:
+                value_selector_fn = lambda vals: sorted(vals, key=lambda x: x['Ratio'])[0]
+                prop, min_bin = get_dict_entry_by_value(min_ratio_per_property, value_selector_fn)
+                msg = f'Found minimum ratio for property {prop}: {min_bin}'
+                return ConditionResult(ConditionCategory.PASS, details=msg)
 
-        name = f'No segment with ratio between score to mean less than {format_percent(ratio)}'
+        name = f'Segment\'s ratio between score to mean is greater than {format_percent(ratio)}'
         return self.add_condition(name, condition)
 
 

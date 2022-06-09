@@ -83,8 +83,8 @@ def test_mnist_alt_metrics(mnist_dataset_train, mock_trained_mnist, device):
 
 def test_coco_and_condition(coco_train_visiondata, mock_trained_yolov5_object_detection, device):
     # Arrange
-    check = ImageSegmentPerformance().add_condition_score_from_mean_ratio_not_less_than(0.5) \
-        .add_condition_score_from_mean_ratio_not_less_than(0.1)
+    check = ImageSegmentPerformance().add_condition_score_from_mean_ratio_greater_than(0.6) \
+        .add_condition_score_from_mean_ratio_greater_than(0.1)
     # Act
     result = check.run(coco_train_visiondata, mock_trained_yolov5_object_detection, device=device)
     # Assert result
@@ -117,12 +117,16 @@ def test_coco_and_condition(coco_train_visiondata, mock_trained_yolov5_object_de
     assert_that(result.conditions_results, has_items(
         equal_condition_result(
             is_pass=True,
-            name='No segment with ratio between score to mean less than 10%'
+            name='Segment\'s ratio between score to mean is greater than 10%',
+            details="Found minimum ratio for property Mean Green Relative Intensity: "
+                    "{'Range': '[0.34, 0.366)', 'Metric': 'Average Precision', 'Ratio': 0.44}"
         ),
         equal_condition_result(
             is_pass=False,
-            name='No segment with ratio between score to mean less than 50%',
-            details="Properties with failed segments: Mean Green Relative Intensity: "
-                    "{'Range': '[0.34, 0.366)', 'Metric': 'Average Precision', 'Ratio': 0.44}"
+            name='Segment\'s ratio between score to mean is greater than 60%',
+            details="Properties with failed segments: "
+                    "Brightness: {'Range': '[0.48, 0.54)', 'Metric': 'Average Recall', 'Ratio': 0.55}, "
+                    "Mean Green Relative Intensity: {'Range': '[0.34, 0.366)', 'Metric': 'Average Precision', "
+                    "'Ratio': 0.44}"
         )
     ))

@@ -10,22 +10,24 @@
 #
 #
 import copy
+
 import numpy as np
-
 import torch
-from hamcrest import (assert_that, calling, close_to, equal_to, has_entries, has_items, has_length,
-                      has_properties, has_property, instance_of, is_, raises)
-from deepchecks.core.check_result import CheckResult
+from hamcrest import (assert_that, calling, close_to, equal_to, has_entries, has_items, has_length, has_properties,
+                      has_property, instance_of, is_, raises)
 
+from deepchecks.core.check_result import CheckResult
 from deepchecks.vision.base_checks import SingleDatasetCheck
 from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.checks.model_evaluation.class_performance import ClassPerformance
 from deepchecks.vision.checks.model_evaluation.image_segment_performance import ImageSegmentPerformance
 from deepchecks.vision.checks.model_evaluation.train_test_prediction_drift import TrainTestPredictionDrift
 from deepchecks.vision.context import Context
+from deepchecks.vision.suites.default_suites import full_suite
 from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.vision_data import VisionData
 from tests.base.utils import equal_condition_result
+from tests.conftest import get_expected_results_length, validate_suite_result
 
 
 class _StaticPred(SingleDatasetCheck):
@@ -96,8 +98,8 @@ def test_class_performance_mnist_largest_sampled(mnist_dataset_train, mnist_data
 def test_image_segment_performance_coco_and_condition(coco_train_visiondata, mock_trained_yolov5_object_detection):
     # Arrange
     train_preds, _ = _create_static_predictions(coco_train_visiondata, None, mock_trained_yolov5_object_detection)
-    check = ImageSegmentPerformance().add_condition_score_from_mean_ratio_not_less_than(0.5) \
-        .add_condition_score_from_mean_ratio_not_less_than(0.1)
+    check = ImageSegmentPerformance().add_condition_score_from_mean_ratio_greater_than(0.5) \
+        .add_condition_score_from_mean_ratio_greater_than(0.1)
     # Act
     result = check.run(coco_train_visiondata, train_predictions=train_preds)
     # Assert result
@@ -130,11 +132,13 @@ def test_image_segment_performance_coco_and_condition(coco_train_visiondata, moc
     assert_that(result.conditions_results, has_items(
         equal_condition_result(
             is_pass=True,
-            name='No segment with ratio between score to mean less than 10%'
+            name='Segment\'s ratio between score to mean is greater than 10%',
+            details="Found minimum ratio for property Mean Green Relative Intensity: "
+                    "{'Range': '[0.34, 0.366)', 'Metric': 'Average Precision', 'Ratio': 0.44}"
         ),
         equal_condition_result(
             is_pass=False,
-            name='No segment with ratio between score to mean less than 50%',
+            name='Segment\'s ratio between score to mean is greater than 50%',
             details="Properties with failed segments: Mean Green Relative Intensity: "
                     "{'Range': '[0.34, 0.366)', 'Metric': 'Average Precision', 'Ratio': 0.44}"
         )
@@ -168,3 +172,17 @@ def test_train_test_prediction_with_drift_object_detection_change_max_cat(coco_t
         )
         }
     ))
+
+
+def test_suite(coco_train_visiondata, coco_test_visiondata,
+               mock_trained_yolov5_object_detection, device):
+    train_preds, test_preds = _create_static_predictions(coco_train_visiondata,
+                                                         coco_test_visiondata,
+                                                         mock_trained_yolov5_object_detection)
+
+    args = dict(train_dataset=coco_train_visiondata, test_dataset=coco_test_visiondata,
+                train_predictions=train_preds, test_predictions=test_preds)
+    suite = full_suite()
+    result = suite.run(**args)
+    length = get_expected_results_length(suite, args)
+    validate_suite_result(result, length)

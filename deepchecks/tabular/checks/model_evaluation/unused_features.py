@@ -22,9 +22,9 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OrdinalEncoder, RobustScaler
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
 from deepchecks.utils.function import run_available_kwargs
-from deepchecks.utils.typing import BasicModel
 
 __all__ = ['UnusedFeatures']
 
@@ -72,44 +72,6 @@ class UnusedFeatures(TrainTestCheck):
         self.n_top_unused_to_show = n_top_unused_to_show
         self.random_state = random_state
 
-    def run(self,
-            train_dataset: Dataset,
-            test_dataset: Dataset,
-            model: BasicModel = None,
-            feature_importance_force_permutation: bool = False,
-            feature_importance_timeout: int = None) -> CheckResult:
-        """Run the check.
-
-        Parameters
-        ----------
-        train_dataset : Dataset
-            dataset representing data an estimator was fitted on
-        test_dataset : Dataset
-            dataset representing data an estimator predicts on
-        model : BasicModel
-            A scikit-learn-compatible fitted estimator instance
-        feature_importance_force_permutation : bool , default: False
-            force calculation of permutation features importance
-        feature_importance_timeout : int , default: None
-            timeout in second for the permutation features importance calculation
-
-        Returns
-        -------
-        CheckResult
-            value is a dataframe with metrics as indexes, and scores per training and test in the columns.
-            display data is a bar graph of the metrics for training and test data.
-
-        Raises
-        ------
-        DeepchecksValueError
-            If neither train dataset nor test dataset exist, or either of the dataset objects are
-            not a Dataset instance with a label.
-        """
-        c = Context(train_dataset, test_dataset, model,
-                    feature_importance_force_permutation=feature_importance_force_permutation,
-                    feature_importance_timeout=feature_importance_timeout)
-        return self.run_logic(c)
-
     def run_logic(self, context: Context) -> CheckResult:
         """Run check."""
         if context.have_test():
@@ -119,6 +81,8 @@ class UnusedFeatures(TrainTestCheck):
         _ = context.model  # validate model
 
         feature_importance = context.features_importance
+        if feature_importance is None:
+            raise DeepchecksValueError('Feature Importance is not available.')
         dataset.assert_features()
 
         # Calculate normalized variance per feature based on PCA decomposition
@@ -137,7 +101,7 @@ class UnusedFeatures(TrainTestCheck):
         feature_df.sort_values(by='Feature Importance', ascending=False, inplace=True)
 
         # For feature importance and variance, calculate their "ratio to average" per feature. The ratio to average
-        # is, for example, the amount of feature importance a feature has, divided by the the amount he would have
+        # is, for example, the amount of feature importance a feature has, divided by the amount he would have
         # if all features where equally important (which is basically 1 / n_of_features).
         feature_ratio_to_avg_df = feature_df / (1 / len(feature_importance))
 
@@ -217,9 +181,9 @@ class UnusedFeatures(TrainTestCheck):
 
         return CheckResult(return_value, header='Unused Features', display=display_list)
 
-    def add_condition_number_of_high_variance_unused_features_not_greater_than(
+    def add_condition_number_of_high_variance_unused_features_less_or_equal(
             self, max_high_variance_unused_features: int = 5):
-        """Add condition - require number of high variance unused features to be not greater than a given number.
+        """Add condition - require number of high variance unused features to be less or equal to threshold.
 
         Parameters
         ----------
@@ -229,11 +193,11 @@ class UnusedFeatures(TrainTestCheck):
         def max_high_variance_unused_features_condition(result: dict) -> ConditionResult:
             high_var_features = result['unused features']['high variance']
             details = f'Found {len(high_var_features)} high variance unused features'
-            category = ConditionCategory.WARN if len(high_var_features) > max_high_variance_unused_features else \
-                ConditionCategory.PASS
+            category = ConditionCategory.PASS if len(high_var_features) <= max_high_variance_unused_features else \
+                ConditionCategory.WARN
             return ConditionResult(category, details)
 
-        return self.add_condition(f'Number of high variance unused features is not greater than'
+        return self.add_condition(f'Number of high variance unused features is less or equal to'
                                   f' {max_high_variance_unused_features}',
                                   max_high_variance_unused_features_condition)
 

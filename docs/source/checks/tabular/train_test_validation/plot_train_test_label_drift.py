@@ -101,5 +101,5 @@ result
 # Add a Condition
 # ===============
 
-check_cond = TrainTestLabelDrift().add_condition_drift_score_not_greater_than()
+check_cond = TrainTestLabelDrift().add_condition_drift_score_less_than()
 check_cond.run(train_dataset=train_dataset, test_dataset=test_dataset)

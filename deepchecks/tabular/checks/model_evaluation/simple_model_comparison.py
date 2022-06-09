@@ -289,10 +289,10 @@ class SimpleModelComparison(TrainTestCheck):
         simple_model.fit(train_ds.data[train_ds.features], train_ds.data[train_ds.label_name])
         return simple_model
 
-    def add_condition_gain_not_less_than(self,
-                                         min_allowed_gain: float = 0.1,
-                                         classes: List[Hashable] = None,
-                                         average: bool = False):
+    def add_condition_gain_greater_than(self,
+                                        min_allowed_gain: float = 0.1,
+                                        classes: List[Hashable] = None,
+                                        average: bool = False):
         """Add condition - require minimum allowed gain between the model and the simple model.
 
         Parameters
@@ -306,7 +306,7 @@ class SimpleModelComparison(TrainTestCheck):
             Used in classification models to flag if to run condition on average of classes, or on
             each class individually
         """
-        name = f'Model performance gain over simple model is not less than {format_percent(min_allowed_gain)}'
+        name = f'Model performance gain over simple model is greater than {format_percent(min_allowed_gain)}'
         if classes:
             name = name + f' for classes {str(classes)}'
         return self.add_condition(name,
@@ -317,7 +317,8 @@ class SimpleModelComparison(TrainTestCheck):
                                   average=average)
 
 
-def condition(result: Dict, include_classes=None, average=False, max_gain=None, min_allowed_gain=0) -> ConditionResult:
+def condition(result: Dict, include_classes=None, average=False, max_gain=None, min_allowed_gain=None) -> \
+        ConditionResult:
     scores = result['scores']
     task_type = result['type']
     scorers_perfect = result['scorers_perfect']
@@ -344,7 +345,7 @@ def condition(result: Dict, include_classes=None, average=False, max_gain=None, 
                                        scorers_perfect[metric],
                                        max_gain)
                 # Save dict of failed classes and metrics gain
-                if gains[clas] < min_allowed_gain:
+                if gains[clas] <= min_allowed_gain:
                     failed_classes[clas][metric] = format_percent(gains[clas])
                     metric_passed = False
 
@@ -376,7 +377,7 @@ def condition(result: Dict, include_classes=None, average=False, max_gain=None, 
                             models_scores['Origin'],
                             scorers_perfect[metric],
                             max_gain)
-            if gain < min_allowed_gain:
+            if gain <= min_allowed_gain:
                 failed_metrics[metric] = format_percent(gain)
             else:
                 passed_metrics[metric] = format_percent(gain)

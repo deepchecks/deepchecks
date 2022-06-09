@@ -9,12 +9,13 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing performance report check."""
-from typing import Callable, Dict, TypeVar, cast
+from typing import Callable, Dict, TypeVar, Union, cast
 
 import pandas as pd
 import plotly.express as px
 
 from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.core.checks import DatasetKind, ReduceMixin
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, TrainTestCheck
@@ -27,7 +28,7 @@ __all__ = ['PerformanceReport']
 PR = TypeVar('PR', bound='PerformanceReport')
 
 
-class PerformanceReport(TrainTestCheck):
+class PerformanceReport(TrainTestCheck, ReduceMixin):
     """Summarize given scores on a dataset and model.
 
     Parameters
@@ -35,7 +36,9 @@ class PerformanceReport(TrainTestCheck):
     alternative_scorers : Dict[str, Callable], default: None
         An optional dictionary of scorer name to scorer functions.
         If none given, using default scorers
-
+    reduce: Union[Callable, str], default: 'mean'
+        An optional argument only used for the reduce_output function when using
+        non-average scorers.
     Notes
     -----
     Scorers are a convention of sklearn to evaluate a model.
@@ -71,9 +74,13 @@ class PerformanceReport(TrainTestCheck):
         my_mse_scorer = make_scorer(my_mse, greater_is_better=False)
     """
 
-    def __init__(self, alternative_scorers: Dict[str, Callable] = None, **kwargs):
+    def __init__(self,
+                 alternative_scorers: Dict[str, Callable] = None,
+                 reduce: Union[Callable, str] = 'mean',
+                 **kwargs):
         super().__init__(**kwargs)
         self.user_scorers = alternative_scorers
+        self.reduce = reduce
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check.
@@ -144,6 +151,13 @@ class PerformanceReport(TrainTestCheck):
             header='Performance Report',
             display=fig
         )
+
+    def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
+        """Return the values of the metrics for the test dataset in {metric: value} format."""
+        df = check_result.value
+        df = df[df['Dataset'] == DatasetKind.TEST.value]
+        df = df.groupby('Metric').aggregate(self.reduce).reset_index()
+        return dict(zip(df['Metric'], df['Value']))
 
     def add_condition_test_performance_not_less_than(self: PR, min_score: float) -> PR:
         """Add condition - metric scores are not less than given score.
@@ -231,15 +245,13 @@ class PerformanceReport(TrainTestCheck):
         return self.add_condition(f'Train-Test scores relative degradation is not greater than {threshold}',
                                   condition)
 
-    def add_condition_class_performance_imbalance_ratio_not_greater_than(
+    def add_condition_class_performance_imbalance_ratio_less_than(
         self: PR,
         threshold: float = 0.3,
         score: str = None
     ) -> PR:
-        """Add condition.
-
-        Verifying that relative ratio difference
-        between highest-class and lowest-class is not greater than 'threshold'.
+        """Add condition - Verifying that relative ratio difference between highest-class and lowest-class is less\
+        than 'threshold'.
 
         Parameters
         ----------
@@ -296,8 +308,7 @@ class PerformanceReport(TrainTestCheck):
 
         return self.add_condition(
             name=(
-                f'Relative ratio difference between labels \'{score}\' score '
-                f'is not greater than {format_percent(threshold)}'
+                f'Relative ratio difference between labels \'{score}\' score is less than {format_percent(threshold)}'
             ),
             condition_func=condition
         )

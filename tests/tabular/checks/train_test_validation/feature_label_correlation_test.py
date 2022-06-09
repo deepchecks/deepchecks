@@ -74,8 +74,7 @@ def test_dataset_no_label():
     df = Dataset(df)
     assert_that(
         calling(FeatureLabelCorrelation(random_state=42).run).with_args(dataset=df),
-        raises(DeepchecksNotSupportedError,
-               'There is no label defined to use. Did you pass a DataFrame instead of a Dataset?'))
+        raises(DeepchecksNotSupportedError, 'Dataset does not contain a label column'))
 
 
 def test_trainval_assert_feature_label_correlation():
@@ -120,8 +119,7 @@ def test_trainval_dataset_no_label():
             train_dataset=Dataset(df),
             test_dataset=Dataset(df2)),
         raises(
-            DeepchecksNotSupportedError,
-            'There is no label defined to use. Did you pass a DataFrame instead of a Dataset?')
+            DeepchecksNotSupportedError, 'Dataset does not contain a label column')
     )
 
 
@@ -143,7 +141,7 @@ def test_all_features_pps_upper_bound_condition_that_should_not_pass():
     df, _ = util_generate_dataframe_and_expected()
     dataset = Dataset(df, label="label")
     condition_value = 0.4
-    check = FeatureLabelCorrelation(random_state=42).add_condition_feature_pps_not_greater_than(condition_value)
+    check = FeatureLabelCorrelation(random_state=42).add_condition_feature_pps_less_than(condition_value)
 
     # Act
     condition_result, *_ = check.conditions_decision(check.run(dataset))
@@ -151,7 +149,7 @@ def test_all_features_pps_upper_bound_condition_that_should_not_pass():
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name=f'Features\' Predictive Power Score is not greater than {condition_value}',
+        name=f'Features\' Predictive Power Score is less than {condition_value}',
         details='Found 3 out of 5 features with PPS above threshold: '
                 '{\'x2\': \'0.84\', \'x4\': \'0.53\', \'x5\': \'0.42\'}'
     ))
@@ -162,7 +160,7 @@ def test_all_features_pps_upper_bound_condition_that_should_pass():
     df, expected = util_generate_dataframe_and_expected()
     dataset = Dataset(df, label="label")
     condition_value = 0.9
-    check = FeatureLabelCorrelation(random_state=42).add_condition_feature_pps_not_greater_than(condition_value)
+    check = FeatureLabelCorrelation(random_state=42).add_condition_feature_pps_less_than(condition_value)
 
     # Act
     condition_result, *_ = check.conditions_decision(check.run(dataset))
@@ -171,7 +169,7 @@ def test_all_features_pps_upper_bound_condition_that_should_pass():
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
         details='Passed for 5 relevant columns',
-        name=f'Features\' Predictive Power Score is not greater than {condition_value}',
+        name=f'Features\' Predictive Power Score is less than {condition_value}',
     ))
 
 
@@ -180,7 +178,7 @@ def test_train_test_condition_pps_positive_difference_pass():
     df, df2, expected = util_generate_second_similar_dataframe_and_expected()
     condition_value = 0.4
     check = FeatureLabelCorrelationChange(random_state=42).\
-        add_condition_feature_pps_difference_not_greater_than(threshold=condition_value, include_negative_diff=False)
+        add_condition_feature_pps_difference_less_than(threshold=condition_value, include_negative_diff=False)
 
     # Act
     result = FeatureLabelCorrelationChange(random_state=42).run(
@@ -191,7 +189,7 @@ def test_train_test_condition_pps_positive_difference_pass():
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
         details='Passed for 5 relevant columns',
-        name=f'Train-Test features\' Predictive Power Score difference is not greater than {condition_value}'
+        name=f'Train-Test features\' Predictive Power Score difference is less than {condition_value}'
     ))
 
 
@@ -200,7 +198,7 @@ def test_train_test_condition_pps_positive_difference_fail():
     df, df2, expected = util_generate_second_similar_dataframe_and_expected()
     condition_value = 0.01
     check = FeatureLabelCorrelationChange(random_state=42).\
-        add_condition_feature_pps_difference_not_greater_than(condition_value, include_negative_diff=False)
+        add_condition_feature_pps_difference_less_than(condition_value, include_negative_diff=False)
 
     # Act
     result = FeatureLabelCorrelationChange(random_state=42).run(train_dataset=Dataset(df, label='label'),
@@ -210,7 +208,7 @@ def test_train_test_condition_pps_positive_difference_fail():
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name=f'Train-Test features\' Predictive Power Score difference is not greater than {condition_value}',
+        name=f'Train-Test features\' Predictive Power Score difference is less than {condition_value}',
         details='Found 1 out of 5 features with PPS difference above threshold: {\'x2\': \'0.31\'}'
     ))
 
@@ -220,7 +218,7 @@ def test_train_test_condition_pps_difference_pass():
     df, df2, expected = util_generate_second_similar_dataframe_and_expected()
     condition_value = 0.6
     check = FeatureLabelCorrelationChange(random_state=42
-                                          ).add_condition_feature_pps_difference_not_greater_than(condition_value)
+                                          ).add_condition_feature_pps_difference_less_than(condition_value)
 
     # Act
     result = FeatureLabelCorrelationChange(random_state=42).run(
@@ -231,7 +229,7 @@ def test_train_test_condition_pps_difference_pass():
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
         details='Passed for 5 relevant columns',
-        name=f'Train-Test features\' Predictive Power Score difference is not greater than {condition_value}'
+        name=f'Train-Test features\' Predictive Power Score difference is less than {condition_value}'
     ))
 
 
@@ -240,7 +238,7 @@ def test_train_test_condition_pps_difference_fail():
     df, df2, expected = util_generate_second_similar_dataframe_and_expected()
     condition_value = 0.4
     check = FeatureLabelCorrelationChange(random_state=42
-                                          ).add_condition_feature_pps_difference_not_greater_than(condition_value)
+                                          ).add_condition_feature_pps_difference_less_than(condition_value)
 
     # Act
     result = FeatureLabelCorrelationChange(random_state=42).run(train_dataset=Dataset(df, label='label'),
@@ -250,7 +248,7 @@ def test_train_test_condition_pps_difference_fail():
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name=f'Train-Test features\' Predictive Power Score difference is not greater than {condition_value}',
+        name=f'Train-Test features\' Predictive Power Score difference is less than {condition_value}',
         details='Found 1 out of 5 features with PPS difference above threshold: {\'x3\': \'0.54\'}'
     ))
 
@@ -260,7 +258,7 @@ def test_train_test_condition_pps_train_pass():
     df, df2, expected = util_generate_second_similar_dataframe_and_expected()
     condition_value = 0.9
     check = FeatureLabelCorrelationChange(random_state=42
-                                          ).add_condition_feature_pps_in_train_not_greater_than(condition_value)
+                                          ).add_condition_feature_pps_in_train_less_than(condition_value)
 
     # Act
     result = FeatureLabelCorrelationChange(random_state=42).run(train_dataset=Dataset(df, label='label'),
@@ -271,7 +269,7 @@ def test_train_test_condition_pps_train_pass():
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
         details='Passed for 5 relevant columns',
-        name=f'Train features\' Predictive Power Score is not greater than {condition_value}'
+        name=f'Train features\' Predictive Power Score is less than {condition_value}'
     ))
 
 
@@ -279,7 +277,7 @@ def test_train_test_condition_pps_train_fail():
     # Arrange
     df, df2, expected = util_generate_second_similar_dataframe_and_expected()
     condition_value = 0.6
-    check = FeatureLabelCorrelationChange(random_state=42).add_condition_feature_pps_in_train_not_greater_than(
+    check = FeatureLabelCorrelationChange(random_state=42).add_condition_feature_pps_in_train_less_than(
         condition_value)
 
     # Act
@@ -290,6 +288,6 @@ def test_train_test_condition_pps_train_fail():
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name=f'Train features\' Predictive Power Score is not greater than {condition_value}',
+        name=f'Train features\' Predictive Power Score is less than {condition_value}',
         details='Found 1 out of 5 features in train dataset with PPS above threshold: {\'x2\': \'0.84\'}'
     ))

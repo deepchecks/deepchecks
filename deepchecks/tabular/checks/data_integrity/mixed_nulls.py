@@ -141,8 +141,8 @@ class MixedNulls(SingleDatasetCheck):
 
         return result
 
-    def add_condition_different_nulls_not_more_than(self, max_allowed_null_types: int = 1):
-        """Add condition - require column not to have more than given number of different null values.
+    def add_condition_different_nulls_less_equal_to(self, max_allowed_null_types: int = 1):
+        """Add condition - require column's number of different null values to be less or equal to threshold.
 
         Parameters
         ----------
@@ -158,7 +158,7 @@ class MixedNulls(SingleDatasetCheck):
             else:
                 return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))
 
-        return self.add_condition(f'Not more than {max_allowed_null_types} different null types',
+        return self.add_condition(f'Number of different null types is less or equal to {max_allowed_null_types}',
                                   condition)
 
 

@@ -91,7 +91,7 @@ def test_train_test_condition_pass(coco_train_visiondata, coco_test_visiondata, 
     # Arrange
     train, test = coco_train_visiondata, coco_test_visiondata
     condition_value = 5
-    check = SimilarImageLeakage().add_condition_similar_images_not_more_than(condition_value)
+    check = SimilarImageLeakage().add_condition_similar_images_less_or_equal(condition_value)
 
     # Act
     result = check.run(train_dataset=train,
@@ -101,7 +101,8 @@ def test_train_test_condition_pass(coco_train_visiondata, coco_test_visiondata, 
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
-        name=f'Number of similar images between train and test is not greater than {condition_value}'
+        details='Found 0 similar images between train and test datasets',
+        name=f'Number of similar images between train and test is less or equal to {condition_value}'
     ))
 
 
@@ -109,7 +110,7 @@ def test_train_test_condition_fail(coco_train_visiondata, coco_test_visiondata, 
     # Arrange
     train, test = coco_train_visiondata, coco_train_visiondata
     condition_value = 5
-    check = SimilarImageLeakage().add_condition_similar_images_not_more_than(condition_value)
+    check = SimilarImageLeakage().add_condition_similar_images_less_or_equal(condition_value)
 
     # Act
     result = check.run(train_dataset=train,
@@ -119,6 +120,6 @@ def test_train_test_condition_fail(coco_train_visiondata, coco_test_visiondata, 
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name=f'Number of similar images between train and test is not greater than {condition_value}',
+        name=f'Number of similar images between train and test is less or equal to {condition_value}',
         details='Number of similar images between train and test datasets: 64'
     ))

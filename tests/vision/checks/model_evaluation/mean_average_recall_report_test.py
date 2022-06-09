@@ -30,8 +30,8 @@ def test_mnist_error(mnist_dataset_test, mock_trained_mnist, device):
 def test_coco(coco_test_visiondata, mock_trained_yolov5_object_detection, device):
     # Arrange
     check = MeanAverageRecallReport() \
-            .add_condition_test_average_recall_not_less_than(0.1) \
-            .add_condition_test_average_recall_not_less_than(0.4)
+            .add_condition_test_average_recall_greater_than(0.1) \
+            .add_condition_test_average_recall_greater_than(0.4)
 
     # Act
     result = check.run(coco_test_visiondata,
@@ -58,15 +58,15 @@ def test_coco(coco_test_visiondata, mock_trained_yolov5_object_detection, device
     assert_that(df.loc['Large (area < 96^2)', 'AR@100 (%)'], close_to(0.549, 0.001))
 
     assert_that(result.conditions_results[0], equal_condition_result(
+        details='Found lowest score of 0.1 for area Small (area < 32^2) and IoU AR@1 (%)',
         is_pass=True,
-        name='Scores are not less than 0.1'
+        name='Scores are greater than 0.1'
     ))
 
     assert_that(result.conditions_results[1], equal_condition_result(
         is_pass=False,
-        name='Scores are not less than 0.4',
-        details="Found scores below threshold:\n{'All': {'AR@1 (%)': '0.331'}, "
-                "'Small (area < 32^2)': {'AR@10 (%)': '0.221'}}"
+        name='Scores are greater than 0.4',
+        details='Found lowest score of 0.1 for area Small (area < 32^2) and IoU AR@1 (%)'
     ))
 
 
