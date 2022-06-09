@@ -13,11 +13,11 @@
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DatasetValidationError
 from deepchecks.tabular import Context, SingleDatasetCheck
-from deepchecks.utils.correlation_methods import correlation_ratio
-from deepchecks.utils.distribution.drift import cramers_v
+from deepchecks.utils.correlation_methods import correlation_ratio, symmetric_theil_u_correlation
 from deepchecks.utils.dataframes import generalized_corrwith
 
 import pandas as pd
+import plotly.express as px
 
 __all__ = ['FeatureFeatureCorrelation']
 
@@ -66,7 +66,7 @@ class FeatureFeatureCorrelation(SingleDatasetCheck):
                                             method=correlation_ratio)
 
         # Categorical-categorical correlations
-        cat_cat_corr = encoded_cat_data.corr(method=cramers_v)
+        cat_cat_corr = encoded_cat_data.corr(method=symmetric_theil_u_correlation)
 
         # Compose results from all the features
         all_features = num_features + cat_features
@@ -76,7 +76,11 @@ class FeatureFeatureCorrelation(SingleDatasetCheck):
         full_df.loc[num_features, cat_features] = num_cat_corr
         full_df.loc[cat_features, num_features] = num_cat_corr.transpose()
 
-        return CheckResult(value=full_df)
+        # Display
+        fig = px.imshow(full_df)
+
+        return CheckResult(value=full_df, header='Feature-Feature Correlation', display=fig)
+
 
 
 

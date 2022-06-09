@@ -19,6 +19,24 @@ import pandas as pd
 from scipy.stats import entropy
 
 
+def value_frequency(x: Union[List, np.ndarray, pd.Series]) -> List[float]:
+    """
+    Calculate the value frequency of x.
+    Parameters:
+    -----------
+    x: Union[List, np.ndarray, pd.Series]
+        A sequence of a categorical variable values without nulls
+    Returns:
+    --------
+    List[float]
+        Representing the value frequency of x
+    """
+    x_values_counter = Counter(x)
+    total_occurrences = sum(x_values_counter.values())
+    values_probabilities = list(map(lambda n: n / total_occurrences, x_values_counter.values()))
+    return values_probabilities
+
+
 def conditional_entropy(x: Union[List, np.ndarray, pd.Series], y: Union[List, np.ndarray, pd.Series]) -> float:
     """
     Calculate the conditional entropy of x given y: S(x|y).
@@ -61,17 +79,41 @@ def theil_u_correlation(x: Union[List, np.ndarray, pd.Series], y: Union[List, np
     Returns:
     --------
     float
-        Representing the theil_u correlation between y and x
+        Representing the Theil U correlation between y and x
     """
     s_xy = conditional_entropy(x, y)
-    x_values_counter = Counter(x)
-    total_occurrences = sum(x_values_counter.values())
-    values_probabilities = list(map(lambda n: n / total_occurrences, x_values_counter.values()))
+    # x_values_counter = Counter(x)
+    # total_occurrences = sum(x_values_counter.values())
+    # values_probabilities = list(map(lambda n: n / total_occurrences, x_values_counter.values()))
+    values_probabilities = value_frequency(x)
     s_x = entropy(values_probabilities)
     if s_x == 0:
         return 1
     else:
         return (s_x - s_xy) / s_x
+
+
+def symmetric_theil_u_correlation(x: Union[List, np.ndarray, pd.Series], y: Union[List, np.ndarray, pd.Series]) -> float:
+    """
+    Calculate the symmetric Theil's U correlation of y to x.
+        Parameters:
+    -----------
+    x: Union[List, np.ndarray, pd.Series]
+        A sequence of a categorical variable values without nulls
+    y: Union[List, np.ndarray, pd.Series]
+        A sequence of a categorical variable values without nulls
+    Returns:
+    --------
+    float
+        Representing the symmetric Theil U correlation between y and x
+    """
+
+    h_x = entropy(value_frequency(x))
+    h_y = entropy(value_frequency(y))
+    u_xy = theil_u_correlation(x, y)
+    u_yx = theil_u_correlation(y, x)
+    u_sym = (h_x * u_xy + h_y * u_yx) / (h_x + h_y)
+    return u_sym
 
 
 def correlation_ratio(categorical_data: Union[List, np.ndarray, pd.Series],
