@@ -161,9 +161,9 @@ class CheckResult(BaseCheckResult):
         """Return if this check has display."""
         return bool(self.display)
 
-    def passed_conditions(self, fail_on_warning=True) -> bool:
+    def passed_conditions(self, fail_if_warning=True) -> bool:
         """Return if this check has no passing condition results."""
-        return all((r.is_pass(fail_on_warning) for r in self.conditions_results))
+        return all((r.is_pass(fail_if_warning) for r in self.conditions_results))
 
     @property
     def priority(self) -> int:

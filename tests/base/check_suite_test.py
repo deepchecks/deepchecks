@@ -175,7 +175,7 @@ def test_suite_result_checks_not_passed():
     # Act & Assert
     not_passed_checks = SuiteResult('test', [result1, result2]).get_checks_not_passed()
     assert_that(not_passed_checks, has_length(1))
-    not_passed_checks = SuiteResult('test', [result1, result2]).get_checks_not_passed(fail_on_warning=False)
+    not_passed_checks = SuiteResult('test', [result1, result2]).get_checks_not_passed(fail_if_warning=False)
     assert_that(not_passed_checks, has_length(0))
     not_passed_checks = SuiteResult('test', [result1, result2, result3]).get_checks_not_passed()
     assert_that(not_passed_checks, has_length(2))
@@ -194,9 +194,9 @@ def test_suite_result_passed_fn():
     # Act & Assert
     passed = SuiteResult('test', [result1, result2]).passed()
     assert_that(passed, equal_to(False))
-    passed = SuiteResult('test', [result1, result2]).passed(fail_on_warning=False)
+    passed = SuiteResult('test', [result1, result2]).passed(fail_if_warning=False)
     assert_that(passed, equal_to(True))
-    passed = SuiteResult('test', [result1, result2, result3]).passed(fail_on_warning=False)
+    passed = SuiteResult('test', [result1, result2, result3]).passed(fail_if_warning=False)
     assert_that(passed, equal_to(False))
     passed = SuiteResult('test', [result1, result4]).passed()
     assert_that(passed, equal_to(False))

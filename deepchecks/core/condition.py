@@ -113,9 +113,9 @@ class ConditionResult:
             return 2
         return 3  # if error
 
-    def is_pass(self, fail_on_warning=True) -> bool:
+    def is_pass(self, fail_if_warning=True) -> bool:
         """Return true if the condition has passed."""
-        passed_categories = [ConditionCategory.PASS] if fail_on_warning else \
+        passed_categories = [ConditionCategory.PASS] if fail_if_warning else \
             [ConditionCategory.PASS, ConditionCategory.WARN]
         return self.category in passed_categories
 
