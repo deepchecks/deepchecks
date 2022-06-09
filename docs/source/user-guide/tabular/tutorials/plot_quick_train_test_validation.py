@@ -8,7 +8,7 @@ validate two data subsets. For example:
 
 - Comparing distributions across different train-test splits (e.g. before 
   training a model or when splitting data for cross-validation)
-- Comparing a new data batch to previous data batches.
+- Comparing a new data batch to previous data batches
 
 Here we'll use a loan's dataset 
 (:mod:`deepchecks.tabular.datasets.classification.lending_club`),
@@ -145,8 +145,9 @@ suite_result
 #
 # Ok, the date leakage doesn't exist anymore!
 #
-# However, we can see that we have a multivariate drift in the current split, detected by the WholeDatasetDrift check.
-# The drift is detected mainly by a combination of features represneting the loan's interest rate (``int_rate``) 
+# However, we can see that we have a multivariate drift in the current split, 
+# detected by the :doc:`</checks_gallery/tabular/train_test_validation/plot_whole_dataset_drift>` check.
+# The drift is detected mainly by a combination of features representing the loan's interest rate (``int_rate``) 
 # and its grade (``sub_grade``).
 #
 # We can consider examining other sampling techniques (e.g. using only data from the same year), 
