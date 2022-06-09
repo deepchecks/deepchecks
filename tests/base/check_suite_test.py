@@ -199,4 +199,6 @@ def test_suite_result_passed_fn():
     passed = SuiteResult('test', [result1, result2, result3]).passed(fail_if_warning=False)
     assert_that(passed, equal_to(False))
     passed = SuiteResult('test', [result1, result4]).passed()
+    assert_that(passed, equal_to(True))
+    passed = SuiteResult('test', [result1, result4]).passed(fail_if_check_not_run=True)
     assert_that(passed, equal_to(False))
