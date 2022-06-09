@@ -6,10 +6,10 @@ Using Pre-computed Predictions
 
 There are several cases in which it's useful to compute the model predictions before using deepchecks.
 
-In some cases the model evaluation can take a long time i.e very large dataset.
+In some cases the model evaluation can take a long time, i.e. for a very large dataset.
 This feature can also be helpful if the Model inference happens on a production node and you can get the predictions
-using api.
-You can also use this feature to run deepchecks on models that are not sklearn compatible.
+using an api.
+You can also use this feature to run deepchecks on models that do not support the sklearn api.
 
 .. note::
     If the train dataset shares indices with the test dataset we will add train/test prefixes.

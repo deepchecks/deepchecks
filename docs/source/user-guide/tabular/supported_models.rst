@@ -74,7 +74,7 @@ Instead of a model you can also pass the model predicted probabilities as keywor
 ...           features_importance=feature_importance,
 ...           y_proba_train=train_proba, y_proba_test=test_proba)
 
-You may also provide the predictions as was done in the Regression example (on default argmax will be used to calculate them)
+You may also provide the predictions as was done in the Regression example (by default the predictions will be assumed to be the argmax of the probability matrix)
 For more info check out :doc:`Using Pre-computed Predictions </user-guide/tabular/tutorials/plot_static_predictions>`
 
 
