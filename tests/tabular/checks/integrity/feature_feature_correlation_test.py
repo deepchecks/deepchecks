@@ -20,3 +20,7 @@ ds = adult.load_data(as_train_test=False)
 
 def test_feature_feature_correlation():
     result = FeatureFeatureCorrelation().run(ds)
+
+
+def test_feature_feature_correlation_add_condition():
+    result = FeatureFeatureCorrelation().add_condition_all_correlations_less_than().run(ds)
