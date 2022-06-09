@@ -3,13 +3,16 @@
 Train Test Validation Scenario on Lending Club Data - 5 min Quickstart
 ***********************************************************************
 
-The deepchecks train test validation suite is relevant any time you have data splits
-that you wish to validate:
-whether it's for comparing distributions across different data splits
+The deepchecks train test validation suite is relevant any time you wish to 
+validate two subsets from the same data source:
+whether it's for comparing distributions across different train-test splits
 (e.g. before training a model or when splitting data for cross-validation),
-or for comparing new data batch to previous data batches.
-Here we'll use data from the lending club dataset, to demonstrate how you can run
-the suite with only a few simple lines of code, and see which kind of insights it can find.
+or for comparing a new data batch to previous data batches.
+
+Here we'll use data from the lending club dataset 
+(:mod:`deepchecks.tabular.datasets.classification.lending_club`),
+to demonstrate how you can run the suite with only a few simple lines of code, 
+and see which kind of insights it can find.
 
 .. code-block:: bash
 
@@ -29,9 +32,7 @@ the suite with only a few simple lines of code, and see which kind of insights i
 from deepchecks.tabular import datasets
 import pandas as pd
 
-# TODO - load this from datasets...
-# data = datasets.regression.avocado.load_data(data_format='DataFrame', as_train_test=False)
-data = pd.read_csv("lc-2017-18.csv", parse_dates=['issue_d'])
+data = datasets.classification.lending_club.load_data(data_format='DataFrame', as_train_test=False)
 data.head(2)
 
 
@@ -50,9 +51,12 @@ datetime_name = 'issue_d'
 # Split Data
 # -------------
 
+# convert date column to datetime
+data[datetime_name] = pd.as_datetime(data[datetime_name])
+
 # Use data from June and July for train and August for test:
-train_df = data[data['issue_d'].dt.month.isin([6, 7])]
-test_df = data[data['issue_d'].dt.month.isin([8])]
+train_df = data[data[datetime_name].dt.month.isin([6, 7])]
+test_df = data[data[datetime_name].dt.month.isin([8])]
 
 
 #%%
@@ -143,12 +147,14 @@ suite_result
 # However, we can see that we have a multivariate drift in the current split, detected by the WholeDatasetDrift check.
 # The drift is detected mainly with a combination of the interest rate (``int_rate``) and loan grade (``sub_grade``).
 #
-# We can consider examining other sampling techniques (e.g. using only data from the same year), ideally achieving one in which the training data's
-# univariate and multivariate distribution is similar to the data on which the model will run (test / production data).
+# We can consider examining other sampling techniques (e.g. using only data from the same year), 
+# ideally achieving one in which the training data's # univariate and multivariate distribution is 
+# similar to the data on which the model will run (test / production data).
 #
-# If we are planning on training a model with these splits, this drift is worth understanding (is it known? can we do something about it?).
+# If we are planning on training a model with these splits, this drift is worth understanding 
+# (do we expect this kind of drift in the model's production environment? can we do something about it?).
 # Otherwise, we can consider sampling or splitting the data differently, and using deepchecks to validate it.
-
+# For more details about drift, see the :doc:`</user-guide/general/drift_guide>`.
 
 
 
