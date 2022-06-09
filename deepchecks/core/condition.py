@@ -75,7 +75,6 @@ class ConditionResult:
 
     """
 
-    is_pass: bool
     category: ConditionCategory
     details: str
     name: str
@@ -114,10 +113,11 @@ class ConditionResult:
             return 2
         return 3  # if error
 
-    @property
-    def is_pass(self) -> bool:
-        """Return true if the category is PASS."""
-        return self.category == ConditionCategory.PASS
+    def is_pass(self, fail_on_warning=True) -> bool:
+        """Return true if the condition has passed."""
+        passed_categories = [ConditionCategory.PASS] if fail_on_warning else \
+            [ConditionCategory.PASS, ConditionCategory.WARN]
+        return self.category in passed_categories
 
     def get_icon(self):
         """Return icon of the result to display."""
