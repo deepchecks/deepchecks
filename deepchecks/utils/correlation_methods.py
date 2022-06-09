@@ -18,23 +18,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import entropy
 
-
-def value_frequency(x: Union[List, np.ndarray, pd.Series]) -> List[float]:
-    """
-    Calculate the value frequency of x.
-    Parameters:
-    -----------
-    x: Union[List, np.ndarray, pd.Series]
-        A sequence of a categorical variable values without nulls
-    Returns:
-    --------
-    List[float]
-        Representing the value frequency of x
-    """
-    x_values_counter = Counter(x)
-    total_occurrences = sum(x_values_counter.values())
-    values_probabilities = list(map(lambda n: n / total_occurrences, x_values_counter.values()))
-    return values_probabilities
+from deepchecks.utils.distribution.preprocessing import value_frequency
 
 
 def conditional_entropy(x: Union[List, np.ndarray, pd.Series], y: Union[List, np.ndarray, pd.Series]) -> float:
