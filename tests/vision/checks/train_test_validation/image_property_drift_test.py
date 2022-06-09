@@ -12,7 +12,7 @@
 from hamcrest import (all_of, assert_that, calling, close_to, greater_than, has_entries,
                       has_key, has_length, has_properties, instance_of, raises, has_items)
 
-from base.utils import equal_condition_result
+from tests.base.utils import equal_condition_result
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks import ImagePropertyDrift

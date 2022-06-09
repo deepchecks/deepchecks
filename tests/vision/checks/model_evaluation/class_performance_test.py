@@ -11,7 +11,7 @@
 from hamcrest import assert_that, calling, close_to, equal_to, is_, is_in, raises, has_items
 from ignite.metrics import Precision, Recall
 
-from base.utils import equal_condition_result
+from tests.base.utils import equal_condition_result
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks import ClassPerformance
 

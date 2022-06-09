@@ -15,7 +15,7 @@ import torch
 from hamcrest import assert_that, calling, close_to, equal_to, greater_than_or_equal_to, raises, has_items
 from ignite.metrics import Accuracy, Precision
 
-from base.utils import equal_condition_result
+from tests.base.utils import equal_condition_result
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks import SingleDatasetScalarPerformance
 
