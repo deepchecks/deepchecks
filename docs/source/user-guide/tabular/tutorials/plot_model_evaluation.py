@@ -9,10 +9,7 @@ suite with only a few simple lines of code, and see which kind of insights it ca
 """
 from deepchecks.tabular import Dataset
 from sklearn.ensemble import AdaBoostClassifier
-from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
-import pandas as pd
-from deepchecks.tabular.checks.performance import ConfusionMatrixReport
 
 from deepchecks.tabular import datasets
 
@@ -84,15 +81,15 @@ from deepchecks.tabular.checks import UnusedFeatures
 UnusedFeatures().run(ds_train, ds_test, clf)
 
 # %%
-# We see here that some features like 'smoothness error', 'concavity error', and 'texture error' have lower feature
+# We see here that some features like `smoothness error`, `concavity error`, and `texture error` have lower feature
 # importance but higher variance than some of the other features in the model.
 #
-# Why is this? For some of these features, the result makes sense: for example the ones with 'error' on the end measure
-# the _uncertainty_ associated with measures quantifying characteristics of the breast tissue, as opposed to the
+# Why is this? For some of these features, the result makes sense: for example the ones with `error` on the end measure
+# the *uncertainty* associated with measures quantifying characteristics of the breast tissue, as opposed to the
 # characteristics themselves. We would not expect the certainty of our metrics to impact the presence of breast cancer.
 #
-# Others, like 'worst compactness,' may be worth looking into. We would want to understand what that feature means to
-# get a better picture of whether this feature's low feature importance makes sense. Perhaps if this feature _should_be
+# Others, like `worst compactness`, may be worth looking into. We would want to understand what that feature means to
+# get a better picture of whether this feature's low feature importance makes sense. Perhaps if this feature *should* be
 # predictive, for example, our data on it contains enough noise as to carry very little real information about it. If
 # that's the case we may want to explore a better way to collect this metric, for example.
 #
@@ -123,11 +120,11 @@ ModelErrorAnalysis().run(ds_train, ds_test, clf)
 # Cancer is notoriously much, much more complicated. Though we know some risk factors, we cannot always predict when it
 # will occur or how it will present.
 #
-# Though this does not necessarily mean something is missing from our data, it _does_ mean that this check cannot do
-# what it helps to do: identify whether there are certain features that can predict whether the _existing_ model is
-# going to get its classification _wrong_. Suppose, for example, that the dataset included a boolean feature like
+# Though this does not necessarily mean something is missing from our data, it *does* mean that this check cannot do
+# what it helps to do: identify whether there are certain features that can predict whether the *existing* model is
+# going to get its classification *wrong*. Suppose, for example, that the dataset included a boolean feature like
 # `dense_breast_tissue`. Because many metrics are harder to collect accurately for dense breast tissue, it's possible
-# that the metrics we _do_ collect would be less representative of the presence of cancer in those cases. This check
+# that the metrics we *do* collect would be less representative of the presence of cancer in those cases. This check
 # would flag something like that and clue us into a need for better, or maybe different, metric collection mechanisms
 # for dense breast tissue.
 #
@@ -143,12 +140,12 @@ X_test['paclitaxel_in_blood_sample'] = 0
 
 # %%
 # What I've done above is a drastic oversimplification that assumes the use of paclitaxel, a common chemotherapy drug,
-# for _all_ patients in whom breast cancer is detected.
+# for *all* patients in whom breast cancer is detected.
 #
-# But it's classic temporal leakage: that treatment would have happened _after_ and _because_ breast cancer was
-# detected, making it a feature that should _not_ be included in a model like this even if it's in a mass dump of
+# But it's classic temporal leakage: that treatment would have happened *after* and *because* breast cancer was
+# detected, making it a feature that should *not* be included in a model like this even if it's in a mass dump of
 # patient data. We'd have it for the training data, but not for new data where we'd be asking the model for a prediction
-# because those patients would _not_ have been diagnosed or treated yet.
+# because those patients would *not* have been diagnosed or treated yet.
 #
 # What happens when we run our suite with this new, leaky feature in there?
 
@@ -161,7 +158,7 @@ eval_suite = model_evaluation()
 eval_suite.run(ds_train, ds_test, clf)
 
 # %%
-# _Now_ we see a failure because the model performs _so_ much more poorly on the test data due to the fact that the
+# *Now* we see a failure because the model performs *so* much more poorly on the test data due to the fact that the
 # paclitaxel feature is predictive for training data, but not for new data without the leakage.
 #
 # Let's restore our data and re-run our suite:
