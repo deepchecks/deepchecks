@@ -51,7 +51,7 @@ ds_test = Dataset(X_test, label=y_test, cat_features=[])
 # datasets as well as the model you used!
 #
 # Check out the
-# [when should you use deepchecks guide](https://docs.deepchecks.com/dev/getting-started/when_should_you_use.html) for
+# `when should you use deepchecks guide </getting-started/when_should_you_use.html>`_ for
 # some more info about the existing suites and when to use them.
 
 from deepchecks.tabular.suites import model_evaluation
@@ -68,7 +68,7 @@ eval_suite.run(ds_train, ds_test, clf)
 #
 # Each check may contain conditions (which will result in pass / fail / warning / error , represented by ✓ / ✖ / ! / ⁈ )
 # as well as other outputs such as plots or tables. Suites, checks and conditions can all be modified. Read more about
-# [custom suites](https://docs.deepchecks.com/en/stable/user-guide/general/customizations/examples/plot_create_a_custom_suite.html).
+# `custom suites </user-guide/general/customizations/examples/plot_create_a_custom_suite.html>`_.
 #
 # What does this suite find?
 # ---------------------------
@@ -152,7 +152,6 @@ X_test['paclitaxel_in_blood_sample'] = 0
 #
 # What happens when we run our suite with this new, leaky feature in there?
 
-clf = AdaBoostClassifier()
 clf.fit(X_train, y_train)
 
 ds_train = Dataset(X_train, label=y_train, cat_features=[])
@@ -170,7 +169,6 @@ eval_suite.run(ds_train, ds_test, clf)
 X_train = X_train.drop(['paclitaxel_in_blood_sample', 'smoothness error', 'concavity error', 'texture error'], axis=1)
 X_test = X_test.drop(['paclitaxel_in_blood_sample', 'smoothness error', 'concavity error', 'texture error'], axis=1)
 
-clf = AdaBoostClassifier()
 clf.fit(X_train, y_train)
 
 ds_train = Dataset(X_train, label=y_train, cat_features=[])
