@@ -37,27 +37,17 @@ data = lending_club.load_data(data_format='Dataframe', as_train_test=False)
 data.head(2)
 
 
-#%%
-# Define Lending Club Metadata
-# ------------------------------
-
-categorical_features = ['addr_state', 'application_type', 'home_ownership', \
-  'initial_list_status', 'purpose', 'term', 'verification_status', 'sub_grade']
-index_name = 'id'
-label = 'loan_status' # 0 is DEFAULT, 1 is OK
-datetime_name = 'issue_d'
-
 
 #%%
 # Split Data
 # -------------
 
-# convert date column to datetime
-data[datetime_name] = pd.to_datetime(data[datetime_name])
+# convert date column to datetime, `issue_d`` is date column
+data['issue_d'] = pd.to_datetime(data['issue_d'])
 
 # Use data from June and July for train and August for test:
-train_df = data[data[datetime_name].dt.month.isin([6, 7])]
-test_df = data[data[datetime_name].dt.month.isin([8])]
+train_df = data[data['issue_d'].dt.month.isin([6, 7])]
+test_df = data[data['issue_d'].dt.month.isin([8])]
 
 
 #%%
@@ -69,6 +59,23 @@ test_df = data[data[datetime_name].dt.month.isin([8])]
 #
 # Create a deepchecks Dataset, including the relevant metadata (label, date, index, etc.).
 # Check out :class:`deepchecks.tabular.Dataset` to see all of the columns that can be declared.
+
+
+#%%
+# Define Lending Club Metadata
+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+categorical_features = ['addr_state', 'application_type', 'home_ownership', \
+  'initial_list_status', 'purpose', 'term', 'verification_status', 'sub_grade']
+index_name = 'id'
+label = 'loan_status' # 0 is DEFAULT, 1 is OK
+datetime_name = 'issue_d'
+
+
+#%%
+# Create Dataset
+# ^^^^^^^^^^^^^^^^^^^^^^^^
+
 
 from deepchecks.tabular import Dataset
 
@@ -114,7 +121,8 @@ suite_result
 
 #%%
 # We can see that we have a problem in the way we've split our data!
-# We've mixed up data from two years, causing a potential leakage.
+# We've mixed up data from two years, causing a leakage of future data
+# in the training dataset.
 # Let's fix this.
 # 
 # Fix Data
@@ -153,7 +161,7 @@ suite_result
 # We can consider examining other sampling techniques (e.g. using only data from the same year), 
 # ideally achieving one in which the training data's
 # univariate and multivariate distribution is 
-# similar to the data on which the model will run (test / production data).
+# similar to the data on which the model will run (test / production data).qgjjj
 #
 # If we are planning on training a model with these splits, this drift is worth understanding 
 # (do we expect this kind of drift in the model's production environment? can we do something about it?).
