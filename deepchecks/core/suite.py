@@ -17,26 +17,23 @@ from collections import OrderedDict
 from typing import Dict, List, Optional, Sequence, Set, Tuple, Union
 
 import jsonpickle
-from IPython.core.display import display, display_html
 from ipywidgets import Widget
 
-from deepchecks.core.check_result import BaseCheckResult, CheckFailure, CheckResult
+from deepchecks.core import check_result as check_types
 from deepchecks.core.checks import BaseCheck
+from deepchecks.core.display import DisplayStrategy, DisplayableResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.serialization.suite_result.html import SuiteResultSerializer as SuiteResultHtmlSerializer
+from deepchecks.core.serialization.suite_result.ipython import SuiteResultSerializer as SuiteResultIPythonSerializer
 from deepchecks.core.serialization.suite_result.json import SuiteResultSerializer as SuiteResultJsonSerializer
 from deepchecks.core.serialization.suite_result.widget import SuiteResultSerializer as SuiteResultWidgetSerializer
-from deepchecks.utils.display import display_in_gui
-from deepchecks.utils.ipython import is_colab_env, is_interactive_output_use_possible, is_kaggle_env, is_notebook
 from deepchecks.utils.strings import create_new_file_name, get_random_string, widget_to_html, widget_to_html_string
 from deepchecks.utils.wandb_utils import wandb_run
-
-from .serialization.suite_result.ipython import SuiteResultSerializer as SuiteResultIPythonSerializer
 
 __all__ = ['BaseSuite', 'SuiteResult']
 
 
-class SuiteResult:
+class SuiteResult(DisplayableResult):
     """Contain the results of a suite run.
 
     Parameters
@@ -48,12 +45,12 @@ class SuiteResult:
 
     name: str
     extra_info: List[str]
-    results: List[BaseCheckResult]
+    results: List['check_types.BaseCheckResult']
 
     def __init__(
         self,
         name: str,
-        results: List[BaseCheckResult],
+        results: List['check_types.BaseCheckResult'],
         extra_info: Optional[List[str]] = None,
     ):
         """Initialize suite result."""
@@ -77,7 +74,7 @@ class SuiteResult:
         self.failures: Set[int] = set()
 
         for index, result in enumerate(self.results):
-            if isinstance(result, CheckResult):
+            if isinstance(result, check_types.CheckResult):
                 if result.have_conditions():
                     self.results_with_conditions.add(index)
                 else:
@@ -89,7 +86,7 @@ class SuiteResult:
             else:
                 self.failures.add(index)
 
-    def select_results(self, idx: Set[int]) -> List[BaseCheckResult]:
+    def select_results(self, idx: Set[int]) -> List['check_types.BaseCheckResult']:
         """Select results by indexes."""
         output = []
         for index, result in enumerate(self.results):
@@ -125,51 +122,37 @@ class SuiteResult:
     def _ipython_display_(
         self,
         as_widget: bool = True,
-        unique_id: Optional[str] = None
+        unique_id: Optional[str] = None,
+        **kwargs
     ):
-        output_id = (
-            unique_id or get_random_string(n=25)
-            if not is_colab_env()
-            else None
+        DisplayStrategy(
+            self,
+            SuiteResultWidgetSerializer,
+            SuiteResultIPythonSerializer
+        ).display(
+            as_widget=as_widget,
+            output_id=unique_id or get_random_string(n=25),
         )
-        if is_colab_env() and as_widget:
-            display_html(
-                widget_to_html_string(
-                    self.to_widget(unique_id=output_id),
-                    title=self.name,
-                    requirejs=True
-                ),
-                raw=True
-            )
-        elif not is_kaggle_env() and is_interactive_output_use_possible() and as_widget:
-            display_html(self.to_widget(unique_id=output_id))
-        else:
-            if as_widget:
-                warnings.warn(
-                    'Widgets are not enabled (or not supported) '
-                    'and cannot be used.'
-                )
-            display(*SuiteResultIPythonSerializer(self).serialize(
-                output_id=output_id,
-            ))
 
     def show(
         self,
         as_widget: bool = True,
-        unique_id: Optional[str] = None
+        unique_id: Optional[str] = None,
+        **kwargs
     ):
         """Display suite result."""
-        if is_notebook():
-            self._ipython_display_(as_widget=as_widget, unique_id=unique_id)
-        else:
-            display_in_gui(self)
+        self._ipython_display_(
+            as_widget=as_widget,
+            unique_id=unique_id
+        )
 
     def save_as_html(
         self,
         file: Union[str, io.TextIOWrapper, None] = None,
         as_widget: bool = True,
         requirejs: bool = True,
-        unique_id: Optional[str] = None
+        unique_id: Optional[str] = None,
+        **kwargs
     ):
         """Save output as html file.
 
@@ -219,7 +202,8 @@ class SuiteResult:
 
     def to_widget(
         self,
-        unique_id : Optional[str] = None,
+        unique_id: Optional[str] = None,
+        **kwargs
     ) -> Widget:
         """Return SuiteResult as a ipywidgets.Widget instance.
 
@@ -236,7 +220,7 @@ class SuiteResult:
             output_id=unique_id,
         )
 
-    def to_json(self, with_display: bool = True):
+    def to_json(self, with_display: bool = True, **kwargs):
         """Return check result as json.
 
         Parameters
@@ -290,7 +274,7 @@ class SuiteResult:
         with wandb_run(**wandb_kwargs) as run:
             run.log(WandbSerializer(self).serialize())
 
-    def get_failures(self) -> Dict[str, CheckFailure]:
+    def get_failures(self) -> Dict[str, 'check_types.CheckFailure']:
         """Get all the failed checks.
 
         Returns
@@ -300,7 +284,7 @@ class SuiteResult:
         """
         failures = {}
         for res in self.results:
-            if isinstance(res, CheckFailure):
+            if isinstance(res, check_types.CheckFailure):
                 failures[res.header] = res
         return failures
 
@@ -322,7 +306,7 @@ class SuiteResult:
         name = json_dict['name']
         results = []
         for res in json_dict['results']:
-            results.append(BaseCheckResult.from_json(res))
+            results.append(check_types.BaseCheckResult.from_json(res))
         return SuiteResult(name, results)
 
 
@@ -403,8 +387,8 @@ class BaseSuite:
 
 
 def sort_check_results(
-    check_results: Sequence[BaseCheckResult]
-) -> List[BaseCheckResult]:
+    check_results: Sequence['check_types.BaseCheckResult']
+) -> List['check_types.BaseCheckResult']:
     """Sort sequence of 'CheckResult' instances.
 
     Returns
@@ -417,9 +401,9 @@ def sort_check_results(
     for index, it in enumerate(check_results):
         check_results_index[index] = it
 
-        if isinstance(it, CheckResult):
+        if isinstance(it, check_types.CheckResult):
             order.append((it.priority, index))
-        elif isinstance(it, CheckFailure):
+        elif isinstance(it, check_types.CheckFailure):
             order.append((998, index))
         else:
             order.append((999, index))

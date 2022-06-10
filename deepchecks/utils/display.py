@@ -10,47 +10,12 @@
 #
 """Module with display utility functions."""
 import base64
+import typing as t
 
-__all__ = ['imagetag', 'display_in_gui']
-
-import sys
-from io import StringIO
-
-import pkg_resources
+__all__ = ['imagetag']
 
 
 def imagetag(img: bytes) -> str:
     """Return html image tag with embedded image."""
     png = base64.b64encode(img).decode('ascii')
     return f'<img src="data:image/png;base64,{png}"/>'
-
-
-def display_in_gui(result):
-    """Display suite result or check result in a new python gui window."""
-    try:
-        required = {'pyqt5', 'pyqtwebengine'}
-        # List of all packages installed (key is always in all small case!)
-        installed = {pkg.key for pkg in list(pkg_resources.working_set)}
-        missing = required - installed
-        if missing:
-            print(f'Missing packages in order to display result in GUI. either run "pip install {" ".join(missing)}"'
-                  ' or use "result.save_as_html()" to save result')
-            return
-        from PyQt5.QtWebEngineWidgets import QWebEngineView  # pylint: disable=import-outside-toplevel
-        from PyQt5.QtWidgets import QApplication  # pylint: disable=import-outside-toplevel
-
-        app = QApplication(sys.argv)
-
-        web = QWebEngineView()
-        web.setWindowTitle('deepchecks')
-        web.setGeometry(0, 0, 1200, 1200)
-
-        html_out = StringIO()
-        result.save_as_html(html_out)
-        web.setHtml(html_out.getvalue())
-        web.show()
-
-        sys.exit(app.exec_())
-    except Exception:  # pylint: disable=broad-except
-        print('Unable to show result, run in an interactive environment or use "result.save_as_html()" to save'
-              'result')

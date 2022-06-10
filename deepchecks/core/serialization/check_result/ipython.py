@@ -195,10 +195,11 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
         figures = super(html.DisplayItemsHandler, cls).handle_callable(  # pylint: disable=bad-super-call
             item, index, **kwargs
         )
-        return [
-            Image(data=it, format='png')
-            for it in figures
-        ]
+        output = []
+        for it in figures:
+            it.seek(0)
+            output.append(Image(data=it.read(), format='png'))
+        return output 
 
     @classmethod
     def handle_figure(cls, item, index, **kwargs):
