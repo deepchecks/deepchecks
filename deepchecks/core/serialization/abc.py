@@ -42,8 +42,7 @@ __all__ = [
 T = t.TypeVar('T')
 
 
-@runtime_checkable
-class Serializer(Protocol[T]):
+class Serializer(abc.ABC, t.Generic[T]):
     """Base protocol for all other serializers."""
 
     value: T
@@ -52,40 +51,40 @@ class Serializer(Protocol[T]):
         self.value = value
 
 
-@runtime_checkable
-class HtmlSerializer(Serializer[T], Protocol):
+class HtmlSerializer(Serializer[T]):
     """To html serializer protocol."""
 
+    @abc.abstractmethod
     def serialize(self, **kwargs) -> str:
         """Serialize into html."""
-        ...
+        raise NotImplementedError()
 
 
-@runtime_checkable
-class JsonSerializer(Serializer[T], Protocol):
+class JsonSerializer(Serializer[T]):
     """To json serializer protocol."""
 
+    @abc.abstractmethod
     def serialize(self, **kwargs) -> t.Union[t.Dict[t.Any, t.Any], t.List[t.Any]]:
         """Serialize into json."""
-        ...
+        raise NotImplementedError()
 
 
-@runtime_checkable
-class WidgetSerializer(Serializer[T], Protocol):
+class WidgetSerializer(Serializer[T]):
     """To ipywidget serializer protocol."""
 
+    @abc.abstractmethod
     def serialize(self, **kwargs) -> Widget:
         """Serialize into ipywidgets.Widget instance."""
-        ...
+        raise NotImplementedError()
 
 
-@runtime_checkable
-class WandbSerializer(Serializer[T], Protocol):
+class WandbSerializer(Serializer[T]):
     """To wandb metadata serializer protocol."""
 
+    @abc.abstractmethod
     def serialize(self, **kwargs) -> t.Dict[str, 'WBValue']:
         """Serialize into Wandb media format."""
-        ...
+        raise NotImplementedError()
 
 
 @runtime_checkable
@@ -160,13 +159,13 @@ IPythonFormatter = t.Union[
 ]
 
 
-@runtime_checkable
-class IPythonSerializer(Serializer[T], Protocol):
+class IPythonSerializer(Serializer[T]):
     """To IPython formatters list serializer."""
 
+    @abc.abstractmethod
     def serialize(self, **kwargs) -> t.List[IPythonFormatter]:
         """Serialize into a list of objects that are Ipython displayable."""
-        ...
+        raise NotImplementedError()
 
 
 class ABCDisplayItemsHandler(Protocol):

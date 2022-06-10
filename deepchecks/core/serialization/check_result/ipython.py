@@ -199,7 +199,7 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
         for it in figures:
             it.seek(0)
             output.append(Image(data=it.read(), format='png'))
-        return output 
+        return output
 
     @classmethod
     def handle_figure(cls, item, index, **kwargs):

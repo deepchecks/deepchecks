@@ -25,17 +25,18 @@ from plotly.basedatatypes import BaseFigure
 
 from deepchecks.core.checks import ReduceMixin
 from deepchecks.core.condition import ConditionCategory, ConditionResult
-from deepchecks.core.display import DisplayStrategy, DisplayableResult
+from deepchecks.core.display import DisplayableResult, DisplayStrategy, save_as_html
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.serialization.check_failure.html import CheckFailureSerializer as CheckFailureHtmlSerializer
 from deepchecks.core.serialization.check_failure.ipython import CheckFailureSerializer as CheckFailureIPythonSerializer
 from deepchecks.core.serialization.check_failure.json import CheckFailureSerializer as CheckFailureJsonSerializer
 from deepchecks.core.serialization.check_failure.widget import CheckFailureSerializer as CheckFailureWidgetSerializer
+from deepchecks.core.serialization.check_result.html import CheckResultSection
 from deepchecks.core.serialization.check_result.html import CheckResultSerializer as CheckResultHtmlSerializer
 from deepchecks.core.serialization.check_result.ipython import CheckResultSerializer as CheckResultIPythonSerializer
 from deepchecks.core.serialization.check_result.json import CheckResultSerializer as CheckResultJsonSerializer
 from deepchecks.core.serialization.check_result.widget import CheckResultSerializer as CheckResultWidgetSerializer
-from deepchecks.utils.strings import create_new_file_name, widget_to_html, widget_to_html_string
+from deepchecks.utils.strings import widget_to_html_string
 from deepchecks.utils.wandb_utils import wandb_run
 
 # registers jsonpickle pandas extension for pandas support in the to_json function
@@ -216,18 +217,13 @@ class CheckResult(BaseCheckResult, DisplayableResult):
         show_additional_outputs : bool
             Boolean that controls if to show additional outputs.
         """
-        check_sections = (
-            ['condition-table', 'additional-output']
-            if show_additional_outputs
-            else ['condition-table']
-        )
         DisplayStrategy(
             self,
             CheckResultWidgetSerializer,
             CheckResultIPythonSerializer
         ).display(
             as_widget=as_widget,
-            check_sections=check_sections,
+            check_sections=detalize_additional_output(show_additional_outputs),
             output_id=unique_id
         )
 
@@ -256,38 +252,17 @@ class CheckResult(BaseCheckResult, DisplayableResult):
         Optional[str] :
             name of newly create file
         """
-        if file is None:
-            file = 'output.html'
-        if isinstance(file, str):
-            file = create_new_file_name(file)
-
-        if as_widget is True:
-            widget_to_html(
-                self.to_widget(
-                    unique_id=unique_id,
-                    show_additional_outputs=show_additional_outputs,
-                ),
-                html_out=file,
-                title=self.get_header(),
-                requirejs=requirejs
-            )
-        else:
-            html = CheckResultHtmlSerializer(self).serialize(
-                output_id=unique_id,
-                full_html=True,
-                include_requirejs=requirejs,
-                include_plotlyjs=True
-            )
-            if isinstance(file, str):
-                with open(file, 'w', encoding='utf-8') as f:
-                    f.write(html)
-            elif isinstance(file, io.StringIO):
-                file.write(html)
-            else:
-                TypeError(f'Unsupported type of "file" parameter - {type(file)}')
-
-        if isinstance(file, str):
-            return file
+        check_sections = detalize_additional_output(show_additional_outputs)
+        serializer = CheckResultWidgetSerializer if as_widget is True else CheckResultHtmlSerializer
+        return save_as_html(
+            file=file,
+            result=self,
+            serializer=serializer,
+            # next kwargs will be passed to serializer.serialize method
+            requirejs=requirejs,
+            output_id=unique_id,
+            check_sections = check_sections
+        )
 
     def show(
         self,
@@ -344,14 +319,9 @@ class CheckResult(BaseCheckResult, DisplayableResult):
         -------
         Widget
         """
-        check_sections = (
-            ['condition-table', 'additional-output']
-            if show_additional_outputs is True
-            else ['condition-table']
-        )
         return CheckResultWidgetSerializer(self).serialize(
             output_id=unique_id,
-            check_sections=check_sections  # type: ignore
+            check_sections=detalize_additional_output(show_additional_outputs)
         )
 
     def to_wandb(
@@ -525,36 +495,15 @@ class CheckFailure(BaseCheckResult, DisplayableResult):
         Optional[str] :
             name of newly create file
         """
-        if file is None:
-            file = 'output.html'
-        if isinstance(file, str):
-            file = create_new_file_name(file)
-
-        if as_widget is True:
-            widget_to_html(
-                self.to_widget(),
-                html_out=file,
-                title=self.get_header(),
-                requirejs=requirejs
-            )
-        else:
-            html = CheckFailureHtmlSerializer(self).serialize(
-                full_html=True
-            )
-
-            if isinstance(file, str):
-                with open(file, 'w', encoding='utf-8') as f:
-                    f.write(html)
-            elif isinstance(file, io.StringIO):
-                file.write(html)
-            else:
-                TypeError(f'Unsupported type of "file" parameter - {type(file)}')
-
-        if isinstance(file, str):
-            return file
+        return save_as_html(
+            result=self,
+            file=file,
+            serializer=CheckFailureWidgetSerializer if as_widget else CheckFailureHtmlSerializer,
+            requirejs=requirejs,
+        )
 
     def show(
-        self, 
+        self,
         as_widget: bool = True,
         **kwargs
     ):
@@ -664,7 +613,6 @@ class CheckFailure(BaseCheckResult, DisplayableResult):
     def _ipython_display_(self):
         """Display the check failure."""
         self.display_check()
-        # display(*CheckFailureIPythonSerializer(self).serialize())
 
     def print_traceback(self):
         """Print the traceback of the failure."""
@@ -673,3 +621,11 @@ class CheckFailure(BaseCheckResult, DisplayableResult):
             value=self.exception,
             tb=self.exception.__traceback__
         )))
+
+
+def detalize_additional_output(show_additional_outputs: bool) -> List[CheckResultSection]:
+    return (
+        ['condition-table', 'additional-output']
+        if show_additional_outputs
+        else ['condition-table']
+    )
