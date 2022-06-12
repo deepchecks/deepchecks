@@ -85,6 +85,7 @@ def symmetric_theil_u_correlation(x: Union[List, np.ndarray, pd.Series], y: Unio
         A sequence of a categorical variable values without nulls
     y: Union[List, np.ndarray, pd.Series]
         A sequence of a categorical variable values without nulls
+        
     Returns:
     --------
     float
