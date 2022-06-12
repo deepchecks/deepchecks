@@ -23,6 +23,7 @@ from torch.utils.data import BatchSampler, DataLoader, Dataset, Sampler
 
 from deepchecks.core.errors import (DeepchecksBaseError, DeepchecksNotImplementedError, DeepchecksValueError,
                                     ValidationError)
+from deepchecks.utils.logger import get_logger
 from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.utils.image_functions import ImageInfo
@@ -74,23 +75,23 @@ class VisionData:
             self.validate_image_data(batch)
         except DeepchecksNotImplementedError:
             self._image_formatter_error = 'batch_to_images() was not implemented, some checks will not run'
-            warnings.warn(self._image_formatter_error)
+            get_logger().warning(self._image_formatter_error)
         except ValidationError as ex:
             self._image_formatter_error = f'batch_to_images() was not implemented correctly, the validation has ' \
                                           f'failed with the error: "{ex}". To test your image formatting use the ' \
                                           f'function `validate_image_data(batch)`'
-            warnings.warn(self._image_formatter_error)
+            get_logger().warning(self._image_formatter_error)
 
         try:
             self.validate_label(batch)
         except DeepchecksNotImplementedError:
             self._label_formatter_error = 'batch_to_labels() was not implemented, some checks will not run'
-            warnings.warn(self._label_formatter_error)
+            get_logger().warning(self._label_formatter_error)
         except ValidationError as ex:
             self._label_formatter_error = f'batch_to_labels() was not implemented correctly, the validation has ' \
                                           f'failed with the error: "{ex}". To test your label formatting use the ' \
                                           f'function `validate_label(batch)`'
-            warnings.warn(self._label_formatter_error)
+            get_logger().warning(self._label_formatter_error)
 
         try:
             if self._label_formatter_error is None:
@@ -99,12 +100,12 @@ class VisionData:
                 self._get_classes_error = 'Must have valid labels formatter to use `get_classes`'
         except DeepchecksNotImplementedError:
             self._get_classes_error = 'get_classes() was not implemented, some checks will not run'
-            warnings.warn(self._get_classes_error)
+            get_logger().warning(self._get_classes_error)
         except ValidationError as ex:
             self._get_classes_error = f'get_classes() was not implemented correctly, the validation has ' \
                                       f'failed with the error: "{ex}". To test your formatting use the ' \
                                       f'function `validate_get_classes(batch)`'
-            warnings.warn(self._get_classes_error)
+            get_logger().warning(self._get_classes_error)
 
         self._classes_indices = None
         self._current_index = None
@@ -345,7 +346,7 @@ class VisionData:
         if self._label_map is None:
             return str(class_id)
         elif class_id not in self._label_map:
-            warnings.warn(f'Class id {class_id} is not in the label map. Add it to map in order to show the class '
+            get_logger().warning(f'Class id {class_id} is not in the label map. Add it to map in order to show the class '
                           f'name instead of id')
             return str(class_id)
         else:

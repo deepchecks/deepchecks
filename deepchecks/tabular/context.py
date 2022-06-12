@@ -22,6 +22,7 @@ from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.utils.validation import (ensure_predictions_proba, ensure_predictions_shape,
                                                  model_type_validation, validate_model)
 from deepchecks.utils.features import calculate_feature_importance_or_none
+from deepchecks.utils.logger import get_logger
 from deepchecks.utils.metrics import ModelType, get_default_scorers, init_validate_scorers, task_type_check
 from deepchecks.utils.typing import BasicModel
 
@@ -66,9 +67,9 @@ class _DummyModel:
             if set(train.data.index) & set(test.data.index):
                 train.data.index = map(lambda x: f'train-{x}', list(train.data.index))
                 test.data.index = map(lambda x: f'test-{x}', list(test.data.index))
-                warnings.warn('train and test datasets have common index - adding "train"/"test"'
-                              ' prefixes. To avoid that provide datasets with no common indexes '
-                              'or pass the model object instead of the predictions.')
+                get_logger().warning('train and test datasets have common index - adding "train"/"test"'
+                                     ' prefixes. To avoid that provide datasets with no common indexes '
+                                     'or pass the model object instead of the predictions.')
 
         features = []
         predictions = []

@@ -34,6 +34,8 @@ from typing import Tuple
 import numpy as np
 from sklearn.neighbors import KDTree, KNeighborsClassifier
 
+from deepchecks.utils.logger import get_logger
+
 __all__ = ['TrustScore']
 
 
@@ -111,9 +113,9 @@ class TrustScore:
             Filtered data and labels.
         """
         if self.k_filter == 1:
-            warnings.warn('Number of nearest neighbors used for probability density filtering should '
-                          'be >1, otherwise the prediction probabilities are either 0 or 1 making '
-                          'probability filtering useless.')
+            get_logger().warning('Number of nearest neighbors used for probability density filtering should '
+                                 'be >1, otherwise the prediction probabilities are either 0 or 1 making '
+                                 'probability filtering useless.')
         # fit kNN classifier and make predictions on X
         clf = KNeighborsClassifier(n_neighbors=self.k_filter, leaf_size=self.leaf_size, metric=self.metric)
         clf.fit(X, Y)
@@ -136,8 +138,8 @@ class TrustScore:
             Target labels, either one-hot encoded or the actual class label.
         """
         if len(X.shape) > 2:
-            warnings.warn(f'Reshaping data from {X.shape} to {X.reshape(X.shape[0], -1).shape} so k-d trees can '
-                          'be built.')
+            get_logger().warning(f'Reshaping data from {X.shape} to {X.reshape(X.shape[0], -1).shape}'
+                                 ' so k-d trees can be built.')
             X = X.reshape(X.shape[0], -1)
 
         # make sure Y represents predicted classes, not one-hot encodings
@@ -167,9 +169,9 @@ class TrustScore:
             no_x_fit = len(X_fit) == 0
             if no_x_fit or len(X[np.where(Y == c)[0]]) == 0:
                 if no_x_fit and len(X[np.where(Y == c)[0]]) == 0:
-                    warnings.warn(f'No instances available for class {c}')
+                    get_logger().warning(f'No instances available for class {c}')
                 elif no_x_fit:
-                    warnings.warn(f'Filtered all the instances for class {c}. Lower alpha or check data.')
+                    get_logger().warning(f'Filtered all the instances for class {c}. Lower alpha or check data.')
             else:
                 self.kdtrees[c] = KDTree(X_fit, leaf_size=self.leaf_size,
                                          metric=self.metric)  # build KDTree for class c

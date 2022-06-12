@@ -19,6 +19,7 @@ from torch import nn
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotImplementedError, DeepchecksNotSupportedError,
                                     DeepchecksValueError, ModelValidationError, ValidationError)
+from deepchecks.utils.logger import get_logger
 from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.vision_data import VisionData
 
@@ -77,16 +78,16 @@ class Context:
         if device is None:
             device = 'cpu'
             if torch.cuda.is_available():
-                warnings.warn('Checks will run on the cpu by default.'
-                              'To make use of cuda devices, use the device parameter in the run function.')
+                get_logger().warning('Checks will run on the cpu by default. To make use of cuda devices, '
+                                     'use the device parameter in the run function.')
         self._device = torch.device(device) if isinstance(device, str) else (device if device else torch.device('cpu'))
 
         self._prediction_formatter_error = {}
         if model is not None:
             self._static_predictions = None
             if not isinstance(model, nn.Module):
-                warnings.warn('Deepchecks can\'t validate that model is in evaluation state. Make sure it is to '
-                              'avoid unexpected behavior.')
+                get_logger().warning('Deepchecks can\'t validate that model is in evaluation state.'
+                                    ' Make sure it is to avoid unexpected behavior.')
             elif model.training:
                 raise DatasetValidationError('Model is not in evaluation state. Please set model training '
                                              'parameter to False or run model.eval() before passing it.')
@@ -106,7 +107,7 @@ class Context:
 
                     if msg:
                         self._prediction_formatter_error[dataset_type] = msg
-                        warnings.warn(msg)
+                        get_logger().warning(msg)
 
         elif train_predictions is not None or test_predictions is not None:
             self._static_predictions = {}
@@ -125,7 +126,7 @@ class Context:
 
                     if msg:
                         self._prediction_formatter_error[dataset_type] = msg
-                        warnings.warn(msg)
+                        get_logger().warning(msg)
 
         # The copy does 2 things: Sample n_samples if parameter exists, and shuffle the data.
         # we shuffle because the data in VisionData is set to be sampled in a fixed order (in the init), so if the user

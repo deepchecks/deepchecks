@@ -27,6 +27,7 @@ from sklearn.pipeline import Pipeline
 from deepchecks import tabular
 from deepchecks.core import errors
 from deepchecks.tabular.utils.validation import validate_model
+from deepchecks.utils.logger import get_logger
 from deepchecks.utils.metrics import DeepcheckScorer, get_default_scorers, init_validate_scorers, task_type_check
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.validation import ensure_hashable_or_mutable_sequence
@@ -100,7 +101,7 @@ def calculate_feature_importance_or_none(
         # ModelValidationError:
         #     if wrong type of model was provided;
         #     if function failed to predict on model;
-        warnings.warn(f'Features importance was not calculated:\n{str(error)}')
+        get_logger().warning(f'Features importance was not calculated:\n{str(error)}')
         return None, None
 
 
@@ -168,7 +169,7 @@ def calculate_feature_importance(
         importance, calc_type = _built_in_importance(model, dataset)
         # If found importance and was force permutation failure before, show warning
         if importance is not None and permutation_failure:
-            warnings.warn(permutation_failure)
+            get_logger().warning(permutation_failure)
 
     # If there was no permutation failure and no importance on the model, using permutation anyway
     if importance is None and permutation_failure is None and isinstance(dataset, tabular.Dataset):
@@ -176,7 +177,7 @@ def calculate_feature_importance(
             pre_text = 'Cannot use model\'s built-in feature importance on a Scikit-learn Pipeline, '
         else:
             pre_text = 'Could not find built-in feature importance on the model, '
-        warnings.warn(pre_text + 'using permutation feature importance calculation instead')
+        get_logger().warning(pre_text + 'using permutation feature importance calculation instead')
 
         importance = _calc_permutation_importance(model, dataset, **permutation_kwargs)
         calc_type = 'permutation_importance'
@@ -286,8 +287,8 @@ def _calc_permutation_importance(
         else:
             print(f'Calculating permutation feature importance. Expected to finish in {predicted_time_to_run} seconds')
     else:
-        warnings.warn(f'Calculating permutation feature importance without time limit. Expected to finish in '
-                      f'{predicted_time_to_run} seconds')
+        get_logger().warning(f'Calculating permutation feature importance without time limit. Expected to finish in '
+                             f'{predicted_time_to_run} seconds')
 
     r = permutation_importance(
         model,

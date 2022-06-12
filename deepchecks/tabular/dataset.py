@@ -25,6 +25,7 @@ from typing_extensions import Literal as L
 from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import infer_categorical_features, infer_numerical_features, is_categorical
+from deepchecks.utils.logger import get_logger
 from deepchecks.utils.strings import get_docs_link
 from deepchecks.utils.typing import Hashable
 
@@ -583,7 +584,7 @@ class Dataset:
             if len(categorical_columns) > len(columns_to_print):
                 message += '... For full list use dataset.cat_features'
 
-        warnings.warn(message)
+        get_logger().warning(message)
 
         return categorical_columns
 
@@ -897,7 +898,7 @@ class Dataset:
             if the provided value cannot be transformed into Dataset instance;
         """
         if isinstance(obj, pd.DataFrame):
-            warnings.warn(
+            get_logger().warning(
                 'Received a "pandas.DataFrame" instance. It is recommended to pass a "deepchecks.tabular.Dataset" '
                 'instance by doing "Dataset(dataframe)"'
             )
