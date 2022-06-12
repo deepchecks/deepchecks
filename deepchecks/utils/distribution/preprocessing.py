@@ -204,6 +204,6 @@ def value_frequency(x: Union[List, np.ndarray, pd.Series]) -> List[float]:
         Representing the value frequency of x
     """
     x_values_counter = Counter(x)
-    total_occurrences = sum(x_values_counter.values())
+    total_occurrences = len(x)
     values_probabilities = list(map(lambda n: n / total_occurrences, x_values_counter.values()))
     return values_probabilities

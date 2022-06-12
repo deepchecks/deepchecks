@@ -133,8 +133,8 @@ def generalized_corrwith(x1: pd.DataFrame, x2: pd.DataFrame, method: t.Callable)
     Compute pairwise correlation.
 
     Pairwise correlation is computed between columns of one DataFrame with columns of another DataFrame.
-    Pandas' method corrwith only applies to dataframes with the same column,
-    this generalized method applies to any column names
+    Pandas' method corrwith only applies when both dataframes have the same column names,
+    this generalized method applies to any two Dataframes with the same number of rows, regardless of the column names.
 
     Parameters
     __________
@@ -150,7 +150,5 @@ def generalized_corrwith(x1: pd.DataFrame, x2: pd.DataFrame, method: t.Callable)
     DataFrame
         Pairwise correlations.
     """
-    corr_results = pd.DataFrame(index=x1.columns, columns=x2.columns)
-    for col2 in x2.columns:
-        corr_results.loc[:, col2] = x1.corrwith(x2[col2], method=method)
+    corr_results = x2.apply(lambda col: x1.corrwith(col, method=method))
     return corr_results

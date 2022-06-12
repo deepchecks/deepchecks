@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""module contains Correlated Features check."""
+"""module contains  Feature-Feature Correlation check."""
 
 import pandas as pd
 import plotly.express as px
@@ -22,21 +22,15 @@ __all__ = ['FeatureFeatureCorrelation']
 
 
 class FeatureFeatureCorrelation(SingleDatasetCheck):
-    """Checks for pairwise correlation between the features.
+    """
+    Checks for pairwise correlation between the features.
 
-        Extremely correlated pairs could indicate redundancy and even duplication.
-
-    Parameters
-    ----------
-        n_top_pairs : int , default: 5
-        Number of pairs to show, sorted by the correlation strength
+    Extremely correlated pairs could indicate redundancy and even duplication.
     """
 
     def __init__(self,
-                 n_top_pairs: int = 5,
                  **kwargs):
         super().__init__()
-        self.n_top_pairs = n_top_pairs
 
     def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
         """
@@ -45,7 +39,7 @@ class FeatureFeatureCorrelation(SingleDatasetCheck):
         Returns
         -------
         CheckResult
-        A heatmap of the pairwise correlations between the features
+            A DataFrame of the pairwise correlations between the features.
         """
         if dataset_type == 'train':
             dataset = context.train
