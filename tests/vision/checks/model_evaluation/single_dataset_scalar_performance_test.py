@@ -12,9 +12,10 @@
 import warnings
 
 import torch
-from hamcrest import assert_that, calling, close_to, equal_to, greater_than_or_equal_to, raises
+from hamcrest import assert_that, calling, close_to, equal_to, greater_than_or_equal_to, raises, has_items
 from ignite.metrics import Accuracy, Precision
 
+from tests.base.utils import equal_condition_result
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks import SingleDatasetScalarPerformance
 
@@ -63,8 +64,14 @@ def test_classification_w_params(mnist_dataset_train, mock_trained_mnist, device
     result = check.run(mnist_dataset_train, mock_trained_mnist, device=device)
     assert_that(type(result.value['score']), equal_to(float))
     assert_that(result.value['score'], close_to(0.993, 0.001))
-    assert_that(result.conditions_results[0].is_pass)
-    assert_that(result.conditions_results[1].is_pass, equal_to(False))
+    assert_that(result.conditions_results, has_items(
+        equal_condition_result(is_pass=True,
+                               details='The score Precision is 0.99',
+                               name='Score is greater than 0.5'),
+        equal_condition_result(is_pass=False,
+                               details='The score Precision is 0.99',
+                               name='Score is less or equal to 0.2'))
+    )
 
     # params that should raise a warning but still run
     check = SingleDatasetScalarPerformance(Accuracy(), torch.min)

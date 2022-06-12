@@ -14,7 +14,7 @@ import abc
 import io
 import warnings
 from collections import OrderedDict
-from typing import Dict, List, Optional, Sequence, Set, Tuple, Union
+from typing import List, Optional, Sequence, Set, Tuple, Union
 
 import jsonpickle
 from IPython.core.display import display, display_html
@@ -290,19 +290,50 @@ class SuiteResult:
         with wandb_run(**wandb_kwargs) as run:
             run.log(WandbSerializer(self).serialize())
 
-    def get_failures(self) -> Dict[str, CheckFailure]:
-        """Get all the failed checks.
+    def get_checks_not_ran(self) -> List[CheckFailure]:
+        """Get all the check results which did not run (unable to run due to missing parameters, exception, etc).
 
         Returns
         -------
-        Dict[str, CheckFailure]
+        List[CheckFailure]
             All the check failures in the suite.
         """
-        failures = {}
-        for res in self.results:
-            if isinstance(res, CheckFailure):
-                failures[res.header] = res
-        return failures
+        return self.select_results(self.failures)
+
+    def get_checks_not_passed(self, fail_if_warning=True) -> List[CheckResult]:
+        """Get all the check results that have not passing condition.
+
+        Parameters
+        ----------
+        fail_if_warning: bool, Default: True
+            Whether conditions should fail on status of warning
+
+         Returns
+        -------
+        List[CheckResult]
+            All the check results in the suite that have failing conditions.
+        """
+        return [r for r in self.select_results(self.results_with_conditions)
+                if not r.passed_conditions(fail_if_warning)]
+
+    def passed(self, fail_if_warning: bool = True, fail_if_check_not_run: bool = False) -> bool:
+        """Return whether this suite result has passed. Pass value is derived from condition results of all individual\
+         checks, and may consider checks that didn't run.
+
+        Parameters
+        ----------
+        fail_if_warning: bool, Default: True
+            Whether conditions should fail on status of warning
+        fail_if_check_not_run: bool, Default: False
+            Whether checks that didn't run (missing parameters, exception, etc) should fail the suite result.
+
+        Returns
+        -------
+        bool
+        """
+        not_run_pass = len(self.get_checks_not_ran()) == 0 if fail_if_check_not_run else True
+        conditions_pass = len(self.get_checks_not_passed(fail_if_warning)) == 0
+        return conditions_pass and not_run_pass
 
     @classmethod
     def from_json(cls, json_res: str):

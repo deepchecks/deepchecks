@@ -744,7 +744,7 @@ class Dataset:
          Returns
         -------
         t.List[Hashable]
-           List of categorical feature names.
+           List of numerical feature names.
         """
         return list(self._numerical_features)
 

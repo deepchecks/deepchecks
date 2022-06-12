@@ -19,6 +19,7 @@ from ignite.metrics import Accuracy, Metric
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.utils.strings import format_number
 from deepchecks.vision import Batch, Context, SingleDatasetCheck
 from deepchecks.vision.metrics_utils.object_detection_precision_recall import ObjectDetectionAveragePrecision
 from deepchecks.vision.vision_data import TaskType
@@ -105,7 +106,7 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck):
     def add_condition_greater_than(self, threshold: float) -> ConditionResult:
         """Add condition - the result is greater than the threshold."""
         def condition(check_result):
-            details = f'The score {self.metric_name} is {check_result["score"]}'
+            details = f'The score {self.metric_name} is {format_number(check_result["score"])}'
             if check_result['score'] > threshold:
                 return ConditionResult(ConditionCategory.PASS, details)
             else:
@@ -115,7 +116,7 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck):
     def add_condition_greater_or_equal(self, threshold: float) -> ConditionResult:
         """Add condition - the result is greater or equal to the threshold."""
         def condition(check_result):
-            details = f'The score {self.metric_name} is {check_result["score"]}'
+            details = f'The score {self.metric_name} is {format_number(check_result["score"])}'
             if check_result['score'] >= threshold:
                 return ConditionResult(ConditionCategory.PASS, details)
             else:
@@ -125,7 +126,7 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck):
     def add_condition_less_than(self, threshold: float) -> ConditionResult:
         """Add condition - the result is less than the threshold."""
         def condition(check_result):
-            details = f'The score {self.metric_name} is {check_result["score"]}'
+            details = f'The score {self.metric_name} is {format_number(check_result["score"])}'
             if check_result['score'] < threshold:
                 return ConditionResult(ConditionCategory.PASS, details)
             else:
@@ -136,7 +137,7 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck):
         """Add condition - the result is less or equal to the threshold."""
 
         def condition(check_result):
-            details = f'The score {self.metric_name} is {check_result["score"]}'
+            details = f'The score {self.metric_name} is {format_number(check_result["score"])}'
             if check_result['score'] <= threshold:
                 return ConditionResult(ConditionCategory.PASS, details)
             else:
