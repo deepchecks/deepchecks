@@ -80,7 +80,7 @@ class FeatureFeatureCorrelation(SingleDatasetCheck):
 
         return CheckResult(value=full_df, header='Feature-Feature Correlation', display=fig)
 
-    def add_condition_all_correlations_less_than(self, threshold: float = 0.9, n_pairs: int = 0):
+    def add_condition_max_number_of_pairs_above(self, threshold: float = 0.9, n_pairs: int = 0):
         """
         Add condition that all pairwise correlations are less than threshold, except for the diagonal
         """

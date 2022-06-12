@@ -32,7 +32,7 @@ def test_feature_feature_correlation_pass_condition():
     threshold = 0.9
     num_pairs = 1
     check = FeatureFeatureCorrelation()
-    result = check.add_condition_all_correlations_less_than(threshold, num_pairs).run(ds)
+    result = check.add_condition_max_number_of_pairs_above(threshold, num_pairs).run(ds)
     assert_that(result.conditions_results, has_items(
                 equal_condition_result(is_pass=True,
                                        details=f'All correlations are less than {threshold} except pairs {high_pairs}',
@@ -46,7 +46,7 @@ def test_feature_feature_correlation_fail_condition():
     high_pairs = [('age', 'marital-status'), ('education-num', 'education'), ('education-num', 'occupation'),
                   ('marital-status', 'relationship')]
     check = FeatureFeatureCorrelation()
-    result = check.add_condition_all_correlations_less_than(threshold, num_pairs).run(ds)
+    result = check.add_condition_max_number_of_pairs_above(threshold, num_pairs).run(ds)
 
     assert_that(result.conditions_results, has_items(
                 equal_condition_result(is_pass=False,

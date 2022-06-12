@@ -1,7 +1,19 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
+"""Tests for dataframes"""
 import pandas as pd
-from deepchecks.utils.dataframes import generalized_corrwith
 from hamcrest import assert_that, close_to, contains_exactly
 from scipy.stats import pearsonr
+
+from deepchecks.utils.dataframes import generalized_corrwith
 
 
 def test_generalized_corrwith():
