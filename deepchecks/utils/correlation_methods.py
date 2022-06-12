@@ -66,9 +66,6 @@ def theil_u_correlation(x: Union[List, np.ndarray, pd.Series], y: Union[List, np
         Representing the Theil U correlation between y and x
     """
     s_xy = conditional_entropy(x, y)
-    # x_values_counter = Counter(x)
-    # total_occurrences = sum(x_values_counter.values())
-    # values_probabilities = list(map(lambda n: n / total_occurrences, x_values_counter.values()))
     values_probabilities = value_frequency(x)
     s_x = entropy(values_probabilities)
     if s_x == 0:
