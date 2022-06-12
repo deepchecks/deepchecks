@@ -10,14 +10,13 @@
 #
 """module contains Correlated Features check."""
 
+import pandas as pd
+import plotly.express as px
+
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
-from deepchecks.core.errors import DatasetValidationError
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.correlation_methods import correlation_ratio, symmetric_theil_u_correlation
 from deepchecks.utils.dataframes import generalized_corrwith
-
-import pandas as pd
-import plotly.express as px
 
 __all__ = ['FeatureFeatureCorrelation']
 

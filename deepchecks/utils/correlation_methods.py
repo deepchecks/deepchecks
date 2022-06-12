@@ -77,7 +77,8 @@ def theil_u_correlation(x: Union[List, np.ndarray, pd.Series], y: Union[List, np
         return (s_x - s_xy) / s_x
 
 
-def symmetric_theil_u_correlation(x: Union[List, np.ndarray, pd.Series], y: Union[List, np.ndarray, pd.Series]) -> float:
+def symmetric_theil_u_correlation(x: Union[List, np.ndarray, pd.Series], y: Union[List, np.ndarray, pd.Series]) -> \
+        float:
     """
     Calculate the symmetric Theil's U correlation of y to x.
         Parameters:
@@ -94,6 +95,7 @@ def symmetric_theil_u_correlation(x: Union[List, np.ndarray, pd.Series], y: Unio
 
     h_x = entropy(value_frequency(x))
     h_y = entropy(value_frequency(y))
+    # pylint: disable=W1114
     u_xy = theil_u_correlation(x, y)
     u_yx = theil_u_correlation(y, x)
     u_sym = (h_x * u_xy + h_y * u_yx) / (h_x + h_y)

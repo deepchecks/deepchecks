@@ -9,19 +9,22 @@
 # ----------------------------------------------------------------------------
 #
 """Tests for Feature Feature Correlation check"""
-import pandas as pd
-from hamcrest import assert_that, has_items, close_to
+from hamcrest import assert_that, contains_exactly, has_items
 
 from deepchecks.tabular.checks.data_integrity.feature_feature_correlation import FeatureFeatureCorrelation
 from deepchecks.tabular.datasets.classification import adult
 from tests.base.utils import equal_condition_result
 
-
 ds = adult.load_data(as_train_test=False)
 
 
 def test_feature_feature_correlation():
+    expected_features = ['age', 'fnlwgt', 'education-num', 'capital-gain', 'capital-loss',
+       'hours-per-week', 'workclass', 'education', 'marital-status',
+       'occupation', 'relationship', 'race', 'sex', 'native-country']
     result = FeatureFeatureCorrelation().run(ds)
+    assert_that(result.value.index, contains_exactly(*expected_features))
+    assert_that(result.value.columns, contains_exactly(*expected_features))
 
 
 def test_feature_feature_correlation_pass_condition():
