@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-Train Test Validation Scenario on Lending Club Data - Quickstart
-*********************************************************************
+Quickstart - Train-Test Validation Suite (Loan's Data)
+************************************************************
 
-The deepchecks train test validation suite is relevant any time you wish to 
+The deepchecks train-test validation suite is relevant any time you wish to 
 validate two data subsets. For example:
 
 - Comparing distributions across different train-test splits (e.g. before 
   training a model or when splitting data for cross-validation)
 - Comparing a new data batch to previous data batches
 
-Here we'll use a loan's dataset 
+Here we'll use a loans dataset 
 (:mod:`deepchecks.tabular.datasets.classification.lending_club`),
 to demonstrate how you can run the suite with only a few simple lines of code, 
 and see which kind of insights it can find.
@@ -39,8 +39,8 @@ data.head(2)
 
 
 #%%
-# Split Data
-# -------------
+# Split Data to Train and Test
+# -----------------------------
 
 # convert date column to datetime, `issue_d`` is date column
 data['issue_d'] = pd.to_datetime(data['issue_d'])
@@ -58,7 +58,8 @@ test_df = data[data['issue_d'].dt.month.isin([8])]
 # -------------------------
 #
 # Create a deepchecks Dataset, including the relevant metadata (label, date, index, etc.).
-# Check out :class:`deepchecks.tabular.Dataset` to see all of the columns that can be declared.
+# Check out :class:`deepchecks.tabular.Dataset` to see all of the columns and types 
+# that can be declared.
 
 
 #%%
@@ -79,9 +80,10 @@ datetime_name = 'issue_d'
 
 from deepchecks.tabular import Dataset
 
-# We explicitly state the categorical features,
+# We state the categorical features,
 # otherwise they will be automatically inferred,
-# which may not work perfectly and is not recommended.
+# which may be less accurate, therefore stating
+# them explicitly is recommended.
 
 # The label can be passed as a column name or
 # as a separate pd.Series / pd.DataFrame
@@ -108,8 +110,8 @@ columns_metadata = {'cat_features' : categorical_features, 'index_name': index_n
 # It runs on two datasets, so you can use it to compare any two batches of data (e.g. train data, test data, a new batch of data
 # that recently arrived)
 #
-# Check out the :doc:`when should you use </getting-started/when_should_you_use>`
-# deepchecks guide for some more info about the existing suites and when to use them.
+# Check out the :doc:`"when should you use deepchecks guide" </getting-started/when_should_you_use>`
+# for some more info about the existing suites and when to use them.
 
 from deepchecks.tabular.suites import train_test_validation
 
@@ -120,7 +122,8 @@ suite_result = validation_suite.run(train_ds, test_ds)
 suite_result
 
 #%%
-# We can see that we have a problem in the way we've split our data!
+# As you can see in the suite's results: the Date Train-Test Leakage check failed,
+# indicating # that we may have a problem in the way we've split our data!
 # We've mixed up data from two years, causing a leakage of future data
 # in the training dataset.
 # Let's fix this.
@@ -151,21 +154,24 @@ suite_result
 
 #%%
 #
-# Ok, the date leakage doesn't exist anymore!
+# Ok, the date leakage doesn't happen anymore!
 #
-# However, we can see that we have a multivariate drift in the current split, 
+# However, in the current split after the fix, we can see that we have a multivariate drift, 
 # detected by the :doc:`</checks_gallery/tabular/train_test_validation/plot_whole_dataset_drift>` check.
-# The drift is detected mainly by a combination of features representing the loan's interest rate (``int_rate``) 
-# and its grade (``sub_grade``).
+# The drift is caused mainly by a combination of features representing the loan's interest rate (``int_rate``) 
+# and its grade (``sub_grade``). In order to proceed, we should think about the two options we have: 
+# To split the data in a different manner, or to stay with the current split.
 #
-# We can consider examining other sampling techniques (e.g. using only data from the same year), 
-# ideally achieving one in which the training data's
-# univariate and multivariate distribution is 
-# similar to the data on which the model will run (test / production data).qgjjj
+# For working with different data splits: We can consider examining other sampling techniques 
+# (e.g. using only data from the same year), ideally achieving one in which the training data's
+# univariate and multivariate distribution is similar to the data 
+# on which the model will run (test / production data). 
+# Of course, we can use deepchecks to validate the new splits.
 #
-# If we are planning on training a model with these splits, this drift is worth understanding 
-# (do we expect this kind of drift in the model's production environment? can we do something about it?).
-# Otherwise, we can consider sampling or splitting the data differently, and using deepchecks to validate it.
+# If the current split is representative and we are planning on training a model with it, 
+# it is worth understanding this drift (do we expect this kind of drift in the model's 
+# production environment? can we do something about it?).
+#
 # For more details about drift, see the :doc:`</user-guide/general/drift_guide>`.
 
 
@@ -180,6 +186,7 @@ suite_result
 from deepchecks.tabular.checks import WholeDatasetDrift
 
 check_with_condition = WholeDatasetDrift().add_condition_overall_drift_value_less_than(0.4)
+# or just the check without the condition:
 # check = WholeDatasetDrift()
 dataset_drift_result = check_with_condition.run(train_ds, test_ds)
 

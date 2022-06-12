@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Data Integrity Suite on Avocado Sales Data - Quickstart
+Quickstart - Data Integrity Suite (Avocado Sales Data)
 *******************************************************
 
 The deepchecks integrity suite is relevant any time you have data that you wish to validate:
@@ -51,13 +51,16 @@ dirty_df = add_dirty_data(data)
 # ------------------------
 #
 # Create a deepchecks Dataset, including the relevant metadata (label, date, index, etc.).
-# Check out :class:`deepchecks.tabular.Dataset` to see all of the columns that can be declared.
+# Check out :class:`deepchecks.tabular.Dataset` to see all of the columns and types 
+# that can be declared.
 
 from deepchecks.tabular import Dataset
 
-# We explicitly state the categorical features,
-# otherwise they will be automatically inferred, which may not work perfectly and is not recommended.
+# We state the categorical features, otherwise they will be automatically inferred,
+# which may be less accurate, therefore stating them explicitly is recommended.
+
 # The label can be passed as a column name or a separate pd.Series / pd.DataFrame
+
 ds = Dataset(dirty_df, cat_features = ['type'], datetime_name='Date', label = 'AveragePrice')
 
 #%%
