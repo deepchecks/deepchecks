@@ -92,9 +92,8 @@ def symmetric_theil_u_correlation(x: Union[List, np.ndarray, pd.Series], y: Unio
     """
     h_x = entropy(value_frequency(x))
     h_y = entropy(value_frequency(y))
-    # pylint: disable=W1114
     u_xy = theil_u_correlation(x, y)
-    u_yx = theil_u_correlation(y, x)
+    u_yx = theil_u_correlation(y, x)  # pylint: disable=arguments-out-of-order
     u_sym = (h_x * u_xy + h_y * u_yx) / (h_x + h_y)
     return u_sym
 
