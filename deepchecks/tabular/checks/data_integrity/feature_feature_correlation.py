@@ -86,22 +86,22 @@ class FeatureFeatureCorrelation(SingleDatasetCheck):
         Add condition that all pairwise correlations are less than threshold, except for the diagonal
         """
 
-        def condition(result: CheckResult):
-            results_ge = result.value.ge(threshold)
+        def condition(result):
+            results_ge = result.ge(threshold)
             high_corr_pairs = []
             for i in results_ge.index:
                 for j in results_ge.columns:
-                    if i == j | [j, i] in high_corr_pairs:
+                    if (i == j) | ((j, i) in high_corr_pairs):
                         continue
                     if results_ge.loc[i, j]:
                         high_corr_pairs.append((i, j))
 
             if len(high_corr_pairs) > n_pairs:
                 return ConditionResult(ConditionCategory.FAIL,
-                                       'Correlation is greater than {} for pairs {}'.format(threshold, high_corr_pairs))
+                                       f'Correlation is greater than {threshold} for pairs {high_corr_pairs}')
             else:
                 return ConditionResult(ConditionCategory.PASS,
-                                       'All correlations are less than {}'.format(threshold))
+                                       f'All correlations are less than {threshold} except pairs {high_corr_pairs}')
         return self.add_condition(f'Not more than {n_pairs} pairs are correlated above {threshold}', condition)
 
 
