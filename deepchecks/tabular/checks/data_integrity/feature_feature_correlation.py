@@ -23,6 +23,7 @@ __all__ = ['FeatureFeatureCorrelation']
 
 class FeatureFeatureCorrelation(SingleDatasetCheck):
     """Checks for pairwise correlation between the features.
+
         Extremely correlated pairs could indicate redundancy and even duplication.
 
     Parameters
@@ -30,6 +31,7 @@ class FeatureFeatureCorrelation(SingleDatasetCheck):
         n_top_pairs : int , default: 5
         Number of pairs to show, sorted by the correlation strength
     """
+
     def __init__(self,
                  n_top_pairs: int = 5,
                  **kwargs):
@@ -38,14 +40,13 @@ class FeatureFeatureCorrelation(SingleDatasetCheck):
 
     def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
         """
-        Run Check
+        Run Check.
 
         Returns
         -------
         CheckResult
         A heatmap of the pairwise correlations between the features
         """
-
         if dataset_type == 'train':
             dataset = context.train
         else:
@@ -81,10 +82,7 @@ class FeatureFeatureCorrelation(SingleDatasetCheck):
         return CheckResult(value=full_df, header='Feature-Feature Correlation', display=fig)
 
     def add_condition_max_number_of_pairs_above(self, threshold: float = 0.9, n_pairs: int = 0):
-        """
-        Add condition that all pairwise correlations are less than threshold, except for the diagonal
-        """
-
+        """ Add condition that all pairwise correlations are less than threshold, except for the diagonal."""
         def condition(result):
             results_ge = result.ge(threshold)
             high_corr_pairs = []
@@ -102,5 +100,3 @@ class FeatureFeatureCorrelation(SingleDatasetCheck):
                 return ConditionResult(ConditionCategory.PASS,
                                        f'All correlations are less than {threshold} except pairs {high_corr_pairs}')
         return self.add_condition(f'Not more than {n_pairs} pairs are correlated above {threshold}', condition)
-
-

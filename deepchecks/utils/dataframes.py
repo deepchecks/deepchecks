@@ -131,6 +131,7 @@ def select_from_dataframe(
 def generalized_corrwith(x1: pd.DataFrame, x2: pd.DataFrame, method: t.Callable):
     """
     Compute pairwise correlation.
+
     Pairwise correlation is computed between columns of one DataFrame with columns of another DataFrame.
     Pandas' method corrwith only applies to dataframes with the same column,
     this generalized method applies to any column names
@@ -149,10 +150,7 @@ def generalized_corrwith(x1: pd.DataFrame, x2: pd.DataFrame, method: t.Callable)
     DataFrame
         Pairwise correlations.
     """
-
     corr_results = pd.DataFrame(index=x1.columns, columns=x2.columns)
     for col2 in x2.columns:
         corr_results.loc[:, col2] = x1.corrwith(x2[col2], method=method)
     return corr_results
-
-

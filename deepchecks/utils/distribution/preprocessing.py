@@ -193,6 +193,7 @@ def preprocess_2_cat_cols_to_same_bins(dist1: Union[np.ndarray, pd.Series], dist
 def value_frequency(x: Union[List, np.ndarray, pd.Series]) -> List[float]:
     """
     Calculate the value frequency of x.
+
     Parameters:
     -----------
     x: Union[List, np.ndarray, pd.Series]
