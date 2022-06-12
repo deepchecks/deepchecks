@@ -11,7 +11,6 @@
 """The vision/dataset module containing the vision Dataset class and its functions."""
 # pylint: disable=protected-access
 import random
-import warnings
 from abc import abstractmethod
 from collections import defaultdict
 from copy import copy
@@ -346,8 +345,8 @@ class VisionData:
         if self._label_map is None:
             return str(class_id)
         elif class_id not in self._label_map:
-            get_logger().warning(f'Class id {class_id} is not in the label map. Add it to map in order to show the class '
-                          f'name instead of id')
+            get_logger().warning('Class id %s is not in the label map. Add it to map '
+                                 'in order to show the class name instead of id', class_id)
             return str(class_id)
         else:
             return self._label_map[class_id]

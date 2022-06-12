@@ -10,7 +10,6 @@
 #
 """Module for base tabular context."""
 import typing as t
-import warnings
 
 import numpy as np
 import pandas as pd

@@ -14,7 +14,6 @@
 
 import enum
 import typing as t
-import warnings
 from numbers import Number
 
 import numpy as np
@@ -139,7 +138,7 @@ class DeepcheckScorer:
             # We expect the perfect score to be equal for all the classes, so takes the first one
             first_score = score[0]
             if any(score != first_score):
-                get_logger().warning(f'Scorer {self.name} return different perfect score for differect classes')
+                get_logger().warning('Scorer %s return different perfect score for differect classes', self.name)
             return first_score
         return score
 

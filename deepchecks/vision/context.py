@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module for base vision context."""
-import warnings
 from typing import Dict, List, Mapping, Union
 
 import torch
@@ -87,7 +86,7 @@ class Context:
             self._static_predictions = None
             if not isinstance(model, nn.Module):
                 get_logger().warning('Deepchecks can\'t validate that model is in evaluation state.'
-                                    ' Make sure it is to avoid unexpected behavior.')
+                                     ' Make sure it is to avoid unexpected behavior.')
             elif model.training:
                 raise DatasetValidationError('Model is not in evaluation state. Please set model training '
                                              'parameter to False or run model.eval() before passing it.')

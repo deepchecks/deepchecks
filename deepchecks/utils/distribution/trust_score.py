@@ -28,7 +28,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 # pylint: disable=invalid-name
-import warnings
 from typing import Tuple
 
 import numpy as np
@@ -138,8 +137,8 @@ class TrustScore:
             Target labels, either one-hot encoded or the actual class label.
         """
         if len(X.shape) > 2:
-            get_logger().warning(f'Reshaping data from {X.shape} to {X.reshape(X.shape[0], -1).shape}'
-                                 ' so k-d trees can be built.')
+            get_logger().warning('Reshaping data from %s to %s so k-d trees can be built.',
+                                 X.shape, X.reshape(X.shape[0], -1).shape)
             X = X.reshape(X.shape[0], -1)
 
         # make sure Y represents predicted classes, not one-hot encodings
@@ -169,9 +168,9 @@ class TrustScore:
             no_x_fit = len(X_fit) == 0
             if no_x_fit or len(X[np.where(Y == c)[0]]) == 0:
                 if no_x_fit and len(X[np.where(Y == c)[0]]) == 0:
-                    get_logger().warning(f'No instances available for class {c}')
+                    get_logger().warning('No instances available for class %s', c)
                 elif no_x_fit:
-                    get_logger().warning(f'Filtered all the instances for class {c}. Lower alpha or check data.')
+                    get_logger().warning('Filtered all the instances for class %s. Lower alpha or check data.', c)
             else:
                 self.kdtrees[c] = KDTree(X_fit, leaf_size=self.leaf_size,
                                          metric=self.metric)  # build KDTree for class c

@@ -15,7 +15,6 @@
 
 import time
 import typing as t
-import warnings
 from functools import lru_cache
 
 import numpy as np
@@ -101,7 +100,7 @@ def calculate_feature_importance_or_none(
         # ModelValidationError:
         #     if wrong type of model was provided;
         #     if function failed to predict on model;
-        get_logger().warning(f'Features importance was not calculated:\n{str(error)}')
+        get_logger().warning('Features importance was not calculated:\n%s', error)
         return None, None
 
 
@@ -174,10 +173,10 @@ def calculate_feature_importance(
     # If there was no permutation failure and no importance on the model, using permutation anyway
     if importance is None and permutation_failure is None and isinstance(dataset, tabular.Dataset):
         if isinstance(model, Pipeline):
-            pre_text = 'Cannot use model\'s built-in feature importance on a Scikit-learn Pipeline, '
+            pre_text = 'Cannot use model\'s built-in feature importance on a Scikit-learn Pipeline,'
         else:
-            pre_text = 'Could not find built-in feature importance on the model, '
-        get_logger().warning(pre_text + 'using permutation feature importance calculation instead')
+            pre_text = 'Could not find built-in feature importance on the model,'
+        get_logger().warning('%s using permutation feature importance calculation instead', pre_text)
 
         importance = _calc_permutation_importance(model, dataset, **permutation_kwargs)
         calc_type = 'permutation_importance'
@@ -285,10 +284,11 @@ def _calc_permutation_importance(
                 f'Skipping permutation importance calculation: calculation was projected to finish in '
                 f'{predicted_time_to_run} seconds, but timeout was configured to {timeout} seconds')
         else:
-            print(f'Calculating permutation feature importance. Expected to finish in {predicted_time_to_run} seconds')
+            get_logger().info('Calculating permutation feature importance. Expected to finish in %s seconds',
+                              predicted_time_to_run)
     else:
-        get_logger().warning(f'Calculating permutation feature importance without time limit. Expected to finish in '
-                             f'{predicted_time_to_run} seconds')
+        get_logger().warning('Calculating permutation feature importance without time limit. Expected to finish in '
+                             '%s seconds', predicted_time_to_run)
 
     r = permutation_importance(
         model,

@@ -11,7 +11,6 @@
 """The dataset module containing the tabular Dataset class and its functions."""
 # pylint: disable=inconsistent-quotes,protected-access
 import typing as t
-import warnings
 from functools import lru_cache
 
 import numpy as np
