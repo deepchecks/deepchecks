@@ -59,5 +59,6 @@ check.run(ds)
 
 check = FeatureFeatureCorrelation()
 check.add_condition_max_number_of_pairs_above(0.8, 3)
-
+result = check.run(ds)
+result.show(show_additional_outputs=False)
 
