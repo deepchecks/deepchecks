@@ -148,7 +148,7 @@ def generalized_corrwith(x1: pd.DataFrame, x2: pd.DataFrame, method: t.Callable)
     Returns
     -------
     DataFrame
-        Pairwise correlations.
+        Pairwise correlations, the index match the columns of x1 and the columns match the columns of x2.
     """
     corr_results = x2.apply(lambda col: x1.corrwith(col, method=method))
     return corr_results
