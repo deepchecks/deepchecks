@@ -62,3 +62,4 @@ def test_cat_cols_to_bins_with_max_num_categories_and_sort_by_raises():
 
 def test_value_frequency():
     assert_that(value_frequency(np.array([1, 1, 1, 2, 2, 1, 3, 3, 3, 0])), equal_to([0.4, 0.2, 0.3, 0.1]))
+    assert_that(value_frequency([1, np.NAN, 1,  1, 3, np.NAN, 3, 0]), equal_to([0.375, 0.25, 0.25, 0.125]))

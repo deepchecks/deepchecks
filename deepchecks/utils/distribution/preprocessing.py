@@ -197,11 +197,11 @@ def value_frequency(x: Union[List, np.ndarray, pd.Series]) -> List[float]:
     Parameters:
     -----------
     x: Union[List, np.ndarray, pd.Series]
-        A sequence of a categorical variable values without nulls
+        A sequence of a categorical variable values.
     Returns:
     --------
     List[float]
-        Representing the value frequency of x
+        Representing the value frequency of x.
     """
     x_values_counter = Counter(x)
     total_occurrences = len(x)
