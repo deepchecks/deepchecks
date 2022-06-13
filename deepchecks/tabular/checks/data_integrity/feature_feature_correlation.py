@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""module contains  Feature-Feature Correlation check."""
+"""module contains the Feature-Feature Correlation check."""
 
 import pandas as pd
 import plotly.express as px
