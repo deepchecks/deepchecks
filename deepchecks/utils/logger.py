@@ -23,10 +23,10 @@ def get_logger() -> logging.Logger:
 
 
 def get_verbosity() -> int:
-    """Return the deepchecks logger verbosity level. Control the package wide log level and tqdm."""
+    """Return the deepchecks logger verbosity level."""
     return _logger.getEffectiveLevel()
 
 
 def set_verbosity(level: int):
-    """Sets the deepchecks logger verbosity level."""
+    """Sets the deepchecks logger verbosity level. Control the package wide log level and the progrees bars."""
     _logger.setLevel(level)

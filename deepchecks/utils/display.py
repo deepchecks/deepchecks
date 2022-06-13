@@ -36,7 +36,7 @@ def display_in_gui(result):
         missing = required - installed
         if missing:
             get_logger().warning('Missing packages in order to display result in GUI. either run "pip install %s"'
-                                 ' or use "result.save_as_html()" to save result', {" ".join(missing)})
+                                 ' or use "result.save_as_html()" to save result', {' '.join(missing)})
             return
         from PyQt5.QtWebEngineWidgets import QWebEngineView  # pylint: disable=import-outside-toplevel
         from PyQt5.QtWidgets import QApplication  # pylint: disable=import-outside-toplevel
