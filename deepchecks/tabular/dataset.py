@@ -82,7 +82,7 @@ class Dataset:
         categorical feature.
     max_categories : int , default: None
         The maximum number of categories in a column in order for it to be inferred as a categorical
-        feature. if None, use build in inference mechanism based on column type.
+        feature. if None, uses is_categorical default inference mechanism.
     label_type : str , default: None
         Used to assume target model type if not found on model. Values ('regression', 'binary', 'multiclass')
         If None then label type is inferred from label using is_categorical logic.
@@ -278,8 +278,8 @@ class Dataset:
             try:
                 self._label_type = ModelType(label_type)
             except ValueError:
-                warnings.warn(f'Label type {label_type} is not valid auto inferring label type.'
-                              f' Possible values are regression, binary or multiclass')
+                warnings.warn(f'Label type {label_type} is not valid, auto inferring label type.'
+                              f' Possible values are regression, binary or multiclass.')
         if self._label_name and not hasattr(self, "label_type"):
             self._label_type = self._infer_label_type(self.data[self._label_name])
         elif not hasattr(self, "label_type"):

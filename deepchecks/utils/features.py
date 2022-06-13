@@ -497,8 +497,8 @@ def is_categorical(
     """
     n_samples = len(column.dropna())
     if n_samples == 0:
-        warnings.warn(f'column {column.name} only contains NaN values, is auto inferred as categorical')
-        return True
+        warnings.warn(f'Column {column.name} only contains NaN values.')
+        return False
 
     n_samples = np.max([n_samples, 1000])
     n_unique = column.nunique(dropna=True)
