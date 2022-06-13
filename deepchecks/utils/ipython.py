@@ -200,7 +200,7 @@ def create_progress_bar(
 
     barlen = iterlen if iterlen > 5 else 5
 
-    is_disabled = get_verbosity >= logging.WARNING
+    is_disabled = get_verbosity() >= logging.WARNING
 
     if is_zmq_interactive_shell() and is_widgets_enabled():
         return tqdm_notebook(

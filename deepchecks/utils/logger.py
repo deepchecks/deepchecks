@@ -18,15 +18,15 @@ _logger.addHandler(logging.StreamHandler())  # for some reason kaggle needs it
 
 
 def get_logger() -> logging.Logger:
-    '''Retutn the deepchecks logger'''
+    """Retutn the deepchecks logger"""
     return _logger
 
 
 def get_verbosity() -> int:
-    '''Return the deepchecks logger verbosity level.'''
+    """Return the deepchecks logger verbosity level. Control the package wide log level and tqdm."""
     return _logger.getEffectiveLevel()
 
 
 def set_verbosity(level: int):
-    '''Sets the deepchecks logger verbosity level.'''
+    """Sets the deepchecks logger verbosity level."""
     _logger.setLevel(level)
