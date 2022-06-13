@@ -25,7 +25,7 @@ from plotly.basedatatypes import BaseFigure
 
 from deepchecks.core.checks import ReduceMixin
 from deepchecks.core.condition import ConditionCategory, ConditionResult
-from deepchecks.core.display import DisplayableResult, DisplayStrategy, save_as_html
+from deepchecks.core.display import DisplayableResult, save_as_html
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.serialization.check_failure.html import CheckFailureSerializer as CheckFailureHtmlSerializer
 from deepchecks.core.serialization.check_failure.ipython import CheckFailureSerializer as CheckFailureIPythonSerializer
@@ -199,6 +199,18 @@ class CheckResult(BaseCheckResult, DisplayableResult):
         if isinstance(self.check, ReduceMixin):
             return self.check.reduce_output(self)
         raise DeepchecksValueError('Check needs to be an instance of ReduceMixin to use this function')
+    
+    @property
+    def widget_serializer(self) -> CheckResultWidgetSerializer:
+        return CheckResultWidgetSerializer(self)
+    
+    @property
+    def ipython_serializer(self) -> CheckResultIPythonSerializer:
+        return CheckResultIPythonSerializer(self)
+    
+    @property
+    def html_serializer(self) -> CheckResultHtmlSerializer:
+        return CheckResultHtmlSerializer(self)
 
     def display_check(
         self,
@@ -218,16 +230,16 @@ class CheckResult(BaseCheckResult, DisplayableResult):
         show_additional_outputs : bool
             Boolean that controls if to show additional outputs.
         """
-        DisplayStrategy(
-            self,
-            CheckResultWidgetSerializer,
-            CheckResultIPythonSerializer
-        ).display(
-            as_widget=as_widget,
-            check_sections=detalize_additional_output(show_additional_outputs),
-            output_id=unique_id,
-            **kwargs
-        )
+        # DisplayStrategy(
+        #     self,
+        #     CheckResultWidgetSerializer,
+        #     CheckResultIPythonSerializer
+        # ).display(
+        #     as_widget=as_widget,
+        #     check_sections=detalize_additional_output(show_additional_outputs),
+        #     output_id=unique_id,
+        #     **kwargs
+        # )
 
     def save_as_html(
         self,
@@ -266,43 +278,43 @@ class CheckResult(BaseCheckResult, DisplayableResult):
             check_sections = check_sections
         )
 
-    def show(
-        self,
-        as_widget: bool = True,
-        show_additional_outputs: bool = True,
-        unique_id: Optional[str] = None,
-        **kwargs
-    ):
-        """Display the check result.
+    # def show(
+    #     self,
+    #     as_widget: bool = True,
+    #     show_additional_outputs: bool = True,
+    #     unique_id: Optional[str] = None,
+    #     **kwargs
+    # ):
+    #     """Display the check result.
 
-        Parameters
-        ----------
-        show_additional_outputs : bool
-            Boolean that controls if to show additional outputs.
-        unique_id : str
-            The unique id given by the suite that displays the check.
-        """
-        if 'sphinx_gallery' in pio.renderers.default:
-            # TODO: why we need this?
-            html = widget_to_html_string(
-                self.to_widget(
-                    unique_id=unique_id,
-                    show_additional_outputs=show_additional_outputs
-                ),
-                title=self.get_header(),
-                requirejs=True
-            )
-            class TempSphinx:
-                def _repr_html_(self):
-                    return html
-            return TempSphinx()
+    #     Parameters
+    #     ----------
+    #     show_additional_outputs : bool
+    #         Boolean that controls if to show additional outputs.
+    #     unique_id : str
+    #         The unique id given by the suite that displays the check.
+    #     """
+    #     if 'sphinx_gallery' in pio.renderers.default:
+    #         # TODO: why we need this?
+    #         html = widget_to_html_string(
+    #             self.to_widget(
+    #                 unique_id=unique_id,
+    #                 show_additional_outputs=show_additional_outputs
+    #             ),
+    #             title=self.get_header(),
+    #             requirejs=True
+    #         )
+    #         class TempSphinx:
+    #             def _repr_html_(self):
+    #                 return html
+    #         return TempSphinx()
 
-        self.display_check(
-            as_widget=as_widget,
-            unique_id=unique_id,
-            show_additional_outputs=show_additional_outputs,
-            **kwargs
-        )
+    #     self.display_check(
+    #         as_widget=as_widget,
+    #         unique_id=unique_id,
+    #         show_additional_outputs=show_additional_outputs,
+    #         **kwargs
+    #     )
 
     def to_widget(
         self,
@@ -426,17 +438,17 @@ class CheckResult(BaseCheckResult, DisplayableResult):
             'application/json': self._repr_json_()
         }
 
-    def _ipython_display_(
-        self,
-        unique_id: Optional[str] = None,
-        as_widget: bool = True,
-        show_additional_outputs: bool = True
-    ):
-        self.display_check(
-            unique_id=unique_id,
-            as_widget=as_widget,
-            show_additional_outputs=show_additional_outputs
-        )
+    # def _ipython_display_(
+    #     self,
+    #     unique_id: Optional[str] = None,
+    #     as_widget: bool = True,
+    #     show_additional_outputs: bool = True
+    # ):
+    #     self.display_check(
+    #         unique_id=unique_id,
+    #         as_widget=as_widget,
+    #         show_additional_outputs=show_additional_outputs
+    #     )
 
 
 class CheckFailure(BaseCheckResult, DisplayableResult):
@@ -459,6 +471,18 @@ class CheckFailure(BaseCheckResult, DisplayableResult):
         self.check = check
         self.exception = exception
         self.header = check.name() + header_suffix
+    
+    @property
+    def widget_serializer(self) -> CheckFailureWidgetSerializer:
+        return CheckFailureWidgetSerializer(self)
+    
+    @property
+    def ipython_serializer(self) -> CheckFailureIPythonSerializer:
+        return CheckFailureIPythonSerializer(self)
+    
+    @property
+    def html_serializer(self) -> CheckFailureHtmlSerializer:
+        return CheckFailureHtmlSerializer(self)
 
     def display_check(self, as_widget: bool = True, **kwargs):
         """Display the check failure or return the display as widget.
@@ -468,14 +492,14 @@ class CheckFailure(BaseCheckResult, DisplayableResult):
         as_widget : bool
             Boolean that controls if to display the check regulary or if to return a widget.
         """
-        DisplayStrategy(
-            self,
-            CheckFailureWidgetSerializer,
-            CheckFailureIPythonSerializer
-        ).display(
-            as_widget=as_widget,
-            **kwargs
-        )
+        # DisplayStrategy(
+        #     self,
+        #     CheckFailureWidgetSerializer,
+        #     CheckFailureIPythonSerializer
+        # ).display(
+        #     as_widget=as_widget,
+        #     **kwargs
+        # )
 
     def save_as_html(
         self,
@@ -507,25 +531,25 @@ class CheckFailure(BaseCheckResult, DisplayableResult):
             requirejs=requirejs,
         )
 
-    def show(
-        self,
-        as_widget: bool = True,
-        **kwargs
-    ):
-        """Display the check failure."""
-        if 'sphinx_gallery' in pio.renderers.default:
-            # TODO: why we need this?
-            html = widget_to_html_string(
-                self.to_widget(),
-                title=self.get_header(),
-                requirejs=True
-            )
-            class TempSphinx:
-                def _repr_html_(self):
-                    return html
-            return TempSphinx()
+    # def show(
+    #     self,
+    #     as_widget: bool = True,
+    #     **kwargs
+    # ):
+    #     """Display the check failure."""
+    #     if 'sphinx_gallery' in pio.renderers.default:
+    #         # TODO: why we need this?
+    #         html = widget_to_html_string(
+    #             self.to_widget(),
+    #             title=self.get_header(),
+    #             requirejs=True
+    #         )
+    #         class TempSphinx:
+    #             def _repr_html_(self):
+    #                 return html
+    #         return TempSphinx()
 
-        self.display_check(as_widget=as_widget, **kwargs)
+    #     self.display_check(as_widget=as_widget, **kwargs)
 
     def to_widget(self, **kwargs) -> Widget:
         """Return CheckFailure as a ipywidgets.Widget instance."""
@@ -615,9 +639,9 @@ class CheckFailure(BaseCheckResult, DisplayableResult):
             'application/json': self._repr_json_()
         }
 
-    def _ipython_display_(self):
-        """Display the check failure."""
-        self.display_check()
+    # def _ipython_display_(self):
+    #     """Display the check failure."""
+    #     self.display_check()
 
     def print_traceback(self):
         """Print the traceback of the failure."""

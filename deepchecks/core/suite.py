@@ -21,7 +21,7 @@ from ipywidgets import Widget
 
 from deepchecks.core import check_result as check_types
 from deepchecks.core.checks import BaseCheck
-from deepchecks.core.display import DisplayableResult, DisplayStrategy, save_as_html
+from deepchecks.core.display import DisplayableResult, save_as_html
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.serialization.suite_result.html import SuiteResultSerializer as SuiteResultHtmlSerializer
 from deepchecks.core.serialization.suite_result.ipython import SuiteResultSerializer as SuiteResultIPythonSerializer
@@ -118,35 +118,47 @@ class SuiteResult(DisplayableResult):
             'text/html': self._repr_html_(),
             'application/json': self._repr_json_()
         }
+    
+    @property
+    def widget_serializer(self) -> SuiteResultWidgetSerializer:
+        return SuiteResultWidgetSerializer(self)
+    
+    @property
+    def ipython_serializer(self) -> SuiteResultIPythonSerializer:
+        return SuiteResultIPythonSerializer(self)
+    
+    @property
+    def html_serializer(self) -> SuiteResultHtmlSerializer:
+        return SuiteResultHtmlSerializer(self)
 
-    def _ipython_display_(
-        self,
-        as_widget: bool = True,
-        unique_id: Optional[str] = None,
-        **kwargs
-    ):
-        DisplayStrategy(
-            self,
-            SuiteResultWidgetSerializer,
-            SuiteResultIPythonSerializer
-        ).display(
-            as_widget=as_widget,
-            output_id=unique_id or get_random_string(n=25),
-            **kwargs
-        )
+    # def _ipython_display_(
+    #     self,
+    #     as_widget: bool = True,
+    #     unique_id: Optional[str] = None,
+    #     **kwargs
+    # ):
+    #     DisplayStrategy(
+    #         self,
+    #         SuiteResultWidgetSerializer,
+    #         SuiteResultIPythonSerializer
+    #     ).display(
+    #         as_widget=as_widget,
+    #         output_id=unique_id or get_random_string(n=25),
+    #         **kwargs
+    #     )
 
-    def show(
-        self,
-        as_widget: bool = True,
-        unique_id: Optional[str] = None,
-        **kwargs
-    ):
-        """Display suite result."""
-        self._ipython_display_(
-            as_widget=as_widget,
-            unique_id=unique_id,
-            **kwargs
-        )
+    # def show(
+    #     self,
+    #     as_widget: bool = True,
+    #     unique_id: Optional[str] = None,
+    #     **kwargs
+    # ):
+    #     """Display suite result."""
+    #     self._ipython_display_(
+    #         as_widget=as_widget,
+    #         unique_id=unique_id,
+    #         **kwargs
+    #     )
 
     def save_as_html(
         self,
