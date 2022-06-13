@@ -22,7 +22,6 @@ def test_drift_with_model(drifted_data_and_model):
 
     # Act
     result = check.run(train, test, model)
-    print(result.value)
     # Assert
     assert_that(result.value, has_entries({
         'numeric_without_drift': has_entries(
