@@ -38,6 +38,7 @@ from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksBaseError
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
+from deepchecks.tabular.datasets.classification import adult
 
 from .vision.vision_conftest import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
@@ -526,6 +527,7 @@ def drifted_regression_label() -> Tuple[Dataset, Dataset]:
 
     return train_ds, test_ds
 
+
 @pytest.fixture(scope='session')
 def simple_custom_plt_check():
     class DatasetSizeComparison(TrainTestCheck):
@@ -549,3 +551,9 @@ def simple_custom_plt_check():
 
             return CheckResult(sizes, display=[sizes_df_for_display, graph_display])
     return DatasetSizeComparison()
+
+
+@pytest.fixture(scope='session')
+def adult_no_split():
+    ds = adult.load_data(as_train_test=False)
+    return ds

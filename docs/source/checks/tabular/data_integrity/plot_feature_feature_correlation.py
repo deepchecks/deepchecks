@@ -16,7 +16,7 @@ highly correlated.
 
 How are The Correlations Calculated?
 ============================
-This check works with 2 types of features: categorical and numerical, and used a different method to calculate the
+This check works with 2 types of features: categorical and numerical, and uses a different method to calculate the
 correlation for each combination of feature types:
 
 1. numerical-numerical: `Pearson's correlation coefficient <https://en.wikipedia.org/wiki/Pearson_correlation_coefficient>`__

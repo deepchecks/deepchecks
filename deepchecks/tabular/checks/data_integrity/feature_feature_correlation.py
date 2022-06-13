@@ -52,23 +52,23 @@ class FeatureFeatureCorrelation(SingleDatasetCheck):
 
         encoded_cat_data = dataset.data.loc[:, cat_features].apply(lambda x: pd.factorize(x)[0])
 
-        # Numerical-numerical correlations
-        num_num_corr = dataset.data.loc[:, num_features].corr(method='spearman')
-
-        # Numerical-categorical correlations
-        num_cat_corr = generalized_corrwith(dataset.data.loc[:, num_features], encoded_cat_data,
-                                            method=correlation_ratio)
-
-        # Categorical-categorical correlations
-        cat_cat_corr = encoded_cat_data.corr(method=symmetric_theil_u_correlation)
-
-        # Compose results from all the features
         all_features = num_features + cat_features
         full_df = pd.DataFrame(index=all_features, columns=all_features)
-        full_df.loc[num_features, num_features] = num_num_corr
-        full_df.loc[cat_features, cat_features] = cat_cat_corr
-        full_df.loc[num_features, cat_features] = num_cat_corr
-        full_df.loc[cat_features, num_features] = num_cat_corr.transpose()
+
+        # Numerical-numerical correlations
+        if num_features:
+            full_df.loc[num_features, num_features] = dataset.data.loc[:, num_features].corr(method='spearman')
+
+        # Categorical-categorical correlations
+        if cat_features:
+            full_df.loc[cat_features, cat_features] = encoded_cat_data.corr(method=symmetric_theil_u_correlation)
+
+        # Numerical-categorical correlations
+        if num_features and cat_features:
+            num_cat_corr = generalized_corrwith(dataset.data.loc[:, num_features], encoded_cat_data,
+                                                method=correlation_ratio)
+            full_df.loc[num_features, cat_features] = num_cat_corr
+            full_df.loc[cat_features, num_features] = num_cat_corr.transpose()
 
         # Display
         fig = px.imshow(full_df)
