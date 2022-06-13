@@ -48,6 +48,9 @@ class SuiteResultSerializer(JsonSerializer['suite.SuiteResult']):
         with_display : bool, default True
             whether to include serialized `CheckResult.display` items into
             the output or not
+        **kwargs :
+            all other key-value arguments will be passed to the CheckResult/CheckFailure
+            serializers
 
         Returns
         -------

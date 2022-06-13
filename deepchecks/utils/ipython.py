@@ -661,110 +661,10 @@ def get_nbclassic_extensions(merge: bool = True) -> t.Optional[t.Mapping[str, t.
     )
 
 
-_WARNING_MESSAGE = (
-    '"Deepchecks" library was not able to identify whether '
-    'the use of interactive output is possible in the current '
-    'context or not, but decided to use it to show results '
-    'anyway. Therefore, if you encounter any problems with '
-    'interactive check/suite output, try to use instead '
-    'non-interactive check/suite results output, it can be '
-    'done in the next way:\n\n'
-    '>>> result = Check().run(...) # or Suite().run(...)\n'
-    '>>> result.show(as_widget=False)'
-)
-
-
-_WARNING_MESSAGE = (
-    '"Deepchecks" library was not able to determine whether '
-    'the use of ipywidgets is possible in the current '
-    'context or not, but decided to use it to show results '
-    'anyway. Therefore, if you encounter any problems with '
-    'check/suite output, try to display check/suite '
-    'results without ipywidgets, it can be done in the next way:\n\n'
-    '>>> result = Check().run(...) # or Suite().run(...)\n'
-    '>>> result.show(as_widget=False)'
-)
-
-
-_EXTENSION_WARNING = (
-    '"{extension}" extension is not installed/enabled, '
-    'interactive check/suite output will not work for you{additional}. '
-    'In order to enable extension run next command "{enable_cmd}". '
-    'In order to install extension follow next instructions:\n{install_instructions}'
-)
-
-
-@lru_cache(maxsize=None)
-def _jupyterlab_widgets_warning(**kwargs):
-    warnings.filterwarnings(
-        action='once',
-        message=r'"@jupyter-widgets/jupyterlab-manager" extension is not installed/enabled.*',
-    )
-    warning_kwargs = dict(
-        extension='@jupyter-widgets/jupyterlab-manager',
-        enable_cmd='jupyter labextension enable @jupyter-widgets/jupyterlab-manager',
-        # TODO:
-        # I did not find any good instruction on internet
-        # probably better to write our own instruction for this
-        install_instructions=(
-            '+ https://pypi.org/project/jupyterlab-widgets/\n'
-            '+ https://jupyterlab.readthedocs.io/en/stable/user/extensions.html#installing-extensions\n'
-        )
-    )
-    warning_kwargs.update(**kwargs)
-    return _EXTENSION_WARNING.format(**warning_kwargs)
-
-
-# @lru_cache(maxsize=None)
-# def _jupyterlab_plotly_warning(**kwargs):
-#     warnings.filterwarnings(
-#         action='once',
-#         message=r'"jupyterlab-plotly" extension is not installed/enabled.*',
-#     )
-#     warning_kwargs = dict(
-#         extension='jupyterlab-plotly',
-#         enable_cmd='jupyter labextension enable jupyterlab-plotly',
-#         # TODO:
-#         # I did not find any good instruction on internet
-#         # probably better to write our own instruction for this
-#         install_instructions=(
-#             '+ https://jupyterlab.readthedocs.io/en/stable/user/extensions.html#installing-extensions\n'
-#         )
-#     )
-#     warning_kwargs.update(**kwargs)
-#     return _EXTENSION_WARNING.format(**warning_kwargs)
-
-
-@lru_cache(maxsize=None)
-def _nbclassic_widgets_warning(**kwargs):
-    warnings.filterwarnings(
-        action='once',
-        message=r'"jupyter-js-widgets" extension is not installed/enabled.*',
-    )
-    warning_kwargs = dict(
-        extension='jupyter-js-widgets',
-        enable_cmd='jupyter nbextension enable jupyter-js-widgets/extension',
-        # TODO:
-        # I did not find any good instruction on internet
-        # probably better to write our own instruction for this
-        install_instructions='+ https://pypi.org/project/jupyter-js-widgets-nbextension/\n'
-    )
-    warning_kwargs.update(**kwargs)
-    return _EXTENSION_WARNING.format(**warning_kwargs)
-
-
 def is_widgets_enabled() -> bool:
     nbext = is_nbclassic_extension_enabled('jupyter-js-widgets')
-    labext = is_jupyterlab_extension_enabled('@jupyter-widgets/jupyterlab-manager')
-    condition = (nbext, labext)
-
-    if all(condition):
-        return True
-    elif any(condition):
-        warnings.warn(_WARNING_MESSAGE)
-        return True
-    else:
-        return False
+    labext = t.cast(bool, is_jupyterlab_extension_enabled('@jupyter-widgets/jupyterlab-manager'))
+    return nbext or labext
 
 
 # def is_widgets_enabled() -> bool:
@@ -798,61 +698,6 @@ def is_widgets_enabled() -> bool:
 #             warnings.warn(_jupyterlab_widgets_warning(**jupyterlab_warnings_kwargs))
 
 #         condition.append(is_extension_enabled)
-
-#     if is_nbclassic_enabled:
-#         is_extension_enabled = is_nbclassic_extension_enabled('jupyter-js-widgets')
-
-#         if is_extension_enabled is False:
-#             warnings.warn(_nbclassic_widgets_warning(**nbclassic_warnings_kwargs))
-
-#         condition.append(is_extension_enabled)
-
-#     if len(condition) > 0 and all(condition):
-#         return True
-#     elif any(condition):
-#         warnings.warn(_WARNING_MESSAGE)
-#         return True
-#     else:
-#         return False
-
-
-# def is_interactive_output_use_possible() -> bool:
-#     """Find out whether the use of interactive outputs is possible within jupyter.
-
-#     Interactive output could be used when:
-#     + only nbclassic is enabled and nbclassic-widgets extension is installed/enabled
-#     + only jupyterlab is enabled and both jupyterlab-widgets and jupyterlab-plotly
-#       extensions are installed/enabled
-#     + both nbclassic and jupyterlab are enabled plus nbclassic-widgets, jupyterlab-widgets
-#       and jupyterlab-plotly extensions are installed/enabled
-
-#     Notes:
-#     - when nbclassic and jupyterlab are both enabled we are not able to determine which
-#       exacly UI is used by the user.
-#     """
-#     is_jupyterlab_enabled = is_jupyter_server_extension_enabled('jupyterlab')
-#     is_nbclassic_enabled = is_jupyter_server_extension_enabled('nbclassic')
-
-#     jupyterlab_warnings_kwargs = {'additional': ''}
-#     nbclassic_warnings_kwargs = {'additional': ''}
-#     condition = []
-
-#     if is_jupyterlab_enabled and is_nbclassic_enabled:
-#         jupyterlab_warnings_kwargs['additional'] = ' if you use "Jupyter Lab"'
-#         nbclassic_warnings_kwargs['additional'] = ' if you use "Classical Notebooks"'
-
-#     if is_jupyterlab_enabled:
-#         is_plotly_enabled = is_jupyterlab_extension_enabled('jupyterlab-plotly')
-#         is_widgets_enabled = is_jupyterlab_extension_enabled(  # pylint: disable=redefined-outer-name
-#             '@jupyter-widgets/jupyterlab-manager'
-#         )
-
-#         if is_plotly_enabled is False:
-#             warnings.warn(_jupyterlab_plotly_warning(**jupyterlab_warnings_kwargs))
-#         if is_widgets_enabled is False:
-#             warnings.warn(_jupyterlab_widgets_warning(**jupyterlab_warnings_kwargs))
-
-#         condition.append(is_plotly_enabled and is_widgets_enabled)
 
 #     if is_nbclassic_enabled:
 #         is_extension_enabled = is_nbclassic_extension_enabled('jupyter-js-widgets')

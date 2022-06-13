@@ -10,6 +10,7 @@
 #
 """Module with display utility functions."""
 import base64
+import html
 import typing as t
 
 __all__ = ['imagetag']

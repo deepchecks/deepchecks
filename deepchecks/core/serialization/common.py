@@ -110,6 +110,7 @@ def aggregate_conditions(
     include_icon: bool = True,
     include_check_name: bool = False,
     output_id: t.Optional[str] = None,
+    is_for_iframe_with_srcdoc: bool = False
 ) -> pd.DataFrame:
     """Return the conditions table as DataFrame.
 
@@ -125,6 +126,10 @@ def aggregate_conditions(
         whether to include check name into dataframe or not
     output_id : str
         the unique id to append for the check names to create links (won't create links if None/empty).
+    is_for_iframe_with_srcdoc : bool, default False
+        anchor links, in order to work within iframe require additional prefix
+        'about:srcdoc'. This flag tells function whether to add that prefix to
+        the anchor links or not
 
     Returns
     -------
@@ -148,7 +153,11 @@ def aggregate_conditions(
 
             # If there is no display we won't generate a section to link to
             if output_id and check_result.display:
-                link = f'<a href=#{check_result.get_check_id(output_id)}>{check_header}</a>'
+                if is_for_iframe_with_srcdoc:
+                    href = f'about:srcdoc#{check_result.get_check_id(output_id)}'
+                else:
+                    href = f'#{check_result.get_check_id(output_id)}'
+                link = f'<a href="{href}">{check_header}</a>'
             else:
                 link = check_header
                 # if it has no display show on bottom for the category (lower priority)

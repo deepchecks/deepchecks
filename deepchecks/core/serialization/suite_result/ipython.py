@@ -53,6 +53,9 @@ class SuiteResultSerializer(IPythonSerializer['suite.SuiteResult']):
         ----------
         output_id : Optional[str], default None
             unique output identifier that will be used to form anchor links
+        **kwargs :
+            all other key-value arguments will be passed to the CheckResult/CheckFailure
+            serializers
 
         Returns
         -------

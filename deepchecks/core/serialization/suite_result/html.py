@@ -67,6 +67,9 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             whether to include plotlyjs library into output or not
         connected : bool, default True
             whether to use CDN to load js libraries or to inject their code into output
+        **kwargs :
+            all other key-value arguments will be passed to the CheckResult/CheckFailure
+            serializers
 
         Returns
         -------
@@ -242,7 +245,8 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             results,
             output_id=output_id,
             include_check_name=include_check_name,
-            max_info_len=300
+            max_info_len=300,
+            is_for_iframe_with_srcdoc=kwargs.get('is_for_iframe_with_srcdoc', False)
         )).serialize()
 
         return f'<h2>Conditions Summary</h2>{table}'
@@ -325,7 +329,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         content = Html.light_hr.join(results_without_conditions)
         return f'<h2>Check Without Conditions Output</h2>{content}'
 
-    def prepare_failures_list(self) -> str:
+    def prepare_failures_list(self, **kwargs) -> str:
         """Prepare subsection of the content that shows list of failures."""
         results = self.value.select_results(self.value.failures | self.value.results_without_display)
 

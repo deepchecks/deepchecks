@@ -41,6 +41,12 @@ class SuiteResultSerializer(WandbSerializer['suite.SuiteResult']):
     def serialize(self, **kwargs) -> t.Dict[str, 'WBValue']:
         """Serialize a SuiteResult instance into Wandb media format.
 
+        Parameters
+        ----------
+        **kwargs :
+            all key-value arguments will be passed to the CheckResult/CheckFailure
+            serializers
+
         Returns
         -------
         Dict[str, WBValue]
@@ -52,12 +58,12 @@ class SuiteResultSerializer(WandbSerializer['suite.SuiteResult']):
             if isinstance(result, check_types.CheckResult):
                 results.extend([
                     (f'{suite_name}/{k}', v)
-                    for k, v in CheckResultSerializer(result).serialize().items()
+                    for k, v in CheckResultSerializer(result).serialize(**kwargs).items()
                 ])
             elif isinstance(result, check_types.CheckFailure):
                 results.extend([
                     (f'{suite_name}/{k}', v)
-                    for k, v in CheckFailureSerializer(result).serialize().items()
+                    for k, v in CheckFailureSerializer(result).serialize(**kwargs).items()
                 ])
             else:
                 raise TypeError(f'Unknown result type - {type(result)}')

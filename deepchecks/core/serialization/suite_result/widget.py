@@ -57,6 +57,9 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         ----------
         output_id : Optional[str], default None
             unique output identifier that will be used to form anchor links
+        **kwargs :
+            all other key-value arguments will be passed to the CheckResult/CheckFailure
+            serializers
 
         Returns
         -------
@@ -69,7 +72,8 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
 
         tab.children = [
             self.prepare_results_with_condition_and_display(
-                output_id=output_id, **kwargs
+                output_id=output_id,
+                **kwargs
             ),
             self.prepare_results_without_condition(
                 output_id=output_id,
@@ -197,7 +201,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
 
         if len(results_with_condition_and_display) > 0:
             children = (
-                self.prepare_conditions_table(output_id=output_id),
+                self.prepare_conditions_table(output_id=output_id, **kwargs),
                 HTML(value='<h2>Check With Conditions Output</h2>'),
                 *join(results_with_condition_and_display, HTML(value=CommonHtml.light_hr))
             )
