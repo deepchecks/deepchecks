@@ -326,7 +326,7 @@ class Context:
         # assert_task_type makes assertion if task type exists and returns True, else returns False
         # If not task type than check label type
         if (not self.assert_task_type(ModelType.MULTICLASS, ModelType.BINARY) and
-                self.train.label_type == 'regression_label'):
+                self.train.label_type == ModelType.REGRESSION):
             raise ModelValidationError('Check is irrelevant for regressions tasks')
 
     def assert_regression_task(self):
@@ -334,7 +334,7 @@ class Context:
         # assert_task_type makes assertion if task type exists and returns True, else returns False
         # If not task type than check label type
         if (not self.assert_task_type(ModelType.REGRESSION) and
-                self.train.label_type == 'classification_label'):
+                self.train.label_type != ModelType.REGRESSION):
             raise ModelValidationError('Check is irrelevant for classification tasks')
 
     def get_scorers(self, alternative_scorers: t.Mapping[str, t.Union[str, t.Callable]] = None, class_avg=True):

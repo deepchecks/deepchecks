@@ -21,6 +21,7 @@ from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERIC_METHODS,
                                                  calc_drift_and_plot)
+from deepchecks.utils.metrics import ModelType
 
 __all__ = ['TrainTestPredictionDrift']
 
@@ -112,7 +113,7 @@ class TrainTestPredictionDrift(TrainTestCheck):
             train_column=pd.Series(train_prediction.flatten()),
             test_column=pd.Series(test_prediction.flatten()),
             value_name='model predictions',
-            column_type='categorical' if train_dataset.label_type == 'classification_label' else 'numerical',
+            column_type='categorical' if train_dataset.label_type != ModelType.REGRESSION else 'numerical',
             margin_quantile_filter=self.margin_quantile_filter,
             max_num_categories_for_drift=self.max_num_categories_for_drift,
             max_num_categories_for_display=self.max_num_categories_for_display,

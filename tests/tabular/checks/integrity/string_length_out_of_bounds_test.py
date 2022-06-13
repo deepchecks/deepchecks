@@ -23,9 +23,9 @@ def test_no_outliers():
     # Arrange
     col_data = ['a', 'b'] * 100
     data = {'col1': col_data}
-    df = pd.DataFrame(data=data)
+    ds = Dataset(pd.DataFrame(data=data), cat_features=[])
     # Act
-    result = StringLengthOutOfBounds().run(df).value
+    result = StringLengthOutOfBounds().run(ds).value
     # Assert
     assert_that(result, equal_to({'col1': {'outliers': []}}))
 
@@ -35,9 +35,9 @@ def test_single_outlier():
     col_data = ['a', 'b'] * 100
     col_data.append('abcd'*1000)
     data = {'col1': col_data}
-    df = pd.DataFrame(data=data)
+    ds = Dataset(pd.DataFrame(data=data), cat_features=[])
     # Act
-    result = StringLengthOutOfBounds().run(df).value
+    result = StringLengthOutOfBounds().run(ds).value
     # Assert
     assert_that(result, has_entries(col1=has_entry('outliers', has_length(1))))
 
@@ -48,9 +48,9 @@ def test_outlier_skip_categorical_column():
     col_data.append('abcd'*1000)
     data = {'categorical': ['hi']*201,
             'col2': col_data}
-    df = pd.DataFrame(data=data)
+    ds = Dataset(pd.DataFrame(data=data), cat_features=[])
     # Act
-    result = StringLengthOutOfBounds().run(df).value
+    result = StringLengthOutOfBounds().run(ds).value
     # Assert
     assert_that(result, has_entries(col2=has_entry('outliers', has_length(1))))
 
@@ -61,9 +61,9 @@ def test_outlier_multiple_outliers():
     col_data.append('abcdefgh')
     col_data.append('abcdefgh')
     data = {'col1': col_data}
-    df = pd.DataFrame(data=data)
+    ds = Dataset(pd.DataFrame(data=data), cat_features=[])
     # Act
-    result = StringLengthOutOfBounds().run(df).value
+    result = StringLengthOutOfBounds().run(ds).value
     # Assert
     assert_that(result, has_entries(col1=has_entries(outliers=has_length(1))))
 
@@ -74,9 +74,9 @@ def test_outlier_multiple_outlier_ranges():
     col_data.append('a')
     col_data.append('abcdbcdbcdbabcd')
     data = {'col1': col_data}
-    df = pd.DataFrame(data=data)
+    ds = Dataset(pd.DataFrame(data=data), cat_features=[])
     # Act
-    result = StringLengthOutOfBounds().run(df).value
+    result = StringLengthOutOfBounds().run(ds).value
     # Assert
     assert_that(result, has_entries(col1=has_entries(outliers=equal_to(
         [{'range': {'min': 1, 'max': 1}, 'n_samples': 1}, {'range': {'min': 15, 'max': 15}, 'n_samples': 1}]
@@ -109,9 +109,9 @@ def test_nan():
     col_data.append(np.nan)
     col_data.append(np.nan)
     data = {'col1': col_data}
-    df = pd.DataFrame(data=data)
+    ds = Dataset(pd.DataFrame(data=data), cat_features=[])
     # Act
-    result = StringLengthOutOfBounds().run(df).value
+    result = StringLengthOutOfBounds().run(ds).value
     # Assert
     assert_that(result, has_entries(col1=has_entries(outliers=has_length(1), n_samples=202)))
 
@@ -122,12 +122,12 @@ def test_condition_count_fail():
     col_data.append('abcdefg')
     col_data.append('abcdefg')
     data = {'col1': col_data}
-    df = pd.DataFrame(data=data)
+    ds = Dataset(pd.DataFrame(data=data), cat_features=[])
     # Act
     check = StringLengthOutOfBounds().add_condition_number_of_outliers_less_or_equal(1)
 
     # Act
-    result = check.conditions_decision(check.run(df))
+    result = check.conditions_decision(check.run(ds))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
@@ -143,12 +143,12 @@ def test_condition_count_pass():
     col_data.append('abcdefg')
     col_data.append('abcdefg')
     data = {'col1': col_data}
-    df = pd.DataFrame(data=data)
+    ds = Dataset(pd.DataFrame(data=data), cat_features=[])
     # Act
     check = StringLengthOutOfBounds().add_condition_number_of_outliers_less_or_equal(10)
 
     # Act
-    result = check.conditions_decision(check.run(df))
+    result = check.conditions_decision(check.run(ds))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
@@ -163,12 +163,12 @@ def test_condition_ratio_fail():
     col_data.append('abcdefg')
     col_data.append('abcdefg')
     data = {'col1': col_data}
-    df = pd.DataFrame(data=data)
+    ds = Dataset(pd.DataFrame(data=data), cat_features=[])
     # Act
     check = StringLengthOutOfBounds().add_condition_ratio_of_outliers_less_or_equal(0.001)
 
     # Act
-    result = check.conditions_decision(check.run(df))
+    result = check.conditions_decision(check.run(ds))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
@@ -185,12 +185,12 @@ def test_condition_ratio_pass():
     col_data.append('abcdefg')
     col_data.append('abcdefg')
     data = {'col1': col_data}
-    df = pd.DataFrame(data=data)
+    ds = Dataset(pd.DataFrame(data=data), cat_features=[])
     # Act
     check = StringLengthOutOfBounds().add_condition_ratio_of_outliers_less_or_equal(0.1)
 
     # Act
-    result = check.conditions_decision(check.run(df))
+    result = check.conditions_decision(check.run(ds))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
@@ -202,10 +202,10 @@ def test_condition_ratio_pass():
 def test_condition_pass_on_no_outliers():
     # Arrange
     col_data = ['a', 'b'] * 100
-    df = pd.DataFrame(data={'col1': col_data})
+    ds = Dataset(pd.DataFrame(data={'col1': col_data}), cat_features=[])
     check = StringLengthOutOfBounds().add_condition_ratio_of_outliers_less_or_equal(0)
     # Act
-    result = check.run(df)
+    result = check.run(ds)
     # Assert
     assert_that(result.conditions_results, has_items(
         equal_condition_result(is_pass=True,

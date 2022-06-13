@@ -20,6 +20,7 @@ from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS, 
 
 __all__ = ['TrainTestLabelDrift']
 
+from deepchecks.utils.metrics import ModelType
 from deepchecks.utils.strings import format_number
 
 
@@ -104,7 +105,7 @@ class TrainTestLabelDrift(TrainTestCheck):
             train_column=train_dataset.label_col,
             test_column=test_dataset.label_col,
             value_name=train_dataset.label_name,
-            column_type='categorical' if train_dataset.label_type == 'classification_label' else 'numerical',
+            column_type='categorical' if train_dataset.label_type != ModelType.REGRESSION else 'numerical',
             margin_quantile_filter=self.margin_quantile_filter,
             max_num_categories_for_drift=self.max_num_categories_for_drift,
             max_num_categories_for_display=self.max_num_categories_for_display,

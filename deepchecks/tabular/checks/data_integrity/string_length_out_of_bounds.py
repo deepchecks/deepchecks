@@ -20,7 +20,7 @@ from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.tabular.utils.messages import get_condition_passed_message
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df, is_categorical
+from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.utils.strings import format_number, format_percent, is_string_column
 from deepchecks.utils.typing import Hashable
 
@@ -106,10 +106,7 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
 
         for column_name in df.columns:
             column: Series = df[column_name].dropna()
-
-            if not is_string_column(column) or is_categorical(column,
-                                                              max_categorical_ratio=self.min_unique_value_ratio,
-                                                              max_categories=self.min_unique_values):
+            if column_name in dataset.cat_features or not is_string_column(column):
                 continue
 
             results[column_name] = {'outliers': []}

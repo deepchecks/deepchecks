@@ -12,9 +12,9 @@
 
 # TODO: move tabular functionality to the tabular sub-package
 
-import enum
 import typing as t
 import warnings
+from enum import Enum
 from numbers import Number
 
 import numpy as np
@@ -42,7 +42,7 @@ __all__ = [
 ]
 
 
-class ModelType(enum.Enum):
+class ModelType(Enum):
     """Enum containing supported task types."""
 
     REGRESSION = 'regression'
@@ -53,9 +53,8 @@ class ModelType(enum.Enum):
 DEFAULT_BINARY_SCORERS = {
     'Accuracy': 'accuracy',
     'Precision': make_scorer(precision_score, zero_division=0),
-    'Recall':  make_scorer(recall_score, zero_division=0)
+    'Recall': make_scorer(recall_score, zero_division=0)
 }
-
 
 DEFAULT_MULTICLASS_SCORERS = {
     'Accuracy': 'accuracy',
@@ -69,13 +68,11 @@ MULTICLASS_SCORERS_NON_AVERAGE = {
     'Recall': make_scorer(recall_score, average=None, zero_division=0)
 }
 
-
 DEFAULT_REGRESSION_SCORERS = {
     'Neg RMSE': 'neg_root_mean_squared_error',
     'Neg MAE': 'neg_mean_absolute_error',
     'R2': 'r2'
 }
-
 
 DEFAULT_SCORERS_DICT = {
     ModelType.BINARY: DEFAULT_BINARY_SCORERS,
@@ -181,8 +178,8 @@ class DeepcheckScorer:
 
 
 def task_type_check(
-    model: BasicModel,
-    dataset: 'tabular.Dataset'
+        model: BasicModel,
+        dataset: 'tabular.Dataset'
 ) -> ModelType:
     """Check task type (regression, binary, multiclass) according to model object and label column.
 
@@ -199,6 +196,8 @@ def task_type_check(
         TaskType enum corresponding to the model and dataset
     """
     label_col = dataset.label_col
+    if not model:
+        return dataset.label_type
     if isinstance(model, BaseEstimator):
         if not hasattr(model, 'predict_proba'):
             if is_string_column(label_col):
