@@ -12,6 +12,7 @@
 import textwrap
 import typing as t
 
+from plotly.basedatatypes import BaseFigure
 from plotly.io import to_html
 from typing_extensions import Literal
 
@@ -55,6 +56,7 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
         include_requirejs: bool = False,
         include_plotlyjs: bool = True,
         connected: bool = True,
+        plotly_to_image: bool = False,
         **kwargs
     ) -> str:
         """Serialize a CheckResult instance into HTML format.
@@ -74,6 +76,8 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
             whether to include plotlyjs library into output or not
         connected : bool, default True
             whether to use CDN to load js libraries or to inject their code into output
+        plotly_to_image : bool, default False
+            whether to transform Plotly figure instance into static image or not
 
         Returns
         -------
@@ -88,10 +92,15 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
         sections = [self.prepare_header(output_id), self.prepare_summary()]
 
         if 'condition-table' in sections_to_include:
-            sections.append(''.join(self.prepare_conditions_table(output_id=output_id)))
+            sections.append(''.join(self.prepare_conditions_table(
+                output_id=output_id
+            )))
 
         if 'additional-output' in sections_to_include:
-            sections.append(''.join(self.prepare_additional_output(output_id)))
+            sections.append(''.join(self.prepare_additional_output(
+                output_id=output_id,
+                plotly_to_image=plotly_to_image
+            )))
 
         plotlyjs = plotlyjs_script(connected) if include_plotlyjs is True else ''
         requirejs = requirejs_script(connected) if include_requirejs is True else ''
@@ -160,7 +169,8 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
 
     def prepare_additional_output(
         self,
-        output_id: t.Optional[str] = None
+        output_id: t.Optional[str] = None,
+        plotly_to_image: bool = False,
     ) -> t.List[str]:
         """Prepare the display content of the html output.
 
@@ -168,6 +178,8 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
         ----------
         output_id : Optional[str], default None
             unique output identifier that will be used to form anchor links
+        plotly_to_image : bool, default False
+            whether to transform Plotly figure instance into static image or not
 
         Returns
         -------
@@ -175,7 +187,8 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
         """
         return DisplayItemsHandler.handle_display(
             self.value.display,
-            output_id=output_id
+            output_id=output_id,
+            plotly_to_image=plotly_to_image
         )
 
 
@@ -255,8 +268,18 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
         return ''.join(tags)
 
     @classmethod
-    def handle_figure(cls, item, index, **kwargs) -> str:
+    def handle_figure(
+        cls,
+        item: BaseFigure,
+        index: int,
+        plotly_to_image: bool = False,
+        **kwargs
+    ) -> str:
         """Handle plotly figure item."""
+        if plotly_to_image is True:
+            img = item.to_image(format='png', engine='auto')
+            return imagetag(img)
+
         post_script = textwrap.dedent("""
             var gd = document.getElementById('{plot_id}');
             var x = new MutationObserver(function (mutations, observer) {{

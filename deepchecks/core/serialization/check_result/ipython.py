@@ -12,6 +12,7 @@
 import typing as t
 
 from IPython.display import HTML, Image
+from plotly.basedatatypes import BaseFigure
 
 from deepchecks.core import check_result as check_types
 from deepchecks.core.serialization.abc import IPythonFormatter, IPythonSerializer
@@ -43,6 +44,7 @@ class CheckResultSerializer(IPythonSerializer['check_types.CheckResult']):
         self,
         output_id: t.Optional[str] = None,
         check_sections: t.Optional[t.Sequence[html.CheckResultSection]] = None,
+        plotly_to_image: bool = False,
         **kwargs
     ) -> t.List[IPythonFormatter]:
         """Serialize a CheckResult instance into a list of IPython formatters.
@@ -54,6 +56,8 @@ class CheckResultSerializer(IPythonSerializer['check_types.CheckResult']):
         check_sections : Optional[Sequence[Literal['condition-table', 'additional-output']]], default None
             sequence of check result sections to include into the output,
             in case of 'None' all sections will be included
+        plotly_to_image : bool, default False
+            whether to transform Plotly figure instance into static image or not
 
         Returns
         -------
@@ -66,10 +70,15 @@ class CheckResultSerializer(IPythonSerializer['check_types.CheckResult']):
         ]
 
         if 'condition-table' in sections_to_include:
-            sections.append(self.prepare_conditions_table(output_id=output_id))
+            sections.append(self.prepare_conditions_table(
+                output_id=output_id
+            ))
 
         if 'additional-output' in sections_to_include:
-            sections.extend(self.prepare_additional_output(output_id))
+            sections.extend(self.prepare_additional_output(
+                output_id=output_id,
+                plotly_to_image=plotly_to_image
+            ))
 
         return list(flatten(sections))
 
@@ -114,7 +123,8 @@ class CheckResultSerializer(IPythonSerializer['check_types.CheckResult']):
 
     def prepare_additional_output(
         self,
-        output_id: t.Optional[str] = None
+        output_id: t.Optional[str] = None,
+        plotly_to_image: bool = False,
     ) -> t.List[IPythonFormatter]:
         """Prepare the display content.
 
@@ -122,6 +132,8 @@ class CheckResultSerializer(IPythonSerializer['check_types.CheckResult']):
         ----------
         output_id : Optional[str], default None
             unique output identifier that will be used to form anchor links
+        plotly_to_image : bool, default False
+            whether to transform Plotly figure instance into static image or not
 
         Returns
         -------
@@ -129,7 +141,8 @@ class CheckResultSerializer(IPythonSerializer['check_types.CheckResult']):
         """
         return DisplayItemsHandler.handle_display(
             self.value.display,
-            output_id=output_id
+            output_id=output_id,
+            plotly_to_image=plotly_to_image
         )
 
 
@@ -202,6 +215,16 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
         return output
 
     @classmethod
-    def handle_figure(cls, item, index, **kwargs):
+    def handle_figure(
+        cls,
+        item: BaseFigure,
+        index: int,
+        plotly_to_image: bool = False,
+        **kwargs
+    ):
         """Handle plotly figure item."""
-        return item
+        return (
+            item
+            if not plotly_to_image
+            else Image(data=item.to_image(format='png', engine='auto'), format='png')
+        )

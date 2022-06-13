@@ -132,6 +132,7 @@ class SuiteResult(DisplayableResult):
         ).display(
             as_widget=as_widget,
             output_id=unique_id or get_random_string(n=25),
+            **kwargs
         )
 
     def show(
@@ -143,7 +144,8 @@ class SuiteResult(DisplayableResult):
         """Display suite result."""
         self._ipython_display_(
             as_widget=as_widget,
-            unique_id=unique_id
+            unique_id=unique_id,
+            **kwargs
         )
 
     def save_as_html(
@@ -174,6 +176,7 @@ class SuiteResult(DisplayableResult):
             result=self,
             file=file,
             serializer=SuiteResultWidgetSerializer if as_widget else SuiteResultHtmlSerializer,
+            # next kwargs will be passed to the serializer.serialize method
             requirejs=requirejs,
             output_id=unique_id or get_random_string(n=25),
         )
@@ -194,9 +197,7 @@ class SuiteResult(DisplayableResult):
         -------
         Widget
         """
-        return SuiteResultWidgetSerializer(self).serialize(
-            output_id=unique_id,
-        )
+        return SuiteResultWidgetSerializer(self).serialize(output_id=unique_id)
 
     def to_json(self, with_display: bool = True, **kwargs):
         """Return check result as json.

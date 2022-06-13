@@ -205,6 +205,7 @@ class CheckResult(BaseCheckResult, DisplayableResult):
         unique_id: Optional[str] = None,
         as_widget: bool = True,
         show_additional_outputs: bool = True,
+        **kwargs
     ):
         """Display the check result or return the display as widget.
 
@@ -224,7 +225,8 @@ class CheckResult(BaseCheckResult, DisplayableResult):
         ).display(
             as_widget=as_widget,
             check_sections=detalize_additional_output(show_additional_outputs),
-            output_id=unique_id
+            output_id=unique_id,
+            **kwargs
         )
 
     def save_as_html(
@@ -298,13 +300,15 @@ class CheckResult(BaseCheckResult, DisplayableResult):
         self.display_check(
             as_widget=as_widget,
             unique_id=unique_id,
-            show_additional_outputs=show_additional_outputs
+            show_additional_outputs=show_additional_outputs,
+            **kwargs
         )
 
     def to_widget(
         self,
         unique_id: Optional[str] = None,
-        show_additional_outputs: bool = True
+        show_additional_outputs: bool = True,
+        **kwargs
     ) -> Widget:
         """Return CheckResult as a ipywidgets.Widget instance.
 
@@ -456,7 +460,7 @@ class CheckFailure(BaseCheckResult, DisplayableResult):
         self.exception = exception
         self.header = check.name() + header_suffix
 
-    def display_check(self, as_widget: bool = True):
+    def display_check(self, as_widget: bool = True, **kwargs):
         """Display the check failure or return the display as widget.
 
         Parameters
@@ -469,7 +473,8 @@ class CheckFailure(BaseCheckResult, DisplayableResult):
             CheckFailureWidgetSerializer,
             CheckFailureIPythonSerializer
         ).display(
-            as_widget=as_widget
+            as_widget=as_widget,
+            **kwargs
         )
 
     def save_as_html(
@@ -520,7 +525,7 @@ class CheckFailure(BaseCheckResult, DisplayableResult):
                     return html
             return TempSphinx()
 
-        self.display_check(as_widget=as_widget)
+        self.display_check(as_widget=as_widget, **kwargs)
 
     def to_widget(self, **kwargs) -> Widget:
         """Return CheckFailure as a ipywidgets.Widget instance."""
