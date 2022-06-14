@@ -422,6 +422,12 @@ class Dataset:
         features = [feat for feat in self._features if feat in new_data.columns]
         cat_features = [feat for feat in self.cat_features if feat in new_data.columns]
         label_name = self._label_name if self._label_name in new_data.columns else None
+        if self._label_type == TaskType.REGRESSION:
+            label_type = 'regression_label'
+        elif self._label_type in [TaskType.BINARY,TaskType.MULTICLASS]:
+            label_type = 'classification_label'
+        else:
+            label_type = None
         index = self._index_name if self._index_name in new_data.columns else None
         date = self._datetime_name if self._datetime_name in new_data.columns else None
 
@@ -431,7 +437,7 @@ class Dataset:
                    index_name=index, set_index_from_dataframe_index=self._set_index_from_dataframe_index,
                    datetime_name=date, set_datetime_from_dataframe_index=self._set_datetime_from_dataframe_index,
                    convert_datetime=self._convert_datetime, max_categorical_ratio=self._max_categorical_ratio,
-                   max_categories=self._max_categories, label_type=self.label_type)
+                   max_categories=self._max_categories, label_type=label_type)
 
     def sample(self: TDataset, n_samples: int, replace: bool = False, random_state: t.Optional[int] = None,
                drop_na_label: bool = False) -> TDataset:
