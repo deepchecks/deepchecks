@@ -10,6 +10,7 @@
 #
 """Represents fixtures for unit testing using pytest."""
 from functools import partialmethod
+import logging
 # Disable this pylint check since we use this convention in pytest fixtures
 #pylint: disable=redefined-outer-name
 from typing import Any, Dict, Optional, Tuple
@@ -38,12 +39,12 @@ from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksBaseError
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
+from deepchecks.utils.logger import set_verbosity
 
 from .vision.vision_conftest import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
-# disable tqdm for tests
-tqdm.__init__ = partialmethod(tqdm.__init__, disable=True)
 
+set_verbosity(logging.WARNING)
 
 def get_expected_results_length(suite: BaseSuite, args: Dict):
     num_single = len([c for c in suite.checks.values() if isinstance(c, SingleDatasetBaseCheck)])
