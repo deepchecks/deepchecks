@@ -31,47 +31,42 @@ from deepchecks.tabular.checks import ColumnsInfo, DataDuplicates, MixedNulls
 from deepchecks.utils.json_utils import from_json
 from tests.common import DummyCheck, create_check_result, create_suite_result
 
-pio.renderers.default = 'json'
 
-
-# display check
-def test_check_run_display(iris_dataset):
+def test_check_result_display():
     # Arrange
-    with patch('deepchecks.core.check_result.is_interactive_output_use_possible', return_value=False):
-        with patch('deepchecks.core.check_result.display') as mock:
-            check_res = ColumnsInfo(n_top_columns=4).run(iris_dataset)
-            assert_that(check_res.display_check(), is_(None))
-            mock.assert_called_once()
+    with patch('deepchecks.core.display.display_html') as mock:
+        result = create_check_result()
+        assert_that(check_res.display_check(), is_(None))
+        mock.assert_called_once()
+        # TODO: would be great to verify also with what parameters it was called
 
 
-def test_check_run_display_as_widget(iris_dataset):
-    with patch('deepchecks.core.check_result.is_interactive_output_use_possible', Mock(return_value=True)):
-        # Arrange
-        check_res = ColumnsInfo(n_top_columns=4).run(iris_dataset)
-        dispaly_box = check_res.display_check(as_widget=True)
-        # Assert
-        assert_that(dispaly_box, instance_of(VBox))
-        assert_that(dispaly_box.children, has_length(4))
+def test_check_result_display_without_ipywidgets():
+    # Arrange
+    with patch('deepchecks.core.display.display_html') as mock:
+        result = create_check_result()
+        assert_that(result.display_check(as_widget=False), is_(None))
+        mock.assert_called_once()
+        # TODO: would be great to verify also with what parameters it was called
 
 
-def test_check_run_display_unique_id(iris_dataset):
-    with patch('deepchecks.core.check_result.is_interactive_output_use_possible', return_value=False):
-        with patch('deepchecks.core.check_result.display') as mock:
-            # Arrange
-            check_res = ColumnsInfo(n_top_columns=4).run(iris_dataset)
-            # Assert
-            assert_that(check_res.display_check(unique_id='qwerty'), is_(None))
-            mock.assert_called_once()
+def test_check_result_serialization_to_widget(iris_dataset):
+    # Arrange
+    result = create_check_result()
+    widget = result.to_widget()
+    # Assert
+    assert_that(widget, instance_of(VBox))
+    assert_that(widget.children, has_length(4))
 
 
-def test_check_run_display_condition(iris_dataset):
-    with patch('deepchecks.core.check_result.is_interactive_output_use_possible', return_value=False):
-        with patch('deepchecks.core.check_result.display') as mock:
-            # Arrange
-            check_res = DataDuplicates().add_condition_ratio_less_or_equal(0).run(iris_dataset)
-            # Assert
-            assert_that(check_res.display_check(unique_id='qwerty'), is_(None))
-            mock.assert_called_once()
+def test_check_result_serialization_to_json(iris_dataset):
+    import json
+    
+    result = ColumnsInfo(n_top_columns=4).run(iris_dataset)
+    serialized_result = result.to_json()
+    
+    assert_that(serialized_result, instance_of(str))
+    json.loads(serialized_result)  # must not faile
 
 
 def test_check_run_display_nothing_to_show(iris_dataset):
@@ -213,8 +208,8 @@ def test_check_result_display_with_enabled_colab_enviroment():
     # Arrange
     result = create_check_result(value=[10, 20, 30])
     # Assert
-    with patch('deepchecks.core.check_result.is_colab_env', Mock(return_value=True)):
-        with patch('deepchecks.core.check_result.display_html') as mock:
+    with patch('deepchecks.core.display.is_colab_env', Mock(return_value=True)):
+        with patch('deepchecks.core.display.display_html') as mock:
             result.display_check(as_widget=True)
             mock.assert_called_once()
 
@@ -223,10 +218,9 @@ def test_check_result_ipython_display():
     # Arrange
     result = create_check_result(value=[10, 20, 30])
     # Assert
-    with patch('deepchecks.core.check_result.is_interactive_output_use_possible', Mock(return_value=True)):
-        with patch('deepchecks.core.check_result.display_html') as mock:
-            result._ipython_display_()
-            mock.assert_called_once()
+    with patch('deepchecks.core.display.display_html') as mock:
+        result._ipython_display_()
+        mock.assert_called_once()
 
 
 def test_check_result_repr_mimebundle():
@@ -321,8 +315,8 @@ def test_check_failure_display_with_enabled_colab_enviroment():
     # Arrange
     failure = CheckFailure(DummyCheck(), Exception('error message'))
     # Assert
-    with patch('deepchecks.core.check_result.is_colab_env', Mock(return_value=True)):
-        with patch('deepchecks.core.check_result.display_html') as mock:
+    with patch('deepchecks.core.display.is_colab_env', Mock(return_value=True)):
+        with patch('deepchecks.core.display.display_html') as mock:
             failure.display_check(as_widget=True)
             mock.assert_called_once()
 
@@ -331,16 +325,16 @@ def test_check_failure_display_with_enabled_widgets():
     # Arrange
     failure = CheckFailure(DummyCheck(), Exception('error message'))
     # Assert
-    with patch('deepchecks.core.check_result.is_interactive_output_use_possible', Mock(return_value=True)):
+    with patch('deepchecks.core.display.display_html', Mock(return_value=True)) as mock:
         w = failure.display_check(as_widget=True)
-        assert_that(w, instance_of(Widget))
+        mock.assert_called_once()
 
 
 def test_check_failure_display():
     # Arrange
     failure = CheckFailure(DummyCheck(), Exception('error message'))
     # Assert
-    with patch('deepchecks.core.check_result.display') as mock:
+    with patch('deepchecks.core.display.display') as mock:
         failure.display_check(as_widget=False)
         mock.assert_called_once()
 
@@ -349,12 +343,10 @@ def test_check_failure_show():
     # Arrange
     failure = CheckFailure(DummyCheck(), Exception('error message'))
 
-    with patch('deepchecks.core.check_result.is_notebook', return_value=True):
-        with patch('deepchecks.core.check_result.is_interactive_output_use_possible', return_value=False):
-            with patch('deepchecks.core.check_result.display') as mock:
-                # Assert
-                assert_that(failure.show(), is_(None))
-                mock.assert_called_once()
+    with patch('deepchecks.core.display.display_html') as mock:
+        # Assert
+        assert_that(failure.show(), is_(None))
+        mock.assert_called_once()
 
 
 def test_check_failure_show_with_sphinx_gallery_env_enabled():
@@ -376,7 +368,7 @@ def test_check_failure_ipython_display():
     # Arrange
     failure = CheckFailure(DummyCheck(), Exception('error message'))
     # Assert
-    with patch('deepchecks.core.check_result.display') as mock:
+    with patch('deepchecks.core.display.display_html') as mock:
         failure._ipython_display_()
         mock.assert_called_once()
 
@@ -471,31 +463,26 @@ def test_suite_result_show():
     # Arrange
     suite_result = create_suite_result()
     # Assert
-    with patch('deepchecks.core.suite.is_notebook', return_value=True):
-        with patch('deepchecks.core.suite.is_interactive_output_use_possible', return_value=False):
-            with patch('deepchecks.core.suite.display') as mock:
-                suite_result.show()
-                mock.assert_called_once()
+    with patch('deepchecks.core.display.display_html') as mock:
+        suite_result.show()
+        mock.assert_called_once()
 
 
 def test_suite_result_ipython_display():
     # Arrange
     suite_result = create_suite_result()
     # Assert
-    with patch('deepchecks.core.suite.is_interactive_output_use_possible', Mock(return_value=True)):
-        with patch('deepchecks.core.suite.display_html') as mock:
-            suite_result._ipython_display_()
-            mock.assert_called_once()
-
+    with patch('deepchecks.core.display.display_html') as mock:
+        suite_result._ipython_display_()
+        mock.assert_called_once()
 
 def test_suite_result_ipython_display_with_as_widget_set_to_false():
     # Arrange
     suite_result = create_suite_result()
     # Assert
-    with patch('deepchecks.core.suite.is_interactive_output_use_possible', Mock(return_value=True)):
-        with patch('deepchecks.core.suite.display') as mock:
-            suite_result._ipython_display_(as_widget=False)
-            mock.assert_called_once()
+    with patch('deepchecks.core.display.display_html') as mock:
+        suite_result._ipython_display_(as_widget=False)
+        mock.assert_called_once()
 
 
 def test_suite_result_ipython_display_with_colab_env_enabled():
