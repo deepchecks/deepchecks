@@ -32,9 +32,8 @@ from deepchecks.vision.vision_data import TaskType
 
 __all__ = ['FeatureLabelCorrelationChange']
 
-pps_url = 'https://docs.deepchecks.com/en/stable/examples/vision/' \
-          'checks/train_test_validation/feature_label_correlation_change' \
-          '.html?utm_source=display_output&utm_medium=referral&utm_campaign=check_link'
+pps_url = 'https://docs.deepchecks.com/en/stable/checks_gallery/vision/' \
+          'train_test_validation/plot_feature_label_correlation_change.html'
 pps_html = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
 
 FLC = TypeVar('FLC', bound='FeatureLabelCorrelationChange')
