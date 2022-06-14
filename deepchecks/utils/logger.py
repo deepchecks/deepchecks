@@ -21,6 +21,7 @@ _formatter = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
 _stream_handler.setFormatter(_formatter)
 _logger.addHandler(_stream_handler)  # for some reason kaggle needs it
 
+
 def get_logger() -> logging.Logger:
     """Retutn the deepchecks logger."""
     return _logger
