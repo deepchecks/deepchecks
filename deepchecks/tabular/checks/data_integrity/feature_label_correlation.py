@@ -25,9 +25,8 @@ __all__ = ['FeatureLabelCorrelation']
 FLC = t.TypeVar('FLC', bound='FeatureLabelCorrelation')
 
 
-pps_url = 'https://docs.deepchecks.com/en/stable/examples/tabular/' \
-          'checks/train_test_validation/feature_label_correlation_change' \
-          '.html?utm_source=display_output&utm_medium=referral&utm_campaign=check_link'
+pps_url = 'https://docs.deepchecks.com/en/stable/checks_gallery/tabular/' \
+          'train_test_validation/plot_feature_label_correlation_change.html'
 pps_html = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
 
 
