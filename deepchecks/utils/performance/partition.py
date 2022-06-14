@@ -60,6 +60,8 @@ def numeric_segmentation_edges(column: pd.Series, max_segments: int) -> List[Dee
         percentile_values = pd.unique(
             np.nanpercentile(column.to_numpy(), np.linspace(0, 100, attempt_max_segments + 1))
         )
+        if len(percentile_values) == len(prev_percentile_values):
+            break
         attempt_max_segments *= 2
 
     if len(percentile_values) > max_segments + 1:

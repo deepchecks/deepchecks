@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-Data Integrity Suite on Avocado Sales Data - Quickstart
+Quickstart - Data Integrity Suite (Avocado Sales Data)
 *******************************************************
 
 The deepchecks integrity suite is relevant any time you have data that you wish to validate:
 whether it's on a fresh batch of data, or right before splitting it or using it for training. 
-Here we'll use the avocado prices dataset, to demonstrate how you can run
-the suite with only a few simple lines of code, and see which kind of insights it can find.
+Here we'll use the avocado prices dataset (:mod:`deepchecks.tabular.datasets.regression.avocado`),
+to demonstrate how you can run the suite with only a few simple lines of code,
+and see which kind of insights it can find.
 
 .. code-block:: bash
 
@@ -50,20 +51,23 @@ dirty_df = add_dirty_data(data)
 # ------------------------
 #
 # Create a deepchecks Dataset, including the relevant metadata (label, date, index, etc.).
-# Check out :class:`deepchecks.tabular.Dataset` to see all of the columns that can be declared.
+# Check out :class:`deepchecks.tabular.Dataset` to see all of the columns and types 
+# that can be declared.
 
 from deepchecks.tabular import Dataset
 
-# We explicitly state the categorical features,
-# otherwise they will be automatically inferred, which may not work perfectly and is not recommended.
+# We state the categorical features, otherwise they will be automatically inferred,
+# which may be less accurate, therefore stating them explicitly is recommended.
+
 # The label can be passed as a column name or a separate pd.Series / pd.DataFrame
+
 ds = Dataset(dirty_df, cat_features = ['type'], datetime_name='Date', label = 'AveragePrice')
 
 #%%
 # Run the Deepchecks Suite
 # --------------------------
 #
-# Validate your data with the :class:`deepchecks.tabular.suites.single_dataset_integrity` suite.
+# Validate your data with the :func:`deepchecks.tabular.suites.data_integrity` suite.
 # It runs on a single dataset, so you can run it on any batch of data (e.g. train data, test data, a new batch of data
 # that recently arrived)
 #
@@ -74,7 +78,10 @@ from deepchecks.tabular.suites import data_integrity
 
 # Run Suite:
 integ_suite = data_integrity()
-integ_suite.run(ds)
+suite_result = integ_suite.run(ds)
+# Note: the result can be saved as html using suite_result.save_as_html()
+# or exported to json using suite_result.to_json()
+suite_result
 
 #%%
 # We can inspect the suite outputs and see that there are a few problems we'd like to fix.
@@ -127,7 +134,7 @@ result
 # Finally, we'll choose to keep the "organic" multiple spellings as they represent different sources.
 # So we'll customaize the suite by removing the condition from it (or delete check completely).
 # Alternatively - we can customize it by creating a new Suite with the desired checks and conditions.
-# See :doc:`/user-guide/general/customizations/examples/customizing-suites` for more info.
+# See :doc:`/user-guide/general/customizations/examples/plot_create_a_custom_suite` for more info.
 
 # let's inspect the suite's structure
 integ_suite
@@ -150,4 +157,4 @@ res = integ_suite.run(ds)
 # Additional Outputs section*
 #
 # For more info about working with conditions, see the detailed
-# :doc:`/user-guide/general/customizations/examples/plot_configure_checks_conditions' guide.
+# :doc:`/user-guide/general/customizations/examples/plot_configure_checks_conditions` guide.

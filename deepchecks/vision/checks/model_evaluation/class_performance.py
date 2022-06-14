@@ -159,11 +159,13 @@ class ClassPerformance(TrainTestCheck):
             test_scores = check_result.loc[check_result['Dataset'] == 'Test']
             not_passed_test = test_scores.loc[test_scores['Value'] <= min_score]
             if len(not_passed_test):
-                details = f'Found metrics with scores below threshold:\n' \
-                          f'{not_passed_test[["Class Name", "Metric", "Value"]].to_dict("records")}'
+                not_passed_list = [{'Class': row['Class Name'], 'Metric': row['Metric'],
+                                    'Score': format_number(row['Value'])}
+                                   for _, row in not_passed_test.iterrows()]
+                details = f'Found metrics with scores below threshold:\n{not_passed_list}'
                 return ConditionResult(ConditionCategory.FAIL, details)
             else:
-                min_metric = test_scores.iloc[test_scores['Value'].idmin()]
+                min_metric = test_scores.iloc[test_scores['Value'].idxmin()]
                 details = f'Found minimum score for {min_metric["Metric"]} metric of value ' \
                           f'{format_number(min_metric["Value"])} for class {min_metric["Class Name"]}'
                 return ConditionResult(ConditionCategory.PASS, details)
@@ -189,6 +191,7 @@ class ClassPerformance(TrainTestCheck):
             test_scores = check_result.loc[check_result['Dataset'] == 'Test']
             train_scores = check_result.loc[check_result['Dataset'] == 'Train']
             max_degradation = ('', -np.inf)
+            num_failures = 0
 
             def update_max_degradation(diffs, class_name):
                 nonlocal max_degradation
@@ -198,7 +201,6 @@ class ClassPerformance(TrainTestCheck):
                                       f'{max_scorer} and class {class_name}', max_diff
 
             classes = check_result['Class Name'].unique()
-            explained_failures = []
 
             for class_name in classes:
                 test_scores_class = test_scores.loc[test_scores['Class Name'] == class_name]
@@ -211,14 +213,10 @@ class ClassPerformance(TrainTestCheck):
                 diff = {score_name: _ratio_of_change_calc(score, test_scores_dict[score_name])
                         for score_name, score in train_scores_dict.items()}
                 update_max_degradation(diff, class_name)
-                failed_scores = [k for k, v in diff.items() if v >= threshold]
-                for score_name in failed_scores:
-                    explained_failures.append(f'{score_name} for class {class_name} '
-                                              f'(train={format_number(train_scores_dict[score_name])} '
-                                              f'test={format_number(test_scores_dict[score_name])})')
+                num_failures += len([v for v in diff.values() if v >= threshold])
 
-            if explained_failures:
-                message = '\n'.join(explained_failures)
+            if num_failures > 0:
+                message = f'{num_failures} classes scores failed. ' + max_degradation[0]
                 return ConditionResult(ConditionCategory.FAIL, message)
             else:
                 message = max_degradation[0]

@@ -8,9 +8,10 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-from hamcrest import assert_that, calling, close_to, equal_to, is_, is_in, raises
+from hamcrest import assert_that, calling, close_to, equal_to, is_, is_in, raises, has_items
 from ignite.metrics import Precision, Recall
 
+from tests.base.utils import equal_condition_result
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks import ClassPerformance
 
@@ -153,7 +154,11 @@ def test_condition_test_performance_not_less_than_pass(mnist_dataset_train,
     result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
                        device=device)
 
-    assert_that(result.conditions_results[0].is_pass, is_(False))
+    assert_that(result.conditions_results, has_items(
+        equal_condition_result(is_pass=True,
+                               details='Found minimum score for Precision metric of value 0.98 for class 1',
+                               name='Scores are greater than 0.5'))
+    )
 
 
 def test_condition_test_performance_not_less_than_fail(mnist_dataset_train,
@@ -169,7 +174,15 @@ def test_condition_test_performance_not_less_than_fail(mnist_dataset_train,
     result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
                        device=device)
 
-    assert_that(result.conditions_results[0].is_pass, is_(False))
+    assert_that(result.conditions_results, has_items(
+        equal_condition_result(is_pass=False,
+                               details="Found metrics with scores below threshold:\n["
+                                       "{'Class': '2', 'Metric': 'r', 'Score': '0.99'}, "
+                                       "{'Class': '1', 'Metric': 'r', 'Score': '0.99'}, "
+                                       "{'Class': '2', 'Metric': 'p', 'Score': '0.98'}, "
+                                       "{'Class': '1', 'Metric': 'p', 'Score': '0.98'}]",
+                               name='Scores are greater than 1'))
+    )
 
 
 def test_condition_train_test_relative_degradation_not_greater_than_pass(mnist_dataset_train,
@@ -183,7 +196,11 @@ def test_condition_train_test_relative_degradation_not_greater_than_pass(mnist_d
     result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
                        device=device)
 
-    assert_that(result.conditions_results[0].is_pass, is_(True))
+    assert_that(result.conditions_results, has_items(
+        equal_condition_result(is_pass=True,
+                               details='Found max degradation of 0.0033% for metric Recall and class 1',
+                               name='Train-Test scores relative degradation is less than 0.1'))
+    )
 
 
 def test_condition_train_test_relative_degradation_not_greater_than_fail(mnist_dataset_train,
@@ -192,13 +209,18 @@ def test_condition_train_test_relative_degradation_not_greater_than_fail(mnist_d
                                                                          device):
     # Arrange
     check = ClassPerformance() \
-        .add_condition_train_test_relative_degradation_less_than(0)
+        .add_condition_train_test_relative_degradation_less_than(0.0001)
 
     # Act
     result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
                        device=device)
 
-    assert_that(result.conditions_results[0].is_pass, is_(False))
+    assert_that(result.conditions_results, has_items(
+        equal_condition_result(is_pass=False,
+                               details='10 classes scores failed. Found max degradation of 0.86% for metric Precision '
+                                       'and class 5',
+                               name='Train-Test scores relative degradation is less than 0.0001'))
+    )
 
 
 def test_condition_class_performance_imbalance_ratio_not_greater_than(mnist_dataset_train,
@@ -213,7 +235,15 @@ def test_condition_class_performance_imbalance_ratio_not_greater_than(mnist_data
     result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
                        device=device)
 
-    assert_that(result.conditions_results[0].is_pass, is_(True))
+    assert_that(result.conditions_results, has_items(
+        equal_condition_result(is_pass=True,
+                               details='Relative ratio difference between highest and lowest in Test dataset classes '
+                                       'is 1.78%, using Precision metric. Lowest class - 7: 0.97; Highest class - 8: '
+                                       '0.99\nRelative ratio difference between highest and lowest in Train dataset '
+                                       'classes is 3.78%, using Precision metric. Lowest class - 9: 0.96; Highest class'
+                                       ' - 6: 0.99',
+                               name='Relative ratio difference between labels \'Precision\' score is less than 50%'))
+    )
 
 
 def test_condition_class_performance_imbalance_ratio_not_greater_than_fail(mnist_dataset_train,
@@ -222,13 +252,21 @@ def test_condition_class_performance_imbalance_ratio_not_greater_than_fail(mnist
                                                                            device):
     # Arrange
     check = ClassPerformance() \
-        .add_condition_class_performance_imbalance_ratio_less_than(0, 'Precision')
+        .add_condition_class_performance_imbalance_ratio_less_than(0.0001, 'Precision')
 
     # Act
     result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
                        device=device)
 
-    assert_that(result.conditions_results[0].is_pass, is_(False))
+    assert_that(result.conditions_results, has_items(
+        equal_condition_result(is_pass=False,
+                               details='Relative ratio difference between highest and lowest in Test dataset classes '
+                                       'is 1.78%, using Precision metric. Lowest class - 7: 0.97; Highest class - 8: '
+                                       '0.99\nRelative ratio difference between highest and lowest in Train dataset '
+                                       'classes is 3.78%, using Precision metric. Lowest class - 9: 0.96; Highest class'
+                                       ' - 6: 0.99',
+                               name='Relative ratio difference between labels \'Precision\' score is less than 0.01%'))
+    )
 
 
 def test_custom_task(mnist_train_custom_task, mnist_test_custom_task, device, mock_trained_mnist):

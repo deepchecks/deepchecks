@@ -34,16 +34,19 @@ form, they are considered to be the same.
 
 import pandas as pd
 
+from deepchecks.tabular import Dataset
 from deepchecks.tabular.checks import StringMismatch
 
 data = {'col1': ['Deep', 'deep', 'deep!!!', '$deeP$', 'earth', 'foo', 'bar', 'foo?']}
 df = pd.DataFrame(data=data)
-result = StringMismatch().run(df)
+dataset = Dataset(df, cat_features=['col1'])
+result = StringMismatch().run(dataset)
+result.show()
 
 #%%
 # Define a Condition
 # ==================
 
 check = StringMismatch().add_condition_no_variants()
-result = check.run(df)
+result = check.run(dataset)
 result.show(show_additional_outputs=False)

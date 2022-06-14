@@ -120,25 +120,21 @@ def test_condition_decision():
     assert_that(decisions, has_items(
         all_of(
             has_property('name', 'condition A'),
-            has_property('is_pass', equal_to(True)),
             has_property('category', ConditionCategory.PASS),
             has_property('details', '')
         ),
         all_of(
             has_property('name', 'condition B'),
-            has_property('is_pass', equal_to(False)),
             has_property('category', ConditionCategory.FAIL),
             has_property('details', 'some result')
         ),
         all_of(
             has_property('name', 'condition C'),
-            has_property('is_pass', equal_to(False)),
             has_property('category', ConditionCategory.WARN),
             has_property('details', 'my actual')
         ),
         all_of(
             has_property('name', 'condition F'),
-            has_property('is_pass', equal_to(False)),
             has_property('category', ConditionCategory.ERROR),
             has_property('details', 'Exception in condition: Exception: fail')
         )

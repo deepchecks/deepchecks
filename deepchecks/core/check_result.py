@@ -47,7 +47,7 @@ if TYPE_CHECKING:
     from deepchecks.core.checks import BaseCheck
 
 
-__all__ = ['CheckResult', 'CheckFailure']
+__all__ = ['CheckResult', 'CheckFailure', 'BaseCheckResult']
 
 
 TDisplayCallable = Callable[[], None]
@@ -159,9 +159,9 @@ class CheckResult(BaseCheckResult, DisplayableResult):
         """Return if this check has display."""
         return bool(self.display)
 
-    def passed_conditions(self) -> bool:
+    def passed_conditions(self, fail_if_warning=True) -> bool:
         """Return if this check has no passing condition results."""
-        return all((r.is_pass for r in self.conditions_results))
+        return all((r.is_pass(fail_if_warning) for r in self.conditions_results))
 
     @property
     def priority(self) -> int:
