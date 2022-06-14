@@ -117,7 +117,7 @@ class ConditionResult:
         """Return true if the condition has passed."""
         passed_categories = (
             (ConditionCategory.PASS,)
-            if fail_if_warning 
+            if fail_if_warning
             else (ConditionCategory.PASS, ConditionCategory.WARN)
         )
         return self.category in passed_categories

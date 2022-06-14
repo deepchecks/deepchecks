@@ -42,7 +42,7 @@ def create_suite_result(
     ]
     results.extend([
         create_check_result(
-            value=i, 
+            value=i,
             header=f'Dummy Result Without Conditions #{i}',
             include_conditions=False,
         )
@@ -50,7 +50,7 @@ def create_suite_result(
     ])
     results.extend([
         create_check_result(
-            value=i, 
+            value=i,
             header=f'Dummy Result Without Display #{i}',
             include_display=False,
         )
@@ -58,7 +58,7 @@ def create_suite_result(
     ])
     results.extend([
         create_check_result(
-            value=i, 
+            value=i,
             header=f'Dummy Result Without Display and Conditions #{i}',
             include_display=False,
             include_conditions=False,
@@ -66,7 +66,7 @@ def create_suite_result(
         for i in range(n_of_results)
     ])
     failures = [
-        CheckFailure(DummyCheck(), Exception(f'Exception Message'))
+        CheckFailure(DummyCheck(), Exception(f'Exception Message #{i}'))
         for i in range(n_of_failures)
     ]
     return SuiteResult(

@@ -319,14 +319,14 @@ class SuiteResult:
             All the check results in the suite that have failing conditions.
         """
         results = cast(
-            List[CheckResult], 
+            List[CheckResult],
             self.select_results(self.results_with_conditions)
         )
         return [
             r for r in results
             if not r.passed_conditions(fail_if_warning)
         ]
-    
+
     def get_passed_checks(self, fail_if_warning=True) -> List[CheckResult]:
         """Get all the check results that have passing condition.
 

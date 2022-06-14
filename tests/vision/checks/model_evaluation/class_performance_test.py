@@ -8,12 +8,12 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-from hamcrest import assert_that, calling, close_to, equal_to, is_, is_in, raises, has_items
+from hamcrest import assert_that, calling, close_to, equal_to, has_items, is_, is_in, raises
 from ignite.metrics import Precision, Recall
 
-from tests.base.utils import equal_condition_result
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks import ClassPerformance
+from tests.base.utils import equal_condition_result
 
 
 def test_mnist_average_error_error(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):

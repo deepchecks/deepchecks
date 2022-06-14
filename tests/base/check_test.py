@@ -10,8 +10,7 @@
 #
 """Tests for BaseCheck class."""
 # pylint: disable-all
-from hamcrest import (all_of, calling, contains_exactly, equal_to, has_items, has_length, has_property,
-                      is_, raises)
+from hamcrest import all_of, calling, contains_exactly, equal_to, has_items, has_length, has_property, is_, raises
 
 from deepchecks.core import ConditionResult
 from deepchecks.core.errors import DeepchecksValueError

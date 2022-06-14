@@ -12,15 +12,17 @@
 import typing as t
 import warnings
 
-from ipywidgets import HTML, VBox, Widget, Accordion
+from ipywidgets import HTML, Accordion, VBox, Widget
 
 from deepchecks.core import check_result as check_types
 from deepchecks.core import suite
 from deepchecks.core.serialization.abc import WidgetSerializer
-from deepchecks.core.serialization.check_result.widget import CheckResultSerializer as CheckResultWidgetSerializer
 from deepchecks.core.serialization.check_failure.widget import CheckFailureSerializer as CheckFailureWidgetSerializer
+from deepchecks.core.serialization.check_result.widget import CheckResultSerializer as CheckResultWidgetSerializer
 from deepchecks.core.serialization.common import Html as CommonHtml
-from deepchecks.core.serialization.common import join, normalize_widget_style, aggregate_conditions, create_results_dataframe, form_output_anchor, create_failures_dataframe
+from deepchecks.core.serialization.common import (aggregate_conditions, create_failures_dataframe,
+                                                  create_results_dataframe, form_output_anchor, join,
+                                                  normalize_widget_style)
 from deepchecks.core.serialization.dataframe.widget import DataFrameSerializer
 from deepchecks.utils.strings import get_random_string
 
@@ -69,7 +71,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             t.List[check_types.CheckResult],
             self.value.select_results(self.value.results_without_conditions)
         )
-        
+
         accordions = [
             self.prepare_results(
                 title='Passed',
@@ -109,7 +111,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             *accordions
         ])
         return Accordion(
-            children=[content], 
+            children=[content],
             _titles={'0': self.value.name},
             selected_index='0'
         )
@@ -151,11 +153,11 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             table = DataFrameSerializer(df.style.hide_index()).serialize()
             children = (table,)
         return Accordion(
-            children=children, 
+            children=children,
             _titles={'0': title},
             selected_index=None
         )
-    
+
     def prepare_results(
         self,
         results: t.Sequence['check_types.CheckResult'],
@@ -175,7 +177,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         output_id : Optional[str], default None
             unique output identifier that will be used to form anchor links
         summary_creation_method : Optional[Callable[..., Widget]], default None
-            function to create summary table 
+            function to create summary table
 
         Returns
         -------
@@ -207,7 +209,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             _titles={'0': title},
             selected_index=None
         ))
-    
+
     def prepare_conditions_summary(
         self,
         results: t.Sequence['check_types.CheckResult'],
@@ -269,4 +271,4 @@ def select_serializer(result):
     elif isinstance(result, check_types.CheckFailure):
         return CheckFailureWidgetSerializer(result)
     else:
-        raise TypeError(f'Unknown type of result - {type(result)}') 
+        raise TypeError(f'Unknown type of result - {type(result)}')

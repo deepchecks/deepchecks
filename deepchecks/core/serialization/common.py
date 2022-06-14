@@ -128,7 +128,7 @@ def aggregate_conditions(
         whether to include check name into dataframe or not
     output_id : str
         unique identifier of the output, it will be used to
-        form a link (html '<a></a>' tag) to the check result 
+        form a link (html '<a></a>' tag) to the check result
         full output
 
     Returns
@@ -184,7 +184,7 @@ def aggregate_conditions(
 def create_results_dataframe(
     results: t.Sequence['check_types.CheckResult'],
     output_id: t.Optional[str] = None,
-):
+) -> pd.DataFrame:
     """Create dataframe with check results.
 
     Parameters
@@ -193,16 +193,16 @@ def create_results_dataframe(
         check results
     output_id : str
         unique identifier of the output, it will be used to
-        form a link (html '<a></a>' tag) to the check result 
+        form a link (html '<a></a>' tag) to the check result
         full output
-    
+
     Returns
     -------
     pd.Dataframe:
         the condition table.
     """
     data = []
-    
+
     for check_result in results:
         check_header = check_result.get_header()
         if output_id and check_result.display:
@@ -222,6 +222,18 @@ def create_results_dataframe(
 def create_failures_dataframe(
     failures: t.Sequence[t.Union['check_types.CheckFailure', 'check_types.CheckResult']]
 ) -> pd.DataFrame:
+    """Create dataframe with check failures.
+
+    Parameters
+    ----------
+    failures : Sequence[Union[CheckFailure, CheckResult]]
+        check failures
+
+    Returns
+    -------
+    pd.Dataframe:
+        the condition table.
+    """
     data = []
 
     for it in failures:
@@ -229,8 +241,8 @@ def create_failures_dataframe(
             data.append([it.get_header(), 'Nothing found', 2])
         elif isinstance(it, check_types.CheckFailure):
             message = (
-                it.exception.html 
-                if isinstance(it.exception, errors.DeepchecksBaseError) 
+                it.exception.html
+                if isinstance(it.exception, errors.DeepchecksBaseError)
                 else str(it.exception)
             )
             error_types = (

@@ -15,7 +15,7 @@ import sklearn
 from deepdiff import DeepDiff
 from hamcrest import assert_that, instance_of
 
-from deepchecks.tabular.datasets.classification import adult, breast_cancer, iris, phishing, lending_club
+from deepchecks.tabular.datasets.classification import adult, breast_cancer, iris, lending_club, phishing
 from deepchecks.tabular.datasets.regression import avocado
 from deepchecks.utils.model import get_model_of_pipeline
 
