@@ -14,7 +14,9 @@ import logging
 __all__ = ['get_logger', 'get_verbosity', 'set_verbosity']
 
 _logger = logging.getLogger('deepchecks')
-_logger.addHandler(logging.StreamHandler())  # for some reason kaggle needs it
+_stream_handler = logging.StreamHandler()
+_stream_handler.setLevel(logging.INFO)
+_logger.addHandler(_stream_handler)  # for some reason kaggle needs it
 
 
 def get_logger() -> logging.Logger:
@@ -28,5 +30,6 @@ def get_verbosity() -> int:
 
 
 def set_verbosity(level: int):
-    """Sets the deepchecks logger verbosity level. Control the package wide log level and the progrees bars."""
+    """Set the deepchecks logger verbosity level.
+    Control the package wide log level and the progrees bars - progress bars are level INFO"""
     _logger.setLevel(level)

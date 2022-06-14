@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Contains unit tests for the Dataset class."""
+import logging
 import typing as t
 import warnings
 
@@ -21,6 +22,7 @@ from sklearn.datasets import load_iris, make_classification
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.utils.validation import ensure_dataframe_type
+from deepchecks.utils.logger import _stream_handler
 
 
 def assert_dataset(dataset: Dataset, args):
@@ -1038,16 +1040,16 @@ def random_classification_dataframe(n_samples=100, n_features=5) -> pd.DataFrame
 
 def test_cat_features_warning(iris):
     # Test that warning is raised when cat_features is None
-    with warnings.catch_warnings(record=True) as w:
-        Dataset(iris)
-        assert_that(w, has_length(1))
-        assert_that(str(w[0].message), equal_to('It is recommended to initialize Dataset with categorical features by '
-                    'doing \"Dataset(df, cat_features=categorical_list)\". No categorical features were '
-                    'passed, therefore heuristically inferring categorical features in the data.\n'
-                    '0 categorical features were inferred'))
+    Dataset(iris)
+    _stream_handler.stream.seek(0)
+    warn = _stream_handler.stream.read()
+    warn_len = len(warn)
+    assert_that(warn, equal_to('It is recommended to initialize Dataset with categorical features by '
+                'doing \"Dataset(df, cat_features=categorical_list)\". No categorical features were '
+                'passed, therefore heuristically inferring categorical features in the data.\n'
+                '0 categorical features were inferred\n'))
 
     # Test that warning is not raised when cat_features is not None
-    with warnings.catch_warnings(record=True) as w:
-        Dataset(iris, cat_features=[])
-        assert_that(w, has_length(0))
-
+    Dataset(iris, cat_features=[])
+    _stream_handler.stream.seek(warn_len)
+    assert_that(_stream_handler.stream.read(), has_length(0))
