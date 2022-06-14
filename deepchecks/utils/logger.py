@@ -20,7 +20,7 @@ _logger.addHandler(_stream_handler)  # for some reason kaggle needs it
 
 
 def get_logger() -> logging.Logger:
-    """Retutn the deepchecks logger"""
+    """Retutn the deepchecks logger."""
     return _logger
 
 
@@ -31,5 +31,7 @@ def get_verbosity() -> int:
 
 def set_verbosity(level: int):
     """Set the deepchecks logger verbosity level.
-    Control the package wide log level and the progrees bars - progress bars are level INFO"""
+
+    Control the package wide log level and the progrees bars - progress bars are level INFO.
+    """
     _logger.setLevel(level)
