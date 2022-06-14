@@ -35,6 +35,7 @@ from deepchecks.core.serialization.check_result.json import CheckResultSerialize
 from deepchecks.core.serialization.check_result.widget import CheckResultSerializer as CheckResultWidgetSerializer
 from deepchecks.utils.display import display_in_gui
 from deepchecks.utils.ipython import is_colab_env, is_kaggle_env, is_notebook, is_widgets_enabled
+from deepchecks.utils.logger import get_logger
 from deepchecks.utils.strings import create_new_file_name, widget_to_html, widget_to_html_string
 from deepchecks.utils.wandb_utils import wandb_run
 
@@ -249,7 +250,7 @@ class CheckResult(BaseCheckResult):
             )
         else:
             if as_widget:
-                warnings.warn(
+                get_logger().warning(
                     'Widgets are not enabled (or not supported) '
                     'and cannot be used.'
                 )
@@ -405,7 +406,7 @@ class CheckResult(BaseCheckResult):
         from .serialization.check_result.wandb import CheckResultSerializer as WandbSerializer
 
         if dedicated_run is not None:
-            warnings.warn(
+            get_logger().warning(
                 '"dedicated_run" parameter is deprecated and does not have effect anymore. '
                 'It will be remove in next versions.'
             )
@@ -614,7 +615,7 @@ class CheckFailure(BaseCheckResult):
 
             return TempSphinx()
         else:
-            warnings.warn(
+            get_logger().warning(
                 'You are running in a non-interactive python shell. '
                 'In order to show result you have to use '
                 'an IPython shell (etc Jupyter)'
@@ -681,7 +682,7 @@ class CheckFailure(BaseCheckResult):
         from .serialization.check_failure.wandb import CheckFailureSerializer as WandbSerializer
 
         if dedicated_run is not None:
-            warnings.warn(
+            get_logger().warning(
                 '"dedicated_run" parameter is deprecated and does not have effect anymore. '
                 'It will be remove in next versions.'
             )
