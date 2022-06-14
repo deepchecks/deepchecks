@@ -42,7 +42,7 @@ class ModelInferenceTime(SingleDatasetCheck):
         if n_samples == 0 or n_samples < 0:
             raise DeepchecksValueError('n_samples cannot be le than 0!')
 
-    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
 
         Returns
@@ -56,11 +56,7 @@ class ModelInferenceTime(SingleDatasetCheck):
             If the test dataset is not a 'Dataset' instance with a label or
             if 'model' is not a scikit-learn-compatible fitted estimator instance.
         """
-        if dataset_type == 'train':
-            dataset = context.train
-        else:
-            dataset = context.test
-
+        dataset = context.get_data_by_kind(dataset_kind)
         model = context.model
         df = dataset.features_columns
 

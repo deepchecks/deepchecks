@@ -66,13 +66,9 @@ class StringMismatch(SingleDatasetCheck):
         self.n_samples = n_samples
         self.random_state = random_state
 
-    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
-        if dataset_type == 'train':
-            dataset = context.train
-        else:
-            dataset = context.test
-
+        dataset = context.get_data_by_kind(dataset_kind)
         df = select_from_dataframe(dataset.sample(self.n_samples, random_state=self.random_state).data,
                                    self.columns, self.ignore_columns)
 

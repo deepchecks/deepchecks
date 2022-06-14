@@ -23,7 +23,7 @@ __all__ = ['RegressionSystematicError']
 class RegressionSystematicError(SingleDatasetCheck):
     """Check the regression systematic error."""
 
-    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
 
         Returns
@@ -37,11 +37,7 @@ class RegressionSystematicError(SingleDatasetCheck):
         DeepchecksValueError
             If the object is not a Dataset instance with a label.
         """
-        if dataset_type == 'train':
-            dataset = context.train
-        else:
-            dataset = context.test
-
+        dataset = context.get_data_by_kind(dataset_kind)
         context.assert_regression_task()
         y_test = dataset.label_col
         x_test = dataset.features_columns
