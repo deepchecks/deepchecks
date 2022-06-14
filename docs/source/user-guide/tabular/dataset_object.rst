@@ -155,7 +155,7 @@ will run on the columns to determine which are classified as categorical:
 #. If the ``pd.dtypes`` of any of the existing columns is ``category`` then all of the columns that are of type ``category`` 
    will be  considered categorical (and only them).
 
-#. Otherwise, a heuristic is used for deducting the type. In order for a column to be inferred as categorical two condition must be met:
+#. Otherwise, a heuristic is used for deducting the type. In order for a column to be inferred as categorical, the following two conditions must be met:
 
    - If (the ratio between the `number of unique values` and the `number of samples`  <= `max_categorical_ratio`)
 
