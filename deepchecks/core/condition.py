@@ -115,8 +115,11 @@ class ConditionResult:
 
     def is_pass(self, fail_if_warning=True) -> bool:
         """Return true if the condition has passed."""
-        passed_categories = [ConditionCategory.PASS] if fail_if_warning else \
-            [ConditionCategory.PASS, ConditionCategory.WARN]
+        passed_categories = (
+            (ConditionCategory.PASS,)
+            if fail_if_warning 
+            else (ConditionCategory.PASS, ConditionCategory.WARN)
+        )
         return self.category in passed_categories
 
     def get_icon(self):

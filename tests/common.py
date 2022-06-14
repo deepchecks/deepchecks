@@ -14,7 +14,6 @@ import typing as t
 import matplotlib.pyplot as plt
 import pandas as pd
 import plotly.express as px
-import this
 from hamcrest import any_of, instance_of
 
 from deepchecks.core.check_result import CheckFailure, CheckResult
@@ -34,21 +33,46 @@ class DummyCheck(BaseCheck):
 
 def create_suite_result(
     name: str = 'Dummy Suite Result',
-    n_of_results: int = 5,
-    n_of_failures: int = 5
+    n_of_results: int = 5,  # for each of four categories
+    n_of_failures: int = 5,
 ) -> SuiteResult:
     results = [
         create_check_result(value=i, header=f'Dummy Result #{i}')
         for i in range(n_of_results)
     ]
+    results.extend([
+        create_check_result(
+            value=i, 
+            header=f'Dummy Result Without Conditions #{i}',
+            include_conditions=False,
+        )
+        for i in range(n_of_results)
+    ])
+    results.extend([
+        create_check_result(
+            value=i, 
+            header=f'Dummy Result Without Display #{i}',
+            include_display=False,
+        )
+        for i in range(n_of_results)
+    ])
+    results.extend([
+        create_check_result(
+            value=i, 
+            header=f'Dummy Result Without Display and Conditions #{i}',
+            include_display=False,
+            include_conditions=False,
+        )
+        for i in range(n_of_results)
+    ])
     failures = [
-        CheckFailure(DummyCheck(), Exception(f'Error #{i}'))
+        CheckFailure(DummyCheck(), Exception(f'Exception Message'))
         for i in range(n_of_failures)
     ]
     return SuiteResult(
         name=name,
         results=[*results, *failures],
-        extra_info=this.s.splitlines()
+        extra_info=['Some extra info regarding suite']
     )
 
 
@@ -75,7 +99,7 @@ def create_check_result(
     ]
     result = CheckResult(
         value=value or 1000,
-        header='Dummy Result',
+        header=header,
         display=display if include_display else None,
     )
 
