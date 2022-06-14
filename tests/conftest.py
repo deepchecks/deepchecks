@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Represents fixtures for unit testing using pytest."""
-from functools import partialmethod
 import logging
 # Disable this pylint check since we use this convention in pytest fixtures
 #pylint: disable=redefined-outer-name
@@ -30,7 +29,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import FunctionTransformer, KBinsDiscretizer, OrdinalEncoder
 from sklearn.tree import DecisionTreeClassifier
-from tqdm import tqdm
 from xgboost import XGBClassifier, XGBRegressor
 
 from deepchecks.core.check_result import CheckFailure, CheckResult
