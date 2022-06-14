@@ -22,6 +22,7 @@ _stream_handler.setFormatter(_formatter)
 _logger.addHandler(_stream_handler)  # for some reason kaggle needs it
 _logger.setLevel(logging.INFO)
 
+
 def get_logger() -> logging.Logger:
     """Retutn the deepchecks logger."""
     return _logger
