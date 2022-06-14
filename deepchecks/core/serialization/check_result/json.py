@@ -48,7 +48,7 @@ class CheckResultSerializer(JsonSerializer['check_types.CheckResult']):
             raise TypeError(
                 f'Expected "CheckResult" but got "{type(value).__name__}"'
             )
-        self.value = value
+        super().__init__(value=value)
 
     def serialize(self, with_display: bool = True, **kwargs) -> CheckResultMetadata:
         """Serialize a CheckResult instance into JSON format.

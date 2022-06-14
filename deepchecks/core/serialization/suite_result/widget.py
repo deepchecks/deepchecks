@@ -8,6 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+# pylint: disable=unused-argument
 """Module containing ipywidget serializer for the SuiteResult type."""
 import typing as t
 import warnings
@@ -43,7 +44,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             raise TypeError(
                 f'Expected "SuiteResult" but got "{type(value).__name__}"'
             )
-        self.value = value
+        super().__init__(value=value)
         self._html_serializer = html.SuiteResultSerializer(self.value)
 
     def serialize(

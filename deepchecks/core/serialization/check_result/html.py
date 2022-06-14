@@ -21,7 +21,7 @@ from deepchecks.core.serialization.abc import ABCDisplayItemsHandler, HtmlSerial
 from deepchecks.core.serialization.common import (aggregate_conditions, form_output_anchor, plotlyjs_script,
                                                   requirejs_script)
 from deepchecks.core.serialization.dataframe.html import DataFrameSerializer as DataFrameHtmlSerializer
-from deepchecks.utils.display import imagetag
+from deepchecks.utils.html import imagetag, linktag
 
 __all__ = ['CheckResultSerializer']
 
@@ -46,7 +46,7 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
             raise TypeError(
                 f'Expected "CheckResult" but got "{type(value).__name__}"'
             )
-        self.value = value
+        super().__init__(value=value)
 
     def serialize(
         self,
@@ -265,12 +265,13 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
         is_for_iframe_with_srcdoc: bool,
     ) -> str:
         """Return 'Go To Top' link."""
-        href = (
-            f"about:srcdoc#{form_output_anchor(output_id)}"
-            if is_for_iframe_with_srcdoc is True
-            else f"#{form_output_anchor(output_id)}"
+        link = linktag(
+            text='Go to top',
+            style={'font-size': '14px'},
+            href=f'#{form_output_anchor(output_id)}',
+            is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
         )
-        return f'<br><a href="{href}" style="font-size: 14px">Go to top</a>'
+        return f'<br>{link}'
 
     @classmethod
     def handle_string(cls, item, index, **kwargs) -> str:

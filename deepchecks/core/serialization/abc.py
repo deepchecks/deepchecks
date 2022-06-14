@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-# pylint: disable=unnecessary-ellipsis
+# pylint: disable=unused-argument
 """Main serialization abstractions."""
 import abc
 import io

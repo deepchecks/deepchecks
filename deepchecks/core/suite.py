@@ -23,6 +23,7 @@ from deepchecks.core import check_result as check_types
 from deepchecks.core.checks import BaseCheck
 from deepchecks.core.display import DisplayableResult, save_as_html
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.core.serialization.abc import HTMLFormatter
 from deepchecks.core.serialization.suite_result.html import SuiteResultSerializer as SuiteResultHtmlSerializer
 from deepchecks.core.serialization.suite_result.ipython import SuiteResultSerializer as SuiteResultIPythonSerializer
 from deepchecks.core.serialization.suite_result.json import SuiteResultSerializer as SuiteResultJsonSerializer
@@ -87,7 +88,7 @@ class SuiteResult(DisplayableResult):
                 self.failures.add(index)
 
     def select_results(self, idx: Set[int]) -> List[Union[
-        'check_types.CheckResult', 
+        'check_types.CheckResult',
         'check_types.CheckFailure'
     ]]:
         """Select results by indexes."""
@@ -124,15 +125,70 @@ class SuiteResult(DisplayableResult):
 
     @property
     def widget_serializer(self) -> SuiteResultWidgetSerializer:
+        """Return WidgetSerializer instance."""
         return SuiteResultWidgetSerializer(self)
 
     @property
     def ipython_serializer(self) -> SuiteResultIPythonSerializer:
+        """Return IPythonSerializer instance."""
         return SuiteResultIPythonSerializer(self)
 
     @property
     def html_serializer(self) -> SuiteResultHtmlSerializer:
+        """Return HtmlSerializer instance."""
         return SuiteResultHtmlSerializer(self)
+
+    def show(
+        self,
+        as_widget: bool = True,
+        unique_id: Optional[str] = None,
+        **kwargs
+    ) -> Optional[HTMLFormatter]:
+        """Display result.
+
+        Parameters
+        ----------
+        as_widget : bool
+            whether to display result with help of ipywidgets or not
+        unique_id : Optional[str], default None
+            unique identifier of the result output
+        **kwrgs :
+            other key-value arguments will be passed to the `Serializer.serialize`
+            method
+
+        Returns
+        -------
+        Optional[HTMLFormatter] :
+            when used by sphinx-gallery
+        """
+        return super().show(
+            as_widget,
+            unique_id or get_random_string(n=25),
+            **kwargs
+        )
+
+    def show_not_interactive(
+        self,
+        unique_id: Optional[str] = None,
+        **kwargs
+    ):
+        """Display the not interactive version of result output.
+
+        In this case, ipywidgets will not be used and plotly
+        figures will be transformed into png images.
+
+        Parameters
+        ----------
+        unique_id : Optional[str], default None
+            unique identifier of the result output
+        **kwrgs :
+            other key-value arguments will be passed to the `Serializer.serialize`
+            method
+        """
+        return super().show_not_interactive(
+            unique_id or get_random_string(n=25),
+            **kwargs
+        )
 
     def save_as_html(
         self,
@@ -152,6 +208,8 @@ class SuiteResult(DisplayableResult):
             whether to use ipywidgets or not
         requirejs: bool , default: True
             whether to include requirejs library into output HTML or not
+        unique_id : Optional[str], default None
+            unique identifier of the result output
 
         Returns
         -------
@@ -159,9 +217,8 @@ class SuiteResult(DisplayableResult):
             name of newly create file
         """
         return save_as_html(
-            result=self,
             file=file,
-            serializer=SuiteResultWidgetSerializer if as_widget else SuiteResultHtmlSerializer,
+            serializer=self.widget_serializer if as_widget else self.html_serializer,
             # next kwargs will be passed to the serializer.serialize method
             requirejs=requirejs,
             output_id=unique_id or get_random_string(n=25),
@@ -176,14 +233,15 @@ class SuiteResult(DisplayableResult):
 
         Parameters
         ----------
-        unique_id : str
-            The unique id given by the suite that displays the check.
+        unique_id : Optional[str], default None
+            unique identifier of the result output
 
         Returns
         -------
         Widget
         """
-        return SuiteResultWidgetSerializer(self).serialize(output_id=unique_id)
+        output_id = unique_id or get_random_string(n=25)
+        return SuiteResultWidgetSerializer(self).serialize(output_id=output_id)
 
     def to_json(self, with_display: bool = True, **kwargs):
         """Return check result as json.
@@ -191,7 +249,7 @@ class SuiteResult(DisplayableResult):
         Parameters
         ----------
         with_display : bool, default True
-            whether to include serialized `CheckResult.display` items into
+            whether to include serialized `SuiteResult.display` items into
             the output or not
 
         Returns
@@ -208,7 +266,7 @@ class SuiteResult(DisplayableResult):
         dedicated_run: Optional[bool] = None,
         **kwargs
     ):
-        """Export suite result to wandb.
+        """Send suite result to wandb.
 
         Parameters
         ----------
@@ -263,7 +321,7 @@ class SuiteResult(DisplayableResult):
             All the check results in the suite that have failing conditions.
         """
         results = cast(
-            List[check_types.CheckResult], 
+            List[check_types.CheckResult],
             self.select_results(self.results_with_conditions)
         )
         return [

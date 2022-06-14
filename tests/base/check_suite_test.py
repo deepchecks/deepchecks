@@ -13,7 +13,7 @@ import random
 
 from hamcrest import assert_that, calling, equal_to, has_length, instance_of, is_, raises
 
-from deepchecks import SuiteResult, ConditionResult, ConditionCategory
+from deepchecks import ConditionCategory, ConditionResult, SuiteResult
 from deepchecks.core import CheckFailure, CheckResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import SingleDatasetCheck, Suite, TrainTestCheck

@@ -110,7 +110,7 @@ def is_kaggle_env() -> bool:
 @lru_cache(maxsize=None)
 def is_databricks_env() -> bool:
     """Check if we are in the databricks enviroment."""
-    return "DATABRICKS_RUNTIME_VERSION" in os.environ
+    return 'DATABRICKS_RUNTIME_VERSION' in os.environ
 
 
 class PlainNotebookProgressBar(tqdm.tqdm):
@@ -662,6 +662,19 @@ def get_nbclassic_extensions(merge: bool = True) -> t.Optional[t.Mapping[str, t.
 
 
 def is_widgets_enabled() -> bool:
+    """Check whether ipywidgets extension is enabled.
+
+    This function does not guarantee a correct answer
+    in case of not usual jupyter notebook ide, like (azure, kaggle, ...)
+
+    Returns
+    -------
+    bool
+    """
+    if is_databricks_env():
+        # databricks runtime < 11 does not support ipywidgets
+        # and databricks runtime>=11 is at beta state
+        return False
     nbext = is_nbclassic_extension_enabled('jupyter-js-widgets')
     labext = t.cast(bool, is_jupyterlab_extension_enabled('@jupyter-widgets/jupyterlab-manager'))
     return nbext or labext
@@ -678,7 +691,7 @@ def is_widgets_enabled() -> bool:
 
 #     Notes:
 #     - when nbclassic and jupyterlab are both enabled we are not able to determine which
-#       exacly UI is used by the user.
+#       exactly UI is used by the user.
 #     """
 #     is_jupyterlab_enabled = is_jupyter_server_extension_enabled('jupyterlab')
 #     is_nbclassic_enabled = is_jupyter_server_extension_enabled('nbclassic')

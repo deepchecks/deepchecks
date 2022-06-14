@@ -37,7 +37,7 @@ class DataFrameSerializer(HtmlSerializer[DataFrameOrStyler]):
             raise TypeError(
                 f'Expected "Union[DataFrame, Styler]" but got "{type(value).__name__}"'
             )
-        self.value = value
+        super().__init__(value=value)
 
     def serialize(self, **kwargs) -> str:
         """Serialize pandas.DataFrame instance into HTML format."""

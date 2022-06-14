@@ -94,3 +94,11 @@ qs
 urlobj
 labextension
 TrainTestPredictionDrift
+nbclassic
+REPL
+ipywidgets
+iframe
+plotlyjs
+srcdoc
+UI
+databricks

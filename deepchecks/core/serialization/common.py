@@ -32,6 +32,7 @@ from plotly.offline.offline import get_plotlyjs
 
 from deepchecks.core import check_result as check_types
 from deepchecks.utils.dataframes import un_numpy
+from deepchecks.utils.html import linktag
 from deepchecks.utils.strings import get_ellipsis
 
 __all__ = [
@@ -153,11 +154,11 @@ def aggregate_conditions(
 
             # If there is no display we won't generate a section to link to
             if output_id and check_result.display:
-                if is_for_iframe_with_srcdoc:
-                    href = f'about:srcdoc#{check_result.get_check_id(output_id)}'
-                else:
-                    href = f'#{check_result.get_check_id(output_id)}'
-                link = f'<a href="{href}">{check_header}</a>'
+                link = linktag(
+                    text=check_header,
+                    href=f'#{check_result.get_check_id(output_id)}',
+                    is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
+                )
             else:
                 link = check_header
                 # if it has no display show on bottom for the category (lower priority)

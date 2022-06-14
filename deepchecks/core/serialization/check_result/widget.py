@@ -39,7 +39,7 @@ class CheckResultSerializer(WidgetSerializer['check_types.CheckResult']):
             raise TypeError(
                 f'Expected "CheckResult" but got "{type(value).__name__}"'
             )
-        self.value = value
+        super().__init__(value=value)
         self._html_serializer = html.CheckResultSerializer(self.value)
 
     def serialize(

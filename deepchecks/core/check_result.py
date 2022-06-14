@@ -18,7 +18,6 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union, ca
 import jsonpickle
 import jsonpickle.ext.pandas as jsonpickle_pd
 import pandas as pd
-import plotly.io as pio
 from ipywidgets import Widget
 from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
@@ -202,14 +201,17 @@ class CheckResult(BaseCheckResult, DisplayableResult):
 
     @property
     def widget_serializer(self) -> CheckResultWidgetSerializer:
+        """Return WidgetSerializer instance."""
         return CheckResultWidgetSerializer(self)
 
     @property
     def ipython_serializer(self) -> CheckResultIPythonSerializer:
+        """Return IPythonSerializer instance."""
         return CheckResultIPythonSerializer(self)
 
     @property
     def html_serializer(self) -> CheckResultHtmlSerializer:
+        """Return HtmlSerializer instance."""
         return CheckResultHtmlSerializer(self)
 
     def display_check(
@@ -224,7 +226,7 @@ class CheckResult(BaseCheckResult, DisplayableResult):
         Parameters
         ----------
         unique_id : str
-            The unique id given by the suite that displays the check.
+            unique identifier of the result output
         as_widget : bool
             Boolean that controls if to display the check regulary or if to return a widget.
         show_additional_outputs : bool
@@ -245,12 +247,16 @@ class CheckResult(BaseCheckResult, DisplayableResult):
         requirejs: bool = True,
         **kwargs
     ):
-        """Save output as html file.
+        """Save a result to an HTML file.
 
         Parameters
         ----------
         file : filename or file-like object
-            The file to write the HTML output to. If None writes to output.html
+            the file to write the HTML output to. If None writes to output.html
+        unique_id : Optional[str], default None
+            unique identifier of the result output
+        show_additional_outputs : bool, default True
+            whether to show additional outputs or not
         as_widget : bool, default True
             whether to use ipywidgets or not
         requirejs: bool , default: True
@@ -261,23 +267,20 @@ class CheckResult(BaseCheckResult, DisplayableResult):
         Optional[str] :
             name of newly create file
         """
-        check_sections = detalize_additional_output(show_additional_outputs)
-        serializer = CheckResultWidgetSerializer if as_widget is True else CheckResultHtmlSerializer
         return save_as_html(
             file=file,
-            result=self,
-            serializer=serializer,
+            serializer=self.widget_serializer if as_widget else self.html_serializer,
             # next kwargs will be passed to serializer.serialize method
             requirejs=requirejs,
             output_id=unique_id,
-            check_sections = check_sections
+            check_sections=detalize_additional_output(show_additional_outputs)
         )
 
     def show(
         self,
         as_widget: bool = True,
-        show_additional_outputs: bool = True,
         unique_id: Optional[str] = None,
+        show_additional_outputs: bool = True,
         **kwargs
     ):
         """Display the check result.
@@ -286,10 +289,10 @@ class CheckResult(BaseCheckResult, DisplayableResult):
         ----------
         as_widget : bool, default True
             whether to use ipywidgets or not
-        show_additional_outputs : bool
-            Boolean that controls if to show additional outputs.
-        unique_id : str
-            The unique id given by the suite that displays the check.
+        unique_id : Optional[str], default None
+            unique identifier of the result output
+        show_additional_outputs : bool, default True
+            whether to show additional outputs or not
         """
         super().show(
             as_widget=as_widget,
@@ -308,10 +311,10 @@ class CheckResult(BaseCheckResult, DisplayableResult):
 
         Parameters
         ----------
-        unique_id : str
-            The unique id given by the suite that displays the check.
-        show_additional_outputs : bool
-            Boolean that controls if to show additional outputs.
+        unique_id : Optional[str], default None
+            unique identifier of the result output
+        show_additional_outputs : bool, default True
+            whether to show additional outputs or not
 
         Returns
         -------
@@ -327,7 +330,7 @@ class CheckResult(BaseCheckResult, DisplayableResult):
         dedicated_run: Optional[bool] = None,
         **kwargs
     ):
-        """Export check result to wandb.
+        """Send result to wandb.
 
         Parameters
         ----------
@@ -357,7 +360,7 @@ class CheckResult(BaseCheckResult, DisplayableResult):
             run.log(WandbSerializer(self).serialize())
 
     def to_json(self, with_display: bool = True, **kwargs) -> str:
-        """Return check result as json.
+        """Serialize result into a json string.
 
         Returned JSON string will have next structure:
 
@@ -377,7 +380,7 @@ class CheckResult(BaseCheckResult, DisplayableResult):
         Parameters
         ----------
         with_display : bool
-            controls if to serialize display or not
+            whethere to include display items or not
 
         Returns
         -------
@@ -456,14 +459,17 @@ class CheckFailure(BaseCheckResult, DisplayableResult):
 
     @property
     def widget_serializer(self) -> CheckFailureWidgetSerializer:
+        """Return WidgetSerializer instance."""
         return CheckFailureWidgetSerializer(self)
 
     @property
     def ipython_serializer(self) -> CheckFailureIPythonSerializer:
+        """Return IPythonSerializer instance."""
         return CheckFailureIPythonSerializer(self)
 
     @property
     def html_serializer(self) -> CheckFailureHtmlSerializer:
+        """Return HtmlSerializer instance."""
         return CheckFailureHtmlSerializer(self)
 
     def display_check(self, as_widget: bool = True, **kwargs):
@@ -471,8 +477,8 @@ class CheckFailure(BaseCheckResult, DisplayableResult):
 
         Parameters
         ----------
-        as_widget : bool
-            Boolean that controls if to display the check regulary or if to return a widget.
+        as_widget : bool, default True
+            whether to use ipywidgets or not
         """
         self.show(as_widget=as_widget)
 
@@ -500,9 +506,8 @@ class CheckFailure(BaseCheckResult, DisplayableResult):
             name of newly create file
         """
         return save_as_html(
-            result=self,
             file=file,
-            serializer=CheckFailureWidgetSerializer if as_widget else CheckFailureHtmlSerializer,
+            serializer=self.widget_serializer if as_widget else self.html_serializer,
             requirejs=requirejs,
         )
 
@@ -510,8 +515,8 @@ class CheckFailure(BaseCheckResult, DisplayableResult):
         """Return CheckFailure as a ipywidgets.Widget instance."""
         return CheckFailureWidgetSerializer(self).serialize()
 
-    def to_json(self, with_display: Optional[bool] = None, **kwargs):
-        """Return check failure as json.
+    def to_json(self, **kwargs):
+        """Serialize CheckFailure into a json string.
 
         Returned JSON string will have next structure:
 
@@ -526,30 +531,17 @@ class CheckFailure(BaseCheckResult, DisplayableResult):
         >>        params: Dict[Any, Any]
         >>        summary: str
 
-        Parameters
-        ----------
-        with_display : bool
-            controls if to serialize display or not
-            (the parameter is deprecated and does not have any effect since version 0.6.4,
-            it will be removed in future versions)
-
         Returns
         -------
         str
         """
-        if with_display is not None:
-            warnings.warn(
-                '"with_display" parameter is deprecated and does not have any effect '
-                'since version 0.6.4, it will be removed in future versions',
-                DeprecationWarning
-            )
         return jsonpickle.dumps(
             CheckFailureJsonSerializer(self).serialize(),
             unpicklable=False
         )
 
     def to_wandb(self, dedicated_run: Optional[bool] = None, **kwargs):
-        """Export check result to wandb.
+        """Send check result to wandb.
 
         Parameters
         ----------

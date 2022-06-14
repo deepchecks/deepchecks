@@ -19,6 +19,7 @@ from deepchecks.core.serialization.abc import IPythonFormatter, IPythonSerialize
 from deepchecks.core.serialization.check_result.html import CheckResultSection
 from deepchecks.core.serialization.check_result.ipython import CheckResultSerializer
 from deepchecks.core.serialization.common import Html, flatten, form_output_anchor, join
+from deepchecks.utils.html import linktag
 
 from . import html
 
@@ -39,12 +40,13 @@ class SuiteResultSerializer(IPythonSerializer['suite.SuiteResult']):
             raise TypeError(
                 f'Expected "SuiteResult" but got "{type(value).__name__}"'
             )
-        self.value = value
+        super().__init__(value=value)
         self._html_serializer = html.SuiteResultSerializer(value)
 
     def serialize(
         self,
         output_id: t.Optional[str] = None,
+        is_for_iframe_with_srcdoc: bool = False,
         **kwargs,
     ) -> t.List[IPythonFormatter]:
         """Serialize a SuiteResult instance into a list of IPython formatters.
@@ -53,6 +55,10 @@ class SuiteResultSerializer(IPythonSerializer['suite.SuiteResult']):
         ----------
         output_id : Optional[str], default None
             unique output identifier that will be used to form anchor links
+        is_for_iframe_with_srcdoc : bool, default False
+            anchor links, in order to work within iframe require additional prefix
+            'about:srcdoc'. This flag tells function whether to add that prefix to
+            the anchor link or not
         **kwargs :
             all other key-value arguments will be passed to the CheckResult/CheckFailure
             serializers
@@ -89,10 +95,14 @@ class SuiteResultSerializer(IPythonSerializer['suite.SuiteResult']):
             sections.extend([HTML(Html.bold_hr), failures])
 
         if output_id:
-            anchor = form_output_anchor(output_id)
-            sections.append(HTML(
-                f'<br><a href="#{anchor}" style="font-size: 14px">Go to top</a>'
-            ))
+            link = linktag(
+                text='Go to top',
+                href=f'#{form_output_anchor(output_id)}',
+                style={'font-size': '14px'},
+                is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
+            )
+            sections.append(HTML(f'<br>{link}'))
+
         return list(flatten(sections))
 
     def prepare_summary(self, output_id: t.Optional[str] = None, **kwargs) -> HTML:
