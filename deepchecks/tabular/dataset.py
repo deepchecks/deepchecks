@@ -424,7 +424,7 @@ class Dataset:
         label_name = self._label_name if self._label_name in new_data.columns else None
         if self._label_type == TaskType.REGRESSION:
             label_type = 'regression_label'
-        elif self._label_type in [TaskType.BINARY,TaskType.MULTICLASS]:
+        elif self._label_type in [TaskType.BINARY, TaskType.MULTICLASS]:
             label_type = 'classification_label'
         else:
             label_type = None
