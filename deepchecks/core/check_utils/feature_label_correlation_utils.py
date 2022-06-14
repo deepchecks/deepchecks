@@ -37,7 +37,10 @@ def get_pps_figure(per_class: bool, n_of_features: int):
         xaxis_range=(-3, n_of_features + 2),
         legend=dict(x=1.0, y=1.0),
         barmode='group',
-        height=500
+        height=500,
+        # Set the x-axis as category, since if the column names are numbers it will infer the x-axis as numerical
+        # and will show the values very far from each other
+        xaxis_type='category'
     )
     if per_class:
         fig.update_layout(xaxis_title='Class')
