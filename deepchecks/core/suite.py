@@ -28,6 +28,7 @@ from deepchecks.core.serialization.suite_result.json import SuiteResultSerialize
 from deepchecks.core.serialization.suite_result.widget import SuiteResultSerializer as SuiteResultWidgetSerializer
 from deepchecks.utils.display import display_in_gui
 from deepchecks.utils.ipython import is_colab_env, is_kaggle_env, is_notebook, is_widgets_enabled
+from deepchecks.utils.logger import get_logger
 from deepchecks.utils.strings import create_new_file_name, get_random_string, widget_to_html, widget_to_html_string
 from deepchecks.utils.wandb_utils import wandb_run
 
@@ -149,7 +150,7 @@ class SuiteResult:
             display_html(self.to_widget(unique_id=output_id))
         else:
             if as_widget:
-                warnings.warn(
+                get_logger().warning(
                     'Widgets are not enabled (or not supported) '
                     'and cannot be used.'
                 )

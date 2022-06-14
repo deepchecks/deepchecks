@@ -12,7 +12,7 @@
 # pylint: disable=broad-except
 from typing import Any, List, Mapping, Tuple, Union
 
-from deepchecks.core.check_result import CheckFailure
+from deepchecks.core.check_result import CheckFailure, CheckResult
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.tabular.context import Context
@@ -147,3 +147,17 @@ class ModelComparisonContext:
     def __getitem__(self, item):
         """Return given context by index."""
         return self.contexts[item]
+
+    def finalize_check_result(self, check_result, check):
+        """Run final processing on a check result which includes validation and conditions processing."""
+        # Validate the check result type
+        if isinstance(check_result, CheckFailure):
+            return
+        if not isinstance(check_result, CheckResult):
+            raise DeepchecksValueError(f'Check {check.name()} expected to return CheckResult but got: '
+                                       + type(check_result).__name__)
+
+        # Set reference between the check result and check
+        check_result.check = check
+        # Calculate conditions results
+        check_result.process_conditions()

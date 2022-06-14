@@ -1036,18 +1036,16 @@ def random_classification_dataframe(n_samples=100, n_features=5) -> pd.DataFrame
     return df
 
 
-def test_cat_features_warning(iris):
+def test_cat_features_warning(iris, caplog):
     # Test that warning is raised when cat_features is None
-    with warnings.catch_warnings(record=True) as w:
-        Dataset(iris)
-        assert_that(w, has_length(1))
-        assert_that(str(w[0].message), equal_to('It is recommended to initialize Dataset with categorical features by '
-                    'doing \"Dataset(df, cat_features=categorical_list)\". No categorical features were '
-                    'passed, therefore heuristically inferring categorical features in the data.\n'
-                    '0 categorical features were inferred'))
+    Dataset(iris)
+    assert_that(caplog.records, has_length(1))
+    assert_that(caplog.records[0].message), equal_to('It is recommended to initialize Dataset with categorical features by '
+                'doing \"Dataset(df, cat_features=categorical_list)\". No categorical features were '
+                'passed, therefore heuristically inferring categorical features in the data. '
+                '0 categorical features were inferred.')
 
     # Test that warning is not raised when cat_features is not None
-    with warnings.catch_warnings(record=True) as w:
-        Dataset(iris, cat_features=[])
-        assert_that(w, has_length(0))
+    Dataset(iris, cat_features=[])
+    assert_that(caplog.records, has_length(1))
 
