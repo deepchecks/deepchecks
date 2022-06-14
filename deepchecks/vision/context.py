@@ -16,6 +16,7 @@ import torch
 from ignite.metrics import Metric
 from torch import nn
 
+from deepchecks import CheckFailure, CheckResult, SuiteResult
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotImplementedError, DeepchecksNotSupportedError,
                                     DeepchecksValueError, ModelValidationError, ValidationError)
@@ -209,7 +210,7 @@ class Context:
         else:
             raise DeepchecksValueError(f'Unexpected dataset kind {kind}')
 
-    def get_is_sampled_footnote(self, kind: DatasetKind = None):
+    def add_is_sampled_footnote(self, result: Union[CheckResult, SuiteResult], kind: DatasetKind = None):
         """Get footnote to display when the datasets are sampled."""
         message = ''
         if kind:
@@ -228,5 +229,24 @@ class Context:
                            f'{self._test.original_num_samples}.'
 
         if message:
-            message = f'Note - data sampling: {message} Sample size can be controlled with the "n_samples" parameter.'
-            return f'<p style="font-size:0.9em;line-height:1;"><i>{message}</i></p>'
+            message = ('<p style="font-size:0.9em;line-height:1;"><i>'
+                       f'Note - data sampling: {message} Sample size can be controlled with the "n_samples" parameter.'
+                       '</i></p>')
+            if isinstance(result, CheckResult):
+                result.display.append(message)
+            elif isinstance(result, SuiteResult):
+                result.extra_info.append(message)
+
+    def finalize_check_result(self, check_result, check):
+        """Run final processing on a check result which includes validation and conditions processing."""
+        # Validate the check result type
+        if isinstance(check_result, CheckFailure):
+            return
+        if not isinstance(check_result, CheckResult):
+            raise DeepchecksValueError(f'Check {check.name()} expected to return CheckResult but got: '
+                                       + type(check_result).__name__)
+
+        # Set reference between the check result and check
+        check_result.check = check
+        # Calculate conditions results
+        check_result.process_conditions()
