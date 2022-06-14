@@ -14,7 +14,6 @@
 
 import typing as t
 import warnings
-from enum import Enum
 from numbers import Number
 
 import numpy as np
@@ -23,12 +22,12 @@ from sklearn.metrics import f1_score, get_scorer, make_scorer, precision_score, 
 
 from deepchecks import tabular  # pylint: disable=unused-import; it is used for type annotations
 from deepchecks.core import errors
+from deepchecks.tabular.utils.model_type import ModelType
 from deepchecks.utils.simple_models import PerfectModel
 from deepchecks.utils.strings import is_string_column
 from deepchecks.utils.typing import BasicModel, ClassificationModel
 
 __all__ = [
-    'ModelType',
     'task_type_check',
     'DEFAULT_SCORERS_DICT',
     'DEFAULT_REGRESSION_SCORERS',
@@ -40,14 +39,6 @@ __all__ = [
     'init_validate_scorers',
     'get_default_scorers'
 ]
-
-
-class ModelType(Enum):
-    """Enum containing supported task types."""
-
-    REGRESSION = 'regression'
-    BINARY = 'binary'
-    MULTICLASS = 'multiclass'
 
 
 DEFAULT_BINARY_SCORERS = {

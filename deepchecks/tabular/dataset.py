@@ -22,9 +22,9 @@ from sklearn.model_selection import train_test_split
 from typing_extensions import Literal as L
 
 from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError
+from deepchecks.tabular.utils.model_type import ModelType
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import infer_categorical_features, infer_numerical_features, is_categorical
-from deepchecks.utils.metrics import ModelType
 from deepchecks.utils.strings import get_docs_link
 from deepchecks.utils.typing import Hashable
 

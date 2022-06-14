@@ -192,7 +192,7 @@ def test_dataset_infer_cat_features(diabetes_df):
     assert_dataset(dataset, args)
 
 
-def test_dataset_infer_cat_features_max_categoreis(diabetes_df):
+def test_dataset_infer_cat_features_max_categories(diabetes_df):
     args = {'df': diabetes_df,
             'features': ['age',
                          'bmi',
@@ -204,7 +204,8 @@ def test_dataset_infer_cat_features_max_categoreis(diabetes_df):
                          's4',
                          's5',
                          's6'],
-            'max_categories': 60}
+            'max_categories': 60,
+            'max_categorical_ratio': 0.06}
 
     dataset = Dataset(**args)
     args['cat_features'] = ['age', 'sex', 's6']
@@ -1038,7 +1039,7 @@ def random_classification_dataframe(n_samples=100, n_features=5) -> pd.DataFrame
 def test_cat_features_warning(iris):
     # Test that warning is raised when cat_features is None
     with warnings.catch_warnings(record=True) as w:
-        Dataset(iris)
+        Dataset(iris, label='target')
         assert_that(w, has_length(1))
         assert_that(str(w[0].message), equal_to('It is recommended to initialize Dataset with categorical features by '
                     'doing \"Dataset(df, cat_features=categorical_list)\". No categorical features were '

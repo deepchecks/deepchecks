@@ -19,9 +19,9 @@ import pandas as pd
 from deepchecks import ConditionCategory
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.tabular import Context, TrainTestCheck
+from deepchecks.tabular.utils.model_type import ModelType
 from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERIC_METHODS,
                                                  calc_drift_and_plot)
-from deepchecks.utils.metrics import ModelType
 
 __all__ = ['TrainTestPredictionDrift']
 

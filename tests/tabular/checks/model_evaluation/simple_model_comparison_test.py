@@ -14,7 +14,9 @@ from sklearn.metrics import f1_score, make_scorer, recall_score
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.checks.model_evaluation import SimpleModelComparison
-from deepchecks.utils.metrics import ModelType, get_default_scorers
+from deepchecks.utils.metrics import get_default_scorers
+from deepchecks.tabular.utils.model_type import ModelType
+
 from tests.base.utils import equal_condition_result
 
 

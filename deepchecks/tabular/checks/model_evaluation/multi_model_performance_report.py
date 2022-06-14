@@ -16,7 +16,7 @@ import plotly.express as px
 
 from deepchecks.core import CheckResult
 from deepchecks.tabular import ModelComparisonCheck, ModelComparisonContext
-from deepchecks.utils.metrics import ModelType
+from deepchecks.tabular.utils.model_type import ModelType
 
 __all__ = ['MultiModelPerformanceReport']
 

@@ -20,7 +20,7 @@ from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS, 
 
 __all__ = ['TrainTestLabelDrift']
 
-from deepchecks.utils.metrics import ModelType
+from deepchecks.tabular.utils.model_type import ModelType
 from deepchecks.utils.strings import format_number
 
 

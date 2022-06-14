@@ -23,8 +23,9 @@ from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
+from deepchecks.tabular.utils.model_type import ModelType
 from deepchecks.utils.distribution.preprocessing import ScaledNumerics
-from deepchecks.utils.metrics import ModelType, get_gain
+from deepchecks.utils.metrics import get_gain
 from deepchecks.utils.simple_models import RandomModel
 from deepchecks.utils.strings import format_percent
 
