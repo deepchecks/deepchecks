@@ -50,7 +50,7 @@ class DataDuplicates(SingleDatasetCheck):
         self.ignore_columns = ignore_columns
         self.n_to_show = n_to_show
 
-    def run_logic(self, context: Context, dataset_type: str = 'train'):
+    def run_logic(self, context: Context, dataset_kind):
         """Run check.
 
         Returns
@@ -58,11 +58,7 @@ class DataDuplicates(SingleDatasetCheck):
         CheckResult
             percentage of duplicates and display of the top n_to_show most duplicated.
         """
-        if dataset_type == 'train':
-            df = context.train.data
-        else:
-            df = context.test.data
-
+        df = context.get_data_by_kind(dataset_kind).data
         df = select_from_dataframe(df, self.columns, self.ignore_columns)
 
         data_columns = list(df.columns)

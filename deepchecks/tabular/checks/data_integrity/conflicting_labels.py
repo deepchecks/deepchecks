@@ -48,7 +48,7 @@ class ConflictingLabels(SingleDatasetCheck):
         self.ignore_columns = ignore_columns
         self.n_to_show = n_to_show
 
-    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
 
         Returns
@@ -56,11 +56,7 @@ class ConflictingLabels(SingleDatasetCheck):
         CheckResult
             percentage of ambiguous samples and display of the top n_to_show most ambiguous.
         """
-        if dataset_type == 'train':
-            dataset = context.train
-        else:
-            dataset = context.test
-
+        dataset = context.get_data_by_kind(dataset_kind)
         context.assert_classification_task()
         dataset.assert_label()
         label_name = dataset.label_name

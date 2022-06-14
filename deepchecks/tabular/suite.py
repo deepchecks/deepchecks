@@ -15,6 +15,7 @@ from typing import Callable, Mapping, Optional, Tuple, Union
 import numpy as np
 import pandas as pd
 
+from deepchecks.core import DatasetKind
 from deepchecks.core.check_result import CheckFailure
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.core.suite import BaseSuite, SuiteResult
@@ -118,7 +119,7 @@ class Suite(BaseSuite):
                         # In case of train & test, doesn't want to skip test if train fails. so have to explicitly
                         # wrap it in try/except
                         try:
-                            check_result = check.run_logic(context)
+                            check_result = check.run_logic(context, dataset_kind=DatasetKind.TRAIN)
                             # In case of single dataset not need to edit the header
                             if test_dataset is not None:
                                 check_result.header = f'{check_result.get_header()} - Train Dataset'
@@ -127,7 +128,7 @@ class Suite(BaseSuite):
                         results.append(check_result)
                     if test_dataset is not None:
                         try:
-                            check_result = check.run_logic(context, dataset_type='test')
+                            check_result = check.run_logic(context, dataset_kind=DatasetKind.TEST)
                             # In case of single dataset not need to edit the header
                             if train_dataset is not None:
                                 check_result.header = f'{check_result.get_header()} - Test Dataset'

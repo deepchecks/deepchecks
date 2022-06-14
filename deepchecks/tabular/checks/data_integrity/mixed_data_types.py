@@ -51,7 +51,7 @@ class MixedDataTypes(SingleDatasetCheck):
         self.ignore_columns = ignore_columns
         self.n_top_columns = n_top_columns
 
-    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
 
         Returns
@@ -61,10 +61,7 @@ class MixedDataTypes(SingleDatasetCheck):
             for any column with mixed data types.
             numbers will also include hidden numbers in string representation.
         """
-        if dataset_type == 'train':
-            dataset = context.train
-        else:
-            dataset = context.test
+        dataset = context.get_data_by_kind(dataset_kind)
         features_importance = context.features_importance
 
         df = select_from_dataframe(dataset.data, self.columns, self.ignore_columns)

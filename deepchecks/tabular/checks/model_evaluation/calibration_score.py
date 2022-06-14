@@ -25,7 +25,7 @@ __all__ = ['CalibrationScore']
 class CalibrationScore(SingleDatasetCheck):
     """Calculate the calibration curve with brier score for each class."""
 
-    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
 
         Returns
@@ -38,11 +38,7 @@ class CalibrationScore(SingleDatasetCheck):
         ------
             DeepchecksValueError: If the data is not a Dataset instance with a label.
         """
-        if dataset_type == 'train':
-            dataset = context.train
-        else:
-            dataset = context.test
-
+        dataset = context.get_data_by_kind(dataset_kind)
         context.assert_classification_task()
         ds_x = dataset.features_columns
         ds_y = dataset.label_col
