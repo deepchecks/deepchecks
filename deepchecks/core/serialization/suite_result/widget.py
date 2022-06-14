@@ -87,18 +87,18 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                 summary_creation_method=self.prepare_conditions_summary,
                 **kwargs
             ),
-            self.prepare_failures(
-                title='Did not run',
-                failures=not_ran_checks,
-                output_id=output_id,
-                **kwargs
-            ),
             self.prepare_results(
                 title='Other',
                 results=other_checks,
                 output_id=output_id,
                 summary_creation_method=self.prepare_unconditioned_results_summary,
                 check_sections=['additional-output'],
+                **kwargs
+            ),
+            self.prepare_failures(
+                title='Did not run',
+                failures=not_ran_checks,
+                output_id=output_id,
                 **kwargs
             )
         ]
@@ -152,11 +152,11 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             df = create_failures_dataframe(failures)
             table = DataFrameSerializer(df.style.hide_index()).serialize()
             children = (table,)
-        return Accordion(
+        return normalize_widget_style(Accordion(
             children=children,
             _titles={'0': title},
             selected_index=None
-        )
+        ))
 
     def prepare_results(
         self,
@@ -232,13 +232,12 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         -------
         ipywidgets.Widget
         """
-        table = DataFrameSerializer(aggregate_conditions(
+        return DataFrameSerializer(aggregate_conditions(
             results,
             output_id=output_id,
             include_check_name=include_check_name,
             max_info_len=300
         )).serialize()
-        return table
 
     def prepare_unconditioned_results_summary(
         self,
