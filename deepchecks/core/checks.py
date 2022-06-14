@@ -17,7 +17,7 @@ from typing import Any, Callable, ClassVar, Dict, List, Optional, Type, Union
 
 from typing_extensions import TypedDict
 
-from deepchecks.core import check_result as check_types
+from deepchecks.core import check_result as check_types  # pylint: disable=unused-import
 from deepchecks.core.condition import Condition, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.function import initvars

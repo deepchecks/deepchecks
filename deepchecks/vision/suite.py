@@ -150,9 +150,9 @@ class Suite(BaseSuite):
         # The results are ordered as they ran instead of in the order they were defined, therefore sort by key
         sorted_result_values = [value for name, value in sorted(results.items(), key=lambda pair: str(pair[0]))]
 
-        footnote = context.get_is_sampled_footnote()
-        extra_info = [footnote] if footnote else []
-        return SuiteResult(self.name, sorted_result_values, extra_info)
+        result = SuiteResult(self.name, sorted_result_values)
+        context.add_is_sampled_footnote(result)
+        return result
 
     def _update_loop(
         self,

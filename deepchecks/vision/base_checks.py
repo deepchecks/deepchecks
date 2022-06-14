@@ -78,6 +78,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
             with progressbar_factory.create_dummy(name='Computing Check', unit='Check'):
                 result = self.compute(context, DatasetKind.TRAIN)
                 context.finalize_check_result(result, self)
+                context.add_is_sampled_footnote(result, DatasetKind.TRAIN)
                 return result
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
@@ -162,6 +163,7 @@ class TrainTestCheck(TrainTestBaseCheck):
             with progressbar_factory.create_dummy(name='Computing Check', unit='Check'):
                 result = self.compute(context)
                 context.finalize_check_result(result, self)
+                context.add_is_sampled_footnote(result)
                 return result
 
     def initialize_run(self, context: Context):

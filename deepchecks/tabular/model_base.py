@@ -149,6 +149,7 @@ class ModelComparisonContext:
         return self.contexts[item]
 
     def finalize_check_result(self, check_result, check):
+        """Run final processing on a check result which includes validation and conditions processing."""
         # Validate the check result type
         if isinstance(check_result, CheckFailure):
             return

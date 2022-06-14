@@ -392,6 +392,8 @@ class Context:
             raise DeepchecksValueError(f'Unexpected dataset kind {kind}')
 
     def finalize_check_result(self, check_result, check, kind: DatasetKind = None):
+        """Run final processing on a check result which includes validation, conditions processing and sampling\
+        footnote."""
         # Validate the check result type
         if isinstance(check_result, CheckFailure):
             return
