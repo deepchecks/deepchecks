@@ -14,10 +14,12 @@ import logging
 __all__ = ['get_logger', 'get_verbosity', 'set_verbosity']
 
 _logger = logging.getLogger('deepchecks')
+
 _stream_handler = logging.StreamHandler()
 _stream_handler.setLevel(logging.INFO)
+_formatter = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
+_stream_handler.setFormatter(_formatter)
 _logger.addHandler(_stream_handler)  # for some reason kaggle needs it
-
 
 def get_logger() -> logging.Logger:
     """Retutn the deepchecks logger."""
@@ -45,5 +47,7 @@ def set_verbosity(level: int):
 
     >>> # will disable progress bars
     >>> deepchecks.set_verbosity(logging.WARNING)
+    >>> # will disable also any warnings deepchecks print
+    >>> deepchecks.set_verbosity(logging.ERROR)
     """
     _logger.setLevel(level)

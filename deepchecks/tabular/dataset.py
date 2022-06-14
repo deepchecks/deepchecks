@@ -574,8 +574,8 @@ class Dataset:
 
         message = ('It is recommended to initialize Dataset with categorical features by doing '
                    '"Dataset(df, cat_features=categorical_list)". No categorical features were passed, therefore '
-                   'heuristically inferring categorical features in the data.\n'
-                   f'{len(categorical_columns)} categorical features were inferred')
+                   'heuristically inferring categorical features in the data. '
+                   f'{len(categorical_columns)} categorical features were inferred.')
 
         if len(categorical_columns) > 0:
             columns_to_print = categorical_columns[:7]

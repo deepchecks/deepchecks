@@ -24,7 +24,6 @@ from deepchecks.core.errors import DeepchecksValueError, ModelValidationError
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.utils.features import (calculate_feature_importance, calculate_feature_importance_or_none,
                                        column_importance_sorter_df, column_importance_sorter_dict)
-from deepchecks.utils.logger import _stream_handler
 
 
 def test_adaboost(iris_split_dataset_and_model):
@@ -76,7 +75,7 @@ def test_logistic_regression():
     assert_that(fi_type, is_('coef_'))
 
 
-def test_calculate_importance_when_no_builtin(iris_labeled_dataset):
+def test_calculate_importance_when_no_builtin(iris_labeled_dataset, caplog):
     # Arrange
     clf = MLPClassifier(hidden_layer_sizes=(10,), random_state=42)
     clf.fit(iris_labeled_dataset.data[iris_labeled_dataset.features],
@@ -85,17 +84,16 @@ def test_calculate_importance_when_no_builtin(iris_labeled_dataset):
     # Act
     feature_importances, fi_type = calculate_feature_importance(clf, iris_labeled_dataset,
                                                                 permutation_kwargs={'timeout': 120})
-    _stream_handler.stream.seek(0)
-    warn = _stream_handler.stream.read()
-    assert_that(warn, equal_to('Could not find built-in feature importance on the model, '
-                               'using permutation feature importance calculation instead\n'))
+    assert_that(caplog.records, has_length(1))
+    assert_that(caplog.records[0].message, equal_to('Could not find built-in feature importance on the model, '
+                                            'using permutation feature importance calculation instead'))
 
     # Assert
     assert_that(feature_importances.sum(), close_to(1, 0.000001))
     assert_that(fi_type, is_('permutation_importance'))
 
 
-def test_calculate_importance_when_model_is_pipeline(iris_labeled_dataset):
+def test_calculate_importance_when_model_is_pipeline(iris_labeled_dataset, caplog):
     # Arrange
     clf = Pipeline([('model', MLPClassifier(hidden_layer_sizes=(10,), random_state=42))])
     clf.fit(iris_labeled_dataset.data[iris_labeled_dataset.features],
@@ -104,47 +102,44 @@ def test_calculate_importance_when_model_is_pipeline(iris_labeled_dataset):
     # Act
     feature_importances, fi_type = calculate_feature_importance(clf, iris_labeled_dataset,
                                                                 permutation_kwargs={'timeout': 120})
-    _stream_handler.stream.seek(0)
-    warn = _stream_handler.stream.read()
-    assert_that(warn, equal_to('Cannot use model\'s built-in feature importance on a Scikit-learn '
-                               'Pipeline, using permutation feature importance calculation instead\n'))
+    assert_that(caplog.records, has_length(1))
+    assert_that(caplog.records[0].message, equal_to('Cannot use model\'s built-in feature importance on a Scikit-learn '
+                                            'Pipeline, using permutation feature importance calculation instead'))
 
     # Assert
     assert_that(feature_importances.sum(), close_to(1, 0.000001))
     assert_that(fi_type, is_('permutation_importance'))
 
 
-def test_calculate_importance_force_permutation_fail_on_timeout(iris_split_dataset_and_model):
+def test_calculate_importance_force_permutation_fail_on_timeout(iris_split_dataset_and_model, caplog):
     # Arrange
     train_ds, _, adaboost = iris_split_dataset_and_model
     # Act
     feature_importances, fi_type = calculate_feature_importance(adaboost, train_ds, force_permutation=True,
                                                                 permutation_kwargs={'timeout': 0})
-    _stream_handler.stream.seek(0)
-    warn = _stream_handler.stream.read()
+    assert_that(caplog.records, has_length(1))
     # Splitting the assert into 2 parts as the predicted time is dependant on the current machine and not absolute:
-    assert_that(warn, contains_string(
+    assert_that(caplog.records[0].message, contains_string(
         'Skipping permutation importance calculation: calculation was projected to finish in '))
-    assert_that(warn, contains_string(' seconds, but timeout was configured to 0 seconds'))
+    assert_that(caplog.records[0].message, contains_string(' seconds, but timeout was configured to 0 seconds'))
 
     # Assert
     assert_that(feature_importances.sum(), equal_to(1))
     assert_that(fi_type, is_('feature_importances_'))
 
 
-def test_calculate_importance_force_permutation_fail_on_dataframe(iris_split_dataset_and_model):
+def test_calculate_importance_force_permutation_fail_on_dataframe(iris_split_dataset_and_model, caplog):
     # Arrange
     train_ds, _, adaboost = iris_split_dataset_and_model
     df_only_features = train_ds.data.drop(train_ds.label_name, axis=1)
     # Act
     feature_importances, fi_type = calculate_feature_importance(adaboost, df_only_features, force_permutation=True,
                                                                 permutation_kwargs={'timeout': 120})
-    _stream_handler.stream.seek(0)
-    warn = _stream_handler.stream.read()
-    assert_that(warn,
+    assert_that(caplog.records, has_length(1))
+    assert_that(caplog.records[0].message,
                 equal_to('Cannot calculate permutation feature importance on a pandas Dataframe, using '
-                         'built-in model\'s feature importance instead. In order to force permutation '
-                         'feature importance, please use the Dataset object.\n'))
+                            'built-in model\'s feature importance instead. In order to force permutation '
+                            'feature importance, please use the Dataset object.'))
 
     # Assert
     assert_that(feature_importances.sum(), equal_to(1))
@@ -228,7 +223,7 @@ def test_no_warning_on_none_model(iris_dataset):
     assert_that(warn_record, has_length(0))
 
 
-def test_permutation_importance_with_nan_labels(iris_split_dataset_and_model):
+def test_permutation_importance_with_nan_labels(iris_split_dataset_and_model, caplog):
     # Arrange
     train_ds, _, adaboost = iris_split_dataset_and_model
     train_data = train_ds.data.copy()
@@ -237,10 +232,9 @@ def test_permutation_importance_with_nan_labels(iris_split_dataset_and_model):
 
     # Act
     feature_importances, fi_type = calculate_feature_importance(adaboost, train_ds, force_permutation=True)
-    _stream_handler.stream.seek(0)
-    warn = _stream_handler.stream.read()
-    assert_that(warn, contains_string('Calculating permutation feature importance without time limit. '
-                                      'Expected to finish in '))
+    assert_that(caplog.records, has_length(1))
+    assert_that(caplog.records[0].message, contains_string('Calculating permutation feature importance without time limit. '
+                                                           'Expected to finish in '))
 
     # Assert
     assert_that(feature_importances.sum(), close_to(1, 0.0001))
