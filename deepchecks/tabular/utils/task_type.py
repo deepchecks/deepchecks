@@ -13,11 +13,11 @@
 from enum import Enum
 
 __all__ = [
-    'ModelType'
+    'TaskType'
 ]
 
 
-class ModelType(Enum):
+class TaskType(Enum):
     """Enum containing supported task types."""
 
     REGRESSION = 'regression'

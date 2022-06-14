@@ -23,7 +23,7 @@ from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
-from deepchecks.tabular.utils.model_type import ModelType
+from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.distribution.preprocessing import ScaledNumerics
 from deepchecks.utils.metrics import get_gain
 from deepchecks.utils.simple_models import RandomModel
@@ -138,7 +138,7 @@ class SimpleModelComparison(TrainTestCheck):
         ]
 
         # Multiclass have different return type from the scorer, list of score per class instead of single score
-        if task_type in [ModelType.MULTICLASS, ModelType.BINARY]:
+        if task_type in [TaskType.MULTICLASS, TaskType.BINARY]:
             n_samples = test_label.groupby(test_label).count()
             classes = [clazz for clazz in test_dataset.classes if clazz in train_dataset.classes]
 
@@ -231,14 +231,14 @@ class SimpleModelComparison(TrainTestCheck):
                             'classes': classes
                             }, display=fig)
 
-    def _create_simple_model(self, train_ds: Dataset, task_type: ModelType):
+    def _create_simple_model(self, train_ds: Dataset, task_type: TaskType):
         """Create a simple model of given type (random/constant/tree) to the given dataset.
 
         Parameters
         ----------
         train_ds : Dataset
             The training dataset object.
-        task_type : ModelType
+        task_type : TaskType
             the model type.
 
         Returns
@@ -257,19 +257,19 @@ class SimpleModelComparison(TrainTestCheck):
             simple_model = RandomModel()
 
         elif self.simple_model_type == 'constant':
-            if task_type == ModelType.REGRESSION:
+            if task_type == TaskType.REGRESSION:
                 simple_model = DummyRegressor(strategy='mean')
-            elif task_type in {ModelType.BINARY, ModelType.MULTICLASS}:
+            elif task_type in {TaskType.BINARY, TaskType.MULTICLASS}:
                 simple_model = DummyClassifier(strategy='most_frequent')
             else:
                 raise DeepchecksValueError(f'Unknown task type - {task_type}')
         elif self.simple_model_type == 'tree':
-            if task_type == ModelType.REGRESSION:
+            if task_type == TaskType.REGRESSION:
                 clf = DecisionTreeRegressor(
                     max_depth=self.max_depth,
                     random_state=self.random_state
                 )
-            elif task_type in {ModelType.BINARY, ModelType.MULTICLASS}:
+            elif task_type in {TaskType.BINARY, TaskType.MULTICLASS}:
                 clf = DecisionTreeClassifier(
                     max_depth=self.max_depth,
                     random_state=self.random_state,
@@ -325,7 +325,7 @@ def condition(result: Dict, include_classes=None, average=False, max_gain=None, 
     scorers_perfect = result['scorers_perfect']
 
     passed_condition = True
-    if task_type in [ModelType.MULTICLASS, ModelType.BINARY] and not average:
+    if task_type in [TaskType.MULTICLASS, TaskType.BINARY] and not average:
         passed_metrics = {}
         failed_classes = defaultdict(dict)
         perfect_metrics = []
@@ -367,7 +367,7 @@ def condition(result: Dict, include_classes=None, average=False, max_gain=None, 
         passed_metrics = {}
         failed_metrics = {}
         perfect_metrics = []
-        if task_type in [ModelType.MULTICLASS, ModelType.BINARY]:
+        if task_type in [TaskType.MULTICLASS, TaskType.BINARY]:
             scores = average_scores(scores, include_classes)
         for metric, models_scores in scores.items():
             # If origin model is perfect, skip the gain calculation

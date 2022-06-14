@@ -22,7 +22,7 @@ from sklearn.metrics import f1_score, get_scorer, make_scorer, precision_score, 
 
 from deepchecks import tabular  # pylint: disable=unused-import; it is used for type annotations
 from deepchecks.core import errors
-from deepchecks.tabular.utils.model_type import ModelType
+from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.simple_models import PerfectModel
 from deepchecks.utils.strings import is_string_column
 from deepchecks.utils.typing import BasicModel, ClassificationModel
@@ -66,9 +66,9 @@ DEFAULT_REGRESSION_SCORERS = {
 }
 
 DEFAULT_SCORERS_DICT = {
-    ModelType.BINARY: DEFAULT_BINARY_SCORERS,
-    ModelType.MULTICLASS: DEFAULT_MULTICLASS_SCORERS,
-    ModelType.REGRESSION: DEFAULT_REGRESSION_SCORERS
+    TaskType.BINARY: DEFAULT_BINARY_SCORERS,
+    TaskType.MULTICLASS: DEFAULT_MULTICLASS_SCORERS,
+    TaskType.REGRESSION: DEFAULT_REGRESSION_SCORERS
 }
 
 
@@ -171,7 +171,7 @@ class DeepcheckScorer:
 def task_type_check(
         model: BasicModel,
         dataset: 'tabular.Dataset'
-) -> ModelType:
+) -> TaskType:
     """Check task type (regression, binary, multiclass) according to model object and label column.
 
     Parameters
@@ -183,7 +183,7 @@ def task_type_check(
 
     Returns
     -------
-    ModelType
+    TaskType
         TaskType enum corresponding to the model and dataset
     """
     label_col = dataset.label_col
@@ -201,20 +201,20 @@ def task_type_check(
                     'predict_proba method. Please train the model with probability=True, or skip / ignore this check.'
                 )
             else:
-                return ModelType.REGRESSION
+                return TaskType.REGRESSION
         else:
             return (
-                ModelType.MULTICLASS
+                TaskType.MULTICLASS
                 if label_col.nunique() > 2
-                else ModelType.BINARY
+                else TaskType.BINARY
             )
     if isinstance(model, ClassificationModel):
         return (
-            ModelType.MULTICLASS
+            TaskType.MULTICLASS
             if label_col.nunique() > 2
-            else ModelType.BINARY
+            else TaskType.BINARY
         )
-    return ModelType.REGRESSION
+    return TaskType.REGRESSION
 
 
 def get_default_scorers(model_type, class_avg: bool = True):
@@ -222,12 +222,12 @@ def get_default_scorers(model_type, class_avg: bool = True):
 
     Parameters
     ----------
-    model_type : ModelType
+    model_type : TaskType
         model type to return scorers for
     class_avg : bool, default True
         for classification whether to return scorers of average score or per class
     """
-    return_array = model_type in [ModelType.MULTICLASS, ModelType.BINARY] and class_avg is False
+    return_array = model_type in [TaskType.MULTICLASS, TaskType.BINARY] and class_avg is False
 
     if return_array:
         return MULTICLASS_SCORERS_NON_AVERAGE
@@ -253,10 +253,10 @@ def init_validate_scorers(scorers: t.Mapping[str, t.Union[str, t.Callable]],
         used to validate the scorers, and calculate mode_type if None.
     class_avg : bool , default True
         for classification whether to return scorers of average score or per class
-    model_type : ModelType , default None
+    model_type : TaskType , default None
         model type to return scorers for
     """
-    return_array = model_type in [ModelType.MULTICLASS, ModelType.BINARY] and class_avg is False
+    return_array = model_type in [TaskType.MULTICLASS, TaskType.BINARY] and class_avg is False
     scorers: t.List[DeepcheckScorer] = [DeepcheckScorer(scorer, name) for name, scorer in scorers.items()]
     for s in scorers:
         s.validate_fitting(model, dataset, return_array)

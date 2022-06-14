@@ -22,7 +22,7 @@ from sklearn.model_selection import train_test_split
 from typing_extensions import Literal as L
 
 from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError
-from deepchecks.tabular.utils.model_type import ModelType
+from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import infer_categorical_features, infer_numerical_features, is_categorical
 from deepchecks.utils.strings import get_docs_link
@@ -84,7 +84,7 @@ class Dataset:
         The maximum number of categories in a column in order for it to be inferred as a categorical
         feature. if None, uses is_categorical default inference mechanism.
     label_type : str , default: None
-        Used to assume target model type if not found on model. Values ('regression', 'binary', 'multiclass')
+        Used to assume target model type if not found on model. Values ('classification_label', 'regression_label')
         If None then label type is inferred from label using is_categorical logic.
     """
 
@@ -100,7 +100,7 @@ class Dataset:
     _data: pd.DataFrame
     _max_categorical_ratio: float
     _max_categories: int
-    _label_type: t.Optional[ModelType]
+    _label_type: t.Optional[TaskType]
 
     def __init__(
             self,
@@ -274,12 +274,17 @@ class Dataset:
             else:
                 self._data[self._datetime_name] = pd.to_datetime(self._data[self._datetime_name], **self._datetime_args)
 
-        if label_type:
-            try:
-                self._label_type = ModelType(label_type)
-            except ValueError:
+        if label_type and self._label_name:
+            if label_type == 'regression_label':
+                self._label_type = TaskType.REGRESSION
+            elif label_type == 'classification_label':
+                if self.data[self._label_name].nunique() > 2:
+                    self._label_type = TaskType.MULTICLASS
+                else:
+                    self._label_type = TaskType.BINARY
+            else:
                 warnings.warn(f'Label type {label_type} is not valid, auto inferring label type.'
-                              f' Possible values are regression, binary or multiclass.')
+                              f' Possible values are regression_label or classification_label.')
         if self._label_name and not hasattr(self, "label_type"):
             self._label_type = self._infer_label_type(self.data[self._label_name])
         elif not hasattr(self, "label_type"):
@@ -467,12 +472,12 @@ class Dataset:
         return self.data.shape[0]
 
     @property
-    def label_type(self) -> t.Optional[ModelType]:
+    def label_type(self) -> t.Optional[TaskType]:
         """Return the label type.
 
          Returns
         -------
-        t.Optional[ModelType]
+        t.Optional[TaskType]
             Label type
         """
         return self._label_type
@@ -524,11 +529,11 @@ class Dataset:
     def _infer_label_type(label_col: pd.Series):
         if is_categorical(label_col, max_categorical_ratio=0.05):
             if label_col.nunique(dropna=True) > 2:
-                return ModelType.MULTICLASS
+                return TaskType.MULTICLASS
             else:
-                return ModelType.BINARY
+                return TaskType.BINARY
         else:
-            return ModelType.REGRESSION
+            return TaskType.REGRESSION
 
     @staticmethod
     def _infer_categorical_features(

@@ -19,7 +19,7 @@ from deepchecks.core import DatasetKind
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
                                     ModelValidationError)
 from deepchecks.tabular.dataset import Dataset
-from deepchecks.tabular.utils.model_type import ModelType
+from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.tabular.utils.validation import (ensure_predictions_proba, ensure_predictions_shape,
                                                  model_type_validation, validate_model)
 from deepchecks.utils.features import calculate_feature_importance_or_none
@@ -269,7 +269,7 @@ class Context:
         return self._model_name
 
     @property
-    def task_type(self) -> ModelType:
+    def task_type(self) -> TaskType:
         """Return task type if model & train & label exists. otherwise, raise error."""
         if self._task_type is None:
             self._task_type = task_type_check(self.model, self.train)
@@ -306,7 +306,7 @@ class Context:
         """Return whether there is test dataset defined."""
         return self._test is not None
 
-    def assert_task_type(self, *expected_types: ModelType):
+    def assert_task_type(self, *expected_types: TaskType):
         """Assert task_type matching given types.
 
         If task_type is defined, validate it and raise error if needed, else returns True.
@@ -326,16 +326,16 @@ class Context:
         """Assert the task_type is classification."""
         # assert_task_type makes assertion if task type exists and returns True, else returns False
         # If not task type than check label type
-        if (not self.assert_task_type(ModelType.MULTICLASS, ModelType.BINARY) and
-                self.train.label_type == ModelType.REGRESSION):
+        if (not self.assert_task_type(TaskType.MULTICLASS, TaskType.BINARY) and
+                self.train.label_type == TaskType.REGRESSION):
             raise ModelValidationError('Check is irrelevant for regressions tasks')
 
     def assert_regression_task(self):
         """Assert the task type is regression."""
         # assert_task_type makes assertion if task type exists and returns True, else returns False
         # If not task type than check label type
-        if (not self.assert_task_type(ModelType.REGRESSION) and
-                self.train.label_type != ModelType.REGRESSION):
+        if (not self.assert_task_type(TaskType.REGRESSION) and
+                self.train.label_type != TaskType.REGRESSION):
             raise ModelValidationError('Check is irrelevant for classification tasks')
 
     def get_scorers(self, alternative_scorers: t.Mapping[str, t.Union[str, t.Callable]] = None, class_avg=True):

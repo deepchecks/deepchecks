@@ -15,7 +15,7 @@ from sklearn.metrics import f1_score, make_scorer, recall_score
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.checks.model_evaluation import SimpleModelComparison
 from deepchecks.utils.metrics import get_default_scorers
-from deepchecks.tabular.utils.model_type import ModelType
+from deepchecks.tabular.utils.task_type import TaskType
 
 from tests.base.utils import equal_condition_result
 
@@ -267,7 +267,7 @@ def test_regression_tree_max_depth(diabetes_split_dataset_and_model):
 
 
 def assert_regression(result):
-    default_scorers = get_default_scorers(ModelType.REGRESSION)
+    default_scorers = get_default_scorers(TaskType.REGRESSION)
     metric = next(iter(default_scorers))
 
     assert_that(result['scores'], has_entry(metric, has_entries({
@@ -279,7 +279,7 @@ def assert_regression(result):
 
 def assert_classification(result, classes, metrics=None):
     if not metrics:
-        default_scorers = get_default_scorers(ModelType.MULTICLASS, class_avg=False)
+        default_scorers = get_default_scorers(TaskType.MULTICLASS, class_avg=False)
         metrics = [next(iter(default_scorers))]
     class_matchers = {clas: has_entries({'Origin': close_to(1, 1), 'Simple': close_to(1, 1)})
                       for clas in result['classes']}
