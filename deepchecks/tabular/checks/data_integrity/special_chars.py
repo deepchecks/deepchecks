@@ -55,7 +55,7 @@ class SpecialCharacters(SingleDatasetCheck):
         self.n_most_common = n_most_common
         self.n_top_columns = n_top_columns
 
-    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
 
         Returns
@@ -64,11 +64,7 @@ class SpecialCharacters(SingleDatasetCheck):
             value is dict of column as key and percent of special characters samples as value
             display is DataFrame with ('invalids') for any column with special_characters chars.
         """
-        if dataset_type == 'train':
-            dataset = context.train
-        else:
-            dataset = context.test
-
+        dataset = context.get_data_by_kind(dataset_kind)
         df = select_from_dataframe(dataset.data, self.columns, self.ignore_columns)
 
         # Result value: { Column Name: pct}

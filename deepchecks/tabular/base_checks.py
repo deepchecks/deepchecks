@@ -13,8 +13,8 @@ import abc
 from typing import Any, List, Mapping, Union
 
 from deepchecks.core.check_result import CheckFailure, CheckResult
-from deepchecks.core.checks import BaseCheck, ModelOnlyBaseCheck, SingleDatasetBaseCheck, TrainTestBaseCheck, \
-    DatasetKind
+from deepchecks.core.checks import (BaseCheck, DatasetKind, ModelOnlyBaseCheck, SingleDatasetBaseCheck,
+                                    TrainTestBaseCheck)
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.tabular import deprecation_warnings  # pylint: disable=unused-import # noqa: F401
 from deepchecks.tabular.context import Context
@@ -42,12 +42,12 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
             model=model,
             **kwargs
         )
-        result = self.run_logic(context)
+        result = self.run_logic(context, dataset_kind=DatasetKind.TRAIN)
         context.finalize_check_result(result, self, DatasetKind.TRAIN)
         return result
 
     @abc.abstractmethod
-    def run_logic(self, context, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context, dataset_kind) -> CheckResult:
         """Run check."""
         raise NotImplementedError()
 

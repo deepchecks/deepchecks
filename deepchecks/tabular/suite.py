@@ -120,7 +120,7 @@ class Suite(BaseSuite):
                         # In case of train & test, doesn't want to skip test if train fails. so have to explicitly
                         # wrap it in try/except
                         try:
-                            check_result = check.run_logic(context)
+                            check_result = check.run_logic(context, dataset_kind=DatasetKind.TRAIN)
                             context.finalize_check_result(check_result, check, DatasetKind.TRAIN)
                             # In case of single dataset not need to edit the header
                             if test_dataset is not None:
@@ -130,7 +130,7 @@ class Suite(BaseSuite):
                         results.append(check_result)
                     if test_dataset is not None:
                         try:
-                            check_result = check.run_logic(context, dataset_type='test')
+                            check_result = check.run_logic(context, dataset_kind=DatasetKind.TEST)
                             context.finalize_check_result(check_result, check, DatasetKind.TEST)
                             # In case of single dataset not need to edit the header
                             if train_dataset is not None:
