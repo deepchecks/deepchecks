@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Tests for Feature Feature Correlation check"""
-from hamcrest import assert_that, contains_exactly, has_items, equal_to
+from hamcrest import assert_that, contains_inanyorder, contains_exactly, has_items, equal_to, calling, raises
 
 from deepchecks.tabular.checks.data_integrity.feature_feature_correlation import FeatureFeatureCorrelation
 from deepchecks.tabular.dataset import Dataset
@@ -21,15 +21,33 @@ def test_feature_feature_correlation(adult_no_split):
        'hours-per-week', 'workclass', 'education', 'marital-status',
        'occupation', 'relationship', 'race', 'sex', 'native-country']
     result = FeatureFeatureCorrelation().run(adult_no_split)
-    assert_that(result.value.index, contains_exactly(*expected_features))
-    assert_that(result.value.columns, contains_exactly(*expected_features))
+    assert_that(result.value.index, contains_inanyorder(*expected_features))
+    assert_that(result.value.columns, contains_inanyorder(*expected_features))
 
 
-def test_feature_feature_correlation_corrupted_data(df_with_single_nans_in_different_rows):
-    ds = Dataset(df_with_single_nans_in_different_rows)
+def test_feature_feature_correlation_with_mixed_data(df_with_mixed_datatypes_and_missing_values):
+    # This dataset has mixed data types, missing values and a datetime column.
+    ds = Dataset(df_with_mixed_datatypes_and_missing_values, cat_features=['cat', 'dog', 'owl'], label='target')
     check = FeatureFeatureCorrelation()
     result = check.run(ds)
-    assert_that(len(result.value.index), equal_to(2))
+    # assert that the datetime column is ignored
+    expected_features = ['blue', 'red', 'green', 'black', 'white', 'owl', 'cat', 'dog']
+    assert_that(result.value.index, contains_inanyorder(*expected_features))
+
+    # assert that ignored columns are not in the correlation matrix
+    check.ignore_columns = ['green', 'dog', 'owl']
+    expected_features = ['cat', 'blue', 'red', 'white', 'black']
+    result = check.run(ds)
+    assert_that(result.value.index, contains_inanyorder(*expected_features))
+    assert_that(result.value.columns, contains_inanyorder(*expected_features))
+
+    # assert that has display for top 5 (columns without NaNs), but all the features are in the value
+    check = FeatureFeatureCorrelation(show_n_top_columns=5)
+    result = check.run(ds)
+    expected_features = ['red', 'blue', 'green', 'white', 'black', 'cat', 'dog', 'owl']
+    assert_that(result.value.index, contains_exactly(*expected_features))
+    assert_that(result.value.columns, contains_exactly(*expected_features))
+    assert_that(result.have_display(), equal_to(True))
 
 
 def test_feature_feature_correlation_pass_condition(adult_no_split):

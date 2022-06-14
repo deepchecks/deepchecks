@@ -12,11 +12,15 @@
 
 import pandas as pd
 import plotly.express as px
+from typing import List, Union
+import warnings
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.correlation_methods import correlation_ratio, symmetric_theil_u_correlation
 from deepchecks.utils.dataframes import generalized_corrwith
+from deepchecks.utils.typing import Hashable
+from deepchecks.utils.dataframes import select_from_dataframe
 
 __all__ = ['FeatureFeatureCorrelation']
 
@@ -26,11 +30,36 @@ class FeatureFeatureCorrelation(SingleDatasetCheck):
     Checks for pairwise correlation between the features.
 
     Extremely correlated pairs could indicate redundancy and even duplication.
+
+    Parameters
+    ----------
+    columns : Union[Hashable, List[Hashable]] , default: None
+        Columns to check, if none are given checks all columns except ignored ones.
+    ignore_columns : Union[Hashable, List[Hashable]] , default: None
+        Columns to ignore, if none given checks based on columns variable.
+    show_n_top_columns : int , optional
+        amount of columns to show ordered by the highest correlation, default: 10
+    n_samples : int , default: 100000
+        number of samples to use for this check.
+    random_state : int, default: 42
+        random seed for all check internals.
     """
 
-    def __init__(self,
-                 **kwargs):
-        super().__init__()
+    def __init__(
+        self,
+        columns: Union[Hashable, List[Hashable], None] = None,
+        ignore_columns: Union[Hashable, List[Hashable], None] = None,
+        show_n_top_columns: int = 10,
+        n_samples: int = 100000,
+        random_state: int = 42,
+        **kwargs
+    ):
+        super().__init__(**kwargs)
+        self.columns = columns
+        self.ignore_columns = ignore_columns
+        self.n_top_columns = show_n_top_columns
+        self.n_samples = n_samples
+        self.random_state = random_state
 
     def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
         """
@@ -46,18 +75,22 @@ class FeatureFeatureCorrelation(SingleDatasetCheck):
         else:
             dataset = context.test
 
-        dataset.assert_features()
-        num_features = dataset.numerical_features
-        cat_features = dataset.cat_features
+        df = select_from_dataframe(dataset.sample(self.n_samples, random_state=self.random_state).data,
+                                   self.columns, self.ignore_columns)
 
-        encoded_cat_data = dataset.data.loc[:, cat_features].apply(lambda x: pd.factorize(x)[0])
+        dataset.assert_features()
+
+        # must use list comprehension for deterministic order of columns
+        num_features = [f for f in dataset.numerical_features if f in df.columns]
+        cat_features = [f for f in dataset.cat_features if f in df.columns]
+        encoded_cat_data = df.loc[:, cat_features].apply(lambda x: pd.factorize(x)[0])
 
         all_features = num_features + cat_features
         full_df = pd.DataFrame(index=all_features, columns=all_features)
 
         # Numerical-numerical correlations
         if num_features:
-            full_df.loc[num_features, num_features] = dataset.data.loc[:, num_features].corr(method='spearman')
+            full_df.loc[num_features, num_features] = df.loc[:, num_features].corr(method='spearman')
 
         # Categorical-categorical correlations
         if cat_features:
@@ -65,14 +98,28 @@ class FeatureFeatureCorrelation(SingleDatasetCheck):
 
         # Numerical-categorical correlations
         if num_features and cat_features:
-            num_cat_corr = generalized_corrwith(dataset.data.loc[:, num_features], encoded_cat_data,
+            num_cat_corr = generalized_corrwith(df.loc[:, num_features], encoded_cat_data,
                                                 method=correlation_ratio)
             full_df.loc[num_features, cat_features] = num_cat_corr
             full_df.loc[cat_features, num_features] = num_cat_corr.transpose()
 
-        # Display
-        fig = px.imshow(full_df)
+        top_n_features = full_df.max(axis=1).sort_values(ascending=False).head(self.n_top_columns).index
+        top_n_df = full_df.loc[top_n_features, top_n_features]
 
+        # Display
+        if top_n_df.isna().sum().sum() > 0:
+            warnings.warn(f'Heatmeap display disabled due to NaN values in the correlation matrix')
+            fig = None
+        else:
+            fig = px.imshow(top_n_df)
+            title = f'Feature-Feature Correlation'
+            # if len(dataset.features) > len(all_features):
+            #     title += f'/n * Some features in the dataset are neither numerical nor categorical and therefore not ' \
+            #              f'calculated.'
+            # sampling_footnote = context.get_is_sampled_footnote(self.n_samples)
+            # if sampling_footnote:
+            #     title += sampling_footnote
+            fig.update_layout(title=title)
         return CheckResult(value=full_df, header='Feature-Feature Correlation', display=fig)
 
     def add_condition_max_number_of_pairs_above(self, threshold: float = 0.9, n_pairs: int = 0):

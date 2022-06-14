@@ -557,3 +557,16 @@ def simple_custom_plt_check():
 def adult_no_split():
     ds = adult.load_data(as_train_test=False)
     return ds
+
+
+@pytest.fixture(scope='session')
+def df_with_mixed_datatypes_and_missing_values():
+    df = pd.DataFrame({
+        'cat': [1, 2, 3, 4, 5], 'dog': [0, 9, 8, np.NAN, 7], 'owl': [np.NAN, 6, 5, 4, 3],
+        'red': [np.NAN, np.NAN, np.NAN, np.NAN, np.NAN], 'blue': [0, 1, 2, 3, 4], 'green': [0, 0, 0, 0, 0],
+        'white': [0.2, 0.5, 0.6, 0.2, -0.1], 'black': [0.1, 0.2, 0.3, 0.4, 0.5],
+        'date': [np.datetime64('2019-01-01'), np.datetime64('2019-12-02'), np.datetime64('2019-01-03'),
+                 np.datetime64('2019-02-04'), np.datetime64('2019-01-05')],
+        'target': [0, 1, 0, 1, 0]
+    }, index=['a', 'b', 'c', 'd', 'e'])
+    return df
