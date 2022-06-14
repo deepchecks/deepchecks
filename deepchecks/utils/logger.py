@@ -25,13 +25,25 @@ def get_logger() -> logging.Logger:
 
 
 def get_verbosity() -> int:
-    """Return the deepchecks logger verbosity level."""
+    """Return the deepchecks logger verbosity level.
+
+    Same as doing logging.getLogger('deepchecks').getEffectiveLevel().
+    """
     return _logger.getEffectiveLevel()
 
 
 def set_verbosity(level: int):
     """Set the deepchecks logger verbosity level.
 
+    Same as doing logging.getLogger('deepchecks').setLevel(level).
     Control the package wide log level and the progrees bars - progress bars are level INFO.
+
+    Examples
+    --------
+    >>> import logging
+    >>> import deepchecks
+
+    >>> # will disable progress bars
+    >>> deepchecks.set_verbosity(logging.WARNING)
     """
     _logger.setLevel(level)

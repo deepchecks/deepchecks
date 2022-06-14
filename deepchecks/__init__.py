@@ -27,7 +27,7 @@ from deepchecks.core import (BaseCheck, BaseSuite, CheckFailure, CheckResult, Co
 from deepchecks.tabular import (Context, Dataset, ModelComparisonCheck, ModelComparisonSuite, ModelOnlyCheck,
                                 SingleDatasetCheck, Suite, TrainTestCheck)
 from deepchecks.utils.ipython import is_notebook
-from deepchecks.utils.logger import set_verbosity, get_verbosity
+from deepchecks.utils.logger import get_verbosity, set_verbosity
 
 __all__ = [
     # core
