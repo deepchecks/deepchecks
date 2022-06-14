@@ -76,8 +76,6 @@ class StringMismatch(SingleDatasetCheck):
         df = select_from_dataframe(dataset.sample(self.n_samples, random_state=self.random_state).data,
                                    self.columns, self.ignore_columns)
 
-        sampling_footnote = context.get_is_sampled_footnote(self.n_samples)
-
         display_results = []
         result_dict = {}
 
@@ -110,8 +108,6 @@ class StringMismatch(SingleDatasetCheck):
             df_graph = column_importance_sorter_df(df_graph, dataset, context.features_importance,
                                                    self.n_top_columns, col='Column Name')
             display = [N_TOP_MESSAGE % self.n_top_columns, df_graph]
-            if sampling_footnote:
-                display.append(sampling_footnote)
         else:
             display = None
 

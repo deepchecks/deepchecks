@@ -141,7 +141,8 @@ class Suite(BaseSuite):
                     try:
                         # if check index in results we had failure
                         if check_idx not in results:
-                            result = check.finalize_check_result(check.compute(context))
+                            result = check.compute(context)
+                            context.finalize_check_result(result, check)
                             results[check_idx] = result
                     except Exception as exp:
                         results[check_idx] = CheckFailure(check, exp)
@@ -226,7 +227,7 @@ class Suite(BaseSuite):
                 else:
                     try:
                         result = check.compute(context, dataset_kind=dataset_kind)
-                        result = check.finalize_check_result(result)
+                        context.finalize_check_result(result, check)
                         # Update header with dataset type only if both train and test ran
                         if run_train_test_checks:
                             result.header = result.get_header() + type_suffix

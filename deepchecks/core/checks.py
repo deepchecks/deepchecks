@@ -137,21 +137,6 @@ class BaseCheck(abc.ABC):
         """Return parameters to show when printing the check."""
         return initvars(self, show_defaults)
 
-    def finalize_check_result(
-        self,
-        check_result: 'check_types.CheckResult'
-    ) -> 'check_types.CheckResult':
-        """Finalize the check result by adding the check instance and processing the conditions."""
-        if isinstance(check_result, check_types.CheckFailure):
-            return check_result
-
-        if not isinstance(check_result, check_types.CheckResult):
-            raise DeepchecksValueError(f'Check {self.name()} expected to return CheckResult but got: '
-                                       + type(check_result).__name__)
-        check_result.check = self
-        check_result.process_conditions()
-        return check_result
-
     @classmethod
     def name(cls) -> str:
         """Name of class in split camel case."""

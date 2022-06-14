@@ -15,6 +15,7 @@ import warnings
 import numpy as np
 import pandas as pd
 
+from deepchecks import CheckFailure, CheckResult
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
                                     ModelValidationError)
@@ -390,24 +391,39 @@ class Context:
         else:
             raise DeepchecksValueError(f'Unexpected dataset kind {kind}')
 
-    def get_is_sampled_footnote(self, n_samples: int, kind: DatasetKind = None):
-        """Get footnote to display when the datasets are sampled."""
-        message = ''
-        if kind:
-            v_data = self.get_data_by_kind(kind)
-            if v_data.is_sampled(n_samples):
-                message = f'Data is sampled from the original dataset, running on ' \
-                          f'{v_data.len_when_sampled(n_samples)} samples out of {len(v_data)}.'
-        else:
-            if self._train is not None and self._train.is_sampled(n_samples):
-                message += f'Running on {self._train.len_when_sampled(n_samples)} <b>train</b> data samples out of ' \
-                           f'{len(self._train)}.'
-            if self._test is not None and self._test.is_sampled(n_samples):
-                if message:
-                    message += ' '
-                message += f'Running on {self._test.len_when_sampled(n_samples)} <b>test</b> data samples out of ' \
-                           f'{len(self._test)}.'
+    def finalize_check_result(self, check_result, check, kind: DatasetKind = None):
+        # Validate the check result type
+        if isinstance(check_result, CheckFailure):
+            return
+        if not isinstance(check_result, CheckResult):
+            raise DeepchecksValueError(f'Check {check.name()} expected to return CheckResult but got: '
+                                       + type(check_result).__name__)
 
-        if message:
-            message = f'Note - data sampling: {message} Sample size can be controlled with the "n_samples" parameter.'
-            return f'<p style="font-size:0.9em;line-height:1;"><i>{message}</i></p>'
+        # Set reference between the check result and check
+        check_result.check = check
+        # Calculate conditions results
+        check_result.process_conditions()
+        # Add sampling footnote if needed
+        if hasattr(check, 'n_samples'):
+            n_samples = getattr(check, 'n_samples')
+            message = ''
+            if kind:
+                dataset = self.get_data_by_kind(kind)
+                if dataset.is_sampled(n_samples):
+                    message = f'Data is sampled from the original dataset, running on ' \
+                              f'{dataset.len_when_sampled(n_samples)} samples out of {len(dataset)}.'
+            else:
+                if self._train is not None and self._train.is_sampled(n_samples):
+                    message += f'Running on {self._train.len_when_sampled(n_samples)} <b>train</b> data samples ' \
+                               f'out of {len(self._train)}.'
+                if self._test is not None and self._test.is_sampled(n_samples):
+                    if message:
+                        message += ' '
+                    message += f'Running on {self._test.len_when_sampled(n_samples)} <b>test</b> data samples ' \
+                               f'out of {len(self._test)}.'
+
+            if message:
+                message = ('<p style="font-size:0.9em;line-height:1;"><i>'
+                           f'Note - data sampling: {message} Sample size can be controlled with the "n_samples" '
+                           'parameter.</i></p>')
+                check_result.display.append(message)
