@@ -174,6 +174,7 @@ class ABCDisplayItemsHandler(Protocol):
 
     @classmethod
     def supported_item_types(cls):
+        """Return set of supported types of display items."""
         return frozenset([
             str, pd.DataFrame, Styler, BaseFigure, t.Callable, check_types.DisplayMap
         ])
@@ -241,7 +242,7 @@ class ABCDisplayItemsHandler(Protocol):
     def handle_figure(cls, item: BaseFigure, index: int, **kwargs) -> t.Any:
         """Handle plotly figure item."""
         raise NotImplementedError()
-    
+
     @classmethod
     @abc.abstractmethod
     def handle_display_map(cls, item: 'check_types.DisplayMap', index: int, **kwargs) -> t.Any:

@@ -19,7 +19,8 @@ from plotly.basedatatypes import BaseFigure
 
 from deepchecks.core import check_result as check_types
 from deepchecks.core.serialization.abc import ABCDisplayItemsHandler, WandbSerializer
-from deepchecks.core.serialization.common import aggregate_conditions, concatv_images, normalize_value, prettify
+from deepchecks.core.serialization.common import (aggregate_conditions, concatv_images, flatten, normalize_value,
+                                                  prettify)
 from deepchecks.utils.wandb_utils import WANDB_INSTALLATION_CMD
 
 try:
@@ -104,6 +105,28 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
     """Auxiliary class to decouple display handling logic from other functionality."""
 
     @classmethod
+    def handle_display(
+        cls,
+        display: t.List['check_types.TDisplayItem'],
+        **kwargs
+    ) -> t.List[t.Tuple[str, 'WBValue']]:
+        """Serialize list of display items to wandb data types.
+
+        Parameters
+        ----------
+        display : List[Union[str, DataFrame, Styler, BaseFigure, Callable, DisplayMap]]
+            list of display items
+
+        Returns
+        -------
+        List[Tuple[str, 'WBValue']]
+        """
+        return list(flatten(
+            l=super().handle_display(display, **kwargs),
+            stop=lambda it: isinstance(it, tuple) and len(it) == 2
+        ))
+
+    @classmethod
     def handle_string(cls, item: str, index: int, **kwargs) -> t.Tuple[str, 'WBValue']:
         """Handle textual item."""
         return (f'item-{index}-html', wandb.Html(data=item))
@@ -146,3 +169,20 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
     def handle_figure(cls, item: BaseFigure, index: int, **kwargs) -> t.Tuple[str, 'WBValue']:
         """Handle plotly figure item."""
         return f'item-{index}-plot', wandb.Plotly(item)
+
+    @classmethod
+    def handle_display_map(
+        cls,
+        item: 'check_types.DisplayMap',
+        index: int,
+        **kwargs
+    ) -> t.List[t.Tuple[str, 'WBValue']]:
+        """Handle display map instance item."""
+        return [
+            (
+                f'item-{index}-displaymap/{name}/{section_name}',
+                wbvalue
+            )
+            for name, display_items in item.items()
+            for section_name, wbvalue in cls.handle_display(display_items, **kwargs)
+        ]

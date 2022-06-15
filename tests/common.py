@@ -97,6 +97,25 @@ def create_check_result(
     return result
 
 
+def create_check_result_display():
+    def draw_plot():
+        plt.subplots()
+        plt.plot([1, 2, 3, 4], [1, 4, 2, 3])
+
+    return [
+        'Hello world',
+        pd.DataFrame({'foo': range(3), 'bar': range(3)}),
+        pd.DataFrame({'foo': range(3), 'bar': range(3)}).style,
+        px.bar(
+            px.data.gapminder().query("country == 'Canada'"),
+            x='year', y='pop'
+        ),
+        draw_plot
+    ]
+
+
+
+
 def instance_of_ipython_formatter():
     return any_of(
         instance_of(HTMLFormatter),

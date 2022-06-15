@@ -195,7 +195,7 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
 
         Parameters
         ----------
-        display : List[Union[Callable, str, DataFrame, Styler]]
+        display : List[Union[str, DataFrame, Styler, BaseFigure, Callable, DisplayMap]]
             list of display items
         output_id : Optional[str], default None
             unique output identifier that will be used to form anchor links
@@ -294,6 +294,35 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
             default_height=525,
             validate=True,
         )
+
+    @classmethod
+    def handle_display_map(cls, item: 'check_types.DisplayMap', index: int, **kwargs) -> str:
+        """Handle display map instance item."""
+        template = """
+            <details>
+                <summary><strong>{name}</strong></summary>
+                <div style="
+                    display: flex;
+                    flex-direction: column;
+                    width: 100%;
+                    padding: 1.5rem;
+                ">
+                {content}
+                </div>
+            </details>
+        """
+        return ''.join([
+            template.format(
+                name=k,
+                content=''.join(cls.handle_display(
+                    v,
+                    include_header=False,
+                    include_trailing_link=False,
+                    **kwargs
+                ))
+            )
+            for k, v in item.items()
+        ])
 
 
 def verify_include_parameter(
