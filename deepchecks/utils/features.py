@@ -498,7 +498,7 @@ def is_categorical(
     """
     n_samples = len(column.dropna())
     if n_samples == 0:
-        warnings.warn(f'Column {column.name} only contains NaN values.')
+        get_logger().warning('Column %s only contains NaN values.', column.name)
         return False
 
     n_samples = np.max([n_samples, 1000])

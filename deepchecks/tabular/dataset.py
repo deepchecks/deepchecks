@@ -283,8 +283,8 @@ class Dataset:
                 else:
                     self._label_type = TaskType.BINARY
             else:
-                warnings.warn(f'Label type {label_type} is not valid, auto inferring label type.'
-                              f' Possible values are regression_label or classification_label.')
+                get_logger().warning('Label type %s is not valid, auto inferring label type.'
+                                     ' Possible values are regression_label or classification_label.', label_type)
         if self._label_name and not hasattr(self, "label_type"):
             self._label_type = self._infer_label_type(self.data[self._label_name])
         elif not hasattr(self, "label_type"):
