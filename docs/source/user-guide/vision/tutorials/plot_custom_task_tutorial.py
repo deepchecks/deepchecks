@@ -127,7 +127,10 @@ class CocoSegmentDataset(VisionDataset):
             masks = transformed['masks']
             # Transform masks to tensor of (num_masks, H, W)
             if masks:
-                masks = torch.stack([torch.from_numpy(m) for m in masks])
+                masks = torch.stack([
+                    torch.from_numpy(m) if isinstance(m, np.ndarray) else m
+                    for m in masks
+                ])
             else:
                 masks = torch.empty((0, 3))
 
