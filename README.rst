@@ -161,7 +161,7 @@ See the `full code tutorials here`_.
 
 Note that other suites that run only on the data (``data_integrity``, ``train_test_validation``) don't require a model as part of the input.
 
-.. _full examples here:
+.. _full code tutorials here:
    https://docs.deepchecks.com/dev/user-guide/tabular/auto_tutorials/index.html?
    utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out
 
