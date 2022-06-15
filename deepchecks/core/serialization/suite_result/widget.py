@@ -155,8 +155,8 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             selected_index=None
         ))
         return VBox(children=(
-            # by puting `section_anchor`` before the results accordion
-            # we craete a gap between them`s, failures section does not have
+            # by putting `section_anchor`` before the results accordion
+            # we create a gap between them`s, failures section does not have
             # `section_anchor`` but we need to create a gap.
             # Take a look at the `prepare_results` method to understand
             HTML(value=''),
