@@ -11,7 +11,6 @@
 """The dataset module containing the tabular Dataset class and its functions."""
 # pylint: disable=inconsistent-quotes,protected-access
 import typing as t
-import warnings
 from functools import lru_cache
 
 import numpy as np
@@ -25,6 +24,7 @@ from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupporte
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import infer_categorical_features, infer_numerical_features, is_categorical
+from deepchecks.utils.logger import get_logger
 from deepchecks.utils.strings import get_docs_link
 from deepchecks.utils.typing import Hashable
 
@@ -570,8 +570,8 @@ class Dataset:
 
         message = ('It is recommended to initialize Dataset with categorical features by doing '
                    '"Dataset(df, cat_features=categorical_list)". No categorical features were passed, therefore '
-                   'heuristically inferring categorical features in the data.\n'
-                   f'{len(categorical_columns)} categorical features were inferred')
+                   'heuristically inferring categorical features in the data. '
+                   f'{len(categorical_columns)} categorical features were inferred.')
 
         if len(categorical_columns) > 0:
             columns_to_print = categorical_columns[:7]
@@ -579,7 +579,7 @@ class Dataset:
             if len(categorical_columns) > len(columns_to_print):
                 message += '... For full list use dataset.cat_features'
 
-        warnings.warn(message)
+        get_logger().warning(message)
 
         return categorical_columns
 
@@ -888,7 +888,7 @@ class Dataset:
             if the provided value cannot be transformed into Dataset instance;
         """
         if isinstance(obj, pd.DataFrame):
-            warnings.warn(
+            get_logger().warning(
                 'Received a "pandas.DataFrame" instance. It is recommended to pass a "deepchecks.tabular.Dataset" '
                 'instance by doing "Dataset(dataframe)"'
             )

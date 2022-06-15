@@ -13,7 +13,6 @@
 # TODO: move tabular functionality to the tabular sub-package
 
 import typing as t
-import warnings
 from numbers import Number
 
 import numpy as np
@@ -23,6 +22,7 @@ from sklearn.metrics import f1_score, get_scorer, make_scorer, precision_score, 
 from deepchecks import tabular  # pylint: disable=unused-import; it is used for type annotations
 from deepchecks.core import errors
 from deepchecks.tabular.utils.task_type import TaskType
+from deepchecks.utils.logger import get_logger
 from deepchecks.utils.simple_models import PerfectModel
 from deepchecks.utils.strings import is_string_column
 from deepchecks.utils.typing import BasicModel, ClassificationModel
@@ -126,7 +126,7 @@ class DeepcheckScorer:
             # We expect the perfect score to be equal for all the classes, so takes the first one
             first_score = score[0]
             if any(score != first_score):
-                warnings.warn(f'Scorer {self.name} return different perfect score for differect classes')
+                get_logger().warning('Scorer %s return different perfect score for differect classes', self.name)
             return first_score
         return score
 

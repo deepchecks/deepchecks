@@ -39,7 +39,7 @@ class RocReport(SingleDatasetCheck):
         super().__init__(**kwargs)
         self.excluded_classes = excluded_classes or []
 
-    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
 
         Returns
@@ -52,11 +52,7 @@ class RocReport(SingleDatasetCheck):
         DeepchecksValueError
             If the object is not a Dataset instance with a label
         """
-        if dataset_type == 'train':
-            dataset = context.train
-        else:
-            dataset = context.test
-
+        dataset = context.get_data_by_kind(dataset_kind)
         context.assert_classification_task()
         ds_y = dataset.label_col
         ds_x = dataset.features_columns

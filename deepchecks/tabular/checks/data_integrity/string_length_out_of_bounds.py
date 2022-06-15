@@ -92,13 +92,9 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
         self.outlier_length_to_show = outlier_length_to_show
         self.samples_per_range_to_show = samples_per_range_to_show
 
-    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
-        if dataset_type == 'train':
-            dataset = context.train
-        else:
-            dataset = context.test
-
+        dataset = context.get_data_by_kind(dataset_kind)
         df = select_from_dataframe(dataset.data, self.columns, self.ignore_columns)
 
         display_format = []

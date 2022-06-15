@@ -17,7 +17,7 @@ from typing import Any, Callable, ClassVar, Dict, List, Optional, Type, Union
 
 from typing_extensions import TypedDict
 
-from deepchecks.core import check_result as check_types
+from deepchecks.core import check_result as check_types  # pylint: disable=unused-import
 from deepchecks.core.condition import Condition, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.function import initvars
@@ -136,21 +136,6 @@ class BaseCheck(abc.ABC):
     def params(self, show_defaults: bool = False) -> Dict:
         """Return parameters to show when printing the check."""
         return initvars(self, show_defaults)
-
-    def finalize_check_result(
-        self,
-        check_result: 'check_types.CheckResult'
-    ) -> 'check_types.CheckResult':
-        """Finalize the check result by adding the check instance and processing the conditions."""
-        if isinstance(check_result, check_types.CheckFailure):
-            return check_result
-
-        if not isinstance(check_result, check_types.CheckResult):
-            raise DeepchecksValueError(f'Check {self.name()} expected to return CheckResult but got: '
-                                       + type(check_result).__name__)
-        check_result.check = self
-        check_result.process_conditions()
-        return check_result
 
     @classmethod
     def name(cls) -> str:

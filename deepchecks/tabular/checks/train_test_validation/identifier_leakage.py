@@ -38,7 +38,7 @@ class IdentifierLeakage(SingleDatasetCheck):
         super().__init__(**kwargs)
         self.ppscore_params = ppscore_params or {}
 
-    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
 
         Returns
@@ -52,11 +52,7 @@ class IdentifierLeakage(SingleDatasetCheck):
         DeepchecksValueError
             If the object is not a Dataset instance with a label.
         """
-        if dataset_type == 'train':
-            dataset = context.train
-        else:
-            dataset = context.test
-
+        dataset = context.get_data_by_kind(dataset_kind)
         dataset.assert_label()
         label_name = dataset.label_name
 

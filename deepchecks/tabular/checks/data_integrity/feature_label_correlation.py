@@ -25,9 +25,8 @@ __all__ = ['FeatureLabelCorrelation']
 FLC = t.TypeVar('FLC', bound='FeatureLabelCorrelation')
 
 
-pps_url = 'https://docs.deepchecks.com/en/stable/examples/tabular/' \
-          'checks/train_test_validation/feature_label_correlation_change' \
-          '.html?utm_source=display_output&utm_medium=referral&utm_campaign=check_link'
+pps_url = 'https://docs.deepchecks.com/en/stable/checks_gallery/tabular/' \
+          'train_test_validation/plot_feature_label_correlation_change.html'
 pps_html = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
 
 
@@ -62,7 +61,7 @@ class FeatureLabelCorrelation(SingleDatasetCheck):
         self.n_top_features = n_top_features
         self.random_state = random_state
 
-    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
 
         Returns
@@ -76,11 +75,7 @@ class FeatureLabelCorrelation(SingleDatasetCheck):
         DeepchecksValueError
             If the object is not a Dataset instance with a label.
         """
-        if dataset_type == 'train':
-            dataset = context.train
-        else:
-            dataset = context.test
-
+        dataset = context.get_data_by_kind(dataset_kind)
         dataset.assert_features()
         dataset.assert_label()
         relevant_columns = dataset.features + [dataset.label_name]
@@ -91,7 +86,7 @@ class FeatureLabelCorrelation(SingleDatasetCheck):
         top_to_show = s_ppscore.head(self.n_top_features)
 
         fig = get_pps_figure(per_class=False, n_of_features=len(top_to_show))
-        fig.add_trace(pd_series_to_trace(top_to_show, dataset_type))
+        fig.add_trace(pd_series_to_trace(top_to_show, dataset_kind.value))
 
         text = [
             'The Predictive Power Score (PPS) is used to estimate the ability of a feature to predict the '
