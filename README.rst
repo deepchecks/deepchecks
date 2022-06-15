@@ -156,10 +156,12 @@ Which will result in a report that looks like this:
    </p>
 
 
-Note: results can also be saved as an html report, saved as json, or exported to other tools (e.g Weights & Biases - wandb).
-See the `full code tutorials here`_.
+Note:
 
-Note that other suites that run only on the data (``data_integrity``, ``train_test_validation``) don't require a model as part of the input.
+- Results can also be saved as an html report, saved as json, or exported to other tools (e.g Weights & Biases - wandb)
+- Other suites that run only on the data (``data_integrity``, ``train_test_validation``) don't require a model as part of the input.
+
+See the `full code tutorials here`_.
 
 .. _full code tutorials here:
    https://docs.deepchecks.com/dev/user-guide/tabular/auto_tutorials/index.html?
@@ -338,7 +340,7 @@ subset of the following:
 Supported Data Types
 --------------------
 
-The package currently supports tabular data and is in *beta release* for the computer vision submodule.
+The package currently supports tabular data and is in *beta release* for the `Computer Vision subpackage <deepchecks/vision>`__.
 
 
 📖 Documentation
