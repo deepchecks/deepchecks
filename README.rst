@@ -144,7 +144,8 @@ Example for running a suite on given `datasets`_ and with a `supported model`_:
 
    from deepchecks.tabular.suites import model_evaluation_suite
    suite = model_evaluation_suite()
-   suite.run(train_dataset=train_dataset, test_dataset=test_dataset, model=model)
+   result = suite.run(train_dataset=train_dataset, test_dataset=test_dataset, model=model)
+   result.show()
 
 Which will result in a report that looks like this:
 
@@ -154,9 +155,11 @@ Which will result in a report that looks like this:
       <img src="docs/source/_static/images/general/full_suite_output.gif" width="750">
    </p>
 
-See the `full examples here`_.
 
-Note that other suites that run only on the data (``dataset_integrity``, ``train_test_validation``) don't require a model as part of the input.
+Note: results can also be saved as an html report, saved as json, or exported to other tools (e.g Weights & Biases - wandb).
+See the `full code tutorials here`_.
+
+Note that other suites that run only on the data (``data_integrity``, ``train_test_validation``) don't require a model as part of the input.
 
 .. _full examples here:
    https://docs.deepchecks.com/dev/user-guide/tabular/auto_tutorials/index.html?
@@ -312,7 +315,7 @@ Environment
 
 - The deepchecks package installed
 
-- JupyterLab or Jupyter Notebook
+- JupyterLab or Jupyter Notebook or any Python IDE
 
 
 Data / Model 
