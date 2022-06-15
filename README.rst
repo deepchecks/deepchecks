@@ -142,8 +142,8 @@ Example for running a suite on given `datasets`_ and with a `supported model`_:
 
 .. code:: python
 
-   from deepchecks.tabular.suites import model_evaluation_suite
-   suite = model_evaluation_suite()
+   from deepchecks.tabular.suites import model_evaluation
+   suite = model_evaluation()
    suite.run(train_dataset=train_dataset, test_dataset=test_dataset, model=model)
 
 Which will result in a report that looks like this:
@@ -156,7 +156,7 @@ Which will result in a report that looks like this:
 
 See the `full examples here`_.
 
-Note that some other suites (e.g. ``dataset_integrity``, ``train_test_validation``) don't require a model as part of the input.
+Note that some other suites (e.g. ``data_integrity``, ``train_test_validation``) don't require a model as part of the input.
 
 .. _full examples here:
    https://docs.deepchecks.com/dev/user-guide/tabular/auto_tutorials/index.html?
@@ -170,7 +170,7 @@ Note that some other suites (e.g. ``dataset_integrity``, ``train_test_validation
 
 .. _supported model:
    https://docs.deepchecks.com/en/stable/
-   user-guide/supported_models.html
+   user-guide/tabular/supported_models.html
    ?utm_source=github.com&utm_medium=referral&
    utm_campaign=readme&utm_content=running_a_suite 
 
