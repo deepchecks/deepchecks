@@ -17,7 +17,7 @@ import plotly.express as px
 import this
 from hamcrest import any_of, instance_of
 
-from deepchecks.core.check_result import CheckFailure, CheckResult
+from deepchecks.core.check_result import CheckFailure, CheckResult, DisplayMap
 from deepchecks.core.checks import BaseCheck
 from deepchecks.core.condition import ConditionCategory, ConditionResult
 from deepchecks.core.serialization.abc import (HTMLFormatter, IPythonDisplayFormatter, JPEGFormatter, JSONFormatter,
@@ -71,7 +71,12 @@ def create_check_result(
         pd.DataFrame({'foo': range(10), 'bar': range(10)}),
         pd.DataFrame({'foo': range(10), 'bar': range(10)}).style,
         plotly_figure,
-        draw_plot
+        draw_plot,
+        DisplayMap(
+            foo=[plotly_figure],
+            bar=[plotly_figure],
+            alice=[pd.DataFrame({'foo': range(5), 'bar': range(5)})]
+        )
     ]
     result = CheckResult(
         value=value or 1000,

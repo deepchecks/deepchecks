@@ -53,8 +53,12 @@ if TYPE_CHECKING:
 __all__ = ['CheckResult', 'CheckFailure', 'BaseCheckResult']
 
 
+class DisplayMap(Dict[str, List['TDisplayItem']]):
+    pass
+
+
 TDisplayCallable = Callable[[], None]
-TDisplayItem = Union[str, pd.DataFrame, Styler, BaseFigure, TDisplayCallable]
+TDisplayItem = Union[str, pd.DataFrame, Styler, BaseFigure, TDisplayCallable, DisplayMap]
 
 
 class BaseCheckResult:
@@ -147,7 +151,7 @@ class CheckResult(BaseCheckResult):
             self.display = display or []
 
         for item in self.display:
-            if not isinstance(item, (str, pd.DataFrame, Styler, Callable, BaseFigure)):
+            if not isinstance(item, (str, pd.DataFrame, Styler, Callable, BaseFigure, DisplayMap)):
                 raise DeepchecksValueError(f'Can\'t display item of type: {type(item)}')
 
     def process_conditions(self):

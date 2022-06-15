@@ -13,7 +13,7 @@ import typing as t
 
 import pandas as pd
 import plotly.graph_objects as go
-from ipywidgets import HTML, VBox, Widget
+from ipywidgets import HTML, VBox, Widget, Tab
 from plotly.basedatatypes import BaseFigure
 
 from deepchecks.core import check_result as check_types
@@ -135,6 +135,16 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
     """Auxiliary class to decouple display handling logic from other functionality."""
 
     @classmethod
+    def handle_display(cls, *args, **kwargs) -> t.List[Widget]:
+        """Serialize CheckResult display items into list if Widget instances.
+
+        Returns
+        -------
+        List[Widget]
+        """
+        return t.cast(t.List[Widget], super().handle_display(*args, **kwargs))
+
+    @classmethod
     def header(cls) -> HTML:
         """Return header section."""
         return HTML(value=super().header())
@@ -167,3 +177,21 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
     def handle_callable(cls, item: t.Callable, index: int, **kwargs) -> HTML:
         """Handle callable."""
         return HTML(value=super().handle_callable(item, index, **kwargs))
+    
+    @classmethod
+    def handle_display_map(cls, item: 'check_types.DisplayMap', index: int, **kwargs) -> Tab:
+        """Handle display map instance item."""
+        tab = Tab()
+        children = []
+
+        for index, (name, display) in enumerate(item.items()):
+            tab.set_title(index, name)
+            children.append(VBox(children=cls.handle_display(
+                display,
+                include_header=False,
+                include_trailing_link=False,
+                **kwargs
+            )))
+        
+        tab.children = children
+        return tab

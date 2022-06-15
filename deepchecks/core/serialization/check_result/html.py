@@ -187,6 +187,8 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
         cls,
         display: t.List['check_types.TDisplayItem'],
         output_id: t.Optional[str] = None,
+        include_header: bool = True,
+        include_trailing_link: bool = True,
         **kwargs
     ) -> t.List[str]:
         """Serialize CheckResult display items into HTML.
@@ -197,20 +199,22 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
             list of display items
         output_id : Optional[str], default None
             unique output identifier that will be used to form anchor links
+        include_header: bool, default True
+            whether to include header
+        include_trailing_link: bool, default True
+            whether to include "go to top" link
 
         Returns
         -------
         List[str]
         """
-        output = [
-            cls.header(),
-            *super().handle_display(display, **{'output_id': output_id, **kwargs})
-        ]
+        output = [cls.header()] if include_header else []
+        output.extend(super().handle_display(display, **{'output_id': output_id, **kwargs}))
 
         if len(display) == 0:
             output.append(cls.empty_content_placeholder())
 
-        if output_id is not None:
+        if output_id is not None and include_trailing_link:
             output.append(cls.go_to_top_link(output_id))
 
         return output
