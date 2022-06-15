@@ -142,8 +142,8 @@ Example for running a suite on given `datasets`_ and with a `supported model`_:
 
 .. code:: python
 
-   from deepchecks.tabular.suites import full_suite
-   suite = full_suite()
+   from deepchecks.tabular.suites import model_evaluation_suite
+   suite = model_evaluation_suite()
    suite.run(train_dataset=train_dataset, test_dataset=test_dataset, model=model)
 
 Which will result in a report that looks like this:
@@ -154,18 +154,17 @@ Which will result in a report that looks like this:
       <img src="docs/source/_static/images/general/full_suite_output.gif" width="750">
    </p>
 
-See the `full example here`_.
+See the `full examples here`_.
 
-Note that some other suites (e.g. ``single_dataset_integrity``) don't require a model as part of the input.
+Note that some other suites (e.g. ``dataset_integrity``, ``train_test_validation``) don't require a model as part of the input.
 
-.. _full example here:
-   https://docs.deepchecks.com/en/stable/
-   examples/guides/quickstart_in_5_minutes.html?
+.. _full examples here:
+   https://docs.deepchecks.com/dev/user-guide/tabular/auto_tutorials/index.html?
    utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out
 
 .. _datasets:
    https://docs.deepchecks.com/en/stable/
-   user-guide/dataset_object.html
+   user-guide/tabular/dataset_object.html
    ?utm_source=github.com&utm_medium=referral&
    utm_campaign=readme&utm_content=running_a_suite
 
@@ -215,6 +214,25 @@ Will produce output of the type:
       <p align="left">
         <img src="docs/source/_static/images/general/train-test-drift-output.png">
       </p>
+
+
+🙋🏼  When Should You Use Deepchecks?
+====================================
+
+While you’re in the research phase, and want to validate your data, find potential methodological problems, 
+and/or validate your model and evaluate it.
+
+.. raw:: html
+
+   <p align="center">
+      <img src="/docs/source/_static/images/general/pipeline_when_to_validate.svg">
+   </p>
+
+
+See more about typical usage scenarios and the built-in suites in the
+`docs <https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utme_content=what_do_you_need_in_order_to_start_validating>`__.
+
+
 
 🗝️ Key Concepts
 ==================
@@ -279,8 +297,6 @@ of checks and optional conditions.
 
 .. _predefined existing suites: deepchecks/tabular/suites
 
-.. include:: 
-
 .. raw:: html
 
    <p align="center">
@@ -320,15 +336,6 @@ Supported Data Types
 --------------------
 
 The package currently supports tabular data and is in *beta release* for the computer vision submodule.
-
-
-When Should I Run Deepchecks
-----------------------------
-
-Deepchecks validation accompanies you from the initial phase when you
-have only raw data, through the data splits, and to the final stage of
-having a trained model that you wish to evaluate. See more about typical usage scenarios and the built-in suites in the
-`docs <https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utme_content=what_do_you_need_in_order_to_start_validating>`__.
 
 
 📖 Documentation
