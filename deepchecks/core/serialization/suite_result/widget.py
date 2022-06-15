@@ -103,10 +103,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             )
         ]
 
-        style = '<style>.jupyter-widgets.widget-tab > .p-TabBar .p-TabBar-tab {flex: 0 1 auto}</style>'
-
         content = VBox(children=[
-            HTML(value=style),
             self.prepare_summary(output_id=output_id, **kwargs),
             *accordions
         ])

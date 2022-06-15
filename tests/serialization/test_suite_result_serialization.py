@@ -17,7 +17,7 @@ from hamcrest import (all_of, assert_that, calling, contains_exactly, contains_s
                       has_entries, has_item, has_length, has_property, instance_of, matches_regexp, only_contains,
                       raises, starts_with)
 from IPython.display import Image
-from ipywidgets import HTML, Tab, VBox
+from ipywidgets import HTML, Accordion, Tab, VBox
 from plotly.basedatatypes import BaseFigure
 from wandb.sdk.data_types.base_types.wb_value import WBValue
 
@@ -97,7 +97,7 @@ def are_navigation_links_present(
         all(
             soup.select_one(f'#{it.get_check_id(output_id)}') is not None
             for it in suite_result.results
-            if isinstance(it, CheckResult)
+            if isinstance(it, CheckResult) and it.display and it.conditions_results
         )
     ))
 
@@ -178,27 +178,22 @@ def test_json_serializer_initialization_with_incorrect_type_of_value():
 
 
 def test_json_serialization():
-    suite_result = create_suite_result()
+    suite_result = create_suite_result(
+        include_results_without_conditions=False,
+        include_results_without_display=False,
+        include_results_without_conditions_and_display=False
+    )
     output = JsonSerializer(suite_result).serialize()
 
     # NOTE: SuiteResult JSON serializer returns not a json string
     # but a simple builtin python values which then can be serailized into json string.
     # We need to verify that this is actually true
-    assert_that(
-        json.loads(json.dumps(output)) == output
-    )
+    assert_that(json.loads(json.dumps(output)) == output)
 
-    assert_that(
-        output,
-        all_of(
-            instance_of(dict),
-            has_entries({
-                'name': instance_of(str),
-                'results': all_of(
-                    instance_of(list),
-                    has_length(equal_to(len(suite_result.results))))
-            }))
-    )
+    assert_that(output, has_entries({
+        'name': instance_of(str),
+        'results': has_length(equal_to(len(suite_result.results)))
+    }))
 
     for index, payload in enumerate(output['results']):
         result = suite_result.results[index]
@@ -259,27 +254,20 @@ def test_widget_serialization():
     suite_result = create_suite_result()
     output = WidgetSerializer(suite_result).serialize()
 
-    assert_that(
-        output,
-        all_of(
-            instance_of(VBox),
-            has_property(
-                'children',
-                all_of(
-                    instance_of(tuple),
-                    has_length(equal_to(3)),
-                    contains_exactly(
-                        instance_of(HTML),
-                        instance_of(HTML),
-                        instance_of(Tab)))))
+    top_level_accordion_assertion = all_of(
+        instance_of(Accordion),
+        has_property('children', contains_exactly(instance_of(VBox)))
     )
-    assert_that(
-        output.children[2], # tabs panel
-        all_of(
-            instance_of(Tab),
-            has_property(
-                'children',
-                all_of(
-                    instance_of(tuple),
-                    has_length(equal_to(3)))))
+    content_assertion = all_of(
+        instance_of(VBox),
+        has_property('children', contains_exactly(
+            instance_of(HTML),
+            instance_of(Accordion),
+            instance_of(Accordion),
+            instance_of(Accordion),
+            instance_of(Accordion),
+        ))
     )
+
+    assert_that(output, top_level_accordion_assertion)
+    assert_that(output.children[0], content_assertion)
