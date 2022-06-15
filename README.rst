@@ -142,8 +142,8 @@ Example for running a suite on given `datasets`_ and with a `supported model`_:
 
 .. code:: python
 
-   from deepchecks.tabular.suites import model_evaluation_suite
-   suite = model_evaluation_suite()
+   from deepchecks.tabular.suites import model_evaluation
+   suite = model_evaluation()
    result = suite.run(train_dataset=train_dataset, test_dataset=test_dataset, model=model)
    result.show()
 
