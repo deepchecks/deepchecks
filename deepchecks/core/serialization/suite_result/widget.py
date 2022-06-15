@@ -81,7 +81,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                 **kwargs
             ),
             self.prepare_results(
-                title='Not Passed',
+                title='Didn`t Pass',
                 results=not_passed_checks,
                 output_id=output_id,
                 summary_creation_method=self.prepare_conditions_summary,
@@ -96,7 +96,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                 **kwargs
             ),
             self.prepare_failures(
-                title='Did not run',
+                title='Didn`t Run',
                 failures=not_ran_checks,
                 output_id=output_id,
                 **kwargs
@@ -129,8 +129,8 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         failures: t.Sequence['check_types.CheckFailure'],
         title: str,
         **kwargs
-    ) -> Accordion:
-        """Prepare accordion with failures.
+    ) -> VBox:
+        """Prepare failures section.
 
         Parameters
         ----------
@@ -141,7 +141,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
 
         Returns
         -------
-        ipywidgets.Accordion
+        ipywidgets.VBox
         """
         if len(failures) == 0:
             children = (HTML(value='<p>No outputs to show.</p>'),)
@@ -149,10 +149,18 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             df = create_failures_dataframe(failures)
             table = DataFrameSerializer(df.style.hide_index()).serialize()
             children = (table,)
-        return normalize_widget_style(Accordion(
+        accordion = normalize_widget_style(Accordion(
             children=children,
             _titles={'0': title},
             selected_index=None
+        ))
+        return VBox(children=(
+            # by puting `section_anchor`` before the results accordion
+            # we craete a gap between them`s, failures section does not have
+            # `section_anchor`` but we need to create a gap.
+            # Take a look at the `prepare_results` method to understand
+            HTML(value=''),
+            accordion,
         ))
 
     def prepare_results(
@@ -162,8 +170,8 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         output_id: t.Optional[str] = None,
         summary_creation_method: t.Optional[t.Callable[..., Widget]] = None,
         **kwargs
-    ) -> Accordion:
-        """Prepare accordion with results.
+    ) -> VBox:
+        """Prepare results section.
 
         Parameters
         ----------
@@ -178,12 +186,18 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
 
         Returns
         -------
-        ipywidgets.Accordion
+        ipywidgets.VBox
         """
         if len(results) == 0:
-            children = (HTML(value='<p>No outputs to show.</p>'),)
+            section_anchor = HTML(value='')
+            accordion = normalize_widget_style(Accordion(
+                children=(HTML(value='<p>No outputs to show.</p>'),),
+                _titles={'0': title},
+                selected_index=None
+            ))
         else:
             section_id = f'{output_id}-section-{get_random_string()}'
+            section_anchor = HTML(value=f'<span id="{form_output_anchor(section_id)}"></span>')
             serialized_results = [
                 select_serializer(it).serialize(output_id=section_id, **kwargs)
                 for it in results
@@ -191,20 +205,27 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             ]
             if callable(summary_creation_method):
                 children = (
-                    HTML(value=f'<span id="{form_output_anchor(section_id)}"></span>'),
                     summary_creation_method(results=results, output_id=section_id),
                     HTML(value=CommonHtml.light_hr),
                     *join(serialized_results, HTML(value=CommonHtml.light_hr))
                 )
             else:
                 children = (
-                    HTML(value=f'<span id="{form_output_anchor(section_id)}"></span>'),
                     *join(serialized_results, HTML(value=CommonHtml.light_hr)),
                 )
-        return normalize_widget_style(Accordion(
-            children=(VBox(children=children),),
-            _titles={'0': title},
-            selected_index=None
+
+            accordion = normalize_widget_style(Accordion(
+                children=(VBox(children=children),),
+                _titles={'0': title},
+                selected_index=None
+            ))
+
+        return VBox(children=(
+            # "go to top" link should bring the user a bit higher,
+            # to the top of the accordion, enabling easier folding,
+            # therefore we need to put section_anchor before the accordion
+            section_anchor,
+            accordion
         ))
 
     def prepare_conditions_summary(

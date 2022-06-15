@@ -258,14 +258,21 @@ def test_widget_serialization():
         instance_of(Accordion),
         has_property('children', contains_exactly(instance_of(VBox)))
     )
+    section_assertion = all_of(
+        instance_of(VBox),
+        has_property('children', contains_exactly(
+            instance_of(HTML),
+            instance_of(Accordion)
+        ))
+    )
     content_assertion = all_of(
         instance_of(VBox),
         has_property('children', contains_exactly(
             instance_of(HTML),
-            instance_of(Accordion),
-            instance_of(Accordion),
-            instance_of(Accordion),
-            instance_of(Accordion),
+            section_assertion,
+            section_assertion,
+            section_assertion,
+            section_assertion,
         ))
     )
 
