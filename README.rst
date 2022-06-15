@@ -156,7 +156,7 @@ Which will result in a report that looks like this:
 
 See the `full examples here`_.
 
-Note that some other suites (e.g. ``dataset_integrity``, ``train_test_validation``) don't require a model as part of the input.
+Note that other suites that run only on the data (``dataset_integrity``, ``train_test_validation``) don't require a model as part of the input.
 
 .. _full examples here:
    https://docs.deepchecks.com/dev/user-guide/tabular/auto_tutorials/index.html?
