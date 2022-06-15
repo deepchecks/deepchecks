@@ -47,6 +47,7 @@
 .. raw:: html
 
    <p align="center">
+      <a href="https://deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=checks_and_conditions_img">
       <img src="docs/source/_static/images/general/checks-and-conditions.png">
    </p>
 
@@ -99,10 +100,32 @@ Using conda
 ⏩ Try it Out!
 ================
 
-Head over to the `Quickstart Notebook <https://docs.deepchecks.com/en/stable/
-examples/guides/quickstart_in_5_minutes.html?
-utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`__
-and see deepchecks output on a built-in dataset, or run it yourself to apply it on your own data and models.
+🏃‍♀️ See It in Action
+-------------------- 
+
+Head over to one of our following quickstart tutorials, and have deepchecks running on your environment in less than 5 min:
+
+- `Data Integrity Quickstart (avocado sales data) <https://docs.deepchecks.com/stable/user-guide/tabular/
+   auto_tutorials/plot_quick_data_integrity.html?
+   utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`__
+
+- `Train-Test Validation Quickstart (loans data) <https://docs.deepchecks.com/stable/user-guide/tabular/
+   auto_tutorials/plot_quick_data_integrity.html?
+   utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`__
+
+- `Full Suite (many checks) Quickstart (iris data) <https://docs.deepchecks.com/en/stable/user-guide/tabular/
+   auto_tutorials/plot_quickstart_in_5_minutes.html?
+   utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`__
+
+ **Recommended - download the code and run it locally** on the built-in dataset and (optional) model, or replace them with your own.
+
+
+🚀 See Our Checks Demo
+------------------------
+
+Play with some of the existing checks in our `Interactive Checks Demo <https://checks-demo.deepchecks.com/?check=No+check+selected
+&utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`__, 
+and see how they work on various datasets with custom corruptions injected.
 
 
 📊 Usage Examples
