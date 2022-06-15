@@ -192,7 +192,7 @@ def test_dataset_infer_cat_features(diabetes_df):
     assert_dataset(dataset, args)
 
 
-def test_dataset_infer_cat_features_max_categoreis(diabetes_df):
+def test_dataset_infer_cat_features_max_categories(diabetes_df):
     args = {'df': diabetes_df,
             'features': ['age',
                          'bmi',
@@ -205,7 +205,7 @@ def test_dataset_infer_cat_features_max_categoreis(diabetes_df):
                          's5',
                          's6'],
             'max_categories': 60,
-            'max_float_categories': 60}
+            'max_categorical_ratio': 0.06}
 
     dataset = Dataset(**args)
     args['cat_features'] = ['age', 'sex', 's6']
@@ -681,7 +681,7 @@ def test_inferred_label_type_cat(diabetes_df):
     data = diabetes_df.drop('target', axis=1)
     dataset = Dataset(data, label)
     # Assert
-    assert_that(dataset.label_type, is_('regression_label'))
+    assert_that(dataset.label_type.value, is_('regression'))
 
 
 def test_inferred_label_type_reg(iris):
@@ -690,7 +690,7 @@ def test_inferred_label_type_reg(iris):
     data = iris.drop('target', axis=1)
     dataset = Dataset(data, label)
     # Assert
-    assert_that(dataset.label_type, is_('classification_label'))
+    assert_that(dataset.label_type.value, is_('multiclass'))
 
 
 def test_set_label_type(iris):
@@ -699,7 +699,7 @@ def test_set_label_type(iris):
     data = iris.drop('target', axis=1)
     dataset = Dataset(data, label, label_type='regression_label')
     # Assert
-    assert_that(dataset.label_type, is_('regression_label'))
+    assert_that(dataset.label_type.value, is_('regression'))
 
 
 def test_label_series_name_already_exists(iris):
@@ -1036,18 +1036,16 @@ def random_classification_dataframe(n_samples=100, n_features=5) -> pd.DataFrame
     return df
 
 
-def test_cat_features_warning(iris):
+def test_cat_features_warning(iris, caplog):
     # Test that warning is raised when cat_features is None
-    with warnings.catch_warnings(record=True) as w:
-        Dataset(iris)
-        assert_that(w, has_length(1))
-        assert_that(str(w[0].message), equal_to('It is recommended to initialize Dataset with categorical features by '
-                    'doing \"Dataset(df, cat_features=categorical_list)\". No categorical features were '
-                    'passed, therefore heuristically inferring categorical features in the data.\n'
-                    '0 categorical features were inferred'))
+    Dataset(iris, label='target')
+    assert_that(caplog.records, has_length(1))
+    assert_that(caplog.records[0].message), equal_to('It is recommended to initialize Dataset with categorical features by '
+                'doing \"Dataset(df, cat_features=categorical_list)\". No categorical features were '
+                'passed, therefore heuristically inferring categorical features in the data. '
+                '0 categorical features were inferred.')
 
     # Test that warning is not raised when cat_features is not None
-    with warnings.catch_warnings(record=True) as w:
-        Dataset(iris, cat_features=[])
-        assert_that(w, has_length(0))
+    Dataset(iris, cat_features=[])
+    assert_that(caplog.records, has_length(1))
 

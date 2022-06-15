@@ -12,9 +12,7 @@
 
 # TODO: move tabular functionality to the tabular sub-package
 
-import enum
 import typing as t
-import warnings
 from numbers import Number
 
 import numpy as np
@@ -23,12 +21,13 @@ from sklearn.metrics import f1_score, get_scorer, make_scorer, precision_score, 
 
 from deepchecks import tabular  # pylint: disable=unused-import; it is used for type annotations
 from deepchecks.core import errors
+from deepchecks.tabular.utils.task_type import TaskType
+from deepchecks.utils.logger import get_logger
 from deepchecks.utils.simple_models import PerfectModel
 from deepchecks.utils.strings import is_string_column
 from deepchecks.utils.typing import BasicModel, ClassificationModel
 
 __all__ = [
-    'ModelType',
     'task_type_check',
     'DEFAULT_SCORERS_DICT',
     'DEFAULT_REGRESSION_SCORERS',
@@ -42,20 +41,11 @@ __all__ = [
 ]
 
 
-class ModelType(enum.Enum):
-    """Enum containing supported task types."""
-
-    REGRESSION = 'regression'
-    BINARY = 'binary'
-    MULTICLASS = 'multiclass'
-
-
 DEFAULT_BINARY_SCORERS = {
     'Accuracy': 'accuracy',
     'Precision': make_scorer(precision_score, zero_division=0),
-    'Recall':  make_scorer(recall_score, zero_division=0)
+    'Recall': make_scorer(recall_score, zero_division=0)
 }
-
 
 DEFAULT_MULTICLASS_SCORERS = {
     'Accuracy': 'accuracy',
@@ -69,18 +59,16 @@ MULTICLASS_SCORERS_NON_AVERAGE = {
     'Recall': make_scorer(recall_score, average=None, zero_division=0)
 }
 
-
 DEFAULT_REGRESSION_SCORERS = {
     'Neg RMSE': 'neg_root_mean_squared_error',
     'Neg MAE': 'neg_mean_absolute_error',
     'R2': 'r2'
 }
 
-
 DEFAULT_SCORERS_DICT = {
-    ModelType.BINARY: DEFAULT_BINARY_SCORERS,
-    ModelType.MULTICLASS: DEFAULT_MULTICLASS_SCORERS,
-    ModelType.REGRESSION: DEFAULT_REGRESSION_SCORERS
+    TaskType.BINARY: DEFAULT_BINARY_SCORERS,
+    TaskType.MULTICLASS: DEFAULT_MULTICLASS_SCORERS,
+    TaskType.REGRESSION: DEFAULT_REGRESSION_SCORERS
 }
 
 
@@ -138,7 +126,7 @@ class DeepcheckScorer:
             # We expect the perfect score to be equal for all the classes, so takes the first one
             first_score = score[0]
             if any(score != first_score):
-                warnings.warn(f'Scorer {self.name} return different perfect score for differect classes')
+                get_logger().warning('Scorer %s return different perfect score for differect classes', self.name)
             return first_score
         return score
 
@@ -181,9 +169,9 @@ class DeepcheckScorer:
 
 
 def task_type_check(
-    model: BasicModel,
-    dataset: 'tabular.Dataset'
-) -> ModelType:
+        model: BasicModel,
+        dataset: 'tabular.Dataset'
+) -> TaskType:
     """Check task type (regression, binary, multiclass) according to model object and label column.
 
     Parameters
@@ -195,10 +183,12 @@ def task_type_check(
 
     Returns
     -------
-    ModelType
+    TaskType
         TaskType enum corresponding to the model and dataset
     """
     label_col = dataset.label_col
+    if not model:
+        return dataset.label_type
     if isinstance(model, BaseEstimator):
         if not hasattr(model, 'predict_proba'):
             if is_string_column(label_col):
@@ -211,20 +201,20 @@ def task_type_check(
                     'predict_proba method. Please train the model with probability=True, or skip / ignore this check.'
                 )
             else:
-                return ModelType.REGRESSION
+                return TaskType.REGRESSION
         else:
             return (
-                ModelType.MULTICLASS
+                TaskType.MULTICLASS
                 if label_col.nunique() > 2
-                else ModelType.BINARY
+                else TaskType.BINARY
             )
     if isinstance(model, ClassificationModel):
         return (
-            ModelType.MULTICLASS
+            TaskType.MULTICLASS
             if label_col.nunique() > 2
-            else ModelType.BINARY
+            else TaskType.BINARY
         )
-    return ModelType.REGRESSION
+    return TaskType.REGRESSION
 
 
 def get_default_scorers(model_type, class_avg: bool = True):
@@ -232,12 +222,12 @@ def get_default_scorers(model_type, class_avg: bool = True):
 
     Parameters
     ----------
-    model_type : ModelType
+    model_type : TaskType
         model type to return scorers for
     class_avg : bool, default True
         for classification whether to return scorers of average score or per class
     """
-    return_array = model_type in [ModelType.MULTICLASS, ModelType.BINARY] and class_avg is False
+    return_array = model_type in [TaskType.MULTICLASS, TaskType.BINARY] and class_avg is False
 
     if return_array:
         return MULTICLASS_SCORERS_NON_AVERAGE
@@ -263,10 +253,10 @@ def init_validate_scorers(scorers: t.Mapping[str, t.Union[str, t.Callable]],
         used to validate the scorers, and calculate mode_type if None.
     class_avg : bool , default True
         for classification whether to return scorers of average score or per class
-    model_type : ModelType , default None
+    model_type : TaskType , default None
         model type to return scorers for
     """
-    return_array = model_type in [ModelType.MULTICLASS, ModelType.BINARY] and class_avg is False
+    return_array = model_type in [TaskType.MULTICLASS, TaskType.BINARY] and class_avg is False
     scorers: t.List[DeepcheckScorer] = [DeepcheckScorer(scorer, name) for name, scorer in scorers.items()]
     for s in scorers:
         s.validate_fitting(model, dataset, return_array)

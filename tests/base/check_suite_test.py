@@ -21,7 +21,7 @@ from deepchecks.tabular import checks as tabular_checks
 
 
 class SimpleDatasetCheck(SingleDatasetCheck):
-    def run_logic(self, context, dataset_type: str = "train") -> CheckResult:
+    def run_logic(self, context, dataset_kind) -> CheckResult:
         return CheckResult("Simple Check")
 
 

@@ -10,19 +10,21 @@
 #
 """Module for base tabular context."""
 import typing as t
-import warnings
 
 import numpy as np
 import pandas as pd
 
+from deepchecks import CheckFailure, CheckResult
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
                                     ModelValidationError)
 from deepchecks.tabular.dataset import Dataset
+from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.tabular.utils.validation import (ensure_predictions_proba, ensure_predictions_shape,
                                                  model_type_validation, validate_model)
 from deepchecks.utils.features import calculate_feature_importance_or_none
-from deepchecks.utils.metrics import ModelType, get_default_scorers, init_validate_scorers, task_type_check
+from deepchecks.utils.logger import get_logger
+from deepchecks.utils.metrics import get_default_scorers, init_validate_scorers, task_type_check
 from deepchecks.utils.typing import BasicModel
 
 __all__ = [
@@ -66,31 +68,27 @@ class _DummyModel:
             if set(train.data.index) & set(test.data.index):
                 train.data.index = map(lambda x: f'train-{x}', list(train.data.index))
                 test.data.index = map(lambda x: f'test-{x}', list(test.data.index))
-                warnings.warn('train and test datasets have common index - adding "train"/"test"'
-                              ' prefixes. To avoid that provide datasets with no common indexes '
-                              'or pass the model object instead of the predictions.')
+                get_logger().warning('train and test datasets have common index - adding "train"/"test"'
+                                     ' prefixes. To avoid that provide datasets with no common indexes '
+                                     'or pass the model object instead of the predictions.')
 
         features = []
         predictions = []
         probas = []
 
-        if train is not None:
-            features.append(train.features_columns)
-            if y_pred_train is not None:
-                ensure_predictions_shape(y_pred_train, train.data)
-                predictions.append(pd.Series(y_pred_train, index=train.data.index))
-                if y_proba_train is not None:
-                    ensure_predictions_proba(y_proba_train, y_pred_train)
-                    probas.append(pd.DataFrame(data=y_proba_train, index=train.data.index))
-
-        if test is not None:
-            features.append(test.features_columns)
-            if y_pred_test is not None:
-                ensure_predictions_shape(y_pred_test, test.data)
-                predictions.append(pd.Series(y_pred_test, index=test.data.index))
-                if y_proba_test is not None:
-                    ensure_predictions_proba(y_proba_test, y_pred_test)
-                    probas.append(pd.DataFrame(data=y_proba_test, index=test.data.index))
+        for dataset, y_pred, y_proba in zip([train, test],
+                                            [y_pred_train, y_pred_test],
+                                            [y_proba_train, y_proba_test]):
+            if dataset is not None:
+                features.append(dataset.features_columns)
+                if y_pred is None and y_proba is not None:
+                    y_pred = np.argmax(y_proba, axis=-1)
+                if y_pred is not None:
+                    ensure_predictions_shape(y_pred, dataset.data)
+                    predictions.append(pd.Series(y_pred, index=dataset.data.index))
+                    if y_proba is not None:
+                        ensure_predictions_proba(y_proba, y_pred)
+                        probas.append(pd.DataFrame(data=y_proba, index=dataset.data.index))
 
         self.predictions = pd.concat(predictions, axis=0) if predictions else None
         self.probas = pd.concat(probas, axis=0) if probas else None
@@ -268,7 +266,7 @@ class Context:
         return self._model_name
 
     @property
-    def task_type(self) -> ModelType:
+    def task_type(self) -> TaskType:
         """Return task type if model & train & label exists. otherwise, raise error."""
         if self._task_type is None:
             self._task_type = task_type_check(self.model, self.train)
@@ -305,7 +303,7 @@ class Context:
         """Return whether there is test dataset defined."""
         return self._test is not None
 
-    def assert_task_type(self, *expected_types: ModelType):
+    def assert_task_type(self, *expected_types: TaskType):
         """Assert task_type matching given types.
 
         If task_type is defined, validate it and raise error if needed, else returns True.
@@ -325,16 +323,16 @@ class Context:
         """Assert the task_type is classification."""
         # assert_task_type makes assertion if task type exists and returns True, else returns False
         # If not task type than check label type
-        if (not self.assert_task_type(ModelType.MULTICLASS, ModelType.BINARY) and
-                self.train.label_type == 'regression_label'):
+        if (not self.assert_task_type(TaskType.MULTICLASS, TaskType.BINARY) and
+                self.train.label_type == TaskType.REGRESSION):
             raise ModelValidationError('Check is irrelevant for regressions tasks')
 
     def assert_regression_task(self):
         """Assert the task type is regression."""
         # assert_task_type makes assertion if task type exists and returns True, else returns False
         # If not task type than check label type
-        if (not self.assert_task_type(ModelType.REGRESSION) and
-                self.train.label_type == 'classification_label'):
+        if (not self.assert_task_type(TaskType.REGRESSION) and
+                self.train.label_type != TaskType.REGRESSION):
             raise ModelValidationError('Check is irrelevant for classification tasks')
 
     def get_scorers(self, alternative_scorers: t.Mapping[str, t.Union[str, t.Callable]] = None, class_avg=True):
@@ -394,24 +392,41 @@ class Context:
         else:
             raise DeepchecksValueError(f'Unexpected dataset kind {kind}')
 
-    def get_is_sampled_footnote(self, n_samples: int, kind: DatasetKind = None):
-        """Get footnote to display when the datasets are sampled."""
-        message = ''
-        if kind:
-            v_data = self.get_data_by_kind(kind)
-            if v_data.is_sampled(n_samples):
-                message = f'Data is sampled from the original dataset, running on ' \
-                          f'{v_data.len_when_sampled(n_samples)} samples out of {len(v_data)}.'
-        else:
-            if self._train is not None and self._train.is_sampled(n_samples):
-                message += f'Running on {self._train.len_when_sampled(n_samples)} <b>train</b> data samples out of ' \
-                           f'{len(self._train)}.'
-            if self._test is not None and self._test.is_sampled(n_samples):
-                if message:
-                    message += ' '
-                message += f'Running on {self._test.len_when_sampled(n_samples)} <b>test</b> data samples out of ' \
-                           f'{len(self._test)}.'
+    def finalize_check_result(self, check_result, check, kind: DatasetKind = None):
+        """Run final processing on a check result which includes validation, conditions processing and sampling\
+        footnote."""
+        # Validate the check result type
+        if isinstance(check_result, CheckFailure):
+            return
+        if not isinstance(check_result, CheckResult):
+            raise DeepchecksValueError(f'Check {check.name()} expected to return CheckResult but got: '
+                                       + type(check_result).__name__)
 
-        if message:
-            message = f'Note - data sampling: {message} Sample size can be controlled with the "n_samples" parameter.'
-            return f'<p style="font-size:0.9em;line-height:1;"><i>{message}</i></p>'
+        # Set reference between the check result and check
+        check_result.check = check
+        # Calculate conditions results
+        check_result.process_conditions()
+        # Add sampling footnote if needed
+        if hasattr(check, 'n_samples'):
+            n_samples = getattr(check, 'n_samples')
+            message = ''
+            if kind:
+                dataset = self.get_data_by_kind(kind)
+                if dataset.is_sampled(n_samples):
+                    message = f'Data is sampled from the original dataset, running on ' \
+                              f'{dataset.len_when_sampled(n_samples)} samples out of {len(dataset)}.'
+            else:
+                if self._train is not None and self._train.is_sampled(n_samples):
+                    message += f'Running on {self._train.len_when_sampled(n_samples)} <b>train</b> data samples ' \
+                               f'out of {len(self._train)}.'
+                if self._test is not None and self._test.is_sampled(n_samples):
+                    if message:
+                        message += ' '
+                    message += f'Running on {self._test.len_when_sampled(n_samples)} <b>test</b> data samples ' \
+                               f'out of {len(self._test)}.'
+
+            if message:
+                message = ('<p style="font-size:0.9em;line-height:1;"><i>'
+                           f'Note - data sampling: {message} Sample size can be controlled with the "n_samples" '
+                           'parameter.</i></p>')
+                check_result.display.append(message)

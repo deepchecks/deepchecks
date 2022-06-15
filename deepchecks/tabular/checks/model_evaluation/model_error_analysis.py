@@ -17,7 +17,7 @@ from deepchecks import CheckFailure
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
-from deepchecks.utils.metrics import ModelType
+from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.performance.error_model import error_model_display, model_error_contribution
 from deepchecks.utils.single_sample_metrics import per_sample_cross_entropy, per_sample_mse
 from deepchecks.utils.strings import format_percent
@@ -124,7 +124,7 @@ class ModelErrorAnalysis(TrainTestCheck):
         test_dataset = test_dataset.sample(self.n_samples, random_state=self.random_state, drop_na_label=True)
 
         # Create scoring function, used to calculate the per sample model error
-        if task_type == ModelType.REGRESSION:
+        if task_type == TaskType.REGRESSION:
             def scoring_func(dataset: Dataset):
                 return per_sample_mse(dataset.label_col, model.predict(dataset.features_columns))
         else:

@@ -141,7 +141,8 @@ class Suite(BaseSuite):
                     try:
                         # if check index in results we had failure
                         if check_idx not in results:
-                            result = check.finalize_check_result(check.compute(context))
+                            result = check.compute(context)
+                            context.finalize_check_result(result, check)
                             results[check_idx] = result
                     except Exception as exp:
                         results[check_idx] = CheckFailure(check, exp)
@@ -149,9 +150,9 @@ class Suite(BaseSuite):
         # The results are ordered as they ran instead of in the order they were defined, therefore sort by key
         sorted_result_values = [value for name, value in sorted(results.items(), key=lambda pair: str(pair[0]))]
 
-        footnote = context.get_is_sampled_footnote()
-        extra_info = [footnote] if footnote else []
-        return SuiteResult(self.name, sorted_result_values, extra_info)
+        result = SuiteResult(self.name, sorted_result_values)
+        context.add_is_sampled_footnote(result)
+        return result
 
     def _update_loop(
         self,
@@ -226,7 +227,7 @@ class Suite(BaseSuite):
                 else:
                     try:
                         result = check.compute(context, dataset_kind=dataset_kind)
-                        result = check.finalize_check_result(result)
+                        context.finalize_check_result(result, check)
                         # Update header with dataset type only if both train and test ran
                         if run_train_test_checks:
                             result.header = result.get_header() + type_suffix

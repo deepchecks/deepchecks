@@ -12,6 +12,7 @@
 """Utils module containing useful global functions."""
 import io
 import json
+import logging
 import os
 import subprocess
 import sys
@@ -28,6 +29,8 @@ from IPython.display import display
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
 from tqdm.notebook import tqdm as tqdm_notebook
 from typing_extensions import TypedDict
+
+from deepchecks.utils.logger import get_verbosity
 
 __all__ = [
     'is_notebook',
@@ -166,23 +169,28 @@ def create_progress_bar(
 
     barlen = iterlen if iterlen > 5 else 5
 
+    is_disabled = get_verbosity() >= logging.WARNING
+
     if is_zmq_interactive_shell() and is_widgets_enabled():
         return tqdm_notebook(
             **kwargs,
             colour='#9d60fb',
-            file=sys.stdout
+            file=sys.stdout,
+            disable=is_disabled,
         )
 
     elif is_zmq_interactive_shell():
         return PlainNotebookProgressBar(
             **kwargs,
             bar_format='{{desc}}:\n|{{bar:{0}}}{{r_bar}}'.format(barlen),  # pylint: disable=consider-using-f-string
+            disable=is_disabled,
         )
 
     else:
         return tqdm.tqdm(
             **kwargs,
             bar_format='{{desc}}:\n|{{bar:{0}}}{{r_bar}}'.format(barlen),  # pylint: disable=consider-using-f-string
+            disable=is_disabled,
         )
 
 

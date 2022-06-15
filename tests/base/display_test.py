@@ -61,10 +61,10 @@ def test_check_result_serialization_to_widget(iris_dataset):
 
 def test_check_result_serialization_to_json(iris_dataset):
     import json
-    
+
     result = ColumnsInfo(n_top_columns=4).run(iris_dataset)
     serialized_result = result.to_json()
-    
+
     assert_that(serialized_result, instance_of(str))
     json.loads(serialized_result)  # must not faile
 

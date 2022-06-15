@@ -348,7 +348,7 @@ class CheckResult(BaseCheckResult, DisplayableResult):
         from .serialization.check_result.wandb import CheckResultSerializer as WandbSerializer
 
         if dedicated_run is not None:
-            warnings.warn(
+            get_logger().warning(
                 '"dedicated_run" parameter is deprecated and does not have effect anymore. '
                 'It will be remove in next versions.'
             )
@@ -559,7 +559,7 @@ class CheckFailure(BaseCheckResult, DisplayableResult):
         from .serialization.check_failure.wandb import CheckFailureSerializer as WandbSerializer
 
         if dedicated_run is not None:
-            warnings.warn(
+            get_logger().warning(
                 '"dedicated_run" parameter is deprecated and does not have effect anymore. '
                 'It will be remove in next versions.'
             )

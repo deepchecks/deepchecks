@@ -62,7 +62,7 @@ class MixedNulls(SingleDatasetCheck):
         self.ignore_columns = ignore_columns
         self.n_top_columns = n_top_columns
 
-    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
 
         Returns
@@ -73,10 +73,7 @@ class MixedNulls(SingleDatasetCheck):
             display is DataFrame with columns ('Column Name', 'Value', 'Count', 'Percentage') for any column that
             has more than 1 null values.
         """
-        if dataset_type == 'train':
-            dataset = context.train
-        else:
-            dataset = context.test
+        dataset = context.get_data_by_kind(dataset_kind)
         df = dataset.data
 
         df = select_from_dataframe(df, self.columns, self.ignore_columns)

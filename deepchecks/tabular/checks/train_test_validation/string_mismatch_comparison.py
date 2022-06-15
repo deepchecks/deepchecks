@@ -80,8 +80,6 @@ class StringMismatchComparison(TrainTestCheck):
         df = select_from_dataframe(df, self.columns, self.ignore_columns)
         baseline_df = context.train.sample(self.n_samples, random_state=self.random_state).data
 
-        sampling_footnote = context.get_is_sampled_footnote(self.n_samples)
-
         display_mismatches = []
         result_dict = {}
 
@@ -144,8 +142,6 @@ class StringMismatchComparison(TrainTestCheck):
             )
             # For display transpose the dataframe
             display = [N_TOP_MESSAGE % self.n_top_columns, df_graph.T]
-            if sampling_footnote:
-                display.append(sampling_footnote)
         else:
             display = None
 
