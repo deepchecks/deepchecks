@@ -304,8 +304,8 @@ of checks and optional conditions.
    </p>
 
 
-What Do You Need in Order to Start Validating?
-==============================================
+🤔 What Do You Need in Order to Start Validating?
+==================================================
 
 Environment
 -----------
