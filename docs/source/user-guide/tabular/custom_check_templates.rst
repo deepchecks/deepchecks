@@ -4,7 +4,7 @@
 Custom Check Templates
 ======================
 
-We provide a template for each check type in order to help you bootstrap faster new custom checks. For more detailed
+We provide a template for each check type in order to help you bootstrap new custom checks faster. For more detailed
 info about the inner workings of a custom check see the
 :doc:`guide </user-guide/tabular/tutorials/plot_add_a_custom_check>`
 
