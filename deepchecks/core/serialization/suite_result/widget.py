@@ -74,15 +74,15 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
 
         accordions = [
             self.prepare_results(
-                title='Passed',
-                results=passed_checks,
+                title='Didn`t Pass',
+                results=not_passed_checks,
                 output_id=output_id,
                 summary_creation_method=self.prepare_conditions_summary,
                 **kwargs
             ),
             self.prepare_results(
-                title='Didn`t Pass',
-                results=not_passed_checks,
+                title='Passed',
+                results=passed_checks,
                 output_id=output_id,
                 summary_creation_method=self.prepare_conditions_summary,
                 **kwargs
