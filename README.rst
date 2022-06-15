@@ -47,7 +47,7 @@
 .. raw:: html
 
    <p align="center">
-      <a href="https://deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=checks_and_conditions_img">
+      <a href="https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=checks_and_conditions_img">
       <img src="docs/source/_static/images/general/checks-and-conditions.png">
    </p>
 
@@ -79,7 +79,9 @@ Using pip
 
    pip install deepchecks -U --user
 
-.. note::
+..
+
+   Note: Computer Vision Install
 
    To install deepchecks together with the **Computer Vision Submodule** that is currently in *beta release*, replace ``deepchecks`` with ``"deepchecks[vision]"`` as follows.
    
@@ -105,19 +107,19 @@ Using conda
 
 Head over to one of our following quickstart tutorials, and have deepchecks running on your environment in less than 5 min:
 
-- `Data Integrity Quickstart (avocado sales data) <https://docs.deepchecks.com/stable/user-guide/tabular/
-   auto_tutorials/plot_quick_data_integrity.html?
-   utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`__
-
 - `Train-Test Validation Quickstart (loans data) <https://docs.deepchecks.com/stable/user-guide/tabular/
-   auto_tutorials/plot_quick_data_integrity.html?
-   utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`__
+  auto_tutorials/plot_quick_data_integrity.html?
+  utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`__
+
+- `Data Integrity Quickstart (avocado sales data) <https://docs.deepchecks.com/stable/user-guide/tabular/
+  auto_tutorials/plot_quick_data_integrity.html?
+  utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`__
 
 - `Full Suite (many checks) Quickstart (iris data) <https://docs.deepchecks.com/en/stable/user-guide/tabular/
-   auto_tutorials/plot_quickstart_in_5_minutes.html?
-   utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`__
+  auto_tutorials/plot_quickstart_in_5_minutes.html?
+  utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`__
 
- **Recommended - download the code and run it locally** on the built-in dataset and (optional) model, or replace them with your own.
+ **Recommended - download the code and run it locally** on the built-in dataset and (optional) model, or **replace them with your own**.
 
 
 🚀 See Our Checks Demo
