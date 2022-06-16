@@ -11,25 +11,23 @@
 """The dataset module containing the tabular Dataset class and its functions."""
 # pylint: disable=inconsistent-quotes,protected-access
 import typing as t
-import warnings
-from functools import lru_cache
 
 import numpy as np
 import pandas as pd
 from IPython.display import HTML, display_html
 from pandas.api.types import infer_dtype
-from pandas.core.dtypes.common import is_numeric_dtype
 from sklearn.model_selection import train_test_split
 from typing_extensions import Literal as L
 
 from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError
+from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import infer_categorical_features, infer_numerical_features, is_categorical
+from deepchecks.utils.logger import get_logger
 from deepchecks.utils.strings import get_docs_link
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['Dataset']
-
 
 TDataset = t.TypeVar('TDataset', bound='Dataset')
 DatasetReprFmt = t.Union[L['string'], L['html']]  # noqa: F821
@@ -81,12 +79,9 @@ class Dataset:
     max_categorical_ratio : float , default: 0.01
         The max ratio of unique values in a column in order for it to be inferred as a
         categorical feature.
-    max_categories : int , default: 30
+    max_categories : int , default: None
         The maximum number of categories in a column in order for it to be inferred as a categorical
-        feature.
-    max_float_categories : int , default: 5
-        The maximum number of categories in a float column in order for it to be inferred as a
-        categorical feature.
+        feature. if None, uses is_categorical default inference mechanism.
     label_type : str , default: None
         Used to assume target model type if not found on model. Values ('classification_label', 'regression_label')
         If None then label type is inferred from label using is_categorical logic.
@@ -104,7 +99,8 @@ class Dataset:
     _data: pd.DataFrame
     _max_categorical_ratio: float
     _max_categories: int
-    _label_type: t.Optional[str]
+    _label_type: t.Optional[TaskType]
+    _classes: t.Tuple[str, ...]
 
     def __init__(
             self,
@@ -119,8 +115,7 @@ class Dataset:
             convert_datetime: bool = True,
             datetime_args: t.Optional[t.Dict] = None,
             max_categorical_ratio: float = 0.01,
-            max_categories: int = 30,
-            max_float_categories: int = 5,
+            max_categories: int = None,
             label_type: str = None
     ):
 
@@ -249,7 +244,8 @@ class Dataset:
 
         self._max_categorical_ratio = max_categorical_ratio
         self._max_categories = max_categories
-        self._max_float_categories = max_float_categories
+
+        self._classes = None
 
         if self._label_name in self.features:
             raise DeepchecksValueError(f'label column {self._label_name} can not be a feature column')
@@ -271,7 +267,6 @@ class Dataset:
                 self._data,
                 max_categorical_ratio=max_categorical_ratio,
                 max_categories=max_categories,
-                max_float_categories=max_float_categories,
                 columns=self._features
             )
 
@@ -281,16 +276,20 @@ class Dataset:
             else:
                 self._data[self._datetime_name] = pd.to_datetime(self._data[self._datetime_name], **self._datetime_args)
 
-        if label_type:
-            self._label_type = label_type
-        elif self._label_name:
-            self._label_type = self._infer_label_type(
-                self.data[self._label_name],
-                max_categorical_ratio=0.05,
-                max_categories=max_categories,
-                max_float_categories=max_float_categories
-            )
-        else:
+        if label_type and self._label_name:
+            if label_type == 'regression_label':
+                self._label_type = TaskType.REGRESSION
+            elif label_type == 'classification_label':
+                if self.data[self._label_name].nunique() > 2:
+                    self._label_type = TaskType.MULTICLASS
+                else:
+                    self._label_type = TaskType.BINARY
+            else:
+                get_logger().warning('Label type %s is not valid, auto inferring label type.'
+                                     ' Possible values are regression_label or classification_label.', label_type)
+        if self._label_name and not hasattr(self, "label_type"):
+            self._label_type = self._infer_label_type(self.data[self._label_name])
+        elif not hasattr(self, "label_type"):
             self._label_type = None
 
         unassigned_cols = [col for col in self._features if col not in self._cat_features]
@@ -425,6 +424,12 @@ class Dataset:
         features = [feat for feat in self._features if feat in new_data.columns]
         cat_features = [feat for feat in self.cat_features if feat in new_data.columns]
         label_name = self._label_name if self._label_name in new_data.columns else None
+        if self._label_type == TaskType.REGRESSION:
+            label_type = 'regression_label'
+        elif self._label_type in [TaskType.BINARY, TaskType.MULTICLASS]:
+            label_type = 'classification_label'
+        else:
+            label_type = None
         index = self._index_name if self._index_name in new_data.columns else None
         date = self._datetime_name if self._datetime_name in new_data.columns else None
 
@@ -434,7 +439,7 @@ class Dataset:
                    index_name=index, set_index_from_dataframe_index=self._set_index_from_dataframe_index,
                    datetime_name=date, set_datetime_from_dataframe_index=self._set_datetime_from_dataframe_index,
                    convert_datetime=self._convert_datetime, max_categorical_ratio=self._max_categorical_ratio,
-                   max_categories=self._max_categories, label_type=self.label_type)
+                   max_categories=self._max_categories, label_type=label_type)
 
     def sample(self: TDataset, n_samples: int, replace: bool = False, random_state: t.Optional[int] = None,
                drop_na_label: bool = False) -> TDataset:
@@ -475,12 +480,12 @@ class Dataset:
         return self.data.shape[0]
 
     @property
-    def label_type(self) -> t.Optional[str]:
+    def label_type(self) -> t.Optional[TaskType]:
         """Return the label type.
 
          Returns
         -------
-        t.Optional[str]
+        t.Optional[TaskType]
             Label type
         """
         return self._label_type
@@ -529,25 +534,20 @@ class Dataset:
         return self.copy(train_df), self.copy(test_df)
 
     @staticmethod
-    def _infer_label_type(
-            label_col: pd.Series,
-            max_categorical_ratio: float,
-            max_categories: int,
-            max_float_categories: int
-    ):
-        if not is_numeric_dtype(label_col):
-            return 'classification_label'
-        elif is_categorical(label_col, max_categorical_ratio, max_categories, max_float_categories):
-            return 'classification_label'
+    def _infer_label_type(label_col: pd.Series):
+        if is_categorical(label_col, max_categorical_ratio=0.05):
+            if label_col.nunique(dropna=True) > 2:
+                return TaskType.MULTICLASS
+            else:
+                return TaskType.BINARY
         else:
-            return 'regression_label'
+            return TaskType.REGRESSION
 
     @staticmethod
     def _infer_categorical_features(
             df: pd.DataFrame,
             max_categorical_ratio: float,
-            max_categories: int,
-            max_float_categories: int,
+            max_categories: int = None,
             columns: t.Optional[t.List[Hashable]] = None,
     ) -> t.List[Hashable]:
         """Infers which features are categorical by checking types and number of unique values.
@@ -556,8 +556,7 @@ class Dataset:
         ----------
         df: pd.DataFrame
         max_categorical_ratio: float
-        max_categories: int
-        max_float_categories: int
+        max_categories: int , default: None
         columns: t.Optional[t.List[Hashable]] , default: None
         Returns
         -------
@@ -568,14 +567,13 @@ class Dataset:
             df,
             max_categorical_ratio=max_categorical_ratio,
             max_categories=max_categories,
-            max_float_categories=max_float_categories,
             columns=columns
         )
 
         message = ('It is recommended to initialize Dataset with categorical features by doing '
                    '"Dataset(df, cat_features=categorical_list)". No categorical features were passed, therefore '
-                   'heuristically inferring categorical features in the data.\n'
-                   f'{len(categorical_columns)} categorical features were inferred')
+                   'heuristically inferring categorical features in the data. '
+                   f'{len(categorical_columns)} categorical features were inferred.')
 
         if len(categorical_columns) > 0:
             columns_to_print = categorical_columns[:7]
@@ -583,12 +581,12 @@ class Dataset:
             if len(categorical_columns) > len(columns_to_print):
                 message += '... For full list use dataset.cat_features'
 
-        warnings.warn(message)
+        get_logger().warning(message)
 
         return categorical_columns
 
     def is_categorical(self, col_name: Hashable) -> bool:
-        """Check if uniques are few enough to count as categorical.
+        """Check if a column is considered a category column in the dataset object.
 
         Parameters
         ----------
@@ -601,12 +599,7 @@ class Dataset:
             If is categorical according to input numbers
 
         """
-        return is_categorical(
-            t.cast(pd.Series, self._data[col_name]),
-            max_categorical_ratio=self._max_categorical_ratio,
-            max_categories=self._max_categories,
-            max_float_categories=self._max_float_categories
-        )
+        return col_name in self._cat_features
 
     @property
     def index_name(self) -> t.Optional[Hashable]:
@@ -749,7 +742,6 @@ class Dataset:
         return list(self._numerical_features)
 
     @property
-    @lru_cache(maxsize=128)
     def classes(self) -> t.Tuple[str, ...]:
         """Return the classes from label column in sorted list. if no label column defined, return empty list.
 
@@ -758,9 +750,12 @@ class Dataset:
         t.Tuple[str, ...]
             Sorted classes
         """
-        if self.label_name is not None:
-            return tuple(sorted(self.data[self.label_name].dropna().unique().tolist()))
-        return tuple()
+        if self._classes is None:
+            if self.label_name is not None:
+                self._classes = tuple(sorted(self.data[self.label_name].dropna().unique().tolist()))
+            else:
+                self._classes = tuple()
+        return self._classes
 
     @property
     def columns_info(self) -> t.Dict[Hashable, str]:
@@ -897,7 +892,7 @@ class Dataset:
             if the provided value cannot be transformed into Dataset instance;
         """
         if isinstance(obj, pd.DataFrame):
-            warnings.warn(
+            get_logger().warning(
                 'Received a "pandas.DataFrame" instance. It is recommended to pass a "deepchecks.tabular.Dataset" '
                 'instance by doing "Dataset(dataframe)"'
             )
@@ -1105,7 +1100,7 @@ class Dataset:
             dataset_columns_info.append([
                 label_name,
                 infer_dtype(label_column, skipna=True),
-                t.cast(str, self.label_type).replace('_', ' ').capitalize(),
+                t.cast(str, self.label_type.value).capitalize() + " LABEL",
                 ''
             ])
 
@@ -1134,10 +1129,10 @@ class Dataset:
         )
 
     def __repr__(
-        self,
-        max_cols: int = 8,
-        max_rows: int = 10,
-        fmt: DatasetReprFmt = 'string'
+            self,
+            max_cols: int = 8,
+            max_rows: int = 10,
+            fmt: DatasetReprFmt = 'string'
     ) -> str:
         """Represent a dataset instance."""
         info = self._dataset_description()

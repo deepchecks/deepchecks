@@ -47,13 +47,13 @@ def _dummify_model(train, test, model):
 
 
 # copied from model_error_analysis_test
+# also tests passing just proba
 def test_model_error_analysis_condition_fail(iris_labeled_dataset, iris_adaboost):
-    y_pred_train, y_pred_test, y_proba_train, y_proba_test = \
+    _, _, y_proba_train, y_proba_test = \
         _dummify_model(iris_labeled_dataset, iris_labeled_dataset, iris_adaboost)
     # Act
     check_result = ModelErrorAnalysis().add_condition_segments_performance_relative_difference_less_than(
     ).run(iris_labeled_dataset, iris_labeled_dataset,
-          y_pred_train=y_pred_train, y_pred_test=y_pred_test,
           y_proba_train=y_proba_train, y_proba_test=y_proba_test)
     condition_result = check_result.conditions_results
 
@@ -171,7 +171,7 @@ def test_bad_pred_proba(iris_labeled_dataset, iris_adaboost):
     # Arrange
     y_pred_train, _, y_proba_train, _ = _dummify_model(iris_labeled_dataset, None, iris_adaboost)
 
-    y_proba_train[0][2] = 2
+    y_proba_train = y_proba_train[:-1]
 
     # Act
     assert_that(
@@ -179,7 +179,7 @@ def test_bad_pred_proba(iris_labeled_dataset, iris_adaboost):
             .with_args(dataset=iris_labeled_dataset, y_pred_train=y_pred_train, y_proba_train=y_proba_train),
         raises(
             ValidationError,
-            r'Prediction propabilities array didn\'t match predictions result')
+            r'Prediction propabilities excpected to be of length 150 but was: 149')
     )
 
 

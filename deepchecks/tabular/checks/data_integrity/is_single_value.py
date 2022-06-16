@@ -49,7 +49,7 @@ class IsSingleValue(SingleDatasetCheck):
         self.ignore_columns = ignore_columns
         self.ignore_nan = ignore_nan
 
-    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
 
         Returns
@@ -59,11 +59,7 @@ class IsSingleValue(SingleDatasetCheck):
             display is a series with columns that have only one unique
         """
         # Validate parameters
-        if dataset_type == 'train':
-            df = context.train.data
-        else:
-            df = context.test.data
-
+        df = context.get_data_by_kind(dataset_kind).data
         df = select_from_dataframe(df, self.columns, self.ignore_columns)
 
         num_unique_per_col = df.nunique(dropna=self.ignore_nan)

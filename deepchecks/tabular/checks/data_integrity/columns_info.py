@@ -31,7 +31,7 @@ class ColumnsInfo(SingleDatasetCheck):
         super().__init__(**kwargs)
         self.n_top_columns = n_top_columns
 
-    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
 
         Returns
@@ -40,11 +40,7 @@ class ColumnsInfo(SingleDatasetCheck):
             value is dictionary of a column and its role and logical type.
             display a table of the dictionary.
         """
-        if dataset_type == 'train':
-            dataset = context.train
-        else:
-            dataset = context.test
-
+        dataset = context.get_data_by_kind(dataset_kind)
         value = dataset.columns_info
         value = column_importance_sorter_dict(value, dataset, context.features_importance, self.n_top_columns)
         df = pd.DataFrame.from_dict(value, orient='index', columns=['role'])

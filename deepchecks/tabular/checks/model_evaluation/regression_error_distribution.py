@@ -41,7 +41,7 @@ class RegressionErrorDistribution(SingleDatasetCheck):
         self.n_top_samples = n_top_samples
         self.n_bins = n_bins
 
-    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
 
         Returns
@@ -55,11 +55,7 @@ class RegressionErrorDistribution(SingleDatasetCheck):
         DeepchecksValueError
             If the object is not a Dataset instance with a label
         """
-        if dataset_type == 'train':
-            dataset = context.train
-        else:
-            dataset = context.test
-
+        dataset = context.get_data_by_kind(dataset_kind)
         context.assert_regression_task()
         model = context.model
         x_test = dataset.features_columns

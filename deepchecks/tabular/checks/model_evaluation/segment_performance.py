@@ -68,13 +68,9 @@ class SegmentPerformance(SingleDatasetCheck):
         self.max_segments = max_segments
         self.user_scorer = dict([alternative_scorer]) if alternative_scorer else None
 
-    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
-        if dataset_type == 'train':
-            dataset = context.train
-        else:
-            dataset = context.test
-
+        dataset = context.get_data_by_kind(dataset_kind)
         model = context.model
         scorer = context.get_single_scorer(self.user_scorer)
         dataset.assert_features()

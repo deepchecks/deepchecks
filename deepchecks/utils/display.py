@@ -11,6 +11,8 @@
 """Module with display utility functions."""
 import base64
 
+from deepchecks.utils.logger import get_logger
+
 __all__ = ['imagetag', 'display_in_gui']
 
 import sys
@@ -33,8 +35,8 @@ def display_in_gui(result):
         installed = {pkg.key for pkg in list(pkg_resources.working_set)}
         missing = required - installed
         if missing:
-            print(f'Missing packages in order to display result in GUI. either run "pip install {" ".join(missing)}"'
-                  ' or use "result.save_as_html()" to save result')
+            get_logger().warning('Missing packages in order to display result in GUI. either run "pip install %s"'
+                                 ' or use "result.save_as_html()" to save result', {' '.join(missing)})
             return
         from PyQt5.QtWebEngineWidgets import QWebEngineView  # pylint: disable=import-outside-toplevel
         from PyQt5.QtWidgets import QApplication  # pylint: disable=import-outside-toplevel
@@ -52,5 +54,5 @@ def display_in_gui(result):
 
         sys.exit(app.exec_())
     except Exception:  # pylint: disable=broad-except
-        print('Unable to show result, run in an interactive environment or use "result.save_as_html()" to save'
-              'result')
+        get_logger().error('Unable to show result, run in an interactive environment'
+                           ' or use "result.save_as_html()" to save result')

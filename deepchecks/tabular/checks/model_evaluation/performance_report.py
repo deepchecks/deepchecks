@@ -19,7 +19,7 @@ from deepchecks.core.checks import DatasetKind, ReduceMixin
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, TrainTestCheck
-from deepchecks.utils.metrics import MULTICLASS_SCORERS_NON_AVERAGE, ModelType
+from deepchecks.utils.metrics import MULTICLASS_SCORERS_NON_AVERAGE, TaskType
 from deepchecks.utils.strings import format_number, format_percent
 
 __all__ = ['PerformanceReport']
@@ -99,7 +99,7 @@ class PerformanceReport(TrainTestCheck, ReduceMixin):
         scorers = context.get_scorers(self.user_scorers, class_avg=False)
         datasets = {'Train': train_dataset, 'Test': test_dataset}
 
-        if task_type in {ModelType.MULTICLASS, ModelType.BINARY}:
+        if task_type in {TaskType.MULTICLASS, TaskType.BINARY}:
             plot_x_axis = 'Class'
             results = []
 
@@ -136,7 +136,7 @@ class PerformanceReport(TrainTestCheck, ReduceMixin):
             hover_data=['Number of samples']
         )
 
-        if task_type in [ModelType.MULTICLASS, ModelType.BINARY]:
+        if task_type in [TaskType.MULTICLASS, TaskType.BINARY]:
             fig.update_xaxes(tickprefix='Class ', tickangle=60)
 
         fig = (

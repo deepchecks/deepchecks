@@ -15,19 +15,19 @@
 
 import time
 import typing as t
-import warnings
-from functools import lru_cache
 
 import numpy as np
 import pandas as pd
-from pandas.core.dtypes.common import is_float_dtype, is_numeric_dtype
+from pandas.core.dtypes.common import is_datetime_or_timedelta_dtype, is_float_dtype, is_numeric_dtype
 from sklearn.inspection import permutation_importance
 from sklearn.pipeline import Pipeline
 
 from deepchecks import tabular
 from deepchecks.core import errors
 from deepchecks.tabular.utils.validation import validate_model
+from deepchecks.utils.logger import get_logger
 from deepchecks.utils.metrics import DeepcheckScorer, get_default_scorers, init_validate_scorers, task_type_check
+from deepchecks.utils.strings import is_string_column
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.validation import ensure_hashable_or_mutable_sequence
 
@@ -100,7 +100,7 @@ def calculate_feature_importance_or_none(
         # ModelValidationError:
         #     if wrong type of model was provided;
         #     if function failed to predict on model;
-        warnings.warn(f'Features importance was not calculated:\n{str(error)}')
+        get_logger().warning('Features importance was not calculated:\n%s', error)
         return None, None
 
 
@@ -168,15 +168,15 @@ def calculate_feature_importance(
         importance, calc_type = _built_in_importance(model, dataset)
         # If found importance and was force permutation failure before, show warning
         if importance is not None and permutation_failure:
-            warnings.warn(permutation_failure)
+            get_logger().warning(permutation_failure)
 
     # If there was no permutation failure and no importance on the model, using permutation anyway
     if importance is None and permutation_failure is None and isinstance(dataset, tabular.Dataset):
         if isinstance(model, Pipeline):
-            pre_text = 'Cannot use model\'s built-in feature importance on a Scikit-learn Pipeline, '
+            pre_text = 'Cannot use model\'s built-in feature importance on a Scikit-learn Pipeline,'
         else:
-            pre_text = 'Could not find built-in feature importance on the model, '
-        warnings.warn(pre_text + 'using permutation feature importance calculation instead')
+            pre_text = 'Could not find built-in feature importance on the model,'
+        get_logger().warning('%s using permutation feature importance calculation instead', pre_text)
 
         importance = _calc_permutation_importance(model, dataset, **permutation_kwargs)
         calc_type = 'permutation_importance'
@@ -211,7 +211,6 @@ def _built_in_importance(
     return None, None
 
 
-@lru_cache(maxsize=32)
 def _calc_permutation_importance(
         model: t.Any,
         dataset: 'tabular.Dataset',
@@ -284,10 +283,11 @@ def _calc_permutation_importance(
                 f'Skipping permutation importance calculation: calculation was projected to finish in '
                 f'{predicted_time_to_run} seconds, but timeout was configured to {timeout} seconds')
         else:
-            print(f'Calculating permutation feature importance. Expected to finish in {predicted_time_to_run} seconds')
+            get_logger().info('Calculating permutation feature importance. Expected to finish in %s seconds',
+                              predicted_time_to_run)
     else:
-        warnings.warn(f'Calculating permutation feature importance without time limit. Expected to finish in '
-                      f'{predicted_time_to_run} seconds')
+        get_logger().warning('Calculating permutation feature importance without time limit. Expected to finish in '
+                             '%s seconds', predicted_time_to_run)
 
     r = permutation_importance(
         model,
@@ -424,8 +424,7 @@ def infer_numerical_features(df: pd.DataFrame) -> t.List[Hashable]:
 def infer_categorical_features(
         df: pd.DataFrame,
         max_categorical_ratio: float = 0.01,
-        max_categories: int = 30,
-        max_float_categories: int = 5,
+        max_categories: int = None,
         columns: t.Optional[t.List[Hashable]] = None,
 ) -> t.List[Hashable]:
     """Infers which features are categorical by checking types and number of unique values.
@@ -435,8 +434,7 @@ def infer_categorical_features(
     df : pd.DataFrame
         dataframe for which to infer categorical features
     max_categorical_ratio : float , default: 0.01
-    max_categories : int , default: 30
-    max_float_categories : int , default: 5
+    max_categories : int , default: None
     columns : t.Optional[t.List[Hashable]] , default: None
 
     Returns
@@ -454,52 +452,60 @@ def infer_categorical_features(
     else:
         dataframe_columns = df.columns
 
-    return [
-        column
-        for column in dataframe_columns
-        if is_categorical(
-            t.cast(pd.Series, df[column]),
-            max_categorical_ratio,
-            max_categories,
-            max_float_categories
-        )
-    ]
+    if max_categories is None:
+        return [
+            column
+            for column in dataframe_columns
+            if is_categorical(
+                t.cast(pd.Series, df[column]),
+                max_categorical_ratio)]
+    else:
+        return [
+            column
+            for column in dataframe_columns
+            if is_categorical(
+                t.cast(pd.Series, df[column]),
+                max_categorical_ratio,
+                max_categories,
+                max_categories,
+                max_categories)]
 
 
 def is_categorical(
         column: pd.Series,
         max_categorical_ratio: float = 0.01,
-        max_categories: int = 30,
-        max_float_categories: int = 5
+        max_categories_type_string: int = 150,
+        max_categories_type_int: int = 30,
+        max_categories_type_float_or_datetime: int = 5
 ) -> bool:
     """Check if uniques are few enough to count as categorical.
 
     Parameters
     ----------
     column : pd.Series
-        The name of the column in the dataframe
+        A dataframe column
     max_categorical_ratio : float , default: 0.01
-    max_categories : int , default: 30
-    max_float_categories : int , default: 5
+    max_categories_type_string : int , default: 150
+    max_categories_type_int : int , default: 30
+    max_categories_type_float_or_datetime : int , default: 5
 
     Returns
     -------
     bool
         True if is categorical according to input numbers
     """
-    if len(column) == 0:
-        raise ValueError(
-            '"column" instance is empty, cannot determine '
-            'whether it is categorical or not'
-        )
-
-    n_unique = column.nunique(dropna=True)
     n_samples = len(column.dropna())
-
-    if is_float_dtype(column):
-        return n_unique <= max_float_categories
-
     if n_samples == 0:
+        get_logger().warning('Column %s only contains NaN values.', column.name)
         return False
 
-    return (n_unique / n_samples) < max_categorical_ratio and n_unique <= max_categories
+    n_samples = np.max([n_samples, 1000])
+    n_unique = column.nunique(dropna=True)
+    if is_string_column(column):
+        return (n_unique / n_samples) < max_categorical_ratio and n_unique <= max_categories_type_string
+    elif (is_float_dtype(column) and np.max(column % 1) > 0) or is_datetime_or_timedelta_dtype(column):
+        return (n_unique / n_samples) < max_categorical_ratio and n_unique <= max_categories_type_float_or_datetime
+    elif is_numeric_dtype(column):
+        return (n_unique / n_samples) < max_categorical_ratio and n_unique <= max_categories_type_int
+    else:
+        return False

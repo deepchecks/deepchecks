@@ -20,7 +20,7 @@ from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.tabular.utils.messages import get_condition_passed_message
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df, is_categorical
+from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.utils.strings import format_number, format_percent, is_string_column
 from deepchecks.utils.typing import Hashable
 
@@ -92,13 +92,9 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
         self.outlier_length_to_show = outlier_length_to_show
         self.samples_per_range_to_show = samples_per_range_to_show
 
-    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
-        if dataset_type == 'train':
-            dataset = context.train
-        else:
-            dataset = context.test
-
+        dataset = context.get_data_by_kind(dataset_kind)
         df = select_from_dataframe(dataset.data, self.columns, self.ignore_columns)
 
         display_format = []
@@ -106,10 +102,7 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
 
         for column_name in df.columns:
             column: Series = df[column_name].dropna()
-
-            if not is_string_column(column) or is_categorical(column,
-                                                              max_categorical_ratio=self.min_unique_value_ratio,
-                                                              max_categories=self.min_unique_values):
+            if column_name in dataset.cat_features or not is_string_column(column):
                 continue
 
             results[column_name] = {'outliers': []}

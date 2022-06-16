@@ -13,14 +13,16 @@ from hamcrest import assert_that, calling, equal_to, raises
 from sklearn.svm import SVC
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.utils.metrics import ModelType, task_type_check
+from deepchecks.utils.metrics import task_type_check
+from deepchecks.tabular.utils.task_type import TaskType
+
 
 
 def test_task_type_check_binary(iris_dataset_single_class, iris_random_forest_single_class):
 
     res = task_type_check(iris_random_forest_single_class, iris_dataset_single_class)
 
-    assert_that(res, equal_to(ModelType.BINARY))
+    assert_that(res, equal_to(TaskType.BINARY))
 
 
 def test_task_type_check_multiclass(iris_split_dataset_and_model_rf):
@@ -29,7 +31,7 @@ def test_task_type_check_multiclass(iris_split_dataset_and_model_rf):
 
     res = task_type_check(clf, train_ds)
 
-    assert_that(res, equal_to(ModelType.MULTICLASS))
+    assert_that(res, equal_to(TaskType.MULTICLASS))
 
 
 def test_task_type_check_regression(diabetes, diabetes_model):
@@ -38,7 +40,7 @@ def test_task_type_check_regression(diabetes, diabetes_model):
 
     res = task_type_check(diabetes_model, train_ds)
 
-    assert_that(res, equal_to(ModelType.REGRESSION))
+    assert_that(res, equal_to(TaskType.REGRESSION))
 
 
 def test_task_type_not_sklearn_regression(diabetes):
@@ -50,7 +52,7 @@ def test_task_type_not_sklearn_regression(diabetes):
 
     res = task_type_check(RegressionModel(), train_ds)
 
-    assert_that(res, equal_to(ModelType.REGRESSION))
+    assert_that(res, equal_to(TaskType.REGRESSION))
 
 
 def test_task_type_not_sklearn_binary(iris_dataset_single_class):
@@ -63,7 +65,7 @@ def test_task_type_not_sklearn_binary(iris_dataset_single_class):
 
     res = task_type_check(ClassificationModel(), iris_dataset_single_class)
 
-    assert_that(res, equal_to(ModelType.BINARY))
+    assert_that(res, equal_to(TaskType.BINARY))
 
 
 def test_task_type_not_sklearn_multiclass(iris_labeled_dataset):
@@ -76,7 +78,7 @@ def test_task_type_not_sklearn_multiclass(iris_labeled_dataset):
 
     res = task_type_check(ClassificationModel(), iris_labeled_dataset)
 
-    assert_that(res, equal_to(ModelType.MULTICLASS))
+    assert_that(res, equal_to(TaskType.MULTICLASS))
 
 
 def test_task_type_check_class_with_no_proba(iris_dataset_single_class):
