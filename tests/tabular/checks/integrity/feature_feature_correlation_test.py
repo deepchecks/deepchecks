@@ -55,7 +55,7 @@ def test_feature_feature_correlation_pass_condition(adult_no_split):
     threshold = 0.9
     num_pairs = 1
     check = FeatureFeatureCorrelation()
-    result = check.add_condition_max_number_of_pairs_above(threshold, num_pairs).run(adult_no_split)
+    result = check.add_condition_max_number_of_pairs_above_threshold(threshold, num_pairs).run(adult_no_split)
     assert_that(result.conditions_results, has_items(
                 equal_condition_result(is_pass=True,
                                        details=f'All correlations are less than {threshold} except pairs {high_pairs}',
@@ -66,17 +66,15 @@ def test_feature_feature_correlation_pass_condition(adult_no_split):
 def test_feature_feature_correlation_fail_condition(adult_no_split):
     threshold = 0.5
     num_pairs = 3
-    high_pairs = [('age', 'marital-status'), ('education-num', 'occupation'), ('education', 'education-num'),
+    high_pairs = [('age', 'marital-status'), ('education-num', 'occupation'), ('edu'
+                                                                               ''
+                                                                               'cation', 'education-num'),
                   ('marital-status', 'relationship')]
     check = FeatureFeatureCorrelation()
-    result = check.add_condition_max_number_of_pairs_above(threshold, num_pairs).run(adult_no_split)
+    result = check.add_condition_max_number_of_pairs_above_threshold(threshold, num_pairs).run(adult_no_split)
 
     assert_that(result.conditions_results, has_items(
                 equal_condition_result(is_pass=False,
                                        details=f'Correlation is greater than {threshold} for pairs {high_pairs}',
                                        name=f'Not more than {num_pairs} pairs are correlated above {threshold}')
             ))
-
-
-
-

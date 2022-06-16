@@ -28,7 +28,7 @@ class FeatureFeatureCorrelation(SingleDatasetCheck):
     """
     Checks for pairwise correlation between the features.
 
-    Extremely correlated pairs could indicate redundancy and even duplication.
+    Extremely correlated pairs of features could indicate redundancy and even duplication.
     Removing highly correlated features from the data can significantly increase model speed due to the curse of
     dimensionality, and decrease harmful bias.
 
@@ -40,7 +40,7 @@ class FeatureFeatureCorrelation(SingleDatasetCheck):
         Columns to ignore, if none given checks based on columns variable.
     show_n_top_columns : int , optional
         amount of columns to show ordered by the highest correlation, default: 10
-    n_samples : int , default: 100000
+    n_samples : int , default: 10000
         number of samples to use for this check.
     random_state : int, default: 42
         random seed for all check internals.
@@ -108,13 +108,14 @@ class FeatureFeatureCorrelation(SingleDatasetCheck):
         fig = [px.imshow(top_n_df, color_continuous_scale=px.colors.sequential.thermal),
                '* Displayed as absolute values.']
         if num_nans:
-            fig.append(f'* NaN values are displayed as 0.0, total of {num_nans} NaNs in this display.')
+            fig.append(f'* NaN values (where the correlation could not be calculated) are displayed as 0.0, total of '
+                       f'{num_nans} NaNs in this display.')
         if len(dataset.features) > len(all_features):
             fig.append('* Some features in the dataset are neither numerical nor categorical and therefore not '
                        'calculated.')
         return CheckResult(value=full_df, header='Feature-Feature Correlation', display=fig)
 
-    def add_condition_max_number_of_pairs_above(self, threshold: float = 0.9, n_pairs: int = 0):
+    def add_condition_max_number_of_pairs_above_threshold(self, threshold: float = 0.9, n_pairs: int = 0):
         """Add condition that all pairwise correlations are less than threshold, except for the diagonal."""
         def condition(result):
             results_ge = result[result > threshold].stack().index.to_list()

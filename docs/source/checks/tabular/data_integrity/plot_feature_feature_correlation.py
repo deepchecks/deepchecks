@@ -59,7 +59,7 @@ check.run(ds)
 # than 3.
 
 check = FeatureFeatureCorrelation()
-check.add_condition_max_number_of_pairs_above(0.8, 3)
+check.add_condition_max_number_of_pairs_above_threshold(0.8, 3)
 result = check.run(ds)
 result.show(show_additional_outputs=False)
 
