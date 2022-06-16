@@ -13,7 +13,6 @@
 import pandas as pd
 import plotly.express as px
 from typing import List, Union
-import warnings
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
@@ -30,6 +29,8 @@ class FeatureFeatureCorrelation(SingleDatasetCheck):
     Checks for pairwise correlation between the features.
 
     Extremely correlated pairs could indicate redundancy and even duplication.
+    Removing highly correlated features from the data can significantly increase model speed due to the curse of
+    dimensionality, and decrease harmful bias.
 
     Parameters
     ----------
@@ -105,12 +106,12 @@ class FeatureFeatureCorrelation(SingleDatasetCheck):
         top_n_df.fillna(0.0, inplace=True)
     # Display
         fig = [px.imshow(top_n_df, color_continuous_scale=px.colors.sequential.thermal),
-               f'* Displayed as absolute values.']
+               '* Displayed as absolute values.']
         if num_nans:
             fig.append(f'* NaN values are displayed as 0.0, total of {num_nans} NaNs in this display.')
         if len(dataset.features) > len(all_features):
-            fig.append(f'* Some features in the dataset are neither numerical nor categorical and therefore not '
-                       f'calculated.')
+            fig.append('* Some features in the dataset are neither numerical nor categorical and therefore not '
+                       'calculated.')
         return CheckResult(value=full_df, header='Feature-Feature Correlation', display=fig)
 
     def add_condition_max_number_of_pairs_above(self, threshold: float = 0.9, n_pairs: int = 0):
