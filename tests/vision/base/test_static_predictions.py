@@ -59,8 +59,8 @@ def test_class_performance_mnist_largest(mnist_dataset_train, mnist_dataset_test
 # copied from class_performance_test but added a sample
 def test_class_performance_mnist_largest_sampled(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
     # Arrange
-    sampled_train = mnist_dataset_train.copy(shuffle=True, n_samples=1000)
-    sampled_test = mnist_dataset_test.copy(shuffle=True, n_samples=1000)
+    sampled_train = mnist_dataset_train.copy(shuffle=True, n_samples=1000, random_state=42)
+    sampled_test = mnist_dataset_test.copy(shuffle=True, n_samples=1000, random_state=42)
     train_preds, tests_preds = _create_static_predictions(mnist_dataset_train, mnist_dataset_test,
                                                           mock_trained_mnist, device)
     check = ClassPerformance(n_to_show=2, show_only='largest')
