@@ -16,7 +16,7 @@ import pandas as pd
 import plotly.express as px
 from hamcrest import any_of, instance_of
 
-from deepchecks.core.check_result import CheckFailure, CheckResult
+from deepchecks.core.check_result import CheckFailure, CheckResult, DisplayMap
 from deepchecks.core.checks import BaseCheck
 from deepchecks.core.condition import ConditionCategory, ConditionResult
 from deepchecks.core.serialization.abc import (HTMLFormatter, IPythonDisplayFormatter, JPEGFormatter, JSONFormatter,
@@ -88,25 +88,15 @@ def create_check_result(
     include_display: bool = True,
     include_conditions: bool = True
 ) -> CheckResult:
-    def draw_plot():
-        plt.subplots()
-        plt.plot([1, 2, 3, 4], [1, 4, 2, 3])
-
-    plotly_figure = px.bar(
-        px.data.gapminder().query("country == 'Canada'"),
-        x='year', y='pop'
+    display = (
+        [*create_check_result_display(), DisplayMap(a=create_check_result_display())]
+        if include_display
+        else None
     )
-    display = [
-        header,
-        pd.DataFrame({'foo': range(10), 'bar': range(10)}),
-        pd.DataFrame({'foo': range(10), 'bar': range(10)}).style,
-        plotly_figure,
-        draw_plot
-    ]
     result = CheckResult(
         value=value or 1000,
         header=header,
-        display=display if include_display else None,
+        display=display,
     )
 
     if include_conditions:
@@ -120,6 +110,23 @@ def create_check_result(
 
     result.check = DummyCheck()
     return result
+
+
+def create_check_result_display():
+    def draw_plot():
+        plt.subplots()
+        plt.plot([1, 2, 3, 4], [1, 4, 2, 3])
+
+    return [
+        'Hello world',
+        pd.DataFrame({'foo': range(3), 'bar': range(3)}),
+        pd.DataFrame({'foo': range(3), 'bar': range(3)}).style,
+        px.bar(
+            px.data.gapminder().query("country == 'Canada'"),
+            x='year', y='pop'
+        ),
+        draw_plot
+    ]
 
 
 def instance_of_ipython_formatter():

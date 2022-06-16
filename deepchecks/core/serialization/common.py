@@ -432,11 +432,16 @@ T = t.TypeVar('T')
 DeepIterable = t.Iterable[t.Union[T, 'DeepIterable[T]']]
 
 
-def flatten(l: DeepIterable[T]) -> t.Iterable[T]:
+def flatten(
+    l: DeepIterable[T],
+    stop: t.Optional[t.Callable[[t.Any], bool]] = None,
+) -> t.Iterable[T]:
     """Flatten nested iterables."""
     for it in l:
-        if isinstance(it, (list, tuple, set, t.Generator, t.Iterator)):
-            yield from flatten(it)
+        if callable(stop) and stop(it) is True:
+            yield t.cast(T, it)
+        elif isinstance(it, (list, tuple, set, t.Generator, t.Iterator)):
+            yield from flatten(it, stop=stop)
         else:
             yield t.cast(T, it)
 
