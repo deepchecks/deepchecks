@@ -15,7 +15,7 @@ test datasets.
 * `Run The Check <#run-the-check>`__
 
 What Is Image Dataset Drift?
-============================
+------------------------------------
 
 Drift is simply a change in the distribution of data over time, and it is
 also one of the top reasons why machine learning model's performance degrades
@@ -41,7 +41,7 @@ value when estimating drift. Therefore, we calculate drift on different :doc:`pr
 on which we can directly measure drift.
 
 Which Image Properties Are Used?
-=================================
+------------------------------------
 ==============================  ==========
 Property name                   What is it
 ==============================  ==========
