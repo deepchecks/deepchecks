@@ -15,7 +15,6 @@
 
 import time
 import typing as t
-from functools import lru_cache
 
 import numpy as np
 import pandas as pd
@@ -212,7 +211,6 @@ def _built_in_importance(
     return None, None
 
 
-@lru_cache(maxsize=32)
 def _calc_permutation_importance(
         model: t.Any,
         dataset: 'tabular.Dataset',

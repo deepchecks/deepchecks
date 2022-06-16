@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Image Dataset Drift
-===================
+*********************
 
 This notebooks provides an overview for using and understanding the image dataset
 drift check, used to detect drift in simple image properties between train and
