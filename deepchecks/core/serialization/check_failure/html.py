@@ -50,7 +50,7 @@ class CheckFailureSerializer(HtmlSerializer['check_types.CheckFailure']):
             return (
                 '<html>'
                 f'<head><title>{header}</title></head>'
-                f'<body>{content}</body>'
+                f'<body style="background-color: white;">{content}</body>'
                 '</html>'
             )
         else:

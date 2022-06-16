@@ -118,7 +118,7 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
         return textwrap.dedent(f"""
             <html>
             <head><meta charset="utf-8"/></head>
-            <body>
+            <body style="background-color: white;">
                 {''.join([requirejs, plotlyjs, *sections])}
             </body>
             </html>

@@ -322,7 +322,7 @@ def save_as_html(
 def iframe(
     *,
     id: t.Optional[str] = None,  # pylint: disable=redefined-builtin
-    height: str = '800px',
+    height: str = '600px',
     width: str = '100%',
     allow: str = 'fullscreen',
     frameborder: str = '0',

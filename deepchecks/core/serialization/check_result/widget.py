@@ -47,7 +47,7 @@ class CheckResultSerializer(WidgetSerializer['check_types.CheckResult']):
         output_id: t.Optional[str] = None,
         check_sections: t.Optional[t.Sequence[html.CheckResultSection]] = None,
         plotly_to_image: bool = False,
-        is_for_iframe_with_srcdoc : bool = False,
+        is_for_iframe_with_srcdoc: bool = False,
         **kwargs
     ) -> VBox:
         """Serialize a CheckResult instance into ipywidgets.Widget instance.
