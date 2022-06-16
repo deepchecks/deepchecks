@@ -13,7 +13,7 @@ import numpy as np
 from hamcrest import assert_that, calling, close_to, equal_to, raises
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.utils.distribution.drift import earth_movers_distance, cramers_v
+from deepchecks.utils.distribution.drift import cramers_v, earth_movers_distance
 
 
 def test_emd():

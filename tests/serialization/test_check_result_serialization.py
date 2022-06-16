@@ -248,42 +248,34 @@ def assert_json_output(
             if isinstance(it, (pd.DataFrame, Styler)):
                 assert_that(
                     output['display'][index],
-                    all_of(
-                        instance_of(dict),
-                        has_entries({
-                            'type': equal_to('dataframe'),
-                            'payload': instance_of(list)
-                        }))
+                    has_entries({
+                        'type': equal_to('dataframe'),
+                        'payload': instance_of(list)
+                    })
                 )
             elif isinstance(it, str):
                 assert_that(
                     output['display'][index],
-                    all_of(
-                        instance_of(dict),
-                        has_entries({
-                            'type': equal_to('html'),
-                            'payload': instance_of(str)
-                        }))
+                    has_entries({
+                        'type': equal_to('html'),
+                        'payload': instance_of(str)
+                    })
                 )
             elif isinstance(it, BaseFigure):
                 assert_that(
                     output['display'][index],
-                    all_of(
-                        instance_of(dict),
-                        has_entries({
-                            'type': equal_to('plotly'),
-                            'payload': instance_of(str)
-                        }))
+                    has_entries({
+                        'type': equal_to('plotly'),
+                        'payload': instance_of(str)
+                    })
                 )
             elif callable(it):
                 assert_that(
                     output['display'][index],
-                    all_of(
-                        instance_of(dict),
-                        has_entries({
-                            'type': equal_to('images'),
-                            'payload': all_of(has_length(greater_than(0))),
-                        }))
+                    has_entries({
+                        'type': equal_to('images'),
+                        'payload': all_of(has_length(greater_than(0))),
+                    })
                 )
             else:
                 raise TypeError(f'Unknown display item type {type(it)}')

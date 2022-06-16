@@ -12,7 +12,7 @@
 import re
 from typing import Pattern, Union
 
-from hamcrest import all_of, has_property, matches_regexp, is_in
+from hamcrest import all_of, has_property, is_in, matches_regexp
 from hamcrest.core.matcher import Matcher
 
 from deepchecks.core import ConditionCategory

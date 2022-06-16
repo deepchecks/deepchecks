@@ -14,9 +14,8 @@ from sklearn.metrics import f1_score, make_scorer, recall_score
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.checks.model_evaluation import SimpleModelComparison
-from deepchecks.utils.metrics import get_default_scorers
 from deepchecks.tabular.utils.task_type import TaskType
-
+from deepchecks.utils.metrics import get_default_scorers
 from tests.base.utils import equal_condition_result
 
 
@@ -169,8 +168,8 @@ def test_condition_pass_for_multiclass_avg_with_classes(iris_split_dataset_and_m
     ))
 
 
-def test_condition_pass_for_new_test_classes(city_arrogance_split_dataset_and_model):
-    train_ds, test_ds, clf = city_arrogance_split_dataset_and_model
+def test_condition_pass_for_new_test_classes(kiss_dataset_and_model):
+    train_ds, test_ds, clf = kiss_dataset_and_model
     # Arrange
     check = SimpleModelComparison(simple_model_type='constant').add_condition_gain_greater_than(1)
     # Act X

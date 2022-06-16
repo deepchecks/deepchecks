@@ -12,12 +12,12 @@
 import warnings
 
 import torch
-from hamcrest import assert_that, calling, close_to, equal_to, greater_than_or_equal_to, raises, has_items
+from hamcrest import assert_that, calling, close_to, equal_to, greater_than_or_equal_to, has_items, raises
 from ignite.metrics import Accuracy, Precision
 
-from tests.base.utils import equal_condition_result
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks import SingleDatasetScalarPerformance
+from tests.base.utils import equal_condition_result
 
 
 def test_detection_defaults(coco_train_visiondata, mock_trained_yolov5_object_detection, device):

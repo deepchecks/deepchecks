@@ -42,7 +42,6 @@ from deepchecks.utils.logger import set_verbosity
 
 from .vision.vision_conftest import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
-
 set_verbosity(logging.WARNING)
 
 def get_expected_results_length(suite: BaseSuite, args: Dict):
@@ -114,25 +113,27 @@ def empty_df():
 
 
 @pytest.fixture(scope='session')
-def city_arrogance_split_dataset_and_model():
-    def city_leng(data):
+def kiss_dataset_and_model():
+    """A small and stupid dataset and model to catch edge cases."""
+    def string_to_length(data):
         data = data.copy()
-        data['city'] = data['city'].apply(len)
+        data['string_feature'] = data['string_feature'].apply(len)
         return data
 
     df = pd.DataFrame(
         {
-            'sex': [0, 1, 1, 0, 0, 1],
-            'city': ['ahhh', 'no', 'weeee', 'arg', 'eh', 'E'],
-            'arrogance': [3, 1, 5, 2, 1, 1],
+            'binary_feature': [0, 1, 1, 0, 0, 1],
+            'string_feature': ['ahhh', 'no', 'weeee', 'arg', 'eh', 'E'],
+            'numeric_label': [3, 1, 5, 2, 1, 1],
         })
     train, test = train_test_split(df, test_size=0.33, random_state=42)
-    train_ds = Dataset(train, label='arrogance', cat_features=['sex'])
-    test_ds = Dataset(test, label='arrogance', cat_features=['sex'])
-    clf = Pipeline([('lengthifier', FunctionTransformer(city_leng)),
-                ('clf', AdaBoostClassifier(random_state=0))])
+    train_ds = Dataset(train, label='numeric_label', cat_features=['binary_feature'])
+    test_ds = Dataset(test, label='numeric_label', cat_features=['binary_feature'])
+    clf = Pipeline([('lengthifier', FunctionTransformer(string_to_length)),
+                    ('clf', AdaBoostClassifier(random_state=0))])
     clf.fit(train_ds.features_columns, train_ds.label_col)
     return train_ds, test_ds, clf
+
 
 @pytest.fixture(scope='session')
 def diabetes_df():
