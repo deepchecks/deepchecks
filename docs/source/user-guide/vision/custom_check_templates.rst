@@ -6,8 +6,7 @@ Custom Check Templates
 
 This page supplies templates for the different types of custom checks that you can create using the deepchecks package.
 For more information on custom checks, please see the
-:doc:`Custom Check Guide. </user-guide/tabular/tutorials/plot_add_a_custom_check>`
-
+:doc:`Custom Check Guide. </user-guide/vision/tutorials/plot_custom_checks>`
 
 
 Templates:
@@ -22,10 +21,9 @@ Single Dataset Check
 
 .. code-block::
 
-  import pandas as pd
-
   from deepchecks.core import CheckResult, ConditionCategory, ConditionResult, DatasetKind
-  from deepchecks.tabular import SingleDatasetCheck, Dataset, Context
+  from deepchecks.vision import SingleDatasetCheck, Context, VisionData, Batch
+
 
   class SingleDatasetCustomCheck(SingleDatasetCheck):
       """Description of the check. The name of the check will be the class name split by upper case letters."""
@@ -36,28 +34,31 @@ Single Dataset Check
           self.prop_a = prop_a
           self.prop_b = prop_b
 
-      def run_logic(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
-          # Get the dataset by its type (train/test)
-          dataset: Dataset = context.get_data_by_kind(dataset_kind)
-          # Get the model (if needed)
-          model = context.model
-          # Get from the dataset the data
-          data: pd.DataFrame = dataset.data
+      def initialize_run(self, context: Context, dataset_kind: DatasetKind):
+          # Initialize cache
+          self.cache = {}
+          # OPTIONAL: add validations on inputs and properties like prop_a and prop_b
 
-          # LOGIC HERE - possible to add validations on inputs and properties like prop_a and prop_b
-          failing_rows = some_calc_fn(self.prop_a, self.prop_b)
+      def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
+          # Get the VisionData by its type (train/test)
+          dataset: VisionData = context.get_data_by_kind(dataset_kind)
+          # Take from the batch the data I need it and save it on the cache
+          batch_data_dict = some_calc_on_batch(batch, dataset)
+          # Save the data on the cache
+          self.cache.update(batch_data_dict)
+
+      def compute(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
+          # LOGIC HERE
+          failing_samples = some_calc_on_cache(self.cache, self.prop_a, self.prop_b)
 
           # Define result value: Adding any info that we might want to know later
           result = {
-              'ratio': failing_rows.shape[0] / data.shape[0],
-              'indices': failing_rows.index
+              'ratio': len(failing_samples) / len(self.cache),
+              'indices': failing_samples.keys()
           }
 
           # Define result display: list of either plotly-figure/dataframe/html
-          display = [
-              # Showing in the display only sample of 5 rows
-              failing_rows[:5]
-          ]
+          display = None
 
           return CheckResult(result, display=display)
 
@@ -81,13 +82,11 @@ Train Test Check
 
 .. code-block::
 
-  import pandas as pd
-
-  from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
-  from deepchecks.tabular import TrainTestCheck, Dataset, Context
+  from deepchecks.core import CheckResult, ConditionCategory, ConditionResult, DatasetKind
+  from deepchecks.vision import TrainTestCheck, Context, VisionData, Batch
 
 
-  class TrainTestCustomCheck(TrainTestCheck):
+  class SingleDatasetCustomCheck(TrainTestCheck):
       """Description of the check. The name of the check will be the class name split by upper case letters."""
 
       # OPTIONAL: we can add different properties in the init
@@ -96,30 +95,38 @@ Train Test Check
           self.prop_a = prop_a
           self.prop_b = prop_b
 
-      def run_logic(self, context: Context) -> CheckResult:
-          # Get the 2 datasets
-          train_dataset: Dataset = context.train
-          test_dataset: Dataset = context.test
-          # Get the model (if needed)
-          model = context.model
-          # Get from the datasets the data
-          train_df: pd.DataFrame = train_dataset.data
-          test_df: pd.DataFrame = test_dataset.data
+      def initialize_run(self, context: Context):
+          # Initialize cache
+          self.cache = {
+              DatasetKind.TRAIN: {},
+              DatasetKind.TEST: {}
+          }
+          # OPTIONAL: add validations on inputs and properties like prop_a and prop_b
 
-          # LOGIC HERE - possible to add validations on inputs and properties like prop_a and prop_b
-          test_failing_rows = some_calc_fn(self.prop_a, self.prop_b)
+      def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
+          # Get the VisionData by its type (train/test)
+          dataset: VisionData = context.get_data_by_kind(dataset_kind)
+          # Take from the batch the data I need it and save it on the cache
+          batch_data_dict = some_calc_on_batch(batch, dataset)
+          # Save the data on the cache
+          self.cache[dataset_kind].update(batch_data_dict)
+
+      def compute(self, context: Context) -> CheckResult:
+          # Get the VisionData
+          train_vision_data: VisionData = context.train
+          test_vision_data: VisionData = context.test
+
+          # LOGIC HERE
+          failing_samples = some_calc_on_cache(self.cache, self.prop_a, self.prop_b)
 
           # Define result value: Adding any info that we might want to know later
           result = {
-              'ratio': test_failing_rows.shape[0] / test_df.shape[0],
-              'indices': test_failing_rows.index
+              'ratio': len(failing_samples) / len(self.cache),
+              'indices': failing_samples.keys()
           }
 
           # Define result display: list of either plotly-figure/dataframe/html
-          display = [
-              # Showing in the display only sample of 5 rows
-              test_failing_rows[:5]
-          ]
+          display = None
 
           return CheckResult(result, display=display)
 
@@ -138,13 +145,14 @@ Train Test Check
           return self.add_condition(name, condition)
 
 
+
 Model Only Check
 -------------------
 
 .. code-block::
 
   from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
-  from deepchecks.tabular import ModelOnlyCheck, Context
+  from deepchecks.vision import ModelOnlyCheck, Context
 
 
   class ModelOnlyCustomCheck(ModelOnlyCheck):
@@ -156,7 +164,7 @@ Model Only Check
           self.prop_a = prop_a
           self.prop_b = prop_b
 
-      def run_logic(self, context: Context) -> CheckResult:
+      def compute(self, context: Context) -> CheckResult:
           # Get the model
           model = context.model
 
