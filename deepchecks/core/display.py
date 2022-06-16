@@ -95,7 +95,7 @@ class DisplayableResult(abc.ABC):
             widget = self.widget_serializer.serialize(**kwargs)
             content = widget_to_html_string(widget, title=get_result_name(self))
             display_html(content, raw=True)
-        if is_colab_env() and as_widget is False:
+        elif is_colab_env() and as_widget is False:
             display(*self.ipython_serializer.serialize(**kwargs))
         elif as_widget is True:
             widget = self.widget_serializer.serialize(output_id=unique_id, is_for_iframe_with_srcdoc=True, **kwargs)

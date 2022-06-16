@@ -12,7 +12,6 @@
 # pylint: disable=broad-except,import-outside-toplevel,unused-argument
 import io
 import traceback
-import warnings
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union, cast
 
 import jsonpickle
@@ -26,6 +25,7 @@ from deepchecks.core.checks import ReduceMixin
 from deepchecks.core.condition import ConditionCategory, ConditionResult
 from deepchecks.core.display import DisplayableResult, save_as_html
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.core.serialization.abc import HTMLFormatter
 from deepchecks.core.serialization.check_failure.html import CheckFailureSerializer as CheckFailureHtmlSerializer
 from deepchecks.core.serialization.check_failure.ipython import CheckFailureSerializer as CheckFailureIPythonSerializer
 from deepchecks.core.serialization.check_failure.json import CheckFailureSerializer as CheckFailureJsonSerializer
@@ -35,6 +35,7 @@ from deepchecks.core.serialization.check_result.html import CheckResultSerialize
 from deepchecks.core.serialization.check_result.ipython import CheckResultSerializer as CheckResultIPythonSerializer
 from deepchecks.core.serialization.check_result.json import CheckResultSerializer as CheckResultJsonSerializer
 from deepchecks.core.serialization.check_result.widget import CheckResultSerializer as CheckResultWidgetSerializer
+from deepchecks.utils.logger import get_logger
 from deepchecks.utils.strings import widget_to_html_string
 from deepchecks.utils.wandb_utils import wandb_run
 
@@ -282,7 +283,7 @@ class CheckResult(BaseCheckResult, DisplayableResult):
         unique_id: Optional[str] = None,
         show_additional_outputs: bool = True,
         **kwargs
-    ):
+    ) -> Optional[HTMLFormatter]:
         """Display the check result.
 
         Parameters
@@ -293,8 +294,13 @@ class CheckResult(BaseCheckResult, DisplayableResult):
             unique identifier of the result output
         show_additional_outputs : bool, default True
             whether to show additional outputs or not
+
+        Returns
+        -------
+        Optional[HTMLFormatter] :
+            when used by sphinx-gallery
         """
-        super().show(
+        return super().show(
             as_widget=as_widget,
             unique_id=unique_id,
             check_sections=detalize_additional_output(show_additional_outputs),
