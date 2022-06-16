@@ -58,9 +58,9 @@ single dataset integrity suite can be run on the dataset.
 
 .. code-block:: python
 
-    from deepchecks.tabular.suites import single_dataset_integrity
+    from deepchecks.tabular.suites import data_integrity
     # Validate the training set
-    train_res = single_dataset_integrity().run(ds_train)
+    train_res = data_integrity().run(ds_train)
 
 Displaying the results
 ~~~~~~~~~~~~~~~~~~~~~~
