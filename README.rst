@@ -47,7 +47,6 @@
 .. raw:: html
 
    <p align="center">
-      <a href="https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=checks_and_conditions_img">
       <img src="docs/source/_static/images/general/checks-and-conditions.png">
    </p>
 
@@ -79,9 +78,7 @@ Using pip
 
    pip install deepchecks -U --user
 
-..
-
-   Note: Computer Vision Install
+.. note::
 
    To install deepchecks together with the **Computer Vision Submodule** that is currently in *beta release*, replace ``deepchecks`` with ``"deepchecks[vision]"`` as follows.
    
@@ -102,32 +99,10 @@ Using conda
 ⏩ Try it Out!
 ================
 
-🏃‍♀️ See It in Action
--------------------- 
-
-Head over to one of our following quickstart tutorials, and have deepchecks running on your environment in less than 5 min:
-
-- `Train-Test Validation Quickstart (loans data) <https://docs.deepchecks.com/stable/user-guide/tabular/
-  auto_tutorials/plot_quick_data_integrity.html?
-  utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`__
-
-- `Data Integrity Quickstart (avocado sales data) <https://docs.deepchecks.com/stable/user-guide/tabular/
-  auto_tutorials/plot_quick_data_integrity.html?
-  utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`__
-
-- `Full Suite (many checks) Quickstart (iris data) <https://docs.deepchecks.com/en/stable/user-guide/tabular/
-  auto_tutorials/plot_quickstart_in_5_minutes.html?
-  utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`__
-
- **Recommended - download the code and run it locally** on the built-in dataset and (optional) model, or **replace them with your own**.
-
-
-🚀 See Our Checks Demo
-------------------------
-
-Play with some of the existing checks in our `Interactive Checks Demo <https://checks-demo.deepchecks.com/?check=No+check+selected
-&utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`__, 
-and see how they work on various datasets with custom corruptions injected.
+Head over to the `Quickstart Notebook <https://docs.deepchecks.com/en/stable/
+examples/guides/quickstart_in_5_minutes.html?
+utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`__
+and see deepchecks output on a built-in dataset, or run it yourself to apply it on your own data and models.
 
 
 📊 Usage Examples
@@ -142,8 +117,8 @@ Example for running a suite on given `datasets`_ and with a `supported model`_:
 
 .. code:: python
 
-   from deepchecks.tabular.suites import model_evaluation
-   suite = model_evaluation()
+   from deepchecks.tabular.suites import full_suite
+   suite = full_suite()
    suite.run(train_dataset=train_dataset, test_dataset=test_dataset, model=model)
 
 Which will result in a report that looks like this:
@@ -154,23 +129,24 @@ Which will result in a report that looks like this:
       <img src="docs/source/_static/images/general/full_suite_output.gif" width="750">
    </p>
 
-See the `full examples here`_.
+See the `full example here`_.
 
-Note that some other suites (e.g. ``data_integrity``, ``train_test_validation``) don't require a model as part of the input.
+Note that some other suites (e.g. ``single_dataset_integrity``) don't require a model as part of the input.
 
-.. _full examples here:
-   https://docs.deepchecks.com/dev/user-guide/tabular/auto_tutorials/index.html?
+.. _full example here:
+   https://docs.deepchecks.com/en/stable/
+   examples/guides/quickstart_in_5_minutes.html?
    utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out
 
 .. _datasets:
    https://docs.deepchecks.com/en/stable/
-   user-guide/tabular/dataset_object.html
+   user-guide/dataset_object.html
    ?utm_source=github.com&utm_medium=referral&
    utm_campaign=readme&utm_content=running_a_suite
 
 .. _supported model:
    https://docs.deepchecks.com/en/stable/
-   user-guide/tabular/supported_models.html
+   user-guide/supported_models.html
    ?utm_source=github.com&utm_medium=referral&
    utm_campaign=readme&utm_content=running_a_suite 
 
@@ -214,25 +190,6 @@ Will produce output of the type:
       <p align="left">
         <img src="docs/source/_static/images/general/train-test-drift-output.png">
       </p>
-
-
-🙋🏼  When Should You Use Deepchecks?
-====================================
-
-While you’re in the research phase, and want to validate your data, find potential methodological problems, 
-and/or validate your model and evaluate it.
-
-.. raw:: html
-
-   <p align="center">
-      <img src="/docs/source/_static/images/general/pipeline_when_to_validate.svg">
-   </p>
-
-
-See more about typical usage scenarios and the built-in suites in the
-`docs <https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utme_content=what_do_you_need_in_order_to_start_validating>`__.
-
-
 
 🗝️ Key Concepts
 ==================
@@ -297,6 +254,8 @@ of checks and optional conditions.
 
 .. _predefined existing suites: deepchecks/tabular/suites
 
+.. include:: 
+
 .. raw:: html
 
    <p align="center">
@@ -336,6 +295,15 @@ Supported Data Types
 --------------------
 
 The package currently supports tabular data and is in *beta release* for the computer vision submodule.
+
+
+When Should I Run Deepchecks
+----------------------------
+
+Deepchecks validation accompanies you from the initial phase when you
+have only raw data, through the data splits, and to the final stage of
+having a trained model that you wish to evaluate. See more about typical usage scenarios and the built-in suites in the
+`docs <https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utme_content=what_do_you_need_in_order_to_start_validating>`__.
 
 
 📖 Documentation
