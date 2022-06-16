@@ -11,7 +11,6 @@
 """The dataset module containing the tabular Dataset class and its functions."""
 # pylint: disable=inconsistent-quotes,protected-access
 import typing as t
-from functools import lru_cache
 
 import numpy as np
 import pandas as pd
@@ -101,6 +100,7 @@ class Dataset:
     _max_categorical_ratio: float
     _max_categories: int
     _label_type: t.Optional[TaskType]
+    _classes: t.Tuple[str, ...]
 
     def __init__(
             self,
@@ -244,6 +244,8 @@ class Dataset:
 
         self._max_categorical_ratio = max_categorical_ratio
         self._max_categories = max_categories
+
+        self._classes = None
 
         if self._label_name in self.features:
             raise DeepchecksValueError(f'label column {self._label_name} can not be a feature column')
@@ -740,7 +742,6 @@ class Dataset:
         return list(self._numerical_features)
 
     @property
-    @lru_cache(maxsize=128)
     def classes(self) -> t.Tuple[str, ...]:
         """Return the classes from label column in sorted list. if no label column defined, return empty list.
 
@@ -749,9 +750,12 @@ class Dataset:
         t.Tuple[str, ...]
             Sorted classes
         """
-        if self.label_name is not None:
-            return tuple(sorted(self.data[self.label_name].dropna().unique().tolist()))
-        return tuple()
+        if self._classes is None:
+            if self.label_name is not None:
+                self._classes = tuple(sorted(self.data[self.label_name].dropna().unique().tolist()))
+            else:
+                self._classes = tuple()
+        return self._classes
 
     @property
     def columns_info(self) -> t.Dict[Hashable, str]:
