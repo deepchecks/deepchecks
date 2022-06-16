@@ -51,7 +51,7 @@ def test_feature_feature_correlation_with_mixed_data(df_with_mixed_datatypes_and
 
 
 def test_feature_feature_correlation_pass_condition(adult_no_split):
-    high_pairs = [('education-num', 'education')]
+    high_pairs = [('education', 'education-num')]
     threshold = 0.9
     num_pairs = 1
     check = FeatureFeatureCorrelation()
@@ -66,7 +66,7 @@ def test_feature_feature_correlation_pass_condition(adult_no_split):
 def test_feature_feature_correlation_fail_condition(adult_no_split):
     threshold = 0.5
     num_pairs = 3
-    high_pairs = [('age', 'marital-status'), ('education-num', 'education'), ('education-num', 'occupation'),
+    high_pairs = [('age', 'marital-status'), ('education-num', 'occupation'), ('education', 'education-num'),
                   ('marital-status', 'relationship')]
     check = FeatureFeatureCorrelation()
     result = check.add_condition_max_number_of_pairs_above(threshold, num_pairs).run(adult_no_split)
