@@ -69,7 +69,10 @@ def run_whole_dataset_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
         domain_classifier,
         domain_test_dataset,
         force_permutation=True,
-        permutation_kwargs={'n_repeats': 10, 'random_state': random_state, 'timeout': 120}
+        permutation_kwargs={'n_repeats': 10,
+                            'random_state': random_state,
+                            'timeout': 120,
+                            'skip_timeout_messages': True}
     )
 
     fi = fi.sort_values(ascending=False) if fi is not None else None

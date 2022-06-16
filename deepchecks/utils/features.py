@@ -219,6 +219,7 @@ def _calc_permutation_importance(
         random_state: int = 42,
         n_samples: int = 10_000,
         alternative_scorer: t.Optional[DeepcheckScorer] = None,
+        skip_timeout_messages: bool = False,
         timeout: int = None
 ) -> pd.Series:
     """Calculate permutation feature importance. Return nonzero value only when std doesn't mask signal.
@@ -242,6 +243,8 @@ def _calc_permutation_importance(
     alternative_scorer: t.Optional[DeepcheckScorer], default: None
         Scorer to use for evaluation of the model performance in the permutation_importance function. If not defined,
         the default deepchecks scorers are used.
+    ignore_timout: bool, default: False
+        If True will not print any message related to timeout.
     timeout: int, default: None
         Allowed runtime of permutation_importance, in seconds. As we can't limit the actual runtime of the function,
         the timeout parameter is used for estimation of the runtime, done be measuring the inference time of the model
@@ -282,10 +285,10 @@ def _calc_permutation_importance(
             raise errors.DeepchecksTimeoutError(
                 f'Skipping permutation importance calculation: calculation was projected to finish in '
                 f'{predicted_time_to_run} seconds, but timeout was configured to {timeout} seconds')
-        else:
+        elif not skip_timeout_messages:
             get_logger().info('Calculating permutation feature importance. Expected to finish in %s seconds',
                               predicted_time_to_run)
-    else:
+    elif not skip_timeout_messages:
         get_logger().warning('Calculating permutation feature importance without time limit. Expected to finish in '
                              '%s seconds', predicted_time_to_run)
 
