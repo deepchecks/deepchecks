@@ -294,7 +294,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         with warnings.catch_warnings():
             warnings.simplefilter(action='ignore', category=FutureWarning)
             df = create_results_dataframe(
-                results=results, 
+                results=results,
                 output_id=output_id,
                 is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
             )
