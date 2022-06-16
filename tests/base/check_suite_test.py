@@ -159,8 +159,8 @@ def test_get_error(iris_split_dataset_and_model_custom):
         tabular_checks.ModelErrorAnalysis())
 
     result = suite.run(train_dataset=iris_train, test_dataset=iris_test, model=iris_model)
-    assert_that(result.get_checks_not_ran(), has_length(1))
-    assert_that(result.get_checks_not_ran()[0], instance_of(CheckFailure))
+    assert_that(result.get_not_ran_checks(), has_length(1))
+    assert_that(result.get_not_ran_checks()[0], instance_of(CheckFailure))
 
 
 def test_suite_result_checks_not_passed():
@@ -173,11 +173,11 @@ def test_suite_result_checks_not_passed():
     result3.conditions_results = [ConditionResult(ConditionCategory.FAIL)]
 
     # Act & Assert
-    not_passed_checks = SuiteResult('test', [result1, result2]).get_checks_not_passed()
+    not_passed_checks = SuiteResult('test', [result1, result2]).get_not_passed_checks()
     assert_that(not_passed_checks, has_length(1))
-    not_passed_checks = SuiteResult('test', [result1, result2]).get_checks_not_passed(fail_if_warning=False)
+    not_passed_checks = SuiteResult('test', [result1, result2]).get_not_passed_checks(fail_if_warning=False)
     assert_that(not_passed_checks, has_length(0))
-    not_passed_checks = SuiteResult('test', [result1, result2, result3]).get_checks_not_passed()
+    not_passed_checks = SuiteResult('test', [result1, result2, result3]).get_not_passed_checks()
     assert_that(not_passed_checks, has_length(2))
 
 

@@ -75,17 +75,21 @@ class SuiteResult(DisplayableResult):
         self.failures: Set[int] = set()
 
         for index, result in enumerate(self.results):
-            if isinstance(result, check_types.CheckResult):
-                if result.have_conditions():
+            if isinstance(result, check_types.CheckFailure):
+                self.failures.add(index)
+            elif isinstance(result, check_types.CheckResult):
+                has_conditions = result.have_conditions()
+                has_display = result.have_display()
+                if has_conditions:
                     self.results_with_conditions.add(index)
                 else:
                     self.results_without_conditions.add(index)
-                if result.have_display():
+                if has_display:
                     self.results_with_display.add(index)
                 else:
                     self.results_without_display.add(index)
             else:
-                self.failures.add(index)
+                raise TypeError(f'Unknown type of result - {type(result).__name__}')
 
     def select_results(self, idx: Set[int]) -> List[Union[
         'check_types.CheckResult',
@@ -297,7 +301,7 @@ class SuiteResult(DisplayableResult):
         with wandb_run(**wandb_kwargs) as run:
             run.log(WandbSerializer(self).serialize())
 
-    def get_checks_not_ran(self) -> List['check_types.CheckFailure']:
+    def get_not_ran_checks(self) -> List['check_types.CheckFailure']:
         """Get all the check results which did not run (unable to run due to missing parameters, exception, etc).
 
         Returns
@@ -307,7 +311,7 @@ class SuiteResult(DisplayableResult):
         """
         return cast(List[check_types.CheckFailure], self.select_results(self.failures))
 
-    def get_checks_not_passed(self, fail_if_warning=True) -> List['check_types.CheckResult']:
+    def get_not_passed_checks(self, fail_if_warning=True) -> List['check_types.CheckResult']:
         """Get all the check results that have not passing condition.
 
         Parameters
@@ -315,7 +319,7 @@ class SuiteResult(DisplayableResult):
         fail_if_warning: bool, Default: True
             Whether conditions should fail on status of warning
 
-         Returns
+        Returns
         -------
         List[CheckResult]
             All the check results in the suite that have failing conditions.
@@ -327,6 +331,28 @@ class SuiteResult(DisplayableResult):
         return [
             r for r in results
             if not r.passed_conditions(fail_if_warning)
+        ]
+
+    def get_passed_checks(self, fail_if_warning=True) -> List['check_types.CheckResult']:
+        """Get all the check results that have passing condition.
+
+        Parameters
+        ----------
+        fail_if_warning: bool, Default: True
+            Whether conditions should fail on status of warning
+
+        Returns
+        -------
+        List[CheckResult]
+            All the check results in the suite that have failing conditions.
+        """
+        results = cast(
+            List[check_types.CheckResult],
+            self.select_results(self.results_with_conditions)
+        )
+        return [
+            r for r in results
+            if r.passed_conditions(fail_if_warning)
         ]
 
     def passed(self, fail_if_warning: bool = True, fail_if_check_not_run: bool = False) -> bool:
@@ -344,8 +370,8 @@ class SuiteResult(DisplayableResult):
         -------
         bool
         """
-        not_run_pass = len(self.get_checks_not_ran()) == 0 if fail_if_check_not_run else True
-        conditions_pass = len(self.get_checks_not_passed(fail_if_warning)) == 0
+        not_run_pass = len(self.get_not_ran_checks()) == 0 if fail_if_check_not_run else True
+        conditions_pass = len(self.get_not_passed_checks(fail_if_warning)) == 0
         return conditions_pass and not_run_pass
 
     @classmethod
