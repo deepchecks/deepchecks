@@ -22,6 +22,7 @@ from ipywidgets import Widget
 
 from deepchecks.core.serialization.abc import HTMLFormatter, HtmlSerializer, IPythonSerializer, WidgetSerializer
 from deepchecks.utils.ipython import is_colab_env
+from deepchecks.utils.logger import get_logger
 from deepchecks.utils.strings import create_new_file_name, get_random_string, widget_to_html, widget_to_html_string
 
 if t.TYPE_CHECKING:
@@ -98,17 +99,50 @@ class DisplayableResult(abc.ABC):
         elif is_colab_env() and as_widget is False:
             display(*self.ipython_serializer.serialize(**kwargs))
         elif as_widget is True:
-            widget = self.widget_serializer.serialize(output_id=unique_id, is_for_iframe_with_srcdoc=True, **kwargs)
-            content = widget_to_html_string(widget, title=get_result_name(self))
-            content = iframe(srcdoc=content)
-            display_html(content, raw=True)
+            display_html(self.widget_serializer.serialize(
+                output_id=unique_id,
+                **kwargs
+            ))
         else:
-            # TODO:
-            # output of a HTML Serializers looks to plain
-            # it need some style
+            display(*self.ipython_serializer.serialize(
+                output_id=unique_id,
+                **kwargs
+            ))
+
+    def show_in_iframe(
+        self,
+        as_widget: bool = True,
+        unique_id: t.Optional[str] = None,
+        **kwargs
+    ):
+        """Display result in an iframe.
+
+        Parameters
+        ----------
+        as_widget : bool, default True
+            whether to display result with help of ipywidgets or not
+        unique_id : Optional[str], default None
+            unique identifier of the result output
+        **kwrgs :
+            other key-value arguments will be passed to the `Serializer.serialize`
+            method
+        """
+        output_id = unique_id or get_random_string(n=25)
+
+        if is_colab_env() and as_widget is True:
+            widget = self.widget_serializer.serialize(**kwargs)
+            content = widget_to_html_string(widget, title=get_result_name(self))
+            display_html(content, raw=True)
+        elif is_colab_env() and as_widget is False:
+            display(*self.ipython_serializer.serialize(**kwargs))
+        elif as_widget is True:
+            widget = self.widget_serializer.serialize(output_id=output_id, is_for_iframe_with_srcdoc=True, **kwargs)
+            content = widget_to_html_string(widget, title=get_result_name(self))
+            display_html(iframe(srcdoc=content), raw=True)
+        else:
             display_html(
                 iframe(srcdoc=self.html_serializer.serialize(
-                    output_id=unique_id,
+                    output_id=output_id,
                     full_html=True,
                     include_requirejs=True,
                     include_plotlyjs=True,
@@ -117,36 +151,6 @@ class DisplayableResult(abc.ABC):
                 )),
                 raw=True
             )
-
-    # def show_in_iframe(
-    #     self,
-    #     as_widget: bool = True,
-    #     unique_id: t.Optional[str] = None,
-    #     **kwargs
-    # ):
-    #     output_id = unique_id or get_random_string(n=25)
-
-    #     if is_colab_env() and as_widget is True:
-    #         widget = self.widget_serializer.serialize(**kwargs)
-    #         content = widget_to_html_string(widget, title=get_result_name(self))
-    #         display_html(content, raw=True)
-    #     elif as_widget is True:
-    #         widget = self.widget_serializer.serialize(output_id=output_id, is_for_iframe_with_srcdoc=True, **kwargs)
-    #         content = widget_to_html_string(widget, title=get_result_name(self))
-    #         content = iframe(srcdoc=content)
-    #         display_html(content, raw=True)
-    #     else:
-    #         display_html(
-    #             self.html_serializer.serialize(
-    #                 output_id=output_id,
-    #                 full_html=True,
-    #                 include_requirejs=True,
-    #                 include_plotlyjs=True,
-    #                 is_for_iframe_with_srcdoc=True,
-    #                 **kwargs
-    #             ),
-    #             raw=True
-    #         )
 
     def show_in_window(self, **kwargs):
         """Display result in a separate window."""
@@ -222,7 +226,7 @@ def display_in_gui(result: DisplayableResult):
         from PyQt5.QtWebEngineWidgets import QWebEngineView  # pylint: disable=import-outside-toplevel
         from PyQt5.QtWidgets import QApplication  # pylint: disable=import-outside-toplevel
     except ImportError:
-        print(
+        get_logger().error(
             'Missing packages in order to display result in GUI, '
             'either run "pip install pyqt5, pyqtwebengine" '
             'or use "result.save_as_html()" to save result'
@@ -241,7 +245,7 @@ def display_in_gui(result: DisplayableResult):
 
             sys.exit(app.exec_())
         except BaseException:  # pylint: disable=broad-except
-            print(
+            get_logger().error(
                 'Unable to show result, run in an interactive environment '
                 'or use "result.save_as_html()" to save result'
             )

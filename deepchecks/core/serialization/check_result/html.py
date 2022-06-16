@@ -306,7 +306,7 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
     ) -> str:
         """Handle plotly figure item."""
         if plotly_to_image is True:
-            img = item.to_image(format='png', engine='auto')
+            img = item.to_image(format='jpeg', engine='auto')
             return imagetag(img)
 
         post_script = textwrap.dedent("""

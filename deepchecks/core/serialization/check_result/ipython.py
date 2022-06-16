@@ -243,5 +243,5 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
         return (
             item
             if not plotly_to_image
-            else Image(data=item.to_image(format='png', engine='auto'), format='png')
+            else Image(data=item.to_image(format='jpeg', engine='auto'), format='jpeg')
         )
