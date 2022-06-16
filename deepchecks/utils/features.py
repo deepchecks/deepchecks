@@ -243,7 +243,7 @@ def _calc_permutation_importance(
     alternative_scorer: t.Optional[DeepcheckScorer], default: None
         Scorer to use for evaluation of the model performance in the permutation_importance function. If not defined,
         the default deepchecks scorers are used.
-    ignore_timout: bool, default: False
+    skip_timeout_messages: bool, default: False
         If True will not print any message related to timeout.
     timeout: int, default: None
         Allowed runtime of permutation_importance, in seconds. As we can't limit the actual runtime of the function,
