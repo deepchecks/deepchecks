@@ -40,10 +40,7 @@ class _StaticPred(SingleDatasetCheck):
         self._pred_index.update(dict(zip(indexes, predictions)))
 
     def compute(self, context: Context, dataset_kind) -> CheckResult:
-        sorted_values = [v for _, v in sorted(self._pred_index.items(), key=lambda item: item[0])]
-        if context.get_data_by_kind(dataset_kind).task_type == TaskType.CLASSIFICATION:
-            sorted_values = torch.stack(sorted_values)
-        return CheckResult(sorted_values)
+        return CheckResult(self._pred_index)
 
 
 def _create_static_predictions(train: VisionData, test: VisionData, model):

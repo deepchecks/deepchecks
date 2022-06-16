@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING, Any, Callable, Iterable, Tuple, TypeVar, cast
 import torch
 
 from deepchecks.core import DatasetKind
+from deepchecks.vision.task_type import TaskType
 
 if TYPE_CHECKING:
     from deepchecks.vision.context import Context
@@ -55,9 +56,10 @@ class Batch:
         dataset = self._context.get_data_by_kind(self._dataset_kind)
         indexes = [dataset.to_dataset_index(self.batch_start_index + index)[0]
                    for index in range(len(self))]
-        if isinstance(preds, torch.Tensor):
-            return preds[indexes]
-        return itemgetter(*indexes)(preds)
+        preds = itemgetter(*indexes)(preds)
+        if dataset.task_type == TaskType.CLASSIFICATION:
+            return torch.stack(preds)
+        return preds
 
     @property
     def predictions(self):
