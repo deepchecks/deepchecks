@@ -10,16 +10,16 @@
 #
 """module contains the Feature-Feature Correlation check."""
 
+from typing import List, Union
+
 import pandas as pd
 import plotly.express as px
-from typing import List, Union
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.correlation_methods import correlation_ratio, symmetric_theil_u_correlation
-from deepchecks.utils.dataframes import generalized_corrwith
+from deepchecks.utils.dataframes import generalized_corrwith, select_from_dataframe
 from deepchecks.utils.typing import Hashable
-from deepchecks.utils.dataframes import select_from_dataframe
 
 __all__ = ['FeatureFeatureCorrelation']
 

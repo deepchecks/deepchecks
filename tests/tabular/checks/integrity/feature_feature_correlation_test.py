@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Tests for Feature Feature Correlation check"""
-from hamcrest import assert_that, contains_inanyorder, contains_exactly, has_items, equal_to, calling, raises
+from hamcrest import assert_that, calling, contains_exactly, contains_inanyorder, equal_to, has_items, raises
 
 from deepchecks.tabular.checks.data_integrity.feature_feature_correlation import FeatureFeatureCorrelation
 from deepchecks.tabular.dataset import Dataset
