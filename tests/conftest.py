@@ -41,7 +41,6 @@ from deepchecks.utils.logger import set_verbosity
 
 from .vision.vision_conftest import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
-
 set_verbosity(logging.WARNING)
 
 def get_expected_results_length(suite: BaseSuite, args: Dict):

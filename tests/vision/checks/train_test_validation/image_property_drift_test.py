@@ -9,14 +9,14 @@
 # ----------------------------------------------------------------------------
 #
 """Image Property Drift check tests"""
-from hamcrest import (all_of, assert_that, calling, close_to, greater_than, has_entries,
-                      has_key, has_length, has_properties, instance_of, raises, has_items)
+from hamcrest import (all_of, assert_that, calling, close_to, greater_than, has_entries, has_items, has_key, has_length,
+                      has_properties, instance_of, raises)
 
-from tests.base.utils import equal_condition_result
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks import ImagePropertyDrift
 from deepchecks.vision.utils.image_properties import default_image_properties
+from tests.base.utils import equal_condition_result
 
 
 def test_image_property_drift_check(coco_train_visiondata, coco_test_visiondata, device):
