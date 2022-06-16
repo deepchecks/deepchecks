@@ -138,10 +138,10 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
         return {'type': 'plotly', 'payload': item.to_json()}
 
     @classmethod
-    def handle_display_map(cls, item: 'check_types.DisplayMap', index: int, **kwargs) -> t.Any:
+    def handle_display_map(cls, item: 'check_types.DisplayMap', index: int, **kwargs) -> t.Dict[str, t.Any]:
         """Handle display map instance item."""
         return {
-            'type': 'display-map',
+            'type': 'displaymap',
             'payload': {
                 k: cls.handle_display(v, **kwargs)
                 for k, v in item.items()

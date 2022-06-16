@@ -298,7 +298,7 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
     @classmethod
     def handle_display_map(cls, item: 'check_types.DisplayMap', index: int, **kwargs) -> str:
         """Handle display map instance item."""
-        template = """
+        template = textwrap.dedent("""
             <details>
                 <summary><strong>{name}</strong></summary>
                 <div style="
@@ -310,7 +310,7 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
                 {content}
                 </div>
             </details>
-        """
+        """)
         return ''.join([
             template.format(
                 name=k,

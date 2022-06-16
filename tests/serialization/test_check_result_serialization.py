@@ -14,21 +14,27 @@ import typing as t
 
 import pandas as pd
 import wandb
-from hamcrest import (all_of, assert_that, calling, contains_string, equal_to, greater_than, has_entries, has_item,
-                      has_length, has_property, instance_of, matches_regexp, only_contains, raises, starts_with)
+from hamcrest import (all_of, assert_that, calling, contains_exactly, contains_string, equal_to, greater_than,
+                      has_entries, has_item, has_length, has_property, instance_of, matches_regexp, only_contains,
+                      raises, starts_with)
 from IPython.display import Image
-from ipywidgets import HTML, VBox
+from ipywidgets import HTML, Tab, VBox
 from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
 
+from deepchecks.core.check_result import DisplayMap
 from deepchecks.core.serialization.check_result.html import CheckResultSerializer as HtmlSerializer
+from deepchecks.core.serialization.check_result.html import DisplayItemsHandler as HtmlDisplayItemsHandler
 from deepchecks.core.serialization.check_result.ipython import CheckResultSerializer as IPythonSerializer
+from deepchecks.core.serialization.check_result.ipython import DisplayItemsHandler as IPythonDisplayItemsHandler
 from deepchecks.core.serialization.check_result.json import CheckResultSerializer as JsonSerializer
+from deepchecks.core.serialization.check_result.json import DisplayItemsHandler as JsonDisplayItemsHandler
 from deepchecks.core.serialization.check_result.wandb import CheckResultSerializer as WandbSerializer
 from deepchecks.core.serialization.check_result.widget import CheckResultSerializer as WidgetSerializer
+from deepchecks.core.serialization.check_result.widget import DisplayItemsHandler as WidgetDisplayItemsHandler
 from deepchecks.core.serialization.common import plotlyjs_script
 from deepchecks.utils.strings import get_random_string
-from tests.common import DummyCheck, create_check_result, instance_of_ipython_formatter
+from tests.common import DummyCheck, create_check_result, create_check_result_display, instance_of_ipython_formatter
 
 # ===========================================
 
@@ -136,6 +142,58 @@ def test_html_serialization_to_full_html_page():
     )
 
 
+def test_display_map_serialization_to_html():
+    html_section = HtmlDisplayItemsHandler.handle_display(
+        display=[DisplayMap(a=create_check_result_display())],
+        include_header=False,
+        include_trailing_link=False
+    )
+    assert_that(html_section, all_of(
+        instance_of(list),
+        contains_exactly(is_display_map_sections('a'))
+    ))
+
+
+def test_nested_display_map_serialization_to_html():
+    html_section = HtmlDisplayItemsHandler.handle_display(
+        display=[
+            DisplayMap(
+                a=create_check_result_display(),
+                b=[DisplayMap(a=create_check_result_display())],
+            ),
+        ],
+        include_header=False,
+        include_trailing_link=False
+    )
+    assert_that(html_section, all_of(
+        instance_of(list),
+        contains_exactly(is_display_map_sections('a', 'b'))
+    ))
+
+
+def is_display_map_sections(*section_names):
+    assert len(section_names) != 0
+    patterns = []
+
+    for name in section_names:
+        patterns.append(
+            r"<details>[\s]*"
+            r"<summary>[\s]*"
+            fr"<strong>{name}<\/strong>[\s]*"
+            r"<\/summary>[\s]*"
+            r"<div([\s\S\d\D\w\W]*)>([\s\S\d\D\w\W]*)<\/div>[\s]*"
+            r"<\/details>"
+        )
+
+    pattern = r'[\s]*'.join(patterns)
+    pattern = rf'^[\s]*{pattern}[\s]*$'
+
+    return all_of(
+        instance_of(str),
+        matches_regexp(pattern)
+    )
+
+
 # ===========================================
 
 
@@ -175,6 +233,37 @@ def test_ipython_serialization_with_empty__check_sections__parameter():
     )
 
 
+def test_display_map_serialization_to_list_of_ipython_formatters():
+    formatters = IPythonDisplayItemsHandler.handle_display(
+        display=[DisplayMap(a=create_check_result_display())],
+        include_header=False,
+        include_trailing_link=False
+    )
+    assert_that(formatters, all_of(
+        instance_of(list),
+        has_length(equal_to(6)), # section header + five display items created by create_check_result_display
+        only_contains(instance_of_ipython_formatter()),
+    ))
+
+
+def test_nested_display_map_serialization_to_list_of_ipython_formatters():
+    formatters = IPythonDisplayItemsHandler.handle_display(
+        display=[
+            DisplayMap(
+                a=create_check_result_display(),
+                b=[DisplayMap(a=create_check_result_display())],
+            ),
+        ],
+        include_header=False,
+        include_trailing_link=False
+    )
+    assert_that(formatters, all_of(
+        instance_of(list),
+        has_length(equal_to(13)), # three section headers + ten display items created by create_check_result_display
+        only_contains(instance_of_ipython_formatter()),
+    ))
+
+
 # ===========================================
 
 
@@ -206,6 +295,58 @@ def test_check_result_without_conditions_and_display_into_json_serialization():
         with_conditions_table=False,
         with_display=False
     )
+
+
+def test_display_map_serialization_to_json():
+    output = JsonDisplayItemsHandler.handle_display(
+        display=[DisplayMap(a=create_check_result_display())],
+    )
+    assert_that(output, all_of(
+        instance_of(list),
+        only_contains(has_entries({
+            'type': equal_to('displaymap'),
+            'payload': has_entries({
+                'a': all_of(
+                    instance_of(list),
+                    has_length(equal_to(5))
+                )
+            })
+        }))
+    ))
+
+
+def test_nested_display_map_serialization_to_json():
+    output = JsonDisplayItemsHandler.handle_display(
+        display=[
+            DisplayMap(
+                a=create_check_result_display(),
+                b=[DisplayMap(a=create_check_result_display())],
+            ),
+        ],
+    )
+    assert_that(output, all_of(
+        instance_of(list),
+        contains_exactly(
+            serialized_to_json_displaymap(has_entries({
+                'a': all_of(
+                    instance_of(list),
+                    has_length(equal_to(5))),
+                'b': all_of(
+                    instance_of(list),
+                    contains_exactly(
+                        serialized_to_json_displaymap(has_entries({
+                            'a': all_of(instance_of(list), has_length(equal_to(5)))
+                        }))))
+            }))
+        )
+    ))
+
+
+def serialized_to_json_displaymap(entries_matcher):
+    return has_entries({
+        'type': equal_to('displaymap'),
+        'payload': entries_matcher
+    })
 
 
 def assert_json_output(
@@ -245,48 +386,40 @@ def assert_json_output(
 
     if with_display is True:
         for index, it in enumerate(check_result.display):
-            if isinstance(it, (pd.DataFrame, Styler)):
-                assert_that(
-                    output['display'][index],
-                    all_of(
-                        instance_of(dict),
-                        has_entries({
-                            'type': equal_to('dataframe'),
-                            'payload': instance_of(list)
-                        }))
-                )
-            elif isinstance(it, str):
-                assert_that(
-                    output['display'][index],
-                    all_of(
-                        instance_of(dict),
-                        has_entries({
-                            'type': equal_to('html'),
-                            'payload': instance_of(str)
-                        }))
-                )
-            elif isinstance(it, BaseFigure):
-                assert_that(
-                    output['display'][index],
-                    all_of(
-                        instance_of(dict),
-                        has_entries({
-                            'type': equal_to('plotly'),
-                            'payload': instance_of(str)
-                        }))
-                )
-            elif callable(it):
-                assert_that(
-                    output['display'][index],
-                    all_of(
-                        instance_of(dict),
-                        has_entries({
-                            'type': equal_to('images'),
-                            'payload': all_of(has_length(greater_than(0))),
-                        }))
-                )
-            else:
-                raise TypeError(f'Unknown display item type {type(it)}')
+            assert_that(
+                output['display'][index],
+                is_serialized_to_json_display_item(type(it))
+            )
+
+
+def is_serialized_to_json_display_item(item_type):
+    if issubclass(item_type, (pd.DataFrame, Styler)):
+        return has_entries({
+            'type': equal_to('dataframe'),
+            'payload': instance_of(list)
+        })
+    elif issubclass(item_type, str):
+        return has_entries({
+            'type': equal_to('html'),
+            'payload': instance_of(str)
+        })
+    elif issubclass(item_type, BaseFigure):
+        return has_entries({
+            'type': equal_to('plotly'),
+            'payload': instance_of(str)
+        })
+    elif issubclass(item_type, t.Callable):
+        return has_entries({
+            'type': equal_to('images'),
+            'payload': all_of(has_length(greater_than(0))),
+        })
+    elif issubclass(item_type, DisplayMap):
+        return has_entries({
+            'type': equal_to('displaymap'),
+            'payload': instance_of(dict),
+        })
+    else:
+        raise TypeError(f'Unknown display item type {type(item_type)}')
 
 
 # ===========================================
@@ -357,6 +490,9 @@ def wandb_output_assertion(
                 entries[f'{check_result.header}/item-{index}-plot'] = instance_of(wandb.Plotly)
             elif callable(it):
                 entries[f'{check_result.header}/item-{index}-figure'] = instance_of(wandb.Image)
+            elif isinstance(it, DisplayMap):
+                # TODO:
+                pass
             else:
                 raise TypeError(f'Unknown display item type {type(it)}')
 
@@ -414,6 +550,78 @@ def test_widget_serialization_with_empty__check_sections__parameter():
     assert_that(
         calling(WidgetSerializer(result).serialize).with_args(check_sections=[]),
         raises(ValueError, 'include parameter cannot be empty')
+    )
+
+
+def test_display_map_serialization_to_widget():
+    display_items = create_check_result_display()
+    displaymap = DisplayMap(a=display_items)
+    output = WidgetDisplayItemsHandler.handle_display(
+        display=[displaymap],
+        include_header=False,
+        include_trailing_link=False
+    )
+    assert_that(output, contains_exactly(
+        serialized_to_widget_displaymap(
+            displaymap=displaymap,
+            display_items=display_items
+        )
+    ))
+
+
+def test_nested_display_map_serialization_to_widget():
+    display_items = create_check_result_display()
+    inner_displaymap = DisplayMap(a=display_items)
+    outer_displaymap = DisplayMap(a=display_items, b=[inner_displaymap])
+
+    output = WidgetDisplayItemsHandler.handle_display(
+        display=[outer_displaymap],
+        include_header=False,
+        include_trailing_link=False
+    )
+    assert_that(output, contains_exactly(
+        serialized_to_widget_displaymap(
+            displaymap=outer_displaymap,
+            tabs=[
+                has_length(len(display_items)),  # tab 'a'
+                contains_exactly(serialized_to_widget_displaymap(  # tab 'b'
+                    displaymap=inner_displaymap,
+                    display_items=display_items
+                ))
+            ]
+        )
+    ))
+
+
+def serialized_to_widget_displaymap(
+    displaymap: DisplayMap,
+    display_items: t.Optional[t.List[t.Any]] = None,
+    tabs: t.Optional[t.List[t.Any]] = None
+):
+    if display_items is not None:
+        tabs_matcher = [
+            all_of(
+                instance_of(VBox),
+                has_property('children', has_length(len(display_items)))
+            )
+            for _ in range(len(displaymap))
+        ]
+    elif tabs is not None:
+        tabs_matcher = [
+            all_of(
+                instance_of(VBox),
+                has_property('children', m)
+            )
+            for m in tabs
+        ]
+    else:
+        raise ValueError('At least one of the parameters must be provided - [display_items, tabs]')
+
+    return all_of(
+        instance_of(Tab),
+        has_property('children', all_of(
+            contains_exactly(*tabs_matcher)
+        ))
     )
 
 

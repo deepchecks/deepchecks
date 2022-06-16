@@ -38,7 +38,7 @@ def create_suite_result(
     n_of_failures: int = 5
 ) -> SuiteResult:
     results = [
-        create_check_result(value=i, header=f'Dummy Result #{i}')
+        create_check_result(value=i, header=f'Dummy Result {i}')
         for i in range(n_of_results)
     ]
     failures = [
@@ -58,30 +58,15 @@ def create_check_result(
     include_display: bool = True,
     include_conditions: bool = True
 ) -> CheckResult:
-    def draw_plot():
-        plt.subplots()
-        plt.plot([1, 2, 3, 4], [1, 4, 2, 3])
-
-    plotly_figure = px.bar(
-        px.data.gapminder().query("country == 'Canada'"),
-        x='year', y='pop'
+    display = (
+        [*create_check_result_display(), DisplayMap(a=create_check_result_display())]
+        if include_display
+        else None
     )
-    display = [
-        header,
-        pd.DataFrame({'foo': range(10), 'bar': range(10)}),
-        pd.DataFrame({'foo': range(10), 'bar': range(10)}).style,
-        plotly_figure,
-        draw_plot,
-        DisplayMap(
-            foo=[plotly_figure],
-            bar=[plotly_figure],
-            alice=[pd.DataFrame({'foo': range(5), 'bar': range(5)})]
-        )
-    ]
     result = CheckResult(
         value=value or 1000,
-        header='Dummy Result',
-        display=display if include_display else None,
+        header=header,
+        display=display,
     )
 
     if include_conditions:
@@ -112,8 +97,6 @@ def create_check_result_display():
         ),
         draw_plot
     ]
-
-
 
 
 def instance_of_ipython_formatter():
