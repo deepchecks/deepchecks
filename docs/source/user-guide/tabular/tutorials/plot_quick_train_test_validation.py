@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Quickstart - Train-Test Validation Suite (Loan's Data)
+Quickstart - Train-Test Validation Suite (Loans Data)
 ************************************************************
 
 The deepchecks train-test validation suite is relevant any time you wish to 

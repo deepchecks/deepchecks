@@ -18,7 +18,7 @@ getting correct predictions on an image that is similar to an image in the train
 performance. This may mean that the metrics we're seeing for the test data are too optimistic, and we should remove
 those similar images from the test set.
 
-How is Similarity calculated?
+How is similarity calculated?
 -------------------------------------
 The similarity is calculated using an image hash known as Average Hash. This hash compresses the image using the
 following algorithm:
@@ -49,9 +49,9 @@ finer differences between images (and results in less similarity).
 The *similarity_threshold* parameter controls the ratio of pixels that need to be different in order
 for 2 images to be considered "different". A lower similarity_threshold will define less images as "similar".
 
-#
-# Run the check
-# ==============
+
+Run the check
+===============
 """
 from deepchecks.vision.checks import SimilarImageLeakage
 from deepchecks.vision.datasets.detection.coco import load_dataset
