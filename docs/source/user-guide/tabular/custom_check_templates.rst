@@ -4,9 +4,14 @@
 Custom Check Templates
 ======================
 
-We provide a template for each check type in order to help you bootstrap new custom checks faster. For more detailed
-info about the inner workings of a custom check see the
-:doc:`guide </user-guide/tabular/tutorials/plot_add_a_custom_check>`
+We provide a template for each check type in order to help you quickly start creating new custom checks.
+For more detailed info about the inner workings of a custom check see the
+:doc:`guide. </user-guide/tabular/tutorials/plot_add_a_custom_check>`
+
+
+
+
+Templates:
 
 * `Single Dataset Check <#single-dataset-check>`__
 * `Train Test Check <#train-test-check>`__
@@ -34,7 +39,9 @@ Single Dataset Check
 
       def run_logic(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
           # Get the dataset by its type (train/test)
-         dataset: Dataset = context.get_data_by_kind(dataset_kind)
+          dataset: Dataset = context.get_data_by_kind(dataset_kind)
+          # Get the model (if needed)
+          model = context.model
           # Get from the dataset the data
           data: pd.DataFrame = dataset.data
 
@@ -94,6 +101,8 @@ Train Test Check
           # Get the 2 datasets
           train_dataset: Dataset = context.train
           test_dataset: Dataset = context.test
+          # Get the model (if needed)
+          model = context.model
           # Get from the datasets the data
           train_df: pd.DataFrame = train_dataset.data
           test_df: pd.DataFrame = test_dataset.data
