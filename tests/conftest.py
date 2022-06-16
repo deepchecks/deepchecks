@@ -37,6 +37,7 @@ from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksBaseError
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
+from deepchecks.tabular.datasets.classification import adult
 from deepchecks.utils.logger import set_verbosity
 
 from .vision.vision_conftest import *  # pylint: disable=wildcard-import, unused-wildcard-import
