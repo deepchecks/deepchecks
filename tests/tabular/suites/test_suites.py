@@ -53,11 +53,11 @@ def test_generic_suite(
     iris: t.Tuple[Dataset, Dataset, AdaBoostClassifier],
     diabetes_split_dataset_and_model: t.Tuple[Dataset, Dataset, object],
     iris_split_dataset_and_model_single_feature : t.Tuple[Dataset, Dataset, AdaBoostClassifier],
-    city_arrogance_split_dataset_and_model : t.Tuple[Dataset, Dataset, AdaBoostClassifier],
+        kiss_dataset_and_model,
 ):
     iris_train, iris_test, iris_model = iris
     diabetes_train, diabetes_test, diabetes_model = diabetes_split_dataset_and_model
-    city_train, city_test, city_model = city_arrogance_split_dataset_and_model
+    city_train, city_test, city_model = kiss_dataset_and_model
     iris_train_single, iris_test_single, iris_model_single= iris_split_dataset_and_model_single_feature
     suite = suites.full_suite(imaginery_kwarg='just to make sure all checks have kwargs in the init')
 
