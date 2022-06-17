@@ -169,7 +169,7 @@ def create_progress_bar(
 
     barlen = iterlen if iterlen > 5 else 5
     rbar = ' {n_fmt}/{total_fmt} [Time: {elapsed}{postfix}]'
-    bar_format = '{{desc}}:\n|{{bar:{0}}}|{1}'.format(barlen, rbar)
+    bar_format = '{{desc}}:\n|{{bar:{0}}}|{1}'.format(barlen, rbar)  # pylint: disable=consider-using-f-string
     is_disabled = get_verbosity() >= logging.WARNING
 
     if is_zmq_interactive_shell() and is_widgets_enabled():
