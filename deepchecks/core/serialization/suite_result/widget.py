@@ -8,6 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+# pylint: disable=unused-argument
 """Module containing ipywidget serializer for the SuiteResult type."""
 import typing as t
 import warnings
@@ -45,7 +46,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             raise TypeError(
                 f'Expected "SuiteResult" but got "{type(value).__name__}"'
             )
-        self.value = value
+        super().__init__(value=value)
         self._html_serializer = html.SuiteResultSerializer(self.value)
 
     def serialize(
@@ -59,6 +60,9 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         ----------
         output_id : Optional[str], default None
             unique output identifier that will be used to form anchor links
+        **kwargs :
+            all other key-value arguments will be passed to the CheckResult/CheckFailure
+            serializers
 
         Returns
         -------
@@ -205,7 +209,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             ]
             if callable(summary_creation_method):
                 children = (
-                    summary_creation_method(results=results, output_id=section_id),
+                    summary_creation_method(results=results, output_id=section_id, **kwargs),
                     HTML(value=CommonHtml.light_hr),
                     *join(serialized_results, HTML(value=CommonHtml.light_hr))
                 )
@@ -233,6 +237,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         results: t.Sequence['check_types.CheckResult'],
         output_id: t.Optional[str] = None,
         include_check_name: bool = True,
+        is_for_iframe_with_srcdoc: bool = False,
         **kwargs
     ) -> Widget:
         """Prepare conditions summary table.
@@ -245,6 +250,10 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             unique output identifier that will be used to form anchor links
         include_check_name : bool, default True
             wherether to include check name into table or not
+        is_for_iframe_with_srcdoc : bool, default False
+            anchor links, in order to work within iframe require additional prefix
+            'about:srcdoc'. This flag tells function whether to add that prefix to
+            the anchor links or not
 
         Returns
         -------
@@ -254,13 +263,15 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             results,
             output_id=output_id,
             include_check_name=include_check_name,
-            max_info_len=300
+            max_info_len=300,
+            is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
         )).serialize()
 
     def prepare_unconditioned_results_summary(
         self,
         results: t.Sequence['check_types.CheckResult'],
         output_id: t.Optional[str] = None,
+        is_for_iframe_with_srcdoc: bool = False,
         **kwargs
     ) -> Widget:
         """Prepare results summary table.
@@ -271,6 +282,10 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             sequence of check results
         output_id : Optional[str], default None
             unique output identifier that will be used to form anchor links
+        is_for_iframe_with_srcdoc : bool, default False
+            anchor links, in order to work within iframe require additional prefix
+            'about:srcdoc'. This flag tells function whether to add that prefix to
+            the anchor links or not
 
         Returns
         -------
@@ -278,7 +293,11 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         """
         with warnings.catch_warnings():
             warnings.simplefilter(action='ignore', category=FutureWarning)
-            df = create_results_dataframe(results=results, output_id=output_id)
+            df = create_results_dataframe(
+                results=results,
+                output_id=output_id,
+                is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
+            )
             return DataFrameSerializer(df.style.hide_index()).serialize()
 
 

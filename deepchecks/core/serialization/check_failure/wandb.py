@@ -46,7 +46,7 @@ class CheckFailureSerializer(WandbSerializer['check_types.CheckFailure']):
             raise TypeError(
                 f'Expected "CheckFailure" but got "{type(value).__name__}"'
             )
-        self.value = value
+        super().__init__(value=value)
 
     def serialize(self, **kwargs) -> t.Dict[str, 'WBValue']:
         """Serialize a CheckFailure instance into Wandb media format.

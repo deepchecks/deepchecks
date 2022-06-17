@@ -31,7 +31,7 @@ class CheckFailureSerializer(HtmlSerializer['check_types.CheckFailure']):
             raise TypeError(
                 f'Expected "CheckFailure" but got "{type(value).__name__}"'
             )
-        self.value = value
+        super().__init__(value=value)
 
     def serialize(
         self,
@@ -50,7 +50,7 @@ class CheckFailureSerializer(HtmlSerializer['check_types.CheckFailure']):
             return (
                 '<html>'
                 f'<head><title>{header}</title></head>'
-                f'<body>{content}</body>'
+                f'<body style="background-color: white;">{content}</body>'
                 '</html>'
             )
         else:

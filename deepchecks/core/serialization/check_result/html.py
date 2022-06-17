@@ -12,6 +12,7 @@
 import textwrap
 import typing as t
 
+from plotly.basedatatypes import BaseFigure
 from plotly.io import to_html
 from typing_extensions import Literal
 
@@ -20,7 +21,7 @@ from deepchecks.core.serialization.abc import ABCDisplayItemsHandler, HtmlSerial
 from deepchecks.core.serialization.common import (aggregate_conditions, form_output_anchor, plotlyjs_script,
                                                   requirejs_script)
 from deepchecks.core.serialization.dataframe.html import DataFrameSerializer as DataFrameHtmlSerializer
-from deepchecks.utils.display import imagetag
+from deepchecks.utils.html import imagetag, linktag
 
 __all__ = ['CheckResultSerializer']
 
@@ -45,7 +46,7 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
             raise TypeError(
                 f'Expected "CheckResult" but got "{type(value).__name__}"'
             )
-        self.value = value
+        super().__init__(value=value)
 
     def serialize(
         self,
@@ -55,6 +56,8 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
         include_requirejs: bool = False,
         include_plotlyjs: bool = True,
         connected: bool = True,
+        plotly_to_image: bool = False,
+        is_for_iframe_with_srcdoc: bool = False,
         **kwargs
     ) -> str:
         """Serialize a CheckResult instance into HTML format.
@@ -74,6 +77,12 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
             whether to include plotlyjs library into output or not
         connected : bool, default True
             whether to use CDN to load js libraries or to inject their code into output
+        plotly_to_image : bool, default False
+            whether to transform Plotly figure instance into static image or not
+        is_for_iframe_with_srcdoc : bool, default False
+            anchor links, in order to work within iframe require additional prefix
+            'about:srcdoc'. This flag tells function whether to add that prefix to
+            the anchor links or not
 
         Returns
         -------
@@ -88,10 +97,16 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
         sections = [self.prepare_header(output_id), self.prepare_summary()]
 
         if 'condition-table' in sections_to_include:
-            sections.append(''.join(self.prepare_conditions_table(output_id=output_id)))
+            sections.append(''.join(self.prepare_conditions_table(
+                output_id=output_id
+            )))
 
         if 'additional-output' in sections_to_include:
-            sections.append(''.join(self.prepare_additional_output(output_id)))
+            sections.append(''.join(self.prepare_additional_output(
+                output_id=output_id,
+                plotly_to_image=plotly_to_image,
+                is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
+            )))
 
         plotlyjs = plotlyjs_script(connected) if include_plotlyjs is True else ''
         requirejs = requirejs_script(connected) if include_requirejs is True else ''
@@ -103,7 +118,7 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
         return textwrap.dedent(f"""
             <html>
             <head><meta charset="utf-8"/></head>
-            <body>
+            <body style="background-color: white;">
                 {''.join([requirejs, plotlyjs, *sections])}
             </body>
             </html>
@@ -160,7 +175,9 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
 
     def prepare_additional_output(
         self,
-        output_id: t.Optional[str] = None
+        output_id: t.Optional[str] = None,
+        plotly_to_image: bool = False,
+        is_for_iframe_with_srcdoc: bool = False,
     ) -> t.List[str]:
         """Prepare the display content of the html output.
 
@@ -168,6 +185,12 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
         ----------
         output_id : Optional[str], default None
             unique output identifier that will be used to form anchor links
+        plotly_to_image : bool, default False
+            whether to transform Plotly figure instance into static image or not
+        is_for_iframe_with_srcdoc : bool, default False
+            anchor links, in order to work within iframe require additional prefix
+            'about:srcdoc'. This flag tells function whether to add that prefix to
+            the anchor links or not
 
         Returns
         -------
@@ -175,7 +198,9 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
         """
         return DisplayItemsHandler.handle_display(
             self.value.display,
-            output_id=output_id
+            output_id=output_id,
+            plotly_to_image=plotly_to_image,
+            is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
         )
 
 
@@ -187,6 +212,7 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
         cls,
         display: t.List['check_types.TDisplayItem'],
         output_id: t.Optional[str] = None,
+        is_for_iframe_with_srcdoc: bool = False,
         include_header: bool = True,
         include_trailing_link: bool = True,
         **kwargs
@@ -199,6 +225,10 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
             list of display items
         output_id : Optional[str], default None
             unique output identifier that will be used to form anchor links
+        is_for_iframe_with_srcdoc : bool, default False
+            anchor links, in order to work within iframe require additional prefix
+            'about:srcdoc'. This flag tells function whether to add that prefix to
+            the anchor links or not
         include_header: bool, default True
             whether to include header
         include_trailing_link: bool, default True
@@ -215,7 +245,10 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
             output.append(cls.empty_content_placeholder())
 
         if output_id is not None and include_trailing_link:
-            output.append(cls.go_to_top_link(output_id))
+            output.append(cls.go_to_top_link(
+                output_id,
+                is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
+            ))
 
         return output
 
@@ -230,10 +263,19 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
         return '<p><b>&#x2713;</b>Nothing to display</p>'
 
     @classmethod
-    def go_to_top_link(cls, output_id: str) -> str:
+    def go_to_top_link(
+        cls,
+        output_id: str,
+        is_for_iframe_with_srcdoc: bool,
+    ) -> str:
         """Return 'Go To Top' link."""
-        href = form_output_anchor(output_id)
-        return f'<br><a href="#{href}" style="font-size: 14px">Go to top</a>'
+        link = linktag(
+            text='Go to top',
+            style={'font-size': '14px'},
+            href=f'#{form_output_anchor(output_id)}',
+            is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
+        )
+        return f'<br>{link}'
 
     @classmethod
     def handle_string(cls, item, index, **kwargs) -> str:
@@ -259,8 +301,18 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
         return ''.join(tags)
 
     @classmethod
-    def handle_figure(cls, item, index, **kwargs) -> str:
+    def handle_figure(
+        cls,
+        item: BaseFigure,
+        index: int,
+        plotly_to_image: bool = False,
+        **kwargs
+    ) -> str:
         """Handle plotly figure item."""
+        if plotly_to_image is True:
+            img = item.to_image(format='jpeg', engine='auto')
+            return imagetag(img)
+
         post_script = textwrap.dedent("""
             var gd = document.getElementById('{plot_id}');
             var x = new MutationObserver(function (mutations, observer) {{

@@ -33,6 +33,7 @@ from plotly.offline.offline import get_plotlyjs
 from deepchecks.core import check_result as check_types
 from deepchecks.core import errors
 from deepchecks.utils.dataframes import un_numpy
+from deepchecks.utils.html import linktag
 from deepchecks.utils.strings import get_ellipsis
 
 __all__ = [
@@ -113,6 +114,7 @@ def aggregate_conditions(
     include_icon: bool = True,
     include_check_name: bool = False,
     output_id: t.Optional[str] = None,
+    is_for_iframe_with_srcdoc: bool = False
 ) -> pd.DataFrame:
     """Return the conditions table as DataFrame.
 
@@ -130,6 +132,10 @@ def aggregate_conditions(
         unique identifier of the output, it will be used to
         form a link (html '<a></a>' tag) to the check result
         full output
+    is_for_iframe_with_srcdoc : bool, default False
+        anchor links, in order to work within iframe require additional prefix
+        'about:srcdoc'. This flag tells function whether to add that prefix to
+        the anchor links or not
 
     Returns
     -------
@@ -153,7 +159,11 @@ def aggregate_conditions(
 
             # If there is no display we won't generate a section to link to
             if output_id and check_result.display:
-                link = f'<a href=#{check_result.get_check_id(output_id)}>{check_header}</a>'
+                link = linktag(
+                    text=check_header,
+                    href=f'#{check_result.get_check_id(output_id)}',
+                    is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
+                )
             else:
                 link = check_header
                 # if it has no display show on bottom for the category (lower priority)
@@ -184,6 +194,7 @@ def aggregate_conditions(
 def create_results_dataframe(
     results: t.Sequence['check_types.CheckResult'],
     output_id: t.Optional[str] = None,
+    is_for_iframe_with_srcdoc: bool = False,
 ) -> pd.DataFrame:
     """Create dataframe with check results.
 
@@ -195,6 +206,10 @@ def create_results_dataframe(
         unique identifier of the output, it will be used to
         form a link (html '<a></a>' tag) to the check result
         full output
+    is_for_iframe_with_srcdoc : bool, default False
+        anchor links, in order to work within iframe require additional prefix
+        'about:srcdoc'. This flag tells function whether to add that prefix to
+        the anchor links or not
 
     Returns
     -------
@@ -206,8 +221,11 @@ def create_results_dataframe(
     for check_result in results:
         check_header = check_result.get_header()
         if output_id and check_result.display:
-            href = f'href="#{check_result.get_check_id(output_id)}"'
-            header = f'<a {href}>{check_header}</a>'
+            header = linktag(
+                text=check_header,
+                href=f'#{check_result.get_check_id(output_id)}',
+                is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
+            )
         else:
             header = check_header
         summary = check_result.get_metadata(with_doc_link=True)['summary']
