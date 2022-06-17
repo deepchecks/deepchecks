@@ -13,7 +13,7 @@ import typing as t
 
 import pandas as pd
 import plotly.graph_objects as go
-from ipywidgets import HTML, VBox, Widget
+from ipywidgets import HTML, Tab, VBox, Widget
 from plotly.basedatatypes import BaseFigure
 
 from deepchecks.core import check_result as check_types
@@ -162,6 +162,40 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
     """Auxiliary class to decouple display handling logic from other functionality."""
 
     @classmethod
+    def handle_display(
+        cls,
+        display: t.List['check_types.TDisplayItem'],
+        output_id: t.Optional[str] = None,
+        include_header: bool = True,
+        include_trailing_link: bool = True,
+        **kwargs
+    ) -> t.List[Widget]:
+        """Serialize CheckResult display items into list if Widget instances.
+
+        Parameters
+        ----------
+        display : List[Union[str, DataFrame, Styler, BaseFigure, Callable, DisplayMap]]
+            list of display items
+        output_id : Optional[str], default None
+            unique output identifier that will be used to form anchor links
+        include_header: bool, default True
+            whether to include header
+        include_trailing_link: bool, default True
+            whether to include "go to top" link
+
+        Returns
+        -------
+        List[Widget]
+        """
+        return t.cast(t.List[Widget], super().handle_display(
+            display=display,
+            output_id=output_id,
+            include_header=include_header,
+            include_trailing_link=include_trailing_link,
+            **kwargs
+        ))
+
+    @classmethod
     def header(cls) -> HTML:
         """Return header section."""
         return HTML(value=super().header())
@@ -206,3 +240,21 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
     def handle_callable(cls, item: t.Callable, index: int, **kwargs) -> HTML:
         """Handle callable."""
         return HTML(value=super().handle_callable(item, index, **kwargs))
+
+    @classmethod
+    def handle_display_map(cls, item: 'check_types.DisplayMap', index: int, **kwargs) -> Tab:
+        """Handle display map instance item."""
+        tab = Tab()
+        children = []
+
+        for i, (name, display) in enumerate(item.items()):
+            tab.set_title(i, name)
+            children.append(VBox(children=cls.handle_display(
+                display,
+                include_header=False,
+                include_trailing_link=False,
+                **kwargs
+            )))
+
+        tab.children = children
+        return tab

@@ -28,6 +28,7 @@ xgboost
 jupyter
 jupyterlab
 notebook
+kaleido  # optional denendency, used by plotly to transform figures into images
 
 # YoloV5
 matplotlib>=3.2.2

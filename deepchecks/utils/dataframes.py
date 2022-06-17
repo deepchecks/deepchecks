@@ -18,7 +18,7 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.validation import ensure_hashable_or_mutable_sequence
 
-__all__ = ['validate_columns_exist', 'select_from_dataframe', 'un_numpy']
+__all__ = ['validate_columns_exist', 'select_from_dataframe', 'un_numpy', 'generalized_corrwith']
 
 
 def un_numpy(val):
@@ -126,3 +126,29 @@ def select_from_dataframe(
         return df.drop(labels=ignore_columns, axis='columns')
     else:
         return df
+
+
+def generalized_corrwith(x1: pd.DataFrame, x2: pd.DataFrame, method: t.Callable):
+    """
+    Compute pairwise correlation.
+
+    Pairwise correlation is computed between columns of one DataFrame with columns of another DataFrame.
+    Pandas' method corrwith only applies when both dataframes have the same column names,
+    this generalized method applies to any two Dataframes with the same number of rows, regardless of the column names.
+
+    Parameters
+    __________
+    x1: DataFrame
+        Left data frame to compute correlations.
+    x2: Dataframe
+        Right data frame to compute correlations.
+    method: Callable
+        Method of correlation. callable with input two 1d ndarrays and returning a float.
+
+    Returns
+    -------
+    DataFrame
+        Pairwise correlations, the index matches the columns of x1 and the columns match the columns of x2.
+    """
+    corr_results = x2.apply(lambda col: x1.corrwith(col, method=method))
+    return corr_results

@@ -31,7 +31,7 @@ class CheckResultMetadata(TypedDict):
     value: t.Any
     header: str
     conditions_results: t.List[t.Dict[t.Any, t.Any]]
-    display: t.List[t.Any]
+    display: t.Optional[t.List[t.Any]]
 
 
 class CheckResultSerializer(JsonSerializer['check_types.CheckResult']):
@@ -74,6 +74,7 @@ class CheckResultSerializer(JsonSerializer['check_types.CheckResult']):
 
     def prepare_check_metadata(self) -> 'checks.CheckMetadata':
         """Prepare Check instance metadata dictionary."""
+        assert self.value.check is not None
         return self.value.check.metadata(with_doc_link=True)
 
     def prepare_condition_results(self) -> t.List[t.Dict[t.Any, t.Any]]:
@@ -135,3 +136,14 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
     def handle_figure(cls, item: BaseFigure, index: int, **kwargs) -> t.Dict[str, t.Any]:
         """Handle plotly figure item."""
         return {'type': 'plotly', 'payload': item.to_json()}
+
+    @classmethod
+    def handle_display_map(cls, item: 'check_types.DisplayMap', index: int, **kwargs) -> t.Dict[str, t.Any]:
+        """Handle display map instance item."""
+        return {
+            'type': 'displaymap',
+            'payload': {
+                k: cls.handle_display(v, **kwargs)
+                for k, v in item.items()
+            }
+        }

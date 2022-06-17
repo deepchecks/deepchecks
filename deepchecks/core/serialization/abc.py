@@ -171,9 +171,12 @@ class IPythonSerializer(Serializer[T]):
 class ABCDisplayItemsHandler(Protocol):
     """Trait that describes 'CheckResult.dislay' processing logic."""
 
-    SUPPORTED_ITEM_TYPES = frozenset([
-        str, pd.DataFrame, Styler, BaseFigure, t.Callable
-    ])
+    @classmethod
+    def supported_item_types(cls):
+        """Return set of supported types of display items."""
+        return frozenset([
+            str, pd.DataFrame, Styler, BaseFigure, t.Callable, check_types.DisplayMap
+        ])
 
     @classmethod
     @abc.abstractmethod
@@ -205,6 +208,8 @@ class ABCDisplayItemsHandler(Protocol):
             return cls.handle_dataframe(item, index, **kwargs)
         elif isinstance(item, BaseFigure):
             return cls.handle_figure(item, index, **kwargs)
+        elif isinstance(item, check_types.DisplayMap):
+            return cls.handle_display_map(item, index, **kwargs)
         elif callable(item):
             return cls.handle_callable(item, index, **kwargs)
         else:
@@ -235,4 +240,10 @@ class ABCDisplayItemsHandler(Protocol):
     @abc.abstractmethod
     def handle_figure(cls, item: BaseFigure, index: int, **kwargs) -> t.Any:
         """Handle plotly figure item."""
+        raise NotImplementedError()
+
+    @classmethod
+    @abc.abstractmethod
+    def handle_display_map(cls, item: 'check_types.DisplayMap', index: int, **kwargs) -> t.Any:
+        """Handle display map instance item."""
         raise NotImplementedError()

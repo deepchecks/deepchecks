@@ -167,13 +167,15 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
         display: t.List['check_types.TDisplayItem'],
         output_id: t.Optional[str] = None,
         is_for_iframe_with_srcdoc: bool = False,
+        include_header: bool = True,
+        include_trailing_link: bool = True,
         **kwargs
     ) -> t.List[IPythonFormatter]:
         """Serialize CheckResult display items into IPython displayable objects.
 
         Parameters
         ----------
-        display : List[Union[Callable, str, DataFrame, Styler]]
+        display : List[Union[str, DataFrame, Styler, BaseFigure, Callable, DisplayMap]]
             list of display items
         output_id : Optional[str], default None
             unique output identifier that will be used to form anchor links
@@ -181,14 +183,23 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
             anchor links, in order to work within iframe require additional prefix
             'about:srcdoc'. This flag tells function whether to add that prefix to
             the anchor links or not
+        include_header: bool, default True
+            whether to include header
+        include_trailing_link: bool, default True
+            whether to include "go to top" link
 
         Returns
         -------
         List[IPythonFormatter]
         """
-        return list(flatten(
-            super().handle_display(display, output_id, is_for_iframe_with_srcdoc, **kwargs)
-        ))
+        return list(flatten(super().handle_display(
+            display=display,
+            output_id=output_id,
+            include_header=include_header,
+            include_trailing_link=include_trailing_link,
+            is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc,
+            **kwargs
+        )))
 
     @classmethod
     def header(cls):
@@ -222,14 +233,14 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
         # we are calling `handle_callable` method not from 'html.DisplayItemsHandler'
         # but from 'abc.ABCDisplayItemsHandler' that returns list of byte streams
         #
+        images = []
         figures = super(html.DisplayItemsHandler, cls).handle_callable(  # pylint: disable=bad-super-call
             item, index, **kwargs
         )
-        output = []
         for it in figures:
             it.seek(0)
-            output.append(Image(data=it.read(), format='png'))
-        return output
+            images.append(Image(data=it.read(), format='png'))
+        return images
 
     @classmethod
     def handle_figure(
@@ -245,3 +256,19 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
             if not plotly_to_image
             else Image(data=item.to_image(format='jpeg', engine='auto'), format='jpeg')
         )
+
+    @classmethod
+    def handle_display_map(cls, item: 'check_types.DisplayMap', index: int, **kwargs):
+        """Handle display map instance item."""
+        level = kwargs.pop('_level', 0)
+        content = []
+        for name, display_items in item.items():
+            content.append(HTML(f'<h5><b>{">"*level}{name}</b></h5>'))
+            content.extend(cls.handle_display(
+                display_items,
+                include_header=False,
+                include_trailing_link=False,
+                _level=level+1,
+                **kwargs
+            ))
+        return content

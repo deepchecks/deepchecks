@@ -213,13 +213,15 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
         display: t.List['check_types.TDisplayItem'],
         output_id: t.Optional[str] = None,
         is_for_iframe_with_srcdoc: bool = False,
+        include_header: bool = True,
+        include_trailing_link: bool = True,
         **kwargs
     ) -> t.List[str]:
         """Serialize CheckResult display items into HTML.
 
         Parameters
         ----------
-        display : List[Union[Callable, str, DataFrame, Styler]]
+        display : List[Union[str, DataFrame, Styler, BaseFigure, Callable, DisplayMap]]
             list of display items
         output_id : Optional[str], default None
             unique output identifier that will be used to form anchor links
@@ -227,20 +229,22 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
             anchor links, in order to work within iframe require additional prefix
             'about:srcdoc'. This flag tells function whether to add that prefix to
             the anchor links or not
+        include_header: bool, default True
+            whether to include header
+        include_trailing_link: bool, default True
+            whether to include "go to top" link
 
         Returns
         -------
         List[str]
         """
-        output = [
-            cls.header(),
-            *super().handle_display(display, **{'output_id': output_id, **kwargs})
-        ]
+        output = [cls.header()] if include_header else []
+        output.extend(super().handle_display(display, **{'output_id': output_id, **kwargs}))
 
         if len(display) == 0:
             output.append(cls.empty_content_placeholder())
 
-        if output_id is not None:
+        if output_id is not None and include_trailing_link:
             output.append(cls.go_to_top_link(
                 output_id,
                 is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
@@ -342,6 +346,35 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
             default_height=525,
             validate=True,
         )
+
+    @classmethod
+    def handle_display_map(cls, item: 'check_types.DisplayMap', index: int, **kwargs) -> str:
+        """Handle display map instance item."""
+        template = textwrap.dedent("""
+            <details>
+                <summary><strong>{name}</strong></summary>
+                <div style="
+                    display: flex;
+                    flex-direction: column;
+                    width: 100%;
+                    padding: 1.5rem;
+                ">
+                {content}
+                </div>
+            </details>
+        """)
+        return ''.join([
+            template.format(
+                name=k,
+                content=''.join(cls.handle_display(
+                    v,
+                    include_header=False,
+                    include_trailing_link=False,
+                    **kwargs
+                ))
+            )
+            for k, v in item.items()
+        ])
 
 
 def verify_include_parameter(

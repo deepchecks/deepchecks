@@ -67,9 +67,9 @@ def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.S
     Parameters
     ----------
     dist1 : Union[np.ndarray, pd.Series]
-        array of numberical values.
+        array of numerical values.
     dist2 : Union[np.ndarray, pd.Series]
-        array of numberical values to compare dist1 to.
+        array of numerical values to compare dist1 to.
     Returns
     -------
     float
@@ -138,9 +138,9 @@ def earth_movers_distance(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.n
     Parameters
     ----------
     dist1: Union[np.ndarray, pd.Series]
-        array of numberical values.
+        array of numerical values.
     dist2: Union[np.ndarray, pd.Series]
-        array of numberical values to compare dist1 to.
+        array of numerical values to compare dist1 to.
     margin_quantile_filter: float
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
