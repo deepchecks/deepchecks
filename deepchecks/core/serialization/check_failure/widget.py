@@ -34,7 +34,7 @@ class CheckFailureSerializer(WidgetSerializer['check_types.CheckFailure']):
             raise TypeError(
                 f'Expected "CheckFailure" but got "{type(value).__name__}"'
             )
-        self.value = value
+        super().__init__(value=value)
         self._html_serializer = html.CheckFailureSerializer(self.value)
 
     def serialize(self, **kwargs) -> VBox:
