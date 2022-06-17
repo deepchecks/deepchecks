@@ -21,13 +21,12 @@ import pandas as pd
 import plotly.express
 import plotly.io as pio
 from hamcrest import (all_of, any_of, assert_that, calling, equal_to, greater_than, has_entries, has_length,
-                      instance_of, is_, matches_regexp, not_none, only_contains, raises)
+                      instance_of, is_, matches_regexp, only_contains, raises)
 from ipywidgets import VBox, Widget
-from plotly.graph_objs import FigureWidget
 
 from deepchecks.core.check_result import CheckFailure, CheckResult
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.tabular.checks import ColumnsInfo, DataDuplicates, MixedNulls
+from deepchecks.tabular.checks import ColumnsInfo, MixedNulls
 from deepchecks.utils.json_utils import from_json
 from tests.common import DummyCheck, create_check_result, create_suite_result, instance_of_ipython_formatter
 
@@ -48,7 +47,7 @@ def test_check_result_display_without_ipywidgets():
         mock.assert_called_once()
 
 
-def test_check_result_serialization_to_widget(iris_dataset):
+def test_check_result_serialization_to_widget():
     # Arrange
     result = create_check_result()
     widget = result.to_widget()
@@ -141,7 +140,8 @@ def test_check_result_display_with_enabled_colab_enviroment():
         with patch('deepchecks.core.display.display_html') as mock:
             result.show(as_widget=True)
             mock.assert_called_once()
-            html, *_ = mock.call_args.args
+            args, kwargs = list(mock.call_args)
+            html, *_ = args
             assert_that(html, all_of(instance_of(str), is_html_document()))
             assert_that('iframe' not in html)
 
@@ -154,7 +154,8 @@ def test_check_result_display_with_enabled_colab_env_and_as_widget_parameter_set
         with patch('deepchecks.core.display.display') as mock:
             result.show(as_widget=False)
             mock.assert_called_once()
-            assert_that(mock.call_args.args, only_contains(instance_of_ipython_formatter()))
+            args, kwargs = list(mock.call_args)
+            assert_that(args, only_contains(instance_of_ipython_formatter()))
 
 
 def test_check_result_ipython_display():
@@ -265,7 +266,8 @@ def test_check_failure_display_with_enabled_colab_enviroment():
         with patch('deepchecks.core.display.display_html') as mock:
             failure.display_check(as_widget=True)
             mock.assert_called_once()
-            html, *_ = mock.call_args.args
+            args, kwargs = list(mock.call_args)
+            html, *_ = args
             assert_that(html, all_of(
                 instance_of(str),
                 is_html_document()
@@ -456,7 +458,8 @@ def test_suite_result_ipython_display_with_colab_env_enabled():
         with patch('deepchecks.core.display.display_html') as mock:
             suite_result._ipython_display_()
             mock.assert_called_once()
-            html, *_ = mock.call_args.args
+            args, kwargs = list(mock.call_args)
+            html, *_ = args
             assert_that(html, all_of(
                 instance_of(str),
                 is_html_document()
