@@ -120,11 +120,14 @@ def test_html_serialization_to_full_html_page():
     result = create_check_result()
     output = HtmlSerializer(result).serialize(full_html=True)
 
+    whitespace = r'[\s]*'
+    anything = r'([\s\S\d\D\w\W]*)'
+
     regexp = (
-        r'^[\s]*<html>[\s]*'
-        r'<head><meta charset="utf-8"\/><\/head>[\s]*'
-        r'<body>([\s\S\d\D\w\W]*)<\/body>[\s]*'
-        r'<\/html>[\s]*$'
+        fr'^{whitespace}{anything}<html>{whitespace}'
+        fr'<head><meta charset="utf-8"\/><\/head>{whitespace}'
+        fr'<body{anything}>{anything}<\/body>{whitespace}'
+        fr'<\/html>{whitespace}$'
     )
 
     assert_that(

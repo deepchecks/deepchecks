@@ -42,7 +42,7 @@ def test_check_result_display():
 
 def test_check_result_display_without_ipywidgets():
     # Arrange
-    with patch('deepchecks.core.display.display_html') as mock:
+    with patch('deepchecks.core.display.display') as mock:
         result = create_check_result()
         assert_that(result.display_check(as_widget=False), is_(None))
         mock.assert_called_once()
@@ -261,7 +261,7 @@ def test_check_failure_display_with_enabled_colab_enviroment():
     # Arrange
     failure = CheckFailure(DummyCheck(), Exception('error message'))
     # Assert
-    with patch('deepchecks.core.display.is_colab_env', Mock(return_value=True)):
+    with patch('deepchecks.core.display.is_colab_env', return_value=True):
         with patch('deepchecks.core.display.display_html') as mock:
             failure.display_check(as_widget=True)
             mock.assert_called_once()
@@ -285,7 +285,7 @@ def test_check_failure_display():
     # Arrange
     failure = CheckFailure(DummyCheck(), Exception('error message'))
     # Assert
-    with patch('deepchecks.core.display.display_html') as mock:
+    with patch('deepchecks.core.display.display') as mock:
         failure.display_check(as_widget=False)
         mock.assert_called_once()
 
@@ -425,7 +425,7 @@ def test_suite_result_show_with_as_widget_parameter_set_to_false():
     # Arrange
     suite_result = create_suite_result()
     # Assert
-    with patch('deepchecks.core.display.display_html') as mock:
+    with patch('deepchecks.core.display.display') as mock:
         suite_result.show(as_widget=False)
         mock.assert_called_once()
 
@@ -443,7 +443,7 @@ def test_suite_result_ipython_display_with_as_widget_set_to_false():
     # Arrange
     suite_result = create_suite_result()
     # Assert
-    with patch('deepchecks.core.display.display_html') as mock:
+    with patch('deepchecks.core.display.display') as mock:
         suite_result._ipython_display_(as_widget=False)
         mock.assert_called_once()
 
