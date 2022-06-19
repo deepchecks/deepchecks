@@ -43,9 +43,11 @@ class HeatmapComparison(TrainTestCheck):
 
     def __init__(self,
                  classes_to_display: Optional[List[str]] = None,
+                 with_display: bool = True,
                  **kwargs):
         super().__init__(**kwargs)
         self.classes_to_display = {str(x) for x in classes_to_display} if classes_to_display else None
+        self.with_display = with_display
 
     def initialize_run(self, context: Context):
         """Initialize run.
@@ -126,13 +128,15 @@ class HeatmapComparison(TrainTestCheck):
         test_grayscale = (np.expand_dims(self._grayscale_heatmap[DatasetKind.TEST], axis=2) /
                           self._counter[DatasetKind.TEST]).astype(np.uint8)
 
-        # Add a display for the heatmap of the average grayscale image
-        display = [self.plot_row_of_heatmaps(train_grayscale, test_grayscale, 'Compare average image brightness')]
-        display[0].update_layout(coloraxis={'colorscale': 'Inferno', 'cmin': 0, 'cmax': 255},
-                                 coloraxis_colorbar={'title': 'Pixel Value'})
         value = {
             'diff': self._image_diff(test_grayscale, train_grayscale)
         }
+
+        if self.with_display:
+            # Add a display for the heatmap of the average grayscale image
+            display = [self.plot_row_of_heatmaps(train_grayscale, test_grayscale, 'Compare average image brightness')]
+            display[0].update_layout(coloraxis={'colorscale': 'Inferno', 'cmin': 0, 'cmax': 255},
+                                    coloraxis_colorbar={'title': 'Pixel Value'})
 
         # If the task is object detection, compute the average heatmap of the bounding box locations by dividing the
         # accumulated sum by the number of images
@@ -142,16 +146,19 @@ class HeatmapComparison(TrainTestCheck):
                           self._counter[DatasetKind.TRAIN] / 255).astype(np.uint8)
             test_bbox = (100 * np.expand_dims(self._bbox_heatmap[DatasetKind.TEST], axis=2) /
                          self._counter[DatasetKind.TEST] / 255).astype(np.uint8)
-            display.append(
-                self.plot_row_of_heatmaps(train_bbox, test_bbox, 'Compare average label bbox locations')
-            )
-            # bbox image values are frequency, between 0 and 100
-            display[1].update_layout(coloraxis={'colorscale': 'Inferno', 'cmin': 0, 'cmax': 100},
-                                     coloraxis_colorbar={'title': '% Coverage'})
+
             value['diff_bbox'] = self._image_diff(test_bbox, train_bbox)
 
+            if self.with_display:
+                display.append(
+                    self.plot_row_of_heatmaps(train_bbox, test_bbox, 'Compare average label bbox locations')
+                )
+                # bbox image values are frequency, between 0 and 100
+                display[1].update_layout(coloraxis={'colorscale': 'Inferno', 'cmin': 0, 'cmax': 100},
+                                        coloraxis_colorbar={'title': '% Coverage'})
+
         return CheckResult(value=value,
-                           display=display,
+                           display=display if self.with_display else None,
                            header='Heatmap Comparison')
 
     @staticmethod

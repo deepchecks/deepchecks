@@ -68,12 +68,14 @@ class ConfusionMatrixReport(SingleDatasetCheck):
                  confidence_threshold: float = 0.3,
                  iou_threshold: float = 0.5,
                  normalized: bool = True,
+                 with_display: bool = True,
                  **kwargs):
         super().__init__(**kwargs)
         self.confidence_threshold = confidence_threshold
         self.categories_to_display = categories_to_display
         self.iou_threshold = iou_threshold
         self.normalized = normalized
+        self.with_display = with_display
 
         self.matrix = None
         self.classes_list = None
@@ -113,48 +115,52 @@ class ConfusionMatrixReport(SingleDatasetCheck):
 
         matrix = pd.DataFrame(matrix, index=classes, columns=classes).to_numpy()
 
-        confusion_matrix, categories = filter_confusion_matrix(
-            matrix,
-            self.categories_to_display
-        )
-        confusion_matrix = np.nan_to_num(confusion_matrix)
+        if self.with_display:
+            confusion_matrix, categories = filter_confusion_matrix(
+                matrix,
+                self.categories_to_display
+            )
+            confusion_matrix = np.nan_to_num(confusion_matrix)
 
-        description = [f'Showing {self.categories_to_display} of {dataset.num_classes} classes:']
-        classes_to_display = []
-        classes_map = dict(enumerate(classes))  # class index -> class label
+            description = [f'Showing {self.categories_to_display} of {dataset.num_classes} classes:']
+            classes_to_display = []
+            classes_map = dict(enumerate(classes))  # class index -> class label
 
-        for category in categories:
-            category = classes_map[category]
-            if category == 'no-overlapping':
-                description.append(
-                    '"No overlapping" categories are labels and prediction which did not have a matching '
-                    'label/prediction.<br>For example a predictions that did not have a sufficiently overlapping '
-                    'label bounding box will appear under "No overlapping" category in the True Value '
-                    'axis (y-axis).'
-                )
-                classes_to_display.append('no-overlapping')
-            elif isinstance(category, int):
-                classes_to_display.append(dataset.label_id_to_name(category))
-            else:
-                raise RuntimeError(
-                    'Internal Error! categories list must '
-                    'contain items of type - Union[int, Literal["no-overlapping"]]'
-                )
+            for category in categories:
+                category = classes_map[category]
+                if category == 'no-overlapping':
+                    description.append(
+                        '"No overlapping" categories are labels and prediction which did not have a matching '
+                        'label/prediction.<br>For example a predictions that did not have a sufficiently overlapping '
+                        'label bounding box will appear under "No overlapping" category in the True Value '
+                        'axis (y-axis).'
+                    )
+                    classes_to_display.append('no-overlapping')
+                elif isinstance(category, int):
+                    classes_to_display.append(dataset.label_id_to_name(category))
+                else:
+                    raise RuntimeError(
+                        'Internal Error! categories list must '
+                        'contain items of type - Union[int, Literal["no-overlapping"]]'
+                    )
 
-        x = []
-        y = []
+            x = []
+            y = []
 
-        for it in classes_to_display:
-            if it != 'no-overlapping':
-                x.append(it)
-                y.append(it)
-            else:
-                x.append('No overlapping')
-                y.append('No overlapping')
+            for it in classes_to_display:
+                if it != 'no-overlapping':
+                    x.append(it)
+                    y.append(it)
+                else:
+                    x.append('No overlapping')
+                    y.append('No overlapping')
 
-        description.append(
-            create_confusion_matrix_figure(confusion_matrix, x, y, self.normalized)
-        )
+            description.append(
+                create_confusion_matrix_figure(confusion_matrix, x, y, self.normalized)
+            )
+        else:
+            description = None
+
         return CheckResult(
             matrix,
             header='Confusion Matrix',

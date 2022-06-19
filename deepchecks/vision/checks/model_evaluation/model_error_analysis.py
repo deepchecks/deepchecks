@@ -161,6 +161,7 @@ class ModelErrorAnalysis(TrainTestCheck):
         except DeepchecksProcessError as e:
             return CheckFailure(self, e)
 
+        # TODO split error_model
         display, value = error_model_display_dataframe(error_fi,
                                                        error_model_predicted,
                                                        test_property_df,

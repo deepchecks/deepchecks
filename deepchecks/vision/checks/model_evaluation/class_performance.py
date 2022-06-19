@@ -62,11 +62,13 @@ class ClassPerformance(TrainTestCheck):
                  show_only: str = 'largest',
                  metric_to_show_by: str = None,
                  class_list_to_show: List[int] = None,
+                 with_display: bool = True,
                  **kwargs):
         super().__init__(**kwargs)
         self.alternative_metrics = alternative_metrics
         self.n_to_show = n_to_show
         self.class_list_to_show = class_list_to_show
+        self.with_display = with_display
 
         if self.class_list_to_show is None:
             if show_only not in ['largest', 'smallest', 'random', 'best', 'worst']:
@@ -121,25 +123,29 @@ class ClassPerformance(TrainTestCheck):
             results_df = results_df.loc[results_df['Class'].isin(classes_to_show)]
 
         results_df = results_df.sort_values(by=['Dataset', 'Value'], ascending=False)
-        fig = px.histogram(
-            results_df,
-            x='Class Name',
-            y='Value',
-            color='Dataset',
-            color_discrete_sequence=(plot.colors['Train'], plot.colors['Test']),
-            barmode='group',
-            facet_col='Metric',
-            facet_col_spacing=0.05,
-            hover_data=['Number of samples'],
 
-        )
+        if self.with_display:
+            fig = px.histogram(
+                results_df,
+                x='Class Name',
+                y='Value',
+                color='Dataset',
+                color_discrete_sequence=(plot.colors['Train'], plot.colors['Test']),
+                barmode='group',
+                facet_col='Metric',
+                facet_col_spacing=0.05,
+                hover_data=['Number of samples'],
 
-        fig = (
-            fig.update_xaxes(title='Class', type='category')
-               .update_yaxes(title='Value', matches=None)
-               .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
-               .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
-        )
+            )
+
+            fig = (
+                fig.update_xaxes(title='Class', type='category')
+                .update_yaxes(title='Value', matches=None)
+                .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
+                .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
+            )
+        else:
+            fig = None
 
         return CheckResult(
             results_df,

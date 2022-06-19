@@ -55,6 +55,7 @@ class SimilarImageLeakage(TrainTestCheck):
             n_top_show: int = 10,
             hash_size: int = 8,
             similarity_threshold: float = 0.1,
+            with_display: bool = True,
             **kwargs):
         super().__init__(**kwargs)
         if not (isinstance(n_top_show, int) and (n_top_show >= 0)):
@@ -66,6 +67,8 @@ class SimilarImageLeakage(TrainTestCheck):
         if not (isinstance(similarity_threshold, (float, int)) and (0 <= similarity_threshold <= 1)):
             raise DeepchecksValueError('similarity_threshold must be a float in range (0,1)')
         self.similarity_threshold = similarity_threshold
+        self.with_display = with_display
+
         self.min_pixel_diff = int(np.ceil(similarity_threshold * (hash_size**2 / 2)))
 
     def initialize_run(self, context: Context):
@@ -119,7 +122,7 @@ class SimilarImageLeakage(TrainTestCheck):
             'test': context.test
         }
 
-        display = []
+        display = [] if self.with_display else None
         similar_pairs = []
         if similar_indices['test']:
             for similar_index in display_indices:
@@ -134,20 +137,21 @@ class SimilarImageLeakage(TrainTestCheck):
                     )
                     display_images[dataset].append(image_thumbnail)
 
-            html = HTML_TEMPLATE.format(
-                count=len(similar_indices['test']),
-                n_of_images=len(display_indices),
-                train_images=''.join(display_images['train']),
-                test_images=''.join(display_images['test']),
-            )
-
-            display.append(html)
-
             # return tuples of indices in original respective dataset objects
             similar_pairs = list(zip(
                 context.train.to_dataset_index(*similar_indices['train']),
                 context.test.to_dataset_index(*similar_indices['test'])
             ))
+
+            if self.with_display:
+                html = HTML_TEMPLATE.format(
+                    count=len(similar_indices['test']),
+                    n_of_images=len(display_indices),
+                    train_images=''.join(display_images['train']),
+                    test_images=''.join(display_images['test']),
+                )
+
+                display.append(html)
 
         return CheckResult(value=similar_pairs, display=display, header='Similar Image Leakage')
 

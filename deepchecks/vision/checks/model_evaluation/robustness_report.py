@@ -59,10 +59,13 @@ class RobustnessReport(SingleDatasetCheck):
     def __init__(self,
                  alternative_metrics: Optional[Dict[str, Metric]] = None,
                  augmentations: List = None,
+                 with_display: bool = True,
                  **kwargs):
         super().__init__(**kwargs)
         self.alternative_metrics = alternative_metrics
         self.augmentations = augmentations
+        self.with_display = with_display
+
         self._state = None
 
     def initialize_run(self, context: Context, dataset_kind):
@@ -127,19 +130,23 @@ class RobustnessReport(SingleDatasetCheck):
                 'images': image_pairs
             }
 
-        # Create figures to display
-        aug_names = ', '.join([augmentation_name(aug) for aug in augmentations])
-        info_message = 'Percentage shown are difference between the metric before augmentation and after.<br>' \
-                       f'Augmentations used (separately): {aug_names}'
-        figures = self._create_augmentation_figures(dataset, base_mean_results, aug_all_data)
-
         # Save as result only the metrics diff per augmentation
         result = {aug: data['metrics_diff'] for aug, data in aug_all_data.items()}
+
+        if self.with_display:
+            # Create figures to display
+            aug_names = ', '.join([augmentation_name(aug) for aug in augmentations])
+            info_message = 'Percentage shown are difference between the metric before augmentation and after.<br>' \
+                        f'Augmentations used (separately): {aug_names}'
+            figures = self._create_augmentation_figures(dataset, base_mean_results, aug_all_data)
+            display = [info_message, *figures]
+        else:
+            display = None
 
         return CheckResult(
             result,
             header='Robustness Report',
-            display=[info_message, *figures]
+            display = display
         )
 
     def add_condition_degradation_not_greater_than(self, ratio: float = 0.02):
