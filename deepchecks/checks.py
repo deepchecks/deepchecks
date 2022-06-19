@@ -50,7 +50,7 @@ __all__ = [
     'TrainTestSamplesMix',
     'DateTrainTestLeakageDuplicates',
     'DateTrainTestLeakageOverlap',
-    'IdentifierLeakage',
+    'IdentifierLabelCorrelation',
     'ModelInferenceTime',
     'DatasetsSizeComparison',
 

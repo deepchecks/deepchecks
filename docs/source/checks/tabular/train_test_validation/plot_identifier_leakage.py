@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 
 from deepchecks.tabular import Dataset
-from deepchecks.tabular.checks import IdentifierLeakage
+from deepchecks.tabular.checks import IdentifierLabelCorrelation
 
 #%%
 # Generating Data
@@ -32,11 +32,11 @@ dataset = Dataset(df, label='label', index_name='x1', datetime_name='x2')
 # Running ``identifier_leakage`` check
 # ====================================
 
-IdentifierLeakage().run(dataset)
+IdentifierLabelCorrelation().run(dataset)
 
 #%%
-# Using the ``IdentifierLeakage`` check class
+# Using the ``IdentifierLabelCorrelation`` check class
 # ===================================================
 
-my_check = IdentifierLeakage(ppscore_params={'sample': 10})
+my_check = IdentifierLabelCorrelation(ppscore_params={'sample': 10})
 my_check.run(dataset=dataset)

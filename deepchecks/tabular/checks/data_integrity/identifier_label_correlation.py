@@ -22,10 +22,10 @@ from deepchecks.tabular.dataset import _get_dataset_docs_tag
 from deepchecks.tabular.utils.messages import get_condition_passed_message
 from deepchecks.utils.strings import format_number
 
-__all__ = ['IdentifierLeakage']
+__all__ = ['IdentifierLabelCorrelation']
 
 
-class IdentifierLeakage(SingleDatasetCheck):
+class IdentifierLabelCorrelation(SingleDatasetCheck):
     """Check if identifiers (Index/Date) can be used to predict the label.
 
     Parameters

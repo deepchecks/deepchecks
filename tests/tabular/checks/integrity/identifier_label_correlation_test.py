@@ -14,7 +14,7 @@ import pandas as pd
 from hamcrest import assert_that, calling, close_to, has_items, is_in, raises
 
 from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError
-from deepchecks.tabular.checks.train_test_validation.identifier_leakage import IdentifierLeakage
+from deepchecks.tabular.checks.data_integrity.identifier_label_correlation import IdentifierLabelCorrelation
 from deepchecks.tabular.dataset import Dataset
 from tests.base.utils import equal_condition_result
 
@@ -29,7 +29,7 @@ def generate_dataframe_and_expected():
 
 def test_assert_identifier_leakage():
     df, expected = generate_dataframe_and_expected()
-    result = IdentifierLeakage().run(dataset=Dataset(df, label='label', datetime_name='x2', index_name='x3'))
+    result = IdentifierLabelCorrelation().run(dataset=Dataset(df, label='label', datetime_name='x2', index_name='x3'))
     for key, value in result.value.items():
         assert_that(key, is_in(expected.keys()))
         assert_that(value, close_to(expected[key], 0.1))
@@ -39,7 +39,7 @@ def test_identifier_leakage_with_extracted_from_dataframe_index():
     df, expected = generate_dataframe_and_expected()
     df.set_index('x3', inplace=True)
     dataset = Dataset(df=df, label='label', set_index_from_dataframe_index=True)
-    result = IdentifierLeakage().run(dataset=dataset)
+    result = IdentifierLabelCorrelation().run(dataset=dataset)
     for key, value in result.value.items():
         assert_that(key, is_in(expected.keys()))
         assert_that(value, close_to(expected[key], 0.1))
@@ -49,7 +49,7 @@ def test_identifier_leakage_with_extracted_from_dataframe_datatime_index():
     df, expected = generate_dataframe_and_expected()
     df.set_index('x2', inplace=True)
     dataset = Dataset(df=df, label='label', set_datetime_from_dataframe_index=True)
-    result = IdentifierLeakage().run(dataset=dataset)
+    result = IdentifierLabelCorrelation().run(dataset=dataset)
     for key, value in result.value.items():
         assert_that(key, is_in(expected.keys()))
         assert_that(value, close_to(expected[key], 0.1))
@@ -58,7 +58,7 @@ def test_identifier_leakage_with_extracted_from_dataframe_datatime_index():
 def test_dataset_wrong_input():
     wrong = 'wrong_input'
     assert_that(
-        calling(IdentifierLeakage().run).with_args(wrong),
+        calling(IdentifierLabelCorrelation().run).with_args(wrong),
         raises(
             DeepchecksValueError,
             'non-empty instance of Dataset or DataFrame was expected, instead got str')
@@ -69,7 +69,7 @@ def test_dataset_no_label():
     df, _ = generate_dataframe_and_expected()
     df = Dataset(df)
     assert_that(
-        calling(IdentifierLeakage().run).with_args(dataset=df),
+        calling(IdentifierLabelCorrelation().run).with_args(dataset=df),
         raises(DeepchecksNotSupportedError,
                'Dataset does not contain a label column')
     )
@@ -79,7 +79,7 @@ def test_dataset_only_label():
     df, _ = generate_dataframe_and_expected()
     df = Dataset(df, label='label')
     assert_that(
-        calling(IdentifierLeakage().run).with_args(dataset=df),
+        calling(IdentifierLabelCorrelation().run).with_args(dataset=df),
         raises(
             DatasetValidationError,
             'Dataset does not contain an index or a datetime')
@@ -88,7 +88,7 @@ def test_dataset_only_label():
 
 def test_assert_identifier_leakage_class():
     df, expected = generate_dataframe_and_expected()
-    identifier_leakage_check = IdentifierLeakage()
+    identifier_leakage_check = IdentifierLabelCorrelation()
     result = identifier_leakage_check.run(dataset=Dataset(df, label='label', datetime_name='x2', index_name='x3'))
     for key, value in result.value.items():
         assert_that(key, is_in(expected.keys()))
@@ -102,7 +102,7 @@ def test_nan():
                                      'x3': [np.nan],
                                      'label': [0]}))
 
-    result = IdentifierLeakage().run(dataset=Dataset(nan_df, label='label', datetime_name='x2', index_name='x3'))
+    result = IdentifierLabelCorrelation().run(dataset=Dataset(nan_df, label='label', datetime_name='x2', index_name='x3'))
     for key, value in result.value.items():
         assert_that(key, is_in(expected.keys()))
         assert_that(value, close_to(expected[key], 0.1))
@@ -111,7 +111,7 @@ def test_nan():
 def test_condition_pps_pass():
     df, expected = generate_dataframe_and_expected()
 
-    check = IdentifierLeakage().add_condition_pps_less_or_equal(0.5)
+    check = IdentifierLabelCorrelation().add_condition_pps_less_or_equal(0.5)
 
     # Act
     result = check.conditions_decision(check.run(Dataset(df, label='label', datetime_name='x2', index_name='x3')))
@@ -126,7 +126,7 @@ def test_condition_pps_pass():
 def test_condition_pps_fail():
     df, expected = generate_dataframe_and_expected()
 
-    check = IdentifierLeakage().add_condition_pps_less_or_equal(0.2)
+    check = IdentifierLabelCorrelation().add_condition_pps_less_or_equal(0.2)
 
     # Act
     result = check.conditions_decision(check.run(Dataset(df, label='label', datetime_name='x2', index_name='x3')))

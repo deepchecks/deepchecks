@@ -19,7 +19,7 @@ from deepchecks.tabular import Suite
 from deepchecks.tabular.checks import (BoostingOverfit, CalibrationScore, CategoryMismatchTrainTest, ConflictingLabels,
                                        ConfusionMatrixReport, DataDuplicates, DatasetsSizeComparison,
                                        DateTrainTestLeakageDuplicates, DateTrainTestLeakageOverlap,
-                                       FeatureLabelCorrelation, FeatureLabelCorrelationChange, IdentifierLeakage,
+                                       FeatureLabelCorrelation, FeatureLabelCorrelationChange, IdentifierLabelCorrelation,
                                        IndexTrainTestLeakage, IsSingleValue, MixedDataTypes, MixedNulls,
                                        ModelErrorAnalysis, ModelInferenceTime, NewLabelTrainTest,
                                        OutlierSampleDetection, PerformanceReport, RegressionErrorDistribution,
@@ -91,7 +91,7 @@ def train_test_validation(**kwargs) -> Suite:
         DateTrainTestLeakageDuplicates(**kwargs).add_condition_leakage_ratio_less_or_equal(),
         DateTrainTestLeakageOverlap(**kwargs).add_condition_leakage_ratio_less_or_equal(),
         IndexTrainTestLeakage(**kwargs).add_condition_ratio_less_or_equal(),
-        IdentifierLeakage(**kwargs).add_condition_pps_less_or_equal(),
+        IdentifierLabelCorrelation(**kwargs).add_condition_pps_less_or_equal(),
         TrainTestSamplesMix(**kwargs).add_condition_duplicates_ratio_less_or_equal(),
         FeatureLabelCorrelationChange(**kwargs).add_condition_feature_pps_difference_less_than()
         .add_condition_feature_pps_in_train_less_than(),
