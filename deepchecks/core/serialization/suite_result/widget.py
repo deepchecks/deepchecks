@@ -78,7 +78,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
 
         accordions = [
             self.prepare_results(
-                title='Didn`t Pass',
+                title='Didn\'t Pass',
                 results=not_passed_checks,
                 output_id=output_id,
                 summary_creation_method=self.prepare_conditions_summary,
@@ -100,7 +100,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                 **kwargs
             ),
             self.prepare_failures(
-                title='Didn`t Run',
+                title='Didn\'t Run',
                 failures=not_ran_checks,
                 output_id=output_id,
                 **kwargs
