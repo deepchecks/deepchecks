@@ -92,7 +92,7 @@ class DisplayableResult(abc.ABC):
 
             return TempSphinx()
 
-        if is_kaggle_env() and is_databricks_env() and is_sagemaker_env():
+        if is_kaggle_env() or is_databricks_env() or is_sagemaker_env():
             self.show_in_iframe(as_widget=as_widget, unique_id=unique_id, **kwargs)
         elif is_colab_env() and as_widget is True:
             widget = self.widget_serializer.serialize(**kwargs)
