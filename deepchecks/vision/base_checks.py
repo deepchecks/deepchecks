@@ -63,17 +63,15 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
                 self.initialize_run(context, DatasetKind.TRAIN)
 
             context.train.init_cache()
-            batch_start_index = 0
 
-            for batch in progressbar_factory.create(
+            for i, batch in enumerate(progressbar_factory.create(
                 iterable=context.train,
                 name='Ingesting Batches',
                 unit='Batch'
-            ):
-                batch = Batch(batch, context, DatasetKind.TRAIN, batch_start_index)
+            )):
+                batch = Batch(batch, context, DatasetKind.TRAIN, i)
                 context.train.update_cache(batch)
                 self.update(context, batch, DatasetKind.TRAIN)
-                batch_start_index += len(batch)
 
             with progressbar_factory.create_dummy(name='Computing Check', unit='Check'):
                 result = self.compute(context, DatasetKind.TRAIN)
@@ -139,26 +137,22 @@ class TrainTestCheck(TrainTestBaseCheck):
             )
 
             context.train.init_cache()
-            batch_start_index = 0
 
-            for batch in train_pbar:
-                batch = Batch(batch, context, DatasetKind.TRAIN, batch_start_index)
+            for i, batch in enumerate(train_pbar):
+                batch = Batch(batch, context, DatasetKind.TRAIN, i)
                 context.train.update_cache(batch)
                 self.update(context, batch, DatasetKind.TRAIN)
-                batch_start_index += len(batch)
 
             context.test.init_cache()
-            batch_start_index = 0
 
-            for batch in progressbar_factory.create(
+            for i, batch in enumerate(progressbar_factory.create(
                 iterable=context.test,
                 name='Ingesting Batches - Test Dataset',
                 unit='Batch'
-            ):
-                batch = Batch(batch, context, DatasetKind.TEST, batch_start_index)
+            )):
+                batch = Batch(batch, context, DatasetKind.TEST, i)
                 context.test.update_cache(batch)
                 self.update(context, batch, DatasetKind.TEST)
-                batch_start_index += len(batch)
 
             with progressbar_factory.create_dummy(name='Computing Check', unit='Check'):
                 result = self.compute(context)

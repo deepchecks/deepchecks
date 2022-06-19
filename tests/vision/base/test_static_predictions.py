@@ -61,7 +61,7 @@ def test_class_performance_mnist_largest_sampled_before(mnist_dataset_train, mni
     # Arrange
     sampled_train = mnist_dataset_train.copy(shuffle=True, n_samples=1000, random_state=42)
     sampled_test = mnist_dataset_test.copy(shuffle=True, n_samples=1000, random_state=42)
-    train_preds, tests_preds = _create_static_predictions(mnist_dataset_train, mnist_dataset_test,
+    train_preds, tests_preds = _create_static_predictions(sampled_train, sampled_test,
                                                           mock_trained_mnist, device)
     check = ClassPerformance(n_to_show=2, show_only='largest')
     # Act
@@ -72,9 +72,9 @@ def test_class_performance_mnist_largest_sampled_before(mnist_dataset_train, mni
     # Assert
     assert_that(len(set(result.value['Class'])), equal_to(2))
     assert_that(len(result.value), equal_to(8))
-    assert_that(first_row['Value'], close_to(0.977, 0.001))
-    assert_that(first_row['Number of samples'], equal_to(6742))
-    assert_that(first_row['Class'], equal_to(1))
+    assert_that(first_row['Value'], close_to(0.991, 0.001))
+    assert_that(first_row['Number of samples'], equal_to(123))
+    assert_that(first_row['Class'], equal_to(2))
 
 
 # copied from class_performance_test but sampled
