@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module for base vision context."""
+from operator import itemgetter
 from typing import Dict, Mapping, Sequence, Union
 
 import torch
@@ -116,7 +117,7 @@ class Context:
                                                           [train_predictions, test_predictions]):
                 if dataset is not None:
                     try:
-                        preds = list(predictions.values())[:30]
+                        preds = itemgetter(*list(dataset.data_loader.batch_sampler)[0])(predictions)
                         if dataset.task_type == TaskType.CLASSIFICATION:
                             preds = torch.stack(preds)
                         dataset.validate_infered_batch_predictions(preds)
