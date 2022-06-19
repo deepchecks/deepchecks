@@ -13,6 +13,7 @@ test datasets.
 * `Which Image Properties Are Used? <#which-image-properties-are-used>`__
 * `Loading The Data <#loading-the-data>`__
 * `Run The Check <#run-the-check>`__
+* `Define a Condition <#define-a-condition>`__
 
 What Is Image Dataset Drift?
 ------------------------------------
@@ -116,3 +117,14 @@ test_ds = COCOData(test_dataloader)
 # ^^^^^^^^^^^^^^^^^^^
 check = ImageDatasetDrift()
 check.run(train_dataset=drifted_train_ds, test_dataset=test_ds)
+
+
+#%%
+# Define a Condition
+# -------------
+# Now, we will define a condition that the maximum drift score is less than a certain threshold. In this example we will
+# set the threshold at 0.8.
+
+check.add_condition_drift_score_less_than(0.8)
+check.run(train_dataset=drifted_train_ds, test_dataset=test_ds).show(show_additional_outputs=False)
+
