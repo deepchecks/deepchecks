@@ -1,0 +1,31 @@
+name: benchmarks
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  benchmark:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Set Up Env
+      run: make env
+    - name: pip freeze
+      run: make freeze
+    - name: Run benchmarks
+      run: |
+        .github/scripts/benchmark.sh
+    - name: Compare
+      run: |
+        # Invocation from tools/ci/benchmark-travis-pr.sh for convenience
+        asv compare refs/bm/merge-target refs/bm/pr
+    - name: Fail if any benchmarks have slowed down too much
+      run: |
+        ! asv compare --factor 1.2 --split refs/bm/merge-target refs/bm/pr | grep -q "got worse"
