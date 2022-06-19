@@ -35,9 +35,10 @@ class RocReport(SingleDatasetCheck):
         List of classes to exclude from the condition.
     """
 
-    def __init__(self, excluded_classes: List = None, **kwargs):
+    def __init__(self, excluded_classes: List = None, with_display: bool = True, **kwargs):
         super().__init__(**kwargs)
         self.excluded_classes = excluded_classes or []
+        self.with_display = with_display
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
@@ -72,53 +73,57 @@ class RocReport(SingleDatasetCheck):
                 sklearn.metrics.roc_curve(multi_y[:, i], y_pred_prob[:, i])
             roc_auc[class_name] = sklearn.metrics.auc(fpr[class_name], tpr[class_name])
 
-        fig = go.Figure()
-        for class_name in dataset_classes:
-            if class_name in self.excluded_classes:
-                continue
+        if self.with_display:
+            fig = go.Figure()
+            for class_name in dataset_classes:
+                if class_name in self.excluded_classes:
+                    continue
+                if len(dataset_classes) == 2:
+                    fig.add_trace(go.Scatter(
+                        x=fpr[class_name],
+                        y=tpr[class_name],
+                        line_width=2,
+                        name=f'auc = {roc_auc[class_name]:0.2f}',
+                    ))
+                    fig.add_trace(get_cutoff_figure(tpr[class_name], fpr[class_name], thresholds[class_name]))
+                    break
+                else:
+                    fig.add_trace(go.Scatter(
+                        x=fpr[class_name],
+                        y=tpr[class_name],
+                        line_width=2,
+                        name=f'Class {class_name} (auc = {roc_auc[class_name]:0.2f})'
+                    ))
+                    fig.add_trace(get_cutoff_figure(tpr[class_name], fpr[class_name], thresholds[class_name], class_name))
+            fig.add_trace(go.Scatter(
+                        x=[0, 1],
+                        y=[0, 1],
+                        line=dict(color='#444'),
+                        line_width=2, line_dash='dash',
+                        showlegend=False
+                    ))
+            fig.update_xaxes(title='False Positive Rate')
+            fig.update_yaxes(title='True Positive Rate')
             if len(dataset_classes) == 2:
-                fig.add_trace(go.Scatter(
-                    x=fpr[class_name],
-                    y=tpr[class_name],
-                    line_width=2,
-                    name=f'auc = {roc_auc[class_name]:0.2f}',
-                ))
-                fig.add_trace(get_cutoff_figure(tpr[class_name], fpr[class_name], thresholds[class_name]))
-                break
+                fig.update_layout(
+                    title_text='Receiver operating characteristic for binary data',
+                    height=500
+                )
             else:
-                fig.add_trace(go.Scatter(
-                    x=fpr[class_name],
-                    y=tpr[class_name],
-                    line_width=2,
-                    name=f'Class {class_name} (auc = {roc_auc[class_name]:0.2f})'
-                ))
-                fig.add_trace(get_cutoff_figure(tpr[class_name], fpr[class_name], thresholds[class_name], class_name))
-        fig.add_trace(go.Scatter(
-                    x=[0, 1],
-                    y=[0, 1],
-                    line=dict(color='#444'),
-                    line_width=2, line_dash='dash',
-                    showlegend=False
-                ))
-        fig.update_xaxes(title='False Positive Rate')
-        fig.update_yaxes(title='True Positive Rate')
-        if len(dataset_classes) == 2:
-            fig.update_layout(
-                title_text='Receiver operating characteristic for binary data',
-                height=500
-            )
+                fig.update_layout(
+                    title_text='Receiver operating characteristic for multi-class data',
+                    height=500
+                )
+
+            footnote = """<span style="font-size:0.8em"><i>
+            The marked points are the optimal threshold cut-off points. They are determined using Youden's index defined
+            as sensitivity + specificity - 1
+            </i></span>"""
+            display=[fig, footnote]
         else:
-            fig.update_layout(
-                title_text='Receiver operating characteristic for multi-class data',
-                height=500
-            )
+            display = None
 
-        footnote = """<span style="font-size:0.8em"><i>
-        The marked points are the optimal threshold cut-off points. They are determined using Youden's index defined
-        as sensitivity + specificity - 1
-        </i></span>"""
-
-        return CheckResult(roc_auc, header='ROC Report', display=[fig, footnote])
+        return CheckResult(roc_auc, header='ROC Report', display=display)
 
     def add_condition_auc_greater_than(self, min_auc: float = 0.7):
         """Add condition - require min allowed AUC score per class.

@@ -36,10 +36,15 @@ class RegressionErrorDistribution(SingleDatasetCheck):
         number of bins to use for the histogram.
     """
 
-    def __init__(self, n_top_samples: int = 3, n_bins: int = 40, **kwargs):
+    def __init__(self,
+                 n_top_samples: int = 3,
+                 n_bins: int = 40,
+                 with_display: bool = True,
+                 **kwargs):
         super().__init__(**kwargs)
         self.n_top_samples = n_top_samples
         self.n_bins = n_bins
+        self.with_display = with_display
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
@@ -67,27 +72,30 @@ class RegressionErrorDistribution(SingleDatasetCheck):
         diff = y_test - y_pred
         kurtosis_value = kurtosis(diff)
 
-        n_largest_diff = diff.nlargest(self.n_top_samples)
-        n_largest_diff.name = str(dataset.label_name) + ' Prediction Difference'
-        n_largest = pd.concat([dataset.data.loc[n_largest_diff.index], y_pred.loc[n_largest_diff.index],
-                               n_largest_diff], axis=1)
+        if self.with_display:
+            n_largest_diff = diff.nlargest(self.n_top_samples)
+            n_largest_diff.name = str(dataset.label_name) + ' Prediction Difference'
+            n_largest = pd.concat([dataset.data.loc[n_largest_diff.index], y_pred.loc[n_largest_diff.index],
+                                n_largest_diff], axis=1)
 
-        n_smallest_diff = diff.nsmallest(self.n_top_samples)
-        n_smallest_diff.name = str(dataset.label_name) + ' Prediction Difference'
-        n_smallest = pd.concat([dataset.data.loc[n_smallest_diff.index], y_pred.loc[n_smallest_diff.index],
-                                n_smallest_diff], axis=1)
+            n_smallest_diff = diff.nsmallest(self.n_top_samples)
+            n_smallest_diff.name = str(dataset.label_name) + ' Prediction Difference'
+            n_smallest = pd.concat([dataset.data.loc[n_smallest_diff.index], y_pred.loc[n_smallest_diff.index],
+                                    n_smallest_diff], axis=1)
 
-        display = [
-            px.histogram(
-                x=diff.values,
-                nbins=self.n_bins,
-                title='Histogram of prediction errors',
-                labels={'x': f'{dataset.label_name} prediction error', 'y': 'Count'},
-                height=500
-            ),
-            'Largest over estimation errors:', n_largest,
-            'Largest under estimation errors:', n_smallest
-        ]
+            display = [
+                px.histogram(
+                    x=diff.values,
+                    nbins=self.n_bins,
+                    title='Histogram of prediction errors',
+                    labels={'x': f'{dataset.label_name} prediction error', 'y': 'Count'},
+                    height=500
+                ),
+                'Largest over estimation errors:', n_largest,
+                'Largest under estimation errors:', n_smallest
+            ]
+        else:
+            display =None
 
         return CheckResult(value=kurtosis_value, display=display)
 

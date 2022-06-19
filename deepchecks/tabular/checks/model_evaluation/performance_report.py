@@ -77,10 +77,12 @@ class PerformanceReport(TrainTestCheck, ReduceMixin):
     def __init__(self,
                  alternative_scorers: Dict[str, Callable] = None,
                  reduce: Union[Callable, str] = 'mean',
+                 with_display: bool = True,
                  **kwargs):
         super().__init__(**kwargs)
         self.user_scorers = alternative_scorers
         self.reduce = reduce
+        self.with_display = with_display
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check.
@@ -125,26 +127,29 @@ class PerformanceReport(TrainTestCheck, ReduceMixin):
             ]
             results_df = pd.DataFrame(results, columns=['Dataset', 'Metric', 'Value', 'Number of samples'])
 
-        fig = px.histogram(
-            results_df,
-            x=plot_x_axis,
-            y='Value',
-            color='Dataset',
-            barmode='group',
-            facet_col='Metric',
-            facet_col_spacing=0.05,
-            hover_data=['Number of samples']
-        )
+        if self.with_display:
+            fig = px.histogram(
+                results_df,
+                x=plot_x_axis,
+                y='Value',
+                color='Dataset',
+                barmode='group',
+                facet_col='Metric',
+                facet_col_spacing=0.05,
+                hover_data=['Number of samples']
+            )
 
-        if task_type in [TaskType.MULTICLASS, TaskType.BINARY]:
-            fig.update_xaxes(tickprefix='Class ', tickangle=60)
+            if task_type in [TaskType.MULTICLASS, TaskType.BINARY]:
+                fig.update_xaxes(tickprefix='Class ', tickangle=60)
 
-        fig = (
-            fig.update_xaxes(title=None, type='category')
-            .update_yaxes(title=None, matches=None)
-            .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
-            .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
-        )
+            fig = (
+                fig.update_xaxes(title=None, type='category')
+                .update_yaxes(title=None, matches=None)
+                .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
+                .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
+            )
+        else:
+            fig = None
 
         return CheckResult(
             results_df,
