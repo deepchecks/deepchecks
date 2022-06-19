@@ -21,7 +21,7 @@ from IPython.core.display import display, display_html
 from ipywidgets import Widget
 
 from deepchecks.core.serialization.abc import HTMLFormatter, HtmlSerializer, IPythonSerializer, WidgetSerializer
-from deepchecks.utils.ipython import is_colab_env, is_kaggle_env
+from deepchecks.utils.ipython import is_colab_env, is_kaggle_env, is_databricks_env, is_sagemaker_env
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.strings import create_new_file_name, get_random_string, widget_to_html, widget_to_html_string
 
@@ -92,8 +92,8 @@ class DisplayableResult(abc.ABC):
 
             return TempSphinx()
 
-        if is_kaggle_env():
-            self.show_in_iframe()
+        if is_kaggle_env() and is_databricks_env() and is_sagemaker_env():
+            self.show_in_iframe(as_widget=as_widget, unique_id=unique_id, **kwargs)
         elif is_colab_env() and as_widget is True:
             widget = self.widget_serializer.serialize(**kwargs)
             content = widget_to_html_string(widget, title=get_result_name(self))
