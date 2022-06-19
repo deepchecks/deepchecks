@@ -94,7 +94,7 @@ class DisplayableResult(abc.ABC):
 
         if is_kaggle_env():
             self.show_in_iframe()
-        if is_colab_env() and as_widget is True:
+        elif is_colab_env() and as_widget is True:
             widget = self.widget_serializer.serialize(**kwargs)
             content = widget_to_html_string(widget, title=get_result_name(self))
             display_html(content, raw=True)
