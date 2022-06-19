@@ -57,6 +57,7 @@ class StringMismatch(SingleDatasetCheck):
         n_top_columns: int = 10,
         n_samples: int = 1_000_000,
         random_state: int = 42,
+        with_display: bool = True,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -65,6 +66,7 @@ class StringMismatch(SingleDatasetCheck):
         self.n_top_columns = n_top_columns
         self.n_samples = n_samples
         self.random_state = random_state
+        self.with_display = with_display
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
@@ -91,10 +93,11 @@ class StringMismatch(SingleDatasetCheck):
                 for variant in variants:
                     count = value_counts[variant]
                     percent = count / len(column)
-                    display_results.append([column_name, base_form, variant, count, format_percent(percent)])
                     result_dict[column_name][base_form].append({
                         'variant': variant, 'count': count, 'percent': percent
                     })
+                    if self.with_display:
+                        display_results.append([column_name, base_form, variant, count, format_percent(percent)])
 
         # Create dataframe to display graph
         if display_results:

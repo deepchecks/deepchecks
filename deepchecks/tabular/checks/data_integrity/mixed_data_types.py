@@ -14,7 +14,7 @@ from typing import List, Tuple, Union
 import numpy as np
 import pandas as pd
 
-from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult, display
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
@@ -44,12 +44,14 @@ class MixedDataTypes(SingleDatasetCheck):
         columns: Union[Hashable, List[Hashable], None] = None,
         ignore_columns: Union[Hashable, List[Hashable], None] = None,
         n_top_columns: int = 10,
+        with_display: bool = True,
         **kwargs
     ):
         super().__init__(**kwargs)
         self.columns = columns
         self.ignore_columns = ignore_columns
         self.n_top_columns = n_top_columns
+        self.with_display = with_display
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
@@ -74,7 +76,7 @@ class MixedDataTypes(SingleDatasetCheck):
             column_data = df[column_name].dropna()
             mix = self._get_data_mix(column_data)
             result_dict[column_name] = mix
-            if mix:
+            if self.with_display and mix:
                 # Format percents for display
                 formated_mix = {}
                 formated_mix['Strings'] = format_percent(mix['strings'])

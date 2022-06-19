@@ -47,6 +47,7 @@ class SpecialCharacters(SingleDatasetCheck):
         ignore_columns: Union[Hashable, List[Hashable], None] = None,
         n_most_common: int = 2,
         n_top_columns: int = 10,
+        with_display: bool = True,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -54,6 +55,7 @@ class SpecialCharacters(SingleDatasetCheck):
         self.ignore_columns = ignore_columns
         self.n_most_common = n_most_common
         self.n_top_columns = n_top_columns
+        self.with_display = with_display
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
@@ -81,16 +83,20 @@ class SpecialCharacters(SingleDatasetCheck):
                 top_n_samples_items = \
                     sorted(special_samples.items(), key=lambda x: x[1], reverse=True)[:self.n_most_common]
                 top_n_samples_values = [item[0] for item in top_n_samples_items]
-                display_array.append([column_name, percent, top_n_samples_values])
+                if self.with_display:
+                    display_array.append([column_name, percent, top_n_samples_values])
             else:
                 result[column_name] = 0
 
-        df_graph = pd.DataFrame(display_array,
-                                columns=['Column Name', '% Special-Only Samples', 'Most Common Special-Only Samples'])
-        df_graph = df_graph.set_index(['Column Name'])
-        df_graph = column_importance_sorter_df(df_graph, dataset, context.features_importance,
-                                               self.n_top_columns, col='Column Name')
-        display = [N_TOP_MESSAGE % self.n_top_columns, df_graph] if len(df_graph) > 0 else None
+        if display_array:
+            df_graph = pd.DataFrame(display_array,
+                                    columns=['Column Name', '% Special-Only Samples', 'Most Common Special-Only Samples'])
+            df_graph = df_graph.set_index(['Column Name'])
+            df_graph = column_importance_sorter_df(df_graph, dataset, context.features_importance,
+                                                self.n_top_columns, col='Column Name')
+            display = [N_TOP_MESSAGE % self.n_top_columns, df_graph]
+        else:
+            display = None
 
         return CheckResult(result, display=display)
 

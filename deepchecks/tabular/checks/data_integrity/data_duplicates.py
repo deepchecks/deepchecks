@@ -43,12 +43,14 @@ class DataDuplicates(SingleDatasetCheck):
         columns: Union[Hashable, List[Hashable], None] = None,
         ignore_columns: Union[Hashable, List[Hashable], None] = None,
         n_to_show: int = 5,
+        with_display: bool = True,
         **kwargs
     ):
         super().__init__(**kwargs)
         self.columns = columns
         self.ignore_columns = ignore_columns
         self.n_to_show = n_to_show
+        self.with_display = with_display
 
     def run_logic(self, context: Context, dataset_kind):
         """Run check.
@@ -78,7 +80,7 @@ class DataDuplicates(SingleDatasetCheck):
 
         percent_duplicate = 1 - (1.0 * int(n_unique)) / (1.0 * int(n_samples))
 
-        if percent_duplicate > 0:
+        if self.with_display and percent_duplicate > 0:
             # patched for anonymous_series
             is_anonymous_series = 0 in group_unique_data.keys().names
             if is_anonymous_series:
