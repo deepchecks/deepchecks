@@ -50,9 +50,10 @@ class ImagePropertyOutliers(AbstractPropertyOutliers):
                  n_show_top: int = 5,
                  iqr_percentiles: t.Tuple[int, int] = (25, 75),
                  iqr_scale: float = 1.5,
+                 with_display: bool = True,
                  **kwargs):
         super().__init__(properties=image_properties, n_show_top=n_show_top, iqr_percentiles=iqr_percentiles,
-                         iqr_scale=iqr_scale, **kwargs)
+                         iqr_scale=iqr_scale, with_display=with_display, **kwargs)
 
     def get_relevant_data(self, batch: Batch):
         """Get the data on which the check calculates outliers for."""
