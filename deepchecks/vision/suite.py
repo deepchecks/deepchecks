@@ -184,9 +184,8 @@ class Suite(BaseSuite):
         )
 
         # Run on all the batches
-        batch_start_index = 0
-        for batch in batches_pbar:
-            batch = Batch(batch, context, dataset_kind, batch_start_index)
+        for i, batch in enumerate(batches_pbar):
+            batch = Batch(batch, context, dataset_kind, i)
             vision_data.update_cache(batch)
             for check_idx, check in self.checks.items():
                 # If index in results the check already failed before
@@ -207,8 +206,6 @@ class Suite(BaseSuite):
                         raise TypeError(f'Don\'t know how to handle type {check.__class__.__name__} in suite.')
                 except Exception as exp:
                     results[check_idx] = CheckFailure(check, exp, type_suffix)
-
-            batch_start_index += len(batch)
 
         # SingleDatasetChecks have different handling. If we had failure in them need to add suffix to the index of
         # the results, else need to compute it.

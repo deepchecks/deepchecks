@@ -399,17 +399,17 @@ def test_detection_data_bad_implementation():
 
     assert_that(calling(detection_data.validate_prediction).with_args(7, None, None),
                 raises(ValidationError,
-                       'Check requires detection predictions to be a list with an entry for each sample'))
+                       'Check requires detection predictions to be a sequence with an entry for each sample'))
     assert_that(calling(detection_data.validate_prediction).with_args([], None, None),
                 raises(ValidationError,
-                       'Check requires detection predictions to be a non-empty list'))
+                       'Check requires detection predictions to be a non-empty sequence'))
     assert_that(calling(detection_data.validate_prediction).with_args([8], None, None),
                 raises(ValidationError,
-                       'Check requires detection predictions to be a list of torch.Tensor'))
+                       'Check requires detection predictions to be a sequence of torch.Tensor'))
     assert_that(detection_data.validate_prediction([torch.Tensor([])], None, None), equal_to(None))
     assert_that(calling(detection_data.validate_prediction).with_args([torch.Tensor([[1, 2], [1, 2]])], None, None),
                 raises(ValidationError,
-                       'Check requires detection predictions to be a list of 2D tensors, when '
+                       'Check requires detection predictions to be a sequence of 2D tensors, when '
                        'each row has 6 columns: \[x, y, width, height, class_probability, class_id\]'))
 
 
