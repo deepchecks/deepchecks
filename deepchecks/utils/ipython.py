@@ -120,7 +120,7 @@ def is_databricks_env() -> bool:
 
 @lru_cache(maxsize=None)
 def is_sagemaker_env() -> bool:
-    """Check if we are in the AWS Sagemaker environment"""
+    """Check if we are in the AWS Sagemaker environment."""
     return 'AWS_PATH' in os.environ
 
 
