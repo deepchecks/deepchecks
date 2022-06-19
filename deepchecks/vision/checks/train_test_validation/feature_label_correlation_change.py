@@ -94,6 +94,7 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
             random_state: int = None,
             min_pps_to_show: float = 0.05,
             ppscore_params: dict = None,
+            with_display: bool = True,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -108,6 +109,7 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
         self.n_top_properties = n_top_properties
         self.random_state = random_state
         self.ppscore_params = ppscore_params or {}
+        self.with_display = with_display
 
         self._train_properties = defaultdict(list)
         self._test_properties = defaultdict(list)
@@ -199,7 +201,8 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
                                                                          self.ppscore_params,
                                                                          self.n_top_properties,
                                                                          min_pps_to_show=self.min_pps_to_show,
-                                                                         random_state=self.random_state)
+                                                                         random_state=self.random_state,
+                                                                         with_display=self.with_display)
         else:
             ret_value, display = get_feature_label_correlation(df_train,
                                                                'target',
@@ -208,7 +211,8 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
                                                                self.ppscore_params,
                                                                self.n_top_properties,
                                                                min_pps_to_show=self.min_pps_to_show,
-                                                               random_state=self.random_state)
+                                                               random_state=self.random_state,
+                                                               with_display=self.with_display)
 
         if display:
             display += text
