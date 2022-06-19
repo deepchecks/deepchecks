@@ -53,10 +53,9 @@ class LabelPropertyOutliers(AbstractPropertyOutliers):
                  n_show_top: int = 5,
                  iqr_percentiles: t.Tuple[int, int] = (25, 75),
                  iqr_scale: float = 1.5,
-                 with_display: bool = True,
                  **kwargs):
         super().__init__(properties=label_properties, n_show_top=n_show_top, iqr_percentiles=iqr_percentiles,
-                         iqr_scale=iqr_scale, with_display=with_display, **kwargs)
+                         iqr_scale=iqr_scale, **kwargs)
 
     def get_default_properties(self, data: VisionData):
         """Return default properties to run in the check."""
