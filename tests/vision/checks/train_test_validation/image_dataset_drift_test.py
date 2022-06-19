@@ -14,8 +14,8 @@ from hamcrest import assert_that, close_to, equal_to, has_entries
 
 from deepchecks.vision.checks import ImageDatasetDrift
 from deepchecks.vision.datasets.detection.coco import COCOData
-from tests.vision.vision_conftest import *
 from tests.base.utils import equal_condition_result
+from tests.vision.vision_conftest import *
 
 
 def add_brightness(img):
@@ -162,6 +162,22 @@ def test_condition_fail(coco_train_dataloader, coco_test_dataloader, device):
     # Assert
     assert_that(result.conditions_results[0], equal_condition_result(
         is_pass=False,
-        name=f'Drift score is less than {0.1}',
-        details=f'Drift score {0.816} is not less than {0.1}',
+        name=f'Drift score is less than 0.1',
+        details=f'Drift score 0.816 is not less than 0.1',
+        ))
+
+
+def test_condition_pass(coco_train_dataloader, coco_test_dataloader, device):
+    # Arrange
+    test = COCOData(coco_test_dataloader)
+    check = ImageDatasetDrift().add_condition_drift_score_less_than(0.3)
+
+    # Act
+    result = check.run(test, test, random_state=42, device=device)
+
+    # Assert
+    assert_that(result.conditions_results[0], equal_condition_result(
+        is_pass=True,
+        name=f'Drift score is less than 0.3',
+        details=f'Drift score 0.000 is less than 0.3',
         ))
