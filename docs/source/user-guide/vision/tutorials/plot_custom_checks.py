@@ -16,6 +16,7 @@ a pythonic value. Then, a condition can be defined on that value to determine if
 3. `Check Display <#check-display>`__
 4. `Defining a Condition <#defining-a-condition>`__
 5. `Base Checks Types <#base-checks-types>`__
+6. :doc:`Custom Check Templates </user-guide/vision/custom_check_templates>`
 
 Vision Checks Structure
 ========================

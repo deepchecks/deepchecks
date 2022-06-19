@@ -18,6 +18,8 @@ Templates:
 
 Single Dataset Check
 --------------------------
+Check type for cases when running on a single dataset and optional model, for example integrity checks. When in suite
+if 2 datasets are supplied it will run on both independently.
 
 .. code-block::
 
@@ -79,6 +81,8 @@ Single Dataset Check
 
 Train Test Check
 -----------------
+Check type for cases when running on two datasets and optional model, for example drift checks.
+
 
 .. code-block::
 
@@ -148,6 +152,8 @@ Train Test Check
 
 Model Only Check
 -------------------
+Check type for cases when running only on a model, for example model parameters check.
+
 
 .. code-block::
 
