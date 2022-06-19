@@ -21,7 +21,7 @@ from IPython.core.display import display, display_html
 from ipywidgets import Widget
 
 from deepchecks.core.serialization.abc import HTMLFormatter, HtmlSerializer, IPythonSerializer, WidgetSerializer
-from deepchecks.utils.ipython import is_colab_env, is_kaggle_env, is_databricks_env, is_sagemaker_env
+from deepchecks.utils.ipython import is_colab_env, is_databricks_env, is_kaggle_env, is_sagemaker_env
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.strings import create_new_file_name, get_random_string, widget_to_html, widget_to_html_string
 
