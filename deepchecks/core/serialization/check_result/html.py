@@ -119,7 +119,7 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
             <html>
             <head><meta charset="utf-8"/></head>
             <body style="background-color: white;">
-                {''.join([requirejs, plotlyjs, *sections])}
+                {''.join((requirejs, plotlyjs, *sections))}
             </body>
             </html>
         """)
@@ -127,12 +127,11 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
     def prepare_header(self, output_id: t.Optional[str] = None) -> str:
         """Prepare the header section of the html output."""
         header = self.value.get_header()
-        header = f'<b>{header}</b>'
         if output_id is not None:
             check_id = self.value.get_check_id(output_id)
-            return f'<h4 id="{check_id}">{header}</h4>'
+            return f'<h4 id="{check_id}"><b>{header}</b></h4>'
         else:
-            return f'<h4>{header}</h4>'
+            return f'<h4></b>{header}</b></h4>'
 
     def prepare_summary(self) -> str:
         """Prepare the summary section of the html output."""
@@ -239,7 +238,7 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
         List[str]
         """
         output = [cls.header()] if include_header else []
-        output.extend(super().handle_display(display, **{'output_id': output_id, **kwargs}))
+        output.extend(super().handle_display(display, output_id=output_id, **kwargs))
 
         if len(display) == 0:
             output.append(cls.empty_content_placeholder())

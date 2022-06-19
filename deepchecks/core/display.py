@@ -174,11 +174,14 @@ class DisplayableResult(abc.ABC):
             other key-value arguments will be passed to the `Serializer.serialize`
             method
         """
-        display(*self.ipython_serializer.serialize(
-            output_id=unique_id,
-            plotly_to_image=True,
-            **kwargs
-        ))
+        display_html(
+            self.html_serializer.serialize(
+                output_id=unique_id,
+                plotly_to_image=True,
+                **kwargs
+            ),
+            raw=True
+        )
 
     def _ipython_display_(self, **kwargs):
         """Display result.."""
@@ -368,5 +371,11 @@ def iframe(
                 Full Screen
             </button>
         </div>
-        <iframe allowfullscreen {attributes}></iframe>
+        <iframe 
+            allowfullscreen 
+            {attributes}>
+        </iframe>
     """
+
+
+import ipywidgets as widgets

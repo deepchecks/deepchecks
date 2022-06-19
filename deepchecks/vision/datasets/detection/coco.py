@@ -20,7 +20,7 @@ from typing import Iterable, List, Union
 import albumentations as A
 import numpy as np
 import torch
-from cv2 import cv2
+import cv2
 from PIL import Image
 from torch import nn
 from torch.utils.data import DataLoader

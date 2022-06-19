@@ -10,6 +10,7 @@
 #
 """Module containing SuiteResult serialization logic."""
 import typing as t
+import warnings
 
 from IPython.display import HTML
 
@@ -18,7 +19,8 @@ from deepchecks.core import suite
 from deepchecks.core.serialization.abc import IPythonFormatter, IPythonSerializer
 from deepchecks.core.serialization.check_result.html import CheckResultSection
 from deepchecks.core.serialization.check_result.ipython import CheckResultSerializer
-from deepchecks.core.serialization.common import Html, flatten, form_output_anchor, join
+from deepchecks.core.serialization.dataframe.html import DataFrameSerializer
+from deepchecks.core.serialization.common import Html, flatten, form_output_anchor, join, aggregate_conditions, create_failures_dataframe
 from deepchecks.utils.html import linktag
 
 from . import html
@@ -126,6 +128,7 @@ class SuiteResultSerializer(IPythonSerializer['suite.SuiteResult']):
         self,
         output_id: t.Optional[str] = None,
         include_check_name: bool = True,
+        is_for_iframe_with_srcdoc: bool = False,
         **kwargs
     ) -> HTML:
         """Prepare conditions table section.
@@ -136,16 +139,31 @@ class SuiteResultSerializer(IPythonSerializer['suite.SuiteResult']):
             unique output identifier that will be used to form anchor links
         include_check_name : bool, default True
             wherether to include check name into table or not
+        is_for_iframe_with_srcdoc : bool, default False
+            anchor links, in order to work within iframe require additional prefix
+            'about:srcdoc'. This flag tells function whether to add that prefix to
+            the anchor links or not
 
         Returns
         -------
         HTML
         """
-        return HTML(self._html_serializer.prepare_conditions_table(
+        if not self.value.results_with_conditions:
+            return HTML('<p>No conditions defined on checks in the suite.</p>')
+
+        results = t.cast(
+            t.List[check_types.CheckResult],
+            self.value.select_results(self.value.results_with_conditions)
+        )
+        table = DataFrameSerializer(aggregate_conditions(
+            results,
             output_id=output_id,
             include_check_name=include_check_name,
-            **kwargs
-        ))
+            max_info_len=300,
+            is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
+        )).serialize()
+
+        return HTML(f'<h2>Conditions Summary</h2>{table}')
 
     def prepare_results_with_condition_and_display(
         self,
@@ -237,4 +255,14 @@ class SuiteResultSerializer(IPythonSerializer['suite.SuiteResult']):
 
     def prepare_failures_list(self) -> HTML:
         """Prepare subsection of the content that shows list of failures."""
-        return HTML(self._html_serializer.prepare_failures_list())
+        suite_result = self.value
+        results = suite_result.select_results(suite_result.failures | suite_result.results_without_display)
+
+        if not results:
+            return HTML('')
+
+        df = create_failures_dataframe(results)
+        with warnings.catch_warnings():
+            warnings.simplefilter(action='ignore', category=FutureWarning)
+            table = DataFrameSerializer(df.style.hide_index()).serialize()
+            return HTML(f'<h2>Other Checks That Weren\'t Displayed</h2>\n{table}')
