@@ -63,7 +63,6 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         number_of_bins: int = 5,
         number_of_samples_to_infer_bins: int = 1000,
         n_to_show: int = 3,
-        with_display: bool = True,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -76,7 +75,6 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         self.number_of_bins = number_of_bins
         self.number_of_samples_to_infer_bins = number_of_samples_to_infer_bins
         self.n_to_show = n_to_show
-        self.with_display = with_display
 
         self._state = None
 
@@ -156,7 +154,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
                 single_bin['metrics'] = _calculate_metrics(single_bin['metrics'], dataset)
                 single_bin['display_range'] = display_range
                 # we don't show single columns in the display
-                if self.with_display and len(prop_bins) > 1:
+                if context.with_display and len(prop_bins) > 1:
                     # For the plotly display need row per metric in the dataframe
                     for metric, val in single_bin['metrics'].items():
                         display_data.append({'Metric': metric, 'Value': val, **bin_data})

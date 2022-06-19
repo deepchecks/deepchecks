@@ -28,10 +28,9 @@ class IndexTrainTestLeakage(TrainTestCheck):
         Number of common indexes to show.
     """
 
-    def __init__(self, n_index_to_show: int = 5, with_display: bool = True, **kwargs):
+    def __init__(self, n_index_to_show: int = 5, **kwargs):
         super().__init__(**kwargs)
         self.n_index_to_show = n_index_to_show
-        self.with_display = with_display
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check.
@@ -57,7 +56,7 @@ class IndexTrainTestLeakage(TrainTestCheck):
         index_intersection = list(set(train_index).intersection(val_index))
         if len(index_intersection) > 0:
             size_in_test = len(index_intersection) / test_dataset.n_samples
-            if self.with_display:
+            if context.with_display:
                 text = f'{size_in_test:.1%} of test data indexes appear in training data'
                 table = pd.DataFrame([[list(index_intersection)[:self.n_index_to_show]]],
                                     index=['Sample of test indexes in train:'])

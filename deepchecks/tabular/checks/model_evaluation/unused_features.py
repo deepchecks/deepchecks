@@ -63,7 +63,6 @@ class UnusedFeatures(TrainTestCheck):
         n_top_fi_to_show: int = 5,
         n_top_unused_to_show: int = 15,
         random_state: int = 42,
-        with_display: bool = True,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -72,7 +71,6 @@ class UnusedFeatures(TrainTestCheck):
         self.n_top_fi_to_show = n_top_fi_to_show
         self.n_top_unused_to_show = n_top_unused_to_show
         self.random_state = random_state
-        self.with_display = with_display
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check."""
@@ -122,7 +120,7 @@ class UnusedFeatures(TrainTestCheck):
             )
 
             # display only if high variance features exist (as set by self.feature_variance_threshold)
-            if self.with_display and last_variable_feature_index:
+            if context.with_display and last_variable_feature_index:
                 # limit display to n_top_to_show params
                 display_feature_df = pd.concat(
                     [feature_df.iloc[:(last_important_feature_index + 1)].head(self.n_top_fi_to_show),

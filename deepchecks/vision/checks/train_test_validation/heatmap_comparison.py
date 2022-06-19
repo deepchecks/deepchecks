@@ -43,11 +43,9 @@ class HeatmapComparison(TrainTestCheck):
 
     def __init__(self,
                  classes_to_display: Optional[List[str]] = None,
-                 with_display: bool = True,
                  **kwargs):
         super().__init__(**kwargs)
         self.classes_to_display = {str(x) for x in classes_to_display} if classes_to_display else None
-        self.with_display = with_display
 
     def initialize_run(self, context: Context):
         """Initialize run.
@@ -132,7 +130,7 @@ class HeatmapComparison(TrainTestCheck):
             'diff': self._image_diff(test_grayscale, train_grayscale)
         }
 
-        if self.with_display:
+        if context.with_display:
             # Add a display for the heatmap of the average grayscale image
             display = [self.plot_row_of_heatmaps(train_grayscale, test_grayscale, 'Compare average image brightness')]
             display[0].update_layout(coloraxis={'colorscale': 'Inferno', 'cmin': 0, 'cmax': 255},
@@ -149,7 +147,7 @@ class HeatmapComparison(TrainTestCheck):
 
             value['diff_bbox'] = self._image_diff(test_bbox, train_bbox)
 
-            if self.with_display:
+            if context.with_display:
                 display.append(
                     self.plot_row_of_heatmaps(train_bbox, test_bbox, 'Compare average label bbox locations')
                 )
@@ -158,7 +156,7 @@ class HeatmapComparison(TrainTestCheck):
                                         coloraxis_colorbar={'title': '% Coverage'})
 
         return CheckResult(value=value,
-                           display=display if self.with_display else None,
+                           display=display if context.with_display else None,
                            header='Heatmap Comparison')
 
     @staticmethod

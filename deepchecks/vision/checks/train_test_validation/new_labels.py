@@ -73,7 +73,6 @@ class NewLabels(TrainTestCheck):
             self,
             max_images_to_display_per_label: int = 3,
             max_new_labels_to_display: int = 3,
-            with_display: bool =True,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -85,7 +84,6 @@ class NewLabels(TrainTestCheck):
 
         self.max_images_to_display_per_label = max_images_to_display_per_label
         self.max_new_labels_to_display = max_new_labels_to_display
-        self.with_display = with_display
 
     def update(self, context: Context, batch: Batch, dataset_kind):
         """No additional caching required for this check."""
@@ -113,13 +111,14 @@ class NewLabels(TrainTestCheck):
             'all_labels_count': sum(test_data.n_of_samples_per_class.values())
         }
 
-        if self.with_display:
+        if context.with_display:
             # Create display
             displays = []
             for class_id, num_occurrences in classes_only_in_test_count.items():
                 # Create id of alphabetic characters
                 sid = ''.join([choice(string.ascii_uppercase) for _ in range(3)])
-                images_of_class_id = list(set(test_data.classes_indices[class_id]))[:self.max_images_to_display_per_label]
+                images_of_class_id = \
+                    list(set(test_data.classes_indices[class_id]))[:self.max_images_to_display_per_label]
                 images_combine = ''.join([f'<div class="{sid}-item">{draw_image(test_data, x, class_id)}</div>'
                                         for x in images_of_class_id])
 

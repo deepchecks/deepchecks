@@ -76,7 +76,6 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
         n_top_columns: int = 10,
         outlier_length_to_show: int = 50,
         samples_per_range_to_show: int = 3,
-        with_display: bool = True,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -92,7 +91,6 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
         self.min_unique_values = min_unique_values
         self.outlier_length_to_show = outlier_length_to_show
         self.samples_per_range_to_show = samples_per_range_to_show
-        self.with_display = with_display
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
@@ -159,7 +157,7 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
                             'n_samples': outlier_samples.size
                         })
 
-                        if self.with_display:
+                        if context.with_display:
                             display_format.append([column_name,
                                 f'{format_number(non_outlier_lower_limit)} -'
                                 f' {format_number(non_outlier_upper_limit)}',

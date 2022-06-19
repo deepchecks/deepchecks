@@ -146,13 +146,11 @@ class BoostingOverfit(TrainTestCheck):
         self,
         alternative_scorer: Tuple[str, Union[str, Callable]] = None,
         num_steps: int = 20,
-        with_display: bool = True,
         **kwargs
     ):
         super().__init__(**kwargs)
         self.user_scorer = dict([alternative_scorer]) if alternative_scorer else None
         self.num_steps = num_steps
-        self.with_display = with_display
 
         if not isinstance(self.num_steps, int) or self.num_steps < 2:
             raise DeepchecksValueError('num_steps must be an integer larger than 1')
@@ -184,7 +182,7 @@ class BoostingOverfit(TrainTestCheck):
 
         result = {'test': test_scores, 'train': train_scores}
 
-        if self.with_display:
+        if context.with_display:
             fig = go.Figure()
             fig.add_trace(go.Scatter(x=estimator_steps, y=np.array(train_scores),
                                     mode='lines+markers',

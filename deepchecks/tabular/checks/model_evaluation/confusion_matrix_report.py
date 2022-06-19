@@ -31,11 +31,9 @@ class ConfusionMatrixReport(SingleDatasetCheck):
 
     def __init__(self,
                  normalized: bool = True,
-                 with_display: bool = True,
                  **kwargs):
         super().__init__(**kwargs)
         self.normalized = normalized
-        self.with_display = with_display
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
@@ -60,7 +58,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         total_classes = sorted(list(set(pd.concat([ds_y, pd.Series(y_pred)]).to_list())))
         confusion_matrix = metrics.confusion_matrix(ds_y, y_pred)
 
-        if self.with_display:
+        if context.with_display:
             fig = create_confusion_matrix_figure(confusion_matrix, total_classes,
                                                 total_classes, self.normalized)
         else:

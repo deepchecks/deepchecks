@@ -236,6 +236,10 @@ class Context:
     # Validations note: We know train & test fit each other so all validations can be run only on train
 
     @property
+    def with_display(self) -> bool:
+        return True
+
+    @property
     def train(self) -> Dataset:
         """Return train if exists, otherwise raise error."""
         if self._train is None:

@@ -37,10 +37,9 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
         Slices for small/medium/large buckets.
     """
 
-    def __init__(self, area_range: Tuple = (32**2, 96**2), with_display: bool = True, **kwargs):
+    def __init__(self, area_range: Tuple = (32**2, 96**2), **kwargs):
         super().__init__(**kwargs)
         self.area_range = area_range
-        self.with_display = with_display
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind = None):
         """Initialize run by asserting task type and initializing metric."""
@@ -74,7 +73,7 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
         results = pd.DataFrame(data=rows, columns=['Area size', 'mAP@[.50::.95] (avg.%)', 'mAP@.50 (%)', 'mAP@.75 (%)'])
         results = results.set_index('Area size')
 
-        if self.with_display:
+        if context.with_display:
             filtered_res = self._ap_metric.filter_res(res, area='all', max_dets=100)
             filtered_res_shape = filtered_res.shape
             filtered_res = np.reshape(filtered_res, (filtered_res_shape[0], filtered_res_shape[3]))

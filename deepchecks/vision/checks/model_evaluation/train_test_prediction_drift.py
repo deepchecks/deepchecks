@@ -101,7 +101,6 @@ class TrainTestPredictionDrift(TrainTestCheck):
             show_categories_by: str = 'largest_difference',
             categorical_drift_method='cramer_v',
             max_num_categories: int = None,  # Deprecated
-            with_display: bool = True,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -124,7 +123,6 @@ class TrainTestPredictionDrift(TrainTestCheck):
         self.max_num_categories_for_drift = max_num_categories_for_drift
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
-        self.with_display = with_display
 
         self._prediction_properties = None
         self._train_prediction_properties = None
@@ -206,7 +204,7 @@ class TrainTestPredictionDrift(TrainTestCheck):
                 max_num_categories_for_display=self.max_num_categories_for_display,
                 show_categories_by=self.show_categories_by,
                 categorical_drift_method=self.categorical_drift_method,
-                with_display=self.with_display,
+                with_display=context.with_display,
             )
             values_dict[name] = {
                 'Drift score': value,
@@ -214,7 +212,7 @@ class TrainTestPredictionDrift(TrainTestCheck):
             }
             displays_dict[name] = display
 
-        if self.with_display:
+        if context.with_display:
             columns_order = sorted(prediction_properties_names, key=lambda col: values_dict[col]['Drift score'],
                                 reverse=True)
 

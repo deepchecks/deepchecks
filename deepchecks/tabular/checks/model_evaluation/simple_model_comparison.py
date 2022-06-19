@@ -94,7 +94,6 @@ class SimpleModelComparison(TrainTestCheck):
         max_gain: float = 50,
         max_depth: int = 3,
         random_state: int = 42,
-        with_display: bool = True,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -103,7 +102,6 @@ class SimpleModelComparison(TrainTestCheck):
         self.max_gain = max_gain
         self.max_depth = max_depth
         self.random_state = random_state
-        self.with_display = with_display
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check.
@@ -152,7 +150,7 @@ class SimpleModelComparison(TrainTestCheck):
                 for model_name, model_type, model_instance in models:
                     for class_score, class_value in zip(scorer(model_instance, test_dataset), classes):
                         model_dict[class_value][model_type] = class_score
-                        if self.with_display:
+                        if context.with_display:
                             display_array.append([model_name,
                                                 model_type,
                                                 class_score,
@@ -198,7 +196,7 @@ class SimpleModelComparison(TrainTestCheck):
                 for model_name, model_type, model_instance in models:
                     score = scorer(model_instance, test_dataset)
                     model_dict[model_type] = score
-                    if self.with_display:
+                    if context.with_display:
                         display_array.append([model_name,
                                             model_type,
                                             score,

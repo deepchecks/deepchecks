@@ -83,7 +83,6 @@ class ImagePropertyDrift(TrainTestCheck):
             classes_to_display: t.Optional[t.List[str]] = None,
             min_samples: int = 30,
             max_num_categories: int = None,  # Deprecated
-            with_display: bool = True,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -106,7 +105,6 @@ class ImagePropertyDrift(TrainTestCheck):
         self.show_categories_by = show_categories_by
         self.classes_to_display = classes_to_display
         self.min_samples = min_samples
-        self.with_display = with_display
 
         self._train_properties = None
         self._test_properties = None
@@ -198,7 +196,7 @@ class ImagePropertyDrift(TrainTestCheck):
                     max_num_categories_for_display=self.max_num_categories_for_display,
                     show_categories_by=self.show_categories_by,
                     min_samples=self.min_samples,
-                    with_display=self.with_display,
+                    with_display=context.with_display,
                 )
 
                 figures[property_name] = figure
@@ -206,7 +204,7 @@ class ImagePropertyDrift(TrainTestCheck):
             except NotEnoughSamplesError:
                 not_enough_samples.append(property_name)
 
-        if self.with_display:
+        if context.with_display:
             columns_order = sorted(properties, key=lambda col: drifts.get(col, 0), reverse=True)
             properties_to_display = [p for p in properties if p in drifts]
 

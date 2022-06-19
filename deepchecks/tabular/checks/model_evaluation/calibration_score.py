@@ -25,10 +25,6 @@ __all__ = ['CalibrationScore']
 class CalibrationScore(SingleDatasetCheck):
     """Calculate the calibration curve with brier score for each class."""
 
-    def __init__(self, with_display: bool = True, **kwargs):
-        super().__init__(**kwargs)
-        self.with_display = with_display
-
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
 
@@ -62,7 +58,7 @@ class CalibrationScore(SingleDatasetCheck):
                 clf_score = brier_score_loss(ds_y == class_name, prob_pos)
                 briers_scores[class_name] = clf_score
 
-        if self.with_display:
+        if context.with_display:
             fig = go.Figure()
 
             fig.add_trace(go.Scatter(

@@ -62,14 +62,12 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
                  n_top_features: int = 5,
                  random_state: int = None,
                  min_pps_to_show: float = 0.05,
-                 with_display: bool = True,
                  **kwargs):
         super().__init__(**kwargs)
         self.ppscore_params = ppscore_params or {}
         self.n_top_features = n_top_features
         self.random_state = random_state
         self.min_pps_to_show = min_pps_to_show
-        self.with_display = with_display
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check.
@@ -117,7 +115,7 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
                                                            self.n_top_features,
                                                            min_pps_to_show=self.min_pps_to_show,
                                                            random_state=self.random_state,
-                                                           with_display=self.with_display)
+                                                           with_display=context.with_display)
 
         if display:
             display += text

@@ -62,13 +62,11 @@ class ClassPerformance(TrainTestCheck):
                  show_only: str = 'largest',
                  metric_to_show_by: str = None,
                  class_list_to_show: List[int] = None,
-                 with_display: bool = True,
                  **kwargs):
         super().__init__(**kwargs)
         self.alternative_metrics = alternative_metrics
         self.n_to_show = n_to_show
         self.class_list_to_show = class_list_to_show
-        self.with_display = with_display
 
         if self.class_list_to_show is None:
             if show_only not in ['largest', 'smallest', 'random', 'best', 'worst']:
@@ -124,7 +122,7 @@ class ClassPerformance(TrainTestCheck):
 
         results_df = results_df.sort_values(by=['Dataset', 'Value'], ascending=False)
 
-        if self.with_display:
+        if context.with_display:
             fig = px.histogram(
                 results_df,
                 x='Class Name',

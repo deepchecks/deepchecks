@@ -53,7 +53,6 @@ class FeatureFeatureCorrelation(SingleDatasetCheck):
         show_n_top_columns: int = 10,
         n_samples: int = 10000,
         random_state: int = 42,
-        with_display: bool = True,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -62,7 +61,6 @@ class FeatureFeatureCorrelation(SingleDatasetCheck):
         self.n_top_columns = show_n_top_columns
         self.n_samples = n_samples
         self.random_state = random_state
-        self.with_display = with_display
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """
@@ -103,7 +101,7 @@ class FeatureFeatureCorrelation(SingleDatasetCheck):
             full_df.loc[cat_features, num_features] = num_cat_corr.transpose()
 
         # Display
-        if self.with_display:
+        if context.with_display:
             top_n_features = full_df.max(axis=1).sort_values(ascending=False).head(self.n_top_columns).index
             top_n_df = full_df.loc[top_n_features, top_n_features].abs()
             num_nans = top_n_df.isna().sum().sum()
@@ -112,8 +110,8 @@ class FeatureFeatureCorrelation(SingleDatasetCheck):
             fig = [px.imshow(top_n_df, color_continuous_scale=px.colors.sequential.thermal),
                 '* Displayed as absolute values.']
             if num_nans:
-                fig.append(f'* NaN values (where the correlation could not be calculated) are displayed as 0.0, total of '
-                        f'{num_nans} NaNs in this display.')
+                fig.append(f'* NaN values (where the correlation could not be calculated)'
+                        f' are displayed as 0.0, total of {num_nans} NaNs in this display.')
             if len(dataset.features) > len(all_features):
                 fig.append('* Some features in the dataset are neither numerical nor categorical and therefore not '
                         'calculated.')

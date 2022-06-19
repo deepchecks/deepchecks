@@ -63,7 +63,6 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
                  n_show_top: int = 5,
                  iqr_percentiles: t.Tuple[int, int] = (25, 75),
                  iqr_scale: float = 1.5,
-                 with_display: bool = True,
                  **kwargs):
         super().__init__(**kwargs)
         if properties is not None:
@@ -77,7 +76,6 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         self.iqr_percentiles = iqr_percentiles
         self.iqr_scale = iqr_scale
         self.n_show_top = n_show_top
-        self.with_display = with_display
 
         self._properties_results = None
         self._properties_funcs = None
@@ -178,7 +176,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
             }
 
         # Create display
-        if self.with_display:
+        if context.with_display:
             display = []
             for property_name, info in result.items():
                 # If info is string it means there was error

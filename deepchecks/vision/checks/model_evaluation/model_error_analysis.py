@@ -69,7 +69,6 @@ class ModelErrorAnalysis(TrainTestCheck):
                  min_segment_size: float = 0.05,
                  n_display_samples: int = 5_000,
                  random_state: int = 42,
-                 with_display: bool = True,
                  **kwargs):
         super().__init__(**kwargs)
         self.random_state = random_state
@@ -78,7 +77,6 @@ class ModelErrorAnalysis(TrainTestCheck):
         self.max_properties_to_show = max_properties_to_show
         self.min_property_contribution = min_property_contribution
         self.n_display_samples = n_display_samples
-        self.with_display = with_display
 
         self._train_properties = None
         self._test_properties = None
@@ -173,7 +171,7 @@ class ModelErrorAnalysis(TrainTestCheck):
                                                        self.n_display_samples,
                                                        self.min_segment_size,
                                                        self.random_state,
-                                                       self.with_display)
+                                                       context.with_display)
 
         headnote = """<span>
             The following graphs show the distribution of error for top properties that are most useful for

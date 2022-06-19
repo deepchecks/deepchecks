@@ -39,12 +39,10 @@ class RegressionErrorDistribution(SingleDatasetCheck):
     def __init__(self,
                  n_top_samples: int = 3,
                  n_bins: int = 40,
-                 with_display: bool = True,
                  **kwargs):
         super().__init__(**kwargs)
         self.n_top_samples = n_top_samples
         self.n_bins = n_bins
-        self.with_display = with_display
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
@@ -72,7 +70,7 @@ class RegressionErrorDistribution(SingleDatasetCheck):
         diff = y_test - y_pred
         kurtosis_value = kurtosis(diff)
 
-        if self.with_display:
+        if context.with_display:
             n_largest_diff = diff.nlargest(self.n_top_samples)
             n_largest_diff.name = str(dataset.label_name) + ' Prediction Difference'
             n_largest = pd.concat([dataset.data.loc[n_largest_diff.index], y_pred.loc[n_largest_diff.index],

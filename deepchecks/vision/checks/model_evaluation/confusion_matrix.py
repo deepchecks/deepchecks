@@ -68,14 +68,12 @@ class ConfusionMatrixReport(SingleDatasetCheck):
                  confidence_threshold: float = 0.3,
                  iou_threshold: float = 0.5,
                  normalized: bool = True,
-                 with_display: bool = True,
                  **kwargs):
         super().__init__(**kwargs)
         self.confidence_threshold = confidence_threshold
         self.categories_to_display = categories_to_display
         self.iou_threshold = iou_threshold
         self.normalized = normalized
-        self.with_display = with_display
 
         self.matrix = None
         self.classes_list = None
@@ -115,7 +113,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
 
         matrix = pd.DataFrame(matrix, index=classes, columns=classes).to_numpy()
 
-        if self.with_display:
+        if context.with_display:
             confusion_matrix, categories = filter_confusion_matrix(
                 matrix,
                 self.categories_to_display

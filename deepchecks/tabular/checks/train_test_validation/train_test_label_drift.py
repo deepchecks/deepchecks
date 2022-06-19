@@ -72,7 +72,6 @@ class TrainTestLabelDrift(TrainTestCheck):
             show_categories_by: str = 'largest_difference',
             categorical_drift_method='cramer_v',
             max_num_categories: int = None,
-            with_display: bool = True,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -89,7 +88,6 @@ class TrainTestLabelDrift(TrainTestCheck):
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
         self.categorical_drift_method = categorical_drift_method
-        self.with_display = with_display
 
     def run_logic(self, context: Context) -> CheckResult:
         """Calculate drift for all columns.
@@ -113,12 +111,12 @@ class TrainTestLabelDrift(TrainTestCheck):
             max_num_categories_for_display=self.max_num_categories_for_display,
             show_categories_by=self.show_categories_by,
             categorical_drift_method=self.categorical_drift_method,
-            with_display=self.with_display,
+            with_display=context.with_display,
         )
 
         values_dict = {'Drift score': drift_score, 'Method': method}
 
-        if self.with_display:
+        if context.with_display:
             headnote = """<span>
                 The Drift score is a measure for the difference between two distributions, in this check - the test
                 and train distributions.<br> The check shows the drift score and distributions for the label.

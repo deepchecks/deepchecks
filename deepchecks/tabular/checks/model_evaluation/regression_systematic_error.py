@@ -23,10 +23,6 @@ __all__ = ['RegressionSystematicError']
 class RegressionSystematicError(SingleDatasetCheck):
     """Check the regression systematic error."""
 
-    def __init__(self, with_display: bool = True, **kwargs):
-        super().__init__(**kwargs)
-        self.with_display = with_display
-
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
 
@@ -51,7 +47,7 @@ class RegressionSystematicError(SingleDatasetCheck):
         diff = y_test - y_pred
         diff_mean = diff.mean()
 
-        if self.with_display:
+        if context.with_display:
             fig = (
                 go.Figure()
                 .add_trace(go.Box(

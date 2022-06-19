@@ -51,7 +51,6 @@ class SegmentPerformance(SingleDatasetCheck):
         feature_2: Optional[Hashable] = None,
         alternative_scorer: Tuple[str, Union[str, Callable]] = None,
         max_segments: int = 10,
-        with_display: bool = True,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -68,7 +67,6 @@ class SegmentPerformance(SingleDatasetCheck):
 
         self.max_segments = max_segments
         self.user_scorer = dict([alternative_scorer]) if alternative_scorer else None
-        self.with_display = with_display
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
@@ -145,7 +143,7 @@ class SegmentPerformance(SingleDatasetCheck):
 
         value = {'scores': scores, 'counts': counts, 'feature_1': self.feature_1, 'feature_2': self.feature_2}
 
-        if self.with_display:
+        if context.with_display:
             fig = px.imshow(scores, x=x, y=y, color_continuous_scale='rdylgn')
             fig.update_traces(text=scores_text, texttemplate='%{text}')
             fig.update_layout(

@@ -34,10 +34,9 @@ class IdentifierLeakage(SingleDatasetCheck):
         dictionary containing params to pass to ppscore predictor
     """
 
-    def __init__(self, ppscore_params=None, with_display: bool = True, **kwargs):
+    def __init__(self, ppscore_params=None, **kwargs):
         super().__init__(**kwargs)
         self.ppscore_params = ppscore_params or {}
-        self.with_display = with_display
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
@@ -79,7 +78,7 @@ class IdentifierLeakage(SingleDatasetCheck):
         df_pps = df_pps.set_index('x', drop=True)
         s_ppscore = df_pps['ppscore']
 
-        if self.with_display:
+        if context.with_display:
             xaxis_layout = dict(
                 title='Identifiers',
                 type='category',

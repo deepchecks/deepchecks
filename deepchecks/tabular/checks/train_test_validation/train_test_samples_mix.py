@@ -28,10 +28,6 @@ __all__ = ['TrainTestSamplesMix']
 class TrainTestSamplesMix(TrainTestCheck):
     """Detect samples in the test data that appear also in training data."""
 
-    def __init__(self, with_display: bool = True, **kwargs):
-        super().__init__(**kwargs)
-        self.with_display = with_display
-
     def run_logic(self, context: Context) -> CheckResult:
         """Run check.
 
@@ -67,7 +63,7 @@ class TrainTestSamplesMix(TrainTestCheck):
         dup_ratio = test_dup_count / test_dataset.n_samples
         user_msg = f'{format_percent(dup_ratio)} ({test_dup_count} / {test_dataset.n_samples}) \
                      of test data samples appear in train data'
-        display = [user_msg, duplicates_df.head(10)] if self.with_display and dup_ratio else None
+        display = [user_msg, duplicates_df.head(10)] if context.with_display and dup_ratio else None
         result = {'ratio': dup_ratio, 'data': duplicates_df}
         return CheckResult(result, header='Train Test Samples Mix', display=display)
 

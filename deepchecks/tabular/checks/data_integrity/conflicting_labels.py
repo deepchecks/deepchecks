@@ -41,14 +41,12 @@ class ConflictingLabels(SingleDatasetCheck):
         columns: Union[Hashable, List[Hashable], None] = None,
         ignore_columns: Union[Hashable, List[Hashable], None] = None,
         n_to_show: int = 5,
-        with_display: bool = True,
         **kwargs
     ):
         super().__init__(**kwargs)
         self.columns = columns
         self.ignore_columns = ignore_columns
         self.n_to_show = n_to_show
-        self.with_display = with_display
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
@@ -91,7 +89,7 @@ class ConflictingLabels(SingleDatasetCheck):
                                             orient='index')
             n_data_sample = group_df.shape[0]
             num_ambiguous += n_data_sample
-            if self.with_display:
+            if context.with_display:
                 display = pd.concat([display, sample])
 
         display = display.set_index(ambiguous_label_name)

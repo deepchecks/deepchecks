@@ -53,7 +53,6 @@ class MixedNulls(SingleDatasetCheck):
         columns: Union[Hashable, List[Hashable], None] = None,
         ignore_columns: Union[Hashable, List[Hashable], None] = None,
         n_top_columns: int = 10,
-        with_display: bool = True,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -62,7 +61,6 @@ class MixedNulls(SingleDatasetCheck):
         self.columns = columns
         self.ignore_columns = ignore_columns
         self.n_top_columns = n_top_columns
-        self.with_display = with_display
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
@@ -101,7 +99,7 @@ class MixedNulls(SingleDatasetCheck):
                 result_dict[column_name][null_value] = {'count': count, 'percent': percent}
 
         # Create dataframe to display table
-        if self.with_display and display_array:
+        if context.with_display and display_array:
             df_graph = pd.DataFrame(display_array, columns=['Column Name', 'Value', 'Count', 'Percent of data'])
             df_graph = df_graph.set_index(['Column Name', 'Value'])
             df_graph = column_importance_sorter_df(df_graph, dataset, context.features_importance,

@@ -92,7 +92,6 @@ class TrainTestFeatureDrift(TrainTestCheck):
             n_samples: int = 100_000,
             random_state: int = 42,
             max_num_categories: int = None,  # Deprecated
-            with_display: bool = True,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -118,7 +117,6 @@ class TrainTestFeatureDrift(TrainTestCheck):
         self.categorical_drift_method = categorical_drift_method
         self.n_samples = n_samples
         self.random_state = random_state
-        self.with_display = with_display
 
     def run_logic(self, context: Context) -> CheckResult:
         """
@@ -190,7 +188,7 @@ class TrainTestFeatureDrift(TrainTestCheck):
                 max_num_categories_for_display=self.max_num_categories_for_display,
                 show_categories_by=self.show_categories_by,
                 categorical_drift_method=self.categorical_drift_method,
-                with_display=self.with_display,
+                with_display=context.with_display,
             )
             values_dict[column] = {
                 'Drift score': value,
@@ -199,7 +197,7 @@ class TrainTestFeatureDrift(TrainTestCheck):
             }
             displays_dict[column] = display
 
-        if self.with_display:
+        if context.with_display:
             if self.sort_feature_by == 'feature importance' and features_importance is not None:
                 columns_order = features_order[:self.n_top_columns]
             else:

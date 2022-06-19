@@ -44,7 +44,6 @@ class CategoryMismatchTrainTest(TrainTestCheck):
         ignore_columns: Union[Hashable, List[Hashable], None] = None,
         max_features_to_show: int = 5,
         max_new_categories_to_show: int = 5,
-        with_display: bool = True,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -52,7 +51,6 @@ class CategoryMismatchTrainTest(TrainTestCheck):
         self.ignore_columns = ignore_columns
         self.max_features_to_show = max_features_to_show
         self.max_new_categories_to_show = max_new_categories_to_show
-        self.with_display = with_display
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check.
@@ -94,7 +92,7 @@ class CategoryMismatchTrainTest(TrainTestCheck):
                 new_categories_ratio = sum(new_category_counts.values()) / n_test_samples
                 sorted_new_categories = dict(sorted(new_category_counts.items(), key=lambda x: x[1], reverse=True))
                 new_categories[feature] = sorted_new_categories
-                if self.with_display:
+                if context.with_display:
                     display_data.append([feature, len(new_category_values), new_categories_ratio,
                                         list(sorted_new_categories.keys())[:self.max_new_categories_to_show]])
             else:

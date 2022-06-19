@@ -77,12 +77,10 @@ class PerformanceReport(TrainTestCheck, ReduceMixin):
     def __init__(self,
                  alternative_scorers: Dict[str, Callable] = None,
                  reduce: Union[Callable, str] = 'mean',
-                 with_display: bool = True,
                  **kwargs):
         super().__init__(**kwargs)
         self.user_scorers = alternative_scorers
         self.reduce = reduce
-        self.with_display = with_display
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check.
@@ -127,7 +125,7 @@ class PerformanceReport(TrainTestCheck, ReduceMixin):
             ]
             results_df = pd.DataFrame(results, columns=['Dataset', 'Metric', 'Value', 'Number of samples'])
 
-        if self.with_display:
+        if context.with_display:
             fig = px.histogram(
                 results_df,
                 x=plot_x_axis,

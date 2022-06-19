@@ -42,14 +42,12 @@ class IsSingleValue(SingleDatasetCheck):
         columns: Union[Hashable, List[Hashable], None] = None,
         ignore_columns: Union[Hashable, List[Hashable], None] = None,
         ignore_nan: bool = True,
-        with_display: bool = True,
         **kwargs
     ):
         super().__init__(**kwargs)
         self.columns = columns
         self.ignore_columns = ignore_columns
         self.ignore_nan = ignore_nan
-        self.with_display = with_display
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
@@ -67,7 +65,7 @@ class IsSingleValue(SingleDatasetCheck):
         num_unique_per_col = df.nunique(dropna=self.ignore_nan)
         is_single_unique_value = (num_unique_per_col == 1)
 
-        if self.with_display and is_single_unique_value.any():
+        if context.with_display and is_single_unique_value.any():
             # get names of columns with one unique value
             # pylint: disable=unsubscriptable-object
             cols_with_single = is_single_unique_value[is_single_unique_value].index.to_list()

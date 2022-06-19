@@ -54,14 +54,12 @@ class FeatureLabelCorrelation(SingleDatasetCheck):
         ppscore_params=None,
         n_top_features: int = 5,
         random_state: int = None,
-        with_display: bool = True,
         **kwargs
     ):
         super().__init__(**kwargs)
         self.ppscore_params = ppscore_params or {}
         self.n_top_features = n_top_features
         self.random_state = random_state
-        self.with_display = with_display
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
@@ -86,7 +84,7 @@ class FeatureLabelCorrelation(SingleDatasetCheck):
                                 **self.ppscore_params)
         s_ppscore = df_pps.set_index('x', drop=True)['ppscore']
 
-        if self.with_display:
+        if context.with_display:
             top_to_show = s_ppscore.head(self.n_top_features)
 
             fig = get_pps_figure(per_class=False, n_of_features=len(top_to_show))

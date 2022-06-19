@@ -35,10 +35,9 @@ class RocReport(SingleDatasetCheck):
         List of classes to exclude from the condition.
     """
 
-    def __init__(self, excluded_classes: List = None, with_display: bool = True, **kwargs):
+    def __init__(self, excluded_classes: List = None, **kwargs):
         super().__init__(**kwargs)
         self.excluded_classes = excluded_classes or []
-        self.with_display = with_display
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
@@ -73,7 +72,7 @@ class RocReport(SingleDatasetCheck):
                 sklearn.metrics.roc_curve(multi_y[:, i], y_pred_prob[:, i])
             roc_auc[class_name] = sklearn.metrics.auc(fpr[class_name], tpr[class_name])
 
-        if self.with_display:
+        if context.with_display:
             fig = go.Figure()
             for class_name in dataset_classes:
                 if class_name in self.excluded_classes:
@@ -94,7 +93,8 @@ class RocReport(SingleDatasetCheck):
                         line_width=2,
                         name=f'Class {class_name} (auc = {roc_auc[class_name]:0.2f})'
                     ))
-                    fig.add_trace(get_cutoff_figure(tpr[class_name], fpr[class_name], thresholds[class_name], class_name))
+                    fig.add_trace(get_cutoff_figure(tpr[class_name], fpr[class_name],
+                                                    thresholds[class_name], class_name))
             fig.add_trace(go.Scatter(
                         x=[0, 1],
                         y=[0, 1],
