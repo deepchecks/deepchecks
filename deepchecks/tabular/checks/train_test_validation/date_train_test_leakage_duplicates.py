@@ -27,9 +27,10 @@ class DateTrainTestLeakageDuplicates(TrainTestCheck):
         Number of common dates to show.
     """
 
-    def __init__(self, n_to_show: int = 5, **kwargs):
+    def __init__(self, n_to_show: int = 5, with_display: bool = True, **kwargs):
         super().__init__(**kwargs)
         self.n_to_show = n_to_show
+        self.with_display = with_display
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check.
@@ -56,13 +57,18 @@ class DateTrainTestLeakageDuplicates(TrainTestCheck):
 
         if len(date_intersection) > 0:
             leakage_ratio = len(date_intersection) / test_dataset.n_samples
-            text = f'{format_percent(leakage_ratio)} of test data dates appear in training data'
-            table = pd.DataFrame(
-                [[list(format_datetime(it) for it in date_intersection[:self.n_to_show])]],
-                index=['Sample of test dates in train:']
-            )
-            display = [text, table]
             return_value = leakage_ratio
+
+            if self.with_display:
+                text = f'{format_percent(leakage_ratio)} of test data dates appear in training data'
+                table = pd.DataFrame(
+                    [[list(format_datetime(it) for it in date_intersection[:self.n_to_show])]],
+                    index=['Sample of test dates in train:']
+                )
+                display = [text, table]
+            else:
+                display = None
+
         else:
             display = None
             return_value = 0

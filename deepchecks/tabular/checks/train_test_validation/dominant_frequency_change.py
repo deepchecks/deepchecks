@@ -43,12 +43,14 @@ class DominantFrequencyChange(TrainTestCheck):
         dominance_ratio: float = 2,
         ratio_change_thres: float = 1.5,
         n_top_columns: int = 10,
+        with_display: bool = True,
         **kwargs
     ):
         super().__init__(**kwargs)
         self.dominance_ratio = dominance_ratio
         self.ratio_change_thres = ratio_change_thres
         self.n_top_columns = n_top_columns
+        self.with_display = with_display
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check.
@@ -106,7 +108,8 @@ class DominantFrequencyChange(TrainTestCheck):
                                       'P value': p_val}
 
         dominants = {k: v for k, v in p_dict.items() if v is not None}
-        if dominants:
+
+        if self.with_display and dominants:
             sorted_p_df = pd.DataFrame.from_dict(dominants, orient='index')
             sorted_p_df.index.name = 'Column'
             sorted_p_df = column_importance_sorter_df(

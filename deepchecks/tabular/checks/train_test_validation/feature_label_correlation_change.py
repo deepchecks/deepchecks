@@ -108,6 +108,7 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
             'the target label.'
         ]
 
+        # TODO: Split the func
         ret_value, display = get_feature_label_correlation(train_dataset.data[relevant_columns],
                                                            train_dataset.label_name,
                                                            test_dataset.data[relevant_columns],

@@ -58,6 +58,7 @@ class StringMismatchComparison(TrainTestCheck):
         n_top_columns: int = 10,
         n_samples: int = 1_000_000,
         random_state: int = 42,
+        with_display: bool = True,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -66,6 +67,7 @@ class StringMismatchComparison(TrainTestCheck):
         self.n_top_columns = n_top_columns
         self.n_samples = n_samples
         self.random_state = random_state
+        self.with_display = with_display
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check.
@@ -113,16 +115,16 @@ class StringMismatchComparison(TrainTestCheck):
                                                                              variants_only_in_dataset)
                     percent_variants_in_baseline = _percentage_in_series(baseline_column, baseline_counts,
                                                                          variants_only_in_baseline)
-
-                    display_mismatches.append([column_name, baseform, common_variants,
-                                               variants_only_in_dataset, percent_variants_only_in_dataset[1],
-                                               variants_only_in_baseline, percent_variants_in_baseline[1]])
                     result_dict[column_name][baseform] = {
                         'commons': common_variants, 'variants_only_in_test': variants_only_in_dataset,
                         'variants_only_in_train': variants_only_in_baseline,
                         'percent_variants_only_in_test': percent_variants_only_in_dataset[0],
                         'percent_variants_in_train': percent_variants_in_baseline[0]
                     }
+                    if self.with_display:
+                        display_mismatches.append([column_name, baseform, common_variants,
+                                variants_only_in_dataset, percent_variants_only_in_dataset[1],
+                                variants_only_in_baseline, percent_variants_in_baseline[1]])
 
         # Create result dataframe
         if display_mismatches:
