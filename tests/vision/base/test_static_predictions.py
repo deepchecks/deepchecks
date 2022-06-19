@@ -56,8 +56,8 @@ def test_class_performance_mnist_largest(mnist_dataset_train, mnist_dataset_test
     assert_that(first_row['Class'], equal_to(1))
 
 
-# copied from class_performance_test but added a sample
-def test_class_performance_mnist_largest_sampled(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
+# copied from class_performance_test but added a sample before
+def test_class_performance_mnist_largest_sampled_before(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
     # Arrange
     sampled_train = mnist_dataset_train.copy(shuffle=True, n_samples=1000, random_state=42)
     sampled_test = mnist_dataset_test.copy(shuffle=True, n_samples=1000, random_state=42)
