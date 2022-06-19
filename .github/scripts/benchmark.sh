@@ -1,6 +1,8 @@
 #!/bin/bash
 
 set -eu
+ENV_PATH=$(realpath venv)
+PIP_PATH=$ENV_PATH/bin/pip
 
 configure_asv () {
     cat << EOF > asv.conf.json
@@ -14,14 +16,15 @@ EOF
 }
 
 run_asv () {
-    pip install -e .
+    $PIP_PATH install -e .
     git show --no-patch --format="%H (%s)"
     configure_asv
-    asv run -E existing --set-commit-hash $(git rev-parse HEAD)
+    $ENV_PATH/bin/asv run -E existing --set-commit-hash $(git rev-parse HEAD)
 }
 
-pip install asv
-asv machine --yes
+$PIP_PATH install asv
+configure_asv
+$ENV_PATH/bin/asv  machine --yes
 
 git update-ref refs/bm/pr HEAD
 # We know this is a PR run. The branch is a GitHub refs/pull/*/merge ref, so
