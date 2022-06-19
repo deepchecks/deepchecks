@@ -108,13 +108,13 @@ class FeatureFeatureCorrelation(SingleDatasetCheck):
             top_n_df.fillna(0.0, inplace=True)
 
             fig = [px.imshow(top_n_df, color_continuous_scale=px.colors.sequential.thermal),
-                '* Displayed as absolute values.']
+                   '* Displayed as absolute values.']
             if num_nans:
                 fig.append(f'* NaN values (where the correlation could not be calculated)'
-                        f' are displayed as 0.0, total of {num_nans} NaNs in this display.')
+                           f' are displayed as 0.0, total of {num_nans} NaNs in this display.')
             if len(dataset.features) > len(all_features):
                 fig.append('* Some features in the dataset are neither numerical nor categorical and therefore not '
-                        'calculated.')
+                           'calculated.')
         else:
             fig = None
 

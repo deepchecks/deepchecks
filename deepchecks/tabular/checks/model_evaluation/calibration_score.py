@@ -62,11 +62,11 @@ class CalibrationScore(SingleDatasetCheck):
             fig = go.Figure()
 
             fig.add_trace(go.Scatter(
-                        x=[0, 1],
-                        y=[0, 1],
-                        line_width=2, line_dash='dash',
-                        name='Perfectly calibrated',
-                    ))
+                x=[0, 1],
+                y=[0, 1],
+                line_width=2, line_dash='dash',
+                name='Perfectly calibrated',
+            ))
 
             if len(dataset_classes) == 2:
                 # Calibration curve must get labels of {0, 1} therefore in order to support other labels, apply mapping
@@ -101,10 +101,10 @@ class CalibrationScore(SingleDatasetCheck):
             fig.update_xaxes(title='Mean predicted value')
 
             calibration_text = 'Calibration curves (also known as reliability diagrams) compare how well the ' \
-                            'probabilistic predictions of a binary classifier are calibrated. It plots the true ' \
-                            'frequency of the positive label against its predicted probability, for binned predictions.'
+                'probabilistic predictions of a binary classifier are calibrated. It plots the true ' \
+                'frequency of the positive label against its predicted probability, for binned predictions.'
             brier_text = 'The Brier score metric may be used to assess how well a classifier is calibrated. For more ' \
-                        'info, please visit https://en.wikipedia.org/wiki/Brier_score'
+                'info, please visit https://en.wikipedia.org/wiki/Brier_score'
             display = [calibration_text, fig, brier_text]
         else:
             display = None

@@ -135,7 +135,7 @@ class RobustnessReport(SingleDatasetCheck):
             # Create figures to display
             aug_names = ', '.join([augmentation_name(aug) for aug in augmentations])
             info_message = 'Percentage shown are difference between the metric before augmentation and after.<br>' \
-                        f'Augmentations used (separately): {aug_names}'
+                f'Augmentations used (separately): {aug_names}'
             figures = self._create_augmentation_figures(dataset, base_mean_results, aug_all_data)
             display = [info_message, *figures]
         else:
@@ -144,7 +144,7 @@ class RobustnessReport(SingleDatasetCheck):
         return CheckResult(
             result,
             header='Robustness Report',
-            display = display
+            display=display
         )
 
     def add_condition_degradation_not_greater_than(self, ratio: float = 0.02):

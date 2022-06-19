@@ -67,7 +67,7 @@ class NewLabelTrainTest(TrainTestCheck):
             if context.with_display:
                 dataframe = pd.DataFrame(data=[[train_dataset.label_name, format_percent(n_new_label / n_test_samples),
                                                 sorted(new_labels)]],
-                                        columns=['Label column', 'Percent new labels in sample', 'New labels'])
+                                         columns=['Label column', 'Percent new labels in sample', 'New labels'])
                 dataframe = dataframe.set_index(['Label column'])
                 display = dataframe
             else:

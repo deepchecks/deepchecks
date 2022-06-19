@@ -120,7 +120,7 @@ class NewLabels(TrainTestCheck):
                 images_of_class_id = \
                     list(set(test_data.classes_indices[class_id]))[:self.max_images_to_display_per_label]
                 images_combine = ''.join([f'<div class="{sid}-item">{draw_image(test_data, x, class_id)}</div>'
-                                        for x in images_of_class_id])
+                                          for x in images_of_class_id])
 
                 html = HTML_TEMPLATE.format(
                     label_name=test_data.label_id_to_name(class_id),

@@ -96,12 +96,12 @@ class RocReport(SingleDatasetCheck):
                     fig.add_trace(get_cutoff_figure(tpr[class_name], fpr[class_name],
                                                     thresholds[class_name], class_name))
             fig.add_trace(go.Scatter(
-                        x=[0, 1],
-                        y=[0, 1],
-                        line=dict(color='#444'),
-                        line_width=2, line_dash='dash',
-                        showlegend=False
-                    ))
+                x=[0, 1],
+                y=[0, 1],
+                line=dict(color='#444'),
+                line_width=2, line_dash='dash',
+                showlegend=False
+            ))
             fig.update_xaxes(title='False Positive Rate')
             fig.update_yaxes(title='True Positive Rate')
             if len(dataset_classes) == 2:
@@ -119,7 +119,7 @@ class RocReport(SingleDatasetCheck):
             The marked points are the optimal threshold cut-off points. They are determined using Youden's index defined
             as sensitivity + specificity - 1
             </i></span>"""
-            display=[fig, footnote]
+            display = [fig, footnote]
         else:
             display = None
 

@@ -60,7 +60,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
 
         if context.with_display:
             fig = create_confusion_matrix_figure(confusion_matrix, total_classes,
-                                                total_classes, self.normalized)
+                                                 total_classes, self.normalized)
         else:
             fig = None
 

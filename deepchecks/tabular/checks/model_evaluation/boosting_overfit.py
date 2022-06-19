@@ -185,11 +185,11 @@ class BoostingOverfit(TrainTestCheck):
         if context.with_display:
             fig = go.Figure()
             fig.add_trace(go.Scatter(x=estimator_steps, y=np.array(train_scores),
-                                    mode='lines+markers',
-                                    name='Training score'))
+                                     mode='lines+markers',
+                                     name='Training score'))
             fig.add_trace(go.Scatter(x=estimator_steps, y=np.array(test_scores),
-                                    mode='lines+markers',
-                                    name='Test score'))
+                                     mode='lines+markers',
+                                     name='Test score'))
             fig.update_layout(
                 title_text=f'{scorer.name} score compared to number of boosting iteration',
                 height=500

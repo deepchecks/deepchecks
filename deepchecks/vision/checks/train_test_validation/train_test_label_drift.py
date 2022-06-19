@@ -217,10 +217,10 @@ class TrainTestLabelDrift(TrainTestCheck):
                                    reverse=True)
 
             headnote = '<span>' \
-                    'The Drift score is a measure for the difference between two distributions. ' \
-                    'In this check, drift is measured ' \
-                    f'for the distribution of the following label properties: {label_properties_names}.' \
-                    '</span>'
+                'The Drift score is a measure for the difference between two distributions. ' \
+                'In this check, drift is measured ' \
+                f'for the distribution of the following label properties: {label_properties_names}.' \
+                '</span>'
 
             displays = [headnote] + [displays_dict[col] for col in columns_order]
         else:

@@ -88,7 +88,7 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
             df = pd.DataFrame.from_dict(data)
 
             fig = px.line(df, x='IoU threshold', y='mAP (%)',
-                        title='Mean Average Precision over increasing IoU thresholds')
+                          title='Mean Average Precision over increasing IoU thresholds')
             display = [results, fig]
         else:
             display = None

@@ -152,12 +152,12 @@ class SimpleModelComparison(TrainTestCheck):
                         model_dict[class_value][model_type] = class_score
                         if context.with_display:
                             display_array.append([model_name,
-                                                model_type,
-                                                class_score,
-                                                scorer.name,
-                                                class_value,
-                                                n_samples[class_value]
-                                                ])
+                                                  model_type,
+                                                  class_score,
+                                                  scorer.name,
+                                                  class_value,
+                                                  n_samples[class_value]
+                                                  ])
                 results_dict[scorer.name] = model_dict
 
             if display_array:
@@ -198,11 +198,11 @@ class SimpleModelComparison(TrainTestCheck):
                     model_dict[model_type] = score
                     if context.with_display:
                         display_array.append([model_name,
-                                            model_type,
-                                            score,
-                                            scorer.name,
-                                            test_label.count()
-                                            ])
+                                              model_type,
+                                              score,
+                                              scorer.name,
+                                              test_label.count()
+                                              ])
                 results_dict[scorer.name] = model_dict
 
             if display_array:
@@ -419,5 +419,5 @@ def average_scores(scores, include_classes):
         result[metric] = {
             'Origin': origin_score / total,
             'Simple': simple_score / total
-         }
+        }
     return result

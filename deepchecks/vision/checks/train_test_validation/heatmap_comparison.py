@@ -134,7 +134,7 @@ class HeatmapComparison(TrainTestCheck):
             # Add a display for the heatmap of the average grayscale image
             display = [self.plot_row_of_heatmaps(train_grayscale, test_grayscale, 'Compare average image brightness')]
             display[0].update_layout(coloraxis={'colorscale': 'Inferno', 'cmin': 0, 'cmax': 255},
-                                    coloraxis_colorbar={'title': 'Pixel Value'})
+                                     coloraxis_colorbar={'title': 'Pixel Value'})
 
         # If the task is object detection, compute the average heatmap of the bounding box locations by dividing the
         # accumulated sum by the number of images
@@ -153,7 +153,7 @@ class HeatmapComparison(TrainTestCheck):
                 )
                 # bbox image values are frequency, between 0 and 100
                 display[1].update_layout(coloraxis={'colorscale': 'Inferno', 'cmin': 0, 'cmax': 100},
-                                        coloraxis_colorbar={'title': '% Coverage'})
+                                         coloraxis_colorbar={'title': '% Coverage'})
 
         return CheckResult(value=value,
                            display=display if context.with_display else None,

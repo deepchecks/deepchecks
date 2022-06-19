@@ -59,7 +59,7 @@ class IndexTrainTestLeakage(TrainTestCheck):
             if context.with_display:
                 text = f'{size_in_test:.1%} of test data indexes appear in training data'
                 table = pd.DataFrame([[list(index_intersection)[:self.n_index_to_show]]],
-                                    index=['Sample of test indexes in train:'])
+                                     index=['Sample of test indexes in train:'])
                 display = [text, table]
             else:
                 display = None

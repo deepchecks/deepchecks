@@ -214,13 +214,13 @@ class TrainTestPredictionDrift(TrainTestCheck):
 
         if context.with_display:
             columns_order = sorted(prediction_properties_names, key=lambda col: values_dict[col]['Drift score'],
-                                reverse=True)
+                                   reverse=True)
 
             headnote = '<span>' \
-                    'The Drift score is a measure for the difference between two distributions. ' \
-                    'In this check, drift is measured ' \
-                    f'for the distribution of the following prediction properties: {prediction_properties_names}.' \
-                    '</span>'
+                'The Drift score is a measure for the difference between two distributions. ' \
+                'In this check, drift is measured ' \
+                f'for the distribution of the following prediction properties: {prediction_properties_names}.' \
+                '</span>'
 
             displays = [headnote] + [displays_dict[col] for col in columns_order]
         else:

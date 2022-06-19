@@ -188,9 +188,9 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
                     # Create id of alphabetic characters
                     sid = ''.join([choice(string.ascii_uppercase) for _ in range(6)])
                     values_combine = ''.join([f'<div class="{sid}-item">{format_number(x[0])}</div>'
-                                            for x in images[property_name]])
+                                              for x in images[property_name]])
                     images_combine = ''.join([f'<div class="{sid}-item">{x[1]}</div>'
-                                            for x in images[property_name]])
+                                              for x in images[property_name]])
 
                     html = HTML_TEMPLATE.format(
                         prop_name=property_name,

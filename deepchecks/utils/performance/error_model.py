@@ -204,7 +204,7 @@ def error_model_display(error_fi: pd.Series,
                 if len(weak_categories) >= 1:
                     if scorer:
                         weak_name_feature, segment2_details = get_segment_details(model, scorer, dataset,
-                                                                                data[feature].isin(weak_categories))
+                                                                                  data[feature].isin(weak_categories))
                     else:
                         weak_name_feature, segment1_details = \
                             get_segment_details_using_error(error_col_name, data,
@@ -271,10 +271,10 @@ def error_model_display(error_fi: pd.Series,
                 category_order = None
             if with_display:
                 display.append(px.scatter(data, x=feature, y=error_col_name, color=color_col,
-                                        title=f'Segmentation of error by the feature: {feature}',
-                                        labels={error_col_name: 'model error', 'color': 'Weak & OK Segments'},
-                                        category_orders={'color': category_order},
-                                        color_discrete_map=color_map))
+                                          title=f'Segmentation of error by the feature: {feature}',
+                                          labels={error_col_name: 'model error', 'color': 'Weak & OK Segments'},
+                                          category_orders={'color': category_order},
+                                          color_discrete_map=color_map))
 
         if segment1_details:
             value['feature_segments'][feature]['segment1'] = segment1_details

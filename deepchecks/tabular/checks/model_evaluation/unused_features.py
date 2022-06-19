@@ -124,7 +124,7 @@ class UnusedFeatures(TrainTestCheck):
                 # limit display to n_top_to_show params
                 display_feature_df = pd.concat(
                     [feature_df.iloc[:(last_important_feature_index + 1)].head(self.n_top_fi_to_show),
-                    unviable_feature_df.iloc[:last_variable_feature_index].head(self.n_top_unused_to_show)],
+                     unviable_feature_df.iloc[:last_variable_feature_index].head(self.n_top_unused_to_show)],
                     axis=0)
 
                 fig = go.Figure()
@@ -154,7 +154,7 @@ class UnusedFeatures(TrainTestCheck):
                 if last_important_feature_index_to_plot < len(display_feature_df) - 1:
                     last_important_feature_line_loc = last_important_feature_index_to_plot + 0.5
                     fig.add_hline(y=last_important_feature_line_loc, line_width=2, line_dash='dash', line_color='green',
-                                annotation_text='Last shown significant feature')
+                                  annotation_text='Last shown significant feature')
                 display_list = [
                     'Features above the line are a sample of the most important features, while the features '
                     'below the line are the unused features with highest variance, as defined by check'
@@ -223,7 +223,7 @@ def naive_encoder(dataset: Dataset) -> Tuple[TransformerMixin, list]:
                 ('nan_handling', SimpleImputer()),
                 ('norm', RobustScaler())
             ]),
-             dataset.numerical_features),
+                dataset.numerical_features),
             ('cat',
              Pipeline([
                  ('nan_handling', SimpleImputer(strategy='most_frequent')),

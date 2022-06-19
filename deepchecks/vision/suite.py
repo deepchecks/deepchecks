@@ -48,6 +48,7 @@ class Suite(BaseSuite):
             device: Union[str, torch.device, None] = 'cpu',
             random_state: int = 42,
             n_samples: Optional[int] = 10_000,
+            with_display: bool = True,
             train_predictions: Union[List[torch.Tensor], torch.Tensor] = None,
             test_predictions: Union[List[torch.Tensor], torch.Tensor] = None,
     ) -> SuiteResult:
@@ -99,6 +100,7 @@ class Suite(BaseSuite):
                     device=device,
                     random_state=random_state,
                     n_samples=n_samples,
+                    with_display=with_display,
                     train_predictions=train_predictions,
                     test_predictions=test_predictions,
                 )

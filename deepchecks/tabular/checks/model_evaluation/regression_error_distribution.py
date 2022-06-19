@@ -74,7 +74,7 @@ class RegressionErrorDistribution(SingleDatasetCheck):
             n_largest_diff = diff.nlargest(self.n_top_samples)
             n_largest_diff.name = str(dataset.label_name) + ' Prediction Difference'
             n_largest = pd.concat([dataset.data.loc[n_largest_diff.index], y_pred.loc[n_largest_diff.index],
-                                n_largest_diff], axis=1)
+                                   n_largest_diff], axis=1)
 
             n_smallest_diff = diff.nsmallest(self.n_top_samples)
             n_smallest_diff.name = str(dataset.label_name) + ' Prediction Difference'
@@ -93,7 +93,7 @@ class RegressionErrorDistribution(SingleDatasetCheck):
                 'Largest under estimation errors:', n_smallest
             ]
         else:
-            display =None
+            display = None
 
         return CheckResult(value=kurtosis_value, display=display)
 

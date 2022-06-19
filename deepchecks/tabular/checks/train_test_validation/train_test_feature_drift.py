@@ -145,11 +145,11 @@ class TrainTestFeatureDrift(TrainTestCheck):
         test_dataset.assert_features()
 
         train_dataset = train_dataset.select(
-                self.columns, self.ignore_columns
-            ).sample(self.n_samples, random_state=self.random_state)
+            self.columns, self.ignore_columns
+        ).sample(self.n_samples, random_state=self.random_state)
         test_dataset = test_dataset.select(
-                self.columns, self.ignore_columns
-            ).sample(self.n_samples, random_state=self.random_state)
+            self.columns, self.ignore_columns
+        ).sample(self.n_samples, random_state=self.random_state)
 
         values_dict = OrderedDict()
         displays_dict = OrderedDict()
@@ -202,19 +202,19 @@ class TrainTestFeatureDrift(TrainTestCheck):
                 columns_order = features_order[:self.n_top_columns]
             else:
                 columns_order = sorted(values_dict.keys(), key=lambda col: values_dict[col]['Drift score'],
-                                    reverse=True)[:self.n_top_columns]
+                                       reverse=True)[:self.n_top_columns]
 
             sorted_by = self.sort_feature_by if features_importance is not None else 'drift score'
 
             headnote = f"""<span>
                 The Drift score is a measure for the difference between two distributions, in this check - the test
-                and train distributions.<br> The check shows the drift score and distributions for the features, sorted by
-                {sorted_by} and showing only the top {self.n_top_columns} features, according to {sorted_by}.
+                and train distributions.<br> The check shows the drift score and distributions for the features, sorted
+                by {sorted_by} and showing only the top {self.n_top_columns} features, according to {sorted_by}.
                 <br>If available, the plot titles also show the feature importance (FI) rank.
             </span>"""
 
             displays = [headnote] + [displays_dict[col] for col in columns_order
-                                    if col in train_dataset.cat_features + train_dataset.numerical_features]
+                                     if col in train_dataset.cat_features + train_dataset.numerical_features]
         else:
             displays = None
 
