@@ -99,6 +99,7 @@ class ModelErrorAnalysis(TrainTestCheck):
             n_samples: int = 50_000,
             n_display_samples: int = 5_000,
             random_state: int = 42,
+            with_display: bool = True,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -110,6 +111,7 @@ class ModelErrorAnalysis(TrainTestCheck):
         self.n_samples = n_samples
         self.n_display_samples = n_display_samples
         self.random_state = random_state
+        self.with_display = with_display
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check."""
@@ -161,7 +163,8 @@ class ModelErrorAnalysis(TrainTestCheck):
                                              self.min_feature_contribution,
                                              self.n_display_samples,
                                              self.min_segment_size,
-                                             self.random_state)
+                                             self.random_state,
+                                             self.with_display)
 
         headnote = """<span>
             The following graphs show the distribution of error for top features that are most useful for distinguishing

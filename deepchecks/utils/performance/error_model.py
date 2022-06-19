@@ -90,7 +90,8 @@ def error_model_display_dataframe(error_fi: pd.Series,
                                   min_feature_contribution: float,
                                   n_display_samples: int,
                                   min_segment_size: float,
-                                  random_state: int):
+                                  random_state: int,
+                                  with_display: bool):
     """Wrap dataframe with tabular.Dataset for error_model_display with no scorer."""
     return error_model_display(error_fi,
                                error_model_predicted,
@@ -101,7 +102,8 @@ def error_model_display_dataframe(error_fi: pd.Series,
                                min_feature_contribution,
                                n_display_samples,
                                min_segment_size,
-                               random_state)
+                               random_state,
+                               with_display)
 
 
 def error_model_display(error_fi: pd.Series,
@@ -115,7 +117,8 @@ def error_model_display(error_fi: pd.Series,
                         min_feature_contribution: float,
                         n_display_samples: int,
                         min_segment_size: float,
-                        random_state: int) -> Tuple[List, Dict]:
+                        random_state: int,
+                        with_display: bool) -> Tuple[List, Dict]:
     """Calculate and display segments with large error discrepancies.
 
     Parameters
@@ -195,31 +198,32 @@ def error_model_display(error_fi: pd.Series,
                 ok_name_feature, segment1_details = get_segment_details_using_error(error_col_name, data,
                                                                                     data[feature].isin(ok_categories))
 
-            color_map = {ok_name_feature: ok_color}
+            if with_display:
+                color_map = {ok_name_feature: ok_color}
 
-            if len(weak_categories) >= 1:
-                if scorer:
-                    weak_name_feature, segment2_details = get_segment_details(model, scorer, dataset,
-                                                                              data[feature].isin(weak_categories))
+                if len(weak_categories) >= 1:
+                    if scorer:
+                        weak_name_feature, segment2_details = get_segment_details(model, scorer, dataset,
+                                                                                data[feature].isin(weak_categories))
+                    else:
+                        weak_name_feature, segment1_details = \
+                            get_segment_details_using_error(error_col_name, data,
+                                                            data[feature].isin(weak_categories))
+
+                    color_map[weak_name_feature] = weak_color
                 else:
-                    weak_name_feature, segment1_details = \
-                        get_segment_details_using_error(error_col_name, data,
-                                                        data[feature].isin(weak_categories))
+                    weak_name_feature = None
 
-                color_map[weak_name_feature] = weak_color
-            else:
-                weak_name_feature = None
+                replace_dict = {x: weak_name_feature if x in weak_categories else ok_name_feature for x in
+                                error_per_segment_ser.index}
+                color_col = data[feature].replace(replace_dict)
 
-            replace_dict = {x: weak_name_feature if x in weak_categories else ok_name_feature for x in
-                            error_per_segment_ser.index}
-            color_col = data[feature].replace(replace_dict)
-
-            # Display
-            display.append(px.violin(
-                data, y=error_col_name, x=feature, title=f'Segmentation of error by feature: {feature}', box=False,
-                labels={error_col_name: 'model error', 'color': 'Weak & OK Segments'}, color=color_col,
-                color_discrete_map=color_map
-            ))
+                # Display
+                display.append(px.violin(
+                    data, y=error_col_name, x=feature, title=f'Segmentation of error by feature: {feature}', box=False,
+                    labels={error_col_name: 'model error', 'color': 'Weak & OK Segments'}, color=color_col,
+                    color_discrete_map=color_map
+                ))
         elif feature in dataset.numerical_features:
             # sample data for display
             np.random.seed(random_state)
@@ -265,19 +269,19 @@ def error_model_display(error_fi: pd.Series,
                 color_col = data[error_col_name]
                 color_map = None
                 category_order = None
-
-            display.append(px.scatter(data, x=feature, y=error_col_name, color=color_col,
-                                      title=f'Segmentation of error by the feature: {feature}',
-                                      labels={error_col_name: 'model error', 'color': 'Weak & OK Segments'},
-                                      category_orders={'color': category_order},
-                                      color_discrete_map=color_map))
+            if with_display:
+                display.append(px.scatter(data, x=feature, y=error_col_name, color=color_col,
+                                        title=f'Segmentation of error by the feature: {feature}',
+                                        labels={error_col_name: 'model error', 'color': 'Weak & OK Segments'},
+                                        category_orders={'color': category_order},
+                                        color_discrete_map=color_map))
 
         if segment1_details:
             value['feature_segments'][feature]['segment1'] = segment1_details
         if segment2_details:
             value['feature_segments'][feature]['segment2'] = segment2_details
 
-    return display, value
+    return display if with_display else None, value
 
 
 def get_segment_details(model: Any, scorer: Callable, dataset: tabular.Dataset,
