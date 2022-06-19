@@ -16,6 +16,7 @@ import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult, DatasetKind
 from deepchecks.core.check_utils.whole_dataset_drift_utils import run_whole_dataset_drift
+from deepchecks.utils.strings import format_number
 from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.utils.image_properties import default_image_properties, get_column_type, validate_properties
 
@@ -156,9 +157,11 @@ class ImageDatasetDrift(TrainTestCheck):
             drift_score = result['domain_classifier_drift_score']
             if drift_score < threshold:
                 return ConditionResult(ConditionCategory.PASS,
-                                       f'Drift score {drift_score:.3f} is less than {threshold}')
+                                       f'Drift score {format_number(drift_score, 3)} is less than '
+                                       f'{format_number(threshold)}')
             else:
                 return ConditionResult(ConditionCategory.FAIL,
-                                       f'Drift score {drift_score:.3f} is not less than {threshold}')
+                                       f'Drift score {format_number(drift_score, 3)} is not less than '
+                                       f'{format_number(threshold)}')
 
         return self.add_condition(f'Drift score is less than {threshold}', condition)

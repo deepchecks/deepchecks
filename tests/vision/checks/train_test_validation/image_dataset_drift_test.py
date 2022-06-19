@@ -179,5 +179,5 @@ def test_condition_pass(coco_train_dataloader, coco_test_dataloader, device):
     assert_that(result.conditions_results[0], equal_condition_result(
         is_pass=True,
         name=f'Drift score is less than 0.3',
-        details=f'Drift score 0.000 is less than 0.3',
+        details=f'Drift score 0 is less than 0.3',
         ))
