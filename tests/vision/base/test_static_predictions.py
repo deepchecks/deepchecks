@@ -9,48 +9,27 @@
 # ----------------------------------------------------------------------------
 #
 #
-import copy
-
 import numpy as np
-import torch
-from hamcrest import (assert_that, calling, close_to, equal_to, has_entries, has_items, has_length, has_properties,
-                      has_property, instance_of, is_, raises)
+from hamcrest import (assert_that, close_to, equal_to, has_entries, has_items, has_length)
 
-from deepchecks.core.check_result import CheckResult
-from deepchecks.vision.base_checks import SingleDatasetCheck
-from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.checks.model_evaluation.class_performance import ClassPerformance
 from deepchecks.vision.checks.model_evaluation.image_segment_performance import ImageSegmentPerformance
 from deepchecks.vision.checks.model_evaluation.train_test_prediction_drift import TrainTestPredictionDrift
-from deepchecks.vision.context import Context
 from deepchecks.vision.suites.default_suites import full_suite
-from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.vision_data import VisionData
 from tests.base.utils import equal_condition_result
 from tests.conftest import get_expected_results_length, validate_suite_result
 
 
-class _StaticPred(SingleDatasetCheck):
-    def initialize_run(self, context: Context, dataset_kind):
-        self._pred_index = {}
-
-    def update(self, context: Context, batch: Batch, dataset_kind):
-        predictions = batch.predictions
-        indexes = [batch.get_index_in_dataset(index) for index in range(len(predictions))]
-        self._pred_index.update(dict(zip(indexes, predictions)))
-
-    def compute(self, context: Context, dataset_kind) -> CheckResult:
-        sorted_values = [v for _, v in sorted(self._pred_index.items(), key=lambda item: item[0])]
-        if context.get_data_by_kind(dataset_kind).task_type == TaskType.CLASSIFICATION:
-            sorted_values = torch.stack(sorted_values)
-        return CheckResult(sorted_values)
-
-
-def _create_static_predictions(train: VisionData, test: VisionData, model):
+def _create_static_predictions(train: VisionData, test: VisionData, model, device):
     static_preds = []
     for vision_data in [train, test]:
         if vision_data is not None:
-            static_pred = _StaticPred().run(vision_data, model=model, n_samples=None).value
+            static_pred = {}
+            for i, batch in enumerate(vision_data):
+                predictions = vision_data.infer_on_batch(batch, model, device)
+                indexes = list(vision_data.data_loader.batch_sampler)[i]
+                static_pred.update(dict(zip(indexes, predictions)))
         else:
             static_pred = None
         static_preds.append(static_pred)
@@ -61,7 +40,8 @@ def _create_static_predictions(train: VisionData, test: VisionData, model):
 # copied from class_performance_test
 def test_class_performance_mnist_largest(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
     # Arrange
-    train_preds, tests_preds = _create_static_predictions(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist)
+    train_preds, tests_preds = _create_static_predictions(mnist_dataset_train, mnist_dataset_test,
+                                                          mock_trained_mnist, device)
     check = ClassPerformance(n_to_show=2, show_only='largest')
     # Act
     result = check.run(mnist_dataset_train, mnist_dataset_test,
@@ -76,10 +56,32 @@ def test_class_performance_mnist_largest(mnist_dataset_train, mnist_dataset_test
     assert_that(first_row['Class'], equal_to(1))
 
 
+# copied from class_performance_test but added a sample before
+def test_class_performance_mnist_largest_sampled_before(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
+    # Arrange
+    sampled_train = mnist_dataset_train.copy(shuffle=True, n_samples=1000, random_state=42)
+    sampled_test = mnist_dataset_test.copy(shuffle=True, n_samples=1000, random_state=42)
+    train_preds, tests_preds = _create_static_predictions(sampled_train, sampled_test,
+                                                          mock_trained_mnist, device)
+    check = ClassPerformance(n_to_show=2, show_only='largest')
+    # Act
+    result = check.run(sampled_train, sampled_test,
+                       train_predictions=train_preds, test_predictions=tests_preds,
+                       device=device, n_samples=None)
+    first_row = result.value.sort_values(by='Number of samples', ascending=False).iloc[0]
+    # Assert
+    assert_that(len(set(result.value['Class'])), equal_to(2))
+    assert_that(len(result.value), equal_to(8))
+    assert_that(first_row['Value'], close_to(0.991, 0.001))
+    assert_that(first_row['Number of samples'], equal_to(123))
+    assert_that(first_row['Class'], equal_to(2))
+
+
 # copied from class_performance_test but sampled
 def test_class_performance_mnist_largest_sampled(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
     # Arrange
-    train_preds, tests_preds = _create_static_predictions(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist)
+    train_preds, tests_preds = _create_static_predictions(mnist_dataset_train, mnist_dataset_test,
+                                                          mock_trained_mnist, device)
     check = ClassPerformance(n_to_show=2, show_only='largest')
     # Act
     result = check.run(mnist_dataset_train, mnist_dataset_test,
@@ -95,9 +97,10 @@ def test_class_performance_mnist_largest_sampled(mnist_dataset_train, mnist_data
 
 
 # copied from image_segment_performance_test
-def test_image_segment_performance_coco_and_condition(coco_train_visiondata, mock_trained_yolov5_object_detection):
+def test_image_segment_performance_coco_and_condition(coco_train_visiondata, mock_trained_yolov5_object_detection, device):
     # Arrange
-    train_preds, _ = _create_static_predictions(coco_train_visiondata, None, mock_trained_yolov5_object_detection)
+    train_preds, _ = _create_static_predictions(coco_train_visiondata, None,
+                                                mock_trained_yolov5_object_detection, device)
     check = ImageSegmentPerformance().add_condition_score_from_mean_ratio_greater_than(0.5) \
         .add_condition_score_from_mean_ratio_greater_than(0.1)
     # Act
@@ -151,7 +154,8 @@ def test_train_test_prediction_with_drift_object_detection_change_max_cat(coco_t
     # Arrange
     train_preds, test_preds = _create_static_predictions(coco_train_visiondata,
                                                          coco_test_visiondata,
-                                                         mock_trained_yolov5_object_detection)
+                                                         mock_trained_yolov5_object_detection,
+                                                         device)
     check = TrainTestPredictionDrift(categorical_drift_method='PSI', max_num_categories_for_drift=100)
 
     # Act
@@ -178,7 +182,8 @@ def test_suite(coco_train_visiondata, coco_test_visiondata,
                mock_trained_yolov5_object_detection, device):
     train_preds, test_preds = _create_static_predictions(coco_train_visiondata,
                                                          coco_test_visiondata,
-                                                         mock_trained_yolov5_object_detection)
+                                                         mock_trained_yolov5_object_detection,
+                                                         device)
 
     args = dict(train_dataset=coco_train_visiondata, test_dataset=coco_test_visiondata,
                 train_predictions=train_preds, test_predictions=test_preds)
