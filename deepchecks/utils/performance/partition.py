@@ -14,6 +14,7 @@ from typing import Callable, List
 
 import numpy as np
 import pandas as pd
+from sklearn.tree import _tree
 
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.utils.strings import format_number
@@ -22,7 +23,7 @@ from deepchecks.utils.typing import Hashable
 # TODO: move tabular functionality to the tabular sub-package
 
 
-__all__ = ['partition_column', 'DeepchecksFilter']
+__all__ = ['partition_column', 'DeepchecksFilter', 'convert_tree_leaves_into_filters', 'intersect_two_filters']
 
 
 class DeepchecksFilter:
@@ -30,19 +31,27 @@ class DeepchecksFilter:
 
     Parameters
     ----------
-    filter_func : Callable
-        function which receive dataframe and return a filter on it
+    filter_functions : Callable
+        List of functions which receive dataframe and return a filter on it
     label : str
         name of the filter
     """
 
-    def __init__(self, filter_func: Callable, label: str):
-        self.filter_func = filter_func
+    def __init__(self, filter_functions: List[Callable], label: str = ''):
+        self.filter_func = filter_functions
         self.label = label
 
-    def filter(self, dataframe):
-        """Run the filter on given dataframe."""
-        return dataframe.loc[self.filter_func(dataframe)]
+    def filter(self, dataframe: pd.DataFrame) -> pd.DataFrame:
+        """Run the filter on given dataframe. Return rows in data frame satisfying the filter properties."""
+        data = dataframe.copy()
+        for func in self.filter_func:
+            data = data.loc[func(data)]
+        return data
+
+
+def intersect_two_filters(filter1: DeepchecksFilter, filter2: DeepchecksFilter) -> DeepchecksFilter:
+    """Merge two DeepChecksFilters into one, an intersection of both filters."""
+    return DeepchecksFilter(filter1.filter_func + filter2.filter_func)
 
 
 def numeric_segmentation_edges(column: pd.Series, max_segments: int) -> List[DeepchecksFilter]:
@@ -86,10 +95,10 @@ def largest_category_index_up_to_ratio(histogram, max_segments, max_cat_proporti
 
 
 def partition_column(
-    dataset: Dataset,
-    column_name: Hashable,
-    max_segments: int,
-    max_cat_proportions: float = 0.9
+        dataset: Dataset,
+        column_name: Hashable,
+        max_segments: int,
+        max_cat_proportions: float = 0.9
 ) -> List[DeepchecksFilter]:
     """Split column into segments.
 
@@ -120,7 +129,7 @@ def partition_column(
         if len(percentile_values) == 1:
             f = lambda df, val=percentile_values[0]: (df[column_name] == val)
             label = str(percentile_values[0])
-            return [DeepchecksFilter(f, label)]
+            return [DeepchecksFilter([f], label)]
 
         filters = []
         for start, end in zip(percentile_values[:-1], percentile_values[1:]):
@@ -132,7 +141,7 @@ def partition_column(
                 f = lambda df, a=start, b=end: (df[column_name] >= a) & (df[column_name] < b)
                 label = f'[{format_number(start)} - {format_number(end)})'
 
-            filters.append(DeepchecksFilter(f, label))
+            filters.append(DeepchecksFilter([f], label))
         return filters
     elif column_name in dataset.cat_features:
         # Get sorted histogram
@@ -142,11 +151,44 @@ def partition_column(
 
         filters = []
         for i in range(n_large_cats):
-            f = lambda df, val = cat_hist_dict.index[i]: df[column_name] == val
-            filters.append(DeepchecksFilter(f, str(cat_hist_dict.index[i])))
+            f = lambda df, val=cat_hist_dict.index[i]: df[column_name] == val
+            filters.append(DeepchecksFilter([f], str(cat_hist_dict.index[i])))
 
         if len(cat_hist_dict) > n_large_cats:
             f = lambda df, values=cat_hist_dict.index[:n_large_cats]: ~df[column_name].isin(values)
-            filters.append(DeepchecksFilter(f, 'Others'))
+            filters.append(DeepchecksFilter([f], 'Others'))
 
         return filters
+
+
+def convert_tree_leaves_into_filters(tree, feature_names: List[str]) -> List[DeepchecksFilter]:
+    """Extract the leaves from a sklearn tree and covert them into DeepchecksFilters.
+
+    Parameters
+    ----------
+    tree : A sklearn tree
+    feature_names : List[str]
+        The feature names for elements within the tree. Normally it is the column names of the data frame the tree
+           was trained on.
+
+    Returns
+    -------
+    List[DeepchecksFilter]:
+           A list of filters describing the leaves
+    """
+    node_to_feature = [
+        feature_names[i] if i != _tree.TREE_UNDEFINED else 'undefined!'
+        for i in tree.feature
+    ]
+
+    def recurse(node_idx, filter_up_to_node):
+        if tree.feature[node_idx] != _tree.TREE_UNDEFINED:
+            left_filter = DeepchecksFilter([lambda df, a=tree.threshold[node_idx]: df[node_to_feature[node_idx]] <= a])
+            right_filter = DeepchecksFilter([lambda df, a=tree.threshold[node_idx]: df[node_to_feature[node_idx]] > a])
+            return recurse(tree.children_left[node_idx], intersect_two_filters(filter_up_to_node, left_filter)) + \
+                   recurse(tree.children_right[node_idx], intersect_two_filters(filter_up_to_node, right_filter))
+        else:
+            return [filter_up_to_node]
+
+    filters_to_leaves = recurse(0, DeepchecksFilter([lambda df: [True] * len(df)]))
+    return filters_to_leaves
