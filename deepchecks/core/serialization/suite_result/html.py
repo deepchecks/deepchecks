@@ -147,6 +147,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         if full_html is False:
             content = ''.join((
                 '<style>table {width: max-content;}</style>',
+                DETAILS_TAG_STYLE,
                 requirejs, 
                 plotlyjs, 
                 *content
@@ -155,7 +156,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
                 id=output_id or '',
                 name=suite_result.name,
                 content=content,
-                attrs='open',
+                attrs='open class="deepchecks"',
                 additional_style='padding: 0 1.5rem 0 1.5rem;'
             )
 
@@ -164,7 +165,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             id=output_id or '',
             name=suite_result.name,
             content=content,
-            attrs='open',
+            attrs='open class="deepchecks"',
             additional_style='padding: 0 1.5rem 0 1.5rem;'
         )
 
@@ -172,8 +173,8 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             <html>
             <head>
                 <meta charset="utf-8"/>
-                <style>{STYLE}
-                </style>
+                <style>{HTML_PAGE_STYLE}</style>
+                {DETAILS_TAG_STYLE}
             </head>
             <body>
                 {requirejs}
@@ -352,7 +353,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             id='',
             name=title,
             content=content,
-            attrs='',
+            attrs='class="deepchecks"',
             additional_style='padding: 1.5rem;'
         )
         
@@ -403,7 +404,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             id=form_output_anchor(section_id),
             name=title,
             content=content,
-            attrs='',
+            attrs='class="deepchecks"',
             additional_style='padding: 1.5rem;'
         )
 
@@ -564,7 +565,31 @@ DETAILS_TAG = """
 """
 
 
-STYLE = """
+DETAILS_TAG_STYLE = """
+<style>
+    .deepchecks > details, .deepchecks details {
+        border: 1px solid #aaa;
+        border-radius: 4px;
+        padding: .5em .5em 0;
+    }
+    .deepchecks > details > summary, .deepchecks details > summary {
+        font-weight: bold;
+        margin: -.5em -.5em 0;
+        padding: .5em;
+    }
+    .deepchecks > details[open], .deepchecks details[open] {
+        padding: .5em;
+    }
+    .deepchecks > details[open] > summary, .deepchecks details[open] > summary {
+        border-bottom: 1px solid #aaa;
+        margin-bottom: .5em;
+    }
+</style>
+"""
+
+
+HTML_PAGE_STYLE = """
+<style>
     body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
         font-size: 16px;
@@ -575,7 +600,6 @@ STYLE = """
         background-color: white; 
         padding: 1rem 1rem 0 1rem;
     }
-
     table {
         border: none;
         border-collapse: collapse;
@@ -607,4 +631,5 @@ STYLE = """
     tbody tr:hover {
         background: rgba(66, 165, 245, 0.2);
     }
+</style>
 """

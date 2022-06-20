@@ -51,11 +51,14 @@ class DataFrameSerializer(HtmlSerializer[DataFrameOrStyler]):
             with warnings.catch_warnings():
                 warnings.simplefilter(action='ignore', category=FutureWarning)
                 df_styler.set_precision(2)
-                table_css_props = [
+                table_css_props = (
                     ('text-align', 'left'),  # Align everything to the left
                     ('white-space', 'pre-wrap')  # Define how to handle white space characters (like \n)
-                ]
-                df_styler.set_table_styles([dict(selector='table,thead,tbody,th,td', props=table_css_props)])
+                )
+                df_styler.set_table_styles([
+                    dict(selector='table,thead,tbody,th,td', props=table_css_props),
+                    dict(selector='table', props=(('width', 'max-content'),)),
+                ])
                 return df_styler.render(table_attributes=table_attributes)
         # Because of MLC-154. Dataframe with Multi-index or non unique indices does not have a style
         # attribute, hence we need to display as a regular pd html format.
