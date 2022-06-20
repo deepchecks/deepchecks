@@ -201,8 +201,11 @@ class BoostingOverfit(TrainTestCheck):
                 The check limits the boosting model to using up to N estimators each time, and plotting the
                 {scorer.name} calculated for each subset of estimators for both the train dataset and the test dataset.
             </span>"""
+            display = [display_text, fig]
+        else:
+            display = None
 
-        return CheckResult(result, display=[display_text, fig], header='Boosting Overfit')
+        return CheckResult(result, display=display, header='Boosting Overfit')
 
     def add_condition_test_score_percent_decline_less_than(self, threshold: float = 0.05):
         """Add condition.

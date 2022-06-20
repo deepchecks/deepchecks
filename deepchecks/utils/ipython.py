@@ -39,6 +39,8 @@ __all__ = [
     'create_progress_bar',
     'is_colab_env',
     'is_kaggle_env',
+    'is_databricks_env',
+    'is_sagemaker_env',
     'is_terminal_interactive_shell',
     'is_zmq_interactive_shell',
     'ProgressBarGroup'
@@ -100,20 +102,26 @@ def is_headless() -> bool:
 
 @lru_cache(maxsize=None)
 def is_colab_env() -> bool:
-    """Check if we are in the google colab enviroment."""
+    """Check if we are in the google colab environment."""
     return 'google.colab' in str(get_ipython())
 
 
 @lru_cache(maxsize=None)
 def is_kaggle_env() -> bool:
-    """Check if we are in the kaggle enviroment."""
+    """Check if we are in the kaggle environment."""
     return os.environ.get('KAGGLE_KERNEL_RUN_TYPE') is not None
 
 
 @lru_cache(maxsize=None)
 def is_databricks_env() -> bool:
-    """Check if we are in the databricks enviroment."""
+    """Check if we are in the databricks environment."""
     return 'DATABRICKS_RUNTIME_VERSION' in os.environ
+
+
+@lru_cache(maxsize=None)
+def is_sagemaker_env() -> bool:
+    """Check if we are in the AWS Sagemaker environment."""
+    return 'AWS_PATH' in os.environ
 
 
 class PlainNotebookProgressBar(tqdm.tqdm):
@@ -168,7 +176,8 @@ def create_progress_bar(
         )
 
     barlen = iterlen if iterlen > 5 else 5
-
+    rbar = ' {n_fmt}/{total_fmt} [Time: {elapsed}{postfix}]'
+    bar_format = f'{{desc}}:\n|{{bar:{barlen}}}|{rbar}'
     is_disabled = get_verbosity() >= logging.WARNING
 
     if is_zmq_interactive_shell() and is_widgets_enabled():
@@ -176,20 +185,21 @@ def create_progress_bar(
             **kwargs,
             colour='#9d60fb',
             file=sys.stdout,
+            bar_format=f'{{desc}}<bar/>{rbar}',
             disable=is_disabled,
         )
 
     elif is_zmq_interactive_shell():
         return PlainNotebookProgressBar(
             **kwargs,
-            bar_format='{{desc}}:\n|{{bar:{0}}}{{r_bar}}'.format(barlen),  # pylint: disable=consider-using-f-string
+            bar_format=bar_format,
             disable=is_disabled,
         )
 
     else:
         return tqdm.tqdm(
             **kwargs,
-            bar_format='{{desc}}:\n|{{bar:{0}}}{{r_bar}}'.format(barlen),  # pylint: disable=consider-using-f-string
+            bar_format=bar_format,
             disable=is_disabled,
         )
 

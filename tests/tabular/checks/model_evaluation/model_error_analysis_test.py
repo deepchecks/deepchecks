@@ -10,7 +10,7 @@
 #
 """Tests for segment performance check."""
 import numpy as np
-from hamcrest import assert_that, calling, close_to, has_items, has_length, instance_of, raises
+from hamcrest import assert_that, calling, close_to, greater_than, has_items, has_length, instance_of, raises
 from scipy.special import softmax
 from sklearn.metrics import log_loss
 
@@ -52,10 +52,23 @@ def test_model_error_analysis_regression_not_meaningful(diabetes_split_dataset_a
 
 def test_model_error_analysis_classification(iris_labeled_dataset, iris_adaboost):
     # Act
-    result_value = ModelErrorAnalysis().run(iris_labeled_dataset, iris_labeled_dataset, iris_adaboost).value
+    result = ModelErrorAnalysis().run(iris_labeled_dataset, iris_labeled_dataset, iris_adaboost)
 
     # Assert
-    assert_that(result_value['feature_segments']['petal length (cm)'], has_length(2))
+    assert_that(result.value['feature_segments']['petal length (cm)'], has_length(2))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_model_error_analysis_classification(iris_labeled_dataset, iris_adaboost):
+    # Act
+    result = ModelErrorAnalysis().run(iris_labeled_dataset,
+                                      iris_labeled_dataset,
+                                      iris_adaboost,
+                                      with_display=False)
+
+    # Assert
+    assert_that(result.value['feature_segments']['petal length (cm)'], has_length(2))
+    assert_that(result.display, has_length(0))
 
 
 def test_binary_string_model_info_object(iris_binary_string_split_dataset_and_model):

@@ -369,8 +369,6 @@ def coco_train_custom_task(coco_train_dataloader):  # pylint: disable=redefined-
 def run_update_loop(dataset: VisionData):
     context: Context = Context(dataset, random_state=0)
     dataset.init_cache()
-    batch_start_index = 0
-    for batch in context.train:
-        batch = Batch(batch, context, DatasetKind.TRAIN, batch_start_index)
+    for i, batch in enumerate(context.train):
+        batch = Batch(batch, context, DatasetKind.TRAIN, i)
         dataset.update_cache(batch)
-        batch_start_index += len(batch)

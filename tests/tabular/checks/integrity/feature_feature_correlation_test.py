@@ -35,6 +35,7 @@ def test_feature_feature_correlation_without_display(adult_no_split):
     assert_that(result.value.columns, contains_inanyorder(*expected_features))
     assert_that(result.display, has_length(0))
 
+
 def test_feature_feature_correlation_with_mixed_data(df_with_mixed_datatypes_and_missing_values):
     # This dataset has mixed data types, missing values and a datetime column.
     ds = Dataset(df_with_mixed_datatypes_and_missing_values, cat_features=['cat', 'dog', 'owl'], label='target')

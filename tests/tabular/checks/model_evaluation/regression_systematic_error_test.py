@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Contains unit tests for the RegressionSystematicError check."""
-from hamcrest import assert_that, calling, close_to, has_items, raises
+from hamcrest import assert_that, calling, close_to, greater_than, has_items, has_length, raises
 
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError, ModelValidationError
 from deepchecks.tabular.checks.model_evaluation import RegressionSystematicError
@@ -51,10 +51,23 @@ def test_regression_error(diabetes_split_dataset_and_model):
     _, test, clf = diabetes_split_dataset_and_model
     check = RegressionSystematicError()
     # Act X
-    result = check.run(test, clf).value
+    result = check.run(test, clf)
     # Assert
-    assert_that(result['rmse'], close_to(57.5, 0.1))
-    assert_that(result['mean_error'], close_to(-0.008, 0.001))
+    assert_that(result.value['rmse'], close_to(57.5, 0.1))
+    assert_that(result.value['mean_error'], close_to(-0.008, 0.001))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_regression_error_without_display(diabetes_split_dataset_and_model):
+    # Arrange
+    _, test, clf = diabetes_split_dataset_and_model
+    check = RegressionSystematicError()
+    # Act X
+    result = check.run(test, clf, with_display=False)
+    # Assert
+    assert_that(result.value['rmse'], close_to(57.5, 0.1))
+    assert_that(result.value['mean_error'], close_to(-0.008, 0.001))
+    assert_that(result.display, has_length(0))
 
 
 def test_condition_error_ratio_not_greater_than_not_passed(diabetes_split_dataset_and_model):

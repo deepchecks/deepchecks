@@ -9,7 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Module for base vision context."""
-from typing import Dict, List, Mapping, Union
+from operator import itemgetter
+from typing import Dict, Mapping, Sequence, Union
 
 import torch
 from ignite.metrics import Metric
@@ -64,8 +65,8 @@ class Context:
                  random_state: int = 42,
                  n_samples: int = None,
                  with_display: bool = True,
-                 train_predictions: Union[List[torch.Tensor], torch.Tensor] = None,
-                 test_predictions: Union[List[torch.Tensor], torch.Tensor] = None,
+                 train_predictions: Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]] = None,
+                 test_predictions: Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]] = None,
                  ):
         # Validations
         if train is None and test is None and model is None:
@@ -117,7 +118,10 @@ class Context:
                                                           [train_predictions, test_predictions]):
                 if dataset is not None:
                     try:
-                        dataset.validate_infered_batch_predictions(predictions)
+                        preds = itemgetter(*list(dataset.data_loader.batch_sampler)[0])(predictions)
+                        if dataset.task_type == TaskType.CLASSIFICATION:
+                            preds = torch.stack(preds)
+                        dataset.validate_infered_batch_predictions(preds)
                         msg = None
                         self._static_predictions[dataset_type] = predictions
                     except ValidationError as ex:
