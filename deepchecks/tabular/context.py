@@ -22,6 +22,7 @@ from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.tabular.utils.validation import (ensure_predictions_proba, ensure_predictions_shape,
                                                  model_type_validation, validate_model)
+from deepchecks.utils.decorators import Substitution
 from deepchecks.utils.features import calculate_feature_importance_or_none
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.metrics import get_default_scorers, init_validate_scorers, task_type_check
@@ -129,57 +130,69 @@ class _DummyModel:
         """Just for python 3.6 (sklearn validates fit method)."""
 
 
-class Context:
-    """Contains all the data + properties the user has passed to a check/suite, and validates it seamlessly.
-
-    Parameters
-    ----------
-    train: Union[Dataset, pd.DataFrame] , default: None
+MAIN_CONTEXT_PARAMS = """
+    train: Union[Dataset, pd.DataFrame, None] , default: None
         Dataset or DataFrame object, representing data an estimator was fitted on
-    test: Union[Dataset, pd.DataFrame] , default: None
+    test: Union[Dataset, pd.DataFrame, None] , default: None
         Dataset or DataFrame object, representing data an estimator predicts on
-    model: BasicModel , default: None
+    model: Optional[BasicModel] , default: None
         A scikit-learn-compatible fitted estimator instance
+""".strip('\n').lstrip(' ').lstrip('\t')
+
+
+ADDITIONAL_CONTEXT_PARAMS = """
     model_name: str , default: ''
         The name of the model
-    features_importance: pd.Series , default: None
+    features_importance: Optional[pd.Series] , default: None
         pass manual features importance
     feature_importance_force_permutation : bool , default: False
         force calculation of permutation features importance
     feature_importance_timeout : int , default: 120
         timeout in second for the permutation features importance calculation
-    scorers : Mapping[str, Union[str, Callable]] , default: None
+    scorers : Optional[Mapping[str, Union[str, Callable]]] , default: None
         dict of scorers names to scorer sklearn_name/function
-    scorers_per_class : Mapping[str, Union[str, Callable]] , default: None
+    scorers_per_class : Optional[Mapping[str, Union[str, Callable]]] , default: None
         dict of scorers for classification without averaging of the classes.
         See <a href=
         "https://scikit-learn.org/stable/modules/model_evaluation.html#from-binary-to-multiclass-and-multilabel">
         scikit-learn docs</a>
-    y_pred_train: np.ndarray , default: None
+    y_pred_train: Optional[np.ndarray] , default: None
         Array of the model prediction over the train dataset.
-    y_pred_test: np.ndarray , default: None
+    y_pred_test: Optional[np.ndarray] , default: None
         Array of the model prediction over the test dataset.
-    y_proba_train: np.ndarray , default: None
+    y_proba_train: Optional[np.ndarray] , default: None
         Array of the model prediction probabilities over the train dataset.
-    y_proba_test: np.ndarray , default: None
+    y_proba_test: Optional[np.ndarray] , default: None
         Array of the model prediction probabilities over the test dataset.
+""".strip('\n').lstrip(' ').lstrip('\t')
+
+
+@Substitution(main_params=MAIN_CONTEXT_PARAMS, additional_params=ADDITIONAL_CONTEXT_PARAMS)
+class Context:
+    """Contains all the data + properties the user has passed to a check/suite, and validates it seamlessly.
+
+    Parameters
+    ----------
+    %(main_params)s
+    %(additional_params)s
     """
 
-    def __init__(self,
-                 train: t.Union[Dataset, pd.DataFrame] = None,
-                 test: t.Union[Dataset, pd.DataFrame] = None,
-                 model: BasicModel = None,
-                 model_name: str = '',
-                 features_importance: pd.Series = None,
-                 feature_importance_force_permutation: bool = False,
-                 feature_importance_timeout: int = 120,
-                 scorers: t.Mapping[str, t.Union[str, t.Callable]] = None,
-                 scorers_per_class: t.Mapping[str, t.Union[str, t.Callable]] = None,
-                 y_pred_train: np.ndarray = None,
-                 y_pred_test: np.ndarray = None,
-                 y_proba_train: np.ndarray = None,
-                 y_proba_test: np.ndarray = None,
-                 ):
+    def __init__(
+        self,
+        train: t.Union[Dataset, pd.DataFrame, None] = None,
+        test: t.Union[Dataset, pd.DataFrame, None] = None,
+        model: t.Optional[BasicModel] = None,
+        model_name: str = '',
+        features_importance: t.Optional[pd.Series] = None,
+        feature_importance_force_permutation: bool = False,
+        feature_importance_timeout: int = 120,
+        scorers: t.Optional[t.Mapping[str, t.Union[str, t.Callable]]] = None,
+        scorers_per_class: t.Optional[t.Mapping[str, t.Union[str, t.Callable]]] = None,
+        y_pred_train: t.Optional[np.ndarray] = None,
+        y_pred_test: t.Optional[np.ndarray] = None,
+        y_proba_train: t.Optional[np.ndarray] = None,
+        y_proba_test: t.Optional[np.ndarray] = None,
+    ):
         # Validations
         if train is None and test is None and model is None:
             raise DeepchecksValueError('At least one dataset (or model) must be passed to the method!')
