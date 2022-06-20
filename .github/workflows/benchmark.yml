@@ -22,10 +22,3 @@ jobs:
     - name: Run benchmarks
       run: |
         .github/scripts/benchmark.sh
-    - name: Compare
-      run: |
-        # Invocation from tools/ci/benchmark-travis-pr.sh for convenience
-        asv compare benchmark refs/bm/pr
-    - name: Fail if any benchmarks have slowed down too much
-      run: |
-        ! asv compare --factor 1.2 --split benchmark refs/bm/pr | grep -q "got worse"

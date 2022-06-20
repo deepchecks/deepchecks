@@ -37,4 +37,4 @@ git checkout --force benchmark
 
 run_asv
 
-asv compare benchmark refs/bm/pr
+$ENV_PATH/bin/asv compare benchmark refs/bm/pr
