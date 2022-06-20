@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""module contains Identifier Leakage check."""
+"""module contains the Identifier-Label Correlation check."""
 from typing import Dict
 
 import pandas as pd

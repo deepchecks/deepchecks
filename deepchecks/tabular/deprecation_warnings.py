@@ -79,3 +79,10 @@ warnings.filterwarnings(
     category=DeprecationWarning,
     module=r'deepchecks.*'
 )
+
+warnings.filterwarnings(
+    action='always',
+    message=r'the identifier_leakage check is deprecated.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.*'
+)

@@ -27,28 +27,29 @@ def generate_dataframe_and_expected():
     return df, {'x2': 0.42, 'x1': 0.0, 'x3': 0.0}
 
 
-def test_assert_identifier_leakage():
+def test_assert_identifier_label_correlation():
     df, expected = generate_dataframe_and_expected()
-    result = IdentifierLabelCorrelation().run(dataset=Dataset(df, label='label', datetime_name='x2', index_name='x3'))
+    result = IdentifierLabelCorrelation().run(dataset=Dataset(df, label='label', datetime_name='x2', index_name='x3',
+                                                              cat_features=[]))
     for key, value in result.value.items():
         assert_that(key, is_in(expected.keys()))
         assert_that(value, close_to(expected[key], 0.1))
 
 
-def test_identifier_leakage_with_extracted_from_dataframe_index():
+def test_identifier_label_correlation_with_extracted_from_dataframe_index():
     df, expected = generate_dataframe_and_expected()
     df.set_index('x3', inplace=True)
-    dataset = Dataset(df=df, label='label', set_index_from_dataframe_index=True)
+    dataset = Dataset(df=df, label='label', set_index_from_dataframe_index=True, cat_features=[])
     result = IdentifierLabelCorrelation().run(dataset=dataset)
     for key, value in result.value.items():
         assert_that(key, is_in(expected.keys()))
         assert_that(value, close_to(expected[key], 0.1))
 
 
-def test_identifier_leakage_with_extracted_from_dataframe_datatime_index():
+def test_identifier_label_correlation_with_extracted_from_dataframe_datatime_index():
     df, expected = generate_dataframe_and_expected()
     df.set_index('x2', inplace=True)
-    dataset = Dataset(df=df, label='label', set_datetime_from_dataframe_index=True)
+    dataset = Dataset(df=df, label='label', set_datetime_from_dataframe_index=True, cat_features=[])
     result = IdentifierLabelCorrelation().run(dataset=dataset)
     for key, value in result.value.items():
         assert_that(key, is_in(expected.keys()))
@@ -86,10 +87,11 @@ def test_dataset_only_label():
     )
 
 
-def test_assert_identifier_leakage_class():
+def test_assert_label_correlation_class():
     df, expected = generate_dataframe_and_expected()
     identifier_leakage_check = IdentifierLabelCorrelation()
-    result = identifier_leakage_check.run(dataset=Dataset(df, label='label', datetime_name='x2', index_name='x3'))
+    result = identifier_leakage_check.run(dataset=Dataset(df, label='label', datetime_name='x2', index_name='x3',
+                                                          cat_features=[]))
     for key, value in result.value.items():
         assert_that(key, is_in(expected.keys()))
         assert_that(value, close_to(expected[key], 0.1))
@@ -102,7 +104,8 @@ def test_nan():
                                      'x3': [np.nan],
                                      'label': [0]}))
 
-    result = IdentifierLabelCorrelation().run(dataset=Dataset(nan_df, label='label', datetime_name='x2', index_name='x3'))
+    result = IdentifierLabelCorrelation().run(dataset=Dataset(nan_df, label='label', datetime_name='x2',
+                                                              index_name='x3', cat_features=[]))
     for key, value in result.value.items():
         assert_that(key, is_in(expected.keys()))
         assert_that(value, close_to(expected[key], 0.1))
@@ -114,7 +117,8 @@ def test_condition_pps_pass():
     check = IdentifierLabelCorrelation().add_condition_pps_less_or_equal(0.5)
 
     # Act
-    result = check.conditions_decision(check.run(Dataset(df, label='label', datetime_name='x2', index_name='x3')))
+    result = check.conditions_decision(check.run(Dataset(df, label='label', datetime_name='x2', index_name='x3',
+                                                         cat_features=[])))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
@@ -129,7 +133,8 @@ def test_condition_pps_fail():
     check = IdentifierLabelCorrelation().add_condition_pps_less_or_equal(0.2)
 
     # Act
-    result = check.conditions_decision(check.run(Dataset(df, label='label', datetime_name='x2', index_name='x3')))
+    result = check.conditions_decision(check.run(Dataset(df, label='label', datetime_name='x2', index_name='x3',
+                                                         cat_features=[])))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
