@@ -46,7 +46,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         scorers_per_class: Optional[Mapping[str, Metric]] = None,
         device: Union[str, torch.device, None] = None,
         random_state: int = 42,
-        n_samples: Optional[int] = None,
+        n_samples: Optional[int] = 10_000,
         train_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
         test_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
     ) -> CheckResult:
@@ -129,7 +129,7 @@ class TrainTestCheck(TrainTestBaseCheck):
         scorers_per_class: Optional[Mapping[str, Metric]] = None,
         device: Union[str, torch.device, None] = None,
         random_state: int = 42,
-        n_samples: Optional[int] = None,
+        n_samples: Optional[int] = 10_000,
         train_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
         test_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
     ) -> CheckResult:
