@@ -176,7 +176,7 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
                                        'Range of Detected Normal String Lengths',
                                        'Range of Detected Outlier String Lengths'])
 
-        df_graph = column_importance_sorter_df(df_graph, dataset, context.features_importance,
+        df_graph = column_importance_sorter_df(df_graph, dataset, context.feature_importance,
                                                self.n_top_columns, col='Column Name')
         display = [N_TOP_MESSAGE % self.n_top_columns, df_graph] if len(df_graph) > 0 else None
 

@@ -66,7 +66,7 @@ class DominantFrequencyChange(TrainTestCheck):
         """
         test_dataset = context.test
         train_dataset = context.train
-        features_importance = context.features_importance
+        feature_importance = context.feature_importance
 
         test_df = test_dataset.data
         baseline_df = train_dataset.data
@@ -112,7 +112,7 @@ class DominantFrequencyChange(TrainTestCheck):
             sorted_p_df = column_importance_sorter_df(
                 sorted_p_df,
                 test_dataset,
-                features_importance,
+                feature_importance,
                 self.n_top_columns
             )
             display = [N_TOP_MESSAGE % self.n_top_columns, sorted_p_df]

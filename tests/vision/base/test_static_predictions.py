@@ -10,7 +10,7 @@
 #
 #
 import numpy as np
-from hamcrest import (assert_that, close_to, equal_to, has_entries, has_items, has_length)
+from hamcrest import assert_that, close_to, equal_to, has_entries, has_items, has_length
 
 from deepchecks.vision.checks.model_evaluation.class_performance import ClassPerformance
 from deepchecks.vision.checks.model_evaluation.image_segment_performance import ImageSegmentPerformance

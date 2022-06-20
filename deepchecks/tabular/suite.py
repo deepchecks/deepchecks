@@ -22,6 +22,7 @@ from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.tabular.base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
 from deepchecks.tabular.context import Context
 from deepchecks.tabular.dataset import Dataset
+from deepchecks.utils.decorators import deprecate_kwarg
 from deepchecks.utils.ipython import create_progress_bar
 from deepchecks.utils.typing import BasicModel
 
@@ -36,12 +37,13 @@ class Suite(BaseSuite):
         """Return tuple of supported check types of this suite."""
         return TrainTestCheck, SingleDatasetCheck, ModelOnlyCheck
 
+    @deprecate_kwarg(old_arg_name='features_importance', new_arg_name='feature_importance')
     def run(
             self,
             train_dataset: Optional[Union[Dataset, pd.DataFrame]] = None,
             test_dataset: Optional[Union[Dataset, pd.DataFrame]] = None,
             model: BasicModel = None,
-            features_importance: pd.Series = None,
+            feature_importance: pd.Series = None,
             feature_importance_force_permutation: bool = False,
             feature_importance_timeout: int = None,
             scorers: Mapping[str, Union[str, Callable]] = None,
@@ -50,6 +52,7 @@ class Suite(BaseSuite):
             y_pred_test: np.ndarray = None,
             y_proba_train: np.ndarray = None,
             y_proba_test: np.ndarray = None,
+            features_importance: pd.Series = None,  # TODO: deprecated, remove it
     ) -> SuiteResult:
         """Run all checks.
 
@@ -62,6 +65,9 @@ class Suite(BaseSuite):
         model : BasicModel , default None
             A scikit-learn-compatible fitted estimator instance
         features_importance : pd.Series , default None
+            pass manual features importance
+            (parameter is deprecated, use 'feature_importance' instead)
+        feature_importance : pd.Series , default None
             pass manual features importance
         feature_importance_force_permutation : bool , default None
             force calculation of permutation features importance
@@ -87,8 +93,9 @@ class Suite(BaseSuite):
         SuiteResult
             All results by all initialized checks
         """
+        feature_importance = features_importance
         context = Context(train_dataset, test_dataset, model,
-                          features_importance=features_importance,
+                          feature_importance=feature_importance,
                           feature_importance_force_permutation=feature_importance_force_permutation,
                           feature_importance_timeout=feature_importance_timeout,
                           scorers=scorers,

@@ -62,7 +62,7 @@ class MixedDataTypes(SingleDatasetCheck):
             numbers will also include hidden numbers in string representation.
         """
         dataset = context.get_data_by_kind(dataset_kind)
-        features_importance = context.features_importance
+        feature_importance = context.feature_importance
 
         df = select_from_dataframe(dataset.data, self.columns, self.ignore_columns)
 
@@ -86,7 +86,7 @@ class MixedDataTypes(SingleDatasetCheck):
 
         if display_dict:
             df_graph = pd.DataFrame.from_dict(display_dict)
-            df_graph = column_importance_sorter_df(df_graph.T, dataset, features_importance,
+            df_graph = column_importance_sorter_df(df_graph.T, dataset, feature_importance,
                                                    self.n_top_columns).T
             display = [N_TOP_MESSAGE % self.n_top_columns, df_graph]
         else:
