@@ -14,8 +14,9 @@ from typing import Any, Dict, List
 
 import pandas as pd
 
-from deepchecks.core import CheckResult, DatasetKind
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult, DatasetKind
 from deepchecks.core.check_utils.whole_dataset_drift_utils import run_whole_dataset_drift
+from deepchecks.utils.strings import format_number
 from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.utils.image_properties import default_image_properties, get_column_type, validate_properties
 
@@ -141,3 +142,26 @@ class ImageDatasetDrift(TrainTestCheck):
             displays.insert(0, headnote)
 
         return CheckResult(value=values_dict, display=displays, header='Image Dataset Drift')
+
+    def add_condition_drift_score_less_than(self, threshold: float = 0.1):
+        """
+        Add condition - require drift score to be less than the threshold.
+
+        The drift score used here is the domain_classifier_drift_Score attribute of the check result.
+        Parameters
+        ----------
+        threshold: float , default: 0.1
+            The max threshold for the drift score.
+        """
+        def condition(result):
+            drift_score = result['domain_classifier_drift_score']
+            if drift_score < threshold:
+                return ConditionResult(ConditionCategory.PASS,
+                                       f'Drift score {format_number(drift_score, 3)} is less than '
+                                       f'{format_number(threshold)}')
+            else:
+                return ConditionResult(ConditionCategory.FAIL,
+                                       f'Drift score {format_number(drift_score, 3)} is not less than '
+                                       f'{format_number(threshold)}')
+
+        return self.add_condition(f'Drift score is less than {threshold}', condition)
