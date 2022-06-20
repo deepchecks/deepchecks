@@ -12,7 +12,7 @@ name: Benchmark-History
 
 on:
   push:
-    branches: [ main ]
+    branches: [ 1566-feat-check-run-time-profiling ]
   # Manual run
   workflow_dispatch:
 
