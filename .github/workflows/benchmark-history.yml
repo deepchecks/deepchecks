@@ -36,4 +36,4 @@ jobs:
       run: make freeze
     - name: Run benchmarks
       run: |
-        .github/scripts/benchmark.sh
+        .github/scripts/benchmark-history.sh
