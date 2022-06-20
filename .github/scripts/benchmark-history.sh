@@ -28,4 +28,5 @@ $ENV_PATH/bin/asv  machine --yes
 
 run_asv
 
+git fetch origin gh-pages:gh-pages
 $ENV_PATH/bin/asv gh-pages
