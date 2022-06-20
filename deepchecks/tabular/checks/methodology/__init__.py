@@ -22,8 +22,8 @@ import warnings
 from ..data_integrity import FeatureLabelCorrelation
 from ..model_evaluation import BoostingOverfit, ModelInferenceTime, UnusedFeatures
 from ..train_test_validation import (DatasetsSizeComparison, DateTrainTestLeakageDuplicates,
-                                     DateTrainTestLeakageOverlap, FeatureLabelCorrelationChange, IdentifierLabelCorrelation,
-                                     IndexTrainTestLeakage, TrainTestSamplesMix)
+                                     DateTrainTestLeakageOverlap, FeatureLabelCorrelationChange,
+                                     IdentifierLabelCorrelation, IndexTrainTestLeakage, TrainTestSamplesMix)
 
 __all__ = [
     'BoostingOverfit',
