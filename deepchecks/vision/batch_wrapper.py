@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING, Any, Callable, Iterable, Tuple, TypeVar, cast
 import torch
 
 from deepchecks.core import DatasetKind
+from deepchecks.vision.task_type import TaskType
 
 if TYPE_CHECKING:
     from deepchecks.vision.context import Context
@@ -31,11 +32,11 @@ class Batch:
         batch: Tuple[Iterable[Any], Iterable[Any]],
         context: 'Context',  # noqa
         dataset_kind: DatasetKind,
-        batch_start_index: int
+        batch_index: int
     ):
         self._context = context
         self._dataset_kind = dataset_kind
-        self.batch_start_index = batch_start_index
+        self.batch_index = batch_index
         self._batch = apply_to_tensor(batch, lambda it: it.to(self._context.device))
         self._labels = None
         self._predictions = None
@@ -53,11 +54,11 @@ class Batch:
     def _do_static_pred(self):
         preds = self._context.static_predictions[self._dataset_kind]
         dataset = self._context.get_data_by_kind(self._dataset_kind)
-        indexes = [dataset.to_dataset_index(self.batch_start_index + index)[0]
-                   for index in range(len(self))]
-        if isinstance(preds, torch.Tensor):
-            return preds[indexes]
-        return itemgetter(*indexes)(preds)
+        indexes = list(dataset.data_loader.batch_sampler)[self.batch_index]
+        preds = itemgetter(*indexes)(preds)
+        if dataset.task_type == TaskType.CLASSIFICATION:
+            return torch.stack(preds)
+        return preds
 
     @property
     def predictions(self):
@@ -91,18 +92,7 @@ class Batch:
     def __len__(self):
         """Return length of batch."""
         dataset = self._context.get_data_by_kind(self._dataset_kind)
-        dataset_len = dataset.num_samples
-        dataloader_len = len(dataset.data_loader)
-        max_len = int(dataset_len / dataloader_len + 0.5)
-        if self.batch_start_index + max_len > dataset_len:  # last batch
-            return dataset_len - self.batch_start_index
-        return max_len
-
-    def get_index_in_dataset(self, index: int) -> int:
-        """For given index in this batch returns the real index in the underlying dataset object. Can be used to \
-        later get samples for display."""
-        dataset = self._context.get_data_by_kind(self._dataset_kind)
-        return dataset.to_dataset_index(self.batch_start_index + index)[0]
+        return len(list(dataset.data_loader.batch_sampler)[self.batch_index])
 
 
 T = TypeVar('T')
