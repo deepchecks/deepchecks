@@ -56,7 +56,7 @@ Head over to one of our following quickstart tutorials, and have deepchecks runn
 
 - :doc:`Data Integrity Quickstart (avocado sales data) </user-guide/tabular/auto_tutorials/plot_quick_data_integrity>`
 
-- :doc:`Full Suite (many checks) Quickstart (iris data) </user-guide/tabular/auto_tutorials/plot_quickstart_in_5_minutes.>`
+- :doc:`Full Suite (many checks) Quickstart (iris data) </user-guide/tabular/auto_tutorials/plot_quickstart_in_5_minutes>`
 
  **Recommended - download the code and run it locally** on the built-in dataset and (optional) model, or **replace them with your own**.
 

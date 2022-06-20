@@ -34,7 +34,7 @@ class SuiteResultSerializer(JsonSerializer['suite.SuiteResult']):
             raise TypeError(
                 f'Expected "SuiteResult" but got "{type(value).__name__}"'
             )
-        self.value = value
+        super().__init__(value=value)
 
     def serialize(
         self,
@@ -48,6 +48,9 @@ class SuiteResultSerializer(JsonSerializer['suite.SuiteResult']):
         with_display : bool, default True
             whether to include serialized `CheckResult.display` items into
             the output or not
+        **kwargs :
+            all other key-value arguments will be passed to the CheckResult/CheckFailure
+            serializers
 
         Returns
         -------

@@ -21,7 +21,7 @@ import plotly.graph_objects as go
 import torch
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.utils.display import imagetag
+from deepchecks.utils.html import imagetag
 
 from .detection_formatters import convert_bbox
 

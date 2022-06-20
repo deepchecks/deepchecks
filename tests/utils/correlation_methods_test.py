@@ -42,7 +42,20 @@ def test_theil_u():
     assert_that(s_fname_fname, close_to(1, 0.00001))  # full correlation
 
 
+def test_symmetric_theil_u():
+    s_fname_lname = correlation_methods.symmetric_theil_u_correlation(df['fName'], df['lName'])
+    assert_that(s_fname_lname, close_to(0.6713, 0.01))
+    s_lname_fname = correlation_methods.symmetric_theil_u_correlation(df['lName'], df['fName'])
+    assert_that(s_lname_fname, close_to(0.6713, 0.01))  # symmetric
+    s_fname_sname = correlation_methods.symmetric_theil_u_correlation(df['fName'], df['sName'])
+    assert_that(s_fname_sname, close_to(0, 0.00001))  # JKL gives no information
+    s_fname_fname = correlation_methods.symmetric_theil_u_correlation(df['fName'], df['fName'])
+    assert_that(s_fname_fname, close_to(1, 0.00001))  # full correlation
+
+
 def test_correlation_ratio():
+    cat_features = ['fName', 'lName', 'sName']
+    df.loc[:, cat_features] = df.loc[:, cat_features].apply(lambda x: pd.factorize(x)[0])
     c_lname_age = correlation_methods.correlation_ratio(df['lName'], df['Age'])
     c_lname_size = correlation_methods.correlation_ratio(df['lName'], df['Size'])
     assert_that(c_lname_age, close_to(0.28867, 0.001))
