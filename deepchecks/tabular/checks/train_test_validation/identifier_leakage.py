@@ -11,6 +11,7 @@
 """module contains the Identifier Leakage check - deprecated."""
 
 import warnings
+
 from deepchecks.tabular.checks.data_integrity.identifier_label_correlation import IdentifierLabelCorrelation
 
 
@@ -21,4 +22,3 @@ class IdentifierLeakage(IdentifierLabelCorrelation):
         warnings.warn('the identifier_leakage check is deprecated. use the identifier_label_correlation check instead',
                       DeprecationWarning, stacklevel=2)
         IdentifierLabelCorrelation.__init__(self, ppscore_params, **kwargs)
-
