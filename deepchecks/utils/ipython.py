@@ -176,7 +176,8 @@ def create_progress_bar(
         )
 
     barlen = iterlen if iterlen > 5 else 5
-
+    rbar = ' {n_fmt}/{total_fmt} [Time: {elapsed}{postfix}]'
+    bar_format = f'{{desc}}:\n|{{bar:{barlen}}}|{rbar}'
     is_disabled = get_verbosity() >= logging.WARNING
 
     if is_zmq_interactive_shell() and is_widgets_enabled():
@@ -184,20 +185,21 @@ def create_progress_bar(
             **kwargs,
             colour='#9d60fb',
             file=sys.stdout,
+            bar_format=f'{{desc}}<bar/>{rbar}',
             disable=is_disabled,
         )
 
     elif is_zmq_interactive_shell():
         return PlainNotebookProgressBar(
             **kwargs,
-            bar_format='{{desc}}:\n|{{bar:{0}}}{{r_bar}}'.format(barlen),  # pylint: disable=consider-using-f-string
+            bar_format=bar_format,
             disable=is_disabled,
         )
 
     else:
         return tqdm.tqdm(
             **kwargs,
-            bar_format='{{desc}}:\n|{{bar:{0}}}{{r_bar}}'.format(barlen),  # pylint: disable=consider-using-f-string
+            bar_format=bar_format,
             disable=is_disabled,
         )
 
