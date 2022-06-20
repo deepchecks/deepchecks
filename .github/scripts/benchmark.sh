@@ -29,11 +29,10 @@ $ENV_PATH/bin/asv  machine --yes
 git update-ref refs/bm/pr HEAD
 # We know this is a PR run. The branch is a GitHub refs/pull/*/merge ref, so
 # the current target that this PR will be merged into is HEAD^1.
-git update-ref refs/bm/merge-target main
 
 run_asv
 
-git checkout --force refs/bm/merge-target
+git checkout --force main
 run_asv
 
-asv compare refs/bm/merge-target refs/bm/pr
+asv compare main refs/bm/pr
