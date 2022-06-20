@@ -10,8 +10,9 @@
 #
 """Module with usefull decorators."""
 import typing as t
-import warnings
 from functools import wraps
+
+from deepchecks.utils.logger import get_logger
 
 __all__ = ['deprecate_kwarg']
 
@@ -27,7 +28,6 @@ def deprecate_kwarg(
     old_arg_name: str,
     new_arg_name: t.Optional[str],
     mapping: t.Union[t.Mapping[t.Any, t.Any], t.Callable[[t.Any], t.Any], None] = None,
-    stacklevel: int = 2,
 ) -> t.Callable[[F], F]:
     """Decorate a function with deprecated kwargs.
 
@@ -60,7 +60,7 @@ def deprecate_kwarg(
                         'will be removed in a future version. Please take '
                         f'steps to stop the use of {repr(old_arg_name)}'
                     )
-                    warnings.warn(msg, FutureWarning, stacklevel=stacklevel)
+                    get_logger().warning(msg)
                     kwargs[old_arg_name] = old_arg_value
                     return func(*args, **kwargs)
 
@@ -81,7 +81,7 @@ def deprecate_kwarg(
                         f'use {repr(new_arg_name)} instead'
                     )
 
-                warnings.warn(msg, FutureWarning, stacklevel=stacklevel)
+                get_logger().warning(msg)
                 if kwargs.get(new_arg_name) is not None:
                     msg = (
                         f'Can only specify {repr(old_arg_name)} '
