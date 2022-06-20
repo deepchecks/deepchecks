@@ -58,8 +58,8 @@ __all__ = [
 class Html:
     """Set of commonly used HTML tags."""
 
-    bold_hr = '<hr style="background-color: black;border: 0 none;color: black;height: 1px;">'
-    light_hr = '<hr style="background-color: #eee;border: 0 none;color: #eee;height: 4px;">'
+    bold_hr = '<hr style="background-color:black;border: 0 none;color:black;height:1px;width:100%;">'
+    light_hr = '<hr style="background-color:#eee;border: 0 none;color:#eee;height:4px;width:100%;">'
 
 
 def form_output_anchor(output_id: str) -> str:

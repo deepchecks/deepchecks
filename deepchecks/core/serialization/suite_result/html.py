@@ -13,6 +13,7 @@
 import textwrap
 import typing as t
 import warnings
+import htmlmin
 
 from deepchecks.core import check_result as check_types
 from deepchecks.core import suite
@@ -140,57 +141,44 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             )
         )
 
-        # summary = self.prepare_summary(output_id=output_id, **kwargs)
-        # conditions_table = self.prepare_conditions_table(output_id=output_id, **kwargs)
-        # failures = self.prepare_failures_list()
-
-        # results_with_conditions = self.prepare_results_with_condition_and_display(
-        #     output_id=output_id,
-        #     check_sections=['condition-table', 'additional-output'],
-        #     **kwargs
-        # )
-        # results_without_conditions = self.prepare_results_without_condition(
-        #     output_id=output_id,
-        #     check_sections=['additional-output'],
-        #     **kwargs
-        # )
-        # sections = [
-        #     summary,
-        #     Html.bold_hr,
-        #     conditions_table,
-        #     Html.bold_hr,
-        #     results_with_conditions,
-        #     Html.bold_hr,
-        #     results_without_conditions,
-        # ]
-
-        # if failures:
-        #     sections.extend([Html.bold_hr, failures])
-
-        # if output_id:
-        #     anchor = form_output_anchor(output_id)
-        #     link = linktag(
-        #         text='Go to top',
-        #         href=f'#{anchor}',
-        #         style={'font-size': '14px'},
-        #         is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
-        #     )
-        #     sections.append(f'<br>{link}')
-
         plotlyjs = plotlyjs_script(connected) if include_plotlyjs is True else ''
         requirejs = requirejs_script(connected) if include_requirejs is True else ''
 
         if full_html is False:
-            return ''.join((requirejs, plotlyjs, *content))
+            content = ''.join((
+                '<style>table {width: max-content;}</style>',
+                requirejs, 
+                plotlyjs, 
+                *content
+            ))
+            return DETAILS_TAG.format(
+                id=output_id or '',
+                name=suite_result.name,
+                content=content,
+                attrs='open',
+                additional_style='padding: 0 1.5rem 0 1.5rem;'
+            )
 
-        # TODO: use some style to make it pretty
-        return textwrap.dedent(f"""
+        content = ''.join(content)
+        content = DETAILS_TAG.format(
+            id=output_id or '',
+            name=suite_result.name,
+            content=content,
+            attrs='open',
+            additional_style='padding: 0 1.5rem 0 1.5rem;'
+        )
+
+        return (f"""
             <html>
-            <head><meta charset="utf-8"/></head>
-            <body style="background-color: white; padding: 1rem 1rem 0 1rem;">
+            <head>
+                <meta charset="utf-8"/>
+                <style>{STYLE}
+                </style>
+            </head>
+            <body>
                 {requirejs}
                 {plotlyjs}
-                {''.join(content)}
+                {content}
             </body>
             </html>
         """)
@@ -363,7 +351,9 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         return DETAILS_TAG.format(
             id='',
             name=title,
-            content=content
+            content=content,
+            attrs='',
+            additional_style='padding: 1.5rem;'
         )
         
     def prepare_results(
@@ -410,9 +400,11 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
                 content = Html.light_hr.join(serialized_results)
             
         return DETAILS_TAG.format(
-            id=section_id,
+            id=form_output_anchor(section_id),
             name=title,
-            content=content
+            content=content,
+            attrs='',
+            additional_style='padding: 1.5rem;'
         )
 
     # def prepare_conditions_table(
@@ -559,17 +551,60 @@ def select_serializer(result):
 
 
 DETAILS_TAG = """
-    <details id={id}>
+    <details id="{id}" {attrs}>
         <summary><strong>{name}</strong></summary>
         <div style="
             display: flex;
             flex-direction: column;
-            width: 100%;
-            padding: 1.5rem;
+            {additional_style}
         ">
         {content}
         </div>
     </details>
 """
 
-from ipykernel.comm import Comm as IPyComm
+
+STYLE = """
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+        font-size: 16px;
+        line-height: 1.5;
+        color: #212529;
+        text-align: left;
+        margin: auto;
+        background-color: white; 
+        padding: 1rem 1rem 0 1rem;
+    }
+
+    table {
+        border: none;
+        border-collapse: collapse;
+        border-spacing: 0;
+        color: black;
+        font-size: 12px;
+        table-layout: fixed;
+        width: max-content;
+    }
+    thead {
+        border-bottom: 1px solid black;
+        vertical-align: bottom;
+    }
+    tr, th, td {
+        text-align: right;
+        vertical-align: middle;
+        padding: 0.5em 0.5em;
+        line-height: normal;
+        white-space: normal;
+        max-width: none;
+        border: none;
+    }
+    th {
+        font-weight: bold;
+    }
+    tbody tr:nth-child(odd) {
+        background: #f5f5f5;
+    }
+    tbody tr:hover {
+        background: rgba(66, 165, 245, 0.2);
+    }
+"""

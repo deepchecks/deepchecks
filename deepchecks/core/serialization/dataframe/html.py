@@ -39,8 +39,9 @@ class DataFrameSerializer(HtmlSerializer[DataFrameOrStyler]):
             )
         super().__init__(value=value)
 
-    def serialize(self, **kwargs) -> str:
+    def serialize(self, classes: t.Optional[str] = None, **kwargs) -> str:
         """Serialize pandas.DataFrame instance into HTML format."""
+        table_attributes = f'class="{classes}"' if classes is not None else ''
         try:
             if isinstance(self.value, pd.DataFrame):
                 df_styler = self.value.style
@@ -55,8 +56,8 @@ class DataFrameSerializer(HtmlSerializer[DataFrameOrStyler]):
                     ('white-space', 'pre-wrap')  # Define how to handle white space characters (like \n)
                 ]
                 df_styler.set_table_styles([dict(selector='table,thead,tbody,th,td', props=table_css_props)])
-                return df_styler.render()
+                return df_styler.render(table_attributes=table_attributes)
         # Because of MLC-154. Dataframe with Multi-index or non unique indices does not have a style
         # attribute, hence we need to display as a regular pd html format.
         except ValueError:
-            return self.value.to_html()
+            return self.value.to_html(classes=classes)
