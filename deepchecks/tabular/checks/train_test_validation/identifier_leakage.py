@@ -18,7 +18,7 @@ class IdentifierLeakage(IdentifierLabelCorrelation):
     """Deprecated. Check if identifiers (Index/Date) can be used to predict the label."""
 
     def __init__(self, ppscore_params=None, **kwargs):
-        super().__init__(**kwargs)
-        self.ppscore_params = ppscore_params or {}
         warnings.warn('the identifier_leakage check is deprecated. use the identifier_label_correlation check instead',
-                      DeprecationWarning)
+                      DeprecationWarning, stacklevel=2)
+        IdentifierLabelCorrelation.__init__(self, ppscore_params, **kwargs)
+

@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Contains unit tests for the identifier_leakage check."""
+"""Contains unit tests for the identifier_label_correlation check."""
 import numpy as np
 import pandas as pd
 from hamcrest import assert_that, calling, close_to, has_items, is_in, raises
