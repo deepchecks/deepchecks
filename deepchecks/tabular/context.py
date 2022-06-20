@@ -186,7 +186,11 @@ class Context:
                  y_proba_test: np.ndarray = None,
                  features_importance: pd.Series = None,  # TODO: deprecated, should be removed
                  ):
-        feature_importance = features_importance
+        feature_importance = (
+            features_importance  # in case if user used deprecated parameter
+            if feature_importance is None
+            else feature_importance
+        )
         # Validations
         if train is None and test is None and model is None:
             raise DeepchecksValueError('At least one dataset (or model) must be passed to the method!')

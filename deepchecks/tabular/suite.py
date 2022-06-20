@@ -93,7 +93,11 @@ class Suite(BaseSuite):
         SuiteResult
             All results by all initialized checks
         """
-        feature_importance = features_importance
+        feature_importance = (
+            features_importance  # in case if user used deprecated parameter
+            if feature_importance is None
+            else feature_importance
+        )
         context = Context(train_dataset, test_dataset, model,
                           feature_importance=feature_importance,
                           feature_importance_force_permutation=feature_importance_force_permutation,
