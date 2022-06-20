@@ -60,7 +60,8 @@ def data_integrity(**kwargs) -> Suite:
         StringLengthOutOfBounds(**kwargs).add_condition_ratio_of_outliers_less_or_equal(),
         ConflictingLabels(**kwargs).add_condition_ratio_of_conflicting_labels_less_or_equal(),
         OutlierSampleDetection(**kwargs),
-        FeatureLabelCorrelation(**kwargs).add_condition_feature_pps_less_than()
+        FeatureLabelCorrelation(**kwargs).add_condition_feature_pps_less_than(),
+        IdentifierLabelCorrelation(**kwargs).add_condition_pps_less_or_equal()
     )
 
 
@@ -91,7 +92,6 @@ def train_test_validation(**kwargs) -> Suite:
         DateTrainTestLeakageDuplicates(**kwargs).add_condition_leakage_ratio_less_or_equal(),
         DateTrainTestLeakageOverlap(**kwargs).add_condition_leakage_ratio_less_or_equal(),
         IndexTrainTestLeakage(**kwargs).add_condition_ratio_less_or_equal(),
-        IdentifierLabelCorrelation(**kwargs).add_condition_pps_less_or_equal(),
         TrainTestSamplesMix(**kwargs).add_condition_duplicates_ratio_less_or_equal(),
         FeatureLabelCorrelationChange(**kwargs).add_condition_feature_pps_difference_less_than()
         .add_condition_feature_pps_in_train_less_than(),

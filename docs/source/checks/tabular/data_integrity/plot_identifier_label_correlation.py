@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Identifier Leakage
+Identifier Label Correlation
 ******************
 """
 
@@ -29,7 +29,7 @@ df['label'] = df['x5'].apply(lambda x: 0 if x < 0 else 1)
 dataset = Dataset(df, label='label', index_name='x1', datetime_name='x2')
 
 #%%
-# Running ``identifier_leakage`` check
+# Running ``IdentifierLabelCorrelation`` check
 # ====================================
 
 IdentifierLabelCorrelation().run(dataset)
