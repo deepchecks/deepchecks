@@ -32,7 +32,9 @@ git update-ref refs/bm/pr HEAD
 
 run_asv
 
+git fetch
 git checkout --force main
+
 run_asv
 
 asv compare main refs/bm/pr
