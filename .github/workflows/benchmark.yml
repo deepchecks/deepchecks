@@ -25,7 +25,7 @@ jobs:
     - name: Compare
       run: |
         # Invocation from tools/ci/benchmark-travis-pr.sh for convenience
-        asv compare refs/bm/merge-target refs/bm/pr
+        asv compare benchmark refs/bm/pr
     - name: Fail if any benchmarks have slowed down too much
       run: |
-        ! asv compare --factor 1.2 --split main refs/bm/pr | grep -q "got worse"
+        ! asv compare --factor 1.2 --split benchmark refs/bm/pr | grep -q "got worse"

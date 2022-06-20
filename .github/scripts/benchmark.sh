@@ -33,8 +33,8 @@ git update-ref refs/bm/pr HEAD
 run_asv
 
 git fetch
-git checkout --force main
+git checkout --force benchmark
 
 run_asv
 
-asv compare main refs/bm/pr
+asv compare benchmark refs/bm/pr
