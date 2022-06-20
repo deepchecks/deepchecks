@@ -1,9 +1,0 @@
-include requirements/requirements.txt
-include requirements/vision-requirements.txt
-include requirements/nlp-requirements.txt
-include requirements/dev-requirements.txt
-include LICENSE
-include deepchecks/VERSION
-include README.rst
-include DESCRIPTION.rst
-recursive-include deepchecks/core/resources *
