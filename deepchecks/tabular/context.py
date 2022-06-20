@@ -145,7 +145,8 @@ class Context:
         The name of the model
     features_importance: pd.Series , default: None
         pass manual features importance
-        (parameter is deprecated, use 'feature_importance' instead)
+        .. deprecated:: 0.8.1
+            Use 'feature_importance' instead.
     feature_importance: pd.Series , default: None
         pass manual features importance
     feature_importance_force_permutation : bool , default: False
