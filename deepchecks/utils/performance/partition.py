@@ -31,14 +31,17 @@ class DeepchecksFilter:
 
     Parameters
     ----------
-    filter_functions : Callable
-        List of functions which receive dataframe and return a filter on it
-    label : str
+    filter_functions : Callable, default: None
+        List of functions which receive dataframe and return a filter on it. If None uses applies no filter
+    label : str, default = ''
         name of the filter
     """
 
-    def __init__(self, filter_functions: List[Callable], label: str = ''):
-        self.filter_func = filter_functions
+    def __init__(self, filter_functions: List[Callable] = None, label: str = ''):
+        if not filter_functions or len(filter_functions) == 0:
+            self.filter_func = [lambda df: [True] * len(df)]
+        else:
+            self.filter_func = filter_functions
         self.label = label
 
     def filter(self, dataframe: pd.DataFrame) -> pd.DataFrame:
@@ -176,10 +179,7 @@ def convert_tree_leaves_into_filters(tree, feature_names: List[str]) -> List[Dee
     List[DeepchecksFilter]:
            A list of filters describing the leaves
     """
-    node_to_feature = [
-        feature_names[i] if i != _tree.TREE_UNDEFINED else 'undefined!'
-        for i in tree.feature
-    ]
+    node_to_feature = [feature_names[i] if i != _tree.TREE_UNDEFINED else None for i in tree.feature]
 
     def recurse(node_idx, filter_up_to_node):
         if tree.feature[node_idx] != _tree.TREE_UNDEFINED:
@@ -190,5 +190,5 @@ def convert_tree_leaves_into_filters(tree, feature_names: List[str]) -> List[Dee
         else:
             return [filter_up_to_node]
 
-    filters_to_leaves = recurse(0, DeepchecksFilter([lambda df: [True] * len(df)]))
+    filters_to_leaves = recurse(0, DeepchecksFilter())
     return filters_to_leaves

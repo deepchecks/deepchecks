@@ -52,3 +52,16 @@ def test_empty_merge_filters(iris_clean):
 
     filter3_data = filter3.filter(iris_clean.data)
     assert_that(len(filter3_data), equal_to(0))
+
+
+def test_no_effect_merge_filters(iris_clean):
+    filter1 = DeepchecksFilter([lambda df, a=2: df['petal length (cm)'] > a])
+    filter2 = DeepchecksFilter()
+    filter3 = intersect_two_filters(filter1, filter2)
+
+    filter1_data = filter1.filter(iris_clean.data)
+    filter2_data = filter2.filter(iris_clean.data)
+    filter3_data = filter3.filter(iris_clean.data)
+    assert_that(len(filter3_data), equal_to(len(filter1_data)))
+    assert_that(len(filter2_data), equal_to(len(iris_clean.data)))
+
