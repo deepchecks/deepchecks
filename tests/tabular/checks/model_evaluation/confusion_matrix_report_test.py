@@ -61,7 +61,7 @@ def test_model_info_object(iris_labeled_dataset, iris_adaboost):
     assert_that(result.display, has_length(greater_than(0)))
 
 
-def test_model_info_object(iris_labeled_dataset, iris_adaboost):
+def test_model_info_object_without_display(iris_labeled_dataset, iris_adaboost):
     # Arrange
     check = ConfusionMatrixReport()
     # Act X
