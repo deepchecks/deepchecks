@@ -31,8 +31,8 @@ class DeepchecksFilter:
 
     Parameters
     ----------
-    filter_functions : Callable, default: None
-        List of functions which receive dataframe and return a filter on it. If None uses applies no filter
+    filter_functions : List[Callable], default: None
+        List of functions that receive a DataFrame and return a filter on it. If None, no filter is applied
     label : str, default = ''
         name of the filter
     """
