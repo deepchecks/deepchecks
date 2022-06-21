@@ -42,7 +42,7 @@ class ColumnsInfo(SingleDatasetCheck):
         """
         dataset = context.get_data_by_kind(dataset_kind)
         value = dataset.columns_info
-        value = column_importance_sorter_dict(value, dataset, context.features_importance, self.n_top_columns)
+        value = column_importance_sorter_dict(value, dataset, context.feature_importance, self.n_top_columns)
         df = pd.DataFrame.from_dict(value, orient='index', columns=['role'])
         df = df.transpose()
 
