@@ -28,17 +28,7 @@ from deepchecks.vision.vision_data import VisionData
 __all__ = ['Context']
 
 
-MAIN_CONTEXT_PARAMS = """
-    train : Optional[VisionData] , default: None
-        VisionData object, representing data an neural network was fitted on
-    test : Optional[VisionData] , default: None
-        VisionData object, representing data an neural network predicts on
-    model : Optional[nn.Module] , default: None
-        pytorch neural network module instance
-""".strip('\n').lstrip(' ').lstrip('\t')
-
-
-ADDITIONAL_CONTEXT_PARAMS = """
+additional_context_params_doc = Substitution(additional_params="""
     model_name: str , default: ''
         The name of the model
     scorers : Optional[Mapping[str, Metric]] , default: None
@@ -56,16 +46,21 @@ ADDITIONAL_CONTEXT_PARAMS = """
         number of samples
     train_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] , default None
     test_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] , default None
-""".strip('\n').lstrip(' ').lstrip('\t')
+""".strip('\n').lstrip(' ').lstrip('\t'))
 
 
-@Substitution(main_params=MAIN_CONTEXT_PARAMS, additional_params=ADDITIONAL_CONTEXT_PARAMS)
+@additional_context_params_doc
 class Context:
     """Contains all the data + properties the user has passed to a check/suite, and validates it seamlessly.
 
     Parameters
     ----------
-    %(main_params)s
+    train : Optional[VisionData] , default: None
+        VisionData object, representing data an neural network was fitted on
+    test : Optional[VisionData] , default: None
+        VisionData object, representing data an neural network predicts on
+    model : Optional[nn.Module] , default: None
+        pytorch neural network module instance
     %(additional_params)s
     """
 

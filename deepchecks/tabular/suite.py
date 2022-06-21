@@ -20,7 +20,7 @@ from deepchecks.core.check_result import CheckFailure
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.tabular.base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
-from deepchecks.tabular.context import Context
+from deepchecks.tabular.context import Context, additional_context_params_doc
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.utils.ipython import create_progress_bar
 from deepchecks.utils.typing import BasicModel
@@ -36,20 +36,22 @@ class Suite(BaseSuite):
         """Return tuple of supported check types of this suite."""
         return TrainTestCheck, SingleDatasetCheck, ModelOnlyCheck
 
+    @additional_context_params_doc
     def run(
-            self,
-            train_dataset: Optional[Union[Dataset, pd.DataFrame]] = None,
-            test_dataset: Optional[Union[Dataset, pd.DataFrame]] = None,
-            model: BasicModel = None,
-            features_importance: pd.Series = None,
-            feature_importance_force_permutation: bool = False,
-            feature_importance_timeout: int = None,
-            scorers: Mapping[str, Union[str, Callable]] = None,
-            scorers_per_class: Mapping[str, Union[str, Callable]] = None,
-            y_pred_train: np.ndarray = None,
-            y_pred_test: np.ndarray = None,
-            y_proba_train: np.ndarray = None,
-            y_proba_test: np.ndarray = None,
+        self,
+        train_dataset: Union[Dataset, pd.DataFrame, None] = None,
+        test_dataset: Union[Dataset, pd.DataFrame, None] = None,
+        model: Optional[BasicModel] = None,
+        features_importance: Optional[pd.Series] = None,
+        feature_importance_force_permutation: bool = False,
+        feature_importance_timeout: int = 120,
+        scorers: Optional[Mapping[str, Union[str, Callable]]] = None,
+        scorers_per_class: Optional[Mapping[str, Union[str, Callable]]] = None,
+        y_pred_train: Optional[np.ndarray] = None,
+        y_pred_test: Optional[np.ndarray] = None,
+        y_proba_train: Optional[np.ndarray] = None,
+        y_proba_test: Optional[np.ndarray] = None,
+        model_name: str = '',
     ) -> SuiteResult:
         """Run all checks.
 
@@ -59,42 +61,30 @@ class Suite(BaseSuite):
             object, representing data an estimator was fitted on
         test_dataset : Optional[Union[Dataset, pd.DataFrame]] , default None
             object, representing data an estimator predicts on
-        model : BasicModel , default None
+        model : Optional[BasicModel] , default None
             A scikit-learn-compatible fitted estimator instance
-        features_importance : pd.Series , default None
-            pass manual features importance
-        feature_importance_force_permutation : bool , default None
-            force calculation of permutation features importance
-        feature_importance_timeout : int , default None
-            timeout in second for the permutation features importance calculation
-        scorers : Mapping[str, Union[str, Callable]] , default None
-            dict of scorers names to scorer sklearn_name/function
-        scorers_per_class : Mapping[str, Union[str, Callable]], default None
-            dict of scorers for classification without averaging of the classes
-            See <a href=
-            "https://scikit-learn.org/stable/modules/model_evaluation.html#from-binary-to-multiclass-and-multilabel">
-            scikit-learn docs</a>
-        y_pred_train: np.ndarray , default: None
-            Array of the model prediction over the train dataset.
-        y_pred_test: np.ndarray , default: None
-            Array of the model prediction over the test dataset.
-        y_proba_train: np.ndarray , default: None
-            Array of the model prediction probabilities over the train dataset.
-        y_proba_test: np.ndarray , default: None
-            Array of the model prediction probabilities over the test dataset.
+        %(additional_params)s
+
         Returns
         -------
         SuiteResult
             All results by all initialized checks
         """
-        context = Context(train_dataset, test_dataset, model,
-                          features_importance=features_importance,
-                          feature_importance_force_permutation=feature_importance_force_permutation,
-                          feature_importance_timeout=feature_importance_timeout,
-                          scorers=scorers,
-                          scorers_per_class=scorers_per_class,
-                          y_pred_train=y_pred_train, y_pred_test=y_pred_test,
-                          y_proba_train=y_proba_train, y_proba_test=y_proba_test)
+        context = Context(
+            train_dataset,
+            test_dataset,
+            model,
+            features_importance=features_importance,
+            feature_importance_force_permutation=feature_importance_force_permutation,
+            feature_importance_timeout=feature_importance_timeout,
+            scorers=scorers,
+            scorers_per_class=scorers_per_class,
+            y_pred_train=y_pred_train,
+            y_pred_test=y_pred_test,
+            y_proba_train=y_proba_train,
+            y_proba_test=y_proba_test,
+            model_name=model_name
+        )
 
         progress_bar = create_progress_bar(
             iterable=list(self.checks.values()),

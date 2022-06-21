@@ -11,7 +11,7 @@
 """Module for base vision abstractions."""
 # pylint: disable=broad-except,not-callable
 from collections import OrderedDict
-from typing import Dict, List, Mapping, Optional, Tuple, Union
+from typing import Dict, List, Mapping, Optional, Sequence, Tuple, Union
 
 import torch
 from ignite.metrics import Metric
@@ -24,7 +24,7 @@ from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.utils.ipython import ProgressBarGroup
 from deepchecks.vision.base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
 from deepchecks.vision.batch_wrapper import Batch
-from deepchecks.vision.context import Context
+from deepchecks.vision.context import Context, additional_context_params_doc
 from deepchecks.vision.vision_data import VisionData
 
 __all__ = ['Suite']
@@ -38,18 +38,20 @@ class Suite(BaseSuite):
         """Return tuple of supported check types of this suite."""
         return TrainTestCheck, SingleDatasetCheck, ModelOnlyCheck
 
+    @additional_context_params_doc
     def run(
-            self,
-            train_dataset: Optional[VisionData] = None,
-            test_dataset: Optional[VisionData] = None,
-            model: nn.Module = None,
-            scorers: Mapping[str, Metric] = None,
-            scorers_per_class: Mapping[str, Metric] = None,
-            device: Union[str, torch.device, None] = 'cpu',
-            random_state: int = 42,
-            n_samples: Optional[int] = 10_000,
-            train_predictions: Union[List[torch.Tensor], torch.Tensor] = None,
-            test_predictions: Union[List[torch.Tensor], torch.Tensor] = None,
+        self,
+        train_dataset: Optional[VisionData] = None,
+        test_dataset: Optional[VisionData] = None,
+        model: Optional[nn.Module] = None,
+        scorers: Optional[Mapping[str, Metric]] = None,
+        scorers_per_class: Optional[Mapping[str, Metric]] = None,
+        device: Union[str, torch.device, None] = None,
+        random_state: int = 42,
+        n_samples: Optional[int] = None,
+        train_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
+        test_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
+        model_name: str = '',
     ) -> SuiteResult:
         """Run all checks.
 
@@ -61,19 +63,8 @@ class Suite(BaseSuite):
             object, representing data an estimator predicts on
         model : nn.Module , default None
             A scikit-learn-compatible fitted estimator instance
-        scorers : Mapping[str, Metric] , default None
-            dict of scorers names to scorer sklearn_name/function
-        scorers_per_class : Mapping[str, Metric], default None
-            dict of scorers for classification without averaging of the classes
-            See <a href=
-            "https://scikit-learn.org/stable/modules/model_evaluation.html#from-binary-to-multiclass-and-multilabel">
-            scikit-learn docs</a>
-        device : Union[str, torch.device], default: None
-            processing unit for use
-        random_state : int
-            A seed to set for pseudo-random functions
-        n_samples : int, default: 10,000
-            number of samples to draw from the dataset.
+        %(additional_params)s
+
         Returns
         -------
         SuiteResult
@@ -101,6 +92,7 @@ class Suite(BaseSuite):
                     n_samples=n_samples,
                     train_predictions=train_predictions,
                     test_predictions=test_predictions,
+                    model_name=model_name
                 )
 
             # Initialize here all the checks that are not single dataset,

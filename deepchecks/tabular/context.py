@@ -130,17 +130,7 @@ class _DummyModel:
         """Just for python 3.6 (sklearn validates fit method)."""
 
 
-MAIN_CONTEXT_PARAMS = """
-    train: Union[Dataset, pd.DataFrame, None] , default: None
-        Dataset or DataFrame object, representing data an estimator was fitted on
-    test: Union[Dataset, pd.DataFrame, None] , default: None
-        Dataset or DataFrame object, representing data an estimator predicts on
-    model: Optional[BasicModel] , default: None
-        A scikit-learn-compatible fitted estimator instance
-""".strip('\n').lstrip(' ').lstrip('\t')
-
-
-ADDITIONAL_CONTEXT_PARAMS = """
+additional_context_params_doc = Substitution(additional_params="""
     model_name: str , default: ''
         The name of the model
     features_importance: Optional[pd.Series] , default: None
@@ -164,16 +154,21 @@ ADDITIONAL_CONTEXT_PARAMS = """
         Array of the model prediction probabilities over the train dataset.
     y_proba_test: Optional[np.ndarray] , default: None
         Array of the model prediction probabilities over the test dataset.
-""".strip('\n').lstrip(' ').lstrip('\t')
+""".strip('\n').lstrip(' ').lstrip('\t'))
 
 
-@Substitution(main_params=MAIN_CONTEXT_PARAMS, additional_params=ADDITIONAL_CONTEXT_PARAMS)
+@additional_context_params_doc
 class Context:
     """Contains all the data + properties the user has passed to a check/suite, and validates it seamlessly.
 
     Parameters
     ----------
-    %(main_params)s
+    train: Union[Dataset, pd.DataFrame, None] , default: None
+        Dataset or DataFrame object, representing data an estimator was fitted on
+    test: Union[Dataset, pd.DataFrame, None] , default: None
+        Dataset or DataFrame object, representing data an estimator predicts on
+    model: Optional[BasicModel] , default: None
+        A scikit-learn-compatible fitted estimator instance
     %(additional_params)s
     """
 

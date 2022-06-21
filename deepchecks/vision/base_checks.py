@@ -17,11 +17,10 @@ from torch import nn
 
 from deepchecks.core.check_result import CheckResult
 from deepchecks.core.checks import DatasetKind, ModelOnlyBaseCheck, SingleDatasetBaseCheck, TrainTestBaseCheck
-from deepchecks.utils.decorators import Substitution
 from deepchecks.utils.ipython import ProgressBarGroup
 from deepchecks.vision import deprecation_warnings  # pylint: disable=unused-import # noqa: F401
 from deepchecks.vision.batch_wrapper import Batch
-from deepchecks.vision.context import ADDITIONAL_CONTEXT_PARAMS, Context
+from deepchecks.vision.context import Context, additional_context_params_doc
 from deepchecks.vision.vision_data import VisionData
 
 __all__ = [
@@ -36,7 +35,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
 
     context_type = Context
 
-    @Substitution(additional_params=ADDITIONAL_CONTEXT_PARAMS)
+    @additional_context_params_doc
     def run(
         self,
         dataset: VisionData,
@@ -118,7 +117,7 @@ class TrainTestCheck(TrainTestBaseCheck):
 
     context_type = Context
 
-    @Substitution(additional_params=ADDITIONAL_CONTEXT_PARAMS)
+    @additional_context_params_doc
     def run(
         self,
         train_dataset: VisionData,
@@ -214,7 +213,7 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
 
     context_type = Context
 
-    @Substitution(additional_params=ADDITIONAL_CONTEXT_PARAMS)
+    @additional_context_params_doc
     def run(
         self,
         model: nn.Module,

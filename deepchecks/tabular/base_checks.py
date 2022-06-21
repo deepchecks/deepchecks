@@ -20,10 +20,9 @@ from deepchecks.core.checks import (BaseCheck, DatasetKind, ModelOnlyBaseCheck, 
                                     TrainTestBaseCheck)
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.tabular import deprecation_warnings  # pylint: disable=unused-import # noqa: F401
-from deepchecks.tabular.context import ADDITIONAL_CONTEXT_PARAMS, Context
+from deepchecks.tabular.context import Context, additional_context_params_doc
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.model_base import ModelComparisonContext
-from deepchecks.utils.decorators import Substitution
 from deepchecks.utils.typing import BasicModel
 
 __all__ = [
@@ -39,7 +38,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
 
     context_type = Context
 
-    @Substitution(additional_params=ADDITIONAL_CONTEXT_PARAMS)
+    @additional_context_params_doc
     def run(
         self,
         dataset: Union[Dataset, pd.DataFrame],
@@ -98,7 +97,7 @@ class TrainTestCheck(TrainTestBaseCheck):
 
     context_type = Context
 
-    @Substitution(additional_params=ADDITIONAL_CONTEXT_PARAMS)
+    @additional_context_params_doc
     def run(
         self,
         train_dataset: Union[Dataset, pd.DataFrame],
@@ -158,7 +157,7 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
 
     context_type = Context
 
-    @Substitution(additional_params=ADDITIONAL_CONTEXT_PARAMS)
+    @additional_context_params_doc
     def run(
         self,
         model: BasicModel,
