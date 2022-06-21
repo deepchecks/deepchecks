@@ -1,0 +1,24 @@
+(async () => {{
+    const containerId = '$containerId';
+    const container = document.querySelector(`#${containerId}`);
+    if (container === undefined || container === null) {
+        console.error('Did not find the container for the plot');
+        return;
+    }
+    if (
+        typeof window.Deepchecks !== 'object'
+        || typeof window.Deepchecks.loadPlotlyDependency !== 'object'
+    ) {
+        container.innerHTML = 'Failed to display plotly figure, try result.show_in_iframe';
+        return;
+    }
+    container.innerHTML = '<h1>Verifying needed dependencies</h1>';
+    try {
+        const Plotly = await window.Deepchecks.loadPlotlyDependency;
+        container.innerHTML = '';
+        $plotCreationScript
+    } catch(error) {
+        console.dir(error);
+        container.innerHTML = 'Failed to load plotly dependencies, try result.show_in_iframe';
+    }
+})();

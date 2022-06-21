@@ -475,3 +475,58 @@ def join(l: t.List[A], item: B) -> t.Iterator[t.Union[A, B]]:
         yield el
         if index != list_len:
             yield item
+
+
+def global_plotly_dependency():
+    """
+     <script type="text/javascript">
+
+        function loadPlotly() {{return new Promise(async (resolve, reject) => {{
+            try {{ 
+                const plotlyCdn = 'https://cdn.plot.ly/plotly-2.12.1.min';
+                const loadPlotlyScript = () => new Promise((resolve, reject) => {{
+                    const scriptTag = document.createElement('script');
+                    document.head.appendChild(scriptTag);
+                    scriptTag.async = true;
+                    scriptTag.onload = () => resolve(scriptTag);
+                    scriptTag.onerror = () => reject(new Error(`Failed to load plotly script`));
+                    scriptTag.src = plotlyCdn + '.js';
+                }});
+                if (window.Plotly === undefined || window.Plotly === null) {{
+                    if (typeof define === "function" && define.amd) {{
+                        const exist = (Plotly) => {{
+                            window.Plotly = Plotly; 
+                            resolve(Plotly);
+                        }};
+                        const failure = (e) => {{
+                            console.dir(e);
+                            reject(new Error('Failed to load plotly library'));
+                        }};
+                        requirejs.config({{paths: {{'plotly': [plotlyCdn]}}}});
+                        require(['plotly'], exist, failure);
+                    }} else {{
+                        try {{
+                            await loadPlotlyScript();
+                            resolve(Plotly);
+                        }} catch(error) {{
+                            console.dir(error);
+                            reject(new Error('Failed to load plotly library'));
+                        }}
+                    }}
+                }} else {{
+                    resolve(window.Plotly);
+                }}
+            }} catch(error) {{
+                reject(error);
+            }}
+
+        }})}};
+
+        if (window.loadPlotlyDependency === undefined || window.loadPlotlyDependency === null) {{
+            console.log('no plotly, loading it');
+            window.loadPlotlyDependency = loadPlotly();
+        }} else {{
+            console.log('dependency promise already exists');
+        }}
+    </script>
+    """
