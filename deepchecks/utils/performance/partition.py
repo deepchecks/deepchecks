@@ -166,8 +166,8 @@ def partition_column(
 def convert_tree_leaves_into_filters(tree, feature_names: List[str]) -> List[DeepchecksFilter]:
     """Extract the leaves from a sklearn tree and covert them into DeepchecksFilters.
 
-    More specifically go over the tree from root to leaf and truncates (intersect) the relevant filters along the way.
-    The result is a list in which each element is the truncate path between the root to a different leaf.
+    The function goes over the tree from root to leaf and concatenates (by intersecting) the relevant filters along the way.
+    The function returns a list in which each element is a DeepchecksFilter representing the path between the root to a different leaf.
 
     Parameters
     ----------
