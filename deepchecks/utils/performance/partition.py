@@ -38,23 +38,22 @@ class DeepchecksFilter:
     """
 
     def __init__(self, filter_functions: List[Callable] = None, label: str = ''):
-        if not filter_functions or len(filter_functions) == 0:
-            self.filter_func = [lambda df: [True] * len(df)]
+        if not filter_functions:
+            self.filter_functions = []
         else:
-            self.filter_func = filter_functions
+            self.filter_functions = filter_functions
         self.label = label
 
     def filter(self, dataframe: pd.DataFrame) -> pd.DataFrame:
         """Run the filter on given dataframe. Return rows in data frame satisfying the filter properties."""
-        data = dataframe.copy()
-        for func in self.filter_func:
-            data = data.loc[func(data)]
-        return data
+        for func in self.filter_functions:
+            dataframe = dataframe.loc[func(dataframe)]
+        return dataframe
 
 
 def intersect_two_filters(filter1: DeepchecksFilter, filter2: DeepchecksFilter) -> DeepchecksFilter:
     """Merge two DeepChecksFilters into one, an intersection of both filters."""
-    return DeepchecksFilter(filter1.filter_func + filter2.filter_func)
+    return DeepchecksFilter(filter1.filter_functions + filter2.filter_functions)
 
 
 def numeric_segmentation_edges(column: pd.Series, max_segments: int) -> List[DeepchecksFilter]:
@@ -167,9 +166,12 @@ def partition_column(
 def convert_tree_leaves_into_filters(tree, feature_names: List[str]) -> List[DeepchecksFilter]:
     """Extract the leaves from a sklearn tree and covert them into DeepchecksFilters.
 
+    More specifically go over the tree from root to leaf and truncates (intersect) the relevant filters along the way.
+    The result is a list in which each element is the truncate path between the root to a different leaf.
+
     Parameters
     ----------
-    tree : A sklearn tree
+    tree : A sklearn tree. The tree_ property of a sklearn decision tree.
     feature_names : List[str]
         The feature names for elements within the tree. Normally it is the column names of the data frame the tree
            was trained on.
@@ -177,16 +179,17 @@ def convert_tree_leaves_into_filters(tree, feature_names: List[str]) -> List[Dee
     Returns
     -------
     List[DeepchecksFilter]:
-           A list of filters describing the leaves
+           A list of filters describing the leaves of the tree.
     """
-    node_to_feature = [feature_names[i] if i != _tree.TREE_UNDEFINED else None for i in tree.feature]
+    node_to_feature = [feature_names[feature_idx] if feature_idx != _tree.TREE_UNDEFINED else None for feature_idx in
+                       tree.feature]
 
     def recurse(node_idx, filter_up_to_node):
         if tree.feature[node_idx] != _tree.TREE_UNDEFINED:
             left_filter = DeepchecksFilter([lambda df, a=tree.threshold[node_idx]: df[node_to_feature[node_idx]] <= a])
             right_filter = DeepchecksFilter([lambda df, a=tree.threshold[node_idx]: df[node_to_feature[node_idx]] > a])
             return recurse(tree.children_left[node_idx], intersect_two_filters(filter_up_to_node, left_filter)) + \
-                   recurse(tree.children_right[node_idx], intersect_two_filters(filter_up_to_node, right_filter))
+                recurse(tree.children_right[node_idx], intersect_two_filters(filter_up_to_node, right_filter))
         else:
             return [filter_up_to_node]
 
