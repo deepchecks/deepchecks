@@ -136,7 +136,7 @@ class StringMismatchComparison(TrainTestCheck):
             df_graph = column_importance_sorter_df(
                 df_graph,
                 context.test,
-                context.features_importance,
+                context.feature_importance,
                 self.n_top_columns,
                 col='Column name'
             )

@@ -140,7 +140,7 @@ class TrainTestFeatureDrift(TrainTestCheck):
         """
         train_dataset: Dataset = context.train
         test_dataset: Dataset = context.test
-        features_importance = context.features_importance
+        feature_importance = context.feature_importance
         train_dataset.assert_features()
         test_dataset.assert_features()
 
@@ -156,11 +156,11 @@ class TrainTestFeatureDrift(TrainTestCheck):
 
         features_order = (
             tuple(
-                features_importance
+                feature_importance
                 .sort_values(ascending=False)
                 .index
             )
-            if features_importance is not None
+            if feature_importance is not None
             else None
         )
 
@@ -171,7 +171,7 @@ class TrainTestFeatureDrift(TrainTestCheck):
                 column_type = 'categorical'
             else:
                 continue  # we only support categorical or numerical features
-            if features_importance is not None:
+            if feature_importance is not None:
                 fi_rank = features_order.index(column) + 1
                 plot_title = f'{column} (#{int(fi_rank)} in FI)'
             else:
@@ -193,18 +193,18 @@ class TrainTestFeatureDrift(TrainTestCheck):
             values_dict[column] = {
                 'Drift score': value,
                 'Method': method,
-                'Importance': features_importance[column] if features_importance is not None else None
+                'Importance': feature_importance[column] if feature_importance is not None else None
             }
             displays_dict[column] = display
 
         if context.with_display:
-            if self.sort_feature_by == 'feature importance' and features_importance is not None:
+            if self.sort_feature_by == 'feature importance' and feature_importance is not None:
                 columns_order = features_order[:self.n_top_columns]
             else:
                 columns_order = sorted(values_dict.keys(), key=lambda col: values_dict[col]['Drift score'],
                                        reverse=True)[:self.n_top_columns]
 
-            sorted_by = self.sort_feature_by if features_importance is not None else 'drift score'
+            sorted_by = self.sort_feature_by if feature_importance is not None else 'drift score'
 
             headnote = f"""<span>
                 The Drift score is a measure for the difference between two distributions, in this check - the test

@@ -102,7 +102,7 @@ class MixedNulls(SingleDatasetCheck):
         if context.with_display and display_array:
             df_graph = pd.DataFrame(display_array, columns=['Column Name', 'Value', 'Count', 'Percent of data'])
             df_graph = df_graph.set_index(['Column Name', 'Value'])
-            df_graph = column_importance_sorter_df(df_graph, dataset, context.features_importance,
+            df_graph = column_importance_sorter_df(df_graph, dataset, context.feature_importance,
                                                    self.n_top_columns, col='Column Name')
             display = [N_TOP_MESSAGE % self.n_top_columns, df_graph]
         else:
