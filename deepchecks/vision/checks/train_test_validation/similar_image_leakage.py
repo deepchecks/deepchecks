@@ -120,7 +120,7 @@ class SimilarImageLeakage(TrainTestCheck):
             'test': context.test
         }
 
-        display = [] if context.with_display else None
+        display = []
         similar_pairs = []
         if similar_indices['test']:
             for similar_index in display_indices:
