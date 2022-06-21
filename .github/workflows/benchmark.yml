@@ -8,27 +8,30 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-name: Pull Request
+name: benchmarks
+
 on:
   pull_request:
-    types: [opened, labeled, unlabeled, synchronize]
+    branches: [ main ]
 
 env:
   DISABLE_DEEPCHECKS_ANONYMOUS_TELEMETRY: "true"
 
 jobs:
-  labels:
-    name: Validate Label 
+  benchmark:
+
     runs-on: ubuntu-latest
 
     steps:
-      - uses: mheap/github-action-required-labels@v1
-        with:
-          mode: minimum
-          count: 1
-          labels: "feature, bug, tests, ci, documentation, refactoring"
-      - uses: mheap/github-action-required-labels@v1
-        with:
-          mode: exactly
-          count: 0
-          labels: 'help wanted, wontfix, question, good first issue, invalid, duplicate, do not merge'
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.9"
+    - name: Set Up Env
+      run: make env
+    - name: pip freeze
+      run: make freeze
+    - name: Run benchmarks
+      run: |
+        .github/scripts/benchmark.sh

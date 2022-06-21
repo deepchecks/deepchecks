@@ -10,6 +10,8 @@ to display your own graph using deepchecks' suite.
 * `Check Structure <#check-structure>`__
 * `Write a Basic Check <#write-a-basic-check>`__
 * `Check Display <#check-display>`__
+* :doc:`Custom Check Templates </user-guide/tabular/custom_check_templates>`
+
 
 Check Structure
 ===============
