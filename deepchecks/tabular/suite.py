@@ -22,6 +22,7 @@ from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.tabular.base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
 from deepchecks.tabular.context import Context, additional_context_params_doc
 from deepchecks.tabular.dataset import Dataset
+from deepchecks.utils.decorators import deprecate_kwarg
 from deepchecks.utils.ipython import create_progress_bar
 from deepchecks.utils.typing import BasicModel
 
@@ -36,6 +37,7 @@ class Suite(BaseSuite):
         """Return tuple of supported check types of this suite."""
         return TrainTestCheck, SingleDatasetCheck, ModelOnlyCheck
 
+    @deprecate_kwarg(old_name='features_importance', new_name='feature_importance')
     @additional_context_params_doc
     def run(
         self,
@@ -52,7 +54,6 @@ class Suite(BaseSuite):
         y_proba_train: Optional[np.ndarray] = None,
         y_proba_test: Optional[np.ndarray] = None,
         model_name: str = '',
-        features_importance: Optional[pd.Series] = None,  # TODO: depecated, remove
     ) -> SuiteResult:
         """Run all checks.
 
@@ -75,7 +76,6 @@ class Suite(BaseSuite):
             train_dataset,
             test_dataset,
             model,
-            features_importance=features_importance,  # TODO: depecated, remove
             feature_importance=feature_importance,
             feature_importance_force_permutation=feature_importance_force_permutation,
             feature_importance_timeout=feature_importance_timeout,
