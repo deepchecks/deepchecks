@@ -81,12 +81,12 @@ class SegmentPerformance(SingleDatasetCheck):
 
         if self.feature_1 is None and self.feature_2 is None:
             # Use feature importance to select features if none were defined
-            features_importance = context.features_importance
-            if features_importance is None:
+            feature_importance = context.feature_importance
+            if feature_importance is None:
                 self.feature_1, self.feature_2, *_ = features
             else:
-                features_importance.sort_values(ascending=False, inplace=True)
-                self.feature_1, self.feature_2, *_ = cast(List[Hashable], list(features_importance.keys()))
+                feature_importance.sort_values(ascending=False, inplace=True)
+                self.feature_1, self.feature_2, *_ = cast(List[Hashable], list(feature_importance.keys()))
 
         elif self.feature_1 is None or self.feature_2 is None:
             raise DeepchecksValueError('Must define both "feature_1" and "feature_2" or none of them')

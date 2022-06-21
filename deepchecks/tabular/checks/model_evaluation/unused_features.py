@@ -80,7 +80,7 @@ class UnusedFeatures(TrainTestCheck):
             dataset = context.train
         _ = context.model  # validate model
 
-        feature_importance = context.features_importance
+        feature_importance = context.feature_importance
         if feature_importance is None:
             raise DeepchecksValueError('Feature Importance is not available.')
         dataset.assert_features()

@@ -160,20 +160,20 @@ def test_pass_feature_importance_incorrect(iris_split_dataset):
     train, test = iris_split_dataset
 
     # Act & Assert
-    assert_that(calling(check.run).with_args(train, test, features_importance='wrong type'),
-                raises(DeepchecksValueError, 'features_importance must be a pandas Series'))
+    assert_that(calling(check.run).with_args(train, test, feature_importance='wrong type'),
+                raises(DeepchecksValueError, 'feature_importance must be a pandas Series'))
 
 
 def test_pass_feature_importance_correct(iris_split_dataset):
     # Arrange
     check = DummyCheck()
     train, test = iris_split_dataset
-    features_importance = pd.Series(data=np.random.rand(len(train.features)), index=train.features)
+    feature_importance = pd.Series(data=np.random.rand(len(train.features)), index=train.features)
 
     # Act
-    result = check.run(train, test, features_importance=features_importance)
+    result = check.run(train, test, feature_importance=feature_importance)
     context: Context = result.value
 
     # Assert
     assert_that(context._calculated_importance, is_(True))
-    assert_that(context._features_importance is not None)
+    assert_that(context._feature_importance is not None)

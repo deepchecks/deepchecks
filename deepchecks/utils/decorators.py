@@ -11,8 +11,11 @@
 """Module with usefull decorators."""
 import textwrap
 import typing as t
+from functools import wraps
 
-__all__ = []
+from deepchecks.utils.logger import get_logger
+
+__all__ = ['Substitution', 'Appender', 'deprecate_kwarg']
 
 
 F = t.TypeVar('F', bound=t.Callable[..., t.Any])
@@ -110,3 +113,41 @@ def indent(text: t.Optional[str], indents: int = 1) -> str:
         return ''
     jointext = ''.join(['\n'] + ['    '] * indents)
     return jointext.join(text.split('\n'))
+
+
+def deprecate_kwarg(
+    old_name: str,
+    new_name: t.Optional[str] = None,
+) -> t.Callable[[F], F]:
+    """Decorate a function with deprecated kwargs.
+
+    Parameters
+    ----------
+    old_arg_name : str
+        Name of argument in function to deprecate
+    new_arg_name : Optional[str], default None
+        Name of preferred argument in function.
+    """
+    def _deprecate_kwarg(func: F) -> F:
+        @wraps(func)
+        def wrapper(*args, **kwargs) -> t.Callable[..., t.Any]:
+            if old_name in kwargs and new_name in kwargs:
+                raise TypeError(
+                    f'Can only specify {repr(old_name)} '
+                    f'or {repr(new_name)}, not both'
+                )
+            elif old_name in kwargs and new_name is None:
+                get_logger().warning(
+                    f'the {repr(old_name)} keyword is deprecated and '
+                    'will be removed in a future version. Please take '
+                    f'steps to stop the use of {repr(old_name)}'
+                )
+            elif old_name in kwargs and new_name is not None:
+                get_logger().warning(
+                    f'the {repr(old_name)} keyword is deprecated, '
+                    f'use {repr(new_name)} instead'
+                )
+                kwargs[new_name] = kwargs.pop(old_name)
+            return func(*args, **kwargs)
+        return t.cast(F, wrapper)
+    return _deprecate_kwarg

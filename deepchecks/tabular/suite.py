@@ -42,7 +42,7 @@ class Suite(BaseSuite):
         train_dataset: Union[Dataset, pd.DataFrame, None] = None,
         test_dataset: Union[Dataset, pd.DataFrame, None] = None,
         model: Optional[BasicModel] = None,
-        features_importance: Optional[pd.Series] = None,
+        feature_importance: Optional[pd.Series] = None,
         feature_importance_force_permutation: bool = False,
         feature_importance_timeout: int = 120,
         scorers: Optional[Mapping[str, Union[str, Callable]]] = None,
@@ -52,6 +52,7 @@ class Suite(BaseSuite):
         y_proba_train: Optional[np.ndarray] = None,
         y_proba_test: Optional[np.ndarray] = None,
         model_name: str = '',
+        features_importance: Optional[pd.Series] = None,  # TODO: depecated, remove
     ) -> SuiteResult:
         """Run all checks.
 
@@ -74,7 +75,8 @@ class Suite(BaseSuite):
             train_dataset,
             test_dataset,
             model,
-            features_importance=features_importance,
+            features_importance=features_importance,  # TODO: depecated, remove
+            feature_importance=feature_importance,
             feature_importance_force_permutation=feature_importance_force_permutation,
             feature_importance_timeout=feature_importance_timeout,
             scorers=scorers,

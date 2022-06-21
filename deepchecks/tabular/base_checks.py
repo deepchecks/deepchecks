@@ -23,6 +23,7 @@ from deepchecks.tabular import deprecation_warnings  # pylint: disable=unused-im
 from deepchecks.tabular.context import Context, additional_context_params_doc
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.model_base import ModelComparisonContext
+from deepchecks.utils.decorators import deprecate_kwarg
 from deepchecks.utils.typing import BasicModel
 
 __all__ = [
@@ -38,13 +39,14 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
 
     context_type = Context
 
+    @deprecate_kwarg(old_name='features_importance', new_name='feature_importance')
     @additional_context_params_doc
     def run(
         self,
         dataset: Union[Dataset, pd.DataFrame],
         model: Optional[BasicModel] = None,
         model_name: str = '',
-        features_importance: Optional[pd.Series] = None,
+        feature_importance: Optional[pd.Series] = None,
         feature_importance_force_permutation: bool = False,
         feature_importance_timeout: int = 120,
         scorers: Optional[Mapping[str, Union[str, Callable]]] = None,
@@ -69,7 +71,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
             train=dataset,
             model=model,
             model_name=model_name,
-            features_importance=features_importance,
+            feature_importance=feature_importance,
             feature_importance_force_permutation=feature_importance_force_permutation,
             feature_importance_timeout=feature_importance_timeout,
             scorers=scorers,
@@ -97,6 +99,7 @@ class TrainTestCheck(TrainTestBaseCheck):
 
     context_type = Context
 
+    @deprecate_kwarg(old_name='features_importance', new_name='feature_importance')
     @additional_context_params_doc
     def run(
         self,
@@ -104,7 +107,7 @@ class TrainTestCheck(TrainTestBaseCheck):
         test_dataset: Union[Dataset, pd.DataFrame],
         model: Optional[BasicModel] = None,
         model_name: str = '',
-        features_importance: Optional[pd.Series] = None,
+        feature_importance: Optional[pd.Series] = None,
         feature_importance_force_permutation: bool = False,
         feature_importance_timeout: int = 120,
         scorers: Optional[Mapping[str, Union[str, Callable]]] = None,
@@ -132,7 +135,7 @@ class TrainTestCheck(TrainTestBaseCheck):
             test=test_dataset,
             model=model,
             model_name=model_name,
-            features_importance=features_importance,
+            feature_importance=feature_importance,
             feature_importance_force_permutation=feature_importance_force_permutation,
             feature_importance_timeout=feature_importance_timeout,
             scorers=scorers,
@@ -157,12 +160,13 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
 
     context_type = Context
 
+    @deprecate_kwarg(old_name='features_importance', new_name='feature_importance')
     @additional_context_params_doc
     def run(
         self,
         model: BasicModel,
         model_name: str = '',
-        features_importance: Optional[pd.Series] = None,
+        feature_importance: Optional[pd.Series] = None,
         feature_importance_force_permutation: bool = False,
         feature_importance_timeout: int = 120,
         scorers: Optional[Mapping[str, Union[str, Callable]]] = None,
@@ -184,7 +188,7 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
         context = self.context_type(
             model=model,
             model_name=model_name,
-            features_importance=features_importance,
+            feature_importance=feature_importance,
             feature_importance_force_permutation=feature_importance_force_permutation,
             feature_importance_timeout=feature_importance_timeout,
             scorers=scorers,
