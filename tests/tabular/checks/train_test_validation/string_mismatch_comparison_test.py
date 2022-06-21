@@ -11,7 +11,7 @@
 """Contains unit tests for the string_mismatch check."""
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, equal_to, has_entries, has_entry, has_items, has_length
+from hamcrest import assert_that, equal_to, greater_than, has_entries, has_entry, has_items, has_length
 
 from deepchecks.tabular.checks import StringMismatchComparison
 from deepchecks.tabular.dataset import Dataset
@@ -24,10 +24,26 @@ def test_single_col_mismatch():
     compared_data = {'col1': ['Deep', 'deep', '$deeP$', 'earth', 'foo', 'bar', 'foo?', '?deep']}
 
     # Act
-    result = StringMismatchComparison().run(pd.DataFrame(data=data), pd.DataFrame(data=compared_data)).value
+    result = StringMismatchComparison().run(pd.DataFrame(data=data), pd.DataFrame(data=compared_data))
 
     # Assert - 1 column, 1 baseform are mismatch
-    assert_that(result, has_entry('col1', has_length(1)))
+    assert_that(result.value, has_entry('col1', has_length(1)))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_single_col_mismatch_without_display():
+    # Arrange
+    data = {'col1': ['Deep', 'deep', 'deep!!!', 'earth', 'foo', 'bar', 'foo?']}
+    compared_data = {'col1': ['Deep', 'deep', '$deeP$', 'earth', 'foo', 'bar', 'foo?', '?deep']}
+
+    # Act
+    result = StringMismatchComparison().run(pd.DataFrame(data=data),
+                                            pd.DataFrame(data=compared_data),
+                                            with_display=False)
+
+    # Assert - 1 column, 1 baseform are mismatch
+    assert_that(result.value, has_entry('col1', has_length(1)))
+    assert_that(result.display, has_length(0))
 
 
 def test_mismatch_multi_column():
