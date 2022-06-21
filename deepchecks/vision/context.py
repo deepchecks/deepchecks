@@ -52,6 +52,12 @@ class Context:
     random_state : int
         A seed to set for pseudo-random functions
     n_samples : int, default: None
+    with_display : bool , default: True
+        flag that determines if checks will calculate display (redundant in some checks).
+    train_predictions: Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]] , default: None
+        Dictionary of the model prediction over the train dataset (keys are the indexes).
+    test_predictions: Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]] , default: None
+        Dictionary of the model prediction over the test dataset (keys are the indexes).
     """
 
     def __init__(self,
@@ -156,6 +162,7 @@ class Context:
 
     @property
     def with_display(self) -> bool:
+        """Return the with_display flag."""
         return self._with_display
 
     @property

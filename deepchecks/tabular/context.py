@@ -160,6 +160,8 @@ class Context:
         See <a href=
         "https://scikit-learn.org/stable/modules/model_evaluation.html#from-binary-to-multiclass-and-multilabel">
         scikit-learn docs</a>
+    with_display : bool , default: True
+        flag that determines if checks will calculate display (redundant in some checks).
     y_pred_train: np.ndarray , default: None
         Array of the model prediction over the train dataset.
     y_pred_test: np.ndarray , default: None
@@ -251,6 +253,7 @@ class Context:
 
     @property
     def with_display(self) -> bool:
+        """Return the with_display flag."""
         return self._with_display
 
     @property
