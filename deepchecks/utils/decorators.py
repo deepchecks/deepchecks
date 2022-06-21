@@ -12,13 +12,15 @@
 import textwrap
 import typing as t
 from functools import wraps
+from collections import defaultdict
 
 from deepchecks.utils.logger import get_logger
 
-__all__ = ['Substitution', 'Appender', 'deprecate_kwarg']
+__all__ = ['Substitution', 'Appender', 'deprecate_kwarg', 'ParametersCombiner']
 
 
 F = t.TypeVar('F', bound=t.Callable[..., t.Any])
+INDENT = '    '
 
 
 # Substitution and Appender are derived from matplotlib.docstring (1.1.0)
@@ -108,11 +110,17 @@ class Appender:
         return func
 
 
-def indent(text: t.Optional[str], indents: int = 1) -> str:
+def indent(
+    text: t.Optional[str], 
+    indents: int = 1,
+    prefix: bool = False
+) -> str:
     if not text or not isinstance(text, str):
         return ''
-    jointext = ''.join(['\n'] + ['    '] * indents)
-    return jointext.join(text.split('\n'))
+    identation = ''.join((INDENT for _ in range(indents)))
+    jointext = ''.join(('\n', identation))
+    output = jointext.join(text.split('\n'))
+    return output if prefix is False else f"{identation}{output}"
 
 
 def deprecate_kwarg(
@@ -151,3 +159,166 @@ def deprecate_kwarg(
             return func(*args, **kwargs)
         return t.cast(F, wrapper)
     return _deprecate_kwarg
+
+    
+def scrap_parameters_lines(docstring: str) -> t.List[str]:
+    """Return docstring parameters section lines"""
+    lines = docstring.split('\n')
+    n_of_lines = len(lines)
+    output = []
+    if n_of_lines > 2:
+        parameters_section = 'Parameters'
+        section_underline = {'-'}
+        end_of_parameters = {'', 'Returns', 'Examples', 'See also', 'Notes', 'Raises'}
+        l1, l2 = lines[0].strip(), lines[1].strip()
+        current_line = 0
+        while current_line < n_of_lines:
+            if l1 == parameters_section and set(l2) == section_underline:
+                while current_line < n_of_lines:
+                    l = lines[current_line]
+                    ls = l.strip()
+                    if ls in end_of_parameters or set(ls) == section_underline:
+                        return output
+                    output.append(l)
+                    current_line += 1
+            else:
+                l1 = l2
+                l2 = lines[current_line].strip()
+                current_line += 1
+    return output
+
+
+Parameter = t.Tuple[str, str, str]  # name, type-desc, desc
+
+
+def parse_parameters_section(docstring: str) -> t.Tuple[Parameter, ...]:
+    """Parse docstring parameters section."""
+    parameters_section = scrap_parameters_lines(docstring)
+    
+    if not parameters_section:
+        return tuple()
+    
+    n_of_lines = len(parameters_section)
+    current_line = 0
+    parameter_line = parameters_section[0]
+    level = len(parameter_line) - len(parameter_line.lstrip(' \t'))
+    type_and_name_devider = ':'
+    output = []
+    
+    while current_line < n_of_lines:
+        parameter_line = parameters_section[current_line]
+        
+        if type_and_name_devider not in parameter_line:
+            # Unknown structure, exit
+            return tuple(output)
+    
+        name, type_desc = parameter_line.split(type_and_name_devider, maxsplit=1)
+        name, type_desc = name.strip(), type_desc.strip()
+        description = []
+        current_line += 1
+                
+        while current_line < n_of_lines:
+            desc_line = parameters_section[current_line]
+            desc_line_level = len(desc_line) - len(desc_line.lstrip(' \t'))
+            if desc_line_level == level:
+                break
+            elif desc_line_level > level:
+                description.append(desc_line.strip())
+                current_line += 1
+            else:
+                # Unknown structure, exit
+                return tuple(output)
+
+        output.append((name, type_desc, '\n'.join(description)))
+
+    return tuple(output)
+
+
+class ParametersCombiner:
+    """Combine docstring parameters from several two or more routines."""
+
+    __slots__ = ('routines', 'template_arg_name', '_parameters', '_combined_parameters')
+
+    def __init__(
+        self, 
+        *routines: t.Any,
+        template_arg_name: str = 'combined_parameters'
+    ):
+        self.routines = routines
+        self.template_arg_name = template_arg_name
+        self._parameters = None
+        self._combined_parameters = None
+
+    @property
+    def parameters(self) -> t.Tuple[
+        t.Tuple[object, t.Tuple[Parameter, ...]], 
+        ...
+    ]:
+        if self._parameters is not None:
+            return self._parameters
+        else:
+            parameters = []
+            docstring_parameters_attr = '__docstring_parameters__'
+            for it in self.routines:
+                if not hasattr(it, '__doc__'):
+                    raise AttributeError(
+                        f'element {get_routine_name(it)} does not have '
+                        'documentation string'
+                    )
+                if hasattr(it, docstring_parameters_attr):
+                    parameters.append((it, getattr(it, docstring_parameters_attr)))
+                else:
+                    docstring_parameters = parse_parameters_section(it.__doc__ or '')
+                    setattr(it, docstring_parameters_attr, docstring_parameters)
+                    parameters.append((it, docstring_parameters))
+            self._parameters = tuple(parameters)
+            return self._parameters
+    
+    @property
+    def combined_parameters(self) -> str:
+        if self._combined_parameters is not None:
+            return self._combined_parameters
+        else:
+            parameters_consumers = defaultdict(set)
+            parameters = {}
+            ignore = {'**kwargs', '*args'}
+            
+            for routine, params in self.parameters:
+                for name, type_desc, desc in params:
+                    if name in ignore: continue
+                    parameters_consumers[name].add(get_routine_name(routine))
+                    parameters[name] = (type_desc, desc)
+
+            parameter_template = '{} : {}\n{}'
+            description_template = '{}\n(Is used by: {})'
+            lines = []
+
+            for name, (type_desc, desc) in parameters.items():
+                used_by = ', '.join(parameters_consumers[name])
+                desc = description_template.format(desc, used_by)
+                desc = indent(desc, indents=2, prefix=True)
+                lines.append(parameter_template.format(name, type_desc, desc))
+            
+            self._combined_parameters = f'\n{INDENT}'.join(lines)
+            return self._combined_parameters
+
+    def __call__(self, routine: F) -> F:
+        if not hasattr(routine, '__doc__'):
+            raise AttributeError(
+                f'routine {get_routine_name(routine)} does not have '
+                'documentation string'
+            )
+        template_args = {self.template_arg_name: self.combined_parameters}
+        default_template = f'{INDENT}Parameters\n{INDENT}------------\n{INDENT}{{{self.template_arg_name}}}'
+        doc = routine.__doc__ or default_template
+        routine.__doc__ = doc.format(**template_args)
+        return routine
+
+
+def get_routine_name(it: t.Any) -> str:
+    if hasattr(it, '__qualname__'):
+        return it.__qualname__
+    elif callable(it) or isinstance(it, type):
+        return it.__name__
+    else:
+        return type(it).__name__
