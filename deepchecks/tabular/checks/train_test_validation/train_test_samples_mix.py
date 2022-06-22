@@ -12,6 +12,7 @@
 from typing import Any, List
 
 import pandas as pd
+from pandas.core.dtypes.common import is_numeric_dtype
 
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.condition import ConditionCategory
@@ -50,8 +51,8 @@ class TrainTestSamplesMix(TrainTestCheck):
         columns = test_dataset.features + [test_dataset.label_name]
 
         # For pandas.groupby in python 3.6, there is problem with comparing numpy nan, so replace with placeholder
-        train_df = fillna(train_dataset.data)
-        test_df = fillna(test_dataset.data)
+        train_df = _fillna(train_dataset.data)
+        test_df = _fillna(test_dataset.data)
 
         train_uniques = _create_unique_frame(train_df, columns, text_prefix='Train indices: ')
         test_uniques = _create_unique_frame(test_df, columns, text_prefix='Test indices: ')
@@ -144,16 +145,20 @@ def _get_dup_info(index_arr: list, text_prefix: str) -> dict:
 NAN_REPLACEMENT = '__deepchecks_na_filler__'
 
 
-def fillna(
+def _fillna_col(column: pd.Series, value: Any):
+    if isinstance(column.dtype, pd.CategoricalDtype):
+        return column.cat.add_categories([value]).fillna(value=value)
+    if is_numeric_dtype(column):
+        return column.astype(float).fillna(value=value)
+    return column.fillna(value=value)
+
+
+def _fillna(
     df: pd.DataFrame,
     value: Any = NAN_REPLACEMENT
 ) -> pd.DataFrame:
     """Fill nan values."""
     return pd.DataFrame({
-        name: (
-            column.cat.add_categories([value]).fillna(value=value)
-            if isinstance(column.dtype, pd.CategoricalDtype)
-            else column.fillna(value=value)
-        )
+        name: (_fillna_col(column, value))
         for name, column in df.iteritems()
     })
