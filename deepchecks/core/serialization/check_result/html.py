@@ -19,9 +19,10 @@ from typing_extensions import Literal
 from deepchecks.core import check_result as check_types
 from deepchecks.core.serialization.abc import ABCDisplayItemsHandler, HtmlSerializer
 from deepchecks.core.serialization.common import (aggregate_conditions, form_output_anchor, plotlyjs_script,
-                                                  requirejs_script)
+                                                  requirejs_script, plotly_loader_script, figure_creation_script)
 from deepchecks.core.serialization.dataframe.html import DataFrameSerializer as DataFrameHtmlSerializer
 from deepchecks.utils.html import imagetag, linktag
+from deepchecks.utils.strings import get_random_string
 
 __all__ = ['CheckResultSerializer']
 
@@ -53,9 +54,9 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
         output_id: t.Optional[str] = None,
         check_sections: t.Optional[t.Sequence[CheckResultSection]] = None,
         full_html: bool = False,
-        include_requirejs: bool = False,
+        # include_requirejs: bool = False,
         include_plotlyjs: bool = True,
-        connected: bool = True,
+        # connected: bool = True,
         plotly_to_image: bool = False,
         is_for_iframe_with_srcdoc: bool = False,
         **kwargs
@@ -89,9 +90,9 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
         str
         """
         if full_html is True:
-            include_plotlyjs = True
-            include_requirejs = True
-            connected = False
+            include_plotlyjs = False
+            # include_requirejs = True
+            # connected = False
 
         sections_to_include = verify_include_parameter(check_sections)
         sections = [self.prepare_header(output_id), self.prepare_summary()]
@@ -104,22 +105,30 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
         if 'additional-output' in sections_to_include:
             sections.append(''.join(self.prepare_additional_output(
                 output_id=output_id,
+                on_full_html_page=full_html,
                 plotly_to_image=plotly_to_image,
                 is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
             )))
 
-        plotlyjs = plotlyjs_script(connected) if include_plotlyjs is True else ''
-        requirejs = requirejs_script(connected) if include_requirejs is True else ''
+        # plotlyjs = plotlyjs_script(connected) if include_plotlyjs is True else ''
+        plotlyjs = plotly_loader_script() if include_plotlyjs is True else ''
+        # requirejs = requirejs_script(connected) if include_requirejs is True else ''
 
         if full_html is False:
-            return ''.join([requirejs, plotlyjs, *sections])
+            return ''.join((
+                # requirejs,
+                plotlyjs,
+                *sections,
+            ))
 
-        # TODO: use some style to make it pretty
         return textwrap.dedent(f"""
             <html>
-            <head><meta charset="utf-8"/></head>
+            <head>
+                <meta charset="utf-8"/>
+                {plotlyjs_script(True)}
+            </head>
             <body style="background-color: white;">
-                {''.join((requirejs, plotlyjs, *sections))}
+            {''.join(sections)}
             </body>
             </html>
         """)
@@ -175,6 +184,7 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
     def prepare_additional_output(
         self,
         output_id: t.Optional[str] = None,
+        on_full_html_page: bool = False,
         plotly_to_image: bool = False,
         is_for_iframe_with_srcdoc: bool = False,
     ) -> t.List[str]:
@@ -198,6 +208,7 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
         return DisplayItemsHandler.handle_display(
             self.value.display,
             output_id=output_id,
+            on_full_html_page=on_full_html_page,
             plotly_to_image=plotly_to_image,
             is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
         )
@@ -305,45 +316,38 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
         item: BaseFigure,
         index: int,
         plotly_to_image: bool = False,
+        on_full_html_page: bool = True,
         **kwargs
     ) -> str:
         """Handle plotly figure item."""
         if plotly_to_image is True:
             img = item.to_image(format='jpeg', engine='auto')
             return imagetag(img)
+        
+        if on_full_html_page is True:
+            return to_html(
+                item,
+                auto_play=False,
+                include_plotlyjs=False,
+                post_script=PLOTLY_POST_SCRIPT,
+                full_html=False,
+                default_width='100%',
+                default_height=525,
+                validate=True,
+            )
 
-        post_script = textwrap.dedent("""
-            var gd = document.getElementById('{plot_id}');
-            var x = new MutationObserver(function (mutations, observer) {{
-                    var display = window.getComputedStyle(gd).display;
-                    if (!display || display === 'none') {{
-                        console.log([gd, 'removed!']);
-                        Plotly.purge(gd);
-                        observer.disconnect();
-                    }}
-            }});
-
-            // Listen for the removal of the full notebook cells
-            var notebookContainer = gd.closest('#notebook-container');
-            if (notebookContainer) {{
-                x.observe(notebookContainer, {childList: true});
-            }}
-
-            // Listen for the clearing of the current output cell
-            var outputEl = gd.closest('.output');
-            if (outputEl) {{
-                x.observe(outputEl, {childList: true});
-            }}
-        """)
-        return to_html(
+        container_id = f'deepchecks-{get_random_string(n=25)}'
+        script = figure_creation_script(
             item,
-            auto_play=False,
-            include_plotlyjs='require',
-            post_script=post_script,
-            full_html=False,
+            div_id=container_id,
+            post_script=PLOTLY_POST_SCRIPT,
             default_width='100%',
             default_height=525,
             validate=True,
+        )
+        return (
+            f'<div><div id="{container_id}"></div>'
+            f'<script type="text/javascript">{script}</script></div>'
         )
 
     @classmethod
@@ -399,3 +403,26 @@ def verify_include_parameter(
         )
 
     return sections_to_include
+
+
+PLOTLY_POST_SCRIPT = """
+var gd = document.getElementById('{plot_id}');
+var x = new MutationObserver(function (mutations, observer) {
+    var display = window.getComputedStyle(gd).display;
+    if (!display || display === 'none') {
+        console.log([gd, 'removed!']);
+        Plotly.purge(gd);
+        observer.disconnect();
+    }
+});
+/*Listen for the removal of the full notebook cells*/
+var notebookContainer = gd.closest('#notebook-container');
+if (notebookContainer) {
+    x.observe(notebookContainer, {childList: true});
+}
+/* Listen for the clearing of the current output cell */
+var outputEl = gd.closest('.output');
+if (outputEl) {
+    x.observe(outputEl, {childList: true});
+}
+"""

@@ -24,7 +24,7 @@ from deepchecks.core.serialization.check_failure.html import CheckFailureSeriali
 from deepchecks.core.serialization.dataframe.html import DataFrameSerializer
 from deepchecks.core.serialization.common import (Html, aggregate_conditions, create_failures_dataframe,
                                                   form_output_anchor, plotlyjs_script, requirejs_script, 
-                                                  create_results_dataframe)
+                                                  create_results_dataframe, plotly_loader_script)
 from deepchecks.utils.html import linktag
 from deepchecks.utils.strings import get_random_string
 
@@ -51,9 +51,9 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         self,
         output_id: t.Optional[str] = None,
         full_html: bool = False,
-        include_requirejs: bool = False,
-        include_plotlyjs: bool = True,
-        connected: bool = True,
+        # include_requirejs: bool = False,
+        # include_plotlyjs: bool = True,
+        # connected: bool = True,
         is_for_iframe_with_srcdoc: bool = False,
         plotly_to_image: bool = False,
         **kwargs,
@@ -86,13 +86,13 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         -------
         str
         """
-        if full_html is True:
-            include_plotlyjs = True
-            include_requirejs = True
-            connected = False
+        # if full_html is True:
+        #     include_plotlyjs = True
+        #     include_requirejs = True
+        #     connected = False
         
-        if plotly_to_image:
-            include_plotlyjs = False
+        # if plotly_to_image:
+        #     include_plotlyjs = False
 
         kwargs['is_for_iframe_with_srcdoc'] = is_for_iframe_with_srcdoc
         kwargs['plotly_to_image'] = plotly_to_image
@@ -141,14 +141,15 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             )
         )
 
-        plotlyjs = plotlyjs_script(connected) if include_plotlyjs is True else ''
-        requirejs = requirejs_script(connected) if include_requirejs is True else ''
+        # plotlyjs = plotlyjs_script(connected) if include_plotlyjs is True else ''
+        # requirejs = requirejs_script(connected) if include_requirejs is True else ''
 
         if full_html is False:
+            plotly_loader = f'<script>{plotly_loader_script()}</script>'
             content = ''.join((
                 '<style>table {width: max-content;}</style>',
-                requirejs, 
-                plotlyjs, 
+                # requirejs, 
+                plotly_loader,
                 *content
             ))
             output = DETAILS_TAG.format(
@@ -158,7 +159,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
                 attrs='open class="deepchecks"',
                 additional_style='padding: 0 1.5rem 0 1.5rem;'
             )
-            return ''.join((DETAILS_TAG_STYLE, output)) 
+            return ''.join((DETAILS_TAG_STYLE, output))
 
         content = DETAILS_TAG.format(
             id=output_id or '',
@@ -172,12 +173,11 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             <html>
             <head>
                 <meta charset="utf-8"/>
+                {plotlyjs_script(True)}
                 <style>{HTML_PAGE_STYLE}</style>
                 {DETAILS_TAG_STYLE}
             </head>
             <body>
-                {requirejs}
-                {plotlyjs}
                 {content}
             </body>
             </html>
@@ -387,7 +387,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         else:
             section_id = f'{output_id}-section-{get_random_string()}'
             serialized_results = (
-                select_serializer(it).serialize(output_id=section_id, **kwargs)
+                select_serializer(it).serialize(output_id=section_id, include_plotlyjs=False, **kwargs)
                 for it in results
                 if it.display  # we do not form full-output for the check results without display
             )

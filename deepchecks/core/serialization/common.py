@@ -536,6 +536,12 @@ def figure_creation_script(
     ))
 
 
+def plotly_loader_script() -> str:
+    return htmlmin.minify(PLOTLY_DEPENDENCY_SCRIPT.format(
+        plotly_cdn=plotly_cdn_url().rstrip('.js')
+    ))
+
+
 FIGURE_CREATION_SCRIPT = """
 (async () => {{
     const containerId = '{container_id}';
@@ -561,4 +567,54 @@ FIGURE_CREATION_SCRIPT = """
         container.innerHTML = 'Failed to load plotly dependencies, try result.show_in_iframe';
     }}
 }})();
+"""
+
+
+PLOTLY_DEPENDENCY_SCRIPT = """
+window.Deepchecks = window.Deepchecks || {{}};
+window.Deepchecks.loadPlotly = () => new Promise(async (resolve, reject) => {{
+    try {{
+        const plotlyCdn = '{plotly_cdn}';
+        const loadPlotlyScript = () => new Promise((resolve, reject) => {{
+            const scriptTag = document.createElement('script');
+            document.head.appendChild(scriptTag);
+            scriptTag.async = true;
+            scriptTag.onload = () => resolve(scriptTag);
+            scriptTag.onerror = () => reject(new Error(`Failed to load plotly script`));
+            scriptTag.src = plotlyCdn + '.js';
+        }});
+        if (window.Plotly === undefined || window.Plotly === null) {{
+            if (typeof define === "function" && define.amd) {{
+                const exist = (Plotly) => {{
+                    window.Plotly = Plotly;
+                    resolve(Plotly);
+                }};
+                const failure = (e) => {{
+                    console.dir(e);
+                    reject(new Error(`Failed to load plotly library: ${{e.message}}`));
+                }};
+                requirejs.config({{paths: {{'plotly': [plotlyCdn]}}}});
+                require(['plotly'], exist, failure);
+            }} else {{
+                try {{
+                    await loadPlotlyScript();
+                    resolve(Plotly);
+                }} catch(error) {{
+                    console.dir(error);
+                    reject(new Error(`Failed to load plotly library: ${{e.message}}`));
+                }}
+            }}
+        }} else {{
+            resolve(window.Plotly);
+        }}
+    }} catch(error) {{
+        reject(error);
+    }}
+}});
+if (window.Deepchecks.loadPlotlyDependency === undefined || window.Deepchecks.loadPlotlyDependency === null) {{
+    console.log('No Plotly library, loading it');
+    window.Deepchecks.loadPlotlyDependency = window.Deepchecks.loadPlotly();
+}} else {{
+    console.log('Plotly load promise already exists');
+}}
 """
