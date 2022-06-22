@@ -58,7 +58,10 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         total_classes = sorted(list(set(pd.concat([ds_y, pd.Series(y_pred)]).to_list())))
         confusion_matrix = metrics.confusion_matrix(ds_y, y_pred)
 
-        fig = create_confusion_matrix_figure(confusion_matrix, total_classes,
-                                             total_classes, self.normalized)
+        if context.with_display:
+            fig = create_confusion_matrix_figure(confusion_matrix, total_classes,
+                                                 total_classes, self.normalized)
+        else:
+            fig = None
 
         return CheckResult(confusion_matrix, display=fig)

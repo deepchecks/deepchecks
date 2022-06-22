@@ -12,7 +12,7 @@
 from copy import copy
 
 import numpy as np
-from hamcrest import assert_that, equal_to
+from hamcrest import assert_that, equal_to, greater_than, has_length
 from PIL import Image
 from torch.utils.data import DataLoader
 
@@ -55,6 +55,20 @@ def test_all_identical_object_detection(coco_train_visiondata, device):
 
     # Assert
     assert_that(set(result.value), equal_to(set(list(zip(range(64), range(64))))))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_all_identical_object_detection_without_display(coco_train_visiondata, device):
+    # Arrange
+    train, test = coco_train_visiondata, coco_train_visiondata
+    check = SimilarImageLeakage()
+
+    # Act
+    result = check.run(train, test, device=device, with_display=False)
+
+    # Assert
+    assert_that(set(result.value), equal_to(set(list(zip(range(64), range(64))))))
+    assert_that(result.display, has_length(0))
 
 
 def test_similar_object_detection(coco_train_visiondata, coco_test_visiondata, device):

@@ -31,6 +31,19 @@ def test_image_property_drift_check(coco_train_visiondata, coco_test_visiondata,
     ))
 
 
+def test_image_property_drift_check_without_display(coco_train_visiondata, coco_test_visiondata, device):
+    # Run
+    result = ImagePropertyDrift().run(coco_train_visiondata, coco_test_visiondata,
+                                      device=device, with_display=False)
+
+    # Assert
+    assert_that(result, is_correct_image_property_drift_result(with_display=False))
+
+    assert_that(result.value, has_entries(
+        {'Brightness': close_to(0.07, 0.01)}
+    ))
+
+
 def test_image_property_drift_check_limit_classes(coco_train_visiondata, coco_test_visiondata, device):
     # Run
     result = ImagePropertyDrift(classes_to_display=['bicycle', 'bench', 'bus', 'truck'], min_samples=5
@@ -102,16 +115,23 @@ def test_image_property_drift_fail_condition(coco_train_visiondata, coco_test_vi
     )
 
 
-def is_correct_image_property_drift_result():
+def is_correct_image_property_drift_result(with_display: bool = True):
     value_assertion = all_of(
         instance_of(dict),
         *[has_key(single_property['name']) for single_property in default_image_properties])
 
-    display_assertion = all_of(
-        instance_of(list),
-        has_length(greater_than(1)),
-        # TODO
-    )
+    if with_display:
+        display_assertion = all_of(
+            instance_of(list),
+            has_length(greater_than(1)),
+            # TODO
+        )
+    else:
+        display_assertion = all_of(
+            instance_of(list),
+            has_length(0),
+            # TODO
+        )
     return all_of(
         instance_of(CheckResult),
         has_properties({

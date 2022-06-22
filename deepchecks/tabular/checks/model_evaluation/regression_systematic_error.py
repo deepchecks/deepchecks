@@ -47,25 +47,28 @@ class RegressionSystematicError(SingleDatasetCheck):
         diff = y_test - y_pred
         diff_mean = diff.mean()
 
-        fig = (
-            go.Figure()
-            .add_trace(go.Box(
-                x=diff,
-                orientation='h',
-                name='Model prediction error',
-                hoverinfo='x',
-                boxmean=True))
-            .update_layout(
-                title_text='Box plot of the model prediction error',
-                height=500
+        if context.with_display:
+            fig = (
+                go.Figure()
+                .add_trace(go.Box(
+                    x=diff,
+                    orientation='h',
+                    name='Model prediction error',
+                    hoverinfo='x',
+                    boxmean=True))
+                .update_layout(
+                    title_text='Box plot of the model prediction error',
+                    height=500
+                )
             )
-        )
 
-        display = [
-            'Non-zero mean of the error distribution indicated the presents '
-            'of systematic error in model predictions',
-            fig
-        ]
+            display = [
+                'Non-zero mean of the error distribution indicated the presents '
+                'of systematic error in model predictions',
+                fig
+            ]
+        else:
+            display = None
 
         return CheckResult(value={'rmse': rmse, 'mean_error': diff_mean}, display=display)
 

@@ -70,6 +70,23 @@ def test_label_ambiguity_mixed():
     assert_that(result.display[1], has_length(1))
 
 
+def test_label_ambiguity_mixed_without_display():
+    # Arrange
+    data = {
+        'col1': [1, 1, 1, 2, 2, 2]*100,
+        'col2': [1, 1, 1, 2, 2, 2]*100,
+        'col3': [1, 1, 1, 2, 2, 2]*100,
+        'label': [1, 1, 1, 1, 2, 1]*100
+    }
+    ds = Dataset(pd.DataFrame(data), label='label')
+    check = ConflictingLabels()
+    # Act
+    result = check.run(ds, with_display=False)
+    # Assert
+    assert_that(result.value, close_to(0.5, 0.01))
+    assert_that(result.display, has_length(0))
+
+
 def test_label_ambiguity_condition():
     # Arrange
     data = {

@@ -48,6 +48,7 @@ class Suite(BaseSuite):
             feature_importance_timeout: int = None,
             scorers: Mapping[str, Union[str, Callable]] = None,
             scorers_per_class: Mapping[str, Union[str, Callable]] = None,
+            with_display: bool = True,
             y_pred_train: np.ndarray = None,
             y_pred_test: np.ndarray = None,
             y_proba_train: np.ndarray = None,
@@ -106,6 +107,7 @@ class Suite(BaseSuite):
                           feature_importance_timeout=feature_importance_timeout,
                           scorers=scorers,
                           scorers_per_class=scorers_per_class,
+                          with_display=with_display,
                           y_pred_train=y_pred_train, y_pred_test=y_pred_test,
                           y_proba_train=y_proba_train, y_proba_test=y_proba_test)
 

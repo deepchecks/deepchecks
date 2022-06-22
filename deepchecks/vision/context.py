@@ -52,6 +52,12 @@ class Context:
     random_state : int
         A seed to set for pseudo-random functions
     n_samples : int, default: None
+    with_display : bool , default: True
+        flag that determines if checks will calculate display (redundant in some checks).
+    train_predictions: Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]] , default: None
+        Dictionary of the model prediction over the train dataset (keys are the indexes).
+    test_predictions: Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]] , default: None
+        Dictionary of the model prediction over the test dataset (keys are the indexes).
     """
 
     def __init__(self,
@@ -64,6 +70,7 @@ class Context:
                  device: Union[str, torch.device, None] = None,
                  random_state: int = 42,
                  n_samples: int = None,
+                 with_display: bool = True,
                  train_predictions: Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]] = None,
                  test_predictions: Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]] = None,
                  ):
@@ -147,10 +154,16 @@ class Context:
         self._user_scorers = scorers
         self._user_scorers_per_class = scorers_per_class
         self._model_name = model_name
+        self._with_display = with_display
         self.random_state = random_state
 
     # Properties
     # Validations note: We know train & test fit each other so all validations can be run only on train
+
+    @property
+    def with_display(self) -> bool:
+        """Return the with_display flag."""
+        return self._with_display
 
     @property
     def train(self) -> VisionData:

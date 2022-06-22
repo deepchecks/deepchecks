@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Test functions of the heatmap comparison check."""
-from hamcrest import assert_that, calling, close_to, raises
+from hamcrest import assert_that, calling, close_to, greater_than, has_length, raises
 
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.vision.checks import HeatmapComparison
@@ -43,6 +43,22 @@ def test_classification(mnist_dataset_train, mnist_dataset_test, device):
     brightness_diff = result.value["diff"]
     assert_that(brightness_diff.mean(), close_to(1.095, 0.001))
     assert_that(brightness_diff.max(), close_to(9, 0.001))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_classification_without_display(mnist_dataset_train, mnist_dataset_test, device):
+    # Arrange
+    check = HeatmapComparison()
+
+    # Act
+    result = check.run(mnist_dataset_train, mnist_dataset_test,
+                       device=device, n_samples=None, with_display=False)
+
+    # Assert
+    brightness_diff = result.value["diff"]
+    assert_that(brightness_diff.mean(), close_to(1.095, 0.001))
+    assert_that(brightness_diff.max(), close_to(9, 0.001))
+    assert_that(result.display, has_length(0))
 
 
 def test_classification_limit_classes(mnist_dataset_train, mnist_dataset_test, device):

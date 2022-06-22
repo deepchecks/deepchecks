@@ -89,7 +89,8 @@ class ConflictingLabels(SingleDatasetCheck):
                                             orient='index')
             n_data_sample = group_df.shape[0]
             num_ambiguous += n_data_sample
-            display = pd.concat([display, sample])
+            if context.with_display:
+                display = pd.concat([display, sample])
 
         display = display.set_index(ambiguous_label_name)
 

@@ -100,19 +100,24 @@ class FeatureFeatureCorrelation(SingleDatasetCheck):
             full_df.loc[num_features, cat_features] = num_cat_corr
             full_df.loc[cat_features, num_features] = num_cat_corr.transpose()
 
-        top_n_features = full_df.max(axis=1).sort_values(ascending=False).head(self.n_top_columns).index
-        top_n_df = full_df.loc[top_n_features, top_n_features].abs()
-        num_nans = top_n_df.isna().sum().sum()
-        top_n_df.fillna(0.0, inplace=True)
-    # Display
-        fig = [px.imshow(top_n_df, color_continuous_scale=px.colors.sequential.thermal),
-               '* Displayed as absolute values.']
-        if num_nans:
-            fig.append(f'* NaN values (where the correlation could not be calculated) are displayed as 0.0, total of '
-                       f'{num_nans} NaNs in this display.')
-        if len(dataset.features) > len(all_features):
-            fig.append('* Some features in the dataset are neither numerical nor categorical and therefore not '
-                       'calculated.')
+        # Display
+        if context.with_display:
+            top_n_features = full_df.max(axis=1).sort_values(ascending=False).head(self.n_top_columns).index
+            top_n_df = full_df.loc[top_n_features, top_n_features].abs()
+            num_nans = top_n_df.isna().sum().sum()
+            top_n_df.fillna(0.0, inplace=True)
+
+            fig = [px.imshow(top_n_df, color_continuous_scale=px.colors.sequential.thermal),
+                   '* Displayed as absolute values.']
+            if num_nans:
+                fig.append(f'* NaN values (where the correlation could not be calculated)'
+                           f' are displayed as 0.0, total of {num_nans} NaNs in this display.')
+            if len(dataset.features) > len(all_features):
+                fig.append('* Some features in the dataset are neither numerical nor categorical and therefore not '
+                           'calculated.')
+        else:
+            fig = None
+
         return CheckResult(value=full_df, header='Feature-Feature Correlation', display=fig)
 
     def add_condition_max_number_of_pairs_above_threshold(self, threshold: float = 0.9, n_pairs: int = 0):

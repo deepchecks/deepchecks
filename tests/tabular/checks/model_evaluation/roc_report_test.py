@@ -11,7 +11,7 @@
 """Contains unit tests for the roc_report check."""
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, calling, close_to, has_entries, has_items, has_length, raises
+from hamcrest import assert_that, calling, close_to, greater_than, has_entries, has_items, has_length, raises
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 
@@ -54,10 +54,22 @@ def test_binary_classification(iris_binary_string_split_dataset_and_model):
     # Arrange
     train, _, clf = iris_binary_string_split_dataset_and_model
     # Act
-    result = RocReport().run(train, clf).value
+    result = RocReport().run(train, clf)
     # Assert
-    assert_that(result, has_length(2))
-    assert_that(result, has_entries(a=close_to(0.9, 0.1), b=close_to(0.9, 0.1)))
+    assert_that(result.value, has_length(2))
+    assert_that(result.value, has_entries(a=close_to(0.9, 0.1), b=close_to(0.9, 0.1)))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_binary_classification_without_display(iris_binary_string_split_dataset_and_model):
+    # Arrange
+    train, _, clf = iris_binary_string_split_dataset_and_model
+    # Act
+    result = RocReport().run(train, clf, with_display=False)
+    # Assert
+    assert_that(result.value, has_length(2))
+    assert_that(result.value, has_entries(a=close_to(0.9, 0.1), b=close_to(0.9, 0.1)))
+    assert_that(result.display, has_length(0))
 
 
 def test_model_info_object(iris_labeled_dataset, iris_adaboost):

@@ -10,7 +10,7 @@
 #
 """Test functions of the VISION train test label drift."""
 import numpy as np
-from hamcrest import assert_that, close_to, equal_to, has_entries
+from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_length
 
 from deepchecks.vision.checks import ImageDatasetDrift
 from deepchecks.vision.datasets.detection.coco import COCOData
@@ -75,7 +75,7 @@ def test_no_drift_grayscale_cramer(mnist_dataset_train, device):
 def test_drift_grayscale(mnist_dataset_train, mnist_dataset_test, device):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_test
-    check = ImageDatasetDrift(categorical_drift_method='PSI')
+    check = ImageDatasetDrift(categorical_drift_method='PSI', min_meaningful_drift_score=-1)
 
     # Act
     result = check.run(train, test, random_state=42, device=device, n_samples=None)
@@ -93,6 +93,31 @@ def test_drift_grayscale(mnist_dataset_train, mnist_dataset_test, device):
             'Mean Blue Relative Intensity': equal_to(0),
         })
     }))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_drift_grayscale_without_display(mnist_dataset_train, mnist_dataset_test, device):
+    # Arrange
+    train, test = mnist_dataset_train, mnist_dataset_test
+    check = ImageDatasetDrift(categorical_drift_method='PSI', min_meaningful_drift_score=-1)
+
+    # Act
+    result = check.run(train, test, random_state=42, device=device, n_samples=None, with_display=False)
+    # Assert
+    assert_that(result.value, has_entries({
+        'domain_classifier_auc': close_to(0.5146, 0.001),
+        'domain_classifier_drift_score': close_to(0.029, 0.001),
+        'domain_classifier_feature_importance': has_entries({
+            'RMS Contrast': close_to(1, 0.001),
+            'Brightness': close_to(0, 0.001),
+            'Aspect Ratio': equal_to(0),
+            'Area': equal_to(0),
+            'Mean Red Relative Intensity': equal_to(0),
+            'Mean Green Relative Intensity': equal_to(0),
+            'Mean Blue Relative Intensity': equal_to(0),
+        })
+    }))
+    assert_that(result.display, has_length(0))
 
 
 def test_no_drift_rgb(coco_train_dataloader, coco_test_dataloader, device):

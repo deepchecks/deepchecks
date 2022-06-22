@@ -113,16 +113,16 @@ class StringMismatchComparison(TrainTestCheck):
                                                                              variants_only_in_dataset)
                     percent_variants_in_baseline = _percentage_in_series(baseline_column, baseline_counts,
                                                                          variants_only_in_baseline)
-
-                    display_mismatches.append([column_name, baseform, common_variants,
-                                               variants_only_in_dataset, percent_variants_only_in_dataset[1],
-                                               variants_only_in_baseline, percent_variants_in_baseline[1]])
                     result_dict[column_name][baseform] = {
                         'commons': common_variants, 'variants_only_in_test': variants_only_in_dataset,
                         'variants_only_in_train': variants_only_in_baseline,
                         'percent_variants_only_in_test': percent_variants_only_in_dataset[0],
                         'percent_variants_in_train': percent_variants_in_baseline[0]
                     }
+                    if context.with_display:
+                        display_mismatches.append([column_name, baseform, common_variants,
+                                                   variants_only_in_dataset, percent_variants_only_in_dataset[1],
+                                                   variants_only_in_baseline, percent_variants_in_baseline[1]])
 
         # Create result dataframe
         if display_mismatches:

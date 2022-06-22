@@ -11,7 +11,7 @@
 """Contains unit tests for the identifier_label_correlation check."""
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, calling, close_to, has_items, is_in, raises
+from hamcrest import assert_that, calling, close_to, greater_than, has_items, has_length, is_in, raises
 
 from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.tabular.checks.data_integrity.identifier_label_correlation import IdentifierLabelCorrelation
@@ -34,6 +34,17 @@ def test_assert_identifier_label_correlation():
     for key, value in result.value.items():
         assert_that(key, is_in(expected.keys()))
         assert_that(value, close_to(expected[key], 0.1))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_assert_identifier_label_correlation_without_display():
+    df, expected = generate_dataframe_and_expected()
+    result = IdentifierLabelCorrelation().run(dataset=Dataset(df, label='label', datetime_name='x2', index_name='x3',
+                                                              cat_features=[]), with_display=False)
+    for key, value in result.value.items():
+        assert_that(key, is_in(expected.keys()))
+        assert_that(value, close_to(expected[key], 0.1))
+    assert_that(result.display, has_length(0))
 
 
 def test_identifier_label_correlation_with_extracted_from_dataframe_index():

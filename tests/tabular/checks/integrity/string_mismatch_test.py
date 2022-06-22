@@ -11,7 +11,7 @@
 """Contains unit tests for the string_mismatch check."""
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, has_entries, has_entry, has_items, has_length
+from hamcrest import assert_that, greater_than, has_entries, has_entry, has_items, has_length
 
 from deepchecks.core import ConditionCategory
 from deepchecks.tabular.checks.data_integrity import StringMismatch
@@ -24,11 +24,25 @@ def test_double_col_mismatch():
     data = {'col1': ['Deep', 'deep', 'deep!!!', '$deeP$', 'earth', 'foo', 'bar', 'foo?']}
     df = pd.DataFrame(data=data)
     # Act
-    result = StringMismatch().run(df).value
+    result = StringMismatch().run(df)
     # Assert
-    assert_that(result, has_entry('col1', has_entries({
+    assert_that(result.value, has_entry('col1', has_entries({
         'deep': has_length(4), 'foo': has_length(2)
     })))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_double_col_mismatch_without_display():
+    # Arrange
+    data = {'col1': ['Deep', 'deep', 'deep!!!', '$deeP$', 'earth', 'foo', 'bar', 'foo?']}
+    df = pd.DataFrame(data=data)
+    # Act
+    result = StringMismatch().run(df, with_display=False)
+    # Assert
+    assert_that(result.value, has_entry('col1', has_entries({
+        'deep': has_length(4), 'foo': has_length(2)
+    })))
+    assert_that(result.display, has_length(0))
 
 
 def test_single_mismatch():

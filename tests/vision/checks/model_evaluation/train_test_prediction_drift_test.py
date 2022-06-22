@@ -10,7 +10,7 @@
 #
 """Test functions of the VISION train test prediction drift."""
 import torch.nn as nn
-from hamcrest import assert_that, calling, close_to, equal_to, has_entries, raises
+from hamcrest import assert_that, calling, close_to, equal_to, greater_than, has_entries, has_length, raises
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks import TrainTestPredictionDrift
@@ -57,6 +57,32 @@ def test_no_drift_object_detection(coco_train_visiondata, mock_trained_yolov5_ob
         )
         }
     ))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_no_drift_object_detection_without_display(coco_train_visiondata, mock_trained_yolov5_object_detection, device):
+    # Arrange
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI')
+
+    # Act
+    result = check.run(coco_train_visiondata, coco_train_visiondata, mock_trained_yolov5_object_detection,
+                       device=device, with_display=False)
+
+    # Assert
+    assert_that(result.value, has_entries(
+        {'Samples Per Class': has_entries(
+            {'Drift score': 0,
+             'Method': equal_to('PSI')}
+        ), 'Bounding Box Area (in pixels)': has_entries(
+            {'Drift score': 0,
+             'Method': equal_to('Earth Mover\'s Distance')}
+        ), 'Number of Bounding Boxes Per Image': has_entries(
+            {'Drift score': 0,
+             'Method': equal_to('Earth Mover\'s Distance')}
+        )
+        }
+    ))
+    assert_that(result.display, has_length(0))
 
 
 def test_with_drift_classification(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
