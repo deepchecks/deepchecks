@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Test functions of the train test drift."""
-from hamcrest import assert_that, close_to, equal_to, has_entries
+from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_length
 
 from deepchecks.tabular.checks import TrainTestFeatureDrift
 from tests.base.utils import equal_condition_result
@@ -45,6 +45,40 @@ def test_drift_with_model(drifted_data_and_model):
              'Importance': close_to(0, 0.01)}
         ),
     }))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_drift_with_model_without_display(drifted_data_and_model):
+    # Arrange
+    train, test, model = drifted_data_and_model
+    check = TrainTestFeatureDrift(categorical_drift_method='PSI')
+
+    # Act
+    result = check.run(train, test, model, with_display=False)
+    # Assert
+    assert_that(result.value, has_entries({
+        'numeric_without_drift': has_entries(
+            {'Drift score': close_to(0.01, 0.01),
+             'Method': equal_to('Earth Mover\'s Distance'),
+             'Importance': close_to(0.69, 0.01)}
+        ),
+        'numeric_with_drift': has_entries(
+            {'Drift score': close_to(0.34, 0.01),
+             'Method': equal_to('Earth Mover\'s Distance'),
+             'Importance': close_to(0.31, 0.01)}
+        ),
+        'categorical_without_drift': has_entries(
+            {'Drift score': close_to(0, 0.01),
+             'Method': equal_to('PSI'),
+             'Importance': close_to(0, 0.01)}
+        ),
+        'categorical_with_drift': has_entries(
+            {'Drift score': close_to(0.22, 0.01),
+             'Method': equal_to('PSI'),
+             'Importance': close_to(0, 0.01)}
+        ),
+    }))
+    assert_that(result.display, has_length(0))
 
 
 def test_drift_no_model(drifted_data_and_model):

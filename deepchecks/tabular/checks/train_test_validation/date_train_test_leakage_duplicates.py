@@ -56,13 +56,18 @@ class DateTrainTestLeakageDuplicates(TrainTestCheck):
 
         if len(date_intersection) > 0:
             leakage_ratio = len(date_intersection) / test_dataset.n_samples
-            text = f'{format_percent(leakage_ratio)} of test data dates appear in training data'
-            table = pd.DataFrame(
-                [[list(format_datetime(it) for it in date_intersection[:self.n_to_show])]],
-                index=['Sample of test dates in train:']
-            )
-            display = [text, table]
             return_value = leakage_ratio
+
+            if context.with_display:
+                text = f'{format_percent(leakage_ratio)} of test data dates appear in training data'
+                table = pd.DataFrame(
+                    [[list(format_datetime(it) for it in date_intersection[:self.n_to_show])]],
+                    index=['Sample of test dates in train:']
+                )
+                display = [text, table]
+            else:
+                display = None
+
         else:
             display = None
             return_value = 0

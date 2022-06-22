@@ -135,7 +135,8 @@ class ImageDatasetDrift(TrainTestCheck):
             cat_features=categorical_features, sample_size=sample_size, random_state=context.random_state,
             test_size=self.test_size, n_top_columns=self.n_top_properties,
             min_feature_importance=self.min_feature_importance, max_num_categories_for_display=None,
-            show_categories_by=None, min_meaningful_drift_score=self.min_meaningful_drift_score
+            show_categories_by=None, min_meaningful_drift_score=self.min_meaningful_drift_score,
+            with_display=context.with_display
         )
 
         if displays:

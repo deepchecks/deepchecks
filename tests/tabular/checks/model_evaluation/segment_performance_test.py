@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Tests for segment performance check."""
-from hamcrest import assert_that, calling, close_to, equal_to, has_entries, has_property, raises
+from hamcrest import assert_that, calling, close_to, equal_to, greater_than, has_entries, has_length, has_property, raises
 
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.tabular.checks.model_evaluation.segment_performance import SegmentPerformance
@@ -42,15 +42,33 @@ def test_segment_performance_diabetes(diabetes_split_dataset_and_model):
     _, val, model = diabetes_split_dataset_and_model
 
     # Act
-    result = SegmentPerformance(feature_1='age', feature_2='sex').run(val, model).value
+    result = SegmentPerformance(feature_1='age', feature_2='sex').run(val, model)
 
     # Assert
-    assert_that(result, has_entries({
+    assert_that(result.value, has_entries({
         'scores': has_property('shape', (10, 2)),
         'counts': has_property('shape', (10, 2))
     }))
-    assert_that(result['scores'].mean(), close_to(-53, 1))
-    assert_that(result['counts'].sum(), equal_to(146))
+    assert_that(result.value['scores'].mean(), close_to(-53, 1))
+    assert_that(result.value['counts'].sum(), equal_to(146))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_segment_performance_diabetes_without_display(diabetes_split_dataset_and_model):
+    # Arrange
+    _, val, model = diabetes_split_dataset_and_model
+
+    # Act
+    result = SegmentPerformance(feature_1='age', feature_2='sex').run(val, model, with_display=False)
+
+    # Assert
+    assert_that(result.value, has_entries({
+        'scores': has_property('shape', (10, 2)),
+        'counts': has_property('shape', (10, 2))
+    }))
+    assert_that(result.value['scores'].mean(), close_to(-53, 1))
+    assert_that(result.value['counts'].sum(), equal_to(146))
+    assert_that(result.display, has_length(0))
 
 
 def test_segment_performance_illegal_features(diabetes_split_dataset_and_model):

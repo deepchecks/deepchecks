@@ -10,7 +10,7 @@
 #
 """Test functions of the VISION model error analysis."""
 
-from hamcrest import assert_that, equal_to, instance_of
+from hamcrest import assert_that, equal_to, greater_than, has_length, instance_of
 
 from deepchecks import CheckFailure
 from deepchecks.vision.checks import ModelErrorAnalysis
@@ -42,6 +42,24 @@ def test_detection(coco_train_visiondata, coco_test_visiondata, mock_trained_yol
     assert_that(len(result.value['feature_segments']), equal_to(3))
     assert_that(result.value['feature_segments']['Mean Green Relative Intensity']['segment1']['n_samples'],
                 equal_to(21))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_detection_without_display(coco_train_visiondata, coco_test_visiondata, mock_trained_yolov5_object_detection, device):
+    # Arrange
+    check = ModelErrorAnalysis(min_error_model_score=-1)
+
+    # Act
+    result = check.run(coco_train_visiondata,
+                       coco_test_visiondata,
+                       mock_trained_yolov5_object_detection,
+                       device=device,
+                       with_display=False)
+    # Assert
+    assert_that(len(result.value['feature_segments']), equal_to(3))
+    assert_that(result.value['feature_segments']['Mean Green Relative Intensity']['segment1']['n_samples'],
+                equal_to(21))
+    assert_that(result.display, has_length(0))
 
 
 def test_classification_not_interesting(mnist_dataset_train, mock_trained_mnist, device):

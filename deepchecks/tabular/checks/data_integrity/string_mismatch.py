@@ -91,17 +91,18 @@ class StringMismatch(SingleDatasetCheck):
                 for variant in variants:
                     count = value_counts[variant]
                     percent = count / len(column)
-                    display_results.append([column_name, base_form, variant, count, format_percent(percent)])
                     result_dict[column_name][base_form].append({
                         'variant': variant, 'count': count, 'percent': percent
                     })
+                    if context.with_display:
+                        display_results.append([column_name, base_form, variant, count, format_percent(percent)])
 
         # Create dataframe to display graph
         if display_results:
             df_graph = pd.DataFrame(display_results, columns=['Column Name', 'Base form', 'Value', 'Count',
                                                               '% In data'])
             df_graph = df_graph.set_index(['Column Name', 'Base form'])
-            df_graph = column_importance_sorter_df(df_graph, dataset, context.features_importance,
+            df_graph = column_importance_sorter_df(df_graph, dataset, context.feature_importance,
                                                    self.n_top_columns, col='Column Name')
             display = [N_TOP_MESSAGE % self.n_top_columns, df_graph]
         else:

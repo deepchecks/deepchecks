@@ -65,7 +65,7 @@ class IsSingleValue(SingleDatasetCheck):
         num_unique_per_col = df.nunique(dropna=self.ignore_nan)
         is_single_unique_value = (num_unique_per_col == 1)
 
-        if is_single_unique_value.any():
+        if context.with_display and is_single_unique_value.any():
             # get names of columns with one unique value
             # pylint: disable=unsubscriptable-object
             cols_with_single = is_single_unique_value[is_single_unique_value].index.to_list()

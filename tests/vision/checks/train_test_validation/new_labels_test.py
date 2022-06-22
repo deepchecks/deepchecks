@@ -11,7 +11,7 @@
 """New Labels check tests"""
 from copy import copy
 
-from hamcrest import assert_that, close_to, equal_to, has_entries, has_items, has_length
+from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_items, has_length
 
 from deepchecks.vision.checks import NewLabels
 from deepchecks.vision.utils.test_utils import get_modified_dataloader
@@ -59,6 +59,17 @@ def test_object_detection_coco(coco_train_visiondata, coco_test_visiondata, devi
     # Assert
     assert_that(result.value['new_labels'], has_entries({'donut': 14, 'tennis racket': 7}))
     assert_that(result.value, has_entries(all_labels_count=387))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_object_detection_coco_without_display(coco_train_visiondata, coco_test_visiondata, device):
+    # Act
+    result = NewLabels().run(coco_train_visiondata, coco_test_visiondata,
+                             device=device, with_display=False)
+    # Assert
+    assert_that(result.value['new_labels'], has_entries({'donut': 14, 'tennis racket': 7}))
+    assert_that(result.value, has_entries(all_labels_count=387))
+    assert_that(result.display, has_length(0))
 
 
 def test_object_detection_coco_with_condition(coco_train_visiondata, coco_test_visiondata, device):

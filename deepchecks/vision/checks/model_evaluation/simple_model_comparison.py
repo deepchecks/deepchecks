@@ -177,25 +177,28 @@ class SimpleModelComparison(TrainTestCheck):
         results_df = results_df.dropna()
         results_df = results_df.sort_values(by=['Model', 'Value'], ascending=False).reset_index(drop=True)
 
-        fig = px.histogram(
-            results_df.loc[results_df['Model'] != 'Perfect Model'],
-            x='Class Name',
-            y='Value',
-            color='Model',
-            color_discrete_sequence=(plot.colors['Generated'], plot.colors['Baseline']),
-            barmode='group',
-            facet_col='Metric',
-            facet_col_spacing=0.05,
-            hover_data=['Number of samples'],
-            title=f'Simple Model (Strategy: {self.strategy}) vs. Given Model',
-        )
+        if context.with_display:
+            fig = px.histogram(
+                results_df.loc[results_df['Model'] != 'Perfect Model'],
+                x='Class Name',
+                y='Value',
+                color='Model',
+                color_discrete_sequence=(plot.colors['Generated'], plot.colors['Baseline']),
+                barmode='group',
+                facet_col='Metric',
+                facet_col_spacing=0.05,
+                hover_data=['Number of samples'],
+                title=f'Simple Model (Strategy: {self.strategy}) vs. Given Model',
+            )
 
-        fig = (
-            fig.update_xaxes(title=None, type='category')
-            .update_yaxes(title=None, matches=None)
-            .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
-            .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
-        )
+            fig = (
+                fig.update_xaxes(title=None, type='category')
+                .update_yaxes(title=None, matches=None)
+                .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
+                .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
+            )
+        else:
+            fig = None
 
         return CheckResult(
             results_df,

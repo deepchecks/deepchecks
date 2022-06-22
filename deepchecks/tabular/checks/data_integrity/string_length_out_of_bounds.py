@@ -145,18 +145,10 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
                         outlier_examples = column[outlier_samples[:self.samples_per_range_to_show].index]
                         outlier_examples = [trim(x, self.outlier_length_to_show) for x in outlier_examples]
 
-                        display_format.append([column_name,
-                                               f'{format_number(non_outlier_lower_limit)} -'
-                                               f' {format_number(non_outlier_upper_limit)}',
-                                               f'{format_number(lower_range)} -'
-                                               f' {format_number(upper_range)}',
-                                               f'{outlier_samples.size}',
-                                               outlier_examples
-                                               ])
                         results[column_name]['normal_range'] = {
-                                'min': non_outlier_lower_limit,
-                                'max': non_outlier_upper_limit
-                            }
+                            'min': non_outlier_lower_limit,
+                            'max': non_outlier_upper_limit
+                        }
                         results[column_name]['n_samples'] = column.size
                         results[column_name]['outliers'].append({
                             'range': {'min': lower_range,
@@ -165,20 +157,33 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
                             'n_samples': outlier_samples.size
                         })
 
-        # Create dataframe to display graph
-        df_graph = DataFrame(display_format,
-                             columns=['Column Name',
-                                      'Range of Detected Normal String Lengths',
-                                      'Range of Detected Outlier String Lengths',
-                                      'Number of Outlier Samples',
-                                      'Example Samples'])
-        df_graph = df_graph.set_index(['Column Name',
-                                       'Range of Detected Normal String Lengths',
-                                       'Range of Detected Outlier String Lengths'])
+                        if context.with_display:
+                            display_format.append([column_name,
+                                                   f'{format_number(non_outlier_lower_limit)} -'
+                                                   f' {format_number(non_outlier_upper_limit)}',
+                                                   f'{format_number(lower_range)} -'
+                                                   f' {format_number(upper_range)}',
+                                                   f'{outlier_samples.size}',
+                                                   outlier_examples
+                                                   ])
 
-        df_graph = column_importance_sorter_df(df_graph, dataset, context.features_importance,
-                                               self.n_top_columns, col='Column Name')
-        display = [N_TOP_MESSAGE % self.n_top_columns, df_graph] if len(df_graph) > 0 else None
+        # Create dataframe to display graph
+        if display_format:
+            df_graph = DataFrame(display_format,
+                                 columns=['Column Name',
+                                          'Range of Detected Normal String Lengths',
+                                          'Range of Detected Outlier String Lengths',
+                                          'Number of Outlier Samples',
+                                          'Example Samples'])
+            df_graph = df_graph.set_index(['Column Name',
+                                           'Range of Detected Normal String Lengths',
+                                           'Range of Detected Outlier String Lengths'])
+
+            df_graph = column_importance_sorter_df(df_graph, dataset, context.feature_importance,
+                                                   self.n_top_columns, col='Column Name')
+            display = [N_TOP_MESSAGE % self.n_top_columns, df_graph]
+        else:
+            display = None
 
         return CheckResult(results, display=display)
 

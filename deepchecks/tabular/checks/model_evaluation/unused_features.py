@@ -80,7 +80,7 @@ class UnusedFeatures(TrainTestCheck):
             dataset = context.train
         _ = context.model  # validate model
 
-        feature_importance = context.features_importance
+        feature_importance = context.feature_importance
         if feature_importance is None:
             raise DeepchecksValueError('Feature Importance is not available.')
         dataset.assert_features()
@@ -119,49 +119,48 @@ class UnusedFeatures(TrainTestCheck):
                 unviable_feature_ratio_to_avg_df['Feature Variance'] > self.feature_variance_threshold
             )
 
-            # limit display to n_top_to_show params
-            display_feature_df = pd.concat(
-                [feature_df.iloc[:(last_important_feature_index + 1)].head(self.n_top_fi_to_show),
-                 unviable_feature_df.iloc[:last_variable_feature_index].head(self.n_top_unused_to_show)],
-                axis=0)
-
-            fig = go.Figure()
-            fig.add_trace(go.Bar(
-                y=display_feature_df.index,
-                x=display_feature_df['Feature Importance'].multiply(100).values.flatten(),
-                name='Feature Importance %',
-                marker_color='indianred',
-                orientation='h'
-            ))
-            fig.add_trace(go.Bar(
-                y=display_feature_df.index,
-                x=display_feature_df['Feature Variance'].multiply(100).values.flatten(),
-                name='Feature Variance %',
-                marker_color='lightsalmon',
-                orientation='h'
-            ))
-
-            fig.update_yaxes(autorange='reversed')
-            fig.update_layout(
-                title_text='Unused features compared to top important features',
-                height=500
-            )
-
-            last_important_feature_index_to_plot = min(last_important_feature_index, self.n_top_fi_to_show - 1)
-
-            if last_important_feature_index_to_plot < len(display_feature_df) - 1:
-                last_important_feature_line_loc = last_important_feature_index_to_plot + 0.5
-                fig.add_hline(y=last_important_feature_line_loc, line_width=2, line_dash='dash', line_color='green',
-                              annotation_text='Last shown significant feature')
-
             # display only if high variance features exist (as set by self.feature_variance_threshold)
-            if not last_variable_feature_index:
-                display_list = []
-            else:
+            if context.with_display and last_variable_feature_index:
+                # limit display to n_top_to_show params
+                display_feature_df = pd.concat(
+                    [feature_df.iloc[:(last_important_feature_index + 1)].head(self.n_top_fi_to_show),
+                     unviable_feature_df.iloc[:last_variable_feature_index].head(self.n_top_unused_to_show)],
+                    axis=0)
+
+                fig = go.Figure()
+                fig.add_trace(go.Bar(
+                    y=display_feature_df.index,
+                    x=display_feature_df['Feature Importance'].multiply(100).values.flatten(),
+                    name='Feature Importance %',
+                    marker_color='indianred',
+                    orientation='h'
+                ))
+                fig.add_trace(go.Bar(
+                    y=display_feature_df.index,
+                    x=display_feature_df['Feature Variance'].multiply(100).values.flatten(),
+                    name='Feature Variance %',
+                    marker_color='lightsalmon',
+                    orientation='h'
+                ))
+
+                fig.update_yaxes(autorange='reversed')
+                fig.update_layout(
+                    title_text='Unused features compared to top important features',
+                    height=500
+                )
+
+                last_important_feature_index_to_plot = min(last_important_feature_index, self.n_top_fi_to_show - 1)
+
+                if last_important_feature_index_to_plot < len(display_feature_df) - 1:
+                    last_important_feature_line_loc = last_important_feature_index_to_plot + 0.5
+                    fig.add_hline(y=last_important_feature_line_loc, line_width=2, line_dash='dash', line_color='green',
+                                  annotation_text='Last shown significant feature')
                 display_list = [
                     'Features above the line are a sample of the most important features, while the features '
                     'below the line are the unused features with highest variance, as defined by check'
                     ' parameters', fig]
+            else:
+                display_list = []
 
         else:
             display_list = []
@@ -224,7 +223,7 @@ def naive_encoder(dataset: Dataset) -> Tuple[TransformerMixin, list]:
                 ('nan_handling', SimpleImputer()),
                 ('norm', RobustScaler())
             ]),
-             dataset.numerical_features),
+                dataset.numerical_features),
             ('cat',
              Pipeline([
                  ('nan_handling', SimpleImputer(strategy='most_frequent')),
