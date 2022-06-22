@@ -15,6 +15,7 @@ from typing import Container, List
 
 import numpy as np
 import pandas as pd
+from pandas.core.dtypes.common import is_integer_dtype
 import plotly.graph_objects as go
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
@@ -57,6 +58,16 @@ def run_whole_dataset_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
                                                         stratify=domain_class_labels,
                                                         random_state=random_state,
                                                         test_size=test_size)
+
+    for df in [x_train, x_test]:
+        df: pd.DataFrame
+        for column in df.columns:
+            df[column] = df[column].astype(float) if is_integer_dtype(df[column]) else df[column]
+    
+    for ser in [y_train, y_test]:
+        ser: pd.Series
+        if is_integer_dtype(ser):
+            ser = ser.astype(float)
 
     domain_classifier = domain_classifier.fit(x_train, y_train)
 

@@ -12,7 +12,7 @@
 from typing import Any, List
 
 import pandas as pd
-from pandas.core.dtypes.common import is_numeric_dtype
+from pandas.core.dtypes.common import is_integer_dtype
 
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.condition import ConditionCategory
@@ -148,7 +148,7 @@ NAN_REPLACEMENT = '__deepchecks_na_filler__'
 def _fillna_col(column: pd.Series, value: Any):
     if isinstance(column.dtype, pd.CategoricalDtype):
         return column.cat.add_categories([value]).fillna(value=value)
-    if is_numeric_dtype(column):
+    if is_integer_dtype(column):
         return column.astype(float).fillna(value=value)
     return column.fillna(value=value)
 

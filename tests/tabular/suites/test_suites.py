@@ -53,18 +53,18 @@ def test_generic_suite(
     iris: t.Tuple[Dataset, Dataset, AdaBoostClassifier],
     diabetes_split_dataset_and_model: t.Tuple[Dataset, Dataset, object],
     iris_split_dataset_and_model_single_feature : t.Tuple[Dataset, Dataset, AdaBoostClassifier],
-        kiss_dataset_and_model,
+        kiss_dataset_and_model
 ):
     iris_train, iris_test, iris_model = iris
     diabetes_train, diabetes_test, diabetes_model = diabetes_split_dataset_and_model
-    city_train, city_test, city_model = kiss_dataset_and_model
+    kiss_train, kiss_test, kiss_model = kiss_dataset_and_model
     iris_train_single, iris_test_single, iris_model_single= iris_split_dataset_and_model_single_feature
     suite = suites.full_suite(imaginery_kwarg='just to make sure all checks have kwargs in the init')
 
     arguments = (
         dict(train_dataset=iris_train_single, test_dataset=iris_test_single, model=iris_model_single),
         dict(train_dataset=iris_train_single, test_dataset=iris_test_single),
-        dict(train_dataset=city_train, test_dataset=city_test, model=city_model),
+        dict(train_dataset=kiss_train, test_dataset=kiss_test, model=kiss_model),
         dict(train_dataset=iris_train, test_dataset=iris_test, model=iris_model),
         dict(train_dataset=iris_train, test_dataset=iris_test, model=iris_model, with_display=False),
         dict(train_dataset=iris_train, test_dataset=iris_test),
@@ -77,6 +77,7 @@ def test_generic_suite(
 
     for args in arguments:
         result = suite.run(**args)
+        print(result.get_not_ran_checks())
         length = get_expected_results_length(suite, args)
         validate_suite_result(result, length)
 
