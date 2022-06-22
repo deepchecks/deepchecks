@@ -53,7 +53,7 @@ def test_generic_suite(
     iris: t.Tuple[Dataset, Dataset, AdaBoostClassifier],
     diabetes_split_dataset_and_model: t.Tuple[Dataset, Dataset, object],
     iris_split_dataset_and_model_single_feature : t.Tuple[Dataset, Dataset, AdaBoostClassifier],
-        kiss_dataset_and_model
+        kiss_dataset_and_model,
 ):
     iris_train, iris_test, iris_model = iris
     diabetes_train, diabetes_test, diabetes_model = diabetes_split_dataset_and_model
@@ -77,7 +77,6 @@ def test_generic_suite(
 
     for args in arguments:
         result = suite.run(**args)
-        print(result.get_not_ran_checks())
         length = get_expected_results_length(suite, args)
         validate_suite_result(result, length)
 
