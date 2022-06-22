@@ -33,7 +33,9 @@ n_samples : Optional[int], default: None
 with_display : bool , default: True
     flag that determines if checks will calculate display (redundant in some checks).
 train_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] , default None
+    Dictionary of the model prediction over the train dataset (keys are the indexes).
 test_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] , default None
+    Dictionary of the model prediction over the test dataset (keys are the indexes).
 """.strip('\n')
 
 
