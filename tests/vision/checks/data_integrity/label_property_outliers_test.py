@@ -19,16 +19,22 @@ from deepchecks.vision.utils.label_prediction_properties import DEFAULT_OBJECT_D
 from tests.vision.vision_conftest import *
 
 
-def is_correct_label_property_outliers_result(props) -> Matcher:
+def is_correct_label_property_outliers_result(props, with_display: bool = True) -> Matcher:
     props = [p for p in props if p['output_type'] != 'class_id']
     value_assertion = all_of(
         instance_of(dict),
         *[has_key(single_property['name']) for single_property in props])
 
-    display_assertion = all_of(
-        instance_of(list),
-        any_of(has_length(1), has_length(2)),
-    )
+    if with_display:
+        display_assertion = all_of(
+            instance_of(list),
+            any_of(has_length(1), has_length(2)),
+        )
+    else:
+        display_assertion = all_of(
+            instance_of(list),
+            has_length(0),
+        ) 
 
     return all_of(
         instance_of(CheckResult),
@@ -45,6 +51,23 @@ def test_outliers_check_coco(coco_train_visiondata, device):
 
     # Assert
     assert_that(result, is_correct_label_property_outliers_result(DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES))
+    assert_that(result.value, has_entries({
+        'Number of Bounding Boxes Per Image': has_entries({
+            'indices': contains_exactly(30, 21, 43, 52, 33, 37),
+            'lower_limit': is_(0),
+            'upper_limit': is_(20.125)
+        }),
+        'Bounding Box Area (in pixels)': instance_of(dict),
+    }))
+
+
+def test_outliers_check_coco_without_display(coco_train_visiondata, device):
+    # Act
+    result = LabelPropertyOutliers().run(coco_train_visiondata, device=device, with_display=False)
+
+    # Assert
+    assert_that(result,
+                is_correct_label_property_outliers_result(DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES, with_display=False))
     assert_that(result.value, has_entries({
         'Number of Bounding Boxes Per Image': has_entries({
             'indices': contains_exactly(30, 21, 43, 52, 33, 37),

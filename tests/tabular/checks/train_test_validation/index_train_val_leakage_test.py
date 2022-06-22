@@ -13,7 +13,7 @@ Contains unit tests for the index leakage check
 """
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, calling, close_to, has_items, raises
+from hamcrest import assert_that, calling, close_to, greater_than, has_items, has_length, raises
 
 from deepchecks.core.errors import DatasetValidationError, DeepchecksValueError
 from deepchecks.tabular.checks.train_test_validation.index_leakage import IndexTrainTestLeakage
@@ -30,7 +30,18 @@ def test_indexes_from_val_in_train():
     train_ds = dataset_from_dict({'col1': [1, 2, 3, 4, 10, 11]}, 'col1')
     val_ds = dataset_from_dict({'col1': [4, 5, 6, 7]}, 'col1')
     check_obj = IndexTrainTestLeakage()
-    assert_that(check_obj.run(train_ds, val_ds).value, close_to(0.25, 0.01))
+    result = check_obj.run(train_ds, val_ds)
+    assert_that(result.value, close_to(0.25, 0.01))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_indexes_from_val_in_train_without_display():
+    train_ds = dataset_from_dict({'col1': [1, 2, 3, 4, 10, 11]}, 'col1')
+    val_ds = dataset_from_dict({'col1': [4, 5, 6, 7]}, 'col1')
+    check_obj = IndexTrainTestLeakage()
+    result = check_obj.run(train_ds, val_ds, with_display=False)
+    assert_that(result.value, close_to(0.25, 0.01))
+    assert_that(result.display, has_length(0))
 
 
 def test_limit_indexes_from_val_in_train():

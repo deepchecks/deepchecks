@@ -11,10 +11,10 @@
 """Tests for Mixed Nulls check"""
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, calling, close_to, equal_to, has_items, raises
+from hamcrest import assert_that, calling, close_to, equal_to, has_items, has_length, raises
 
 from deepchecks.core import ConditionCategory
-from deepchecks.core.errors import DatasetValidationError, DeepchecksValueError
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.checks.data_integrity.data_duplicates import DataDuplicates
 from tests.base.utils import equal_condition_result
 
@@ -94,9 +94,16 @@ def test_data_duplicates_ignore_index_column():
 def test_anonymous_series():
     np.random.seed(42)
     df = pd.DataFrame(np.random.randint(0,10,(100,3))).reset_index()
-    res = DataDuplicates(ignore_columns=['index']).run(df).value
-    assert_that(res, close_to(0.05, 0.001))
+    res = DataDuplicates(ignore_columns=['index']).run(df)
+    assert_that(res.value, close_to(0.05, 0.001))
+    assert_that(res.display, has_length(3))
 
+def test_anonymous_series_without_display():
+    np.random.seed(42)
+    df = pd.DataFrame(np.random.randint(0,10,(100,3))).reset_index()
+    res = DataDuplicates(ignore_columns=['index']).run(df, with_display=False)
+    assert_that(res.value, close_to(0.05, 0.001))
+    assert_that(res.display, has_length(0))
 
 def test_nan(df_with_nan_row, df_with_single_nan_in_col):
     df = df_with_nan_row.set_index('col2')

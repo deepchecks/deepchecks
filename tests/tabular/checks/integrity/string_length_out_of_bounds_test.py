@@ -11,7 +11,7 @@
 """Contains unit tests for the string_length_out_of_bounds check."""
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, equal_to, has_entries, has_entry, has_items, has_length
+from hamcrest import assert_that, equal_to, greater_than, has_entries, has_entry, has_items, has_length
 
 from deepchecks.core import ConditionCategory
 from deepchecks.tabular.checks import StringLengthOutOfBounds
@@ -37,9 +37,23 @@ def test_single_outlier():
     data = {'col1': col_data}
     ds = Dataset(pd.DataFrame(data=data), cat_features=[])
     # Act
-    result = StringLengthOutOfBounds().run(ds).value
+    result = StringLengthOutOfBounds().run(ds)
     # Assert
-    assert_that(result, has_entries(col1=has_entry('outliers', has_length(1))))
+    assert_that(result.value, has_entries(col1=has_entry('outliers', has_length(1))))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_single_outlier_without_display():
+    # Arrange
+    col_data = ['a', 'b'] * 100
+    col_data.append('abcd'*1000)
+    data = {'col1': col_data}
+    ds = Dataset(pd.DataFrame(data=data), cat_features=[])
+    # Act
+    result = StringLengthOutOfBounds().run(ds, with_display=False)
+    # Assert
+    assert_that(result.value, has_entries(col1=has_entry('outliers', has_length(1))))
+    assert_that(result.display, has_length(0))
 
 
 def test_outlier_skip_categorical_column():

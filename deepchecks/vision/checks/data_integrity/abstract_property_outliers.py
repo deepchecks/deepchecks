@@ -76,6 +76,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         self.iqr_percentiles = iqr_percentiles
         self.iqr_scale = iqr_scale
         self.n_show_top = n_show_top
+
         self._properties_results = None
         self._properties_funcs = None
 
@@ -175,35 +176,39 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
             }
 
         # Create display
-        display = []
-        for property_name, info in result.items():
-            # If info is string it means there was error
-            if isinstance(info, str):
-                html = NO_IMAGES_TEMPLATE.format(prop_name=property_name, message=info)
-            elif len(info['indices']) == 0:
-                html = NO_IMAGES_TEMPLATE.format(prop_name=property_name, message='No outliers found.')
-            else:
-                # Create id of alphabetic characters
-                sid = ''.join([choice(string.ascii_uppercase) for _ in range(6)])
-                values_combine = ''.join([f'<div class="{sid}-item">{format_number(x[0])}</div>'
-                                          for x in images[property_name]])
-                images_combine = ''.join([f'<div class="{sid}-item">{x[1]}</div>'
-                                          for x in images[property_name]])
+        if context.with_display:
+            display = []
+            for property_name, info in result.items():
+                # If info is string it means there was error
+                if isinstance(info, str):
+                    html = NO_IMAGES_TEMPLATE.format(prop_name=property_name, message=info)
+                elif len(info['indices']) == 0:
+                    html = NO_IMAGES_TEMPLATE.format(prop_name=property_name, message='No outliers found.')
+                else:
+                    # Create id of alphabetic characters
+                    sid = ''.join([choice(string.ascii_uppercase) for _ in range(6)])
+                    values_combine = ''.join([f'<div class="{sid}-item">{format_number(x[0])}</div>'
+                                              for x in images[property_name]])
+                    images_combine = ''.join([f'<div class="{sid}-item">{x[1]}</div>'
+                                              for x in images[property_name]])
 
-                html = HTML_TEMPLATE.format(
-                    prop_name=property_name,
-                    values=values_combine,
-                    images=images_combine,
-                    count=len(info['indices']),
-                    n_of_images=len(images[property_name]),
-                    lower_limit=format_number(info['lower_limit']),
-                    upper_limit=format_number(info['upper_limit']),
-                    id=sid
-                )
+                    html = HTML_TEMPLATE.format(
+                        prop_name=property_name,
+                        values=values_combine,
+                        images=images_combine,
+                        count=len(info['indices']),
+                        n_of_images=len(images[property_name]),
+                        lower_limit=format_number(info['lower_limit']),
+                        upper_limit=format_number(info['upper_limit']),
+                        id=sid
+                    )
 
-            display.append(html)
+                display.append(html)
+            display = ''.join(display)
+        else:
+            display = None
 
-        return CheckResult(result, display=''.join(display))
+        return CheckResult(result, display=display)
 
     @abstractmethod
     def get_relevant_data(self, batch: Batch):

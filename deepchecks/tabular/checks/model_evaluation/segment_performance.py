@@ -141,14 +141,18 @@ class SegmentPerformance(SingleDatasetCheck):
         scores = scores.astype(np.object)
         scores[np.isnan(scores.astype(np.float_))] = None
 
-        fig = px.imshow(scores, x=x, y=y, color_continuous_scale='rdylgn')
-        fig.update_traces(text=scores_text, texttemplate='%{text}')
-        fig.update_layout(
-            title=f'{scorer.name} (count) by features {self.feature_1}/{self.feature_2}',
-            height=600
-        )
-        fig.update_xaxes(title=self.feature_2, showgrid=False, tickangle=-30, side='bottom')
-        fig.update_yaxes(title=self.feature_1, autorange='reversed', showgrid=False)
-
         value = {'scores': scores, 'counts': counts, 'feature_1': self.feature_1, 'feature_2': self.feature_2}
+
+        if context.with_display:
+            fig = px.imshow(scores, x=x, y=y, color_continuous_scale='rdylgn')
+            fig.update_traces(text=scores_text, texttemplate='%{text}')
+            fig.update_layout(
+                title=f'{scorer.name} (count) by features {self.feature_1}/{self.feature_2}',
+                height=600
+            )
+            fig.update_xaxes(title=self.feature_2, showgrid=False, tickangle=-30, side='bottom')
+            fig.update_yaxes(title=self.feature_1, autorange='reversed', showgrid=False)
+        else:
+            fig = None
+
         return CheckResult(value, display=fig)

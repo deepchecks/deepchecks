@@ -11,7 +11,7 @@
 """Contains unit tests for the new_category_train_validation check"""
 
 import pandas as pd
-from hamcrest import assert_that, calling, equal_to, has_items, has_length, raises
+from hamcrest import assert_that, calling, equal_to, greater_than, has_items, has_length, raises
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.checks.train_test_validation import CategoryMismatchTrainTest
@@ -55,9 +55,25 @@ def test_new_category():
     # Arrange
     check = CategoryMismatchTrainTest()
     # Act X
-    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
+    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
     # Assert
-    assert_that(result, equal_to({'new_categories': {'col1': {'d': 1}}, 'test_count': 4}))
+    assert_that(result.value, equal_to({'new_categories': {'col1': {'d': 1}}, 'test_count': 4}))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_new_category_without_display():
+    train_data = {'col1': ['a', 'b', 'c']}
+    test_data = {'col1': ['a', 'b', 'c', 'd']}
+    train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1']), cat_features=['col1'])
+    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1']), cat_features=['col1'])
+
+    # Arrange
+    check = CategoryMismatchTrainTest()
+    # Act X
+    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset, with_display=False)
+    # Assert
+    assert_that(result.value, equal_to({'new_categories': {'col1': {'d': 1}}, 'test_count': 4}))
+    assert_that(result.display, has_length(0))
 
 
 def test_missing_category():

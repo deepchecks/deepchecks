@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-from hamcrest import assert_that, calling, close_to, has_length, raises
+from hamcrest import assert_that, calling, close_to, greater_than, has_length, raises
 
 from deepchecks.core.errors import ModelValidationError
 from deepchecks.vision.checks import MeanAveragePrecisionReport
@@ -112,3 +112,21 @@ def test_coco_area_param(coco_test_visiondata, mock_trained_yolov5_object_detect
     assert_that(df.loc['Large (area < 100^2)', 'mAP@[.50::.95] (avg.%)'], close_to(0.542, 0.001))
     assert_that(df.loc['Large (area < 100^2)', 'mAP@.50 (%)'], close_to(0.673, 0.001))
     assert_that(df.loc['Large (area < 100^2)', 'mAP@.75 (%)'], close_to(0.592, 0.001))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_coco_area_param_without_display(coco_test_visiondata, mock_trained_yolov5_object_detection, device):
+    # Arrange
+    check = MeanAveragePrecisionReport(area_range=(40**2, 100**2))
+
+    # Act
+    result = check.run(coco_test_visiondata,
+                       mock_trained_yolov5_object_detection,
+                       device=device, with_display=False)
+
+    # Assert
+    df = result.value
+    assert_that(df, has_length(4))
+
+    assert_that(df.loc['All', 'mAP@[.50::.95] (avg.%)'], close_to(0.409, 0.001))
+    assert_that(result.display, has_length(0))

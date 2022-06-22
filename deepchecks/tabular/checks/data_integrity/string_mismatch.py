@@ -91,10 +91,11 @@ class StringMismatch(SingleDatasetCheck):
                 for variant in variants:
                     count = value_counts[variant]
                     percent = count / len(column)
-                    display_results.append([column_name, base_form, variant, count, format_percent(percent)])
                     result_dict[column_name][base_form].append({
                         'variant': variant, 'count': count, 'percent': percent
                     })
+                    if context.with_display:
+                        display_results.append([column_name, base_form, variant, count, format_percent(percent)])
 
         # Create dataframe to display graph
         if display_results:
