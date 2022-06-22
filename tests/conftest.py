@@ -129,7 +129,7 @@ def kiss_dataset_and_model():
         {
             'binary_feature': [0, 1, 1, 0, 0, 1],
             'string_feature': ['ahhh', 'no', 'weeee', 'arg', 'eh', 'E'],
-            'numeric_feature': pd.array([4, np.nan, 7, 3, 2, np.nan], dtype="Int64"),
+            'numeric_feature': pd.array([4, np.nan, 7, 3, 2, np.nan], dtype='Int64'),
             'numeric_label': [3, 1, 5, 2, 1, 1],
         })
     train, test = train_test_split(df, test_size=0.33, random_state=42)

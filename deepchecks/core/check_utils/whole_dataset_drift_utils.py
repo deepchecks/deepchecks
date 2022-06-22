@@ -63,7 +63,7 @@ def run_whole_dataset_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
         df: pd.DataFrame
         for column in df.columns:
             df[column] = df[column].astype(float) if is_integer_dtype(df[column]) else df[column]
-    
+
     for ser in [y_train, y_test]:
         ser: pd.Series
         if is_integer_dtype(ser):
