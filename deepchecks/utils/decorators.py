@@ -202,7 +202,7 @@ def scrap_parameters_lines(docstring: str) -> t.List[str]:
         section_underline = {'-'}
         end_of_parameters = {'', 'Returns', 'Examples', 'See also', 'Notes', 'Raises'}
         l1, l2 = lines[0].strip(), lines[1].strip()
-        current_line = 0
+        current_line = 2
         while current_line < n_of_lines:
             if l1 == parameters_section and set(l2) == section_underline:
                 while current_line < n_of_lines:
@@ -240,24 +240,28 @@ def parse_parameters_section(docstring: str) -> t.Tuple[Parameter, ...]:
         parameter_line = parameters_section[current_line]
 
         if type_and_name_devider not in parameter_line:
-            # Unknown structure, exit
+            # unknown structure, exit
             return tuple(output)
 
+        # parse name and type desc
         name, type_desc = parameter_line.split(type_and_name_devider, maxsplit=1)
         name, type_desc = name.strip(), type_desc.strip()
         description = []
         current_line += 1
 
+        # collect parameter description
         while current_line < n_of_lines:
             desc_line = parameters_section[current_line]
             desc_line_level = len(desc_line) - len(desc_line.lstrip(' \t'))
             if desc_line_level == level:
+                # encountered next parameter, break
                 break
             elif desc_line_level > level:
+                # append description line
                 description.append(desc_line.strip())
                 current_line += 1
             else:
-                # Unknown structure, exit
+                # unknown structure, exit
                 return tuple(output)
 
         output.append((name, type_desc, '\n'.join(description)))
