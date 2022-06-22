@@ -77,7 +77,7 @@ suite
 # After we found the IDs we can remove the Condition:
 
 # Access check by id
-check = suite[9]
+check = suite[8]
 # Remove condition by id
 check.remove_condition(0)
 
