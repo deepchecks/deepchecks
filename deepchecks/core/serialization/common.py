@@ -17,13 +17,16 @@ import pkgutil
 import textwrap
 import typing as t
 import warnings
+import htmlmin
 from contextlib import contextmanager
+from html.parser import HTMLParser
 
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import plotly.io._html as plotlyhtml
+from plotly.basedatatypes import BaseFigure
 from ipywidgets import DOMWidget
 from jsonpickle.pickler import Pickler
 from pandas.io.formats.style import Styler
@@ -477,56 +480,85 @@ def join(l: t.List[A], item: B) -> t.Iterator[t.Union[A, B]]:
             yield item
 
 
-def global_plotly_dependency():
-    """
-     <script type="text/javascript">
+class ScriptTag(t.TypedDict):
+    attrs: t.Dict[str, t.Any]
+    content: str
 
-        function loadPlotly() {{return new Promise(async (resolve, reject) => {{
-            try {{ 
-                const plotlyCdn = 'https://cdn.plot.ly/plotly-2.12.1.min';
-                const loadPlotlyScript = () => new Promise((resolve, reject) => {{
-                    const scriptTag = document.createElement('script');
-                    document.head.appendChild(scriptTag);
-                    scriptTag.async = true;
-                    scriptTag.onload = () => resolve(scriptTag);
-                    scriptTag.onerror = () => reject(new Error(`Failed to load plotly script`));
-                    scriptTag.src = plotlyCdn + '.js';
-                }});
-                if (window.Plotly === undefined || window.Plotly === null) {{
-                    if (typeof define === "function" && define.amd) {{
-                        const exist = (Plotly) => {{
-                            window.Plotly = Plotly; 
-                            resolve(Plotly);
-                        }};
-                        const failure = (e) => {{
-                            console.dir(e);
-                            reject(new Error('Failed to load plotly library'));
-                        }};
-                        requirejs.config({{paths: {{'plotly': [plotlyCdn]}}}});
-                        require(['plotly'], exist, failure);
-                    }} else {{
-                        try {{
-                            await loadPlotlyScript();
-                            resolve(Plotly);
-                        }} catch(error) {{
-                            console.dir(error);
-                            reject(new Error('Failed to load plotly library'));
-                        }}
-                    }}
-                }} else {{
-                    resolve(window.Plotly);
-                }}
-            }} catch(error) {{
-                reject(error);
-            }}
 
-        }})}};
+class _SimpleScriptsTagScraper(HTMLParser):
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.tags = []
+        self.current_tag = None
+    
+    def handle_starttag(self, tag: str, attrs: t.Tuple[t.Tuple[str, t.Any], ...]):
+        if tag.lower().strip() == 'script':
+            self.current_tag = ScriptTag(content='', attrs=dict(attrs))
+            self.tags.append(self.current_tag)
+        
+    def handle_endtag(self, tag):
+        self.current_tag = None
 
-        if (window.loadPlotlyDependency === undefined || window.loadPlotlyDependency === null) {{
-            console.log('no plotly, loading it');
-            window.loadPlotlyDependency = loadPlotly();
-        }} else {{
-            console.log('dependency promise already exists');
-        }}
-    </script>
-    """
+    def handle_data(self, data):
+        if self.current_tag is not None:
+            self.current_tag['content'] = data
+    
+
+def extract_script_tags(html: str) -> t.List[ScriptTag]:
+    parser = _SimpleScriptsTagScraper()
+    parser.feed(html)
+    return parser.tags
+
+
+def figure_creation_script(
+    figure: BaseFigure, 
+    div_id: str,
+    **kwargs
+) -> str:
+    scripts = extract_script_tags(figure.to_html(
+        full_html=False, 
+        include_plotlyjs=False, 
+        div_id=div_id,
+        **kwargs
+    ))
+
+    if (
+        len(scripts) == 0
+        or 'content' not in scripts[0] 
+        or not scripts[0]['content']
+    ):
+        raise ValueError() # TODO: add message
+    
+    return htmlmin.minify(FIGURE_CREATION_SCRIPT.format(
+        container_id=div_id,
+        figure_creation_script=scripts[0]['content']
+    ))
+
+
+FIGURE_CREATION_SCRIPT = """
+(async () => {{
+    const containerId = '{container_id}';
+    const container = document.querySelector(`#${{containerId}}`);
+    if (container === undefined || container === null) {{
+        console.error('Did not find the container for the plot');
+        return;
+    }}
+    if (
+        typeof window.Deepchecks !== 'object'
+        || typeof window.Deepchecks.loadPlotlyDependency !== 'object'
+    ) {{
+        container.innerHTML = 'Failed to display plotly figure, try result.show_in_iframe';
+        return;
+    }}
+    container.innerHTML = '<h1>Verifying needed dependencies</h1>';
+    try {{
+        const Plotly = await window.Deepchecks.loadPlotlyDependency;
+        container.innerHTML = '';
+        {figure_creation_script}
+    }} catch(error) {{
+        console.dir(error);
+        container.innerHTML = 'Failed to load plotly dependencies, try result.show_in_iframe';
+    }}
+}})();
+"""

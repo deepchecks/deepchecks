@@ -1,5 +1,5 @@
 (async () => {{
-    const containerId = '$containerId';
+    const containerId = '%containerId';
     const container = document.querySelector(`#${containerId}`);
     if (container === undefined || container === null) {
         console.error('Did not find the container for the plot');
@@ -16,7 +16,7 @@
     try {
         const Plotly = await window.Deepchecks.loadPlotlyDependency;
         container.innerHTML = '';
-        $plotCreationScript
+        $figureCreationScript
     } catch(error) {
         console.dir(error);
         container.innerHTML = 'Failed to load plotly dependencies, try result.show_in_iframe';
