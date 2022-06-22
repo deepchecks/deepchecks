@@ -1,0 +1,37 @@
+from deepchecks.utils.decorators import Substitution
+
+_shared_docstrings = {}
+
+
+_shared_docstrings['additional_context_params'] = """
+model_name: str , default: ''
+    The name of the model
+feature_importance: pd.Series , default: None
+    pass manual features importance
+feature_importance_force_permutation : bool , default: False
+    force calculation of permutation features importance
+feature_importance_timeout : int , default: 120
+    timeout in second for the permutation features importance calculation
+scorers : Optional[Mapping[str, Union[str, Callable]]] , default: None
+    dict of scorers names to scorer sklearn_name/function
+scorers_per_class : Optional[Mapping[str, Union[str, Callable]]] , default: None
+    dict of scorers for classification without averaging of the classes.
+    See <a href=
+    "https://scikit-learn.org/stable/modules/model_evaluation.html#from-binary-to-multiclass-and-multilabel">
+    scikit-learn docs</a>
+y_pred_train: Optional[np.ndarray] , default: None
+    Array of the model prediction over the train dataset.
+y_pred_test: Optional[np.ndarray] , default: None
+    Array of the model prediction over the test dataset.
+y_proba_train: Optional[np.ndarray] , default: None
+    Array of the model prediction probabilities over the train dataset.
+y_proba_test: Optional[np.ndarray] , default: None
+    Array of the model prediction probabilities over the test dataset.
+features_importance: Optional[pd.Series] , default: None
+    pass manual features importance
+    .. deprecated:: 0.8.1
+        Use 'feature_importance' instead.
+""".strip('\n')
+
+
+docstrings = Substitution(**_shared_docstrings)
