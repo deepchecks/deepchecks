@@ -11,8 +11,8 @@
 """Module with usefull decorators."""
 import textwrap
 import typing as t
-from functools import wraps
 from collections import defaultdict
+from functools import wraps
 
 from deepchecks.utils.logger import get_logger
 
@@ -27,6 +27,36 @@ INDENT = '    '
 # module https://matplotlib.org/users/license.html
 
 
+class DocStr(str):
+    """Subclass of string that adds several additional methods."""
+
+    def dedent(self) -> 'DocStr':
+        return DocStr(textwrap.dedent(self))
+
+    def indent(self) -> 'DocStr':
+        return DocStr(indent(self))
+
+    def __format__(self, *args, **kwargs):
+        if len(args) == 0:
+            return super().__format__(*args, **kwargs)
+
+        allowed_modifiers = {'dedent', 'indent'}
+        identation_modifier = args[0]
+        parts = identation_modifier.split('*')
+
+        if len(parts) == 1 and parts[0] in allowed_modifiers:
+            return getattr(self, parts[0])()
+        elif len(parts) == 2 and parts[0].isnumeric() and parts[1] in allowed_modifiers:
+            n_of_times = int(parts[0])
+            modifier = parts[1]
+            s = self
+            for _ in range(n_of_times):
+                s = getattr(s, modifier)()
+            return s
+
+        return super().__format__(*args, **kwargs)
+
+
 class Substitution:
     """Substitution docstring placeholders.
 
@@ -36,41 +66,37 @@ class Substitution:
     This decorator should be robust even if func.__doc__ is None
     (for example, if -OO was passed to the interpreter)
 
-    Usage: construct a docstring.Substitution with a sequence or
-    dictionary suitable for performing substitution; then
-    decorate a suitable function with the constructed object. e.g.
+    Usage: construct a docstring.Substitution with a dictionary suitable
+    for performing substitution; then decorate a suitable function with
+    the constructed object. e.g.
 
     sub_author_name = Substitution(author='Jason')
 
     @sub_author_name
     def some_function(x):
-        "%(author)s wrote this function"
+        "{author} wrote this function"
 
     # note that some_function.__doc__ is now "Jason wrote this function"
-
-    One can also use positional arguments.
-
-    sub_first_last_names = Substitution('Edgar Allen', 'Poe')
-
-    @sub_first_last_names
-    def some_function(x):
-        "%s %s wrote the Raven"
     """
 
-    def __init__(self, *args, **kwargs):
-        if args and kwargs:
-            raise AssertionError('Only positional or keyword args are allowed')
-
-        self.params = args or kwargs
+    def __init__(self, **kwargs):
+        self.params = {
+            k: DocStr(v) if not isinstance(v, DocStr) else v
+            for k, v in kwargs.items()
+        }
 
     def __call__(self, func: F) -> F:
-        func.__doc__ = func.__doc__ and func.__doc__ % self.params
+        """Decorate a function."""
+        func.__doc__ = func.__doc__ and func.__doc__.format(**self.params)
         return func
 
-    def update(self, *args, **kwargs) -> None:
+    def update(self, **kwargs) -> None:
         """Update self.params with supplied args."""
         if isinstance(self.params, dict):
-            self.params.update(*args, **kwargs)
+            self.params.update({
+                k: DocStr(v) if not isinstance(v, DocStr) else v
+                for k, v in kwargs.items()
+            })
 
 
 class Appender:
@@ -103,6 +129,7 @@ class Appender:
         self.join = join
 
     def __call__(self, func: F) -> F:
+        """Decorate a function."""
         func.__doc__ = func.__doc__ if func.__doc__ else ''
         self.addendum = self.addendum if self.addendum else ''
         docitems = [func.__doc__, self.addendum]
@@ -111,7 +138,7 @@ class Appender:
 
 
 def indent(
-    text: t.Optional[str], 
+    text: t.Optional[str],
     indents: int = 1,
     prefix: bool = False
 ) -> str:
@@ -120,7 +147,7 @@ def indent(
     identation = ''.join((INDENT for _ in range(indents)))
     jointext = ''.join(('\n', identation))
     output = jointext.join(text.split('\n'))
-    return output if prefix is False else f"{identation}{output}"
+    return output if prefix is False else f'{identation}{output}'
 
 
 def deprecate_kwarg(
@@ -146,23 +173,27 @@ def deprecate_kwarg(
                 )
             elif old_name in kwargs and new_name is None:
                 get_logger().warning(
-                    f'the {repr(old_name)} keyword is deprecated and '
+                    'the %s keyword is deprecated and '
                     'will be removed in a future version. Please take '
-                    f'steps to stop the use of {repr(old_name)}'
+                    'steps to stop the use of %s',
+                    repr(old_name),
+                    repr(old_name)
                 )
             elif old_name in kwargs and new_name is not None:
                 get_logger().warning(
-                    f'the {repr(old_name)} keyword is deprecated, '
-                    f'use {repr(new_name)} instead'
+                    'the %s keyword is deprecated, '
+                    'use %s instead',
+                    repr(old_name),
+                    repr(new_name)
                 )
                 kwargs[new_name] = kwargs.pop(old_name)
             return func(*args, **kwargs)
         return t.cast(F, wrapper)
     return _deprecate_kwarg
 
-    
+
 def scrap_parameters_lines(docstring: str) -> t.List[str]:
-    """Return docstring parameters section lines"""
+    """Return docstring parameters section lines."""
     lines = docstring.split('\n')
     n_of_lines = len(lines)
     output = []
@@ -194,29 +225,29 @@ Parameter = t.Tuple[str, str, str]  # name, type-desc, desc
 def parse_parameters_section(docstring: str) -> t.Tuple[Parameter, ...]:
     """Parse docstring parameters section."""
     parameters_section = scrap_parameters_lines(docstring)
-    
+
     if not parameters_section:
         return tuple()
-    
+
     n_of_lines = len(parameters_section)
     current_line = 0
     parameter_line = parameters_section[0]
     level = len(parameter_line) - len(parameter_line.lstrip(' \t'))
     type_and_name_devider = ':'
     output = []
-    
+
     while current_line < n_of_lines:
         parameter_line = parameters_section[current_line]
-        
+
         if type_and_name_devider not in parameter_line:
             # Unknown structure, exit
             return tuple(output)
-    
+
         name, type_desc = parameter_line.split(type_and_name_devider, maxsplit=1)
         name, type_desc = name.strip(), type_desc.strip()
         description = []
         current_line += 1
-                
+
         while current_line < n_of_lines:
             desc_line = parameters_section[current_line]
             desc_line_level = len(desc_line) - len(desc_line.lstrip(' \t'))
@@ -235,12 +266,12 @@ def parse_parameters_section(docstring: str) -> t.Tuple[Parameter, ...]:
 
 
 class ParametersCombiner:
-    """Combine docstring parameters from several two or more routines."""
+    """Combine docstring parameters from two or more routines."""
 
     __slots__ = ('routines', 'template_arg_name', '_parameters', '_combined_parameters')
 
     def __init__(
-        self, 
+        self,
         *routines: t.Any,
         template_arg_name: str = 'combined_parameters'
     ):
@@ -251,9 +282,10 @@ class ParametersCombiner:
 
     @property
     def parameters(self) -> t.Tuple[
-        t.Tuple[object, t.Tuple[Parameter, ...]], 
+        t.Tuple[object, t.Tuple[Parameter, ...]],
         ...
     ]:
+        """Return collected routines parameters."""
         if self._parameters is not None:
             return self._parameters
         else:
@@ -273,19 +305,21 @@ class ParametersCombiner:
                     parameters.append((it, docstring_parameters))
             self._parameters = tuple(parameters)
             return self._parameters
-    
+
     @property
     def combined_parameters(self) -> str:
+        """Return combined parameters docstring."""
         if self._combined_parameters is not None:
             return self._combined_parameters
         else:
             parameters_consumers = defaultdict(set)
             parameters = {}
             ignore = {'**kwargs', '*args'}
-            
+
             for routine, params in self.parameters:
                 for name, type_desc, desc in params:
-                    if name in ignore: continue
+                    if name in ignore:
+                        continue
                     parameters_consumers[name].add(get_routine_name(routine))
                     parameters[name] = (type_desc, desc)
 
@@ -296,22 +330,21 @@ class ParametersCombiner:
             for name, (type_desc, desc) in parameters.items():
                 used_by = ', '.join(parameters_consumers[name])
                 desc = description_template.format(desc, used_by)
-                desc = indent(desc, indents=2, prefix=True)
+                desc = indent(desc, indents=1, prefix=True)
                 lines.append(parameter_template.format(name, type_desc, desc))
-            
-            self._combined_parameters = f'\n{INDENT}'.join(lines)
+
+            self._combined_parameters = '\n'.join(lines)
             return self._combined_parameters
 
     def __call__(self, routine: F) -> F:
+        """Decorate a routine."""
         if not hasattr(routine, '__doc__'):
             raise AttributeError(
                 f'routine {get_routine_name(routine)} does not have '
                 'documentation string'
             )
-        template_args = {self.template_arg_name: self.combined_parameters}
-        default_template = f'{INDENT}Parameters\n{INDENT}------------\n{INDENT}{{{self.template_arg_name}}}'
-        doc = routine.__doc__ or default_template
-        routine.__doc__ = doc.format(**template_args)
+        template_args = {self.template_arg_name: DocStr(self.combined_parameters)}
+        routine.__doc__ = routine.__doc__ and routine.__doc__.format(**template_args)
         return routine
 
 

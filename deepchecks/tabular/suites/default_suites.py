@@ -16,7 +16,6 @@ It is possible to customize these suites by editing the checks and conditions in
 import warnings
 
 from deepchecks.tabular import Suite
-from deepchecks.utils.decorators import ParametersCombiner
 from deepchecks.tabular.checks import (BoostingOverfit, CalibrationScore, CategoryMismatchTrainTest, ConflictingLabels,
                                        ConfusionMatrixReport, DataDuplicates, DatasetsSizeComparison,
                                        DateTrainTestLeakageDuplicates, DateTrainTestLeakageOverlap,
@@ -28,6 +27,7 @@ from deepchecks.tabular.checks import (BoostingOverfit, CalibrationScore, Catego
                                        SpecialCharacters, StringLengthOutOfBounds, StringMismatch,
                                        StringMismatchComparison, TrainTestFeatureDrift, TrainTestLabelDrift,
                                        TrainTestPredictionDrift, TrainTestSamplesMix, UnusedFeatures, WholeDatasetDrift)
+from deepchecks.utils.decorators import ParametersCombiner
 
 __all__ = ['single_dataset_integrity', 'train_test_leakage', 'train_test_validation',
            'model_evaluation', 'full_suite']
@@ -58,7 +58,7 @@ def single_dataset_integrity(**kwargs) -> Suite:
 
     Parameters
     ----------
-    {combined_parameters}
+    {combined_parameters:indent}
     """
     warnings.warn(
         'the single_dataset_integrity suite is deprecated, use the data_integrity suite instead',
@@ -70,10 +70,10 @@ def single_dataset_integrity(**kwargs) -> Suite:
 @data_integrity_kwargs_doc
 def data_integrity(**kwargs) -> Suite:
     """Create a suite that is meant to detect integrity issues within a single dataset.
-    
+
     Parameters
     ----------
-    {combined_parameters}
+    {combined_parameters:indent}
     """
     return Suite(
         'Data Integrity Suite',
@@ -114,11 +114,8 @@ def train_test_leakage(**kwargs) -> Suite:
 
     Parameters
     ----------
-    {combined_parameters}
+    {combined_parameters:indent}
 
-    .. deprecated:: 0.7.0
-            `train_test_leakage` is deprecated and will be removed in deepchecks 0.8 version, it is replaced by
-            `train_test_validation` suite.
     """
     warnings.warn(
         'the train_test_leakage suite is deprecated, use the train_test_validation suite instead',
@@ -134,7 +131,7 @@ def train_test_validation(**kwargs) -> Suite:
 
     Parameters
     ----------
-    {combined_parameters}
+    {combined_parameters:indent}
     """
     return Suite(
         'Train Test Validation Suite',
@@ -175,10 +172,10 @@ model_evaluation_kwargs_doc = ParametersCombiner(
 @model_evaluation_kwargs_doc
 def model_evaluation(**kwargs) -> Suite:
     """Create a suite that is meant to test model performance and overfit.
-    
+
     Parameters
     ----------
-    {combined_parameters}
+    {combined_parameters:indent}
     """
     return Suite(
         'Model Evaluation Suite',
@@ -208,10 +205,10 @@ full_suite_kwargs_doc = ParametersCombiner(
 @full_suite_kwargs_doc
 def full_suite(**kwargs) -> Suite:
     """Create a suite that includes many of the implemented checks, for a quick overview of your model and data.
-    
+
     Parameters
     ----------
-    {combined_parameters}
+    {combined_parameters:indent}
     """
     return Suite(
         'Full Suite',

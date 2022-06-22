@@ -20,36 +20,15 @@ from deepchecks import CheckFailure, CheckResult, SuiteResult
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotImplementedError, DeepchecksNotSupportedError,
                                     DeepchecksValueError, ModelValidationError, ValidationError)
-from deepchecks.utils.decorators import Substitution
 from deepchecks.utils.logger import get_logger
+from deepchecks.vision._shared_docs import docstrings
 from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.vision_data import VisionData
 
 __all__ = ['Context']
 
 
-additional_context_params_doc = Substitution(additional_params="""
-    model_name: str , default: ''
-        The name of the model
-    scorers : Optional[Mapping[str, Metric]] , default: None
-        dict of scorers names to a Metric
-    scorers_per_class : Optional[Mapping[str, Metric]] , default: None
-        dict of scorers for classification without averaging of the classes.
-        See <a href=
-        "https://scikit-learn.org/stable/modules/model_evaluation.html#from-binary-to-multiclass-and-multilabel">
-        scikit-learn docs</a>
-    device : Union[str, torch.device], default: 'cpu'
-        processing unit for use
-    random_state : int
-        A seed to set for pseudo-random functions
-    n_samples : Optional[int], default: None
-        number of samples
-    train_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] , default None
-    test_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] , default None
-""".strip('\n').lstrip(' ').lstrip('\t'))
-
-
-@additional_context_params_doc
+@docstrings
 class Context:
     """Contains all the data + properties the user has passed to a check/suite, and validates it seamlessly.
 
@@ -61,7 +40,7 @@ class Context:
         VisionData object, representing data an neural network predicts on
     model : Optional[nn.Module] , default: None
         pytorch neural network module instance
-    %(additional_params)s
+    {additional_context_params:indent}
     """
 
     def __init__(

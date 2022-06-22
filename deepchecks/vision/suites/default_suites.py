@@ -15,13 +15,13 @@ It is possible to customize these suites by editing the checks and conditions in
 """
 import warnings
 
+from deepchecks.utils.decorators import ParametersCombiner
 from deepchecks.vision import Suite
 from deepchecks.vision.checks import (ClassPerformance, ConfusionMatrixReport, FeatureLabelCorrelationChange,
                                       HeatmapComparison, ImageDatasetDrift, ImagePropertyDrift, ImagePropertyOutliers,
                                       ImageSegmentPerformance, LabelPropertyOutliers, MeanAveragePrecisionReport,
                                       MeanAverageRecallReport, ModelErrorAnalysis, NewLabels, SimilarImageLeakage,
                                       SimpleModelComparison, TrainTestLabelDrift, TrainTestPredictionDrift)
-from deepchecks.utils.decorators import ParametersCombiner
 
 __all__ = ['train_test_validation', 'model_evaluation', 'full_suite', 'integrity_validation', 'data_integrity']
 
@@ -41,10 +41,10 @@ train_test_validation_kwargs_doc = ParametersCombiner(
 def train_test_validation(**kwargs) -> Suite:
     """Create a suite that is meant to validate correctness of train-test split, including integrity, \
     distribution and leakage checks.
-    
+
     Parameters
     ----------
-    {combined_parameters}
+    {combined_parameters:indent}
     """
     return Suite(
         'Train Test Validation Suite',
@@ -73,10 +73,10 @@ model_evaluation_kwargs_doc = ParametersCombiner(
 @model_evaluation_kwargs_doc
 def model_evaluation(**kwargs) -> Suite:
     """Create a suite that is meant to test model performance and overfit.
-    
+
     Parameters
     ----------
-    {combined_parameters}
+    {combined_parameters:indent}
     """
     return Suite(
         'Model Evaluation Suite',
@@ -107,7 +107,7 @@ def integrity_validation(**kwargs) -> Suite:
 
     Parameters
     ----------
-    {combined_parameters}
+    {combined_parameters:indent}
     """
     warnings.warn(
         'the integrity_validation suite is deprecated, use the data_integrity suite instead',
@@ -119,10 +119,10 @@ def integrity_validation(**kwargs) -> Suite:
 @data_integrity_kwargs_doc
 def data_integrity(**kwargs) -> Suite:
     """Create a suite that includes integrity checks.
-    
+
     Parameters
     ----------
-    {combined_parameters}
+    {combined_parameters:indent}
     """
     return Suite(
         'Data Integrity Suite',
@@ -137,13 +137,14 @@ full_suite_kwargs_doc = ParametersCombiner(
     *data_integrity_kwargs_doc.routines,
 )
 
+
 @full_suite_kwargs_doc
 def full_suite(**kwargs) -> Suite:
     """Create a suite that includes many of the implemented checks, for a quick overview of your model and data.
-    
+
     Parameters
     ----------
-    {combined_parameters}
+    {combined_parameters:indent}
     """
     return Suite(
         'Full Suite',

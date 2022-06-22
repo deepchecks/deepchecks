@@ -11,7 +11,7 @@
 """Module for base vision abstractions."""
 # pylint: disable=broad-except,not-callable
 from collections import OrderedDict
-from typing import Dict, List, Mapping, Optional, Sequence, Tuple, Union
+from typing import Dict, Mapping, Optional, Sequence, Tuple, Union
 
 import torch
 from ignite.metrics import Metric
@@ -22,9 +22,10 @@ from deepchecks.core.checks import DatasetKind
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.utils.ipython import ProgressBarGroup
+from deepchecks.vision._shared_docs import docstrings
 from deepchecks.vision.base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
 from deepchecks.vision.batch_wrapper import Batch
-from deepchecks.vision.context import Context, additional_context_params_doc
+from deepchecks.vision.context import Context
 from deepchecks.vision.vision_data import VisionData
 
 __all__ = ['Suite']
@@ -38,7 +39,7 @@ class Suite(BaseSuite):
         """Return tuple of supported check types of this suite."""
         return TrainTestCheck, SingleDatasetCheck, ModelOnlyCheck
 
-    @additional_context_params_doc
+    @docstrings
     def run(
         self,
         train_dataset: Optional[VisionData] = None,
@@ -63,7 +64,7 @@ class Suite(BaseSuite):
             object, representing data an estimator predicts on
         model : nn.Module , default None
             A scikit-learn-compatible fitted estimator instance
-        %(additional_params)s
+        {additional_context_params:2*indent}
 
         Returns
         -------

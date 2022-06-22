@@ -19,8 +19,9 @@ from deepchecks.core import DatasetKind
 from deepchecks.core.check_result import CheckFailure
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.core.suite import BaseSuite, SuiteResult
+from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.tabular.base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
-from deepchecks.tabular.context import Context, additional_context_params_doc
+from deepchecks.tabular.context import Context
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.utils.decorators import deprecate_kwarg
 from deepchecks.utils.ipython import create_progress_bar
@@ -38,7 +39,7 @@ class Suite(BaseSuite):
         return TrainTestCheck, SingleDatasetCheck, ModelOnlyCheck
 
     @deprecate_kwarg(old_name='features_importance', new_name='feature_importance')
-    @additional_context_params_doc
+    @docstrings
     def run(
         self,
         train_dataset: Union[Dataset, pd.DataFrame, None] = None,
@@ -65,7 +66,7 @@ class Suite(BaseSuite):
             object, representing data an estimator predicts on
         model : Optional[BasicModel] , default None
             A scikit-learn-compatible fitted estimator instance
-        %(additional_params)s
+        {additional_context_params:2*indent}
 
         Returns
         -------

@@ -19,8 +19,9 @@ from deepchecks.core.check_result import CheckResult
 from deepchecks.core.checks import DatasetKind, ModelOnlyBaseCheck, SingleDatasetBaseCheck, TrainTestBaseCheck
 from deepchecks.utils.ipython import ProgressBarGroup
 from deepchecks.vision import deprecation_warnings  # pylint: disable=unused-import # noqa: F401
+from deepchecks.vision._shared_docs import docstrings
 from deepchecks.vision.batch_wrapper import Batch
-from deepchecks.vision.context import Context, additional_context_params_doc
+from deepchecks.vision.context import Context
 from deepchecks.vision.vision_data import VisionData
 
 __all__ = [
@@ -35,7 +36,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
 
     context_type = Context
 
-    @additional_context_params_doc
+    @docstrings
     def run(
         self,
         dataset: VisionData,
@@ -57,7 +58,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
             VisionData object to process
         model: Optional[nn.Module] , default None
             pytorch neural network module instance
-        %(additional_params)s
+        {additional_context_params:2*indent}
         """
         assert self.context_type is not None
 
@@ -117,7 +118,7 @@ class TrainTestCheck(TrainTestBaseCheck):
 
     context_type = Context
 
-    @additional_context_params_doc
+    @docstrings
     def run(
         self,
         train_dataset: VisionData,
@@ -142,7 +143,7 @@ class TrainTestCheck(TrainTestBaseCheck):
             VisionData object, representing data an neural network predicts on
         model: Optional[nn.Module] , default None
             pytorch neural network module instance
-        %(additional_params)s
+        {additional_context_params:2*indent}
         """
         assert self.context_type is not None
 
@@ -213,7 +214,7 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
 
     context_type = Context
 
-    @additional_context_params_doc
+    @docstrings
     def run(
         self,
         model: nn.Module,
@@ -232,7 +233,7 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
         ----------
         model: nn.Module
             pytorch neural network module instance
-        %(additional_params)s
+        {additional_context_params:2*indent}
         """
         assert self.context_type is not None
 
