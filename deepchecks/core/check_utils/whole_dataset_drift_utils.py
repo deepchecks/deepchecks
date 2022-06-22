@@ -15,8 +15,8 @@ from typing import Container, List
 
 import numpy as np
 import pandas as pd
-from pandas.core.dtypes.common import is_integer_dtype
 import plotly.graph_objects as go
+from pandas.core.dtypes.common import is_integer_dtype
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 
