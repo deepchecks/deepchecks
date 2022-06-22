@@ -99,7 +99,6 @@ train_test_validation_kwargs_doc = ParametersCombiner(
     DateTrainTestLeakageDuplicates,
     DateTrainTestLeakageOverlap,
     IndexTrainTestLeakage,
-    IdentifierLeakage,
     TrainTestSamplesMix,
     FeatureLabelCorrelationChange,
     TrainTestFeatureDrift,
