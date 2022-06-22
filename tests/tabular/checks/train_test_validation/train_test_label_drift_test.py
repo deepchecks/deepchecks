@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Test functions of the train test label drift."""
-from hamcrest import assert_that, close_to, equal_to, has_entries
+from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_length
 
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular.checks import TrainTestLabelDrift
@@ -44,6 +44,23 @@ def test_drift_classification_label(drifted_classification_label):
             {'Drift score': close_to(0.24, 0.01),
              'Method': equal_to('PSI')}
     ))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_drift_classification_label_without_display(drifted_classification_label):
+    # Arrange
+    train, test = drifted_classification_label
+    check = TrainTestLabelDrift(categorical_drift_method='PSI')
+
+    # Act
+    result = check.run(train, test, with_display=False)
+
+    # Assert
+    assert_that(result.value, has_entries(
+            {'Drift score': close_to(0.24, 0.01),
+             'Method': equal_to('PSI')}
+    ))
+    assert_that(result.display, has_length(0))
 
 
 def test_drift_regression_label(drifted_regression_label):

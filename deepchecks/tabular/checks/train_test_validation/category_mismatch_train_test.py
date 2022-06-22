@@ -92,8 +92,9 @@ class CategoryMismatchTrainTest(TrainTestCheck):
                 new_categories_ratio = sum(new_category_counts.values()) / n_test_samples
                 sorted_new_categories = dict(sorted(new_category_counts.items(), key=lambda x: x[1], reverse=True))
                 new_categories[feature] = sorted_new_categories
-                display_data.append([feature, len(new_category_values), new_categories_ratio,
-                                     list(sorted_new_categories.keys())[:self.max_new_categories_to_show]])
+                if context.with_display:
+                    display_data.append([feature, len(new_category_values), new_categories_ratio,
+                                        list(sorted_new_categories.keys())[:self.max_new_categories_to_show]])
             else:
                 new_categories[feature] = {}
 

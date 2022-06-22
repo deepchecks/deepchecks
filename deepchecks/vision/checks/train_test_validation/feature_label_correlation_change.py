@@ -199,7 +199,8 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
                                                                          self.ppscore_params,
                                                                          self.n_top_properties,
                                                                          min_pps_to_show=self.min_pps_to_show,
-                                                                         random_state=self.random_state)
+                                                                         random_state=self.random_state,
+                                                                         with_display=context.with_display)
         else:
             ret_value, display = get_feature_label_correlation(df_train,
                                                                'target',
@@ -208,7 +209,8 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
                                                                self.ppscore_params,
                                                                self.n_top_properties,
                                                                min_pps_to_show=self.min_pps_to_show,
-                                                               random_state=self.random_state)
+                                                               random_state=self.random_state,
+                                                               with_display=context.with_display)
 
         if display:
             display += text

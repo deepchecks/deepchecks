@@ -106,29 +106,34 @@ class NewLabels(TrainTestCheck):
         # sort by number of appearances in test set in descending order
         classes_only_in_test_count = dict(sorted(classes_only_in_test_count.items(), key=lambda item: -item[1]))
 
-        # Create display
-        displays = []
-        for class_id, num_occurrences in classes_only_in_test_count.items():
-            # Create id of alphabetic characters
-            sid = ''.join([choice(string.ascii_uppercase) for _ in range(3)])
-            images_of_class_id = list(set(test_data.classes_indices[class_id]))[:self.max_images_to_display_per_label]
-            images_combine = ''.join([f'<div class="{sid}-item">{draw_image(test_data, x, class_id)}</div>'
-                                      for x in images_of_class_id])
-
-            html = HTML_TEMPLATE.format(
-                label_name=test_data.label_id_to_name(class_id),
-                images=images_combine,
-                count=format_number(num_occurrences),
-                id=sid
-            )
-            displays.append(html)
-            if len(displays) == self.max_new_labels_to_display:
-                break
-
         result_value = {
             'new_labels': {test_data.label_id_to_name(key): value for key, value in classes_only_in_test_count.items()},
             'all_labels_count': sum(test_data.n_of_samples_per_class.values())
         }
+
+        if context.with_display:
+            # Create display
+            displays = []
+            for class_id, num_occurrences in classes_only_in_test_count.items():
+                # Create id of alphabetic characters
+                sid = ''.join([choice(string.ascii_uppercase) for _ in range(3)])
+                images_of_class_id = \
+                    list(set(test_data.classes_indices[class_id]))[:self.max_images_to_display_per_label]
+                images_combine = ''.join([f'<div class="{sid}-item">{draw_image(test_data, x, class_id)}</div>'
+                                          for x in images_of_class_id])
+
+                html = HTML_TEMPLATE.format(
+                    label_name=test_data.label_id_to_name(class_id),
+                    images=images_combine,
+                    count=format_number(num_occurrences),
+                    id=sid
+                )
+                displays.append(html)
+                if len(displays) == self.max_new_labels_to_display:
+                    break
+        else:
+            displays = None
+
         return CheckResult(result_value, display=displays)
 
     def add_condition_new_label_ratio_less_or_equal(self, max_allowed_new_labels_ratio: float = 0.005):

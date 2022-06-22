@@ -158,6 +158,7 @@ class Context:
         feature_importance_timeout: int = 120,
         scorers: t.Optional[t.Mapping[str, t.Union[str, t.Callable]]] = None,
         scorers_per_class: t.Optional[t.Mapping[str, t.Union[str, t.Callable]]] = None,
+        with_display: bool = True,
         y_pred_train: t.Optional[np.ndarray] = None,
         y_pred_test: t.Optional[np.ndarray] = None,
         y_proba_train: t.Optional[np.ndarray] = None,
@@ -214,9 +215,15 @@ class Context:
         self._user_scorers = scorers
         self._user_scorers_per_class = scorers_per_class
         self._model_name = model_name
+        self._with_display = with_display
 
     # Properties
     # Validations note: We know train & test fit each other so all validations can be run only on train
+
+    @property
+    def with_display(self) -> bool:
+        """Return the with_display flag."""
+        return self._with_display
 
     @property
     def train(self) -> Dataset:

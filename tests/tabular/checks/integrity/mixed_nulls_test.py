@@ -11,7 +11,7 @@
 """Tests for Mixed Nulls check"""
 import numpy as np
 import pandas as pd
-from hamcrest import (assert_that, calling, close_to, equal_to, has_entries, has_entry, has_items, has_length, is_,
+from hamcrest import (assert_that, calling, close_to, equal_to, greater_than, has_entries, has_entry, has_items, has_length, is_,
                       raises)
 
 from deepchecks.core.errors import DatasetValidationError, DeepchecksValueError
@@ -37,6 +37,17 @@ def test_single_column_one_null_type():
     # Act
     result = MixedNulls().run(dataframe)
     assert_that(result.value, equal_to({'col1': {'null': {'count': 2, 'percent': 0.5}}}))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_single_column_one_null_type_without_display():
+    # Arrange
+    data = {'col1': ['foo', 'bar', 'null', 'null']}
+    dataframe = pd.DataFrame(data=data)
+    # Act
+    result = MixedNulls().run(dataframe, with_display=False)
+    assert_that(result.value, equal_to({'col1': {'null': {'count': 2, 'percent': 0.5}}}))
+    assert_that(result.display, has_length(0))
 
 
 def test_empty_dataframe():

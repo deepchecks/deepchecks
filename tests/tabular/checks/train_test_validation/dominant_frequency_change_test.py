@@ -12,7 +12,7 @@
 Contains unit tests for the dominant_frequency_change check
 """
 import pandas as pd
-from hamcrest import assert_that, calling, close_to, empty, equal_to, has_items, has_length, raises
+from hamcrest import assert_that, calling, close_to, empty, equal_to, greater_than, has_items, has_length, raises
 from sklearn.model_selection import train_test_split
 
 from deepchecks.core.errors import DeepchecksValueError
@@ -62,8 +62,8 @@ def test_leakage(iris_clean):
     # Arrange
     check = DominantFrequencyChange()
     # Act X
-    result = check.run(train_dataset=train_dataset, test_dataset=validation_dataset).value
-    row = result['petal length (cm)']
+    result = check.run(train_dataset=train_dataset, test_dataset=validation_dataset)
+    row = result.value['petal length (cm)']
     # Assert
     assert_that(row['Value'], equal_to(5.1))
     assert_that(row['Train data %'], close_to(0.057, 0.001))
@@ -71,6 +71,38 @@ def test_leakage(iris_clean):
     assert_that(row['Train data #'], equal_to(6))
     assert_that(row['Test data #'], equal_to(25))
     assert_that(row['P value'], close_to(0, 0.00001))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_leakage_without_display(iris_clean):
+    x = iris_clean.data
+    y = iris_clean.target
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=55)
+    train_dataset = Dataset(pd.concat([x_train, y_train], axis=1),
+                            features=iris_clean.feature_names,
+                            label='target')
+
+    test_df = pd.concat([x_test, y_test], axis=1)
+    test_df.loc[test_df.index % 2 == 0, 'petal length (cm)'] = 5.1
+
+    validation_dataset = Dataset(test_df,
+                                 features=iris_clean.feature_names,
+                                 label='target')
+    # Arrange
+    check = DominantFrequencyChange()
+    # Act X
+    result = check.run(train_dataset=train_dataset,
+                       test_dataset=validation_dataset,
+                       with_display=False)
+    row = result.value['petal length (cm)']
+    # Assert
+    assert_that(row['Value'], equal_to(5.1))
+    assert_that(row['Train data %'], close_to(0.057, 0.001))
+    assert_that(row['Test data %'], close_to(0.555, 0.001))
+    assert_that(row['Train data #'], equal_to(6))
+    assert_that(row['Test data #'], equal_to(25))
+    assert_that(row['P value'], close_to(0, 0.00001))
+    assert_that(result.display, has_length(0))
 
 
 def test_show_any(iris_split_dataset_and_model):

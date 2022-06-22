@@ -66,10 +66,12 @@ def test_generic_suite(
         dict(train_dataset=iris_train_single, test_dataset=iris_test_single),
         dict(train_dataset=city_train, test_dataset=city_test, model=city_model),
         dict(train_dataset=iris_train, test_dataset=iris_test, model=iris_model),
+        dict(train_dataset=iris_train, test_dataset=iris_test, model=iris_model, with_display=False),
         dict(train_dataset=iris_train, test_dataset=iris_test),
         dict(train_dataset=iris_train, model=iris_model),
         dict(train_dataset=diabetes_train, model=diabetes_model),
         dict(train_dataset=diabetes_train, test_dataset=diabetes_test, model=diabetes_model),
+        dict(train_dataset=diabetes_train, test_dataset=diabetes_test, model=diabetes_model, with_display=False),
         dict(model=diabetes_model)
     )
 

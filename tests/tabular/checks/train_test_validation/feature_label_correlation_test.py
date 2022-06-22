@@ -11,7 +11,7 @@
 """Contains unit tests for the feature label correlation check."""
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, calling, close_to, equal_to, has_entries, has_length, raises
+from hamcrest import assert_that, calling, close_to, equal_to, greater_than, has_entries, has_length, raises
 
 from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.tabular.checks.data_integrity import FeatureLabelCorrelation
@@ -60,6 +60,21 @@ def test_show_top_feature_label_correlation():
     # Assert
     assert_that(result.value, has_length(5))
     assert_that(result.value, has_entries(expected))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_show_top_feature_label_correlation_without_display():
+    # Arrange
+    df, expected = util_generate_dataframe_and_expected()
+    check = FeatureLabelCorrelation(n_show_top=3, random_state=42)
+
+    # Act
+    result = check.run(dataset=Dataset(df, label='label'), with_display=False)
+
+    # Assert
+    assert_that(result.value, has_length(5))
+    assert_that(result.value, has_entries(expected))
+    assert_that(result.display, has_length(0))
 
 
 def test_dataset_wrong_input():
@@ -83,6 +98,17 @@ def test_trainval_assert_feature_label_correlation():
                                                                 test_dataset=Dataset(df2, label='label'))
 
     assert_that(result.value['train-test difference'], has_entries(expected))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_trainval_assert_feature_label_correlation_without_display():
+    df, df2, expected = util_generate_second_similar_dataframe_and_expected()
+    result = FeatureLabelCorrelationChange(random_state=42).run(train_dataset=Dataset(df, label='label'),
+                                                                test_dataset=Dataset(df2, label='label'),
+                                                                with_display=False)
+
+    assert_that(result.value['train-test difference'], has_entries(expected))
+    assert_that(result.display, has_length(0))
 
 
 def test_trainval_assert_feature_label_correlation_min_pps():

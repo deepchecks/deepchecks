@@ -161,7 +161,8 @@ class ModelErrorAnalysis(TrainTestCheck):
                                              self.min_feature_contribution,
                                              self.n_display_samples,
                                              self.min_segment_size,
-                                             self.random_state)
+                                             self.random_state,
+                                             context.with_display)
 
         headnote = """<span>
             The following graphs show the distribution of error for top features that are most useful for distinguishing

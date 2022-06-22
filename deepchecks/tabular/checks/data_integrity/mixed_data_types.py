@@ -74,7 +74,7 @@ class MixedDataTypes(SingleDatasetCheck):
             column_data = df[column_name].dropna()
             mix = self._get_data_mix(column_data)
             result_dict[column_name] = mix
-            if mix:
+            if context.with_display and mix:
                 # Format percents for display
                 formated_mix = {}
                 formated_mix['Strings'] = format_percent(mix['strings'])

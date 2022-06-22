@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Contains unit tests for the confusion_matrix_report check."""
-from hamcrest import assert_that, calling, close_to, has_entries, has_entry, has_items, is_, raises
+from hamcrest import assert_that, calling, close_to, greater_than, has_entries, has_entry, has_items, has_length, is_, raises
 from sklearn.metrics import f1_score, make_scorer, recall_score
 
 from deepchecks.core.errors import DeepchecksValueError
@@ -63,9 +63,22 @@ def test_classification_random_custom_metric(iris_split_dataset_and_model):
     check = SimpleModelComparison(simple_model_type='random',
                                   alternative_scorers={'recall': make_scorer(recall_score, average=None)})
     # Act X
-    result = check.run(train_ds, test_ds, clf).value
+    result = check.run(train_ds, test_ds, clf)
     # Assert
-    assert_classification(result, [0, 1, 2], ['recall'])
+    assert_classification(result.value, [0, 1, 2], ['recall'])
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_classification_random_custom_metric_without_display(iris_split_dataset_and_model):
+    train_ds, test_ds, clf = iris_split_dataset_and_model
+    # Arrange
+    check = SimpleModelComparison(simple_model_type='random',
+                                  alternative_scorers={'recall': make_scorer(recall_score, average=None)})
+    # Act X
+    result = check.run(train_ds, test_ds, clf, with_display=False)
+    # Assert
+    assert_classification(result.value, [0, 1, 2], ['recall'])
+    assert_that(result.display, has_length(0))
 
 
 def test_regression_random(diabetes_split_dataset_and_model):

@@ -204,6 +204,7 @@ class TrainTestLabelDrift(TrainTestCheck):
                 max_num_categories_for_display=self.max_num_categories_for_display,
                 show_categories_by=self.show_categories_by,
                 categorical_drift_method=self.categorical_drift_method,
+                with_display=context.with_display,
             )
             values_dict[name] = {
                 'Drift score': value,
@@ -211,15 +212,19 @@ class TrainTestLabelDrift(TrainTestCheck):
             }
             displays_dict[name] = display
 
-        columns_order = sorted(label_properties_names, key=lambda col: values_dict[col]['Drift score'], reverse=True)
+        if context.with_display:
+            columns_order = sorted(label_properties_names, key=lambda col: values_dict[col]['Drift score'],
+                                   reverse=True)
 
-        headnote = '<span>' \
-                   'The Drift score is a measure for the difference between two distributions. ' \
-                   'In this check, drift is measured ' \
-                   f'for the distribution of the following label properties: {label_properties_names}.' \
-                   '</span>'
+            headnote = '<span>' \
+                'The Drift score is a measure for the difference between two distributions. ' \
+                'In this check, drift is measured ' \
+                f'for the distribution of the following label properties: {label_properties_names}.' \
+                '</span>'
 
-        displays = [headnote] + [displays_dict[col] for col in columns_order]
+            displays = [headnote] + [displays_dict[col] for col in columns_order]
+        else:
+            displays = None
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Label Drift')
 

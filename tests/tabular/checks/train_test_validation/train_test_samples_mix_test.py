@@ -13,7 +13,7 @@ Contains unit tests for the data_sample_leakage_report check
 """
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, calling, equal_to, has_entry, has_items, raises
+from hamcrest import assert_that, calling, equal_to, greater_than, has_entry, has_items, has_length, raises
 from sklearn.model_selection import train_test_split
 
 from deepchecks.core.errors import DeepchecksValueError
@@ -69,9 +69,33 @@ def test_leakage(iris_clean):
     # Arrange
     check = TrainTestSamplesMix()
     # Act X
-    result = check.run(test_dataset=test_dataset, train_dataset=train_dataset).value
+    result = check.run(test_dataset=test_dataset, train_dataset=train_dataset)
     # Assert
-    assert_that(result, has_entry('ratio', 0.1))
+    assert_that(result.value, has_entry('ratio', 0.1))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_leakage_without_display(iris_clean):
+    x = iris_clean.data
+    y = iris_clean.target
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=55)
+    train_dataset = Dataset(pd.concat([x_train, y_train], axis=1),
+                            features=iris_clean.feature_names,
+                            label='target')
+
+    test_df = pd.concat([x_test, y_test], axis=1)
+    bad_test = test_df.append(train_dataset.data.iloc[[0, 1, 2, 3, 4]], ignore_index=True)
+
+    test_dataset = Dataset(bad_test,
+                           features=iris_clean.feature_names,
+                           label='target')
+    # Arrange
+    check = TrainTestSamplesMix()
+    # Act X
+    result = check.run(test_dataset=test_dataset, train_dataset=train_dataset, with_display=False)
+    # Assert
+    assert_that(result.value, has_entry('ratio', 0.1))
+    assert_that(result.display, has_length(0))
 
 
 def test_nan():

@@ -52,6 +52,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         feature_importance_timeout: int = 120,
         scorers: Optional[Mapping[str, Union[str, Callable]]] = None,
         scorers_per_class: Optional[Mapping[str, Union[str, Callable]]] = None,
+        with_display: bool = True,
         y_pred_train: Optional[np.ndarray] = None,
         y_pred_test: Optional[np.ndarray] = None,
         y_proba_train: Optional[np.ndarray] = None,
@@ -77,6 +78,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
             feature_importance_timeout=feature_importance_timeout,
             scorers=scorers,
             scorers_per_class=scorers_per_class,
+            with_display=with_display,
             y_pred_train=y_pred_train,
             y_pred_test=y_pred_test,
             y_proba_train=y_proba_train,
@@ -113,6 +115,7 @@ class TrainTestCheck(TrainTestBaseCheck):
         feature_importance_timeout: int = 120,
         scorers: Optional[Mapping[str, Union[str, Callable]]] = None,
         scorers_per_class: Optional[Mapping[str, Union[str, Callable]]] = None,
+        with_display: bool = True,
         y_pred_train: Optional[np.ndarray] = None,
         y_pred_test: Optional[np.ndarray] = None,
         y_proba_train: Optional[np.ndarray] = None,
@@ -145,6 +148,7 @@ class TrainTestCheck(TrainTestBaseCheck):
             y_pred_test=y_pred_test,
             y_proba_train=y_proba_train,
             y_proba_test=y_proba_test,
+            with_display=with_display,
         )
         result = self.run_logic(context)
         context.finalize_check_result(result, self)
@@ -172,6 +176,7 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
         feature_importance_timeout: int = 120,
         scorers: Optional[Mapping[str, Union[str, Callable]]] = None,
         scorers_per_class: Optional[Mapping[str, Union[str, Callable]]] = None,
+        with_display: bool = True,
         y_pred_train: Optional[np.ndarray] = None,
         y_pred_test: Optional[np.ndarray] = None,
         y_proba_train: Optional[np.ndarray] = None,
@@ -198,6 +203,7 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
             y_pred_test=y_pred_test,
             y_proba_train=y_proba_train,
             y_proba_test=y_proba_test,
+            with_display=with_display
         )
         result = self.run_logic(context)
         context.finalize_check_result(result, self)

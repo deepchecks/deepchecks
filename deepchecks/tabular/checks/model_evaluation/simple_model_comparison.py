@@ -142,7 +142,7 @@ class SimpleModelComparison(TrainTestCheck):
             n_samples = test_label.groupby(test_label).count()
             classes = [clazz for clazz in test_dataset.classes if clazz in train_dataset.classes]
 
-            results_array = []
+            display_array = []
             # Dict in format { Scorer : Dict { Class : Dict { Origin/Simple : score } } }
             results_dict = {}
             for scorer in scorers:
@@ -150,41 +150,45 @@ class SimpleModelComparison(TrainTestCheck):
                 for model_name, model_type, model_instance in models:
                     for class_score, class_value in zip(scorer(model_instance, test_dataset), classes):
                         model_dict[class_value][model_type] = class_score
-                        results_array.append([model_name,
-                                              model_type,
-                                              class_score,
-                                              scorer.name,
-                                              class_value,
-                                              n_samples[class_value]
-                                              ])
+                        if context.with_display:
+                            display_array.append([model_name,
+                                                  model_type,
+                                                  class_score,
+                                                  scorer.name,
+                                                  class_value,
+                                                  n_samples[class_value]
+                                                  ])
                 results_dict[scorer.name] = model_dict
 
-            results_df = pd.DataFrame(
-                results_array,
-                columns=['Model', 'Type', 'Value', 'Metric', 'Class', 'Number of samples']
-            )
+            if display_array:
+                display_df = pd.DataFrame(
+                    display_array,
+                    columns=['Model', 'Type', 'Value', 'Metric', 'Class', 'Number of samples']
+                )
 
-            # Plot the metrics in a graph, grouping by the model and class
-            fig = (
-                px.histogram(
-                    results_df,
-                    x=['Class', 'Model'],
-                    y='Value',
-                    color='Model',
-                    barmode='group',
-                    facet_col='Metric',
-                    facet_col_spacing=0.05,
-                    hover_data=['Number of samples'])
-                .update_xaxes(title=None, tickprefix='Class ', tickangle=60, type='category')
-                .update_yaxes(title=None, matches=None)
-                .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
-                .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
-            )
+                # Plot the metrics in a graph, grouping by the model and class
+                fig = (
+                    px.histogram(
+                        display_df,
+                        x=['Class', 'Model'],
+                        y='Value',
+                        color='Model',
+                        barmode='group',
+                        facet_col='Metric',
+                        facet_col_spacing=0.05,
+                        hover_data=['Number of samples'])
+                    .update_xaxes(title=None, tickprefix='Class ', tickangle=60, type='category')
+                    .update_yaxes(title=None, matches=None)
+                    .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
+                    .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
+                )
+            else:
+                fig = None
 
         else:
             classes = None
 
-            results_array = []
+            display_array = []
             # Dict in format { Scorer : Dict { Origin/Simple : score } }
             results_dict = {}
             for scorer in scorers:
@@ -192,35 +196,39 @@ class SimpleModelComparison(TrainTestCheck):
                 for model_name, model_type, model_instance in models:
                     score = scorer(model_instance, test_dataset)
                     model_dict[model_type] = score
-                    results_array.append([model_name,
-                                          model_type,
-                                          score,
-                                          scorer.name,
-                                          test_label.count()
-                                          ])
+                    if context.with_display:
+                        display_array.append([model_name,
+                                              model_type,
+                                              score,
+                                              scorer.name,
+                                              test_label.count()
+                                              ])
                 results_dict[scorer.name] = model_dict
 
-            results_df = pd.DataFrame(
-                results_array,
-                columns=['Model', 'Type', 'Value', 'Metric', 'Number of samples']
-            )
+            if display_array:
+                display_df = pd.DataFrame(
+                    display_array,
+                    columns=['Model', 'Type', 'Value', 'Metric', 'Number of samples']
+                )
 
-            # Plot the metrics in a graph, grouping by the model
-            fig = (
-                px.histogram(
-                    results_df,
-                    x='Model',
-                    y='Value',
-                    color='Model',
-                    barmode='group',
-                    facet_col='Metric',
-                    facet_col_spacing=0.05,
-                    hover_data=['Number of samples'])
-                .update_xaxes(title=None)
-                .update_yaxes(title=None, matches=None)
-                .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
-                .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
-            )
+                # Plot the metrics in a graph, grouping by the model
+                fig = (
+                    px.histogram(
+                        display_df,
+                        x='Model',
+                        y='Value',
+                        color='Model',
+                        barmode='group',
+                        facet_col='Metric',
+                        facet_col_spacing=0.05,
+                        hover_data=['Number of samples'])
+                    .update_xaxes(title=None)
+                    .update_yaxes(title=None, matches=None)
+                    .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
+                    .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
+                )
+            else:
+                fig = None
 
         # For each scorer calculate perfect score in order to calculate later the ratio in conditions
         scorers_perfect = {scorer.name: scorer.score_perfect(test_dataset) for scorer in scorers}
@@ -411,5 +419,5 @@ def average_scores(scores, include_classes):
         result[metric] = {
             'Origin': origin_score / total,
             'Simple': simple_score / total
-         }
+        }
     return result

@@ -45,9 +45,9 @@ class DateTrainTestLeakageOverlap(TrainTestCheck):
 
         if dates_leaked > 0:
             leakage_ratio = dates_leaked / test_dataset.n_samples
+            return_value = leakage_ratio
             display = f'{format_percent(leakage_ratio)} of test data dates '\
                       f'before last training data date ({format_datetime(max_train_date)})'
-            return_value = leakage_ratio
         else:
             display = None
             return_value = 0

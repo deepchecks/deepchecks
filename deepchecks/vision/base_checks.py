@@ -47,6 +47,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         device: Union[str, torch.device, None] = None,
         random_state: int = 42,
         n_samples: Optional[int] = 10_000,
+        with_display: bool = True,
         train_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
         test_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
     ) -> CheckResult:
@@ -75,6 +76,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
                     device=device,
                     random_state=random_state,
                     n_samples=n_samples,
+                    with_display=with_display,
                     train_predictions=train_predictions,
                     test_predictions=test_predictions,
                 )
@@ -130,6 +132,7 @@ class TrainTestCheck(TrainTestBaseCheck):
         device: Union[str, torch.device, None] = None,
         random_state: int = 42,
         n_samples: Optional[int] = 10_000,
+        with_display: bool = True,
         train_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
         test_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
     ) -> CheckResult:
@@ -161,6 +164,7 @@ class TrainTestCheck(TrainTestBaseCheck):
                     device=device,
                     random_state=random_state,
                     n_samples=n_samples,
+                    with_display=with_display,
                     train_predictions=train_predictions,
                     test_predictions=test_predictions,
                 )
@@ -224,6 +228,7 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
         device: Union[str, torch.device, None] = None,
         random_state: int = 42,
         n_samples: Optional[int] = None,
+        with_display: bool = True,
         train_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
         test_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
     ) -> CheckResult:
@@ -248,6 +253,7 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
                     device=device,
                     random_state=random_state,
                     n_samples=n_samples,
+                    with_display=with_display,
                     train_predictions=train_predictions,
                     test_predictions=test_predictions,
                 )

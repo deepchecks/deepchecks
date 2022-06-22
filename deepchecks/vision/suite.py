@@ -49,6 +49,7 @@ class Suite(BaseSuite):
         scorers_per_class: Optional[Mapping[str, Metric]] = None,
         device: Union[str, torch.device, None] = None,
         random_state: int = 42,
+        with_display: bool = True,
         n_samples: Optional[int] = None,
         train_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
         test_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
@@ -91,6 +92,7 @@ class Suite(BaseSuite):
                     device=device,
                     random_state=random_state,
                     n_samples=n_samples,
+                    with_display=with_display,
                     train_predictions=train_predictions,
                     test_predictions=test_predictions,
                     model_name=model_name

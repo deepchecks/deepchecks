@@ -54,6 +54,7 @@ class Context:
         device: Union[str, torch.device, None] = None,
         random_state: int = 42,
         n_samples: Optional[int] = None,
+        with_display: bool = True,
         train_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
         test_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
     ):
@@ -137,10 +138,16 @@ class Context:
         self._user_scorers = scorers
         self._user_scorers_per_class = scorers_per_class
         self._model_name = model_name
+        self._with_display = with_display
         self.random_state = random_state
 
     # Properties
     # Validations note: We know train & test fit each other so all validations can be run only on train
+
+    @property
+    def with_display(self) -> bool:
+        """Return the with_display flag."""
+        return self._with_display
 
     @property
     def train(self) -> VisionData:
