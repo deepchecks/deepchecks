@@ -13,6 +13,8 @@ from typing import Union, Optional, Dict
 
 import requests
 
+from deepchecks.utils.metrics import ModelType
+
 
 class Sender:
     """
@@ -96,3 +98,35 @@ class Sender:
         )
 
 
+    def create_model(self,
+                    name: Optional[str] = None,
+                    description: Optional[str] = None,
+                    model_type: ModelType = None,
+                    ) -> requests.Response:
+        """
+        Create a new model to Deepchecks monitoring API using a POST request.
+
+        Parameters
+        ----------
+        name : str
+            name for the model.
+        description : Union[str, int, float]
+            description for the model.
+        model_type : str, Default: None
+            the model type.
+        """
+
+        # TODO: Add validations
+        data = {
+            "name": name,
+            "description": description,
+            "model_type": model_type,
+        }
+
+        # TODO: Make this async
+        return self._session.post(
+            f"{self._host}/models",
+            json=data,
+            headers=self._header,
+            timeout=self._timeout,
+        )
