@@ -19,14 +19,14 @@ from deepchecks.tabular import Suite
 from deepchecks.tabular.checks import (BoostingOverfit, CalibrationScore, CategoryMismatchTrainTest, ConflictingLabels,
                                        ConfusionMatrixReport, DataDuplicates, DatasetsSizeComparison,
                                        DateTrainTestLeakageDuplicates, DateTrainTestLeakageOverlap,
-                                       FeatureLabelCorrelation, FeatureLabelCorrelationChange, IdentifierLeakage,
-                                       IndexTrainTestLeakage, IsSingleValue, MixedDataTypes, MixedNulls,
-                                       ModelErrorAnalysis, ModelInferenceTime, NewLabelTrainTest,
-                                       OutlierSampleDetection, PerformanceReport, RegressionErrorDistribution,
-                                       RegressionSystematicError, RocReport, SegmentPerformance, SimpleModelComparison,
-                                       SpecialCharacters, StringLengthOutOfBounds, StringMismatch,
-                                       StringMismatchComparison, TrainTestFeatureDrift, TrainTestLabelDrift,
-                                       TrainTestPredictionDrift, TrainTestSamplesMix, UnusedFeatures, WholeDatasetDrift)
+                                       FeatureLabelCorrelation, FeatureLabelCorrelationChange,
+                                       IdentifierLabelCorrelation, IndexTrainTestLeakage, IsSingleValue, MixedDataTypes,
+                                       MixedNulls, ModelInferenceTime, NewLabelTrainTest, OutlierSampleDetection,
+                                       PerformanceReport, RegressionErrorDistribution, RegressionSystematicError,
+                                       RocReport, SegmentPerformance, SimpleModelComparison, SpecialCharacters,
+                                       StringLengthOutOfBounds, StringMismatch, StringMismatchComparison,
+                                       TrainTestFeatureDrift, TrainTestLabelDrift, TrainTestPredictionDrift,
+                                       TrainTestSamplesMix, UnusedFeatures, WeakSegmentsPerformance, WholeDatasetDrift)
 
 __all__ = ['single_dataset_integrity', 'train_test_leakage', 'train_test_validation',
            'model_evaluation', 'full_suite']
