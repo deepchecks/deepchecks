@@ -28,7 +28,7 @@ from deepchecks.utils.metrics import get_default_scorers, init_validate_scorers,
 from deepchecks.utils.typing import BasicModel
 
 __all__ = [
-    'Context'
+    'Context', '_DummyModel'
 ]
 
 
@@ -56,12 +56,12 @@ class _DummyModel:
     proba: pd.DataFrame
 
     def __init__(self,
-                 train: Dataset,
                  test: Dataset,
-                 y_pred_train: np.ndarray,
-                 y_pred_test: np.ndarray,
-                 y_proba_train: np.ndarray,
-                 y_proba_test: np.ndarray,):
+                 y_pred_test: t.Union[np.ndarray, t.List[t.Hashable]],
+                 y_proba_test: np.ndarray,
+                 train: t.Union[Dataset, None] = None,
+                 y_pred_train: t.Union[np.ndarray, t.List[t.Hashable], None] = None,
+                 y_proba_train: t.Union[np.ndarray, None] = None):
 
         if train is not None and test is not None:
             # check if datasets have same indexes
@@ -72,7 +72,7 @@ class _DummyModel:
                                      ' prefixes. To avoid that provide datasets with no common indexes '
                                      'or pass the model object instead of the predictions.')
 
-        features = []
+        features_df = []
         predictions = []
         probas = []
 
@@ -80,7 +80,7 @@ class _DummyModel:
                                             [y_pred_train, y_pred_test],
                                             [y_proba_train, y_proba_test]):
             if dataset is not None:
-                features.append(dataset.features_columns)
+                features_df.append(dataset.features_columns)
                 if y_pred is None and y_proba is not None:
                     y_pred = np.argmax(y_proba, axis=-1)
                 if y_pred is not None:
@@ -92,7 +92,7 @@ class _DummyModel:
 
         self.predictions = pd.concat(predictions, axis=0) if predictions else None
         self.probas = pd.concat(probas, axis=0) if probas else None
-        self.features = features
+        self.features_df = features_df
 
         if self.predictions is not None:
             self.predict = self._predict
@@ -102,12 +102,12 @@ class _DummyModel:
 
     def _validate_data(self, data: pd.DataFrame):
         # Validate only up to 10000 samples
-        data = data.sample(min(10_000, len(data)))
-        for df_features in self.features:
+        data = data.sample(min(100, len(data)))
+        for feature_df in self.features_df:
             # If all indices are found than test for equality
-            if set(data.index).issubset(set(df_features.index)):
+            if set(data.index).issubset(set(feature_df.index)):
                 # If equal than data is valid, can return
-                if df_features.loc[data.index].fillna('').equals(data.fillna('')):
+                if feature_df.loc[data.index].fillna('').equals(data.fillna('')):
                     return
                 else:
                     raise DeepchecksValueError('Data that has not been seen before passed for inference with static '

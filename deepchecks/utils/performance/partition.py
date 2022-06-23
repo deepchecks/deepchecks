@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module of functions to partition columns into segments."""
+from collections import defaultdict
 from copy import deepcopy
 from typing import Callable, List
 
@@ -23,7 +24,8 @@ from deepchecks.utils.typing import Hashable
 # TODO: move tabular functionality to the tabular sub-package
 
 
-__all__ = ['partition_column', 'DeepchecksFilter', 'convert_tree_leaves_into_filters', 'intersect_two_filters']
+__all__ = ['partition_column', 'DeepchecksFilter', 'DeepchecksBaseFilter', 'convert_tree_leaves_into_filters',
+           'intersect_two_filters']
 
 
 class DeepchecksFilter:
@@ -49,6 +51,49 @@ class DeepchecksFilter:
         for func in self.filter_functions:
             dataframe = dataframe.loc[func(dataframe)]
         return dataframe
+
+
+class DeepchecksBaseFilter(DeepchecksFilter):
+    """Extend DeepchecksFilter class for feature range based filters.
+
+    Parameters
+    ----------
+    filters: dict, default: None
+        A dictionary in containing feature names as keys and the filtering range as value.
+    filter_functions : List[Callable], default: None
+        List of functions that receive a DataFrame and return a filter on it. If None, no filter is applied
+    label : str, default = ''
+        Name of the filter
+    """
+
+    def __init__(self, filters: dict = None, filter_functions: List[Callable] = None, label: str = ''):
+        if filters is None:
+            filters = defaultdict()
+        self.filters = filters
+        super().__init__(filter_functions, label)
+
+    def add_filter(self, feature_name: str, threshold: float, greater_then: bool = True):
+        """Add a filter by intersecting it with existing filter."""
+        if greater_then:
+            filter_func = [lambda df, a=threshold: df[feature_name] > a]
+            if feature_name in self.filters.keys():
+                original_range = self.filters[feature_name]
+                self.filters[feature_name] = [max(threshold, original_range[0]), original_range[1]]
+            else:
+                self.filters[feature_name] = [threshold, np.inf]
+        else:
+            filter_func = [lambda df, a=threshold: df[feature_name] <= a]
+            if feature_name in self.filters.keys():
+                original_range = self.filters[feature_name]
+                self.filters[feature_name] = [original_range[0], min(threshold, original_range[1])]
+            else:
+                self.filters[feature_name] = [np.NINF, threshold]
+        self.filter_functions += filter_func
+        return self
+
+    def copy(self):
+        """Return a copy of the object."""
+        return DeepchecksBaseFilter(self.filters.copy(), self.filter_functions.copy(), self.label)
 
 
 def intersect_two_filters(filter1: DeepchecksFilter, filter2: DeepchecksFilter) -> DeepchecksFilter:
@@ -163,8 +208,8 @@ def partition_column(
         return filters
 
 
-def convert_tree_leaves_into_filters(tree, feature_names: List[str]) -> List[DeepchecksFilter]:
-    """Extract the leaves from a sklearn tree and covert them into DeepchecksFilters.
+def convert_tree_leaves_into_filters(tree, feature_names: List[str]) -> List[DeepchecksBaseFilter]:
+    """Extract the leaves from a sklearn tree and covert them into DeepchecksBaseFilter.
 
     The function goes over the tree from root to leaf and concatenates (by intersecting) the relevant filters along the
     way. The function returns a list in which each element is a DeepchecksFilter representing the path between the root
@@ -185,14 +230,16 @@ def convert_tree_leaves_into_filters(tree, feature_names: List[str]) -> List[Dee
     node_to_feature = [feature_names[feature_idx] if feature_idx != _tree.TREE_UNDEFINED else None for feature_idx in
                        tree.feature]
 
-    def recurse(node_idx, filter_up_to_node):
+    def recurse(node_idx: int, filter_of_node: DeepchecksBaseFilter):
         if tree.feature[node_idx] != _tree.TREE_UNDEFINED:
-            left_filter = DeepchecksFilter([lambda df, a=tree.threshold[node_idx]: df[node_to_feature[node_idx]] <= a])
-            right_filter = DeepchecksFilter([lambda df, a=tree.threshold[node_idx]: df[node_to_feature[node_idx]] > a])
-            return recurse(tree.children_left[node_idx], intersect_two_filters(filter_up_to_node, left_filter)) + \
-                recurse(tree.children_right[node_idx], intersect_two_filters(filter_up_to_node, right_filter))
-        else:
-            return [filter_up_to_node]
+            left_node_filter = filter_of_node.copy().add_filter(node_to_feature[node_idx], tree.threshold[node_idx],
+                                                                greater_then=False)
+            right_node_filter = filter_of_node.copy().add_filter(node_to_feature[node_idx], tree.threshold[node_idx])
 
-    filters_to_leaves = recurse(0, DeepchecksFilter())
+            return recurse(tree.children_left[node_idx], left_node_filter) + \
+                recurse(tree.children_right[node_idx], right_node_filter)
+        else:
+            return [filter_of_node]
+
+    filters_to_leaves = recurse(0, DeepchecksBaseFilter())
     return filters_to_leaves

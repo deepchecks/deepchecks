@@ -74,5 +74,6 @@ __all__ = [
     'RegressionSystematicError',
     'RegressionErrorDistribution',
     'MultiModelPerformanceReport',
-    'ModelErrorAnalysis'
+    'ModelErrorAnalysis',
+    'WeakSegmentsPerformance'
 ]

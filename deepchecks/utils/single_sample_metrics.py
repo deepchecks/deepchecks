@@ -10,7 +10,31 @@
 #
 """Common metrics to calculate performance on single samples."""
 import numpy as np
+import pandas as pd
+from sklearn import metrics
 from sklearn.preprocessing import LabelBinarizer
+
+from deepchecks import Dataset
+from deepchecks.core.errors import DeepchecksNotImplementedError
+from deepchecks.tabular.utils.task_type import TaskType
+
+
+def calculate_per_sample_loss(model, task_type: TaskType, dataset: Dataset, classes_index_order=None) -> pd.Series:
+    """Calculate error per sample for a given model and a dataset."""
+    if task_type == TaskType.REGRESSION:
+        return pd.Series([metrics.mean_squared_error([y], [y_pred]) for y, y_pred in
+                          zip(model.predict(dataset.features_columns), dataset.label_col)], index=dataset.data.index)
+    else:
+        if not classes_index_order:
+            if hasattr(model, 'classes_'):
+                classes_index_order = model.classes_
+            else:
+                raise DeepchecksNotImplementedError(
+                    'Could not infer classes index order please provide them via the classes_index_order '
+                    'argument. Alternatively, provide loss_per_sample vector as an argument to the check.')
+        proba = model.predict_proba(dataset.features_columns)
+        return pd.Series([metrics.log_loss([y], [y_proba], labels=classes_index_order) for
+                          y_proba, y in zip(proba, dataset.label_col)], index=dataset.data.index)
 
 
 def per_sample_cross_entropy(y_true: np.array, y_pred: np.array, eps=1e-15):
