@@ -119,14 +119,19 @@ class TrainTestPredictionDrift(TrainTestCheck):
             max_num_categories_for_display=self.max_num_categories_for_display,
             show_categories_by=self.show_categories_by,
             categorical_drift_method=self.categorical_drift_method,
+            with_display=context.with_display,
         )
 
-        headnote = """<span>
-            The Drift score is a measure for the difference between two distributions, in this check - the test
-            and train distributions.<br> The check shows the drift score and distributions for the predictions.
-        </span>"""
+        if context.with_display:
+            headnote = """<span>
+                The Drift score is a measure for the difference between two distributions, in this check - the test
+                and train distributions.<br> The check shows the drift score and distributions for the predictions.
+            </span>"""
 
-        displays = [headnote, display]
+            displays = [headnote, display]
+        else:
+            displays = None
+
         values_dict = {'Drift score': drift_score, 'Method': method}
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Prediction Drift')

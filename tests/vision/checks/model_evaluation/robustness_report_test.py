@@ -13,7 +13,7 @@ import types
 import albumentations
 import numpy as np
 import torchvision.transforms as T
-from hamcrest import assert_that, calling, close_to, has_entries, has_items, has_length, raises
+from hamcrest import assert_that, calling, close_to, greater_than, has_entries, has_items, has_length, raises
 from ignite.metrics import Precision
 from PIL import Image
 
@@ -138,6 +138,25 @@ def test_coco_torch_default(coco_train_visiondata_torch, mock_trained_yolov5_obj
         }),
     }))
     assert_that(result.value, has_length(3))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_coco_torch_default_without_display(coco_train_visiondata_torch, mock_trained_yolov5_object_detection, device):
+    # Arrange
+    check = RobustnessReport()
+
+    # Act
+    result = check.run(coco_train_visiondata_torch, mock_trained_yolov5_object_detection,
+                       device=device, with_display=False)
+    # Assert
+    assert_that(result.value, has_entries({
+        'Hue Saturation Value': has_entries({
+            'Average Precision': has_entries(score=close_to(0.348, 0.1), diff=close_to(-0.104, 0.1)),
+            'Average Recall': has_entries(score=close_to(0.376, 0.1), diff=close_to(-0.092, 0.1))
+        }),
+    }))
+    assert_that(result.value, has_length(3))
+    assert_that(result.display, has_length(0))
 
 
 def test_dataset_not_augmenting_labels(coco_train_visiondata: COCOData, mock_trained_yolov5_object_detection, device):

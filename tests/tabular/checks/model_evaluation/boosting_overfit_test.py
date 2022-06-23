@@ -11,7 +11,7 @@
 """Boosting overfit tests."""
 from statistics import mean
 
-from hamcrest import assert_that, close_to, has_length
+from hamcrest import assert_that, close_to, greater_than, has_length
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
@@ -57,6 +57,24 @@ def test_boosting_xgb_classifier(iris_split_dataset_and_model_xgb):
     assert_that(test_scores, has_length(20))
     assert_that(mean(train_scores), close_to(0.99, 0.001))
     assert_that(mean(test_scores), close_to(0.985, 0.001))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_boosting_xgb_classifier_without_display(iris_split_dataset_and_model_xgb):
+    # Arrange
+    train, test, clf = iris_split_dataset_and_model_xgb
+
+    # Act
+    result = BoostingOverfit().run(train, test, clf, with_display=False)
+
+    # Assert
+    train_scores = result.value['train']
+    test_scores = result.value['test']
+    assert_that(train_scores, has_length(20))
+    assert_that(test_scores, has_length(20))
+    assert_that(mean(train_scores), close_to(0.99, 0.001))
+    assert_that(mean(test_scores), close_to(0.985, 0.001))
+    assert_that(result.display, has_length(0))
 
 
 def test_boosting_lgbm_classifier(iris_split_dataset_and_model_lgbm):

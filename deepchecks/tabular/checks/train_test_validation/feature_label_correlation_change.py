@@ -114,7 +114,8 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
                                                            test_dataset.label_name, self.ppscore_params,
                                                            self.n_top_features,
                                                            min_pps_to_show=self.min_pps_to_show,
-                                                           random_state=self.random_state)
+                                                           random_state=self.random_state,
+                                                           with_display=context.with_display)
 
         if display:
             display += text

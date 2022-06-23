@@ -29,6 +29,7 @@ Tabular
     tabular/dataset_object
     tabular/supported_models
     tabular/feature_importance
+    tabular/custom_check_templates
 
 Vision
 -------
@@ -40,7 +41,7 @@ Vision
     vision/auto_tutorials/index
     vision/data-classes/index
     vision/vision_properties
-
+    vision/custom_check_templates
 
 
 Integrations

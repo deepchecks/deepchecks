@@ -240,6 +240,8 @@ def test_full_suite_execution_mnist(mnist_dataset_train, mnist_dataset_test, moc
             model=mock_trained_mnist, device=device),
         dict(train_dataset=mnist_dataset_train,
              model=mock_trained_mnist, device=device),
+        dict(train_dataset=mnist_dataset_train,
+             model=mock_trained_mnist, device=device, with_display=False),
     )
 
     for args in arguments:
@@ -256,6 +258,8 @@ def test_full_suite_execution_coco(coco_train_visiondata, coco_test_visiondata,
             model=mock_trained_yolov5_object_detection, device=device),
         dict(train_dataset=coco_train_visiondata,
              model=mock_trained_yolov5_object_detection, device=device),
+        dict(train_dataset=coco_train_visiondata,
+             model=mock_trained_yolov5_object_detection, device=device, with_display=False),
     )
 
     for args in arguments:

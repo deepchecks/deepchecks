@@ -12,7 +12,7 @@
 import numpy as np
 import pandas as pd
 # Disable wildcard import check for hamcrest
-from hamcrest import assert_that, calling, close_to, equal_to, has_entries, has_entry, has_items, has_length, raises
+from hamcrest import assert_that, calling, close_to, equal_to, greater_than, has_entries, has_entry, has_items, has_length, raises
 
 from deepchecks.core import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
@@ -41,6 +41,20 @@ def test_single_column_explicit_mix():
     assert_that(result.value, has_entries({'col1': has_entries({
         'strings': close_to(0.66, 0.01), 'numbers': close_to(0.33, 0.01)
     })}))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_single_column_explicit_mix_without_display():
+    # Arrange
+    data = {'col1': [1, 'bar', 'cat']}
+    dataframe = pd.DataFrame(data=data)
+    # Act
+    result = MixedDataTypes().run(dataframe, with_display=False)
+    # Assert
+    assert_that(result.value, has_entries({'col1': has_entries({
+        'strings': close_to(0.66, 0.01), 'numbers': close_to(0.33, 0.01)
+    })}))
+    assert_that(result.display, has_length(0))
 
 
 def test_single_column_stringed_mix():

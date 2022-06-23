@@ -18,7 +18,7 @@ from .model_evaluation import (BoostingOverfit, CalibrationScore, ConfusionMatri
                                SimpleModelComparison, TrainTestPredictionDrift, UnusedFeatures, WeakSegmentsPerformance)
 from .train_test_validation import (CategoryMismatchTrainTest, DatasetsSizeComparison, DateTrainTestLeakageDuplicates,
                                     DateTrainTestLeakageOverlap, DominantFrequencyChange, FeatureLabelCorrelationChange,
-                                    IdentifierLeakage, IndexTrainTestLeakage, NewLabelTrainTest,
+                                    IdentifierLabelCorrelation, IndexTrainTestLeakage, NewLabelTrainTest,
                                     StringMismatchComparison, TrainTestFeatureDrift, TrainTestLabelDrift,
                                     TrainTestSamplesMix, WholeDatasetDrift)
 
@@ -47,7 +47,7 @@ __all__ = [
     'TrainTestSamplesMix',
     'DateTrainTestLeakageDuplicates',
     'DateTrainTestLeakageOverlap',
-    'IdentifierLeakage',
+    'IdentifierLabelCorrelation',
     'ModelInferenceTime',
     'DatasetsSizeComparison',
 

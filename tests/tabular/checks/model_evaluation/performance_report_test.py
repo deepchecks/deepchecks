@@ -13,7 +13,7 @@ import re
 from typing import List
 
 import numpy as np
-from hamcrest import assert_that, calling, close_to, has_items, instance_of, raises
+from hamcrest import assert_that, calling, close_to, greater_than, has_items, has_length, instance_of, raises
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.model_selection import train_test_split
 
@@ -79,9 +79,21 @@ def test_classification(iris_split_dataset_and_model):
     train, test, model = iris_split_dataset_and_model
     check = PerformanceReport()
     # Act X
-    result = check.run(train, test, model).value
+    result = check.run(train, test, model)
     # Assert
-    assert_classification_result(result, test)
+    assert_classification_result(result.value, test)
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_classification_without_display(iris_split_dataset_and_model):
+    # Arrange
+    train, test, model = iris_split_dataset_and_model
+    check = PerformanceReport()
+    # Act X
+    result = check.run(train, test, model, with_display=False)
+    # Assert
+    assert_classification_result(result.value, test)
+    assert_that(result.display, has_length(0))
 
 
 def test_classification_binary(iris_dataset_single_class_labeled):

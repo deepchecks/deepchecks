@@ -22,6 +22,7 @@ from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.tabular.utils.validation import (ensure_predictions_proba, ensure_predictions_shape,
                                                  model_type_validation, validate_model)
+from deepchecks.utils.decorators import deprecate_kwarg
 from deepchecks.utils.features import calculate_feature_importance_or_none
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.metrics import get_default_scorers, init_validate_scorers, task_type_check
@@ -144,6 +145,10 @@ class Context:
         The name of the model
     features_importance: pd.Series , default: None
         pass manual features importance
+        .. deprecated:: 0.8.1
+            Use 'feature_importance' instead.
+    feature_importance: pd.Series , default: None
+        pass manual features importance
     feature_importance_force_permutation : bool , default: False
         force calculation of permutation features importance
     feature_importance_timeout : int , default: 120
@@ -155,6 +160,8 @@ class Context:
         See <a href=
         "https://scikit-learn.org/stable/modules/model_evaluation.html#from-binary-to-multiclass-and-multilabel">
         scikit-learn docs</a>
+    with_display : bool , default: True
+        flag that determines if checks will calculate display (redundant in some checks).
     y_pred_train: np.ndarray , default: None
         Array of the model prediction over the train dataset.
     y_pred_test: np.ndarray , default: None
@@ -165,21 +172,29 @@ class Context:
         Array of the model prediction probabilities over the test dataset.
     """
 
+    @deprecate_kwarg(old_arg_name='features_importance', new_arg_name='feature_importance')
     def __init__(self,
                  train: t.Union[Dataset, pd.DataFrame] = None,
                  test: t.Union[Dataset, pd.DataFrame] = None,
                  model: BasicModel = None,
                  model_name: str = '',
-                 features_importance: pd.Series = None,
+                 feature_importance: pd.Series = None,
                  feature_importance_force_permutation: bool = False,
                  feature_importance_timeout: int = 120,
                  scorers: t.Mapping[str, t.Union[str, t.Callable]] = None,
                  scorers_per_class: t.Mapping[str, t.Union[str, t.Callable]] = None,
+                 with_display: bool = True,
                  y_pred_train: np.ndarray = None,
                  y_pred_test: np.ndarray = None,
                  y_proba_train: np.ndarray = None,
                  y_proba_test: np.ndarray = None,
+                 features_importance: pd.Series = None,  # TODO: deprecated, should be removed
                  ):
+        feature_importance = (
+            features_importance  # in case if user used deprecated parameter
+            if feature_importance is None
+            else feature_importance
+        )
         # Validations
         if train is None and test is None and model is None:
             raise DeepchecksValueError('At least one dataset (or model) must be passed to the method!')
@@ -215,25 +230,31 @@ class Context:
         if model is not None:
             # Here validate only type of model, later validating it can predict on the data if needed
             model_type_validation(model)
-        if features_importance is not None:
-            if not isinstance(features_importance, pd.Series):
-                raise DeepchecksValueError('features_importance must be a pandas Series')
+        if feature_importance is not None:
+            if not isinstance(feature_importance, pd.Series):
+                raise DeepchecksValueError('feature_importance must be a pandas Series')
         self._train = train
         self._test = test
         self._model = model
         self._feature_importance_force_permutation = feature_importance_force_permutation
-        self._features_importance = features_importance
+        self._feature_importance = feature_importance
         self._feature_importance_timeout = feature_importance_timeout
-        self._calculated_importance = features_importance is not None
+        self._calculated_importance = feature_importance is not None
         self._importance_type = None
         self._validated_model = False
         self._task_type = None
         self._user_scorers = scorers
         self._user_scorers_per_class = scorers_per_class
         self._model_name = model_name
+        self._with_display = with_display
 
     # Properties
     # Validations note: We know train & test fit each other so all validations can be run only on train
+
+    @property
+    def with_display(self) -> bool:
+        """Return the with_display flag."""
+        return self._with_display
 
     @property
     def train(self) -> Dataset:
@@ -274,7 +295,14 @@ class Context:
 
     @property
     def features_importance(self) -> t.Optional[pd.Series]:
-        """Return features importance, or None if not possible."""
+        """Return feature importance, or None if not possible."""
+        # TODO: remove in future
+        get_logger().warning('"features_importance" property is deprecated use "feature_importance" instead')
+        return self.feature_importance
+
+    @property
+    def feature_importance(self) -> t.Optional[pd.Series]:
+        """Return feature importance, or None if not possible."""
         if not self._calculated_importance:
             if self._model and (self._train or self._test):
                 permutation_kwargs = {'timeout': self._feature_importance_timeout}
@@ -282,20 +310,27 @@ class Context:
                 importance, importance_type = calculate_feature_importance_or_none(
                     self._model, dataset, self._feature_importance_force_permutation, permutation_kwargs
                 )
-                self._features_importance = importance
+                self._feature_importance = importance
                 self._importance_type = importance_type
             else:
-                self._features_importance = None
+                self._feature_importance = None
             self._calculated_importance = True
 
-        return self._features_importance
+        return self._feature_importance
 
     @property
     def features_importance_type(self) -> t.Optional[str]:
         """Return feature importance type if feature importance is available, else None."""
+        # TODO: remove in future
+        get_logger().warning('"features_importance_type" property is deprecated use "feature_importance_type" instead')
+        return self.feature_importance_type
+
+    @property
+    def feature_importance_type(self) -> t.Optional[str]:
+        """Return feature importance type if feature importance is available, else None."""
         # Calling first feature_importance, because _importance_type is assigned only after feature importance is
         # calculated.
-        if self.features_importance:
+        if self.feature_importance:
             return self._importance_type
         return None
 
