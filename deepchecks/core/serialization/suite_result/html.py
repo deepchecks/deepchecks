@@ -439,6 +439,7 @@ DETAILS_TAG_STYLE = """
         padding: .5em .5em 0;
     }
     .deepchecks > details > summary, details.deepchecks > summary {
+        display: list-item;
         font-weight: bold;
         margin: -.5em -.5em 0;
         padding: .5em;
