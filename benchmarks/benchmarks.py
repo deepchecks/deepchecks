@@ -42,7 +42,6 @@ class BenchmarkTabularChecksTime:
         return cache
 
 
-
 class BenchmarkTabularChecksPeakMemory:
     params = ['iris']
     param_names = ['dataset_name']

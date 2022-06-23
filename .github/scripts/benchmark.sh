@@ -15,14 +15,7 @@ ENV_PATH=$(realpath venv)
 PIP_PATH=$ENV_PATH/bin/pip
 
 configure_asv () {
-    cat << EOF > asv.conf.json
-{
-    "version": 1,
-    "repo": ".",
-    "branches": ["HEAD"],
-    "environment_type": "virtualenv",
-}
-EOF
+    echo '{"version": 1,"repo": ".","branches": ["HEAD"],"environment_type": "virtualenv","benchmark_dir": '"$1"',}'> asv.conf.json
 }
 
 run_asv () {
