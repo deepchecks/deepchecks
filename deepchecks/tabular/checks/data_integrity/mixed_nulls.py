@@ -86,26 +86,34 @@ class MixedNulls(SingleDatasetCheck):
         result_dict = {}
 
         for column_name in list(df.columns):
-            column_data = (
+            column_data = df[column_name]
+            if is_categorical_dtype(column_data) is True:
                 # NOTE:
-                # `pandas.Series.value_counts` and 'pandas.Series.apply'
+                # 'pandas.Series.value_counts' and 'pandas.Series.apply'
                 # work in an unusual way with categorical data types
-                # - `value_counts` returns all categorical values even if they are not in series
-                # - `apply` applies function to each category, not to values
-                # therefore we need cast it
+                # - 'value_counts' returns all categorical values even if they are not in series
+                # - 'apply' applies function to each category, not to values
+                # therefore we processing categorical dtypes differently
                 # NOTE:
-                # `Series.astype('object')` will transform `numpy.nan` into `math.nan`
-                df[column_name].astype('object')
-                if is_categorical_dtype(df[column_name])
-                else df[column_name]
-            )
-            string_null_counts = {
-                value: count
-                for value, count in column_data.value_counts(dropna=True).iteritems()
-                if string_baseform(value) in null_string_list
-            }
-            nan_data_counts = column_data[column_data.isna()].apply(nan_type).value_counts().to_dict()
-            null_counts = {**string_null_counts, **nan_data_counts}
+                # 'Series.value_counts' method transforms null values like 'None', 'pd.Na', 'pd.NaT'
+                # into 'np.nan' therefore it cannot be used for usual dtypes, because we will lose info
+                # about all different null types in the column
+                null_counts = {}
+                for value, count in column_data.value_counts(dropna=False).to_dict().items():
+                    if count > 0:
+                        if pd.isna(value):
+                            null_counts[nan_type(value)] = count
+                        elif string_baseform(value) in null_string_list:
+                            null_counts[value] = count
+            else:
+                string_null_counts = {
+                    value: count
+                    for value, count in column_data.value_counts(dropna=True).iteritems()
+                    if string_baseform(value) in null_string_list
+                }
+                nan_data_counts = column_data[column_data.isna()].apply(nan_type).value_counts().to_dict()
+                null_counts = {**string_null_counts, **nan_data_counts}
+
             result_dict[column_name] = {}
             # Save the column nulls info
             for null_value, count in null_counts.items():
