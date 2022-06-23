@@ -39,7 +39,7 @@ def un_float(df: pd.DataFrame):
     for col_name, dtype in dtype_dict.items():
         if is_integer_dtype(dtype):
             dtype_dict[col_name] = 'float'
-    return df.astype(dtype_dict, copy=False)
+    return df.astype(dtype_dict)
 
 
 def un_float_series(ser: pd.Series):
