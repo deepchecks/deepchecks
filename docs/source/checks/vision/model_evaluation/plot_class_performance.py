@@ -65,6 +65,8 @@ test_ds = mnist.load_dataset(train=False, object_type='VisionData')
 
 check = ClassPerformance()
 check.run(train_ds, test_ds, mnist_model)
+# If you have a GPU, you can speed up this check by calling:
+# check.run(train_ds, test_ds, mnist_model, device=<your GPU>)
 
 #%%
 # Object Detection Class Performance
@@ -93,6 +95,8 @@ test_ds = coco.load_dataset(train=False, object_type='VisionData')
 
 check = ClassPerformance(show_only='best')
 check.run(train_ds, test_ds, yolo)
+# If you have a GPU, you can speed up this check by calling:
+# check.run(train_ds, test_ds, yolo, device=<your GPU>)
 
 #%%
 # Define a Condition
