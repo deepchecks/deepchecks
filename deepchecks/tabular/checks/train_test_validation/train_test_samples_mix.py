@@ -149,6 +149,7 @@ def _fillna_col(column: pd.Series, value: Any):
     if isinstance(column.dtype, pd.CategoricalDtype):
         return column.cat.add_categories([value]).fillna(value=value)
     if is_integer_dtype(column):
+        # nullable int series cannot be filled with a string
         return column.astype(float).fillna(value=value)
     return column.fillna(value=value)
 
