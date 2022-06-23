@@ -253,6 +253,15 @@ def test_mixed_nulls_with_categorical_dtype():
         has_entries({
             'foo': has_entries({
                 'math.nan': has_entries({
+                    # NOTE:
+                    # * why math.nan, if we see None in foo? *
+                    # explanation:
+                    # >>> s = pd.Series(['a', pd.NA, pd.NaT, np.nan, None,],  dtype='category')
+                    # >>> print([
+                    # ...    (i, x, isinstance(x, float) and math.isnan(x))
+                    # ...    for i, x in enumerate(s)
+                    # ... ])
+                    # Output: [(0, 'a', False), (1, nan, True), (2, nan, True), (3, nan, True), (4, nan, True)]
                     'count': equal_to(2),
                     'percent': equal_to(0.5)
                 })
