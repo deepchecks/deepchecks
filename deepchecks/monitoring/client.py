@@ -91,7 +91,7 @@ class Sender:
 
         # TODO: Make this async
         return self._session.post(
-            f"{self._host}/logs",
+            f"{self._host}/api/v1/logs",
             json=data,
             headers=self._header,
             timeout=self._timeout,
@@ -125,7 +125,7 @@ class Sender:
 
         # TODO: Make this async
         return self._session.post(
-            f"{self._host}/models",
+            f"{self._host}/api/v1/models",
             json=data,
             headers=self._header,
             timeout=self._timeout,
