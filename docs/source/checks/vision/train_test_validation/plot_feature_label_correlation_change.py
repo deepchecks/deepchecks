@@ -161,6 +161,13 @@ check = FeatureLabelCorrelationChange()
 check.run(train_ds, test_ds)
 
 #%%
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  check.run(train_ds, test_ds).show_in_window()
+#%%
+# The result will be displayed in a new window.
+
+#%%
 # We can see that the check detected the bias we inserted, and that the
 # brightness property of the image has a high PPS, meaning it can be used to
 # solely predict the label.

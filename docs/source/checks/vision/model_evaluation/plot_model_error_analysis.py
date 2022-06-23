@@ -50,6 +50,13 @@ test_ds = mnist.load_dataset(train=False, object_type='VisionData')
 # ~~~~~~~~~~~~~~~~
 check = ModelErrorAnalysis(min_error_model_score=-0.1)
 check.run(train_ds, test_ds, mnist_model)
+#%%
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  check.run(train_ds, test_ds, mnist_model).show_in_window()
+#%%
+# The result will be displayed in a new window.
+
 
 #%%
 # Object Detection Class Performance

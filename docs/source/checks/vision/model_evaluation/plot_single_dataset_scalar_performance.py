@@ -51,6 +51,13 @@ result = check.run(train_ds, mnist_model)
 result
 
 #%%
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  result.show_in_window()
+#%%
+# The result will be displayed in a new window.
+
+#%%
 # The result value is a dictionary with the following fields:
 # score - the actual result,
 # metric - the name of metric used

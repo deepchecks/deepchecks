@@ -92,6 +92,13 @@ result = RobustnessReport().run(mnist_dataloader_test, model)
 result
 
 #%%
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  result.show_in_window()
+#%%
+# The result will be displayed in a new window.
+
+#%%
 # Observe the check’s output
 # --------------------------
 # As we see in the results, the check applied different augmentations on the input data,

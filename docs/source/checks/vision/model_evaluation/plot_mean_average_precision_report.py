@@ -43,6 +43,13 @@ test_ds = coco.load_dataset(train=False, object_type='VisionData')
 check = MeanAveragePrecisionReport()
 result = check.run(test_ds, yolo)
 result
+#%%
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  result.show_in_window()
+#%%
+# The result will be displayed in a new window.
+
 
 # %%
 # Observe the check’s output
