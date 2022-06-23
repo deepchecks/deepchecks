@@ -19,10 +19,11 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.validation import ensure_hashable_or_mutable_sequence
 
-__all__ = ['validate_columns_exist', 'select_from_dataframe', 'un_numpy', 'generalized_corrwith']
+__all__ = ['validate_columns_exist', 'select_from_dataframe', 'un_numpy', 'generalized_corrwith',
+           'floatify_dataframe', 'floatify_series']
 
 
-def un_float(df: pd.DataFrame):
+def floatify_dataframe(df: pd.DataFrame):
     """Return a dataframe where all the int columns are converted to floats.
 
     Parameters
@@ -42,7 +43,7 @@ def un_float(df: pd.DataFrame):
     return df.astype(dtype_dict)
 
 
-def un_float_series(ser: pd.Series):
+def floatify_series(ser: pd.Series):
     """Return a series that if the type is int converted to float.
 
     Parameters

@@ -29,7 +29,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OrdinalEncoder
 
 from deepchecks.tabular import Dataset
-from deepchecks.utils.dataframes import un_float, un_float_series
+from deepchecks.utils.dataframes import floatify_dataframe, floatify_series
 from deepchecks.utils.distribution.plot import drift_score_bar_traces, feature_distribution_traces
 from deepchecks.utils.distribution.rare_category_encoder import RareCategoryEncoder
 from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none
@@ -60,10 +60,10 @@ def run_whole_dataset_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
                                                         test_size=test_size)
 
     # domain_classifier has problems with nullable int series
-    x_train = un_float(x_train)
-    x_test = un_float(x_test)
-    y_train = un_float_series(y_train)
-    y_test = un_float_series(y_test)
+    x_train = floatify_dataframe(x_train)
+    x_test = floatify_dataframe(x_test)
+    y_train = floatify_series(y_train)
+    y_test = floatify_series(y_test)
 
     domain_classifier = domain_classifier.fit(x_train, y_train)
 
