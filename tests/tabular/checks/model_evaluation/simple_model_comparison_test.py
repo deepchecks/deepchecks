@@ -9,7 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Contains unit tests for the confusion_matrix_report check."""
-from hamcrest import assert_that, calling, close_to, greater_than, has_entries, has_entry, has_items, has_length, is_, raises
+from hamcrest import (assert_that, calling, close_to, greater_than, has_entries, has_entry, has_items, has_length, is_,
+                      raises)
 from sklearn.metrics import f1_score, make_scorer, recall_score
 
 from deepchecks.core.errors import DeepchecksValueError

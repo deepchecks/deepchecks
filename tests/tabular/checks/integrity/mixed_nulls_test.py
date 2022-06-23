@@ -11,8 +11,8 @@
 """Tests for Mixed Nulls check"""
 import numpy as np
 import pandas as pd
-from hamcrest import (assert_that, calling, close_to, equal_to, greater_than, has_entries, has_entry, has_items, has_length, is_,
-                      raises)
+from hamcrest import (assert_that, calling, close_to, equal_to, greater_than, has_entries, has_entry, has_items,
+                      has_length, is_, raises)
 
 from deepchecks.core.errors import DatasetValidationError, DeepchecksValueError
 from deepchecks.tabular.checks.data_integrity.mixed_nulls import MixedNulls
@@ -241,6 +241,25 @@ def test_condition_max_nulls_passed():
                                details='Passed for 1 relevant column',
                                name='Number of different null types is less or equal to 10')
     ))
+
+
+def test_mixed_nulls_with_categorical_dtype():
+    ds = Dataset(pd.DataFrame({
+        'foo': pd.Series(['a', 'b', None, None], dtype='category'),
+        'bar': [1,2,3,4]
+    }))
+    assert_that(
+        MixedNulls().run(ds).value,
+        has_entries({
+            'foo': has_entries({
+                'math.nan': has_entries({
+                    'count': equal_to(2),
+                    'percent': equal_to(0.5)
+                })
+            }),
+            'bar': has_length(equal_to(0))
+        })
+    )
 
 
 def test_fi_n_top(diabetes_split_dataset_and_model):

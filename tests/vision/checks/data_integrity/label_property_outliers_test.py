@@ -34,7 +34,7 @@ def is_correct_label_property_outliers_result(props, with_display: bool = True) 
         display_assertion = all_of(
             instance_of(list),
             has_length(0),
-        ) 
+        )
 
     return all_of(
         instance_of(CheckResult),

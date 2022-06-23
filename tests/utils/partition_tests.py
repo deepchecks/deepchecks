@@ -13,8 +13,8 @@ import pandas as pd
 from hamcrest import assert_that, equal_to
 from sklearn.tree import DecisionTreeRegressor
 
-from deepchecks.utils.performance.partition import convert_tree_leaves_into_filters, DeepchecksFilter, \
-    intersect_two_filters
+from deepchecks.utils.performance.partition import (DeepchecksFilter, convert_tree_leaves_into_filters,
+                                                    intersect_two_filters)
 
 
 def test_iris_tree_to_filters(iris_dataset):

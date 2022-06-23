@@ -9,10 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains Mixed Nulls check."""
+import math
 from typing import Dict, Iterable, List, Union
 
 import numpy as np
 import pandas as pd
+from pandas.api.types import is_categorical_dtype
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
@@ -84,13 +86,18 @@ class MixedNulls(SingleDatasetCheck):
         result_dict = {}
 
         for column_name in list(df.columns):
-            column_data = df[column_name]
-
-            string_null_counts = {value: count for value, count in column_data.value_counts(dropna=True).iteritems()
-                                  if string_baseform(value) in null_string_list}
+            column_data = (
+                df[column_name].astype('object')
+                if is_categorical_dtype(df[column_name])
+                else df[column_name]
+            )
+            string_null_counts = {
+                value: count
+                for value, count in column_data.value_counts(dropna=True).iteritems()
+                if string_baseform(value) in null_string_list
+            }
             nan_data_counts = column_data[column_data.isna()].apply(nan_type).value_counts().to_dict()
             null_counts = {**string_null_counts, **nan_data_counts}
-
             result_dict[column_name] = {}
             # Save the column nulls info
             for null_value, count in null_counts.items():
@@ -166,4 +173,6 @@ def nan_type(x):
         return 'pandas.NA'
     elif x is pd.NaT:
         return 'pandas.NaT'
+    elif isinstance(x, float) and math.isnan(x):
+        return 'math.nan'
     return str(x)
