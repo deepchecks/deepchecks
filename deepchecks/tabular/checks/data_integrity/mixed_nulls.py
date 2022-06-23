@@ -87,6 +87,14 @@ class MixedNulls(SingleDatasetCheck):
 
         for column_name in list(df.columns):
             column_data = (
+                # NOTE:
+                # `pandas.Series.value_counts` and 'pandas.Series.apply'
+                # work in an unusual way with categorical data types
+                # - `value_counts` returns all categorical values even if they are not in series
+                # - `apply` applies function to each category, not to values
+                # therefore we need cast it
+                # NOTE:
+                # `Series.astype('object')` will transform `numpy.nan` into `math.nan`
                 df[column_name].astype('object')
                 if is_categorical_dtype(df[column_name])
                 else df[column_name]

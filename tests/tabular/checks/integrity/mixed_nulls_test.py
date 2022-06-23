@@ -11,7 +11,7 @@
 """Tests for Mixed Nulls check"""
 import numpy as np
 import pandas as pd
-from hamcrest import (assert_that, calling, close_to, equal_to, greater_than, has_entries, has_entry, has_items,
+from hamcrest import (any_of, assert_that, calling, close_to, equal_to, greater_than, has_entries, has_entry, has_items,
                       has_length, is_, raises)
 
 from deepchecks.core.errors import DatasetValidationError, DeepchecksValueError
@@ -251,21 +251,36 @@ def test_mixed_nulls_with_categorical_dtype():
     assert_that(
         MixedNulls().run(ds).value,
         has_entries({
-            'foo': has_entries({
-                'math.nan': has_entries({
-                    # NOTE:
-                    # * why math.nan, if we see None in foo? *
-                    # explanation:
-                    # >>> s = pd.Series(['a', pd.NA, pd.NaT, np.nan, None,],  dtype='category')
-                    # >>> print([
-                    # ...    (i, x, isinstance(x, float) and math.isnan(x))
-                    # ...    for i, x in enumerate(s)
-                    # ... ])
-                    # Output: [(0, 'a', False), (1, nan, True), (2, nan, True), (3, nan, True), (4, nan, True)]
-                    'count': equal_to(2),
-                    'percent': equal_to(0.5)
-                })
-            }),
+            'foo': any_of(
+                has_entries({
+                    'math.nan': has_entries({
+                        'count': equal_to(2),
+                        'percent': equal_to(0.5)
+                    }),
+                }),
+                # NOTE:
+                # * why math.nan, if we see None in foo? *
+                # in short, because of pandas null conversion mechanism
+                #
+                # example:
+                # >>> pd.__version__  # 1.3.5
+                # >>> s = pd.Series(['a', pd.NA, pd.NaT, np.nan, None],  dtype='category')
+                # >>> s.at[1] is np.nan  # True
+                # >>> s.at[2] is np.nan  # True
+                # >>> s.at[3] is np.nan  # True
+                # >>> s.astype('object').at[1] is np.nan    # False
+                # >>> math.isnan(s.astype('object').at[1])  # True
+                has_entries({
+                    'numpy.nan': has_entries({
+                        'count': equal_to(2),
+                        'percent': equal_to(0.5)
+                    }),
+                }),
+                # NOTE:
+                # pandas null conversion mechanism works differently
+                # for different pandas versions, thefore key could be one of
+                # numpy.nan or math.nan
+            ),
             'bar': has_length(equal_to(0))
         })
     )
