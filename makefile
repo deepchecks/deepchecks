@@ -164,7 +164,7 @@ requirements: $(ENV)
 			"torch==1.10.2+cpu" "torchvision==0.11.3+cpu" "torchaudio==0.10.2+cpu" \
 			-f https://s3.amazonaws.com/pytorch/whl/torch_stable.html; \
 	else \
-		$(PIP) install -q torch torchvision torchaudio; \
+		$(PIP) install -q torch "torchvision==0.11.2" torchaudio; \
 	fi;
 
 	@$(PIP) install -U pip
