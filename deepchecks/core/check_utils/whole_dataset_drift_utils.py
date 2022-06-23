@@ -59,6 +59,7 @@ def run_whole_dataset_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
                                                         random_state=random_state,
                                                         test_size=test_size)
 
+    # domain_classifier has problems with nullable ints
     for df in [x_train, x_test]:
         df: pd.DataFrame
         for column in df.columns:

@@ -86,10 +86,10 @@ def calculate_nearest_neighbours_distances(cat_data: pd.DataFrame, numeric_data:
     # handle categorical - transform to an ordinal numpy array
     enc = OrdinalEncoder()
     if not cat_data.empty:
-        cat_data = cat_data.apply(lambda x: pd.factorize(x)[0])
+          cat_data = cat_data.apply(lambda x: pd.factorize(x)[0])
     cat_data = enc.fit_transform(cat_data)
     # handle numerical - calculate ranges per feature and fill numerical nan to minus np.inf
-    numeric_data = np.asarray(numeric_data.astype(float).fillna(value=np.nan))
+    numeric_data = np.asarray(numeric_data.fillna(value=np.nan))
     numeric_feature_ranges = np.nanmax(numeric_data, axis=0) - np.nanmin(numeric_data, axis=0)
     numeric_data = np.nan_to_num(numeric_data, nan=np.inf)
 

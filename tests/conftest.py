@@ -120,7 +120,7 @@ def kiss_dataset_and_model():
         data['string_feature'] = data['string_feature'].apply(len)
         return data
 
-    def un_nany(data: pd.DataFrame):
+    def fillna(data: pd.DataFrame):
         data = data.copy()
         data['numeric_feature'] = data['numeric_feature'].fillna(0)
         return data
@@ -135,7 +135,7 @@ def kiss_dataset_and_model():
     train, test = train_test_split(df, test_size=0.33, random_state=42)
     train_ds = Dataset(train, label='numeric_label', cat_features=['binary_feature'])
     test_ds = Dataset(test, label='numeric_label', cat_features=['binary_feature'])
-    clf = Pipeline([('un_nany', FunctionTransformer(un_nany)),
+    clf = Pipeline([('fillna', FunctionTransformer(fillna)),
                     ('lengthifier', FunctionTransformer(string_to_length)),
                     ('clf', AdaBoostClassifier(random_state=0))])
     clf.fit(train_ds.features_columns, train_ds.label_col)
