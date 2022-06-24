@@ -8,8 +8,8 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-from hamcrest import (all_of, any_of, assert_that, calling, close_to, contains_exactly, equal_to, greater_than, has_entries, has_key,
-                      has_length, has_properties, instance_of, is_, raises)
+from hamcrest import (all_of, any_of, assert_that, calling, close_to, contains_exactly, equal_to, greater_than,
+                      has_entries, has_key, has_length, has_properties, instance_of, is_, raises)
 from hamcrest.core.matcher import Matcher
 
 from deepchecks import CheckResult
@@ -33,7 +33,7 @@ def is_correct_image_property_outliers_result(with_display: bool = True) -> Matc
         display_assertion = all_of(
             instance_of(list),
             has_length(0),
-        )  
+        )
 
     return all_of(
         instance_of(CheckResult),
