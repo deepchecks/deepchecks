@@ -19,7 +19,7 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.tabular.utils.messages import get_condition_passed_message
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
+from deepchecks.utils.features import N_TOP_MESSAGE
 from deepchecks.utils.strings import format_percent, string_baseform
 from deepchecks.utils.typing import Hashable
 
@@ -101,9 +101,9 @@ class MixedNulls(SingleDatasetCheck):
         # Create dataframe to display table
         if context.with_display and display_array:
             df_graph = pd.DataFrame(display_array, columns=['Column Name', 'Value', 'Count', 'Percent of data'])
+            order = df_graph['Column Name'].value_counts(ascending=False).index
             df_graph = df_graph.set_index(['Column Name', 'Value'])
-            df_graph = column_importance_sorter_df(df_graph, dataset, context.feature_importance,
-                                                   self.n_top_columns, col='Column Name')
+            df_graph = df_graph.loc[order, :]
             display = [N_TOP_MESSAGE % self.n_top_columns, df_graph]
         else:
             display = None
