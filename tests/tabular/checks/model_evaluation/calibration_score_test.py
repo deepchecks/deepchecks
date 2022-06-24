@@ -89,7 +89,7 @@ def test_binary_model_info_object(iris_dataset_single_class_labeled, iris_random
     # Act X
     result = check.run(iris_dataset_single_class_labeled, iris_random_forest_single_class).value
     # Assert
-    assert_that(result, has_length(1)) 
+    assert_that(result, has_length(1))
 
     assert_that(result, has_entries({
         0: close_to(0.0002, 0.0005)
@@ -103,7 +103,7 @@ def test_binary_string_model_info_object(iris_binary_string_split_dataset_and_mo
     # Act X
     result = check.run(test_ds, clf).value
     # Assert
-    assert_that(result, has_length(1)) 
+    assert_that(result, has_length(1))
 
     assert_that(result, has_entries({
         0: close_to(0.04, 0.001)
