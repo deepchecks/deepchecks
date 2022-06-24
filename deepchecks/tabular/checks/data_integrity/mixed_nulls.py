@@ -86,8 +86,11 @@ class MixedNulls(SingleDatasetCheck):
         for column_name in list(df.columns):
             column_data = df[column_name]
 
-            string_null_counts = {value: count for value, count in column_data.value_counts(dropna=True).iteritems()
-                                  if string_baseform(value) in null_string_list}
+            string_null_counts = {
+                repr(value).replace('\'', '"'): count
+                for value, count in column_data.value_counts(dropna=True).iteritems()
+                if string_baseform(value) in null_string_list
+            }
             nan_data_counts = column_data[column_data.isna()].apply(nan_type).value_counts().to_dict()
             null_counts = {**string_null_counts, **nan_data_counts}
 
