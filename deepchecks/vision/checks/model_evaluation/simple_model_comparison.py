@@ -159,7 +159,7 @@ class SimpleModelComparison(TrainTestCheck):
 
         results_df = pd.concat(results)
         results_df = results_df[['Model', 'Metric', 'Class', 'Class Name', 'Number of samples', 'Value']]
-        
+
         results_df.dropna(inplace=True)
         results_df.sort_values(by=['Model', 'Value'], ascending=False, inplace=True)
         results_df.reset_index(drop=True, inplace=True)
@@ -201,7 +201,7 @@ class SimpleModelComparison(TrainTestCheck):
             )
         else:
             fig = None
-        
+
         return CheckResult(
             results_df,
             header='Simple Model Comparison',

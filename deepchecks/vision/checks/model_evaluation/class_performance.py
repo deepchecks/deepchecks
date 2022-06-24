@@ -137,7 +137,7 @@ class ClassPerformance(TrainTestCheck):
                     barmode='group',
                     facet_col='Metric',
                     facet_col_spacing=0.05,
-                    hover_data=['Number of samples']) \
+                    hover_data=['Number of samples'])
                 .update_xaxes(title='Class', type='category')
                 .update_yaxes(title='Value', matches=None)
                 .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
