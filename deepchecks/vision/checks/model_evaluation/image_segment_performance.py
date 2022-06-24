@@ -162,16 +162,24 @@ class ImageSegmentPerformance(SingleDatasetCheck):
                 result_value[property_name].append(single_bin)
 
         display_df = pd.DataFrame(display_data)
+        
         if display_df.empty:
             return CheckResult(value=dict(result_value))
+        
         first_metric = display_df['Metric'][0]
+        
         if self.alternative_metrics is None:
             display_df = display_df[display_df['Metric'] == first_metric]
-        top_properties = display_df[display_df['Metric'] == first_metric] \
-            .groupby('Property')[['Value']] \
-            .agg(np.ptp).sort_values('Value', ascending=False).head(self.n_to_show) \
+        
+        top_properties = (
+            display_df[display_df['Metric'] == first_metric]
+            .groupby('Property')[['Value']]
+            .agg(np.ptp).sort_values('Value', ascending=False).head(self.n_to_show)
             .reset_index()['Property']
+        )
+        
         display_df = display_df[display_df['Property'].isin(top_properties)]
+        
         fig = px.bar(
             display_df,
             x='Range',

@@ -159,47 +159,49 @@ class SimpleModelComparison(TrainTestCheck):
 
         results_df = pd.concat(results)
         results_df = results_df[['Model', 'Metric', 'Class', 'Class Name', 'Number of samples', 'Value']]
-
-        if not self.metric_to_show_by:
-            self.metric_to_show_by = list(self._test_metrics.keys())[0]
-
-        if self.class_list_to_show is not None:
-            results_df = results_df.loc[results_df['Class'].isin(self.class_list_to_show)]
-        elif self.n_to_show is not None:
-            classes_to_show = filter_classes_for_display(results_df.loc[results_df['Model'] != 'Perfect Model'],
-                                                         self.metric_to_show_by,
-                                                         self.n_to_show,
-                                                         self.show_only,
-                                                         column_to_filter_by='Model',
-                                                         column_filter_value='Given Model')
-            results_df = results_df.loc[results_df['Class'].isin(classes_to_show)]
-
-        results_df = results_df.dropna()
-        results_df = results_df.sort_values(by=['Model', 'Value'], ascending=False).reset_index(drop=True)
+        
+        results_df.dropna(inplace=True)
+        results_df.sort_values(by=['Model', 'Value'], ascending=False, inplace=True)
+        results_df.reset_index(drop=True, inplace=True)
 
         if context.with_display:
-            fig = px.histogram(
-                results_df.loc[results_df['Model'] != 'Perfect Model'],
-                x='Class Name',
-                y='Value',
-                color='Model',
-                color_discrete_sequence=(plot.colors['Generated'], plot.colors['Baseline']),
-                barmode='group',
-                facet_col='Metric',
-                facet_col_spacing=0.05,
-                hover_data=['Number of samples'],
-                title=f'Simple Model (Strategy: {self.strategy}) vs. Given Model',
-            )
+            if not self.metric_to_show_by:
+                self.metric_to_show_by = list(self._test_metrics.keys())[0]
+            if self.class_list_to_show is not None:
+                display_df = results_df.loc[results_df['Class'].isin(self.class_list_to_show)]
+            elif self.n_to_show is not None:
+                rows = results_df['Class'].isin(filter_classes_for_display(
+                    results_df.loc[results_df['Model'] != 'Perfect Model'],
+                    self.metric_to_show_by,
+                    self.n_to_show,
+                    self.show_only,
+                    column_to_filter_by='Model',
+                    column_filter_value='Given Model'
+                ))
+                display_df = results_df.loc[rows]
+            else:
+                display_df = results_df
 
             fig = (
-                fig.update_xaxes(title=None, type='category')
+                px.histogram(
+                    display_df.loc[results_df['Model'] != 'Perfect Model'],
+                    x='Class Name',
+                    y='Value',
+                    color='Model',
+                    color_discrete_sequence=(plot.colors['Generated'], plot.colors['Baseline']),
+                    barmode='group',
+                    facet_col='Metric',
+                    facet_col_spacing=0.05,
+                    hover_data=['Number of samples'],
+                    title=f'Simple Model (Strategy: {self.strategy}) vs. Given Model')
+                .update_xaxes(title=None, type='category')
                 .update_yaxes(title=None, matches=None)
                 .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
                 .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
             )
         else:
             fig = None
-
+        
         return CheckResult(
             results_df,
             header='Simple Model Comparison',
