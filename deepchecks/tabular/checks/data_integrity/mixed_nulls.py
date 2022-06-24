@@ -101,7 +101,7 @@ class MixedNulls(SingleDatasetCheck):
         # Create dataframe to display table
         if context.with_display and display_array:
             df_graph = pd.DataFrame(display_array, columns=['Column Name', 'Value', 'Count', 'Percent of data'])
-            order = df_graph['Column Name'].value_counts(ascending=False).index
+            order = df_graph['Column Name'].value_counts(ascending=False).index[:self.n_top_columns]
             df_graph = df_graph.set_index(['Column Name', 'Value'])
             df_graph = df_graph.loc[order, :]
             display = [N_TOP_MESSAGE % self.n_top_columns, df_graph]
