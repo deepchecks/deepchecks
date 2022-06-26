@@ -30,7 +30,7 @@ def run_check_fn(check_class) -> Callable:
     return run
 
 
-class BenchmarkTabularChecksTime:
+class BenchmarkVisionChecksTime:
     params = ['mnist']
     param_names = ['dataset_name']
 
@@ -43,7 +43,7 @@ class BenchmarkTabularChecksTime:
         return cache
 
 
-class BenchmarkTabularChecksPeakMemory:
+class BenchmarkVisionChecksPeakMemory:
     params = ['mnist']
     param_names = ['dataset_name']
 
@@ -58,5 +58,5 @@ class BenchmarkTabularChecksPeakMemory:
 
 for name, check_class in inspect.getmembers(checks):
     if inspect.isclass(check_class):
-        setattr(BenchmarkTabularChecksTime, f'time_{name}', run_check_fn(check_class))
-        setattr(BenchmarkTabularChecksPeakMemory, f'peakmem_{name}', run_check_fn(check_class))
+        setattr(BenchmarkVisionChecksTime, f'time_{name}', run_check_fn(check_class))
+        setattr(BenchmarkVisionChecksPeakMemory, f'peakmem_{name}', run_check_fn(check_class))
