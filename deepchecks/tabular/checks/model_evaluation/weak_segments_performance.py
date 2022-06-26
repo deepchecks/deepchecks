@@ -109,7 +109,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
             df_encoded = dataset.features_columns
         df_encoded = df_encoded.fillna(df_encoded.mean(axis=0))
         encoded_dataset = Dataset(df_encoded, cat_features=[], label=dataset.label_col)
-        dummy_model = _DummyModel(test=encoded_dataset, y_pred_test=predictions, y_proba_test=y_proba)
+        dummy_model = _DummyModel(test=encoded_dataset, y_pred_test=predictions, y_proba_test=y_proba, validate_data_on_predict=False)
         feature_importance = context.features_importance.sort_values(ascending=False)
 
         scorer = context.get_single_scorer(self.user_scorer)
@@ -153,8 +153,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
             min_score, min_score_leaf_filter = np.inf, None
             for leaf_filter in leaves_filters:
                 leaf_data = leaf_filter.filter(dataset.data)
-                leaf_score = scorer(dummy_model,
-                                    Dataset(leaf_data.iloc[:, :-1], cat_features=[], label=leaf_data.iloc[:, -1]))
+                leaf_score = scorer.run_on_data_and_label(dummy_model, leaf_data, leaf_data[dataset.label_name])
                 if leaf_score < min_score:
                     min_score, min_score_leaf_filter = leaf_score, leaf_filter
             return min_score, min_score_leaf_filter

@@ -50,6 +50,8 @@ class _DummyModel:
         Array of the model prediction probabilities over the train dataset.
     y_proba_test: np.ndarray
         Array of the model prediction probabilities over the test dataset.
+    validate_data_on_predict: bool, default = True
+        If true, before predicting validates that the received data samples have the same index as in original data.
     """
 
     features: t.List[pd.DataFrame]
@@ -62,7 +64,8 @@ class _DummyModel:
                  y_proba_test: np.ndarray,
                  train: t.Union[Dataset, None] = None,
                  y_pred_train: t.Union[np.ndarray, t.List[t.Hashable], None] = None,
-                 y_proba_train: t.Union[np.ndarray, None] = None):
+                 y_proba_train: t.Union[np.ndarray, None] = None,
+                 validate_data_on_predict: bool = True):
 
         if train is not None and test is not None:
             # check if datasets have same indexes
@@ -94,6 +97,7 @@ class _DummyModel:
         self.predictions = pd.concat(predictions, axis=0) if predictions else None
         self.probas = pd.concat(probas, axis=0) if probas else None
         self.features_df = features_df
+        self.validate_data_on_predict = validate_data_on_predict
 
         if self.predictions is not None:
             self.predict = self._predict
@@ -102,7 +106,7 @@ class _DummyModel:
             self.predict_proba = self._predict_proba
 
     def _validate_data(self, data: pd.DataFrame):
-        # Validate only up to 10000 samples
+        # Validate only up to 100 samples
         data = data.sample(min(100, len(data)))
         for feature_df in self.features_df:
             # If all indices are found than test for equality
@@ -118,12 +122,14 @@ class _DummyModel:
 
     def _predict(self, data: pd.DataFrame):
         """Predict on given data by the data indexes."""
-        self._validate_data(data)
+        if self.validate_data_on_predict:
+            self._validate_data(data)
         return self.predictions.loc[data.index].to_numpy()
 
     def _predict_proba(self, data: pd.DataFrame):
         """Predict probabilities on given data by the data indexes."""
-        self._validate_data(data)
+        if self.validate_data_on_predict:
+            self._validate_data(data)
         return self.probas.loc[data.index].to_numpy()
 
     def fit(self, *args, **kwargs):
