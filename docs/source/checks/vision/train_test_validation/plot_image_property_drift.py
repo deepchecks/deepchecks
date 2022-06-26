@@ -81,6 +81,13 @@ check_result = ImagePropertyDrift().run(train_dataset, test_dataset)
 check_result
 
 #%%
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  check_result.show_in_window()
+#%%
+# The result will be displayed in a new window.
+
+#%%
 # Observe the check’s output 
 # --------------------------
 # The result value is a pandas DataFrame that contains drift score for each image property.

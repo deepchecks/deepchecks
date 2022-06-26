@@ -87,6 +87,13 @@ check = HeatmapComparison()
 check.run(train_ds, test_ds)
 
 #%%
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  check.run(train_ds, test_ds).show_in_window()
+#%%
+# The result will be displayed in a new window.
+
+#%%
 # Limit to Specific Classes
 # =========================
 # The check can be limited to compare the bounding box coverage for a specific set

@@ -52,6 +52,16 @@ check = ModelErrorAnalysis(min_error_model_score=-0.1)
 check.run(train_ds, test_ds, mnist_model)
 
 #%%
+# If you have a GPU, you can speed up this check by passing it as an argument to .run() as device=<your GPU>
+#
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  check.run(train_ds, test_ds, mnist_model).show_in_window()
+#%%
+# The result will be displayed in a new window.
+
+
+#%%
 # Object Detection Class Performance
 # ----------------------------------
 #
