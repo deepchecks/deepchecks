@@ -111,6 +111,7 @@ class DeepcheckScorer:
         return dataset.copy(dataset.data[valid_idx])
 
     def run_on_data_and_label(self, model, data: pd.DataFrame, label_col):
+        """Run scorer with model, data and labels without null filtering."""
         return self.scorer(model, data, label_col)
 
     def _run_score(self, model, dataset: 'tabular.Dataset'):

@@ -21,6 +21,7 @@ from sklearn.tree import DecisionTreeRegressor
 
 from deepchecks import ConditionCategory, ConditionResult, Dataset
 from deepchecks.core import CheckResult
+from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksProcessError
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.tabular.context import _DummyModel
 from deepchecks.tabular.utils.task_type import TaskType
@@ -95,13 +96,14 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
         y_proba = context.model.predict_proba(dataset.features_columns) if \
             context.task_type in [TaskType.MULTICLASS, TaskType.BINARY] else None
         dataset = dataset.select(self.columns, self.ignore_columns)
+        if len(dataset.features) < 2:
+            raise DeepchecksNotSupportedError('Check requires data to have at least two features in order to run.')
 
         if self.loss_per_sample is not None:
             loss_per_sample = self.loss_per_sample[list(dataset.data.index)]
         else:
             loss_per_sample = calculate_per_sample_loss(context.model, context.task_type, dataset,
                                                         self.classes_index_order)
-
         if len(dataset.cat_features) > 0:
             t_encoder = TargetEncoder(cols=dataset.cat_features)
             df_encoded = t_encoder.fit_transform(dataset.features_columns, dataset.label_col)
@@ -109,11 +111,13 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
             df_encoded = dataset.features_columns
         df_encoded = df_encoded.fillna(df_encoded.mean(axis=0))
         encoded_dataset = Dataset(df_encoded, cat_features=[], label=dataset.label_col)
-        dummy_model = _DummyModel(test=encoded_dataset, y_pred_test=predictions, y_proba_test=y_proba, validate_data_on_predict=False)
-        feature_importance = context.features_importance.sort_values(ascending=False)
+        dummy_model = _DummyModel(test=encoded_dataset, y_pred_test=predictions, y_proba_test=y_proba,
+                                  validate_data_on_predict=False)
+        feature_rank = context.feature_importance.sort_values(
+            ascending=False).keys() if context.feature_importance is not None else np.asarray(dataset.features)
 
         scorer = context.get_single_scorer(self.user_scorer)
-        weak_segments = self._weak_segments_search(dummy_model, encoded_dataset, feature_importance,
+        weak_segments = self._weak_segments_search(dummy_model, encoded_dataset, feature_rank,
                                                    loss_per_sample, scorer)
         avg_score = round(scorer(dummy_model, encoded_dataset), 3)
 
@@ -124,9 +128,9 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
         """Search for weak segments based on scorer."""
         weak_segments = pd.DataFrame(
             columns=[f'segment_score_{scorer.name}', 'feature1', 'feature1_range', 'feature2', 'feature2_range'])
-        for i in range(min(len(feature_rank_for_search.keys()), self.n_top_features)):
-            for j in range(i + 1, min(len(feature_rank_for_search.keys()), self.n_top_features)):
-                feature1, feature2 = feature_rank_for_search.keys()[[i, j]]
+        for i in range(min(len(feature_rank_for_search), self.n_top_features)):
+            for j in range(i + 1, min(len(feature_rank_for_search), self.n_top_features)):
+                feature1, feature2 = feature_rank_for_search[[i, j]]
                 weak_segment_score, weak_segment_filter = self._find_weak_segment(dummy_model, encoded_dataset,
                                                                                   [feature1, feature2], scorer,
                                                                                   loss_per_sample)
@@ -163,8 +167,11 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
 
         random_searcher = GridSearchCV(DecisionTreeRegressor(), scoring=neg_worst_segment_score,
                                        param_grid=search_space, n_jobs=-1, cv=3)
-        random_searcher.fit(dataset.features_columns[features_for_segment], loss_per_sample)
-        segment_score, segment_filter = get_worst_leaf_filter(random_searcher.best_estimator_.tree_)
+        try:
+            random_searcher.fit(dataset.features_columns[features_for_segment], loss_per_sample)
+            segment_score, segment_filter = get_worst_leaf_filter(random_searcher.best_estimator_.tree_)
+        except Exception as e:
+            raise DeepchecksProcessError('Unable to train meaningful error segmentation model') from e
 
         if features_for_segment[0] not in segment_filter.filters.keys():
             segment_filter.filters[features_for_segment[0]] = [np.NINF, np.inf]
