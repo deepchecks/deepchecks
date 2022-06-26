@@ -64,7 +64,8 @@ print(f'brightness bins: {result.value["Brightness"]}')
 # worse than the mean - which might indicate a problem.
 
 check = ImageSegmentPerformance().add_condition_score_from_mean_ratio_greater_than(0.5)
-check.run(coco_data, model)
+result = check.run(coco_data, model)
+result
 
 #%%
 # In this case the condition identified under-performing segments in the

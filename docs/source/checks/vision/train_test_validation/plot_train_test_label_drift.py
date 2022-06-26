@@ -69,7 +69,8 @@ test_ds = load_dataset(train=False, batch_size=1000, object_type='VisionData')
 # ---------------------------------------------
 
 check = TrainTestLabelDrift()
-check.run(train_ds, test_ds)
+result = check.run(train_ds, test_ds)
+result
 
 #%%
 # Understanding the results

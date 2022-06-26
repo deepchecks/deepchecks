@@ -64,7 +64,8 @@ test_ds = mnist.load_dataset(train=False, object_type='VisionData')
 # -------------
 
 check = ClassPerformance()
-check.run(train_ds, test_ds, mnist_model)
+result = check.run(train_ds, test_ds, mnist_model)
+result
 
 #%%
 # If you have a GPU, you can speed up this check by calling:
@@ -74,7 +75,7 @@ check.run(train_ds, test_ds, mnist_model)
 #%%
 # To display the results in an IDE like PyCharm, you can use the following code:
 
-#  check.run(train_ds, test_ds, mnist_model).show_in_window()
+#  result.show_in_window()
 #%%
 # The result will be displayed in a new window.
 
@@ -104,7 +105,8 @@ test_ds = coco.load_dataset(train=False, object_type='VisionData')
 # -------------
 
 check = ClassPerformance(show_only='best')
-check.run(train_ds, test_ds, yolo)
+result = check.run(train_ds, test_ds, yolo)
+result
 
 #%%
 # If you have a GPU, you can speed up this check by calling:
@@ -114,7 +116,7 @@ check.run(train_ds, test_ds, yolo)
 #%%
 # To display the results in an IDE like PyCharm, you can use the following code:
 
-# check.run(train_ds, test_ds, yolo).show_in_window()
+# result.show_in_window()
 #%%
 # The result will be displayed in a new window.
 
