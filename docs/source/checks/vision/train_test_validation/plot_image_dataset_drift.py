@@ -84,7 +84,15 @@ test_ds = load_dataset(train=False, object_type='VisionData')
 # ^^^^^^^^^^^^^
 
 check = ImageDatasetDrift()
-check.run(train_dataset=train_ds, test_dataset=test_ds)
+result = check.run(train_dataset=train_ds, test_dataset=test_ds)
+result
+
+#%%
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  result.show_in_window()
+#%%
+# The result will be displayed in a new window.
 
 #%%
 # Insert drift
@@ -116,14 +124,8 @@ test_ds_coco = COCOData(test_dataloader)
 # Run the check again
 # ^^^^^^^^^^^^^^^^^^^
 check = ImageDatasetDrift()
-check.run(train_dataset=drifted_train_ds, test_dataset=test_ds_coco)
-
-#%%
-# To display the results in an IDE like PyCharm, you can use the following code:
-
-#  check.run(drifted_train_ds, test_ds_coco).show_in_window()
-#%%
-# The result will be displayed in a new window.
+result = check.run(train_dataset=drifted_train_ds, test_dataset=test_ds_coco)
+result
 
 #%%
 # Define a Condition
@@ -133,4 +135,5 @@ check.run(train_dataset=drifted_train_ds, test_dataset=test_ds_coco)
 # In order to demonstrate the condition, we will use again the original (not drifted) train dataset.
 
 check = ImageDatasetDrift().add_condition_drift_score_less_than(0.2)
-check.run(train_dataset=train_ds, test_dataset=test_ds).show(show_additional_outputs=False)
+result = check.run(train_dataset=train_ds, test_dataset=test_ds).show(show_additional_outputs=False)
+result
