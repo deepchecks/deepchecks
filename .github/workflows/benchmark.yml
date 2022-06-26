@@ -34,7 +34,7 @@ jobs:
       run: make freeze
     - name: Run benchmarks
       run: |
-        .github/scripts/benchmark.sh .tabular
+        .github/scripts/benchmark.sh benchmarks/tabular
   
   benchmark-vision:
 
@@ -52,4 +52,4 @@ jobs:
       run: make freeze
     - name: Run benchmarks
       run: |
-        .github/scripts/benchmark.sh .tabular
+        .github/scripts/benchmark.sh benchmarks/vision

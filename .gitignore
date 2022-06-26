@@ -115,3 +115,6 @@ docs/source/tutorials/vision/tomato-detection/
 docs/source/tutorials/vision/hymenoptera_data/
 docs/source/user-guide/general/exporting_results/wandb
 deepchecks/vision/datasets/classification/models/
+
+# ignore benchmark results
+benchmarks/*/results
