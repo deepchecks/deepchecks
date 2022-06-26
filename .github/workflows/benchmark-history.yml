@@ -20,7 +20,7 @@ env:
   DISABLE_DEEPCHECKS_ANONYMOUS_TELEMETRY: "true"
 
 jobs:
-  benchmark-history:
+  benchmark-history-tabular:
 
     runs-on: ubuntu-latest
 
@@ -40,4 +40,26 @@ jobs:
       run: make freeze
     - name: Run benchmarks
       run: |
-        .github/scripts/benchmark-history.sh
+        .github/scripts/benchmark-history.sh benchmarks/tabular
+
+  benchmark-history-vision:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup git user
+      run: |
+        git config --global user.name "$(git --no-pager log --format=format:'%an' -n 1)"
+        git config --global user.email "$(git --no-pager log --format=format:'%ae' -n 1)"
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.9"
+    - name: Set Up Env
+      run: make env
+    - name: pip freeze
+      run: make freeze
+    - name: Run benchmarks
+      run: |
+        .github/scripts/benchmark-history.sh benchmarks/vision
