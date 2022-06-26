@@ -9,25 +9,43 @@
 # ----------------------------------------------------------------------------
 #
 import inspect
+import logging
+import sys
 from typing import Callable
 
-from deepchecks.core import DatasetKind
-from deepchecks.vision import SingleDatasetCheck, Context, checks
+import torch
+
+from deepchecks.core.errors import DeepchecksBaseError
+from deepchecks.vision import Context, SingleDatasetCheck, TrainTestCheck, ModelOnlyCheck, checks
 from deepchecks.vision.datasets.classification import mnist
 from deepchecks.vision.datasets.detection import coco
 
+
+# need this code so pickle won't fail on the coco model (asv using pickle on the cache for some reason)
+logger = logging.getLogger('yolov5')
+logger.disabled = True
+_ = torch.hub.load('ultralytics/yolov5:v6.1', 'yolov5s',
+                        pretrained=True,
+                        verbose=False,
+                        device='cpu')
+sys.path.append('ultralytics_yolov5_v6.1/models')
+
+
 def run_check_fn(check_class) -> Callable:
     def run(self, cache, dataset_name):
-        context = cache[dataset_name]
+        context: Context = cache[dataset_name]
         check = check_class()
         try:
             if isinstance(check, SingleDatasetCheck):
-                check.run_logic(context, DatasetKind.TRAIN)
-            else:
-                check.run_logic(context)
-        except Exception as e:
+                check.run(context.train, context.model)
+            elif isinstance(check, TrainTestCheck):
+                check.run(context.train, context.test, context.model)
+            elif isinstance(check, ModelOnlyCheck):
+                check.run(context.model)
+        except DeepchecksBaseError:
             pass
     return run
+
 
 def setup_mnist() -> Context:
     mnist_model = mnist.load_model()
@@ -43,19 +61,8 @@ def setup_coco() -> Context:
     return Context(train_ds, test_ds, coco_model, n_samples=None)
 
 
-class BenchmarkVisionChecksTime:
-    params = ['mnist', 'coco']
-    param_names = ['dataset_name']
-
-    def setup_cache(self):
-        cache = {}
-        cache['mnist'] = setup_mnist()
-        cache['coco'] = setup_coco()
-        return cache
-
-
-class BenchmarkVisionChecksPeakMemory:
-    params = ['mnist', 'coco']
+class BenchmarkVision:
+    params = ['coco', 'mnist']
     param_names = ['dataset_name']
 
     def setup_cache(self):
@@ -67,5 +74,6 @@ class BenchmarkVisionChecksPeakMemory:
 
 for name, check_class in inspect.getmembers(checks):
     if inspect.isclass(check_class):
-        setattr(BenchmarkVisionChecksTime, f'time_{name}', run_check_fn(check_class))
-        setattr(BenchmarkVisionChecksPeakMemory, f'peakmem_{name}', run_check_fn(check_class))
+        run_fn = run_check_fn(check_class)
+        setattr(BenchmarkVision, f'time_{name}', run_fn)
+        setattr(BenchmarkVision, f'peakmem_{name}', run_fn)

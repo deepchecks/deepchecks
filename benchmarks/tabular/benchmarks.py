@@ -12,9 +12,11 @@ import inspect
 from typing import Callable
 
 from deepchecks.core import DatasetKind
-from deepchecks.tabular import SingleDatasetCheck, Context, checks
+from deepchecks.core.errors import DeepchecksBaseError
+from deepchecks.tabular import Context, SingleDatasetCheck, TrainTestCheck, checks
 from deepchecks.tabular.datasets.classification import lending_club
 from deepchecks.tabular.datasets.regression import avocado
+
 
 def run_check_fn(check_class) -> Callable:
     def run(self, cache, dataset_name):
@@ -25,7 +27,7 @@ def run_check_fn(check_class) -> Callable:
                 check.run_logic(context, DatasetKind.TRAIN)
             else:
                 check.run_logic(context)
-        except Exception as e:
+        except DeepchecksBaseError:
             pass
     return run
 
@@ -33,27 +35,20 @@ def run_check_fn(check_class) -> Callable:
 def setup_lending_club() -> Context:
     train, test = lending_club.load_data()
     model = lending_club.load_fitted_model()
-    return Context(train, test, model)
+    context = Context(train, test, model)
+    context.feature_importance  # calculating here to avoid first check being slower
+    return context
 
 
 def setup_avocado() -> Context:
     train, test = avocado.load_data()
     model = avocado.load_fitted_model()
-    return Context(train, test, model)
+    context = Context(train, test, model)
+    context.feature_importance  # calculating here to avoid first check being slower
+    return context
 
 
-class BenchmarkTabularChecksTime:
-    params = ['lending_club', 'avocado']
-    param_names = ['dataset_name']
-
-    def setup_cache(self):
-        cache = {}
-        cache['lending_club'] = setup_lending_club()
-        cache['avocado'] = setup_avocado()
-        return cache
-
-
-class BenchmarkTabularChecksPeakMemory:
+class BenchmarkTabular:
     params = ['lending_club', 'avocado']
     param_names = ['dataset_name']
 
@@ -66,5 +61,6 @@ class BenchmarkTabularChecksPeakMemory:
 
 for name, check_class in inspect.getmembers(checks):
     if inspect.isclass(check_class):
-        setattr(BenchmarkTabularChecksTime, f'time_{name}', run_check_fn(check_class))
-        setattr(BenchmarkTabularChecksPeakMemory, f'peakmem_{name}', run_check_fn(check_class))
+        run_fn = run_check_fn(check_class)
+        setattr(BenchmarkTabular, f'time_{name}', run_fn)
+        setattr(BenchmarkTabular, f'peakmem_{name}', run_fn)
