@@ -118,6 +118,12 @@ test_ds_coco = COCOData(test_dataloader)
 check = ImageDatasetDrift()
 check.run(train_dataset=drifted_train_ds, test_dataset=test_ds_coco)
 
+#%%
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  check.run(drifted_train_ds, test_ds_coco).show_in_window()
+#%%
+# The result will be displayed in a new window.
 
 #%%
 # Define a Condition

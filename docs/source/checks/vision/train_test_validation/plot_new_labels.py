@@ -31,6 +31,13 @@ coco_test = coco.load_dataset(train=False, object_type='VisionData', shuffle=Fal
 result = NewLabels().run(coco_train, coco_test)
 result
 
+#%%
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  result.show_in_window()
+#%%
+# The result will be displayed in a new window.
+
 # %%
 # Observe the check’s output
 # ~~~~~~~~~~~~~~~~~~

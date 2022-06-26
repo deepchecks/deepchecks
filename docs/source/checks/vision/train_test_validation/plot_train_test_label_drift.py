@@ -86,6 +86,13 @@ mnist_model = load_mnist_model(pretrained=True)
 ClassPerformance().run(train_ds, test_ds, mnist_model)
 
 #%%
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  ClassPerformance().run(train_ds, test_ds, mnist_model).show_in_window()
+#%%
+# The result will be displayed in a new window.
+
+#%%
 # MNIST with label drift
 # ======================
 # Now, let's try to separate the MNIST dataset in a different manner that will result

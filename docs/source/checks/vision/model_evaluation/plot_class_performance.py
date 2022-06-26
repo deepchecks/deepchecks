@@ -67,6 +67,18 @@ check = ClassPerformance()
 check.run(train_ds, test_ds, mnist_model)
 
 #%%
+# If you have a GPU, you can speed up this check by calling:
+
+# check.run(train_ds, test_ds, mnist_model, device=<your GPU>)
+
+#%%
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  check.run(train_ds, test_ds, mnist_model).show_in_window()
+#%%
+# The result will be displayed in a new window.
+
+#%%
 # Object Detection Class Performance
 # ==================================
 # For object detection tasks - the default metric that is being calculated it the
@@ -95,6 +107,18 @@ check = ClassPerformance(show_only='best')
 check.run(train_ds, test_ds, yolo)
 
 #%%
+# If you have a GPU, you can speed up this check by calling:
+
+# check.run(train_ds, test_ds, yolo, device=<your GPU>)
+
+#%%
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+# check.run(train_ds, test_ds, yolo).show_in_window()
+#%%
+# The result will be displayed in a new window.
+
+#%%
 # Define a Condition
 # ==================
 # We can also define a condition to validate that our model performance is above a certain threshold.
@@ -105,6 +129,7 @@ check = ClassPerformance(show_only='worst')
 check.add_condition_test_performance_greater_than(0.2)
 result = check.run(train_ds, test_ds, yolo)
 result
+
 
 #%%
 # We detected that for several classes our model performance is below the threshold.
