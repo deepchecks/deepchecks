@@ -13,8 +13,8 @@ from typing import Callable
 
 from deepchecks.core import DatasetKind
 from deepchecks.tabular import SingleDatasetCheck, Context, checks
-from deepchecks.tabular.datasets.classification import iris
-
+from deepchecks.tabular.datasets.classification import lending_club
+from deepchecks.tabular.datasets.regression import avocado
 
 def run_check_fn(check_class) -> Callable:
     def run(self, cache, dataset_name):
@@ -30,27 +30,37 @@ def run_check_fn(check_class) -> Callable:
     return run
 
 
+def setup_lending_club() -> Context:
+    train, test = lending_club.load_data()
+    model = lending_club.load_fitted_model()
+    return Context(train, test, model)
+
+
+def setup_avocado() -> Context:
+    train, test = avocado.load_data()
+    model = avocado.load_fitted_model()
+    return Context(train, test, model)
+
+
 class BenchmarkTabularChecksTime:
-    params = ['iris']
+    params = ['lending_club', 'avocado']
     param_names = ['dataset_name']
 
     def setup_cache(self):
         cache = {}
-        train, test = iris.load_data()
-        model = iris.load_fitted_model()
-        cache['iris'] = Context(train, test, model)
+        cache['lending_club'] = setup_lending_club()
+        cache['avocado'] = setup_avocado()
         return cache
 
 
 class BenchmarkTabularChecksPeakMemory:
-    params = ['iris']
+    params = ['lending_club', 'avocado']
     param_names = ['dataset_name']
 
     def setup_cache(self):
         cache = {}
-        train, test = iris.load_data()
-        model = iris.load_fitted_model()
-        cache['iris'] = Context(train, test, model)
+        cache['lending_club'] = setup_lending_club()
+        cache['avocado'] = setup_avocado()
         return cache
 
 

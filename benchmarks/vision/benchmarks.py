@@ -14,7 +14,7 @@ from typing import Callable
 from deepchecks.core import DatasetKind
 from deepchecks.vision import SingleDatasetCheck, Context, checks
 from deepchecks.vision.datasets.classification import mnist
-
+from deepchecks.vision.datasets.detection import coco
 
 def run_check_fn(check_class) -> Callable:
     def run(self, cache, dataset_name):
@@ -29,30 +29,39 @@ def run_check_fn(check_class) -> Callable:
             pass
     return run
 
+def setup_mnist() -> Context:
+    mnist_model = mnist.load_model()
+    train_ds = mnist.load_dataset(train=True, object_type='VisionData')
+    test_ds = mnist.load_dataset(train=False, object_type='VisionData')
+    return Context(train_ds, test_ds, mnist_model, n_samples=None)
+
+
+def setup_coco() -> Context:
+    coco_model = coco.load_model()
+    train_ds = coco.load_dataset(train=True, object_type='VisionData')
+    test_ds = coco.load_dataset(train=False, object_type='VisionData')
+    return Context(train_ds, test_ds, coco_model, n_samples=None)
+
 
 class BenchmarkVisionChecksTime:
-    params = ['mnist']
+    params = ['mnist', 'coco']
     param_names = ['dataset_name']
 
     def setup_cache(self):
         cache = {}
-        mnist_model = mnist.load_model()
-        train_ds = mnist.load_dataset(train=True, object_type='VisionData')
-        test_ds = mnist.load_dataset(train=False, object_type='VisionData')
-        cache['mnist'] = Context(train_ds, test_ds, mnist_model, n_samples=None)
+        cache['mnist'] = setup_mnist()
+        cache['coco'] = setup_coco()
         return cache
 
 
 class BenchmarkVisionChecksPeakMemory:
-    params = ['mnist']
+    params = ['mnist', 'coco']
     param_names = ['dataset_name']
 
     def setup_cache(self):
         cache = {}
-        mnist_model = mnist.load_model()
-        train_ds = mnist.load_dataset(train=True, object_type='VisionData')
-        test_ds = mnist.load_dataset(train=False, object_type='VisionData')
-        cache['mnist'] = Context(train_ds, test_ds, mnist_model, n_samples=None)
+        cache['mnist'] = setup_mnist()
+        cache['coco'] = setup_coco()
         return cache
 
 
