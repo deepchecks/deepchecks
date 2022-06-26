@@ -65,6 +65,13 @@ check = SimilarImageLeakage()
 check.run(train_ds, test_ds)
 
 #%%
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  check.run(train_ds, test_ds).show_in_window()
+#%%
+# The result will be displayed in a new window.
+
+#%%
 # As we can see, no similar images were found.
 
 #%%
