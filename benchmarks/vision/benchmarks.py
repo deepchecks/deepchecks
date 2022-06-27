@@ -19,6 +19,7 @@ from deepchecks.core.errors import DeepchecksBaseError
 from deepchecks.vision import Context, SingleDatasetCheck, TrainTestCheck, ModelOnlyCheck, checks
 from deepchecks.vision.datasets.classification import mnist
 from deepchecks.vision.datasets.detection import coco
+from deepchecks.vision.vision_data import VisionData
 
 
 # need this code so pickle won't fail on the coco model (asv using pickle on the cache for some reason)
@@ -31,17 +32,34 @@ _ = torch.hub.load('ultralytics/yolov5:v6.1', 'yolov5s',
 sys.path.append('ultralytics_yolov5_v6.1/models')
 
 
+def create_static_predictions(train: VisionData, test: VisionData, model):
+    static_preds = []
+    for vision_data in [train, test]:
+        if vision_data is not None:
+            static_pred = {}
+            for i, batch in enumerate(vision_data):
+                predictions = vision_data.infer_on_batch(batch, model, 'cpu')
+                indexes = list(vision_data.data_loader.batch_sampler)[i]
+                static_pred.update(dict(zip(indexes, predictions)))
+        else:
+            static_pred = None
+        static_preds.append(static_pred)
+    train_preds, tests_preds = static_preds
+    return train_preds, tests_preds
+
+
 def run_check_fn(check_class) -> Callable:
     def run(self, cache, dataset_name):
-        context: Context = cache[dataset_name]
+        train_ds, test_ds, model, train_pred, test_pred = cache[dataset_name]
         check = check_class()
         try:
             if isinstance(check, SingleDatasetCheck):
-                check.run(context.train, context.model)
+                check.run(train_ds, train_predictions=train_pred)
             elif isinstance(check, TrainTestCheck):
-                check.run(context.train, context.test, context.model)
+                check.run(train_ds, test_ds, train_predictions=train_pred,
+                          test_predictions=test_pred)
             elif isinstance(check, ModelOnlyCheck):
-                check.run(context.model)
+                check.run(model)
         except DeepchecksBaseError:
             pass
     return run
@@ -51,14 +69,16 @@ def setup_mnist() -> Context:
     mnist_model = mnist.load_model()
     train_ds = mnist.load_dataset(train=True, object_type='VisionData')
     test_ds = mnist.load_dataset(train=False, object_type='VisionData')
-    return Context(train_ds, test_ds, mnist_model, n_samples=None)
+    train_preds, tests_preds = create_static_predictions(train_ds, test_ds, mnist_model)
+    return train_ds, test_ds, mnist_model, train_preds, tests_preds
 
 
 def setup_coco() -> Context:
     coco_model = coco.load_model()
     train_ds = coco.load_dataset(train=True, object_type='VisionData')
     test_ds = coco.load_dataset(train=False, object_type='VisionData')
-    return Context(train_ds, test_ds, coco_model, n_samples=None)
+    train_preds, tests_preds = create_static_predictions(train_ds, test_ds, coco_model)
+    return train_ds, test_ds, coco_model, train_preds, tests_preds
 
 
 class BenchmarkVision:
