@@ -11,7 +11,7 @@
 """Tests for Mixed Nulls check"""
 import numpy as np
 import pandas as pd
-from hamcrest import (assert_that, calling, close_to, equal_to, greater_than, has_entries, has_entry, has_items,
+from hamcrest import (any_of, assert_that, calling, close_to, equal_to, greater_than, has_entries, has_entry, has_items,
                       has_length, is_, raises)
 
 from deepchecks.core.errors import DatasetValidationError, DeepchecksValueError
@@ -241,3 +241,32 @@ def test_condition_max_nulls_passed():
                                details='Passed for 1 relevant column',
                                name='Number of different null types is less or equal to 10')
     ))
+
+
+def test_mixed_nulls_with_categorical_dtype():
+    ds = Dataset(pd.DataFrame({
+        'foo': pd.Series(['a', 'b', None, None], dtype='category'),
+        'bar': [1,2,3,4]
+    }))
+    assert_that(
+        MixedNulls().run(ds).value,
+        has_entries({
+            'bar': has_length(equal_to(0)),
+            'foo': has_entries({
+                'numpy.nan': has_entries({
+                    'count': equal_to(2),
+                    'percent': equal_to(0.5)
+                }),
+            }),
+            # NOTE:
+            # * why math.nan, if we see None in foo? *
+            # in short, because of pandas null conversion mechanism
+            #
+            # example:
+            # >>> pd.__version__  # 1.3.5
+            # >>> s = pd.Series(['a', pd.NA, pd.NaT, np.nan, None],  dtype='category')
+            # >>> s.at[1] is np.nan  # True
+            # >>> s.at[2] is np.nan  # True
+            # >>> s.at[3] is np.nan  # True
+        })
+    )

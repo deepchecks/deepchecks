@@ -14,8 +14,8 @@ import warnings
 
 import pytest
 
-from deepchecks.tabular.checks import (TrainTestFeatureDrift, TrainTestLabelDrift, TrainTestPredictionDrift,
-                                       WholeDatasetDrift, DominantFrequencyChange)
+from deepchecks.tabular.checks import (DominantFrequencyChange, TrainTestFeatureDrift, TrainTestLabelDrift,
+                                       TrainTestPredictionDrift, WholeDatasetDrift)
 
 
 def test_deprecation_warning_label_drift():
