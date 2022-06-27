@@ -36,7 +36,7 @@ def test_single_column_one_null_type():
     dataframe = pd.DataFrame(data=data)
     # Act
     result = MixedNulls().run(dataframe)
-    assert_that(result.value, equal_to({'col1': {'null': {'count': 2, 'percent': 0.5}}}))
+    assert_that(result.value, equal_to({'col1': {'"null"': {'count': 2, 'percent': 0.5}}}))
     assert_that(result.display, has_length(greater_than(0)))
 
 
@@ -46,7 +46,7 @@ def test_single_column_one_null_type_without_display():
     dataframe = pd.DataFrame(data=data)
     # Act
     result = MixedNulls().run(dataframe, with_display=False)
-    assert_that(result.value, equal_to({'col1': {'null': {'count': 2, 'percent': 0.5}}}))
+    assert_that(result.value, equal_to({'col1': {'"null"': {'count': 2, 'percent': 0.5}}}))
     assert_that(result.display, has_length(0))
 
 
@@ -241,22 +241,3 @@ def test_condition_max_nulls_passed():
                                details='Passed for 1 relevant column',
                                name='Number of different null types is less or equal to 10')
     ))
-
-
-def test_fi_n_top(diabetes_split_dataset_and_model):
-    train, _, clf = diabetes_split_dataset_and_model
-    train = Dataset(train.data.copy(), label='target', cat_features=['sex'])
-    train.data.loc[train.data.index % 4 == 0, 'age'] = 'Nan'
-    train.data.loc[train.data.index % 4 == 1, 'age'] = 'null'
-    train.data.loc[train.data.index % 4 == 0, 'bmi'] = 'Nan'
-    train.data.loc[train.data.index % 4 == 1, 'bmi'] = 'null'
-    train.data.loc[train.data.index % 4 == 0, 'bp'] = 'Nan'
-    train.data.loc[train.data.index % 4 == 1, 'bp'] = 'null'
-    train.data.loc[train.data.index % 4 == 0, 's1'] = 'Nan'
-    train.data.loc[train.data.index % 4 == 1, 's1'] = 'null'
-    # Arrange
-    check = MixedNulls(n_top_columns=3)
-    # Act
-    result = check.run(train, clf)
-    # Assert - Display dataframe have only 3
-    assert_that(result.display[1], has_length(3))
