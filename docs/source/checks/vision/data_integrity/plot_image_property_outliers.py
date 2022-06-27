@@ -56,6 +56,13 @@ result = check.run(train_data)
 result
 
 #%%
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  result.show_in_window()
+#%%
+# The result will be displayed in a new window.
+
+#%%
 # Observe Graphic Result
 # ^^^^^^^^^^^^^^^^^^^^^^
 # The check shows a section for each property. In each section we show the number of outliers and the non-outlier
@@ -72,5 +79,3 @@ result
 # in the check's run.
 
 result.value
-
-

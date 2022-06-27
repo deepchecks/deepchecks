@@ -36,4 +36,17 @@ train_ds = coco.load_dataset(object_type='VisionData')
 from deepchecks.vision.checks import ConfusionMatrixReport
 
 check = ConfusionMatrixReport(categories_to_display=10)
-check.run(train_ds, yolo)
+result = check.run(train_ds, yolo)
+result
+
+#%%
+# If you have a GPU, you can speed up this check by calling:
+
+# check.run(train_ds, yolo, device=<your GPU>)
+
+#%%
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  result.show_in_window()
+#%%
+# The result will be displayed in a new window.
