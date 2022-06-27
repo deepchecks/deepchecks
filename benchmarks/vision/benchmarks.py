@@ -22,15 +22,7 @@ from deepchecks.vision.datasets.detection import coco
 from deepchecks.vision.vision_data import VisionData
 
 
-# need this code so pickle won't fail on the coco model (asv using pickle on the cache for some reason)
-logging.getLogger('yolov5').disabled = True
-_ = torch.hub.load('ultralytics/yolov5:v6.1', 'yolov5s',
-                        pretrained=True,
-                        verbose=False,
-                        device='cpu')
-sys.path.append('ultralytics_yolov5_v6.1/models')
-
-# logging.getLogger('deepchecks').setLevel(logging.ERROR)
+logging.getLogger('deepchecks').setLevel(logging.ERROR)
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
@@ -52,7 +44,7 @@ def create_static_predictions(train: VisionData, test: VisionData, model):
 
 def run_check_fn(check_class) -> Callable:
     def run(self, cache, dataset_name):
-        train_ds, test_ds, model, train_pred, test_pred = cache[dataset_name]
+        train_ds, test_ds, train_pred, test_pred = cache[dataset_name]
         check = check_class()
         try:
             if isinstance(check, SingleDatasetCheck):
@@ -60,8 +52,6 @@ def run_check_fn(check_class) -> Callable:
             elif isinstance(check, TrainTestCheck):
                 check.run(train_ds, test_ds, train_predictions=train_pred,
                           test_predictions=test_pred, device=device)
-            elif isinstance(check, ModelOnlyCheck):
-                check.run(model, device=device)
         except DeepchecksBaseError:
             pass
     return run
@@ -72,7 +62,7 @@ def setup_mnist() -> Context:
     train_ds = mnist.load_dataset(train=True, object_type='VisionData')
     test_ds = mnist.load_dataset(train=False, object_type='VisionData')
     train_preds, tests_preds = create_static_predictions(train_ds, test_ds, mnist_model)
-    return train_ds, test_ds, mnist_model, train_preds, tests_preds
+    return train_ds, test_ds, train_preds, tests_preds
 
 
 def setup_coco() -> Context:
@@ -80,12 +70,12 @@ def setup_coco() -> Context:
     train_ds = coco.load_dataset(train=True, object_type='VisionData')
     test_ds = coco.load_dataset(train=False, object_type='VisionData')
     train_preds, tests_preds = create_static_predictions(train_ds, test_ds, coco_model)
-    return train_ds, test_ds, coco_model, train_preds, tests_preds
+    return train_ds, test_ds, train_preds, tests_preds
 
 
 class BenchmarkVision:
     timeout = 120
-    params = ['coco', 'mnist']
+    params = ['mnist', 'coco']
     param_names = ['dataset_name']
     repeat = (1, 3, 10)
     warmup_time = 0
