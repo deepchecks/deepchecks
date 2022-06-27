@@ -27,7 +27,6 @@ from deepchecks.utils.simple_models import PerfectModel
 from deepchecks.utils.strings import is_string_column
 from deepchecks.utils.typing import BasicModel, ClassificationModel
 
-
 __all__ = [
     'task_type_check',
     'DEFAULT_SCORERS_DICT',
