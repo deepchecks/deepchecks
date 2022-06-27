@@ -46,16 +46,16 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
     ignore_columns : Union[Hashable, List[Hashable]] , default: None
         Columns to ignore, if none given checks based on columns variable
     n_top_features : int , default: 5
-        Amount of features to use for segment search. Select top columns based on feature importance to error model.
+        Number of features to use for segment search. Top columns are selected based on feature importance.
     segment_minimum_size_ratio: float , default: 0.01
         Minimum size ratio for segments. Will only search for segments of
         size >= segment_minimum_size_ratio * data_size.
     alternative_scorer : Tuple[str, Union[str, Callable]] , default: None
         Score to show, either function or sklearn scorer name.
-        If is not given a default scorer (per the model type) will be used.
+        If None, a default scorer (per the model type) will be used.
     loss_per_sample: Union[np.array, pd.Series, None], default: None
-        Loss per sample used to detect relevant weak segments. If set to none uses log loss for classification
-        and mean square error for regression.
+        Loss per sample used to detect relevant weak segments. If None, the check calculates loss per sample by using
+         for classification and mean square error for regression.
     n_samples : int , default: 10_000
         number of samples to use for this check.
     n_to_show : int , default: 3
@@ -128,7 +128,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
         weak_segments = self._weak_segments_search(dummy_model, encoded_dataset, feature_rank,
                                                    loss_per_sample, scorer)
         if len(weak_segments) == 0:
-            raise DeepchecksProcessError("Unable to train a error model to find weak segments.")
+            raise DeepchecksProcessError('Unable to train a error model to find weak segments.')
         avg_score = round(scorer(dummy_model, encoded_dataset), 3)
 
         display = self._create_heatmap_display(dummy_model, encoded_dataset, weak_segments, avg_score,
@@ -137,7 +137,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
         return CheckResult({'segments': weak_segments, 'avg_score': avg_score, 'scorer_name': scorer.name},
                            display=[DisplayMap(display)])
 
-    def _create_heatmap_display(self, dummy_model, encoded_dataset, weak_segments,avg_score, scorer):
+    def _create_heatmap_display(self, dummy_model, encoded_dataset, weak_segments, avg_score, scorer):
         display_tabs = {}
         data = encoded_dataset.data
         idx = -1
@@ -164,14 +164,14 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
                                                                               segment_data[encoded_dataset.label_name])
                         counts[f1_idx, f2_idx] = len(segment_data)
 
-            x_labels = [f'[{format_number(lower)}, {format_number(upper)}]' for lower, upper in
-                        zip(segments_f1[:-1], segments_f1[1:])]
-            y_labels = [f'[{format_number(lower)}, {format_number(upper)}]' for lower, upper in
-                        zip(segments_f2[:-1], segments_f2[1:])]
+            f1_labels = [f'[{format_number(lower)}, {format_number(upper)}]' for lower, upper in
+                         zip(segments_f1[:-1], segments_f1[1:])]
+            f2_labels = [f'[{format_number(lower)}, {format_number(upper)}]' for lower, upper in
+                         zip(segments_f2[:-1], segments_f2[1:])]
             scores_text = [[0] * scores.shape[1] for _ in range(scores.shape[0])]
             counts = np.divide(counts, len(data))
-            for i in range(len(y_labels)):
-                for j in range(len(x_labels)):
+            for i in range(len(f1_labels)):
+                for j in range(len(f2_labels)):
                     score = scores[i, j]
                     if not np.isnan(score):
                         scores_text[i][j] = f'{format_number(score)}\n({format_percent(counts[i, j])})'
@@ -184,8 +184,8 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
             scores = scores.astype(np.object)
             scores[np.isnan(scores.astype(np.float_))] = None
 
-            labels = dict(x=segment["Feature2"], y=segment["Feature1"], color=f'{scorer.name} score')
-            fig = px.imshow(scores, x=x_labels, y=y_labels, labels=labels, color_continuous_scale='rdylgn')
+            labels = dict(x=segment['Feature2'], y=segment['Feature1'], color=f'{scorer.name} score')
+            fig = px.imshow(scores, x=f2_labels, y=f1_labels, labels=labels, color_continuous_scale='rdylgn')
             fig.update_traces(text=scores_text, texttemplate='%{text}')
             fig.update_layout(
                 title=f'{scorer.name} score (percent of data) {segment["Feature1"]} vs {segment["Feature2"]}',
@@ -208,9 +208,9 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
                                                                                   loss_per_sample)
                 if weak_segment_score is None:
                     continue
-                weak_segments.loc[len(weak_segments)] = [round(weak_segment_score, 3), feature1,
-                                                         np.around(weak_segment_filter.filters[feature1], 3), feature2,
-                                                         np.around(weak_segment_filter.filters[feature2], 3)]
+                weak_segments.loc[len(weak_segments)] = [weak_segment_score, feature1,
+                                                         weak_segment_filter.filters[feature1], feature2,
+                                                         weak_segment_filter.filters[feature2]]
         return weak_segments.sort_values(f'{scorer.name} score')
 
     def _find_weak_segment(self, dummy_model, dataset, features_for_segment, scorer, loss_per_sample):
@@ -239,13 +239,13 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
         def neg_worst_segment_score(clf: DecisionTreeRegressor, x, y) -> float:  # pylint: disable=unused-argument
             return -get_worst_leaf_filter(clf.tree_)[0]
 
-        random_searcher = GridSearchCV(DecisionTreeRegressor(), scoring=neg_worst_segment_score,
-                                       param_grid=search_space, n_jobs=-1, cv=3)
+        grid_searcher = GridSearchCV(DecisionTreeRegressor(), scoring=neg_worst_segment_score,
+                                     param_grid=search_space, n_jobs=-1, cv=3)
         try:
-            random_searcher.fit(dataset.features_columns[features_for_segment], loss_per_sample)
-            segment_score, segment_filter = get_worst_leaf_filter(random_searcher.best_estimator_.tree_)
-        except Exception:
-            return None,None
+            grid_searcher.fit(dataset.features_columns[features_for_segment], loss_per_sample)
+            segment_score, segment_filter = get_worst_leaf_filter(grid_searcher.best_estimator_.tree_)
+        except ValueError:
+            return None, None
 
         if features_for_segment[0] not in segment_filter.filters.keys():
             segment_filter.filters[features_for_segment[0]] = [np.NINF, np.inf]
@@ -264,8 +264,8 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
 
         def condition(result: Dict) -> ConditionResult:
             weakest_segment_score = result['segments'].iloc[0, 0]
-            msg = f'Weakest segment score of {format_number(weakest_segment_score, 3)} in comparison to average ' \
-                  f'score of {format_number(result["avg_score"], 3)} based on scorer {result["scorer_name"]}.'
+            msg = f'Found a segment with {result["scorer_name"]} score of {format_number(weakest_segment_score, 3)} ' \
+                  f'in comparison to an average score of {format_number(result["avg_score"], 3)} in sampled data.'
             if weakest_segment_score < (1 - max_ratio_change) * result['avg_score']:
                 return ConditionResult(ConditionCategory.WARN, msg)
             else:

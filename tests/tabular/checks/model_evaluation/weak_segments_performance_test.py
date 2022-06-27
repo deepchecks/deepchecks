@@ -10,7 +10,7 @@
 #
 """Tests for weak segment performance check."""
 import pandas as pd
-from hamcrest import assert_that, close_to, equal_to, has_items
+from hamcrest import assert_that, close_to, equal_to, has_items, has_length
 from sklearn.metrics import make_scorer, f1_score
 
 from deepchecks.tabular.checks import WeakSegmentsPerformance
@@ -26,7 +26,7 @@ def test_segment_performance_diabetes(diabetes_split_dataset_and_model):
     segments = result.value['segments']
 
     # Assert
-    assert_that(len(segments), equal_to(10))
+    assert_that(segments, has_length(10))
     assert_that(max(segments.iloc[:, 0]), result.value['avg_score'])
     assert_that(segments.iloc[0, 0], close_to(-89, 1))
     assert_that(segments.iloc[0, 1], equal_to('bmi'))
@@ -41,9 +41,9 @@ def test_segment_performance_diabetes_with_arguments(diabetes_split_dataset_and_
     segments = result.value['segments']
 
     # Assert
-    assert_that(len(segments), equal_to(6))
+    assert_that(segments, has_length(6))
     assert_that(max(segments.iloc[:, 0]), result.value['avg_score'])
-    assert_that(segments.iloc[0, 0], close_to(-86, 1))
+    assert_that(segments.iloc[0, 0], close_to(-86, 0.01))
     assert_that(segments.iloc[0, 1], equal_to('s5'))
 
 
@@ -62,9 +62,10 @@ def test_segment_performance_iris_with_condition(iris_split_dataset_and_model):
         equal_condition_result(
             is_pass=True,
             name='The performance of weakest segment is greater than 80% of average model performance.',
-            details='Weakest segment score of 0.75 in comparison to average score of 0.92 based on scorer Accuracy.')
+            details='Found a segment with Accuracy score of 0.75 in comparison to an average score of 0.92 in sampled '
+                    'data.')
     ))
-    assert_that(len(segments), equal_to(6))
+    assert_that(segments, has_length(6))
     assert_that(max(segments.iloc[:, 0]), result.value['avg_score'])
     assert_that(segments.iloc[0, 0], close_to(0.75, 0))
     assert_that(segments.iloc[0, 1], equal_to('petal width (cm)'))
@@ -81,5 +82,5 @@ def test_segment_performance_iris_with_arguments(iris_split_dataset_and_model):
     segments = result.value['segments']
 
     # Assert
-    assert_that(len(segments), equal_to(6))
+    assert_that(segments, has_length(6))
     assert_that(segments.iloc[0, 0], close_to(result.value['avg_score'], 0))

@@ -9,6 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Common metrics to calculate performance on single samples."""
+from typing import Union
+
 import numpy as np
 import pandas as pd
 from sklearn import metrics
@@ -19,7 +21,8 @@ from deepchecks.core.errors import DeepchecksNotImplementedError
 from deepchecks.tabular.utils.task_type import TaskType
 
 
-def calculate_per_sample_loss(model, task_type: TaskType, dataset: Dataset, classes_index_order=None) -> pd.Series:
+def calculate_per_sample_loss(model, task_type: TaskType, dataset: Dataset,
+                              classes_index_order: Union[np.array, pd.Series, None] = None) -> pd.Series:
     """Calculate error per sample for a given model and a dataset."""
     if task_type == TaskType.REGRESSION:
         return pd.Series([metrics.mean_squared_error([y], [y_pred]) for y, y_pred in

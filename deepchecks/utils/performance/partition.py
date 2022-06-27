@@ -101,25 +101,26 @@ def intersect_two_filters(filter1: DeepchecksFilter, filter2: DeepchecksFilter) 
     return DeepchecksFilter(filter1.filter_functions + filter2.filter_functions)
 
 
-def partition_numeric_feature_around_segment(column: pd.Series, segment: List[float], max_segments: int = 5) -> np.ndarray:
+def partition_numeric_feature_around_segment(column: pd.Series, segment: List[float],
+                                             max_additional_segments: int = 4) -> np.ndarray:
     """Split given series into segments containing specified segment.
 
     Tries to create segments as balanced as possible in size.
     Parameters
     ----------
     column : pd.Series
-        Series to be partitioned
+        Series to be partitioned.
     segment : List[float]
-        Segment to be included in the partition
-    max_segments : int, default = 5
-        Maximum number of segments to be returned
+        Segment to be included in the partition.
+    max_additional_segments : int, default = 4
+        Maximum number of segments to be returned (not including the original segment).
     """
     data_below_segment, data_above_segment = column[column <= segment[0]], column[column > segment[1]]
     ratio = np.divide(len(data_below_segment), len(data_below_segment) + len(data_above_segment))
-    segments_below = numeric_segmentation_edges(data_below_segment, round(max_segments * ratio)) if len(
-        data_below_segment) > 0 else np.array([np.nanmin(column)])
-    segments_above = numeric_segmentation_edges(data_above_segment, round(max_segments * (1 - ratio))) if len(
-        data_above_segment) > 0 else np.array([np.nanmax(column)])
+    segments_below = numeric_segmentation_edges(data_below_segment, round(max_additional_segments * ratio)) \
+        if len(data_below_segment) > 0 else np.array([np.nanmin(column)])
+    segments_above = numeric_segmentation_edges(data_above_segment, round(max_additional_segments * (1 - ratio))) \
+        if len(data_above_segment) > 0 else np.array([np.nanmax(column)])
     return np.unique(np.concatenate([segments_below, segments_above], axis=None))
 
 

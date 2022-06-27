@@ -54,7 +54,7 @@ class _DummyModel:
         If true, before predicting validates that the received data samples have the same index as in original data.
     """
 
-    features: t.List[pd.DataFrame]
+    feature_df_list: t.List[pd.DataFrame]
     predictions: pd.DataFrame
     proba: pd.DataFrame
 
@@ -76,7 +76,7 @@ class _DummyModel:
                                      ' prefixes. To avoid that provide datasets with no common indexes '
                                      'or pass the model object instead of the predictions.')
 
-        features_df = []
+        feature_df_list = []
         predictions = []
         probas = []
 
@@ -84,7 +84,7 @@ class _DummyModel:
                                             [y_pred_train, y_pred_test],
                                             [y_proba_train, y_proba_test]):
             if dataset is not None:
-                features_df.append(dataset.features_columns)
+                feature_df_list.append(dataset.features_columns)
                 if y_pred is None and y_proba is not None:
                     y_pred = np.argmax(y_proba, axis=-1)
                 if y_pred is not None:
@@ -96,7 +96,7 @@ class _DummyModel:
 
         self.predictions = pd.concat(predictions, axis=0) if predictions else None
         self.probas = pd.concat(probas, axis=0) if probas else None
-        self.features_df = features_df
+        self.feature_df_list = feature_df_list
         self.validate_data_on_predict = validate_data_on_predict
 
         if self.predictions is not None:
@@ -108,7 +108,7 @@ class _DummyModel:
     def _validate_data(self, data: pd.DataFrame):
         # Validate only up to 100 samples
         data = data.sample(min(100, len(data)))
-        for feature_df in self.features_df:
+        for feature_df in self.feature_df_list:
             # If all indices are found than test for equality
             if set(data.index).issubset(set(feature_df.index)):
                 # If equal than data is valid, can return
