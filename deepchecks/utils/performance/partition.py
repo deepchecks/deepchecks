@@ -25,7 +25,7 @@ from deepchecks.utils.typing import Hashable
 
 
 __all__ = ['partition_column', 'DeepchecksFilter', 'DeepchecksBaseFilter', 'convert_tree_leaves_into_filters',
-           'intersect_two_filters']
+           'intersect_two_filters', 'partition_numeric_feature_around_segment']
 
 
 class DeepchecksFilter:
@@ -101,7 +101,29 @@ def intersect_two_filters(filter1: DeepchecksFilter, filter2: DeepchecksFilter) 
     return DeepchecksFilter(filter1.filter_functions + filter2.filter_functions)
 
 
-def numeric_segmentation_edges(column: pd.Series, max_segments: int) -> List[DeepchecksFilter]:
+def partition_numeric_feature_around_segment(column: pd.Series, segment: List[float], max_segments: int = 5) -> np.ndarray:
+    """Split given series into segments containing specified segment.
+
+    Tries to create segments as balanced as possible in size.
+    Parameters
+    ----------
+    column : pd.Series
+        Series to be partitioned
+    segment : List[float]
+        Segment to be included in the partition
+    max_segments : int, default = 5
+        Maximum number of segments to be returned
+    """
+    data_below_segment, data_above_segment = column[column <= segment[0]], column[column > segment[1]]
+    ratio = np.divide(len(data_below_segment), len(data_below_segment) + len(data_above_segment))
+    segments_below = numeric_segmentation_edges(data_below_segment, round(max_segments * ratio)) if len(
+        data_below_segment) > 0 else np.array([np.nanmin(column)])
+    segments_above = numeric_segmentation_edges(data_above_segment, round(max_segments * (1 - ratio))) if len(
+        data_above_segment) > 0 else np.array([np.nanmax(column)])
+    return np.unique(np.concatenate([segments_below, segments_above], axis=None))
+
+
+def numeric_segmentation_edges(column: pd.Series, max_segments: int) -> np.ndarray:
     """Split given series into values which are used to create quantiles segments.
 
     Tries to create `max_segments + 1` values (since segment is a range, so 2 values needed to create segment) but in
@@ -144,8 +166,8 @@ def largest_category_index_up_to_ratio(histogram, max_segments, max_cat_proporti
 def partition_column(
         dataset: Dataset,
         column_name: Hashable,
-        max_segments: int,
-        max_cat_proportions: float = 0.9
+        max_segments: int = 10,
+        max_cat_proportions: float = 0.9,
 ) -> List[DeepchecksFilter]:
     """Split column into segments.
 
@@ -160,7 +182,7 @@ def partition_column(
     dataset : Dataset
     column_name : Hashable
         column to partition.
-    max_segments : int
+    max_segments : int, default: 10
         maximum number of segments to split into.
     max_cat_proportions : float , default: 0.9
         (for categorical) ratio to aggregate largest values to show.

@@ -13,6 +13,7 @@ from typing import Callable, Dict, List, Union
 
 import numpy as np
 import pandas as pd
+import plotly.express as px
 import sklearn
 from category_encoders import TargetEncoder
 from packaging import version
@@ -21,11 +22,13 @@ from sklearn.tree import DecisionTreeRegressor
 
 from deepchecks import ConditionCategory, ConditionResult, Dataset
 from deepchecks.core import CheckResult
+from deepchecks.core.check_result import DisplayMap
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksProcessError
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.tabular.context import _DummyModel
 from deepchecks.tabular.utils.task_type import TaskType
-from deepchecks.utils.performance.partition import convert_tree_leaves_into_filters
+from deepchecks.utils.performance.partition import convert_tree_leaves_into_filters, \
+    partition_numeric_feature_around_segment
 from deepchecks.utils.single_sample_metrics import calculate_per_sample_loss
 from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.utils.typing import Hashable
@@ -57,6 +60,8 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
         number of samples to use for this check.
     n_to_show : int , default: 3
         number of segments with the weakest performance to show.
+    categorical_aggregation_threshold : float , default: 0.05
+        Categories with appearance ratio below threshold will be merged into "Other" category.
     random_state : int, default: 42
         random seed for all check internals.
     """
@@ -71,6 +76,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
             loss_per_sample: Union[np.array, pd.Series, None] = None,
             classes_index_order: Union[np.array, pd.Series, None] = None,
             n_samples: int = 10_000,
+            categorical_aggregation_threshold: float = 0.05,
             n_to_show: int = 3,
             random_state: int = 42,
             **kwargs
@@ -86,6 +92,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
         self.loss_per_sample = loss_per_sample
         self.classes_index_order = classes_index_order
         self.user_scorer = alternative_scorer if alternative_scorer else None
+        self.categorical_aggregation_threshold = categorical_aggregation_threshold
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
@@ -105,39 +112,106 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
             loss_per_sample = calculate_per_sample_loss(context.model, context.task_type, dataset,
                                                         self.classes_index_order)
         if len(dataset.cat_features) > 0:
+            dataset.mask_rare_categories(threshold=self.categorical_aggregation_threshold)
             t_encoder = TargetEncoder(cols=dataset.cat_features)
             df_encoded = t_encoder.fit_transform(dataset.features_columns, dataset.label_col)
         else:
             df_encoded = dataset.features_columns
-        df_encoded = df_encoded.fillna(df_encoded.mean(axis=0))
-        encoded_dataset = Dataset(df_encoded, cat_features=[], label=dataset.label_col)
+        df_encoded = df_encoded.fillna(df_encoded.mode(axis=0))
+        encoded_dataset = Dataset(df_encoded, cat_features=dataset.cat_features, label=dataset.label_col)
         dummy_model = _DummyModel(test=encoded_dataset, y_pred_test=predictions, y_proba_test=y_proba,
                                   validate_data_on_predict=False)
-        feature_rank = context.feature_importance.sort_values(
-            ascending=False).keys() if context.feature_importance is not None else np.asarray(dataset.features)
+        feature_rank = context.features_importance.sort_values(
+            ascending=False).keys() if context.features_importance is not None else np.asarray(dataset.features)
 
         scorer = context.get_single_scorer(self.user_scorer)
         weak_segments = self._weak_segments_search(dummy_model, encoded_dataset, feature_rank,
                                                    loss_per_sample, scorer)
+        if len(weak_segments) == 0:
+            raise DeepchecksProcessError("Unable to train a error model to find weak segments.")
         avg_score = round(scorer(dummy_model, encoded_dataset), 3)
 
+        display = self._create_heatmap_display(dummy_model, encoded_dataset, weak_segments, avg_score,
+                                               scorer) if context.with_display else []
+
         return CheckResult({'segments': weak_segments, 'avg_score': avg_score, 'scorer_name': scorer.name},
-                           display=[weak_segments.iloc[:self.n_to_show, :]])
+                           display=[DisplayMap(display)])
+
+    def _create_heatmap_display(self, dummy_model, encoded_dataset, weak_segments,avg_score, scorer):
+        display_tabs = {}
+        data = encoded_dataset.data
+        idx = -1
+        while len(display_tabs.keys()) < self.n_to_show and idx + 1 < len(weak_segments):
+            idx += 1
+            segment = weak_segments.iloc[idx, :]
+            feature1, feature2 = data[segment['Feature1']], data[segment['Feature2']]
+            segments_f1 = partition_numeric_feature_around_segment(feature1, segment['Feature1 range'])
+            segments_f2 = partition_numeric_feature_around_segment(feature2, segment['Feature2 range'])
+            if len(segments_f1) <= 2 or len(segments_f2) <= 2:
+                continue
+            scores = np.empty((len(segments_f1) - 1, len(segments_f2) - 1), dtype=float)
+            counts = np.empty((len(segments_f1) - 1, len(segments_f2) - 1), dtype=int)
+            for f1_idx in range(len(segments_f1) - 1):
+                for f2_idx in range(len(segments_f2) - 1):
+                    segment_data = data[
+                        np.asarray(feature1.between(segments_f1[f1_idx], segments_f1[f1_idx + 1])) * np.asarray(
+                            feature2.between(segments_f2[f2_idx], segments_f2[f2_idx + 1]))]
+                    if segment_data.empty:
+                        scores[f1_idx, f2_idx] = np.NaN
+                        counts[f1_idx, f2_idx] = 0
+                    else:
+                        scores[f1_idx, f2_idx] = scorer.run_on_data_and_label(dummy_model, segment_data,
+                                                                              segment_data[encoded_dataset.label_name])
+                        counts[f1_idx, f2_idx] = len(segment_data)
+
+            x_labels = [f'[{format_number(lower)}, {format_number(upper)}]' for lower, upper in
+                        zip(segments_f1[:-1], segments_f1[1:])]
+            y_labels = [f'[{format_number(lower)}, {format_number(upper)}]' for lower, upper in
+                        zip(segments_f2[:-1], segments_f2[1:])]
+            scores_text = [[0] * scores.shape[1] for _ in range(scores.shape[0])]
+            counts = np.divide(counts, len(data))
+            for i in range(len(y_labels)):
+                for j in range(len(x_labels)):
+                    score = scores[i, j]
+                    if not np.isnan(score):
+                        scores_text[i][j] = f'{format_number(score)}\n({format_percent(counts[i, j])})'
+                    elif counts[i, j] == 0:
+                        scores_text[i][j] = ''
+                    else:
+                        scores_text[i][j] = f'{score}\n({format_percent(counts[i, j])})'
+
+            # Plotly FigureWidget have bug with numpy nan, so replacing with python None
+            scores = scores.astype(np.object)
+            scores[np.isnan(scores.astype(np.float_))] = None
+
+            labels = dict(x=segment["Feature2"], y=segment["Feature1"], color=f'{scorer.name} score')
+            fig = px.imshow(scores, x=x_labels, y=y_labels, labels=labels, color_continuous_scale='rdylgn')
+            fig.update_traces(text=scores_text, texttemplate='%{text}')
+            fig.update_layout(
+                title=f'{scorer.name} score (percent of data) {segment["Feature1"]} vs {segment["Feature2"]}',
+                height=600
+            )
+            msg = f'Average {scorer.name} score on data sampled is {format_number(avg_score)}'
+            display_tabs[f'{segment["Feature1"]} vs {segment["Feature2"]}'] = [fig, msg]
+
+        return display_tabs
 
     def _weak_segments_search(self, dummy_model, encoded_dataset, feature_rank_for_search, loss_per_sample, scorer):
         """Search for weak segments based on scorer."""
         weak_segments = pd.DataFrame(
-            columns=[f'segment_score_{scorer.name}', 'feature1', 'feature1_range', 'feature2', 'feature2_range'])
+            columns=[f'{scorer.name} score', 'Feature1', 'Feature1 range', 'Feature2', 'Feature2 range'])
         for i in range(min(len(feature_rank_for_search), self.n_top_features)):
             for j in range(i + 1, min(len(feature_rank_for_search), self.n_top_features)):
                 feature1, feature2 = feature_rank_for_search[[i, j]]
                 weak_segment_score, weak_segment_filter = self._find_weak_segment(dummy_model, encoded_dataset,
                                                                                   [feature1, feature2], scorer,
                                                                                   loss_per_sample)
+                if weak_segment_score is None:
+                    continue
                 weak_segments.loc[len(weak_segments)] = [round(weak_segment_score, 3), feature1,
                                                          np.around(weak_segment_filter.filters[feature1], 3), feature2,
                                                          np.around(weak_segment_filter.filters[feature2], 3)]
-        return weak_segments.sort_values(f'segment_score_{scorer.name}')
+        return weak_segments.sort_values(f'{scorer.name} score')
 
     def _find_weak_segment(self, dummy_model, dataset, features_for_segment, scorer, loss_per_sample):
         """Find weak segment based on scorer for specified features."""
@@ -170,8 +244,8 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
         try:
             random_searcher.fit(dataset.features_columns[features_for_segment], loss_per_sample)
             segment_score, segment_filter = get_worst_leaf_filter(random_searcher.best_estimator_.tree_)
-        except Exception as e:
-            raise DeepchecksProcessError('Unable to train meaningful error segmentation model') from e
+        except Exception:
+            return None,None
 
         if features_for_segment[0] not in segment_filter.filters.keys():
             segment_filter.filters[features_for_segment[0]] = [np.NINF, np.inf]
