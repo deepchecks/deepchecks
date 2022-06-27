@@ -77,5 +77,6 @@ def test_other_feature(kiss_dataset_and_model):
     result_value = check.run(train, clf).value
     # Assert
     assert_that(result_value,  equal_to(
-        {'binary_feature': 'categorical feature', 'string_feature': 'other feature', 'numeric_label': 'label'}
+        {'binary_feature': 'categorical feature', 'string_feature': 'other feature',
+         'numeric_feature': 'numerical feature', 'numeric_label': 'label'}
         ))

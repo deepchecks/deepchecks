@@ -34,6 +34,16 @@ result = ImageSegmentPerformance().run(coco_data, model)
 result
 
 #%%
+# If you have a GPU, you can speed up this check by passing it as an argument to .run() as device=<your GPU>
+#
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  result.show_in_window()
+#%%
+# The result will be displayed in a new window.
+
+
+#%%
 # Observe the check’s output
 # --------------------------
 # The check segmented the data by different properties and calculated the metrics for each
@@ -54,7 +64,8 @@ print(f'brightness bins: {result.value["Brightness"]}')
 # worse than the mean - which might indicate a problem.
 
 check = ImageSegmentPerformance().add_condition_score_from_mean_ratio_greater_than(0.5)
-check.run(coco_data, model)
+result = check.run(coco_data, model)
+result
 
 #%%
 # In this case the condition identified under-performing segments in the
