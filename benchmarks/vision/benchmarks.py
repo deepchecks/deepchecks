@@ -82,6 +82,7 @@ def setup_coco() -> Context:
 
 
 class BenchmarkVision:
+    timeout = 120
     params = ['coco', 'mnist']
     param_names = ['dataset_name']
 
@@ -90,6 +91,7 @@ class BenchmarkVision:
         cache['mnist'] = setup_mnist()
         cache['coco'] = setup_coco()
         return cache
+    setup_cache.timeout = 300
 
 
 for name, check_class in inspect.getmembers(checks):

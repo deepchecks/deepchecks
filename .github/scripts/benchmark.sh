@@ -23,7 +23,7 @@ run_asv () {
     $PIP_PATH install -e .
     git show --no-patch --format="%H (%s)"
     configure_asv
-    $ENV_PATH/bin/asv run -E existing --set-commit-hash $(git rev-parse HEAD) -e
+    $ENV_PATH/bin/asv run -E existing --set-commit-hash $(git rev-parse HEAD)
 }
 
 $PIP_PATH install asv
