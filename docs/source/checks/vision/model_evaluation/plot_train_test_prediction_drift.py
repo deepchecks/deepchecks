@@ -85,6 +85,15 @@ check = TrainTestPredictionDrift()
 check.run(train_ds, test_ds, model)
 
 #%%
+# If you have a GPU, you can speed up this check by passing it as an argument to .run() as device=<your GPU>
+#
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  check.run(train_ds, test_ds, model).show_in_window()
+#%%
+# The result will be displayed in a new window.
+
+#%%
 # Understanding the results
 # -------------------------
 # We can see there is almost no drift between the train & test labels. This means the
@@ -146,12 +155,14 @@ from deepchecks.vision.datasets.classification.mnist import MNISTData
 mod_train_ds = MNISTData(mod_train_loader)
 mod_test_ds = MNISTData(mod_test_loader)
 
+#%%
 # Run the check
 # -------------
 
 check = TrainTestPredictionDrift()
 check.run(mod_train_ds, mod_test_ds, model)
 
+#%%
 # Add a condition
 # ---------------
 # We could also add a condition to the check to alert us to changes in the prediction
