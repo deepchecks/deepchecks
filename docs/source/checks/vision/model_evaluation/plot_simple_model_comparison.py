@@ -70,6 +70,15 @@ result = check.run(train_ds, test_ds, mnist_model)
 result
 
 #%%
+# If you have a GPU, you can speed up this check by passing it as an argument to .run() as device=<your GPU>
+#
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  result.show_in_window()
+#%%
+# The result will be displayed in a new window.
+
+#%%
 # Observe the check's output
 # --------------------------
 # We can see in the results that the check calculates the score for each class

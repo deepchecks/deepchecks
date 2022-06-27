@@ -70,7 +70,15 @@ mnist_data_test = load_dataset(train=False, batch_size=64, object_type='VisionDa
 from deepchecks.vision.checks import HeatmapComparison
 
 check = HeatmapComparison()
-check.run(mnist_data_train, mnist_data_test)
+result = check.run(mnist_data_train, mnist_data_test)
+result
+
+#%%
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  result.show_in_window()
+#%%
+# The result will be displayed in a new window.
 
 #%%
 # Run the Check on an Object Detection Task (Coco)
@@ -84,7 +92,8 @@ test_ds = load_dataset(train=False, object_type='VisionData')
 #%%
 
 check = HeatmapComparison()
-check.run(train_ds, test_ds)
+result = check.run(train_ds, test_ds)
+result
 
 #%%
 # Limit to Specific Classes
@@ -93,7 +102,8 @@ check.run(train_ds, test_ds)
 # of classes. We'll use that to inspect only objects labeled as human (class_id 0)
 
 check = HeatmapComparison(classes_to_display=['person'])
-check.run(train_ds, test_ds)
+result = check.run(train_ds, test_ds)
+result
 
 #%%
 # We can see a significant increased abundance of humans in the test data, located
