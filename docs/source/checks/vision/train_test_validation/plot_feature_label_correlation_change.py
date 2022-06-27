@@ -158,12 +158,13 @@ test_ds.batch_to_images = mnist_batch_to_images_with_bias_mod(2)
 # -----------------
 
 check = FeatureLabelCorrelationChange()
-check.run(train_ds, test_ds)
+result = check.run(train_ds, test_ds)
+result
 
 #%%
 # To display the results in an IDE like PyCharm, you can use the following code:
 
-#  check.run(train_ds, test_ds).show_in_window()
+#  result.show_in_window()
 #%%
 # The result will be displayed in a new window.
 
@@ -184,7 +185,8 @@ test_ds = load_dataset(train=False, object_type='VisionData')
 #%%
 
 check = FeatureLabelCorrelationChange(per_class=False)
-check.run(train_ds, test_ds)
+result = check.run(train_ds, test_ds)
+result
 
 #%%
 # Insert bias
@@ -216,7 +218,8 @@ test_ds.batch_to_images = coco_batch_to_images_with_bias_mod(2)
 # -----------------
 
 check = FeatureLabelCorrelationChange(per_class=False)
-check.run(train_ds, test_ds)
+result = check.run(train_ds, test_ds)
+result
 
 #%%
 # We can see that the check detected the bias we inserted, and that the brightness
