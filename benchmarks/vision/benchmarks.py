@@ -77,9 +77,6 @@ class BenchmarkVision:
     timeout = 120
     params = ['mnist', 'coco']
     param_names = ['dataset_name']
-    repeat = (1, 3, 10)
-    warmup_time = 0
-    rounds = 1
 
     def setup_cache(self):
         cache = {}
@@ -92,4 +89,4 @@ for name, check_class in inspect.getmembers(checks):
     if inspect.isclass(check_class):
         run_fn = run_check_fn(check_class)
         setattr(BenchmarkVision, f'time_{name}', run_fn)
-        # setattr(BenchmarkVision, f'peakmem_{name}', run_fn)
+        setattr(BenchmarkVision, f'peakmem_{name}', run_fn)
