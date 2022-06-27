@@ -23,14 +23,16 @@ from deepchecks.vision.vision_data import VisionData
 
 
 # need this code so pickle won't fail on the coco model (asv using pickle on the cache for some reason)
-logger = logging.getLogger('yolov5')
-logger.disabled = True
+logging.getLogger('yolov5').disabled = True
 _ = torch.hub.load('ultralytics/yolov5:v6.1', 'yolov5s',
                         pretrained=True,
                         verbose=False,
                         device='cpu')
 sys.path.append('ultralytics_yolov5_v6.1/models')
 
+# logging.getLogger('deepchecks').setLevel(logging.ERROR)
+
+device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
 def create_static_predictions(train: VisionData, test: VisionData, model):
     static_preds = []
@@ -38,7 +40,7 @@ def create_static_predictions(train: VisionData, test: VisionData, model):
         if vision_data is not None:
             static_pred = {}
             for i, batch in enumerate(vision_data):
-                predictions = vision_data.infer_on_batch(batch, model, 'cpu')
+                predictions = vision_data.infer_on_batch(batch, model, device)
                 indexes = list(vision_data.data_loader.batch_sampler)[i]
                 static_pred.update(dict(zip(indexes, predictions)))
         else:
@@ -54,12 +56,12 @@ def run_check_fn(check_class) -> Callable:
         check = check_class()
         try:
             if isinstance(check, SingleDatasetCheck):
-                check.run(train_ds, train_predictions=train_pred)
+                check.run(train_ds, train_predictions=train_pred, device=device)
             elif isinstance(check, TrainTestCheck):
                 check.run(train_ds, test_ds, train_predictions=train_pred,
-                          test_predictions=test_pred)
+                          test_predictions=test_pred, device=device)
             elif isinstance(check, ModelOnlyCheck):
-                check.run(model)
+                check.run(model, device=device)
         except DeepchecksBaseError:
             pass
     return run
