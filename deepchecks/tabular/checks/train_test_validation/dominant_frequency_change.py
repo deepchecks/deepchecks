@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """module contains Dominant Frequency Change check."""
+import warnings
 from typing import Dict, Optional
 
 import numpy as np
@@ -27,6 +28,9 @@ __all__ = ['DominantFrequencyChange']
 
 class DominantFrequencyChange(TrainTestCheck):
     """Check if dominant values have increased significantly between test and reference data.
+
+    .. deprecated:: 0.8.1
+        The DominantFrequencyChange check is deprecated and will be removed in the 0.11 version.
 
     Parameters
     ----------
@@ -49,6 +53,9 @@ class DominantFrequencyChange(TrainTestCheck):
         self.dominance_ratio = dominance_ratio
         self.ratio_change_thres = ratio_change_thres
         self.n_top_columns = n_top_columns
+
+        warnings.warn('The DominantFrequencyChange check is deprecated and will be removed in the 0.11 version.',
+                      DeprecationWarning)
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check.
