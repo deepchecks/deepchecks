@@ -36,7 +36,7 @@ class FnTpFn(Metric, MetricMixin):
     def __init__(self, *args, iou_thres: float = 0.5, confidence_thres: float = 0.5, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self._evals = defaultdict(lambda: {"scores": [], "matched": [], "NP": 0})
+        self._evals = defaultdict(lambda: {"matched": [], "NP": 0})
 
         self.iou_thres = iou_thres
         self.confidence_thres = confidence_thres
@@ -46,7 +46,7 @@ class FnTpFn(Metric, MetricMixin):
     def reset(self):
         """Reset metric state."""
         super().reset()
-        self._evals = defaultdict(lambda: {"scores": [], "matched": [], "NP": 0})
+        self._evals = defaultdict(lambda: {"matched": [], "NP": 0})
         self._i = 0
 
     @reinit__is_reduced
@@ -72,7 +72,7 @@ class FnTpFn(Metric, MetricMixin):
         res = -np.ones(max_class + 1)
         for class_id in sorted_classes:
             ev = self._evals[class_id]
-            res[class_id] = self._compute_fp_tp_fn(np.array(ev["scores"]), np.array(ev["matched"]), ev["NP"])
+            res[class_id] = self._compute_fp_tp_fn(np.array(ev["matched"]), ev["NP"])
         return res
 
     def _group_detections(self, detected, ground_truth):
@@ -82,14 +82,13 @@ class FnTpFn(Metric, MetricMixin):
         ious = {k: self.calc_pairwise_ious(v["detected"], v["ground_truth"]) for k, v in bb_info.items()}
 
         for class_id in ious.keys():
-            confidences, matched, n_positives = self._evaluate_image(
+            matched, n_positives = self._evaluate_image(
                 self.get_confidences(bb_info[class_id]["detected"]),
                 bb_info[class_id]["ground_truth"],
                 ious[class_id]
             )
 
             acc = self._evals[class_id]
-            acc["scores"] += confidences
             acc["matched"] += matched
             acc["NP"] += n_positives
 
@@ -106,7 +105,7 @@ class FnTpFn(Metric, MetricMixin):
         detection_matches = self._get_best_matches(ground_truths, ious)
         matched = [d_idx in detection_matches for d_idx in range(len(ious))]
 
-        return confidences, matched, len(ground_truths)
+        return matched, len(ground_truths)
 
     def _get_best_matches(self, ground_truths: t.List, ious: np.ndarray) -> t.Dict[int, int]:
         ground_truth_matched = {}
@@ -129,23 +128,26 @@ class FnTpFn(Metric, MetricMixin):
                 ground_truth_matched[best_match] = d_idx
         return detection_matches
 
-    def _compute_fp_tp_fn(self, scores: t.List[float], matched: t.List[bool], n_positives: int):
+    def _compute_fp_tp_fn(self, matched: t.List[bool], n_positives: int):
         if n_positives == 0:
-            return -1, -1, -1
-
-        # sort in descending score order
-        inds = np.argsort(-scores, kind="mergesort")
-
-        matched = matched[inds]
+            return -1, -1, -1, n_positives
 
         if len(matched):
-            tp = np.cumsum(matched)
-            fp = np.cumsum(~matched)
-            rc = tp / n_positives
-            fn = (1 - rc) * tp / rc
+            tp = np.sum(matched)
+            fp = np.sum(~matched)
 
-            return tp, fp, fn
-        return 0, 0, 0
+            if n_positives == 0:
+                fn = -1
+            else:
+                if tp == 0:
+                    fn = n_positives - fp
+                else:
+                    rc = tp / n_positives
+                    fn = (1 - rc) * tp / rc
+
+            return tp, fp, fn, n_positives
+
+        return 0, 0, n_positives, n_positives
 
 
 class ObjectDetectionFnTpFn(FnTpFn, ObjectDetectionMetricMixin):
