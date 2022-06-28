@@ -9,9 +9,10 @@
 # ----------------------------------------------------------------------------
 #
 """module contains Data Duplicates check."""
-from typing import List, TypedDict, Union
+from typing import List, Union
 
 import pandas as pd
+from typing_extensions import TypedDict
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
