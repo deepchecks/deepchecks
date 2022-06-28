@@ -14,8 +14,8 @@ import warnings
 
 import pytest
 
-from deepchecks.tabular.checks import (TrainTestFeatureDrift, TrainTestLabelDrift, TrainTestPredictionDrift,
-                                       WholeDatasetDrift)
+from deepchecks.tabular.checks import (DominantFrequencyChange, TrainTestFeatureDrift, TrainTestLabelDrift,
+                                       TrainTestPredictionDrift, WholeDatasetDrift)
 
 
 def test_deprecation_warning_label_drift():
@@ -60,3 +60,9 @@ def test_deprecation_warning_whole_dataset_drift():
     with warnings.catch_warnings():
         warnings.simplefilter('error')
         _ = WholeDatasetDrift()
+
+
+def test_deprecation_dominant_freq_change_warning():
+    # Test that warning is raised when max_num_categories has value:
+    with pytest.warns(DeprecationWarning, match='The DominantFrequencyChange check is deprecated'):
+        _ = DominantFrequencyChange()

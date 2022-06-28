@@ -82,7 +82,17 @@ model = load_model()
 # ---------------------------------------------
 
 check = TrainTestPredictionDrift()
-check.run(train_ds, test_ds, model)
+result = check.run(train_ds, test_ds, model)
+result
+
+#%%
+# If you have a GPU, you can speed up this check by passing it as an argument to .run() as device=<your GPU>
+#
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  result.show_in_window()
+#%%
+# The result will be displayed in a new window.
 
 #%%
 # Understanding the results
@@ -146,19 +156,23 @@ from deepchecks.vision.datasets.classification.mnist import MNISTData
 mod_train_ds = MNISTData(mod_train_loader)
 mod_test_ds = MNISTData(mod_test_loader)
 
+#%%
 # Run the check
 # -------------
 
 check = TrainTestPredictionDrift()
-check.run(mod_train_ds, mod_test_ds, model)
+result = check.run(mod_train_ds, mod_test_ds, model)
+result
 
+#%%
 # Add a condition
 # ---------------
 # We could also add a condition to the check to alert us to changes in the prediction
 # distribution, such as the one that occurred here.
 
 check = TrainTestPredictionDrift().add_condition_drift_score_less_than()
-check.run(mod_train_ds, mod_test_ds, model)
+result = check.run(mod_train_ds, mod_test_ds, model)
+result
 
 #%%
 # As we can see, the condition alerts us to the present of drift in the prediction.
@@ -176,7 +190,8 @@ check.run(mod_train_ds, mod_test_ds, model)
 # But how does this affect the performance of the model?
 # ------------------------------------------------------
 
-ClassPerformance().run(mod_train_ds, mod_test_ds, model)
+result = ClassPerformance().run(mod_train_ds, mod_test_ds, model)
+result
 
 #%%
 # Inferring the results
@@ -198,7 +213,8 @@ model = load_model(pretrained=True)
 #%%
 
 check = TrainTestPredictionDrift()
-check.run(train_ds, test_ds, model)
+result = check.run(train_ds, test_ds, model)
+result
 
 #%%
 # Prediction drift is detected!
