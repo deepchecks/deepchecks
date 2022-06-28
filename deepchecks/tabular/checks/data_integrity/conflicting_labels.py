@@ -65,11 +65,11 @@ class ConflictingLabels(SingleDatasetCheck):
         dataset = context.get_data_by_kind(dataset_kind)
         context.assert_classification_task()
         dataset.assert_label()
-        features = dataset.features
-        label_name = dataset.label_name
         with_display = context.with_display
 
         dataset = dataset.select(self.columns, self.ignore_columns, keep_label=True)
+        features = dataset.features
+        label_name = dataset.label_name
 
         # HACK: pandas have bug with groupby on category dtypes, so until it fixed, change dtypes manually
         df = dataset.data
