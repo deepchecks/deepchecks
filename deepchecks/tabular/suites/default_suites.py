@@ -117,6 +117,10 @@ def data_integrity(columns: Union[Hashable, List[Hashable]] = None,
     >>> suite = data_integrity(columns=['a', 'b', 'c'], n_samples=1_000_000)
     >>> result = suite.run()
     >>> result.show()
+
+    See Also
+    --------
+    :ref:`quick_data_integrity`
     """
 
     default_kwargs = {'columns': columns, 'ignore_columns': ignore_columns, 'n_top_columns': n_top_columns,
@@ -225,6 +229,10 @@ def train_test_validation(columns: Union[Hashable, List[Hashable]] = None,
     >>> suite = train_test_validation(columns=['a', 'b', 'c'], n_samples=1_000_000)
     >>> result = suite.run()
     >>> result.show()
+
+    See Also
+    --------
+    :ref:`quick_train_test_validation`
     """
 
     default_kwargs = {'columns': columns, 'ignore_columns': ignore_columns, 'n_top_columns': n_top_columns,
@@ -323,6 +331,10 @@ def model_evaluation(alternative_scorers: Dict[str, Callable] = None,
     >>> suite = model_evaluation(columns=['a', 'b', 'c'], n_samples=1_000_000)
     >>> result = suite.run()
     >>> result.show()
+
+    See Also
+    --------
+    :ref:`quick_full_suite`
     """
 
     default_kwargs = {'alternative_scorers': alternative_scorers, 'columns': columns, 'ignore_columns': ignore_columns,
