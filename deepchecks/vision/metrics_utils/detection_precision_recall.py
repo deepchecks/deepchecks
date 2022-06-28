@@ -10,16 +10,15 @@
 #
 """Module for calculating detection precision and recall."""
 import warnings
-from abc import abstractmethod
 from collections import defaultdict
-from typing import Dict, List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import torch
 from ignite.metrics import Metric
 from ignite.metrics.metric import reinit__is_reduced, sync_all_reduce
 
-from deepchecks.vision.metrics_utils.metric_mixin import MetricMixin
+from deepchecks.vision.metrics_utils.metric_mixin import MetricMixin, ObjectDetectionMetricMixin
 
 
 def _dict_conc(test_list):
@@ -336,3 +335,7 @@ class AveragePrecisionRecall(Metric, MetricMixin):
             if zeroed_negative:
                 res = res.clip(min=0)
             return res[0][0]
+
+
+class ObjectDetectionAveragePrecision(AveragePrecisionRecall, ObjectDetectionMetricMixin):
+    """We are expecting to receive the predictions in the following format: [x, y, w, h, confidence, label]."""
