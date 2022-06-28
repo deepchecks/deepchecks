@@ -15,7 +15,6 @@ It is possible to customize these suites by editing the checks and conditions in
 """
 import warnings
 
-from deepchecks.utils.decorators import ParametersCombiner
 from deepchecks.vision import Suite
 from deepchecks.vision.checks import (ClassPerformance, ConfusionMatrixReport, FeatureLabelCorrelationChange,
                                       HeatmapComparison, ImageDatasetDrift, ImagePropertyDrift, ImagePropertyOutliers,
@@ -26,26 +25,9 @@ from deepchecks.vision.checks import (ClassPerformance, ConfusionMatrixReport, F
 __all__ = ['train_test_validation', 'model_evaluation', 'full_suite', 'integrity_validation', 'data_integrity']
 
 
-train_test_validation_kwargs_doc = ParametersCombiner(
-    NewLabels,
-    SimilarImageLeakage,
-    HeatmapComparison,
-    TrainTestLabelDrift,
-    ImagePropertyDrift,
-    ImageDatasetDrift,
-    FeatureLabelCorrelationChange,
-)
-
-
-@train_test_validation_kwargs_doc
 def train_test_validation(**kwargs) -> Suite:
     """Create a suite that is meant to validate correctness of train-test split, including integrity, \
-    distribution and leakage checks.
-
-    Parameters
-    ----------
-    {combined_parameters:indent}
-    """
+    distribution and leakage checks."""
     return Suite(
         'Train Test Validation Suite',
         NewLabels(**kwargs).add_condition_new_label_ratio_less_or_equal(),
@@ -58,26 +40,8 @@ def train_test_validation(**kwargs) -> Suite:
     )
 
 
-model_evaluation_kwargs_doc = ParametersCombiner(
-    ClassPerformance,
-    MeanAveragePrecisionReport,
-    MeanAverageRecallReport,
-    TrainTestPredictionDrift,
-    SimpleModelComparison,
-    ConfusionMatrixReport,
-    ImageSegmentPerformance,
-    ModelErrorAnalysis
-)
-
-
-@model_evaluation_kwargs_doc
 def model_evaluation(**kwargs) -> Suite:
-    """Create a suite that is meant to test model performance and overfit.
-
-    Parameters
-    ----------
-    {combined_parameters:indent}
-    """
+    """Create a suite that is meant to test model performance and overfit."""
     return Suite(
         'Model Evaluation Suite',
         ClassPerformance(**kwargs).add_condition_train_test_relative_degradation_less_than(),
@@ -91,23 +55,12 @@ def model_evaluation(**kwargs) -> Suite:
     )
 
 
-data_integrity_kwargs_doc = ParametersCombiner(
-    ImagePropertyOutliers,
-    LabelPropertyOutliers
-)
-
-
-@data_integrity_kwargs_doc
 def integrity_validation(**kwargs) -> Suite:
     """Create a suite that is meant to validate integrity of the data.
 
     .. deprecated:: 0.7.0
             `integrity_validation` is deprecated and will be removed in deepchecks 0.8 version, it is replaced by
             `data_integrity` suite.
-
-    Parameters
-    ----------
-    {combined_parameters:indent}
     """
     warnings.warn(
         'the integrity_validation suite is deprecated, use the data_integrity suite instead',
@@ -116,14 +69,8 @@ def integrity_validation(**kwargs) -> Suite:
     return data_integrity(**kwargs)
 
 
-@data_integrity_kwargs_doc
 def data_integrity(**kwargs) -> Suite:
-    """Create a suite that includes integrity checks.
-
-    Parameters
-    ----------
-    {combined_parameters:indent}
-    """
+    """Create a suite that includes integrity checks."""
     return Suite(
         'Data Integrity Suite',
         ImagePropertyOutliers(**kwargs),
@@ -131,21 +78,8 @@ def data_integrity(**kwargs) -> Suite:
     )
 
 
-full_suite_kwargs_doc = ParametersCombiner(
-    *train_test_validation_kwargs_doc.routines,
-    *model_evaluation_kwargs_doc.routines,
-    *data_integrity_kwargs_doc.routines,
-)
-
-
-@full_suite_kwargs_doc
 def full_suite(**kwargs) -> Suite:
-    """Create a suite that includes many of the implemented checks, for a quick overview of your model and data.
-
-    Parameters
-    ----------
-    {combined_parameters:indent}
-    """
+    """Create a suite that includes many of the implemented checks, for a quick overview of your model and data."""
     return Suite(
         'Full Suite',
         model_evaluation(**kwargs),
