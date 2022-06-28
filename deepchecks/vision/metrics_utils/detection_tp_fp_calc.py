@@ -20,7 +20,7 @@ from ignite.metrics.metric import reinit__is_reduced, sync_all_reduce
 from deepchecks.vision.metrics_utils.metric_mixin import MetricMixin, ObjectDetectionMetricMixin
 
 
-class FnTpFn(Metric, MetricMixin):
+class TpFp(Metric, MetricMixin):
     """Abstract class to calculate average precision and recall for various vision tasks.
 
     Parameters
@@ -128,27 +128,12 @@ class FnTpFn(Metric, MetricMixin):
                 ground_truth_matched[best_match] = d_idx
         return detection_matches
 
-    def _compute_fp_tp_fn(self, matched: t.List[bool], n_positives: int):
-        if n_positives == 0:
-            return -1, -1, -1, n_positives
+    def _compute_fp_tp(self, matched: t.List[bool], n_positives: int):
+        tp = np.sum(matched)
+        fp = np.sum(~matched)
 
-        if len(matched):
-            tp = np.sum(matched)
-            fp = np.sum(~matched)
-
-            if n_positives == 0:
-                fn = -1
-            else:
-                if tp == 0:
-                    fn = n_positives - fp
-                else:
-                    rc = tp / n_positives
-                    fn = (1 - rc) * tp / rc
-
-            return tp, fp, fn, n_positives
-
-        return 0, 0, n_positives, n_positives
+        return tp, fp, n_positives
 
 
-class ObjectDetectionFnTpFn(FnTpFn, ObjectDetectionMetricMixin):
+class ObjectDetectionTpFp(TpFp, ObjectDetectionMetricMixin):
     """We are expecting to receive the predictions in the following format: [x, y, w, h, confidence, label]."""
