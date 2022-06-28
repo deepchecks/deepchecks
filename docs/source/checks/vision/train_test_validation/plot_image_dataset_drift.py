@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Image Dataset Drift
-*********************
+*******************
 
 This notebooks provides an overview for using and understanding the image dataset
 drift check, used to detect drift in simple image properties between train and
@@ -16,7 +16,7 @@ test datasets.
 * `Define a Condition <#define-a-condition>`__
 
 What Is Image Dataset Drift?
-------------------------------------
+----------------------------
 
 Drift is simply a change in the distribution of data over time, and it is
 also one of the top reasons why machine learning model's performance degrades
@@ -36,13 +36,14 @@ Other methods to detect drift include :ref:`univariate measures <drift_detection
 which is used in other checks, such as :doc:`Image Property Drift check </checks_gallery/vision/train_test_validation/plot_image_property_drift>`.
 
 Using Properties to Detect Image Drift
---------------------------------------------
+--------------------------------------
 In computer vision specifically, we can't measure drift on the images directly, as the individual pixel has little
 value when estimating drift. Therefore, we calculate drift on different :doc:`properties of the image</user-guide/vision/vision_properties>`,
 on which we can directly measure drift.
 
 Which Image Properties Are Used?
-------------------------------------
+--------------------------------
+
 ==============================  ==========
 Property name                   What is it
 ==============================  ==========
@@ -129,7 +130,7 @@ result
 
 #%%
 # Define a Condition
-# -------------
+# ------------------
 # Now, we will define a condition that the maximum drift score is less than a certain threshold. In this example we will
 # set the threshold at 0.2.
 # In order to demonstrate the condition, we will use again the original (not drifted) train dataset.

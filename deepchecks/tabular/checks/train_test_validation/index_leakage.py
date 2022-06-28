@@ -24,13 +24,13 @@ class IndexTrainTestLeakage(TrainTestCheck):
 
     Parameters
     ----------
-    n_index_to_show : int , default: 5
+    n_to_show : int , default: 5
         Number of common indexes to show.
     """
 
-    def __init__(self, n_index_to_show: int = 5, **kwargs):
+    def __init__(self, n_to_show: int = 5, **kwargs):
         super().__init__(**kwargs)
-        self.n_index_to_show = n_index_to_show
+        self.n_index_to_show = n_to_show
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check.

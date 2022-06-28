@@ -13,7 +13,7 @@ This notebooks provides an overview for using and understanding the vision predi
 * `Run Check on an Object Detection Task <#run-the-check-on-an-object-detection-task-coco>`__
 
 What Is Prediction Drift?
-========================
+=========================
 Drift is simply a change in the distribution of data over time, and it is
 also one of the top reasons why machine learning model's performance degrades
 over time.
@@ -28,7 +28,7 @@ predictions. If labels are available, it's also recommended to run the
 For more information on drift, please visit our :doc:`drift guide </user-guide/general/drift_guide>`
 
 How Deepchecks Detects Prediction Drift
-------------------------------------
+---------------------------------------
 
 This check detects prediction drift by using :ref:`univariate measures <drift_detection_by_univariate_measure>`
 on the prediction properties.
@@ -41,7 +41,7 @@ is not a straightforward task. Therefore, we calculate drift on different :doc:`
 on which we can directly measure drift.
 
 Which Prediction Properties Are Used?
-=================================
+=====================================
 
 ================  ===================================  ==========
 Task Type         Property name                        What is it

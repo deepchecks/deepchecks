@@ -15,7 +15,7 @@ outliers check, used to detect outliers in simple label properties in a dataset.
 
 
 Why Check for Label Outliers?
------------------------
+-----------------------------
 Examining outliers may help you gain insights that you couldn't have reached from taking an aggregate look or by
 inspecting random samples. For example, it may help you understand you have some corrupt samples (e.g.
 a bounding box with area 0), or samples you didn't expect to have (e.g. extreme aspect ratio).

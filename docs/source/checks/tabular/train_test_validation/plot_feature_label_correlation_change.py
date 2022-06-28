@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Feature Label Correlation Change
-**************************************
+********************************
 
 This notebook provides an overview for using and understanding the "Feature Label Correlation Change" check.
 

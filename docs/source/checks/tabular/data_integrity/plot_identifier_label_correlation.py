@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 Identifier Label Correlation
-******************
+****************************
+
 This notebooks provides an overview for using and understanding the identifier-label correlation check.
 
 This check computes the Predictive Power Score (`PPS
