@@ -36,8 +36,7 @@ from deepchecks.utils.typing import Hashable
 
 
 def single_dataset_integrity(**kwargs) -> Suite:
-    """
-    Create a suite that is meant to detect integrity issues within a single dataset (Deprecated) .
+    """Create a suite that is meant to detect integrity issues within a single dataset (Deprecated) .
 
     .. deprecated:: 0.7.0
             `single_dataset_integrity` is deprecated and will be removed in deepchecks 0.8 version, it is replaced by
@@ -64,29 +63,29 @@ def data_integrity(columns: Union[Hashable, List[Hashable]] = None,
            :widths: 50 50
            :header-rows: 1
 
-           * - Check
+           * - Check Example
              - API Reference
-           * - IsSingleValue
+           * - :ref:`plot_tabular_is_single_value`
              - :class:`~deepchecks.tabular.checks.data_integrity.IsSingleValue`
-           * - SpecialCharacters
+           * - :ref:`plot_tabular_special_chars`
              - :class:`~deepchecks.tabular.checks.data_integrity.SpecialCharacters`
-           * - MixedNulls
+           * - :ref:`plot_tabular_mixed_nulls`
              - :class:`~deepchecks.tabular.checks.data_integrity.MixedNulls`
-           * - MixedDataTypes
+           * - :ref:`plot_tabular_mixed_data_types`
              - :class:`~deepchecks.tabular.checks.data_integrity.MixedDataTypes`
-           * - StringMismatch
+           * - :ref:`plot_tabular_string_mismatch`
              - :class:`~deepchecks.tabular.checks.data_integrity.StringMismatch`
-           * - DataDuplicates
+           * - :ref:`plot_tabular_data_duplicates`
              - :class:`~deepchecks.tabular.checks.data_integrity.DataDuplicates`
-           * - StringLengthOutOfBounds
+           * - :ref:`plot_tabular_string_length_out_of_bounds`
              - :class:`~deepchecks.tabular.checks.data_integrity.StringLengthOutOfBounds`
-           * - ConflictingLabels
+           * - :ref:`plot_tabular_conflicting_labels`
              - :class:`~deepchecks.tabular.checks.data_integrity.ConflictingLabels`
-           * - OutlierSampleDetection
+           * - :ref:`plot_tabular_outlier_sample_detection`
              - :class:`~deepchecks.tabular.checks.data_integrity.OutlierSampleDetection`
-           * - FeatureLabelCorrelation
+           * - :ref:`plot_tabular_feature_label_correlation`
              - :class:`~deepchecks.tabular.checks.data_integrity.FeatureLabelCorrelation`
-           * - IdentifierLabelCorrelation
+           * - :ref:`plot_tabular_identifier_label_correlation`
              - :class:`~deepchecks.tabular.checks.data_integrity.IdentifierLabelCorrelation`
 
     Parameters
@@ -122,7 +121,6 @@ def data_integrity(columns: Union[Hashable, List[Hashable]] = None,
     --------
     :ref:`quick_data_integrity`
     """
-
     default_kwargs = {'columns': columns, 'ignore_columns': ignore_columns, 'n_top_columns': n_top_columns,
                       'n_samples': n_samples, 'random_state': random_state, 'n_to_show': n_to_show}
     kwargs = {**default_kwargs, **kwargs}
@@ -144,8 +142,7 @@ def data_integrity(columns: Union[Hashable, List[Hashable]] = None,
 
 
 def train_test_leakage(**kwargs) -> Suite:
-    """
-    Create a suite that is meant to detect data leakage between the training dataset and the test dataset (Deprecated).
+    """Create a suite for detecting data leakage between the training dataset and the test dataset (Deprecated).
 
     .. deprecated:: 0.7.0
             `train_test_leakage` is deprecated and will be removed in deepchecks 0.8 version, it is replaced by
@@ -173,31 +170,31 @@ def train_test_validation(columns: Union[Hashable, List[Hashable]] = None,
            :widths: 50 50
            :header-rows: 1
 
-           * - Check
+           * - Check Example
              - API Reference
-           * - DatasetsSizeComparison
+           * - :ref:`plot_tabular_datasets_size_comparison`
              - :class:`~deepchecks.tabular.checks.train_test_validation.DatasetsSizeComparison`
-           * - NewLabelTrainTest
+           * - :ref:`plot_tabular_new_label`
              - :class:`~deepchecks.tabular.checks.train_test_validation.NewLabelTrainTest`
-           * - CategoryMismatchTrainTest
+           * - :ref:`plot_tabular_new_category`
              - :class:`~deepchecks.tabular.checks.train_test_validation.CategoryMismatchTrainTest`
-           * - StringMismatchComparison
+           * - :ref:`plot_tabular_string_mismatch_comparison`
              - :class:`~deepchecks.tabular.checks.train_test_validation.StringMismatchComparison`
-           * - DateTrainTestLeakageDuplicates
+           * - :ref:`plot_tabular_date_train_test_validation_leakage_duplicates`
              - :class:`~deepchecks.tabular.checks.train_test_validation.DateTrainTestLeakageDuplicates`
-           * - DateTrainTestLeakageOverlap
+           * - :ref:`plot_tabular_date_train_test_validation_leakage_overlap`
              - :class:`~deepchecks.tabular.checks.train_test_validation.DateTrainTestLeakageOverlap`
-           * - IndexTrainTestLeakage
+           * - :ref:`plot_tabular_index_leakage`
              - :class:`~deepchecks.tabular.checks.train_test_validation.IndexTrainTestLeakage`
-           * - TrainTestSamplesMix
+           * - :ref:`plot_tabular_train_test_samples_mix`
              - :class:`~deepchecks.tabular.checks.train_test_validation.TrainTestSamplesMix`
-           * - FeatureLabelCorrelationChange
+           * - :ref:`plot_tabular_feature_label_correlation_change`
              - :class:`~deepchecks.tabular.checks.train_test_validation.FeatureLabelCorrelationChange`
-           * - TrainTestFeatureDrift
+           * - :ref:`plot_tabular_train_test_feature_drift`
              - :class:`~deepchecks.tabular.checks.train_test_validation.TrainTestFeatureDrift`
-           * - TrainTestLabelDrift
+           * - :ref:`plot_tabular_train_test_label_drift`
              - :class:`~deepchecks.tabular.checks.train_test_validation.TrainTestLabelDrift`
-           * - WholeDatasetDrift
+           * - :ref:`plot_tabular_whole_dataset_drift`
              - :class:`~deepchecks.tabular.checks.train_test_validation.WholeDatasetDrift`
 
     Parameters
@@ -234,7 +231,6 @@ def train_test_validation(columns: Union[Hashable, List[Hashable]] = None,
     --------
     :ref:`quick_train_test_validation`
     """
-
     default_kwargs = {'columns': columns, 'ignore_columns': ignore_columns, 'n_top_columns': n_top_columns,
                       'n_samples': n_samples, 'random_state': random_state, 'n_to_show': n_to_show}
     kwargs = {**default_kwargs, **kwargs}
@@ -249,7 +245,7 @@ def train_test_validation(columns: Union[Hashable, List[Hashable]] = None,
         IndexTrainTestLeakage(**kwargs).add_condition_ratio_less_or_equal(),
         TrainTestSamplesMix(**kwargs).add_condition_duplicates_ratio_less_or_equal(),
         FeatureLabelCorrelationChange(**kwargs).add_condition_feature_pps_difference_less_than()
-            .add_condition_feature_pps_in_train_less_than(),
+        .add_condition_feature_pps_in_train_less_than(),
         TrainTestFeatureDrift(**kwargs).add_condition_drift_score_less_than(),
         TrainTestLabelDrift(**kwargs).add_condition_drift_score_less_than(),
         WholeDatasetDrift(**kwargs).add_condition_overall_drift_value_less_than(),
@@ -271,33 +267,33 @@ def model_evaluation(alternative_scorers: Dict[str, Callable] = None,
            :widths: 50 50
            :header-rows: 1
 
-           * - Check
+           * - Check Example
              - API Reference
-           * - PerformanceReport
+           * - :ref:`plot_tabular_performance_report`
              - :class:`~deepchecks.tabular.checks.model_evaluation.PerformanceReport`
-           * - RocReport
+           * - :ref:`plot_tabular_roc_report`
              - :class:`~deepchecks.tabular.checks.model_evaluation.RocReport`
-           * - ConfusionMatrixReport
+           * - :ref:`plot_tabular_confusion_matrix_report`
              - :class:`~deepchecks.tabular.checks.model_evaluation.ConfusionMatrixReport`
-           * - SegmentPerformance
+           * - :ref:`plot_tabular_segment_performance`
              - :class:`~deepchecks.tabular.checks.model_evaluation.SegmentPerformance`
-           * - TrainTestPredictionDrift
+           * - :ref:`plot_tabular_train_test_prediction_drift`
              - :class:`~deepchecks.tabular.checks.model_evaluation.TrainTestPredictionDrift`
-           * - SimpleModelComparison
+           * - :ref:`plot_tabular_simple_model_comparison`
              - :class:`~deepchecks.tabular.checks.model_evaluation.SimpleModelComparison`
-           * - ModelErrorAnalysis
+           * - :ref:`plot_tabular_model_error_analysis`
              - :class:`~deepchecks.tabular.checks.model_evaluation.ModelErrorAnalysis`
-           * - CalibrationScore
+           * - :ref:`plot_tabular_calibration_score`
              - :class:`~deepchecks.tabular.checks.model_evaluation.CalibrationScore`
-           * - RegressionSystematicError
+           * - :ref:`plot_tabular_regression_systematic_error`
              - :class:`~deepchecks.tabular.checks.model_evaluation.RegressionSystematicError`
-           * - RegressionErrorDistribution
+           * - :ref:`plot_tabular_regression_error_distribution`
              - :class:`~deepchecks.tabular.checks.model_evaluation.RegressionErrorDistribution`
-           * - UnusedFeatures
+           * - :ref:`plot_tabular_unused_features`
              - :class:`~deepchecks.tabular.checks.model_evaluation.UnusedFeatures`
-           * - BoostingOverfit
+           * - :ref:`plot_tabular_boosting_overfit`
              - :class:`~deepchecks.tabular.checks.model_evaluation.BoostingOverfit`
-           * - ModelInferenceTime
+           * - :ref:`plot_tabular_model_inference_time`
              - :class:`~deepchecks.tabular.checks.model_evaluation.ModelInferenceTime`
 
     Parameters
@@ -336,7 +332,6 @@ def model_evaluation(alternative_scorers: Dict[str, Callable] = None,
     --------
     :ref:`quick_full_suite`
     """
-
     default_kwargs = {'alternative_scorers': alternative_scorers, 'columns': columns, 'ignore_columns': ignore_columns,
                       'n_top_columns': n_top_columns, 'n_samples': n_samples, 'random_state': random_state,
                       'n_to_show': n_to_show}

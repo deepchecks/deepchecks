@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_tabular_train_test_prediction_drift:
+
 Train Test Prediction Drift
 ***************************
 

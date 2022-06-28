@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_tabular_dominant_frequency_change:
+
 Dominant Frequency Change
 *************************
 This example provides an overview for using and understanding the `Dominant Frequency Change` check.

@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_tabular_simple_model_comparison:
+
 Simple Model Comparison
 ***********************
 This notebooks provides an overview for using and understanding simple model comparison check.

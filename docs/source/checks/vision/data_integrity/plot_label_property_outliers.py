@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_vision_label_property_outliers:
+
 Label Property Outliers
 =======================
 

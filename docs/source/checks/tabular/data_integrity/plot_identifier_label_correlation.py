@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_tabular_identifier_label_correlation:
+
 Identifier Label Correlation
 ****************************
 
