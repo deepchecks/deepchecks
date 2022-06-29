@@ -9,8 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 #
+import typing as t
+
 import numpy as np
-from hamcrest import assert_that, close_to, equal_to, has_entries, has_items, has_length
+from hamcrest import (assert_that, close_to, contains_exactly, equal_to, greater_than, has_entries, has_items,
+                      has_length, instance_of)
+from plotly.basedatatypes import BaseFigure
 
 from deepchecks.vision.checks.model_evaluation.class_performance import ClassPerformance
 from deepchecks.vision.checks.model_evaluation.image_segment_performance import ImageSegmentPerformance
@@ -18,6 +22,7 @@ from deepchecks.vision.checks.model_evaluation.train_test_prediction_drift impor
 from deepchecks.vision.suites.default_suites import full_suite
 from deepchecks.vision.vision_data import VisionData
 from tests.base.utils import equal_condition_result
+from tests.common import assert_class_performance_display
 from tests.conftest import get_expected_results_length, validate_suite_result
 
 
@@ -47,13 +52,41 @@ def test_class_performance_mnist_largest(mnist_dataset_train, mnist_dataset_test
     result = check.run(mnist_dataset_train, mnist_dataset_test,
                        train_predictions=train_preds, test_predictions=tests_preds,
                        device=device, n_samples=None)
-    first_row = result.value.sort_values(by='Number of samples', ascending=False).iloc[0]
+
     # Assert
-    assert_that(len(set(result.value['Class'])), equal_to(2))
-    assert_that(len(result.value), equal_to(8))
-    assert_that(first_row['Value'], close_to(0.977, 0.001))
-    assert_that(first_row['Number of samples'], equal_to(6742))
-    assert_that(first_row['Class'], equal_to(1))
+    assert_that(set(result.value['Class']), equal_to(set(range(10))))
+    assert_that(len(result.value), equal_to(40))
+    assert_that(result.display, has_length(greater_than(0)))
+
+    figure = t.cast(BaseFigure, result.display[0])
+    assert_that(figure, instance_of(BaseFigure))
+
+    assert_that(figure.data, assert_class_performance_display(
+        xaxis=[
+            contains_exactly(equal_to('2'), equal_to('1')),
+            contains_exactly(equal_to('1'), equal_to('2')),
+            contains_exactly(equal_to('2'), equal_to('1')),
+            contains_exactly(equal_to('2'), equal_to('1')),
+        ],
+        yaxis=[
+            contains_exactly(
+                close_to(0.984, 0.001),
+                close_to(0.977, 0.001),
+            ),
+            contains_exactly(
+                close_to(0.974, 0.001),
+                close_to(0.973, 0.001),
+            ),
+            contains_exactly(
+                close_to(0.988, 0.001),
+                close_to(0.987, 0.001),
+            ),
+            contains_exactly(
+                close_to(0.984, 0.001),
+                close_to(0.980, 0.001),
+            )
+        ]
+    ))
 
 
 # copied from class_performance_test but added a sample before
@@ -68,13 +101,42 @@ def test_class_performance_mnist_largest_sampled_before(mnist_dataset_train, mni
     result = check.run(sampled_train, sampled_test,
                        train_predictions=train_preds, test_predictions=tests_preds,
                        device=device, n_samples=None)
-    first_row = result.value.sort_values(by='Number of samples', ascending=False).iloc[0]
+
     # Assert
-    assert_that(len(set(result.value['Class'])), equal_to(2))
-    assert_that(len(result.value), equal_to(8))
-    assert_that(first_row['Value'], close_to(0.991, 0.001))
-    assert_that(first_row['Number of samples'], equal_to(123))
-    assert_that(first_row['Class'], equal_to(2))
+    assert_that(set(result.value['Class']), equal_to(set(range(10))))
+    assert_that(len(result.value), equal_to(40))
+    assert_that(result.display, has_length(greater_than(0)))
+
+    figure = t.cast(BaseFigure, result.display[0])
+    assert_that(figure, instance_of(BaseFigure))
+
+    assert_that(figure.data, assert_class_performance_display(
+        metrics=('Precision', 'Recall'),
+        xaxis=[
+            contains_exactly(equal_to('2'), equal_to('3')),
+            contains_exactly(equal_to('2'), equal_to('3')),
+            contains_exactly(equal_to('2'), equal_to('3')),
+            contains_exactly(equal_to('2'), equal_to('3')),
+        ],
+        yaxis=[
+            contains_exactly(
+                close_to(1.0, 0.001),
+                close_to(0.990, 0.001),
+            ),
+            contains_exactly(
+                close_to(1.0, 0.001),
+                close_to(0.980, 0.001),
+            ),
+            contains_exactly(
+                close_to(0.976, 0.001),
+                close_to(0.966, 0.001),
+            ),
+            contains_exactly(
+                close_to(0.991, 0.001),
+                close_to(0.983, 0.001),
+            )
+        ]
+    ))
 
 
 # copied from class_performance_test but sampled
@@ -87,13 +149,41 @@ def test_class_performance_mnist_largest_sampled(mnist_dataset_train, mnist_data
     result = check.run(mnist_dataset_train, mnist_dataset_test,
                        train_predictions=train_preds, test_predictions=tests_preds,
                        device=device)
-    first_row = result.value.sort_values(by='Number of samples', ascending=False).iloc[0]
+
     # Assert
-    assert_that(len(set(result.value['Class'])), equal_to(2))
-    assert_that(len(result.value), equal_to(8))
-    assert_that(first_row['Value'], close_to(0.987, 0.001))
-    assert_that(first_row['Number of samples'], equal_to(1138))
-    assert_that(first_row['Class'], equal_to(1))
+    assert_that(set(result.value['Class']), equal_to(set(range(10))))
+    assert_that(len(result.value), equal_to(40))
+    assert_that(result.display, has_length(greater_than(0)))
+
+    figure = t.cast(BaseFigure, result.display[0])
+    assert_that(figure, instance_of(BaseFigure))
+
+    assert_that(figure.data, assert_class_performance_display(
+        xaxis=[
+            contains_exactly(equal_to('1'), equal_to('2')),
+            contains_exactly(equal_to('2'), equal_to('1')),
+            contains_exactly(equal_to('2'), equal_to('1')),
+            contains_exactly(equal_to('2'), equal_to('1')),
+        ],
+        yaxis=[
+            contains_exactly(
+                close_to(0.987, 0.001),
+                close_to(0.987, 0.001),
+            ),
+            contains_exactly(
+                close_to(0.981, 0.001),
+                close_to(0.972, 0.001),
+            ),
+            contains_exactly(
+                close_to(0.988, 0.001),
+                close_to(0.987, 0.001),
+            ),
+            contains_exactly(
+                close_to(0.984, 0.001),
+                close_to(0.980, 0.001),
+            )
+        ]
+    ))
 
 
 # copied from image_segment_performance_test

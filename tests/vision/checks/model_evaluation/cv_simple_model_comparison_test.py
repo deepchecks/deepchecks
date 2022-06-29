@@ -25,7 +25,7 @@ def test_mnist_prior_strategy(mnist_dataset_train, mnist_dataset_test, mock_trai
     first_row = result.value.loc[result.value['Model'] != 'Perfect Model'].sort_values(by='Number of samples',
                                                                                        ascending=False).iloc[0]
     # Assert
-    assert_that(result.value, has_length(6))
+    assert_that(result.value, has_length(30))
     assert_that(first_row['Value'], close_to(0.203, 0.05))
     assert_that(first_row['Number of samples'], equal_to(1135))
     assert_that(first_row['Class'], equal_to(1))
@@ -49,7 +49,7 @@ def test_mnist_most_frequent(mnist_dataset_train, mnist_dataset_test, mock_train
     first_row = result.value.loc[result.value['Model'] != 'Perfect Model'].sort_values(by='Number of samples',
                                                                                        ascending=False).iloc[0]
     # Assert
-    assert_that(result.value, has_length(6))
+    assert_that(result.value, has_length(30))
     assert_that(first_row['Value'], close_to(0.203, 0.05))
     assert_that(first_row['Number of samples'], equal_to(1135))
     assert_that(first_row['Class'], equal_to(1))
@@ -65,7 +65,7 @@ def test_mnist_most_frequent_without_display(mnist_dataset_train, mnist_dataset_
     first_row = result.value.loc[result.value['Model'] != 'Perfect Model'].sort_values(by='Number of samples',
                                                                                        ascending=False).iloc[0]
     # Assert
-    assert_that(result.value, has_length(6))
+    assert_that(result.value, has_length(30))
     assert_that(first_row['Value'], close_to(0.203, 0.05))
     assert_that(first_row['Number of samples'], equal_to(1135))
     assert_that(first_row['Class'], equal_to(1))
@@ -79,7 +79,7 @@ def test_mnist_uniform(mnist_dataset_train, mnist_dataset_test, mock_trained_mni
     result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
                        device=device)
     # Assert
-    assert_that(result.value, has_length(6))
+    assert_that(result.value, has_length(30))
 
 
 def test_mnist_stratified(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
@@ -89,7 +89,7 @@ def test_mnist_stratified(mnist_dataset_train, mnist_dataset_test, mock_trained_
     result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
                        device=device)
     # Assert
-    assert_that(result.value, has_length(6))
+    assert_that(result.value, has_length(30))
 
 
 def test_condition_failed_for_multiclass(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
