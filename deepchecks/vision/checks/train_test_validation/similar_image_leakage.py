@@ -123,6 +123,8 @@ class SimilarImageLeakage(TrainTestCheck):
         display = []
         similar_pairs = []
         if similar_indices['test']:
+
+            # TODO: this for loop should be below `if context.with_display:` branch
             for similar_index in display_indices:
                 for dataset in ('train', 'test'):
                     image = data_obj[dataset].batch_to_images(

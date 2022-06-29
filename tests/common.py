@@ -14,7 +14,8 @@ import typing as t
 import matplotlib.pyplot as plt
 import pandas as pd
 import plotly.express as px
-from hamcrest import any_of, instance_of
+from hamcrest import all_of, any_of, contains_exactly, contains_string, equal_to, has_property, instance_of
+from plotly.graph_objects import Histogram
 
 from deepchecks.core.check_result import CheckFailure, CheckResult, DisplayMap
 from deepchecks.core.checks import BaseCheck
@@ -139,3 +140,25 @@ def instance_of_ipython_formatter():
         instance_of(IPythonDisplayFormatter),
         instance_of(MimeBundleFormatter),
     )
+
+
+def assert_class_performance_display(
+    xaxis,  # classes
+    yaxis,  # values
+    metrics=('Recall', 'Precision'),
+):
+    pairs = (
+        (dataset, metric)
+        for dataset in ('Train', 'Test')
+        for metric in metrics
+    )
+    return contains_exactly(*[
+        all_of(
+            instance_of(Histogram),
+            has_property('name', equal_to(dataset)),
+            has_property('hovertemplate', contains_string(f'Metric={metric}')),
+            has_property('x', xaxis[index]),
+            has_property('y', yaxis[index]),
+        )
+        for index, (dataset, metric) in enumerate(pairs)
+    ])
