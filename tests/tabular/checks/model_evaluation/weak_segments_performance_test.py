@@ -84,3 +84,19 @@ def test_segment_performance_iris_with_arguments(iris_split_dataset_and_model):
     # Assert
     assert_that(segments, has_length(6))
     assert_that(segments.iloc[0, 0], close_to(result.value['avg_score'], 0))
+
+
+def test_regression_categorical_features_avocado(avocado_split_dataset_and_model):
+    # Arrange
+    _, val, model = avocado_split_dataset_and_model
+
+    # Act
+    result = WeakSegmentsPerformance().run(val, model)
+    segments = result.value['segments']
+
+    # Assert
+    assert_that(segments, has_length(10))
+    assert_that(segments[segments['Feature1'] == 'type']['Feature1 range'].iloc[0], equal_to(['organic']))
+    assert_that(segments[segments['Feature1'] == 'region']['Feature1 range'].iloc[0], equal_to(['other']))
+    assert_that(segments[segments['Feature1'] == 'type'].iloc[0, 0], close_to(-0.467,0.01))
+    assert_that(segments.iloc[0, 0], close_to(-0.471, 0.01))

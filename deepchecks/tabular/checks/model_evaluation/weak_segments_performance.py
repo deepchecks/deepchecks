@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module of weak segments performance check."""
+from collections import defaultdict
 from typing import Callable, Dict, List, Union
 
 import numpy as np
@@ -27,8 +28,8 @@ from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksProces
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.tabular.context import _DummyModel
 from deepchecks.tabular.utils.task_type import TaskType
-from deepchecks.utils.performance.partition import convert_tree_leaves_into_filters, \
-    partition_numeric_feature_around_segment
+from deepchecks.utils.performance.partition import (convert_tree_leaves_into_filters,
+                                                    partition_numeric_feature_around_segment)
 from deepchecks.utils.single_sample_metrics import calculate_per_sample_loss
 from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.utils.typing import Hashable
@@ -102,27 +103,24 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
         predictions = context.model.predict(dataset.features_columns)
         y_proba = context.model.predict_proba(dataset.features_columns) if \
             context.task_type in [TaskType.MULTICLASS, TaskType.BINARY] else None
-        dataset = dataset.select(self.columns, self.ignore_columns)
-        if len(dataset.features) < 2:
-            raise DeepchecksNotSupportedError('Check requires data to have at least two features in order to run.')
 
         if self.loss_per_sample is not None:
             loss_per_sample = self.loss_per_sample[list(dataset.data.index)]
         else:
             loss_per_sample = calculate_per_sample_loss(context.model, context.task_type, dataset,
                                                         self.classes_index_order)
-        if len(dataset.cat_features) > 0:
-            dataset.mask_rare_categories(threshold=self.categorical_aggregation_threshold)
-            t_encoder = TargetEncoder(cols=dataset.cat_features)
-            df_encoded = t_encoder.fit_transform(dataset.features_columns, dataset.label_col)
-        else:
-            df_encoded = dataset.features_columns
-        df_encoded = df_encoded.fillna(df_encoded.mode(axis=0))
-        encoded_dataset = Dataset(df_encoded, cat_features=dataset.cat_features, label=dataset.label_col)
+        dataset = dataset.select(self.columns, self.ignore_columns, keep_label=True)
+        if len(dataset.features) < 2:
+            raise DeepchecksNotSupportedError('Check requires data to have at least two features in order to run.')
+        encoded_dataset = self._target_encode_categorical_features_fill_na(dataset)
         dummy_model = _DummyModel(test=encoded_dataset, y_pred_test=predictions, y_proba_test=y_proba,
                                   validate_data_on_predict=False)
-        feature_rank = context.features_importance.sort_values(
-            ascending=False).keys() if context.features_importance is not None else np.asarray(dataset.features)
+
+        if context.features_importance is not None:
+            feature_rank = context.features_importance.sort_values(ascending=False).keys()
+            feature_rank = np.asarray([col for col in feature_rank if col in encoded_dataset.features])
+        else:
+            feature_rank = np.asarray(encoded_dataset.features)
 
         scorer = context.get_single_scorer(self.user_scorer)
         weak_segments = self._weak_segments_search(dummy_model, encoded_dataset, feature_rank,
@@ -134,8 +132,35 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
         display = self._create_heatmap_display(dummy_model, encoded_dataset, weak_segments, avg_score,
                                                scorer) if context.with_display else []
 
+        for idx, segment in weak_segments.copy().iterrows():
+            if segment['Feature1'] in encoded_dataset.cat_features:
+                weak_segments['Feature1 range'][idx] = \
+                    self._format_partition_vec_for_display(segment['Feature1 range'], segment['Feature1'], None)[0]
+            if segment['Feature2'] in encoded_dataset.cat_features:
+                weak_segments['Feature2 range'][idx] = \
+                    self._format_partition_vec_for_display(segment['Feature2 range'], segment['Feature2'], None)[0]
+
         return CheckResult({'segments': weak_segments, 'avg_score': avg_score, 'scorer_name': scorer.name},
                            display=[DisplayMap(display)])
+
+    def _target_encode_categorical_features_fill_na(self, dataset: Dataset) -> Dataset:
+        values_mapping = defaultdict(list)
+        df_aggregated = dataset.features_columns.copy()
+        for col in dataset.cat_features:
+            categories_to_mask = [k for k, v in df_aggregated[col].value_counts().items() if
+                                  v / dataset.n_samples < self.categorical_aggregation_threshold]
+            df_aggregated.loc[np.isin(df_aggregated[col], categories_to_mask), col] = 'other'
+
+        if len(dataset.cat_features) > 0:
+            t_encoder = TargetEncoder(cols=dataset.cat_features)
+            df_encoded = t_encoder.fit_transform(df_aggregated, dataset.label_col)
+            for col in dataset.cat_features:
+                values_mapping[col] = pd.concat([df_encoded[col], df_aggregated[col]], axis=1).drop_duplicates()
+        else:
+            df_encoded = df_aggregated
+        self.encoder_mapping = values_mapping
+        df_encoded.fillna(df_encoded.mode(axis=0), inplace=True)
+        return Dataset(df_encoded, cat_features=dataset.cat_features, label=dataset.label_col)
 
     def _create_heatmap_display(self, dummy_model, encoded_dataset, weak_segments, avg_score, scorer):
         display_tabs = {}
@@ -164,10 +189,9 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
                                                                               segment_data[encoded_dataset.label_name])
                         counts[f1_idx, f2_idx] = len(segment_data)
 
-            f1_labels = [f'[{format_number(lower)}, {format_number(upper)}]' for lower, upper in
-                         zip(segments_f1[:-1], segments_f1[1:])]
-            f2_labels = [f'[{format_number(lower)}, {format_number(upper)}]' for lower, upper in
-                         zip(segments_f2[:-1], segments_f2[1:])]
+            f1_labels = self._format_partition_vec_for_display(segments_f1, segment['Feature1'])
+            f2_labels = self._format_partition_vec_for_display(segments_f2, segment['Feature2'])
+
             scores_text = [[0] * scores.shape[1] for _ in range(scores.shape[0])]
             counts = np.divide(counts, len(data))
             for i in range(len(f1_labels)):
@@ -199,7 +223,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
     def _weak_segments_search(self, dummy_model, encoded_dataset, feature_rank_for_search, loss_per_sample, scorer):
         """Search for weak segments based on scorer."""
         weak_segments = pd.DataFrame(
-            columns=[f'{scorer.name} score', 'Feature1', 'Feature1 range', 'Feature2', 'Feature2 range'])
+            columns=[f'{scorer.name} score', 'Feature1', 'Feature1 range', 'Feature2', 'Feature2 range', '% of data'])
         for i in range(min(len(feature_rank_for_search), self.n_top_features)):
             for j in range(i + 1, min(len(feature_rank_for_search), self.n_top_features)):
                 feature1, feature2 = feature_rank_for_search[[i, j]]
@@ -208,9 +232,10 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
                                                                                   loss_per_sample)
                 if weak_segment_score is None:
                     continue
+                data_size = 100 * weak_segment_filter.filter(encoded_dataset.data).shape[0] / encoded_dataset.n_samples
                 weak_segments.loc[len(weak_segments)] = [weak_segment_score, feature1,
                                                          weak_segment_filter.filters[feature1], feature2,
-                                                         weak_segment_filter.filters[feature2]]
+                                                         weak_segment_filter.filters[feature2], data_size]
         return weak_segments.sort_values(f'{scorer.name} score')
 
     def _find_weak_segment(self, dummy_model, dataset, features_for_segment, scorer, loss_per_sample):
@@ -252,6 +277,30 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
         if features_for_segment[1] not in segment_filter.filters.keys():
             segment_filter.filters[features_for_segment[1]] = [np.NINF, np.inf]
         return segment_score, segment_filter
+
+    def _format_partition_vec_for_display(self, partition_vec: np.array, feature_name: str,
+                                          seperator: Union[str, None] = '\n') -> List[Union[List, str]]:
+        """Format partition vector for display. If seperator is None returns a list instead of a string."""
+        result = []
+        if feature_name in self.encoder_mapping.keys():
+            feature_map_df = self.encoder_mapping[feature_name]
+            encodings = feature_map_df.iloc[:, 0]
+            for lower, upper in zip(partition_vec[:-1], partition_vec[1:]):
+                if lower == partition_vec[0]:
+                    values_in_range = np.where(np.logical_and(encodings >= lower, encodings <= upper))[0]
+                else:
+                    values_in_range = np.where(np.logical_and(encodings > lower, encodings <= upper))[0]
+                if seperator is None:
+                    result.append(feature_map_df.iloc[values_in_range, 1].to_list())
+                else:
+                    result.append(seperator.join(feature_map_df.iloc[values_in_range, 1].to_list()))
+
+        else:
+            for lower, upper in zip(partition_vec[:-1], partition_vec[1:]):
+                result.append(f'({format_number(lower)}, {format_number(upper)}]')
+            result[0] = '[' + result[0][1:]
+
+        return result
 
     def add_condition_segments_performance_relative_difference_greater_than(self, max_ratio_change: float = 0.20):
         """Add condition - check that the score of the weakest segment is at least (1 - ratio) * average score.

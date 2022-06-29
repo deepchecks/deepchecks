@@ -838,27 +838,6 @@ class Dataset:
                 html=f'Dataset does not contain an index. see {_get_dataset_docs_tag()}'
             )
 
-    def mask_rare_categories(self, columns: t.List[Hashable] = None, threshold=0.05):
-        """Mask rare categories in categorical columns into 'Other'.
-
-        Parameters
-        ----------
-        columns : t.List[Hashable], default=None
-            List of categorical columns to mask, if None mask all columns defined as categorical features.
-        threshold : float, default=0.05
-            Threshold for rare categories.
-        Returns
-        -------
-        Dataset
-            Dataset with rare categories masked.
-        """
-        columns = columns if columns else self.cat_features
-        for column in columns:
-            frequencies = self.data[column].value_counts(normalize=True)
-            mapping = self.data[column].map(frequencies)
-            self.data[column].mask(mapping < threshold, 'Other')
-        return self
-
     def select(
             self: TDataset,
             columns: t.Union[Hashable, t.List[Hashable], None] = None,

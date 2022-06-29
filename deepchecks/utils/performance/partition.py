@@ -117,10 +117,23 @@ def partition_numeric_feature_around_segment(column: pd.Series, segment: List[fl
     """
     data_below_segment, data_above_segment = column[column <= segment[0]], column[column > segment[1]]
     ratio = np.divide(len(data_below_segment), len(data_below_segment) + len(data_above_segment))
-    segments_below = numeric_segmentation_edges(data_below_segment, round(max_additional_segments * ratio)) \
-        if len(data_below_segment) > 0 else np.array([np.nanmin(column)])
-    segments_above = numeric_segmentation_edges(data_above_segment, round(max_additional_segments * (1 - ratio))) \
-        if len(data_above_segment) > 0 else np.array([np.nanmax(column)])
+
+    if len(data_below_segment) == 0:
+        segments_below = np.array([np.nanmin(column)])
+    elif data_below_segment.nunique() == 1:
+        segments_below = np.array([np.nanmin(column), segment[0]])
+    else:
+        segments_below = numeric_segmentation_edges(data_below_segment, round(max_additional_segments * ratio))
+        segments_below = np.append(np.delete(segments_below, len(segments_below) - 1), segment[0])
+
+    if len(data_above_segment) == 0:
+        segments_above = np.array([np.nanmax(column)])
+    elif data_above_segment.nunique() == 1:
+        segments_above = np.array([segment[1], np.nanmax(column)])
+    else:
+        segments_above = numeric_segmentation_edges(data_above_segment, round(max_additional_segments * (1 - ratio)))
+        segments_above = np.append(segment[1], np.delete(segments_above, 0))
+
     return np.unique(np.concatenate([segments_below, segments_above], axis=None))
 
 
