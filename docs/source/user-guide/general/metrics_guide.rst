@@ -48,6 +48,14 @@ should generally apply:
     targets were detected rather than the targets’ exact location, so the fraction of predictions above a certain IoU
     would be more relevant than the IoU itself.
 
+.. image:: /_static/images/general/tomato_sauce_on_shelf.png
+   :alt: inventory object detection example
+   :align: center
+   :width: 400
+
+Using object detection for inventory count illustration by Sol Yarkoni
+
+
 Other consideration for choosing a metric might be:
 
 * Time to implement- we might prefer a metric that can be used off the self.
@@ -98,7 +106,7 @@ matrix, check out this link.
    :alt: Truth Table
    :align: center
 
-Truth table illustration by Sol Yarkoni
+Truth table by Sol Yarkoni
 
 *   Accuracy - how many samples were classified correctly out of the total number of samples. Though very intuitive, it
     can often be misleading, especially for imbalanced data.
@@ -112,7 +120,7 @@ Truth table illustration by Sol Yarkoni
    :alt: Precision and recall
    :align: center
 
-Precision and Recall illustration By Walber - Own work, CC BY-SA 4.0,
+Precision and Recall by Walber - Own work, CC BY-SA 4.0,
 `source <https://commons.wikimedia.org/w/index.php?curid=36926283>`__
 
 
@@ -123,7 +131,7 @@ Precision and Recall illustration By Walber - Own work, CC BY-SA 4.0,
    :alt: Specificity and sensitivity
    :align: center
 
-Specificity and Sensitivity illustration By FeanDoe - Modified version from Walber&#039;s Precision and Recall
+Specificity and Sensitivity by FeanDoe - Modified version from Walber&#039;s Precision and Recall
 `source <https://commons.wikimedia.org/w/index.php?curid=94134880>`__
 
 *   F-1 - combines the precision and recall into one metric by taking their harmonic mean. More robust to class
