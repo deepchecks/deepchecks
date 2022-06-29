@@ -25,7 +25,7 @@ class IndexTrainTestLeakage(TrainTestCheck):
     Parameters
     ----------
     n_to_show : int , default: 5
-        Number of common indexes to show.
+        Number of samples with same indices in train and test to show.
     """
 
     def __init__(self, n_to_show: int = 5, **kwargs):

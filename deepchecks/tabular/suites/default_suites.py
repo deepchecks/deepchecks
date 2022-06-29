@@ -52,7 +52,7 @@ def single_dataset_integrity(**kwargs) -> Suite:
 def data_integrity(columns: Union[Hashable, List[Hashable]] = None,
                    ignore_columns: Union[Hashable, List[Hashable]] = None,
                    n_top_columns: int = None,
-                   n_samples: int = 1_000_000,
+                   n_samples: int = None,
                    random_state: int = 42,
                    n_to_show: int = 5,
                    **kwargs) -> Suite:
@@ -95,11 +95,11 @@ def data_integrity(columns: Union[Hashable, List[Hashable]] = None,
     ignore_columns : Union[Hashable, List[Hashable]] , default: None
         The columns to be ignored. If None, no columns will be ignored.
     n_top_columns : int , optional
-        amount of columns to show ordered by feature importance (date, index, label are first) (check dependent)
+        number of columns to show ordered by feature importance (date, index, label are first) (check dependent)
     n_samples : int , default: 1_000_000
-        number of samples to use for this check.
+        number of samples to use for checks that sample data. If none, using the default n_samples per check.
     random_state : int, default: 42
-        random seed for all check internals.
+        random seed for all checks.
     n_to_show : int , default: 5
         number of top results to show (check dependent)
     **kwargs : dict
@@ -108,7 +108,7 @@ def data_integrity(columns: Union[Hashable, List[Hashable]] = None,
     Returns
     -------
     Suite
-        A suite that is meant to detect integrity issues within a single dataset.
+        A suite for detecting integrity issues within a single dataset.
 
     Examples
     --------
@@ -158,12 +158,12 @@ def train_test_leakage(**kwargs) -> Suite:
 def train_test_validation(columns: Union[Hashable, List[Hashable]] = None,
                           ignore_columns: Union[Hashable, List[Hashable]] = None,
                           n_top_columns: int = None,
-                          n_samples: int = 1_000_000,
+                          n_samples: int = None,
                           random_state: int = 42,
                           n_to_show: int = 5,
                           **kwargs) -> Suite:
-    """Suite for validating correctness of train-test split, including integrity, \
-    distribution and leakage checks.
+    """Suite for validating correctness of train-test split, including distribution, \
+    leakage and integrity checks.
 
     List of Checks:
         .. list-table:: List of Checks
@@ -204,11 +204,11 @@ def train_test_validation(columns: Union[Hashable, List[Hashable]] = None,
     ignore_columns : Union[Hashable, List[Hashable]] , default: None
         The columns to be ignored. If None, no columns will be ignored.
     n_top_columns : int , optional
-        amount of columns to show ordered by feature importance (date, index, label are first) (check dependent)
-    n_samples : int , default: 1_000_000
-        number of samples to use for this check.
+        number of columns to show ordered by feature importance (date, index, label are first) (check dependent)
+    n_samples : int , default: None
+        number of samples to use for checks that sample data. If none, using the default n_samples per check.
     random_state : int, default: 42
-        random seed for all check internals.
+        random seed for all checkss.
     n_to_show : int , default: 5
         number of top results to show (check dependent)
     **kwargs : dict
@@ -217,8 +217,8 @@ def train_test_validation(columns: Union[Hashable, List[Hashable]] = None,
     Returns
     -------
     Suite
-        A suite that is meant to validate correctness of train-test split, including integrity, \
-        distribution and leakage checks.
+        A suite for validating correctness of train-test split, including distribution, \
+        leakage and integrity checks.
 
     Examples
     --------
@@ -256,11 +256,12 @@ def model_evaluation(alternative_scorers: Dict[str, Callable] = None,
                      columns: Union[Hashable, List[Hashable]] = None,
                      ignore_columns: Union[Hashable, List[Hashable]] = None,
                      n_top_columns: int = None,
-                     n_samples: int = 1_000_000,
+                     n_samples: int = None,
                      random_state: int = 42,
                      n_to_show: int = 5,
                      **kwargs) -> Suite:
-    """Suite for testing the model performance and overfitting.
+    """Suite for evaluating the model's performance over different metrics, segments, error analysis, examining \
+       overfitting, comparing to baseline, and more.
 
     List of Checks:
         .. list-table:: List of Checks
@@ -300,17 +301,17 @@ def model_evaluation(alternative_scorers: Dict[str, Callable] = None,
     ----------
     alternative_scorers : Dict[str, Callable], default: None
         An optional dictionary of scorer name to scorer functions.
-        If none given, using default scorers
+        If none given, use default scorers
     columns : Union[Hashable, List[Hashable]] , default: None
         The columns to be checked. If None, all columns will be checked except the ones in `ignore_columns`.
     ignore_columns : Union[Hashable, List[Hashable]] , default: None
         The columns to be ignored. If None, no columns will be ignored.
     n_top_columns : int , optional
-        amount of columns to show ordered by feature importance (date, index, label are first) (check dependent)
+        number of columns to show ordered by feature importance (date, index, label are first) (check dependent)
     n_samples : int , default: 1_000_000
-        number of samples to use for this check.
+        number of samples to use for checks that sample data. If none, using the default n_samples per check.
     random_state : int, default: 42
-        random seed for all check internals.
+        random seed for all checks.
     n_to_show : int , default: 5
         number of top results to show (check dependent)
     **kwargs : dict
@@ -319,7 +320,7 @@ def model_evaluation(alternative_scorers: Dict[str, Callable] = None,
     Returns
     -------
     Suite
-        A Suite for testing the model performance and overfitting.
+        A suite for evaluating the model's performance.
 
     Examples
     --------
