@@ -111,33 +111,34 @@ class ClassPerformance(TrainTestCheck):
 
         results_df = pd.concat(results)
         results_df = results_df[['Dataset', 'Metric', 'Class', 'Class Name', 'Number of samples', 'Value']]
-        if self.class_list_to_show is not None:
-            results_df = results_df.loc[results_df['Class'].isin(self.class_list_to_show)]
-        elif self.n_to_show is not None:
-            classes_to_show = filter_classes_for_display(results_df,
-                                                         self.metric_to_show_by,
-                                                         self.n_to_show,
-                                                         self.show_only)
-            results_df = results_df.loc[results_df['Class'].isin(classes_to_show)]
-
         results_df = results_df.sort_values(by=['Dataset', 'Value'], ascending=False)
 
         if context.with_display:
-            fig = px.histogram(
-                results_df,
-                x='Class Name',
-                y='Value',
-                color='Dataset',
-                color_discrete_sequence=(plot.colors['Train'], plot.colors['Test']),
-                barmode='group',
-                facet_col='Metric',
-                facet_col_spacing=0.05,
-                hover_data=['Number of samples'],
-
-            )
+            if self.class_list_to_show is not None:
+                display_df = results_df.loc[results_df['Class'].isin(self.class_list_to_show)]
+            elif self.n_to_show is not None:
+                rows = results_df['Class'].isin(filter_classes_for_display(
+                    results_df,
+                    self.metric_to_show_by,
+                    self.n_to_show,
+                    self.show_only
+                ))
+                display_df = results_df.loc[rows]
+            else:
+                display_df = results_df
 
             fig = (
-                fig.update_xaxes(title='Class', type='category')
+                px.histogram(
+                    display_df,
+                    x='Class Name',
+                    y='Value',
+                    color='Dataset',
+                    color_discrete_sequence=(plot.colors['Train'], plot.colors['Test']),
+                    barmode='group',
+                    facet_col='Metric',
+                    facet_col_spacing=0.05,
+                    hover_data=['Number of samples'])
+                .update_xaxes(title='Class', type='category')
                 .update_yaxes(title='Value', matches=None)
                 .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
                 .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
