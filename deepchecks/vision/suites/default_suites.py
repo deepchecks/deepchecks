@@ -8,6 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+# pylint: disable=unused-argument
 """Functions for loading the default (built-in) vision suites for various validation stages.
 
 Each function returns a new suite that is initialized with a list of checks and default conditions.
