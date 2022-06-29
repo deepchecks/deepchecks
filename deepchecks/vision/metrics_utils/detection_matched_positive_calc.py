@@ -21,25 +21,27 @@ from deepchecks.vision.metrics_utils.metric_mixin import MetricMixin, ObjectDete
 
 
 class MatchedPositive(Metric, MetricMixin):
-    """Abstract class to calculate average precision and recall for various vision tasks.
+    """Abstract class to calculate the match array and number of positives for various vision tasks.
 
     Parameters
     ----------
-    max_dets: Union[List[int], Tuple[int]], default: [1, 10, 100]
-        Maximum number of detections per class.
-    area_range: tuple, default: (32**2, 96**2)
-        Slices for small/medium/large buckets.
-    return_option: int, default: 0
-        0: ap only, 1: ar only, None: all (not ignite complient)
+    iou_thres: float, default: 0.5
+        Threshold of the IoU.
+    confidence_thres: float, default: 0.5
+        Threshold of the confidence.
+    evaluting_function: int, default: None
+        if not None, will run on each class result i.e `func(match_array, number_of_positives)`
     """
 
-    def __init__(self, *args, iou_thres: float = 0.5, confidence_thres: float = 0.5, **kwargs):
+    def __init__(self, *args, iou_thres: float = 0.5, confidence_thres: float = 0.5,
+                 evaluting_function: t.Callable = None, **kwargs):
         super().__init__(*args, **kwargs)
 
         self._evals = defaultdict(lambda: {"matched": [], "NP": 0})
 
         self.iou_thres = iou_thres
         self.confidence_thres = confidence_thres
+        self.evaluting_function = evaluting_function
         self._i = 0
 
     @reinit__is_reduced
@@ -73,6 +75,8 @@ class MatchedPositive(Metric, MetricMixin):
         for class_id in sorted_classes:
             ev = self._evals[class_id]
             res[class_id] = np.array(ev["matched"]), ev["NP"]
+            if self.evaluting_function != None:
+                res[class_id] = self.evaluting_function(*res[class_id])
         return res
 
     def _group_detections(self, detected, ground_truth):
@@ -130,4 +134,5 @@ class MatchedPositive(Metric, MetricMixin):
 
 
 class ObjectDetectionMatchedPositive(MatchedPositive, ObjectDetectionMetricMixin):
-    """We are expecting to receive the predictions in the following format: [x, y, w, h, confidence, label]."""
+    """Calculate the match array and number of positives for object detection.
+    We are expecting to receive the predictions in the following format: [x, y, w, h, confidence, label]."""
