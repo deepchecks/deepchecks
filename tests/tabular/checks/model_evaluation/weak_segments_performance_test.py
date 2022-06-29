@@ -23,7 +23,7 @@ def test_segment_performance_diabetes(diabetes_split_dataset_and_model):
 
     # Act
     result = WeakSegmentsPerformance().run(val, model)
-    segments = result.value['segments']
+    segments = result.value['weak_segments_list']
 
     # Assert
     assert_that(segments, has_length(10))
@@ -38,7 +38,7 @@ def test_segment_performance_diabetes_with_arguments(diabetes_split_dataset_and_
 
     # Act
     result = WeakSegmentsPerformance(n_top_features=4, segment_minimum_size_ratio=0.1).run(val, model)
-    segments = result.value['segments']
+    segments = result.value['weak_segments_list']
 
     # Assert
     assert_that(segments, has_length(6))
@@ -55,7 +55,7 @@ def test_segment_performance_iris_with_condition(iris_split_dataset_and_model):
     # Act
     result = check.run(val, model)
     condition_result = result.conditions_results
-    segments = result.value['segments']
+    segments = result.value['weak_segments_list']
 
     # Assert
     assert_that(condition_result, has_items(
@@ -79,7 +79,7 @@ def test_segment_performance_iris_with_arguments(iris_split_dataset_and_model):
 
     # Act
     result = WeakSegmentsPerformance(loss_per_sample=loss_per_sample, alternative_scorer=scorer).run(val, model)
-    segments = result.value['segments']
+    segments = result.value['weak_segments_list']
 
     # Assert
     assert_that(segments, has_length(6))
@@ -92,11 +92,11 @@ def test_regression_categorical_features_avocado(avocado_split_dataset_and_model
 
     # Act
     result = WeakSegmentsPerformance().run(val, model)
-    segments = result.value['segments']
+    segments = result.value['weak_segments_list']
 
     # Assert
     assert_that(segments, has_length(10))
     assert_that(segments[segments['Feature1'] == 'type']['Feature1 range'].iloc[0], equal_to(['organic']))
     assert_that(segments[segments['Feature1'] == 'region']['Feature1 range'].iloc[0], equal_to(['other']))
-    assert_that(segments[segments['Feature1'] == 'type'].iloc[0, 0], close_to(-0.467,0.01))
-    assert_that(segments.iloc[0, 0], close_to(-0.471, 0.01))
+    assert_that(segments[segments['Feature1'] == 'type'].iloc[0, 0], close_to(-0.362,0.01))
+    assert_that(segments.iloc[0, 0], close_to(-0.379, 0.01))

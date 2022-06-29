@@ -88,6 +88,8 @@ class _DummyModel:
                 if y_pred is None and y_proba is not None:
                     y_pred = np.argmax(y_proba, axis=-1)
                 if y_pred is not None:
+                    if len(y_pred.shape) > 1 and y_pred.shape[1] == 1:
+                        y_pred = y_pred[:, 0]
                     ensure_predictions_shape(y_pred, dataset.data)
                     predictions.append(pd.Series(y_pred, index=dataset.data.index))
                     if y_proba is not None:

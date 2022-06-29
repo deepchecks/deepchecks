@@ -10,22 +10,16 @@
 #
 """Module containing common WholeDatasetDriftCheck (domain classifier drift) utils."""
 
-import warnings
 from typing import Container, List
 
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-
-with warnings.catch_warnings():
-    warnings.simplefilter('ignore')
-    from sklearn.experimental import enable_hist_gradient_boosting  # noqa # pylint: disable=unused-import
-
 from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OrdinalEncoder
 
 from deepchecks.tabular import Dataset

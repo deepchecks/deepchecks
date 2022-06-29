@@ -38,7 +38,7 @@ __all__ = ['WeakSegmentsPerformance']
 
 
 class WeakSegmentsPerformance(SingleDatasetCheck):
-    """Search for 2 feature based segments with the lowest performance score.
+    """Search for segments with the low performance score based on defined scorer function.
 
     Parameters
     ----------
@@ -48,7 +48,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
         Columns to ignore, if none given checks based on columns variable
     n_top_features : int , default: 5
         Number of features to use for segment search. Top columns are selected based on feature importance.
-    segment_minimum_size_ratio: float , default: 0.01
+    segment_minimum_size_ratio: float , default: 0.05
         Minimum size ratio for segments. Will only search for segments of
         size >= segment_minimum_size_ratio * data_size.
     alternative_scorer : Tuple[str, Union[str, Callable]] , default: None
@@ -72,7 +72,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
             columns: Union[Hashable, List[Hashable], None] = None,
             ignore_columns: Union[Hashable, List[Hashable], None] = None,
             n_top_features: int = 5,
-            segment_minimum_size_ratio: float = 0.01,
+            segment_minimum_size_ratio: float = 0.05,
             alternative_scorer: Dict[str, Callable] = None,
             loss_per_sample: Union[np.array, pd.Series, None] = None,
             classes_index_order: Union[np.array, pd.Series, None] = None,
@@ -140,8 +140,10 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
                 weak_segments['Feature2 range'][idx] = \
                     self._format_partition_vec_for_display(segment['Feature2 range'], segment['Feature2'], None)[0]
 
-        return CheckResult({'segments': weak_segments, 'avg_score': avg_score, 'scorer_name': scorer.name},
-                           display=[DisplayMap(display)])
+        display_msg = 'Showcasing intersections of features with weakest detected segments.<br>Can ' \
+                      'observe the full list of weak segments in the check result value. '
+        return CheckResult({'weak_segments_list': weak_segments, 'avg_score': avg_score, 'scorer_name': scorer.name},
+                           display=[display_msg, DisplayMap(display)])
 
     def _target_encode_categorical_features_fill_na(self, dataset: Dataset) -> Dataset:
         values_mapping = defaultdict(list)
@@ -215,7 +217,9 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
                 title=f'{scorer.name} score (percent of data) {segment["Feature1"]} vs {segment["Feature2"]}',
                 height=600
             )
-            msg = f'Average {scorer.name} score on data sampled is {format_number(avg_score)}'
+
+            msg = f'Check ran on {encoded_dataset.n_samples} data samples. Average {scorer.name} ' \
+                  f'score is {format_number(avg_score)}.'
             display_tabs[f'{segment["Feature1"]} vs {segment["Feature2"]}'] = [fig, msg]
 
         return display_tabs
@@ -279,7 +283,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
         return segment_score, segment_filter
 
     def _format_partition_vec_for_display(self, partition_vec: np.array, feature_name: str,
-                                          seperator: Union[str, None] = '\n') -> List[Union[List, str]]:
+                                          seperator: Union[str, None] = '<br>') -> List[Union[List, str]]:
         """Format partition vector for display. If seperator is None returns a list instead of a string."""
         result = []
         if feature_name in self.encoder_mapping.keys():
@@ -293,7 +297,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
                 if seperator is None:
                     result.append(feature_map_df.iloc[values_in_range, 1].to_list())
                 else:
-                    result.append(seperator.join(feature_map_df.iloc[values_in_range, 1].to_list()))
+                    result.append(seperator.join([str(x) for x in feature_map_df.iloc[values_in_range, 1]]))
 
         else:
             for lower, upper in zip(partition_vec[:-1], partition_vec[1:]):
@@ -312,7 +316,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
         """
 
         def condition(result: Dict) -> ConditionResult:
-            weakest_segment_score = result['segments'].iloc[0, 0]
+            weakest_segment_score = result['weak_segments_list'].iloc[0, 0]
             msg = f'Found a segment with {result["scorer_name"]} score of {format_number(weakest_segment_score, 3)} ' \
                   f'in comparison to an average score of {format_number(result["avg_score"], 3)} in sampled data.'
             if weakest_segment_score < (1 - max_ratio_change) * result['avg_score']:
