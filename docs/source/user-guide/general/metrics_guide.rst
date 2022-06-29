@@ -61,9 +61,9 @@ Metrics are used for model *evaluation* and loss functions are used for model *o
 Since loss functions are used as objectives in optimization problems they need to satisfy some conditions that metrics
 don’t such as differentiability.
 
-During the optimization process the loss function is called many times, while the metric function is only called once in
-the end of the process (except in some specific cases like early stopping condition) so the calculation speed is more
-crucial for loss functions than for metrics.
+During the optimization process the loss function is called many times, while the metric function is only called once at
+the end of the process (except in some specific cases like early stopping <link> condition) so the calculation speed is
+more crucial for loss functions than for metrics.
 
 On the other hand, loss functions face inward- the results are returned to the optimizer (the entity managing the
 optimization process), while metrics face outward, presenting the results to the user and because of that explainability
@@ -94,7 +94,11 @@ truth label and counting the matches and mismatches between them.
 This is usually done with the assistance of a confusion matrix. If you are not familiar with the concept of confusion
 matrix, check out this link.
 
-<Illustration of a confusion matrix>
+.. image:: /_static/images/general/truth_table.png
+   :alt: Truth Table
+   :align: center
+
+Truth table illustration by Sol Yarkoni
 
 *   Accuracy - how many samples were classified correctly out of the total number of samples. Though very intuitive, it
     can often be misleading, especially for imbalanced data.
@@ -102,10 +106,26 @@ matrix, check out this link.
     positive. Can be also viewed as the fraction of relevant samples out of the samples spotted by the model.
 *   Recall/ Sensitivity/ TPR - how many samples were classified correctly as positive out of the total number of
     positive samples. Can be also viewed as the fraction of the relevant samples that were spotted by the model.
-    <Precision and recall illustration>
+
+
+.. image:: /_static/images/general/PrecisionRecall_wikipedia.svg.png
+   :alt: Precision and recall
+   :align: center
+
+Precision and Recall illustration By Walber - Own work, CC BY-SA 4.0,
+`source <https://commons.wikimedia.org/w/index.php?curid=36926283>`__
+
+
 *   Specificity/ TNR - how many samples were classified correctly as negative out of the total number of negative
     samples. Complementary to sensitivity.
-    <Specificity and sensitivity illustration from here>
+
+.. image:: /_static/images/general/Sensitivity_and_specificity_wikipedia.svg.png
+   :alt: Specificity and sensitivity
+   :align: center
+
+Specificity and Sensitivity illustration By FeanDoe - Modified version from Walber&#039;s Precision and Recall
+`source <https://commons.wikimedia.org/w/index.php?curid=94134880>`__
+
 *   F-1 - combines the precision and recall into one metric by taking their harmonic mean. More robust to class
     imbalance than accuracy.
 *   AUC - The area under the curve of the ROC graph. For the previous classification metrics, a threshold on the model
