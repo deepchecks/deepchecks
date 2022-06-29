@@ -10,16 +10,22 @@
 #
 """Module for tabular base checks."""
 import abc
-from typing import Any, List, Mapping, Union
+from typing import Callable, List, Mapping, Optional, Union
+
+import numpy as np
+import pandas as pd
 
 from deepchecks.core.check_result import CheckFailure, CheckResult
 from deepchecks.core.checks import (BaseCheck, DatasetKind, ModelOnlyBaseCheck, SingleDatasetBaseCheck,
                                     TrainTestBaseCheck)
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.tabular import deprecation_warnings  # pylint: disable=unused-import # noqa: F401
+from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.tabular.context import Context
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.model_base import ModelComparisonContext
+from deepchecks.utils.decorators import deprecate_kwarg
+from deepchecks.utils.typing import BasicModel
 
 __all__ = [
     'SingleDatasetCheck',
@@ -34,13 +40,49 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
 
     context_type = Context
 
-    def run(self, dataset, model=None, **kwargs) -> CheckResult:
-        """Run check."""
+    @deprecate_kwarg(old_name='features_importance', new_name='feature_importance')
+    @docstrings
+    def run(
+        self,
+        dataset: Union[Dataset, pd.DataFrame],
+        model: Optional[BasicModel] = None,
+        model_name: str = '',
+        feature_importance: Optional[pd.Series] = None,
+        feature_importance_force_permutation: bool = False,
+        feature_importance_timeout: int = 120,
+        scorers: Optional[Mapping[str, Union[str, Callable]]] = None,
+        scorers_per_class: Optional[Mapping[str, Union[str, Callable]]] = None,
+        with_display: bool = True,
+        y_pred_train: Optional[np.ndarray] = None,
+        y_pred_test: Optional[np.ndarray] = None,
+        y_proba_train: Optional[np.ndarray] = None,
+        y_proba_test: Optional[np.ndarray] = None,
+    ) -> CheckResult:
+        """Run check.
+
+        Parameters
+        ----------
+        dataset: Union[Dataset, pd.DataFrame]
+            Dataset or DataFrame object, representing data an estimator was fitted on
+        model: Optional[BasicModel], default: None
+            A scikit-learn-compatible fitted estimator instance
+        {additional_context_params:2*indent}
+        """
         assert self.context_type is not None
         context = self.context_type(  # pylint: disable=not-callable
             train=dataset,
             model=model,
-            **kwargs
+            model_name=model_name,
+            feature_importance=feature_importance,
+            feature_importance_force_permutation=feature_importance_force_permutation,
+            feature_importance_timeout=feature_importance_timeout,
+            scorers=scorers,
+            scorers_per_class=scorers_per_class,
+            with_display=with_display,
+            y_pred_train=y_pred_train,
+            y_pred_test=y_pred_test,
+            y_proba_train=y_proba_train,
+            y_proba_test=y_proba_test,
         )
         result = self.run_logic(context, dataset_kind=DatasetKind.TRAIN)
         context.finalize_check_result(result, self, DatasetKind.TRAIN)
@@ -60,14 +102,53 @@ class TrainTestCheck(TrainTestBaseCheck):
 
     context_type = Context
 
-    def run(self, train_dataset, test_dataset, model=None, **kwargs) -> CheckResult:
-        """Run check."""
+    @deprecate_kwarg(old_name='features_importance', new_name='feature_importance')
+    @docstrings
+    def run(
+        self,
+        train_dataset: Union[Dataset, pd.DataFrame],
+        test_dataset: Union[Dataset, pd.DataFrame],
+        model: Optional[BasicModel] = None,
+        model_name: str = '',
+        feature_importance: Optional[pd.Series] = None,
+        feature_importance_force_permutation: bool = False,
+        feature_importance_timeout: int = 120,
+        scorers: Optional[Mapping[str, Union[str, Callable]]] = None,
+        scorers_per_class: Optional[Mapping[str, Union[str, Callable]]] = None,
+        with_display: bool = True,
+        y_pred_train: Optional[np.ndarray] = None,
+        y_pred_test: Optional[np.ndarray] = None,
+        y_proba_train: Optional[np.ndarray] = None,
+        y_proba_test: Optional[np.ndarray] = None,
+    ) -> CheckResult:
+        """Run check.
+
+        Parameters
+        ----------
+        train_dataset: Union[Dataset, pd.DataFrame]
+            Dataset or DataFrame object, representing data an estimator was fitted on
+        test_dataset: Union[Dataset, pd.DataFrame]
+            Dataset or DataFrame object, representing data an estimator predicts on
+        model: Optional[BasicModel], default: None
+            A scikit-learn-compatible fitted estimator instance
+        {additional_context_params:2*indent}
+        """
         assert self.context_type is not None
         context = self.context_type(  # pylint: disable=not-callable
-            train_dataset,
-            test_dataset,
+            train=train_dataset,
+            test=test_dataset,
             model=model,
-            **kwargs
+            model_name=model_name,
+            feature_importance=feature_importance,
+            feature_importance_force_permutation=feature_importance_force_permutation,
+            feature_importance_timeout=feature_importance_timeout,
+            scorers=scorers,
+            scorers_per_class=scorers_per_class,
+            y_pred_train=y_pred_train,
+            y_pred_test=y_pred_test,
+            y_proba_train=y_proba_train,
+            y_proba_test=y_proba_test,
+            with_display=with_display,
         )
         result = self.run_logic(context)
         context.finalize_check_result(result, self)
@@ -84,10 +165,46 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
 
     context_type = Context
 
-    def run(self, model, **kwargs) -> CheckResult:
-        """Run check."""
+    @deprecate_kwarg(old_name='features_importance', new_name='feature_importance')
+    @docstrings
+    def run(
+        self,
+        model: BasicModel,
+        model_name: str = '',
+        feature_importance: Optional[pd.Series] = None,
+        feature_importance_force_permutation: bool = False,
+        feature_importance_timeout: int = 120,
+        scorers: Optional[Mapping[str, Union[str, Callable]]] = None,
+        scorers_per_class: Optional[Mapping[str, Union[str, Callable]]] = None,
+        with_display: bool = True,
+        y_pred_train: Optional[np.ndarray] = None,
+        y_pred_test: Optional[np.ndarray] = None,
+        y_proba_train: Optional[np.ndarray] = None,
+        y_proba_test: Optional[np.ndarray] = None,
+    ) -> CheckResult:
+        """Run check.
+
+        Parameters
+        ----------
+        model: BasicModel
+            A scikit-learn-compatible fitted estimator instance
+        {additional_context_params:2*indent}
+        """
         assert self.context_type is not None
-        context = self.context_type(model=model, **kwargs)  # pylint: disable=not-callable
+        context = self.context_type(
+            model=model,
+            model_name=model_name,
+            feature_importance=feature_importance,
+            feature_importance_force_permutation=feature_importance_force_permutation,
+            feature_importance_timeout=feature_importance_timeout,
+            scorers=scorers,
+            scorers_per_class=scorers_per_class,
+            y_pred_train=y_pred_train,
+            y_pred_test=y_pred_test,
+            y_proba_train=y_proba_train,
+            y_proba_test=y_proba_test,
+            with_display=with_display
+        )
         result = self.run_logic(context)
         context.finalize_check_result(result, self)
         return result
@@ -105,12 +222,23 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
 class ModelComparisonCheck(BaseCheck):
     """Parent class for check that compares between two or more models."""
 
-    def run(self,
-            train_datasets: Union[Dataset, List[Dataset]],
-            test_datasets: Union[Dataset, List[Dataset]],
-            models: Union[List[Any], Mapping[str, Any]]
-            ) -> CheckResult:
-        """Initialize context and pass to check logic."""
+    def run(
+        self,
+        train_datasets: Union[Dataset, List[Dataset]],
+        test_datasets: Union[Dataset, List[Dataset]],
+        models: Union[List[BasicModel], Mapping[str, BasicModel]]
+    ) -> CheckResult:
+        """Initialize context and pass to check logic.
+
+        Parameters
+        ----------
+        train_datasets: Union[Dataset, List[Dataset]]
+            train datasets
+        test_datasets: Union[Dataset, List[Dataset]]
+            test datasets
+        models: Union[List[BasicModel], Mapping[str, BasicModel]]
+            list or map of models
+        """
         context = ModelComparisonContext(train_datasets, test_datasets, models)
         result = self.run_logic(context)
         context.finalize_check_result(result, self)
