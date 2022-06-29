@@ -13,10 +13,16 @@
 set -eu
 ENV_PATH=$(realpath venv)
 PIP_PATH=$ENV_PATH/bin/pip
-BENCHMARK_DIR=$1
 
 configure_asv () {
-    echo '{"version": 1,"repo": ".","branches": ["HEAD"],"environment_type": "virtualenv","benchmark_dir": "'$BENCHMARK_DIR'"}'> asv.conf.json
+    cat << EOF > asv.conf.json
+{
+    "version": 1,
+    "repo": ".",
+    "branches": ["HEAD"],
+    "environment_type": "virtualenv",
+}
+EOF
 }
 
 run_asv () {

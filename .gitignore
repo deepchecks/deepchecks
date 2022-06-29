@@ -120,4 +120,4 @@ docs/source/user-guide/general/exporting_results/wandb
 deepchecks/vision/datasets/classification/models/
 
 # ignore benchmark results
-benchmarks/*/results
+benchmarks/results

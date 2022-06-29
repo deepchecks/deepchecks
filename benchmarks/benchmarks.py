@@ -8,3 +8,11 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+import logging
+
+from .tabular_bench import BenchmarkTabular
+from .vision_bench import BenchmarkVision
+
+__all__ = ['BenchmarkTabular', 'BenchmarkVision']
+
+logging.getLogger('deepchecks').setLevel(logging.ERROR)

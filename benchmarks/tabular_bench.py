@@ -13,7 +13,7 @@ from typing import Callable
 
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksBaseError
-from deepchecks.tabular import Context, SingleDatasetCheck, TrainTestCheck, checks
+from deepchecks.tabular import Context, SingleDatasetCheck, checks
 from deepchecks.tabular.datasets.classification import lending_club
 from deepchecks.tabular.datasets.regression import avocado
 

@@ -9,20 +9,16 @@
 # ----------------------------------------------------------------------------
 #
 import inspect
-import logging
-import sys
 from typing import Callable
 
 import torch
 
 from deepchecks.core.errors import DeepchecksBaseError
-from deepchecks.vision import Context, SingleDatasetCheck, TrainTestCheck, ModelOnlyCheck, checks
+from deepchecks.vision import Context, SingleDatasetCheck, TrainTestCheck, checks
 from deepchecks.vision.datasets.classification import mnist
 from deepchecks.vision.datasets.detection import coco
 from deepchecks.vision.vision_data import VisionData
 
-
-logging.getLogger('deepchecks').setLevel(logging.ERROR)
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
