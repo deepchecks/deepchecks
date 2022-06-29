@@ -77,11 +77,12 @@ class SpecialCharacters(SingleDatasetCheck):
             special_samples = _get_special_samples(column_data)
             if special_samples:
                 result[column_name] = sum(special_samples.values()) / column_data.size
-                percent = format_percent(sum(special_samples.values()) / column_data.size)
-                top_n_samples_items = \
-                    sorted(special_samples.items(), key=lambda x: x[1], reverse=True)[:self.n_most_common]
-                top_n_samples_values = [item[0] for item in top_n_samples_items]
                 if context.with_display:
+                    percent = format_percent(sum(special_samples.values()) / column_data.size)
+                    sortkey = lambda x: x[1]
+                    top_n_samples_items = sorted(special_samples.items(), key=sortkey, reverse=True)
+                    top_n_samples_items = top_n_samples_items[:self.n_most_common]
+                    top_n_samples_values = [item[0] for item in top_n_samples_items]
                     display_array.append([column_name, percent, top_n_samples_values])
             else:
                 result[column_name] = 0
