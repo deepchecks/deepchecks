@@ -70,8 +70,9 @@ Since loss functions are used as objectives in optimization problems they need t
 don’t such as differentiability.
 
 During the optimization process the loss function is called many times, while the metric function is only called once at
-the end of the process (except in some specific cases like early stopping <link> condition) so the calculation speed is
-more crucial for loss functions than for metrics.
+the end of the process (except in some specific cases like `early stopping
+<https://pytorch-lightning.readthedocs.io/en/stable/common/early_stopping.html>`__ condition) so the calculation speed
+is more crucial for loss functions than for metrics.
 
 On the other hand, loss functions face inward- the results are returned to the optimizer (the entity managing the
 optimization process), while metrics face outward, presenting the results to the user and because of that explainability
@@ -87,12 +88,13 @@ Common Metrics
 ==============
 Regression
 ----------
-*   MSE - mean squared error, the average squared difference between the estimated values and the actual values.
-    Probably the most common metric for regression.
-*   MAE - mean absolute error, the average absolute difference between the estimated values and the actual values.
-*   Cosine similarity - the cosine of the angle between two sequences or vectors of numbers. The cosine similarity does
-    not depend on the magnitudes of the vectors, only on their angle, similar vectors are vectors pointing in the same
-    direction.
+*   `MSE <https://en.wikipedia.org/wiki/Mean_squared_error>`__ - mean squared error, the average squared difference
+    between the estimated values and the actual values. Probably the most common metric for regression.
+*   `MAE <https://en.wikipedia.org/wiki/Mean_absolute_error>`__ - mean absolute error, the average absolute difference
+    between the estimated values and the actual values.
+*   `Cosine similarity <https://en.wikipedia.org/wiki/Cosine_similarity>`__ - the cosine of the angle between two
+    sequences or vectors of numbers. The cosine similarity does not depend on the magnitudes of the vectors, only on
+    their angle, similar vectors are vectors pointing in the same direction.
 
 Classification
 --------------
@@ -100,7 +102,7 @@ In general, the common classification metrics are based on the concept of compar
 truth label and counting the matches and mismatches between them.
 
 This is usually done with the assistance of a confusion matrix. If you are not familiar with the concept of confusion
-matrix, check out this link.
+matrix, check out this `link <https://en.wikipedia.org/wiki/Confusion_matrix>`__ .
 
 .. image:: /_static/images/general/truth_table.png
    :alt: Truth Table
@@ -108,12 +110,16 @@ matrix, check out this link.
 
 Truth table by Sol Yarkoni
 
-*   Accuracy - how many samples were classified correctly out of the total number of samples. Though very intuitive, it
-    can often be misleading, especially for imbalanced data.
-*   Precision- how many samples were classified correctly as positive out of the total number of samples classified as
-    positive. Can be also viewed as the fraction of relevant samples out of the samples spotted by the model.
-*   Recall/ Sensitivity/ TPR - how many samples were classified correctly as positive out of the total number of
-    positive samples. Can be also viewed as the fraction of the relevant samples that were spotted by the model.
+*   `Accuracy <https://developers.google.com/machine-learning/crash-course/classification/accuracy>`__ - how many
+    samples were classified correctly out of the total number of samples. Though very intuitive, it can often be
+    misleading, especially for imbalanced data.
+*   `Precision <https://en.wikipedia.org/wiki/Precision_and_recall>`__ - how many samples were classified correctly as
+    positive out of the total number of samples classified as positive. Can be also viewed as the fraction of relevant
+    samples out of the samples spotted by the model.
+*   `Recall <https://en.wikipedia.org/wiki/Precision_and_recall>`__ /
+    `Sensitivity <https://en.wikipedia.org/wiki/Sensitivity_and_specificity>`__ / TPR - how many samples were classified
+    correctly as positive out of the total number of positive samples. Can be also viewed as the fraction of the
+    relevant samples that were spotted by the model.
 
 
 .. image:: /_static/images/general/PrecisionRecall_wikipedia.svg.png
@@ -124,8 +130,8 @@ Precision and Recall by Walber - Own work, CC BY-SA 4.0,
 `source <https://commons.wikimedia.org/w/index.php?curid=36926283>`__
 
 
-*   Specificity/ TNR - how many samples were classified correctly as negative out of the total number of negative
-    samples. Complementary to sensitivity.
+*   `Specificity <https://en.wikipedia.org/wiki/Sensitivity_and_specificity>`__/ TNR - how many samples were classified
+    correctly as negative out of the total number of negative samples. Complementary to sensitivity.
 
 .. image:: /_static/images/general/Sensitivity_and_specificity_wikipedia.svg.png
    :alt: Specificity and sensitivity
@@ -134,19 +140,21 @@ Precision and Recall by Walber - Own work, CC BY-SA 4.0,
 Specificity and Sensitivity by FeanDoe - Modified version from Walber&#039;s Precision and Recall
 `source <https://commons.wikimedia.org/w/index.php?curid=94134880>`__
 
-*   F-1 - combines the precision and recall into one metric by taking their harmonic mean. More robust to class
-    imbalance than accuracy.
-*   AUC - The area under the curve of the ROC graph. For the previous classification metrics, a threshold on the model
-    output was chosen above which the sample is classified as positive and below as negative. The AUC takes into account
-    all possible thresholds.
+*   `F-1 <https://en.wikipedia.org/wiki/F-score>`__ - combines the precision and recall into one metric by taking their
+    harmonic mean. More robust to class imbalance than accuracy.
+*   `AUC <https://developers.google.com/machine-learning/crash-course/classification/roc-and-auc>`__  - The area under
+    the curve of the ROC graph. For the previous classification metrics, a threshold on the model output was chosen
+    above which the sample is classified as positive and below as negative. The AUC takes into account all possible
+    thresholds.
 
 Object Detection
 ----------------
-*   IoU/ Jaccard Index - the ratio between the overlapping area of predicted and the actual bounding box and the union
-    of their areas. The most intuitive metric for object detection.
+*   `Jaccard Index <https://en.wikipedia.org/wiki/Jaccard_index>`__ / IoU - the ratio between the overlapping area of
+    predicted and the actual bounding box and the union of their areas. The most intuitive metric for object detection.
 *   mAP - mean average precision. The mean of the average precision per class over the classes. Calculated at a certain
     threshold, usually 0.5. Commonly used for benchmarking object detection models. A good explanation of how it is
-    calculated can be found here <link>.
+    calculated can be found
+    `here <https://towardsdatascience.com/breaking-down-mean-average-precision-map-ae462f623a52>`__.
 *   mAR - mean average recall. The mean of the average precision per class over the classes. Summed over the threshold
     range [0.5, 1].
 
@@ -206,5 +214,6 @@ Custom metrics
 --------------
 You can also pass your own custom metric to relevant checks and suites.
 
-Custom metrics should follow the Ignite Metric API for computer vision or Sklearn scorer API for tabular.
-
+Custom metrics should follow the
+`Ignite Metric <https://pytorch.org/ignite/metrics.html#how-to-create-a-custom-metric>`__ API for computer vision or
+`Sklearn scorer <https://scikit-learn.org/stable/modules/generated/sklearn.metrics.make_scorer.html>`__ API for tabular.
