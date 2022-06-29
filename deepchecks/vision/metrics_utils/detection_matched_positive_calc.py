@@ -29,19 +29,29 @@ class MatchedPositive(Metric, MetricMixin):
         Threshold of the IoU.
     confidence_thres: float, default: 0.5
         Threshold of the confidence.
-    evaluting_function: int, default: None
-        if not None, will run on each class result i.e `func(match_array, number_of_positives)`
+    evaluting_function: t.Union[t.Callable, t.Literal['recall', 'fpr', 'fnr']]], default: 'recall'
+        will run on each class result i.e `func(match_array, number_of_positives)`
     """
 
     def __init__(self, *args, iou_thres: float = 0.5, confidence_thres: float = 0.5,
-                 evaluting_function: t.Callable = None, **kwargs):
+                 evaluting_function: t.Union[t.Callable, t.Literal['recall', 'fpr', 'fnr']] = 'recall', **kwargs):
         super().__init__(*args, **kwargs)
 
         self._evals = defaultdict(lambda: {"matched": [], "NP": 0})
 
         self.iou_thres = iou_thres
         self.confidence_thres = confidence_thres
-        self.evaluting_function = evaluting_function
+        if isinstance(evaluting_function, str):
+            if evaluting_function == 'recall':
+                evaluting_function = self._calc_recall
+            elif evaluting_function == 'fpr':
+                evaluting_function = self._calc_fpr
+            elif evaluting_function == 'fnr':
+                evaluting_function = self._calc_fnr
+            else:
+                raise ValueError(
+                    'Expected evaluting_function one of ["recall", "fpr", "fnr"], recived: ' + evaluting_function)
+            self.evaluting_function = evaluting_function
         self._i = 0
 
     @reinit__is_reduced
@@ -74,9 +84,7 @@ class MatchedPositive(Metric, MetricMixin):
         res = -np.ones(max_class + 1)
         for class_id in sorted_classes:
             ev = self._evals[class_id]
-            res[class_id] = np.array(ev["matched"]), ev["NP"]
-            if self.evaluting_function != None:
-                res[class_id] = self.evaluting_function(*res[class_id])
+            res[class_id] = self.evaluting_function(np.array(ev["matched"]), ev["NP"])
         return res
 
     def _group_detections(self, detected, ground_truth):
@@ -132,7 +140,49 @@ class MatchedPositive(Metric, MetricMixin):
                 ground_truth_matched[best_match] = d_idx
         return detection_matches
 
+    @staticmethod
+    def _calc_recall(matched: np.ndarray, n_positives: int) -> float:
+        """Calculate recall for given matches and number of positives."""
+        if n_positives == 0:
+            return -1
+        if len(matched):
+            tp = np.sum(matched)
+            rc = tp / n_positives
+            return rc
+        return 0
+
+    @staticmethod
+    def _calc_fpr(matched: np.ndarray, n_positives: int) -> float:
+        """Calculate FPR for given matches and number of positives."""
+        if n_positives == 0:
+            return -1
+        if len(matched):
+            fp = np.sum(~matched)
+            return fp / n_positives
+        return 0
+
+    @staticmethod
+    def _calc_fnr(matched: np.ndarray, n_positives: int) -> float:
+        """Calculate FNR for given matches and number of positives."""
+        if n_positives == 0:
+            return -1
+        if len(matched):
+            tp = np.sum(matched)
+            fn = n_positives - tp
+            return fn / n_positives
+        return 1
+
 
 class ObjectDetectionMatchedPositive(MatchedPositive, ObjectDetectionMetricMixin):
     """Calculate the match array and number of positives for object detection.
-    We are expecting to receive the predictions in the following format: [x, y, w, h, confidence, label]."""
+    We are expecting to receive the predictions in the following format: [x, y, w, h, confidence, label].
+
+    Parameters
+    ----------
+    iou_thres: float, default: 0.5
+        Threshold of the IoU.
+    confidence_thres: float, default: 0.5
+        Threshold of the confidence.
+    evaluting_function: t.Union[t.Callable, t.Literal['recall', 'fpr', 'fnr']]], default: 'recall'
+        if not None, will run on each class result i.e `func(match_array, number_of_positives)`
+    """

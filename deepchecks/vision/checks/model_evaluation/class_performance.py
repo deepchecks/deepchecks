@@ -10,6 +10,7 @@
 #
 """Module containing class performance check."""
 from typing import Dict, List, TypeVar
+from catboost import train
 
 import numpy as np
 import pandas as pd
@@ -62,11 +63,13 @@ class ClassPerformance(TrainTestCheck):
                  show_only: str = 'largest',
                  metric_to_show_by: str = None,
                  class_list_to_show: List[int] = None,
+                 is_detection_thres_scorers: bool = False,
                  **kwargs):
         super().__init__(**kwargs)
         self.alternative_metrics = alternative_metrics
         self.n_to_show = n_to_show
         self.class_list_to_show = class_list_to_show
+        self.is_detection_thres_scorers = is_detection_thres_scorers
 
         if self.class_list_to_show is None:
             if show_only not in ['largest', 'smallest', 'random', 'best', 'worst']:
@@ -84,8 +87,12 @@ class ClassPerformance(TrainTestCheck):
     def initialize_run(self, context: Context):
         """Initialize run by creating the _state member with metrics for train and test."""
         self._data_metrics = {}
-        self._data_metrics[DatasetKind.TRAIN] = get_scorers_list(context.train, self.alternative_metrics)
-        self._data_metrics[DatasetKind.TEST] = get_scorers_list(context.train, self.alternative_metrics)
+        self._data_metrics[DatasetKind.TRAIN] = get_scorers_list(context.train,
+                                                                 self.alternative_metrics,
+                                                                 self.is_detection_thres_scorers)
+        self._data_metrics[DatasetKind.TEST] = get_scorers_list(context.train,
+                                                                self.alternative_metrics,
+                                                                self.is_detection_thres_scorers)
 
         if not self.metric_to_show_by:
             self.metric_to_show_by = list(self._data_metrics[DatasetKind.TRAIN].keys())[0]

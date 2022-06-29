@@ -20,6 +20,7 @@ from ignite.metrics import Metric, Precision, Recall
 
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
+from deepchecks.vision.metrics_utils.detection_matched_positive_calc import ObjectDetectionMatchedPositive
 from deepchecks.vision.metrics_utils.detection_precision_recall import ObjectDetectionAveragePrecision
 from deepchecks.vision.vision_data import TaskType, VisionData
 
@@ -45,9 +46,18 @@ def get_default_object_detection_scorers():
     }
 
 
+def get_threshold_detection_scorers():
+    return {
+        'Recall': ObjectDetectionMatchedPositive(evaluting_function='recall'),
+        'FPR': ObjectDetectionMatchedPositive(evaluting_function='fpr'),
+        'FNR': ObjectDetectionMatchedPositive(evaluting_function='fnr')
+    }
+
+
 def get_scorers_list(
         dataset: VisionData,
-        alternative_scorers: t.Dict[str, Metric] = None
+        alternative_scorers: t.Dict[str, Metric] = None,
+        is_detection_thres_scorers: bool = False,
 ) -> t.Dict[str, Metric]:
     """Get scorers list according to model object and label column.
 
@@ -78,7 +88,10 @@ def get_scorers_list(
     elif task_type == TaskType.CLASSIFICATION:
         scorers = get_default_classification_scorers()
     elif task_type == TaskType.OBJECT_DETECTION:
-        scorers = get_default_object_detection_scorers()
+        if is_detection_thres_scorers:
+            scorers = get_threshold_detection_scorers()
+        else:
+            scorers = get_default_object_detection_scorers()
     else:
         raise DeepchecksNotSupportedError(f'No scorers match task_type {task_type}')
 

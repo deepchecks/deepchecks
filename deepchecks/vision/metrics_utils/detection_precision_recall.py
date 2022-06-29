@@ -339,4 +339,14 @@ class AveragePrecisionRecall(Metric, MetricMixin):
 
 class ObjectDetectionAveragePrecision(AveragePrecisionRecall, ObjectDetectionMetricMixin):
     """Calculate average precision and recall for object detection.
-    We are expecting to receive the predictions in the following format: [x, y, w, h, confidence, label]."""
+    We are expecting to receive the predictions in the following format: [x, y, w, h, confidence, label].
+
+    Parameters
+    ----------
+    max_dets: Union[List[int], Tuple[int]], default: [1, 10, 100]
+        Maximum number of detections per class.
+    area_range: tuple, default: (32**2, 96**2)
+        Slices for small/medium/large buckets.
+    return_option: int, default: 0
+        0: ap only, 1: ar only, None: all (not ignite complient)
+    """
