@@ -41,9 +41,20 @@ class ColumnsInfo(SingleDatasetCheck):
             display a table of the dictionary.
         """
         dataset = context.get_data_by_kind(dataset_kind)
-        value = dataset.columns_info
-        value = column_importance_sorter_dict(value, dataset, context.feature_importance, self.n_top_columns)
-        df = pd.DataFrame.from_dict(value, orient='index', columns=['role'])
+        columns_info = dataset.columns_info
+        columns_info = column_importance_sorter_dict(columns_info, dataset, context.feature_importance)
+
+        columns_info_to_display = (
+            columns_info
+            if len(columns_info) <= self.n_top_columns
+            else dict(list(columns_info.items())[:self.n_top_columns])
+        )
+
+        df = pd.DataFrame.from_dict(columns_info_to_display, orient='index', columns=['role'])
         df = df.transpose()
 
-        return CheckResult(value, header='Columns Info', display=[N_TOP_MESSAGE % self.n_top_columns, df])
+        return CheckResult(
+            columns_info,
+            header='Columns Info',
+            display=[N_TOP_MESSAGE % self.n_top_columns, df]
+        )

@@ -242,7 +242,7 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
         return HTML(value=super().handle_callable(item, index, **kwargs))
 
     @classmethod
-    def handle_display_map(cls, item: 'check_types.DisplayMap', index: int, **kwargs) -> Tab:
+    def handle_display_map(cls, item: 'check_types.DisplayMap', index: int, **kwargs) -> VBox:
         """Handle display map instance item."""
         tab = Tab()
         children = []
@@ -257,4 +257,8 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
             )))
 
         tab.children = children
-        return tab
+        style = '<style>.jupyter-widgets.widget-tab > .p-TabBar .p-TabBar-tab {min-width: fit-content;}</style>'
+        return VBox(children=[
+            HTML(value=style),
+            tab
+        ])

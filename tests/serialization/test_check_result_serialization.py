@@ -621,9 +621,13 @@ def serialized_to_widget_displaymap(
         raise ValueError('At least one of the parameters must be provided - [display_items, tabs]')
 
     return all_of(
-        instance_of(Tab),
-        has_property('children', all_of(
-            contains_exactly(*tabs_matcher)
+        instance_of(VBox),
+        has_property('children', contains_exactly(
+            instance_of(HTML),
+            all_of(
+                instance_of(Tab),
+                has_property('children', all_of(contains_exactly(*tabs_matcher)))
+            )
         ))
     )
 
