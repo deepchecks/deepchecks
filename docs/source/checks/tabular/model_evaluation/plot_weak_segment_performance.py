@@ -36,15 +36,16 @@ model = load_fitted_model()
 # =============
 # The check have several key parameters that can define the behavior of the check and especially its output.
 #
-# alternative_scorer: will define the relevant metric to use for the check. It is important to select a metric
-# that is relevant to the data domain and task you are performing.
+# alternative_scorer: Determines the metric to be used as performance estimator of the model on segments for the check.
+# It is important to select a metric that is relevant to the data domain and task you are performing. By default, the
+# check uses Neg RMSE for regression tasks and Accuracy for classification tasks.
 #
-# segment_minimum_size_ratio: determines the minimum size of segments that are of interest. The check is tuned to find
+# segment_minimum_size_ratio: Determines the minimum size of segments that are of interest. The check is tuned to find
 # the weakest segment regardless of the segment size and so it is recommended to try different configurations of this
 # parameter as larger segments can be of interest even the model performance on them is superior.
 #
-# categorical_aggregation_threshold: by default the check will combined rare categories into a single category called
-# "other". This parameter determines the frequency threshold to be mapped into to the "other" category.
+# categorical_aggregation_threshold: By default the check will combine rare categories into a single category called
+# "other". This parameter determines the frequency threshold for categories to be mapped into to the "other" category.
 #
 
 from deepchecks.tabular.datasets.classification import phishing
