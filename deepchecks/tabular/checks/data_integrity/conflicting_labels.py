@@ -60,12 +60,13 @@ class ConflictingLabels(SingleDatasetCheck):
         Returns
         -------
         CheckResult
-            percentage of ambiguous samples and display of the top n_to_show most ambiguous.
+            Value of result is a dictionary that contains percentage of ambiguous samples
+            and list of samples with confliction labels. Display shows 'n_to_show' most
+            ambiguous labels with their samples.
         """
         dataset = context.get_data_by_kind(dataset_kind)
         context.assert_classification_task()
         dataset.assert_label()
-        with_display = context.with_display
 
         dataset = dataset.select(self.columns, self.ignore_columns, keep_label=True)
         features = dataset.features
@@ -101,13 +102,13 @@ class ConflictingLabels(SingleDatasetCheck):
             num_ambiguous += n_data_sample
             samples.append(group_df.loc[:, [label_name, *features]].copy())
 
-            if with_display is True:
+            if context.with_display is True:
                 display_sample = dict(group_df[features].iloc[0])
                 ambiguous_labels = tuple(sorted(group_df[label_name].unique()))
                 display_sample[ambiguous_label_name] = ambiguous_labels
                 display_samples.append(display_sample)
 
-        if not (with_display is True and len(display_samples) > 0):
+        if len(display_samples) == 0:
             display = None
         else:
             display = pd.DataFrame.from_records(display_samples[:self.n_to_show])
