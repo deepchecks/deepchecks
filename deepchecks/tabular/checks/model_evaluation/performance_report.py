@@ -39,6 +39,7 @@ class PerformanceReport(TrainTestCheck, ReduceMixin):
     reduce: Union[Callable, str], default: 'mean'
         An optional argument only used for the reduce_output function when using
         non-average scorers.
+
     Notes
     -----
     Scorers are a convention of sklearn to evaluate a model.
