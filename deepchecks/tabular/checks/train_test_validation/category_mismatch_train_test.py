@@ -49,7 +49,7 @@ class CategoryMismatchTrainTest(TrainTestCheck):
         super().__init__(**kwargs)
         self.columns = columns
         self.ignore_columns = ignore_columns
-        self.max_features_to_show = max_features_to_show
+        self.max_features_to_show = max_features_to_show  # TODO: attr is not used, remove it
         self.max_new_categories_to_show = max_new_categories_to_show
 
     def run_logic(self, context: Context) -> CheckResult:

@@ -248,12 +248,14 @@ def string_baseform(string: Hashable, allow_empty_result: bool = False) -> Hasha
 
     If input is a string containing alphanumeric characters or if allow_empty_result is set to True,
     removes all non-alphanumeric characters and convert characters to lower form.
+
     Parameters
     ----------
     allow_empty_result : bool , default : False
         bool indicating whether to return empty result if no alphanumeric characters are present or the original input
     string : str
         string to remove special characters from
+
     Returns
     -------
     str
