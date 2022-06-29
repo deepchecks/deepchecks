@@ -106,10 +106,10 @@ def train_test_validation(n_top_show: int = 5,
     :ref:`vision_classification_tutorial`
     :ref:`vision_detection_tutorial`
     """
-    default_kwargs = {'n_top_show': n_top_show, 'label_properties': label_properties,
-                      'image_properties': image_properties, 'sample_size': sample_size,
-                      'random_state': random_state}
-    kwargs = {**default_kwargs, **kwargs}
+    args = locals()
+    args.pop('kwargs')
+    non_none_args = {k: v for k, v in args.items() if v is not None}
+    kwargs = {**non_none_args, **kwargs}
 
     return Suite(
         'Train Test Validation Suite',
@@ -203,10 +203,10 @@ def model_evaluation(alternative_metrics: Dict[str, Metric] = None,
     :ref:`vision_classification_tutorial`
     :ref:`vision_detection_tutorial`
     """
-    default_kwargs = {'alternative_metrics': alternative_metrics, 'area_range': area_range,
-                      'image_properties': image_properties, 'prediction_properties': prediction_properties,
-                      'random_state': random_state}
-    kwargs = {**default_kwargs, **kwargs}
+    args = locals()
+    args.pop('kwargs')
+    non_none_args = {k: v for k, v in args.items() if v is not None}
+    kwargs = {**non_none_args, **kwargs}
 
     return Suite(
         'Model Evaluation Suite',
@@ -294,9 +294,11 @@ def data_integrity(image_properties: List[Dict[str, Any]] = None,
     :ref:`vision_classification_tutorial`
     :ref:`vision_detection_tutorial`
     """
-    default_kwargs = {'image_properties': image_properties, 'n_show_top': n_show_top,
-                      'label_properties': label_properties, **kwargs}
-    kwargs = {**default_kwargs, **kwargs}
+    args = locals()
+    args.pop('kwargs')
+    non_none_args = {k: v for k, v in args.items() if v is not None}
+    kwargs = {**non_none_args, **kwargs}
+
     return Suite(
         'Data Integrity Suite',
         ImagePropertyOutliers(**kwargs),

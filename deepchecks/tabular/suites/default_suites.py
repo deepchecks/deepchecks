@@ -121,9 +121,10 @@ def data_integrity(columns: Union[Hashable, List[Hashable]] = None,
     --------
     :ref:`quick_data_integrity`
     """
-    default_kwargs = {'columns': columns, 'ignore_columns': ignore_columns, 'n_top_columns': n_top_columns,
-                      'n_samples': n_samples, 'random_state': random_state, 'n_to_show': n_to_show}
-    kwargs = {**default_kwargs, **kwargs}
+    args = locals()
+    args.pop('kwargs')
+    non_none_args = {k: v for k, v in args.items() if v is not None}
+    kwargs = {**non_none_args, **kwargs}
 
     return Suite(
         'Data Integrity Suite',
@@ -231,9 +232,10 @@ def train_test_validation(columns: Union[Hashable, List[Hashable]] = None,
     --------
     :ref:`quick_train_test_validation`
     """
-    default_kwargs = {'columns': columns, 'ignore_columns': ignore_columns, 'n_top_columns': n_top_columns,
-                      'n_samples': n_samples, 'random_state': random_state, 'n_to_show': n_to_show}
-    kwargs = {**default_kwargs, **kwargs}
+    args = locals()
+    args.pop('kwargs')
+    non_none_args = {k: v for k, v in args.items() if v is not None}
+    kwargs = {**non_none_args, **kwargs}
     return Suite(
         'Train Test Validation Suite',
         DatasetsSizeComparison(**kwargs).add_condition_test_train_size_ratio_greater_than(),
@@ -333,11 +335,10 @@ def model_evaluation(alternative_scorers: Dict[str, Callable] = None,
     --------
     :ref:`quick_full_suite`
     """
-    default_kwargs = {'alternative_scorers': alternative_scorers, 'columns': columns, 'ignore_columns': ignore_columns,
-                      'n_top_columns': n_top_columns, 'n_samples': n_samples, 'random_state': random_state,
-                      'n_to_show': n_to_show}
-
-    kwargs = {**default_kwargs, **kwargs}
+    args = locals()
+    args.pop('kwargs')
+    non_none_args = {k: v for k, v in args.items() if v is not None}
+    kwargs = {**non_none_args, **kwargs}
 
     return Suite(
         'Model Evaluation Suite',
