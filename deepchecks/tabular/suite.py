@@ -19,6 +19,7 @@ from deepchecks.core import DatasetKind
 from deepchecks.core.check_result import CheckFailure
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.core.suite import BaseSuite, SuiteResult
+from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.tabular.base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
 from deepchecks.tabular.context import Context
 from deepchecks.tabular.dataset import Dataset
@@ -37,23 +38,24 @@ class Suite(BaseSuite):
         """Return tuple of supported check types of this suite."""
         return TrainTestCheck, SingleDatasetCheck, ModelOnlyCheck
 
-    @deprecate_kwarg(old_arg_name='features_importance', new_arg_name='feature_importance')
+    @deprecate_kwarg(old_name='features_importance', new_name='feature_importance')
+    @docstrings
     def run(
-            self,
-            train_dataset: Optional[Union[Dataset, pd.DataFrame]] = None,
-            test_dataset: Optional[Union[Dataset, pd.DataFrame]] = None,
-            model: BasicModel = None,
-            feature_importance: pd.Series = None,
-            feature_importance_force_permutation: bool = False,
-            feature_importance_timeout: int = None,
-            scorers: Mapping[str, Union[str, Callable]] = None,
-            scorers_per_class: Mapping[str, Union[str, Callable]] = None,
-            with_display: bool = True,
-            y_pred_train: np.ndarray = None,
-            y_pred_test: np.ndarray = None,
-            y_proba_train: np.ndarray = None,
-            y_proba_test: np.ndarray = None,
-            features_importance: pd.Series = None,  # TODO: deprecated, remove it
+        self,
+        train_dataset: Union[Dataset, pd.DataFrame, None] = None,
+        test_dataset: Union[Dataset, pd.DataFrame, None] = None,
+        model: Optional[BasicModel] = None,
+        feature_importance: Optional[pd.Series] = None,
+        feature_importance_force_permutation: bool = False,
+        feature_importance_timeout: int = 120,
+        scorers: Optional[Mapping[str, Union[str, Callable]]] = None,
+        scorers_per_class: Optional[Mapping[str, Union[str, Callable]]] = None,
+        with_display: bool = True,
+        y_pred_train: Optional[np.ndarray] = None,
+        y_pred_test: Optional[np.ndarray] = None,
+        y_proba_train: Optional[np.ndarray] = None,
+        y_proba_test: Optional[np.ndarray] = None,
+        model_name: str = '',
     ) -> SuiteResult:
         """Run all checks.
 
@@ -63,53 +65,31 @@ class Suite(BaseSuite):
             object, representing data an estimator was fitted on
         test_dataset : Optional[Union[Dataset, pd.DataFrame]] , default None
             object, representing data an estimator predicts on
-        model : BasicModel , default None
+        model : Optional[BasicModel] , default None
             A scikit-learn-compatible fitted estimator instance
-        features_importance : pd.Series , default None
-            pass manual features importance
-            .. deprecated:: 0.8.1
-                Use 'feature_importance' instead.
-        feature_importance : pd.Series , default None
-            pass manual features importance
-        feature_importance_force_permutation : bool , default None
-            force calculation of permutation features importance
-        feature_importance_timeout : int , default None
-            timeout in second for the permutation features importance calculation
-        scorers : Mapping[str, Union[str, Callable]] , default None
-            dict of scorers names to scorer sklearn_name/function
-        scorers_per_class : Mapping[str, Union[str, Callable]], default None
-            dict of scorers for classification without averaging of the classes
-            See <a href=
-            "https://scikit-learn.org/stable/modules/model_evaluation.html#from-binary-to-multiclass-and-multilabel">
-            scikit-learn docs</a>
-        y_pred_train: np.ndarray , default: None
-            Array of the model prediction over the train dataset.
-        y_pred_test: np.ndarray , default: None
-            Array of the model prediction over the test dataset.
-        y_proba_train: np.ndarray , default: None
-            Array of the model prediction probabilities over the train dataset.
-        y_proba_test: np.ndarray , default: None
-            Array of the model prediction probabilities over the test dataset.
+        {additional_context_params:2*indent}
 
         Returns
         -------
         SuiteResult
             All results by all initialized checks
         """
-        feature_importance = (
-            features_importance  # in case if user used deprecated parameter
-            if feature_importance is None
-            else feature_importance
+        context = Context(
+            train_dataset,
+            test_dataset,
+            model,
+            feature_importance=feature_importance,
+            feature_importance_force_permutation=feature_importance_force_permutation,
+            feature_importance_timeout=feature_importance_timeout,
+            scorers=scorers,
+            scorers_per_class=scorers_per_class,
+            with_display=with_display,
+            y_pred_train=y_pred_train,
+            y_pred_test=y_pred_test,
+            y_proba_train=y_proba_train,
+            y_proba_test=y_proba_test,
+            model_name=model_name
         )
-        context = Context(train_dataset, test_dataset, model,
-                          feature_importance=feature_importance,
-                          feature_importance_force_permutation=feature_importance_force_permutation,
-                          feature_importance_timeout=feature_importance_timeout,
-                          scorers=scorers,
-                          scorers_per_class=scorers_per_class,
-                          with_display=with_display,
-                          y_pred_train=y_pred_train, y_pred_test=y_pred_test,
-                          y_proba_train=y_proba_train, y_proba_test=y_proba_test)
 
         progress_bar = create_progress_bar(
             iterable=list(self.checks.values()),
