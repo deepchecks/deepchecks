@@ -119,3 +119,5 @@ docs/source/user-guide/vision/tutorials/EuroSAT
 docs/source/user-guide/general/exporting_results/wandb
 deepchecks/vision/datasets/classification/models/
 
+# ignore benchmark results
+benchmarks/results
