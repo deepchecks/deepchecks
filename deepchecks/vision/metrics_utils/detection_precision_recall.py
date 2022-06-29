@@ -339,7 +339,6 @@ class AveragePrecisionRecall(Metric, MetricMixin):
 
 class ObjectDetectionAveragePrecision(AveragePrecisionRecall, ObjectDetectionMetricMixin):
     """Calculate average precision and recall for object detection.
-    We are expecting to receive the predictions in the following format: [x, y, w, h, confidence, label].
 
     Parameters
     ----------

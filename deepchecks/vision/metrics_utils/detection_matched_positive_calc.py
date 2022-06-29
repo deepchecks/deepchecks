@@ -29,12 +29,12 @@ class MatchedPositive(Metric, MetricMixin):
         Threshold of the IoU.
     confidence_thres: float, default: 0.5
         Threshold of the confidence.
-    evaluting_function: t.Union[t.Callable, t.Literal['recall', 'fpr', 'fnr']]], default: 'recall'
+    evaluting_function: t.Union[t.Callable, t.Literal["recall", "fpr", "fnr"]]], default: "recall"
         will run on each class result i.e `func(match_array, number_of_positives)`
     """
 
     def __init__(self, *args, iou_thres: float = 0.5, confidence_thres: float = 0.5,
-                 evaluting_function: t.Union[t.Callable, t.Literal['recall', 'fpr', 'fnr']] = 'recall', **kwargs):
+                 evaluting_function: t.Union[t.Callable, t.Literal["recall", "fpr", "fnr"]] = "recall", **kwargs):
         super().__init__(*args, **kwargs)
 
         self._evals = defaultdict(lambda: {"matched": [], "NP": 0})
@@ -42,15 +42,15 @@ class MatchedPositive(Metric, MetricMixin):
         self.iou_thres = iou_thres
         self.confidence_thres = confidence_thres
         if isinstance(evaluting_function, str):
-            if evaluting_function == 'recall':
+            if evaluting_function == "recall":
                 evaluting_function = self._calc_recall
-            elif evaluting_function == 'fpr':
+            elif evaluting_function == "fpr":
                 evaluting_function = self._calc_fpr
-            elif evaluting_function == 'fnr':
+            elif evaluting_function == "fnr":
                 evaluting_function = self._calc_fnr
             else:
                 raise ValueError(
-                    'Expected evaluting_function one of ["recall", "fpr", "fnr"], recived: ' + evaluting_function)
+                    "Expected evaluting_function one of ['recall', 'fpr', 'fnr'], recived: " + evaluting_function)
             self.evaluting_function = evaluting_function
         self._i = 0
 
@@ -95,7 +95,7 @@ class MatchedPositive(Metric, MetricMixin):
 
         for class_id in ious.keys():
             matched, n_positives = self._evaluate_image(
-                self.get_confidences(bb_info[class_id]["detected"]),
+                np.array(self.get_confidences(bb_info[class_id]["detected"])),
                 bb_info[class_id]["ground_truth"],
                 ious[class_id]
             )
@@ -108,7 +108,8 @@ class MatchedPositive(Metric, MetricMixin):
             t.Tuple[t.List[float], t.List[bool], int]:
         """Evaluate image."""
         # Sort detections by decreasing confidence
-        sorted_confidence_ids = np.argsort(confidences, kind="stable")[::-1] > self.confidence_thres
+        confidences = confidences[confidences > self.confidence_thres]
+        sorted_confidence_ids = np.argsort(confidences, kind="stable")[::-1]
         orig_ious = ious
 
         # sort list of dts and chop by max dets
@@ -175,7 +176,6 @@ class MatchedPositive(Metric, MetricMixin):
 
 class ObjectDetectionMatchedPositive(MatchedPositive, ObjectDetectionMetricMixin):
     """Calculate the match array and number of positives for object detection.
-    We are expecting to receive the predictions in the following format: [x, y, w, h, confidence, label].
 
     Parameters
     ----------

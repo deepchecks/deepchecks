@@ -10,7 +10,6 @@
 #
 """Module containing class performance check."""
 from typing import Dict, List, TypeVar
-from catboost import train
 
 import numpy as np
 import pandas as pd
