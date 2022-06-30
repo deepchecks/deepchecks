@@ -19,6 +19,7 @@ from deepchecks.vision.metrics_utils.iou_utils import compute_pairwise_ious, gro
 
 class MetricMixin:
     """Metric util function mixin."""
+
     @abstractmethod
     def get_confidences(self, detections) -> t.List[float]:
         """Get detections object of single image and should return confidence for each detection."""
@@ -47,7 +48,9 @@ class MetricMixin:
 
 class ObjectDetectionMetricMixin(MetricMixin):
     """Metric util function mixin for object detection.
-     Expecting to receive the predictions in the following format: [x, y, w, h, confidence, label]."""
+
+    Expecting to receive the predictions in the following format: [x, y, w, h, confidence, label].
+    """
 
     def get_labels_areas(self, labels) -> t.List[int]:
         """Get labels object of single image and should return area for each label."""
