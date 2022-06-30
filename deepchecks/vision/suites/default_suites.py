@@ -35,8 +35,8 @@ def train_test_validation(n_top_show: int = 5,
                           sample_size: int = None,
                           random_state: int = None,
                           **kwargs) -> Suite:
-    """Suite for validating correctness of train-test split, including integrity, \
-    distribution and leakage checks.
+    """Suite for validating correctness of train-test split, including distribution, \
+    integrity and leakage checks.
 
     List of Checks:
         .. list-table:: List of Checks
@@ -92,8 +92,8 @@ def train_test_validation(n_top_show: int = 5,
     Returns
     -------
     Suite
-        A Suite for validating correctness of train-test split, including integrity, \
-        distribution and leakage checks.
+        A Suite for validating correctness of train-test split, including distribution, \
+        integrity and leakage checks.
 
     Examples
     --------
