@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_tabular_outlier_sample_detection:
+
 Outlier Sample Detection
-***************
+************************
 
 This notebooks provides an overview for using and understanding the Outlier Sample Detection check.
 
@@ -13,7 +15,8 @@ This notebooks provides an overview for using and understanding the Outlier Samp
 * `Define a condition <#define-a-condition>`__
 
 How deepchecks detects outliers
-========================
+===============================
+
 Outlier Sample Detection searches for outliers samples (jointly across all features) using the LoOP algorithm.
 The LoOP algorithm is a robust method for detecting outliers in a dataset across multiple variables by comparing
 the density in the area of a sample with the densities in the areas of its nearest neighbors
@@ -37,7 +40,7 @@ from deepchecks.tabular.checks import OutlierSampleDetection
 
 # %%
 # Prepare data
-# =========
+# ============
 
 iris = pd.DataFrame(load_iris().data)
 iris.describe()

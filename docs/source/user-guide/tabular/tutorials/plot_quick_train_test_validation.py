@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _quick_train_test_validation:
+
 Quickstart - Train-Test Validation Suite (Loans Data)
 ************************************************************
 

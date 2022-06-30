@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_tabular_roc_report:
+
 ROC Report
 **********
 """
