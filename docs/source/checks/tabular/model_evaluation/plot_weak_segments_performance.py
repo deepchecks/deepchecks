@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Weak Segment Performance
+Weak Segments Performance
 ********************************
 
 This notebooks provides an overview for using and understanding the weak segment performance check.
