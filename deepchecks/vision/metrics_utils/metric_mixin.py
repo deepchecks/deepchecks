@@ -27,7 +27,7 @@ class MetricMixin:
 
     @abstractmethod
     def calc_pairwise_ious(self, detections, labels) -> t.Dict[int, np.ndarray]:
-        """Get single result from group_class_detection_label and return matrix of IOUs."""
+        """Get a single result from group_class_detection_label and return a matrix of IoUs."""
         pass
 
     @abstractmethod
@@ -65,7 +65,7 @@ class ObjectDetectionMetricMixin(MetricMixin):
         return [d[4].item() for d in detections]
 
     def calc_pairwise_ious(self, detections, labels) -> np.ndarray:
-        """Expect detection and labels of a single image and single class."""
+        """Get a single result from group_class_detection_label and return a matrix of IoUs."""
         return compute_pairwise_ious(detections, labels, jaccard_iou)
 
     def get_detection_areas(self, detections) -> t.List[int]:

@@ -20,7 +20,7 @@ from ignite.metrics import Metric, Precision, Recall
 
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
-from deepchecks.vision.metrics_utils.detection_matched_positive_calc import ObjectDetectionMatchedPositive
+from deepchecks.vision.metrics_utils.detection_matched_positive_calc import ObjectDetectionTpFpFn
 from deepchecks.vision.metrics_utils.detection_precision_recall import ObjectDetectionAveragePrecision
 from deepchecks.vision.metrics_utils.evalution_functions import AVAILABLE_EVALUTING_FUNCTIONS
 from deepchecks.vision.vision_data import TaskType, VisionData
@@ -71,7 +71,7 @@ def get_threshold_detection_scorers(scorers_to_use: t.List[str]) -> t.Dict[str, 
     for given_scorer_name in list(scorers_to_use):
         scorer_name = _func_naming_dict[given_scorer_name.lower()].lower()
         if scorer_name in AVAILABLE_EVALUTING_FUNCTIONS:
-            scorers_dict[given_scorer_name] = ObjectDetectionMatchedPositive(evaluting_function=scorer_name)
+            scorers_dict[given_scorer_name] = ObjectDetectionTpFpFn(evaluting_function=scorer_name)
             scorers_to_use.remove(given_scorer_name)
     return scorers_dict
 

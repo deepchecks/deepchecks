@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module for calculating detection precision and recall."""
+"""Module for calculating verious detection metrics."""
 import typing as t
 from collections import defaultdict
 
@@ -21,24 +21,24 @@ from deepchecks.vision.metrics_utils.evalution_functions import AVAILABLE_EVALUT
 from deepchecks.vision.metrics_utils.metric_mixin import MetricMixin, ObjectDetectionMetricMixin
 
 
-class MatchedPositive(Metric, MetricMixin):
-    """Abstract class to calculate the match array and number of positives for various vision tasks.
+class TpFpFn(Metric, MetricMixin):
+    """Abstract class to calculate the TP, FP, FN and runs an evaluting function on the result.
 
     Parameters
     ----------
     iou_thres: float, default: 0.5
-        Threshold of the IoU.
+        IoU below this threshold will be ignored.
     confidence_thres: float, default: 0.5
-        Threshold of the confidence.
+        Confidence below this threshold will be ignored.
     evaluting_function: Union[Callable, str], default: "recall"
-        will run on each class result i.e `func(match_array, number_of_positives)`
+        will run on each class result i.e `func(tp, fp, fn)`
     """
 
     def __init__(self, *args, iou_thres: float = 0.5, confidence_thres: float = 0.5,
                  evaluting_function: t.Union[t.Callable, str] = "recall", **kwargs):
         super().__init__(*args, **kwargs)
 
-        self._evals = defaultdict(lambda: {"matched": [], "NP": 0})
+        self._evals = defaultdict(lambda: {"tp": 0, "fp": 0, "fn": 0})
 
         self.iou_thres = iou_thres
         self.confidence_thres = confidence_thres
@@ -55,7 +55,7 @@ class MatchedPositive(Metric, MetricMixin):
     def reset(self):
         """Reset metric state."""
         super().reset()
-        self._evals = defaultdict(lambda: {"matched": [], "NP": 0})
+        self._evals = defaultdict(lambda: {"tp": 0, "fp": 0, "fn": 0})
         self._i = 0
 
     @reinit__is_reduced
@@ -65,9 +65,9 @@ class MatchedPositive(Metric, MetricMixin):
 
         for detected, ground_truth in zip(y_pred, y):
             if isinstance(detected, torch.Tensor):
-                detected = detected.cpu()
+                detected = detected.cpu().detach()
             if isinstance(ground_truth, torch.Tensor):
-                ground_truth = ground_truth.cpu()
+                ground_truth = ground_truth.cpu().detach()
 
             self._group_detections(detected, ground_truth)
             self._i += 1
@@ -81,7 +81,7 @@ class MatchedPositive(Metric, MetricMixin):
         res = -np.ones(max_class + 1)
         for class_id in sorted_classes:
             ev = self._evals[class_id]
-            res[class_id] = self.evaluting_function(np.array(ev["matched"]), ev["NP"])
+            res[class_id] = self.evaluting_function(ev["tp"], ev["fp"], ev["fn"])
         return res
 
     def _group_detections(self, detected, ground_truth):
@@ -91,18 +91,19 @@ class MatchedPositive(Metric, MetricMixin):
         ious = {k: self.calc_pairwise_ious(v["detected"], v["ground_truth"]) for k, v in bb_info.items()}
 
         for class_id in ious.keys():
-            matched, n_positives = self._evaluate_image(
+            tp, fp, fn = self._evaluate_image(
                 np.array(self.get_confidences(bb_info[class_id]["detected"])),
                 bb_info[class_id]["ground_truth"],
                 ious[class_id]
             )
 
             acc = self._evals[class_id]
-            acc["matched"] += matched
-            acc["NP"] += n_positives
+            acc["tp"] += tp
+            acc["fp"] += fp
+            acc["fn"] += fn
 
     def _evaluate_image(self, confidences: t.List[float], ground_truths: t.List, ious: np.ndarray) -> \
-            t.Tuple[t.List[float], t.List[bool], int]:
+            t.Tuple[float, float, float]:
         """Evaluate image."""
         # Sort detections by decreasing confidence
         confidences = confidences[confidences > self.confidence_thres]
@@ -113,9 +114,13 @@ class MatchedPositive(Metric, MetricMixin):
         ious = orig_ious[sorted_confidence_ids]
 
         detection_matches = self._get_best_matches(ground_truths, ious)
-        matched = [d_idx in detection_matches for d_idx in range(len(ious))]
-
-        return matched, len(ground_truths)
+        matched = np.array([d_idx in detection_matches for d_idx in range(len(ious))])
+        if len(matched) == 0:
+            tp, fp = 0, 0
+        else:
+            tp = np.sum(matched)
+            fp = len(matched) - tp
+        return tp, fp, len(ground_truths) - tp
 
     def _get_best_matches(self, ground_truths: t.List, ious: np.ndarray) -> t.Dict[int, int]:
         ground_truth_matched = {}
@@ -139,8 +144,8 @@ class MatchedPositive(Metric, MetricMixin):
         return detection_matches
 
 
-class ObjectDetectionMatchedPositive(MatchedPositive, ObjectDetectionMetricMixin):
-    """Calculate the match array and number of positives for object detection.
+class ObjectDetectionTpFpFn(TpFpFn, ObjectDetectionMetricMixin):
+    """Calculate the TP, FP, FN and runs an evaluting function on the result.
 
     Parameters
     ----------
@@ -148,6 +153,6 @@ class ObjectDetectionMatchedPositive(MatchedPositive, ObjectDetectionMetricMixin
         Threshold of the IoU.
     confidence_thres: float, default: 0.5
         Threshold of the confidence.
-    evaluting_function: t.Union[t.Callable, t.Literal['recall', 'fpr', 'fnr']]], default: 'recall'
-        if not None, will run on each class result i.e `func(match_array, number_of_positives)`
+    evaluting_function: Union[Callable, str], default: "recall"
+        will run on each class result i.e `func(tp, fp, fn)`
     """

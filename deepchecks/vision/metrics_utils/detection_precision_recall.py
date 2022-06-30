@@ -80,9 +80,9 @@ class AveragePrecisionRecall(Metric, MetricMixin):
 
         for detected, ground_truth in zip(y_pred, y):
             if isinstance(detected, torch.Tensor):
-                detected = detected.cpu()
+                detected = detected.cpu().detach()
             if isinstance(ground_truth, torch.Tensor):
-                ground_truth = ground_truth.cpu()
+                ground_truth = ground_truth.cpu().detach()
 
             self._group_detections(detected, ground_truth)
             self.i += 1
