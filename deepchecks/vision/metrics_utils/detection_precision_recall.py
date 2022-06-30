@@ -51,7 +51,7 @@ class AveragePrecisionRecall(Metric, MetricMixin):
 
     def __init__(self, *args, max_dets: Union[List[int], Tuple[int]] = (1, 10, 100),
                  area_range: Tuple = (32**2, 96**2),
-                 return_option: Optional[int] = 'ap', **kwargs):
+                 return_option: Optional[int] = "ap", **kwargs):
         super().__init__(*args, **kwargs)
 
         self._evals = defaultdict(lambda: {"scores": [], "matched": [], "NP": []})
@@ -124,12 +124,12 @@ class AveragePrecisionRecall(Metric, MetricMixin):
                         recall_list[class_id] = recall
                     reses["precision"][iou_i, area_i, dets_i] = precision_list
                     reses["recall"][iou_i, area_i, dets_i] = recall_list
-        if self.return_option == 'ap':
+        if self.return_option == "ap":
             return torch.tensor(self.get_classes_scores_at(reses["precision"],
                                                            max_dets=self.max_detections_per_class[0],
                                                            area=self.area_ranges_names[0],
                                                            get_mean_val=False))
-        elif self.return_option == 'ar':
+        elif self.return_option == "ar":
             return torch.tensor(self.get_classes_scores_at(reses["recall"],
                                                            max_dets=self.max_detections_per_class[0],
                                                            area=self.area_ranges_names[0],

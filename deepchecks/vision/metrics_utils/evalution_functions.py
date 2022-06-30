@@ -10,7 +10,8 @@
 #
 """Module for evalution functions."""
 
-def _calc_recall(tp: float, fp: float, fn: float) -> float:
+
+def _calc_recall(tp: float, fp: float, fn: float) -> float:  # pylint: disable=unused-argument
     """Calculate recall for given matches and number of positives."""
     if tp + fn == 0:
         return -1
