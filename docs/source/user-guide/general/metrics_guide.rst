@@ -10,7 +10,7 @@ Deepchecks.
 **Structure:**
 
 * `Why do we need metrics? <#why-do-we-need-metrics>`__
-* `What is a metric? <#what-is-a-metric?>`__
+* `What is a metric? <#what-is-a-metric>`__
 * `How are metrics different from loss functions? <#how-are-metrics-different-from-loss-functions>`__
 * `Common metrics <#common-metrics>`__
 * `How can I use metrics with Deepchecks? <#how-can-i-use-metrics-with-deepchecks>`__
