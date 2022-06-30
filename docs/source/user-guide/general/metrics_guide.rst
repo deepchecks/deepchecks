@@ -9,12 +9,12 @@ Deepchecks.
 
 **Structure:**
 
-* `Why do we need metrics? <#why_do_we_need_metrics>`__
-* `What is a metric? <#what_is_a_metric?>`__
-* `How are metrics different from loss functions? <#metrics_vs_loss_functions>`__
-* `Common metrics <#common_metrics>`__
-* `How can I use metrics with Deepchecks? <#using_metrics_with_deepchecks>`__
-* `Code examples <#code_examples>`__
+* `Why do we need metrics? <#why-do-we-need-metrics>`__
+* `What is a metric? <#what-is-a-metric?>`__
+* `How are metrics different from loss functions? <#how-are-metrics-different-from-loss-functions>`__
+* `Common metrics <#common-metrics>`__
+* `How can I use metrics with Deepchecks? <#how-can-i-use-metrics-with-deepchecks>`__
+* `Code examples <#code-examples>`__
 
 Why do we need metrics?
 =======================
@@ -27,6 +27,14 @@ Some usages for such assessment are:
 * Comparing different models
 * Monitoring performance changes
 * Communicating all of the above to colleagues, clients, etc.
+
+What is a metric?
+=================
+A metric is a function that quantifies the model performance into a single score.
+
+Ideally, a metric approximates how well the model would perform in the real world. While it’s only tested on a pre
+collected subset of the data, the score on this subset of data is normally used as a proxy of the performance on the
+data that it will encounter in the future, in order to make the informed decisions previously mentioned.
 
 What is a good metric?
 ----------------------
@@ -48,7 +56,7 @@ should generally apply:
     targets were detected rather than the targets’ exact location, so the fraction of predictions above a certain IoU
     would be more relevant than the IoU itself.
 
-.. image:: /_static/images/general/tomato_sauce_on_shelf.png
+.. image:: /_static/images/general/tomato_sauce_on_shelf.jpg
    :alt: inventory object detection example
    :align: center
    :width: 400
@@ -239,7 +247,7 @@ Code Examples
     check.run(train_dataset, test_dataset, model)
 
 
-:doc: `SingleDatasetScalarPerformance <checks_gallery/vision/model_evaluation/plot_single_dataset_scalar_performance>`:
+:doc:`SingleDatasetScalarPerformance </checks_gallery/vision/model_evaluation/plot_single_dataset_scalar_performance>`:
 
 .. code-block:: python
 
