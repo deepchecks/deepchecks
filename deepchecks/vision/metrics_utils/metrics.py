@@ -86,8 +86,13 @@ def get_scorers_list(
     ----------
     dataset : VisionData
         Dataset object
-    alternative_scorers : t.Dict[str, Metric]
+    alternative_scorers : t.Dict[str, Metric], default: None
         Alternative scorers dictionary
+    scorers_to_use : List[str], default: None
+        List of the scorers to use from our available scorers:
+        ['Precision', 'Recall', 'Recall', 'Average Precision', 'Average Recall',
+         'Average Precision', 'Average Recall', 'F1', 'FPR', 'FNR'].
+        Ignored if alternative_scorers were given.
     Returns
     -------
     t.Dict[str, Metric]

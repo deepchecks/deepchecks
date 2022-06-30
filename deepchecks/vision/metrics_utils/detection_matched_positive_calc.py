@@ -16,8 +16,8 @@ import numpy as np
 import torch
 from ignite.metrics import Metric
 from ignite.metrics.metric import reinit__is_reduced, sync_all_reduce
-from deepchecks.vision.metrics_utils.evalution_functions import AVAILABLE_EVALUTING_FUNCTIONS
 
+from deepchecks.vision.metrics_utils.evalution_functions import AVAILABLE_EVALUTING_FUNCTIONS
 from deepchecks.vision.metrics_utils.metric_mixin import MetricMixin, ObjectDetectionMetricMixin
 
 

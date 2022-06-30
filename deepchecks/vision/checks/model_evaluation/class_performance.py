@@ -54,6 +54,11 @@ class ClassPerformance(TrainTestCheck):
     class_list_to_show: List[int], default: None
         Specify the list of classes to show in the report. If specified, n_to_show, show_only and metric_to_show_by
         are ignored.
+    scorers_to_use : List[str], default: None
+        List of the scorers to use from our available scorers:
+        ['Precision', 'Recall', 'Recall', 'Average Precision', 'Average Recall',
+         'Average Precision', 'Average Recall', 'F1', 'FPR', 'FNR'].
+        Ignored if alternative_scorers were given.
     """
 
     def __init__(self,
