@@ -36,7 +36,7 @@ class ClassPerformance(TrainTestCheck):
 
     Parameters
     ----------
-    alternative_metrics : Dict[str, Metric], default: None
+    alternative_scorers : Dict[str, Metric], default: None
         A dictionary of metrics, where the key is the metric name and the value is an ignite.Metric object whose score
         should be used. If None are given, use the default metrics.
     n_to_show : int, default: 20
@@ -57,18 +57,18 @@ class ClassPerformance(TrainTestCheck):
     """
 
     def __init__(self,
-                 alternative_metrics: Dict[str, Metric] = None,
+                 alternative_scorers: Dict[str, Metric] = None,
                  n_to_show: int = 20,
                  show_only: str = 'largest',
                  metric_to_show_by: str = None,
                  class_list_to_show: List[int] = None,
-                 is_detection_thres_scorers: bool = False,
+                 scorers_to_use: List[str] = None,
                  **kwargs):
         super().__init__(**kwargs)
-        self.alternative_metrics = alternative_metrics
+        self.alternative_scorers = alternative_scorers
         self.n_to_show = n_to_show
         self.class_list_to_show = class_list_to_show
-        self.is_detection_thres_scorers = is_detection_thres_scorers
+        self.scorers_to_use = scorers_to_use
 
         if self.class_list_to_show is None:
             if show_only not in ['largest', 'smallest', 'random', 'best', 'worst']:
@@ -76,8 +76,8 @@ class ClassPerformance(TrainTestCheck):
                                            f'["largest", "smallest", "random", "best", "worst"]')
 
             self.show_only = show_only
-            if alternative_metrics is not None and show_only in ['best', 'worst'] and metric_to_show_by is None:
-                raise DeepchecksValueError('When alternative_metrics are provided and show_only is one of: '
+            if alternative_scorers is not None and show_only in ['best', 'worst'] and metric_to_show_by is None:
+                raise DeepchecksValueError('When alternative_scorers are provided and show_only is one of: '
                                            '["best", "worst"], metric_to_show_by must be specified.')
 
         self.metric_to_show_by = metric_to_show_by
@@ -87,11 +87,11 @@ class ClassPerformance(TrainTestCheck):
         """Initialize run by creating the _state member with metrics for train and test."""
         self._data_metrics = {}
         self._data_metrics[DatasetKind.TRAIN] = get_scorers_list(context.train,
-                                                                 self.alternative_metrics,
-                                                                 self.is_detection_thres_scorers)
+                                                                 alternative_scorers=self.alternative_scorers,
+                                                                 scorers_to_use=self.scorers_to_use)
         self._data_metrics[DatasetKind.TEST] = get_scorers_list(context.train,
-                                                                self.alternative_metrics,
-                                                                self.is_detection_thres_scorers)
+                                                                alternative_scorers=self.alternative_scorers,
+                                                                scorers_to_use=self.scorers_to_use)
 
         if not self.metric_to_show_by:
             self.metric_to_show_by = list(self._data_metrics[DatasetKind.TRAIN].keys())[0]

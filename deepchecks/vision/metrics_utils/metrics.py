@@ -32,6 +32,25 @@ __all__ = [
 ]
 
 
+_func_naming_dict = {
+    'precision': 'Precision',
+    'recall': 'Recall',
+    'sensetivity': 'Recall',
+    'average precision': 'Average Precision',
+    'average recall': 'Average Recall',
+    'ap': 'Average Precision',
+    'ar': 'Average Recall',
+    'f1': 'F1',
+    'fpr': 'FPR',
+    'fnr': 'FNR'
+}
+
+
+def _scorer_filter(scorers: t.Dict[str, Metric], scorers_to_use: t.List[str]):
+    return {_func_naming_dict[func_name.lower()]: scorers[_func_naming_dict[func_name.lower()]]
+            for func_name in scorers_to_use}
+
+
 def get_default_classification_scorers():
     return {
         'Precision': Precision(),
@@ -39,16 +58,18 @@ def get_default_classification_scorers():
     }
 
 
-def get_default_object_detection_scorers():
+def get_default_object_detection_scorers() -> t.Dict[str, Metric]:
     return {
         'Average Precision': ObjectDetectionAveragePrecision(),
         'Average Recall': ObjectDetectionAveragePrecision(return_option=1)
     }
 
 
-def get_threshold_detection_scorers():
+def get_threshold_detection_scorers() -> t.Dict[str, Metric]:
     return {
         'Recall': ObjectDetectionMatchedPositive(evaluting_function='recall'),
+        'Precision': ObjectDetectionMatchedPositive(evaluting_function='precision'),
+        'F1': ObjectDetectionMatchedPositive(evaluting_function='f1'),
         'FPR': ObjectDetectionMatchedPositive(evaluting_function='fpr'),
         'FNR': ObjectDetectionMatchedPositive(evaluting_function='fnr')
     }
@@ -57,7 +78,7 @@ def get_threshold_detection_scorers():
 def get_scorers_list(
         dataset: VisionData,
         alternative_scorers: t.Dict[str, Metric] = None,
-        is_detection_thres_scorers: bool = False,
+        scorers_to_use: t.List[str] = None,
 ) -> t.Dict[str, Metric]:
     """Get scorers list according to model object and label column.
 
@@ -87,11 +108,13 @@ def get_scorers_list(
         return scorers
     elif task_type == TaskType.CLASSIFICATION:
         scorers = get_default_classification_scorers()
+        if scorers_to_use:
+            scorers = _scorer_filter(scorers, scorers_to_use)
     elif task_type == TaskType.OBJECT_DETECTION:
-        if is_detection_thres_scorers:
-            scorers = get_threshold_detection_scorers()
-        else:
-            scorers = get_default_object_detection_scorers()
+        scorers = get_default_object_detection_scorers()
+        if scorers_to_use:
+            scorers.update(get_threshold_detection_scorers())
+            scorers = _scorer_filter(scorers, scorers_to_use)
     else:
         raise DeepchecksNotSupportedError(f'No scorers match task_type {task_type}')
 

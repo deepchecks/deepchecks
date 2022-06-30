@@ -16,6 +16,7 @@ import numpy as np
 import torch
 from ignite.metrics import Metric
 from ignite.metrics.metric import reinit__is_reduced, sync_all_reduce
+from deepchecks.vision.metrics_utils.evalution_functions import AVAILABLE_EVALUTING_FUNCTIONS
 
 from deepchecks.vision.metrics_utils.metric_mixin import MetricMixin, ObjectDetectionMetricMixin
 
@@ -29,12 +30,12 @@ class MatchedPositive(Metric, MetricMixin):
         Threshold of the IoU.
     confidence_thres: float, default: 0.5
         Threshold of the confidence.
-    evaluting_function: t.Union[t.Callable, t.Literal["recall", "fpr", "fnr"]]], default: "recall"
+    evaluting_function: Union[Callable, str], default: "recall"
         will run on each class result i.e `func(match_array, number_of_positives)`
     """
 
     def __init__(self, *args, iou_thres: float = 0.5, confidence_thres: float = 0.5,
-                 evaluting_function: t.Union[t.Callable, t.Literal["recall", "fpr", "fnr"]] = "recall", **kwargs):
+                 evaluting_function: t.Union[t.Callable, str] = "recall", **kwargs):
         super().__init__(*args, **kwargs)
 
         self._evals = defaultdict(lambda: {"matched": [], "NP": 0})
@@ -42,15 +43,11 @@ class MatchedPositive(Metric, MetricMixin):
         self.iou_thres = iou_thres
         self.confidence_thres = confidence_thres
         if isinstance(evaluting_function, str):
-            if evaluting_function == "recall":
-                evaluting_function = self._calc_recall
-            elif evaluting_function == "fpr":
-                evaluting_function = self._calc_fpr
-            elif evaluting_function == "fnr":
-                evaluting_function = self._calc_fnr
-            else:
+            evaluting_function = AVAILABLE_EVALUTING_FUNCTIONS.get(evaluting_function)
+            if evaluting_function is None:
                 raise ValueError(
-                    "Expected evaluting_function one of ['recall', 'fpr', 'fnr'], recived: " + evaluting_function)
+                    f"Expected evaluting_function one of {list(AVAILABLE_EVALUTING_FUNCTIONS.keys())},"
+                    f" recived: {evaluting_function}")
             self.evaluting_function = evaluting_function
         self._i = 0
 
@@ -140,38 +137,6 @@ class MatchedPositive(Metric, MetricMixin):
                 detection_matches[d_idx] = best_match
                 ground_truth_matched[best_match] = d_idx
         return detection_matches
-
-    @staticmethod
-    def _calc_recall(matched: np.ndarray, n_positives: int) -> float:
-        """Calculate recall for given matches and number of positives."""
-        if n_positives == 0:
-            return -1
-        if len(matched):
-            tp = np.sum(matched)
-            rc = tp / n_positives
-            return rc
-        return 0
-
-    @staticmethod
-    def _calc_fpr(matched: np.ndarray, n_positives: int) -> float:
-        """Calculate FPR for given matches and number of positives."""
-        if n_positives == 0:
-            return -1
-        if len(matched):
-            fp = np.sum(~matched)
-            return fp / n_positives
-        return 0
-
-    @staticmethod
-    def _calc_fnr(matched: np.ndarray, n_positives: int) -> float:
-        """Calculate FNR for given matches and number of positives."""
-        if n_positives == 0:
-            return -1
-        if len(matched):
-            tp = np.sum(matched)
-            fn = n_positives - tp
-            return fn / n_positives
-        return 1
 
 
 class ObjectDetectionMatchedPositive(MatchedPositive, ObjectDetectionMetricMixin):
