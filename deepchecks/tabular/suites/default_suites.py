@@ -37,7 +37,8 @@ from deepchecks.utils.typing import Hashable
 
 
 def single_dataset_integrity(**kwargs) -> Suite:
-    """Create a suite that is meant to detect integrity issues within a single dataset (Deprecated) .
+    """
+    Create a suite that is meant to detect integrity issues within a single dataset (Deprecated).
 
     .. deprecated:: 0.7.0
             `single_dataset_integrity` is deprecated and will be removed in deepchecks 0.8 version, it is replaced by
@@ -147,8 +148,8 @@ def train_test_leakage(**kwargs) -> Suite:
     """Create a suite for detecting data leakage between the training dataset and the test dataset (Deprecated).
 
     .. deprecated:: 0.7.0
-            `train_test_leakage` is deprecated and will be removed in deepchecks 0.8 version, it is replaced by
-            `train_test_validation` suite.
+        `train_test_leakage` is deprecated and will be removed in deepchecks 0.8 version, it is replaced by
+        `train_test_validation` suite.
     """
     warnings.warn(
         'the train_test_leakage suite is deprecated, use the train_test_validation suite instead',

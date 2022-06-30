@@ -15,7 +15,7 @@ import os
 import typing as t
 import warnings
 from pathlib import Path
-from typing import Iterable, List, Union
+from typing import Iterable, List
 
 import albumentations as A
 import cv2
@@ -57,7 +57,7 @@ class COCOData(DetectionData):
     Implement the necessary methods to load the dataset.
     """
 
-    def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor]:
+    def batch_to_labels(self, batch) -> List[torch.Tensor]:
         """Convert the batch to a list of labels."""
         def move_class(tensor):
             return torch.index_select(tensor, 1, torch.LongTensor([4, 0, 1, 2, 3]).to(tensor.device)) \
@@ -65,14 +65,14 @@ class COCOData(DetectionData):
 
         return [move_class(tensor) for tensor in batch[1]]
 
-    def infer_on_batch(self, batch, model, device) -> Union[List[torch.Tensor], torch.Tensor]:
+    def infer_on_batch(self, batch, model, device) -> List[torch.Tensor]:
         """Infer on a batch of images."""
         return_list = []
 
         with warnings.catch_warnings():
             warnings.simplefilter(action='ignore', category=UserWarning)
 
-            predictions: 'ultralytics.models.common.Detections' = model.to(device)(batch[0])  # noqa: F821
+            predictions: 'yolov5.models.common.Detections' = model.to(device)(batch[0])  # noqa: F821
 
             # yolo Detections objects have List[torch.Tensor] xyxy output in .pred
             for single_image_tensor in predictions.pred:
@@ -86,6 +86,11 @@ class COCOData(DetectionData):
     def batch_to_images(self, batch) -> Iterable[np.ndarray]:
         """Convert the batch to a list of images."""
         return [np.array(x) for x in batch[0]]
+
+
+def _batch_collate(batch):
+    imgs, labels = zip(*batch)
+    return list(imgs), list(labels)
 
 
 def load_dataset(
@@ -124,10 +129,6 @@ def load_dataset(
     root = DATA_DIR
     coco_dir, dataset_name = CocoDataset.download_coco128(root)
 
-    def batch_collate(batch):
-        imgs, labels = zip(*batch)
-        return list(imgs), list(labels)
-
     dataloader = DataLoader(
         dataset=CocoDataset(
             root=str(coco_dir),
@@ -142,7 +143,7 @@ def load_dataset(
         batch_size=batch_size,
         shuffle=shuffle,
         num_workers=num_workers,
-        collate_fn=batch_collate,
+        collate_fn=_batch_collate,
         pin_memory=pin_memory,
         generator=torch.Generator()
     )
