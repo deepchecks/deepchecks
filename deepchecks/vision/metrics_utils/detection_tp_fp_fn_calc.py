@@ -17,7 +17,7 @@ import torch
 from ignite.metrics import Metric
 from ignite.metrics.metric import reinit__is_reduced, sync_all_reduce
 
-from deepchecks.vision.metrics_utils.evalution_functions import AVAILABLE_EVALUTING_FUNCTIONS
+from deepchecks.vision.metrics_utils.confusion_matrix_counts_metrics import AVAILABLE_EVALUTING_FUNCTIONS
 from deepchecks.vision.metrics_utils.metric_mixin import MetricMixin, ObjectDetectionMetricMixin
 
 
@@ -38,8 +38,6 @@ class TpFpFn(Metric, MetricMixin):
                  evaluting_function: t.Union[t.Callable, str] = "recall", **kwargs):
         super().__init__(*args, **kwargs)
 
-        self._evals = defaultdict(lambda: {"tp": 0, "fp": 0, "fn": 0})
-
         self.iou_thres = iou_thres
         self.confidence_thres = confidence_thres
         if isinstance(evaluting_function, str):
@@ -49,7 +47,6 @@ class TpFpFn(Metric, MetricMixin):
                     f"Expected evaluting_function one of {list(AVAILABLE_EVALUTING_FUNCTIONS.keys())},"
                     f" recived: {evaluting_function}")
             self.evaluting_function = evaluting_function
-        self._i = 0
 
     @reinit__is_reduced
     def reset(self):

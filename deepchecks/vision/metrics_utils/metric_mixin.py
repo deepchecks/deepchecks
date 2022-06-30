@@ -49,7 +49,7 @@ class MetricMixin:
 class ObjectDetectionMetricMixin(MetricMixin):
     """Metric util function mixin for object detection.
 
-    Expecting to receive the predictions in the following format: [x, y, w, h, confidence, label].
+    Expecting to receive the predictions in the YOLO format: [x, y, w, h, confidence, label].
     """
 
     def get_labels_areas(self, labels) -> t.List[int]:

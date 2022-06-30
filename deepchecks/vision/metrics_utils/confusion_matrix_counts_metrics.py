@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module for evalution functions."""
+"""Module for confusion matrix counts metrics."""
 
 
 def _calc_recall(tp: float, fp: float, fn: float) -> float:  # pylint: disable=unused-argument

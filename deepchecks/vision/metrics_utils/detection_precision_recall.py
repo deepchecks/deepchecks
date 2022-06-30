@@ -54,7 +54,6 @@ class AveragePrecisionRecall(Metric, MetricMixin):
                  return_option: Optional[int] = "ap", **kwargs):
         super().__init__(*args, **kwargs)
 
-        self._evals = defaultdict(lambda: {"scores": [], "matched": [], "NP": []})
         self.return_option = return_option
         if self.return_option is not None:
             max_dets = [max_dets[-1]]
@@ -64,7 +63,6 @@ class AveragePrecisionRecall(Metric, MetricMixin):
         self.iou_thresholds = np.linspace(.5, 0.95, int(np.round((0.95 - .5) / .05)) + 1, endpoint=True)
         self.max_detections_per_class = max_dets
         self.area_range = area_range
-        self.i = 0
 
     @reinit__is_reduced
     def reset(self):
