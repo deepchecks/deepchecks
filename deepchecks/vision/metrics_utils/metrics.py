@@ -22,7 +22,7 @@ from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.vision.metrics_utils.detection_tp_fp_fn_calc import ObjectDetectionTpFpFn
 from deepchecks.vision.metrics_utils.detection_precision_recall import ObjectDetectionAveragePrecision
-from deepchecks.vision.metrics_utils.evalution_functions import AVAILABLE_EVALUTING_FUNCTIONS
+from deepchecks.vision.metrics_utils.confusion_matrix_counts_metrics import AVAILABLE_EVALUTING_FUNCTIONS
 from deepchecks.vision.vision_data import TaskType, VisionData
 
 __all__ = [
