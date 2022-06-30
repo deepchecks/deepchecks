@@ -213,7 +213,9 @@ and that means that sometimes the defaults aren’t good enough to describe the 
 
 If this is the case, you can pass a list of metrics as a parameter to the check.
 
-The metrics on the list can be existing Ignite metrics or Sklearn scorers or your own implementations.
+The metrics on the list can be existing
+`Ignite metrics <https://pytorch.org/ignite/metrics.html#complete-list-of-metrics>`__ or
+`Sklearn scorers <https://scikit-learn.org/stable/modules/model_evaluation.html>`__ or your own implementations.
 
 Custom metrics
 --------------
