@@ -111,7 +111,7 @@ def model_evaluation(**kwargs) -> Suite:
         SegmentPerformance(**kwargs),
         TrainTestPredictionDrift(**kwargs).add_condition_drift_score_less_than(),
         SimpleModelComparison(**kwargs).add_condition_gain_greater_than(),
-        WeakSegmentsPerformance(**kwargs).add_condition_segments_performance_relative_difference_greater_than(),
+        WeakSegmentsPerformance(**kwargs).add_condition_segments_relative_performance_greater_than(),
         CalibrationScore(**kwargs),
         RegressionSystematicError(**kwargs).add_condition_systematic_error_ratio_to_rmse_less_than(),
         RegressionErrorDistribution(**kwargs).add_condition_kurtosis_greater_than(),

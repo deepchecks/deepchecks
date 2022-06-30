@@ -50,7 +50,7 @@ def test_segment_performance_diabetes_with_arguments(diabetes_split_dataset_and_
 def test_segment_performance_iris_with_condition(iris_split_dataset_and_model):
     # Arrange
     _, val, model = iris_split_dataset_and_model
-    check = WeakSegmentsPerformance().add_condition_segments_performance_relative_difference_greater_than()
+    check = WeakSegmentsPerformance().add_condition_segments_relative_performance_greater_than()
 
     # Act
     result = check.run(val, model)
