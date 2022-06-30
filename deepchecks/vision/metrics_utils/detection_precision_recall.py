@@ -51,7 +51,7 @@ class AveragePrecisionRecall(Metric, MetricMixin):
 
     def __init__(self, *args, max_dets: Union[List[int], Tuple[int]] = (1, 10, 100),
                  area_range: Tuple = (32**2, 96**2),
-                 return_option: Optional[int] = 0, **kwargs):
+                 return_option: Optional[int] = 'ap', **kwargs):
         super().__init__(*args, **kwargs)
 
         self._evals = defaultdict(lambda: {"scores": [], "matched": [], "NP": []})
@@ -346,6 +346,6 @@ class ObjectDetectionAveragePrecision(AveragePrecisionRecall, ObjectDetectionMet
         Maximum number of detections per class.
     area_range: tuple, default: (32**2, 96**2)
         Slices for small/medium/large buckets.
-    return_option: int, default: 0
-        0: ap only, 1: ar only, None: all (not ignite complient)
+    return_option: str, default: 'ap'
+        ap: ap only, ar: ar only, None: all (not ignite complient)
     """
