@@ -90,11 +90,16 @@ Regression
 ----------
 *   `MSE <https://en.wikipedia.org/wiki/Mean_squared_error>`__ - mean squared error, the average squared difference
     between the estimated values and the actual values. Probably the most common metric for regression.
+*   RMSE/ `RMSD <https://en.wikipedia.org/wiki/Root-mean-square_deviation>`__ - root mean square error/ deviation - the
+    square root of MSE, also commonly used.
 *   `MAE <https://en.wikipedia.org/wiki/Mean_absolute_error>`__ - mean absolute error, the average absolute difference
     between the estimated values and the actual values.
 *   `Cosine similarity <https://en.wikipedia.org/wiki/Cosine_similarity>`__ - the cosine of the angle between two
     sequences or vectors of numbers. The cosine similarity does not depend on the magnitudes of the vectors, only on
     their angle, similar vectors are vectors pointing in the same direction.
+*   R2/ `coefficient of determination <https://en.wikipedia.org/wiki/Coefficient_of_determination>`__ - The ratio
+    between the variance of the model’s predictions and the variance of the ground truth. Can be also viewed as how much
+    of the variation in the model results comes from the model.
 
 Classification
 --------------
