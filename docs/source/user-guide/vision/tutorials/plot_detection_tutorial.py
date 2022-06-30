@@ -1,4 +1,6 @@
 """
+.. _vision_detection_tutorial:
+
 ==========================
 Object Detection Tutorial
 ==========================

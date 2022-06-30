@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_tabular_columns_info:
+
 Columns Info
 ************
 Imports

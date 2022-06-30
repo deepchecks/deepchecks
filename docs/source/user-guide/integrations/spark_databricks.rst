@@ -174,6 +174,7 @@ leakage checks.
     train_test_suite = train_test_validation()
     train_test_res = train_test_suite.run(ds_train, ds_test, PySparkModelWrapper(pipelineModel,
                                           pipelineModel.stages[2].labels))
+
 Displaying the Results
 ~~~~~~~~~~~~~~~~~~~~~~
 

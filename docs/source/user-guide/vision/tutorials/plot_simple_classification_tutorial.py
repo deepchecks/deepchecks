@@ -1,4 +1,6 @@
 """
+.. _vision_simple_classification_tutorial:
+
 ================================================
 Using Deepchecks Vision With a Few Lines of Code
 ================================================

@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_vision_feature_label_correlation_change:
+
 Feature Label Correlation Change
 ********************************
 

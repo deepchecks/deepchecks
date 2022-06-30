@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_tabular_identifier_label_correlation:
+
 Identifier Label Correlation
-******************
+****************************
+
 This notebooks provides an overview for using and understanding the identifier-label correlation check.
 
 This check computes the Predictive Power Score (`PPS

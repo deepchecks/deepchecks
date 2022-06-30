@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _quick_full_suite:
+
 Quickstart in 5 minutes
 ***********************
 
