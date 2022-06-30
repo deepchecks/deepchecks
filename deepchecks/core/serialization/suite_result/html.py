@@ -15,6 +15,8 @@ import typing as t
 import warnings
 import htmlmin
 
+from plotly.offline.offline import get_plotlyjs
+
 from deepchecks.core import check_result as check_types
 from deepchecks.core import suite
 from deepchecks.core.serialization.abc import HtmlSerializer
@@ -24,7 +26,9 @@ from deepchecks.core.serialization.check_failure.html import CheckFailureSeriali
 from deepchecks.core.serialization.dataframe.html import DataFrameSerializer
 from deepchecks.core.serialization.common import (Html, aggregate_conditions, create_failures_dataframe,
                                                   form_output_anchor, plotlyjs_script, requirejs_script, 
-                                                  create_results_dataframe, plotly_loader_script)
+                                                  create_results_dataframe, plotly_loader_script, 
+                                                  DEEPCHECKS_HTML_PAGE_STYLE,
+                                                  DEEPCHECKS_STYLE)
 from deepchecks.utils.html import linktag
 from deepchecks.utils.strings import get_random_string
 
@@ -51,8 +55,6 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         self,
         output_id: t.Optional[str] = None,
         full_html: bool = False,
-        # include_requirejs: bool = False,
-        # include_plotlyjs: bool = True,
         # connected: bool = True,
         is_for_iframe_with_srcdoc: bool = False,
         plotly_to_image: bool = False,
@@ -66,10 +68,6 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             unique output identifier that will be used to form anchor links
         full_html : bool, default False
             whether to return a fully independent HTML document or only CheckResult content
-        include_requirejs : bool, default False
-            whether to include requirejs library into output or not
-        include_plotlyjs : bool, default True
-            whether to include plotlyjs library into output or not
         connected : bool, default True
             whether to use CDN to load js libraries or to inject their code into output
         is_for_iframe_with_srcdoc : bool, default False
@@ -86,14 +84,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         -------
         str
         """
-        # if full_html is True:
-        #     include_plotlyjs = True
-        #     include_requirejs = True
-        #     connected = False
-        
-        # if plotly_to_image:
-        #     include_plotlyjs = False
-
+        kwargs['embedment_way'] = 'suite-html-page' if full_html is True else 'suite'
         kwargs['is_for_iframe_with_srcdoc'] = is_for_iframe_with_srcdoc
         kwargs['plotly_to_image'] = plotly_to_image
 
@@ -141,25 +132,19 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             )
         )
 
-        # plotlyjs = plotlyjs_script(connected) if include_plotlyjs is True else ''
-        # requirejs = requirejs_script(connected) if include_requirejs is True else ''
-
         if full_html is False:
-            plotly_loader = f'<script>{plotly_loader_script()}</script>'
-            content = ''.join((
-                '<style>table {width: max-content;}</style>',
-                # requirejs, 
-                plotly_loader,
-                *content
-            ))
             output = DETAILS_TAG.format(
                 id=output_id or '',
                 name=suite_result.name,
-                content=content,
+                content=''.join(content),
                 attrs='open class="deepchecks"',
                 additional_style='padding: 0 1.5rem 0 1.5rem;'
             )
-            return ''.join((DETAILS_TAG_STYLE, output))
+            return ''.join((
+                f'<style>{DEEPCHECKS_STYLE}</style>',
+                plotly_loader_script(),
+                output
+            ))
 
         content = DETAILS_TAG.format(
             id=output_id or '',
@@ -173,13 +158,10 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             <html>
             <head>
                 <meta charset="utf-8"/>
-                {plotlyjs_script(True)}
-                <style>{HTML_PAGE_STYLE}</style>
-                {DETAILS_TAG_STYLE}
+                <script type="text/javascript">{get_plotlyjs()}</script>
+                <style>{DEEPCHECKS_HTML_PAGE_STYLE}</style>
             </head>
-            <body>
-                {content}
-            </body>
+            <body>{content}</body>
             </html>
         """)
 
@@ -387,7 +369,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         else:
             section_id = f'{output_id}-section-{get_random_string()}'
             serialized_results = (
-                select_serializer(it).serialize(output_id=section_id, include_plotlyjs=False, **kwargs)
+                select_serializer(it).serialize(output_id=section_id, **kwargs)
                 for it in results
                 if it.display  # we do not form full-output for the check results without display
             )
@@ -428,75 +410,4 @@ DETAILS_TAG = """
         {content}
         </div>
     </details>
-"""
-
-
-DETAILS_TAG_STYLE = """
-<style>
-    .deepchecks > details, details.deepchecks {
-        border: 1px solid #aaa;
-        border-radius: 4px;
-        padding: .5em .5em 0;
-    }
-    .deepchecks > details > summary, details.deepchecks > summary {
-        display: list-item;
-        font-weight: bold;
-        margin: -.5em -.5em 0;
-        padding: .5em;
-    }
-    .deepchecks > details[open], details[open].deepchecks {
-        padding: .5em;
-    }
-    .deepchecks > details[open] > summary, details[open].deepchecks > summary {
-        border-bottom: 1px solid #aaa;
-        margin-bottom: .5em;
-    }
-</style>
-"""
-
-
-HTML_PAGE_STYLE = """
-<style>
-    body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
-        font-size: 16px;
-        line-height: 1.5;
-        color: #212529;
-        text-align: left;
-        margin: auto;
-        background-color: white; 
-        padding: 1rem 1rem 0 1rem;
-    }
-    table {
-        border: none;
-        border-collapse: collapse;
-        border-spacing: 0;
-        color: black;
-        font-size: 12px;
-        table-layout: fixed;
-        width: max-content;
-    }
-    thead {
-        border-bottom: 1px solid black;
-        vertical-align: bottom;
-    }
-    tr, th, td {
-        text-align: right;
-        vertical-align: middle;
-        padding: 0.5em 0.5em;
-        line-height: normal;
-        white-space: normal;
-        max-width: none;
-        border: none;
-    }
-    th {
-        font-weight: bold;
-    }
-    tbody tr:nth-child(odd) {
-        background: #f5f5f5;
-    }
-    tbody tr:hover {
-        background: rgba(66, 165, 245, 0.2);
-    }
-</style>
 """

@@ -19,7 +19,6 @@ import typing as t
 import warnings
 import htmlmin
 from contextlib import contextmanager
-from html.parser import HTMLParser
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -55,6 +54,8 @@ __all__ = [
     'requirejs_script',
     'flatten',
     'join',
+    'DEEPCHECKS_STYLE',
+    'DEEPCHECKS_HTML_PAGE_STYLE'
 ]
 
 
@@ -388,7 +389,7 @@ def read_matplot_figures() -> t.List[io.BytesIO]:
     figures = [plt.figure(n) for n in plt.get_fignums()]
     for fig in figures:
         buffer = io.BytesIO()
-        fig.savefig(buffer, format='png')
+        fig.savefig(buffer, format='jpeg')
         buffer.seek(0)
         output.append(buffer)
         fig.clear()
@@ -486,12 +487,14 @@ def figure_creation_script(
     **kwargs
 ) -> str:
     data = figure.to_json()
-    return FIGURE_CREATION_SCRIPT.format(container_id=div_id, figure_data=data)
+    return FIGURE_CREATION_SCRIPT.format(
+        container_id=div_id, 
+        figure_data=data
+    )
 
 
 def plotly_loader_script() -> str:
     return PLOTLY_DEPENDENCY_SCRIPT
-
 
 
 FIGURE_CREATION_SCRIPT = """
@@ -499,74 +502,207 @@ FIGURE_CREATION_SCRIPT = """
     const containerId = '{container_id}';
     const container = document.querySelector(`#${{containerId}}`);
     if (container === undefined || container === null) {{
-        console.error('Did not find the container for the plot');
+        console.error('Did not find plot container');
         return;
     }}
-    if (
-        typeof window.Deepchecks !== 'object'
-        || typeof window.Deepchecks.loadPlotlyDependency !== 'object'
-    ) {{
+    if (typeof Deepchecks !== 'object' || typeof Deepchecks.PlotlyDependency !== 'object') {{
         container.innerHTML = 'Failed to display plotly figure, try result.show_in_iframe';
         return;
     }}
     container.innerHTML = '<h1>Verifying needed dependencies</h1>';
     try {{
-        const Plotly = await window.Deepchecks.loadPlotlyDependency;
+        const Plotly = await Deepchecks.PlotlyDependency;
         container.innerHTML = '';
         Plotly.newPlot(container, {figure_data});
     }} catch(error) {{
         console.dir(error);
-        container.innerHTML = 'Failed to load plotly dependencies, try result.show_in_iframe';
+        container.innerHTML = 'Failed to display plotly figure, try result.show_in_iframe';
     }}
 }})();
 """
 
 
-PLOTLY_DEPENDENCY_SCRIPT = htmlmin.minify("""
-window.Deepchecks = window.Deepchecks || {};
-window.Deepchecks.loadPlotly = () => new Promise(async (resolve, reject) => {
-    try {
-        const plotlyCdn = '%plotly_cdn';
-        const loadPlotlyScript = () => new Promise((resolve, reject) => {
-            const scriptTag = document.createElement('script');
-            document.head.appendChild(scriptTag);
-            scriptTag.async = true;
-            scriptTag.onload = () => resolve(scriptTag);
-            scriptTag.onerror = () => reject(new Error(`Failed to load plotly script`));
-            scriptTag.src = plotlyCdn + '.js';
-        });
-        if (window.Plotly === undefined || window.Plotly === null) {
-            if (typeof define === "function" && define.amd) {
-                const exist = (Plotly) => {
-                    window.Plotly = Plotly;
-                    resolve(Plotly);
-                };
-                const failure = (e) => {
-                    console.dir(e);
-                    reject(new Error(`Failed to load plotly library: ${e.message}`));
-                };
-                requirejs.config({paths: {'plotly': [plotlyCdn]}});
-                require(['plotly'], exist, failure);
-            } else {
-                try {
-                    await loadPlotlyScript();
-                    resolve(Plotly);
-                } catch(error) {
-                    console.dir(error);
-                    reject(new Error(`Failed to load plotly library: ${e.message}`));
+PLOTLY_DEPENDENCY_SCRIPT = """
+<script id="deepchecks-plotly-src" type="text/plain">%plotly-script</script>
+<script type="text/javascript">
+    window.Deepchecks = window.Deepchecks || {};
+    window.Deepchecks.loadPlotly = (plotlySrc) => new Promise(async (resolve, reject) => {
+        try {
+            const getPlotlyModule = () => {
+                if (typeof require !== 'function')
+                    return null;
+                let definedModules = (
+                    require.s 
+                    && require.s.contexts 
+                    && require.s.contexts._
+                    && require.s.contexts._.defined 
+                    || {}
+                );
+                return definedModules.plotly || null;
+            };
+            if (typeof Plotly !== 'object') {
+                if (typeof define === "function" && define.amd) {
+                    let Plotly = getPlotlyModule();
+                    if (Plotly !== undefined && Plotly !== null) {
+                        window.Plotly = Plotly;
+                        resolve(Plotly);
+                        return;
+                    }
+                    const s = `define('plotly', function(require, exports, module) {${plotlySrc.text}});`;
+                    window.eval(s);
+                    const exist = (Plotly) => {
+                        window.Plotly = Plotly;
+                        resolve(Plotly);
+                    };
+                    const failure = (e) => {
+                        console.dir(e);
+                        reject(new Error(`Failed to load plotly library: ${e.message}`));
+                    };
+                    require(['plotly'], exist, failure);
+                } else {
+                    try {
+                        window.eval(plotlySrc.text);
+                        resolve(Plotly);
+                    } catch(error) {
+                        console.dir(error);
+                        reject(new Error(`Failed to load plotly library: ${e.message}`));
+                    }
                 }
+            } else {
+                resolve(Plotly);
             }
-        } else {
-            resolve(window.Plotly);
+        } catch(error) {
+            reject(error);
         }
-    } catch(error) {
-        reject(error);
+    });
+    if (typeof Deepchecks.PlotlyDependency !== 'object') {
+        let plotlySrc = document.querySelector('#deepchecks-plotly-src');
+        Deepchecks.PlotlyDependency = Deepchecks.loadPlotly(plotlySrc);
     }
-});
-if (window.Deepchecks.loadPlotlyDependency === undefined || window.Deepchecks.loadPlotlyDependency === null) {
-    console.log('No Plotly library, loading it');
-    window.Deepchecks.loadPlotlyDependency = window.Deepchecks.loadPlotly();
-} else {
-    console.log('Plotly load promise already exists');
+</script>
+""".replace('%plotly-script', get_plotlyjs())
+
+
+# PLOTLY_DEPENDENCY_SCRIPT = htmlmin.minify("""
+# window.Deepchecks = window.Deepchecks || {};
+# window.Deepchecks.loadPlotly = () => new Promise(async (resolve, reject) => {
+#     try {
+#         const plotlyCdn = '%plotly_cdn';
+#         const loadPlotlyScript = () => new Promise((resolve, reject) => {
+#             const scriptTag = document.createElement('script');
+#             document.head.appendChild(scriptTag);
+#             scriptTag.async = true;
+#             scriptTag.onload = () => resolve(scriptTag);
+#             scriptTag.onerror = () => reject(new Error(`Failed to load plotly script`));
+#             scriptTag.src = plotlyCdn + '.js';
+#         });
+#         if (window.Plotly === undefined || window.Plotly === null) {
+#             if (typeof define === "function" && define.amd) {
+#                 const exist = (Plotly) => {
+#                     window.Plotly = Plotly;
+#                     resolve(Plotly);
+#                 };
+#                 const failure = (e) => {
+#                     console.dir(e);
+#                     reject(new Error(`Failed to load plotly library: ${e.message}`));
+#                 };
+#                 requirejs.config({paths: {'plotly': [plotlyCdn]}});
+#                 require(['plotly'], exist, failure);
+#             } else {
+#                 try {
+#                     await loadPlotlyScript();
+#                     resolve(Plotly);
+#                 } catch(error) {
+#                     console.dir(error);
+#                     reject(new Error(`Failed to load plotly library: ${e.message}`));
+#                 }
+#             }
+#         } else {
+#             resolve(window.Plotly);
+#         }
+#     } catch(error) {
+#         reject(error);
+#     }
+# });
+# if (window.Deepchecks.loadPlotlyDependency === undefined || window.Deepchecks.loadPlotlyDependency === null) {
+#     console.log('No Plotly library, loading it');
+#     window.Deepchecks.loadPlotlyDependency = window.Deepchecks.loadPlotly();
+# } else {
+#     console.log('Plotly load promise already exists');
+# }
+# """.replace('%plotly_cdn', plotly_cdn_url().rstrip('.js')))
+
+
+DEEPCHECKS_STYLE = """
+table.deepchecks {
+    border: none;
+    border-collapse: collapse;
+    border-spacing: 0;
+    color: black;
+    font-size: 12px;
+    table-layout: fixed;
+    width: max-content;
 }
-""".replace('%plotly_cdn', plotly_cdn_url().rstrip('.js')))
+table.deepchecks thead {
+    border-bottom: 1px solid black;
+    vertical-align: bottom;
+}
+table.deepchecks tr,
+table.deepchecks th, 
+table.deepchecks td {
+    text-align: right;
+    vertical-align: middle;
+    padding: 0.5em 0.5em;
+    line-height: normal;
+    white-space: normal;
+    max-width: none;
+    border: none;
+}
+table.deepchecks th {
+    font-weight: bold;
+}
+table.deepchecks tbody tr:nth-child(odd) {
+    background: white;
+}
+table.deepchecks tbody tr:nth-child(even) {
+    background: #f5f5f5;
+}
+table.deepchecks tbody tbody tr:hover {
+    background: rgba(66, 165, 245, 0.2);
+}
+.deepchecks > details, details.deepchecks {
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    padding: .5em .5em 0;
+}
+.deepchecks > details > summary, details.deepchecks > summary {
+    display: list-item;
+    font-weight: bold;
+    margin: -.5em -.5em 0;
+    padding: .5em;
+}
+.deepchecks > details[open], details[open].deepchecks {
+    padding: .5em;
+}
+.deepchecks > details[open] > summary, details[open].deepchecks > summary {
+    border-bottom: 1px solid #aaa;
+    margin-bottom: .5em;
+}
+"""
+
+
+DEEPCHECKS_HTML_PAGE_STYLE = """
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+    font-size: 16px;
+    line-height: 1.5;
+    color: #212529;
+    text-align: left;
+    margin: auto;
+    background-color: white; 
+    padding: 1rem 1rem 0 1rem;
+}
+%deepchecks-style
+""".replace('%deepchecks-style', DEEPCHECKS_STYLE)
+
+

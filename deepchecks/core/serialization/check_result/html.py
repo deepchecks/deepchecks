@@ -11,15 +11,19 @@
 """Module containing html serializer for the CheckResult type."""
 import textwrap
 import typing as t
+import htmlmin
 
 from plotly.basedatatypes import BaseFigure
 from plotly.io import to_html
-from typing_extensions import Literal
+from plotly.offline.offline import get_plotlyjs
+from typing_extensions import Literal as L
 
 from deepchecks.core import check_result as check_types
 from deepchecks.core.serialization.abc import ABCDisplayItemsHandler, HtmlSerializer
-from deepchecks.core.serialization.common import (aggregate_conditions, form_output_anchor, plotlyjs_script,
-                                                  requirejs_script, plotly_loader_script, figure_creation_script)
+from deepchecks.core.serialization.common import (aggregate_conditions, form_output_anchor,
+                                                  plotly_loader_script, figure_creation_script,
+                                                  DEEPCHECKS_STYLE,
+                                                  DEEPCHECKS_HTML_PAGE_STYLE)
 from deepchecks.core.serialization.dataframe.html import DataFrameSerializer as DataFrameHtmlSerializer
 from deepchecks.utils.html import imagetag, linktag
 from deepchecks.utils.strings import get_random_string
@@ -28,8 +32,15 @@ __all__ = ['CheckResultSerializer']
 
 
 CheckResultSection = t.Union[
-    Literal['condition-table'],
-    Literal['additional-output'],
+    L['condition-table'],
+    L['additional-output'],
+]
+
+
+EmbedmentWay = t.Union[
+    L['suite'],            # embedded into suite display 
+    L['suite-html-page'],  # embedded into suite display serialized with 'full_html' flag set to True
+    None                   # was not embedded
 ]
 
 
@@ -54,9 +65,8 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
         output_id: t.Optional[str] = None,
         check_sections: t.Optional[t.Sequence[CheckResultSection]] = None,
         full_html: bool = False,
-        # include_requirejs: bool = False,
-        include_plotlyjs: bool = True,
         # connected: bool = True,
+        embedment_way: EmbedmentWay = None,
         plotly_to_image: bool = False,
         is_for_iframe_with_srcdoc: bool = False,
         **kwargs
@@ -72,10 +82,6 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
             in case of 'None' all sections will be included
         full_html : bool, default False
             whether to return a fully independent HTML document or only CheckResult content
-        include_requirejs : bool, default False
-            whether to include requirejs library into output or not
-        include_plotlyjs : bool, default True
-            whether to include plotlyjs library into output or not
         connected : bool, default True
             whether to use CDN to load js libraries or to inject their code into output
         plotly_to_image : bool, default False
@@ -90,9 +96,7 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
         str
         """
         if full_html is True:
-            include_plotlyjs = False
-            # include_requirejs = True
-            # connected = False
+            embedment_way = None
 
         sections_to_include = verify_include_parameter(check_sections)
         sections = [self.prepare_header(output_id), self.prepare_summary()]
@@ -105,27 +109,24 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
         if 'additional-output' in sections_to_include:
             sections.append(''.join(self.prepare_additional_output(
                 output_id=output_id,
-                on_full_html_page=full_html,
+                embedment_way=embedment_way,
                 plotly_to_image=plotly_to_image,
                 is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
             )))
 
-        # plotlyjs = plotlyjs_script(connected) if include_plotlyjs is True else ''
-        plotlyjs = plotly_loader_script() if include_plotlyjs is True else ''
-        # requirejs = requirejs_script(connected) if include_requirejs is True else ''
-
         if full_html is False:
             return ''.join((
-                # requirejs,
-                plotlyjs,
-                *sections,
+                f'<style>{DEEPCHECKS_STYLE}</style>',
+                plotly_loader_script() if embedment_way is None else '', 
+                *sections
             ))
 
-        return textwrap.dedent(f"""
+        return htmlmin.minify(f"""
             <html>
             <head>
                 <meta charset="utf-8"/>
-                {plotlyjs_script(True)}
+                <style>{DEEPCHECKS_HTML_PAGE_STYLE}</style>
+                <script type="text/javascript">{get_plotlyjs()}</script>
             </head>
             <body style="background-color: white;">
             {''.join(sections)}
@@ -140,7 +141,7 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
             check_id = self.value.get_check_id(output_id)
             return f'<h4 id="{check_id}"><b>{header}</b></h4>'
         else:
-            return f'<h4></b>{header}</b></h4>'
+            return f'<h4><b>{header}</b></h4>'
 
     def prepare_summary(self) -> str:
         """Prepare the summary section of the html output."""
@@ -184,7 +185,7 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
     def prepare_additional_output(
         self,
         output_id: t.Optional[str] = None,
-        on_full_html_page: bool = False,
+        embedment_way: EmbedmentWay = None,
         plotly_to_image: bool = False,
         is_for_iframe_with_srcdoc: bool = False,
     ) -> t.List[str]:
@@ -208,7 +209,7 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
         return DisplayItemsHandler.handle_display(
             self.value.display,
             output_id=output_id,
-            on_full_html_page=on_full_html_page,
+            embedment_way=embedment_way,
             plotly_to_image=plotly_to_image,
             is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
         )
@@ -315,8 +316,8 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
         cls,
         item: BaseFigure,
         index: int,
+        embedment_way: EmbedmentWay = None,
         plotly_to_image: bool = False,
-        on_full_html_page: bool = True,
         **kwargs
     ) -> str:
         """Handle plotly figure item."""
@@ -324,37 +325,38 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
             img = item.to_image(format='jpeg', engine='auto')
             return imagetag(img)
         
-        if on_full_html_page is True:
+        if embedment_way == 'suite-html-page':
             return to_html(
                 item,
                 auto_play=False,
                 include_plotlyjs=False,
-                post_script=PLOTLY_POST_SCRIPT,
                 full_html=False,
                 default_width='100%',
                 default_height=525,
                 validate=True,
             )
-
-        container_id = f'deepchecks-{get_random_string(n=25)}'
-        script = figure_creation_script(
-            item,
-            div_id=container_id,
-            post_script=PLOTLY_POST_SCRIPT,
-            default_width='100%',
-            default_height=525,
-            validate=True,
-        )
-        return (
-            f'<div><div id="{container_id}"></div>'
-            f'<script type="text/javascript">{script}</script></div>'
-        )
+        elif embedment_way in {'suite', None}:
+            container_id = f'deepchecks-{get_random_string(n=25)}'
+            script = figure_creation_script(
+                item,
+                div_id=container_id,
+                post_script=PLOTLY_POST_SCRIPT,
+                default_width='100%',
+                default_height=525,
+                validate=True,
+            )
+            return (
+                f'<div><div id="{container_id}"></div>'
+                f'<script type="text/javascript">{script}</script></div>'
+            )
+        else:
+            raise ValueError(f'Unknown "embedment_way" parameter value - {embedment_way}')
 
     @classmethod
     def handle_display_map(cls, item: 'check_types.DisplayMap', index: int, **kwargs) -> str:
         """Handle display map instance item."""
         template = textwrap.dedent("""
-            <details>
+            <details class="deepchecks">
                 <summary><strong>{name}</strong></summary>
                 <div style="
                     display: flex;

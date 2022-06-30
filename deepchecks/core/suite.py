@@ -28,7 +28,7 @@ from deepchecks.core.serialization.suite_result.html import SuiteResultSerialize
 from deepchecks.core.serialization.suite_result.ipython import SuiteResultSerializer as SuiteResultIPythonSerializer
 from deepchecks.core.serialization.suite_result.json import SuiteResultSerializer as SuiteResultJsonSerializer
 from deepchecks.core.serialization.suite_result.widget import SuiteResultSerializer as SuiteResultWidgetSerializer
-from deepchecks.utils.strings import get_random_string, widget_to_html_string
+from deepchecks.utils.strings import get_random_string
 from deepchecks.utils.wandb_utils import wandb_run
 
 __all__ = ['BaseSuite', 'SuiteResult']
@@ -109,13 +109,11 @@ class SuiteResult(DisplayableResult):
     def _repr_html_(
         self,
         unique_id: Optional[str] = None,
-        requirejs: bool = False,
     ) -> str:
         """Return html representation of check result."""
-        return widget_to_html_string(
-            self.to_widget(unique_id=unique_id or get_random_string(n=25)),
-            title=self.name,
-            requirejs=requirejs
+        return self.html_serializer.serialize(
+            full_html=True,
+            unique_id=unique_id or get_random_string(n=25)
         )
 
     def _repr_json_(self):
@@ -144,7 +142,6 @@ class SuiteResult(DisplayableResult):
 
     def show(
         self,
-        as_widget: bool = True,
         unique_id: Optional[str] = None,
         **kwargs
     ) -> Optional[HTMLFormatter]:
@@ -152,11 +149,9 @@ class SuiteResult(DisplayableResult):
 
         Parameters
         ----------
-        as_widget : bool
-            whether to display result with help of ipywidgets or not
         unique_id : Optional[str], default None
             unique identifier of the result output
-        **kwrgs :
+        **kwargs :
             other key-value arguments will be passed to the `Serializer.serialize`
             method
 
@@ -166,8 +161,7 @@ class SuiteResult(DisplayableResult):
             when used by sphinx-gallery
         """
         return super().show(
-            as_widget,
-            unique_id or get_random_string(n=25),
+            unique_id=unique_id or get_random_string(n=25),
             **kwargs
         )
 
@@ -179,7 +173,7 @@ class SuiteResult(DisplayableResult):
         """Display the not interactive version of result output.
 
         In this case, ipywidgets will not be used and plotly
-        figures will be transformed into png images.
+        figures will be transformed into jpeg images.
 
         Parameters
         ----------
@@ -197,8 +191,6 @@ class SuiteResult(DisplayableResult):
     def save_as_html(
         self,
         file: Union[str, io.TextIOWrapper, None] = None,
-        as_widget: bool = True,
-        requirejs: bool = True,
         unique_id: Optional[str] = None,
         **kwargs
     ):
@@ -222,9 +214,8 @@ class SuiteResult(DisplayableResult):
         """
         return save_as_html(
             file=file,
-            serializer=self.widget_serializer if as_widget else self.html_serializer,
+            serializer=self.html_serializer,
             # next kwargs will be passed to the serializer.serialize method
-            requirejs=requirejs,
             output_id=unique_id or get_random_string(n=25),
         )
 

@@ -36,7 +36,6 @@ from deepchecks.core.serialization.check_result.ipython import CheckResultSerial
 from deepchecks.core.serialization.check_result.json import CheckResultSerializer as CheckResultJsonSerializer
 from deepchecks.core.serialization.check_result.widget import CheckResultSerializer as CheckResultWidgetSerializer
 from deepchecks.utils.logger import get_logger
-from deepchecks.utils.strings import widget_to_html_string
 from deepchecks.utils.wandb_utils import wandb_run
 
 # registers jsonpickle pandas extension for pandas support in the to_json function
@@ -222,7 +221,6 @@ class CheckResult(BaseCheckResult, DisplayableResult):
     def display_check(
         self,
         unique_id: Optional[str] = None,
-        as_widget: bool = True,
         show_additional_outputs: bool = True,
         **kwargs
     ):
@@ -230,15 +228,12 @@ class CheckResult(BaseCheckResult, DisplayableResult):
 
         Parameters
         ----------
-        unique_id : str
+        unique_id : Optional[str], default None
             unique identifier of the result output
-        as_widget : bool
-            Boolean that controls if to display the check regulary or if to return a widget.
-        show_additional_outputs : bool
-            Boolean that controls if to show additional outputs.
+        show_additional_outputs : bool, default True
+            whether to show additional outputs or not
         """
         self.show(
-            as_widget=as_widget,
             unique_id=unique_id,
             show_additional_outputs=show_additional_outputs
         )
@@ -248,8 +243,6 @@ class CheckResult(BaseCheckResult, DisplayableResult):
         file: Union[str, io.TextIOWrapper, None] = None,
         unique_id: Optional[str] = None,
         show_additional_outputs: bool = True,
-        as_widget: bool = True,
-        requirejs: bool = True,
         **kwargs
     ):
         """Save a result to an HTML file.
@@ -262,10 +255,6 @@ class CheckResult(BaseCheckResult, DisplayableResult):
             unique identifier of the result output
         show_additional_outputs : bool, default True
             whether to show additional outputs or not
-        as_widget : bool, default True
-            whether to use ipywidgets or not
-        requirejs: bool , default: True
-            whether to include requirejs library into output HTML or not
 
         Returns
         -------
@@ -274,16 +263,14 @@ class CheckResult(BaseCheckResult, DisplayableResult):
         """
         return save_as_html(
             file=file,
-            serializer=self.widget_serializer if as_widget else self.html_serializer,
+            serializer=self.html_serializer,
             # next kwargs will be passed to serializer.serialize method
-            requirejs=requirejs,
             output_id=unique_id,
             check_sections=detalize_additional_output(show_additional_outputs)
         )
 
     def show(
         self,
-        as_widget: bool = True,
         unique_id: Optional[str] = None,
         show_additional_outputs: bool = True,
         **kwargs
@@ -292,8 +279,6 @@ class CheckResult(BaseCheckResult, DisplayableResult):
 
         Parameters
         ----------
-        as_widget : bool, default True
-            whether to use ipywidgets or not
         unique_id : Optional[str], default None
             unique identifier of the result output
         show_additional_outputs : bool, default True
@@ -305,7 +290,6 @@ class CheckResult(BaseCheckResult, DisplayableResult):
             when used by sphinx-gallery
         """
         return super().show(
-            as_widget=as_widget,
             unique_id=unique_id,
             check_sections=detalize_additional_output(show_additional_outputs),
             **kwargs
@@ -411,17 +395,13 @@ class CheckResult(BaseCheckResult, DisplayableResult):
         self,
         unique_id: Optional[str] = None,
         show_additional_outputs: bool = True,
-        requirejs: bool = False,
         **kwargs
     ) -> str:
         """Return html representation of check result."""
-        return widget_to_html_string(
-            self.to_widget(
-                unique_id=unique_id,
-                show_additional_outputs=show_additional_outputs
-            ),
-            title=self.get_header(),
-            requirejs=requirejs
+        return self.html_serializer.serialize(
+            full_html=True,
+            unique_id=unique_id,
+            show_additional_outputs=show_additional_outputs
         )
 
     def _repr_json_(self, **kwargs):
@@ -436,12 +416,10 @@ class CheckResult(BaseCheckResult, DisplayableResult):
     def _ipython_display_(
         self,
         unique_id: Optional[str] = None,
-        as_widget: bool = True,
         show_additional_outputs: bool = True
     ):
         self.show(
             unique_id=unique_id,
-            as_widget=as_widget,
             show_additional_outputs=show_additional_outputs
         )
 
@@ -482,21 +460,13 @@ class CheckFailure(BaseCheckResult, DisplayableResult):
         """Return HtmlSerializer instance."""
         return CheckFailureHtmlSerializer(self)
 
-    def display_check(self, as_widget: bool = True, **kwargs):
-        """Display the check failure or return the display as widget.
-
-        Parameters
-        ----------
-        as_widget : bool, default True
-            whether to use ipywidgets or not
-        """
-        self.show(as_widget=as_widget)
+    def display_check(self, **kwargs):
+        """Display the check failure or return the display as widget."""
+        self.show()
 
     def save_as_html(
         self,
         file: Union[str, io.TextIOWrapper, None] = None,
-        as_widget: bool = True,
-        requirejs: bool = True,
         **kwargs
     ) -> Optional[str]:
         """Save output as html file.
@@ -505,10 +475,6 @@ class CheckFailure(BaseCheckResult, DisplayableResult):
         ----------
         file : filename or file-like object
             The file to write the HTML output to. If None writes to output.html
-        as_widget : bool, default True
-            whether to use ipywidgets or not
-        requirejs: bool , default: True
-            whether to include requirejs library into output HTML or not
 
         Returns
         -------
@@ -517,8 +483,7 @@ class CheckFailure(BaseCheckResult, DisplayableResult):
         """
         return save_as_html(
             file=file,
-            serializer=self.widget_serializer if as_widget else self.html_serializer,
-            requirejs=requirejs,
+            serializer=self.html_serializer,
         )
 
     def to_widget(self, **kwargs) -> Widget:
@@ -585,7 +550,7 @@ class CheckFailure(BaseCheckResult, DisplayableResult):
         return self.get_header() + ': ' + str(self.exception)
 
     def _repr_html_(self):
-        return CheckFailureHtmlSerializer(self).serialize()
+        return self.html_serializer.serialize()
 
     def _repr_json_(self):
         return CheckFailureJsonSerializer(self).serialize()

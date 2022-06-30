@@ -57,7 +57,7 @@ class DisplayableResult(abc.ABC):
 
     def show(
         self,
-        as_widget: bool = True,
+        # as_widget: bool = True,
         unique_id: t.Optional[str] = None,
         **kwargs
     ) -> t.Optional[HTMLFormatter]:
@@ -92,28 +92,20 @@ class DisplayableResult(abc.ABC):
 
             return TempSphinx()
 
-        if is_kaggle_env() or is_databricks_env() or is_sagemaker_env():
-            self.show_in_iframe(as_widget=as_widget, unique_id=unique_id, **kwargs)
-        elif is_colab_env() and as_widget is True:
-            widget = self.widget_serializer.serialize(**kwargs)
-            content = widget_to_html_string(widget, title=get_result_name(self))
-            display_html(content, raw=True)
-        elif is_colab_env() and as_widget is False:
-            display(*self.ipython_serializer.serialize(**kwargs))
-        elif as_widget is True:
-            display_html(self.widget_serializer.serialize(
-                output_id=unique_id,
-                **kwargs
-            ))
+        if is_colab_env():
+            display_html(
+                self.html_serializer.serialize(full_html=True, **kwargs), 
+                raw=True
+            )
         else:
-            display(*self.ipython_serializer.serialize(
-                output_id=unique_id,
-                **kwargs
-            ))
+            display_html(
+                self.html_serializer.serialize(output_id=unique_id, **kwargs), 
+                raw=True
+            )
 
     def show_in_iframe(
         self,
-        as_widget: bool = True,
+        # as_widget: bool = True,
         unique_id: t.Optional[str] = None,
         **kwargs
     ):
@@ -131,23 +123,16 @@ class DisplayableResult(abc.ABC):
         """
         output_id = unique_id or get_random_string(n=25)
 
-        if is_colab_env() and as_widget is True:
-            widget = self.widget_serializer.serialize(**kwargs)
-            content = widget_to_html_string(widget, title=get_result_name(self))
-            display_html(content, raw=True)
-        elif is_colab_env() and as_widget is False:
-            display(*self.ipython_serializer.serialize(**kwargs))
-        elif as_widget is True:
-            widget = self.widget_serializer.serialize(output_id=output_id, is_for_iframe_with_srcdoc=True, **kwargs)
-            content = widget_to_html_string(widget, title=get_result_name(self))
-            display_html(iframe(srcdoc=content), raw=True)
+        if is_colab_env():
+            display_html(
+                self.html_serializer.serialize(full_html=True, **kwargs), 
+                raw=True
+            )
         else:
             display_html(
                 iframe(srcdoc=self.html_serializer.serialize(
                     output_id=output_id,
                     full_html=True,
-                    include_requirejs=True,
-                    include_plotlyjs=True,
                     is_for_iframe_with_srcdoc=True,
                     **kwargs
                 )),
@@ -378,6 +363,3 @@ def iframe(
             {attributes}>
         </iframe>
     """
-
-
-import ipywidgets as widgets
