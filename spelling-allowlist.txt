@@ -102,5 +102,7 @@ plotlyjs
 srcdoc
 UI
 databricks
+Appender
+desc
 astype
 nullable

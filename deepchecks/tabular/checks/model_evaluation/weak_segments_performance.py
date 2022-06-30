@@ -306,7 +306,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
 
         return result
 
-    def add_condition_segments_performance_relative_difference_greater_than(self, max_ratio_change: float = 0.20):
+    def add_condition_segments_relative_performance_greater_than(self, max_ratio_change: float = 0.20):
         """Add condition - check that the score of the weakest segment is at least (1 - ratio) * average score.
 
         Parameters
@@ -319,10 +319,10 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
             weakest_segment_score = result['weak_segments_list'].iloc[0, 0]
             msg = f'Found a segment with {result["scorer_name"]} score of {format_number(weakest_segment_score, 3)} ' \
                   f'in comparison to an average score of {format_number(result["avg_score"], 3)} in sampled data.'
-            if weakest_segment_score < (1 - max_ratio_change) * result['avg_score']:
-                return ConditionResult(ConditionCategory.WARN, msg)
-            else:
+            if weakest_segment_score > (1 - max_ratio_change) * result['avg_score']:
                 return ConditionResult(ConditionCategory.PASS, msg)
+            else:
+                return ConditionResult(ConditionCategory.WARN, msg)
 
         return self.add_condition(f'The performance of weakest segment is greater than '
                                   f'{format_percent(1 - max_ratio_change)} of average model performance.', condition)

@@ -9,25 +9,149 @@
 # ----------------------------------------------------------------------------
 #
 """Module with usefull decorators."""
+import textwrap
 import typing as t
 from functools import wraps
 
 from deepchecks.utils.logger import get_logger
 
-__all__ = ['deprecate_kwarg']
+__all__ = ['Substitution', 'Appender', 'deprecate_kwarg']
 
 
 F = t.TypeVar('F', bound=t.Callable[..., t.Any])
+INDENT = '    '
 
 
-# deprecate_kwarg is from "pandas.io._decorators" module
-# pandas license: https://github.com/pandas-dev/pandas/blob/main/LICENSE
+# Substitution and Appender are derived from matplotlib.docstring (1.1.0)
+# module https://matplotlib.org/users/license.html
+
+
+class DocStr(str):
+    """Subclass of string that adds several additional methods."""
+
+    def dedent(self) -> 'DocStr':
+        return DocStr(textwrap.dedent(self))
+
+    def indent(self) -> 'DocStr':
+        return DocStr(indent(self))
+
+    def __format__(self, *args, **kwargs):
+        if len(args) == 0:
+            return super().__format__(*args, **kwargs)
+
+        allowed_modifiers = {'dedent', 'indent'}
+        identation_modifier = args[0]
+        parts = identation_modifier.split('*')
+
+        if len(parts) == 1 and parts[0] in allowed_modifiers:
+            return getattr(self, parts[0])()
+        elif len(parts) == 2 and parts[0].isnumeric() and parts[1] in allowed_modifiers:
+            n_of_times = int(parts[0])
+            modifier = parts[1]
+            s = self
+            for _ in range(n_of_times):
+                s = getattr(s, modifier)()
+            return s
+
+        return super().__format__(*args, **kwargs)
+
+
+class Substitution:
+    """Substitution docstring placeholders.
+
+    A decorator to take a function's docstring and perform string
+    substitution on it.
+
+    This decorator should be robust even if func.__doc__ is None
+    (for example, if -OO was passed to the interpreter)
+
+    Usage: construct a docstring.Substitution with a dictionary suitable
+    for performing substitution; then decorate a suitable function with
+    the constructed object. e.g.
+
+    sub_author_name = Substitution(author='Jason')
+
+    @sub_author_name
+    def some_function(x):
+        "{author} wrote this function"
+
+    # note that some_function.__doc__ is now "Jason wrote this function"
+    """
+
+    def __init__(self, **kwargs):
+        self.params = {
+            k: DocStr(v) if not isinstance(v, DocStr) else v
+            for k, v in kwargs.items()
+        }
+
+    def __call__(self, func: F) -> F:
+        """Decorate a function."""
+        func.__doc__ = func.__doc__ and func.__doc__.format(**self.params)
+        return func
+
+    def update(self, **kwargs) -> None:
+        """Update self.params with supplied args."""
+        if isinstance(self.params, dict):
+            self.params.update({
+                k: DocStr(v) if not isinstance(v, DocStr) else v
+                for k, v in kwargs.items()
+            })
+
+
+class Appender:
+    r"""Append addendum to the docstring.
+
+    A function decorator that will append an addendum to the docstring
+    of the target function.
+
+    This decorator should be robust even if func.__doc__ is None
+
+    Usage: construct a docstring.Appender with a string to be joined to
+    the original docstring. An optional 'join' parameter may be supplied
+    which will be used to join the docstring and addendum. e.g.
+
+    add_copyright = Appender("Copyright (c) 2009", join='\n')
+
+    @add_copyright
+    def my_dog(has='fleas'):
+        "This docstring will have a copyright below"
+        pass
+    """
+
+    addendum: t.Optional[str]
+
+    def __init__(self, addendum: t.Optional[str], join: str = '', indents: int = 0):
+        if indents > 0:
+            self.addendum = indent(addendum, indents=indents)
+        else:
+            self.addendum = addendum
+        self.join = join
+
+    def __call__(self, func: F) -> F:
+        """Decorate a function."""
+        func.__doc__ = func.__doc__ if func.__doc__ else ''
+        self.addendum = self.addendum if self.addendum else ''
+        docitems = [func.__doc__, self.addendum]
+        func.__doc__ = textwrap.dedent(self.join.join(docitems))
+        return func
+
+
+def indent(
+    text: t.Optional[str],
+    indents: int = 1,
+    prefix: bool = False
+) -> str:
+    if not text or not isinstance(text, str):
+        return ''
+    identation = ''.join((INDENT for _ in range(indents)))
+    jointext = ''.join(('\n', identation))
+    output = jointext.join(text.split('\n'))
+    return output if prefix is False else f'{identation}{output}'
 
 
 def deprecate_kwarg(
-    old_arg_name: str,
-    new_arg_name: t.Optional[str],
-    mapping: t.Union[t.Mapping[t.Any, t.Any], t.Callable[[t.Any], t.Any], None] = None,
+    old_name: str,
+    new_name: t.Optional[str] = None,
 ) -> t.Callable[[F], F]:
     """Decorate a function with deprecated kwargs.
 
@@ -35,63 +159,42 @@ def deprecate_kwarg(
     ----------
     old_arg_name : str
         Name of argument in function to deprecate
-    new_arg_name : str or None
-        Name of preferred argument in function. Use None to raise warning that
-        ``old_arg_name`` keyword is deprecated.
-    mapping : dict or callable
-        If mapping is present, use it to translate old arguments to
-        new arguments. A callable must do its own value checking;
-        values not found in a dict will be forwarded unchanged.
+    new_arg_name : Optional[str], default None
+        Name of preferred argument in function.
     """
-    if mapping is not None and not hasattr(mapping, 'get') and not callable(mapping):
-        raise TypeError(
-            'mapping from old to new argument values must be dict or callable!'
-        )
-
     def _deprecate_kwarg(func: F) -> F:
         @wraps(func)
         def wrapper(*args, **kwargs) -> t.Callable[..., t.Any]:
-            old_arg_value = kwargs.pop(old_arg_name, None)
-
-            if old_arg_value is not None:
-                if new_arg_name is None:
-                    msg = (
-                        f'the {repr(old_arg_name)} keyword is deprecated and '
-                        'will be removed in a future version. Please take '
-                        f'steps to stop the use of {repr(old_arg_name)}'
-                    )
-                    get_logger().warning(msg)
-                    kwargs[old_arg_name] = old_arg_value
-                    return func(*args, **kwargs)
-
-                elif mapping is not None:
-                    if callable(mapping):
-                        new_arg_value = mapping(old_arg_value)
-                    else:
-                        new_arg_value = mapping.get(old_arg_value, old_arg_value)
-                    msg = (
-                        f'the {old_arg_name}={repr(old_arg_value)} keyword is '
-                        'deprecated, use '
-                        f'{new_arg_name}={repr(new_arg_value)} instead'
-                    )
-                else:
-                    new_arg_value = old_arg_value
-                    msg = (
-                        f'the {repr(old_arg_name)} keyword is deprecated, '
-                        f'use {repr(new_arg_name)} instead'
-                    )
-
-                get_logger().warning(msg)
-                if kwargs.get(new_arg_name) is not None:
-                    msg = (
-                        f'Can only specify {repr(old_arg_name)} '
-                        f'or {repr(new_arg_name)}, not both'
-                    )
-                    raise TypeError(msg)
-                else:
-                    kwargs[new_arg_name] = new_arg_value
+            if old_name in kwargs and new_name in kwargs:
+                raise TypeError(
+                    f'Can only specify {repr(old_name)} '
+                    f'or {repr(new_name)}, not both'
+                )
+            elif old_name in kwargs and new_name is None:
+                get_logger().warning(
+                    'the %s keyword is deprecated and '
+                    'will be removed in a future version. Please take '
+                    'steps to stop the use of %s',
+                    repr(old_name),
+                    repr(old_name)
+                )
+            elif old_name in kwargs and new_name is not None:
+                get_logger().warning(
+                    'the %s keyword is deprecated, '
+                    'use %s instead',
+                    repr(old_name),
+                    repr(new_name)
+                )
+                kwargs[new_name] = kwargs.pop(old_name)
             return func(*args, **kwargs)
-
         return t.cast(F, wrapper)
-
     return _deprecate_kwarg
+
+
+def get_routine_name(it: t.Any) -> str:
+    if hasattr(it, '__qualname__'):
+        return it.__qualname__
+    elif callable(it) or isinstance(it, type):
+        return it.__name__
+    else:
+        return type(it).__name__

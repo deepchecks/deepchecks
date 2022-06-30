@@ -34,7 +34,7 @@ __all__ = ['single_dataset_integrity', 'train_test_leakage', 'train_test_validat
 
 def single_dataset_integrity(**kwargs) -> Suite:
     """
-    Create a suite that is meant to detect integrity issues within a single dataset (Deprecated) .
+    Create a suite that is meant to detect integrity issues within a single dataset (Deprecated).
 
     .. deprecated:: 0.7.0
             `single_dataset_integrity` is deprecated and will be removed in deepchecks 0.8 version, it is replaced by
@@ -70,8 +70,8 @@ def train_test_leakage(**kwargs) -> Suite:
     Create a suite that is meant to detect data leakage between the training dataset and the test dataset (Deprecated).
 
     .. deprecated:: 0.7.0
-            `train_test_leakage` is deprecated and will be removed in deepchecks 0.8 version, it is replaced by
-            `train_test_validation` suite.
+        `train_test_leakage` is deprecated and will be removed in deepchecks 0.8 version, it is replaced by
+        `train_test_validation` suite.
     """
     warnings.warn(
         'the train_test_leakage suite is deprecated, use the train_test_validation suite instead',
@@ -111,7 +111,7 @@ def model_evaluation(**kwargs) -> Suite:
         SegmentPerformance(**kwargs),
         TrainTestPredictionDrift(**kwargs).add_condition_drift_score_less_than(),
         SimpleModelComparison(**kwargs).add_condition_gain_greater_than(),
-        WeakSegmentsPerformance(**kwargs).add_condition_segments_performance_relative_difference_greater_than(),
+        WeakSegmentsPerformance(**kwargs).add_condition_segments_relative_performance_greater_than(),
         CalibrationScore(**kwargs),
         RegressionSystematicError(**kwargs).add_condition_systematic_error_ratio_to_rmse_less_than(),
         RegressionErrorDistribution(**kwargs).add_condition_kurtosis_greater_than(),
