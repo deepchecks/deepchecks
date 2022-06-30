@@ -18,6 +18,7 @@ from deepchecks import CheckFailure, CheckResult
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
                                     ModelValidationError)
+from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.tabular.utils.validation import (ensure_predictions_proba, ensure_predictions_shape,
@@ -130,71 +131,39 @@ class _DummyModel:
         """Just for python 3.6 (sklearn validates fit method)."""
 
 
+@docstrings
 class Context:
     """Contains all the data + properties the user has passed to a check/suite, and validates it seamlessly.
 
     Parameters
     ----------
-    train: Union[Dataset, pd.DataFrame] , default: None
+    train: Union[Dataset, pd.DataFrame, None] , default: None
         Dataset or DataFrame object, representing data an estimator was fitted on
-    test: Union[Dataset, pd.DataFrame] , default: None
+    test: Union[Dataset, pd.DataFrame, None] , default: None
         Dataset or DataFrame object, representing data an estimator predicts on
-    model: BasicModel , default: None
+    model: Optional[BasicModel] , default: None
         A scikit-learn-compatible fitted estimator instance
-    model_name: str , default: ''
-        The name of the model
-    features_importance: pd.Series , default: None
-        pass manual features importance
-        .. deprecated:: 0.8.1
-            Use 'feature_importance' instead.
-    feature_importance: pd.Series , default: None
-        pass manual features importance
-    feature_importance_force_permutation : bool , default: False
-        force calculation of permutation features importance
-    feature_importance_timeout : int , default: 120
-        timeout in second for the permutation features importance calculation
-    scorers : Mapping[str, Union[str, Callable]] , default: None
-        dict of scorers names to scorer sklearn_name/function
-    scorers_per_class : Mapping[str, Union[str, Callable]] , default: None
-        dict of scorers for classification without averaging of the classes.
-        See <a href=
-        "https://scikit-learn.org/stable/modules/model_evaluation.html#from-binary-to-multiclass-and-multilabel">
-        scikit-learn docs</a>
-    with_display : bool , default: True
-        flag that determines if checks will calculate display (redundant in some checks).
-    y_pred_train: np.ndarray , default: None
-        Array of the model prediction over the train dataset.
-    y_pred_test: np.ndarray , default: None
-        Array of the model prediction over the test dataset.
-    y_proba_train: np.ndarray , default: None
-        Array of the model prediction probabilities over the train dataset.
-    y_proba_test: np.ndarray , default: None
-        Array of the model prediction probabilities over the test dataset.
+    {additional_context_params:indent}
     """
 
-    @deprecate_kwarg(old_arg_name='features_importance', new_arg_name='feature_importance')
-    def __init__(self,
-                 train: t.Union[Dataset, pd.DataFrame] = None,
-                 test: t.Union[Dataset, pd.DataFrame] = None,
-                 model: BasicModel = None,
-                 model_name: str = '',
-                 feature_importance: pd.Series = None,
-                 feature_importance_force_permutation: bool = False,
-                 feature_importance_timeout: int = 120,
-                 scorers: t.Mapping[str, t.Union[str, t.Callable]] = None,
-                 scorers_per_class: t.Mapping[str, t.Union[str, t.Callable]] = None,
-                 with_display: bool = True,
-                 y_pred_train: np.ndarray = None,
-                 y_pred_test: np.ndarray = None,
-                 y_proba_train: np.ndarray = None,
-                 y_proba_test: np.ndarray = None,
-                 features_importance: pd.Series = None,  # TODO: deprecated, should be removed
-                 ):
-        feature_importance = (
-            features_importance  # in case if user used deprecated parameter
-            if feature_importance is None
-            else feature_importance
-        )
+    @deprecate_kwarg(old_name='features_importance', new_name='feature_importance')
+    def __init__(
+        self,
+        train: t.Union[Dataset, pd.DataFrame, None] = None,
+        test: t.Union[Dataset, pd.DataFrame, None] = None,
+        model: t.Optional[BasicModel] = None,
+        model_name: str = '',
+        feature_importance: t.Optional[pd.Series] = None,
+        feature_importance_force_permutation: bool = False,
+        feature_importance_timeout: int = 120,
+        scorers: t.Optional[t.Mapping[str, t.Union[str, t.Callable]]] = None,
+        scorers_per_class: t.Optional[t.Mapping[str, t.Union[str, t.Callable]]] = None,
+        with_display: bool = True,
+        y_pred_train: t.Optional[np.ndarray] = None,
+        y_pred_test: t.Optional[np.ndarray] = None,
+        y_proba_train: t.Optional[np.ndarray] = None,
+        y_proba_test: t.Optional[np.ndarray] = None,
+    ):
         # Validations
         if train is None and test is None and model is None:
             raise DeepchecksValueError('At least one dataset (or model) must be passed to the method!')
