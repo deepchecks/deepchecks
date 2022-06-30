@@ -12,7 +12,7 @@
 # pylint: disable=super-init-not-called
 import base64
 import io
-from typing import Dict, List, Union, Any
+from typing import Any, Dict, List, Union
 
 import jsonpickle
 import pandas as pd
@@ -62,7 +62,7 @@ class CheckResultJson(CheckResult):
         self.check = FakeCheck(json_dict.get('check'))
 
         conditions_results_json = json_dict.get('conditions_results')
-        
+
         if conditions_results_json is not None:
             self.conditions_results = []
             for condition in conditions_results_json:
@@ -71,19 +71,19 @@ class CheckResultJson(CheckResult):
                 self.conditions_results.append(cond_res)
         else:
             self.conditions_results = None
-        
+
         json_display = json_dict.get('display', [])
         self.display = self._process_jsonified_display_items(json_display)
-        
+
     def process_conditions(self) -> List[Condition]:
         """Conditions are already processed it is to prevent errors."""
         pass
-    
+
     @classmethod
     def _process_jsonified_display_items(cls, display: List[Dict[str, Any]]) -> List[Any]:
         assert isinstance(display, list)
         output = []
-        
+
         for record in display:
             display_type, payload = record['type'], record['payload']
             if display_type == 'html':
@@ -107,7 +107,7 @@ class CheckResultJson(CheckResult):
                 }))
             else:
                 raise ValueError(f'Unexpected type of display received: {display_type}')
-        
+
         return output
 
 
