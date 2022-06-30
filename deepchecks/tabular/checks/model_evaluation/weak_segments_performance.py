@@ -28,6 +28,7 @@ from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksProces
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.tabular.context import _DummyModel
 from deepchecks.tabular.utils.task_type import TaskType
+from deepchecks.utils.dataframes import default_fill_na_per_column_type
 from deepchecks.utils.performance.partition import (convert_tree_leaves_into_filters,
                                                     partition_numeric_feature_around_segment)
 from deepchecks.utils.single_sample_metrics import calculate_per_sample_loss
@@ -38,8 +39,15 @@ __all__ = ['WeakSegmentsPerformance']
 
 
 class WeakSegmentsPerformance(SingleDatasetCheck):
-    """Search for segments with the low performance score based on defined scorer function.
+    """Search for segments with low performance scores.
 
+    The check is designed to help you easily identify weak spots of your model and provide a deepdive analysis into
+    its performance on different segments of your data. Specifically, it is designed to help you identify the model
+    weakest segments in the data distribution for further improvement and visibility purposes.
+
+    In order to achieve this, the check trains several simple tree based models which try to predict the error of the
+    user provided model on the dataset. The relevant segments are detected by analyzing the different
+    leafs of the trained trees.
     Parameters
     ----------
     columns : Union[Hashable, List[Hashable]] , default: None
@@ -52,17 +60,18 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
         Minimum size ratio for segments. Will only search for segments of
         size >= segment_minimum_size_ratio * data_size.
     alternative_scorer : Tuple[str, Union[str, Callable]] , default: None
-        Score to show, either function or sklearn scorer name.
+        Scorer to use as performance measure, either function or sklearn scorer name.
         If None, a default scorer (per the model type) will be used.
     loss_per_sample: Union[np.array, pd.Series, None], default: None
-        Loss per sample used to detect relevant weak segments. If None, the check calculates loss per sample by using
-         for classification and mean square error for regression.
+        Loss per sample used to detect relevant weak segments. If pd.Series the indexes should be similar to those in
+        the dataset object provide, if np.array the order should be based on the index order of the dataset object and
+        if None the check calculates loss per sample by via log loss for classification and MSE for regression.
     n_samples : int , default: 10_000
         number of samples to use for this check.
     n_to_show : int , default: 3
         number of segments with the weakest performance to show.
     categorical_aggregation_threshold : float , default: 0.05
-        Categories with appearance ratio below threshold will be merged into "Other" category.
+        In each categorical column, categories with frequency below threshold will be merged into "Other" category.
     random_state : int, default: 42
         random seed for all check internals.
     """
@@ -126,32 +135,31 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
         weak_segments = self._weak_segments_search(dummy_model, encoded_dataset, feature_rank,
                                                    loss_per_sample, scorer)
         if len(weak_segments) == 0:
-            raise DeepchecksProcessError('Unable to train a error model to find weak segments.')
+            raise DeepchecksProcessError('WeakSegmentsPerformance was unable to train an error model to find weak '
+                                         'segments. Try increasing n_samples or supply additional features.')
         avg_score = round(scorer(dummy_model, encoded_dataset), 3)
 
         display = self._create_heatmap_display(dummy_model, encoded_dataset, weak_segments, avg_score,
                                                scorer) if context.with_display else []
 
         for idx, segment in weak_segments.copy().iterrows():
-            if segment['Feature1'] in encoded_dataset.cat_features:
-                weak_segments['Feature1 range'][idx] = \
-                    self._format_partition_vec_for_display(segment['Feature1 range'], segment['Feature1'], None)[0]
-            if segment['Feature2'] in encoded_dataset.cat_features:
-                weak_segments['Feature2 range'][idx] = \
-                    self._format_partition_vec_for_display(segment['Feature2 range'], segment['Feature2'], None)[0]
+            for feature in ['Feature1', 'Feature2']:
+                if segment[feature] in encoded_dataset.cat_features:
+                    weak_segments[f'{feature} range'][idx] = \
+                        self._format_partition_vec_for_display(segment[f'{feature} range'], segment[feature], None)[0]
 
-        display_msg = 'Showcasing intersections of features with weakest detected segments.<br>Can ' \
-                      'observe the full list of weak segments in the check result value. '
+        display_msg = 'Showcasing intersections of features with weakest detected segments.<br> The full list of ' \
+                      'weak segments can be observed in the check result value. '
         return CheckResult({'weak_segments_list': weak_segments, 'avg_score': avg_score, 'scorer_name': scorer.name},
                            display=[display_msg, DisplayMap(display)])
 
     def _target_encode_categorical_features_fill_na(self, dataset: Dataset) -> Dataset:
-        values_mapping = defaultdict(list)
-        df_aggregated = dataset.features_columns.copy()
+        values_mapping = defaultdict(list)  # mapping of per feature of original values to their encoded value
+        df_aggregated = default_fill_na_per_column_type(dataset.features_columns.copy(), dataset.cat_features)
         for col in dataset.cat_features:
             categories_to_mask = [k for k, v in df_aggregated[col].value_counts().items() if
                                   v / dataset.n_samples < self.categorical_aggregation_threshold]
-            df_aggregated.loc[np.isin(df_aggregated[col], categories_to_mask), col] = 'other'
+            df_aggregated.loc[np.isin(df_aggregated[col], categories_to_mask), col] = 'Other'
 
         if len(dataset.cat_features) > 0:
             t_encoder = TargetEncoder(cols=dataset.cat_features)
@@ -161,7 +169,6 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
         else:
             df_encoded = df_aggregated
         self.encoder_mapping = values_mapping
-        df_encoded.fillna(df_encoded.mode(axis=0), inplace=True)
         return Dataset(df_encoded, cat_features=dataset.cat_features, label=dataset.label_col)
 
     def _create_heatmap_display(self, dummy_model, encoded_dataset, weak_segments, avg_score, scorer):
@@ -269,7 +276,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
             return -get_worst_leaf_filter(clf.tree_)[0]
 
         grid_searcher = GridSearchCV(DecisionTreeRegressor(), scoring=neg_worst_segment_score,
-                                     param_grid=search_space, n_jobs=-1, cv=3)
+                                     param_grid=search_space, n_jobs=-1, cv=3, verbose=100)
         try:
             grid_searcher.fit(dataset.features_columns[features_for_segment], loss_per_sample)
             segment_score, segment_filter = get_worst_leaf_filter(grid_searcher.best_estimator_.tree_)

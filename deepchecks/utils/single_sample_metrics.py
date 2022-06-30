@@ -33,7 +33,7 @@ def calculate_per_sample_loss(model, task_type: TaskType, dataset: Dataset,
                 classes_index_order = model.classes_
             else:
                 raise DeepchecksNotImplementedError(
-                    'Could not infer classes index order please provide them via the classes_index_order '
+                    'Could not infer classes index order. Please provide them via the classes_index_order '
                     'argument. Alternatively, provide loss_per_sample vector as an argument to the check.')
         proba = model.predict_proba(dataset.features_columns)
         return pd.Series([metrics.log_loss([y], [y_proba], labels=classes_index_order) for
