@@ -51,6 +51,8 @@ __all__ = ['CheckResult', 'CheckFailure', 'BaseCheckResult', 'DisplayMap']
 
 
 class DisplayMap(Dict[str, List['TDisplayItem']]):
+    """Class facilitating tabs within check display output."""
+
     pass
 
 
