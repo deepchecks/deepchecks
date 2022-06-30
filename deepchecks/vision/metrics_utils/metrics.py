@@ -47,7 +47,7 @@ _func_naming_dict = {
 
 
 def _scorer_filter(scorers: t.Dict[str, Metric], scorers_to_use: t.List[str]):
-    return {_func_naming_dict[func_name.lower()]: scorers[_func_naming_dict[func_name.lower()]]
+    return {func_name: scorers[_func_naming_dict[func_name.lower()]]
             for func_name in scorers_to_use}
 
 
