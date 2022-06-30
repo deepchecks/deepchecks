@@ -224,3 +224,28 @@ You can also pass your own custom metric to relevant checks and suites.
 Custom metrics should follow the
 `Ignite Metric <https://pytorch.org/ignite/metrics.html#how-to-create-a-custom-metric>`__ API for computer vision or
 `Sklearn scorer <https://scikit-learn.org/stable/modules/generated/sklearn.metrics.make_scorer.html>`__ API for tabular.
+
+Code Examples
+==============
+:doc:`PerformanceReport </checks_gallery/tabular/model_evaluation/plot_performance_report>`:
+
+.. code-block:: python
+
+    from sklearn.metrics import fbeta_score, make_scorer
+
+    fbeta_scorer = make_scorer(fbeta_score, labels=[0, 1], average=None, beta=0.2)
+
+    check = PerformanceReport(alternative_scorers={'my scorer': fbeta_scorer})
+    check.run(train_dataset, test_dataset, model)
+
+
+:doc: `SingleDatasetScalarPerformance <checks_gallery/vision/model_evaluation/plot_single_dataset_scalar_performance>`:
+
+.. code-block:: python
+
+    from ignite.metrics import Precision
+    from torch import nanmean
+
+    check = SingleDatasetScalarPerformance(Precision(), nanmean, metric_name='precision', reduce_name='mean')
+    result = check.run(train_ds, mnist_model)
+    result.value
