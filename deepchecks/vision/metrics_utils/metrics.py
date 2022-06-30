@@ -22,6 +22,7 @@ from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.vision.metrics_utils.detection_matched_positive_calc import ObjectDetectionMatchedPositive
 from deepchecks.vision.metrics_utils.detection_precision_recall import ObjectDetectionAveragePrecision
+from deepchecks.vision.metrics_utils.evalution_functions import AVAILABLE_EVALUTING_FUNCTIONS
 from deepchecks.vision.vision_data import TaskType, VisionData
 
 __all__ = [
@@ -47,8 +48,8 @@ _func_naming_dict = {
 
 
 def _scorer_filter(scorers: t.Dict[str, Metric], scorers_to_use: t.List[str]):
-    return {func_name: scorers[_func_naming_dict[func_name.lower()]]
-            for func_name in scorers_to_use}
+    return {scorer_name: scorers[_func_naming_dict[scorer_name.lower()]]
+            for scorer_name in scorers_to_use}
 
 
 def get_default_classification_scorers():
@@ -65,14 +66,14 @@ def get_default_object_detection_scorers() -> t.Dict[str, Metric]:
     }
 
 
-def get_threshold_detection_scorers() -> t.Dict[str, Metric]:
-    return {
-        'Recall': ObjectDetectionMatchedPositive(evaluting_function='recall'),
-        'Precision': ObjectDetectionMatchedPositive(evaluting_function='precision'),
-        'F1': ObjectDetectionMatchedPositive(evaluting_function='f1'),
-        'FPR': ObjectDetectionMatchedPositive(evaluting_function='fpr'),
-        'FNR': ObjectDetectionMatchedPositive(evaluting_function='fnr')
-    }
+def get_threshold_detection_scorers(scorers_to_use: t.List[str]) -> t.Dict[str, Metric]:
+    scorers_dict = {}
+    for given_scorer_name in list(scorers_to_use):
+        scorer_name = _func_naming_dict[given_scorer_name.lower()].lower()
+        if scorer_name in AVAILABLE_EVALUTING_FUNCTIONS:
+            scorers_dict[given_scorer_name] = ObjectDetectionMatchedPositive(evaluting_function=scorer_name)
+            scorers_to_use.remove(given_scorer_name)
+    return scorers_dict
 
 
 def get_scorers_list(
@@ -118,8 +119,10 @@ def get_scorers_list(
     elif task_type == TaskType.OBJECT_DETECTION:
         scorers = get_default_object_detection_scorers()
         if scorers_to_use:
-            scorers.update(get_threshold_detection_scorers())
+            scorers_to_use = scorers_to_use.copy()
+            threshold_detection_scorers = get_threshold_detection_scorers(scorers_to_use)
             scorers = _scorer_filter(scorers, scorers_to_use)
+            scorers.update(threshold_detection_scorers)
     else:
         raise DeepchecksNotSupportedError(f'No scorers match task_type {task_type}')
 

@@ -493,10 +493,23 @@ def test_condition_class_performance_imbalance_ratio_less_than_fail(
     )
 
 
-def test_custom_task(mnist_train_custom_task, mnist_test_custom_task, device, mock_trained_mnist):
+def test_custom_task(mnist_train_custom_task, mnist_test_custom_task, mock_trained_mnist, device):
     # Arrange
     metrics = {'metric': Precision()}
     check = ClassPerformance(alternative_metrics=metrics)
 
     # Act & Assert - check runs without errors
     check.run(mnist_train_custom_task, mnist_test_custom_task, model=mock_trained_mnist, device=device)
+
+
+def test_coco_scorer_list(coco_train_visiondata, coco_test_visiondata, mock_trained_yolov5_object_detection, device):
+    # Arrange
+
+    check = ClassPerformance(scorers_to_use=['AR', 'FNR', 'F1', 'recall'])
+    # Act
+    result = check.run(coco_train_visiondata, coco_test_visiondata,
+                       mock_trained_yolov5_object_detection, device=device)
+    # Assert
+    assert_that(result.value, has_length(471))
+    assert_that(result.display, has_length(greater_than(0)))
+    assert_that(set(result.value['Metric']), equal_to({'AR', 'FNR', 'F1', 'recall'}))
