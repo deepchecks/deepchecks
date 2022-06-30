@@ -10,7 +10,7 @@
 #
 """Module for base vision context."""
 from operator import itemgetter
-from typing import Dict, Mapping, Sequence, Union
+from typing import Dict, Mapping, Optional, Sequence, Union
 
 import torch
 from ignite.metrics import Metric
@@ -21,59 +21,43 @@ from deepchecks.core import DatasetKind
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotImplementedError, DeepchecksNotSupportedError,
                                     DeepchecksValueError, ModelValidationError, ValidationError)
 from deepchecks.utils.logger import get_logger
+from deepchecks.vision._shared_docs import docstrings
 from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.vision_data import VisionData
 
 __all__ = ['Context']
 
 
+@docstrings
 class Context:
     """Contains all the data + properties the user has passed to a check/suite, and validates it seamlessly.
 
     Parameters
     ----------
-    train : VisionData , default: None
-        Dataset or DataFrame object, representing data an estimator was fitted on
-    test : VisionData , default: None
-        Dataset or DataFrame object, representing data an estimator predicts on
-    model : BasicModel , default: None
-        A scikit-learn-compatible fitted estimator instance
-    model_name: str , default: ''
-        The name of the model
-    scorers : Mapping[str, Metric] , default: None
-        dict of scorers names to a Metric
-    scorers_per_class : Mapping[str, Metric] , default: None
-        dict of scorers for classification without averaging of the classes.
-        See <a href=
-        "https://scikit-learn.org/stable/modules/model_evaluation.html#from-binary-to-multiclass-and-multilabel">
-        scikit-learn docs</a>
-    device : Union[str, torch.device], default: 'cpu'
-        processing unit for use
-    random_state : int
-        A seed to set for pseudo-random functions
-    n_samples : int, default: None
-    with_display : bool , default: True
-        flag that determines if checks will calculate display (redundant in some checks).
-    train_predictions: Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]] , default: None
-        Dictionary of the model prediction over the train dataset (keys are the indexes).
-    test_predictions: Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]] , default: None
-        Dictionary of the model prediction over the test dataset (keys are the indexes).
+    train : Optional[VisionData] , default: None
+        VisionData object, representing data an neural network was fitted on
+    test : Optional[VisionData] , default: None
+        VisionData object, representing data an neural network predicts on
+    model : Optional[nn.Module] , default: None
+        pytorch neural network module instance
+    {additional_context_params:indent}
     """
 
-    def __init__(self,
-                 train: VisionData = None,
-                 test: VisionData = None,
-                 model: nn.Module = None,
-                 model_name: str = '',
-                 scorers: Mapping[str, Metric] = None,
-                 scorers_per_class: Mapping[str, Metric] = None,
-                 device: Union[str, torch.device, None] = None,
-                 random_state: int = 42,
-                 n_samples: int = None,
-                 with_display: bool = True,
-                 train_predictions: Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]] = None,
-                 test_predictions: Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]] = None,
-                 ):
+    def __init__(
+        self,
+        train: Optional[VisionData] = None,
+        test: Optional[VisionData] = None,
+        model: Optional[nn.Module] = None,
+        model_name: str = '',
+        scorers: Optional[Mapping[str, Metric]] = None,
+        scorers_per_class: Optional[Mapping[str, Metric]] = None,
+        device: Union[str, torch.device, None] = None,
+        random_state: int = 42,
+        n_samples: Optional[int] = None,
+        with_display: bool = True,
+        train_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
+        test_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
+    ):
         # Validations
         if train is None and test is None and model is None:
             raise DeepchecksValueError('At least one dataset (or model) must be passed to the method!')
