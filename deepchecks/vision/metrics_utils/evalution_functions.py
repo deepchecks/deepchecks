@@ -9,8 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module for evalution functions."""
-import numpy as np
-
 
 def _calc_recall(tp: float, fp: float, fn: float) -> float:
     """Calculate recall for given matches and number of positives."""

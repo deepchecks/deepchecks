@@ -45,8 +45,8 @@ class AveragePrecisionRecall(Metric, MetricMixin):
         Maximum number of detections per class.
     area_range: tuple, default: (32**2, 96**2)
         Slices for small/medium/large buckets.
-    return_option: int, default: 0
-        0: ap only, 1: ar only, None: all (not ignite complient)
+    return_option: str, default: 'ap'
+        ap: ap only, ar: ar only, None: all (not ignite complient)
     """
 
     def __init__(self, *args, max_dets: Union[List[int], Tuple[int]] = (1, 10, 100),
@@ -124,12 +124,12 @@ class AveragePrecisionRecall(Metric, MetricMixin):
                         recall_list[class_id] = recall
                     reses["precision"][iou_i, area_i, dets_i] = precision_list
                     reses["recall"][iou_i, area_i, dets_i] = recall_list
-        if self.return_option == 0:
+        if self.return_option == 'ap':
             return torch.tensor(self.get_classes_scores_at(reses["precision"],
                                                            max_dets=self.max_detections_per_class[0],
                                                            area=self.area_ranges_names[0],
                                                            get_mean_val=False))
-        elif self.return_option == 1:
+        elif self.return_option == 'ar':
             return torch.tensor(self.get_classes_scores_at(reses["recall"],
                                                            max_dets=self.max_detections_per_class[0],
                                                            area=self.area_ranges_names[0],

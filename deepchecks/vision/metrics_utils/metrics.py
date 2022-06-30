@@ -61,8 +61,8 @@ def get_default_classification_scorers():
 
 def get_default_object_detection_scorers() -> t.Dict[str, Metric]:
     return {
-        'Average Precision': ObjectDetectionAveragePrecision(),
-        'Average Recall': ObjectDetectionAveragePrecision(return_option=1)
+        'Average Precision': ObjectDetectionAveragePrecision(return_option='ap'),
+        'Average Recall': ObjectDetectionAveragePrecision(return_option='ar')
     }
 
 
