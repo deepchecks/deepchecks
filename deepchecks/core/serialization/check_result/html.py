@@ -115,11 +115,15 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
             )))
 
         if full_html is False:
-            return ''.join((
-                f'<style>{DEEPCHECKS_STYLE}</style>',
-                plotly_loader_script() if embedment_way is None else '', 
-                *sections
-            ))
+            return (
+                ''.join(sections) 
+                if embedment_way is not None
+                else''.join((
+                    f'<style>{DEEPCHECKS_STYLE}</style>',
+                    plotly_loader_script() if embedment_way is None else '', 
+                    *sections
+                ))
+            )
 
         return htmlmin.minify(f"""
             <html>

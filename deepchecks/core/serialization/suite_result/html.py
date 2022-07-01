@@ -138,7 +138,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
                 name=suite_result.name,
                 content=''.join(content),
                 attrs='open class="deepchecks"',
-                additional_style='padding: 0 1.5rem 0 1.5rem;'
+                additional_style=''
             )
             return ''.join((
                 f'<style>{DEEPCHECKS_STYLE}</style>',
@@ -151,7 +151,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             name=suite_result.name,
             content=''.join(content),
             attrs='open class="deepchecks"',
-            additional_style='padding: 0 1.5rem 0 1.5rem;'
+            additional_style=''
         )
 
         return htmlmin.minify(f"""
@@ -335,7 +335,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             name=title,
             content=content,
             attrs='class="deepchecks"',
-            additional_style='padding: 1.5rem;'
+            additional_style=''
         )
         
     def prepare_results(
@@ -386,7 +386,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             name=title,
             content=content,
             attrs='class="deepchecks"',
-            additional_style='padding: 1.5rem;'
+            additional_style=''
         )
 
 
@@ -402,11 +402,7 @@ def select_serializer(result):
 DETAILS_TAG = """
     <details id="{id}" {attrs}>
         <summary><strong>{name}</strong></summary>
-        <div style="
-            display: flex;
-            flex-direction: column;
-            {additional_style}
-        ">
+        <div style="{additional_style}">
         {content}
         </div>
     </details>

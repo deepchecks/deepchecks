@@ -549,7 +549,7 @@ PLOTLY_DEPENDENCY_SCRIPT = """
                         return;
                     }
                     const s = `define('plotly', function(require, exports, module) {${plotlySrc.text}});`;
-                    window.eval(s);
+                    (new Function(s))();
                     const exist = (Plotly) => {
                         window.Plotly = Plotly;
                         resolve(Plotly);
@@ -561,7 +561,7 @@ PLOTLY_DEPENDENCY_SCRIPT = """
                     require(['plotly'], exist, failure);
                 } else {
                     try {
-                        window.eval(plotlySrc.text);
+                        (new Function(plotlySrc.text))();
                         resolve(Plotly);
                     } catch(error) {
                         console.dir(error);
@@ -670,23 +670,23 @@ table.deepchecks tbody tr:nth-child(even) {
 table.deepchecks tbody tbody tr:hover {
     background: rgba(66, 165, 245, 0.2);
 }
-.deepchecks > details, details.deepchecks {
-    border: 1px solid #aaa;
-    border-radius: 4px;
-    padding: .5em .5em 0;
+details.deepchecks {
+    border: 1px solid #d6d6d6;
+    margin-bottom: 0.25rem;
 }
-.deepchecks > details > summary, details.deepchecks > summary {
+details.deepchecks > div {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem 1.5rem 1rem 1.5rem;
+}
+details.deepchecks > summary {
     display: list-item;
+    background-color: #f9f9f9;
     font-weight: bold;
-    margin: -.5em -.5em 0;
-    padding: .5em;
+    padding: 0.5rem;
 }
-.deepchecks > details[open], details[open].deepchecks {
-    padding: .5em;
-}
-.deepchecks > details[open] > summary, details[open].deepchecks > summary {
-    border-bottom: 1px solid #aaa;
-    margin-bottom: .5em;
+details[open].deepchecks > summary {
+    border-bottom: 1px solid #d6d6d6;
 }
 """
 
