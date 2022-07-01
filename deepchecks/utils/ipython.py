@@ -146,9 +146,6 @@ class HtmlProgressBar:
 
     def __iter__(self):
 
-        if self._iterable is None:
-            raise RuntimeError('Progress bar was closed and cannot be reused.')
-
         if self._disable is True:
             try:
                 for it in self._iterable:
