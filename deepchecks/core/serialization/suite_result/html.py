@@ -19,18 +19,15 @@ from plotly.offline.offline import get_plotlyjs
 
 from deepchecks.core import check_result as check_types
 from deepchecks.core import suite
+from deepchecks.core.resources import DEEPCHECKS_STYLE, DEEPCHECKS_HTML_PAGE_STYLE
 from deepchecks.core.serialization.abc import HtmlSerializer
-from deepchecks.core.serialization.check_result.html import CheckResultSection
 from deepchecks.core.serialization.check_result.html import CheckResultSerializer as CheckResultHtmlSerializer
 from deepchecks.core.serialization.check_failure.html import CheckFailureSerializer as CheckFailureHtmlSerializer
 from deepchecks.core.serialization.dataframe.html import DataFrameSerializer
 from deepchecks.core.serialization.common import (Html, aggregate_conditions, create_failures_dataframe,
-                                                  form_output_anchor, plotlyjs_script, requirejs_script, 
-                                                  create_results_dataframe, plotly_loader_script, 
-                                                  DEEPCHECKS_HTML_PAGE_STYLE,
-                                                  DEEPCHECKS_STYLE)
-from deepchecks.utils.html import linktag
+                                                  form_output_anchor, create_results_dataframe, plotly_loader_script)
 from deepchecks.utils.strings import get_random_string
+from deepchecks.utils.html import details_tag
 
 __all__ = ['SuiteResultSerializer']
 
@@ -133,26 +130,17 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         )
 
         if full_html is False:
-            output = DETAILS_TAG.format(
-                id=output_id or '',
-                name=suite_result.name,
+            output = details_tag(
+                title=suite_result.name,
                 content=''.join(content),
+                id=output_id or '',
                 attrs='open class="deepchecks"',
-                additional_style=''
             )
             return ''.join((
                 f'<style>{DEEPCHECKS_STYLE}</style>',
                 plotly_loader_script(),
                 output
             ))
-
-        content = DETAILS_TAG.format(
-            id=output_id or '',
-            name=suite_result.name,
-            content=''.join(content),
-            attrs='open class="deepchecks"',
-            additional_style=''
-        )
 
         return htmlmin.minify(f"""
             <html>
@@ -161,7 +149,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
                 <script type="text/javascript">{get_plotlyjs()}</script>
                 <style>{DEEPCHECKS_HTML_PAGE_STYLE}</style>
             </head>
-            <body>{content}</body>
+            <body>{''.join(content)}</body>
             </html>
         """)
 
@@ -330,12 +318,10 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             df = create_failures_dataframe(failures)
             content = DataFrameSerializer(df.style.hide_index()).serialize()
         
-        return DETAILS_TAG.format(
-            id='',
-            name=title,
+        return details_tag(
+            title=title,
             content=content,
-            attrs='class="deepchecks"',
-            additional_style=''
+            attrs='class="deepchecks"'
         )
         
     def prepare_results(
@@ -380,13 +366,12 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
                 ))
             else:
                 content = Html.light_hr.join(serialized_results)
-            
-        return DETAILS_TAG.format(
-            id=form_output_anchor(section_id),
-            name=title,
+        
+        return details_tag(
+            title=title,
             content=content,
+            id=form_output_anchor(section_id),
             attrs='class="deepchecks"',
-            additional_style=''
         )
 
 
@@ -397,13 +382,3 @@ def select_serializer(result):
         return CheckFailureHtmlSerializer(result)
     else:
         raise TypeError(f'Unknown type of result - {type(result)}')
-
-
-DETAILS_TAG = """
-    <details id="{id}" {attrs}>
-        <summary><strong>{name}</strong></summary>
-        <div style="{additional_style}">
-        {content}
-        </div>
-    </details>
-"""

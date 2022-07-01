@@ -17,7 +17,6 @@ import pkgutil
 import textwrap
 import typing as t
 import warnings
-import htmlmin
 from contextlib import contextmanager
 
 import matplotlib
@@ -53,9 +52,7 @@ __all__ = [
     'plotlyjs_script',
     'requirejs_script',
     'flatten',
-    'join',
-    'DEEPCHECKS_STYLE',
-    'DEEPCHECKS_HTML_PAGE_STYLE'
+    'join'
 ]
 
 
@@ -581,128 +578,3 @@ PLOTLY_DEPENDENCY_SCRIPT = """
     }
 </script>
 """.replace('%plotly-script', get_plotlyjs())
-
-
-# PLOTLY_DEPENDENCY_SCRIPT = htmlmin.minify("""
-# window.Deepchecks = window.Deepchecks || {};
-# window.Deepchecks.loadPlotly = () => new Promise(async (resolve, reject) => {
-#     try {
-#         const plotlyCdn = '%plotly_cdn';
-#         const loadPlotlyScript = () => new Promise((resolve, reject) => {
-#             const scriptTag = document.createElement('script');
-#             document.head.appendChild(scriptTag);
-#             scriptTag.async = true;
-#             scriptTag.onload = () => resolve(scriptTag);
-#             scriptTag.onerror = () => reject(new Error(`Failed to load plotly script`));
-#             scriptTag.src = plotlyCdn + '.js';
-#         });
-#         if (window.Plotly === undefined || window.Plotly === null) {
-#             if (typeof define === "function" && define.amd) {
-#                 const exist = (Plotly) => {
-#                     window.Plotly = Plotly;
-#                     resolve(Plotly);
-#                 };
-#                 const failure = (e) => {
-#                     console.dir(e);
-#                     reject(new Error(`Failed to load plotly library: ${e.message}`));
-#                 };
-#                 requirejs.config({paths: {'plotly': [plotlyCdn]}});
-#                 require(['plotly'], exist, failure);
-#             } else {
-#                 try {
-#                     await loadPlotlyScript();
-#                     resolve(Plotly);
-#                 } catch(error) {
-#                     console.dir(error);
-#                     reject(new Error(`Failed to load plotly library: ${e.message}`));
-#                 }
-#             }
-#         } else {
-#             resolve(window.Plotly);
-#         }
-#     } catch(error) {
-#         reject(error);
-#     }
-# });
-# if (window.Deepchecks.loadPlotlyDependency === undefined || window.Deepchecks.loadPlotlyDependency === null) {
-#     console.log('No Plotly library, loading it');
-#     window.Deepchecks.loadPlotlyDependency = window.Deepchecks.loadPlotly();
-# } else {
-#     console.log('Plotly load promise already exists');
-# }
-# """.replace('%plotly_cdn', plotly_cdn_url().rstrip('.js')))
-
-
-DEEPCHECKS_STYLE = """
-table.deepchecks {
-    border: none;
-    border-collapse: collapse;
-    border-spacing: 0;
-    color: black;
-    font-size: 12px;
-    table-layout: fixed;
-    width: max-content;
-}
-table.deepchecks thead {
-    border-bottom: 1px solid black;
-    vertical-align: bottom;
-}
-table.deepchecks tr,
-table.deepchecks th, 
-table.deepchecks td {
-    text-align: right;
-    vertical-align: middle;
-    padding: 0.5em 0.5em;
-    line-height: normal;
-    white-space: normal;
-    max-width: none;
-    border: none;
-}
-table.deepchecks th {
-    font-weight: bold;
-}
-table.deepchecks tbody tr:nth-child(odd) {
-    background: white;
-}
-table.deepchecks tbody tr:nth-child(even) {
-    background: #f5f5f5;
-}
-table.deepchecks tbody tbody tr:hover {
-    background: rgba(66, 165, 245, 0.2);
-}
-details.deepchecks {
-    border: 1px solid #d6d6d6;
-    margin-bottom: 0.25rem;
-}
-details.deepchecks > div {
-    display: flex;
-    flex-direction: column;
-    padding: 1rem 1.5rem 1rem 1.5rem;
-}
-details.deepchecks > summary {
-    display: list-item;
-    background-color: #f9f9f9;
-    font-weight: bold;
-    padding: 0.5rem;
-}
-details[open].deepchecks > summary {
-    border-bottom: 1px solid #d6d6d6;
-}
-"""
-
-
-DEEPCHECKS_HTML_PAGE_STYLE = """
-body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
-    font-size: 16px;
-    line-height: 1.5;
-    color: #212529;
-    text-align: left;
-    margin: auto;
-    background-color: white; 
-    padding: 1rem 1rem 0 1rem;
-}
-%deepchecks-style
-""".replace('%deepchecks-style', DEEPCHECKS_STYLE)
-
-

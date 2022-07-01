@@ -19,11 +19,10 @@ from plotly.offline.offline import get_plotlyjs
 from typing_extensions import Literal as L
 
 from deepchecks.core import check_result as check_types
+from deepchecks.core.resources import DEEPCHECKS_STYLE, DEEPCHECKS_HTML_PAGE_STYLE
 from deepchecks.core.serialization.abc import ABCDisplayItemsHandler, HtmlSerializer
 from deepchecks.core.serialization.common import (aggregate_conditions, form_output_anchor,
-                                                  plotly_loader_script, figure_creation_script,
-                                                  DEEPCHECKS_STYLE,
-                                                  DEEPCHECKS_HTML_PAGE_STYLE)
+                                                  plotly_loader_script, figure_creation_script)
 from deepchecks.core.serialization.dataframe.html import DataFrameSerializer as DataFrameHtmlSerializer
 from deepchecks.utils.html import imagetag, linktag
 from deepchecks.utils.strings import get_random_string

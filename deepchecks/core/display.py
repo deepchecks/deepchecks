@@ -17,13 +17,15 @@ import sys
 import typing as t
 
 import plotly.io as pio
-from IPython.core.display import display, display_html
+from IPython.core.display import display_html
 from ipywidgets import Widget
 
 from deepchecks.core.serialization.abc import HTMLFormatter, HtmlSerializer, IPythonSerializer, WidgetSerializer
-from deepchecks.utils.ipython import is_colab_env, is_databricks_env, is_kaggle_env, is_sagemaker_env
+from deepchecks.core.resources import DEEPCHECKS_STYLE
+from deepchecks.utils.ipython import is_colab_env
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.strings import create_new_file_name, get_random_string, widget_to_html, widget_to_html_string
+from deepchecks.utils.html import details_tag
 
 if t.TYPE_CHECKING:
     from wandb.sdk.data_types.base_types.wb_value import WBValue  # pylint: disable=unused-import
@@ -130,12 +132,15 @@ class DisplayableResult(abc.ABC):
             )
         else:
             display_html(
-                iframe(srcdoc=self.html_serializer.serialize(
-                    output_id=output_id,
-                    full_html=True,
-                    is_for_iframe_with_srcdoc=True,
-                    **kwargs
-                )),
+                iframe(
+                    title=get_result_name(self),
+                    srcdoc=self.html_serializer.serialize(
+                        output_id=output_id,
+                        full_html=True,
+                        is_for_iframe_with_srcdoc=True,
+                        **kwargs
+                    )
+                ),
                 raw=True
             )
 
@@ -311,8 +316,9 @@ def save_as_html(
 
 def iframe(
     *,
+    title: str,
     id: t.Optional[str] = None,  # pylint: disable=redefined-builtin
-    height: str = '600px',
+    height: str = '800px',
     width: str = '100%',
     allow: str = 'fullscreen',
     frameborder: str = '0',
@@ -320,8 +326,7 @@ def iframe(
     **attributes
 ) -> str:
     """Return html iframe tag."""
-    if id is None:
-        id = f'deepchecks-result-iframe-{get_random_string()}'
+    id = id or f'deepchecks-result-iframe-{get_random_string()}'
 
     attributes = {
         'id': id,
@@ -346,20 +351,26 @@ def iframe(
         for k, v in attributes.items()
     ])
 
-    if not with_fullscreen_btn:
-        return f'<iframe {attributes}></iframe>'
+    if with_fullscreen_btn is False:
+        return details_tag(
+            title=title,
+            content=f'<iframe {attributes}></iframe>',
+            attrs='open class="deepchecks"',
+            additional_style="padding: 0!important;"
+        )
 
-    fullscreen_script = (
-        f"document.querySelector('#{id}').requestFullscreen();"
-    )
-    return f"""
-        <div style="display: flex; justify-content: flex-end; padding: 1rem 2rem 1rem 2rem;">
-            <button onclick="{fullscreen_script}" >
+    fullscreen_btn = f"""
+        <div style="position: absolute; top: 3rem; right: 3rem;">
+            <button onclick="document.querySelector('#{id}').requestFullscreen();" >
                 Full Screen
             </button>
         </div>
-        <iframe 
-            allowfullscreen 
-            {attributes}>
-        </iframe>
     """
+    iframe = details_tag(
+        title=title,
+        content=f"{fullscreen_btn}<iframe allowfullscreen {attributes}></iframe>",
+        attrs='open class="deepchecks"',
+        additional_style="padding: 0!important;",
+    )
+    
+    return f'<style>{DEEPCHECKS_STYLE}</style>{iframe}'

@@ -12,7 +12,7 @@
 import base64
 import typing as t
 
-__all__ = ['imagetag', 'linktag']
+__all__ = ['imagetag', 'linktag', 'details_tag']
 
 
 def imagetag(img: bytes) -> str:
@@ -24,10 +24,10 @@ def imagetag(img: bytes) -> str:
 def linktag(
     text: str,
     style: t.Optional[t.Dict[str, t.Any]] = None,
-    is_for_iframe_with_srcdoc : bool = False,
+    is_for_iframe_with_srcdoc: bool = False,
     **kwargs
 ) -> str:
-    """Return html a tag.
+    """Return html <a> tag.
 
     Parameters
     ----------
@@ -56,3 +56,43 @@ def linktag(
 
     attrs = ' '.join([f'{k}="{v}"' for k, v in kwargs.items()])
     return f'<a {attrs}>{text}</a>'
+
+
+def details_tag(
+    title: str, 
+    content: str,
+    id: t.Optional[str] = None,
+    additional_style: t.Union[str, t.Mapping[str, str], None] = None,
+    attrs: t.Union[str, t.Mapping[str, str], None] = None
+) -> str:
+    """Return HTML <details> tag."""
+    
+    if additional_style is None:
+        content_style = ''
+    elif isinstance(additional_style, str):
+        content_style = additional_style
+    elif isinstance(additional_style, t.Mapping):
+        content_style = ' '.join(f'{k}: {v};' for k, v in additional_style.items())
+    else:
+        raise TypeError(f'Unsupported "additional_style" type - {type(additional_style).__name__}')
+
+    if attrs is None:
+        attributes = ''
+    elif isinstance(attrs, str):
+        attributes = attrs
+    elif isinstance(attrs, t.Mapping):
+        attributes = ' '.join(f'{k}="{v}"' for k, v in attrs.items())
+    else:
+        raise TypeError(f'Unsupported "attrs" type - {type(attrs).__name__}')
+    
+    if id:
+        attributes = f'id="{id}" {attributes}'
+
+    return f"""
+        <details {attributes}>
+            <summary><strong>{title}</strong></summary>
+            <div style="{content_style}">
+            {content}
+            </div>
+        </details>
+    """
