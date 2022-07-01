@@ -96,3 +96,49 @@ def details_tag(
             </div>
         </details>
     """
+
+
+def tabs_widget(data: t.Mapping[str, t.Union[str, t.List[str]]]) -> str:
+    tab_btn_template = '<button data-tab-index="{index}" onclick="deepchecksOpenTab(event)" {attrs}>{title}</button>'
+    tab_content_template = '<div class="deepchecks-tab" data-tab-index="{index}" {attrs}>{content}</div>'
+    
+    buttons = []
+    tabs = []
+
+    for i, (k, v) in enumerate(data.items()):
+        if isinstance(v, list):
+            v = ''.join(v)
+        elif isinstance(v, str):
+            v = v
+        else:
+            raise TypeError(f'Unsupported data value type - {type(v).__name__}')
+        
+        attrs = 'open' if i == 0 else ''
+        buttons.append(tab_btn_template.format(index=i, title=k, attrs=attrs))
+        tabs.append(tab_content_template.format(index=i, content=v, attrs=attrs))
+    
+    template = """
+    <div class="deepchecks-tabs">
+        <div class="deepchecks-tabs-btns">{buttons}</div>
+        {tabs}
+    </div>
+    <script>
+        function deepchecksOpenTab(event) {{
+            const btn = event.target;
+            if (btn.hasAttribute('open') === true)
+                return;
+            const tabsWidget = btn.closest('div.deepchecks-tabs');
+            const tabsBtns = btn.closest('div.deepchecks-tabs-btns');
+            const targetIndex = btn.getAttribute('data-tab-index');
+            tabsBtns.querySelectorAll('button[open]').forEach(it => it.removeAttribute('open'));
+            btn.setAttribute('open', '');
+            tabsWidget.querySelectorAll('div.deepchecks-tab[open]').forEach(it => it.removeAttribute('open'));
+            tabsWidget.querySelector(`div.deepchecks-tab[data-tab-index="${{targetIndex}}"]`).setAttribute('open', '');
+        }}
+    </script>
+    """
+
+    return template.format(
+        buttons=''.join(buttons),
+        tabs=''.join(tabs)
+    )

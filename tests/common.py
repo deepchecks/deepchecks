@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Common functions."""
+import random
 import typing as t
 
 import matplotlib.pyplot as plt
@@ -90,7 +91,10 @@ def create_check_result(
     include_conditions: bool = True
 ) -> CheckResult:
     display = (
-        [*create_check_result_display(), DisplayMap(a=create_check_result_display())]
+        [
+            *create_check_result_display(), 
+            DisplayMap(foo=create_check_result_display(), bar=create_check_result_display())
+        ]
         if include_display
         else None
     )
@@ -118,7 +122,7 @@ def create_check_result_display():
         plt.subplots()
         plt.plot([1, 2, 3, 4], [1, 4, 2, 3])
 
-    return [
+    display = [
         'Hello world',
         pd.DataFrame({'foo': range(3), 'bar': range(3)}),
         pd.DataFrame({'foo': range(3), 'bar': range(3)}).style,
@@ -128,6 +132,9 @@ def create_check_result_display():
         ),
         draw_plot
     ]
+
+    random.shuffle(display)
+    return display
 
 
 def instance_of_ipython_formatter():

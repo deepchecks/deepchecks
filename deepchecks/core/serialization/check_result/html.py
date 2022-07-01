@@ -24,7 +24,7 @@ from deepchecks.core.serialization.abc import ABCDisplayItemsHandler, HtmlSerial
 from deepchecks.core.serialization.common import (aggregate_conditions, form_output_anchor,
                                                   plotly_loader_script, figure_creation_script)
 from deepchecks.core.serialization.dataframe.html import DataFrameSerializer as DataFrameHtmlSerializer
-from deepchecks.utils.html import imagetag, linktag
+from deepchecks.utils.html import imagetag, linktag, tabs_widget
 from deepchecks.utils.strings import get_random_string
 
 __all__ = ['CheckResultSerializer']
@@ -358,31 +358,15 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
     @classmethod
     def handle_display_map(cls, item: 'check_types.DisplayMap', index: int, **kwargs) -> str:
         """Handle display map instance item."""
-        template = textwrap.dedent("""
-            <details class="deepchecks">
-                <summary><strong>{name}</strong></summary>
-                <div style="
-                    display: flex;
-                    flex-direction: column;
-                    width: 100%;
-                    padding: 1.5rem;
-                ">
-                {content}
-                </div>
-            </details>
-        """)
-        return ''.join([
-            template.format(
-                name=k,
-                content=''.join(cls.handle_display(
-                    v,
-                    include_header=False,
-                    include_trailing_link=False,
-                    **kwargs
-                ))
+        return tabs_widget({
+            name: cls.handle_display(
+                display_items,
+                include_header=False,
+                include_trailing_link=False,
+                **kwargs
             )
-            for k, v in item.items()
-        ])
+            for name, display_items in item.items()
+        })
 
 
 def verify_include_parameter(

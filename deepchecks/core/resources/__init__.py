@@ -68,6 +68,42 @@ details.deepchecks > summary {
 details[open].deepchecks > summary {
     border-bottom: 1px solid #d6d6d6;
 }
+div.deepchecks-tabs {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+div.deepchecks-tabs-btns {
+    width: 100%;
+    height: fit-content;
+    display: flex;
+    flex-direction: row;
+}
+div.deepchecks-tabs-btns > button {
+    margin: 0;
+    background-color: #f9f9f9;
+    border: 1px solid #d6d6d6;
+    padding: .5rem 1rem .5rem 1rem;
+    cursor: pointer;
+}
+div.deepchecks-tabs-btns > button:focus {
+    box-shadow: none;
+    outline: none;
+}
+div.deepchecks-tabs-btns > button[open] {
+    background-color: white;
+    border-bottom: none;
+    border-top: 2px solid #1975FA;
+}
+div.deepchecks-tabs > div.deepchecks-tab {
+    display: None;
+}
+div.deepchecks-tabs > div.deepchecks-tab[open] {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #d6d6d6;
+    padding: 1rem;
+}
 """
 
 
