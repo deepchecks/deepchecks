@@ -84,8 +84,10 @@ class ClassPerformance(TrainTestCheck):
     def initialize_run(self, context: Context):
         """Initialize run by creating the _state member with metrics for train and test."""
         self._data_metrics = {}
-        self._data_metrics[DatasetKind.TRAIN] = get_scorers_list(context.train, self.alternative_metrics)
-        self._data_metrics[DatasetKind.TEST] = get_scorers_list(context.train, self.alternative_metrics)
+        self._data_metrics[DatasetKind.TRAIN] = get_scorers_list(context.train,
+                                                                 alternative_scorers=self.alternative_metrics)
+        self._data_metrics[DatasetKind.TEST] = get_scorers_list(context.train,
+                                                                alternative_scorers=self.alternative_metrics)
 
         if not self.metric_to_show_by:
             self.metric_to_show_by = list(self._data_metrics[DatasetKind.TRAIN].keys())[0]

@@ -19,6 +19,8 @@ from plotly.basedatatypes import BaseFigure
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks import ClassPerformance
 from tests.base.utils import equal_condition_result
+from deepchecks.vision.metrics_utils.confusion_matrix_counts_metrics import AVAILABLE_EVALUTING_FUNCTIONS
+from deepchecks.vision.metrics_utils.detection_tp_fp_fn_calc import ObjectDetectionTpFpFn
 from tests.common import assert_class_performance_display
 
 
@@ -493,10 +495,25 @@ def test_condition_class_performance_imbalance_ratio_less_than_fail(
     )
 
 
-def test_custom_task(mnist_train_custom_task, mnist_test_custom_task, device, mock_trained_mnist):
+def test_custom_task(mnist_train_custom_task, mnist_test_custom_task, mock_trained_mnist, device):
     # Arrange
     metrics = {'metric': Precision()}
     check = ClassPerformance(alternative_metrics=metrics)
 
     # Act & Assert - check runs without errors
     check.run(mnist_train_custom_task, mnist_test_custom_task, model=mock_trained_mnist, device=device)
+
+
+def test_coco_scorer_list(coco_train_visiondata, coco_test_visiondata, mock_trained_yolov5_object_detection, device):
+    # Arrange
+    scorer_dict = {}
+    for scorer_name in AVAILABLE_EVALUTING_FUNCTIONS:
+        scorer_dict[scorer_name] = ObjectDetectionTpFpFn(evaluting_function=scorer_name)
+    check = ClassPerformance(alternative_metrics=scorer_dict)
+    # Act
+    result = check.run(coco_train_visiondata, coco_test_visiondata,
+                       mock_trained_yolov5_object_detection, device=device)
+    # Assert
+    assert_that(result.value, has_length(589))
+    assert_that(result.display, has_length(greater_than(0)))
+    assert_that(set(result.value['Metric']), equal_to(AVAILABLE_EVALUTING_FUNCTIONS.keys()))
