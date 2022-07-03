@@ -35,12 +35,12 @@ class CustomScorer(Metric):
     >>> from deepchecks.vision.metrics_utils.custom_scorer import CustomScorer
     ...
     >>> from deepchecks.vision.datasets.classification import mnist
-    ... 
+    ...
     ... mnist_model = mnist.load_model()
     ... train_ds = mnist.load_dataset(train=True, object_type='VisionData')
-    ... 
+    ...
     >>> ck = ClassificationScorer(cohen_kappa_score)
-    ... 
+    ...
     >>> check = SingleDatasetScalarPerformance(ck, metric_name='cohen_kappa_score')
     ... check.run(test_ds, model).value
     """
@@ -51,12 +51,11 @@ class CustomScorer(Metric):
         needs_proba: bool = False,
         **kwargs
     ):
-        super(CustomScorer, self).__init__(device="cpu")
+        super().__init__(device="cpu")
 
         self.score_func = score_func
         self.needs_proba = needs_proba
         self.kwargs = kwargs
-
 
     @reinit__is_reduced
     def reset(self):
@@ -64,7 +63,7 @@ class CustomScorer(Metric):
         self._y_pred = []
         self._y = []
 
-        super(CustomScorer, self).reset()
+        super().reset()
 
     @reinit__is_reduced
     def update(self, output):
@@ -84,7 +83,7 @@ class CustomScorer(Metric):
             y_pred = np.argmax(y_pred, axis=-1)
 
         self._y_pred.append(y_pred)
-        self._y.append(y)     
+        self._y.append(y)
 
     @sync_all_reduce("_y_pred", "_y")
     def compute(self):
