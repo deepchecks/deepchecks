@@ -33,25 +33,6 @@ __all__ = [
 ]
 
 
-_func_naming_dict = {
-    'precision': 'Precision',
-    'recall': 'Recall',
-    'sensetivity': 'Recall',
-    'average precision': 'Average Precision',
-    'average recall': 'Average Recall',
-    'ap': 'Average Precision',
-    'ar': 'Average Recall',
-    'f1': 'F1',
-    'fpr': 'FPR',
-    'fnr': 'FNR'
-}
-
-
-def _scorer_filter(scorers: t.Dict[str, Metric], scorers_to_use: t.List[str]):
-    return {scorer_name: scorers[_func_naming_dict[scorer_name.lower()]]
-            for scorer_name in scorers_to_use}
-
-
 def get_default_classification_scorers():
     return {
         'Precision': Precision(),
@@ -66,20 +47,9 @@ def get_default_object_detection_scorers() -> t.Dict[str, Metric]:
     }
 
 
-def get_threshold_detection_scorers(scorers_to_use: t.List[str]) -> t.Dict[str, Metric]:
-    scorers_dict = {}
-    for given_scorer_name in list(scorers_to_use):
-        scorer_name = _func_naming_dict[given_scorer_name.lower()].lower()
-        if scorer_name in AVAILABLE_EVALUTING_FUNCTIONS:
-            scorers_dict[given_scorer_name] = ObjectDetectionTpFpFn(evaluting_function=scorer_name)
-            scorers_to_use.remove(given_scorer_name)
-    return scorers_dict
-
-
 def get_scorers_list(
         dataset: VisionData,
         alternative_scorers: t.Dict[str, Metric] = None,
-        scorers_to_use: t.List[str] = None,
 ) -> t.Dict[str, Metric]:
     """Get scorers list according to model object and label column.
 
@@ -89,11 +59,6 @@ def get_scorers_list(
         Dataset object
     alternative_scorers : t.Dict[str, Metric], default: None
         Alternative scorers dictionary
-    scorers_to_use : List[str], default: None
-        List of the scorers to use from our available scorers:
-        ['Precision', 'Recall', 'Recall', 'Average Precision', 'Average Recall',
-         'Average Precision', 'Average Recall', 'F1', 'FPR', 'FNR'].
-        Ignored if alternative_scorers were given.
     Returns
     -------
     t.Dict[str, Metric]
@@ -114,15 +79,8 @@ def get_scorers_list(
         return scorers
     elif task_type == TaskType.CLASSIFICATION:
         scorers = get_default_classification_scorers()
-        if scorers_to_use:
-            scorers = _scorer_filter(scorers, scorers_to_use)
     elif task_type == TaskType.OBJECT_DETECTION:
         scorers = get_default_object_detection_scorers()
-        if scorers_to_use:
-            scorers_to_use = scorers_to_use.copy()
-            threshold_detection_scorers = get_threshold_detection_scorers(scorers_to_use)
-            scorers = _scorer_filter(scorers, scorers_to_use)
-            scorers.update(threshold_detection_scorers)
     else:
         raise DeepchecksNotSupportedError(f'No scorers match task_type {task_type}')
 
