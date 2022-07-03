@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module for calculating detection precision and recall."""
+"""Module for custom scorer metric."""
 import typing as t
 
 import numpy as np
