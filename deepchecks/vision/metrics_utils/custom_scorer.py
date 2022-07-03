@@ -17,8 +17,8 @@ from ignite.metrics import Metric
 from ignite.metrics.metric import reinit__is_reduced, sync_all_reduce
 
 
-class ClassificationScorer(Metric):
-    """Abstract class to calculate average precision and recall for various vision tasks.
+class CustomScorer(Metric):
+    """Metric that runs a custom scorer in the compute on the y, y_pred (can work with sklearn scorers).
 
     Parameters
     ----------
@@ -28,6 +28,21 @@ class ClassificationScorer(Metric):
         Whether score_func requires the probabilites or not.
     **kwargs
         Additional parameters to be passed to score_func.
+
+    Examples
+    --------
+    >>> from sklearn.metrics import cohen_kappa_score
+    >>> from deepchecks.vision.metrics_utils.custom_scorer import CustomScorer
+    ...
+    >>> from deepchecks.vision.datasets.classification import mnist
+    ... 
+    ... mnist_model = mnist.load_model()
+    ... train_ds = mnist.load_dataset(train=True, object_type='VisionData')
+    ... 
+    >>> ck = ClassificationScorer(cohen_kappa_score)
+    ... 
+    >>> check = SingleDatasetScalarPerformance(ck, metric_name='cohen_kappa_score')
+    ... check.run(test_ds, model).value
     """
 
     def __init__(
@@ -36,7 +51,7 @@ class ClassificationScorer(Metric):
         needs_proba: bool = False,
         **kwargs
     ):
-        super(ClassificationScorer, self).__init__(device="cpu")
+        super(CustomScorer, self).__init__(device="cpu")
 
         self.score_func = score_func
         self.needs_proba = needs_proba
@@ -46,9 +61,10 @@ class ClassificationScorer(Metric):
     @reinit__is_reduced
     def reset(self):
         """Reset metric state."""
-        super().reset()
         self._y_pred = []
         self._y = []
+
+        super(CustomScorer, self).reset()
 
     @reinit__is_reduced
     def update(self, output):
