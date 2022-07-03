@@ -32,17 +32,17 @@ class CustomScorer(Metric):
     Examples
     --------
     >>> from sklearn.metrics import cohen_kappa_score
-    >>> from deepchecks.vision.metrics_utils.custom_scorer import CustomScorer
-    ...
-    >>> from deepchecks.vision.datasets.classification import mnist
+    ... from deepchecks.vision.metrics_utils.custom_scorer import CustomScorer
+    ... from deepchecks.vision.checks.model_evaluation import SingleDatasetScalarPerformance
+    ... from deepchecks.vision.datasets.classification import mnist
     ...
     ... mnist_model = mnist.load_model()
-    ... train_ds = mnist.load_dataset(train=True, object_type='VisionData')
+    ... test_ds = mnist.load_dataset(train=True, object_type='VisionData')
     ...
-    >>> ck = ClassificationScorer(cohen_kappa_score)
+    >>> ck = CustomScorer(cohen_kappa_score)
     ...
     >>> check = SingleDatasetScalarPerformance(ck, metric_name='cohen_kappa_score')
-    ... check.run(test_ds, model).value
+    ... check.run(test_ds, mnist_model).value
     """
 
     def __init__(
