@@ -14,13 +14,22 @@ This notebooks provides an overview for using and understanding the weak segment
 
 What is the purpose of the check?
 =================================
-The check is designed to help you easily identify weak spots of your model and provide a deepdive analysis into
-its performance on different segments of your data. Specifically, it is designed to help you identify the model weakest
-segments in the data distribution for further improvement and visibility purposes.
+The check is designed to help you easily identify the model's weakest segments in the data provided. In addition,
+it is possible to provide a sub list of features for the check thus limiting the search to interesting sub-spaces.
 
-In order to achieve this, the check trains several simple tree based models which try to predict the error of the
-user provided model on the dataset. The relevant segments are detected by analyzing the different
-leafs of the trained trees.
+How Deepchecks detects weak segments
+------------------------------------
+The check contains several steps:
+
+#. We calculate loss for each sample in the dataset using the provided model via either log-loss or MSE.
+
+#. Select a subset of features of the weak segment search. This is done by selecting the features with the highest feature importance to the model provided.
+
+#. We train multiple simple tree based models, each one is trained based on only two features to predict the per sample error calculated before.
+
+#. We convert each of the leafs in each of the trees into a segment and analyze the segment's performance.
+
+#. For the model's weakest segments detected we calculate bins for the remaining of the data and calculate the model's
 """
 #%%
 # Generate data & model
@@ -35,7 +44,10 @@ model = load_fitted_model()
 #%%
 # Run the check
 # =============
-# The check have several key parameters that can define the behavior of the check and especially its output.
+# The check has several key parameters that can define the behavior of the check and especially its output.
+#
+# columns / ignore_columns: Controls which columns should be searched for weak segments. By default,
+# a heuristic is used to determine which columns to use based on their feature importance.
 #
 # alternative_scorer: Determines the metric to be used as the performance measurement of the model on different
 # segments. It is important to select a metric that is relevant to the data domain and task you are performing.
@@ -45,12 +57,10 @@ model = load_fitted_model()
 # the weakest segment regardless of the segment size and so it is recommended to try different configurations of this
 # parameter as larger segments can be of interest even the model performance on them is superior.
 #
-# columns / ignore_columns: Controls which columns should be searched for weak segments. By default,
-# a heuristic is used to determine which columns to use based on their feature importance.
-#
 # categorical_aggregation_threshold: By default the check will combine rare categories into a single category called
 # "other". This parameter determines the frequency threshold for categories to be mapped into to the "other" category.
 #
+# for additional information on the check's parameters, please refer to the API reference of the check.
 
 from deepchecks.tabular.datasets.classification import phishing
 from deepchecks.tabular.checks import WeakSegmentsPerformance
@@ -59,8 +69,10 @@ from sklearn.metrics import make_scorer, f1_score
 scorer = {'f1': make_scorer(f1_score, average='micro')}
 _, test = phishing.load_data()
 model = phishing.load_fitted_model()
-check = WeakSegmentsPerformance(alternative_scorer=scorer,
-                                segment_minimum_size_ratio=0.03)
+check = WeakSegmentsPerformance(columns= ['urlLength', 'numTitles', 'ext', 'entropy'],
+                                alternative_scorer=scorer,
+                                segment_minimum_size_ratio=0.03,
+                                categorical_aggregation_threshold=0.05)
 result = check.run(test, model)
 result.show()
 

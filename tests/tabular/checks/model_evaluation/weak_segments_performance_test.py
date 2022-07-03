@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Tests for weak segment performance check."""
+import numpy as np
 import pandas as pd
 from hamcrest import assert_that, close_to, equal_to, has_items, has_length
 from sklearn.metrics import make_scorer, f1_score
@@ -41,7 +42,7 @@ def test_segment_performance_diabetes_with_arguments(diabetes_split_dataset_and_
     segments = result.value['weak_segments_list']
 
     # Assert
-    assert_that(segments, has_length(6))
+    assert_that(segments, has_length(5))
     assert_that(max(segments.iloc[:, 0]), result.value['avg_score'])
     assert_that(segments.iloc[0, 0], close_to(-86, 0.01))
     assert_that(segments.iloc[0, 1], equal_to('s5'))
@@ -65,16 +66,16 @@ def test_segment_performance_iris_with_condition(iris_split_dataset_and_model):
             details='Found a segment with Accuracy score of 0.75 in comparison to an average score of 0.92 in sampled '
                     'data.')
     ))
-    assert_that(segments, has_length(6))
+    assert_that(segments, has_length(3))
     assert_that(max(segments.iloc[:, 0]), result.value['avg_score'])
     assert_that(segments.iloc[0, 0], close_to(0.75, 0))
-    assert_that(segments.iloc[0, 1], equal_to('petal width (cm)'))
+    assert_that(segments.iloc[0, 1], equal_to('petal length (cm)'))
 
 
 def test_segment_performance_iris_with_arguments(iris_split_dataset_and_model):
     # Arrange
     _, val, model = iris_split_dataset_and_model
-    loss_per_sample = pd.Series([1]*val.n_samples, index=val.data.index)
+    loss_per_sample = pd.Series(np.arange(0, 1, 1/val.n_samples, dtype=float), index=val.data.index)
     scorer = {'f1_score': make_scorer(f1_score, average='micro')}
 
     # Act
@@ -82,8 +83,8 @@ def test_segment_performance_iris_with_arguments(iris_split_dataset_and_model):
     segments = result.value['weak_segments_list']
 
     # Assert
-    assert_that(segments, has_length(6))
-    assert_that(segments.iloc[0, 0], close_to(result.value['avg_score'], 0))
+    assert_that(segments, has_length(5))
+    assert_that(segments.iloc[0, 0], close_to(0.7692307692307693, 0.01))
 
 
 def test_regression_categorical_features_avocado(avocado_split_dataset_and_model):
@@ -95,8 +96,7 @@ def test_regression_categorical_features_avocado(avocado_split_dataset_and_model
     segments = result.value['weak_segments_list']
 
     # Assert
-    assert_that(segments, has_length(10))
+    assert_that(segments, has_length(7))
     assert_that(segments[segments['Feature1'] == 'type']['Feature1 range'].iloc[0], equal_to(['organic']))
-    assert_that(segments[segments['Feature1'] == 'region']['Feature1 range'].iloc[0], equal_to(['Other']))
     assert_that(segments[segments['Feature1'] == 'type'].iloc[0, 0], close_to(-0.362,0.01))
     assert_that(segments.iloc[0, 0], close_to(-0.379, 0.01))

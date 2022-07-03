@@ -125,8 +125,8 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
         dummy_model = _DummyModel(test=encoded_dataset, y_pred_test=predictions, y_proba_test=y_proba,
                                   validate_data_on_predict=False)
 
-        if context.features_importance is not None:
-            feature_rank = context.features_importance.sort_values(ascending=False).keys()
+        if context.feature_importance is not None:
+            feature_rank = context.feature_importance.sort_values(ascending=False).keys()
             feature_rank = np.asarray([col for col in feature_rank if col in encoded_dataset.features])
         else:
             feature_rank = np.asarray(encoded_dataset.features)
@@ -178,33 +178,39 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
         while len(display_tabs.keys()) < self.n_to_show and idx + 1 < len(weak_segments):
             idx += 1
             segment = weak_segments.iloc[idx, :]
-            feature1, feature2 = data[segment['Feature1']], data[segment['Feature2']]
-            segments_f1 = partition_numeric_feature_around_segment(feature1, segment['Feature1 range'])
-            segments_f2 = partition_numeric_feature_around_segment(feature2, segment['Feature2 range'])
-            if len(segments_f1) <= 2 or len(segments_f2) <= 2:
-                continue
-            scores = np.empty((len(segments_f1) - 1, len(segments_f2) - 1), dtype=float)
-            counts = np.empty((len(segments_f1) - 1, len(segments_f2) - 1), dtype=int)
+            feature1 = data[segment['Feature1']]
+
+            if segment['Feature2'] != '':
+                feature2 = data[segment['Feature2']]
+                segments_f1 = partition_numeric_feature_around_segment(feature1, segment['Feature1 range'])
+                segments_f2 = partition_numeric_feature_around_segment(feature2, segment['Feature2 range'])
+            else:
+                feature2 = pd.Series(np.ones(len(feature1)))
+                segments_f1 = partition_numeric_feature_around_segment(feature1, segment['Feature1 range'], 7)
+                segments_f2 = [0, 2]
+
+            scores = np.empty((len(segments_f2) - 1, len(segments_f1) - 1), dtype=float)
+            counts = np.empty((len(segments_f2) - 1, len(segments_f1) - 1), dtype=int)
             for f1_idx in range(len(segments_f1) - 1):
                 for f2_idx in range(len(segments_f2) - 1):
                     segment_data = data[
                         np.asarray(feature1.between(segments_f1[f1_idx], segments_f1[f1_idx + 1])) * np.asarray(
                             feature2.between(segments_f2[f2_idx], segments_f2[f2_idx + 1]))]
                     if segment_data.empty:
-                        scores[f1_idx, f2_idx] = np.NaN
-                        counts[f1_idx, f2_idx] = 0
+                        scores[f2_idx, f1_idx] = np.NaN
+                        counts[f2_idx, f1_idx] = 0
                     else:
-                        scores[f1_idx, f2_idx] = scorer.run_on_data_and_label(dummy_model, segment_data,
+                        scores[f2_idx, f1_idx] = scorer.run_on_data_and_label(dummy_model, segment_data,
                                                                               segment_data[encoded_dataset.label_name])
-                        counts[f1_idx, f2_idx] = len(segment_data)
+                        counts[f2_idx, f1_idx] = len(segment_data)
 
             f1_labels = self._format_partition_vec_for_display(segments_f1, segment['Feature1'])
             f2_labels = self._format_partition_vec_for_display(segments_f2, segment['Feature2'])
 
             scores_text = [[0] * scores.shape[1] for _ in range(scores.shape[0])]
             counts = np.divide(counts, len(data))
-            for i in range(len(f1_labels)):
-                for j in range(len(f2_labels)):
+            for i in range(len(f2_labels)):
+                for j in range(len(f1_labels)):
                     score = scores[i, j]
                     if not np.isnan(score):
                         scores_text[i][j] = f'{format_number(score)}\n({format_percent(counts[i, j])})'
@@ -217,8 +223,8 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
             scores = scores.astype(np.object)
             scores[np.isnan(scores.astype(np.float_))] = None
 
-            labels = dict(x=segment['Feature2'], y=segment['Feature1'], color=f'{scorer.name} score')
-            fig = px.imshow(scores, x=f2_labels, y=f1_labels, labels=labels, color_continuous_scale='rdylgn')
+            labels = dict(x=segment['Feature1'], y=segment['Feature2'], color=f'{scorer.name} score')
+            fig = px.imshow(scores, x=f1_labels, y=f2_labels, labels=labels, color_continuous_scale='rdylgn')
             fig.update_traces(text=scores_text, texttemplate='%{text}')
             fig.update_layout(
                 title=f'{scorer.name} score (percent of data) {segment["Feature1"]} vs {segment["Feature2"]}',
@@ -241,13 +247,20 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
                 weak_segment_score, weak_segment_filter = self._find_weak_segment(dummy_model, encoded_dataset,
                                                                                   [feature1, feature2], scorer,
                                                                                   loss_per_sample)
-                if weak_segment_score is None:
+                if weak_segment_score is None or len(weak_segment_filter.filters) == 0:
                     continue
                 data_size = 100 * weak_segment_filter.filter(encoded_dataset.data).shape[0] / encoded_dataset.n_samples
-                weak_segments.loc[len(weak_segments)] = [weak_segment_score, feature1,
-                                                         weak_segment_filter.filters[feature1], feature2,
-                                                         weak_segment_filter.filters[feature2], data_size]
-        return weak_segments.sort_values(f'{scorer.name} score')
+                filters = weak_segment_filter.filters
+                if len(filters.keys()) == 1:
+                    weak_segments.loc[len(weak_segments)] = [weak_segment_score, list(filters.keys())[0],
+                                                             tuple(list(filters.values())[0]), '',
+                                                             None, data_size]
+                else:
+                    weak_segments.loc[len(weak_segments)] = [weak_segment_score, feature1,
+                                                             tuple(filters[feature1]), feature2,
+                                                             tuple(filters[feature2]), data_size]
+
+        return weak_segments.drop_duplicates().sort_values(f'{scorer.name} score')
 
     def _find_weak_segment(self, dummy_model, dataset, features_for_segment, scorer, loss_per_sample):
         """Find weak segment based on scorer for specified features."""
@@ -276,22 +289,21 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
             return -get_worst_leaf_filter(clf.tree_)[0]
 
         grid_searcher = GridSearchCV(DecisionTreeRegressor(), scoring=neg_worst_segment_score,
-                                     param_grid=search_space, n_jobs=-1, cv=3, verbose=100)
+                                     param_grid=search_space, n_jobs=-1, cv=3)
         try:
             grid_searcher.fit(dataset.features_columns[features_for_segment], loss_per_sample)
             segment_score, segment_filter = get_worst_leaf_filter(grid_searcher.best_estimator_.tree_)
         except ValueError:
             return None, None
 
-        if features_for_segment[0] not in segment_filter.filters.keys():
-            segment_filter.filters[features_for_segment[0]] = [np.NINF, np.inf]
-        if features_for_segment[1] not in segment_filter.filters.keys():
-            segment_filter.filters[features_for_segment[1]] = [np.NINF, np.inf]
         return segment_score, segment_filter
 
     def _format_partition_vec_for_display(self, partition_vec: np.array, feature_name: str,
                                           seperator: Union[str, None] = '<br>') -> List[Union[List, str]]:
         """Format partition vector for display. If seperator is None returns a list instead of a string."""
+        if feature_name == '':
+            return ['']
+
         result = []
         if feature_name in self.encoder_mapping.keys():
             feature_map_df = self.encoder_mapping[feature_name]

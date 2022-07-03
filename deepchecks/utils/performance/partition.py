@@ -117,7 +117,7 @@ def partition_numeric_feature_around_segment(column: pd.Series, segment: List[fl
     """
     data_below_segment, data_above_segment = column[column <= segment[0]], column[column > segment[1]]
     if len(data_below_segment) + len(data_above_segment) == 0:
-        return np.array([segment])
+        return np.array([np.nanmin(column), np.nanmax(column)])
     ratio = np.divide(len(data_below_segment), len(data_below_segment) + len(data_above_segment))
 
     if len(data_below_segment) == 0:
