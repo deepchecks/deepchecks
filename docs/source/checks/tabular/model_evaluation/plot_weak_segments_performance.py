@@ -63,7 +63,7 @@ model = load_fitted_model()
 # of this parameter as larger segments can be of interest even the model performance on them is superior.
 #
 # ``categorical_aggregation_threshold``: By default the check will combine rare categories into a single category called
-# "other". This parameter determines the frequency threshold for categories to be mapped into to the "other" category.
+# "Other". This parameter determines the frequency threshold for categories to be mapped into to the "other" category.
 #
 # for additional information on the check's parameters, please refer to the API reference of the check.
 
