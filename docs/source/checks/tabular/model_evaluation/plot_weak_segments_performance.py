@@ -14,11 +14,14 @@ This notebooks provides an overview for using and understanding the weak segment
 
 What is the purpose of the check?
 =================================
-The check is designed to help you easily identify the model's weakest segments in the data provided. In addition,
-it is possible to provide a sub list of features for the check thus limiting the search to interesting sub-spaces.
 
-How Deepchecks detects weak segments
+The check is designed to help you easily identify the model's weakest segments in the data provided. In addition,
+it enables to provide a sublist of the Dataset's features, thus limiting the check to search in
+interesting subspaces.
+
+How Deepchecks automatically detects weak segments
 ------------------------------------
+
 The check contains several steps:
 
 #. We calculate loss for each sample in the dataset using the provided model via either log-loss or MSE.
@@ -44,20 +47,22 @@ model = load_fitted_model()
 #%%
 # Run the check
 # =============
-# The check has several key parameters (that are all optional) that affect the behavior of the check and especially its output.
 #
-# columns / ignore_columns: Controls which columns should be searched for weak segments. By default,
+# The check has several key parameters (that are all optional) that affect the behavior of the
+# check and especially its output.
+#
+# ``columns / ignore_columns``: Controls which columns should be searched for weak segments. By default,
 # a heuristic is used to determine which columns to use based solely on their feature importance.
 #
-# alternative_scorer: Determines the metric to be used as the performance measurement of the model on different
+# ``alternative_scorer``: Determines the metric to be used as the performance measurement of the model on different
 # segments. It is important to select a metric that is relevant to the data domain and task you are performing.
 # By default, the check uses Neg RMSE for regression tasks and Accuracy for classification tasks.
 #
-# segment_minimum_size_ratio: Determines the minimum size of segments that are of interest. The check is tuned to find
-# the weakest segment regardless of the segment size and so it is recommended to try different configurations of this
-# parameter as larger segments can be of interest even the model performance on them is superior.
+# ``segment_minimum_size_ratio``: Determines the minimum size of segments that are of interest. The check is tuned
+# to find the weakest segment regardless of the segment size and so it is recommended to try different configurations
+# of this parameter as larger segments can be of interest even the model performance on them is superior.
 #
-# categorical_aggregation_threshold: By default the check will combine rare categories into a single category called
+# ``categorical_aggregation_threshold``: By default the check will combine rare categories into a single category called
 # "other". This parameter determines the frequency threshold for categories to be mapped into to the "other" category.
 #
 # for additional information on the check's parameters, please refer to the API reference of the check.
@@ -67,18 +72,19 @@ from deepchecks.tabular.checks import WeakSegmentsPerformance
 from sklearn.metrics import make_scorer, f1_score
 
 scorer = {'f1': make_scorer(f1_score, average='micro')}
-_, test = phishing.load_data()
+_, test_ds = phishing.load_data()
 model = phishing.load_fitted_model()
 check = WeakSegmentsPerformance(columns= ['urlLength', 'numTitles', 'ext', 'entropy'],
                                 alternative_scorer=scorer,
                                 segment_minimum_size_ratio=0.03,
                                 categorical_aggregation_threshold=0.05)
-result = check.run(test, model)
+result = check.run(test_ds, model)
 result.show()
 
 #%%
 # Observe the check's output
 # --------------------------
+#
 # We see in the results that the check indeed found several segments on which the model performance is below average.
 # In the heatmap display we can see model performance on the weakest segments and their environment with respect to the
 # two features that are relevant to the segment. In order to get the full list of weak segments found we will inspect
@@ -90,6 +96,7 @@ result.value['weak_segments_list']
 #%%
 # Define a condition
 # ==================
+#
 # We can define on our check a condition that will validate that the model performance on the weakest segment detected
 # is greater than a specified ratio of the average model performance of the entire dataset.
 
@@ -97,5 +104,5 @@ result.value['weak_segments_list']
 
 check = WeakSegmentsPerformance(alternative_scorer=scorer, segment_minimum_size_ratio=0.03)
 check.add_condition_segments_relative_performance_greater_than(0.1)
-result = check.run(test, model)
+result = check.run(test_ds, model)
 result.show(show_additional_outputs=False)

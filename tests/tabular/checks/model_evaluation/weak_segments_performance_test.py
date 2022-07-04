@@ -62,7 +62,7 @@ def test_segment_performance_iris_with_condition(iris_split_dataset_and_model):
     assert_that(condition_result, has_items(
         equal_condition_result(
             is_pass=True,
-            name='The performance of weakest segment is greater than 80% of average model performance.',
+            name='The relative performance of weakest segment is greater than 80% of average model performance.',
             details='Found a segment with Accuracy score of 0.75 in comparison to an average score of 0.92 in sampled '
                     'data.')
     ))

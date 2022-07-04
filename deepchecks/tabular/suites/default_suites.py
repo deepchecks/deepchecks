@@ -23,7 +23,7 @@ from deepchecks.tabular.checks import (BoostingOverfit, CalibrationScore, Catego
                                        IdentifierLabelCorrelation, IndexTrainTestLeakage, IsSingleValue, MixedDataTypes,
                                        MixedNulls, ModelInferenceTime, NewLabelTrainTest, OutlierSampleDetection,
                                        PerformanceReport, RegressionErrorDistribution, RegressionSystematicError,
-                                       RocReport, SegmentPerformance, SimpleModelComparison, SpecialCharacters,
+                                       RocReport, SimpleModelComparison, SpecialCharacters,
                                        StringLengthOutOfBounds, StringMismatch, StringMismatchComparison,
                                        TrainTestFeatureDrift, TrainTestLabelDrift, TrainTestPredictionDrift,
                                        TrainTestSamplesMix, UnusedFeatures, WeakSegmentsPerformance, WholeDatasetDrift)
@@ -108,7 +108,6 @@ def model_evaluation(**kwargs) -> Suite:
         PerformanceReport(**kwargs).add_condition_train_test_relative_degradation_not_greater_than(),
         RocReport(**kwargs).add_condition_auc_greater_than(),
         ConfusionMatrixReport(**kwargs),
-        SegmentPerformance(**kwargs),
         TrainTestPredictionDrift(**kwargs).add_condition_drift_score_less_than(),
         SimpleModelComparison(**kwargs).add_condition_gain_greater_than(),
         WeakSegmentsPerformance(**kwargs).add_condition_segments_relative_performance_greater_than(),
