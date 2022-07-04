@@ -173,7 +173,6 @@ class HtmlProgressBar:
 
     def __iter__(self):
         """Iterate over iterable."""
-
         if self._disable is True:
             try:
                 for it in self._iterable:
