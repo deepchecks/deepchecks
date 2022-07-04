@@ -20,8 +20,7 @@ table.deepchecks {
     border-spacing: 0;
     color: black;
     font-size: 12px;
-    table-layout: fixed;
-    width: max-content;
+    max-width: fit-content;
 }
 table.deepchecks thead {
     border-bottom: 1px solid black;

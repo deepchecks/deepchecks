@@ -15,10 +15,11 @@ import typing as t
 __all__ = ['imagetag', 'linktag', 'details_tag']
 
 
-def imagetag(img: bytes) -> str:
+def imagetag(img: bytes, prevent_resize: bool = True) -> str:
     """Return html image tag with embedded image."""
     png = base64.b64encode(img).decode('ascii')
-    return f'<img src="data:image/png;base64,{png}"/>'
+    attrs = 'style="min-width:max-content; min-height:max-content;"' if prevent_resize else ''
+    return f'<img src="data:image/png;base64,{png}" {attrs}/>'
 
 
 def linktag(
