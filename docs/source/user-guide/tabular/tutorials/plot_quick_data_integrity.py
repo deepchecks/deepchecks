@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _quick_data_integrity:
+
 Quickstart - Data Integrity Suite (Avocado Sales Data)
 *******************************************************
 

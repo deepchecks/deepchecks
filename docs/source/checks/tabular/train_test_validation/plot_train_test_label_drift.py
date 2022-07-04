@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_tabular_train_test_label_drift:
+
 Train Test Label Drift
 **********************
 

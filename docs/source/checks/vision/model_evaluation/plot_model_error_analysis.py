@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_vision_model_error_analysis:
+
 Model Error Analysis check
 ==========================
 

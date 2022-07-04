@@ -189,7 +189,7 @@ def generalized_corrwith(x1: pd.DataFrame, x2: pd.DataFrame, method: t.Callable)
     this generalized method applies to any two Dataframes with the same number of rows, regardless of the column names.
 
     Parameters
-    __________
+    ----------
     x1: DataFrame
         Left data frame to compute correlations.
     x2: Dataframe

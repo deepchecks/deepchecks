@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_tabular_feature_feature_correlation:
+
 Feature Feature Correlation
 ***************************
+
 This notebooks provides an overview for using and understanding the feature-feature correlation check.
 
 This check computes the pairwise correlations between the features, potentially spotting pairs of features that are
@@ -15,7 +18,8 @@ highly correlated.
 * `Define a Condition <#define-a-condition>`__
 
 How are The Correlations Calculated?
-============================
+====================================
+
 This check works with 2 types of features: categorical and numerical, and uses a different method to calculate the
 correlation for each combination of feature types:
 

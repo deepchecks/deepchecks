@@ -21,7 +21,7 @@ from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Batch, Context, SingleDatasetCheck
-from deepchecks.vision.metrics_utils.object_detection_precision_recall import ObjectDetectionAveragePrecision
+from deepchecks.vision.metrics_utils.detection_precision_recall import ObjectDetectionAveragePrecision
 from deepchecks.vision.vision_data import TaskType
 
 __all__ = ['SingleDatasetScalarPerformance']

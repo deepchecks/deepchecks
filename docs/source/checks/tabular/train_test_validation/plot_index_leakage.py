@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_tabular_index_leakage:
+
 Index Leakage
 *************
 """
@@ -30,7 +32,7 @@ check_obj.run(train_ds, test_ds)
 
 train_ds = dataset_from_dict({'col1': [1, 2, 3, 4, 10, 11]}, 'col1')
 test_ds = dataset_from_dict({'col1': [4, 3, 5, 6, 7]}, 'col1')
-check_obj = IndexTrainTestLeakage(n_index_to_show=1)
+check_obj = IndexTrainTestLeakage(n_to_show=1)
 check_obj.run(train_ds, test_ds)
 
 #%%
