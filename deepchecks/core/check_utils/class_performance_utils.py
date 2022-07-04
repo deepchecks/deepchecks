@@ -97,14 +97,18 @@ def get_condition_train_test_relative_degradation_less_than(threshold: float) ->
                 max_degradation = max_degradation_details, max_diff
 
         if check_result.get('Class') is not None:
-            classes = check_result['Class'].unique()
+            if check_result.get('Class Name') is not None:
+                class_column = 'Class Name'
+            else:
+                class_column = 'Class'
+            classes = check_result[class_column].unique()
         else:
             classes = None
 
         if classes is not None:
             for class_name in classes:
-                test_scores_class = test_scores.loc[test_scores['Class'] == class_name]
-                train_scores_class = train_scores.loc[train_scores['Class'] == class_name]
+                test_scores_class = test_scores.loc[test_scores[class_column] == class_name]
+                train_scores_class = train_scores.loc[train_scores[class_column] == class_name]
                 test_scores_dict = dict(zip(test_scores_class['Metric'], test_scores_class['Value']))
                 train_scores_dict = dict(zip(train_scores_class['Metric'], train_scores_class['Value']))
                 if len(test_scores_dict) == 0 or len(train_scores_dict) == 0:
