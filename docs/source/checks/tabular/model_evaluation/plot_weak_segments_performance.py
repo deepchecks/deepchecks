@@ -23,11 +23,11 @@ The check contains several steps:
 
 #. We calculate loss for each sample in the dataset using the provided model via either log-loss or MSE.
 
-#. Select a subset of features of the weak segment search. This is done by selecting the features with the highest feature importance to the model provided.
+#. Select a subset of features for the the weak segment search. This is done by selecting the features with the highest feature importance to the model provided (within the features selected for check, if limited).
 
-#. We train multiple simple tree based models, each one is trained based on only two features to predict the per sample error calculated before.
+#. We train multiple simple tree based models, each one is trained using exactly two features (out of the ones selected above) to predict the per sample error calculated before.
 
-#. We convert each of the leafs in each of the trees into a segment and analyze the segment's performance.
+#. We convert each of the leafs in each of the trees into a segment and calculate the segment's performance.
 
 #. For the model's weakest segments detected we calculate bins for the remaining of the data and calculate the model's
 """
@@ -44,10 +44,10 @@ model = load_fitted_model()
 #%%
 # Run the check
 # =============
-# The check has several key parameters that can define the behavior of the check and especially its output.
+# The check has several key parameters (that are all optional) that affect the behavior of the check and especially its output.
 #
 # columns / ignore_columns: Controls which columns should be searched for weak segments. By default,
-# a heuristic is used to determine which columns to use based on their feature importance.
+# a heuristic is used to determine which columns to use based solely on their feature importance.
 #
 # alternative_scorer: Determines the metric to be used as the performance measurement of the model on different
 # segments. It is important to select a metric that is relevant to the data domain and task you are performing.
