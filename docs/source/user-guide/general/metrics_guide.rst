@@ -56,12 +56,11 @@ should generally apply:
     targets were detected rather than the targets’ exact location, so the fraction of predictions above a certain IoU
     would be more relevant than the IoU itself.
 
-.. image:: /_static/images/general/tomato_sauce_on_shelf.jpg
+.. figure:: /_static/images/general/tomato_sauce_on_shelf.jpg
    :alt: inventory object detection example
-   :align: center
    :width: 400
 
-Using object detection for inventory count illustration by Sol Yarkoni
+   Using object detection for inventory count illustration by Sol Yarkoni
 
 
 Other consideration for choosing a metric might be:
@@ -117,11 +116,10 @@ truth label and counting the matches and mismatches between them.
 This is usually done with the assistance of a confusion matrix. If you are not familiar with the concept of confusion
 matrix, check out this `link <https://en.wikipedia.org/wiki/Confusion_matrix>`__ .
 
-.. image:: /_static/images/general/truth_table.png
+.. figure:: /_static/images/general/truth_table.png
    :alt: Truth Table
-   :align: center
 
-Truth table by Sol Yarkoni
+   Truth table by Sol Yarkoni
 
 *   `Accuracy <https://developers.google.com/machine-learning/crash-course/classification/accuracy>`__ - how many
     samples were classified correctly out of the total number of samples. Though very intuitive, it can often be
@@ -135,23 +133,19 @@ Truth table by Sol Yarkoni
     relevant samples that were spotted by the model.
 
 
-.. image:: /_static/images/general/PrecisionRecall_wikipedia.svg.png
+.. figure:: /_static/images/general/PrecisionRecall_wikipedia.svg.png
    :alt: Precision and recall
-   :align: center
 
-Precision and Recall by Walber - Own work, CC BY-SA 4.0,
-`source <https://commons.wikimedia.org/w/index.php?curid=36926283>`__
+   Precision and Recall by Walber - `source <https://commons.wikimedia.org/w/index.php?curid=36926283>`__
 
 
 *   `Specificity <https://en.wikipedia.org/wiki/Sensitivity_and_specificity>`__/ TNR - how many samples were classified
     correctly as negative out of the total number of negative samples. Complementary to sensitivity.
 
-.. image:: /_static/images/general/Sensitivity_and_specificity_wikipedia.svg.png
+.. figure:: /_static/images/general/Sensitivity_and_specificity_wikipedia.svg.png
    :alt: Specificity and sensitivity
-   :align: center
 
-Specificity and Sensitivity by FeanDoe - Modified version from Walber&#039;s Precision and Recall
-`source <https://commons.wikimedia.org/w/index.php?curid=94134880>`__
+   Specificity and Sensitivity by FeanDoe - `source <https://commons.wikimedia.org/w/index.php?curid=94134880>`__
 
 *   `F-1 <https://en.wikipedia.org/wiki/F-score>`__ - combines the precision and recall into one metric by taking their
     harmonic mean. More robust to class imbalance than accuracy.
