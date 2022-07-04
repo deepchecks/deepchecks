@@ -91,8 +91,10 @@ def get_condition_train_test_relative_degradation_less_than(threshold: float) ->
             nonlocal max_degradation
             max_scorer, max_diff = get_dict_entry_by_value(diffs)
             if max_diff > max_degradation[1]:
-                max_degradation = f'Found max degradation of {format_percent(max_diff)} for metric ' \
-                    f'{max_scorer} and class {class_name}.', max_diff
+                max_degradation_details = f'Found max degradation of {format_percent(max_diff)} for metric {max_scorer}'
+                if class_name is not None:
+                    max_degradation_details += f' and class {class_name}.'
+                max_degradation = max_degradation_details, max_diff
 
         if check_result.get('Class') is not None:
             classes = check_result['Class'].unique()
@@ -119,7 +121,7 @@ def get_condition_train_test_relative_degradation_less_than(threshold: float) ->
                 # Calculate percentage of change from train to test
                 diff = {score_name: _ratio_of_change_calc(score, test_scores_dict[score_name])
                         for score_name, score in train_scores_dict.items()}
-                update_max_degradation(diff, class_name)
+                update_max_degradation(diff, None)
                 num_failures += len([v for v in diff.values() if v >= threshold])
         if num_failures > 0:
             message = f'{num_failures} scores failed. ' + max_degradation[0]
