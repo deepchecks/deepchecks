@@ -25,7 +25,7 @@ def test_progress_bar_creation():
                 name='Dummy',
                 unit='D'
             ),
-            instance_of(tqdm.notebook.tqdm)
+            instance_of(ipython.HtmlProgressBar)
         )
 
 
@@ -37,7 +37,7 @@ def test_progress_bar_creation_in_not_notebook_env():
                 name='Dummy',
                 unit='D'
             ),
-            instance_of(ipython.HtmlProgressBar)
+            instance_of(tqdm.tqdm)
         )
 
 
