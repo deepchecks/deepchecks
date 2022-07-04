@@ -42,8 +42,8 @@ from deepchecks.tabular.checks import *
 new_custom_suite = Suite('Simple Suite For Model Performance',
     ModelInfo(),
     # use custom scorers for performance report:
-    PerformanceReport().add_condition_train_test_relative_degradation_not_greater_than(threshold=0.15\
-                     ).add_condition_test_performance_not_less_than(0.8),
+    PerformanceReport().add_condition_train_test_relative_degradation_less_than(threshold=0.15\
+                     ).add_condition_test_performance_greater_than(0.8),
     ConfusionMatrixReport(),
     SimpleModelComparison(simple_model_type='constant', \
                           alternative_scorers={'Recall (Multiclass)': make_scorer(recall_score, average=None), \

@@ -344,7 +344,7 @@ def model_evaluation(alternative_scorers: Dict[str, Callable] = None,
 
     return Suite(
         'Model Evaluation Suite',
-        PerformanceReport(**kwargs).add_condition_train_test_relative_degradation_not_greater_than(),
+        PerformanceReport(**kwargs).add_condition_train_test_relative_degradation_less_than(),
         RocReport(**kwargs).add_condition_auc_greater_than(),
         ConfusionMatrixReport(**kwargs),
         SegmentPerformance(**kwargs),

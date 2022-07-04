@@ -164,7 +164,6 @@ class PerformanceReport(TrainTestCheck, ReduceMixin):
         df = df.groupby('Metric').aggregate(self.reduce).reset_index()
         return dict(zip(df['Metric'], df['Value']))
 
-    # def add_condition_test_performance_not_less_than(self: PR, min_score: float) -> PR:
     def add_condition_test_performance_greater_than(self: PR, min_score: float) -> PR:
         """Add condition - metric scores are greater than the threshold.
 
