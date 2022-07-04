@@ -117,6 +117,32 @@ def is_sagemaker_env() -> bool:
 
 
 class HtmlProgressBar:
+    """Progress bar implementation that uses html <progress> tag."""
+
+    STYLE = """
+    <style>
+        progress {
+            -webkit-appearance: none;
+            border: none;
+            border-radius: 3px;
+            width: 300px;
+            height: 20px;
+            vertical-align: middle;
+            margin-right: 10px;
+            background-color: aliceblue;
+        }
+        progress::-webkit-progress-bar {
+            border-radius: 3px;
+            background-color: aliceblue;
+        }
+        progress::-webkit-progress-value {
+            background-color: #9d60fb;
+        }
+        progress::-moz-progress-bar {
+            background-color: #9d60fb;
+        }
+    </style>
+    """
 
     def __init__(
         self,
@@ -137,6 +163,7 @@ class HtmlProgressBar:
         self._metadata = self._inital_metadata.copy()
         self._progress_bar = None
         self._current_item_index = 0
+        display({'text/html': self.STYLE}, raw=True)
         self._display_handler = display({'text/html': ''}, raw=True, display_id=True)
         self._disable = disable
         self._reuse_counter = 0
@@ -145,6 +172,7 @@ class HtmlProgressBar:
             self.refresh()
 
     def __iter__(self):
+        """Iterate over iterable."""
 
         if self._disable is True:
             try:
@@ -175,6 +203,7 @@ class HtmlProgressBar:
             self.close()
 
     def refresh(self):
+        """Refresh progress bar."""
         self.progress_bar = self.create_progress_bar(
             title=self._title,
             item=self._current_item_index,
@@ -188,20 +217,25 @@ class HtmlProgressBar:
         )
 
     def close(self):
+        """Close progress bar."""
         self._display_handler.update({'text/html': ''}, raw=True)
 
     def clean(self):
+        """Clean display cell."""
         self._display_handler.update({'text/html': ''}, raw=True)
 
     def set_postfix(self, data: t.Mapping[str, t.Any], refresh: bool = True):
+        """Set postfix."""
         self.update_metadata(data, refresh)
 
     def reset_metadata(self, data: t.Mapping[str, t.Any], refresh: bool = True):
+        """Reset metadata."""
         self._metadata = dict(data)
         if refresh is True:
             self.refresh()
 
     def update_metadata(self, data: t.Mapping[str, t.Any], refresh: bool = True):
+        """Update metadata."""
         self._metadata.update(data)
         if refresh is True:
             self.refresh()
@@ -214,6 +248,7 @@ class HtmlProgressBar:
         seconds_passed: int,
         metadata: t.Optional[t.Mapping[str, t.Any]] = None
     ):
+        """Create progress bar label."""
         minutes = seconds_passed // 60
         seconds = seconds_passed - (minutes * 60)
         minutes = f'0{minutes}' if minutes < 10 else str(minutes)
@@ -236,14 +271,18 @@ class HtmlProgressBar:
         seconds_passed: int,
         metadata: t.Optional[t.Mapping[str, t.Any]] = None
     ) -> str:
+        """Create progress bar."""
         return f"""
             <div>
-                <span>{title}:</span><br/>
-                <progress
-                    value='{item}'
-                    max='{total}'
-                    style='width:300px; height:20px; vertical-align: middle;'>
-                </progress>
+                <label>
+                    {title}:<br/>
+                    <progress
+                        value='{item}'
+                        max='{total}'
+                        class='deepchecks'
+                    >
+                    </progress>
+                </label>
                 <span>{cls.create_label(item, total, seconds_passed, metadata)}</span>
             </div>
         """
@@ -259,7 +298,7 @@ def create_progress_bar(
     HtmlProgressBar,
     tqdm.tqdm
 ]:
-    """Create a tqdm progress bar instance."""
+    """Create a progress bar instance."""
     if iterable is not None:
         iterlen = len(iterable)
     elif total is not None:
@@ -277,6 +316,7 @@ def create_progress_bar(
             unit=unit,
             total=iterlen,
             iterable=iterable or range(iterlen),
+            display_immediately=True,
             disable=is_disabled
         )
     else:
