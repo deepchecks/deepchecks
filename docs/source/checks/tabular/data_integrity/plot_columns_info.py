@@ -38,4 +38,4 @@ check = ColumnsInfo()
 
 #%%
 
-check.run(dataset=dataset)
+result = check.run(dataset=dataset)

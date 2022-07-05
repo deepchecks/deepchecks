@@ -29,29 +29,29 @@ df
 # See functionality
 # =================
 
-IsSingleValue().run(pd.DataFrame(X))
+result = IsSingleValue().run(pd.DataFrame(X))
 
 #%%
 
-IsSingleValue().run(pd.DataFrame({'a':[3,4], 'b':[2,2], 'c':[None, None], 'd':['a', 4]}))
+result = IsSingleValue().run(pd.DataFrame({'a':[3,4], 'b':[2,2], 'c':[None, None], 'd':['a', 4]}))
 
 #%%
 
 sv = IsSingleValue()
-sv.run(df)
+result = sv.run(df)
 
 #%%
 
 sv_ignore = IsSingleValue(ignore_columns=['b','c'])
-sv_ignore.run(df)
+result = sv_ignore.run(df)
 
 #%%
 
 # Ignoring NaN values
 
-IsSingleValue(ignore_nan=True).run(pd.DataFrame({
-    'a': [3, np.nan], 
-    'b': [2, 2],
-    'c': [None, np.nan], 
-    'd': ['a', 4]
-}))
+result = IsSingleValue(ignore_nan=True).run(pd.DataFrame({
+        'a': [3, np.nan],
+        'b': [2, 2],
+        'c': [None, np.nan],
+        'd': ['a', 4]
+    }))

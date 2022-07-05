@@ -49,7 +49,7 @@ ds = adult.load_data(as_train_test=False)
 # ===============================================
 
 check = FeatureFeatureCorrelation()
-check.run(ds)
+result = check.run(ds)
 
 # To display the results in an IDE like PyCharm, you can use the following code:
 # check.run(ds).show()

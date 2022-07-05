@@ -34,4 +34,4 @@ ds = Dataset(df, label='label', cat_features=[])
 # ===============================================
 
 my_check = FeatureLabelCorrelation(ppscore_params={'sample': 10})
-my_check.run(dataset=ds)
+result = my_check.run(dataset=ds)

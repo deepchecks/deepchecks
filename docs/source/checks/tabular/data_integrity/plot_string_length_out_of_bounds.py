@@ -28,7 +28,7 @@ df = pd.DataFrame({"col1":col1, "col2": col2, "col3": col3 })
 
 #%%
 
-StringLengthOutOfBounds(min_unique_value_ratio=0.01).run(df)
+result = StringLengthOutOfBounds(min_unique_value_ratio=0.01).run(df)
 
 #%%
 
@@ -36,4 +36,4 @@ col = ["a","a","a","a","a","a","a","a","a","a","a","a","a","ab","ab","ab","ab","
 col.append("basdbadsbaaaaaaaaaa")
 col.append("basdbadsbaaaaaaaaaaa")
 df = pd.DataFrame({"col1":col})
-StringLengthOutOfBounds(num_percentiles=1000, min_unique_values=3).run(df)
+result = StringLengthOutOfBounds(num_percentiles=1000, min_unique_values=3).run(df)

@@ -46,18 +46,18 @@ phishing_dataset
 
 from deepchecks.tabular.checks import DataDuplicates
 
-DataDuplicates().run(phishing_dataset)
+result = DataDuplicates().run(phishing_dataset)
 
 # With Check Parameters
 # ---------------------
 # ``DataDuplicates`` check can also use a specific subset of columns (or alternatively
 # use all columns except specific ignore_columns to check duplication):
 
-DataDuplicates(columns=["entropy", "numParams"]).run(phishing_dataset)
+result = DataDuplicates(columns=["entropy", "numParams"]).run(phishing_dataset)
 
 #%%
 
-DataDuplicates(ignore_columns=["scrape_date"], n_to_show=10).run(phishing_dataset)
+result = DataDuplicates(ignore_columns=["scrape_date"], n_to_show=10).run(phishing_dataset)
 
 #%%
 # Define a Condition

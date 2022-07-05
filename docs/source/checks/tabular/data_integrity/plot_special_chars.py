@@ -32,4 +32,4 @@ data = {'col1': [' ', '!', '"', '#', '$', '%', '&', '\'','(', ')',
 
 
 dataframe = pd.DataFrame(data=data)
-SpecialCharacters().run(dataframe)
+result = SpecialCharacters().run(dataframe)

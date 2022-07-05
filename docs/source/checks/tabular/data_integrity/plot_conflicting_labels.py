@@ -40,16 +40,16 @@ phishing_dataset = Dataset(phishing_dataframe, label='target', features=['urlLen
 # Run the Check
 # =============
 
-ConflictingLabels().run(phishing_dataset)
+result = ConflictingLabels().run(phishing_dataset)
 
 #%%
 # We can also check label ambiguity on a subset of the features:
 
-ConflictingLabels(n_to_show=1).run(phishing_dataset)
+result = ConflictingLabels(n_to_show=1).run(phishing_dataset)
 
 #%%
 
-ConflictingLabels(columns=['urlLength', 'numDigits']).run(phishing_dataset)
+result = ConflictingLabels(columns=['urlLength', 'numDigits']).run(phishing_dataset)
 
 #%%
 # Define a Condition

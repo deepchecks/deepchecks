@@ -50,7 +50,7 @@ dataset = Dataset(df, label='label', index_name='x1', datetime_name='x2', cat_fe
 # ==============
 
 check = IdentifierLabelCorrelation()
-check.run(dataset)
+result = check.run(dataset)
 
 # To display the results in an IDE like PyCharm, you can use the following code:
 # check.run(ds).show()
