@@ -126,7 +126,7 @@ class DatasetSizeComparison(TrainTestCheck):
 #%%
 # Let us check it out
 
-DatasetSizeComparison().run(train_dataset, test_dataset)
+result = DatasetSizeComparison().run(train_dataset, test_dataset)
 
 #%%
 # Voila!

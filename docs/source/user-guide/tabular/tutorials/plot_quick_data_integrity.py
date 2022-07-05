@@ -98,7 +98,7 @@ suite_result
 from deepchecks.tabular.checks import IsSingleValue, DataDuplicates
 
 # first let's see how the check runs:
-IsSingleValue().run(ds)
+result = IsSingleValue().run(ds)
 
 #%%
 

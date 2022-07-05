@@ -160,7 +160,7 @@ integ_suite = single_dataset_integrity()
 
 dataset = deepchecks.tabular.Dataset(df=df, label='target',
                                      set_datetime_from_dataframe_index=True, cat_features=[])
-integ_suite.run(dataset)
+result = integ_suite.run(dataset)
 
 #%%
 # Understanding the checks' results!
@@ -253,7 +253,7 @@ ds_test = deepchecks.tabular.Dataset(df=test_X, label=test_y, set_datetime_from_
 # Now we just have to provide the ``run`` method of the suite object with both the
 # model and the ``Dataset`` objects.
 
-vsuite.run(model=logreg, train_dataset=ds_train, test_dataset=ds_test)
+result = vsuite.run(model=logreg, train_dataset=ds_train, test_dataset=ds_test)
 
 #%%
 # Understanding the checks' results!
@@ -329,7 +329,7 @@ ds_test = deepchecks.tabular.Dataset(df=test_X, label=test_y, set_datetime_from_
 
 #%%
 
-msuite.run(model=logreg, train_dataset=ds_train, test_dataset=ds_test)
+result = msuite.run(model=logreg, train_dataset=ds_train, test_dataset=ds_test)
 
 #%%
 # Understanding the checks' results!
@@ -365,7 +365,7 @@ from sklearn.tree import DecisionTreeClassifier
 
 model = DecisionTreeClassifier(criterion='entropy', splitter='random', random_state=SEED)
 model.fit(train_X, train_y)
-msuite.run(model=model, train_dataset=ds_train, test_dataset=ds_test)
+result = msuite.run(model=model, train_dataset=ds_train, test_dataset=ds_test)
 
 #%%
 # Boosting our model!
@@ -378,7 +378,7 @@ from sklearn.ensemble import GradientBoostingClassifier
 
 model = GradientBoostingClassifier(n_estimators=250, random_state=SEED, max_depth=20, subsample=0.8 , loss='exponential')
 model.fit(train_X, train_y)
-msuite.run(model=model, train_dataset=ds_train, test_dataset=ds_test)
+result = msuite.run(model=model, train_dataset=ds_train, test_dataset=ds_test)
 
 #%%
 # Understanding the checks' results!

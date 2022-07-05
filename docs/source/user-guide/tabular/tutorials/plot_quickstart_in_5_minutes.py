@@ -82,7 +82,7 @@ suite = full_suite()
 
 #%%
 
-suite.run(train_dataset=ds_train, test_dataset=ds_test, model=rf_clf)
+result = suite.run(train_dataset=ds_train, test_dataset=ds_test, model=rf_clf)
 
 #%%
 # Run the integrity suite
@@ -93,7 +93,7 @@ suite.run(train_dataset=ds_train, test_dataset=ds_test, model=rf_clf)
 from deepchecks.tabular.suites import single_dataset_integrity
 
 integ_suite = single_dataset_integrity()
-integ_suite.run(ds_train)
+result = integ_suite.run(ds_train)
 
 #%%
 # Run a Deepchecks Check

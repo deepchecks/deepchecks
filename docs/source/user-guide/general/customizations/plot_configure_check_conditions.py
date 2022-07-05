@@ -157,7 +157,7 @@ suite = Suite('Suite for Condition',
     check
 )
 
-suite.run(train_dataset, test_dataset)
+result = suite.run(train_dataset, test_dataset)
 
 #%%
 # Set Custom Condition Category

@@ -112,7 +112,7 @@ rf_clf.fit(train_dataset.data[train_dataset.features],
 # Run Suite
 # ---------
 
-new_custom_suite.run(model=rf_clf, train_dataset=train_dataset, test_dataset=test_dataset)
+result = new_custom_suite.run(model=rf_clf, train_dataset=train_dataset, test_dataset=test_dataset)
 
 #%%
 # Modify an Existing Suite
@@ -149,4 +149,4 @@ customized_suite.name = 'New Data Leakage Suite'
 #%%
 
 # and now we can run our modified suite:
-customized_suite.run(train_dataset, test_dataset, rf_clf)
+result = customized_suite.run(train_dataset, test_dataset, rf_clf)
