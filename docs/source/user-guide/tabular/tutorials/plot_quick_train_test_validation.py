@@ -125,7 +125,7 @@ suite_result
 
 #%%
 # As you can see in the suite's results: the Date Train-Test Leakage check failed,
-# indicating # that we may have a problem in the way we've split our data!
+# indicating that we may have a problem in the way we've split our data!
 # We've mixed up data from two years, causing a leakage of future data
 # in the training dataset.
 # Let's fix this.
@@ -224,3 +224,4 @@ TrainTestPredictionDrift()
 # we can run our new suite using:
 
 result = drift_suite.run(train_ds, test_ds)
+result
