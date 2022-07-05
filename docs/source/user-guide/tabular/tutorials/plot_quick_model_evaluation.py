@@ -8,8 +8,8 @@ Quickstart - Model Evaluation Suite (Wine Quality Data)
 The deepchecks model evaluation suite is relevant any time you wish to
 evaluate your model on a given test set. For example:
 
-- Analysing the model performance after the training procedure has been completed
-- Comparing different models
+- Through analysis of the model performance after the training procedure has been completed
+- Analysing of the model mid-training to revile pitfalls and required fine-tuning
 - Checking model performance on a new data batch (with or without comparison to previous data batches)
 
 Here we'll use a wine quality dataset
@@ -25,8 +25,8 @@ and see which kind of insights it can find.
 """
 
 #%%
-# Load and Prepare Data
-# ====================================================
+# Prepare Data and Model
+# ======================
 #
 # Load Data
 # -----------
@@ -98,20 +98,23 @@ suite_result
 # Analyzing the results
 # --------------------------
 #
-# From the result we can retrieve a number of interesting insights, first lets inspect the "Didn't Pass" section.
-# From the Performance report check we can see that our model over fitted the training data resulting in
-# reduced performance on the test set. From the Regression Systematic Error check we can see that our model tends to
-# in average to predict a higher quality than the actual and from the Weak Segments Performance check we can see that
-# there are some specific sub-spaces that are not well represented by the model. Examples for those sub-spaces are
-# wines with low total sulfur dioxide and wines with high alcohol percentage. When training to optimize
-# our model we might want to put special attention to those sub-spaces (e.g. via increased weights to those sub spaces).
+# The result showcase a number of interesting insights, first lets inspect the "Didn't Pass" section.
 #
-# Next, let us examine the "Passed" section. From the Simple Model Comparison check we can see that our model
-# performs better than the baseline model, an opposite result can indicate a possible problem with the model training
-# procedure or the data in was trained on. From the Boosting Overfit and the Unused Features checks we can see that
-# model has a well calibrating boosting stopping rule and that it make good use on the different data features.
+# * From the Performance Report check we can deduce that our model overfitted the training data.
+# * From the Regression Systematic Error (test set) check we can see that our model has a small positive bias.
+# * From the Weak Segments Performance check (test set) we see that there are some specific sub-spaces on which the
+#   model performs poorly. Examples for those sub-spaces are
+#   wines with low total sulfur dioxide and wines with high alcohol percentage.
 #
-# Let us try and fix the over fitting problem found in the model.
+# Next, let us examine the "Passed" section.
+#
+# * From the Simple Model Comparison check we see that our model
+#   performs better than the baseline models, an opposite result could indicate a problem with the model
+#   or the data in was trained on.
+# * From the Boosting Overfit and the Unused Features checks we can deduce that
+#   model has a well calibrating boosting stopping rule and that it make good use on the different data features.
+#
+# Let us try and fix the overfitting issue found in the model.
 #
 # Fix the Model and Re-run the Model Evaluation Suite
 # ^^^^^^^^^^
@@ -123,16 +126,17 @@ suite_result
 
 #%%
 #
-# We mitigated the over fitting to some extant, yet we increased the model prediction bias. Additional model tuning
+# We mitigated the overfitting to some extant, yet increased the model prediction bias. Additional model tuning
 # is still required however for now we will remove the relevant conditions from the suite.
 #
 # Updating an Existing Suite
 # ----------------------
 #
-# To create our own suite, we can start with an empty suite and add checks and condition to it, or we can start with
-# one of the default suite and update it accordingly.
+# To create our own suite, we can start with an empty suite and add checks and condition to it
+# (see :doc:`/user-guide/general/customizations/examples/plot_create_a_custom_suite`), or we can start with
+# one of the default suites and update it as displayed in this section.
 #
-# let's inspect the suite's structure
+# let's inspect our model evaluation suite's structure
 evaluation_suite
 
 #%%
@@ -145,7 +149,7 @@ evaluation_suite.remove(7)
 
 #%%
 #
-# Now we can re-run the suite using:
+# Re-run the suite using:
 
 result = evaluation_suite.run(train_ds, test_ds, gbr)
 result.passed(fail_if_warning=False)

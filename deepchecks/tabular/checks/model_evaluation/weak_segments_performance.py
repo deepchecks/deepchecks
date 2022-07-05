@@ -21,7 +21,8 @@ from packaging import version
 from sklearn.model_selection import GridSearchCV
 from sklearn.tree import DecisionTreeRegressor
 
-from deepchecks import ConditionCategory, ConditionResult, Dataset
+from deepchecks.tabular import Dataset
+from deepchecks.core import ConditionCategory, ConditionResult
 from deepchecks.core import CheckResult
 from deepchecks.core.check_result import DisplayMap
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksProcessError
