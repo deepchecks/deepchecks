@@ -49,4 +49,4 @@ check = RocReport()
 
 #%%
 
-check.run(ds, clf)
+result = check.run(ds, clf)

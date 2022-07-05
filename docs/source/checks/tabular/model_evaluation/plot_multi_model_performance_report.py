@@ -34,7 +34,7 @@ clf3 = DecisionTreeClassifier().fit(features, label)
 
 #%%
 
-MultiModelPerformanceReport().run(train_ds, test_ds, [clf1, clf2, clf3])
+result = MultiModelPerformanceReport().run(train_ds, test_ds, [clf1, clf2, clf3])
 
 #%%
 # Regression
@@ -60,4 +60,4 @@ clf3 = DecisionTreeRegressor().fit(features, label)
 
 #%%
 
-MultiModelPerformanceReport().run(train_ds, test_ds, [clf1, clf2, clf3])
+result = MultiModelPerformanceReport().run(train_ds, test_ds, [clf1, clf2, clf3])

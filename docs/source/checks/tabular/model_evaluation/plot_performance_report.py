@@ -41,7 +41,7 @@ model = load_fitted_model()
 from deepchecks.tabular.checks import PerformanceReport
 
 check = PerformanceReport()
-check.run(train_dataset, test_dataset, model)
+result = check.run(train_dataset, test_dataset, model)
 
 #%%
 # Define a condition
@@ -69,4 +69,4 @@ from sklearn.metrics import fbeta_score, make_scorer
 fbeta_scorer = make_scorer(fbeta_score, labels=[0, 1], average=None, beta=0.2)
 
 check = PerformanceReport(alternative_scorers={'my scorer': fbeta_scorer})
-check.run(train_dataset, test_dataset, model)
+result = check.run(train_dataset, test_dataset, model)

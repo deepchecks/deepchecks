@@ -39,4 +39,4 @@ check = RegressionSystematicError()
 
 #%%
 
-check.run(test, clf)
+result = check.run(test, clf)

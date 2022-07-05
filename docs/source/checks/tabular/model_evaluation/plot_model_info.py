@@ -14,4 +14,4 @@ from deepchecks.tabular.checks import ModelInfo
 
 #%%
 clf = AdaBoostClassifier(learning_rate=1.2)
-ModelInfo().run(clf)
+result = ModelInfo().run(clf)

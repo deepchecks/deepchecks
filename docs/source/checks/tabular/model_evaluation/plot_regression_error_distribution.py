@@ -38,7 +38,7 @@ check = RegressionErrorDistribution()
 
 #%%
 
-check.run(test, clf)
+result = check.run(test, clf)
 
 #%%
 # Skewing the data
@@ -54,4 +54,4 @@ check = RegressionErrorDistribution()
 
 #%%
 
-check.run(test, clf)
+result = check.run(test, clf)

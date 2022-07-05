@@ -28,11 +28,11 @@ clf = AdaBoostClassifier().fit(train_ds.data[train_ds.features], train_ds.data[t
 #%%
 
 check = ModelInferenceTime()
-check.run(test_ds, clf)
+result = check.run(test_ds, clf)
 
 #%%
 # Instantiating check instance with condition
 # ===========================================
 
 check = ModelInferenceTime().add_condition_inference_time_less_than(0.00001)
-check.run(test_ds, clf)
+result = check.run(test_ds, clf)

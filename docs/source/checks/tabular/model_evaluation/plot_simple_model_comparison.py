@@ -61,7 +61,7 @@ from deepchecks.tabular.checks import SimpleModelComparison
 
 # Using tree model as a simple model, and changing the tree depth from the default 3 to 5
 check = SimpleModelComparison(simple_model_type='tree', max_depth=5)
-check.run(train_dataset, test_dataset, model)
+result = check.run(train_dataset, test_dataset, model)
 
 #%%
 # Observe the check's output

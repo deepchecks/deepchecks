@@ -54,7 +54,7 @@ model = adult.load_fitted_model()
 #%%
 
 check = CalibrationScore()
-check.run(test_ds, model)
+result = check.run(test_ds, model)
 
 #%%
 # Multi-class classification
@@ -74,4 +74,4 @@ ds = Dataset(pd.concat([X_test, y_test], axis=1),
 #%%
 
 check = CalibrationScore()
-check.run(ds, clf)
+result = check.run(ds, clf)
