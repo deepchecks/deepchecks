@@ -108,7 +108,7 @@ columns_metadata = {'cat_features' : categorical_features, 'index_name': index_n
 # Run the Deepchecks Suite
 # --------------------------
 #
-# Validate your data with the :func:`deepchecks.tabular.suites.train_test_validation` suite.
+# Validate your data with the :class:`deepchecks.tabular.suites.train_test_validation` suite.
 # It runs on two datasets, so you can use it to compare any two batches of data (e.g. train data, test data, a new batch of data
 # that recently arrived)
 #
