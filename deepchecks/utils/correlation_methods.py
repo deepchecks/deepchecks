@@ -124,7 +124,8 @@ def correlation_ratio(categorical_data: Union[List, np.ndarray, pd.Series],
     if ignore_mask:
         numerical_data = numerical_data[~np.asarray(ignore_mask)]
         categorical_data = categorical_data[~np.asarray(ignore_mask)]
-    cat_num = np.max(categorical_data) + 1
+
+    cat_num = int(np.max(categorical_data) + 1)
     y_avg_array = np.zeros(cat_num)
     n_array = np.zeros(cat_num)
     for i in range(cat_num):

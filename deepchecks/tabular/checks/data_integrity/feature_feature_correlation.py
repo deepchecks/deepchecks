@@ -12,6 +12,7 @@
 
 from typing import List, Union
 
+import numpy as np
 import pandas as pd
 import plotly.express as px
 
@@ -81,6 +82,8 @@ class FeatureFeatureCorrelation(SingleDatasetCheck):
         num_features = [f for f in dataset.numerical_features if f in df.columns]
         cat_features = [f for f in dataset.cat_features if f in df.columns]
         encoded_cat_data = df.loc[:, cat_features].apply(lambda x: pd.factorize(x)[0])
+        # NaNs are encoded as -1, replace back to NaN
+        encoded_cat_data.replace(-1, np.NaN, inplace=True)
 
         all_features = num_features + cat_features
         full_df = pd.DataFrame(index=all_features, columns=all_features)
