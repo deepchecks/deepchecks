@@ -18,9 +18,9 @@ from plotly.basedatatypes import BaseFigure
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks import ClassPerformance
-from tests.base.utils import equal_condition_result
 from deepchecks.vision.metrics_utils.confusion_matrix_counts_metrics import AVAILABLE_EVALUTING_FUNCTIONS
 from deepchecks.vision.metrics_utils.detection_tp_fp_fn_calc import ObjectDetectionTpFpFn
+from tests.base.utils import equal_condition_result
 from tests.common import assert_class_performance_display
 
 
