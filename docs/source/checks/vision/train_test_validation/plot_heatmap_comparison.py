@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_vision_heatmap_comparison:
+
 Heatmap Comparison
 ******************
 

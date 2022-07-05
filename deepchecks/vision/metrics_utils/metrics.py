@@ -20,7 +20,7 @@ from ignite.metrics import Metric, Precision, Recall
 
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
-from deepchecks.vision.metrics_utils.object_detection_precision_recall import ObjectDetectionAveragePrecision
+from deepchecks.vision.metrics_utils.detection_precision_recall import ObjectDetectionAveragePrecision
 from deepchecks.vision.vision_data import TaskType, VisionData
 
 __all__ = [
@@ -38,16 +38,16 @@ def get_default_classification_scorers():
     }
 
 
-def get_default_object_detection_scorers():
+def get_default_object_detection_scorers() -> t.Dict[str, Metric]:
     return {
-        'Average Precision': ObjectDetectionAveragePrecision(),
-        'Average Recall': ObjectDetectionAveragePrecision(return_option=1)
+        'Average Precision': ObjectDetectionAveragePrecision(return_option='ap'),
+        'Average Recall': ObjectDetectionAveragePrecision(return_option='ar')
     }
 
 
 def get_scorers_list(
         dataset: VisionData,
-        alternative_scorers: t.Dict[str, Metric] = None
+        alternative_scorers: t.Dict[str, Metric] = None,
 ) -> t.Dict[str, Metric]:
     """Get scorers list according to model object and label column.
 
@@ -55,7 +55,7 @@ def get_scorers_list(
     ----------
     dataset : VisionData
         Dataset object
-    alternative_scorers : t.Dict[str, Metric]
+    alternative_scorers : t.Dict[str, Metric], default: None
         Alternative scorers dictionary
     Returns
     -------

@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_tabular_multi_model_performance_report:
+
 Multi Model Performance Report
 ******************************
 """

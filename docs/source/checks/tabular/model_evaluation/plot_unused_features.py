@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_tabular_unused_features:
+
 Unused Features
 ***************
 This notebook provides an overview for using and understanding the Unused Features check.

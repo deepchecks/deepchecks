@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_tabular_whole_dataset_drift:
+
 Whole Dataset Drift
 *******************
 

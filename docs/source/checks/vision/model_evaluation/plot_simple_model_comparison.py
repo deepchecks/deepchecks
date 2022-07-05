@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_vision_simple_model_comparison:
+
 Simple Model Comparison
 ***********************
 

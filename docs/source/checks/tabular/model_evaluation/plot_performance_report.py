@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_tabular_performance_report:
+
 Performance Report
 ******************
 This notebooks provides an overview for using and understanding performance report check.

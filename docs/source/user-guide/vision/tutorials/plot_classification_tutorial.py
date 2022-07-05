@@ -1,4 +1,6 @@
 """
+.. _vision_classification_tutorial:
+
 ==============================================
 Classification Model Validation Tutorial
 ==============================================

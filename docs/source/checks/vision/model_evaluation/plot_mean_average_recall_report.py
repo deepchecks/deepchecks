@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_vision_mean_average_recall_report:
+
 Mean Average Recall Report
 **************************
 

@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_vision_similar_image_leakage:
+
 Similar Image Leakage
 ***************************
 This notebook provides an overview for using and understanding the "Similar Image Leakage" check.

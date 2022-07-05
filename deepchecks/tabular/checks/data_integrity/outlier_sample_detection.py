@@ -41,6 +41,7 @@ class OutlierSampleDetection(SingleDatasetCheck):
     LoOP relies on a distance matrix, in our implementation we use the Gower distance that measure the distance
     between two samples based on its numeric and categorical features.
     See https://statisticaloddsandends.wordpress.com/2021/02/23/what-is-gowers-distance/ for further details.
+
     Parameters
     ----------
     columns : Union[Hashable, List[Hashable]] , default: None

@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Date Train Validation Leakage Duplicates
-****************************************
+.. _plot_tabular_date_train_test_validation_leakage_duplicates:
+
+Date Train Test Validation Leakage Duplicates
+*********************************************
 """
 
 #%%
