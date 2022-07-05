@@ -54,7 +54,7 @@ test_ds = dataset_from_dict({'col1': [
         datetime(2021, 10, 9, 0, 0)
     ]}, 'col1')
 
-DateTrainTestLeakageDuplicates(n_to_show=3).run(train_dataset=train_ds, test_dataset=test_ds)
+result = DateTrainTestLeakageDuplicates(n_to_show=3).run(train_dataset=train_ds, test_dataset=test_ds)
 
 #%%
 # Synthetic example no date leakage
@@ -77,4 +77,4 @@ test_ds = dataset_from_dict({'col1': [
 
     ]}, 'col1')
 
-DateTrainTestLeakageDuplicates().run(train_dataset=train_ds, test_dataset=test_ds)
+result = DateTrainTestLeakageDuplicates().run(train_dataset=train_ds, test_dataset=test_ds)

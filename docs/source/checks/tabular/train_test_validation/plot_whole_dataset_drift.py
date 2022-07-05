@@ -74,7 +74,7 @@ train_ds.label_name
 from deepchecks.tabular.checks import WholeDatasetDrift
 
 check = WholeDatasetDrift()
-check.run(train_dataset=train_ds, test_dataset=test_ds)
+result = check.run(train_dataset=train_ds, test_dataset=test_ds)
 
 #%%
 # We can see that there is almost no drift found between the train and the test
@@ -101,7 +101,7 @@ test_drifted_ds = Dataset(test_drifted_df, label=label_name, cat_features=test_d
 #%%
 
 check = WholeDatasetDrift()
-check.run(train_dataset=train_drifted_ds, test_dataset=test_drifted_ds)
+result = check.run(train_dataset=train_drifted_ds, test_dataset=test_drifted_ds)
 
 #%%
 # As expected, the check detects a multivariate drift between the train and the
@@ -117,7 +117,7 @@ check.run(train_dataset=train_drifted_ds, test_dataset=test_drifted_ds)
 
 check = WholeDatasetDrift()
 check.add_condition_overall_drift_value_less_than(0.1)
-check.run(train_dataset=train_drifted_ds, test_dataset=test_drifted_ds)
+result = check.run(train_dataset=train_drifted_ds, test_dataset=test_drifted_ds)
 
 #%%
 # As we see, our condition successfully detects the drift score is above the defined threshold.

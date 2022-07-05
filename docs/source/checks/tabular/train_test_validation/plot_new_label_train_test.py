@@ -28,4 +28,4 @@ test = Dataset(pd.DataFrame(data=test_data), label="col2", label_type="classific
 val = Dataset(pd.DataFrame(data=val_data), label="col2", label_type="classification_label")
 
 #%%
-NewLabelTrainTest().run(test, val)
+result = NewLabelTrainTest().run(test, val)

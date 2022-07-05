@@ -52,7 +52,7 @@ test_ds = dataset_from_dict({'col1': [
         datetime(2021, 10, 9, 0, 0)
     ]}, 'col1')
 
-DateTrainTestLeakageOverlap().run(train_dataset=train_ds, test_dataset=test_ds)
+result = DateTrainTestLeakageOverlap().run(train_dataset=train_ds, test_dataset=test_ds)
 
 #%%
 # Synthetic example no date leakage
@@ -75,4 +75,4 @@ test_ds = dataset_from_dict({'col1': [
 
     ]}, 'col1')
 
-DateTrainTestLeakageOverlap().run(train_dataset=train_ds, test_dataset=test_ds)
+result = DateTrainTestLeakageOverlap().run(train_dataset=train_ds, test_dataset=test_ds)

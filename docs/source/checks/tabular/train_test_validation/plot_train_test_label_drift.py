@@ -104,4 +104,4 @@ result
 # ===============
 
 check_cond = TrainTestLabelDrift().add_condition_drift_score_less_than()
-check_cond.run(train_dataset=train_dataset, test_dataset=test_dataset)
+result = check_cond.run(train_dataset=train_dataset, test_dataset=test_dataset)

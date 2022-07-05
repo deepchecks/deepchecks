@@ -33,4 +33,4 @@ check_instance = (
 
 #%%
 
-check_instance.run(train, test)
+result = check_instance.run(train, test)

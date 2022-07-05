@@ -22,7 +22,7 @@ test = Dataset(pd.DataFrame(data=test_data), cat_features=["col1"])
 
 #%%
 
-CategoryMismatchTrainTest().run(train, test)
+result = CategoryMismatchTrainTest().run(train, test)
 
 #%%
 
@@ -33,4 +33,4 @@ test = Dataset(pd.DataFrame(data=test_data), cat_features=["col1", "col2"])
 
 #%%
 
-CategoryMismatchTrainTest().run(train, test)
+result = CategoryMismatchTrainTest().run(train, test)

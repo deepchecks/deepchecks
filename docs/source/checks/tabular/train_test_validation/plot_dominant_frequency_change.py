@@ -52,12 +52,12 @@ test_ds.data.loc[test_ds.data.index / 3 > 8, 'sepal width (cm)'] = 2.7
 # =============
 
 check = DominantFrequencyChange()
-check.run(test_ds, train_ds)
+result = check.run(test_ds, train_ds)
 
 #%%
 # Define a Condition
 # ===================
 check = DominantFrequencyChange()
 check.add_condition_ratio_of_change_less_than(0.1)
-res = check.run(test_ds, train_ds)
-res.show(show_additional_outputs=False)
+result = check.run(test_ds, train_ds)
+result.show(show_additional_outputs=False)
