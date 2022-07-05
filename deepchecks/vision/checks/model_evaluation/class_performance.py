@@ -171,7 +171,7 @@ class ClassPerformance(TrainTestCheck):
 
         Parameters
         ----------
-        threshold : float
+        threshold : float , default: 0.1
             maximum degradation ratio allowed (value between 0 and 1)
         """
         condition = get_condition_train_test_relative_degradation_less_than(threshold=threshold)
@@ -188,9 +188,9 @@ class ClassPerformance(TrainTestCheck):
 
         Parameters
         ----------
-        threshold : float
+        threshold : float , default: 0.3
             ratio difference threshold
-        score : str
+        score : str , default: None
             limit score for condition
 
         Returns
@@ -201,7 +201,7 @@ class ClassPerformance(TrainTestCheck):
         Raises
         ------
         DeepchecksValueError
-            if unknown score function name were passed;
+            if unknown score function name were passed.
         """
         if score is None:
             raise DeepchecksValueError('Must define "score" parameter')

@@ -86,8 +86,6 @@ def validate_suite_result(
     for check_result in result.results:
         if isinstance(check_result, CheckResult) and check_result.have_conditions():
             for cond in check_result.conditions_results:
-                if cond.category == ConditionCategory.ERROR:
-                    print(check_result.check.name, cond.details)
                 assert_that(cond.category, any_of(ConditionCategory.PASS,
                                                   ConditionCategory.WARN,
                                                   ConditionCategory.FAIL,))
