@@ -13,8 +13,7 @@ from typing import Callable, Dict, Tuple, Union
 
 from sklearn import preprocessing
 
-from deepchecks.core import CheckFailure
-from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
+from deepchecks.core import CheckFailure, CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
 from deepchecks.tabular.utils.task_type import TaskType

@@ -78,9 +78,7 @@ def test_feature_feature_correlation_pass_condition(adult_no_split):
 def test_feature_feature_correlation_fail_condition(adult_no_split):
     threshold = 0.5
     num_pairs = 3
-    high_pairs = [('age', 'marital-status'), ('education-num', 'occupation'), ('edu'
-                                                                               ''
-                                                                               'cation', 'education-num'),
+    high_pairs = [('age', 'marital-status'), ('education-num', 'occupation'), ('education', 'education-num'),
                   ('marital-status', 'relationship')]
     check = FeatureFeatureCorrelation()
     result = check.add_condition_max_number_of_pairs_above_threshold(threshold, num_pairs).run(adult_no_split)

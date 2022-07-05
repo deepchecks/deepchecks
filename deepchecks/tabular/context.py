@@ -14,8 +14,7 @@ import typing as t
 import numpy as np
 import pandas as pd
 
-from deepchecks.core import CheckFailure, CheckResult
-from deepchecks.core import DatasetKind
+from deepchecks.core import CheckFailure, CheckResult, DatasetKind
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
                                     ModelValidationError)
 from deepchecks.tabular._shared_docs import docstrings

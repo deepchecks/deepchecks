@@ -39,7 +39,7 @@ def test_model_wrong_input(iris_labeled_dataset):
     bad_model = 'wrong_input'
     # Act & Assert
     assert_that(
-        calling(PerformanceReport().run).with_args(iris_labeled_dataset, iris_labeled_dataset,bad_model),
+        calling(PerformanceReport().run).with_args(iris_labeled_dataset, iris_labeled_dataset, bad_model),
         raises(
             ModelValidationError,
             r'Model supplied does not meets the minimal interface requirements. Read more about .*')
@@ -193,58 +193,62 @@ def test_classification_reduced_param(iris_split_dataset_and_model):
 def test_condition_min_score_not_passed(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
-    check = PerformanceReport().add_condition_test_performance_not_less_than(1)
+    check = PerformanceReport().add_condition_test_performance_greater_than(1)
     # Act X
     result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details=re.compile(r'Found metrics with scores below threshold:\n'),
-                               name='Scores are not less than 1')
+                               details='Found 9 scores below threshold.\nFound minimum score '
+                                       'for Recall metric of value 0.75 for class 2.',
+                               name='Scores are greater than 1')
     ))
 
 
 def test_condition_min_score_passed(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
-    check = PerformanceReport().add_condition_test_performance_not_less_than(0.5)
+    check = PerformanceReport().add_condition_test_performance_greater_than(0.5)
     # Act X
     result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='Scores are not less than 0.5')
+                               details='Found minimum score for Recall metric of value 0.75 for class 2.',
+                               name='Scores are greater than 0.5')
     ))
 
 
-def test_condition_degradation_ratio_not_greater_than_not_passed(iris_split_dataset_and_model):
+def test_condition_degradation_ratio_less_than_not_passed(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
-    check = PerformanceReport().add_condition_train_test_relative_degradation_not_greater_than(0)
+    check = PerformanceReport().add_condition_train_test_relative_degradation_less_than(0)
     # Act X
     result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details=re.compile(r'F1 for class 1 \(train=0.94 test=0.88\)'),
-                               name='Train-Test scores relative degradation is not greater than 0')
+                               details=r'7 scores failed. Found max degradation of 17.74% for metric Recall and class 2.',
+                               name='Train-Test scores relative degradation is less than 0')
     ))
 
-def test_condition_degradation_ratio_not_greater_than_passed(iris_split_dataset_and_model):
+
+def test_condition_degradation_ratio_less_than_passed(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
-    check = PerformanceReport().add_condition_train_test_relative_degradation_not_greater_than(1)
+    check = PerformanceReport().add_condition_train_test_relative_degradation_less_than(1)
     # Act X
     result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='Train-Test scores relative degradation is not greater than 1')
+                               details=r'Found max degradation of 17.74% for metric Recall and class 2.',
+                               name='Train-Test scores relative degradation is less than 1')
     ))
 
 
-def test_condition_class_performance_imbalance_ratio_not_greater_than_not_passed(iris_split_dataset_and_model):
-    # Arrange
+def test_condition_class_performance_imbalance_ratio_less_than_not_passed(iris_split_dataset_and_model):
+    # ArrangeF
     train, test, model = iris_split_dataset_and_model
     check = PerformanceReport().add_condition_class_performance_imbalance_ratio_less_than(0)
     # Act X
@@ -252,13 +256,13 @@ def test_condition_class_performance_imbalance_ratio_not_greater_than_not_passed
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details=re.compile('Test dataset\'s relative ratio difference between highest and '
-                                                  'lowest classes is 14.29%'),
+                               details=re.compile(
+                                   'Relative ratio difference between highest and lowest in Test dataset classes is 14.29%'),
                                name='Relative ratio difference between labels \'F1\' score is less than 0%')
     ))
 
 
-def test_condition_class_performance_imbalance_ratio_not_greater_than_passed(iris_split_dataset_and_model):
+def test_condition_class_performance_imbalance_ratio_less_than_passed(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
     check = PerformanceReport().add_condition_class_performance_imbalance_ratio_less_than(1)
@@ -267,7 +271,7 @@ def test_condition_class_performance_imbalance_ratio_not_greater_than_passed(iri
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               details=re.compile('Test dataset\'s relative ratio difference between highest and '
-                                                  'lowest classes is 14.29%'),
+                               details=re.compile(
+                                   'Relative ratio difference between highest and lowest in Test dataset classes is 14.29%'),
                                name='Relative ratio difference between labels \'F1\' score is less than 100%')
     ))
