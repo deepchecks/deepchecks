@@ -86,7 +86,7 @@ from deepchecks.vision.datasets.classification.mnist import \
     load_model as load_mnist_model
 
 mnist_model = load_mnist_model(pretrained=True)
-ClassPerformance().run(train_ds, test_ds, mnist_model)
+result = ClassPerformance().run(train_ds, test_ds, mnist_model)
 
 #%%
 # To display the results in an IDE like PyCharm, you can use the following code:
@@ -161,7 +161,7 @@ check.run(mod_train_ds, mod_test_ds)
 # distribution, such as the one that occurred here.
 
 check = TrainTestLabelDrift().add_condition_drift_score_less_than()
-check.run(mod_train_ds, mod_test_ds)
+result = check.run(mod_train_ds, mod_test_ds)
 
 # As we can see, the condition alerts us to the present of drift in the label.
 
@@ -175,7 +175,7 @@ check.run(mod_train_ds, mod_test_ds)
 # But how does this affect the performance of the model?
 # ------------------------------------------------------
 
-ClassPerformance().run(mod_train_ds, mod_test_ds, mnist_model)
+result = ClassPerformance().run(mod_train_ds, mod_test_ds, mnist_model)
 
 #%%
 # Inferring the results
@@ -194,7 +194,7 @@ test_ds = load_dataset(train=False, object_type='VisionData')
 #%%
 
 check = TrainTestLabelDrift()
-check.run(train_ds, test_ds)
+result = check.run(train_ds, test_ds)
 
 #%%
 # Label drift is detected!

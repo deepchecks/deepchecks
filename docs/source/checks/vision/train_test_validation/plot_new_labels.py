@@ -58,7 +58,7 @@ result.value
 #
 
 check = NewLabels().add_condition_new_label_ratio_less_or_equal(0.05)
-check.run(coco_train, coco_test)
+result = check.run(coco_train, coco_test)
 
 # %%
 # In this case the condition identified that a major portion of the test set labels do not appear in the training set.
