@@ -12,13 +12,13 @@
 # pylint: disable=super-init-not-called
 import base64
 import io
-from typing import Dict, List, Union
+from typing import Any, Dict, List, Union
 
 import jsonpickle
 import pandas as pd
 import plotly
 
-from deepchecks.core.check_result import CheckFailure, CheckResult
+from deepchecks.core.check_result import CheckFailure, CheckResult, DisplayMap
 from deepchecks.core.condition import Condition, ConditionCategory, ConditionResult
 from deepchecks.utils.html import imagetag
 
@@ -62,6 +62,7 @@ class CheckResultJson(CheckResult):
         self.check = FakeCheck(json_dict.get('check'))
 
         conditions_results_json = json_dict.get('conditions_results')
+
         if conditions_results_json is not None:
             self.conditions_results = []
             for condition in conditions_results_json:
@@ -70,33 +71,44 @@ class CheckResultJson(CheckResult):
                 self.conditions_results.append(cond_res)
         else:
             self.conditions_results = None
-        json_display = json_dict.get('display')
-        self.display = []
-        if json_display is not None:
-            for record in json_display:
-                display_type, payload = record['type'], record['payload']
-                if display_type == 'html':
-                    self.display.append(payload)
-                elif display_type == 'dataframe':
-                    df = pd.DataFrame.from_records(payload)
-                    self.display.append(df)
-                elif display_type == 'plotly':
-                    plotly_json = io.StringIO(payload)
-                    self.display.append(plotly.io.read_json(plotly_json))
-                elif display_type == 'plt':
-                    self.display.append((f'<img src=\'data:image/png;base64,{payload}\'>'))
-                elif display_type == 'images':
-                    assert isinstance(payload, list)
-                    self.display.extend(
-                        imagetag(base64.b64decode(it))
-                        for it in payload
-                    )
-                else:
-                    raise ValueError(f'Unexpected type of display received: {display_type}')
+
+        json_display = json_dict.get('display', [])
+        self.display = self._process_jsonified_display_items(json_display)
 
     def process_conditions(self) -> List[Condition]:
         """Conditions are already processed it is to prevent errors."""
         pass
+
+    @classmethod
+    def _process_jsonified_display_items(cls, display: List[Dict[str, Any]]) -> List[Any]:
+        assert isinstance(display, list)
+        output = []
+
+        for record in display:
+            display_type, payload = record['type'], record['payload']
+            if display_type == 'html':
+                output.append(payload)
+            elif display_type == 'dataframe':
+                df = pd.DataFrame.from_records(payload)
+                output.append(df)
+            elif display_type == 'plotly':
+                plotly_json = io.StringIO(payload)
+                output.append(plotly.io.read_json(plotly_json))
+            elif display_type == 'plt':
+                output.append((f'<img src=\'data:image/png;base64,{payload}\'>'))
+            elif display_type == 'images':
+                assert isinstance(payload, list)
+                output.extend(imagetag(base64.b64decode(it)) for it in payload)
+            elif display_type == 'displaymap':
+                assert isinstance(payload, dict)
+                output.append(DisplayMap(**{
+                    k: cls._process_jsonified_display_items(v)
+                    for k, v in payload.items()
+                }))
+            else:
+                raise ValueError(f'Unexpected type of display received: {display_type}')
+
+        return output
 
 
 class CheckFailureJson(CheckFailure):

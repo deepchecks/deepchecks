@@ -54,7 +54,7 @@ def model_error_contribution(train_dataset: pd.DataFrame,
         raise DeepchecksProcessError(f'Unable to train meaningful error model '
                                      f'(r^2 score: {format_number(error_model_score)})')
     error_fi, _ = calculate_feature_importance(error_model,
-                                               Dataset(test_dataset, test_scores),
+                                               Dataset(test_dataset, test_scores, cat_features=categorical_features),
                                                permutation_kwargs={'random_state': random_state,
                                                                    'skip_messages': True})
     error_fi.index = new_feature_order
@@ -238,7 +238,7 @@ def error_model_display(error_fi: pd.Series,
             ).fit(data[[feature]], data[error_col_name])
 
             if len(tree_partitioner.tree_.threshold) > 1:
-                threshold = tree_partitioner.tree_.threshold[0]
+                threshold = tree_partitioner.tree_.threshold[0]  # pylint: disable=unsubscriptable-object
                 color_col = data[feature].ge(threshold)
 
                 sampled_dataset = dataset.data.iloc[sampling_idx]
@@ -251,7 +251,7 @@ def error_model_display(error_fi: pd.Series,
                     segment1_ok = segment1_details['score'] >= segment2_details['score']
                     color_col = color_col.replace([True, False], [segment1_text, segment2_text])
                 else:
-                    # If there is not scorer, we use the error calculation to describe the segments
+                    # If there is no scorer, we use the error calculation to describe the segments
                     # Colors are flipped, because lower error is better
                     segment1_text, segment1_details = get_segment_details_using_error(error_col_name, data, ~color_col)
                     segment2_text, segment2_details = get_segment_details_using_error(error_col_name, data, color_col)

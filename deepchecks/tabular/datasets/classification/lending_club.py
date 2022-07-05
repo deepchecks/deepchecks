@@ -10,6 +10,7 @@
 #
 """The data set contains features for binary prediction of whether a loan will be approved or not."""
 import typing as t
+import warnings
 from urllib.request import urlopen
 
 import joblib
@@ -18,6 +19,11 @@ import pandas as pd
 import sklearn
 from category_encoders import OrdinalEncoder
 from sklearn.compose import ColumnTransformer
+
+with warnings.catch_warnings():
+    warnings.simplefilter('ignore')
+    from sklearn.experimental import enable_hist_gradient_boosting  # noqa # pylint: disable=unused-import
+
 from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.pipeline import Pipeline
 

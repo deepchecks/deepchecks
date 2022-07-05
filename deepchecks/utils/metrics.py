@@ -16,6 +16,7 @@ import typing as t
 from numbers import Number
 
 import numpy as np
+import pandas as pd
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.metrics import f1_score, get_scorer, make_scorer, precision_score, recall_score
 
@@ -108,6 +109,10 @@ class DeepcheckScorer:
         """Return data of dataset without null labels."""
         valid_idx = dataset.data[dataset.label_name].notna()
         return dataset.copy(dataset.data[valid_idx])
+
+    def run_on_data_and_label(self, model, data: pd.DataFrame, label_col):
+        """Run scorer with model, data and labels without null filtering."""
+        return self.scorer(model, data, label_col)
 
     def _run_score(self, model, dataset: 'tabular.Dataset'):
         return self.scorer(model, dataset.features_columns, dataset.label_col)
