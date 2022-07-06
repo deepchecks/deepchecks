@@ -13,6 +13,7 @@
 import abc
 import enum
 from collections import OrderedDict
+import importlib
 from typing import Any, Callable, ClassVar, Dict, List, Optional, Type, Union
 
 from typing_extensions import TypedDict
@@ -43,6 +44,12 @@ class CheckMetadata(TypedDict):
     name: str
     params: Dict[Any, Any]
     summary: str
+
+
+class CheckConfig(TypedDict):
+    class_name: str
+    module_name: Optional[str]
+    params: Dict[Any, Any]
 
 
 class ReduceMixin(abc.ABC):
@@ -159,6 +166,62 @@ class BaseCheck(abc.ABC):
             params=self.params(show_defaults=True),
             summary=get_docs_summary(self, with_doc_link)
         )
+
+    def config(self, with_module=True) -> CheckConfig:
+        """Return check config (conditions' config not yet supported).
+
+        Parameters
+        ----------
+        with_module : bool, default True
+            whethere to include the module path or not
+
+        Returns
+        -------
+        CheckConfig
+            includes the checks class name, params, and module if with_module was True
+        """
+        module_name = self.__module__
+        if module_name.startswith('deepchecks.'):
+            module_name = 'deepchecks.' + module_name.split('.')[1]
+        conf = CheckConfig(
+            class_name=self.__class__.__name__,
+            params=self.params(show_defaults=True),
+        )
+        if with_module:
+            conf['module_name'] = module_name
+        return conf
+
+    @staticmethod
+    def from_config(conf: CheckConfig, module_name: str = None) -> 'BaseCheck':
+        """Return check object from a CheckConfig object.
+
+        Parameters
+        ----------
+        conf : CheckConfig
+            the CheckConfig object
+        module_name: str , default: None
+            if the CheckConfig doesn't include the module name will use this name.
+
+        Returns
+        -------
+        BaseCheck
+            the check class object from given config
+
+        Raises
+        ------
+        DeepchecksValueError
+            if the CheckConfig doesn't include the module name and module_name is None.
+        """
+        module_name = conf.get('module_name', module_name)
+        if module_name is None:
+            raise DeepchecksValueError(
+                'Check Config must include module name or it should be passed to the function.')
+        is_deepchecks = module_name.startswith('deepchecks.')
+        if is_deepchecks:
+            module_name += '.checks'
+        module = importlib.import_module(module_name)
+        return getattr(module, conf['class_name'])(**conf['params'])
+
 
     def __repr__(self, tabs=0, prefix=''):
         """Representation of check as string.
