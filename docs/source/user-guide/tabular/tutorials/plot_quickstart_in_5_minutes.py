@@ -2,8 +2,8 @@
 """
 .. _quick_full_suite:
 
-Quickstart in 5 minutes
-***********************
+Quickstart - Full Suite in 5 Minutes
+************************************
 
 In order to run your first Deepchecks Suite all you need to have is the data
 and model that you wish to validate. More specifically, you need:

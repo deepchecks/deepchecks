@@ -2,8 +2,8 @@
 """
 .. _quick_train_test_validation:
 
-Quickstart - Train-Test Validation Suite (Loans Data)
-************************************************************
+Quickstart - Train-Test Validation Suite
+****************************************
 
 The deepchecks train-test validation suite is relevant any time you wish to 
 validate two data subsets. For example:
@@ -12,16 +12,18 @@ validate two data subsets. For example:
   training a model or when splitting data for cross-validation)
 - Comparing a new data batch to previous data batches
 
-Here we'll use a loans dataset 
+Here we'll use a loans' dataset
 (:mod:`deepchecks.tabular.datasets.classification.lending_club`),
 to demonstrate how you can run the suite with only a few simple lines of code, 
 and see which kind of insights it can find.
 
 .. code-block:: bash
 
-    # Before we start, if you don't have deepchecks installed yet,
-    # make sure to run:
-    pip install deepchecks -U --quiet #--user
+    # Before we start, if you don't have deepchecks installed yet, run:
+    import sys
+    !{sys.executable} -m pip install deepchecks -U --quiet
+
+    # or install using pip from your python environment
 """
 
 #%%
@@ -79,19 +81,12 @@ datetime_name = 'issue_d'
 # Create Dataset
 # ^^^^^^^^^^^^^^^^^^^^^^^^
 
-
 from deepchecks.tabular import Dataset
 
-# We state the categorical features,
-# otherwise they will be automatically inferred,
-# which may be less accurate, therefore stating
-# them explicitly is recommended.
+# Categorical features can be heuristically inferred, however we
+# recommend to state them explicitly to avoid misclassification.
 
-# The label can be passed as a column name or
-# as a separate pd.Series / pd.DataFrame
-
-# all metadata attributes are optional.
-# Some checks require specific attributes and otherwise will not run.
+# Metadata attributes are optional. Some checks will run only if specific attributes are declared.
 
 train_ds = Dataset(train_df, label=label,cat_features=categorical_features, \
                    index_name=index_name, datetime_name=datetime_name)

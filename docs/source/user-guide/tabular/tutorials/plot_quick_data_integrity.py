@@ -2,8 +2,8 @@
 """
 .. _quick_data_integrity:
 
-Quickstart - Data Integrity Suite (Avocado Sales Data)
-*******************************************************
+Quickstart - Data Integrity Suite
+*********************************
 
 The deepchecks integrity suite is relevant any time you have data that you wish to validate:
 whether it's on a fresh batch of data, or right before splitting it or using it for training. 
@@ -13,9 +13,11 @@ and see which kind of insights it can find.
 
 .. code-block:: bash
 
-    # Before we start, if you don't have deepchecks installed yet,
-    # make sure to run:
-    pip install deepchecks -U --quiet #--user
+    # Before we start, if you don't have deepchecks installed yet, run:
+    import sys
+    !{sys.executable} -m pip install deepchecks -U --quiet
+
+    # or install using pip from your python environment
 """
 
 #%%
@@ -49,7 +51,7 @@ dirty_df = add_dirty_data(data)
 # Run Deepchecks for Data Integrity
 # ====================================
 #
-# Define a Dataset Object
+# Create a Dataset Object
 # ------------------------
 #
 # Create a deepchecks Dataset, including the relevant metadata (label, date, index, etc.).
@@ -58,12 +60,12 @@ dirty_df = add_dirty_data(data)
 
 from deepchecks.tabular import Dataset
 
-# We state the categorical features, otherwise they will be automatically inferred,
-# which may be less accurate, therefore stating them explicitly is recommended.
+# Categorical features can be heuristically inferred, however we
+# recommend to state them explicitly to avoid misclassification.
 
-# The label can be passed as a column name or a separate pd.Series / pd.DataFrame
+# Metadata attributes are optional. Some checks will run only if specific attributes are declared.
 
-ds = Dataset(dirty_df, cat_features = ['type'], datetime_name='Date', label = 'AveragePrice')
+ds = Dataset(dirty_df, cat_features= ['type'], datetime_name='Date', label= 'AveragePrice')
 
 #%%
 # Run the Deepchecks Suite
@@ -128,7 +130,7 @@ dirty_df.drop_duplicates(inplace=True)
 dirty_df.drop('Is Ripe', axis=1, inplace=True)
 ds = Dataset(dirty_df, cat_features=['type'], datetime_name='Date', label='AveragePrice')
 result = DataDuplicates().add_condition_ratio_less_or_equal(0).run(ds)
-result
+result.show()
 
 #%%
 # Rerun Suite on the Fixed Dataset
@@ -159,4 +161,4 @@ res = integ_suite.run(ds)
 # Additional Outputs section*
 #
 # For more info about working with conditions, see the detailed
-# :doc:`/user-guide/general/customizations/examples/plot_configure_checks_conditions` guide.
+# :doc:`/user-guide/general/customizations/examples/plot_configure_check_conditions` guide.
