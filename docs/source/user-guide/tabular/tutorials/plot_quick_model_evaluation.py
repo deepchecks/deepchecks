@@ -94,7 +94,7 @@ suite_result.show()
 # Analyzing the results
 # --------------------------
 #
-# The result showcase a number of interesting insights, first we inspect the "Didn't Pass" section.
+# The result showcase a number of interesting insights, first let's inspect the "Didn't Pass" section.
 #
 # * :doc:`/checks_gallery/tabular/model_evaluation/plot_performance_report`
 #   check result implies that the model overfitted the training data.
@@ -105,7 +105,7 @@ suite_result.show()
 #   model performs poorly. Examples for those sub-spaces are
 #   wines with low total sulfur dioxide and wines with high alcohol percentage.
 #
-# Next, we examine the "Passed" section.
+# Next, let's examine the "Passed" section.
 #
 # * :doc:`/checks_gallery/tabular/model_evaluation/plot_simple_model_comparison` check result states that the model
 #   performs better than naive baseline models, an opposite result could indicate a problem with the model
@@ -116,15 +116,17 @@ suite_result.show()
 #
 # Let's try and fix the overfitting issue found in the model.
 #
-# Fix the Model and Re-run Check
-# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+# Fix the Model and Re-run a Single Check
+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 from deepchecks.tabular.checks import PerformanceReport
 
 gbr = GradientBoostingRegressor(n_estimators=20)
 gbr.fit(X_train, y_train)
+# Initialize the check and add an optional condition
 check = PerformanceReport().add_condition_train_test_relative_degradation_less_than(0.3)
-check.run(train_ds, test_ds, gbr)
+result = check.run(train_ds, test_ds, gbr)
+result.show()
 
 #%%
 #
