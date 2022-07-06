@@ -200,6 +200,7 @@ class SuiteResult(DisplayableResult):
         as_widget: bool = True,
         requirejs: bool = True,
         unique_id: Optional[str] = None,
+        connected: bool = False,
         **kwargs
     ):
         """Save output as html file.
@@ -214,6 +215,9 @@ class SuiteResult(DisplayableResult):
             whether to include requirejs library into output HTML or not
         unique_id : Optional[str], default None
             unique identifier of the result output
+        connected: bool , default False
+            whether to use CDN to load javascript or to inject it directly into html
+
 
         Returns
         -------
@@ -223,6 +227,7 @@ class SuiteResult(DisplayableResult):
         return save_as_html(
             file=file,
             serializer=self.widget_serializer if as_widget else self.html_serializer,
+            connected=connected,
             # next kwargs will be passed to the serializer.serialize method
             requirejs=requirejs,
             output_id=unique_id or get_random_string(n=25),

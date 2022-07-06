@@ -83,7 +83,9 @@ class DisplayableResult(abc.ABC):
             html = widget_to_html_string(  # pylint: disable=redefined-outer-name
                 self.widget_serializer.serialize(output_id=unique_id, **kwargs),
                 title=get_result_name(self),
-                requirejs=True
+                requirejs=False,
+                connected=True,
+                full_html=False,
             )
 
             class TempSphinx:
@@ -133,13 +135,13 @@ class DisplayableResult(abc.ABC):
 
         if is_colab_env() and as_widget is True:
             widget = self.widget_serializer.serialize(**kwargs)
-            content = widget_to_html_string(widget, title=get_result_name(self))
+            content = widget_to_html_string(widget, title=get_result_name(self), connected=True)
             display_html(content, raw=True)
         elif is_colab_env() and as_widget is False:
             display(*self.ipython_serializer.serialize(**kwargs))
         elif as_widget is True:
             widget = self.widget_serializer.serialize(output_id=output_id, is_for_iframe_with_srcdoc=True, **kwargs)
-            content = widget_to_html_string(widget, title=get_result_name(self))
+            content = widget_to_html_string(widget, title=get_result_name(self), connected=False)
             display_html(iframe(srcdoc=content), raw=True)
         else:
             display_html(
@@ -315,7 +317,7 @@ def save_as_html(
         if isinstance(file, str):
             with open(file, 'w', encoding='utf-8') as f:
                 f.write(html)
-        elif isinstance(file, io.StringIO):
+        elif isinstance(file, io.TextIOWrapper):
             file.write(html)
         else:
             raise TypeError(f'Unsupported type of "file" parameter - {type(file)}')

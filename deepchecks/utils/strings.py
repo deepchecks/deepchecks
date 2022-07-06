@@ -32,7 +32,7 @@ from pandas.core.dtypes.common import is_numeric_dtype
 
 import deepchecks
 from deepchecks import core
-from deepchecks.core.resources import requirejs_script, suite_template, widgets_script
+from deepchecks.core.resources import requirejs_script, suite_template, widgets_script, jupyterlab_plotly_script
 from deepchecks.utils.typing import Hashable
 
 __all__ = [
@@ -112,10 +112,11 @@ def get_docs_summary(obj, with_doc_link: bool = True):
 
 def widget_to_html(
     widget: Widget,
-    html_out: t.Union[str, t.TextIO],
+    html_out: t.Union[str, io.TextIOWrapper],
     title: str = '',
     requirejs: bool = True,
-    connected: bool = True
+    connected: bool = True,
+    full_html: bool = True
 ):
     """Save widget as html file.
 
@@ -128,15 +129,17 @@ def widget_to_html(
     title: str , default: None
         The title of the html file.
     requirejs: bool , default: True
-        If to save with all javascript dependencies
+        If to save with all javascript dependencies.
     connected : bool, default True
         whether to use CDN or not
+    full_html: bool, default True
+        whether to return full html page or not
     """
     state = dependency_state(widget)
     data = embed_data(views=[widget], drop_defaults=True, state=state)
 
     snippet = snippet_template.format(
-        load='',  # will be added later
+        load='',  # will be added below
         json_data=escape_script(json.dumps(data['manager_state'])),
         widget_views='\n'.join(
             widget_view_template.format(view_spec=escape_script(json.dumps(view_spec)))
@@ -144,18 +147,21 @@ def widget_to_html(
         )
     )
 
-    template = suite_template()
+    template = suite_template(full_html=full_html)
     html = template.replace('$Title', title).replace('$WidgetSnippet', snippet)
 
+    # if connected is True widgets js library will load jupyterlab-plotly by itself
+    jupyterlab_plotly_lib = jupyterlab_plotly_script(False) if connected is False else ''
+    
     requirejs_lib = requirejs_script(connected) if requirejs else ''
     widgetsjs_lib = widgets_script(connected, amd_module=requirejs)
-    tags = f'{requirejs_lib}{widgetsjs_lib}'
+    tags = f'{requirejs_lib}{jupyterlab_plotly_lib}{widgetsjs_lib}'
     html = html.replace('$WidgetJavascript', tags)
 
     if isinstance(html_out, str):
         with open(html_out, 'w', encoding='utf-8') as f:
             f.write(html)
-    elif isinstance(html_out, t.TextIO):
+    elif isinstance(html_out, (io.TextIOBase, io.TextIOWrapper)):
         html_out.write(html)
     else:
         name = type(html_out).__name__
@@ -166,7 +172,8 @@ def widget_to_html_string(
     widget: Widget,
     title: str = '',
     requirejs: bool = True,
-    connected: bool = False
+    connected: bool = True,
+    full_html: bool = True,
 ) -> str:
     """Transform widget into html string.
 
@@ -180,6 +187,8 @@ def widget_to_html_string(
         If to save with all javascript dependencies
     connected : bool, default True
         whether to use CDN or not
+    full_html: bool, default True
+        whether to return full html page or not
 
     Returns
     -------
@@ -191,7 +200,8 @@ def widget_to_html_string(
         html_out=buffer,
         title=title,
         requirejs=requirejs,
-        connected=connected
+        connected=connected,
+        full_html=full_html
     )
     buffer.seek(0)
     return buffer.getvalue()
