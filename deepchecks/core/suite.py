@@ -496,7 +496,7 @@ class BaseSuite:
         if module_name.startswith('deepchecks.'):
             module_name = 'deepchecks.' + module_name.split('.')[1]
         meta_data = SuiteConfig(name=self.name, checks=[],
-                                module_name=module_name)    
+                                module_name=module_name)
         for check in self.checks.values():
             meta_data['checks'].append(check.config(with_module=with_check_module))
         return meta_data

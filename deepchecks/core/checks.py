@@ -222,7 +222,6 @@ class BaseCheck(abc.ABC):
         module = importlib.import_module(module_name)
         return getattr(module, conf['class_name'])(**conf['params'])
 
-
     def __repr__(self, tabs=0, prefix=''):
         """Representation of check as string.
 
