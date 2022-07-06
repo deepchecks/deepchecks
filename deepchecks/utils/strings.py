@@ -32,7 +32,7 @@ from pandas.core.dtypes.common import is_numeric_dtype
 
 import deepchecks
 from deepchecks import core
-from deepchecks.core.resources import requirejs_script, suite_template, widgets_script, jupyterlab_plotly_script
+from deepchecks.core.resources import jupyterlab_plotly_script, requirejs_script, suite_template, widgets_script
 from deepchecks.utils.typing import Hashable
 
 __all__ = [
@@ -152,7 +152,7 @@ def widget_to_html(
 
     # if connected is True widgets js library will load jupyterlab-plotly by itself
     jupyterlab_plotly_lib = jupyterlab_plotly_script(False) if connected is False else ''
-    
+
     requirejs_lib = requirejs_script(connected) if requirejs else ''
     widgetsjs_lib = widgets_script(connected, amd_module=requirejs)
     tags = f'{requirejs_lib}{jupyterlab_plotly_lib}{widgetsjs_lib}'
