@@ -17,6 +17,7 @@ from numbers import Number
 from secrets import choice
 
 import numpy as np
+import pandas as pd
 
 from deepchecks import CheckResult
 from deepchecks.core import DatasetKind
@@ -178,12 +179,15 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         # Create display
         if context.with_display:
             display = []
+            no_outliers = pd.Series([])
             for property_name, info in result.items():
                 # If info is string it means there was error
                 if isinstance(info, str):
-                    html = NO_IMAGES_TEMPLATE.format(prop_name=property_name, message=info)
+                    no_outliers = pd.concat([no_outliers, pd.Series(property_name, index=[info])])
+                    # html = NO_IMAGES_TEMPLATE.format(prop_name=property_name, message=info)
                 elif len(info['indices']) == 0:
-                    html = NO_IMAGES_TEMPLATE.format(prop_name=property_name, message='No outliers found.')
+                    no_outliers = pd.concat([no_outliers, pd.Series(property_name, index=['No outliers found.'])])
+                    # html = NO_IMAGES_TEMPLATE.format(prop_name=property_name, message='No outliers found.')
                 else:
                     # Create id of alphabetic characters
                     sid = ''.join([choice(string.ascii_uppercase) for _ in range(6)])
@@ -203,8 +207,12 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
                         id=sid
                     )
 
-                display.append(html)
-            display = ''.join(display)
+                    display.append(html)
+            grouped = no_outliers.groupby(level=0).unique().apply(lambda x: ',\n'.join(x))
+            grouped_df = pd.DataFrame(grouped, columns=['properties'])
+            grouped_df.index.name = 'info'
+            display.append(grouped_df)
+            # display = ''.join(display)
         else:
             display = None
 
