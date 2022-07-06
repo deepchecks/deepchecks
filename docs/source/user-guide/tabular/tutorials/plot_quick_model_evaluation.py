@@ -116,8 +116,8 @@ suite_result.show()
 #
 # Let us try and fix the overfitting issue found in the model.
 #
-# Fix the Model and Re-run the Model Evaluation Suite
-# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+# Fix the Model and Re-run Check
+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 from deepchecks.tabular.checks import PerformanceReport
 
