@@ -85,7 +85,7 @@ integ_suite = data_integrity()
 suite_result = integ_suite.run(ds)
 # Note: the result can be saved as html using suite_result.save_as_html()
 # or exported to json using suite_result.to_json()
-suite_result
+suite_result.show()
 
 #%%
 # We can inspect the suite outputs and see that there are a few problems we'd like to fix.
@@ -107,7 +107,7 @@ IsSingleValue().run(ds)
 # we can also add a condition:
 single_value_with_condition = IsSingleValue().add_condition_not_single_value()
 result = single_value_with_condition.run(ds)
-result
+result.show()
 
 #%%
 
@@ -120,7 +120,7 @@ result.value
 
 ds.data.drop('Is Ripe', axis=1, inplace=True)
 result = single_value_with_condition.run(ds)
-result
+result.show()
 
 #%%
 

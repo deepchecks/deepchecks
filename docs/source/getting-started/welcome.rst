@@ -58,8 +58,6 @@ Head over to one of our following quickstart tutorials, and have deepchecks runn
 
 - :doc:`Model Evaluation Quickstart </user-guide/tabular/auto_tutorials/plot_quick_model_evaluation>`
 
-- :doc:`Full Suite (many checks) Quickstart </user-guide/tabular/auto_tutorials/plot_quickstart_in_5_minutes>`
-
  **Recommended - download the code and run it locally** on the built-in dataset and (optional) model, or **replace them with your own**.
 
 

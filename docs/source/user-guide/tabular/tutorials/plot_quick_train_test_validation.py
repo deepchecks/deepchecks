@@ -147,7 +147,7 @@ test_ds = Dataset(test_df, **columns_metadata)
 #
 
 suite_result = validation_suite.run(train_ds, test_ds)
-suite_result
+suite_result.show()
 
 #%%
 #
@@ -219,4 +219,4 @@ TrainTestPredictionDrift()
 # we can run our new suite using:
 
 result = drift_suite.run(train_ds, test_ds)
-result
+result.show()

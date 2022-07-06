@@ -8,6 +8,7 @@ This notebooks provides an overview for using and understanding the weak segment
 **Structure:**
 
 * `What is the purpose of the check? <#what-is-the-purpose-of-the-check>`__
+* `Automatically detecting weak segments <#automatically-detecting-weak-segments>`__
 * `Generate data & model <#generate-data-model>`__
 * `Run the check <#run-the-check>`__
 * `Define a condition <#define-a-condition>`__
@@ -19,8 +20,8 @@ The check is designed to help you easily identify the model's weakest segments i
 it enables to provide a sublist of the Dataset's features, thus limiting the check to search in
 interesting subspaces.
 
-How Deepchecks automatically detects weak segments
---------------------------------------------------
+Automatically detecting weak segments
+=====================================
 
 The check contains several steps:
 
