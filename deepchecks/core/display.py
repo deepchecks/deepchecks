@@ -270,6 +270,7 @@ def save_as_html(
     serializer: t.Union[HtmlSerializer[T], WidgetSerializer[T]],
     file: t.Union[str, io.TextIOWrapper, None] = None,
     requirejs: bool = True,
+    connected: bool = False,
     **kwargs
 ) -> t.Optional[str]:
     """Save a result to an HTML file.
@@ -282,6 +283,8 @@ def save_as_html(
         The file to write the HTML output to. If None writes to output.html
     requirejs: bool , default: True
         whether to include requirejs library into output HTML or not
+    connected: bool , default False
+        whether to use CDN to load javascript or to inject it directly into html
 
     Returns
     -------
@@ -298,13 +301,15 @@ def save_as_html(
             serializer.serialize(**kwargs),
             html_out=file,
             title=get_result_name(serializer.value),
-            requirejs=requirejs
+            requirejs=requirejs,
+            connected=connected,
         )
     elif isinstance(serializer, HtmlSerializer):
         html = serializer.serialize(  # pylint: disable=redefined-outer-name
             full_html=True,
             include_requirejs=requirejs,
             include_plotlyjs=True,
+            connected=connected,
             **kwargs
         )
         if isinstance(file, str):

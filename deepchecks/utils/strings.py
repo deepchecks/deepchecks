@@ -11,6 +11,7 @@
 """String functions."""
 import io
 import itertools
+import json
 import os
 import random
 import re
@@ -25,19 +26,14 @@ from string import ascii_uppercase, digits
 import numpy as np
 import pandas as pd
 from ipywidgets import Widget
-from ipywidgets.embed import dependency_state, embed_minimal_html
+from ipywidgets.embed import dependency_state, embed_data, escape_script, snippet_template, widget_view_template
 from packaging.version import Version
 from pandas.core.dtypes.common import is_numeric_dtype
 
 import deepchecks
 from deepchecks import core
+from deepchecks.core.resources import requirejs_script, suite_template, widgets_script
 from deepchecks.utils.typing import Hashable
-
-try:
-    from importlib.resources import files
-except ImportError:
-    from importlib_resources import files
-
 
 __all__ = [
     'string_baseform',
@@ -117,8 +113,9 @@ def get_docs_summary(obj, with_doc_link: bool = True):
 def widget_to_html(
     widget: Widget,
     html_out: t.Union[str, t.TextIO],
-    title: t.Optional[str] = None,
-    requirejs: bool = True
+    title: str = '',
+    requirejs: bool = True,
+    connected: bool = True
 ):
     """Save widget as html file.
 
@@ -132,24 +129,44 @@ def widget_to_html(
         The title of the html file.
     requirejs: bool , default: True
         If to save with all javascript dependencies
+    connected : bool, default True
+        whether to use CDN or not
     """
-    my_resources = files('deepchecks.core')
-    with open(os.path.join(my_resources, 'resources', 'suite_output.html'), 'r', encoding='utf8') as html_file:
-        html_formatted = re.sub('{', '{{', html_file.read())
-        html_formatted = re.sub('}', '}}', html_formatted)
-        html_formatted = re.sub('html_title', '{title}', html_formatted)
-        html_formatted = re.sub('widget_snippet', '{snippet}', html_formatted)
-        embed_url = None if requirejs else ''
-        embed_minimal_html(html_out, views=[widget], title=title or '',
-                           template=html_formatted,
-                           requirejs=requirejs, embed_url=embed_url,
-                           state=dependency_state(widget))
+    state = dependency_state(widget)
+    data = embed_data(views=[widget], drop_defaults=True, state=state)
+
+    snippet = snippet_template.format(
+        load='',  # will be added later
+        json_data=escape_script(json.dumps(data['manager_state'])),
+        widget_views='\n'.join(
+            widget_view_template.format(view_spec=escape_script(json.dumps(view_spec)))
+            for view_spec in data['view_specs']
+        )
+    )
+
+    template = suite_template()
+    html = template.replace('$Title', title).replace('$WidgetSnippet', snippet)
+
+    requirejs_lib = requirejs_script(connected) if requirejs else ''
+    widgetsjs_lib = widgets_script(connected, amd_module=requirejs)
+    tags = f'{requirejs_lib}{widgetsjs_lib}'
+    html = html.replace('$WidgetJavascript', tags)
+
+    if isinstance(html_out, str):
+        with open(html_out, 'w', encoding='utf-8') as f:
+            f.write(html)
+    elif isinstance(html_out, t.TextIO):
+        html_out.write(html)
+    else:
+        name = type(html_out).__name__
+        raise TypeError(f'Unsupported type of "html_out" parameter - {name}')
 
 
 def widget_to_html_string(
     widget: Widget,
-    title: t.Optional[str] = None,
-    requirejs: bool = True
+    title: str = '',
+    requirejs: bool = True,
+    connected: bool = False
 ) -> str:
     """Transform widget into html string.
 
@@ -157,17 +174,25 @@ def widget_to_html_string(
     ----------
     widget: Widget
         The widget to save as html.
-    title: str , default: None
+    title: str
         The title of the html file.
     requirejs: bool , default: True
         If to save with all javascript dependencies
+    connected : bool, default True
+        whether to use CDN or not
 
     Returns
     -------
     str
     """
     buffer = io.StringIO()
-    widget_to_html(widget, buffer, title, requirejs)
+    widget_to_html(
+        widget=widget,
+        html_out=buffer,
+        title=title,
+        requirejs=requirejs,
+        connected=connected
+    )
     buffer.seek(0)
     return buffer.getvalue()
 
