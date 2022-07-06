@@ -184,10 +184,8 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
                 # If info is string it means there was error
                 if isinstance(info, str):
                     no_outliers = pd.concat([no_outliers, pd.Series(property_name, index=[info])])
-                    # html = NO_IMAGES_TEMPLATE.format(prop_name=property_name, message=info)
                 elif len(info['indices']) == 0:
                     no_outliers = pd.concat([no_outliers, pd.Series(property_name, index=['No outliers found.'])])
-                    # html = NO_IMAGES_TEMPLATE.format(prop_name=property_name, message='No outliers found.')
                 else:
                     # Create id of alphabetic characters
                     sid = ''.join([choice(string.ascii_uppercase) for _ in range(6)])
@@ -213,9 +211,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
             grouped_df['Reason'] = grouped_df.index
             grouped_df = grouped_df[['Reason', 'Properties']]
             display.append('<h5><b>Properties Without Outliers</h5></b>')
-            # display.append(grouped_df.to_html(columns=['Reason', 'Properties'], justify='start', index=False))
             display.append(grouped_df.style.hide_index())
-            # display = ''.join(display)
         else:
             display = None
 
