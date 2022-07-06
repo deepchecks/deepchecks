@@ -208,10 +208,10 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
                     )
 
                     display.append(html)
-            grouped = no_outliers.groupby(level=0).unique().apply(lambda x: ',\n'.join(x))
-            grouped_df = pd.DataFrame(grouped, columns=['properties'])
-            grouped_df.index.name = 'info'
-            display.append(grouped_df)
+            grouped = no_outliers.groupby(level=0).unique().str.join(', ')
+            grouped_df = pd.DataFrame(grouped, columns=['Properties'])
+            grouped_df['Reason'] = grouped_df.index
+            display.append(grouped_df.to_html(columns=['Reason', 'Properties'], index=False))
             # display = ''.join(display)
         else:
             display = None
