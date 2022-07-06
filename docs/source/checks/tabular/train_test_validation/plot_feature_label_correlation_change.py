@@ -76,20 +76,19 @@ The process of calculating the PPS is the following:
 # 1. Extract from the data only the label and the feature being tested
 # 2. Drop samples with missing values
 # 3. Keep 5000 (this is configurable parameter) samples from the data
-# 4. Preprocess categorical columns. For the label using ``sklearn.LabelEncoder``
-#   and for the feature using ``sklearn.OneHotEncoder``
+# 4. Preprocess categorical columns. For the label using ``sklearn.LabelEncoder`` and for the feature using ``sklearn.OneHotEncoder``
 # 5. Partition the data with 4-fold cross-validation
 # 6. Train decision tree
 # 7. Compare the trained model's performance with naive model's performance as follows:
 #
-#   Regression: The naive model always predicts the median of the label column,
-#   the metric being used is MAE and the PPS calculation is: :math:`1 - \frac{\text{MAE model}}{\text{MAE naive}}`
-#   Classification: The naive model always predicts the most common class of
-#   the label column, The metric being used is F1 and the PPS calculation is:
-#   :math:`\frac{\text{F1 model} - \text{F1 naive}}{1 - \text{F1 naive}}`
+# Regression: The naive model always predicts the median of the label column,
+# the metric being used is MAE and the PPS calculation is: :math:`1 - \frac{\text{MAE model}}{\text{MAE naive}}`
+# Classification: The naive model always predicts the most common class of
+# the label column, The metric being used is F1 and the PPS calculation is:
+# :math:`\frac{\text{F1 model} - \text{F1 naive}}{1 - \text{F1 naive}}`
 #
-# Note: all the PPS parameters can be changed by passing to the check the
-# parameter ``ppscore_params``*
+# * Note: all the PPS parameters can be changed by passing to the check the
+# parameter ``ppscore_params``. *
 #
 # For further information about PPS you can visit the `ppscore github
 # <https://github.com/8080labs/ppscore>`__ or the following blog post: `RIP correlation.
