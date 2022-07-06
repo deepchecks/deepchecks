@@ -12,8 +12,8 @@
 # pylint: disable=broad-except
 import abc
 import enum
-from collections import OrderedDict
 import importlib
+from collections import OrderedDict
 from typing import Any, Callable, ClassVar, Dict, List, Optional, Type, Union
 
 from typing_extensions import TypedDict
