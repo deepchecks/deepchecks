@@ -15,10 +15,11 @@ import importlib
 import io
 import warnings
 from collections import OrderedDict
-from typing import List, Optional, Sequence, Set, Tuple, Type, TypedDict, Union, cast
+from typing import List, Optional, Sequence, Set, Tuple, Type, Union, cast
 
 import jsonpickle
 from ipywidgets import Widget
+from typing_extensions import TypedDict
 
 from deepchecks.core import check_result as check_types
 from deepchecks.core.checks import BaseCheck, CheckMetadata
