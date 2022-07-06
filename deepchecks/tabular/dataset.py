@@ -455,6 +455,7 @@ class Dataset:
             Random state.
         drop_na_label : bool, default: False
             Whether to take sample only from rows with exiting label.
+
         Returns
         -------
         Dataset

@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module of model error analysis check."""
+import warnings
 from typing import Callable, Dict, Tuple, Union
 
 from sklearn import preprocessing
@@ -26,6 +27,10 @@ __all__ = ['ModelErrorAnalysis']
 
 class ModelErrorAnalysis(TrainTestCheck):
     """Find features that best split the data into segments of high and low model error.
+
+    .. deprecated:: 0.8.1
+        The ModelErrorAnalysis check is deprecated and will be removed in the 0.11 version. Please use the
+        WeakSegmentsPerformance check instead.
 
     The check trains a regression model to predict the error of the user's model. Then, the features scoring the highest
     feature importance for the error regression model are selected and the distribution of the error vs the feature
@@ -101,6 +106,8 @@ class ModelErrorAnalysis(TrainTestCheck):
             **kwargs
     ):
         super().__init__(**kwargs)
+        warnings.warn('The ModelErrorAnalysis check is deprecated and will be removed in the 0.11 version. '
+                      'Please use the WeakSegmentsPerformance check instead.', DeprecationWarning)
         self.max_features_to_show = max_features_to_show
         self.min_feature_contribution = min_feature_contribution
         self.min_error_model_score = min_error_model_score
