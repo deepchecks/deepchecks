@@ -168,7 +168,7 @@ class BaseCheck(abc.ABC):
         )
 
     def config(self, with_module=True) -> CheckConfig:
-        """Return check config (conditions' configuration not yet supported).
+        """Return check configuration (conditions' configuration not yet supported).
 
         Parameters
         ----------

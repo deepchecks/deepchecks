@@ -480,7 +480,7 @@ class BaseSuite:
         return self
 
     def config(self, with_check_module=True) -> SuiteConfig:
-        """Return suite config (checks' conditions' configuration not yet supported).
+        """Return suite configuration (checks' conditions' configuration not yet supported).
 
         Parameters
         ----------
