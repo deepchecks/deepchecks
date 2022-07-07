@@ -207,25 +207,24 @@ def test_suite_result_passed_fn():
 
 
 def test_config():
-    suite_no_mod = model_evaluation().config(with_check_module=True)
-    suite_mod = model_evaluation().config(with_check_module=False)
+    model_eval_suite = model_evaluation()
+    check_amount = len(model_eval_suite.checks)
 
-    assert_that(suite_no_mod, all_of(
-        has_entry('name', 'Model Evaluation Suite'),
-        has_entry('module_name', 'deepchecks.tabular'),
-        has_entry('checks', instance_of(list))
-    ))
+    suite_mod = model_eval_suite.config()
+
     assert_that(suite_mod, all_of(
         has_entry('name', 'Model Evaluation Suite'),
         has_entry('module_name', 'deepchecks.tabular'),
         has_entry('checks', instance_of(list))
     ))
-    conf_suite_no_mod = BaseSuite.from_config(suite_no_mod)
+    
     conf_suite_mod = BaseSuite.from_config(suite_mod)
-
-    assert_that(conf_suite_no_mod.name, equal_to('Model Evaluation Suite'))
     assert_that(conf_suite_mod.name, equal_to('Model Evaluation Suite'))
+    assert_that(conf_suite_mod.checks.values(), has_length(check_amount))
 
-    check_amount = len(model_evaluation().checks)
-    assert_that(conf_suite_no_mod.checks.values(), has_length(check_amount))
+    for check in suite_mod['checks']:
+        del check['module_name']
+
+    conf_suite_mod = BaseSuite.from_config(suite_mod)
+    assert_that(conf_suite_mod.name, equal_to('Model Evaluation Suite'))
     assert_that(conf_suite_mod.checks.values(), has_length(check_amount))

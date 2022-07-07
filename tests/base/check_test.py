@@ -157,8 +157,10 @@ def test_params():
 
 
 def test_config():
-    check_no_mod = DummyCheck(param2=5).config(with_module=False)
-    deepchecks_check_mod = ClassPerformance().config(with_module=True)
+    check_no_mod = DummyCheck(param2=5).config()
+    del check_no_mod['module_name']
+
+    deepchecks_check_mod = ClassPerformance().config()
 
     assert_that(check_no_mod,
                 equal_to(

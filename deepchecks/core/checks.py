@@ -167,28 +167,25 @@ class BaseCheck(abc.ABC):
             summary=get_docs_summary(self, with_doc_link)
         )
 
-    def config(self, with_module=True) -> CheckConfig:
+    def config(self) -> CheckConfig:
         """Return check configuration (conditions' configuration not yet supported).
-
-        Parameters
-        ----------
-        with_module : bool, default True
-            whethere to include the module path or not
 
         Returns
         -------
         CheckConfig
-            includes the checks class name, params, and module if with_module was True
+            includes the checks class name, params, and module name.
         """
         module_name = self.__module__
+
+        # if check is from deepchecks we want to use top level module
         if module_name.startswith('deepchecks.'):
             module_name = 'deepchecks.' + module_name.split('.')[1]
+
         conf = CheckConfig(
             class_name=self.__class__.__name__,
             params=self.params(show_defaults=True),
+            module_name=module_name
         )
-        if with_module:
-            conf['module_name'] = module_name
         return conf
 
     @staticmethod
@@ -216,9 +213,12 @@ class BaseCheck(abc.ABC):
         if module_name is None:
             raise DeepchecksValueError(
                 'Check Config must include module name or it should be passed to the function.')
+
+        # the config is created using top level module, it is needed to lower level module
         is_deepchecks = module_name.startswith('deepchecks.')
         if is_deepchecks:
             module_name += '.checks'
+
         module = importlib.import_module(module_name)
         return getattr(module, conf['class_name'])(**conf['params'])
 

@@ -22,7 +22,7 @@ from ipywidgets import Widget
 from typing_extensions import TypedDict
 
 from deepchecks.core import check_result as check_types
-from deepchecks.core.checks import BaseCheck, CheckMetadata
+from deepchecks.core.checks import BaseCheck, CheckConfig, CheckMetadata
 from deepchecks.core.display import DisplayableResult, save_as_html
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.serialization.abc import HTMLFormatter
@@ -39,7 +39,7 @@ __all__ = ['BaseSuite', 'SuiteResult']
 class SuiteConfig(TypedDict):
     name: str
     module_name: str
-    checks: List[CheckMetadata]
+    checks: List[CheckConfig]
 
 
 class SuiteResult(DisplayableResult):
@@ -479,13 +479,8 @@ class BaseSuite:
         self.checks.pop(index)
         return self
 
-    def config(self, with_check_module=True) -> SuiteConfig:
+    def config(self) -> SuiteConfig:
         """Return suite configuration (checks' conditions' configuration not yet supported).
-
-        Parameters
-        ----------
-        with_check_module : bool, default True
-            whethere to include each check's module path or not
 
         Returns
         -------
@@ -493,12 +488,14 @@ class BaseSuite:
             includes the suite name, and list of check configs.
         """
         module_name = self.__module__
+
+        # if suite is from deepchecks we want to use top level module
         if module_name.startswith('deepchecks.'):
             module_name = 'deepchecks.' + module_name.split('.')[1]
-        meta_data = SuiteConfig(name=self.name, checks=[],
-                                module_name=module_name)
+
+        meta_data = SuiteConfig(name=self.name, checks=[], module_name=module_name)
         for check in self.checks.values():
-            meta_data['checks'].append(check.config(with_module=with_check_module))
+            meta_data['checks'].append(check.config())
         return meta_data
 
     @staticmethod
@@ -519,9 +516,12 @@ class BaseSuite:
         checks = []
         for check_conf in conf['checks']:
             checks.append(BaseCheck.from_config(check_conf, module_name))
+
+        # the config is created using top level module, it is needed to lower level module
         is_deepchecks = module_name.startswith('deepchecks.')
         if is_deepchecks:
             module_name += '.suite'
+
         module = importlib.import_module(module_name)
         suite_cls: Type[BaseSuite] = getattr(module, 'Suite')
         return suite_cls(conf['name'], *checks)
