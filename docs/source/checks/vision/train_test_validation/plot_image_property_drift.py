@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_vision_image_property_drift:
+
 Image Property Drift Check
 **************************
 
@@ -79,6 +81,13 @@ test_dataset = coco.load_dataset(train=False, object_type='VisionData')
 
 check_result = ImagePropertyDrift().run(train_dataset, test_dataset)
 check_result
+
+#%%
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  check_result.show_in_window()
+#%%
+# The result will be displayed in a new window.
 
 #%%
 # Observe the check’s output 

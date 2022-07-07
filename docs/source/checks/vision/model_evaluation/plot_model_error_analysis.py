@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_vision_model_error_analysis:
+
 Model Error Analysis check
 ==========================
 
@@ -49,7 +51,18 @@ test_ds = mnist.load_dataset(train=False, object_type='VisionData')
 # Run the check:
 # ~~~~~~~~~~~~~~~~
 check = ModelErrorAnalysis(min_error_model_score=-0.1)
-check.run(train_ds, test_ds, mnist_model)
+result = check.run(train_ds, test_ds, mnist_model)
+result
+
+#%%
+# If you have a GPU, you can speed up this check by passing it as an argument to .run() as device=<your GPU>
+#
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  result.show_in_window()
+#%%
+# The result will be displayed in a new window.
+
 
 #%%
 # Object Detection Class Performance
@@ -86,4 +99,5 @@ test_ds = coco.load_dataset(train=False, object_type='VisionData')
 # ~~~~~~~~~~~~~~~~
 
 check = ModelErrorAnalysis(min_error_model_score=-1)
-check.run(train_ds, test_ds, yolo)
+result = check.run(train_ds, test_ds, yolo)
+result

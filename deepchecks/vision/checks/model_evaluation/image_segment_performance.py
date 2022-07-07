@@ -73,8 +73,9 @@ class ImageSegmentPerformance(SingleDatasetCheck):
 
         self.alternative_metrics = alternative_metrics
         self.number_of_bins = number_of_bins
-        self.n_to_show = n_to_show
         self.number_of_samples_to_infer_bins = number_of_samples_to_infer_bins
+        self.n_to_show = n_to_show
+
         self._state = None
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
@@ -153,7 +154,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
                 single_bin['metrics'] = _calculate_metrics(single_bin['metrics'], dataset)
                 single_bin['display_range'] = display_range
                 # we don't show single columns in the display
-                if len(prop_bins) > 1:
+                if context.with_display and len(prop_bins) > 1:
                     # For the plotly display need row per metric in the dataframe
                     for metric, val in single_bin['metrics'].items():
                         display_data.append({'Metric': metric, 'Value': val, **bin_data})
@@ -161,16 +162,24 @@ class ImageSegmentPerformance(SingleDatasetCheck):
                 result_value[property_name].append(single_bin)
 
         display_df = pd.DataFrame(display_data)
+
         if display_df.empty:
             return CheckResult(value=dict(result_value))
+
         first_metric = display_df['Metric'][0]
+
         if self.alternative_metrics is None:
             display_df = display_df[display_df['Metric'] == first_metric]
-        top_properties = display_df[display_df['Metric'] == first_metric] \
-            .groupby('Property')[['Value']] \
-            .agg(np.ptp).sort_values('Value', ascending=False).head(self.n_to_show) \
+
+        top_properties = (
+            display_df[display_df['Metric'] == first_metric]
+            .groupby('Property')[['Value']]
+            .agg(np.ptp).sort_values('Value', ascending=False).head(self.n_to_show)
             .reset_index()['Property']
+        )
+
         display_df = display_df[display_df['Property'].isin(top_properties)]
+
         fig = px.bar(
             display_df,
             x='Range',

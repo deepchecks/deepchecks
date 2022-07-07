@@ -67,7 +67,7 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
     # Act
     result_ds = check.run(train, clf).value
     # Assert
-    assert_that(result_ds, has_length(3))
+    assert_that(result_ds, has_length(10))
 
 def test_other_feature(kiss_dataset_and_model):
     train, _, clf = kiss_dataset_and_model
@@ -77,5 +77,6 @@ def test_other_feature(kiss_dataset_and_model):
     result_value = check.run(train, clf).value
     # Assert
     assert_that(result_value,  equal_to(
-        {'binary_feature': 'categorical feature', 'string_feature': 'other feature', 'numeric_label': 'label'}
+        {'binary_feature': 'categorical feature', 'string_feature': 'other feature',
+         'numeric_feature': 'numerical feature', 'numeric_label': 'label'}
         ))

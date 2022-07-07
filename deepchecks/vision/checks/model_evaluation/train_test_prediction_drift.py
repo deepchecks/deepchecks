@@ -123,6 +123,7 @@ class TrainTestPredictionDrift(TrainTestCheck):
         self.max_num_categories_for_drift = max_num_categories_for_drift
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
+
         self._prediction_properties = None
         self._train_prediction_properties = None
         self._test_prediction_properties = None
@@ -203,6 +204,7 @@ class TrainTestPredictionDrift(TrainTestCheck):
                 max_num_categories_for_display=self.max_num_categories_for_display,
                 show_categories_by=self.show_categories_by,
                 categorical_drift_method=self.categorical_drift_method,
+                with_display=context.with_display,
             )
             values_dict[name] = {
                 'Drift score': value,
@@ -210,16 +212,19 @@ class TrainTestPredictionDrift(TrainTestCheck):
             }
             displays_dict[name] = display
 
-        columns_order = sorted(prediction_properties_names, key=lambda col: values_dict[col]['Drift score'],
-                               reverse=True)
+        if context.with_display:
+            columns_order = sorted(prediction_properties_names, key=lambda col: values_dict[col]['Drift score'],
+                                   reverse=True)
 
-        headnote = '<span>' \
-                   'The Drift score is a measure for the difference between two distributions. ' \
-                   'In this check, drift is measured ' \
-                   f'for the distribution of the following prediction properties: {prediction_properties_names}.' \
-                   '</span>'
+            headnote = '<span>' \
+                'The Drift score is a measure for the difference between two distributions. ' \
+                'In this check, drift is measured ' \
+                f'for the distribution of the following prediction properties: {prediction_properties_names}.' \
+                '</span>'
 
-        displays = [headnote] + [displays_dict[col] for col in columns_order]
+            displays = [headnote] + [displays_dict[col] for col in columns_order]
+        else:
+            displays = None
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Prediction Drift')
 

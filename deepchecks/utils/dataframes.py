@@ -13,12 +13,64 @@ import typing as t
 
 import numpy as np
 import pandas as pd
+from pandas.core.dtypes.common import is_integer_dtype, is_numeric_dtype
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.validation import ensure_hashable_or_mutable_sequence
 
-__all__ = ['validate_columns_exist', 'select_from_dataframe', 'un_numpy', 'generalized_corrwith']
+__all__ = ['validate_columns_exist', 'select_from_dataframe', 'un_numpy', 'generalized_corrwith',
+           'floatify_dataframe', 'floatify_series', 'default_fill_na_per_column_type']
+
+
+def default_fill_na_per_column_type(df: pd.DataFrame, cat_features: t.Union[pd.Series, t.List]) -> pd.DataFrame:
+    """Fill NaN values per column type."""
+    for col_name in df.columns:
+        if col_name in cat_features:
+            df[col_name].fillna('None', inplace=True)
+        elif is_numeric_dtype(df[col_name]):
+            df[col_name].fillna(df[col_name].mean(), inplace=True)
+        else:
+            df[col_name].fillna(df[col_name].mode(), inplace=True)
+    return df
+
+
+def floatify_dataframe(df: pd.DataFrame):
+    """Return a dataframe where all the int columns are converted to floats.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        dataframe to convert
+
+    Raises
+    ------
+    pd.DataFrame
+        the dataframe where all the int columns are converted to floats
+    """
+    dtype_dict = df.dtypes.to_dict()
+    for col_name, dtype in dtype_dict.items():
+        if is_integer_dtype(dtype):
+            dtype_dict[col_name] = 'float'
+    return df.astype(dtype_dict)
+
+
+def floatify_series(ser: pd.Series):
+    """Return a series that if the type is int converted to float.
+
+    Parameters
+    ----------
+    ser : pd.Series
+        series to convert
+
+    Raises
+    ------
+    pd.Series
+        the converted series
+    """
+    if is_integer_dtype(ser):
+        ser = ser.astype(float)
+    return ser
 
 
 def un_numpy(val):
@@ -137,7 +189,7 @@ def generalized_corrwith(x1: pd.DataFrame, x2: pd.DataFrame, method: t.Callable)
     this generalized method applies to any two Dataframes with the same number of rows, regardless of the column names.
 
     Parameters
-    __________
+    ----------
     x1: DataFrame
         Left data frame to compute correlations.
     x2: Dataframe

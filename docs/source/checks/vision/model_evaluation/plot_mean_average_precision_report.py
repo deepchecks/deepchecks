@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_vision_mean_average_precision_report:
+
 Mean Average Precision Report
 *****************************
 
@@ -43,6 +45,16 @@ test_ds = coco.load_dataset(train=False, object_type='VisionData')
 check = MeanAveragePrecisionReport()
 result = check.run(test_ds, yolo)
 result
+
+#%%
+# If you have a GPU, you can speed up this check by passing it as an argument to .run() as device=<your GPU>
+#
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  result.show_in_window()
+#%%
+# The result will be displayed in a new window.
+
 
 # %%
 # Observe the check’s output

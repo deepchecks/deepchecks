@@ -9,7 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Module for base vision context."""
-from typing import Dict, List, Mapping, Union
+from operator import itemgetter
+from typing import Dict, Mapping, Optional, Sequence, Union
 
 import torch
 from ignite.metrics import Metric
@@ -20,52 +21,43 @@ from deepchecks.core import DatasetKind
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotImplementedError, DeepchecksNotSupportedError,
                                     DeepchecksValueError, ModelValidationError, ValidationError)
 from deepchecks.utils.logger import get_logger
+from deepchecks.vision._shared_docs import docstrings
 from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.vision_data import VisionData
 
 __all__ = ['Context']
 
 
+@docstrings
 class Context:
     """Contains all the data + properties the user has passed to a check/suite, and validates it seamlessly.
 
     Parameters
     ----------
-    train : VisionData , default: None
-        Dataset or DataFrame object, representing data an estimator was fitted on
-    test : VisionData , default: None
-        Dataset or DataFrame object, representing data an estimator predicts on
-    model : BasicModel , default: None
-        A scikit-learn-compatible fitted estimator instance
-    model_name: str , default: ''
-        The name of the model
-    scorers : Mapping[str, Metric] , default: None
-        dict of scorers names to a Metric
-    scorers_per_class : Mapping[str, Metric] , default: None
-        dict of scorers for classification without averaging of the classes.
-        See <a href=
-        "https://scikit-learn.org/stable/modules/model_evaluation.html#from-binary-to-multiclass-and-multilabel">
-        scikit-learn docs</a>
-    device : Union[str, torch.device], default: 'cpu'
-        processing unit for use
-    random_state : int
-        A seed to set for pseudo-random functions
-    n_samples : int, default: None
+    train : Optional[VisionData] , default: None
+        VisionData object, representing data an neural network was fitted on
+    test : Optional[VisionData] , default: None
+        VisionData object, representing data an neural network predicts on
+    model : Optional[nn.Module] , default: None
+        pytorch neural network module instance
+    {additional_context_params:indent}
     """
 
-    def __init__(self,
-                 train: VisionData = None,
-                 test: VisionData = None,
-                 model: nn.Module = None,
-                 model_name: str = '',
-                 scorers: Mapping[str, Metric] = None,
-                 scorers_per_class: Mapping[str, Metric] = None,
-                 device: Union[str, torch.device, None] = None,
-                 random_state: int = 42,
-                 n_samples: int = None,
-                 train_predictions: Union[List[torch.Tensor], torch.Tensor] = None,
-                 test_predictions: Union[List[torch.Tensor], torch.Tensor] = None,
-                 ):
+    def __init__(
+        self,
+        train: Optional[VisionData] = None,
+        test: Optional[VisionData] = None,
+        model: Optional[nn.Module] = None,
+        model_name: str = '',
+        scorers: Optional[Mapping[str, Metric]] = None,
+        scorers_per_class: Optional[Mapping[str, Metric]] = None,
+        device: Union[str, torch.device, None] = None,
+        random_state: int = 42,
+        n_samples: Optional[int] = None,
+        with_display: bool = True,
+        train_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
+        test_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
+    ):
         # Validations
         if train is None and test is None and model is None:
             raise DeepchecksValueError('At least one dataset (or model) must be passed to the method!')
@@ -116,7 +108,10 @@ class Context:
                                                           [train_predictions, test_predictions]):
                 if dataset is not None:
                     try:
-                        dataset.validate_infered_batch_predictions(predictions)
+                        preds = itemgetter(*list(dataset.data_loader.batch_sampler)[0])(predictions)
+                        if dataset.task_type == TaskType.CLASSIFICATION:
+                            preds = torch.stack(preds)
+                        dataset.validate_infered_batch_predictions(preds)
                         msg = None
                         self._static_predictions[dataset_type] = predictions
                     except ValidationError as ex:
@@ -143,10 +138,16 @@ class Context:
         self._user_scorers = scorers
         self._user_scorers_per_class = scorers_per_class
         self._model_name = model_name
+        self._with_display = with_display
         self.random_state = random_state
 
     # Properties
     # Validations note: We know train & test fit each other so all validations can be run only on train
+
+    @property
+    def with_display(self) -> bool:
+        """Return the with_display flag."""
+        return self._with_display
 
     @property
     def train(self) -> VisionData:

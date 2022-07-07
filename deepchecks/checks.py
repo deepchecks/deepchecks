@@ -50,7 +50,7 @@ __all__ = [
     'TrainTestSamplesMix',
     'DateTrainTestLeakageDuplicates',
     'DateTrainTestLeakageOverlap',
-    'IdentifierLeakage',
+    'IdentifierLabelCorrelation',
     'ModelInferenceTime',
     'DatasetsSizeComparison',
 
@@ -74,5 +74,6 @@ __all__ = [
     'RegressionSystematicError',
     'RegressionErrorDistribution',
     'MultiModelPerformanceReport',
-    'ModelErrorAnalysis'
+    'ModelErrorAnalysis',
+    'WeakSegmentsPerformance'
 ]

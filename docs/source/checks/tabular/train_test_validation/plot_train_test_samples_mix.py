@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_tabular_train_test_samples_mix:
+
 Train Test Samples Mix
 **********************
 This notebook provides an overview for using and understanding the Train Test Samples Mix check.

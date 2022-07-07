@@ -9,17 +9,19 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains Mixed Nulls check."""
+import math
 from typing import Dict, Iterable, List, Union
 
 import numpy as np
 import pandas as pd
+from pandas.api.types import is_categorical_dtype
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.tabular.utils.messages import get_condition_passed_message
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
+from deepchecks.utils.features import N_TOP_MESSAGE
 from deepchecks.utils.strings import format_percent, string_baseform
 from deepchecks.utils.typing import Hashable
 
@@ -85,11 +87,32 @@ class MixedNulls(SingleDatasetCheck):
 
         for column_name in list(df.columns):
             column_data = df[column_name]
-
-            string_null_counts = {value: count for value, count in column_data.value_counts(dropna=True).iteritems()
-                                  if string_baseform(value) in null_string_list}
-            nan_data_counts = column_data[column_data.isna()].apply(nan_type).value_counts().to_dict()
-            null_counts = {**string_null_counts, **nan_data_counts}
+            if is_categorical_dtype(column_data) is True:
+                # NOTE:
+                # 'pandas.Series.value_counts' and 'pandas.Series.apply'
+                # work in an unusual way with categorical data types
+                # - 'value_counts' returns all categorical values even if they are not in series
+                # - 'apply' applies function to each category, not to values
+                # therefore we processing categorical dtypes differently
+                # NOTE:
+                # 'Series.value_counts' method transforms null values like 'None', 'pd.Na', 'pd.NaT'
+                # into 'np.nan' therefore it cannot be used for usual dtypes, because we will lose info
+                # about all different null types in the column
+                null_counts = {}
+                for value, count in column_data.value_counts(dropna=False).to_dict().items():
+                    if count > 0:
+                        if pd.isna(value):
+                            null_counts[nan_type(value)] = count
+                        elif string_baseform(value) in null_string_list:
+                            null_counts[repr(value).replace('\'', '"')] = count
+            else:
+                string_null_counts = {
+                    repr(value).replace('\'', '"'): count
+                    for value, count in column_data.value_counts(dropna=True).iteritems()
+                    if string_baseform(value) in null_string_list
+                }
+                nan_data_counts = column_data[column_data.isna()].apply(nan_type).value_counts().to_dict()
+                null_counts = {**string_null_counts, **nan_data_counts}
 
             result_dict[column_name] = {}
             # Save the column nulls info
@@ -99,11 +122,11 @@ class MixedNulls(SingleDatasetCheck):
                 result_dict[column_name][null_value] = {'count': count, 'percent': percent}
 
         # Create dataframe to display table
-        if display_array:
+        if context.with_display and display_array:
             df_graph = pd.DataFrame(display_array, columns=['Column Name', 'Value', 'Count', 'Percent of data'])
+            order = df_graph['Column Name'].value_counts(ascending=False).index[:self.n_top_columns]
             df_graph = df_graph.set_index(['Column Name', 'Value'])
-            df_graph = column_importance_sorter_df(df_graph, dataset, context.features_importance,
-                                                   self.n_top_columns, col='Column Name')
+            df_graph = df_graph.loc[order, :]
             display = [N_TOP_MESSAGE % self.n_top_columns, df_graph]
         else:
             display = None
@@ -166,4 +189,6 @@ def nan_type(x):
         return 'pandas.NA'
     elif x is pd.NaT:
         return 'pandas.NaT'
+    elif isinstance(x, float) and math.isnan(x):
+        return 'math.nan'
     return str(x)

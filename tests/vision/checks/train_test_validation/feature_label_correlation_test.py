@@ -13,7 +13,7 @@ from copy import copy
 
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, close_to, equal_to, has_entries
+from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_length
 
 from deepchecks.vision.checks import FeatureLabelCorrelationChange
 from deepchecks.vision.utils.transformations import un_normalize_batch
@@ -141,6 +141,26 @@ def test_drift_object_detection(coco_train_visiondata, coco_test_visiondata, dev
         'test': has_entries({'Brightness': equal_to(0)}),
         'train-test difference': has_entries({'Brightness': close_to(0.062, 0.01)}),
     }))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_drift_object_detection_without_display(coco_train_visiondata, coco_test_visiondata, device):
+    # Arrange
+    train, test = coco_train_visiondata, coco_test_visiondata
+    check = FeatureLabelCorrelationChange(per_class=False, random_state=42)
+    train = copy(train)
+    train.batch_to_images = get_coco_batch_to_images_with_bias(train.batch_to_labels)
+
+    # Act
+    result = check.run(train, test, device=device, with_display=False)
+
+    # Assert
+    assert_that(result.value, has_entries({
+        'train': has_entries({'Brightness': close_to(0.062, 0.01)}),
+        'test': has_entries({'Brightness': equal_to(0)}),
+        'train-test difference': has_entries({'Brightness': close_to(0.062, 0.01)}),
+    }))
+    assert_that(result.display, has_length(0))
 
 
 def test_no_drift_classification_per_class(mnist_dataset_train, device):

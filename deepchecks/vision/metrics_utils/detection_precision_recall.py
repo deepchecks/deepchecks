@@ -10,14 +10,15 @@
 #
 """Module for calculating detection precision and recall."""
 import warnings
-from abc import abstractmethod
 from collections import defaultdict
-from typing import Dict, List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import torch
 from ignite.metrics import Metric
 from ignite.metrics.metric import reinit__is_reduced, sync_all_reduce
+
+from deepchecks.vision.metrics_utils.metric_mixin import MetricMixin, ObjectDetectionMetricMixin
 
 
 def _dict_conc(test_list):
@@ -35,7 +36,7 @@ def _dict_conc(test_list):
     return result
 
 
-class AveragePrecisionRecall(Metric):
+class AveragePrecisionRecall(Metric, MetricMixin):
     """Abstract class to calculate average precision and recall for various vision tasks.
 
     Parameters
@@ -44,16 +45,15 @@ class AveragePrecisionRecall(Metric):
         Maximum number of detections per class.
     area_range: tuple, default: (32**2, 96**2)
         Slices for small/medium/large buckets.
-    return_option: int, default: 0
-        0: ap only, 1: ar only, None: all (not ignite complient)
+    return_option: str, default: 'ap'
+        ap: ap only, ar: ar only, None: all (not ignite complient)
     """
 
     def __init__(self, *args, max_dets: Union[List[int], Tuple[int]] = (1, 10, 100),
                  area_range: Tuple = (32**2, 96**2),
-                 return_option: Optional[int] = 0, **kwargs):
+                 return_option: Optional[int] = "ap", **kwargs):
         super().__init__(*args, **kwargs)
 
-        self._evals = defaultdict(lambda: {"scores": [], "matched": [], "NP": []})
         self.return_option = return_option
         if self.return_option is not None:
             max_dets = [max_dets[-1]]
@@ -63,7 +63,6 @@ class AveragePrecisionRecall(Metric):
         self.iou_thresholds = np.linspace(.5, 0.95, int(np.round((0.95 - .5) / .05)) + 1, endpoint=True)
         self.max_detections_per_class = max_dets
         self.area_range = area_range
-        self.i = 0
 
     @reinit__is_reduced
     def reset(self):
@@ -79,9 +78,9 @@ class AveragePrecisionRecall(Metric):
 
         for detected, ground_truth in zip(y_pred, y):
             if isinstance(detected, torch.Tensor):
-                detected = detected.cpu()
+                detected = detected.cpu().detach()
             if isinstance(ground_truth, torch.Tensor):
-                ground_truth = ground_truth.cpu()
+                ground_truth = ground_truth.cpu().detach()
 
             self._group_detections(detected, ground_truth)
             self.i += 1
@@ -123,12 +122,12 @@ class AveragePrecisionRecall(Metric):
                         recall_list[class_id] = recall
                     reses["precision"][iou_i, area_i, dets_i] = precision_list
                     reses["recall"][iou_i, area_i, dets_i] = recall_list
-        if self.return_option == 0:
+        if self.return_option == "ap":
             return torch.tensor(self.get_classes_scores_at(reses["precision"],
                                                            max_dets=self.max_detections_per_class[0],
                                                            area=self.area_ranges_names[0],
                                                            get_mean_val=False))
-        elif self.return_option == 1:
+        elif self.return_option == "ar":
             return torch.tensor(self.get_classes_scores_at(reses["recall"],
                                                            max_dets=self.max_detections_per_class[0],
                                                            area=self.area_ranges_names[0],
@@ -335,27 +334,16 @@ class AveragePrecisionRecall(Metric):
                 res = res.clip(min=0)
             return res[0][0]
 
-    @abstractmethod
-    def get_confidences(self, detections) -> List[float]:
-        """Get detections object of single image and should return confidence for each detection."""
-        pass
 
-    @abstractmethod
-    def calc_pairwise_ious(self, detections, labels) -> Dict[int, np.ndarray]:
-        """Get single result from group_class_detection_label and return matrix of IOUs."""
-        pass
+class ObjectDetectionAveragePrecision(AveragePrecisionRecall, ObjectDetectionMetricMixin):
+    """Calculate average precision and recall for object detection.
 
-    @abstractmethod
-    def group_class_detection_label(self, detections, labels) -> dict:
-        """Group detection and labels in dict of format {class_id: {'detected' [...], 'ground_truth': [...]}}."""
-        pass
-
-    @abstractmethod
-    def get_detection_areas(self, detections) -> List[int]:
-        """Get detection object of single image and should return area for each detection."""
-        pass
-
-    @abstractmethod
-    def get_labels_areas(self, labels) -> List[int]:
-        """Get labels object of single image and should return area for each label."""
-        pass
+    Parameters
+    ----------
+    max_dets: Union[List[int], Tuple[int]], default: [1, 10, 100]
+        Maximum number of detections per class.
+    area_range: tuple, default: (32**2, 96**2)
+        Slices for small/medium/large buckets.
+    return_option: str, default: 'ap'
+        ap: ap only, ar: ar only, None: all (not ignite complient)
+    """

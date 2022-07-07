@@ -78,7 +78,7 @@ class DataDuplicates(SingleDatasetCheck):
 
         percent_duplicate = 1 - (1.0 * int(n_unique)) / (1.0 * int(n_samples))
 
-        if percent_duplicate > 0:
+        if context.with_display and percent_duplicate > 0:
             # patched for anonymous_series
             is_anonymous_series = 0 in group_unique_data.keys().names
             if is_anonymous_series:

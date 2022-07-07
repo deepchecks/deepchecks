@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_tabular_performance_report:
+
 Performance Report
 ******************
 This notebooks provides an overview for using and understanding performance report check.
@@ -50,7 +52,7 @@ check.run(train_dataset, test_dataset, model)
 # Let's add a condition to the check and see what happens when it fails:
 
 check = PerformanceReport()
-check.add_condition_train_test_relative_degradation_not_greater_than(0.05)
+check.add_condition_train_test_relative_degradation_less_than(0.05)
 result = check.run(train_dataset, test_dataset, model)
 result.show(show_additional_outputs=False)
 

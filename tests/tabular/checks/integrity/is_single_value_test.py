@@ -11,19 +11,23 @@
 """Tests for Single Value Check"""
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, calling, equal_to, has_items, raises
+from hamcrest import assert_that, calling, equal_to, greater_than, has_items, has_length, raises
 
 from deepchecks.core.errors import DatasetValidationError, DeepchecksValueError
 from deepchecks.tabular.checks.data_integrity.is_single_value import IsSingleValue
 from tests.base.utils import equal_condition_result
 
 
-def helper_test_df_and_result(df, expected_result_value, ignore_columns=None, ignore_nan=True):
+def helper_test_df_and_result(df, expected_result_value,
+                              ignore_columns=None, ignore_nan=True,
+                              with_display=True):
     # Act
-    result = IsSingleValue(ignore_columns=ignore_columns, ignore_nan=ignore_nan).run(df)
+    result = IsSingleValue(ignore_columns=ignore_columns,
+                           ignore_nan=ignore_nan).run(df, with_display=with_display)
 
     # Assert
     assert_that(result.value, equal_to(expected_result_value))
+    return result
 
 
 def test_single_column_dataset_more_than_single_value():
@@ -39,7 +43,17 @@ def test_single_column_dataset_single_value():
     df = pd.DataFrame({'a': ['b', 'b']})
 
     # Act & Assert
-    helper_test_df_and_result(df, {'a': 1})
+    res = helper_test_df_and_result(df, {'a': 1})
+    assert_that(res.display, has_length(greater_than(0)))
+
+
+def test_single_column_dataset_single_value_without_display():
+    # Arrange
+    df = pd.DataFrame({'a': ['b', 'b']})
+
+    # Act & Assert
+    res = helper_test_df_and_result(df, {'a': 1}, with_display=False)
+    assert_that(res.display, has_length(0))
 
 
 def test_multi_column_dataset_single_value():

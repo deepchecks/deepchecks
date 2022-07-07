@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_tabular_datasets_size_comparison:
+
 Datasets Size Comparison
 ************************
 """

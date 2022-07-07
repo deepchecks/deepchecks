@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing common WholeDatasetDriftCheck (domain classifier drift) utils."""
-
 import warnings
 from typing import Container, List
 
@@ -17,7 +16,6 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
 
 with warnings.catch_warnings():
     warnings.simplefilter('ignore')
@@ -26,9 +24,11 @@ with warnings.catch_warnings():
 from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OrdinalEncoder
 
 from deepchecks.tabular import Dataset
+from deepchecks.utils.dataframes import floatify_dataframe, floatify_series
 from deepchecks.utils.distribution.plot import drift_score_bar_traces, feature_distribution_traces
 from deepchecks.utils.distribution.rare_category_encoder import RareCategoryEncoder
 from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none
@@ -41,7 +41,8 @@ def run_whole_dataset_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
                             numerical_features: List[Hashable], cat_features: List[Hashable], sample_size: int,
                             random_state: int, test_size: float, n_top_columns: int, min_feature_importance: float,
                             max_num_categories_for_display: int, show_categories_by: str,
-                            min_meaningful_drift_score: float):
+                            min_meaningful_drift_score: float,
+                            with_display: bool):
     """Calculate whole dataset drift."""
     domain_classifier = generate_model(numerical_features, cat_features, random_state)
 
@@ -56,6 +57,12 @@ def run_whole_dataset_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
                                                         stratify=domain_class_labels,
                                                         random_state=random_state,
                                                         test_size=test_size)
+
+    # domain_classifier has problems with nullable int series
+    x_train = floatify_dataframe(x_train)
+    x_test = floatify_dataframe(x_test)
+    y_train = floatify_series(y_train)
+    y_test = floatify_series(y_test)
 
     domain_classifier = domain_classifier.fit(x_train, y_train)
 
@@ -93,7 +100,7 @@ def run_whole_dataset_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
     </span><br><br>
     """
 
-    if fi is not None and drift_score > min_meaningful_drift_score:
+    if with_display and fi is not None and drift_score > min_meaningful_drift_score:
         top_fi = fi.head(n_top_columns)
         top_fi = top_fi.loc[top_fi > min_feature_importance]
     else:

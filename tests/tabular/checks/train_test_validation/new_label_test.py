@@ -11,7 +11,7 @@
 """Contains unit tests for the new_label_train_validation check"""
 
 import pandas as pd
-from hamcrest import assert_that, calling, equal_to, has_items, raises
+from hamcrest import assert_that, calling, equal_to, greater_than, has_items, has_length, raises
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.checks.train_test_validation import NewLabelTrainTest
@@ -58,12 +58,33 @@ def test_new_label():
     # Arrange
     check = NewLabelTrainTest()
     # Act X
-    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
+    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
     # Assert
-    assert_that(result)
-    assert_that(result['n_new_labels_samples'], equal_to(1))
-    assert_that(result['n_samples'], equal_to(4))
-    assert_that(result['new_labels'], equal_to([4]))
+    assert_that(result.value)
+    assert_that(result.value['n_new_labels_samples'], equal_to(1))
+    assert_that(result.value['n_samples'], equal_to(4))
+    assert_that(result.value['new_labels'], equal_to([4]))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_new_label_without_display():
+    train_data = {'col1': [1, 2, 3]}
+    test_data = {'col1': [1, 2, 3, 4]}
+    train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1']),
+                            label='col1', label_type="classification_label")
+    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1']),
+                           label='col1', label_type="classification_label")
+
+    # Arrange
+    check = NewLabelTrainTest()
+    # Act X
+    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset, with_display=False)
+    # Assert
+    assert_that(result.value)
+    assert_that(result.value['n_new_labels_samples'], equal_to(1))
+    assert_that(result.value['n_samples'], equal_to(4))
+    assert_that(result.value['new_labels'], equal_to([4]))
+    assert_that(result.display, has_length(0))
 
 
 def test_missing_label():

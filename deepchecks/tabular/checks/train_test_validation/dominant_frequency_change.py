@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """module contains Dominant Frequency Change check."""
+import warnings
 from typing import Dict, Optional
 
 import numpy as np
@@ -27,6 +28,9 @@ __all__ = ['DominantFrequencyChange']
 
 class DominantFrequencyChange(TrainTestCheck):
     """Check if dominant values have increased significantly between test and reference data.
+
+    .. deprecated:: 0.8.1
+        The DominantFrequencyChange check is deprecated and will be removed in the 0.11 version.
 
     Parameters
     ----------
@@ -50,6 +54,9 @@ class DominantFrequencyChange(TrainTestCheck):
         self.ratio_change_thres = ratio_change_thres
         self.n_top_columns = n_top_columns
 
+        warnings.warn('The DominantFrequencyChange check is deprecated and will be removed in the 0.11 version.',
+                      DeprecationWarning)
+
     def run_logic(self, context: Context) -> CheckResult:
         """Run check.
 
@@ -66,7 +73,7 @@ class DominantFrequencyChange(TrainTestCheck):
         """
         test_dataset = context.test
         train_dataset = context.train
-        features_importance = context.features_importance
+        feature_importance = context.feature_importance
 
         test_df = test_dataset.data
         baseline_df = train_dataset.data
@@ -106,13 +113,14 @@ class DominantFrequencyChange(TrainTestCheck):
                                       'P value': p_val}
 
         dominants = {k: v for k, v in p_dict.items() if v is not None}
-        if dominants:
+
+        if context.with_display and dominants:
             sorted_p_df = pd.DataFrame.from_dict(dominants, orient='index')
             sorted_p_df.index.name = 'Column'
             sorted_p_df = column_importance_sorter_df(
                 sorted_p_df,
                 test_dataset,
-                features_importance,
+                feature_importance,
                 self.n_top_columns
             )
             display = [N_TOP_MESSAGE % self.n_top_columns, sorted_p_df]

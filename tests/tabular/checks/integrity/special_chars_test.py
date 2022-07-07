@@ -41,6 +41,17 @@ def test_single_column_invalid():
     assert_that(result.display[1].iloc[0]['Most Common Special-Only Samples'], has_items('#@$%'))
 
 
+def test_single_column_invalid_without_display():
+    # Arrange
+    data = {'col1': [1, 'bar!', 'cat', '#@$%']}
+    dataframe = pd.DataFrame(data=data)
+    # Act
+    result = SpecialCharacters().run(dataframe, with_display=False)
+    # Assert
+    assert_that(result.value, equal_to({'col1': 0.25}))
+    assert_that(result.display, has_length(0))
+
+
 def test_single_column_multi_invalid():
     # Arrange
     data = {'col1': ['1', 'bar!', 'ca\nt', '\n ', '!']}

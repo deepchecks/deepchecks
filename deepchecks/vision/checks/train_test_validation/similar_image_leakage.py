@@ -66,6 +66,7 @@ class SimilarImageLeakage(TrainTestCheck):
         if not (isinstance(similarity_threshold, (float, int)) and (0 <= similarity_threshold <= 1)):
             raise DeepchecksValueError('similarity_threshold must be a float in range (0,1)')
         self.similarity_threshold = similarity_threshold
+
         self.min_pixel_diff = int(np.ceil(similarity_threshold * (hash_size**2 / 2)))
 
     def initialize_run(self, context: Context):
@@ -122,6 +123,8 @@ class SimilarImageLeakage(TrainTestCheck):
         display = []
         similar_pairs = []
         if similar_indices['test']:
+
+            # TODO: this for loop should be below `if context.with_display:` branch
             for similar_index in display_indices:
                 for dataset in ('train', 'test'):
                     image = data_obj[dataset].batch_to_images(
@@ -134,20 +137,21 @@ class SimilarImageLeakage(TrainTestCheck):
                     )
                     display_images[dataset].append(image_thumbnail)
 
-            html = HTML_TEMPLATE.format(
-                count=len(similar_indices['test']),
-                n_of_images=len(display_indices),
-                train_images=''.join(display_images['train']),
-                test_images=''.join(display_images['test']),
-            )
-
-            display.append(html)
-
             # return tuples of indices in original respective dataset objects
             similar_pairs = list(zip(
                 context.train.to_dataset_index(*similar_indices['train']),
                 context.test.to_dataset_index(*similar_indices['test'])
             ))
+
+            if context.with_display:
+                html = HTML_TEMPLATE.format(
+                    count=len(similar_indices['test']),
+                    n_of_images=len(display_indices),
+                    train_images=''.join(display_images['train']),
+                    test_images=''.join(display_images['test']),
+                )
+
+                display.append(html)
 
         return CheckResult(value=similar_pairs, display=display, header='Similar Image Leakage')
 

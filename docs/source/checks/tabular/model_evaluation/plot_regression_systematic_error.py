@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_tabular_regression_systematic_error:
+
 Regression Systematic Error
 ***************************
 """

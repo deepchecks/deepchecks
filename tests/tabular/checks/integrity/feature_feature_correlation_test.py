@@ -9,7 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Tests for Feature Feature Correlation check"""
-from hamcrest import assert_that, calling, contains_exactly, contains_inanyorder, equal_to, has_items, raises
+from hamcrest import (assert_that, calling, contains_exactly, contains_inanyorder, equal_to, has_items, has_length,
+                      raises)
 
 from deepchecks.tabular.checks.data_integrity.feature_feature_correlation import FeatureFeatureCorrelation
 from deepchecks.tabular.dataset import Dataset
@@ -23,6 +24,17 @@ def test_feature_feature_correlation(adult_no_split):
     result = FeatureFeatureCorrelation().run(adult_no_split)
     assert_that(result.value.index, contains_inanyorder(*expected_features))
     assert_that(result.value.columns, contains_inanyorder(*expected_features))
+    assert_that(result.display, has_length(3))
+
+
+def test_feature_feature_correlation_without_display(adult_no_split):
+    expected_features = ['age', 'fnlwgt', 'education-num', 'capital-gain', 'capital-loss',
+       'hours-per-week', 'workclass', 'education', 'marital-status',
+       'occupation', 'relationship', 'race', 'sex', 'native-country']
+    result = FeatureFeatureCorrelation(n_samples=9999999).run(adult_no_split, with_display=False)
+    assert_that(result.value.index, contains_inanyorder(*expected_features))
+    assert_that(result.value.columns, contains_inanyorder(*expected_features))
+    assert_that(result.display, has_length(0))
 
 
 def test_feature_feature_correlation_with_mixed_data(df_with_mixed_datatypes_and_missing_values):
@@ -66,9 +78,7 @@ def test_feature_feature_correlation_pass_condition(adult_no_split):
 def test_feature_feature_correlation_fail_condition(adult_no_split):
     threshold = 0.5
     num_pairs = 3
-    high_pairs = [('age', 'marital-status'), ('education-num', 'occupation'), ('edu'
-                                                                               ''
-                                                                               'cation', 'education-num'),
+    high_pairs = [('age', 'marital-status'), ('education-num', 'occupation'), ('education', 'education-num'),
                   ('marital-status', 'relationship')]
     check = FeatureFeatureCorrelation()
     result = check.add_condition_max_number_of_pairs_above_threshold(threshold, num_pairs).run(adult_no_split)

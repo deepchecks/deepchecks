@@ -54,7 +54,7 @@ def model_error_contribution(train_dataset: pd.DataFrame,
         raise DeepchecksProcessError(f'Unable to train meaningful error model '
                                      f'(r^2 score: {format_number(error_model_score)})')
     error_fi, _ = calculate_feature_importance(error_model,
-                                               Dataset(test_dataset, test_scores),
+                                               Dataset(test_dataset, test_scores, cat_features=categorical_features),
                                                permutation_kwargs={'random_state': random_state,
                                                                    'skip_messages': True})
     error_fi.index = new_feature_order
@@ -90,7 +90,8 @@ def error_model_display_dataframe(error_fi: pd.Series,
                                   min_feature_contribution: float,
                                   n_display_samples: int,
                                   min_segment_size: float,
-                                  random_state: int):
+                                  random_state: int,
+                                  with_display: bool):
     """Wrap dataframe with tabular.Dataset for error_model_display with no scorer."""
     return error_model_display(error_fi,
                                error_model_predicted,
@@ -101,7 +102,8 @@ def error_model_display_dataframe(error_fi: pd.Series,
                                min_feature_contribution,
                                n_display_samples,
                                min_segment_size,
-                               random_state)
+                               random_state,
+                               with_display)
 
 
 def error_model_display(error_fi: pd.Series,
@@ -115,7 +117,8 @@ def error_model_display(error_fi: pd.Series,
                         min_feature_contribution: float,
                         n_display_samples: int,
                         min_segment_size: float,
-                        random_state: int) -> Tuple[List, Dict]:
+                        random_state: int,
+                        with_display: bool) -> Tuple[List, Dict]:
     """Calculate and display segments with large error discrepancies.
 
     Parameters
@@ -195,31 +198,32 @@ def error_model_display(error_fi: pd.Series,
                 ok_name_feature, segment1_details = get_segment_details_using_error(error_col_name, data,
                                                                                     data[feature].isin(ok_categories))
 
-            color_map = {ok_name_feature: ok_color}
+            if with_display:
+                color_map = {ok_name_feature: ok_color}
 
-            if len(weak_categories) >= 1:
-                if scorer:
-                    weak_name_feature, segment2_details = get_segment_details(model, scorer, dataset,
-                                                                              data[feature].isin(weak_categories))
+                if len(weak_categories) >= 1:
+                    if scorer:
+                        weak_name_feature, segment2_details = get_segment_details(model, scorer, dataset,
+                                                                                  data[feature].isin(weak_categories))
+                    else:
+                        weak_name_feature, segment1_details = \
+                            get_segment_details_using_error(error_col_name, data,
+                                                            data[feature].isin(weak_categories))
+
+                    color_map[weak_name_feature] = weak_color
                 else:
-                    weak_name_feature, segment1_details = \
-                        get_segment_details_using_error(error_col_name, data,
-                                                        data[feature].isin(weak_categories))
+                    weak_name_feature = None
 
-                color_map[weak_name_feature] = weak_color
-            else:
-                weak_name_feature = None
+                replace_dict = {x: weak_name_feature if x in weak_categories else ok_name_feature for x in
+                                error_per_segment_ser.index}
+                color_col = data[feature].replace(replace_dict)
 
-            replace_dict = {x: weak_name_feature if x in weak_categories else ok_name_feature for x in
-                            error_per_segment_ser.index}
-            color_col = data[feature].replace(replace_dict)
-
-            # Display
-            display.append(px.violin(
-                data, y=error_col_name, x=feature, title=f'Segmentation of error by feature: {feature}', box=False,
-                labels={error_col_name: 'model error', 'color': 'Weak & OK Segments'}, color=color_col,
-                color_discrete_map=color_map
-            ))
+                # Display
+                display.append(px.violin(
+                    data, y=error_col_name, x=feature, title=f'Segmentation of error by feature: {feature}', box=False,
+                    labels={error_col_name: 'model error', 'color': 'Weak & OK Segments'}, color=color_col,
+                    color_discrete_map=color_map
+                ))
         elif feature in dataset.numerical_features:
             # sample data for display
             np.random.seed(random_state)
@@ -234,7 +238,7 @@ def error_model_display(error_fi: pd.Series,
             ).fit(data[[feature]], data[error_col_name])
 
             if len(tree_partitioner.tree_.threshold) > 1:
-                threshold = tree_partitioner.tree_.threshold[0]
+                threshold = tree_partitioner.tree_.threshold[0]  # pylint: disable=unsubscriptable-object
                 color_col = data[feature].ge(threshold)
 
                 sampled_dataset = dataset.data.iloc[sampling_idx]
@@ -247,7 +251,7 @@ def error_model_display(error_fi: pd.Series,
                     segment1_ok = segment1_details['score'] >= segment2_details['score']
                     color_col = color_col.replace([True, False], [segment1_text, segment2_text])
                 else:
-                    # If there is not scorer, we use the error calculation to describe the segments
+                    # If there is no scorer, we use the error calculation to describe the segments
                     # Colors are flipped, because lower error is better
                     segment1_text, segment1_details = get_segment_details_using_error(error_col_name, data, ~color_col)
                     segment2_text, segment2_details = get_segment_details_using_error(error_col_name, data, color_col)
@@ -265,19 +269,19 @@ def error_model_display(error_fi: pd.Series,
                 color_col = data[error_col_name]
                 color_map = None
                 category_order = None
-
-            display.append(px.scatter(data, x=feature, y=error_col_name, color=color_col,
-                                      title=f'Segmentation of error by the feature: {feature}',
-                                      labels={error_col_name: 'model error', 'color': 'Weak & OK Segments'},
-                                      category_orders={'color': category_order},
-                                      color_discrete_map=color_map))
+            if with_display:
+                display.append(px.scatter(data, x=feature, y=error_col_name, color=color_col,
+                                          title=f'Segmentation of error by the feature: {feature}',
+                                          labels={error_col_name: 'model error', 'color': 'Weak & OK Segments'},
+                                          category_orders={'color': category_order},
+                                          color_discrete_map=color_map))
 
         if segment1_details:
             value['feature_segments'][feature]['segment1'] = segment1_details
         if segment2_details:
             value['feature_segments'][feature]['segment2'] = segment2_details
 
-    return display, value
+    return display if with_display else None, value
 
 
 def get_segment_details(model: Any, scorer: Callable, dataset: tabular.Dataset,

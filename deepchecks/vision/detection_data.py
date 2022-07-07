@@ -10,7 +10,7 @@
 #
 """The vision/dataset module containing the vision Dataset class and its functions."""
 from abc import abstractmethod
-from typing import List
+from typing import List, Sequence
 
 import torch
 
@@ -68,7 +68,7 @@ class DetectionData(VisionData):
         raise DeepchecksNotImplementedError('batch_to_labels() must be implemented in a subclass')
 
     @abstractmethod
-    def infer_on_batch(self, batch, model, device) -> List[torch.Tensor]:
+    def infer_on_batch(self, batch, model, device) -> Sequence[torch.Tensor]:
         """Return the predictions of the model on a batch of data.
 
         Parameters
@@ -82,8 +82,8 @@ class DetectionData(VisionData):
 
         Returns
         -------
-        List[torch.Tensor]
-            The predictions of the model on the batch. The predictions should be in a List of length N containing
+        Sequence[torch.Tensor]
+            The predictions of the model on the batch. The predictions should be in a sequence of length N containing
             tensors of shape (B, 6), where N is the number of images, B is the number of bounding boxes detected in the
             sample and each bounding box is represented by 6 values. See the notes for more info.
 
@@ -182,13 +182,13 @@ class DetectionData(VisionData):
         DeepchecksNotImplementedError
             If infer_on_batch not implemented
         """
-        if not isinstance(batch_predictions, list):
-            raise ValidationError('Check requires detection predictions to be a list with an entry for each'
+        if not isinstance(batch_predictions, Sequence):
+            raise ValidationError('Check requires detection predictions to be a sequence with an entry for each'
                                   ' sample')
         if len(batch_predictions) == 0:
-            raise ValidationError('Check requires detection predictions to be a non-empty list')
+            raise ValidationError('Check requires detection predictions to be a non-empty sequence')
         if not isinstance(batch_predictions[0], torch.Tensor):
-            raise ValidationError('Check requires detection predictions to be a list of torch.Tensor')
+            raise ValidationError('Check requires detection predictions to be a sequence of torch.Tensor')
         sample_idx = 0
         # Find a non empty tensor to validate
         while batch_predictions[sample_idx].shape[0] == 0:
@@ -196,9 +196,9 @@ class DetectionData(VisionData):
             if sample_idx == len(batch_predictions):
                 return  # No predictions to validate
         if len(batch_predictions[sample_idx].shape) != 2:
-            raise ValidationError('Check requires detection predictions to be a list of 2D tensors')
+            raise ValidationError('Check requires detection predictions to be a sequence of 2D tensors')
         if batch_predictions[sample_idx].shape[1] != 6:
-            raise ValidationError('Check requires detection predictions to be a list of 2D tensors, when '
+            raise ValidationError('Check requires detection predictions to be a sequence of 2D tensors, when '
                                   'each row has 6 columns: [x, y, width, height, class_probability, class_id]')
         if torch.min(batch_predictions[sample_idx]) < 0:
             raise ValidationError('Found one of coordinates to be negative, Check requires object detection '

@@ -37,7 +37,8 @@ from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksBaseError
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
-from deepchecks.tabular.datasets.classification import adult
+from deepchecks.tabular.datasets.classification import adult, lending_club
+from deepchecks.tabular.datasets.regression import avocado
 from deepchecks.utils.logger import set_verbosity
 
 from .vision.vision_conftest import *  # pylint: disable=wildcard-import, unused-wildcard-import
@@ -115,21 +116,28 @@ def empty_df():
 @pytest.fixture(scope='session')
 def kiss_dataset_and_model():
     """A small and stupid dataset and model to catch edge cases."""
-    def string_to_length(data):
+    def string_to_length(data: pd.DataFrame):
         data = data.copy()
         data['string_feature'] = data['string_feature'].apply(len)
+        return data
+
+    def fillna(data: pd.DataFrame):
+        data = data.copy()
+        data['numeric_feature'] = data['numeric_feature'].fillna(0)
         return data
 
     df = pd.DataFrame(
         {
             'binary_feature': [0, 1, 1, 0, 0, 1],
             'string_feature': ['ahhh', 'no', 'weeee', 'arg', 'eh', 'E'],
+            'numeric_feature': pd.array([4, np.nan, 7, 3, 2, np.nan], dtype='Int64'),
             'numeric_label': [3, 1, 5, 2, 1, 1],
         })
     train, test = train_test_split(df, test_size=0.33, random_state=42)
     train_ds = Dataset(train, label='numeric_label', cat_features=['binary_feature'])
     test_ds = Dataset(test, label='numeric_label', cat_features=['binary_feature'])
-    clf = Pipeline([('lengthifier', FunctionTransformer(string_to_length)),
+    clf = Pipeline([('fillna', FunctionTransformer(fillna)),
+                    ('lengthifier', FunctionTransformer(string_to_length)),
                     ('clf', AdaBoostClassifier(random_state=0))])
     clf.fit(train_ds.features_columns, train_ds.label_col)
     return train_ds, test_ds, clf
@@ -304,6 +312,30 @@ def iris_split_dataset_and_model(iris_split_dataset) -> Tuple[Dataset, Dataset, 
     clf = AdaBoostClassifier(random_state=0)
     clf.fit(train_ds.features_columns, train_ds.label_col)
     return train_ds, test_ds, clf
+
+
+@pytest.fixture(scope='session')
+def adult_split_dataset_and_model() -> Tuple[Dataset, Dataset, Pipeline]:
+    """Return Adult train and val datasets and trained RandomForestClassifier model."""
+    train_ds, test_ds = adult.load_data(as_train_test=True)
+    model = adult.load_fitted_model()
+    return train_ds, test_ds, model
+
+
+@pytest.fixture(scope='session')
+def lending_club_split_dataset_and_model() -> Tuple[Dataset, Dataset, Pipeline]:
+    """Return Adult train and val datasets and trained RandomForestClassifier model."""
+    train_ds, test_ds = lending_club.load_data(as_train_test=True)
+    model = lending_club.load_fitted_model()
+    return train_ds, test_ds, model
+
+
+@pytest.fixture(scope='session')
+def avocado_split_dataset_and_model() -> Tuple[Dataset, Dataset, Pipeline]:
+    """Return Adult train and val datasets and trained RandomForestClassifier model."""
+    train_ds, test_ds = avocado.load_data(as_train_test=True)
+    model = avocado.load_fitted_model()
+    return train_ds, test_ds, model
 
 
 @pytest.fixture(scope='session')

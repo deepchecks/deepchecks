@@ -58,18 +58,21 @@ class NewLabelTrainTest(TrainTestCheck):
         if new_labels:
             n_new_label = len(test_label[test_label.isin(new_labels)])
 
-            dataframe = pd.DataFrame(data=[[train_dataset.label_name, format_percent(n_new_label / n_test_samples),
-                                            sorted(new_labels)]],
-                                     columns=['Label column', 'Percent new labels in sample', 'New labels'])
-            dataframe = dataframe.set_index(['Label column'])
-
-            display = dataframe
-
             result = {
                 'n_samples': n_test_samples,
                 'n_new_labels_samples': n_new_label,
                 'new_labels': sorted(new_labels)
             }
+
+            if context.with_display:
+                dataframe = pd.DataFrame(data=[[train_dataset.label_name, format_percent(n_new_label / n_test_samples),
+                                                sorted(new_labels)]],
+                                         columns=['Label column', 'Percent new labels in sample', 'New labels'])
+                dataframe = dataframe.set_index(['Label column'])
+                display = dataframe
+            else:
+                display = None
+
         else:
             display = None
             result = {}

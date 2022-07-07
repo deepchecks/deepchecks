@@ -15,7 +15,7 @@ This guide will help you understand what drift is and how you can detect in usin
 * `Code Examples <#code-examples>`__
 
 What Is Distribution Drift?
-==========================
+===========================
 
 Distribution drift is a change in the distribution of the data, the label or the relationship between them. Drift
 happens over time, and can occur either gradually or suddenly.
@@ -90,6 +90,7 @@ distributions different?".
 There are many methods to detect drift. Here, we will elaborate on two of them:
 
 .. _drift_detection_by_univariate_measure:
+
 Detection by Univariate Measure
 --------------------------------
 
@@ -107,6 +108,7 @@ checking each feature one at a time, and cannot detect drift in the relations be
 will usually detect drift multiple times if it occurs in several features.
 
 .. _drift_detection_by_domain_classifier:
+
 Detection by Domain Classifier
 ------------------------------
 

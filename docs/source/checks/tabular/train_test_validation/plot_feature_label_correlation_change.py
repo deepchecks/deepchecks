@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_tabular_feature_label_correlation_change:
+
 Feature Label Correlation Change
-**************************************
+********************************
 
 This notebook provides an overview for using and understanding the "Feature Label Correlation Change" check.
 

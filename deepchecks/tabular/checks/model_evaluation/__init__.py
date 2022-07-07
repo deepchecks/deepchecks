@@ -40,5 +40,8 @@ __all__ = [
     'SegmentPerformance',
     'SimpleModelComparison',
     'TrainTestPredictionDrift',
+    'WeakSegmentsPerformance',
     'UnusedFeatures'
 ]
+
+from .weak_segments_performance import WeakSegmentsPerformance

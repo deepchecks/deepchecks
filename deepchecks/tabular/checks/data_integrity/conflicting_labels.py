@@ -12,6 +12,7 @@
 from typing import List, Union
 
 import pandas as pd
+from typing_extensions import TypedDict
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
@@ -19,6 +20,11 @@ from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['ConflictingLabels']
+
+
+class ResultValue(TypedDict):
+    percent: float
+    samples: List[pd.DataFrame]
 
 
 class ConflictingLabels(SingleDatasetCheck):
@@ -54,14 +60,17 @@ class ConflictingLabels(SingleDatasetCheck):
         Returns
         -------
         CheckResult
-            percentage of ambiguous samples and display of the top n_to_show most ambiguous.
+            Value of result is a dictionary that contains percentage of ambiguous samples
+            and list of samples with confliction labels. Display shows 'n_to_show' most
+            ambiguous labels with their samples.
         """
         dataset = context.get_data_by_kind(dataset_kind)
         context.assert_classification_task()
         dataset.assert_label()
-        label_name = dataset.label_name
 
         dataset = dataset.select(self.columns, self.ignore_columns, keep_label=True)
+        features = dataset.features
+        label_name = dataset.label_name
 
         # HACK: pandas have bug with groupby on category dtypes, so until it fixed, change dtypes manually
         df = dataset.data
@@ -69,39 +78,55 @@ class ConflictingLabels(SingleDatasetCheck):
         if category_columns:
             df = df.astype({c: 'object' for c in category_columns})
 
-        group_unique_data = df.groupby(dataset.features, dropna=False)
+        group_unique_data = df.groupby(features, dropna=False)
         group_unique_labels = group_unique_data.nunique()[label_name]
 
         num_ambiguous = 0
         ambiguous_label_name = 'Observed Labels'
-        display = pd.DataFrame(columns=[ambiguous_label_name, *dataset.features])
+        samples = []
+        display_samples = []
 
-        for num_labels, group_data in sorted(zip(group_unique_labels, group_unique_data),
-                                             key=lambda x: x[0], reverse=True):
+        data = sorted(
+            zip(group_unique_labels, group_unique_data),
+            key=lambda x: x[0],
+            reverse=True
+        )
+
+        for num_labels, group_data in data:
             if num_labels == 1:
-                break
+                continue
 
             group_df = group_data[1]
-            sample_values = dict(group_df[dataset.features].iloc[0])
-            labels = tuple(sorted(group_df[label_name].unique()))
-            sample = pd.DataFrame.from_dict({'index': [labels] + list(sample_values.values())},
-                                            columns=[ambiguous_label_name] + list(sample_values.keys()),
-                                            orient='index')
+
             n_data_sample = group_df.shape[0]
             num_ambiguous += n_data_sample
-            display = pd.concat([display, sample])
+            samples.append(group_df.loc[:, [label_name, *features]].copy())
 
-        display = display.set_index(ambiguous_label_name)
+            if context.with_display is True:
+                display_sample = dict(group_df[features].iloc[0])
+                ambiguous_labels = tuple(sorted(group_df[label_name].unique()))
+                display_sample[ambiguous_label_name] = ambiguous_labels
+                display_samples.append(display_sample)
 
-        explanation = ('Each row in the table shows an example of a data sample '
-                       'and the its observed labels as found in the dataset. '
-                       f'Showing top {self.n_to_show} of {display.shape[0]}')
+        if len(display_samples) == 0:
+            display = None
+        else:
+            display = pd.DataFrame.from_records(display_samples[:self.n_to_show])
+            display.set_index(ambiguous_label_name, inplace=True)
+            display = [
+                'Each row in the table shows an example of a data sample '
+                'and the its observed labels as found in the dataset. '
+                f'Showing top {self.n_to_show} of {display.shape[0]}',
+                display
+            ]
 
-        display = None if display.empty else [explanation, display.head(self.n_to_show)]
-
-        percent_ambiguous = num_ambiguous / dataset.n_samples
-
-        return CheckResult(value=percent_ambiguous, display=display)
+        return CheckResult(
+            display=display,
+            value=ResultValue(
+                percent=num_ambiguous / dataset.n_samples,
+                samples=samples,
+            )
+        )
 
     def add_condition_ratio_of_conflicting_labels_less_or_equal(self, max_ratio=0):
         """Add condition - require ratio of samples with conflicting labels less or equal to max_ratio.
@@ -111,10 +136,10 @@ class ConflictingLabels(SingleDatasetCheck):
         max_ratio : float , default: 0
             Maximum ratio of samples with multiple labels.
         """
-
-        def max_ratio_condition(result: float) -> ConditionResult:
-            details = f'Ratio of samples with conflicting labels: {format_percent(result)}'
-            category = ConditionCategory.PASS if result <= max_ratio else ConditionCategory.FAIL
+        def max_ratio_condition(result: ResultValue) -> ConditionResult:
+            percent = result['percent']
+            details = f'Ratio of samples with conflicting labels: {format_percent(percent)}'
+            category = ConditionCategory.PASS if percent <= max_ratio else ConditionCategory.FAIL
             return ConditionResult(category, details)
 
         return self.add_condition(f'Ambiguous sample ratio is less or equal to {format_percent(max_ratio)}',

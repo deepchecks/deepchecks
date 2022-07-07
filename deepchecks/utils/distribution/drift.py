@@ -189,7 +189,8 @@ def calc_drift_and_plot(train_column: pd.Series,
                         max_num_categories_for_display: int = 10,
                         show_categories_by: str = 'largest_difference',
                         categorical_drift_method='cramer_v',
-                        min_samples: int = 10) -> Tuple[float, str, Callable]:
+                        min_samples: int = 10,
+                        with_display: bool = True) -> Tuple[float, str, Callable]:
     """
     Calculate drift score per column.
 
@@ -245,6 +246,10 @@ def calc_drift_and_plot(train_column: pd.Series,
         test_dist = test_dist.astype('float')
 
         score = earth_movers_distance(dist1=train_dist, dist2=test_dist, margin_quantile_filter=margin_quantile_filter)
+
+        if not with_display:
+            return score, scorer_name, None
+
         bar_traces, bar_x_axis, bar_y_axis = drift_score_bar_traces(score)
 
         dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(train_dist, test_dist, value_name)
@@ -262,6 +267,10 @@ def calc_drift_and_plot(train_column: pd.Series,
         else:
             raise ValueError('Excpected categorical_drift_method to be one '
                              f'of [Cramer, PSI], recieved: {categorical_drift_method}')
+
+        if not with_display:
+            return score, scorer_name, None
+
         bar_traces, bar_x_axis, bar_y_axis = drift_score_bar_traces(score, bar_max=1)
         dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(
             train_dist, test_dist, value_name, is_categorical=True,

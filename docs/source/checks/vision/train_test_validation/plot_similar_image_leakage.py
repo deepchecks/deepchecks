@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_vision_similar_image_leakage:
+
 Similar Image Leakage
 ***************************
 This notebook provides an overview for using and understanding the "Similar Image Leakage" check.
@@ -62,7 +64,15 @@ test_ds = load_dataset(train=False, object_type='VisionData', shuffle=False)
 #%%
 
 check = SimilarImageLeakage()
-check.run(train_ds, test_ds)
+result = check.run(train_ds, test_ds)
+result
+
+#%%
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  result.show_in_window()
+#%%
+# The result will be displayed in a new window.
 
 #%%
 # As we can see, no similar images were found.
@@ -104,7 +114,8 @@ test_ds_modified._data_loader = get_modified_dataloader(test_ds, get_modificatio
 # --------------------------------------------
 
 check = SimilarImageLeakage()
-check.run(train_ds, test_ds_modified)
+result = check.run(train_ds, test_ds_modified)
+result
 
 #%%
 # We can see that the check detected the five images from the training set we introduced to the test set.

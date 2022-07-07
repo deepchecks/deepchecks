@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_tabular_data_duplicates:
+
 Data Duplicates
 ***************
 

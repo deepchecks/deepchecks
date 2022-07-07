@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_vision_label_property_outliers:
+
 Label Property Outliers
 =======================
 
@@ -15,7 +17,7 @@ outliers check, used to detect outliers in simple label properties in a dataset.
 
 
 Why Check for Label Outliers?
------------------------
+-----------------------------
 Examining outliers may help you gain insights that you couldn't have reached from taking an aggregate look or by
 inspecting random samples. For example, it may help you understand you have some corrupt samples (e.g.
 a bounding box with area 0), or samples you didn't expect to have (e.g. extreme aspect ratio).
@@ -53,6 +55,13 @@ train_data = load_dataset(train=True, object_type='VisionData')
 check = LabelPropertyOutliers()
 result = check.run(train_data)
 result
+
+#%%
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  result.show_in_window()
+#%%
+# The result will be displayed in a new window.
 
 #%%
 # Observe Graphic Result
