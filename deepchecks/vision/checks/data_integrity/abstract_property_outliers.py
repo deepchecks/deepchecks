@@ -206,6 +206,8 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
                     )
 
                     display.append(html)
+            display = [''.join(display)]
+
             if not no_outliers.empty:
                 grouped = no_outliers.groupby(level=0).unique().str.join(', ')
                 grouped_df = pd.DataFrame(grouped, columns=['Properties'])
@@ -213,6 +215,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
                 grouped_df = grouped_df[['Reason', 'Properties']]
                 display.append('<h5><b>Properties Without Outliers</h5></b>')
                 display.append(grouped_df.style.hide_index())
+
         else:
             display = None
 
