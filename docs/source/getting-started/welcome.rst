@@ -52,11 +52,11 @@ Tabular Data
 
 Head over to one of our following quickstart tutorials, and have deepchecks running on your environment in less than 5 min:
 
-- :doc:`Train-Test Validation Quickstart (loans data) </user-guide/tabular/auto_tutorials/plot_quick_data_integrity>`
+- :doc:`Data Integrity Quickstart </user-guide/tabular/auto_tutorials/plot_quick_data_integrity>`
 
-- :doc:`Data Integrity Quickstart (avocado sales data) </user-guide/tabular/auto_tutorials/plot_quick_data_integrity>`
+- :doc:`Train-Test Validation Quickstart </user-guide/tabular/auto_tutorials/plot_quick_train_test_validation>`
 
-- :doc:`Full Suite (many checks) Quickstart (iris data) </user-guide/tabular/auto_tutorials/plot_quickstart_in_5_minutes>`
+- :doc:`Model Evaluation Quickstart </user-guide/tabular/auto_tutorials/plot_quick_model_evaluation>`
 
  **Recommended - download the code and run it locally** on the built-in dataset and (optional) model, or **replace them with your own**.
 

@@ -2,8 +2,8 @@
 """
 .. _quick_full_suite:
 
-Quickstart in 5 minutes
-***********************
+Quickstart - Full Suite in 5 Minutes
+************************************
 
 In order to run your first Deepchecks Suite all you need to have is the data
 and model that you wish to validate. More specifically, you need:
@@ -133,13 +133,13 @@ suite
 #%%
 
 # now we can use the check's index and the condition's number to remove it:
-print(suite[6])
-suite[6].remove_condition(0)
+print(suite[5])
+suite[5].remove_condition(0)
 
 #%%
 
 # print and see that the condition was removed
-suite[6]
+suite[5]
 
 #%%
 # If we now re-run the suite, all of the existing conditions will pass.

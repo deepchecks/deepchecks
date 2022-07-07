@@ -18,9 +18,9 @@ from plotly.basedatatypes import BaseFigure
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks import ClassPerformance
-from tests.base.utils import equal_condition_result
 from deepchecks.vision.metrics_utils.confusion_matrix_counts_metrics import AVAILABLE_EVALUTING_FUNCTIONS
 from deepchecks.vision.metrics_utils.detection_tp_fp_fn_calc import ObjectDetectionTpFpFn
+from tests.base.utils import equal_condition_result
 from tests.common import assert_class_performance_display
 
 
@@ -353,11 +353,10 @@ def test_class_list(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
     ))
 
 
-
 def test_condition_test_performance_greater_than_pass(mnist_dataset_train,
-                                                       mnist_dataset_test,
-                                                       mock_trained_mnist,
-                                                       device):
+                                                      mnist_dataset_test,
+                                                      mock_trained_mnist,
+                                                      device):
     # Arrange
     check = ClassPerformance().add_condition_test_performance_greater_than(0.5)
 
@@ -367,9 +366,9 @@ def test_condition_test_performance_greater_than_pass(mnist_dataset_train,
 
     assert_that(result.conditions_results, has_items(
         equal_condition_result(is_pass=True,
-                               details='Found minimum score for Recall metric of value 0.97 for class 9',
+                               details=re.compile(r'Found minimum score for Recall metric of value 0.97 for class \d.'),
                                name='Scores are greater than 0.5'))
-    )
+                )
 
 
 def test_condition_test_performance_greater_than_fail(
@@ -391,7 +390,8 @@ def test_condition_test_performance_greater_than_fail(
     assert_that(result.conditions_results, has_items(
         equal_condition_result(
             is_pass=False,
-            details=re.compile(r"Found metrics with scores below threshold:.*"),
+            details=re.compile(
+                r'Found 20 scores below threshold.\nFound minimum score for r metric of value 0.97 for class \d.'),
             name='Scores are greater than 1'
         )
     ))
@@ -413,7 +413,7 @@ def test_condition_train_test_relative_degradation_less_than_pass(
     assert_that(result.conditions_results, has_items(
         equal_condition_result(
             is_pass=True,
-            details='Found max degradation of 0.86% for metric Precision and class 5',
+            details=r'Found max degradation of 0.86% for metric Precision and class 5.',
             name='Train-Test scores relative degradation is less than 0.1'
         )
     ))
@@ -436,10 +436,7 @@ def test_condition_train_test_relative_degradation_less_than_fail(
         equal_condition_result(
             is_pass=False,
             name='Train-Test scores relative degradation is less than 0.0001',
-            details=(
-                '10 classes scores failed. Found max degradation of 0.86% for metric Precision '
-                'and class 5'
-            )
+            details=r'10 scores failed. Found max degradation of 0.86% for metric Precision and class 5.'
         )
     ))
 
@@ -492,7 +489,7 @@ def test_condition_class_performance_imbalance_ratio_less_than_fail(
                                        'classes is 3.78%, using Precision metric. Lowest class - 9: 0.96; Highest class'
                                        ' - 6: 0.99',
                                name='Relative ratio difference between labels \'Precision\' score is less than 0.01%'))
-    )
+                )
 
 
 def test_custom_task(mnist_train_custom_task, mnist_test_custom_task, mock_trained_mnist, device):

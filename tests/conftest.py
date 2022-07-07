@@ -37,7 +37,8 @@ from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksBaseError
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
-from deepchecks.tabular.datasets.classification import adult
+from deepchecks.tabular.datasets.classification import adult, lending_club
+from deepchecks.tabular.datasets.regression import avocado
 from deepchecks.utils.logger import set_verbosity
 
 from .vision.vision_conftest import *  # pylint: disable=wildcard-import, unused-wildcard-import
@@ -311,6 +312,30 @@ def iris_split_dataset_and_model(iris_split_dataset) -> Tuple[Dataset, Dataset, 
     clf = AdaBoostClassifier(random_state=0)
     clf.fit(train_ds.features_columns, train_ds.label_col)
     return train_ds, test_ds, clf
+
+
+@pytest.fixture(scope='session')
+def adult_split_dataset_and_model() -> Tuple[Dataset, Dataset, Pipeline]:
+    """Return Adult train and val datasets and trained RandomForestClassifier model."""
+    train_ds, test_ds = adult.load_data(as_train_test=True)
+    model = adult.load_fitted_model()
+    return train_ds, test_ds, model
+
+
+@pytest.fixture(scope='session')
+def lending_club_split_dataset_and_model() -> Tuple[Dataset, Dataset, Pipeline]:
+    """Return Adult train and val datasets and trained RandomForestClassifier model."""
+    train_ds, test_ds = lending_club.load_data(as_train_test=True)
+    model = lending_club.load_fitted_model()
+    return train_ds, test_ds, model
+
+
+@pytest.fixture(scope='session')
+def avocado_split_dataset_and_model() -> Tuple[Dataset, Dataset, Pipeline]:
+    """Return Adult train and val datasets and trained RandomForestClassifier model."""
+    train_ds, test_ds = avocado.load_data(as_train_test=True)
+    model = avocado.load_fitted_model()
+    return train_ds, test_ds, model
 
 
 @pytest.fixture(scope='session')

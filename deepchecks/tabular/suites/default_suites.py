@@ -23,12 +23,12 @@ from deepchecks.tabular.checks import (BoostingOverfit, CalibrationScore, Catego
                                        DateTrainTestLeakageDuplicates, DateTrainTestLeakageOverlap,
                                        FeatureLabelCorrelation, FeatureLabelCorrelationChange,
                                        IdentifierLabelCorrelation, IndexTrainTestLeakage, IsSingleValue, MixedDataTypes,
-                                       MixedNulls, ModelErrorAnalysis, ModelInferenceTime, NewLabelTrainTest,
-                                       OutlierSampleDetection, PerformanceReport, RegressionErrorDistribution,
-                                       RegressionSystematicError, RocReport, SegmentPerformance, SimpleModelComparison,
-                                       SpecialCharacters, StringLengthOutOfBounds, StringMismatch,
-                                       StringMismatchComparison, TrainTestFeatureDrift, TrainTestLabelDrift,
-                                       TrainTestPredictionDrift, TrainTestSamplesMix, UnusedFeatures, WholeDatasetDrift)
+                                       MixedNulls, ModelInferenceTime, NewLabelTrainTest, OutlierSampleDetection,
+                                       PerformanceReport, RegressionErrorDistribution, RegressionSystematicError,
+                                       RocReport, SimpleModelComparison, SpecialCharacters, StringLengthOutOfBounds,
+                                       StringMismatch, StringMismatchComparison, TrainTestFeatureDrift,
+                                       TrainTestLabelDrift, TrainTestPredictionDrift, TrainTestSamplesMix,
+                                       UnusedFeatures, WeakSegmentsPerformance, WholeDatasetDrift)
 
 __all__ = ['single_dataset_integrity', 'train_test_leakage', 'train_test_validation',
            'model_evaluation', 'full_suite']
@@ -344,13 +344,12 @@ def model_evaluation(alternative_scorers: Dict[str, Callable] = None,
 
     return Suite(
         'Model Evaluation Suite',
-        PerformanceReport(**kwargs).add_condition_train_test_relative_degradation_not_greater_than(),
+        PerformanceReport(**kwargs).add_condition_train_test_relative_degradation_less_than(),
         RocReport(**kwargs).add_condition_auc_greater_than(),
         ConfusionMatrixReport(**kwargs),
-        SegmentPerformance(**kwargs),
         TrainTestPredictionDrift(**kwargs).add_condition_drift_score_less_than(),
         SimpleModelComparison(**kwargs).add_condition_gain_greater_than(),
-        ModelErrorAnalysis(**kwargs).add_condition_segments_performance_relative_difference_less_than(),
+        WeakSegmentsPerformance(**kwargs).add_condition_segments_relative_performance_greater_than(),
         CalibrationScore(**kwargs),
         RegressionSystematicError(**kwargs).add_condition_systematic_error_ratio_to_rmse_less_than(),
         RegressionErrorDistribution(**kwargs).add_condition_kurtosis_greater_than(),
