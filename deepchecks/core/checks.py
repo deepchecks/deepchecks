@@ -175,16 +175,10 @@ class BaseCheck(abc.ABC):
         CheckConfig
             includes the checks class name, params, and module name.
         """
-        module_name = self.__module__
-
-        # if check is from deepchecks we want to use top level module
-        if module_name.startswith('deepchecks.'):
-            module_name = 'deepchecks.' + module_name.split('.')[1]
-
         conf = CheckConfig(
             class_name=self.__class__.__name__,
             params=self.params(show_defaults=True),
-            module_name=module_name
+            module_name=self.__module__
         )
         return conf
 
