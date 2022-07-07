@@ -13,7 +13,7 @@ from typing import Union, Optional, Dict
 
 import requests
 
-from deepchecks.utils.metrics import ModelType
+from deepchecks.utils.metrics import TaskType
 
 
 class Sender:
@@ -101,7 +101,7 @@ class Sender:
     def create_model(self,
                     name: Optional[str] = None,
                     description: Optional[str] = None,
-                    model_type: ModelType = None,
+                    model_type: TaskType = None,
                     ) -> requests.Response:
         """
         Create a new model to Deepchecks monitoring API using a POST request.
@@ -126,6 +126,39 @@ class Sender:
         # TODO: Make this async
         return self._session.post(
             f"{self._host}/api/v1/models",
+            json=data,
+            headers=self._header,
+            timeout=self._timeout,
+        )
+
+    def create_dashboard(self,
+                    name: Optional[str] = None,
+                    description: Optional[str] = None,
+                    suite_conf: 'SuiteConfig' = None,
+                    ) -> requests.Response:
+        """
+        Create a new model to Deepchecks monitoring API using a POST request.
+
+        Parameters
+        ----------
+        name : str
+            name for the model.
+        description : Union[str, int, float]
+            description for the model.
+        model_type : str, Default: None
+            the model type.
+        """
+
+        # TODO: Add validations
+        data = {
+            "name": name,
+            "description": description,
+            "config": suite_conf,
+        }
+
+        # TODO: Make this async
+        return self._session.post(
+            f"{self._host}/api/v1/dashboard",
             json=data,
             headers=self._header,
             timeout=self._timeout,
