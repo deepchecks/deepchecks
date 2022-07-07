@@ -24,9 +24,10 @@ from sklearn.pipeline import Pipeline
 
 from deepchecks import tabular
 from deepchecks.core import errors
+from deepchecks.tabular.metric_utils.metrics import (DeepcheckScorer, get_default_scorers, init_validate_scorers,
+                                                     task_type_check)
 from deepchecks.tabular.utils.validation import validate_model
 from deepchecks.utils.logger import get_logger
-from deepchecks.utils.metrics import DeepcheckScorer, get_default_scorers, init_validate_scorers, task_type_check
 from deepchecks.utils.strings import is_string_column
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.validation import ensure_hashable_or_mutable_sequence
@@ -352,7 +353,7 @@ def column_importance_sorter_dict(
         the dict of columns sorted and limited by feature importance.
     """
     feature_importances = {} if feature_importances is None else feature_importances
-    key = lambda name: get_importance(name[0], feature_importances, dataset)
+    def key(name): return get_importance(name[0], feature_importances, dataset)
     cols_dict = dict(sorted(cols_dict.items(), key=key, reverse=True))
     if n_top:
         return dict(list(cols_dict.items())[:n_top])
@@ -391,7 +392,7 @@ def column_importance_sorter_df(
         return df
 
     feature_importances = {} if feature_importances is None else feature_importances
-    key = lambda column: [get_importance(name, feature_importances, ds) for name in column]
+    def key(column): return [get_importance(name, feature_importances, ds) for name in column]
     if col:
         df = df.sort_values(by=[col], key=key, ascending=False)
     df = df.sort_index(key=key, ascending=False)

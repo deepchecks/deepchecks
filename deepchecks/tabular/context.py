@@ -25,7 +25,7 @@ from deepchecks.tabular.utils.validation import (ensure_predictions_proba, ensur
 from deepchecks.utils.decorators import deprecate_kwarg
 from deepchecks.utils.features import calculate_feature_importance_or_none
 from deepchecks.utils.logger import get_logger
-from deepchecks.utils.metrics import get_default_scorers, init_validate_scorers, task_type_check
+from deepchecks.tabular.metric_utils.metrics import get_default_scorers, init_validate_scorers, task_type_check
 from deepchecks.utils.typing import BasicModel
 
 __all__ = [

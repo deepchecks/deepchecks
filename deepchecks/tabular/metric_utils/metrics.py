@@ -9,9 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Utils module containing utilities for checks working with metrics."""
-
-# TODO: move tabular functionality to the tabular sub-package
-
 import typing as t
 from numbers import Number
 
@@ -19,6 +16,7 @@ import numpy as np
 import pandas as pd
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.metrics import f1_score, get_scorer, make_scorer, precision_score, recall_score
+from sklearn.metrics._scorer import _BaseScorer
 
 from deepchecks import tabular  # pylint: disable=unused-import; it is used for type annotations
 from deepchecks.core import errors
@@ -86,13 +84,32 @@ class DeepcheckScorer:
         sklearn scorer name or callable
     name : str
         scorer name
+    model_type : TaskType
+        model type to return scorers for
+    class_avg : bool , default True
+        for classification whether to return scorers of average score or per class
     """
 
-    def __init__(self, scorer: t.Union[str, t.Callable], name: str):
+    def __init__(self, scorer: t.Union[str, t.Callable], name: str, model_type: TaskType, class_avg: bool = True):
         self.name = name
         if isinstance(scorer, str):
-            self.scorer: t.Callable = get_scorer(scorer)
-            self.sklearn_scorer_name = scorer
+            agg_scorer_dict = {}
+            if model_type == TaskType.REGRESSION:
+                agg_scorer_dict.update(DEFAULT_REGRESSION_SCORERS)
+            else:
+                if class_avg:
+                    if model_type == TaskType.BINARY:
+                        agg_scorer_dict.update(DEFAULT_BINARY_SCORERS)
+                    else:
+                        agg_scorer_dict.update(DEFAULT_MULTICLASS_SCORERS)
+                else:
+                    agg_scorer_dict.update(MULTICLASS_SCORERS_NON_AVERAGE)
+            if scorer in agg_scorer_dict:
+                self.scorer = agg_scorer_dict['scorer']
+                self.sklearn_scorer_name = None
+            else:
+                self.scorer: t.Callable = get_scorer(scorer)
+                self.sklearn_scorer_name = scorer
         elif callable(scorer):
             self.scorer: t.Callable = scorer
             self.sklearn_scorer_name = None
@@ -113,6 +130,11 @@ class DeepcheckScorer:
     def run_on_data_and_label(self, model, data: pd.DataFrame, label_col):
         """Run scorer with model, data and labels without null filtering."""
         return self.scorer(model, data, label_col)
+
+    def run_on_pred(self, y_pred, y_true):
+        if isinstance(self.scorer, _BaseScorer):
+            return self.scorer._score_func(y_pred, y_true, self.scorer._kwargs) * self.scorer._sign
+        raise errors.DeepchecksValueError('Only supports sklearn scorers')
 
     def _run_score(self, model, dataset: 'tabular.Dataset'):
         return self.scorer(model, dataset.features_columns, dataset.label_col)
@@ -244,8 +266,8 @@ def get_default_scorers(model_type, class_avg: bool = True):
 def init_validate_scorers(scorers: t.Mapping[str, t.Union[str, t.Callable]],
                           model: BasicModel,
                           dataset: 'tabular.Dataset',
-                          class_avg: bool = True,
-                          model_type=None) -> t.List[DeepcheckScorer]:
+                          model_type: TaskType,
+                          class_avg: bool = True) -> t.List[DeepcheckScorer]:
     """Initialize scorers and return all of them as deepchecks scorers.
 
     Parameters
@@ -256,13 +278,13 @@ def init_validate_scorers(scorers: t.Mapping[str, t.Union[str, t.Callable]],
         used to validate the scorers, and calculate mode_type if None.
     dataset : Dataset
         used to validate the scorers, and calculate mode_type if None.
+    model_type : TaskType
+        model type to return scorers for
     class_avg : bool , default True
         for classification whether to return scorers of average score or per class
-    model_type : TaskType , default None
-        model type to return scorers for
     """
     return_array = model_type in [TaskType.MULTICLASS, TaskType.BINARY] and class_avg is False
-    scorers: t.List[DeepcheckScorer] = [DeepcheckScorer(scorer, name) for name, scorer in scorers.items()]
+    scorers: t.List[DeepcheckScorer] = [DeepcheckScorer(scorer, name, model_type, class_avg) for name, scorer in scorers.items()]
     for s in scorers:
         s.validate_fitting(model, dataset, return_array)
     return scorers

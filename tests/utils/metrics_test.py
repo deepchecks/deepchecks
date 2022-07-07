@@ -14,7 +14,7 @@ from sklearn.svm import SVC
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.utils.task_type import TaskType
-from deepchecks.utils.metrics import task_type_check
+from deepchecks.tabular.metric_utils.metrics import task_type_check
 
 
 def test_task_type_check_binary(iris_dataset_single_class, iris_random_forest_single_class):

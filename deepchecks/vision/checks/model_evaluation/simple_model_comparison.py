@@ -20,7 +20,7 @@ from ignite.metrics import Fbeta
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult, DatasetKind
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils import plot
-from deepchecks.utils.metrics import get_gain
+from deepchecks.tabular.metric_utils.metrics import get_gain
 from deepchecks.utils.strings import format_percent
 from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.metrics_utils import get_scorers_list, metric_results_to_df
