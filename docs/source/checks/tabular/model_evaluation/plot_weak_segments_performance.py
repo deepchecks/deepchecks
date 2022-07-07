@@ -1,38 +1,41 @@
 # -*- coding: utf-8 -*-
 """
 Weak Segments Performance
-********************************
+*************************
 
 This notebooks provides an overview for using and understanding the weak segment performance check.
 
 **Structure:**
 
 * `What is the purpose of the check? <#what-is-the-purpose-of-the-check>`__
+* `Automatically detecting weak segments <#automatically-detecting-weak-segments>`__
 * `Generate data & model <#generate-data-model>`__
 * `Run the check <#run-the-check>`__
 * `Define a condition <#define-a-condition>`__
 
 What is the purpose of the check?
-=================================
+==================================
 
 The check is designed to help you easily identify the model's weakest segments in the data provided. In addition,
 it enables to provide a sublist of the Dataset's features, thus limiting the check to search in
 interesting subspaces.
 
-How Deepchecks automatically detects weak segments
-------------------------------------
+Automatically detecting weak segments
+=====================================
 
 The check contains several steps:
 
-#. We calculate loss for each sample in the dataset using the provided model via either log-loss or MSE.
+#. We calculate loss for each sample in the dataset using the provided model via either log-loss or MSE according
+   to the task type.
 
-#. Select a subset of features for the the weak segment search. This is done by selecting the features with the highest feature importance to the model provided (within the features selected for check, if limited).
+#. Select a subset of features for the weak segment search. This is done by selecting the features with the
+   highest feature importance to the model provided (within the features selected for check, if limited).
 
-#. We train multiple simple tree based models, each one is trained using exactly two features (out of the ones selected above) to predict the per sample error calculated before.
+#. We train multiple simple tree based models, each one is trained using exactly two
+   features (out of the ones selected above) to predict the per sample error calculated before.
 
-#. We convert each of the leafs in each of the trees into a segment and calculate the segment's performance.
-
-#. For the model's weakest segments detected we calculate bins for the remaining of the data and calculate the model's
+#. We convert each of the leafs in each of the trees into a segment and calculate the segment's performance. For the
+   weakest segments detected we also calculate the model's performance on data segments surrounding them.
 """
 #%%
 # Generate data & model
@@ -65,8 +68,7 @@ model = load_fitted_model()
 # ``categorical_aggregation_threshold``: By default the check will combine rare categories into a single category called
 # "Other". This parameter determines the frequency threshold for categories to be mapped into to the "other" category.
 #
-# for additional information on the check's parameters, please refer to the API reference of the check
-# :class:`deepchecks.tabular.checks.model_evaluation.WeakSegmentsPerformance`.
+# see :class:`deepchecks.tabular.checks.model_evaluation.WeakSegmentsPerformance` for more details.
 
 from deepchecks.tabular.datasets.classification import phishing
 from deepchecks.tabular.checks import WeakSegmentsPerformance
@@ -75,7 +77,7 @@ from sklearn.metrics import make_scorer, f1_score
 scorer = {'f1': make_scorer(f1_score, average='micro')}
 _, test_ds = phishing.load_data()
 model = phishing.load_fitted_model()
-check = WeakSegmentsPerformance(columns= ['urlLength', 'numTitles', 'ext', 'entropy'],
+check = WeakSegmentsPerformance(columns=['urlLength', 'numTitles', 'ext', 'entropy'],
                                 alternative_scorer=scorer,
                                 segment_minimum_size_ratio=0.03,
                                 categorical_aggregation_threshold=0.05)
