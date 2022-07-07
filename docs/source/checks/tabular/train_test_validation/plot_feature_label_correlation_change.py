@@ -83,12 +83,14 @@ The process of calculating the PPS is the following:
 #
 # Regression: The naive model always predicts the median of the label column,
 # the metric being used is MAE and the PPS calculation is: :math:`1 - \frac{\text{MAE model}}{\text{MAE naive}}`
+#
 # Classification: The naive model always predicts the most common class of
 # the label column, The metric being used is F1 and the PPS calculation is:
 # :math:`\frac{\text{F1 model} - \text{F1 naive}}{1 - \text{F1 naive}}`
 #
-# * Note: all the PPS parameters can be changed by passing to the check the
-# parameter ``ppscore_params``. *
+# .. note::
+#
+#    All the PPS parameters can be changed by passing to the check the parameter ``ppscore_params``
 #
 # For further information about PPS you can visit the `ppscore github
 # <https://github.com/8080labs/ppscore>`__ or the following blog post: `RIP correlation.
@@ -137,8 +139,7 @@ result
 #
 # * train - for train dataset for each column the numeric PPS score (0 to 1)
 # * test - for test dataset for each column the numeric PPS score (0 to 1)
-# * train-test difference - for each column the difference between the datasets scores,
-# as ``train - test``
+# * train-test difference - for each column the difference between the datasets scores, as ``train - test``
 
 result.value
 
