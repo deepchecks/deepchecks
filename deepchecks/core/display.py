@@ -69,7 +69,7 @@ class DisplayableResult(abc.ABC):
             whether to display result with help of ipywidgets or not
         unique_id : Optional[str], default None
             unique identifier of the result output
-        **kwrgs :
+        **kwargs :
             other key-value arguments will be passed to the `Serializer.serialize`
             method
 
@@ -286,7 +286,11 @@ def save_as_html(
     requirejs: bool , default: True
         whether to include requirejs library into output HTML or not
     connected: bool , default False
-        whether to use CDN to load javascript or to inject it directly into html
+        indicates whether internet connection is available or not,
+        if 'True' then CDN urls will be used to load javascript otherwise
+        javascript libraries will be injected directly into HTML output.
+        Set to 'False' to make results viewing possible when the internet
+        connection is not available.
 
     Returns
     -------

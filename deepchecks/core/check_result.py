@@ -270,7 +270,11 @@ class CheckResult(BaseCheckResult, DisplayableResult):
         requirejs: bool , default: True
             whether to include requirejs library into output HTML or not
         connected: bool , default False
-            whether to use CDN to load javascript or to inject it directly into html
+            indicates whether internet connection is available or not,
+            if 'True' then CDN urls will be used to load javascript otherwise
+            javascript libraries will be injected directly into HTML output.
+            Set to 'False' to make results viewing possible when the internet
+            connection is not available.
 
         Returns
         -------
@@ -517,7 +521,11 @@ class CheckFailure(BaseCheckResult, DisplayableResult):
         requirejs: bool , default: True
             whether to include requirejs library into output HTML or not
         connected: bool , default False
-            whether to use CDN to load javascript or to inject it directly into html
+            indicates whether internet connection is available or not,
+            if 'True' then CDN urls will be used to load javascript otherwise
+            javascript libraries will be injected directly into HTML output.
+            Set to 'False' to make results viewing possible when the internet
+            connection is not available.
 
         Returns
         -------

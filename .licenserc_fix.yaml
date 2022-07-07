@@ -29,7 +29,7 @@ header:
     - '.github/ISSUE_TEMPLATE/'
     - '.github/pull_request_template.md'
     - '.github/CODEOWNERS'
-    - 'deepchecks/base/resources'
+    - 'deepchecks/core/resources'
     - 'DESCRIPTION.rst'
     - 'CITATION.cff'
     - 'deepchecks/core/resources/requirejs.min.js'
