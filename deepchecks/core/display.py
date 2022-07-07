@@ -83,7 +83,7 @@ class DisplayableResult(abc.ABC):
             html = widget_to_html_string(  # pylint: disable=redefined-outer-name
                 self.widget_serializer.serialize(output_id=unique_id, **kwargs),
                 title=get_result_name(self),
-                requirejs=True
+                requirejs=False
             )
 
             class TempSphinx:
