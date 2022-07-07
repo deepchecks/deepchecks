@@ -214,17 +214,10 @@ def test_config():
 
     assert_that(suite_mod, all_of(
         has_entry('name', 'Model Evaluation Suite'),
-        has_entry('module_name', 'deepchecks.tabular'),
+        has_entry('module_name', 'deepchecks.tabular.suite'),
         has_entry('checks', instance_of(list))
     ))
     
-    conf_suite_mod = BaseSuite.from_config(suite_mod)
-    assert_that(conf_suite_mod.name, equal_to('Model Evaluation Suite'))
-    assert_that(conf_suite_mod.checks.values(), has_length(check_amount))
-
-    for check in suite_mod['checks']:
-        del check['module_name']
-
     conf_suite_mod = BaseSuite.from_config(suite_mod)
     assert_that(conf_suite_mod.name, equal_to('Model Evaluation Suite'))
     assert_that(conf_suite_mod.checks.values(), has_length(check_amount))

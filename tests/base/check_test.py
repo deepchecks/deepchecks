@@ -15,7 +15,6 @@ from hamcrest import all_of, calling, contains_exactly, equal_to, has_items, has
 from deepchecks.core import ConditionResult
 from deepchecks.core.checks import BaseCheck
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.vision.checks.model_evaluation import ClassPerformance
 from tests.conftest import *
 
 
@@ -157,29 +156,16 @@ def test_params():
 
 
 def test_config():
-    check_no_mod = DummyCheck(param2=5).config()
-    del check_no_mod['module_name']
+    check = DummyCheck(param2=5).config()
 
-    deepchecks_check_mod = ClassPerformance().config()
-
-    assert_that(check_no_mod,
+    assert_that(check,
                 equal_to(
                     {'class_name': 'DummyCheck',
                      'params': {'param1': 1,
-                                'param2': 5}}))
-    assert_that(deepchecks_check_mod,
-                equal_to(
-                    {'class_name': 'ClassPerformance',
-                     'params': {'alternative_metrics': None,
-                                'n_to_show': 20,
-                                'class_list_to_show': None,
-                                'show_only': 'largest',
-                                'metric_to_show_by': None},
-                     'module_name': 'deepchecks.vision'}
-                )
-                )
-    assert_that(BaseCheck.from_config(check_no_mod, DummyCheck.__module__), instance_of(DummyCheck))
-    assert_that(BaseCheck.from_config(deepchecks_check_mod), instance_of(ClassPerformance))
+                                'param2': 5},
+                     'module_name': DummyCheck.__module__}))
+
+    assert_that(BaseCheck.from_config(check), instance_of(DummyCheck))
 
 
 def test_pass_feature_importance_incorrect(iris_split_dataset):

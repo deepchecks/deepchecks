@@ -189,37 +189,20 @@ class BaseCheck(abc.ABC):
         return conf
 
     @staticmethod
-    def from_config(conf: CheckConfig, module_name: str = None) -> 'BaseCheck':
+    def from_config(conf: CheckConfig) -> 'BaseCheck':
         """Return check object from a CheckConfig object.
 
         Parameters
         ----------
         conf : CheckConfig
             the CheckConfig object
-        module_name: str , default: None
-            if the CheckConfig doesn't include the module name will use this name.
 
         Returns
         -------
         BaseCheck
             the check class object from given config
-
-        Raises
-        ------
-        DeepchecksValueError
-            if the CheckConfig doesn't include the module name and module_name is None.
         """
-        module_name = conf.get('module_name', module_name)
-        if module_name is None:
-            raise DeepchecksValueError(
-                'Check Config must include module name or it should be passed to the function.')
-
-        # the config is created using top level module, it is needed to lower level module
-        is_deepchecks = module_name.startswith('deepchecks.')
-        if is_deepchecks:
-            module_name += '.checks'
-
-        module = importlib.import_module(module_name)
+        module = importlib.import_module(conf['module_name'])
         return getattr(module, conf['class_name'])(**conf['params'])
 
     def __repr__(self, tabs=0, prefix=''):
