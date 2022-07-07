@@ -9,49 +9,32 @@
 # ----------------------------------------------------------------------------
 #
 #
-import copy
+import typing as t
 
 import numpy as np
-import torch
-from hamcrest import (assert_that, calling, close_to, equal_to, has_entries, has_items, has_length, has_properties,
-                      has_property, instance_of, is_, raises)
+from hamcrest import (assert_that, close_to, contains_exactly, equal_to, greater_than, has_entries, has_items,
+                      has_length, instance_of)
+from plotly.basedatatypes import BaseFigure
 
-from deepchecks.vision.suites.default_suites import full_suite
-from deepchecks.core.check_result import CheckResult
-from deepchecks.vision.base_checks import SingleDatasetCheck
-from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.checks.model_evaluation.class_performance import ClassPerformance
 from deepchecks.vision.checks.model_evaluation.image_segment_performance import ImageSegmentPerformance
 from deepchecks.vision.checks.model_evaluation.train_test_prediction_drift import TrainTestPredictionDrift
-from deepchecks.vision.context import Context
-from deepchecks.vision.task_type import TaskType
+from deepchecks.vision.suites.default_suites import full_suite
 from deepchecks.vision.vision_data import VisionData
 from tests.base.utils import equal_condition_result
-
+from tests.common import assert_class_performance_display
 from tests.conftest import get_expected_results_length, validate_suite_result
 
 
-class _StaticPred(SingleDatasetCheck):
-    def initialize_run(self, context: Context, dataset_kind):
-        self._pred_index = {}
-
-    def update(self, context: Context, batch: Batch, dataset_kind):
-        predictions = batch.predictions
-        indexes = [batch.get_index_in_dataset(index) for index in range(len(predictions))]
-        self._pred_index.update(dict(zip(indexes, predictions)))
-
-    def compute(self, context: Context, dataset_kind) -> CheckResult:
-        sorted_values = [v for _, v in sorted(self._pred_index.items(), key=lambda item: item[0])]
-        if context.get_data_by_kind(dataset_kind).task_type == TaskType.CLASSIFICATION:
-            sorted_values = torch.stack(sorted_values)
-        return CheckResult(sorted_values)
-
-
-def _create_static_predictions(train: VisionData, test: VisionData, model):
+def _create_static_predictions(train: VisionData, test: VisionData, model, device):
     static_preds = []
     for vision_data in [train, test]:
         if vision_data is not None:
-            static_pred = _StaticPred().run(vision_data, model=model, n_samples=None).value
+            static_pred = {}
+            for i, batch in enumerate(vision_data):
+                predictions = vision_data.infer_on_batch(batch, model, device)
+                indexes = list(vision_data.data_loader.batch_sampler)[i]
+                static_pred.update(dict(zip(indexes, predictions)))
         else:
             static_pred = None
         static_preds.append(static_pred)
@@ -62,45 +45,154 @@ def _create_static_predictions(train: VisionData, test: VisionData, model):
 # copied from class_performance_test
 def test_class_performance_mnist_largest(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
     # Arrange
-    train_preds, tests_preds = _create_static_predictions(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist)
+    train_preds, tests_preds = _create_static_predictions(mnist_dataset_train, mnist_dataset_test,
+                                                          mock_trained_mnist, device)
     check = ClassPerformance(n_to_show=2, show_only='largest')
     # Act
     result = check.run(mnist_dataset_train, mnist_dataset_test,
                        train_predictions=train_preds, test_predictions=tests_preds,
                        device=device, n_samples=None)
-    first_row = result.value.sort_values(by='Number of samples', ascending=False).iloc[0]
+
     # Assert
-    assert_that(len(set(result.value['Class'])), equal_to(2))
-    assert_that(len(result.value), equal_to(8))
-    assert_that(first_row['Value'], close_to(0.977, 0.001))
-    assert_that(first_row['Number of samples'], equal_to(6742))
-    assert_that(first_row['Class'], equal_to(1))
+    assert_that(set(result.value['Class']), equal_to(set(range(10))))
+    assert_that(len(result.value), equal_to(40))
+    assert_that(result.display, has_length(greater_than(0)))
+
+    figure = t.cast(BaseFigure, result.display[0])
+    assert_that(figure, instance_of(BaseFigure))
+
+    assert_that(figure.data, assert_class_performance_display(
+        xaxis=[
+            contains_exactly(equal_to('2'), equal_to('1')),
+            contains_exactly(equal_to('1'), equal_to('2')),
+            contains_exactly(equal_to('2'), equal_to('1')),
+            contains_exactly(equal_to('2'), equal_to('1')),
+        ],
+        yaxis=[
+            contains_exactly(
+                close_to(0.984, 0.001),
+                close_to(0.977, 0.001),
+            ),
+            contains_exactly(
+                close_to(0.974, 0.001),
+                close_to(0.973, 0.001),
+            ),
+            contains_exactly(
+                close_to(0.988, 0.001),
+                close_to(0.987, 0.001),
+            ),
+            contains_exactly(
+                close_to(0.984, 0.001),
+                close_to(0.980, 0.001),
+            )
+        ]
+    ))
+
+
+# copied from class_performance_test but added a sample before
+def test_class_performance_mnist_largest_sampled_before(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
+    # Arrange
+    sampled_train = mnist_dataset_train.copy(shuffle=True, n_samples=1000, random_state=42)
+    sampled_test = mnist_dataset_test.copy(shuffle=True, n_samples=1000, random_state=42)
+    train_preds, tests_preds = _create_static_predictions(sampled_train, sampled_test,
+                                                          mock_trained_mnist, device)
+    check = ClassPerformance(n_to_show=2, show_only='largest')
+    # Act
+    result = check.run(sampled_train, sampled_test,
+                       train_predictions=train_preds, test_predictions=tests_preds,
+                       device=device, n_samples=None)
+
+    # Assert
+    assert_that(set(result.value['Class']), equal_to(set(range(10))))
+    assert_that(len(result.value), equal_to(40))
+    assert_that(result.display, has_length(greater_than(0)))
+
+    figure = t.cast(BaseFigure, result.display[0])
+    assert_that(figure, instance_of(BaseFigure))
+
+    assert_that(figure.data, assert_class_performance_display(
+        metrics=('Precision', 'Recall'),
+        xaxis=[
+            contains_exactly(equal_to('2'), equal_to('3')),
+            contains_exactly(equal_to('2'), equal_to('3')),
+            contains_exactly(equal_to('2'), equal_to('3')),
+            contains_exactly(equal_to('2'), equal_to('3')),
+        ],
+        yaxis=[
+            contains_exactly(
+                close_to(1.0, 0.001),
+                close_to(0.990, 0.001),
+            ),
+            contains_exactly(
+                close_to(1.0, 0.001),
+                close_to(0.980, 0.001),
+            ),
+            contains_exactly(
+                close_to(0.976, 0.001),
+                close_to(0.966, 0.001),
+            ),
+            contains_exactly(
+                close_to(0.991, 0.001),
+                close_to(0.983, 0.001),
+            )
+        ]
+    ))
 
 
 # copied from class_performance_test but sampled
 def test_class_performance_mnist_largest_sampled(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
     # Arrange
-    train_preds, tests_preds = _create_static_predictions(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist)
+    train_preds, tests_preds = _create_static_predictions(mnist_dataset_train, mnist_dataset_test,
+                                                          mock_trained_mnist, device)
     check = ClassPerformance(n_to_show=2, show_only='largest')
     # Act
     result = check.run(mnist_dataset_train, mnist_dataset_test,
                        train_predictions=train_preds, test_predictions=tests_preds,
                        device=device)
-    first_row = result.value.sort_values(by='Number of samples', ascending=False).iloc[0]
+
     # Assert
-    assert_that(len(set(result.value['Class'])), equal_to(2))
-    assert_that(len(result.value), equal_to(8))
-    assert_that(first_row['Value'], close_to(0.987, 0.001))
-    assert_that(first_row['Number of samples'], equal_to(1138))
-    assert_that(first_row['Class'], equal_to(1))
+    assert_that(set(result.value['Class']), equal_to(set(range(10))))
+    assert_that(len(result.value), equal_to(40))
+    assert_that(result.display, has_length(greater_than(0)))
+
+    figure = t.cast(BaseFigure, result.display[0])
+    assert_that(figure, instance_of(BaseFigure))
+
+    assert_that(figure.data, assert_class_performance_display(
+        xaxis=[
+            contains_exactly(equal_to('1'), equal_to('2')),
+            contains_exactly(equal_to('2'), equal_to('1')),
+            contains_exactly(equal_to('2'), equal_to('1')),
+            contains_exactly(equal_to('2'), equal_to('1')),
+        ],
+        yaxis=[
+            contains_exactly(
+                close_to(0.987, 0.001),
+                close_to(0.987, 0.001),
+            ),
+            contains_exactly(
+                close_to(0.981, 0.001),
+                close_to(0.972, 0.001),
+            ),
+            contains_exactly(
+                close_to(0.988, 0.001),
+                close_to(0.987, 0.001),
+            ),
+            contains_exactly(
+                close_to(0.984, 0.001),
+                close_to(0.980, 0.001),
+            )
+        ]
+    ))
 
 
 # copied from image_segment_performance_test
-def test_image_segment_performance_coco_and_condition(coco_train_visiondata, mock_trained_yolov5_object_detection):
+def test_image_segment_performance_coco_and_condition(coco_train_visiondata, mock_trained_yolov5_object_detection, device):
     # Arrange
-    train_preds, _ = _create_static_predictions(coco_train_visiondata, None, mock_trained_yolov5_object_detection)
-    check = ImageSegmentPerformance().add_condition_score_from_mean_ratio_not_less_than(0.5) \
-        .add_condition_score_from_mean_ratio_not_less_than(0.1)
+    train_preds, _ = _create_static_predictions(coco_train_visiondata, None,
+                                                mock_trained_yolov5_object_detection, device)
+    check = ImageSegmentPerformance().add_condition_score_from_mean_ratio_greater_than(0.5) \
+        .add_condition_score_from_mean_ratio_greater_than(0.1)
     # Act
     result = check.run(coco_train_visiondata, train_predictions=train_preds)
     # Assert result
@@ -133,11 +225,13 @@ def test_image_segment_performance_coco_and_condition(coco_train_visiondata, moc
     assert_that(result.conditions_results, has_items(
         equal_condition_result(
             is_pass=True,
-            name='No segment with ratio between score to mean less than 10%'
+            name='Segment\'s ratio between score to mean is greater than 10%',
+            details="Found minimum ratio for property Mean Green Relative Intensity: "
+                    "{'Range': '[0.34, 0.366)', 'Metric': 'Average Precision', 'Ratio': 0.44}"
         ),
         equal_condition_result(
             is_pass=False,
-            name='No segment with ratio between score to mean less than 50%',
+            name='Segment\'s ratio between score to mean is greater than 50%',
             details="Properties with failed segments: Mean Green Relative Intensity: "
                     "{'Range': '[0.34, 0.366)', 'Metric': 'Average Precision', 'Ratio': 0.44}"
         )
@@ -150,7 +244,8 @@ def test_train_test_prediction_with_drift_object_detection_change_max_cat(coco_t
     # Arrange
     train_preds, test_preds = _create_static_predictions(coco_train_visiondata,
                                                          coco_test_visiondata,
-                                                         mock_trained_yolov5_object_detection)
+                                                         mock_trained_yolov5_object_detection,
+                                                         device)
     check = TrainTestPredictionDrift(categorical_drift_method='PSI', max_num_categories_for_drift=100)
 
     # Act
@@ -177,7 +272,8 @@ def test_suite(coco_train_visiondata, coco_test_visiondata,
                mock_trained_yolov5_object_detection, device):
     train_preds, test_preds = _create_static_predictions(coco_train_visiondata,
                                                          coco_test_visiondata,
-                                                         mock_trained_yolov5_object_detection)
+                                                         mock_trained_yolov5_object_detection,
+                                                         device)
 
     args = dict(train_dataset=coco_train_visiondata, test_dataset=coco_test_visiondata,
                 train_predictions=train_preds, test_predictions=test_preds)

@@ -12,7 +12,9 @@
 from .columns_info import ColumnsInfo
 from .conflicting_labels import ConflictingLabels
 from .data_duplicates import DataDuplicates
+from .feature_feature_correlation import FeatureFeatureCorrelation
 from .feature_label_correlation import FeatureLabelCorrelation
+from .identifier_label_correlation import IdentifierLabelCorrelation
 from .is_single_value import IsSingleValue
 from .mixed_data_types import MixedDataTypes
 from .mixed_nulls import MixedNulls
@@ -33,4 +35,6 @@ __all__ = [
     'ConflictingLabels',
     'OutlierSampleDetection',
     'FeatureLabelCorrelation',
+    'FeatureFeatureCorrelation',
+    'IdentifierLabelCorrelation'
 ]

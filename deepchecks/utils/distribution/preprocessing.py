@@ -29,7 +29,7 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.distribution.rare_category_encoder import RareCategoryEncoder
 from deepchecks.utils.typing import Hashable
 
-__all__ = ['ScaledNumerics', 'preprocess_2_cat_cols_to_same_bins']
+__all__ = ['ScaledNumerics', 'preprocess_2_cat_cols_to_same_bins', 'value_frequency']
 
 OTHER_CATEGORY_NAME = 'Other rare categories'
 
@@ -188,3 +188,22 @@ def preprocess_2_cat_cols_to_same_bins(dist1: Union[np.ndarray, pd.Series], dist
     dist2_counts = np.array([dist2_counter[k] for k in categories_list])
 
     return dist1_counts, dist2_counts, categories_list
+
+
+def value_frequency(x: Union[List, np.ndarray, pd.Series]) -> List[float]:
+    """
+    Calculate the value frequency of x.
+
+    Parameters:
+    -----------
+    x: Union[List, np.ndarray, pd.Series]
+        A sequence of a categorical variable values.
+    Returns:
+    --------
+    List[float]
+        Representing the value frequency of x.
+    """
+    x_values_counter = Counter(x)
+    total_occurrences = len(x)
+    values_probabilities = list(map(lambda n: n / total_occurrences, x_values_counter.values()))
+    return values_probabilities

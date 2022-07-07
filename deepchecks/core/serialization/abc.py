@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-# pylint: disable=unnecessary-ellipsis
+# pylint: disable=unused-argument
 """Main serialization abstractions."""
 import abc
 import io
@@ -42,8 +42,7 @@ __all__ = [
 T = t.TypeVar('T')
 
 
-@runtime_checkable
-class Serializer(Protocol[T]):
+class Serializer(abc.ABC, t.Generic[T]):
     """Base protocol for all other serializers."""
 
     value: T
@@ -52,40 +51,40 @@ class Serializer(Protocol[T]):
         self.value = value
 
 
-@runtime_checkable
-class HtmlSerializer(Serializer[T], Protocol):
+class HtmlSerializer(Serializer[T]):
     """To html serializer protocol."""
 
+    @abc.abstractmethod
     def serialize(self, **kwargs) -> str:
         """Serialize into html."""
-        ...
+        raise NotImplementedError()
 
 
-@runtime_checkable
-class JsonSerializer(Serializer[T], Protocol):
+class JsonSerializer(Serializer[T]):
     """To json serializer protocol."""
 
+    @abc.abstractmethod
     def serialize(self, **kwargs) -> t.Union[t.Dict[t.Any, t.Any], t.List[t.Any]]:
         """Serialize into json."""
-        ...
+        raise NotImplementedError()
 
 
-@runtime_checkable
-class WidgetSerializer(Serializer[T], Protocol):
+class WidgetSerializer(Serializer[T]):
     """To ipywidget serializer protocol."""
 
+    @abc.abstractmethod
     def serialize(self, **kwargs) -> Widget:
         """Serialize into ipywidgets.Widget instance."""
-        ...
+        raise NotImplementedError()
 
 
-@runtime_checkable
-class WandbSerializer(Serializer[T], Protocol):
+class WandbSerializer(Serializer[T]):
     """To wandb metadata serializer protocol."""
 
+    @abc.abstractmethod
     def serialize(self, **kwargs) -> t.Dict[str, 'WBValue']:
         """Serialize into Wandb media format."""
-        ...
+        raise NotImplementedError()
 
 
 @runtime_checkable
@@ -160,21 +159,24 @@ IPythonFormatter = t.Union[
 ]
 
 
-@runtime_checkable
-class IPythonSerializer(Serializer[T], Protocol):
+class IPythonSerializer(Serializer[T]):
     """To IPython formatters list serializer."""
 
+    @abc.abstractmethod
     def serialize(self, **kwargs) -> t.List[IPythonFormatter]:
         """Serialize into a list of objects that are Ipython displayable."""
-        ...
+        raise NotImplementedError()
 
 
 class ABCDisplayItemsHandler(Protocol):
     """Trait that describes 'CheckResult.dislay' processing logic."""
 
-    SUPPORTED_ITEM_TYPES = frozenset([
-        str, pd.DataFrame, Styler, BaseFigure, t.Callable
-    ])
+    @classmethod
+    def supported_item_types(cls):
+        """Return set of supported types of display items."""
+        return frozenset([
+            str, pd.DataFrame, Styler, BaseFigure, t.Callable, check_types.DisplayMap
+        ])
 
     @classmethod
     @abc.abstractmethod
@@ -206,6 +208,8 @@ class ABCDisplayItemsHandler(Protocol):
             return cls.handle_dataframe(item, index, **kwargs)
         elif isinstance(item, BaseFigure):
             return cls.handle_figure(item, index, **kwargs)
+        elif isinstance(item, check_types.DisplayMap):
+            return cls.handle_display_map(item, index, **kwargs)
         elif callable(item):
             return cls.handle_callable(item, index, **kwargs)
         else:
@@ -236,4 +240,10 @@ class ABCDisplayItemsHandler(Protocol):
     @abc.abstractmethod
     def handle_figure(cls, item: BaseFigure, index: int, **kwargs) -> t.Any:
         """Handle plotly figure item."""
+        raise NotImplementedError()
+
+    @classmethod
+    @abc.abstractmethod
+    def handle_display_map(cls, item: 'check_types.DisplayMap', index: int, **kwargs) -> t.Any:
+        """Handle display map instance item."""
         raise NotImplementedError()

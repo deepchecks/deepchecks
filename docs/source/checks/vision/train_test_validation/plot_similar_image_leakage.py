@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_vision_similar_image_leakage:
+
 Similar Image Leakage
 ***************************
 This notebook provides an overview for using and understanding the "Similar Image Leakage" check.
@@ -18,7 +20,7 @@ getting correct predictions on an image that is similar to an image in the train
 performance. This may mean that the metrics we're seeing for the test data are too optimistic, and we should remove
 those similar images from the test set.
 
-How is Similarity calculated?
+How is similarity calculated?
 -------------------------------------
 The similarity is calculated using an image hash known as Average Hash. This hash compresses the image using the
 following algorithm:
@@ -49,9 +51,9 @@ finer differences between images (and results in less similarity).
 The *similarity_threshold* parameter controls the ratio of pixels that need to be different in order
 for 2 images to be considered "different". A lower similarity_threshold will define less images as "similar".
 
-#
-# Run the check
-# ==============
+
+Run the check
+===============
 """
 from deepchecks.vision.checks import SimilarImageLeakage
 from deepchecks.vision.datasets.detection.coco import load_dataset
@@ -62,7 +64,15 @@ test_ds = load_dataset(train=False, object_type='VisionData', shuffle=False)
 #%%
 
 check = SimilarImageLeakage()
-check.run(train_ds, test_ds)
+result = check.run(train_ds, test_ds)
+result
+
+#%%
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  result.show_in_window()
+#%%
+# The result will be displayed in a new window.
 
 #%%
 # As we can see, no similar images were found.
@@ -104,7 +114,8 @@ test_ds_modified._data_loader = get_modified_dataloader(test_ds, get_modificatio
 # --------------------------------------------
 
 check = SimilarImageLeakage()
-check.run(train_ds, test_ds_modified)
+result = check.run(train_ds, test_ds_modified)
+result
 
 #%%
 # We can see that the check detected the five images from the training set we introduced to the test set.
@@ -114,6 +125,6 @@ check.run(train_ds, test_ds_modified)
 # We can define on our check a condition that will validate no similar images where found. The default is that no
 # similar images are allowed at all, but this can be modified as shown here.
 
-check = SimilarImageLeakage().add_condition_similar_images_not_more_than(3)
+check = SimilarImageLeakage().add_condition_similar_images_less_or_equal(3)
 result = check.run(train_dataset=train_ds, test_dataset=test_ds_modified)
 result.show(show_additional_outputs=False)

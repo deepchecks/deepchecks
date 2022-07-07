@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_vision_simple_model_comparison:
+
 Simple Model Comparison
 ***********************
 
@@ -70,6 +72,15 @@ result = check.run(train_ds, test_ds, mnist_model)
 result
 
 #%%
+# If you have a GPU, you can speed up this check by passing it as an argument to .run() as device=<your GPU>
+#
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  result.show_in_window()
+#%%
+# The result will be displayed in a new window.
+
+#%%
 # Observe the check's output
 # --------------------------
 # We can see in the results that the check calculates the score for each class
@@ -102,7 +113,7 @@ result.value.sort_values(by=['Class', 'Metric']).head(10)
 # Let's add a condition to the check and see what happens when it fails:
 
 check = SimpleModelComparison(strategy='stratified')
-check.add_condition_gain_not_less_than(min_allowed_gain=0.99)
+check.add_condition_gain_greater_than(min_allowed_gain=0.99)
 result = check.run(train_ds, test_ds, mnist_model)
 result
 

@@ -66,17 +66,11 @@ class StringMismatch(SingleDatasetCheck):
         self.n_samples = n_samples
         self.random_state = random_state
 
-    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
-        if dataset_type == 'train':
-            dataset = context.train
-        else:
-            dataset = context.test
-
+        dataset = context.get_data_by_kind(dataset_kind)
         df = select_from_dataframe(dataset.sample(self.n_samples, random_state=self.random_state).data,
                                    self.columns, self.ignore_columns)
-
-        sampling_footnote = context.get_is_sampled_footnote(self.n_samples)
 
         display_results = []
         result_dict = {}
@@ -97,35 +91,34 @@ class StringMismatch(SingleDatasetCheck):
                 for variant in variants:
                     count = value_counts[variant]
                     percent = count / len(column)
-                    display_results.append([column_name, base_form, variant, count, format_percent(percent)])
                     result_dict[column_name][base_form].append({
                         'variant': variant, 'count': count, 'percent': percent
                     })
+                    if context.with_display:
+                        display_results.append([column_name, base_form, variant, count, format_percent(percent)])
 
         # Create dataframe to display graph
         if display_results:
             df_graph = pd.DataFrame(display_results, columns=['Column Name', 'Base form', 'Value', 'Count',
                                                               '% In data'])
             df_graph = df_graph.set_index(['Column Name', 'Base form'])
-            df_graph = column_importance_sorter_df(df_graph, dataset, context.features_importance,
+            df_graph = column_importance_sorter_df(df_graph, dataset, context.feature_importance,
                                                    self.n_top_columns, col='Column Name')
             display = [N_TOP_MESSAGE % self.n_top_columns, df_graph]
-            if sampling_footnote:
-                display.append(sampling_footnote)
         else:
             display = None
 
         return CheckResult(result_dict, display=display)
 
-    def add_condition_not_more_variants_than(self, num_max_variants: int):
-        """Add condition - no more than given number of variants are allowed (per string baseform).
+    def add_condition_number_variants_less_or_equal(self, num_max_variants: int):
+        """Add condition - number of variants (per string baseform) is less or equal to threshold.
 
         Parameters
         ----------
         num_max_variants : int
             Maximum number of variants allowed.
         """
-        name = f'Not more than {num_max_variants} string variants'
+        name = f'Number of string variants is less or equal to {num_max_variants}'
         return self.add_condition(name, _condition_variants_number, num_max_variants=num_max_variants)
 
     def add_condition_no_variants(self):
@@ -133,8 +126,8 @@ class StringMismatch(SingleDatasetCheck):
         name = 'No string variants'
         return self.add_condition(name, _condition_variants_number, num_max_variants=0)
 
-    def add_condition_ratio_variants_not_greater_than(self, max_ratio: float = 0.01):
-        """Add condition - percentage of variants in data is not allowed above given threshold.
+    def add_condition_ratio_variants_less_or_equal(self, max_ratio: float = 0.01):
+        """Add condition - percentage of variants in data is less or equal to threshold.
 
         Parameters
         ----------
@@ -156,7 +149,7 @@ class StringMismatch(SingleDatasetCheck):
                 return ConditionResult(ConditionCategory.FAIL, details)
             return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))
 
-        name = f'Ratio of variants is not greater than {format_percent(max_ratio)}'
+        name = f'Ratio of variants is less or equal to {format_percent(max_ratio)}'
         return self.add_condition(name, condition, max_ratio=max_ratio)
 
 

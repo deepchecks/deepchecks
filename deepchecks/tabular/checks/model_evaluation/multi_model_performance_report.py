@@ -16,7 +16,7 @@ import plotly.express as px
 
 from deepchecks.core import CheckResult
 from deepchecks.tabular import ModelComparisonCheck, ModelComparisonContext
-from deepchecks.utils.metrics import ModelType
+from deepchecks.tabular.utils.task_type import TaskType
 
 __all__ = ['MultiModelPerformanceReport']
 
@@ -40,7 +40,7 @@ class MultiModelPerformanceReport(ModelComparisonCheck):
         first_context = multi_context[0]
         scorers = first_context.get_scorers(self.user_scorers, class_avg=False)
 
-        if multi_context.task_type in [ModelType.MULTICLASS, ModelType.BINARY]:
+        if multi_context.task_type in [TaskType.MULTICLASS, TaskType.BINARY]:
             plot_x_axis = ['Class', 'Model']
             results = []
 
@@ -79,7 +79,7 @@ class MultiModelPerformanceReport(ModelComparisonCheck):
             hover_data=['Number of samples'],
         )
 
-        if multi_context.task_type in [ModelType.MULTICLASS, ModelType.BINARY]:
+        if multi_context.task_type in [TaskType.MULTICLASS, TaskType.BINARY]:
             fig.update_xaxes(title=None, tickprefix='Class ', tickangle=60)
         else:
             fig.update_xaxes(title=None)

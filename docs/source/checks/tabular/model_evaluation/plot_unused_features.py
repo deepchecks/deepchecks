@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_tabular_unused_features:
+
 Unused Features
 ***************
 This notebook provides an overview for using and understanding the Unused Features check.
@@ -40,7 +42,7 @@ from deepchecks.tabular.datasets.classification import adult
 train_ds, test_ds = adult.load_data()
 model = adult.load_fitted_model()
 
-UnusedFeatures().add_condition_number_of_high_variance_unused_features_not_greater_than()
+UnusedFeatures().add_condition_number_of_high_variance_unused_features_less_or_equal()
 result = UnusedFeatures().run(train_ds, test_ds, model)
 result
 
@@ -66,6 +68,6 @@ result
 # ==================
 # We can define a condition that enforces that number of unused features with high variance is not greater than a given
 # amount, the default is 5.
-check = UnusedFeatures().add_condition_number_of_high_variance_unused_features_not_greater_than(5)
+check = UnusedFeatures().add_condition_number_of_high_variance_unused_features_less_or_equal(5)
 result = check.run(train_ds, test_ds, model)
 result.show(show_additional_outputs=False)

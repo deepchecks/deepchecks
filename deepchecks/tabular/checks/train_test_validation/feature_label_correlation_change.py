@@ -26,9 +26,8 @@ __all__ = ['FeatureLabelCorrelationChange']
 
 FLC = t.TypeVar('FLC', bound='FeatureLabelCorrelationChange')
 
-pps_url = 'https://docs.deepchecks.com/en/stable/examples/tabular/' \
-          'checks/train_test_validation/feature_label_correlation_change' \
-          '.html?utm_source=display_output&utm_medium=referral&utm_campaign=check_link'
+pps_url = 'https://docs.deepchecks.com/en/stable/checks_gallery/tabular/' \
+          'train_test_validation/plot_feature_label_correlation_change.html'
 pps_html = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
 
 
@@ -115,19 +114,18 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
                                                            test_dataset.label_name, self.ppscore_params,
                                                            self.n_top_features,
                                                            min_pps_to_show=self.min_pps_to_show,
-                                                           random_state=self.random_state)
+                                                           random_state=self.random_state,
+                                                           with_display=context.with_display)
 
         if display:
             display += text
 
         return CheckResult(value=ret_value, display=display, header='Feature Label Correlation Change')
 
-    def add_condition_feature_pps_difference_not_greater_than(self: FLC, threshold: float = 0.2,
-                                                              include_negative_diff: bool = True) -> FLC:
-        """Add new condition.
-
-        Add condition that will check that difference between train
-        dataset feature pps and test dataset feature pps is not greater than X.
+    def add_condition_feature_pps_difference_less_than(self: FLC, threshold: float = 0.2,
+                                                       include_negative_diff: bool = True) -> FLC:
+        """Add condition - difference between train dataset feature pps and test dataset feature pps is less than the\
+        threshold.
 
         Parameters
         ----------
@@ -150,7 +148,7 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
             failed_features = {
                 feature_name: format_number(pps_diff)
                 for feature_name, pps_diff in diff_dict.items()
-                if pps_diff > threshold
+                if pps_diff >= threshold
             }
 
             if failed_features:
@@ -160,13 +158,11 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
             else:
                 return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(diff_dict))
 
-        return self.add_condition(f'Train-Test features\' Predictive Power Score difference is not greater than '
+        return self.add_condition(f'Train-Test features\' Predictive Power Score difference is less than '
                                   f'{format_number(threshold)}', condition)
 
-    def add_condition_feature_pps_in_train_not_greater_than(self: FLC, threshold: float = 0.7) -> FLC:
-        """Add new condition.
-
-        Add condition that will check that train dataset feature pps is not greater than X.
+    def add_condition_feature_pps_in_train_less_than(self: FLC, threshold: float = 0.7) -> FLC:
+        """Add condition - train dataset feature pps is less than the threshold.
 
         Parameters
         ----------
@@ -182,7 +178,7 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
             failed_features = {
                 feature_name: format_number(pps_value)
                 for feature_name, pps_value in value['train'].items()
-                if pps_value > threshold
+                if pps_value >= threshold
             }
 
             if failed_features:
@@ -192,5 +188,5 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
             else:
                 return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(value['train']))
 
-        return self.add_condition(f'Train features\' Predictive Power Score is not greater than '
+        return self.add_condition(f'Train features\' Predictive Power Score is less than '
                                   f'{format_number(threshold)}', condition)

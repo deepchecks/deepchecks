@@ -12,11 +12,14 @@
 import warnings
 
 import torch
-from hamcrest import assert_that, calling, close_to, equal_to, greater_than_or_equal_to, raises
+from hamcrest import assert_that, calling, close_to, equal_to, greater_than_or_equal_to, has_items, none, raises
 from ignite.metrics import Accuracy, Precision
+from sklearn.metrics import cohen_kappa_score
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks import SingleDatasetScalarPerformance
+from deepchecks.vision.metrics_utils.custom_scorer import CustomScorer
+from tests.base.utils import equal_condition_result
 
 
 def test_detection_defaults(coco_train_visiondata, mock_trained_yolov5_object_detection, device):
@@ -55,16 +58,35 @@ def test_classification_defaults(mnist_dataset_train, mock_trained_mnist, device
     assert_that(result.value['score'], close_to(0.98, 0.001))
 
 
+def test_classification_custom_scorer(mnist_dataset_test, mock_trained_mnist, device):
+    # Arrange
+    check = SingleDatasetScalarPerformance(CustomScorer(cohen_kappa_score), metric_name='cohen_kappa_score')
+
+    # Act
+    result = check.run(mnist_dataset_test, mock_trained_mnist, device=device, n_samples=None)
+
+    # Assert
+    assert_that(result.value['score'], close_to(0.979, 0.001))
+    assert_that(result.value['metric'], equal_to('cohen_kappa_score'))
+    assert_that(result.value['reduce'], none())
+
+
 def test_classification_w_params(mnist_dataset_train, mock_trained_mnist, device):
     # params that should run normally
     check = SingleDatasetScalarPerformance(Precision(), torch.max, reduce_name='max')
     check.add_condition_greater_than(0.5)
-    check.add_condition_less_equal_to(0.2)
+    check.add_condition_less_or_equal(0.2)
     result = check.run(mnist_dataset_train, mock_trained_mnist, device=device)
     assert_that(type(result.value['score']), equal_to(float))
     assert_that(result.value['score'], close_to(0.993, 0.001))
-    assert_that(result.conditions_results[0].is_pass)
-    assert_that(result.conditions_results[1].is_pass, equal_to(False))
+    assert_that(result.conditions_results, has_items(
+        equal_condition_result(is_pass=True,
+                               details='The score Precision is 0.99',
+                               name='Score is greater than 0.5'),
+        equal_condition_result(is_pass=False,
+                               details='The score Precision is 0.99',
+                               name='Score is less or equal to 0.2'))
+    )
 
     # params that should raise a warning but still run
     check = SingleDatasetScalarPerformance(Accuracy(), torch.min)

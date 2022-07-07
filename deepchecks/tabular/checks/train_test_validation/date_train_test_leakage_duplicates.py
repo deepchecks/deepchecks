@@ -56,21 +56,26 @@ class DateTrainTestLeakageDuplicates(TrainTestCheck):
 
         if len(date_intersection) > 0:
             leakage_ratio = len(date_intersection) / test_dataset.n_samples
-            text = f'{format_percent(leakage_ratio)} of test data dates appear in training data'
-            table = pd.DataFrame(
-                [[list(format_datetime(it) for it in date_intersection[:self.n_to_show])]],
-                index=['Sample of test dates in train:']
-            )
-            display = [text, table]
             return_value = leakage_ratio
+
+            if context.with_display:
+                text = f'{format_percent(leakage_ratio)} of test data dates appear in training data'
+                table = pd.DataFrame(
+                    [[list(format_datetime(it) for it in date_intersection[:self.n_to_show])]],
+                    index=['Sample of test dates in train:']
+                )
+                display = [text, table]
+            else:
+                display = None
+
         else:
             display = None
             return_value = 0
 
         return CheckResult(value=return_value, header='Date Train-Test Leakage (duplicates)', display=display)
 
-    def add_condition_leakage_ratio_not_greater_than(self, max_ratio: float = 0):
-        """Add condition - require leakage ratio to not surpass max_ratio.
+    def add_condition_leakage_ratio_less_or_equal(self, max_ratio: float = 0):
+        """Add condition - require leakage ratio to be less or equal to threshold.
 
         Parameters
         ----------
@@ -78,11 +83,9 @@ class DateTrainTestLeakageDuplicates(TrainTestCheck):
             Maximum ratio of leakage.
         """
         def max_ratio_condition(result: float) -> ConditionResult:
-            if result == 0:
-                return ConditionResult(ConditionCategory.PASS, 'No leaked dates found')
-            details = f'Found {format_percent(result)} leaked dates'
-            category = ConditionCategory.FAIL if result > max_ratio else ConditionCategory.PASS
+            details = f'Found {format_percent(result)} leaked dates' if result > 0 else 'No leaked dates found'
+            category = ConditionCategory.PASS if result <= max_ratio else ConditionCategory.FAIL
             return ConditionResult(category, details)
 
-        return self.add_condition(f'Date leakage ratio is not greater than {format_percent(max_ratio)}',
+        return self.add_condition(f'Date leakage ratio is less or equal to {format_percent(max_ratio)}',
                                   max_ratio_condition)

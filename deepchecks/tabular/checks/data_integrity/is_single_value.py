@@ -49,7 +49,7 @@ class IsSingleValue(SingleDatasetCheck):
         self.ignore_columns = ignore_columns
         self.ignore_nan = ignore_nan
 
-    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
 
         Returns
@@ -59,17 +59,13 @@ class IsSingleValue(SingleDatasetCheck):
             display is a series with columns that have only one unique
         """
         # Validate parameters
-        if dataset_type == 'train':
-            df = context.train.data
-        else:
-            df = context.test.data
-
+        df = context.get_data_by_kind(dataset_kind).data
         df = select_from_dataframe(df, self.columns, self.ignore_columns)
 
         num_unique_per_col = df.nunique(dropna=self.ignore_nan)
         is_single_unique_value = (num_unique_per_col == 1)
 
-        if is_single_unique_value.any():
+        if context.with_display and is_single_unique_value.any():
             # get names of columns with one unique value
             # pylint: disable=unsubscriptable-object
             cols_with_single = is_single_unique_value[is_single_unique_value].index.to_list()
@@ -85,7 +81,7 @@ class IsSingleValue(SingleDatasetCheck):
         return CheckResult(num_unique_per_col.to_dict(), header='Single Value in Column', display=display)
 
     def add_condition_not_single_value(self):
-        """Add condition - not single value."""
+        """Add condition - no column contains only a single value."""
         name = 'Does not contain only a single value'
 
         def condition(result):

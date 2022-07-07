@@ -99,11 +99,11 @@ def test_that_mutable_properties_modification_does_not_affect_dataset_state(iris
     features = dataset.features
     cat_features = dataset.cat_features
 
-    features.append("New value")
-    cat_features.append("New value")
+    features.append('New value')
+    cat_features.append('New value')
 
-    assert_that("New value" not in dataset.features)
-    assert_that("New value" not in dataset.cat_features)
+    assert_that('New value' not in dataset.features)
+    assert_that('New value' not in dataset.cat_features)
 
 
 def test_dataset_feature_columns(iris):
@@ -192,7 +192,7 @@ def test_dataset_infer_cat_features(diabetes_df):
     assert_dataset(dataset, args)
 
 
-def test_dataset_infer_cat_features_max_categoreis(diabetes_df):
+def test_dataset_infer_cat_features_max_categories(diabetes_df):
     args = {'df': diabetes_df,
             'features': ['age',
                          'bmi',
@@ -205,7 +205,7 @@ def test_dataset_infer_cat_features_max_categoreis(diabetes_df):
                          's5',
                          's6'],
             'max_categories': 60,
-            'max_float_categories': 60}
+            'max_categorical_ratio': 0.06}
 
     dataset = Dataset(**args)
     args['cat_features'] = ['age', 'sex', 's6']
@@ -515,7 +515,7 @@ def test_dataset_initialization_from_numpy_arrays_of_different_length():
         calling(Dataset.from_numpy).with_args(iris.data, iris.target[:10]),
         raises(
             DeepchecksValueError,
-            "Number of samples of label and data must be equal"
+            'Number of samples of label and data must be equal'
         )
     )
 
@@ -537,7 +537,7 @@ def test_dataset_initialization_from_numpy_arrays_without_providing_args():
         raises(
             DeepchecksValueError,
             r"'from_numpy' constructor expecting to receive two numpy arrays \(or at least one\)\."
-            r"First array must contains the columns and second the labels\."
+            r'First array must contains the columns and second the labels\.'
         )
     )
 
@@ -561,7 +561,7 @@ def test_dataset_initialization_from_numpy_empty_arrays():
         raises(
             DeepchecksValueError,
             r"'from_numpy' constructor expecting columns \(args\[0\]\) "
-            r"to be not empty two dimensional array\."
+            r'to be not empty two dimensional array\.'
         )
     )
 
@@ -681,7 +681,7 @@ def test_inferred_label_type_cat(diabetes_df):
     data = diabetes_df.drop('target', axis=1)
     dataset = Dataset(data, label)
     # Assert
-    assert_that(dataset.label_type, is_('regression_label'))
+    assert_that(dataset.label_type.value, is_('regression'))
 
 
 def test_inferred_label_type_reg(iris):
@@ -690,7 +690,7 @@ def test_inferred_label_type_reg(iris):
     data = iris.drop('target', axis=1)
     dataset = Dataset(data, label)
     # Assert
-    assert_that(dataset.label_type, is_('classification_label'))
+    assert_that(dataset.label_type.value, is_('multiclass'))
 
 
 def test_set_label_type(iris):
@@ -699,7 +699,7 @@ def test_set_label_type(iris):
     data = iris.drop('target', axis=1)
     dataset = Dataset(data, label, label_type='regression_label')
     # Assert
-    assert_that(dataset.label_type, is_('regression_label'))
+    assert_that(dataset.label_type.value, is_('regression'))
 
 
 def test_label_series_name_already_exists(iris):
@@ -877,7 +877,7 @@ def test__datasets_share_features__with_features_lists_ordered_differently():
 
 def test__datasets_share_features__with_wrong_args(iris: pd.DataFrame):
     # Arrange
-    ds = Dataset(iris, label="target")
+    ds = Dataset(iris, label='target')
     # Assert
     assert_that(
         calling(Dataset.datasets_share_features).with_args([ds]),
@@ -982,7 +982,7 @@ def test__datasets_share_categorical_features__with_differently_ordered_datasets
 
 
 def test__datasets_share_label():
-    ds = Dataset(random_classification_dataframe(), label="target")
+    ds = Dataset(random_classification_dataframe(), label='target')
     assert_that(
         Dataset.datasets_share_label(ds, ds),
         equal_to(True)
@@ -991,7 +991,7 @@ def test__datasets_share_label():
 
 def test__datasets_share_label__with_wrong_args(iris: pd.DataFrame):
     # Arrange
-    ds = Dataset(iris, label="target")
+    ds = Dataset(iris, label='target')
     # Assert
     assert_that(
         calling(Dataset.datasets_share_label).with_args([ds]),
@@ -1002,9 +1002,9 @@ def test__datasets_share_label__with_wrong_args(iris: pd.DataFrame):
 def test__datasets_share_label__when_it_must_return_false(iris: pd.DataFrame):
     # Arrange
     df = random_classification_dataframe()
-    df.rename(columns={"target": "Y_target"}, inplace=True)
-    ds = Dataset(df, label="Y_target")
-    iris_ds = Dataset(iris, label="target")
+    df.rename(columns={'target': 'Y_target'}, inplace=True)
+    ds = Dataset(df, label='Y_target')
+    iris_ds = Dataset(iris, label='target')
     # Assert
     assert_that(
         Dataset.datasets_share_label(ds, iris_ds),
@@ -1015,9 +1015,9 @@ def test__datasets_share_label__when_it_must_return_false(iris: pd.DataFrame):
 def test__datasets_share_label__with_differently_ordered_datasets_list(iris: pd.DataFrame):
     # Arrange
     df = random_classification_dataframe()
-    df.rename(columns={"target": "Y_target"}, inplace=True)
-    ds = Dataset(df, label="Y_target")
-    iris_ds = Dataset(iris, label="target")
+    df.rename(columns={'target': 'Y_target'}, inplace=True)
+    ds = Dataset(df, label='Y_target')
+    iris_ds = Dataset(iris, label='target')
     # Assert
     assert_that(
         Dataset.datasets_share_label(ds, iris_ds),
@@ -1036,18 +1036,16 @@ def random_classification_dataframe(n_samples=100, n_features=5) -> pd.DataFrame
     return df
 
 
-def test_cat_features_warning(iris):
+def test_cat_features_warning(iris, caplog):
     # Test that warning is raised when cat_features is None
-    with warnings.catch_warnings(record=True) as w:
-        Dataset(iris)
-        assert_that(w, has_length(1))
-        assert_that(str(w[0].message), equal_to("It is recommended to initialize Dataset with categorical features by "
-                    "doing \"Dataset(df, cat_features=categorical_list)\". No categorical features were "
-                    "passed, therefore heuristically inferring categorical features in the data.\n"
-                    "0 categorical features were inferred"))
+    Dataset(iris, label='target')
+    assert_that(caplog.records, has_length(1))
+    assert_that(caplog.records[0].message), equal_to('It is recommended to initialize Dataset with categorical features by '
+                'doing \"Dataset(df, cat_features=categorical_list)\". No categorical features were '
+                'passed, therefore heuristically inferring categorical features in the data. '
+                '0 categorical features were inferred.')
 
     # Test that warning is not raised when cat_features is not None
-    with warnings.catch_warnings(record=True) as w:
-        Dataset(iris, cat_features=[])
-        assert_that(w, has_length(0))
+    Dataset(iris, cat_features=[])
+    assert_that(caplog.records, has_length(1))
 

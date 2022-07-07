@@ -41,6 +41,17 @@ def test_single_column_invalid():
     assert_that(result.display[1].iloc[0]['Most Common Special-Only Samples'], has_items('#@$%'))
 
 
+def test_single_column_invalid_without_display():
+    # Arrange
+    data = {'col1': [1, 'bar!', 'cat', '#@$%']}
+    dataframe = pd.DataFrame(data=data)
+    # Act
+    result = SpecialCharacters().run(dataframe, with_display=False)
+    # Assert
+    assert_that(result.value, equal_to({'col1': 0.25}))
+    assert_that(result.display, has_length(0))
+
+
 def test_single_column_multi_invalid():
     # Arrange
     data = {'col1': ['1', 'bar!', 'ca\nt', '\n ', '!']}
@@ -140,13 +151,13 @@ def test_condition_fail_all(diabetes_split_dataset_and_model):
     train.data.loc[train.data.index % 3 == 2, 'bp'] = '&!'
     train.data.loc[train.data.index % 3 == 2, 'sex'] = '&!'
     # Arrange
-    check = SpecialCharacters(n_top_columns=3).add_condition_ratio_of_special_characters_not_grater_than()
+    check = SpecialCharacters(n_top_columns=3).add_condition_ratio_of_special_characters_less_or_equal()
     # Act
     results = check.conditions_decision(check.run(train, clf))
     # Assert
     assert_that(results, has_items(equal_condition_result(
         is_pass=False,
-        name='Ratio of entirely special character samples not greater than 0.1%',
+        name='Ratio of samples containing solely special character is less or equal to 0.1%',
         details='Found 4 out of 11 relevant columns with ratio above threshold: {\'age\': \'34.12%\', \'sex\': '
                 '\'34.12%\', \'bmi\': \'34.12%\', \'bp\': \'34.12%\'}',
         category=ConditionCategory.WARN
@@ -161,13 +172,13 @@ def test_condition_fail_some(diabetes_split_dataset_and_model):
     train.data.loc[train.data.index % 7 == 2, 'bp'] = '&!'
     train.data.loc[train.data.index % 3 == 2, 'sex'] = '&!'
     # Arrange
-    check = SpecialCharacters(n_top_columns=3).add_condition_ratio_of_special_characters_not_grater_than(0.3)
+    check = SpecialCharacters(n_top_columns=3).add_condition_ratio_of_special_characters_less_or_equal(0.3)
     # Act
     results = check.conditions_decision(check.run(train, clf))
     # Assert
     assert_that(results, has_items(equal_condition_result(
         is_pass=False,
-        name='Ratio of entirely special character samples not greater than 30%',
+        name='Ratio of samples containing solely special character is less or equal to 30%',
         details='Found 2 out of 11 relevant columns with ratio above threshold: '
                 '{\'sex\': \'34.12%\', \'bmi\': \'34.12%\'}',
         category=ConditionCategory.WARN
@@ -179,12 +190,12 @@ def test_condition_pass(diabetes_split_dataset_and_model):
     train = Dataset(train.data.copy(), label='target', cat_features=['sex'])
 
     # Arrange
-    check = SpecialCharacters(n_top_columns=3).add_condition_ratio_of_special_characters_not_grater_than()
+    check = SpecialCharacters(n_top_columns=3).add_condition_ratio_of_special_characters_less_or_equal()
     # Act
     results = check.conditions_decision(check.run(train, clf))
     # Assert
     assert_that(results, has_items(equal_condition_result(
         is_pass=True,
         details='Passed for 11 relevant columns',
-        name='Ratio of entirely special character samples not greater than 0.1%',
+        name='Ratio of samples containing solely special character is less or equal to 0.1%',
     )))

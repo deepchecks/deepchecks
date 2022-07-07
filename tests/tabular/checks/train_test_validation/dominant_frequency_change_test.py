@@ -12,7 +12,7 @@
 Contains unit tests for the dominant_frequency_change check
 """
 import pandas as pd
-from hamcrest import assert_that, calling, close_to, empty, equal_to, has_items, has_length, raises
+from hamcrest import assert_that, calling, close_to, empty, equal_to, greater_than, has_items, has_length, raises
 from sklearn.model_selection import train_test_split
 
 from deepchecks.core.errors import DeepchecksValueError
@@ -62,8 +62,8 @@ def test_leakage(iris_clean):
     # Arrange
     check = DominantFrequencyChange()
     # Act X
-    result = check.run(train_dataset=train_dataset, test_dataset=validation_dataset).value
-    row = result['petal length (cm)']
+    result = check.run(train_dataset=train_dataset, test_dataset=validation_dataset)
+    row = result.value['petal length (cm)']
     # Assert
     assert_that(row['Value'], equal_to(5.1))
     assert_that(row['Train data %'], close_to(0.057, 0.001))
@@ -71,6 +71,38 @@ def test_leakage(iris_clean):
     assert_that(row['Train data #'], equal_to(6))
     assert_that(row['Test data #'], equal_to(25))
     assert_that(row['P value'], close_to(0, 0.00001))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_leakage_without_display(iris_clean):
+    x = iris_clean.data
+    y = iris_clean.target
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=55)
+    train_dataset = Dataset(pd.concat([x_train, y_train], axis=1),
+                            features=iris_clean.feature_names,
+                            label='target')
+
+    test_df = pd.concat([x_test, y_test], axis=1)
+    test_df.loc[test_df.index % 2 == 0, 'petal length (cm)'] = 5.1
+
+    validation_dataset = Dataset(test_df,
+                                 features=iris_clean.feature_names,
+                                 label='target')
+    # Arrange
+    check = DominantFrequencyChange()
+    # Act X
+    result = check.run(train_dataset=train_dataset,
+                       test_dataset=validation_dataset,
+                       with_display=False)
+    row = result.value['petal length (cm)']
+    # Assert
+    assert_that(row['Value'], equal_to(5.1))
+    assert_that(row['Train data %'], close_to(0.057, 0.001))
+    assert_that(row['Test data %'], close_to(0.555, 0.001))
+    assert_that(row['Train data #'], equal_to(6))
+    assert_that(row['Test data #'], equal_to(25))
+    assert_that(row['P value'], close_to(0, 0.00001))
+    assert_that(result.display, has_length(0))
 
 
 def test_show_any(iris_split_dataset_and_model):
@@ -136,7 +168,7 @@ def test_condition_ratio_not_less_than_not_passed(iris_clean):
                            features=iris_clean.feature_names,
                            label='target')
 
-    check = DominantFrequencyChange().add_condition_p_value_not_less_than(p_value_threshold=0.0001)
+    check = DominantFrequencyChange().add_condition_p_value_greater_than(p_value_threshold=0.0001)
 
     # Act
     result = check.conditions_decision(check.run(train_dataset, test_dataset))
@@ -144,7 +176,7 @@ def test_condition_ratio_not_less_than_not_passed(iris_clean):
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='P value is not less than 0.0001',
+                               name='P value is greater than 0.0001',
                                details='Found 2 out of 4 columns with p-value below threshold: '
                                        '{\'sepal width (cm)\': \'7.63E-20\', \'petal length (cm)\': \'2.26E-11\'}'
     )))
@@ -154,7 +186,7 @@ def test_condition_ratio_not_less_than_passed(iris_split_dataset_and_model):
     # Arrange
     train_ds, val_ds, _ = iris_split_dataset_and_model
 
-    check = DominantFrequencyChange().add_condition_p_value_not_less_than()
+    check = DominantFrequencyChange().add_condition_p_value_greater_than()
 
     # Act
     result = check.conditions_decision(check.run(train_ds, val_ds))
@@ -163,7 +195,7 @@ def test_condition_ratio_not_less_than_passed(iris_split_dataset_and_model):
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
                                details='Passed for 4 relevant columns',
-                               name='P value is not less than 0.0001')
+                               name='P value is greater than 0.0001')
     ))
 
 
@@ -171,7 +203,7 @@ def test_condition_ratio_of_change_not_greater_than_not_passed(iris_split_datase
     # Arrange
     train_ds, val_ds, _ = iris_split_dataset_and_model
 
-    check = DominantFrequencyChange().add_condition_ratio_of_change_not_greater_than(0.05)
+    check = DominantFrequencyChange().add_condition_ratio_of_change_less_than(0.05)
 
     # Act
     result, *_ = check.conditions_decision(check.run(train_dataset=val_ds, test_dataset=train_ds))
@@ -179,7 +211,7 @@ def test_condition_ratio_of_change_not_greater_than_not_passed(iris_split_datase
     # Assert
     assert_that(result, equal_condition_result(
             is_pass=False,
-            name='Change in ratio of dominant value in data is not greater than 5%',
+            name='Change in ratio of dominant value in data is less than 5%',
             details='Found 1 out of 4 columns with % difference in dominant value above threshold: '
                     '{\'sepal width (cm)\': \'8%\'}'
     ))
@@ -189,7 +221,7 @@ def test_condition_ratio_of_change_not_greater_than_passed(iris_split_dataset_an
     # Arrange
     train_ds, _, _ = iris_split_dataset_and_model
 
-    check = DominantFrequencyChange().add_condition_ratio_of_change_not_greater_than()
+    check = DominantFrequencyChange().add_condition_ratio_of_change_less_than()
 
     # Act
     result = check.conditions_decision(check.run(train_ds, train_ds))
@@ -198,5 +230,5 @@ def test_condition_ratio_of_change_not_greater_than_passed(iris_split_dataset_an
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
                                details='Passed for 4 relevant columns',
-                               name='Change in ratio of dominant value in data is not greater than 25%')
+                               name='Change in ratio of dominant value in data is less than 25%')
     ))

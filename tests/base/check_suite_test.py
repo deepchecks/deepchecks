@@ -13,6 +13,7 @@ import random
 
 from hamcrest import assert_that, calling, equal_to, has_length, instance_of, is_, raises
 
+from deepchecks import ConditionCategory, ConditionResult, SuiteResult
 from deepchecks.core import CheckFailure, CheckResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import SingleDatasetCheck, Suite, TrainTestCheck
@@ -20,7 +21,7 @@ from deepchecks.tabular import checks as tabular_checks
 
 
 class SimpleDatasetCheck(SingleDatasetCheck):
-    def run_logic(self, context, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context, dataset_kind) -> CheckResult:
         return CheckResult("Simple Check")
 
 
@@ -44,7 +45,7 @@ def test_run_suite_with_incorrect_args():
     args = {"train_dataset": None, "test_dataset": None,}
     assert_that(
         calling(suite.run).with_args(**args),
-        raises(DeepchecksValueError, r'At least one dataset \(or model\) must be passed to the method!')
+        raises(DeepchecksValueError, r"At least one dataset \(or model\) must be passed to the method!")
     )
 
 
@@ -72,7 +73,7 @@ def test_try_add_not_a_check_to_the_suite():
     suite = Suite("second suite")
     assert_that(
         calling(suite.add).with_args(object()),
-        raises(DeepchecksValueError, 'Suite received unsupported object type: object')
+        raises(DeepchecksValueError, "Suite received unsupported object type: object")
     )
 
 
@@ -110,7 +111,7 @@ def test_access_removed_check_by_index():
 
     assert_that(
         calling(suite.__getitem__).with_args(0),
-        raises(DeepchecksValueError, 'No index 0 in suite')
+        raises(DeepchecksValueError, "No index 0 in suite")
     )
 
 
@@ -119,7 +120,7 @@ def test_try_remove_unexisting_check_from_the_suite():
     assert_that(len(suite.checks), equal_to(2))
     assert_that(
         calling(suite.remove).with_args(3),
-        raises(DeepchecksValueError, 'No index 3 in suite')
+        raises(DeepchecksValueError, "No index 3 in suite")
     )
 
 
@@ -149,8 +150,7 @@ def test_check_suite_instantiation_by_extending_another_check_suite():
     ]
 
 
-def test_get_error(iris_split_dataset_and_model_custom,
-                   diabetes_split_dataset_and_model_custom):
+def test_get_error(iris_split_dataset_and_model_custom):
     iris_train, iris_test, iris_model = iris_split_dataset_and_model_custom
 
     suite = Suite(
@@ -159,5 +159,46 @@ def test_get_error(iris_split_dataset_and_model_custom,
         tabular_checks.ModelErrorAnalysis())
 
     result = suite.run(train_dataset=iris_train, test_dataset=iris_test, model=iris_model)
-    assert_that(result.get_failures(), has_length(1))
-    assert_that(result.get_failures()['Model Error Analysis'], instance_of(CheckFailure))
+    assert_that(result.get_not_ran_checks(), has_length(1))
+    assert_that(result.get_not_ran_checks()[0], instance_of(CheckFailure))
+
+
+def test_suite_result_checks_not_passed():
+    # Arrange
+    result1 = CheckResult(0, 'check1')
+    result1.conditions_results = [ConditionResult(ConditionCategory.PASS)]
+    result2 = CheckResult(0, 'check2')
+    result2.conditions_results = [ConditionResult(ConditionCategory.WARN)]
+    result3 = CheckResult(0, 'check3')
+    result3.conditions_results = [ConditionResult(ConditionCategory.FAIL)]
+
+    # Act & Assert
+    not_passed_checks = SuiteResult('test', [result1, result2]).get_not_passed_checks()
+    assert_that(not_passed_checks, has_length(1))
+    not_passed_checks = SuiteResult('test', [result1, result2]).get_not_passed_checks(fail_if_warning=False)
+    assert_that(not_passed_checks, has_length(0))
+    not_passed_checks = SuiteResult('test', [result1, result2, result3]).get_not_passed_checks()
+    assert_that(not_passed_checks, has_length(2))
+
+
+def test_suite_result_passed_fn():
+    # Arrange
+    result1 = CheckResult(0, 'check1')
+    result1.conditions_results = [ConditionResult(ConditionCategory.PASS)]
+    result2 = CheckResult(0, 'check2')
+    result2.conditions_results = [ConditionResult(ConditionCategory.WARN)]
+    result3 = CheckResult(0, 'check3')
+    result3.conditions_results = [ConditionResult(ConditionCategory.FAIL)]
+    result4 = CheckFailure(tabular_checks.IsSingleValue(), DeepchecksValueError(''))
+
+    # Act & Assert
+    passed = SuiteResult('test', [result1, result2]).passed()
+    assert_that(passed, equal_to(False))
+    passed = SuiteResult('test', [result1, result2]).passed(fail_if_warning=False)
+    assert_that(passed, equal_to(True))
+    passed = SuiteResult('test', [result1, result2, result3]).passed(fail_if_warning=False)
+    assert_that(passed, equal_to(False))
+    passed = SuiteResult('test', [result1, result4]).passed()
+    assert_that(passed, equal_to(True))
+    passed = SuiteResult('test', [result1, result4]).passed(fail_if_check_not_run=True)
+    assert_that(passed, equal_to(False))

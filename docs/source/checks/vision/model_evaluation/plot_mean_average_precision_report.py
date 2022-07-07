@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_vision_mean_average_precision_report:
+
 Mean Average Precision Report
 *****************************
 
@@ -44,6 +46,16 @@ check = MeanAveragePrecisionReport()
 result = check.run(test_ds, yolo)
 result
 
+#%%
+# If you have a GPU, you can speed up this check by passing it as an argument to .run() as device=<your GPU>
+#
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  result.show_in_window()
+#%%
+# The result will be displayed in a new window.
+
+
 # %%
 # Observe the check’s output
 # --------------------------
@@ -59,6 +71,6 @@ result.value
 # We can define a condition that checks whether our model's mean average precision score is not less than
 # a given threshold for all bounding box sizes.
 
-check = MeanAveragePrecisionReport().add_condition_average_mean_average_precision_not_less_than(0.4)
+check = MeanAveragePrecisionReport().add_condition_average_mean_average_precision_greater_than(0.4)
 result = check.run(test_ds, yolo)
 result.show(show_additional_outputs=False)

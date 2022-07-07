@@ -9,11 +9,13 @@
 # ----------------------------------------------------------------------------
 #
 """Module of functions to partition columns into segments."""
+from collections import defaultdict
 from copy import deepcopy
 from typing import Callable, List
 
 import numpy as np
 import pandas as pd
+from sklearn.tree import _tree
 
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.utils.strings import format_number
@@ -22,7 +24,8 @@ from deepchecks.utils.typing import Hashable
 # TODO: move tabular functionality to the tabular sub-package
 
 
-__all__ = ['partition_column', 'DeepchecksFilter']
+__all__ = ['partition_column', 'DeepchecksFilter', 'DeepchecksBaseFilter', 'convert_tree_leaves_into_filters',
+           'intersect_two_filters', 'partition_numeric_feature_around_segment']
 
 
 class DeepchecksFilter:
@@ -30,22 +33,113 @@ class DeepchecksFilter:
 
     Parameters
     ----------
-    filter_func : Callable
-        function which receive dataframe and return a filter on it
-    label : str
+    filter_functions : List[Callable], default: None
+        List of functions that receive a DataFrame and return a filter on it. If None, no filter is applied
+    label : str, default = ''
         name of the filter
     """
 
-    def __init__(self, filter_func: Callable, label: str):
-        self.filter_func = filter_func
+    def __init__(self, filter_functions: List[Callable] = None, label: str = ''):
+        if not filter_functions:
+            self.filter_functions = []
+        else:
+            self.filter_functions = filter_functions
         self.label = label
 
-    def filter(self, dataframe):
-        """Run the filter on given dataframe."""
-        return dataframe.loc[self.filter_func(dataframe)]
+    def filter(self, dataframe: pd.DataFrame) -> pd.DataFrame:
+        """Run the filter on given dataframe. Return rows in data frame satisfying the filter properties."""
+        for func in self.filter_functions:
+            dataframe = dataframe.loc[func(dataframe)]
+        return dataframe
 
 
-def numeric_segmentation_edges(column: pd.Series, max_segments: int) -> List[DeepchecksFilter]:
+class DeepchecksBaseFilter(DeepchecksFilter):
+    """Extend DeepchecksFilter class for feature range based filters.
+
+    Parameters
+    ----------
+    filters: dict, default: None
+        A dictionary in containing feature names as keys and the filtering range as value.
+    filter_functions : List[Callable], default: None
+        List of functions that receive a DataFrame and return a filter on it. If None, no filter is applied
+    label : str, default = ''
+        Name of the filter
+    """
+
+    def __init__(self, filters: dict = None, filter_functions: List[Callable] = None, label: str = ''):
+        if filters is None:
+            filters = defaultdict()
+        self.filters = filters
+        super().__init__(filter_functions, label)
+
+    def add_filter(self, feature_name: str, threshold: float, greater_then: bool = True):
+        """Add a filter by intersecting it with existing filter."""
+        if greater_then:
+            filter_func = [lambda df, a=threshold: df[feature_name] > a]
+            if feature_name in self.filters.keys():
+                original_range = self.filters[feature_name]
+                self.filters[feature_name] = [max(threshold, original_range[0]), original_range[1]]
+            else:
+                self.filters[feature_name] = [threshold, np.inf]
+        else:
+            filter_func = [lambda df, a=threshold: df[feature_name] <= a]
+            if feature_name in self.filters.keys():
+                original_range = self.filters[feature_name]
+                self.filters[feature_name] = [original_range[0], min(threshold, original_range[1])]
+            else:
+                self.filters[feature_name] = [np.NINF, threshold]
+        self.filter_functions += filter_func
+        return self
+
+    def copy(self):
+        """Return a copy of the object."""
+        return DeepchecksBaseFilter(self.filters.copy(), self.filter_functions.copy(), self.label)
+
+
+def intersect_two_filters(filter1: DeepchecksFilter, filter2: DeepchecksFilter) -> DeepchecksFilter:
+    """Merge two DeepChecksFilters into one, an intersection of both filters."""
+    return DeepchecksFilter(filter1.filter_functions + filter2.filter_functions)
+
+
+def partition_numeric_feature_around_segment(column: pd.Series, segment: List[float],
+                                             max_additional_segments: int = 4) -> np.ndarray:
+    """Split given series into segments containing specified segment.
+
+    Tries to create segments as balanced as possible in size.
+    Parameters
+    ----------
+    column : pd.Series
+        Series to be partitioned.
+    segment : List[float]
+        Segment to be included in the partition.
+    max_additional_segments : int, default = 4
+        Maximum number of segments to be returned (not including the original segment).
+    """
+    data_below_segment, data_above_segment = column[column <= segment[0]], column[column > segment[1]]
+    if len(data_below_segment) + len(data_above_segment) == 0:
+        return np.array([np.nanmin(column), np.nanmax(column)])
+    ratio = np.divide(len(data_below_segment), len(data_below_segment) + len(data_above_segment))
+
+    if len(data_below_segment) == 0:
+        segments_below = np.array([np.nanmin(column)])
+    elif data_below_segment.nunique() == 1:
+        segments_below = np.array([np.nanmin(column), segment[0]])
+    else:
+        segments_below = numeric_segmentation_edges(data_below_segment, round(max_additional_segments * ratio))
+        segments_below = np.append(np.delete(segments_below, len(segments_below) - 1), segment[0])
+
+    if len(data_above_segment) == 0:
+        segments_above = np.array([np.nanmax(column)])
+    elif data_above_segment.nunique() == 1:
+        segments_above = np.array([segment[1], np.nanmax(column)])
+    else:
+        segments_above = numeric_segmentation_edges(data_above_segment, round(max_additional_segments * (1 - ratio)))
+        segments_above = np.append(segment[1], np.delete(segments_above, 0))
+
+    return np.unique(np.concatenate([segments_below, segments_above], axis=None))
+
+
+def numeric_segmentation_edges(column: pd.Series, max_segments: int) -> np.ndarray:
     """Split given series into values which are used to create quantiles segments.
 
     Tries to create `max_segments + 1` values (since segment is a range, so 2 values needed to create segment) but in
@@ -60,6 +154,8 @@ def numeric_segmentation_edges(column: pd.Series, max_segments: int) -> List[Dee
         percentile_values = pd.unique(
             np.nanpercentile(column.to_numpy(), np.linspace(0, 100, attempt_max_segments + 1))
         )
+        if len(percentile_values) == len(prev_percentile_values):
+            break
         attempt_max_segments *= 2
 
     if len(percentile_values) > max_segments + 1:
@@ -84,10 +180,10 @@ def largest_category_index_up_to_ratio(histogram, max_segments, max_cat_proporti
 
 
 def partition_column(
-    dataset: Dataset,
-    column_name: Hashable,
-    max_segments: int,
-    max_cat_proportions: float = 0.9
+        dataset: Dataset,
+        column_name: Hashable,
+        max_segments: int = 10,
+        max_cat_proportions: float = 0.9,
 ) -> List[DeepchecksFilter]:
     """Split column into segments.
 
@@ -102,7 +198,7 @@ def partition_column(
     dataset : Dataset
     column_name : Hashable
         column to partition.
-    max_segments : int
+    max_segments : int, default: 10
         maximum number of segments to split into.
     max_cat_proportions : float , default: 0.9
         (for categorical) ratio to aggregate largest values to show.
@@ -118,7 +214,7 @@ def partition_column(
         if len(percentile_values) == 1:
             f = lambda df, val=percentile_values[0]: (df[column_name] == val)
             label = str(percentile_values[0])
-            return [DeepchecksFilter(f, label)]
+            return [DeepchecksFilter([f], label)]
 
         filters = []
         for start, end in zip(percentile_values[:-1], percentile_values[1:]):
@@ -130,7 +226,7 @@ def partition_column(
                 f = lambda df, a=start, b=end: (df[column_name] >= a) & (df[column_name] < b)
                 label = f'[{format_number(start)} - {format_number(end)})'
 
-            filters.append(DeepchecksFilter(f, label))
+            filters.append(DeepchecksFilter([f], label))
         return filters
     elif column_name in dataset.cat_features:
         # Get sorted histogram
@@ -140,11 +236,48 @@ def partition_column(
 
         filters = []
         for i in range(n_large_cats):
-            f = lambda df, val = cat_hist_dict.index[i]: df[column_name] == val
-            filters.append(DeepchecksFilter(f, str(cat_hist_dict.index[i])))
+            f = lambda df, val=cat_hist_dict.index[i]: df[column_name] == val
+            filters.append(DeepchecksFilter([f], str(cat_hist_dict.index[i])))
 
         if len(cat_hist_dict) > n_large_cats:
             f = lambda df, values=cat_hist_dict.index[:n_large_cats]: ~df[column_name].isin(values)
-            filters.append(DeepchecksFilter(f, 'Others'))
+            filters.append(DeepchecksFilter([f], 'Others'))
 
         return filters
+
+
+def convert_tree_leaves_into_filters(tree, feature_names: List[str]) -> List[DeepchecksBaseFilter]:
+    """Extract the leaves from a sklearn tree and covert them into DeepchecksBaseFilter.
+
+    The function goes over the tree from root to leaf and concatenates (by intersecting) the relevant filters along the
+    way. The function returns a list in which each element is a DeepchecksFilter representing the path between the root
+    to a different leaf.
+
+    Parameters
+    ----------
+    tree : A sklearn tree. The tree_ property of a sklearn decision tree.
+    feature_names : List[str]
+        The feature names for elements within the tree. Normally it is the column names of the data frame the tree
+           was trained on.
+
+    Returns
+    -------
+    List[DeepchecksFilter]:
+           A list of filters describing the leaves of the tree.
+    """
+    node_to_feature = [feature_names[feature_idx] if feature_idx != _tree.TREE_UNDEFINED else None for feature_idx in
+                       tree.feature]
+
+    def recurse(node_idx: int, filter_of_node: DeepchecksBaseFilter):
+        if tree.feature[node_idx] != _tree.TREE_UNDEFINED:
+            left_node_filter = filter_of_node.copy().add_filter(node_to_feature[node_idx], tree.threshold[node_idx],
+                                                                greater_then=False)
+            right_node_filter = filter_of_node.copy().add_filter(node_to_feature[node_idx], tree.threshold[node_idx])
+
+            return recurse(tree.children_left[node_idx], left_node_filter) + \
+                recurse(tree.children_right[node_idx], right_node_filter)
+        else:
+            return [filter_of_node]
+
+    filters_to_leaves = recurse(0, DeepchecksBaseFilter())
+    return filters_to_leaves

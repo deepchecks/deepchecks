@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_vision_mean_average_recall_report:
+
 Mean Average Recall Report
 **************************
 
@@ -51,6 +53,15 @@ result = check.run(test_ds, yolo)
 result
 
 #%%
+# If you have a GPU, you can speed up this check by passing it as an argument to .run() as device=<your GPU>
+#
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  result.show_in_window()
+#%%
+# The result will be displayed in a new window.
+
+#%%
 # Observe the check’s output
 # --------------------------
 # The result value is a dataframe that has the average recall score per each area range and IoU.
@@ -63,6 +74,6 @@ result.value
 # We can define a condition that checks whether our model's average recall score is not less than
 # a given threshold
 
-check = MeanAverageRecallReport().add_condition_test_average_recall_not_less_than(0.4)
+check = MeanAverageRecallReport().add_condition_test_average_recall_greater_than(0.4)
 result = check.run(test_ds, yolo)
 result.show(show_additional_outputs=False)

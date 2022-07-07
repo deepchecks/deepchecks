@@ -23,7 +23,7 @@ __all__ = ['RegressionSystematicError']
 class RegressionSystematicError(SingleDatasetCheck):
     """Check the regression systematic error."""
 
-    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
 
         Returns
@@ -37,11 +37,7 @@ class RegressionSystematicError(SingleDatasetCheck):
         DeepchecksValueError
             If the object is not a Dataset instance with a label.
         """
-        if dataset_type == 'train':
-            dataset = context.train
-        else:
-            dataset = context.test
-
+        dataset = context.get_data_by_kind(dataset_kind)
         context.assert_regression_task()
         y_test = dataset.label_col
         x_test = dataset.features_columns
@@ -51,30 +47,33 @@ class RegressionSystematicError(SingleDatasetCheck):
         diff = y_test - y_pred
         diff_mean = diff.mean()
 
-        fig = (
-            go.Figure()
-            .add_trace(go.Box(
-                x=diff,
-                orientation='h',
-                name='Model prediction error',
-                hoverinfo='x',
-                boxmean=True))
-            .update_layout(
-                title_text='Box plot of the model prediction error',
-                height=500
+        if context.with_display:
+            fig = (
+                go.Figure()
+                .add_trace(go.Box(
+                    x=diff,
+                    orientation='h',
+                    name='Model prediction error',
+                    hoverinfo='x',
+                    boxmean=True))
+                .update_layout(
+                    title_text='Box plot of the model prediction error',
+                    height=500
+                )
             )
-        )
 
-        display = [
-            'Non-zero mean of the error distribution indicated the presents '
-            'of systematic error in model predictions',
-            fig
-        ]
+            display = [
+                'Non-zero mean of the error distribution indicated the presents '
+                'of systematic error in model predictions',
+                fig
+            ]
+        else:
+            display = None
 
         return CheckResult(value={'rmse': rmse, 'mean_error': diff_mean}, display=display)
 
-    def add_condition_systematic_error_ratio_to_rmse_not_greater_than(self, max_ratio: float = 0.01):
-        """Add condition - require the absolute mean systematic error to be not greater than (max_ratio * RMSE).
+    def add_condition_systematic_error_ratio_to_rmse_less_than(self, max_ratio: float = 0.01):
+        """Add condition - require the absolute mean systematic error is less than (max_ratio * RMSE).
 
         Parameters
         ----------
@@ -86,8 +85,8 @@ class RegressionSystematicError(SingleDatasetCheck):
             mean_error = result['mean_error']
             ratio = abs(mean_error) / rmse
             details = f'Found bias ratio {format_number(ratio)}'
-            category = ConditionCategory.FAIL if ratio > max_ratio else ConditionCategory.PASS
+            category = ConditionCategory.PASS if ratio < max_ratio else ConditionCategory.FAIL
             return ConditionResult(category, details)
 
-        return self.add_condition(f'Bias ratio is not greater than {format_number(max_ratio)}',
+        return self.add_condition(f'Bias ratio is less than {format_number(max_ratio)}',
                                   max_bias_condition)

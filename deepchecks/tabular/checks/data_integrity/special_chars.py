@@ -55,7 +55,7 @@ class SpecialCharacters(SingleDatasetCheck):
         self.n_most_common = n_most_common
         self.n_top_columns = n_top_columns
 
-    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
 
         Returns
@@ -64,11 +64,7 @@ class SpecialCharacters(SingleDatasetCheck):
             value is dict of column as key and percent of special characters samples as value
             display is DataFrame with ('invalids') for any column with special_characters chars.
         """
-        if dataset_type == 'train':
-            dataset = context.train
-        else:
-            dataset = context.test
-
+        dataset = context.get_data_by_kind(dataset_kind)
         df = select_from_dataframe(dataset.data, self.columns, self.ignore_columns)
 
         # Result value: { Column Name: pct}
@@ -81,33 +77,39 @@ class SpecialCharacters(SingleDatasetCheck):
             special_samples = _get_special_samples(column_data)
             if special_samples:
                 result[column_name] = sum(special_samples.values()) / column_data.size
-                percent = format_percent(sum(special_samples.values()) / column_data.size)
-                top_n_samples_items = \
-                    sorted(special_samples.items(), key=lambda x: x[1], reverse=True)[:self.n_most_common]
-                top_n_samples_values = [item[0] for item in top_n_samples_items]
-                display_array.append([column_name, percent, top_n_samples_values])
+                if context.with_display:
+                    percent = format_percent(sum(special_samples.values()) / column_data.size)
+                    sortkey = lambda x: x[1]
+                    top_n_samples_items = sorted(special_samples.items(), key=sortkey, reverse=True)
+                    top_n_samples_items = top_n_samples_items[:self.n_most_common]
+                    top_n_samples_values = [item[0] for item in top_n_samples_items]
+                    display_array.append([column_name, percent, top_n_samples_values])
             else:
                 result[column_name] = 0
 
-        df_graph = pd.DataFrame(display_array,
-                                columns=['Column Name', '% Special-Only Samples', 'Most Common Special-Only Samples'])
-        df_graph = df_graph.set_index(['Column Name'])
-        df_graph = column_importance_sorter_df(df_graph, dataset, context.features_importance,
-                                               self.n_top_columns, col='Column Name')
-        display = [N_TOP_MESSAGE % self.n_top_columns, df_graph] if len(df_graph) > 0 else None
+        if display_array:
+            df_graph = pd.DataFrame(display_array,
+                                    columns=['Column Name',
+                                             '% Special-Only Samples',
+                                             'Most Common Special-Only Samples'])
+            df_graph = df_graph.set_index(['Column Name'])
+            df_graph = column_importance_sorter_df(df_graph, dataset, context.feature_importance,
+                                                   self.n_top_columns, col='Column Name')
+            display = [N_TOP_MESSAGE % self.n_top_columns, df_graph]
+        else:
+            display = None
 
         return CheckResult(result, display=display)
 
-    def add_condition_ratio_of_special_characters_not_grater_than(self, max_ratio: float = 0.001):
-        """Add condition - ratio of entirely special character in column.
+    def add_condition_ratio_of_special_characters_less_or_equal(self, max_ratio: float = 0.001):
+        """Add condition - ratio of entirely special character in column is less or equal to the threshold.
 
         Parameters
         ----------
         max_ratio : float , default: 0.001
             Maximum ratio allowed.
         """
-        name = f'Ratio of entirely special character samples not greater '\
-               f'than {format_percent(max_ratio)}'
+        name = f'Ratio of samples containing solely special character is less or equal to {format_percent(max_ratio)}'
 
         def condition(result):
             not_passed = {k: format_percent(v) for k, v in result.items() if v > max_ratio}
@@ -125,7 +127,7 @@ def _get_special_samples(column_data: pd.Series) -> Union[dict, None]:
         return None
     samples_to_count = defaultdict(lambda: 0)
     for sample in column_data:
-        if isinstance(sample, str) and len(sample) > 0 and len(string_baseform(sample)) == 0:
+        if isinstance(sample, str) and len(sample) > 0 and len(string_baseform(sample, True)) == 0:
             samples_to_count[sample] = samples_to_count[sample] + 1
 
     return samples_to_count or None

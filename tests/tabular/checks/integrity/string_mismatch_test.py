@@ -11,7 +11,7 @@
 """Contains unit tests for the string_mismatch check."""
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, has_entries, has_entry, has_items, has_length
+from hamcrest import assert_that, greater_than, has_entries, has_entry, has_items, has_length
 
 from deepchecks.core import ConditionCategory
 from deepchecks.tabular.checks.data_integrity import StringMismatch
@@ -24,11 +24,25 @@ def test_double_col_mismatch():
     data = {'col1': ['Deep', 'deep', 'deep!!!', '$deeP$', 'earth', 'foo', 'bar', 'foo?']}
     df = pd.DataFrame(data=data)
     # Act
-    result = StringMismatch().run(df).value
+    result = StringMismatch().run(df)
     # Assert
-    assert_that(result, has_entry('col1', has_entries({
+    assert_that(result.value, has_entry('col1', has_entries({
         'deep': has_length(4), 'foo': has_length(2)
     })))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_double_col_mismatch_without_display():
+    # Arrange
+    data = {'col1': ['Deep', 'deep', 'deep!!!', '$deeP$', 'earth', 'foo', 'bar', 'foo?']}
+    df = pd.DataFrame(data=data)
+    # Act
+    result = StringMismatch().run(df, with_display=False)
+    # Assert
+    assert_that(result.value, has_entry('col1', has_entries({
+        'deep': has_length(4), 'foo': has_length(2)
+    })))
+    assert_that(result.display, has_length(0))
 
 
 def test_single_mismatch():
@@ -71,14 +85,14 @@ def test_condition_no_more_than_fail():
     # Arrange
     data = {'col1': ['Deep', 'deep', 'deep!!!', '$deeP$', 'earth', 'foo', 'bar', 'foo?']}
     df = pd.DataFrame(data=data)
-    check = StringMismatch().add_condition_not_more_variants_than(2)
+    check = StringMismatch().add_condition_number_variants_less_or_equal(2)
     # Act
     result = check.conditions_decision(check.run(df))
     # Assert
     assert_that(result, has_items(
         equal_condition_result(
             is_pass=False,
-            name='Not more than 2 string variants',
+            name='Number of string variants is less or equal to 2',
             details='Found 1 out of 1 columns with amount of variants above threshold: '
                     '{\'col1\': [\'deep\']}',
             category=ConditionCategory.WARN)
@@ -89,14 +103,14 @@ def test_condition_no_more_than_pass():
     # Arrange
     data = {'col1': ['Deep', 'deep', 'deep!!!', '$deeP$', 'earth', 'foo', 'bar', 'foo?']}
     df = pd.DataFrame(data=data)
-    check = StringMismatch().add_condition_not_more_variants_than(4)
+    check = StringMismatch().add_condition_number_variants_less_or_equal(4)
     # Act
     result = check.conditions_decision(check.run(df))
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
                                details='Passed for 1 relevant column',
-                               name='Not more than 4 string variants')
+                               name='Number of string variants is less or equal to 4')
     ))
 
 
@@ -137,13 +151,13 @@ def test_condition_percent_variants_no_more_than_fail():
     # Arrange
     data = {'col1': ['Deep', 'deep', 'deep!!!', '$deeP$', 'earth', 'foo', 'bar', 'foo?']}
     df = pd.DataFrame(data=data)
-    check = StringMismatch().add_condition_ratio_variants_not_greater_than(0.1)
+    check = StringMismatch().add_condition_ratio_variants_less_or_equal(0.1)
     # Act
     result = check.conditions_decision(check.run(df))
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Ratio of variants is not greater than 10%',
+                               name='Ratio of variants is less or equal to 10%',
                                details='Found 1 out of 1 relevant columns with variants ratio above threshold: '
                                        '{\'col1\': \'75%\'}')
     ))
@@ -153,14 +167,14 @@ def test_condition_percent_variants_no_more_than_pass():
     # Arrange
     data = {'col1': ['Deep', 'shallow', 'high!!!', '$deeP$', 'earth', 'foo', 'bar', 'foo?']}
     df = pd.DataFrame(data=data)
-    check = StringMismatch().add_condition_ratio_variants_not_greater_than(0.5)
+    check = StringMismatch().add_condition_ratio_variants_less_or_equal(0.5)
     # Act
     result = check.conditions_decision(check.run(df))
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
                                details='Passed for 1 relevant column',
-                               name='Ratio of variants is not greater than 50%')
+                               name='Ratio of variants is less or equal to 50%')
     ))
 
 

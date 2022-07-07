@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Contains unit tests for the RegressionSystematicError check."""
-from hamcrest import assert_that, calling, close_to, has_items, raises
+from hamcrest import assert_that, calling, close_to, greater_than, has_items, has_length, raises
 
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError, ModelValidationError
 from deepchecks.tabular.checks.model_evaluation import RegressionSystematicError
@@ -51,10 +51,23 @@ def test_regression_error(diabetes_split_dataset_and_model):
     _, test, clf = diabetes_split_dataset_and_model
     check = RegressionSystematicError()
     # Act X
-    result = check.run(test, clf).value
+    result = check.run(test, clf)
     # Assert
-    assert_that(result['rmse'], close_to(57.5, 0.1))
-    assert_that(result['mean_error'], close_to(-0.008, 0.001))
+    assert_that(result.value['rmse'], close_to(57.5, 0.1))
+    assert_that(result.value['mean_error'], close_to(-0.008, 0.001))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_regression_error_without_display(diabetes_split_dataset_and_model):
+    # Arrange
+    _, test, clf = diabetes_split_dataset_and_model
+    check = RegressionSystematicError()
+    # Act X
+    result = check.run(test, clf, with_display=False)
+    # Assert
+    assert_that(result.value['rmse'], close_to(57.5, 0.1))
+    assert_that(result.value['mean_error'], close_to(-0.008, 0.001))
+    assert_that(result.display, has_length(0))
 
 
 def test_condition_error_ratio_not_greater_than_not_passed(diabetes_split_dataset_and_model):
@@ -63,14 +76,14 @@ def test_condition_error_ratio_not_greater_than_not_passed(diabetes_split_datase
     test = Dataset(test.data.copy(), label='target')
     test._data[test.label_name] = 300
 
-    check = RegressionSystematicError().add_condition_systematic_error_ratio_to_rmse_not_greater_than()
+    check = RegressionSystematicError().add_condition_systematic_error_ratio_to_rmse_less_than()
 
     # Act
     result = check.conditions_decision(check.run(test, clf))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Bias ratio is not greater than 0.01',
+                               name='Bias ratio is less than 0.01',
                                details='Found bias ratio 0.93')
     ))
 
@@ -78,7 +91,7 @@ def test_condition_error_ratio_not_greater_than_not_passed(diabetes_split_datase
 def test_condition_error_ratio_not_greater_than_passed(diabetes_split_dataset_and_model):
     _, test, clf = diabetes_split_dataset_and_model
 
-    check = RegressionSystematicError().add_condition_systematic_error_ratio_to_rmse_not_greater_than()
+    check = RegressionSystematicError().add_condition_systematic_error_ratio_to_rmse_less_than()
 
     # Act
     result = check.conditions_decision(check.run(test, clf))
@@ -86,20 +99,20 @@ def test_condition_error_ratio_not_greater_than_passed(diabetes_split_dataset_an
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
                                details='Found bias ratio 1.40E-4',
-                               name='Bias ratio is not greater than 0.01')
+                               name='Bias ratio is less than 0.01')
     ))
 
 
 def test_condition_error_ratio_not_greater_than_not_passed_0_max(diabetes_split_dataset_and_model):
     _, test, clf = diabetes_split_dataset_and_model
 
-    check = RegressionSystematicError().add_condition_systematic_error_ratio_to_rmse_not_greater_than(max_ratio=0)
+    check = RegressionSystematicError().add_condition_systematic_error_ratio_to_rmse_less_than(max_ratio=0)
 
     # Act
     result = check.conditions_decision(check.run(test, clf))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Bias ratio is not greater than 0',
+                               name='Bias ratio is less than 0',
                                details='Found bias ratio 1.40E-4')
     ))

@@ -9,15 +9,17 @@
 # ----------------------------------------------------------------------------
 #
 """Module for vision base checks."""
-from typing import Any, List, Optional, Union
+from typing import Any, Dict, Mapping, Optional, Sequence, Union
 
 import torch
+from ignite.metrics import Metric
 from torch import nn
 
 from deepchecks.core.check_result import CheckResult
 from deepchecks.core.checks import DatasetKind, ModelOnlyBaseCheck, SingleDatasetBaseCheck, TrainTestBaseCheck
 from deepchecks.utils.ipython import ProgressBarGroup
 from deepchecks.vision import deprecation_warnings  # pylint: disable=unused-import # noqa: F401
+from deepchecks.vision._shared_docs import docstrings
 from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.context import Context
 from deepchecks.vision.vision_data import VisionData
@@ -34,17 +36,31 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
 
     context_type = Context
 
+    @docstrings
     def run(
         self,
         dataset: VisionData,
         model: Optional[nn.Module] = None,
+        model_name: str = '',
+        scorers: Optional[Mapping[str, Metric]] = None,
+        scorers_per_class: Optional[Mapping[str, Metric]] = None,
         device: Union[str, torch.device, None] = None,
         random_state: int = 42,
         n_samples: Optional[int] = 10_000,
-        train_predictions: Union[List[torch.Tensor], torch.Tensor] = None,
-        test_predictions: Union[List[torch.Tensor], torch.Tensor] = None,
+        with_display: bool = True,
+        train_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
+        test_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
     ) -> CheckResult:
-        """Run check."""
+        """Run check.
+
+        Parameters
+        ----------
+        dataset: VisionData
+            VisionData object to process
+        model: Optional[nn.Module] , default None
+            pytorch neural network module instance
+        {additional_context_params:2*indent}
+        """
         assert self.context_type is not None
 
         with ProgressBarGroup() as progressbar_factory:
@@ -54,34 +70,33 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
                 context: Context = self.context_type(
                     dataset,
                     model=model,
+                    model_name=model_name,
+                    scorers=scorers,
+                    scorers_per_class=scorers_per_class,
                     device=device,
                     random_state=random_state,
                     n_samples=n_samples,
+                    with_display=with_display,
                     train_predictions=train_predictions,
                     test_predictions=test_predictions,
                 )
                 self.initialize_run(context, DatasetKind.TRAIN)
 
             context.train.init_cache()
-            batch_start_index = 0
 
-            for batch in progressbar_factory.create(
+            for i, batch in enumerate(progressbar_factory.create(
                 iterable=context.train,
                 name='Ingesting Batches',
                 unit='Batch'
-            ):
-                batch = Batch(batch, context, DatasetKind.TRAIN, batch_start_index)
+            )):
+                batch = Batch(batch, context, DatasetKind.TRAIN, i)
                 context.train.update_cache(batch)
                 self.update(context, batch, DatasetKind.TRAIN)
-                batch_start_index += len(batch)
 
             with progressbar_factory.create_dummy(name='Computing Check', unit='Check'):
                 result = self.compute(context, DatasetKind.TRAIN)
-                if isinstance(result, CheckResult):
-                    footnote = context.get_is_sampled_footnote(DatasetKind.TRAIN)
-                    if footnote:
-                        result.display.append(footnote)
-                result = self.finalize_check_result(result)
+                context.finalize_check_result(result, self)
+                context.add_is_sampled_footnote(result, DatasetKind.TRAIN)
                 return result
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
@@ -105,18 +120,34 @@ class TrainTestCheck(TrainTestBaseCheck):
 
     context_type = Context
 
+    @docstrings
     def run(
         self,
         train_dataset: VisionData,
         test_dataset: VisionData,
         model: Optional[nn.Module] = None,
+        model_name: str = '',
+        scorers: Optional[Mapping[str, Metric]] = None,
+        scorers_per_class: Optional[Mapping[str, Metric]] = None,
         device: Union[str, torch.device, None] = None,
         random_state: int = 42,
         n_samples: Optional[int] = 10_000,
-        train_predictions: Union[List[torch.Tensor], torch.Tensor] = None,
-        test_predictions: Union[List[torch.Tensor], torch.Tensor] = None,
+        with_display: bool = True,
+        train_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
+        test_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
     ) -> CheckResult:
-        """Run check."""
+        """Run check.
+
+        Parameters
+        ----------
+        train_dataset: VisionData
+            VisionData object, representing data an neural network was fitted on
+        test_dataset: VisionData
+            VisionData object, representing data an neural network predicts on
+        model: Optional[nn.Module] , default None
+            pytorch neural network module instance
+        {additional_context_params:2*indent}
+        """
         assert self.context_type is not None
 
         with ProgressBarGroup() as progressbar_factory:
@@ -127,9 +158,13 @@ class TrainTestCheck(TrainTestBaseCheck):
                     train_dataset,
                     test_dataset,
                     model=model,
+                    model_name=model_name,
+                    scorers=scorers,
+                    scorers_per_class=scorers_per_class,
                     device=device,
                     random_state=random_state,
                     n_samples=n_samples,
+                    with_display=with_display,
                     train_predictions=train_predictions,
                     test_predictions=test_predictions,
                 )
@@ -142,34 +177,27 @@ class TrainTestCheck(TrainTestBaseCheck):
             )
 
             context.train.init_cache()
-            batch_start_index = 0
 
-            for batch in train_pbar:
-                batch = Batch(batch, context, DatasetKind.TRAIN, batch_start_index)
+            for i, batch in enumerate(train_pbar):
+                batch = Batch(batch, context, DatasetKind.TRAIN, i)
                 context.train.update_cache(batch)
                 self.update(context, batch, DatasetKind.TRAIN)
-                batch_start_index += len(batch)
 
             context.test.init_cache()
-            batch_start_index = 0
 
-            for batch in progressbar_factory.create(
+            for i, batch in enumerate(progressbar_factory.create(
                 iterable=context.test,
                 name='Ingesting Batches - Test Dataset',
                 unit='Batch'
-            ):
-                batch = Batch(batch, context, DatasetKind.TEST, batch_start_index)
+            )):
+                batch = Batch(batch, context, DatasetKind.TEST, i)
                 context.test.update_cache(batch)
                 self.update(context, batch, DatasetKind.TEST)
-                batch_start_index += len(batch)
 
             with progressbar_factory.create_dummy(name='Computing Check', unit='Check'):
                 result = self.compute(context)
-                if isinstance(result, CheckResult):
-                    footnote = context.get_is_sampled_footnote()
-                    if footnote:
-                        result.display.append(footnote)
-                result = self.finalize_check_result(result)
+                context.finalize_check_result(result, self)
+                context.add_is_sampled_footnote(result)
                 return result
 
     def initialize_run(self, context: Context):
@@ -190,13 +218,28 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
 
     context_type = Context
 
+    @docstrings
     def run(
         self,
         model: nn.Module,
+        model_name: str = '',
+        scorers: Optional[Mapping[str, Metric]] = None,
+        scorers_per_class: Optional[Mapping[str, Metric]] = None,
         device: Union[str, torch.device, None] = None,
-        random_state: int = 42
+        random_state: int = 42,
+        n_samples: Optional[int] = None,
+        with_display: bool = True,
+        train_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
+        test_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
     ) -> CheckResult:
-        """Run check."""
+        """Run check.
+
+        Parameters
+        ----------
+        model: nn.Module
+            pytorch neural network module instance
+        {additional_context_params:2*indent}
+        """
         assert self.context_type is not None
 
         with ProgressBarGroup() as progressbar_factory:
@@ -204,13 +247,21 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
             with progressbar_factory.create_dummy(name='Validating Input'):
                 context: Context = self.context_type(
                     model=model,
+                    model_name=model_name,
+                    scorers=scorers,
+                    scorers_per_class=scorers_per_class,
                     device=device,
-                    random_state=random_state
+                    random_state=random_state,
+                    n_samples=n_samples,
+                    with_display=with_display,
+                    train_predictions=train_predictions,
+                    test_predictions=test_predictions,
                 )
                 self.initialize_run(context)
 
             with progressbar_factory.create_dummy(name='Computing Check', unit='Check'):
-                result = self.finalize_check_result(self.compute(context))
+                result = self.compute(context)
+                context.finalize_check_result(result, self)
                 return result
 
     def initialize_run(self, context: Context):

@@ -25,9 +25,8 @@ __all__ = ['FeatureLabelCorrelation']
 FLC = t.TypeVar('FLC', bound='FeatureLabelCorrelation')
 
 
-pps_url = 'https://docs.deepchecks.com/en/stable/examples/tabular/' \
-          'checks/train_test_validation/feature_label_correlation_change' \
-          '.html?utm_source=display_output&utm_medium=referral&utm_campaign=check_link'
+pps_url = 'https://docs.deepchecks.com/en/stable/checks_gallery/tabular/' \
+          'train_test_validation/plot_feature_label_correlation_change.html'
 pps_html = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
 
 
@@ -57,12 +56,12 @@ class FeatureLabelCorrelation(SingleDatasetCheck):
         random_state: int = None,
         **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
         self.ppscore_params = ppscore_params or {}
         self.n_top_features = n_top_features
         self.random_state = random_state
 
-    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
 
         Returns
@@ -76,11 +75,7 @@ class FeatureLabelCorrelation(SingleDatasetCheck):
         DeepchecksValueError
             If the object is not a Dataset instance with a label.
         """
-        if dataset_type == 'train':
-            dataset = context.train
-        else:
-            dataset = context.test
-
+        dataset = context.get_data_by_kind(dataset_kind)
         dataset.assert_features()
         dataset.assert_label()
         relevant_columns = dataset.features + [dataset.label_name]
@@ -88,26 +83,30 @@ class FeatureLabelCorrelation(SingleDatasetCheck):
         df_pps = pps.predictors(df=dataset.data[relevant_columns], y=dataset.label_name, random_seed=self.random_state,
                                 **self.ppscore_params)
         s_ppscore = df_pps.set_index('x', drop=True)['ppscore']
-        top_to_show = s_ppscore.head(self.n_top_features)
 
-        fig = get_pps_figure(per_class=False, n_of_features=len(top_to_show))
-        fig.add_trace(pd_series_to_trace(top_to_show, dataset_type))
+        if context.with_display:
+            top_to_show = s_ppscore.head(self.n_top_features)
 
-        text = [
-            'The Predictive Power Score (PPS) is used to estimate the ability of a feature to predict the '
-            f'label by itself (Read more about {pps_html}).'
-            ' A high PPS (close to 1) can mean that this feature\'s success in predicting the label is'
-            ' actually due to data leakage - meaning that the feature holds information that is based on the label '
-            'to begin with.']
+            fig = get_pps_figure(per_class=False, n_of_features=len(top_to_show))
+            fig.add_trace(pd_series_to_trace(top_to_show, dataset_kind.value))
 
-        # display only if not all scores are 0
-        display = [fig, *text] if s_ppscore.sum() else None
+            text = [
+                'The Predictive Power Score (PPS) is used to estimate the ability of a feature to predict the '
+                f'label by itself (Read more about {pps_html}).'
+                ' A high PPS (close to 1) can mean that this feature\'s success in predicting the label is'
+                ' actually due to data leakage - meaning that the feature holds information that is based on the label '
+                'to begin with.']
+
+            # display only if not all scores are 0
+            display = [fig, *text] if s_ppscore.sum() else None
+        else:
+            display = None
 
         return CheckResult(value=s_ppscore.to_dict(), display=display, header='Feature Label Correlation')
 
-    def add_condition_feature_pps_not_greater_than(self: FLC, threshold: float = 0.8) -> FLC:
+    def add_condition_feature_pps_less_than(self: FLC, threshold: float = 0.8) -> FLC:
         """
-        Add condition that will check that pps of the specified feature(s) is not greater than X.
+        Add condition that will check that pps of the specified feature(s) is less than the threshold.
 
         Parameters
         ----------
@@ -121,7 +120,7 @@ class FeatureLabelCorrelation(SingleDatasetCheck):
             failed_features = {
                 feature_name: format_number(pps_value)
                 for feature_name, pps_value in value.items()
-                if pps_value > threshold
+                if pps_value >= threshold
             }
 
             if failed_features:
@@ -131,5 +130,5 @@ class FeatureLabelCorrelation(SingleDatasetCheck):
             else:
                 return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(value))
 
-        return self.add_condition(f'Features\' Predictive Power Score is not greater than {format_number(threshold)}',
+        return self.add_condition(f'Features\' Predictive Power Score is less than {format_number(threshold)}',
                                   condition)

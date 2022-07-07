@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Represents fixtures for unit testing using pytest."""
-from functools import partialmethod
+import logging
 # Disable this pylint check since we use this convention in pytest fixtures
 #pylint: disable=redefined-outer-name
 from typing import Any, Dict, Optional, Tuple
@@ -29,7 +29,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import FunctionTransformer, KBinsDiscretizer, OrdinalEncoder
 from sklearn.tree import DecisionTreeClassifier
-from tqdm import tqdm
 from xgboost import XGBClassifier, XGBRegressor
 
 from deepchecks.core.check_result import CheckFailure, CheckResult
@@ -38,12 +37,13 @@ from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksBaseError
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
+from deepchecks.tabular.datasets.classification import adult, lending_club
+from deepchecks.tabular.datasets.regression import avocado
+from deepchecks.utils.logger import set_verbosity
 
 from .vision.vision_conftest import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
-# disable tqdm for tests
-tqdm.__init__ = partialmethod(tqdm.__init__, disable=True)
-
+set_verbosity(logging.WARNING)
 
 def get_expected_results_length(suite: BaseSuite, args: Dict):
     num_single = len([c for c in suite.checks.values() if isinstance(c, SingleDatasetBaseCheck)])
@@ -114,25 +114,34 @@ def empty_df():
 
 
 @pytest.fixture(scope='session')
-def city_arrogance_split_dataset_and_model():
-    def city_leng(data):
+def kiss_dataset_and_model():
+    """A small and stupid dataset and model to catch edge cases."""
+    def string_to_length(data: pd.DataFrame):
         data = data.copy()
-        data['city'] = data['city'].apply(len)
+        data['string_feature'] = data['string_feature'].apply(len)
+        return data
+
+    def fillna(data: pd.DataFrame):
+        data = data.copy()
+        data['numeric_feature'] = data['numeric_feature'].fillna(0)
         return data
 
     df = pd.DataFrame(
         {
-            'sex': [0, 1, 1, 0, 0, 1],
-            'city': ['ahhh', 'no', 'weeee', 'arg', 'eh', 'E'],
-            'arrogance': [3, 1, 5, 2, 1, 1],
+            'binary_feature': [0, 1, 1, 0, 0, 1],
+            'string_feature': ['ahhh', 'no', 'weeee', 'arg', 'eh', 'E'],
+            'numeric_feature': pd.array([4, np.nan, 7, 3, 2, np.nan], dtype='Int64'),
+            'numeric_label': [3, 1, 5, 2, 1, 1],
         })
     train, test = train_test_split(df, test_size=0.33, random_state=42)
-    train_ds = Dataset(train, label='arrogance', cat_features=['sex'])
-    test_ds = Dataset(test, label='arrogance', cat_features=['sex'])
-    clf = Pipeline([('lengthifier', FunctionTransformer(city_leng)),
-                ('clf', AdaBoostClassifier(random_state=0))])
+    train_ds = Dataset(train, label='numeric_label', cat_features=['binary_feature'])
+    test_ds = Dataset(test, label='numeric_label', cat_features=['binary_feature'])
+    clf = Pipeline([('fillna', FunctionTransformer(fillna)),
+                    ('lengthifier', FunctionTransformer(string_to_length)),
+                    ('clf', AdaBoostClassifier(random_state=0))])
     clf.fit(train_ds.features_columns, train_ds.label_col)
     return train_ds, test_ds, clf
+
 
 @pytest.fixture(scope='session')
 def diabetes_df():
@@ -303,6 +312,30 @@ def iris_split_dataset_and_model(iris_split_dataset) -> Tuple[Dataset, Dataset, 
     clf = AdaBoostClassifier(random_state=0)
     clf.fit(train_ds.features_columns, train_ds.label_col)
     return train_ds, test_ds, clf
+
+
+@pytest.fixture(scope='session')
+def adult_split_dataset_and_model() -> Tuple[Dataset, Dataset, Pipeline]:
+    """Return Adult train and val datasets and trained RandomForestClassifier model."""
+    train_ds, test_ds = adult.load_data(as_train_test=True)
+    model = adult.load_fitted_model()
+    return train_ds, test_ds, model
+
+
+@pytest.fixture(scope='session')
+def lending_club_split_dataset_and_model() -> Tuple[Dataset, Dataset, Pipeline]:
+    """Return Adult train and val datasets and trained RandomForestClassifier model."""
+    train_ds, test_ds = lending_club.load_data(as_train_test=True)
+    model = lending_club.load_fitted_model()
+    return train_ds, test_ds, model
+
+
+@pytest.fixture(scope='session')
+def avocado_split_dataset_and_model() -> Tuple[Dataset, Dataset, Pipeline]:
+    """Return Adult train and val datasets and trained RandomForestClassifier model."""
+    train_ds, test_ds = avocado.load_data(as_train_test=True)
+    model = avocado.load_fitted_model()
+    return train_ds, test_ds, model
 
 
 @pytest.fixture(scope='session')
@@ -549,3 +582,22 @@ def simple_custom_plt_check():
 
             return CheckResult(sizes, display=[sizes_df_for_display, graph_display])
     return DatasetSizeComparison()
+
+
+@pytest.fixture(scope='session')
+def adult_no_split():
+    ds = adult.load_data(as_train_test=False)
+    return ds
+
+
+@pytest.fixture(scope='session')
+def df_with_mixed_datatypes_and_missing_values():
+    df = pd.DataFrame({
+        'cat': [1, 2, 3, 4, 5], 'dog': [0, 9, 8, np.NAN, 7], 'owl': [np.NAN, 6, 5, 4, 3],
+        'red': [np.NAN, np.NAN, np.NAN, np.NAN, np.NAN], 'blue': [0, 1, 2, 3, 4], 'green': [0, 0, 0, 0, 0],
+        'white': [0.2, 0.5, 0.6, 0.2, -0.1], 'black': [0.1, 0.2, 0.3, 0.4, 0.5],
+        'date': [np.datetime64('2019-01-01'), np.datetime64('2019-12-02'), np.datetime64('2019-01-03'),
+                 np.datetime64('2019-02-04'), np.datetime64('2019-01-05')],
+        'target': [0, 1, 0, 1, 0]
+    }, index=['a', 'b', 'c', 'd', 'e'])
+    return df

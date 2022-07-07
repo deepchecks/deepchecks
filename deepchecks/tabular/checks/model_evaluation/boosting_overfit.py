@@ -151,6 +151,7 @@ class BoostingOverfit(TrainTestCheck):
         super().__init__(**kwargs)
         self.user_scorer = dict([alternative_scorer]) if alternative_scorer else None
         self.num_steps = num_steps
+
         if not isinstance(self.num_steps, int) or self.num_steps < 2:
             raise DeepchecksValueError('num_steps must be an integer larger than 1')
 
@@ -179,29 +180,34 @@ class BoostingOverfit(TrainTestCheck):
             train_scores.append(_partial_score(scorer, train_dataset, model, step))
             test_scores.append(_partial_score(scorer, test_dataset, model, step))
 
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(x=estimator_steps, y=np.array(train_scores),
-                                 mode='lines+markers',
-                                 name='Training score'))
-        fig.add_trace(go.Scatter(x=estimator_steps, y=np.array(test_scores),
-                                 mode='lines+markers',
-                                 name='Test score'))
-        fig.update_layout(
-            title_text=f'{scorer.name} score compared to number of boosting iteration',
-            height=500
-        )
-        fig.update_xaxes(title='Number of boosting iterations')
-        fig.update_yaxes(title=scorer.name)
-
-        display_text = f"""<span>
-            The check limits the boosting model to using up to N estimators each time, and plotting the
-            {scorer.name} calculated for each subset of estimators for both the train dataset and the test dataset.
-        </span>"""
-
         result = {'test': test_scores, 'train': train_scores}
-        return CheckResult(result, display=[display_text, fig], header='Boosting Overfit')
 
-    def add_condition_test_score_percent_decline_not_greater_than(self, threshold: float = 0.05):
+        if context.with_display:
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(x=estimator_steps, y=np.array(train_scores),
+                                     mode='lines+markers',
+                                     name='Training score'))
+            fig.add_trace(go.Scatter(x=estimator_steps, y=np.array(test_scores),
+                                     mode='lines+markers',
+                                     name='Test score'))
+            fig.update_layout(
+                title_text=f'{scorer.name} score compared to number of boosting iteration',
+                height=500
+            )
+            fig.update_xaxes(title='Number of boosting iterations')
+            fig.update_yaxes(title=scorer.name)
+
+            display_text = f"""<span>
+                The check limits the boosting model to using up to N estimators each time, and plotting the
+                {scorer.name} calculated for each subset of estimators for both the train dataset and the test dataset.
+            </span>"""
+            display = [display_text, fig]
+        else:
+            display = None
+
+        return CheckResult(result, display=display, header='Boosting Overfit')
+
+    def add_condition_test_score_percent_decline_less_than(self, threshold: float = 0.05):
         """Add condition.
 
         Percent of decline between the maximal score achieved in any boosting iteration and the score achieved in the
@@ -217,11 +223,10 @@ class BoostingOverfit(TrainTestCheck):
             last_score = result['test'][-1]
             pct_diff = (max_score - last_score) / abs(max_score)
             details = f'Found score decline of {format_percent(-pct_diff)}'
-            category = ConditionCategory.FAIL if pct_diff > threshold else ConditionCategory.PASS
+            category = ConditionCategory.PASS if pct_diff < threshold else ConditionCategory.FAIL
             return ConditionResult(category, details)
 
-        name = f'Test score over iterations doesn\'t decline by more than {format_percent(threshold)} ' \
-               f'from the best score'
+        name = f'Test score over iterations is less than {format_percent(threshold)} from the best score'
         return self.add_condition(name, condition)
 
 

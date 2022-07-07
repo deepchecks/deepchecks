@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_tabular_conflicting_labels:
+
 Conflicting Labels
 ******************
 
@@ -57,6 +59,6 @@ ConflictingLabels(columns=['urlLength', 'numDigits']).run(phishing_dataset)
 # and let you know if anything goes wrong.
 
 check = ConflictingLabels()
-check.add_condition_ratio_of_conflicting_labels_not_greater_than(0)
+check.add_condition_ratio_of_conflicting_labels_less_or_equal(0)
 result = check.run(phishing_dataset)
 result.show(show_additional_outputs=False)

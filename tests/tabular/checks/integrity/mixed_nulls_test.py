@@ -11,8 +11,8 @@
 """Tests for Mixed Nulls check"""
 import numpy as np
 import pandas as pd
-from hamcrest import (assert_that, calling, close_to, equal_to, has_entries, has_entry, has_items, has_length, is_,
-                      raises)
+from hamcrest import (any_of, assert_that, calling, close_to, equal_to, greater_than, has_entries, has_entry, has_items,
+                      has_length, is_, raises)
 
 from deepchecks.core.errors import DatasetValidationError, DeepchecksValueError
 from deepchecks.tabular.checks.data_integrity.mixed_nulls import MixedNulls
@@ -36,7 +36,18 @@ def test_single_column_one_null_type():
     dataframe = pd.DataFrame(data=data)
     # Act
     result = MixedNulls().run(dataframe)
-    assert_that(result.value, equal_to({'col1': {'null': {'count': 2, 'percent': 0.5}}}))
+    assert_that(result.value, equal_to({'col1': {'"null"': {'count': 2, 'percent': 0.5}}}))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_single_column_one_null_type_without_display():
+    # Arrange
+    data = {'col1': ['foo', 'bar', 'null', 'null']}
+    dataframe = pd.DataFrame(data=data)
+    # Act
+    result = MixedNulls().run(dataframe, with_display=False)
+    assert_that(result.value, equal_to({'col1': {'"null"': {'count': 2, 'percent': 0.5}}}))
+    assert_that(result.display, has_length(0))
 
 
 def test_empty_dataframe():
@@ -50,12 +61,12 @@ def test_empty_dataframe():
 
 def test_different_null_types():
     # Arrange
-    data = {'col1': [np.NAN, np.NaN, pd.NA, '$$$$$$$$', 'NULL']}
+    data = {'col1': [np.NAN, np.NaN, pd.NA, 'value', 'NULL']}
     dataframe = pd.DataFrame(data=data)
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value, has_entry('col1', has_length(4)))
+    assert_that(result.value, has_entry('col1', has_length(3)))
 
 
 def test_null_list_param():
@@ -131,12 +142,22 @@ def test_mix_value_columns():
 
 def test_single_column_nulls_with_special_characters():
     # Arrange
-    data = {'col1': ['', '#@$', 'Nan!', '#nan', '<NaN>']}
+    data = {'col1': ['', 'value', 'Nan!', '#nan', '<NaN>']}
     dataframe = pd.DataFrame(data=data)
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value, has_entry('col1', has_length(5)))
+    assert_that(result.value, has_entry('col1', has_length(4)))
+
+
+def test_single_column_nulls_only_special_characters():
+    # Arrange
+    data = {'col1': ['', '!@#$', 'Nan!', '#nan', '<NaN>']}
+    dataframe = pd.DataFrame(data=data)
+    # Act
+    result = MixedNulls().run(dataframe)
+    # Assert
+    assert_that(result.value, has_entry('col1', has_length(4)))
 
 
 def test_ignore_columns_single():
@@ -194,14 +215,14 @@ def test_condition_max_nulls_not_passed():
     # Arrange
     data = {'col1': ['', '#@$', 'Nan!', '#nan', '<NaN>']}
     dataset = Dataset(pd.DataFrame(data=data))
-    check = MixedNulls().add_condition_different_nulls_not_more_than(3)
+    check = MixedNulls().add_condition_different_nulls_less_equal_to(3)
 
     # Act
     result = check.conditions_decision(check.run(dataset))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Not more than 3 different null types',
+                               name='Number of different null types is less or equal to 3',
                                details='Found 1 out of 1 columns with amount of null types above threshold: [\'col1\']')
     ))
 
@@ -210,7 +231,7 @@ def test_condition_max_nulls_passed():
     # Arrange
     data = {'col1': ['', '#@$', 'Nan!', '#nan', '<NaN>']}
     dataset = Dataset(pd.DataFrame(data=data))
-    check = MixedNulls().add_condition_different_nulls_not_more_than(10)
+    check = MixedNulls().add_condition_different_nulls_less_equal_to(10)
 
     # Act
     result = check.conditions_decision(check.run(dataset))
@@ -218,24 +239,34 @@ def test_condition_max_nulls_passed():
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
                                details='Passed for 1 relevant column',
-                               name='Not more than 10 different null types')
+                               name='Number of different null types is less or equal to 10')
     ))
 
 
-def test_fi_n_top(diabetes_split_dataset_and_model):
-    train, _, clf = diabetes_split_dataset_and_model
-    train = Dataset(train.data.copy(), label='target', cat_features=['sex'])
-    train.data.loc[train.data.index % 4 == 0, 'age'] = 'Nan'
-    train.data.loc[train.data.index % 4 == 1, 'age'] = 'null'
-    train.data.loc[train.data.index % 4 == 0, 'bmi'] = 'Nan'
-    train.data.loc[train.data.index % 4 == 1, 'bmi'] = 'null'
-    train.data.loc[train.data.index % 4 == 0, 'bp'] = 'Nan'
-    train.data.loc[train.data.index % 4 == 1, 'bp'] = 'null'
-    train.data.loc[train.data.index % 4 == 0, 's1'] = 'Nan'
-    train.data.loc[train.data.index % 4 == 1, 's1'] = 'null'
-    # Arrange
-    check = MixedNulls(n_top_columns=3)
-    # Act
-    result = check.run(train, clf)
-    # Assert - Display dataframe have only 3
-    assert_that(result.display[1], has_length(3))
+def test_mixed_nulls_with_categorical_dtype():
+    ds = Dataset(pd.DataFrame({
+        'foo': pd.Series(['a', 'b', None, None], dtype='category'),
+        'bar': [1,2,3,4]
+    }))
+    assert_that(
+        MixedNulls().run(ds).value,
+        has_entries({
+            'bar': has_length(equal_to(0)),
+            'foo': has_entries({
+                'numpy.nan': has_entries({
+                    'count': equal_to(2),
+                    'percent': equal_to(0.5)
+                }),
+            }),
+            # NOTE:
+            # * why math.nan, if we see None in foo? *
+            # in short, because of pandas null conversion mechanism
+            #
+            # example:
+            # >>> pd.__version__  # 1.3.5
+            # >>> s = pd.Series(['a', pd.NA, pd.NaT, np.nan, None],  dtype='category')
+            # >>> s.at[1] is np.nan  # True
+            # >>> s.at[2] is np.nan  # True
+            # >>> s.at[3] is np.nan  # True
+        })
+    )

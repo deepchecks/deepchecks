@@ -1,4 +1,6 @@
 """
+.. _vision_detection_tutorial:
+
 ==========================
 Object Detection Tutorial
 ==========================
@@ -22,10 +24,8 @@ their classes.
 # Defining the data and model
 # ===========================
 
-import math
 # Importing the required packages
 import os
-import time
 import urllib.request
 import xml.etree.ElementTree as ET
 import zipfile
@@ -36,7 +36,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torchvision
-import torchvision.transforms as T
 from albumentations.pytorch import ToTensorV2
 from PIL import Image
 from torch import nn
@@ -44,7 +43,6 @@ from torch.utils.data import DataLoader, Dataset
 from torchvision.models.detection import _utils as det_utils
 from torchvision.models.detection.ssdlite import SSDLiteClassificationHead
 
-import deepchecks
 from deepchecks.vision.detection_data import DetectionData
 
 #%%

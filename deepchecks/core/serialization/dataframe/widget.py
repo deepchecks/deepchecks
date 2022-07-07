@@ -39,7 +39,7 @@ class DataFrameSerializer(WidgetSerializer[DataFrameOrStyler]):
             raise TypeError(
                 f'Expected "Union[DataFrame, Styler]" but got "{type(value).__name__}"'
             )
-        self.value = value
+        super().__init__(value=value)
         self._html_serializer = html.DataFrameSerializer(self.value)
 
     def serialize(self, **kwargs) -> HTML:

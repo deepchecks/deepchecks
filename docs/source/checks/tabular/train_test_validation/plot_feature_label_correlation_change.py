@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_tabular_feature_label_correlation_change:
+
 Feature Label Correlation Change
-**************************************
+********************************
 
 This notebook provides an overview for using and understanding the "Feature Label Correlation Change" check.
 
@@ -154,6 +156,6 @@ result.value
 #
 # Let's add the conditions, and re-run the check:
 
-check = FeatureLabelCorrelationChange().add_condition_feature_pps_difference_not_greater_than().add_condition_feature_pps_in_train_not_greater_than()
+check = FeatureLabelCorrelationChange().add_condition_feature_pps_difference_less_than().add_condition_feature_pps_in_train_less_than()
 result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
 result.show(show_additional_outputs=False)

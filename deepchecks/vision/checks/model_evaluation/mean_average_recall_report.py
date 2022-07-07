@@ -19,7 +19,7 @@ from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Batch, Context, SingleDatasetCheck
-from deepchecks.vision.metrics_utils.object_detection_precision_recall import ObjectDetectionAveragePrecision
+from deepchecks.vision.metrics_utils.detection_precision_recall import ObjectDetectionAveragePrecision
 from deepchecks.vision.vision_data import TaskType
 
 __all__ = ['MeanAverageRecallReport']
@@ -74,8 +74,8 @@ class MeanAverageRecallReport(SingleDatasetCheck):
 
         return CheckResult(value=results, display=[results])
 
-    def add_condition_test_average_recall_not_less_than(self: MPR, min_score: float) -> MPR:
-        """Add condition - AR score is not less than given score.
+    def add_condition_test_average_recall_greater_than(self: MPR, min_score: float) -> MPR:
+        """Add condition - AR score is greater than given score.
 
         Parameters
         ----------
@@ -95,4 +95,4 @@ class MeanAverageRecallReport(SingleDatasetCheck):
             details = f'Found lowest score of {format_number(score)} for area {area} and IoU {iou}'
             return ConditionResult(category, details)
 
-        return self.add_condition(f'Scores are not less than {min_score}', condition)
+        return self.add_condition(f'Scores are greater than {min_score}', condition)

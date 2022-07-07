@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_vision_new_labels:
+
 New Labels
 ==========
 
@@ -13,7 +15,7 @@ This notebooks provides an overview for using and understanding the New Labels c
 
 
 How the check works
------------------
+-------------------
 In this check we count the frequency of each class id in the test set then check which of them
 do not apper in the training set. Note that by default this check run on a sample of the data set and so it is
 possible that class ids that are rare in the train set will also be considered as new labels in the test set.
@@ -21,7 +23,7 @@ possible that class ids that are rare in the train set will also be considered a
 
 # %%
 # Run the Check
-# -----------------
+# -------------
 from deepchecks.vision.datasets.detection import coco
 from deepchecks.vision.checks import NewLabels
 
@@ -30,6 +32,13 @@ coco_test = coco.load_dataset(train=False, object_type='VisionData', shuffle=Fal
 
 result = NewLabels().run(coco_train, coco_test)
 result
+
+#%%
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  result.show_in_window()
+#%%
+# The result will be displayed in a new window.
 
 # %%
 # Observe the check’s output
@@ -48,7 +57,7 @@ result.value
 # to 0.
 #
 
-check = NewLabels().add_condition_new_label_ratio_not_greater_than(0.05)
+check = NewLabels().add_condition_new_label_ratio_less_or_equal(0.05)
 check.run(coco_train, coco_test)
 
 # %%

@@ -8,8 +8,8 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-from hamcrest import (all_of, any_of, assert_that, calling, close_to, contains_exactly, equal_to, has_entries, has_key,
-                      has_length, has_properties, instance_of, is_, raises)
+from hamcrest import (all_of, any_of, assert_that, calling, close_to, contains_exactly, equal_to, greater_than,
+                      has_entries, has_key, has_length, has_properties, instance_of, is_, raises)
 from hamcrest.core.matcher import Matcher
 
 from deepchecks import CheckResult
@@ -19,15 +19,21 @@ from deepchecks.vision.utils.image_properties import default_image_properties
 from tests.vision.vision_conftest import *
 
 
-def is_correct_image_property_outliers_result() -> Matcher:
+def is_correct_image_property_outliers_result(with_display: bool = True) -> Matcher:
     value_assertion = all_of(
         instance_of(dict),
         *[has_key(single_property['name']) for single_property in default_image_properties])
 
-    display_assertion = all_of(
-        instance_of(list),
-        any_of(has_length(1), has_length(2)),
-    )
+    if with_display:
+        display_assertion = all_of(
+            instance_of(list),
+            any_of(has_length(1), has_length(2)),
+        )
+    else:
+        display_assertion = all_of(
+            instance_of(list),
+            has_length(0),
+        )
 
     return all_of(
         instance_of(CheckResult),
@@ -44,6 +50,24 @@ def test_image_property_outliers_check_coco(coco_train_visiondata, device):
 
     # Assert
     assert_that(result, is_correct_image_property_outliers_result())
+    assert_that(result.value, has_entries({
+        'Area': has_entries({
+            'indices': contains_exactly(60, 61, 44, 25, 62, 13, 6, 58, 50, 11, 26, 14, 45),
+            'lower_limit': is_(220800),
+            'upper_limit': is_(359040)
+        }),
+        'Mean Red Relative Intensity': instance_of(dict),
+        'Mean Green Relative Intensity': instance_of(dict),
+        'Mean Blue Relative Intensity': instance_of(dict),
+    }))
+
+
+def test_image_property_outliers_check_coco_without_display(coco_train_visiondata, device):
+    # Act
+    result = ImagePropertyOutliers().run(coco_train_visiondata, device=device, with_display=False)
+
+    # Assert
+    assert_that(result, is_correct_image_property_outliers_result(with_display=False))
     assert_that(result.value, has_entries({
         'Area': has_entries({
             'indices': contains_exactly(60, 61, 44, 25, 62, 13, 6, 58, 50, 11, 26, 14, 45),

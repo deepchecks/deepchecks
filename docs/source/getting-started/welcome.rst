@@ -45,12 +45,28 @@ For more installation details and best practices, check out our :doc:`full insta
 🏃‍♀️ See It in Action
 =======================
 
-For a quick start, check out the following examples in the tutorials section:
+For a quick start, check out the following examples in the tutorials section, to have deepchecks up and running in a few minutes:
 
 Tabular Data
 -------------
 
-- :doc:`Tabular Tutorial - quickly running suites and checks </user-guide/tabular/auto_tutorials/plot_quickstart_in_5_minutes>`
+Head over to one of our following quickstart tutorials, and have deepchecks running on your environment in less than 5 min:
+
+- :doc:`Data Integrity Quickstart </user-guide/tabular/auto_tutorials/plot_quick_data_integrity>`
+
+- :doc:`Train-Test Validation Quickstart </user-guide/tabular/auto_tutorials/plot_quick_train_test_validation>`
+
+- :doc:`Model Evaluation Quickstart </user-guide/tabular/auto_tutorials/plot_quick_model_evaluation>`
+
+ **Recommended - download the code and run it locally** on the built-in dataset and (optional) model, or **replace them with your own**.
+
+
+🚀 See Our Checks Demo
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Play with some of the existing checks in our `Interactive Checks Demo <https://checks-demo.deepchecks.com/?check=No+check+selected
+&utm_source=docs.deepchecks.com&utm_medium=referral&utm_campaign=getting_started&utm_content=checks_demo_text>`__, 
+and see how they work on various datasets with custom corruptions injected.
 
 
 Computer Vision

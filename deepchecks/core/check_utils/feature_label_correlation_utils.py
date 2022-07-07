@@ -37,7 +37,10 @@ def get_pps_figure(per_class: bool, n_of_features: int):
         xaxis_range=(-3, n_of_features + 2),
         legend=dict(x=1.0, y=1.0),
         barmode='group',
-        height=500
+        height=500,
+        # Set the x-axis as category, since if the column names are numbers it will infer the x-axis as numerical
+        # and will show the values very far from each other
+        xaxis_type='category'
     )
     if per_class:
         fig.update_layout(xaxis_title='Class')
@@ -80,7 +83,8 @@ def get_feature_label_correlation(train_df: pd.DataFrame, train_label_name: Opti
                                   test_label_name: Optional[Hashable], ppscore_params: dict,
                                   n_show_top: int,
                                   min_pps_to_show: float = 0.05,
-                                  random_state: int = None):
+                                  random_state: int = None,
+                                  with_display: bool = True):
     """
     Calculate the PPS for train, test and difference for feature label correlation checks.
 
@@ -123,6 +127,12 @@ def get_feature_label_correlation(train_df: pd.DataFrame, train_label_name: Opti
     s_pps_test = df_pps_test.set_index('x', drop=True)['ppscore']
     s_difference = s_pps_train - s_pps_test
 
+    ret_value = {'train': s_pps_train.to_dict(), 'test': s_pps_test.to_dict(),
+                 'train-test difference': s_difference.to_dict()}
+
+    if not with_display:
+        return ret_value, None
+
     sorted_order_for_display = np.abs(s_difference).sort_values(ascending=False).head(n_show_top).index
     s_pps_train_to_display = s_pps_train[sorted_order_for_display]
     s_pps_test_to_display = s_pps_test[sorted_order_for_display]
@@ -131,9 +141,6 @@ def get_feature_label_correlation(train_df: pd.DataFrame, train_label_name: Opti
     fig = get_pps_figure(per_class=False, n_of_features=len(sorted_order_for_display))
     fig.add_trace(pd_series_to_trace(s_pps_train_to_display, 'train'))
     fig.add_trace(pd_series_to_trace_with_diff(s_pps_test_to_display, 'test', -s_difference_to_display))
-
-    ret_value = {'train': s_pps_train.to_dict(), 'test': s_pps_test.to_dict(),
-                 'train-test difference': s_difference.to_dict()}
 
     # display only if not all scores are above min_pps_to_show
     display = [fig] if any(s_pps_train > min_pps_to_show) or any(s_pps_test > min_pps_to_show) else None
@@ -146,7 +153,8 @@ def get_feature_label_correlation_per_class(train_df: pd.DataFrame, train_label_
                                             test_label_name: Optional[Hashable], ppscore_params: dict,
                                             n_show_top: int,
                                             min_pps_to_show: float = 0.05,
-                                            random_state: int = None):
+                                            random_state: int = None,
+                                            with_display: bool = True):
     """
     Calculate the PPS for train, test and difference for feature label correlation checks per class.
 
@@ -218,7 +226,7 @@ def get_feature_label_correlation_per_class(train_df: pd.DataFrame, train_label_
                               'train-test difference': s_difference.to_dict()}
 
         # display only if not all scores are above min_pps_to_show
-        if any(s_train > min_pps_to_show) or any(s_test > min_pps_to_show):
+        if with_display and any(s_train > min_pps_to_show) or any(s_test > min_pps_to_show):
             sorted_order_for_display = np.abs(s_difference).sort_values(ascending=False).head(n_show_top).index
 
             s_train_to_display = s_train[sorted_order_for_display]

@@ -80,8 +80,6 @@ class StringMismatchComparison(TrainTestCheck):
         df = select_from_dataframe(df, self.columns, self.ignore_columns)
         baseline_df = context.train.sample(self.n_samples, random_state=self.random_state).data
 
-        sampling_footnote = context.get_is_sampled_footnote(self.n_samples)
-
         display_mismatches = []
         result_dict = {}
 
@@ -115,16 +113,16 @@ class StringMismatchComparison(TrainTestCheck):
                                                                              variants_only_in_dataset)
                     percent_variants_in_baseline = _percentage_in_series(baseline_column, baseline_counts,
                                                                          variants_only_in_baseline)
-
-                    display_mismatches.append([column_name, baseform, common_variants,
-                                               variants_only_in_dataset, percent_variants_only_in_dataset[1],
-                                               variants_only_in_baseline, percent_variants_in_baseline[1]])
                     result_dict[column_name][baseform] = {
                         'commons': common_variants, 'variants_only_in_test': variants_only_in_dataset,
                         'variants_only_in_train': variants_only_in_baseline,
                         'percent_variants_only_in_test': percent_variants_only_in_dataset[0],
                         'percent_variants_in_train': percent_variants_in_baseline[0]
                     }
+                    if context.with_display:
+                        display_mismatches.append([column_name, baseform, common_variants,
+                                                   variants_only_in_dataset, percent_variants_only_in_dataset[1],
+                                                   variants_only_in_baseline, percent_variants_in_baseline[1]])
 
         # Create result dataframe
         if display_mismatches:
@@ -138,14 +136,12 @@ class StringMismatchComparison(TrainTestCheck):
             df_graph = column_importance_sorter_df(
                 df_graph,
                 context.test,
-                context.features_importance,
+                context.feature_importance,
                 self.n_top_columns,
                 col='Column name'
             )
             # For display transpose the dataframe
             display = [N_TOP_MESSAGE % self.n_top_columns, df_graph.T]
-            if sampling_footnote:
-                display.append(sampling_footnote)
         else:
             display = None
 
@@ -156,15 +152,15 @@ class StringMismatchComparison(TrainTestCheck):
         name = 'No new variants allowed in test data'
         return self.add_condition(name, _condition_percent_limit, ratio=0)
 
-    def add_condition_ratio_new_variants_not_greater_than(self, ratio: float):
-        """Add condition - no new variants allowed above given percentage in test data.
+    def add_condition_ratio_new_variants_less_or_equal(self, ratio: float):
+        """Add condition - require new variants' percentage in test data to be less or equal to the threshold.
 
         Parameters
         ----------
         ratio : float
             Max percentage of new variants in test data allowed.
         """
-        name = f'Ratio of new variants in test data is not greater than {format_percent(ratio)}'
+        name = f'Ratio of new variants in test data is less or equal to {format_percent(ratio)}'
         return self.add_condition(name, _condition_percent_limit, ratio=ratio)
 
 

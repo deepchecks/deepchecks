@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_tabular_model_error_analysis:
+
 Model Error Analysis
 ********************
 
@@ -75,6 +77,6 @@ SegmentPerformance(feature_1='age', feature_2='relationship').run(test_ds, model
 # We can define a condition that enforces that the relative difference between the weak and strong segments is not
 # greater than a certain ratio, for example ratio of 0.05
 
-check = check.add_condition_segments_performance_relative_difference_not_greater_than(0.05)
+check = check.add_condition_segments_performance_relative_difference_less_than(0.05)
 result = check.run(train_ds, test_ds, model)
 result.show(show_additional_outputs=False)

@@ -11,7 +11,7 @@
 """New Labels check tests"""
 from copy import copy
 
-from hamcrest import assert_that, close_to, has_entries, has_items, has_length, equal_to
+from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_items, has_length
 
 from deepchecks.vision.checks import NewLabels
 from deepchecks.vision.utils.test_utils import get_modified_dataloader
@@ -59,17 +59,28 @@ def test_object_detection_coco(coco_train_visiondata, coco_test_visiondata, devi
     # Assert
     assert_that(result.value['new_labels'], has_entries({'donut': 14, 'tennis racket': 7}))
     assert_that(result.value, has_entries(all_labels_count=387))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_object_detection_coco_without_display(coco_train_visiondata, coco_test_visiondata, device):
+    # Act
+    result = NewLabels().run(coco_train_visiondata, coco_test_visiondata,
+                             device=device, with_display=False)
+    # Assert
+    assert_that(result.value['new_labels'], has_entries({'donut': 14, 'tennis racket': 7}))
+    assert_that(result.value, has_entries(all_labels_count=387))
+    assert_that(result.display, has_length(0))
 
 
 def test_object_detection_coco_with_condition(coco_train_visiondata, coco_test_visiondata, device):
     # Act
-    check = NewLabels().add_condition_new_label_ratio_not_greater_than(0.1)
+    check = NewLabels().add_condition_new_label_ratio_less_or_equal(0.1)
     result = check.conditions_decision(check.run(coco_train_visiondata, coco_test_visiondata, device=device))
     # Assert
     assert_that(result, has_items(
         equal_condition_result(
             is_pass=False,
-            name='Percentage of new labels in the test set not above 10%.',
+            name='Percentage of new labels in the test set is less or equal to 10%',
             details=(
                 '10.85% of labels found in test set were not in train set. '
                 'New labels most common in test set: [\'donut\', \'tennis racket\', \'boat\']'))
@@ -90,13 +101,13 @@ def test_object_detection_coco_new_labels(coco_train_visiondata, coco_test_visio
 
 def test_classification_mnist_with_condition(mnist_dataset_train, mnist_dataset_test, device):
     # Arrange
-    check = NewLabels().add_condition_new_label_ratio_not_greater_than(0)
+    check = NewLabels().add_condition_new_label_ratio_less_or_equal(0)
     # Act
     result = check.run(mnist_dataset_train, mnist_dataset_test, device=device)
     # Assert
     assert_that(check.conditions_decision(result), has_items(
         equal_condition_result(is_pass=True,
-                               name='Percentage of new labels in the test set not above 0%.',
+                               name='Percentage of new labels in the test set is less or equal to 0%',
                                details='No new labels were found in test set.')
     ))
     assert_that(result.value['new_labels'], has_length(0))
@@ -116,13 +127,13 @@ def test_classification_mnist_change_label_with_condition(mnist_dataset_train, m
     # Arrange
     test = copy(mnist_dataset_test)
     test._data_loader = get_modified_dataloader(test, get_modification_func_classification_switch_single_label())
-    check = NewLabels().add_condition_new_label_ratio_not_greater_than(0)
+    check = NewLabels().add_condition_new_label_ratio_less_or_equal(0)
     # Act
     result = check.run(mnist_dataset_train, test, device=device)
     # Assert
     assert_that(check.conditions_decision(result), has_items(
         equal_condition_result(is_pass=False,
-                               name='Percentage of new labels in the test set not above 0%.',
+                               name='Percentage of new labels in the test set is less or equal to 0%',
                                details='10.1% of labels found in test set were not in train set.'
                                        ' New labels most common in test set: [\'-3\']')
     ))

@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_vision_image_dataset_drift:
+
 Image Dataset Drift
-===================
+*******************
 
 This notebooks provides an overview for using and understanding the image dataset
 drift check, used to detect drift in simple image properties between train and
@@ -13,9 +15,10 @@ test datasets.
 * `Which Image Properties Are Used? <#which-image-properties-are-used>`__
 * `Loading The Data <#loading-the-data>`__
 * `Run The Check <#run-the-check>`__
+* `Define a Condition <#define-a-condition>`__
 
 What Is Image Dataset Drift?
-============================
+----------------------------
 
 Drift is simply a change in the distribution of data over time, and it is
 also one of the top reasons why machine learning model's performance degrades
@@ -35,13 +38,14 @@ Other methods to detect drift include :ref:`univariate measures <drift_detection
 which is used in other checks, such as :doc:`Image Property Drift check </checks_gallery/vision/train_test_validation/plot_image_property_drift>`.
 
 Using Properties to Detect Image Drift
---------------------------------------------
+--------------------------------------
 In computer vision specifically, we can't measure drift on the images directly, as the individual pixel has little
 value when estimating drift. Therefore, we calculate drift on different :doc:`properties of the image</user-guide/vision/vision_properties>`,
 on which we can directly measure drift.
 
 Which Image Properties Are Used?
-=================================
+--------------------------------
+
 ==============================  ==========
 Property name                   What is it
 ==============================  ==========
@@ -83,7 +87,15 @@ test_ds = load_dataset(train=False, object_type='VisionData')
 # ^^^^^^^^^^^^^
 
 check = ImageDatasetDrift()
-check.run(train_dataset=train_ds, test_dataset=test_ds)
+result = check.run(train_dataset=train_ds, test_dataset=test_ds)
+result
+
+#%%
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  result.show_in_window()
+#%%
+# The result will be displayed in a new window.
 
 #%%
 # Insert drift
@@ -109,10 +121,22 @@ train_dataloader = load_dataset(train=True, object_type='DataLoader')
 test_dataloader = load_dataset(train=False, object_type='DataLoader')
 
 drifted_train_ds = DriftedCOCO(train_dataloader)
-test_ds = COCOData(test_dataloader)
+test_ds_coco = COCOData(test_dataloader)
 
 #%%
 # Run the check again
 # ^^^^^^^^^^^^^^^^^^^
 check = ImageDatasetDrift()
-check.run(train_dataset=drifted_train_ds, test_dataset=test_ds)
+result = check.run(train_dataset=drifted_train_ds, test_dataset=test_ds_coco)
+result
+
+#%%
+# Define a Condition
+# ------------------
+# Now, we will define a condition that the maximum drift score is less than a certain threshold. In this example we will
+# set the threshold at 0.2.
+# In order to demonstrate the condition, we will use again the original (not drifted) train dataset.
+
+check = ImageDatasetDrift().add_condition_drift_score_less_than(0.2)
+result = check.run(train_dataset=train_ds, test_dataset=test_ds).show(show_additional_outputs=False)
+result

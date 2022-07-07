@@ -20,6 +20,7 @@ from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS, 
 
 __all__ = ['TrainTestLabelDrift']
 
+from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.strings import format_number
 
 
@@ -104,30 +105,35 @@ class TrainTestLabelDrift(TrainTestCheck):
             train_column=train_dataset.label_col,
             test_column=test_dataset.label_col,
             value_name=train_dataset.label_name,
-            column_type='categorical' if train_dataset.label_type == 'classification_label' else 'numerical',
+            column_type='categorical' if train_dataset.label_type != TaskType.REGRESSION else 'numerical',
             margin_quantile_filter=self.margin_quantile_filter,
             max_num_categories_for_drift=self.max_num_categories_for_drift,
             max_num_categories_for_display=self.max_num_categories_for_display,
             show_categories_by=self.show_categories_by,
             categorical_drift_method=self.categorical_drift_method,
+            with_display=context.with_display,
         )
 
-        headnote = """<span>
-            The Drift score is a measure for the difference between two distributions, in this check - the test
-            and train distributions.<br> The check shows the drift score and distributions for the label.
-        </span>"""
-
-        displays = [headnote, display]
         values_dict = {'Drift score': drift_score, 'Method': method}
+
+        if context.with_display:
+            headnote = """<span>
+                The Drift score is a measure for the difference between two distributions, in this check - the test
+                and train distributions.<br> The check shows the drift score and distributions for the label.
+            </span>"""
+
+            displays = [headnote, display]
+        else:
+            displays = None
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Label Drift')
 
-    def add_condition_drift_score_not_greater_than(self, max_allowed_categorical_score: float = 0.2,
-                                                   max_allowed_numeric_score: float = 0.1,
-                                                   max_allowed_psi_score: float = None,
-                                                   max_allowed_earth_movers_score: float = None):
+    def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.2,
+                                            max_allowed_numeric_score: float = 0.1,
+                                            max_allowed_psi_score: float = None,
+                                            max_allowed_earth_movers_score: float = None):
         """
-        Add condition - require drift score to not be more than a certain threshold.
+        Add condition - require drift score to be less than the threshold.
 
         The industry standard for PSI limit is above 0.2.
         Cramer's V does not have a common industry standard.
@@ -175,6 +181,6 @@ class TrainTestLabelDrift(TrainTestCheck):
             category = ConditionCategory.FAIL if has_failed else ConditionCategory.PASS
             return ConditionResult(category, details)
 
-        return self.add_condition(f'categorical drift score <= {max_allowed_categorical_score} and '
-                                  f'numerical drift score <= {max_allowed_numeric_score} for label drift',
+        return self.add_condition(f'categorical drift score < {max_allowed_categorical_score} and '
+                                  f'numerical drift score < {max_allowed_numeric_score} for label drift',
                                   condition)

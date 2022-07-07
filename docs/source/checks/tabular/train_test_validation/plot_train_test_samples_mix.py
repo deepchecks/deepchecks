@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_tabular_train_test_samples_mix:
+
 Train Test Samples Mix
 **********************
 This notebook provides an overview for using and understanding the Train Test Samples Mix check.
@@ -40,6 +42,6 @@ result
 # ==================
 # We can define a condition that enforces that the ratio of samples in test which appears in train is below a given
 # amount, the default is `0.1`.
-check = TrainTestSamplesMix().add_condition_duplicates_ratio_not_greater_than()
+check = TrainTestSamplesMix().add_condition_duplicates_ratio_less_or_equal()
 result = check.run(test_dataset=bad_test, train_dataset=train)
 result.show(show_additional_outputs=False)

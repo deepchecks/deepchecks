@@ -8,22 +8,21 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+# pylint: disable=unused-argument
 """Module containing html serializer for the SuiteResult type."""
 import textwrap
 import typing as t
 import warnings
 
-import pandas as pd
-
 from deepchecks.core import check_result as check_types
-from deepchecks.core import errors, suite
-from deepchecks.core.errors import DeepchecksBaseError
+from deepchecks.core import suite
 from deepchecks.core.serialization.abc import HtmlSerializer
 from deepchecks.core.serialization.check_result.html import CheckResultSection
 from deepchecks.core.serialization.check_result.html import CheckResultSerializer as CheckResultHtmlSerializer
-from deepchecks.core.serialization.common import (Html, aggregate_conditions, form_output_anchor, plotlyjs_script,
-                                                  requirejs_script)
+from deepchecks.core.serialization.common import (Html, aggregate_conditions, create_failures_dataframe,
+                                                  form_output_anchor, plotlyjs_script, requirejs_script)
 from deepchecks.core.serialization.dataframe.html import DataFrameSerializer as DataFrameHtmlSerializer
+from deepchecks.utils.html import linktag
 
 __all__ = ['SuiteResultSerializer']
 
@@ -42,7 +41,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             raise TypeError(
                 f'Expected "SuiteResult" but got "{type(value).__name__}"'
             )
-        self.value = value
+        super().__init__(value=value)
 
     def serialize(
         self,
@@ -51,6 +50,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         include_requirejs: bool = False,
         include_plotlyjs: bool = True,
         connected: bool = True,
+        is_for_iframe_with_srcdoc: bool = False,
         **kwargs,
     ) -> str:
         """Serialize a SuiteResult instance into HTML format.
@@ -67,6 +67,13 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             whether to include plotlyjs library into output or not
         connected : bool, default True
             whether to use CDN to load js libraries or to inject their code into output
+        is_for_iframe_with_srcdoc : bool, default False
+            anchor links, in order to work within iframe require additional prefix
+            'about:srcdoc'. This flag tells function whether to add that prefix to
+            the anchor links or not
+        **kwargs :
+            all other key-value arguments will be passed to the CheckResult/CheckFailure
+            serializers
 
         Returns
         -------
@@ -76,6 +83,8 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             include_plotlyjs = True
             include_requirejs = True
             connected = False
+
+        kwargs['is_for_iframe_with_srcdoc'] = is_for_iframe_with_srcdoc
 
         summary = self.prepare_summary(output_id=output_id, **kwargs)
         conditions_table = self.prepare_conditions_table(output_id=output_id, **kwargs)
@@ -106,7 +115,13 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
 
         if output_id:
             anchor = form_output_anchor(output_id)
-            sections.append(f'<br><a href="#{anchor}" style="font-size: 14px">Go to top</a>')
+            link = linktag(
+                text='Go to top',
+                href=f'#{anchor}',
+                style={'font-size': '14px'},
+                is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
+            )
+            sections.append(f'<br>{link}')
 
         plotlyjs = plotlyjs_script(connected) if include_plotlyjs is True else ''
         requirejs = requirejs_script(connected) if include_requirejs is True else ''
@@ -118,21 +133,10 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         return textwrap.dedent(f"""
             <html>
             <head><meta charset="utf-8"/></head>
-            <body
-                style="
-                    display: flex;
-                    flex-direction: row;
-                    justify-content: center;
-                    padding-top: 2rem;">
+            <body style="background-color: white; padding: 1rem 1rem 0 1rem;">
                 {requirejs}
                 {plotlyjs}
-                <div
-                    style="
-                        display: flex;
-                        flex-direction: column;
-                        width: min-content;">
-                    {''.join(sections)}
-                </div>
+                {''.join(sections)}
             </body>
             </html>
         """)
@@ -216,6 +220,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         self,
         output_id: t.Optional[str] = None,
         include_check_name: bool = True,
+        is_for_iframe_with_srcdoc: bool = False,
         **kwargs
     ) -> str:
         """Prepare conditions table section.
@@ -226,6 +231,10 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             unique output identifier that will be used to form anchor links
         include_check_name : bool, default True
             wherether to include check name into table or not
+        is_for_iframe_with_srcdoc : bool, default False
+            anchor links, in order to work within iframe require additional prefix
+            'about:srcdoc'. This flag tells function whether to add that prefix to
+            the anchor links or not
 
         Returns
         -------
@@ -242,7 +251,8 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             results,
             output_id=output_id,
             include_check_name=include_check_name,
-            max_info_len=300
+            max_info_len=300,
+            is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
         )).serialize()
 
         return f'<h2>Conditions Summary</h2>{table}'
@@ -325,33 +335,14 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         content = Html.light_hr.join(results_without_conditions)
         return f'<h2>Check Without Conditions Output</h2>{content}'
 
-    def prepare_failures_list(self) -> str:
+    def prepare_failures_list(self, **kwargs) -> str:
         """Prepare subsection of the content that shows list of failures."""
         results = self.value.select_results(self.value.failures | self.value.results_without_display)
 
         if not results:
             return ''
 
-        data = []  # type List[Tuple[check-header:str, message:str, priority:int]]
-
-        for it in results:
-            if not isinstance(it, check_types.CheckFailure):
-                data.append([it.get_header(), 'Nothing found', 2])
-            else:
-                message = it.exception.html if isinstance(it.exception, DeepchecksBaseError) else str(it.exception)
-                error_types = (
-                    errors.DatasetValidationError,
-                    errors.ModelValidationError,
-                    errors.DeepchecksProcessError,
-                )
-                if isinstance(it.exception, error_types):
-                    message = f'{type(it.exception).__name__}: {message}'
-
-                data.append((it.header, message, 1))
-
-        df = pd.DataFrame(data=data, columns=['Check', 'Reason', 'priority'])
-        df.sort_values(by=['priority'], inplace=True)
-        df.drop('priority', axis=1, inplace=True)
+        df = create_failures_dataframe(results)
 
         with warnings.catch_warnings():
             warnings.simplefilter(action='ignore', category=FutureWarning)

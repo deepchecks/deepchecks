@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Test functions of the train test label drift."""
-from hamcrest import assert_that, close_to, equal_to, has_entries
+from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_length
 
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular.checks import TrainTestLabelDrift
@@ -44,6 +44,23 @@ def test_drift_classification_label(drifted_classification_label):
             {'Drift score': close_to(0.24, 0.01),
              'Method': equal_to('PSI')}
     ))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_drift_classification_label_without_display(drifted_classification_label):
+    # Arrange
+    train, test = drifted_classification_label
+    check = TrainTestLabelDrift(categorical_drift_method='PSI')
+
+    # Act
+    result = check.run(train, test, with_display=False)
+
+    # Assert
+    assert_that(result.value, has_entries(
+            {'Drift score': close_to(0.24, 0.01),
+             'Method': equal_to('PSI')}
+    ))
+    assert_that(result.display, has_length(0))
 
 
 def test_drift_regression_label(drifted_regression_label):
@@ -64,7 +81,7 @@ def test_drift_regression_label(drifted_regression_label):
 def test_drift_max_drift_score_condition_fail_psi(drifted_classification_label):
     # Arrange
     train, test = drifted_classification_label
-    check = TrainTestLabelDrift(categorical_drift_method='PSI').add_condition_drift_score_not_greater_than()
+    check = TrainTestLabelDrift(categorical_drift_method='PSI').add_condition_drift_score_less_than()
 
     # Act
     result = check.run(train, test)
@@ -73,7 +90,7 @@ def test_drift_max_drift_score_condition_fail_psi(drifted_classification_label):
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name='categorical drift score <= 0.2 and numerical drift score <= 0.1 for label drift',
+        name='categorical drift score < 0.2 and numerical drift score < 0.1 for label drift',
         details='Label\'s drift score PSI is 0.24'
     ))
 
@@ -81,7 +98,7 @@ def test_drift_max_drift_score_condition_fail_psi(drifted_classification_label):
 def test_drift_max_drift_score_condition_fail_emd(drifted_regression_label):
     # Arrange
     train, test = drifted_regression_label
-    check = TrainTestLabelDrift(categorical_drift_method='PSI').add_condition_drift_score_not_greater_than()
+    check = TrainTestLabelDrift(categorical_drift_method='PSI').add_condition_drift_score_less_than()
 
     # Act
     result = check.run(train, test)
@@ -91,7 +108,7 @@ def test_drift_max_drift_score_condition_fail_emd(drifted_regression_label):
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         category=ConditionCategory.FAIL,
-        name='categorical drift score <= 0.2 and numerical drift score <= 0.1 for label drift',
+        name='categorical drift score < 0.2 and numerical drift score < 0.1 for label drift',
         details='Label\'s drift score Earth Mover\'s Distance is 0.34'
     ))
 
@@ -100,8 +117,8 @@ def test_drift_max_drift_score_condition_pass_threshold(non_drifted_classificati
     # Arrange
     train, test = non_drifted_classification_label
     check = TrainTestLabelDrift(categorical_drift_method='PSI') \
-        .add_condition_drift_score_not_greater_than(max_allowed_categorical_score=1,
-                                                    max_allowed_numeric_score=1)
+        .add_condition_drift_score_less_than(max_allowed_categorical_score=1,
+                                             max_allowed_numeric_score=1)
 
     # Act
     result = check.run(train, test)
@@ -111,5 +128,5 @@ def test_drift_max_drift_score_condition_pass_threshold(non_drifted_classificati
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
         details='Label\'s drift score PSI is 3.37E-3',
-        name='categorical drift score <= 1 and numerical drift score <= 1 for label drift'
+        name='categorical drift score < 1 and numerical drift score < 1 for label drift'
     ))

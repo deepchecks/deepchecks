@@ -26,7 +26,7 @@ result value, see `Add a Custom Condition <#add-a-custom-condition>`__.
 
 from deepchecks.tabular.checks import DatasetsSizeComparison
 
-check = DatasetsSizeComparison().add_condition_test_size_not_smaller_than(1000)
+check = DatasetsSizeComparison().add_condition_test_size_greater_or_equal(1000)
 check
 
 #%%
@@ -77,7 +77,7 @@ suite
 # After we found the IDs we can remove the Condition:
 
 # Access check by id
-check = suite[9]
+check = suite[8]
 # Remove condition by id
 check.remove_condition(0)
 
@@ -88,7 +88,7 @@ suite
 # with a different parameter.
 
 # Re-add the condition with new parameter
-check.add_condition_feature_pps_difference_not_greater_than(0.01)
+check.add_condition_feature_pps_difference_less_than(0.01)
 
 suite
 

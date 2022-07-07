@@ -14,49 +14,67 @@ import warnings
 
 import pytest
 
-from deepchecks.tabular.checks import (TrainTestFeatureDrift, TrainTestLabelDrift, TrainTestPredictionDrift,
-                                       WholeDatasetDrift)
+from deepchecks.tabular.checks import (DominantFrequencyChange, TrainTestFeatureDrift, TrainTestLabelDrift,
+                                       TrainTestPredictionDrift, WholeDatasetDrift, ModelErrorAnalysis,
+                                       SegmentPerformance)
 
 
 def test_deprecation_warning_label_drift():
     # Test that warning is raised when max_num_categories has value:
     with pytest.warns(DeprecationWarning, match='max_num_categories'):
-        check = TrainTestLabelDrift(max_num_categories=10)
+        _ = TrainTestLabelDrift(max_num_categories=10)
 
     # Check to see no warnings are raised when deprecated feature doesn't exist:
     with warnings.catch_warnings():
-        warnings.simplefilter("error")
-        check = TrainTestLabelDrift()
+        warnings.simplefilter('error')
+        _ = TrainTestLabelDrift()
 
 
 def test_deprecation_warning_prediction_drift():
     # Test that warning is raised when max_num_categories has value:
     with pytest.warns(DeprecationWarning, match='max_num_categories'):
-        check = TrainTestPredictionDrift(max_num_categories=10)
+        _ = TrainTestPredictionDrift(max_num_categories=10)
 
     # Check to see no warnings are raised when deprecated feature doesn't exist:
     with warnings.catch_warnings():
-        warnings.simplefilter("error")
-        check = TrainTestPredictionDrift()
+        warnings.simplefilter('error')
+        _ = TrainTestPredictionDrift()
 
 
 def test_deprecation_warning_feature_drift():
     # Test that warning is raised when max_num_categories has value:
     with pytest.warns(DeprecationWarning, match='max_num_categories'):
-        check = TrainTestFeatureDrift(max_num_categories=10)
+        _ = TrainTestFeatureDrift(max_num_categories=10)
 
     # Check to see no warnings are raised when deprecated feature doesn't exist:
     with warnings.catch_warnings():
-        warnings.simplefilter("error")
-        check = TrainTestFeatureDrift()
+        warnings.simplefilter('error')
+        _ = TrainTestFeatureDrift()
 
 
 def test_deprecation_warning_whole_dataset_drift():
     # Test that warning is raised when max_num_categories has value:
     with pytest.warns(DeprecationWarning, match='max_num_categories'):
-        check = WholeDatasetDrift(max_num_categories=10)
+        _ = WholeDatasetDrift(max_num_categories=10)
 
     # Check to see no warnings are raised when deprecated feature doesn't exist:
     with warnings.catch_warnings():
-        warnings.simplefilter("error")
-        check = WholeDatasetDrift()
+        warnings.simplefilter('error')
+        _ = WholeDatasetDrift()
+
+
+def test_deprecation_dominant_freq_change_warning():
+    with pytest.warns(DeprecationWarning, match='The DominantFrequencyChange check is deprecated'):
+        _ = DominantFrequencyChange()
+
+
+def test_deprecation_model_error_analysis_warning():
+    with pytest.warns(DeprecationWarning, match='The ModelErrorAnalysis check is deprecated and will be removed in the '
+                                                '0.11 version. Please use the WeakSegmentsPerformance check instead.'):
+        _ = ModelErrorAnalysis()
+
+
+def test_deprecation_segment_performance_warning():
+    with pytest.warns(DeprecationWarning, match='The SegmentPerformance check is deprecated and will be removed in the '
+                                                '0.11 version. Please use the WeakSegmentsPerformance check instead.'):
+        _ = SegmentPerformance()

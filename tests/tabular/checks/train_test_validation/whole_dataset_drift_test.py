@@ -14,7 +14,7 @@ import string
 
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, close_to, has_entries
+from hamcrest import assert_that, close_to, greater_than, has_entries, has_length
 
 from deepchecks.tabular.checks import WholeDatasetDrift
 from deepchecks.tabular.dataset import Dataset
@@ -66,6 +66,31 @@ def test_drift(drifted_data):
              }
         ),
     }))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_drift_without_display(drifted_data):
+
+    # Arrange
+    train_ds, test_ds = drifted_data
+    check = WholeDatasetDrift()
+
+    # Act
+    result = check.run(train_ds, test_ds, with_display=False)
+
+    # Assert
+    assert_that(result.value, has_entries({
+        'domain_classifier_auc': close_to(0.93, 0.001),
+        'domain_classifier_drift_score': close_to(0.86, 0.01),
+        'domain_classifier_feature_importance': has_entries(
+            {'categorical_without_drift': close_to(0, 0.02),
+             'numeric_without_drift': close_to(0, 0.02),
+             'categorical_with_drift': close_to(0, 0.02),
+             'numeric_with_drift': close_to(1, 0.02)
+             }
+        ),
+    }))
+    assert_that(result.display, has_length(0))
 
 
 def test_max_drift_score_condition_pass(drifted_data):
@@ -75,7 +100,7 @@ def test_max_drift_score_condition_pass(drifted_data):
                        label=train_ds.label_name)
     test_ds = Dataset(test_ds.data.drop(columns=['numeric_with_drift', 'categorical_with_drift']),
                       label=test_ds.label_name)
-    check = WholeDatasetDrift().add_condition_overall_drift_value_not_greater_than()
+    check = WholeDatasetDrift().add_condition_overall_drift_value_less_than()
 
     # Act
     result = check.run(train_ds, test_ds)
@@ -85,14 +110,14 @@ def test_max_drift_score_condition_pass(drifted_data):
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
         details='Found drift value of: 0, corresponding to a domain classifier AUC of: 0.5',
-        name='Drift value is not greater than 0.25',
+        name='Drift value is less than 0.25',
     ))
 
 
 def test_max_drift_score_condition_fail(drifted_data):
     # Arrange
     train_ds, test_ds = drifted_data
-    check = WholeDatasetDrift().add_condition_overall_drift_value_not_greater_than()
+    check = WholeDatasetDrift().add_condition_overall_drift_value_less_than()
 
     # Act
     result = check.run(train_ds, test_ds)
@@ -101,7 +126,7 @@ def test_max_drift_score_condition_fail(drifted_data):
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name='Drift value is not greater than 0.25',
+        name='Drift value is less than 0.25',
         details='Found drift value of: 0.86, corresponding to a domain classifier AUC of: 0.93'
     ))
 

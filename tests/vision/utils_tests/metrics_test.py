@@ -11,8 +11,8 @@
 from hamcrest import assert_that, close_to, has_items, has_length
 
 from deepchecks.vision import VisionData
+from deepchecks.vision.metrics_utils.detection_precision_recall import ObjectDetectionAveragePrecision
 from deepchecks.vision.metrics_utils.metrics import calculate_metrics
-from deepchecks.vision.metrics_utils.object_detection_precision_recall import ObjectDetectionAveragePrecision
 
 
 def test_default_ap_ignite_complient(coco_test_visiondata: VisionData, mock_trained_yolov5_object_detection, device):
@@ -24,12 +24,12 @@ def test_default_ap_ignite_complient(coco_test_visiondata: VisionData, mock_trai
 
 
 def test_ar_ignite_complient(coco_test_visiondata: VisionData, mock_trained_yolov5_object_detection, device):
-    res = calculate_metrics({'AveragePrecision': ObjectDetectionAveragePrecision(return_option=1)},
+    res = calculate_metrics({'AverageRecall': ObjectDetectionAveragePrecision(return_option='ar')},
                             coco_test_visiondata, mock_trained_yolov5_object_detection,
                             device=device)
 
     assert_that(res.keys(), has_length(1))
-    assert_that(res['AveragePrecision'], has_length(80))
+    assert_that(res['AverageRecall'], has_length(80))
 
 
 def test_equal_pycocotools(coco_test_visiondata: VisionData, mock_trained_yolov5_object_detection, device):

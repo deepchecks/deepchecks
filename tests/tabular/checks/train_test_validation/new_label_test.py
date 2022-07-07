@@ -11,7 +11,7 @@
 """Contains unit tests for the new_label_train_validation check"""
 
 import pandas as pd
-from hamcrest import assert_that, calling, equal_to, has_items, raises
+from hamcrest import assert_that, calling, equal_to, greater_than, has_items, has_length, raises
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.checks.train_test_validation import NewLabelTrainTest
@@ -58,12 +58,33 @@ def test_new_label():
     # Arrange
     check = NewLabelTrainTest()
     # Act X
-    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
+    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
     # Assert
-    assert_that(result)
-    assert_that(result['n_new_labels_samples'], equal_to(1))
-    assert_that(result['n_samples'], equal_to(4))
-    assert_that(result['new_labels'], equal_to([4]))
+    assert_that(result.value)
+    assert_that(result.value['n_new_labels_samples'], equal_to(1))
+    assert_that(result.value['n_samples'], equal_to(4))
+    assert_that(result.value['new_labels'], equal_to([4]))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_new_label_without_display():
+    train_data = {'col1': [1, 2, 3]}
+    test_data = {'col1': [1, 2, 3, 4]}
+    train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1']),
+                            label='col1', label_type="classification_label")
+    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1']),
+                           label='col1', label_type="classification_label")
+
+    # Arrange
+    check = NewLabelTrainTest()
+    # Act X
+    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset, with_display=False)
+    # Assert
+    assert_that(result.value)
+    assert_that(result.value['n_new_labels_samples'], equal_to(1))
+    assert_that(result.value['n_samples'], equal_to(4))
+    assert_that(result.value['new_labels'], equal_to([4]))
+    assert_that(result.display, has_length(0))
 
 
 def test_missing_label():
@@ -129,7 +150,7 @@ def test_condition_number_of_new_labels_pass():
                            label='col1', label_type="classification_label")
 
     # Arrange
-    check = NewLabelTrainTest().add_condition_new_labels_not_greater_than(3)
+    check = NewLabelTrainTest().add_condition_new_labels_number_less_or_equal(3)
 
     # Act
     result = check.conditions_decision(check.run(train_dataset, test_dataset))
@@ -137,7 +158,7 @@ def test_condition_number_of_new_labels_pass():
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
                                details='Found 1 new labels in test data: [5]',
-                               name='Number of new label values is not greater than 3')
+                               name='Number of new label values is less or equal to 3')
     ))
 
 
@@ -150,7 +171,7 @@ def test_condition_number_of_new_labels_fail():
                            label='col1', label_type="classification_label")
 
     # Arrange
-    check = NewLabelTrainTest().add_condition_new_labels_not_greater_than(0)
+    check = NewLabelTrainTest().add_condition_new_labels_number_less_or_equal(0)
 
     # Act
     result = check.conditions_decision(check.run(train_dataset, test_dataset))
@@ -158,7 +179,7 @@ def test_condition_number_of_new_labels_fail():
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                details='Found 1 new labels in test data: [5]',
-                               name='Number of new label values is not greater than 0')
+                               name='Number of new label values is less or equal to 0')
     ))
 
 
@@ -171,7 +192,7 @@ def test_condition_ratio_of_new_label_samples_pass():
                            label='col1', label_type="classification_label")
 
     # Arrange
-    check = NewLabelTrainTest().add_condition_new_label_ratio_not_greater_than(0.3)
+    check = NewLabelTrainTest().add_condition_new_label_ratio_less_or_equal(0.3)
 
     # Act
     result = check.conditions_decision(check.run(train_dataset, test_dataset))
@@ -179,7 +200,7 @@ def test_condition_ratio_of_new_label_samples_pass():
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
                                details='Found 25% of labels in test data are new labels: [5]',
-                               name='Ratio of samples with new label is not greater than 30%')
+                               name='Ratio of samples with new label is less or equal to 30%')
     ))
 
 
@@ -192,7 +213,7 @@ def test_condition_ratio_of_new_label_samples_fail():
                            label='col1', label_type="classification_label")
 
     # Arrange
-    check = NewLabelTrainTest().add_condition_new_label_ratio_not_greater_than(0.1)
+    check = NewLabelTrainTest().add_condition_new_label_ratio_less_or_equal(0.1)
 
     # Act
     result = check.conditions_decision(check.run(train_dataset, test_dataset))
@@ -200,5 +221,5 @@ def test_condition_ratio_of_new_label_samples_fail():
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                details='Found 25% of labels in test data are new labels: [5]',
-                               name='Ratio of samples with new label is not greater than 10%')
+                               name='Ratio of samples with new label is less or equal to 10%')
     ))

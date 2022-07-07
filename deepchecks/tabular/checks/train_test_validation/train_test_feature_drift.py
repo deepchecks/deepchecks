@@ -140,27 +140,27 @@ class TrainTestFeatureDrift(TrainTestCheck):
         """
         train_dataset: Dataset = context.train
         test_dataset: Dataset = context.test
-        features_importance = context.features_importance
+        feature_importance = context.feature_importance
         train_dataset.assert_features()
         test_dataset.assert_features()
 
         train_dataset = train_dataset.select(
-                self.columns, self.ignore_columns
-            ).sample(self.n_samples, random_state=self.random_state)
+            self.columns, self.ignore_columns
+        ).sample(self.n_samples, random_state=self.random_state)
         test_dataset = test_dataset.select(
-                self.columns, self.ignore_columns
-            ).sample(self.n_samples, random_state=self.random_state)
+            self.columns, self.ignore_columns
+        ).sample(self.n_samples, random_state=self.random_state)
 
         values_dict = OrderedDict()
         displays_dict = OrderedDict()
 
         features_order = (
             tuple(
-                features_importance
+                feature_importance
                 .sort_values(ascending=False)
                 .index
             )
-            if features_importance is not None
+            if feature_importance is not None
             else None
         )
 
@@ -171,7 +171,7 @@ class TrainTestFeatureDrift(TrainTestCheck):
                 column_type = 'categorical'
             else:
                 continue  # we only support categorical or numerical features
-            if features_importance is not None:
+            if feature_importance is not None:
                 fi_rank = features_order.index(column) + 1
                 plot_title = f'{column} (#{int(fi_rank)} in FI)'
             else:
@@ -188,41 +188,45 @@ class TrainTestFeatureDrift(TrainTestCheck):
                 max_num_categories_for_display=self.max_num_categories_for_display,
                 show_categories_by=self.show_categories_by,
                 categorical_drift_method=self.categorical_drift_method,
+                with_display=context.with_display,
             )
             values_dict[column] = {
                 'Drift score': value,
                 'Method': method,
-                'Importance': features_importance[column] if features_importance is not None else None
+                'Importance': feature_importance[column] if feature_importance is not None else None
             }
             displays_dict[column] = display
 
-        if self.sort_feature_by == 'feature importance' and features_importance is not None:
-            columns_order = features_order[:self.n_top_columns]
+        if context.with_display:
+            if self.sort_feature_by == 'feature importance' and feature_importance is not None:
+                columns_order = features_order[:self.n_top_columns]
+            else:
+                columns_order = sorted(values_dict.keys(), key=lambda col: values_dict[col]['Drift score'],
+                                       reverse=True)[:self.n_top_columns]
+
+            sorted_by = self.sort_feature_by if feature_importance is not None else 'drift score'
+
+            headnote = f"""<span>
+                The Drift score is a measure for the difference between two distributions, in this check - the test
+                and train distributions.<br> The check shows the drift score and distributions for the features, sorted
+                by {sorted_by} and showing only the top {self.n_top_columns} features, according to {sorted_by}.
+                <br>If available, the plot titles also show the feature importance (FI) rank.
+            </span>"""
+
+            displays = [headnote] + [displays_dict[col] for col in columns_order
+                                     if col in train_dataset.cat_features + train_dataset.numerical_features]
         else:
-            columns_order = sorted(values_dict.keys(), key=lambda col: values_dict[col]['Drift score'],
-                                   reverse=True)[:self.n_top_columns]
-
-        sorted_by = self.sort_feature_by if features_importance is not None else 'drift score'
-
-        headnote = f"""<span>
-            The Drift score is a measure for the difference between two distributions, in this check - the test
-            and train distributions.<br> The check shows the drift score and distributions for the features, sorted by
-            {sorted_by} and showing only the top {self.n_top_columns} features, according to {sorted_by}.
-            <br>If available, the plot titles also show the feature importance (FI) rank.
-        </span>"""
-
-        displays = [headnote] + [displays_dict[col] for col in columns_order
-                                 if col in train_dataset.cat_features + train_dataset.numerical_features]
+            displays = None
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Feature Drift')
 
-    def add_condition_drift_score_not_greater_than(self, max_allowed_categorical_score: float = 0.2,
-                                                   max_allowed_numeric_score: float = 0.1,
-                                                   number_of_top_features_to_consider: int = 5,
-                                                   max_allowed_psi_score: float = None,
-                                                   max_allowed_earth_movers_score: float = None):
+    def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.2,
+                                            max_allowed_numeric_score: float = 0.1,
+                                            allowed_num_features_exceeding_threshold: int = 0,
+                                            max_allowed_psi_score: float = None,
+                                            max_allowed_earth_movers_score: float = None):
         """
-        Add condition - require drift score to not be more than a certain threshold.
+        Add condition - require drift score to be less than the threshold.
 
         The industry standard for PSI limit is above 0.2.
         Cramer's V does not have a common industry standard.
@@ -231,12 +235,11 @@ class TrainTestFeatureDrift(TrainTestCheck):
         Parameters
         ----------
         max_allowed_categorical_score: float , default: 0.2
-            the max threshold for the categorical variable drift score
+            The max threshold for the categorical variable drift score
         max_allowed_numeric_score: float ,  default: 0.1
-            the max threshold for the numeric variable drift score
-        number_of_top_features_to_consider: int , default: 5
-            the number of top features for which exceed the threshold will fail the
-            condition.
+            The max threshold for the numeric variable drift score
+        allowed_num_features_exceeding_threshold: int , default: 0
+            Determines the number of features with drift score above threshold needed to fail the condition.
         max_allowed_psi_score: float, default None
             Deprecated. Please use max_allowed_categorical_score instead
         max_allowed_earth_movers_score: float, default None
@@ -245,7 +248,7 @@ class TrainTestFeatureDrift(TrainTestCheck):
         Returns
         -------
         ConditionResult
-            False if any column has passed the max threshold, True otherwise
+            False if more than allowed_num_features_exceeding_threshold drift scores are above threshold, True otherwise
         """
         if max_allowed_psi_score is not None:
             warnings.warn(
@@ -265,8 +268,8 @@ class TrainTestFeatureDrift(TrainTestCheck):
                 max_allowed_numeric_score = max_allowed_earth_movers_score
 
         condition = drift_condition(max_allowed_categorical_score, max_allowed_numeric_score, 'column', 'columns',
-                                    number_of_top_features_to_consider)
+                                    allowed_num_features_exceeding_threshold)
 
-        return self.add_condition(f'categorical drift score <= {max_allowed_categorical_score} and '
-                                  f'numerical drift score <= {max_allowed_numeric_score}',
+        return self.add_condition(f'categorical drift score < {max_allowed_categorical_score} and '
+                                  f'numerical drift score < {max_allowed_numeric_score}',
                                   condition)

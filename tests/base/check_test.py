@@ -9,13 +9,11 @@
 # ----------------------------------------------------------------------------
 #
 """Tests for BaseCheck class."""
-# pylint: disable=protected-access
-from hamcrest import (all_of, assert_that, calling, contains_exactly, equal_to, has_items, has_length, has_property,
-                      is_, is_not, raises)
+# pylint: disable-all
+from hamcrest import all_of, calling, contains_exactly, equal_to, has_items, has_length, has_property, is_, raises
 
-from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
+from deepchecks.core import ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.tabular import Context, TrainTestCheck
 from tests.conftest import *
 
 
@@ -122,25 +120,21 @@ def test_condition_decision():
     assert_that(decisions, has_items(
         all_of(
             has_property('name', 'condition A'),
-            has_property('is_pass', equal_to(True)),
             has_property('category', ConditionCategory.PASS),
             has_property('details', '')
         ),
         all_of(
             has_property('name', 'condition B'),
-            has_property('is_pass', equal_to(False)),
             has_property('category', ConditionCategory.FAIL),
             has_property('details', 'some result')
         ),
         all_of(
             has_property('name', 'condition C'),
-            has_property('is_pass', equal_to(False)),
             has_property('category', ConditionCategory.WARN),
             has_property('details', 'my actual')
         ),
         all_of(
             has_property('name', 'condition F'),
-            has_property('is_pass', equal_to(False)),
             has_property('category', ConditionCategory.ERROR),
             has_property('details', 'Exception in condition: Exception: fail')
         )
@@ -166,20 +160,20 @@ def test_pass_feature_importance_incorrect(iris_split_dataset):
     train, test = iris_split_dataset
 
     # Act & Assert
-    assert_that(calling(check.run).with_args(train, test, features_importance='wrong type'),
-                raises(DeepchecksValueError, 'features_importance must be a pandas Series'))
+    assert_that(calling(check.run).with_args(train, test, feature_importance='wrong type'),
+                raises(DeepchecksValueError, 'feature_importance must be a pandas Series'))
 
 
 def test_pass_feature_importance_correct(iris_split_dataset):
     # Arrange
     check = DummyCheck()
     train, test = iris_split_dataset
-    features_importance = pd.Series(data=np.random.rand(len(train.features)), index=train.features)
+    feature_importance = pd.Series(data=np.random.rand(len(train.features)), index=train.features)
 
     # Act
-    result = check.run(train, test, features_importance=features_importance)
+    result = check.run(train, test, feature_importance=feature_importance)
     context: Context = result.value
 
     # Assert
     assert_that(context._calculated_importance, is_(True))
-    assert_that(context._features_importance is not None)
+    assert_that(context._feature_importance is not None)

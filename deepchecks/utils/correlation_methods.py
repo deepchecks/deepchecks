@@ -18,6 +18,8 @@ import numpy as np
 import pandas as pd
 from scipy.stats import entropy
 
+from deepchecks.utils.distribution.preprocessing import value_frequency
+
 
 def conditional_entropy(x: Union[List, np.ndarray, pd.Series], y: Union[List, np.ndarray, pd.Series]) -> float:
     """
@@ -61,12 +63,10 @@ def theil_u_correlation(x: Union[List, np.ndarray, pd.Series], y: Union[List, np
     Returns:
     --------
     float
-        Representing the theil_u correlation between y and x
+        Representing the Theil U correlation between y and x
     """
     s_xy = conditional_entropy(x, y)
-    x_values_counter = Counter(x)
-    total_occurrences = sum(x_values_counter.values())
-    values_probabilities = list(map(lambda n: n / total_occurrences, x_values_counter.values()))
+    values_probabilities = value_frequency(x)
     s_x = entropy(values_probabilities)
     if s_x == 0:
         return 1
@@ -74,9 +74,34 @@ def theil_u_correlation(x: Union[List, np.ndarray, pd.Series], y: Union[List, np
         return (s_x - s_xy) / s_x
 
 
-def correlation_ratio(categorical_variable: Union[List, np.ndarray, pd.Series],
-                      numerical_variable: Union[List, np.ndarray, pd.Series],
-                      indexes_to_ignore: Union[List[bool], np.ndarray] = None) -> float:
+def symmetric_theil_u_correlation(x: Union[List, np.ndarray, pd.Series], y: Union[List, np.ndarray, pd.Series]) -> \
+        float:
+    """
+    Calculate the symmetric Theil's U correlation of y to x.
+
+    Parameters:
+    -----------
+    x: Union[List, np.ndarray, pd.Series]
+        A sequence of a categorical variable values without nulls
+    y: Union[List, np.ndarray, pd.Series]
+        A sequence of a categorical variable values without nulls
+
+    Returns:
+    --------
+    float
+        Representing the symmetric Theil U correlation between y and x
+    """
+    h_x = entropy(value_frequency(x))
+    h_y = entropy(value_frequency(y))
+    u_xy = theil_u_correlation(x, y)
+    u_yx = theil_u_correlation(y, x)  # pylint: disable=arguments-out-of-order
+    u_sym = (h_x * u_xy + h_y * u_yx) / (h_x + h_y)
+    return u_sym
+
+
+def correlation_ratio(categorical_data: Union[List, np.ndarray, pd.Series],
+                      numerical_data: Union[List, np.ndarray, pd.Series],
+                      ignore_mask: Union[List[bool], np.ndarray] = None) -> float:
     """
     Calculate the correlation ratio of numerical_variable to categorical_variable.
 
@@ -85,31 +110,31 @@ def correlation_ratio(categorical_variable: Union[List, np.ndarray, pd.Series],
     For more information see https://en.wikipedia.org/wiki/Correlation_ratio
     Parameters:
     -----------
-    categorical_variable: Union[List, np.ndarray, pd.Series]
-        A sequence of a categorical variable values without nulls in indexes not ignored
-    numerical_variable: Union[List, np.ndarray, pd.Series]
-        A sequence of a numerical variable values without nulls in indexes not ignored
-    indexes_to_ignore: Union[List[bool], np.ndarray[bool]] default: None
-        A sequence of boolean values indicating which elements to ignore. If None includes all indexes.
+    categorical_data: Union[List, np.ndarray, pd.Series]
+        A sequence of categorical values encoded as class indices without nulls except possibly at ignored elements
+    numerical_data: Union[List, np.ndarray, pd.Series]
+        A sequence of numerical values without nulls except possibly at ignored elements
+    ignore_mask: Union[List[bool], np.ndarray[bool]] default: None
+        A sequence of boolean values indicating which elements to ignore. If None, includes all indexes.
     Returns:
     --------
     float
         Representing the correlation ratio between the variables.
     """
-    if indexes_to_ignore:
-        numerical_variable = numerical_variable[~np.asarray(indexes_to_ignore)]
-        categorical_variable = categorical_variable[~np.asarray(indexes_to_ignore)]
-    fcat, _ = pd.factorize(categorical_variable)
-    cat_num = np.max(fcat) + 1
+    if ignore_mask:
+        numerical_data = numerical_data[~np.asarray(ignore_mask)]
+        categorical_data = categorical_data[~np.asarray(ignore_mask)]
+
+    cat_num = int(np.max(categorical_data) + 1)
     y_avg_array = np.zeros(cat_num)
     n_array = np.zeros(cat_num)
     for i in range(cat_num):
-        cat_measures = numerical_variable[fcat == i]
+        cat_measures = numerical_data[categorical_data == i]
         n_array[i] = cat_measures.shape[0]
         y_avg_array[i] = np.average(cat_measures)
     y_total_avg = np.sum(np.multiply(y_avg_array, n_array)) / np.sum(n_array)
     numerator = np.sum(np.multiply(n_array, np.power(np.subtract(y_avg_array, y_total_avg), 2)))
-    denominator = np.sum(np.power(np.subtract(numerical_variable, y_total_avg), 2))
+    denominator = np.sum(np.power(np.subtract(numerical_data, y_total_avg), 2))
     if denominator == 0:
         eta = 0
     else:

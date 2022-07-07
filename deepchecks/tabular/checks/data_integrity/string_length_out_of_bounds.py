@@ -20,7 +20,7 @@ from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.tabular.utils.messages import get_condition_passed_message
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df, is_categorical
+from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.utils.strings import format_number, format_percent, is_string_column
 from deepchecks.utils.typing import Hashable
 
@@ -92,13 +92,9 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
         self.outlier_length_to_show = outlier_length_to_show
         self.samples_per_range_to_show = samples_per_range_to_show
 
-    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
-        if dataset_type == 'train':
-            dataset = context.train
-        else:
-            dataset = context.test
-
+        dataset = context.get_data_by_kind(dataset_kind)
         df = select_from_dataframe(dataset.data, self.columns, self.ignore_columns)
 
         display_format = []
@@ -106,10 +102,7 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
 
         for column_name in df.columns:
             column: Series = df[column_name].dropna()
-
-            if not is_string_column(column) or is_categorical(column,
-                                                              max_categorical_ratio=self.min_unique_value_ratio,
-                                                              max_categories=self.min_unique_values):
+            if column_name in dataset.cat_features or not is_string_column(column):
                 continue
 
             results[column_name] = {'outliers': []}
@@ -152,18 +145,10 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
                         outlier_examples = column[outlier_samples[:self.samples_per_range_to_show].index]
                         outlier_examples = [trim(x, self.outlier_length_to_show) for x in outlier_examples]
 
-                        display_format.append([column_name,
-                                               f'{format_number(non_outlier_lower_limit)} -'
-                                               f' {format_number(non_outlier_upper_limit)}',
-                                               f'{format_number(lower_range)} -'
-                                               f' {format_number(upper_range)}',
-                                               f'{outlier_samples.size}',
-                                               outlier_examples
-                                               ])
                         results[column_name]['normal_range'] = {
-                                'min': non_outlier_lower_limit,
-                                'max': non_outlier_upper_limit
-                            }
+                            'min': non_outlier_lower_limit,
+                            'max': non_outlier_upper_limit
+                        }
                         results[column_name]['n_samples'] = column.size
                         results[column_name]['outliers'].append({
                             'range': {'min': lower_range,
@@ -172,20 +157,33 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
                             'n_samples': outlier_samples.size
                         })
 
-        # Create dataframe to display graph
-        df_graph = DataFrame(display_format,
-                             columns=['Column Name',
-                                      'Range of Detected Normal String Lengths',
-                                      'Range of Detected Outlier String Lengths',
-                                      'Number of Outlier Samples',
-                                      'Example Samples'])
-        df_graph = df_graph.set_index(['Column Name',
-                                       'Range of Detected Normal String Lengths',
-                                       'Range of Detected Outlier String Lengths'])
+                        if context.with_display:
+                            display_format.append([column_name,
+                                                   f'{format_number(non_outlier_lower_limit)} -'
+                                                   f' {format_number(non_outlier_upper_limit)}',
+                                                   f'{format_number(lower_range)} -'
+                                                   f' {format_number(upper_range)}',
+                                                   f'{outlier_samples.size}',
+                                                   outlier_examples
+                                                   ])
 
-        df_graph = column_importance_sorter_df(df_graph, dataset, context.features_importance,
-                                               self.n_top_columns, col='Column Name')
-        display = [N_TOP_MESSAGE % self.n_top_columns, df_graph] if len(df_graph) > 0 else None
+        # Create dataframe to display graph
+        if display_format:
+            df_graph = DataFrame(display_format,
+                                 columns=['Column Name',
+                                          'Range of Detected Normal String Lengths',
+                                          'Range of Detected Outlier String Lengths',
+                                          'Number of Outlier Samples',
+                                          'Example Samples'])
+            df_graph = df_graph.set_index(['Column Name',
+                                           'Range of Detected Normal String Lengths',
+                                           'Range of Detected Outlier String Lengths'])
+
+            df_graph = column_importance_sorter_df(df_graph, dataset, context.feature_importance,
+                                                   self.n_top_columns, col='Column Name')
+            display = [N_TOP_MESSAGE % self.n_top_columns, df_graph]
+        else:
+            display = None
 
         return CheckResult(results, display=display)
 
@@ -206,8 +204,8 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
 
         return lower_range, upper_range
 
-    def add_condition_number_of_outliers_not_greater_than(self, max_outliers: int = 0):
-        """Add condition - require column not to have more than given number of string length outliers.
+    def add_condition_number_of_outliers_less_or_equal(self, max_outliers: int = 0):
+        """Add condition - require column's number of string length outliers to be less or equal to the threshold.
 
         Parameters
         ----------
@@ -230,11 +228,11 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
                 return ConditionResult(ConditionCategory.PASS, details)
 
         return self.add_condition(
-            f'Number of outliers not greater than {max_outliers} string length outliers',
+            f'Number of string length outliers is less or equal to {max_outliers}',
             compare_outlier_count)
 
-    def add_condition_ratio_of_outliers_not_greater_than(self, max_ratio: float = 0):
-        """Add condition - require column not to have more than given ratio of string length outliers.
+    def add_condition_ratio_of_outliers_less_or_equal(self, max_ratio: float = 0):
+        """Add condition - require column's ratio of string length outliers to be less or equal to threshold.
 
         Parameters
         ----------
@@ -257,7 +255,7 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
                 return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))
 
         return self.add_condition(
-            f'Ratio of outliers not greater than {format_percent(max_ratio)} string length outliers',
+            f'Ratio of string length outliers is less or equal to {format_percent(max_ratio)}',
             compare_outlier_ratio)
 
 

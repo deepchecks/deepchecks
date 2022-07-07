@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_vision_image_property_drift:
+
 Image Property Drift Check
 **************************
 
@@ -81,6 +83,13 @@ check_result = ImagePropertyDrift().run(train_dataset, test_dataset)
 check_result
 
 #%%
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  check_result.show_in_window()
+#%%
+# The result will be displayed in a new window.
+
+#%%
 # Observe the check’s output 
 # --------------------------
 # The result value is a pandas DataFrame that contains drift score for each image property.
@@ -106,7 +115,7 @@ check_result
 
 check_result = (
     ImagePropertyDrift()
-    .add_condition_drift_score_not_greater_than(0.001)
+    .add_condition_drift_score_less_than(0.001)
     .run(train_dataset, test_dataset)
 )
 check_result.show(show_additional_outputs=False)

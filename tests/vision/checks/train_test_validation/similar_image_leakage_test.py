@@ -12,7 +12,7 @@
 from copy import copy
 
 import numpy as np
-from hamcrest import assert_that, equal_to
+from hamcrest import assert_that, equal_to, greater_than, has_length
 from PIL import Image
 from torch.utils.data import DataLoader
 
@@ -55,6 +55,20 @@ def test_all_identical_object_detection(coco_train_visiondata, device):
 
     # Assert
     assert_that(set(result.value), equal_to(set(list(zip(range(64), range(64))))))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_all_identical_object_detection_without_display(coco_train_visiondata, device):
+    # Arrange
+    train, test = coco_train_visiondata, coco_train_visiondata
+    check = SimilarImageLeakage()
+
+    # Act
+    result = check.run(train, test, device=device, with_display=False)
+
+    # Assert
+    assert_that(set(result.value), equal_to(set(list(zip(range(64), range(64))))))
+    assert_that(result.display, has_length(0))
 
 
 def test_similar_object_detection(coco_train_visiondata, coco_test_visiondata, device):
@@ -91,7 +105,7 @@ def test_train_test_condition_pass(coco_train_visiondata, coco_test_visiondata, 
     # Arrange
     train, test = coco_train_visiondata, coco_test_visiondata
     condition_value = 5
-    check = SimilarImageLeakage().add_condition_similar_images_not_more_than(condition_value)
+    check = SimilarImageLeakage().add_condition_similar_images_less_or_equal(condition_value)
 
     # Act
     result = check.run(train_dataset=train,
@@ -102,7 +116,7 @@ def test_train_test_condition_pass(coco_train_visiondata, coco_test_visiondata, 
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
         details='Found 0 similar images between train and test datasets',
-        name=f'Number of similar images between train and test is not greater than {condition_value}'
+        name=f'Number of similar images between train and test is less or equal to {condition_value}'
     ))
 
 
@@ -110,7 +124,7 @@ def test_train_test_condition_fail(coco_train_visiondata, coco_test_visiondata, 
     # Arrange
     train, test = coco_train_visiondata, coco_train_visiondata
     condition_value = 5
-    check = SimilarImageLeakage().add_condition_similar_images_not_more_than(condition_value)
+    check = SimilarImageLeakage().add_condition_similar_images_less_or_equal(condition_value)
 
     # Act
     result = check.run(train_dataset=train,
@@ -120,6 +134,6 @@ def test_train_test_condition_fail(coco_train_visiondata, coco_test_visiondata, 
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name=f'Number of similar images between train and test is not greater than {condition_value}',
+        name=f'Number of similar images between train and test is less or equal to {condition_value}',
         details='Number of similar images between train and test datasets: 64'
     ))

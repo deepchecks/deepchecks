@@ -19,28 +19,14 @@ from deepchecks.utils import ipython
 
 def test_progress_bar_creation():
     with patch('deepchecks.utils.ipython.is_zmq_interactive_shell', return_value=True):
-        with patch('deepchecks.utils.ipython.is_widgets_enabled', return_value=True):
-            assert_that(
-                ipython.create_progress_bar(
-                    iterable=list(range(10)),
-                    name='Dummy',
-                    unit='D'
-                ),
-                instance_of(tqdm.notebook.tqdm)
-            )
-
-
-def test_progress_bar_creation_with_disabled_widgets():
-    with patch('deepchecks.utils.ipython.is_zmq_interactive_shell', return_value=True):
-        with patch('deepchecks.utils.ipython.is_widgets_enabled', return_value=False):
-            assert_that(
-                ipython.create_progress_bar(
-                    iterable=list(range(10)),
-                    name='Dummy',
-                    unit='D'
-                ),
-                instance_of(ipython.PlainNotebookProgressBar)
-            )
+        assert_that(
+            ipython.create_progress_bar(
+                iterable=list(range(10)),
+                name='Dummy',
+                unit='D'
+            ),
+            instance_of(ipython.HtmlProgressBar)
+        )
 
 
 def test_progress_bar_creation_in_not_notebook_env():

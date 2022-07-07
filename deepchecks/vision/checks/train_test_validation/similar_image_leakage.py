@@ -66,6 +66,7 @@ class SimilarImageLeakage(TrainTestCheck):
         if not (isinstance(similarity_threshold, (float, int)) and (0 <= similarity_threshold <= 1)):
             raise DeepchecksValueError('similarity_threshold must be a float in range (0,1)')
         self.similarity_threshold = similarity_threshold
+
         self.min_pixel_diff = int(np.ceil(similarity_threshold * (hash_size**2 / 2)))
 
     def initialize_run(self, context: Context):
@@ -122,6 +123,8 @@ class SimilarImageLeakage(TrainTestCheck):
         display = []
         similar_pairs = []
         if similar_indices['test']:
+
+            # TODO: this for loop should be below `if context.with_display:` branch
             for similar_index in display_indices:
                 for dataset in ('train', 'test'):
                     image = data_obj[dataset].batch_to_images(
@@ -134,27 +137,27 @@ class SimilarImageLeakage(TrainTestCheck):
                     )
                     display_images[dataset].append(image_thumbnail)
 
-            html = HTML_TEMPLATE.format(
-                count=len(similar_indices['test']),
-                n_of_images=len(display_indices),
-                train_images=''.join(display_images['train']),
-                test_images=''.join(display_images['test']),
-            )
-
-            display.append(html)
-
             # return tuples of indices in original respective dataset objects
             similar_pairs = list(zip(
                 context.train.to_dataset_index(*similar_indices['train']),
                 context.test.to_dataset_index(*similar_indices['test'])
             ))
 
+            if context.with_display:
+                html = HTML_TEMPLATE.format(
+                    count=len(similar_indices['test']),
+                    n_of_images=len(display_indices),
+                    train_images=''.join(display_images['train']),
+                    test_images=''.join(display_images['test']),
+                )
+
+                display.append(html)
+
         return CheckResult(value=similar_pairs, display=display, header='Similar Image Leakage')
 
-    def add_condition_similar_images_not_more_than(self: SIL, threshold: int = 0) -> SIL:
-        """Add new condition.
+    def add_condition_similar_images_less_or_equal(self: SIL, threshold: int = 0) -> SIL:
+        """Add condition - number of similar images is less or equal to the threshold.
 
-        Add condition that will check the number of similar images is not greater than X.
         The condition count how many unique images in test are similar to those in train.
 
         Parameters
@@ -171,11 +174,11 @@ class SimilarImageLeakage(TrainTestCheck):
             num_similar_images = len(set(t[1] for t in value))
             message = f'Number of similar images between train and test datasets: {num_similar_images}' \
                 if num_similar_images > 0 else 'Found 0 similar images between train and test datasets'
-            category = ConditionCategory.FAIL if num_similar_images > threshold else ConditionCategory.PASS
+            category = ConditionCategory.PASS if num_similar_images <= threshold else ConditionCategory.FAIL
             return ConditionResult(category, message)
 
-        return self.add_condition(f'Number of similar images between train and test is not greater than '
-                                  f'{threshold}', condition)
+        return self.add_condition(f'Number of similar images between train and test is less or equal to {threshold}',
+                                  condition)
 
 
 HTML_TEMPLATE = """

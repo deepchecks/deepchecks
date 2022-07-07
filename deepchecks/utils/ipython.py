@@ -8,13 +8,11 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-# pylint: disable=assignment-from-none
+# pylint: disable=assignment-from-none,broad-except,import-outside-toplevel
 """Utils module containing useful global functions."""
-import io
+import logging
 import os
-import re
-import subprocess
-import sys
+import time
 import typing as t
 from functools import lru_cache
 
@@ -25,14 +23,16 @@ from IPython.display import display
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
 from tqdm.notebook import tqdm as tqdm_notebook
 
+from deepchecks.utils.logger import get_verbosity
+
 __all__ = [
     'is_notebook',
-    'is_widgets_enabled',
     'is_headless',
     'create_progress_bar',
     'is_colab_env',
     'is_kaggle_env',
-    'is_widgets_use_possible',
+    'is_databricks_env',
+    'is_sagemaker_env',
     'is_terminal_interactive_shell',
     'is_zmq_interactive_shell',
     'ProgressBarGroup'
@@ -93,78 +93,198 @@ def is_headless() -> bool:
 
 
 @lru_cache(maxsize=None)
-def is_widgets_enabled() -> bool:
-    """Check if we're running in jupyter and having jupyter widgets extension enabled."""
-    # TODO:
-    # this is not the right way to verify whether widgets are enabled or not:
-    #  - there is always a possibility that a user had started the jupyter server
-    #    with not default config path
-    #  - there are two extension types:
-    #      + classical notebook extensions (managed by 'jupyter nbextension');
-    #      + jupyterlab extensions (managed by 'jupyter labextension');
-    if not is_notebook():
-        return False
-    else:
-        # Test if widgets extension are in list
-        try:
-            # The same widget can appear multiple times from different config locations, than if there are both
-            # disabled and enabled, regard it as disabled
-            output = subprocess.getoutput('jupyter nbextension list').split('\n')
-            disabled_regex = re.compile(r'\s*(jupyter-js-widgets/extension).*(disabled).*')
-            enabled_regex = re.compile(r'\s*(jupyter-js-widgets/extension).*(enabled).*')
-            found_disabled = any((disabled_regex.match(s) for s in output))
-            found_enabled = any((enabled_regex.match(s) for s in output))
-            return not found_disabled and found_enabled
-        except Exception:  # pylint: disable=broad-except
-            return False
-
-
-@lru_cache(maxsize=None)
 def is_colab_env() -> bool:
-    """Check if we are in the google colab enviroment."""
+    """Check if we are in the google colab environment."""
     return 'google.colab' in str(get_ipython())
 
 
 @lru_cache(maxsize=None)
 def is_kaggle_env() -> bool:
-    """Check if we are in the kaggle enviroment."""
+    """Check if we are in the kaggle environment."""
     return os.environ.get('KAGGLE_KERNEL_RUN_TYPE') is not None
 
 
 @lru_cache(maxsize=None)
-def is_widgets_use_possible() -> bool:
-    """Verify if widgets use is possible within the current environment."""
-    # NOTE:
-    # - google colab has no support for widgets but good support for viewing html pages in the output
-    # - can't display plotly widgets in kaggle notebooks
-    return (
-        is_widgets_enabled()
-        and not is_colab_env()
-        and not is_kaggle_env()
-    )
+def is_databricks_env() -> bool:
+    """Check if we are in the databricks environment."""
+    return 'DATABRICKS_RUNTIME_VERSION' in os.environ
 
 
-class PlainNotebookProgressBar(tqdm.tqdm):
-    """Custom progress bar."""
+@lru_cache(maxsize=None)
+def is_sagemaker_env() -> bool:
+    """Check if we are in the AWS Sagemaker environment."""
+    return 'AWS_PATH' in os.environ
 
-    def __init__(self, **kwargs):
-        self.display_handler = display({'text/plain': ''}, raw=True, display_id=True)
-        kwargs['file'] = io.StringIO()
-        super().__init__(**kwargs)
 
-    def refresh(self, nolock=False, lock_args=None):
+class HtmlProgressBar:
+    """Progress bar implementation that uses html <progress> tag."""
+
+    STYLE = """
+    <style>
+        progress {
+            -webkit-appearance: none;
+            border: none;
+            border-radius: 3px;
+            width: 300px;
+            height: 20px;
+            vertical-align: middle;
+            margin-right: 10px;
+            background-color: aliceblue;
+        }
+        progress::-webkit-progress-bar {
+            border-radius: 3px;
+            background-color: aliceblue;
+        }
+        progress::-webkit-progress-value {
+            background-color: #9d60fb;
+        }
+        progress::-moz-progress-bar {
+            background-color: #9d60fb;
+        }
+    </style>
+    """
+
+    def __init__(
+        self,
+        title: str,
+        unit: str,
+        iterable: t.Iterable[t.Any],
+        total: int,
+        metadata: t.Optional[t.Mapping[str, t.Any]] = None,
+        display_immediately: bool = False,
+        disable: bool = False,
+    ):
+        self._title = title
+        self._unit = unit
+        self._iterable = iterable
+        self._total = total
+        self._seconds_passed = 0
+        self._inital_metadata = dict(metadata) if metadata else {}
+        self._metadata = self._inital_metadata.copy()
+        self._progress_bar = None
+        self._current_item_index = 0
+        display({'text/html': self.STYLE}, raw=True)
+        self._display_handler = display({'text/html': ''}, raw=True, display_id=True)
+        self._disable = disable
+        self._reuse_counter = 0
+
+        if disable is False and display_immediately is True:
+            self.refresh()
+
+    def __iter__(self):
+        """Iterate over iterable."""
+        if self._disable is True:
+            try:
+                for it in self._iterable:
+                    yield it
+            finally:
+                self._reuse_counter += 1
+            return
+
+        if self._reuse_counter > 0:
+            self._seconds_passed = 0
+            self._current_item_index = 0
+            self._progress_bar = None
+            self._metadata = self._inital_metadata
+            self.clean()
+
+        started_at = time.time()
+
+        try:
+            self.refresh()
+            for i, it in enumerate(self._iterable, start=1):
+                yield it
+                self._current_item_index = i
+                self._seconds_passed = int(time.time() - started_at)
+                self.refresh()
+        finally:
+            self._reuse_counter += 1
+            self.close()
+
+    def refresh(self):
         """Refresh progress bar."""
-        value = super().refresh(nolock, lock_args)
-        self.display_handler.update({'text/plain': self.fp.getvalue()}, raw=True)
-        self.fp.seek(0)
-        return value
+        self.progress_bar = self.create_progress_bar(
+            title=self._title,
+            item=self._current_item_index,
+            total=self._total,
+            seconds_passed=self._seconds_passed,
+            metadata=self._metadata
+        )
+        self._display_handler.update(
+            {'text/html': self.progress_bar},
+            raw=True
+        )
 
-    def close(self, *args, **kwargs):
+    def close(self):
         """Close progress bar."""
-        value = super().close(*args, **kwargs)
-        self.display_handler.update({'text/plain': ''}, raw=True)
-        self.fp.seek(0)
-        return value
+        self._display_handler.update({'text/html': ''}, raw=True)
+
+    def clean(self):
+        """Clean display cell."""
+        self._display_handler.update({'text/html': ''}, raw=True)
+
+    def set_postfix(self, data: t.Mapping[str, t.Any], refresh: bool = True):
+        """Set postfix."""
+        self.update_metadata(data, refresh)
+
+    def reset_metadata(self, data: t.Mapping[str, t.Any], refresh: bool = True):
+        """Reset metadata."""
+        self._metadata = dict(data)
+        if refresh is True:
+            self.refresh()
+
+    def update_metadata(self, data: t.Mapping[str, t.Any], refresh: bool = True):
+        """Update metadata."""
+        self._metadata.update(data)
+        if refresh is True:
+            self.refresh()
+
+    @classmethod
+    def create_label(
+        cls,
+        item: int,
+        total: int,
+        seconds_passed: int,
+        metadata: t.Optional[t.Mapping[str, t.Any]] = None
+    ):
+        """Create progress bar label."""
+        minutes = seconds_passed // 60
+        seconds = seconds_passed - (minutes * 60)
+        minutes = f'0{minutes}' if minutes < 10 else str(minutes)
+        seconds = f'0{seconds}' if seconds < 10 else str(seconds)
+
+        if metadata:
+            metadata_string = ', '.join(f'{k}={str(v)}' for k, v in metadata.items())
+            metadata_string = f', {metadata_string}'
+        else:
+            metadata_string = ''
+
+        return f'{item}/{total} [Time: {minutes}:{seconds}{metadata_string}]'
+
+    @classmethod
+    def create_progress_bar(
+        cls,
+        title: str,
+        item: int,
+        total: int,
+        seconds_passed: int,
+        metadata: t.Optional[t.Mapping[str, t.Any]] = None
+    ) -> str:
+        """Create progress bar."""
+        return f"""
+            <div>
+                <label>
+                    {title}:<br/>
+                    <progress
+                        value='{item}'
+                        max='{total}'
+                        class='deepchecks'
+                    >
+                    </progress>
+                </label>
+                <span>{cls.create_label(item, total, seconds_passed, metadata)}</span>
+            </div>
+        """
 
 
 def create_progress_bar(
@@ -174,18 +294,10 @@ def create_progress_bar(
     iterable: t.Optional[t.Sequence[t.Any]] = None,
 ) -> t.Union[
     tqdm_notebook,
-    PlainNotebookProgressBar,
+    HtmlProgressBar,
     tqdm.tqdm
 ]:
-    """Create a tqdm progress bar instance."""
-    kwargs = {
-        'iterable': iterable,
-        'total': total,
-        'desc': name,
-        'unit': f' {unit}',
-        'leave': False,
-    }
-
+    """Create a progress bar instance."""
     if iterable is not None:
         iterlen = len(iterable)
     elif total is not None:
@@ -195,25 +307,29 @@ def create_progress_bar(
             'at least one of the parameters iterable | total must be not None'
         )
 
-    barlen = iterlen if iterlen > 5 else 5
+    is_disabled = get_verbosity() >= logging.WARNING
 
-    if is_zmq_interactive_shell() and is_widgets_enabled():
-        return tqdm_notebook(
-            **kwargs,
-            colour='#9d60fb',
-            file=sys.stdout
+    if is_zmq_interactive_shell():
+        return HtmlProgressBar(
+            title=name,
+            unit=unit,
+            total=iterlen,
+            iterable=iterable or range(iterlen),
+            display_immediately=True,
+            disable=is_disabled
         )
-
-    elif is_zmq_interactive_shell():
-        return PlainNotebookProgressBar(
-            **kwargs,
-            bar_format='{{desc}}:\n|{{bar:{0}}}{{r_bar}}'.format(barlen),  # pylint: disable=consider-using-f-string
-        )
-
     else:
+        barlen = iterlen if iterlen > 5 else 5
+        rbar = ' {n_fmt}/{total_fmt} [Time: {elapsed}{postfix}]'
+        bar_format = f'{{desc}}:\n|{{bar:{barlen}}}|{rbar}'
         return tqdm.tqdm(
-            **kwargs,
-            bar_format='{{desc}}:\n|{{bar:{0}}}{{r_bar}}'.format(barlen),  # pylint: disable=consider-using-f-string
+            iterable=iterable,
+            total=total,
+            desc=name,
+            unit=f' {unit}',
+            leave=False,
+            bar_format=bar_format,
+            disable=is_disabled,
         )
 
 
@@ -247,7 +363,7 @@ class ProgressBarGroup:
     register: t.List[t.Union[
         DummyProgressBar,
         tqdm_notebook,
-        PlainNotebookProgressBar,
+        HtmlProgressBar,
         tqdm.tqdm
     ]]
 
@@ -262,7 +378,7 @@ class ProgressBarGroup:
         iterable: t.Optional[t.Sequence[t.Any]] = None,
     ) -> t.Union[
         tqdm_notebook,
-        PlainNotebookProgressBar,
+        HtmlProgressBar,
         tqdm.tqdm
     ]:
         """Create progress bar instance."""
@@ -302,123 +418,3 @@ class ProgressBarGroup:
         for pb in self.register:
             if hasattr(pb, '__original_close__'):
                 pb.__original_close__()
-
-
-# TODO:
-# NOTE:
-#   take a look at the 'is_widgets_enabled' function
-#   to understand why this code below is needed
-
-# class JupyterServerInfo(t.NamedTuple):
-#     url: str
-#     directory: str
-
-
-# class JupyterLabExtensionInfo(t.TypedDict):
-#     name: str
-#     description: str
-#     url: str
-#     enabled: bool
-#     core: bool
-#     latest_version: str
-#     installed_version: str
-#     status: str
-
-
-# class NotebookExtensionsInfo(t.TypedDict):
-#     load_extensions: t.Dict[str, bool]  # name of extension -> is enabled flag
-
-
-# def get_jupyter_server_info() -> t.List[JupyterServerInfo]:
-#     try:
-#         output = subprocess.getoutput('jupyter server list').split('\n')
-#         return [
-#             JupyterServerInfo(*list(map(str.strip, it.split('::'))))
-#             for it in output[1:]
-#         ]
-#     except BaseException:
-#         return []
-
-
-# def get_jupyterlab_extensions_config() -> t.List[t.Tuple[
-#     JupyterServerInfo,
-#     t.List[JupyterLabExtensionInfo]
-# ]]:
-#     output = []
-
-#     for server in get_jupyter_server_info():
-#         urlobj = urlparse(server.url)
-#         url = '{}://{}/lab/api/extensions?token={}'.format(
-#             urlobj.scheme,
-#             urlobj.netloc,
-#             _extract_jupyter_token(urlobj.query)
-#         )
-#         try:
-#             with urllib.request.urlopen(url) as f:
-#                 output.append((server, json.load(f)))
-#         except:
-#             pass
-
-#     return output
-
-
-# def get_notebooks_extensions_config() -> t.List[t.Tuple[
-#     JupyterServerInfo,
-#     NotebookExtensionsInfo
-# ]]:
-#     output = []
-
-#     for server in get_jupyter_server_info():
-#         urlobj = urlparse(server.url)
-#         url = '{}://{}/api/config/notebook?token={}'.format(
-#             urlobj.scheme,
-#             urlobj.netloc,
-#             _extract_jupyter_token(urlobj.query)
-#         )
-#         try:
-#             with urllib.request.urlopen(url) as f:
-#                 output.append((server, json.load(f)))
-#         except BaseException:
-#             pass
-
-#     return output
-
-
-# def _extract_jupyter_token(url) -> str:
-#     query = parse_qs(url)
-#     token = (query.get('token') or [])
-#     return (token[0] if len(token) > 0 else '')
-
-
-# def is_widgets_enabled() -> bool:
-#     lab_config = get_jupyterlab_extensions_config()
-#     notebook_config = get_notebooks_extensions_config()
-
-#     is_lab_extension_enabled = False
-#     is_notebook_extension_enabled = False
-
-#     for _, extensions_list in lab_config:
-#         is_widgets_extension_enabled = any([
-#             config
-#             for config in extensions_list
-#             if (
-#                 config['name'] == '@jupyter-widgets/jupyterlab-manager'
-#                 and config['enabled']
-#             )
-#         ])
-#         if is_widgets_extension_enabled is True:
-#             is_lab_extension_enabled = True
-#             break
-
-#     for _, config in notebook_config:
-#         extensions = config.get('load_extensions') or {}
-#         if extensions.get('jupyter-js-widgets/extension') is True:
-#             is_notebook_extension_enabled = True
-#             break
-
-#     if len(lab_config) > 1 or len(notebook_config) > 1:
-#         warnings.warn('')  # TODO:
-#     elif is_lab_extension_enabled is False or is_notebook_extension_enabled:
-#         warnings.warn('')  # TODO:
-
-#     return is_lab_extension_enabled or is_notebook_extension_enabled

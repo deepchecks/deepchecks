@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_vision_class_performance:
+
 Class Performance
 ***********************
 
@@ -64,7 +66,21 @@ test_ds = mnist.load_dataset(train=False, object_type='VisionData')
 # -------------
 
 check = ClassPerformance()
-check.run(train_ds, test_ds, mnist_model)
+result = check.run(train_ds, test_ds, mnist_model)
+result
+
+#%%
+# If you have a GPU, you can speed up this check by calling:
+# .. code:: python
+#       check.run(train_ds, test_ds, mnist_model, device=<your GPU>)
+#
+
+#%%
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  result.show_in_window()
+#%%
+# The result will be displayed in a new window.
 
 #%%
 # Object Detection Class Performance
@@ -92,7 +108,20 @@ test_ds = coco.load_dataset(train=False, object_type='VisionData')
 # -------------
 
 check = ClassPerformance(show_only='best')
-check.run(train_ds, test_ds, yolo)
+result = check.run(train_ds, test_ds, yolo)
+result
+
+#%%
+# If you have a GPU, you can speed up this check by calling:
+
+# check.run(train_ds, test_ds, yolo, device=<your GPU>)
+
+#%%
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+# result.show_in_window()
+#%%
+# The result will be displayed in a new window.
 
 #%%
 # Define a Condition
@@ -102,9 +131,10 @@ check.run(train_ds, test_ds, yolo)
 # returns a ConditionResult object.
 
 check = ClassPerformance(show_only='worst')
-check.add_condition_test_performance_not_less_than(0.2)
+check.add_condition_test_performance_greater_than(0.2)
 result = check.run(train_ds, test_ds, yolo)
 result
+
 
 #%%
 # We detected that for several classes our model performance is below the threshold.

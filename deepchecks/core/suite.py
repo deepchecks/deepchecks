@@ -14,28 +14,27 @@ import abc
 import io
 import warnings
 from collections import OrderedDict
-from typing import Dict, List, Optional, Sequence, Set, Tuple, Union
+from typing import List, Optional, Sequence, Set, Tuple, Union, cast
 
 import jsonpickle
-from IPython.core.display import display, display_html
 from ipywidgets import Widget
 
-from deepchecks.core.check_result import BaseCheckResult, CheckFailure, CheckResult
+from deepchecks.core import check_result as check_types
 from deepchecks.core.checks import BaseCheck
+from deepchecks.core.display import DisplayableResult, save_as_html
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.core.serialization.abc import HTMLFormatter
 from deepchecks.core.serialization.suite_result.html import SuiteResultSerializer as SuiteResultHtmlSerializer
+from deepchecks.core.serialization.suite_result.ipython import SuiteResultSerializer as SuiteResultIPythonSerializer
 from deepchecks.core.serialization.suite_result.json import SuiteResultSerializer as SuiteResultJsonSerializer
 from deepchecks.core.serialization.suite_result.widget import SuiteResultSerializer as SuiteResultWidgetSerializer
-from deepchecks.utils.ipython import is_colab_env, is_kaggle_env, is_notebook, is_widgets_enabled
-from deepchecks.utils.strings import create_new_file_name, get_random_string, widget_to_html, widget_to_html_string
+from deepchecks.utils.strings import get_random_string, widget_to_html_string
 from deepchecks.utils.wandb_utils import wandb_run
-
-from .serialization.suite_result.ipython import SuiteResultSerializer as SuiteResultIPythonSerializer
 
 __all__ = ['BaseSuite', 'SuiteResult']
 
 
-class SuiteResult:
+class SuiteResult(DisplayableResult):
     """Contain the results of a suite run.
 
     Parameters
@@ -47,12 +46,12 @@ class SuiteResult:
 
     name: str
     extra_info: List[str]
-    results: List[BaseCheckResult]
+    results: List['check_types.BaseCheckResult']
 
     def __init__(
         self,
         name: str,
-        results: List[BaseCheckResult],
+        results: List['check_types.BaseCheckResult'],
         extra_info: Optional[List[str]] = None,
     ):
         """Initialize suite result."""
@@ -76,19 +75,26 @@ class SuiteResult:
         self.failures: Set[int] = set()
 
         for index, result in enumerate(self.results):
-            if isinstance(result, CheckResult):
-                if result.have_conditions():
+            if isinstance(result, check_types.CheckFailure):
+                self.failures.add(index)
+            elif isinstance(result, check_types.CheckResult):
+                has_conditions = result.have_conditions()
+                has_display = result.have_display()
+                if has_conditions:
                     self.results_with_conditions.add(index)
                 else:
                     self.results_without_conditions.add(index)
-                if result.have_display():
+                if has_display:
                     self.results_with_display.add(index)
                 else:
                     self.results_without_display.add(index)
             else:
-                self.failures.add(index)
+                raise TypeError(f'Unknown type of result - {type(result).__name__}')
 
-    def select_results(self, idx: Set[int]) -> List[BaseCheckResult]:
+    def select_results(self, idx: Set[int]) -> List[Union[
+        'check_types.CheckResult',
+        'check_types.CheckFailure'
+    ]]:
         """Select results by indexes."""
         output = []
         for index, result in enumerate(self.results):
@@ -121,58 +127,80 @@ class SuiteResult:
             'application/json': self._repr_json_()
         }
 
-    def _ipython_display_(
-        self,
-        as_widget: bool = True,
-        unique_id: Optional[str] = None
-    ):
-        output_id = (
-            unique_id or get_random_string(n=25)
-            if not is_colab_env()
-            else None
-        )
-        if is_colab_env() and as_widget:
-            display_html(
-                widget_to_html_string(
-                    self.to_widget(unique_id=output_id),
-                    title=self.name,
-                    requirejs=True
-                ),
-                raw=True
-            )
-        elif is_widgets_enabled() and as_widget and not is_kaggle_env():
-            display_html(self.to_widget(unique_id=output_id))
-        else:
-            if as_widget:
-                warnings.warn(
-                    'Widgets are not enabled (or not supported) '
-                    'and cannot be used.'
-                )
-            display(*SuiteResultIPythonSerializer(self).serialize(
-                output_id=output_id,
-            ))
+    @property
+    def widget_serializer(self) -> SuiteResultWidgetSerializer:
+        """Return WidgetSerializer instance."""
+        return SuiteResultWidgetSerializer(self)
+
+    @property
+    def ipython_serializer(self) -> SuiteResultIPythonSerializer:
+        """Return IPythonSerializer instance."""
+        return SuiteResultIPythonSerializer(self)
+
+    @property
+    def html_serializer(self) -> SuiteResultHtmlSerializer:
+        """Return HtmlSerializer instance."""
+        return SuiteResultHtmlSerializer(self)
 
     def show(
         self,
         as_widget: bool = True,
-        unique_id: Optional[str] = None
+        unique_id: Optional[str] = None,
+        **kwargs
+    ) -> Optional[HTMLFormatter]:
+        """Display result.
+
+        Parameters
+        ----------
+        as_widget : bool
+            whether to display result with help of ipywidgets or not
+        unique_id : Optional[str], default None
+            unique identifier of the result output
+        **kwrgs :
+            other key-value arguments will be passed to the `Serializer.serialize`
+            method
+
+        Returns
+        -------
+        Optional[HTMLFormatter] :
+            when used by sphinx-gallery
+        """
+        return super().show(
+            as_widget,
+            unique_id or get_random_string(n=25),
+            **kwargs
+        )
+
+    def show_not_interactive(
+        self,
+        unique_id: Optional[str] = None,
+        **kwargs
     ):
-        """Display suite result."""
-        if is_notebook():
-            self._ipython_display_(as_widget=as_widget, unique_id=unique_id)
-        else:
-            warnings.warn(
-                'You are running in a non-interactive python shell. '
-                'In order to show result you have to use '
-                'an IPython shell (etc Jupyter)'
-            )
+        """Display the not interactive version of result output.
+
+        In this case, ipywidgets will not be used and plotly
+        figures will be transformed into png images.
+
+        Parameters
+        ----------
+        unique_id : Optional[str], default None
+            unique identifier of the result output
+        **kwrgs :
+            other key-value arguments will be passed to the `Serializer.serialize`
+            method
+        """
+        return super().show_not_interactive(
+            unique_id or get_random_string(n=25),
+            **kwargs
+        )
 
     def save_as_html(
         self,
         file: Union[str, io.TextIOWrapper, None] = None,
         as_widget: bool = True,
         requirejs: bool = True,
-        unique_id: Optional[str] = None
+        unique_id: Optional[str] = None,
+        **kwargs
     ):
         """Save output as html file.
 
@@ -184,68 +212,48 @@ class SuiteResult:
             whether to use ipywidgets or not
         requirejs: bool , default: True
             whether to include requirejs library into output HTML or not
+        unique_id : Optional[str], default None
+            unique identifier of the result output
 
         Returns
         -------
         Optional[str] :
             name of newly create file
         """
-        if file is None:
-            file = 'output.html'
-        if isinstance(file, str):
-            file = create_new_file_name(file)
-
-        if as_widget is True:
-            widget_to_html(
-                widget=self.to_widget(unique_id=unique_id or get_random_string(n=25)),
-                html_out=file,
-                title=self.name,
-                requirejs=requirejs
-            )
-        else:
-            html = SuiteResultHtmlSerializer(self).serialize(
-                output_id=unique_id or get_random_string(n=25),
-                full_html=True,
-                include_requirejs=requirejs,
-                include_plotlyjs=True,
-            )
-            if isinstance(file, str):
-                with open(file, 'w', encoding='utf-8') as f:
-                    f.write(html)
-            elif isinstance(file, io.StringIO):
-                file.write(html)
-            else:
-                TypeError(f'Unsupported type of "file" parameter - {type(file)}')
-
-        if isinstance(file, str):
-            return file
+        return save_as_html(
+            file=file,
+            serializer=self.widget_serializer if as_widget else self.html_serializer,
+            # next kwargs will be passed to the serializer.serialize method
+            requirejs=requirejs,
+            output_id=unique_id or get_random_string(n=25),
+        )
 
     def to_widget(
         self,
-        unique_id : Optional[str] = None,
+        unique_id: Optional[str] = None,
+        **kwargs
     ) -> Widget:
         """Return SuiteResult as a ipywidgets.Widget instance.
 
         Parameters
         ----------
-        unique_id : str
-            The unique id given by the suite that displays the check.
+        unique_id : Optional[str], default None
+            unique identifier of the result output
 
         Returns
         -------
         Widget
         """
-        return SuiteResultWidgetSerializer(self).serialize(
-            output_id=unique_id,
-        )
+        output_id = unique_id or get_random_string(n=25)
+        return SuiteResultWidgetSerializer(self).serialize(output_id=output_id)
 
-    def to_json(self, with_display: bool = True):
+    def to_json(self, with_display: bool = True, **kwargs):
         """Return check result as json.
 
         Parameters
         ----------
         with_display : bool, default True
-            whether to include serialized `CheckResult.display` items into
+            whether to include serialized `SuiteResult.display` items into
             the output or not
 
         Returns
@@ -262,7 +270,7 @@ class SuiteResult:
         dedicated_run: Optional[bool] = None,
         **kwargs
     ):
-        """Export suite result to wandb.
+        """Send suite result to wandb.
 
         Parameters
         ----------
@@ -293,19 +301,78 @@ class SuiteResult:
         with wandb_run(**wandb_kwargs) as run:
             run.log(WandbSerializer(self).serialize())
 
-    def get_failures(self) -> Dict[str, CheckFailure]:
-        """Get all the failed checks.
+    def get_not_ran_checks(self) -> List['check_types.CheckFailure']:
+        """Get all the check results which did not run (unable to run due to missing parameters, exception, etc).
 
         Returns
         -------
-        Dict[str, CheckFailure]
+        List[CheckFailure]
             All the check failures in the suite.
         """
-        failures = {}
-        for res in self.results:
-            if isinstance(res, CheckFailure):
-                failures[res.header] = res
-        return failures
+        return cast(List[check_types.CheckFailure], self.select_results(self.failures))
+
+    def get_not_passed_checks(self, fail_if_warning=True) -> List['check_types.CheckResult']:
+        """Get all the check results that have not passing condition.
+
+        Parameters
+        ----------
+        fail_if_warning: bool, Default: True
+            Whether conditions should fail on status of warning
+
+        Returns
+        -------
+        List[CheckResult]
+            All the check results in the suite that have failing conditions.
+        """
+        results = cast(
+            List[check_types.CheckResult],
+            self.select_results(self.results_with_conditions)
+        )
+        return [
+            r for r in results
+            if not r.passed_conditions(fail_if_warning)
+        ]
+
+    def get_passed_checks(self, fail_if_warning=True) -> List['check_types.CheckResult']:
+        """Get all the check results that have passing condition.
+
+        Parameters
+        ----------
+        fail_if_warning: bool, Default: True
+            Whether conditions should fail on status of warning
+
+        Returns
+        -------
+        List[CheckResult]
+            All the check results in the suite that have failing conditions.
+        """
+        results = cast(
+            List[check_types.CheckResult],
+            self.select_results(self.results_with_conditions)
+        )
+        return [
+            r for r in results
+            if r.passed_conditions(fail_if_warning)
+        ]
+
+    def passed(self, fail_if_warning: bool = True, fail_if_check_not_run: bool = False) -> bool:
+        """Return whether this suite result has passed. Pass value is derived from condition results of all individual\
+         checks, and may consider checks that didn't run.
+
+        Parameters
+        ----------
+        fail_if_warning: bool, Default: True
+            Whether conditions should fail on status of warning
+        fail_if_check_not_run: bool, Default: False
+            Whether checks that didn't run (missing parameters, exception, etc) should fail the suite result.
+
+        Returns
+        -------
+        bool
+        """
+        not_run_pass = len(self.get_not_ran_checks()) == 0 if fail_if_check_not_run else True
+        conditions_pass = len(self.get_not_passed_checks(fail_if_warning)) == 0
+        return conditions_pass and not_run_pass
 
     @classmethod
     def from_json(cls, json_res: str):
@@ -325,7 +392,7 @@ class SuiteResult:
         name = json_dict['name']
         results = []
         for res in json_dict['results']:
-            results.append(BaseCheckResult.from_json(res))
+            results.append(check_types.BaseCheckResult.from_json(res))
         return SuiteResult(name, results)
 
 
@@ -406,8 +473,8 @@ class BaseSuite:
 
 
 def sort_check_results(
-    check_results: Sequence[BaseCheckResult]
-) -> List[BaseCheckResult]:
+    check_results: Sequence['check_types.BaseCheckResult']
+) -> List['check_types.BaseCheckResult']:
     """Sort sequence of 'CheckResult' instances.
 
     Returns
@@ -420,9 +487,9 @@ def sort_check_results(
     for index, it in enumerate(check_results):
         check_results_index[index] = it
 
-        if isinstance(it, CheckResult):
+        if isinstance(it, check_types.CheckResult):
             order.append((it.priority, index))
-        elif isinstance(it, CheckFailure):
+        elif isinstance(it, check_types.CheckFailure):
             order.append((998, index))
         else:
             order.append((999, index))

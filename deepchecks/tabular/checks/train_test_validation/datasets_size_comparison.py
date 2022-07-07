@@ -51,8 +51,8 @@ class DatasetsSizeComparison(TrainTestCheck):
             display=display
         )
 
-    def add_condition_test_size_not_smaller_than(self: T, value: int = 100) -> T:
-        """Add condition verifying that size of the test dataset is not smaller than X.
+    def add_condition_test_size_greater_or_equal(self: T, value: int = 100) -> T:
+        """Add condition verifying that size of the test dataset is greater or equal to threshold.
 
         Parameters
         ----------
@@ -70,12 +70,12 @@ class DatasetsSizeComparison(TrainTestCheck):
             return ConditionResult(category, details)
 
         return self.add_condition(
-            name=f'Test dataset size is not smaller than {value}',
+            name=f'Test dataset size is greater or equal to {value}',
             condition_func=condition
         )
 
-    def add_condition_test_train_size_ratio_not_smaller_than(self: T, ratio: float = 0.01) -> T:
-        """Add condition verifying that test-train size ratio is not smaller than X.
+    def add_condition_test_train_size_ratio_greater_than(self: T, ratio: float = 0.01) -> T:
+        """Add condition verifying that test-train size ratio is greater than threshold.
 
         Parameters
         ----------
@@ -91,16 +91,16 @@ class DatasetsSizeComparison(TrainTestCheck):
         def condition(check_result: dict) -> ConditionResult:
             test_train_ratio = check_result['Test'] / check_result['Train']
             details = f'Test-Train size ratio is {format_number(test_train_ratio)}'
-            category = ConditionCategory.FAIL if test_train_ratio <= ratio else ConditionCategory.PASS
+            category = ConditionCategory.PASS if test_train_ratio > ratio else ConditionCategory.FAIL
             return ConditionResult(category, details)
 
         return self.add_condition(
-            name=f'Test-Train size ratio is not smaller than {ratio}',
+            name=f'Test-Train size ratio is greater than {ratio}',
             condition_func=condition
         )
 
-    def add_condition_train_dataset_not_smaller_than_test(self: T) -> T:
-        """Add condition verifying that train dataset is not smaller than test dataset.
+    def add_condition_train_dataset_greater_or_equal_test(self: T) -> T:
+        """Add condition verifying that train dataset is greater than test dataset.
 
         Returns
         -------
@@ -122,6 +122,6 @@ class DatasetsSizeComparison(TrainTestCheck):
             return ConditionResult(category, details)
 
         return self.add_condition(
-            name='Train dataset is not smaller than test dataset',
+            name='Train dataset is greater or equal to test dataset',
             condition_func=condition
         )

@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_vision_train_test_label_drift:
+
 Train Test Label Drift
 **********************
 
@@ -69,7 +71,8 @@ test_ds = load_dataset(train=False, batch_size=1000, object_type='VisionData')
 # ---------------------------------------------
 
 check = TrainTestLabelDrift()
-check.run(train_ds, test_ds)
+result = check.run(train_ds, test_ds)
+result
 
 #%%
 # Understanding the results
@@ -84,6 +87,13 @@ from deepchecks.vision.datasets.classification.mnist import \
 
 mnist_model = load_mnist_model(pretrained=True)
 ClassPerformance().run(train_ds, test_ds, mnist_model)
+
+#%%
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  ClassPerformance().run(train_ds, test_ds, mnist_model).show_in_window()
+#%%
+# The result will be displayed in a new window.
 
 #%%
 # MNIST with label drift
@@ -150,7 +160,7 @@ check.run(mod_train_ds, mod_test_ds)
 # We could also add a condition to the check to alert us to changes in the label
 # distribution, such as the one that occurred here.
 
-check = TrainTestLabelDrift().add_condition_drift_score_not_greater_than()
+check = TrainTestLabelDrift().add_condition_drift_score_less_than()
 check.run(mod_train_ds, mod_test_ds)
 
 # As we can see, the condition alerts us to the present of drift in the label.

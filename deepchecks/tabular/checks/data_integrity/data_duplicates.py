@@ -50,7 +50,7 @@ class DataDuplicates(SingleDatasetCheck):
         self.ignore_columns = ignore_columns
         self.n_to_show = n_to_show
 
-    def run_logic(self, context: Context, dataset_type: str = 'train'):
+    def run_logic(self, context: Context, dataset_kind):
         """Run check.
 
         Returns
@@ -58,11 +58,7 @@ class DataDuplicates(SingleDatasetCheck):
         CheckResult
             percentage of duplicates and display of the top n_to_show most duplicated.
         """
-        if dataset_type == 'train':
-            df = context.train.data
-        else:
-            df = context.test.data
-
+        df = context.get_data_by_kind(dataset_kind).data
         df = select_from_dataframe(df, self.columns, self.ignore_columns)
 
         data_columns = list(df.columns)
@@ -82,7 +78,7 @@ class DataDuplicates(SingleDatasetCheck):
 
         percent_duplicate = 1 - (1.0 * int(n_unique)) / (1.0 * int(n_samples))
 
-        if percent_duplicate > 0:
+        if context.with_display and percent_duplicate > 0:
             # patched for anonymous_series
             is_anonymous_series = 0 in group_unique_data.keys().names
             if is_anonymous_series:
@@ -114,8 +110,8 @@ class DataDuplicates(SingleDatasetCheck):
 
         return CheckResult(value=percent_duplicate, display=display)
 
-    def add_condition_ratio_not_greater_than(self, max_ratio: float = 0):
-        """Add condition - require duplicate ratio to not surpass max_ratio.
+    def add_condition_ratio_less_or_equal(self, max_ratio: float = 0):
+        """Add condition - require duplicate ratio to be less or equal to max_ratio.
 
         Parameters
         ----------
@@ -124,8 +120,8 @@ class DataDuplicates(SingleDatasetCheck):
         """
         def max_ratio_condition(result: float) -> ConditionResult:
             details = f'Found {format_percent(result)} duplicate data'
-            category = ConditionCategory.WARN if result > max_ratio else ConditionCategory.PASS
+            category = ConditionCategory.PASS if result <= max_ratio else ConditionCategory.WARN
             return ConditionResult(category, details)
 
-        return self.add_condition(f'Duplicate data ratio is not greater than {format_percent(max_ratio)}',
+        return self.add_condition(f'Duplicate data ratio is less or equal to {format_percent(max_ratio)}',
                                   max_ratio_condition)

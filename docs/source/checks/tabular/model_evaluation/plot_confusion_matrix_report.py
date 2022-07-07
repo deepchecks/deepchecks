@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_tabular_confusion_matrix_report:
+
 Confusion Matrix Report
 ***********************
 """

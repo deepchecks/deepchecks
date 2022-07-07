@@ -9,15 +9,15 @@
 # ----------------------------------------------------------------------------
 #
 """Module of model error analysis check."""
+import warnings
 from typing import Callable, Dict, Tuple, Union
 
 from sklearn import preprocessing
 
-from deepchecks import CheckFailure
-from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
+from deepchecks.core import CheckFailure, CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
-from deepchecks.utils.metrics import ModelType
+from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.performance.error_model import error_model_display, model_error_contribution
 from deepchecks.utils.single_sample_metrics import per_sample_cross_entropy, per_sample_mse
 from deepchecks.utils.strings import format_percent
@@ -27,6 +27,10 @@ __all__ = ['ModelErrorAnalysis']
 
 class ModelErrorAnalysis(TrainTestCheck):
     """Find features that best split the data into segments of high and low model error.
+
+    .. deprecated:: 0.8.1
+        The ModelErrorAnalysis check is deprecated and will be removed in the 0.11 version. Please use the
+        WeakSegmentsPerformance check instead.
 
     The check trains a regression model to predict the error of the user's model. Then, the features scoring the highest
     feature importance for the error regression model are selected and the distribution of the error vs the feature
@@ -102,6 +106,8 @@ class ModelErrorAnalysis(TrainTestCheck):
             **kwargs
     ):
         super().__init__(**kwargs)
+        warnings.warn('The ModelErrorAnalysis check is deprecated and will be removed in the 0.11 version. '
+                      'Please use the WeakSegmentsPerformance check instead.', DeprecationWarning)
         self.max_features_to_show = max_features_to_show
         self.min_feature_contribution = min_feature_contribution
         self.min_error_model_score = min_error_model_score
@@ -124,7 +130,7 @@ class ModelErrorAnalysis(TrainTestCheck):
         test_dataset = test_dataset.sample(self.n_samples, random_state=self.random_state, drop_na_label=True)
 
         # Create scoring function, used to calculate the per sample model error
-        if task_type == ModelType.REGRESSION:
+        if task_type == TaskType.REGRESSION:
             def scoring_func(dataset: Dataset):
                 return per_sample_mse(dataset.label_col, model.predict(dataset.features_columns))
         else:
@@ -161,7 +167,8 @@ class ModelErrorAnalysis(TrainTestCheck):
                                              self.min_feature_contribution,
                                              self.n_display_samples,
                                              self.min_segment_size,
-                                             self.random_state)
+                                             self.random_state,
+                                             context.with_display)
 
         headnote = """<span>
             The following graphs show the distribution of error for top features that are most useful for distinguishing
@@ -171,8 +178,8 @@ class ModelErrorAnalysis(TrainTestCheck):
 
         return CheckResult(value, display=display)
 
-    def add_condition_segments_performance_relative_difference_not_greater_than(self, max_ratio_change: float = 0.05):
-        """Add condition - require that the difference of performance between the segments does not exceed a ratio.
+    def add_condition_segments_performance_relative_difference_less_than(self, max_ratio_change: float = 0.05):
+        """Add condition - require that the difference of performance between the segments is less than threshold.
 
         Parameters
         ----------
@@ -192,7 +199,7 @@ class ModelErrorAnalysis(TrainTestCheck):
                     abs(max(feature_res[feature]['segment1']['score'], feature_res[feature]['segment2']['score'])))
                 features_diff[feature] = performance_diff
 
-            failed_features = {f: format_percent(p) for f, p in features_diff.items() if p > max_ratio_change}
+            failed_features = {f: format_percent(p) for f, p in features_diff.items() if p >= max_ratio_change}
             if failed_features:
                 sorted_fails = dict(sorted(failed_features.items(), key=lambda item: item[1]))
                 msg = f'{result["scorer_name"]} difference for failed features: {sorted_fails}'
@@ -202,5 +209,5 @@ class ModelErrorAnalysis(TrainTestCheck):
                 msg = f'Average {result["scorer_name"]} difference: {avg_diff}'
                 return ConditionResult(ConditionCategory.PASS, msg)
 
-        return self.add_condition(f'The performance difference of the detected segments must'
-                                  f' not be greater than {format_percent(max_ratio_change)}', condition)
+        return self.add_condition(f'The performance difference of the detected segments is '
+                                  f'less than {format_percent(max_ratio_change)}', condition)

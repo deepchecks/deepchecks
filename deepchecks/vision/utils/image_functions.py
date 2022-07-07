@@ -27,7 +27,7 @@ from .detection_formatters import convert_bbox
 
 __all__ = ['ImageInfo', 'numpy_grayscale_to_heatmap_figure', 'ensure_image',
            'apply_heatmap_image_properties', 'draw_bboxes', 'prepare_thumbnail',
-           'crop_image', 'imagetag']
+           'crop_image']
 
 
 class ImageInfo:

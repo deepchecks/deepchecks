@@ -10,7 +10,7 @@
 #
 """Test functions of the VISION train test prediction drift."""
 import torch.nn as nn
-from hamcrest import assert_that, calling, close_to, equal_to, has_entries, raises
+from hamcrest import assert_that, calling, close_to, equal_to, greater_than, has_entries, has_length, raises
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks import TrainTestPredictionDrift
@@ -57,6 +57,32 @@ def test_no_drift_object_detection(coco_train_visiondata, mock_trained_yolov5_ob
         )
         }
     ))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_no_drift_object_detection_without_display(coco_train_visiondata, mock_trained_yolov5_object_detection, device):
+    # Arrange
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI')
+
+    # Act
+    result = check.run(coco_train_visiondata, coco_train_visiondata, mock_trained_yolov5_object_detection,
+                       device=device, with_display=False)
+
+    # Assert
+    assert_that(result.value, has_entries(
+        {'Samples Per Class': has_entries(
+            {'Drift score': 0,
+             'Method': equal_to('PSI')}
+        ), 'Bounding Box Area (in pixels)': has_entries(
+            {'Drift score': 0,
+             'Method': equal_to('Earth Mover\'s Distance')}
+        ), 'Number of Bounding Boxes Per Image': has_entries(
+            {'Drift score': 0,
+             'Method': equal_to('Earth Mover\'s Distance')}
+        )
+        }
+    ))
+    assert_that(result.display, has_length(0))
 
 
 def test_with_drift_classification(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
@@ -169,7 +195,7 @@ def test_with_drift_object_detection_alternative_measurements(coco_train_visiond
 
 def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets, mock_trained_mnist, device):
     # Arrange
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI').add_condition_drift_score_not_greater_than()
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI').add_condition_drift_score_less_than()
     mod_train_ds, mod_test_ds = mnist_drifted_datasets
 
     def infer(batch, model, device):
@@ -188,7 +214,7 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets, mock_train
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name='categorical drift score <= 0.15 and numerical drift score <= 0.075 for prediction drift',
+        name='categorical drift score < 0.15 and numerical drift score < 0.075 for prediction drift',
         details='Failed for 1 out of 1 prediction properties.\n'
                 'Found 1 categorical prediction properties with PSI above threshold: {\'Samples Per Class\': \'3.95\'}'
     ))
@@ -197,7 +223,7 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets, mock_train
 def test_condition_pass(mnist_dataset_train, mock_trained_mnist, device):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_train
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI').add_condition_drift_score_not_greater_than()
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI').add_condition_drift_score_less_than()
 
     # Act
     result = check.run(train, test, mock_trained_mnist, device=device)
@@ -205,8 +231,8 @@ def test_condition_pass(mnist_dataset_train, mock_trained_mnist, device):
     # Assert
     assert_that(result.conditions_results[0], equal_condition_result(
         is_pass=True,
-        name='categorical drift score <= 0.15 and numerical drift score <= 0.075 for prediction drift',
-        details='Passed for 1 prediction properties.\n'
+        name='categorical drift score < 0.15 and numerical drift score < 0.075 for prediction drift',
+        details='Passed for 1 prediction properties out of 1 prediction properties.\n'
                 'Found prediction property "Samples Per Class" has the highest categorical drift score: 0'
     ))
 

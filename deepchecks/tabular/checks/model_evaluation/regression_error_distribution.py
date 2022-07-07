@@ -36,12 +36,15 @@ class RegressionErrorDistribution(SingleDatasetCheck):
         number of bins to use for the histogram.
     """
 
-    def __init__(self, n_top_samples: int = 3, n_bins: int = 40, **kwargs):
+    def __init__(self,
+                 n_top_samples: int = 3,
+                 n_bins: int = 40,
+                 **kwargs):
         super().__init__(**kwargs)
         self.n_top_samples = n_top_samples
         self.n_bins = n_bins
 
-    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
 
         Returns
@@ -55,11 +58,7 @@ class RegressionErrorDistribution(SingleDatasetCheck):
         DeepchecksValueError
             If the object is not a Dataset instance with a label
         """
-        if dataset_type == 'train':
-            dataset = context.train
-        else:
-            dataset = context.test
-
+        dataset = context.get_data_by_kind(dataset_kind)
         context.assert_regression_task()
         model = context.model
         x_test = dataset.features_columns
@@ -71,32 +70,35 @@ class RegressionErrorDistribution(SingleDatasetCheck):
         diff = y_test - y_pred
         kurtosis_value = kurtosis(diff)
 
-        n_largest_diff = diff.nlargest(self.n_top_samples)
-        n_largest_diff.name = str(dataset.label_name) + ' Prediction Difference'
-        n_largest = pd.concat([dataset.data.loc[n_largest_diff.index], y_pred.loc[n_largest_diff.index],
-                               n_largest_diff], axis=1)
+        if context.with_display:
+            n_largest_diff = diff.nlargest(self.n_top_samples)
+            n_largest_diff.name = str(dataset.label_name) + ' Prediction Difference'
+            n_largest = pd.concat([dataset.data.loc[n_largest_diff.index], y_pred.loc[n_largest_diff.index],
+                                   n_largest_diff], axis=1)
 
-        n_smallest_diff = diff.nsmallest(self.n_top_samples)
-        n_smallest_diff.name = str(dataset.label_name) + ' Prediction Difference'
-        n_smallest = pd.concat([dataset.data.loc[n_smallest_diff.index], y_pred.loc[n_smallest_diff.index],
-                                n_smallest_diff], axis=1)
+            n_smallest_diff = diff.nsmallest(self.n_top_samples)
+            n_smallest_diff.name = str(dataset.label_name) + ' Prediction Difference'
+            n_smallest = pd.concat([dataset.data.loc[n_smallest_diff.index], y_pred.loc[n_smallest_diff.index],
+                                    n_smallest_diff], axis=1)
 
-        display = [
-            px.histogram(
-                x=diff.values,
-                nbins=self.n_bins,
-                title='Histogram of prediction errors',
-                labels={'x': f'{dataset.label_name} prediction error', 'y': 'Count'},
-                height=500
-            ),
-            'Largest over estimation errors:', n_largest,
-            'Largest under estimation errors:', n_smallest
-        ]
+            display = [
+                px.histogram(
+                    x=diff.values,
+                    nbins=self.n_bins,
+                    title='Histogram of prediction errors',
+                    labels={'x': f'{dataset.label_name} prediction error', 'y': 'Count'},
+                    height=500
+                ),
+                'Largest over estimation errors:', n_largest,
+                'Largest under estimation errors:', n_smallest
+            ]
+        else:
+            display = None
 
         return CheckResult(value=kurtosis_value, display=display)
 
-    def add_condition_kurtosis_not_less_than(self, min_kurtosis: float = -0.1):
-        """Add condition - require min kurtosis value to be not less than min_kurtosis.
+    def add_condition_kurtosis_greater_than(self, min_kurtosis: float = -0.1):
+        """Add condition - require min kurtosis value to be greater than the threshold.
 
         Parameters
         ----------
@@ -105,8 +107,8 @@ class RegressionErrorDistribution(SingleDatasetCheck):
         """
         def min_kurtosis_condition(result: float) -> ConditionResult:
             details = f'Found kurtosis value {format_number(result, 5)}'
-            category = ConditionCategory.WARN if result < min_kurtosis else ConditionCategory.PASS
+            category = ConditionCategory.PASS if result > min_kurtosis else ConditionCategory.WARN
             return ConditionResult(category, details)
 
-        return self.add_condition(f'Kurtosis value is not less than {format_number(min_kurtosis, 5)}',
+        return self.add_condition(f'Kurtosis value is greater than {format_number(min_kurtosis, 5)}',
                                   min_kurtosis_condition)

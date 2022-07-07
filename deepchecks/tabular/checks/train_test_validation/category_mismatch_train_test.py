@@ -49,7 +49,7 @@ class CategoryMismatchTrainTest(TrainTestCheck):
         super().__init__(**kwargs)
         self.columns = columns
         self.ignore_columns = ignore_columns
-        self.max_features_to_show = max_features_to_show
+        self.max_features_to_show = max_features_to_show  # TODO: attr is not used, remove it
         self.max_new_categories_to_show = max_new_categories_to_show
 
     def run_logic(self, context: Context) -> CheckResult:
@@ -92,8 +92,9 @@ class CategoryMismatchTrainTest(TrainTestCheck):
                 new_categories_ratio = sum(new_category_counts.values()) / n_test_samples
                 sorted_new_categories = dict(sorted(new_category_counts.items(), key=lambda x: x[1], reverse=True))
                 new_categories[feature] = sorted_new_categories
-                display_data.append([feature, len(new_category_values), new_categories_ratio,
-                                     list(sorted_new_categories.keys())[:self.max_new_categories_to_show]])
+                if context.with_display:
+                    display_data.append([feature, len(new_category_values), new_categories_ratio,
+                                        list(sorted_new_categories.keys())[:self.max_new_categories_to_show]])
             else:
                 new_categories[feature] = {}
 
@@ -110,8 +111,8 @@ class CategoryMismatchTrainTest(TrainTestCheck):
             display = None
         return CheckResult({'new_categories': new_categories, 'test_count': n_test_samples}, display=display)
 
-    def add_condition_new_categories_not_greater_than(self, max_new: int = 0):
-        """Add condition - require column not to have greater than given number of different new categories.
+    def add_condition_new_categories_less_or_equal(self, max_new: int = 0):
+        """Add condition - require column's number of different new categories to be less or equal to threshold.
 
         Parameters
         ----------
@@ -134,11 +135,11 @@ class CategoryMismatchTrainTest(TrainTestCheck):
                     details += f'. Top columns with new categories count:\n{dict(sorted_columns[:5])}'
                 return ConditionResult(ConditionCategory.PASS, details)
 
-        return self.add_condition(f'Number of new category values is not greater than {max_new}',
+        return self.add_condition(f'Number of new category values is less or equal to {max_new}',
                                   condition)
 
-    def add_condition_new_category_ratio_not_greater_than(self, max_ratio: float = 0):
-        """Add condition - require column not to have greater than given ratio of instances with new categories.
+    def add_condition_new_category_ratio_less_or_equal(self, max_ratio: float = 0):
+        """Add condition - require column's ratio of instances with new categories to be less or equal to threshold.
 
         Parameters
         ----------
@@ -165,5 +166,5 @@ class CategoryMismatchTrainTest(TrainTestCheck):
                 return ConditionResult(ConditionCategory.PASS, details)
 
         return self.add_condition(
-            f'Ratio of samples with a new category is not greater than {format_percent(max_ratio)}',
+            f'Ratio of samples with a new category is less or equal to {format_percent(max_ratio)}',
             new_category_count_condition)

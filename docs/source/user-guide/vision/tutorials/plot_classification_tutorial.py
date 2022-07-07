@@ -1,4 +1,6 @@
 """
+.. _vision_classification_tutorial:
+
 ==============================================
 Classification Model Validation Tutorial
 ==============================================
@@ -17,24 +19,23 @@ Currently deepchecks supports only single label classification (either binary or
 # Defining the data and model
 # ===========================
 
+# Importing the required packages
+
 import os
 import urllib.request
 import zipfile
 
 import albumentations as A
-import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import PIL.Image
 import torch
-# Importing the required packages
 import torchvision
 from albumentations.pytorch import ToTensorV2
 from torch import nn
-from torchvision import datasets, models, transforms
+from torchvision import transforms
 from torchvision.datasets import ImageFolder
 
-import deepchecks
 from deepchecks.vision.classification_data import ClassificationData
 
 #%%

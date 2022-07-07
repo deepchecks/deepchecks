@@ -31,7 +31,7 @@ class ColumnsInfo(SingleDatasetCheck):
         super().__init__(**kwargs)
         self.n_top_columns = n_top_columns
 
-    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
 
         Returns
@@ -40,14 +40,21 @@ class ColumnsInfo(SingleDatasetCheck):
             value is dictionary of a column and its role and logical type.
             display a table of the dictionary.
         """
-        if dataset_type == 'train':
-            dataset = context.train
-        else:
-            dataset = context.test
+        dataset = context.get_data_by_kind(dataset_kind)
+        columns_info = dataset.columns_info
+        columns_info = column_importance_sorter_dict(columns_info, dataset, context.feature_importance)
 
-        value = dataset.columns_info
-        value = column_importance_sorter_dict(value, dataset, context.features_importance, self.n_top_columns)
-        df = pd.DataFrame.from_dict(value, orient='index', columns=['role'])
+        columns_info_to_display = (
+            columns_info
+            if len(columns_info) <= self.n_top_columns
+            else dict(list(columns_info.items())[:self.n_top_columns])
+        )
+
+        df = pd.DataFrame.from_dict(columns_info_to_display, orient='index', columns=['role'])
         df = df.transpose()
 
-        return CheckResult(value, header='Columns Info', display=[N_TOP_MESSAGE % self.n_top_columns, df])
+        return CheckResult(
+            columns_info,
+            header='Columns Info',
+            display=[N_TOP_MESSAGE % self.n_top_columns, df]
+        )

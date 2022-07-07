@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 import numpy as np
-from hamcrest import assert_that, close_to, equal_to, has_entries, has_items, has_length, matches_regexp
+from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_items, has_length, matches_regexp
 from ignite.metrics import Precision, Recall
 
 from deepchecks.vision.checks import ImageSegmentPerformance
@@ -29,6 +29,23 @@ def test_mnist(mnist_dataset_train, mock_trained_mnist, device):
             'metrics': has_entries({'Precision': close_to(0.982, 0.001), 'Recall': close_to(0.979, 0.001)})
         })),
     }))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_mnist_without_display(mnist_dataset_train, mock_trained_mnist, device):
+    # Act
+    result = ImageSegmentPerformance().run(mnist_dataset_train, mock_trained_mnist,
+                                           n_samples=None, device=device, with_display=False)
+    # Assert
+    assert_that(result.value, has_entries({
+        'Brightness': has_length(5),
+        'Area': has_length(1),
+        'Aspect Ratio': has_items(has_entries({
+            'start': 1.0, 'stop': np.inf, 'count': 60000, 'display_range': '[1, inf)',
+            'metrics': has_entries({'Precision': close_to(0.982, 0.001), 'Recall': close_to(0.979, 0.001)})
+        })),
+    }))
+    assert_that(result.display, has_length(0))
 
 
 def test_mnist_no_display(mnist_dataset_train, mock_trained_mnist, device):
@@ -83,8 +100,8 @@ def test_mnist_alt_metrics(mnist_dataset_train, mock_trained_mnist, device):
 
 def test_coco_and_condition(coco_train_visiondata, mock_trained_yolov5_object_detection, device):
     # Arrange
-    check = ImageSegmentPerformance().add_condition_score_from_mean_ratio_not_less_than(0.5) \
-        .add_condition_score_from_mean_ratio_not_less_than(0.1)
+    check = ImageSegmentPerformance().add_condition_score_from_mean_ratio_greater_than(0.6) \
+        .add_condition_score_from_mean_ratio_greater_than(0.1)
     # Act
     result = check.run(coco_train_visiondata, mock_trained_yolov5_object_detection, device=device)
     # Assert result
@@ -117,12 +134,16 @@ def test_coco_and_condition(coco_train_visiondata, mock_trained_yolov5_object_de
     assert_that(result.conditions_results, has_items(
         equal_condition_result(
             is_pass=True,
-            name='No segment with ratio between score to mean less than 10%'
+            name='Segment\'s ratio between score to mean is greater than 10%',
+            details="Found minimum ratio for property Mean Green Relative Intensity: "
+                    "{'Range': '[0.34, 0.366)', 'Metric': 'Average Precision', 'Ratio': 0.44}"
         ),
         equal_condition_result(
             is_pass=False,
-            name='No segment with ratio between score to mean less than 50%',
-            details="Properties with failed segments: Mean Green Relative Intensity: "
-                    "{'Range': '[0.34, 0.366)', 'Metric': 'Average Precision', 'Ratio': 0.44}"
+            name='Segment\'s ratio between score to mean is greater than 60%',
+            details="Properties with failed segments: "
+                    "Brightness: {'Range': '[0.48, 0.54)', 'Metric': 'Average Recall', 'Ratio': 0.55}, "
+                    "Mean Green Relative Intensity: {'Range': '[0.34, 0.366)', 'Metric': 'Average Precision', "
+                    "'Ratio': 0.44}"
         )
     ))

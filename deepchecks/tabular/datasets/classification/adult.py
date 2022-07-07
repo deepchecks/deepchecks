@@ -140,7 +140,7 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
         'Dataset' will return the data as a Dataset object
         'Dataframe' will return the data as a pandas Dataframe object
 
-    as_train_test : bool, default: False
+    as_train_test : bool, default: True
         If True, the returned data is splitted into train and test exactly like the toy model
         was trained. The first return value is the train data and the second is the test data.
         In order to get this model, call the load_fitted_model() function.
@@ -154,7 +154,7 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
         tuple if as_train_test = True. Tuple of two objects represents the dataset splitted to train and test sets.
     """
     if not as_train_test:
-        dataset = pd.read_csv(_FULL_DATA_URL)
+        dataset = pd.read_csv(_FULL_DATA_URL, names=_FEATURES + [_target])
 
         if data_format == 'Dataset':
             dataset = Dataset(dataset, label=_target, cat_features=_CAT_FEATURES)

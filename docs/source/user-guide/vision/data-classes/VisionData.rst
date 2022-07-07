@@ -32,8 +32,8 @@ Examples
 
     from deepchecks.vision import VisionData
 
-    class NormalizedImagesData(VisionData)
-    """Implement a VisionData class for PIL images."""
+    class NormalizedImagesData(VisionData):
+        """Implement a VisionData class for PIL images."""
 
         def batch_to_images(self, batch):
             """Convert a batch of images to a list of PIL images.

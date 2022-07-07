@@ -48,17 +48,14 @@ def test_model_inference_time_check_with_condition_that_should_pass(
 ):
     # Arrange
     _, test, model = iris_split_dataset_and_model
-    check = ModelInferenceTime().add_condition_inference_time_is_not_greater_than(0.1)
+    check = ModelInferenceTime().add_condition_inference_time_less_than(0.1)
 
     # Act
     result = check.run(test, model)
     condition_result, *_ = check.conditions_decision(result)
 
     # Assert
-    name = (
-        'Average model inference time for one sample is not '
-        'greater than 0.1'
-    )
+    name = 'Average model inference time for one sample is less than 0.1'
     details_pattern = re.compile(
         fr'Found average inference time \(seconds\): {SCIENTIFIC_NOTATION_REGEXP.pattern}'
     )
@@ -75,17 +72,14 @@ def test_model_inference_time_check_with_condition_that_should_not_pass(
 ):
     # Arrange
     _, test, model = iris_split_dataset_and_model
-    check = ModelInferenceTime().add_condition_inference_time_is_not_greater_than(0.00000001)
+    check = ModelInferenceTime().add_condition_inference_time_less_than(0.00000001)
 
     # Act
     result = check.run(test, model)
     condition_result, *_ = check.conditions_decision(result)
 
     # Assert
-    name = (
-        'Average model inference time for one sample is not '
-        'greater than 1e-08'
-    )
+    name = 'Average model inference time for one sample is less than 1e-08'
     details_pattern = re.compile(
         fr'Found average inference time \(seconds\): {SCIENTIFIC_NOTATION_REGEXP.pattern}'
     )

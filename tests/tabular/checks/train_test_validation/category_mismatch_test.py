@@ -11,7 +11,7 @@
 """Contains unit tests for the new_category_train_validation check"""
 
 import pandas as pd
-from hamcrest import assert_that, calling, equal_to, has_items, has_length, raises
+from hamcrest import assert_that, calling, equal_to, greater_than, has_items, has_length, raises
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.checks.train_test_validation import CategoryMismatchTrainTest
@@ -55,9 +55,25 @@ def test_new_category():
     # Arrange
     check = CategoryMismatchTrainTest()
     # Act X
-    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
+    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
     # Assert
-    assert_that(result, equal_to({'new_categories': {'col1': {'d': 1}}, 'test_count': 4}))
+    assert_that(result.value, equal_to({'new_categories': {'col1': {'d': 1}}, 'test_count': 4}))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_new_category_without_display():
+    train_data = {'col1': ['a', 'b', 'c']}
+    test_data = {'col1': ['a', 'b', 'c', 'd']}
+    train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1']), cat_features=['col1'])
+    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1']), cat_features=['col1'])
+
+    # Arrange
+    check = CategoryMismatchTrainTest()
+    # Act X
+    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset, with_display=False)
+    # Assert
+    assert_that(result.value, equal_to({'new_categories': {'col1': {'d': 1}}, 'test_count': 4}))
+    assert_that(result.display, has_length(0))
 
 
 def test_missing_category():
@@ -157,7 +173,7 @@ def test_condition_categories_fail():
                            cat_features=['col1', 'col2'])
 
     # Arrange
-    check = CategoryMismatchTrainTest().add_condition_new_categories_not_greater_than(0)
+    check = CategoryMismatchTrainTest().add_condition_new_categories_less_or_equal(0)
 
     # Act
     result = check.conditions_decision(check.run(train_dataset, test_dataset))
@@ -166,7 +182,7 @@ def test_condition_categories_fail():
         equal_condition_result(is_pass=False,
                                details='Found 1 out of 2 columns with number of new categories above threshold:'
                                        '\n{\'col1\': 1}',
-                               name='Number of new category values is not greater than 0')
+                               name='Number of new category values is less or equal to 0')
     ))
 
 
@@ -178,7 +194,7 @@ def test_condition_categories_pass():
                            cat_features=['col1', 'col2'])
 
     # Arrange
-    check = CategoryMismatchTrainTest().add_condition_new_categories_not_greater_than(1)
+    check = CategoryMismatchTrainTest().add_condition_new_categories_less_or_equal(1)
 
     # Act
     result = check.conditions_decision(check.run(train_dataset, test_dataset))
@@ -187,7 +203,7 @@ def test_condition_categories_pass():
         equal_condition_result(is_pass=True,
                                details='Passed for 2 relevant columns. Top columns with new categories count:\n'
                                        '{\'col1\': 1}',
-                               name='Number of new category values is not greater than 1')
+                               name='Number of new category values is less or equal to 1')
     ))
 
 
@@ -199,7 +215,7 @@ def test_condition_count_fail():
                            cat_features=['col1', 'col2'])
 
     # Arrange
-    check = CategoryMismatchTrainTest().add_condition_new_category_ratio_not_greater_than(0.1)
+    check = CategoryMismatchTrainTest().add_condition_new_category_ratio_less_or_equal(0.1)
 
     # Act
     result = check.conditions_decision(check.run(train_dataset, test_dataset))
@@ -209,7 +225,7 @@ def test_condition_count_fail():
             is_pass=False,
             details='Found 1 out of 2 columns with ratio of new category samples above threshold:'
                     '\n{\'col1\': \'25%\'}',
-            name='Ratio of samples with a new category is not greater than 10%')
+            name='Ratio of samples with a new category is less or equal to 10%')
     ))
 
 
@@ -221,7 +237,7 @@ def test_condition_count_pass():
                            cat_features=['col1', 'col2'])
 
     # Arrange
-    check = CategoryMismatchTrainTest().add_condition_new_category_ratio_not_greater_than(0.3)
+    check = CategoryMismatchTrainTest().add_condition_new_category_ratio_less_or_equal(0.3)
 
     # Act
     result = check.conditions_decision(check.run(train_dataset, test_dataset))
@@ -230,5 +246,5 @@ def test_condition_count_pass():
         equal_condition_result(is_pass=True,
                                details='Passed for 2 relevant columns. Top columns with new categories ratio:\n'
                                        '{\'col1\': \'25%\', \'col2\': \'0%\'}',
-                               name='Ratio of samples with a new category is not greater than 30%')
+                               name='Ratio of samples with a new category is less or equal to 30%')
     ))

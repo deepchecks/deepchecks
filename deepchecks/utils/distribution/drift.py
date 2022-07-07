@@ -19,7 +19,7 @@ from scipy.stats import chi2_contingency, wasserstein_distance
 
 from deepchecks import ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
-from deepchecks.utils.dict_funcs import get_max_entry_from_dict
+from deepchecks.utils.dict_funcs import get_dict_entry_by_value
 from deepchecks.utils.distribution.plot import drift_score_bar_traces, feature_distribution_traces
 from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
 from deepchecks.utils.strings import format_number, format_percent
@@ -67,9 +67,9 @@ def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.S
     Parameters
     ----------
     dist1 : Union[np.ndarray, pd.Series]
-        array of numberical values.
+        array of numerical values.
     dist2 : Union[np.ndarray, pd.Series]
-        array of numberical values to compare dist1 to.
+        array of numerical values to compare dist1 to.
     Returns
     -------
     float
@@ -79,15 +79,18 @@ def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.S
     dist1_counts, dist2_counts, _ = preprocess_2_cat_cols_to_same_bins(dist1=dist1, dist2=dist2)
     contingency_matrix = pd.DataFrame([dist1_counts, dist2_counts])
 
-    chi2 = chi2_contingency(contingency_matrix)[0]
-    n = contingency_matrix.sum().sum()
-    phi2 = chi2/n
-    r, k = contingency_matrix.shape
+    # If columns have the same single value in both (causing division by 0), return 0 drift score:
+    if contingency_matrix.shape[1] == 1:
+        return 0
 
     # This is based on
     # https://stackoverflow.com/questions/46498455/categorical-features-correlation/46498792#46498792 # noqa: SC100
     # and reused in other sources
     # (https://towardsdatascience.com/the-search-for-categorical-correlation-a1cf7f1888c9) # noqa: SC100
+    chi2 = chi2_contingency(contingency_matrix)[0]
+    n = contingency_matrix.sum().sum()
+    phi2 = chi2/n
+    r, k = contingency_matrix.shape
     phi2corr = max(0, phi2 - ((k-1)*(r-1))/(n-1))
     rcorr = r - ((r-1)**2)/(n-1)
     kcorr = k - ((k-1)**2)/(n-1)
@@ -135,9 +138,9 @@ def earth_movers_distance(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.n
     Parameters
     ----------
     dist1: Union[np.ndarray, pd.Series]
-        array of numberical values.
+        array of numerical values.
     dist2: Union[np.ndarray, pd.Series]
-        array of numberical values to compare dist1 to.
+        array of numerical values to compare dist1 to.
     margin_quantile_filter: float
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
@@ -186,7 +189,8 @@ def calc_drift_and_plot(train_column: pd.Series,
                         max_num_categories_for_display: int = 10,
                         show_categories_by: str = 'largest_difference',
                         categorical_drift_method='cramer_v',
-                        min_samples: int = 10) -> Tuple[float, str, Callable]:
+                        min_samples: int = 10,
+                        with_display: bool = True) -> Tuple[float, str, Callable]:
     """
     Calculate drift score per column.
 
@@ -242,6 +246,10 @@ def calc_drift_and_plot(train_column: pd.Series,
         test_dist = test_dist.astype('float')
 
         score = earth_movers_distance(dist1=train_dist, dist2=test_dist, margin_quantile_filter=margin_quantile_filter)
+
+        if not with_display:
+            return score, scorer_name, None
+
         bar_traces, bar_x_axis, bar_y_axis = drift_score_bar_traces(score)
 
         dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(train_dist, test_dist, value_name)
@@ -259,6 +267,10 @@ def calc_drift_and_plot(train_column: pd.Series,
         else:
             raise ValueError('Excpected categorical_drift_method to be one '
                              f'of [Cramer, PSI], recieved: {categorical_drift_method}')
+
+        if not with_display:
+            return score, scorer_name, None
+
         bar_traces, bar_x_axis, bar_y_axis = drift_score_bar_traces(score, bar_max=1)
         dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(
             train_dist, test_dist, value_name, is_categorical=True,
@@ -321,7 +333,7 @@ def drift_condition(max_allowed_categorical_score: float,
                     max_allowed_numeric_score: float,
                     subject_single: str,
                     subject_multi: str,
-                    number_of_top_to_consider: int = None):
+                    allowed_num_subjects_exceeding_threshold: int = 0):
     """Create a condition function to be used in drift check's conditions.
 
     Parameters
@@ -334,31 +346,23 @@ def drift_condition(max_allowed_categorical_score: float,
         String that represents the subject being tested as single (feature, column, property)
     subject_multi: str
         String that represents the subject being tested as multiple (features, columns, properties)
-    number_of_top_to_consider: int, default: None
-        Number of top values to consider in the condition
+    allowed_num_subjects_exceeding_threshold: int, default: 0
+        Determines the number of properties with drift score above threshold needed to fail the condition.
     """
     def condition(result: dict):
         cat_method, num_method = get_drift_method(result)
-        if number_of_top_to_consider:
-            if all(x['Importance'] is not None for x in result.values()):
-                sorted_result = sorted(result.items(), key=lambda item: item[1]['Importance'], reverse=True)
-            else:
-                sorted_result = sorted(result.items(), key=lambda item: item[1]['Drift score'], reverse=True)
-            result = dict(sorted_result[:number_of_top_to_consider])
-
         cat_drift_props = {prop: d['Drift score'] for prop, d in result.items()
                            if d['Method'] in SUPPORTED_CATEGORICAL_METHODS}
         not_passing_categorical_props = {props: format_number(d) for props, d in cat_drift_props.items()
-                                         if d > max_allowed_categorical_score}
-
+                                         if d >= max_allowed_categorical_score}
         num_drift_props = {prop: d['Drift score'] for prop, d in result.items()
                            if d['Method'] in SUPPORTED_NUMERIC_METHODS}
         not_passing_numeric_props = {prop: format_number(d) for prop, d in num_drift_props.items()
-                                     if d > max_allowed_numeric_score}
+                                     if d >= max_allowed_numeric_score}
 
-        if not_passing_categorical_props or not_passing_numeric_props:
-            details = f'Failed for {len(not_passing_categorical_props) + len(not_passing_numeric_props)} out of ' \
-                      f'{len(result)} {subject_multi}.'
+        num_failed = len(not_passing_categorical_props) + len(not_passing_numeric_props)
+        if num_failed > allowed_num_subjects_exceeding_threshold:
+            details = f'Failed for {num_failed} out of {len(result)} {subject_multi}.'
             if not_passing_categorical_props:
                 details += f'\nFound {len(not_passing_categorical_props)} categorical {subject_multi} with ' \
                            f'{cat_method} above threshold: {not_passing_categorical_props}'
@@ -367,13 +371,13 @@ def drift_condition(max_allowed_categorical_score: float,
                            f' threshold: {not_passing_numeric_props}'
             return ConditionResult(ConditionCategory.FAIL, details)
         else:
-            details = f'Passed for {len(result)} {subject_multi}.'
+            details = f'Passed for {len(result) - num_failed} {subject_multi} out of {len(result)} {subject_multi}.'
             if cat_drift_props:
-                prop, score = get_max_entry_from_dict(cat_drift_props)
+                prop, score = get_dict_entry_by_value(cat_drift_props)
                 details += f'\nFound {subject_single} "{prop}" has the highest categorical drift score: ' \
                            f'{format_number(score)}'
             if num_drift_props:
-                prop, score = get_max_entry_from_dict(num_drift_props)
+                prop, score = get_dict_entry_by_value(num_drift_props)
                 details += f'\nFound {subject_single} "{prop}" has the highest numerical drift score: ' \
                            f'{format_number(score)}'
             return ConditionResult(ConditionCategory.PASS, details)

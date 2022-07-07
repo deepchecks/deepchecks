@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Unused features tests."""
-from hamcrest import assert_that, equal_to
+from hamcrest import assert_that, equal_to, greater_than, has_length
 
 from deepchecks.tabular.checks.model_evaluation import UnusedFeatures
 
@@ -26,6 +26,22 @@ def test_unused_feature_detection(iris_split_dataset_and_model_rf):
                                                               'sepal length (cm)'}))
     assert_that(set(result.value['unused features']['high variance']), equal_to({'sepal width (cm)'}))
     assert_that(set(result.value['unused features']['low variance']), equal_to(set()))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_unused_feature_detection_without_display(iris_split_dataset_and_model_rf):
+    # Arrange
+    train, validation, clf = iris_split_dataset_and_model_rf
+
+    # Act
+    result = UnusedFeatures().run(train, validation, clf, with_display=False)
+
+    # Assert
+    assert_that(set(result.value['used features']), equal_to({'petal width (cm)', 'petal length (cm)',
+                                                              'sepal length (cm)'}))
+    assert_that(set(result.value['unused features']['high variance']), equal_to({'sepal width (cm)'}))
+    assert_that(set(result.value['unused features']['low variance']), equal_to(set()))
+    assert_that(result.display, has_length(0))
 
 
 def test_low_feature_importance_threshold(iris_split_dataset_and_model_rf):

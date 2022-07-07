@@ -18,7 +18,7 @@ import pandas as pd
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
-from deepchecks.utils.dict_funcs import get_max_entry_from_dict
+from deepchecks.utils.dict_funcs import get_dict_entry_by_value
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Batch, Context, TrainTestCheck
@@ -105,6 +105,7 @@ class ImagePropertyDrift(TrainTestCheck):
         self.show_categories_by = show_categories_by
         self.classes_to_display = classes_to_display
         self.min_samples = min_samples
+
         self._train_properties = None
         self._test_properties = None
         self._class_to_string = None
@@ -194,7 +195,8 @@ class ImagePropertyDrift(TrainTestCheck):
                     max_num_categories_for_drift=self.max_num_categories_for_drift,
                     max_num_categories_for_display=self.max_num_categories_for_display,
                     show_categories_by=self.show_categories_by,
-                    min_samples=self.min_samples
+                    min_samples=self.min_samples,
+                    with_display=context.with_display,
                 )
 
                 figures[property_name] = figure
@@ -202,7 +204,7 @@ class ImagePropertyDrift(TrainTestCheck):
             except NotEnoughSamplesError:
                 not_enough_samples.append(property_name)
 
-        if drifts:
+        if context.with_display:
             columns_order = sorted(properties, key=lambda col: drifts.get(col, 0), reverse=True)
             properties_to_display = [p for p in properties if p in drifts]
 
@@ -217,21 +219,20 @@ class ImagePropertyDrift(TrainTestCheck):
 
             displays = [headnote] + [figures[col] for col in columns_order if col in figures]
         else:
-            drifts = {}
             displays = []
 
         return CheckResult(
-            value=drifts,
+            value=drifts if drifts else {},
             display=displays,
             header='Image Property Drift'
         )
 
-    def add_condition_drift_score_not_greater_than(
+    def add_condition_drift_score_less_than(
         self: TImagePropertyDrift,
         max_allowed_drift_score: float = 0.1
     ) -> TImagePropertyDrift:
         """
-        Add condition - require drift score to not be more than a certain threshold.
+        Add condition - require drift score to be less than a certain threshold.
 
         Parameters
         ----------
@@ -248,7 +249,7 @@ class ImagePropertyDrift(TrainTestCheck):
             failed_properties = [
                 (property_name, drift_score)
                 for property_name, drift_score in result.items()
-                if drift_score > max_allowed_drift_score
+                if drift_score >= max_allowed_drift_score
             ]
             if len(failed_properties) > 0:
                 failed_properties = ';\n'.join(f'{p}={format_number(d)}' for p, d in failed_properties)
@@ -261,11 +262,11 @@ class ImagePropertyDrift(TrainTestCheck):
                 if not result:
                     details = 'Did not calculate drift score on any property'
                 else:
-                    prop, score = get_max_entry_from_dict(result)
+                    prop, score = get_dict_entry_by_value(result)
                     details = f'Found property {prop} with largest Earth Mover\'s Distance score {format_number(score)}'
                 return ConditionResult(ConditionCategory.PASS, details)
 
         return self.add_condition(
-            f'Earth Mover\'s Distance <= {max_allowed_drift_score} for image properties drift',
+            f'Earth Mover\'s Distance < {max_allowed_drift_score} for image properties drift',
             condition
         )

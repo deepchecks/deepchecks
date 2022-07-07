@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_tabular_train_test_prediction_drift:
+
 Train Test Prediction Drift
 ***************************
 
@@ -13,7 +15,8 @@ This notebooks provides an overview for using and understanding the tabular pred
 * `Run check <#run-check>`__
 
 What Is Prediction Drift?
-========================
+=========================
+
 Drift is simply a change in the distribution of data over time, and it is
 also one of the top reasons why machine learning model's performance degrades
 over time.
@@ -28,7 +31,7 @@ predictions. If labels are available, it's also recommended to run the
 For more information on drift, please visit our :doc:`drift guide </user-guide/general/drift_guide>`.
 
 How Deepchecks Detects Prediction Drift
-------------------------------------
+---------------------------------------
 
 This check detects prediction drift by using :ref:`univariate measures <drift_detection_by_univariate_measure>`
 on the prediction output.

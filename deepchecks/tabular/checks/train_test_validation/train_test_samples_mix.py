@@ -12,6 +12,7 @@
 from typing import Any, List
 
 import pandas as pd
+from pandas.core.dtypes.common import is_integer_dtype
 
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.condition import ConditionCategory
@@ -50,8 +51,8 @@ class TrainTestSamplesMix(TrainTestCheck):
         columns = test_dataset.features + [test_dataset.label_name]
 
         # For pandas.groupby in python 3.6, there is problem with comparing numpy nan, so replace with placeholder
-        train_df = fillna(train_dataset.data)
-        test_df = fillna(test_dataset.data)
+        train_df = _fillna(train_dataset.data)
+        test_df = _fillna(test_dataset.data)
 
         train_uniques = _create_unique_frame(train_df, columns, text_prefix='Train indices: ')
         test_uniques = _create_unique_frame(test_df, columns, text_prefix='Test indices: ')
@@ -63,12 +64,13 @@ class TrainTestSamplesMix(TrainTestCheck):
         dup_ratio = test_dup_count / test_dataset.n_samples
         user_msg = f'{format_percent(dup_ratio)} ({test_dup_count} / {test_dataset.n_samples}) \
                      of test data samples appear in train data'
-        display = [user_msg, duplicates_df.head(10)] if dup_ratio else None
+        display = [user_msg, duplicates_df.head(10)] if context.with_display and dup_ratio else None
         result = {'ratio': dup_ratio, 'data': duplicates_df}
         return CheckResult(result, header='Train Test Samples Mix', display=display)
 
-    def add_condition_duplicates_ratio_not_greater_than(self, max_ratio: float = 0.1):
-        """Add condition - require max allowed ratio of test data samples to appear in train data.
+    def add_condition_duplicates_ratio_less_or_equal(self, max_ratio: float = 0.1):
+        """Add condition - require ratio of test data samples that appear in train data to be less or equal to the\
+         threshold.
 
         Parameters
         ----------
@@ -77,15 +79,13 @@ class TrainTestSamplesMix(TrainTestCheck):
         """
         def condition(result: dict) -> ConditionResult:
             ratio = result['ratio']
-            if ratio == 0:
-                return ConditionResult(ConditionCategory.PASS, 'No samples mix found')
-
-            details = f'Percent of test data samples that appear in train data: {format_percent(ratio)}'
-            category = ConditionCategory.FAIL if ratio > max_ratio else ConditionCategory.PASS
+            details = f'Percent of test data samples that appear in train data: {format_percent(ratio)}' if ratio else \
+                'No samples mix found'
+            category = ConditionCategory.PASS if ratio <= max_ratio else ConditionCategory.FAIL
             return ConditionResult(category, details)
 
         return self.add_condition(f'Percentage of test data samples that appear in train data '
-                                  f'not greater than {format_percent(max_ratio)}',
+                                  f'is less or equal to {format_percent(max_ratio)}',
                                   condition)
 
 
@@ -145,16 +145,21 @@ def _get_dup_info(index_arr: list, text_prefix: str) -> dict:
 NAN_REPLACEMENT = '__deepchecks_na_filler__'
 
 
-def fillna(
+def _fillna_col(column: pd.Series, value: Any):
+    if isinstance(column.dtype, pd.CategoricalDtype):
+        return column.cat.add_categories([value]).fillna(value=value)
+    if is_integer_dtype(column):
+        # nullable int series cannot be filled with a string
+        return column.astype(float).fillna(value=value)
+    return column.fillna(value=value)
+
+
+def _fillna(
     df: pd.DataFrame,
     value: Any = NAN_REPLACEMENT
 ) -> pd.DataFrame:
     """Fill nan values."""
     return pd.DataFrame({
-        name: (
-            column.cat.add_categories([value]).fillna(value=value)
-            if isinstance(column.dtype, pd.CategoricalDtype)
-            else column.fillna(value=value)
-        )
+        name: (_fillna_col(column, value))
         for name, column in df.iteritems()
     })

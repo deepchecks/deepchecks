@@ -12,7 +12,7 @@
 import re
 from typing import Pattern, Union
 
-from hamcrest import all_of, has_property, matches_regexp
+from hamcrest import all_of, has_property, is_in, matches_regexp
 from hamcrest.core.matcher import Matcher
 
 from deepchecks.core import ConditionCategory
@@ -31,7 +31,9 @@ def equal_condition_result(
     category: ConditionCategory = None
 ) -> Matcher[Matcher[object]]:
     if category is None:
-        category = ConditionCategory.PASS if is_pass else ConditionCategory.FAIL
+        possible_categories = [ConditionCategory.PASS] if is_pass else [ConditionCategory.FAIL, ConditionCategory.WARN]
+    else:
+        possible_categories = [category]
 
     # Check if details is a regex class
     if hasattr(details, 'match'):
@@ -40,8 +42,7 @@ def equal_condition_result(
         details_matcher = details
 
     return all_of(
-        has_property('is_pass', is_pass),
-        has_property('category', category),
+        has_property('category', is_in(possible_categories)),
         has_property('details', details_matcher),
         has_property('name', name)
     )

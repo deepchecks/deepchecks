@@ -18,6 +18,7 @@ import sklearn
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular import Context, SingleDatasetCheck
+from deepchecks.utils.dict_funcs import get_dict_entry_by_value
 from deepchecks.utils.strings import format_number
 
 __all__ = ['RocReport']
@@ -38,7 +39,7 @@ class RocReport(SingleDatasetCheck):
         super().__init__(**kwargs)
         self.excluded_classes = excluded_classes or []
 
-    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
 
         Returns
@@ -51,11 +52,7 @@ class RocReport(SingleDatasetCheck):
         DeepchecksValueError
             If the object is not a Dataset instance with a label
         """
-        if dataset_type == 'train':
-            dataset = context.train
-        else:
-            dataset = context.test
-
+        dataset = context.get_data_by_kind(dataset_kind)
         context.assert_classification_task()
         ds_y = dataset.label_col
         ds_x = dataset.features_columns
@@ -75,55 +72,60 @@ class RocReport(SingleDatasetCheck):
                 sklearn.metrics.roc_curve(multi_y[:, i], y_pred_prob[:, i])
             roc_auc[class_name] = sklearn.metrics.auc(fpr[class_name], tpr[class_name])
 
-        fig = go.Figure()
-        for class_name in dataset_classes:
-            if class_name in self.excluded_classes:
-                continue
+        if context.with_display:
+            fig = go.Figure()
+            for class_name in dataset_classes:
+                if class_name in self.excluded_classes:
+                    continue
+                if len(dataset_classes) == 2:
+                    fig.add_trace(go.Scatter(
+                        x=fpr[class_name],
+                        y=tpr[class_name],
+                        line_width=2,
+                        name=f'auc = {roc_auc[class_name]:0.2f}',
+                    ))
+                    fig.add_trace(get_cutoff_figure(tpr[class_name], fpr[class_name], thresholds[class_name]))
+                    break
+                else:
+                    fig.add_trace(go.Scatter(
+                        x=fpr[class_name],
+                        y=tpr[class_name],
+                        line_width=2,
+                        name=f'Class {class_name} (auc = {roc_auc[class_name]:0.2f})'
+                    ))
+                    fig.add_trace(get_cutoff_figure(tpr[class_name], fpr[class_name],
+                                                    thresholds[class_name], class_name))
+            fig.add_trace(go.Scatter(
+                x=[0, 1],
+                y=[0, 1],
+                line=dict(color='#444'),
+                line_width=2, line_dash='dash',
+                showlegend=False
+            ))
+            fig.update_xaxes(title='False Positive Rate')
+            fig.update_yaxes(title='True Positive Rate')
             if len(dataset_classes) == 2:
-                fig.add_trace(go.Scatter(
-                    x=fpr[class_name],
-                    y=tpr[class_name],
-                    line_width=2,
-                    name=f'auc = {roc_auc[class_name]:0.2f}',
-                ))
-                fig.add_trace(get_cutoff_figure(tpr[class_name], fpr[class_name], thresholds[class_name]))
-                break
+                fig.update_layout(
+                    title_text='Receiver operating characteristic for binary data',
+                    height=500
+                )
             else:
-                fig.add_trace(go.Scatter(
-                    x=fpr[class_name],
-                    y=tpr[class_name],
-                    line_width=2,
-                    name=f'Class {class_name} (auc = {roc_auc[class_name]:0.2f})'
-                ))
-                fig.add_trace(get_cutoff_figure(tpr[class_name], fpr[class_name], thresholds[class_name], class_name))
-        fig.add_trace(go.Scatter(
-                    x=[0, 1],
-                    y=[0, 1],
-                    line=dict(color='#444'),
-                    line_width=2, line_dash='dash',
-                    showlegend=False
-                ))
-        fig.update_xaxes(title='False Positive Rate')
-        fig.update_yaxes(title='True Positive Rate')
-        if len(dataset_classes) == 2:
-            fig.update_layout(
-                title_text='Receiver operating characteristic for binary data',
-                height=500
-            )
+                fig.update_layout(
+                    title_text='Receiver operating characteristic for multi-class data',
+                    height=500
+                )
+
+            footnote = """<span style="font-size:0.8em"><i>
+            The marked points are the optimal threshold cut-off points. They are determined using Youden's index defined
+            as sensitivity + specificity - 1
+            </i></span>"""
+            display = [fig, footnote]
         else:
-            fig.update_layout(
-                title_text='Receiver operating characteristic for multi-class data',
-                height=500
-            )
+            display = None
 
-        footnote = """<span style="font-size:0.8em"><i>
-        The marked points are the optimal threshold cut-off points. They are determined using Youden's index defined
-        as sensitivity + specificity - 1
-        </i></span>"""
+        return CheckResult(roc_auc, header='ROC Report', display=display)
 
-        return CheckResult(roc_auc, header='ROC Report', display=[fig, footnote])
-
-    def add_condition_auc_not_less_than(self, min_auc: float = 0.7):
+    def add_condition_auc_greater_than(self, min_auc: float = 0.7):
         """Add condition - require min allowed AUC score per class.
 
         Parameters
@@ -134,20 +136,20 @@ class RocReport(SingleDatasetCheck):
         """
         def condition(result: Dict) -> ConditionResult:
             failed_classes = {class_name: format_number(score)
-                              for class_name, score in result.items() if score < min_auc}
+                              for class_name, score in result.items() if score <= min_auc}
             if failed_classes:
                 return ConditionResult(ConditionCategory.FAIL,
                                        f'Found classes with AUC below threshold: {failed_classes}')
             else:
-                avg_auc = sum(result.values()) / len(result)
-                details = f'All classes passed, average AUC is {format_number(avg_auc)}'
+                class_name, score = get_dict_entry_by_value(result, value_select_fn=min)
+                details = f'All classes passed, minimum AUC found is {format_number(score)} for class {class_name}'
                 return ConditionResult(ConditionCategory.PASS, details)
 
         if self.excluded_classes:
             suffix = f' except: {self.excluded_classes}'
         else:
             suffix = ''
-        return self.add_condition(f'AUC score for all the classes{suffix} is not less than {min_auc}',
+        return self.add_condition(f'AUC score for all the classes{suffix} is greater than {min_auc}',
                                   condition)
 
 

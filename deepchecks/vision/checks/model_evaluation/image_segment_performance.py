@@ -23,6 +23,7 @@ from deepchecks import ConditionResult
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.utils import plot
+from deepchecks.utils.dict_funcs import get_dict_entry_by_value
 from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.vision import Batch, Context, SingleDatasetCheck
 from deepchecks.vision.metrics_utils import get_scorers_list, metric_results_to_df
@@ -72,8 +73,9 @@ class ImageSegmentPerformance(SingleDatasetCheck):
 
         self.alternative_metrics = alternative_metrics
         self.number_of_bins = number_of_bins
-        self.n_to_show = n_to_show
         self.number_of_samples_to_infer_bins = number_of_samples_to_infer_bins
+        self.n_to_show = n_to_show
+
         self._state = None
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
@@ -152,7 +154,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
                 single_bin['metrics'] = _calculate_metrics(single_bin['metrics'], dataset)
                 single_bin['display_range'] = display_range
                 # we don't show single columns in the display
-                if len(prop_bins) > 1:
+                if context.with_display and len(prop_bins) > 1:
                     # For the plotly display need row per metric in the dataframe
                     for metric, val in single_bin['metrics'].items():
                         display_data.append({'Metric': metric, 'Value': val, **bin_data})
@@ -160,16 +162,24 @@ class ImageSegmentPerformance(SingleDatasetCheck):
                 result_value[property_name].append(single_bin)
 
         display_df = pd.DataFrame(display_data)
+
         if display_df.empty:
             return CheckResult(value=dict(result_value))
+
         first_metric = display_df['Metric'][0]
+
         if self.alternative_metrics is None:
             display_df = display_df[display_df['Metric'] == first_metric]
-        top_properties = display_df[display_df['Metric'] == first_metric] \
-            .groupby('Property')[['Value']] \
-            .agg(np.ptp).sort_values('Value', ascending=False).head(self.n_to_show) \
+
+        top_properties = (
+            display_df[display_df['Metric'] == first_metric]
+            .groupby('Property')[['Value']]
+            .agg(np.ptp).sort_values('Value', ascending=False).head(self.n_to_show)
             .reset_index()['Property']
+        )
+
         display_df = display_df[display_df['Property'].isin(top_properties)]
+
         fig = px.bar(
             display_df,
             x='Range',
@@ -222,7 +232,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         _divide_to_bins(bins, batch_data)
         return bins
 
-    def add_condition_score_from_mean_ratio_not_less_than(self, ratio=0.8):
+    def add_condition_score_from_mean_ratio_greater_than(self, ratio=0.8):
         """Calculate for each property & metric the mean score and compares ratio between the lowest segment score and\
         the mean score.
 
@@ -232,7 +242,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
            Threshold of minimal ratio allowed between the lowest segment score of a property and the mean score.
         """
         def condition(result):
-            failed_props = {}
+            min_ratio_per_property = {}
             for prop_name, prop_bins in result.items():
                 # prop bins is a list of:
                 # [{count: int, start: float, stop: float, display_range: str, metrics: {name_1: float,...}}, ...]
@@ -252,24 +262,26 @@ class ImageSegmentPerformance(SingleDatasetCheck):
                             min_ratio = np.inf if min_metric_bin['metrics'][metric] > 0 else -np.inf
                     else:
                         min_ratio = min_metric_bin['metrics'][metric] / mean_scores[metric]
-                    # Only if below threshold add to list
-                    if min_ratio < ratio:
-                        min_scores.append({'Range': min_metric_bin['display_range'],
-                                           'Metric': metric,
-                                           'Ratio': round(min_ratio, 2)})
-                # Take the lowest ratio between the failed metrics
-                if min_scores:
-                    absolutely_min_bin = sorted(min_scores, key=lambda b: b['Ratio'])[0]
-                    failed_props[prop_name] = absolutely_min_bin
 
-            if not failed_props:
-                return ConditionResult(ConditionCategory.PASS)
-            else:
+                    min_scores.append({'Range': min_metric_bin['display_range'],
+                                       'Metric': metric,
+                                       'Ratio': round(min_ratio, 2)})
+
+                # Take the lowest ratio between the failed metrics
+                min_ratio_per_property[prop_name] = sorted(min_scores, key=lambda b: b['Ratio'])[0]
+
+            failed_props = {p: b for p, b in min_ratio_per_property.items() if b['Ratio'] <= ratio}
+            if failed_props:
                 props = ', '.join(sorted([f'{p}: {m}' for p, m in failed_props.items()]))
                 msg = f'Properties with failed segments: {props}'
                 return ConditionResult(ConditionCategory.FAIL, details=msg)
+            else:
+                value_selector_fn = lambda vals: sorted(vals, key=lambda x: x['Ratio'])[0]
+                prop, min_bin = get_dict_entry_by_value(min_ratio_per_property, value_selector_fn)
+                msg = f'Found minimum ratio for property {prop}: {min_bin}'
+                return ConditionResult(ConditionCategory.PASS, details=msg)
 
-        name = f'No segment with ratio between score to mean less than {format_percent(ratio)}'
+        name = f'Segment\'s ratio between score to mean is greater than {format_percent(ratio)}'
         return self.add_condition(name, condition)
 
 

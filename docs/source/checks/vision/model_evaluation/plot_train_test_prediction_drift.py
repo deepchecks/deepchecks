@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_vision_train_test_prediction_drift:
+
 Train Test Prediction Drift
 ***************************
 
@@ -13,7 +15,7 @@ This notebooks provides an overview for using and understanding the vision predi
 * `Run Check on an Object Detection Task <#run-the-check-on-an-object-detection-task-coco>`__
 
 What Is Prediction Drift?
-========================
+=========================
 Drift is simply a change in the distribution of data over time, and it is
 also one of the top reasons why machine learning model's performance degrades
 over time.
@@ -28,7 +30,7 @@ predictions. If labels are available, it's also recommended to run the
 For more information on drift, please visit our :doc:`drift guide </user-guide/general/drift_guide>`
 
 How Deepchecks Detects Prediction Drift
-------------------------------------
+---------------------------------------
 
 This check detects prediction drift by using :ref:`univariate measures <drift_detection_by_univariate_measure>`
 on the prediction properties.
@@ -41,7 +43,7 @@ is not a straightforward task. Therefore, we calculate drift on different :doc:`
 on which we can directly measure drift.
 
 Which Prediction Properties Are Used?
-=================================
+=====================================
 
 ================  ===================================  ==========
 Task Type         Property name                        What is it
@@ -82,7 +84,17 @@ model = load_model()
 # ---------------------------------------------
 
 check = TrainTestPredictionDrift()
-check.run(train_ds, test_ds, model)
+result = check.run(train_ds, test_ds, model)
+result
+
+#%%
+# If you have a GPU, you can speed up this check by passing it as an argument to .run() as device=<your GPU>
+#
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  result.show_in_window()
+#%%
+# The result will be displayed in a new window.
 
 #%%
 # Understanding the results
@@ -146,19 +158,23 @@ from deepchecks.vision.datasets.classification.mnist import MNISTData
 mod_train_ds = MNISTData(mod_train_loader)
 mod_test_ds = MNISTData(mod_test_loader)
 
+#%%
 # Run the check
 # -------------
 
 check = TrainTestPredictionDrift()
-check.run(mod_train_ds, mod_test_ds, model)
+result = check.run(mod_train_ds, mod_test_ds, model)
+result
 
+#%%
 # Add a condition
 # ---------------
 # We could also add a condition to the check to alert us to changes in the prediction
 # distribution, such as the one that occurred here.
 
-check = TrainTestPredictionDrift().add_condition_drift_score_not_greater_than()
-check.run(mod_train_ds, mod_test_ds, model)
+check = TrainTestPredictionDrift().add_condition_drift_score_less_than()
+result = check.run(mod_train_ds, mod_test_ds, model)
+result
 
 #%%
 # As we can see, the condition alerts us to the present of drift in the prediction.
@@ -176,7 +192,8 @@ check.run(mod_train_ds, mod_test_ds, model)
 # But how does this affect the performance of the model?
 # ------------------------------------------------------
 
-ClassPerformance().run(mod_train_ds, mod_test_ds, model)
+result = ClassPerformance().run(mod_train_ds, mod_test_ds, model)
+result
 
 #%%
 # Inferring the results
@@ -198,7 +215,8 @@ model = load_model(pretrained=True)
 #%%
 
 check = TrainTestPredictionDrift()
-check.run(train_ds, test_ds, model)
+result = check.run(train_ds, test_ds, model)
+result
 
 #%%
 # Prediction drift is detected!

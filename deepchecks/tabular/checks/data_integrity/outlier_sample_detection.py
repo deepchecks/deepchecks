@@ -41,6 +41,7 @@ class OutlierSampleDetection(SingleDatasetCheck):
     LoOP relies on a distance matrix, in our implementation we use the Gower distance that measure the distance
     between two samples based on its numeric and categorical features.
     See https://statisticaloddsandends.wordpress.com/2021/02/23/what-is-gowers-distance/ for further details.
+
     Parameters
     ----------
     columns : Union[Hashable, List[Hashable]] , default: None
@@ -88,12 +89,9 @@ class OutlierSampleDetection(SingleDatasetCheck):
         self.random_state = random_state
         self.timeout = timeout
 
-    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
-        if dataset_type == 'train':
-            dataset = context.train
-        else:
-            dataset = context.test
+        dataset = context.get_data_by_kind(dataset_kind)
         dataset = dataset.sample(self.n_samples, random_state=self.random_state, drop_na_label=True)
         df = select_from_dataframe(dataset.data, self.columns, self.ignore_columns)
         num_neighbours = int(max(self.nearest_neighbors_percent * df.shape[0], MINIMUM_NUM_NEAREST_NEIGHBORS))
@@ -142,9 +140,9 @@ class OutlierSampleDetection(SingleDatasetCheck):
         quantiles_vector = np.quantile(prob_vector, np.array(range(1000)) / 1000, interpolation='higher')
         return CheckResult(quantiles_vector, display=[headnote, dataset_outliers])
 
-    def add_condition_outlier_ratio_not_greater_than(self, max_outliers_ratio: float = 0.005,
-                                                     outlier_score_threshold: float = 0.7):
-        """Add condition - no more than given ratio of samples over outlier score threshold are allowed.
+    def add_condition_outlier_ratio_less_or_equal(self, max_outliers_ratio: float = 0.005,
+                                                  outlier_score_threshold: float = 0.7):
+        """Add condition - ratio of samples over outlier score is less or equal to the threshold.
 
         Parameters
         ----------
@@ -155,8 +153,8 @@ class OutlierSampleDetection(SingleDatasetCheck):
         """
         if max_outliers_ratio > 1 or max_outliers_ratio < 0:
             raise DeepchecksValueError('max_outliers_ratio must be between 0 and 1')
-        name = f'Not more than {format_percent(max_outliers_ratio)} of dataset over ' \
-               f'outlier score {format_number(outlier_score_threshold)}'
+        name = f'Ratio of samples exceeding the outlier score threshold {format_number(outlier_score_threshold)} is ' \
+               f'less or equal to {format_percent(max_outliers_ratio)}'
         return self.add_condition(name, _condition_outliers_number, outlier_score_threshold=outlier_score_threshold,
                                   max_outliers_ratio=max_outliers_ratio)
 

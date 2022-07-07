@@ -160,42 +160,47 @@ class SimpleModelComparison(TrainTestCheck):
         results_df = pd.concat(results)
         results_df = results_df[['Model', 'Metric', 'Class', 'Class Name', 'Number of samples', 'Value']]
 
-        if not self.metric_to_show_by:
-            self.metric_to_show_by = list(self._test_metrics.keys())[0]
+        results_df.dropna(inplace=True)
+        results_df.sort_values(by=['Model', 'Value'], ascending=False, inplace=True)
+        results_df.reset_index(drop=True, inplace=True)
 
-        if self.class_list_to_show is not None:
-            results_df = results_df.loc[results_df['Class'].isin(self.class_list_to_show)]
-        elif self.n_to_show is not None:
-            classes_to_show = filter_classes_for_display(results_df.loc[results_df['Model'] != 'Perfect Model'],
-                                                         self.metric_to_show_by,
-                                                         self.n_to_show,
-                                                         self.show_only,
-                                                         column_to_filter_by='Model',
-                                                         column_filter_value='Given Model')
-            results_df = results_df.loc[results_df['Class'].isin(classes_to_show)]
+        if context.with_display:
+            if not self.metric_to_show_by:
+                self.metric_to_show_by = list(self._test_metrics.keys())[0]
+            if self.class_list_to_show is not None:
+                display_df = results_df.loc[results_df['Class'].isin(self.class_list_to_show)]
+            elif self.n_to_show is not None:
+                rows = results_df['Class'].isin(filter_classes_for_display(
+                    results_df.loc[results_df['Model'] != 'Perfect Model'],
+                    self.metric_to_show_by,
+                    self.n_to_show,
+                    self.show_only,
+                    column_to_filter_by='Model',
+                    column_filter_value='Given Model'
+                ))
+                display_df = results_df.loc[rows]
+            else:
+                display_df = results_df
 
-        results_df = results_df.dropna()
-        results_df = results_df.sort_values(by=['Model', 'Value'], ascending=False).reset_index(drop=True)
-
-        fig = px.histogram(
-            results_df.loc[results_df['Model'] != 'Perfect Model'],
-            x='Class Name',
-            y='Value',
-            color='Model',
-            color_discrete_sequence=(plot.colors['Generated'], plot.colors['Baseline']),
-            barmode='group',
-            facet_col='Metric',
-            facet_col_spacing=0.05,
-            hover_data=['Number of samples'],
-            title=f'Simple Model (Strategy: {self.strategy}) vs. Given Model',
-        )
-
-        fig = (
-            fig.update_xaxes(title=None, type='category')
-            .update_yaxes(title=None, matches=None)
-            .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
-            .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
-        )
+            fig = (
+                px.histogram(
+                    display_df.loc[results_df['Model'] != 'Perfect Model'],
+                    x='Class Name',
+                    y='Value',
+                    color='Model',
+                    color_discrete_sequence=(plot.colors['Generated'], plot.colors['Baseline']),
+                    barmode='group',
+                    facet_col='Metric',
+                    facet_col_spacing=0.05,
+                    hover_data=['Number of samples'],
+                    title=f'Simple Model (Strategy: {self.strategy}) vs. Given Model')
+                .update_xaxes(title=None, type='category')
+                .update_yaxes(title=None, matches=None)
+                .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
+                .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
+            )
+        else:
+            fig = None
 
         return CheckResult(
             results_df,
@@ -243,12 +248,12 @@ class SimpleModelComparison(TrainTestCheck):
             metric.update((torch.stack(dummy_predictions), torch.LongTensor(labels)))
         return metrics
 
-    def add_condition_gain_not_less_than(self,
-                                         min_allowed_gain: float = 0.1,
-                                         max_gain: float = 50,
-                                         classes: List[Hashable] = None,
-                                         average: bool = False):
-        """Add condition - require minimum allowed gain between the model and the simple model.
+    def add_condition_gain_greater_than(self,
+                                        min_allowed_gain: float = 0.1,
+                                        max_gain: float = 50,
+                                        classes: List[Hashable] = None,
+                                        average: bool = False):
+        """Add condition - require gain between the model and the simple model to be greater than threshold.
 
         Parameters
         ----------
@@ -263,7 +268,7 @@ class SimpleModelComparison(TrainTestCheck):
             Used in classification models to flag if to run condition on average of classes, or on
             each class individually
         """
-        name = f'Model performance gain over simple model is not less than {format_percent(min_allowed_gain)}'
+        name = f'Model performance gain over simple model is greater than {format_percent(min_allowed_gain)}'
         if classes:
             name = name + f' for classes {str(classes)}'
         return self.add_condition(name,
@@ -275,7 +280,7 @@ class SimpleModelComparison(TrainTestCheck):
 
 
 def calculate_condition_logic(result, include_classes=None, average=False, max_gain=None,
-                              min_allowed_gain=0) -> ConditionResult:
+                              min_allowed_gain=None) -> ConditionResult:
     scores = result.loc[result['Model'] == 'Given Model']
     perfect_scores = result.loc[result['Model'] == 'Perfect Model']
     simple_scores = result.loc[result['Model'] == 'Simple Model']
@@ -314,7 +319,7 @@ def calculate_condition_logic(result, include_classes=None, average=False, max_g
                                 perfect,
                                 max_gain)
                 update_min_gain(gain, metric, curr_class_name)
-                if gain < min_allowed_gain:
+                if gain <= min_allowed_gain:
                     failed_classes[curr_class_name] = format_percent(gain)
 
             if failed_classes:
@@ -331,7 +336,7 @@ def calculate_condition_logic(result, include_classes=None, average=False, max_g
                             metric_perfect_score,
                             max_gain)
             update_min_gain(gain, metric)
-            if gain < min_allowed_gain:
+            if gain <= min_allowed_gain:
                 fails[metric] = format_percent(gain)
 
     if fails:

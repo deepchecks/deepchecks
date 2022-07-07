@@ -14,10 +14,10 @@ import typing as t
 import matplotlib.pyplot as plt
 import pandas as pd
 import plotly.express as px
-import this
-from hamcrest import any_of, instance_of
+from hamcrest import all_of, any_of, contains_exactly, contains_string, equal_to, has_property, instance_of
+from plotly.graph_objects import Histogram
 
-from deepchecks.core.check_result import CheckFailure, CheckResult
+from deepchecks.core.check_result import CheckFailure, CheckResult, DisplayMap
 from deepchecks.core.checks import BaseCheck
 from deepchecks.core.condition import ConditionCategory, ConditionResult
 from deepchecks.core.serialization.abc import (HTMLFormatter, IPythonDisplayFormatter, JPEGFormatter, JSONFormatter,
@@ -34,21 +34,52 @@ class DummyCheck(BaseCheck):
 
 def create_suite_result(
     name: str = 'Dummy Suite Result',
-    n_of_results: int = 5,
-    n_of_failures: int = 5
+    n_of_results: int = 5,  # for each category
+    n_of_failures: int = 5,
+    include_results_without_conditions: bool = True,
+    include_results_without_display: bool = True,
+    include_results_without_conditions_and_display: bool = True,
 ) -> SuiteResult:
     results = [
-        create_check_result(value=i, header=f'Dummy Result #{i}')
+        create_check_result(value=i, header=f'Dummy Result {i}')
         for i in range(n_of_results)
     ]
+    if include_results_without_conditions:
+        results.extend([
+            create_check_result(
+                value=i,
+                header=f'Dummy Result Without Conditions {i}',
+                include_conditions=False,
+            )
+            for i in range(n_of_results)
+        ])
+    if include_results_without_display:
+        results.extend([
+            create_check_result(
+                value=i,
+                header=f'Dummy Result Without Display {i}',
+                include_display=False,
+            )
+            for i in range(n_of_results)
+        ])
+    if include_results_without_conditions_and_display:
+        results.extend([
+            create_check_result(
+                value=i,
+                header=f'Dummy Result Without Display and Conditions {i}',
+                include_display=False,
+                include_conditions=False,
+            )
+            for i in range(n_of_results)
+        ])
     failures = [
-        CheckFailure(DummyCheck(), Exception(f'Error #{i}'))
+        CheckFailure(DummyCheck(), Exception(f'Exception Message {i}'))
         for i in range(n_of_failures)
     ]
     return SuiteResult(
         name=name,
         results=[*results, *failures],
-        extra_info=this.s.splitlines()
+        extra_info=['Some extra info regarding suite']
     )
 
 
@@ -58,25 +89,15 @@ def create_check_result(
     include_display: bool = True,
     include_conditions: bool = True
 ) -> CheckResult:
-    def draw_plot():
-        plt.subplots()
-        plt.plot([1, 2, 3, 4], [1, 4, 2, 3])
-
-    plotly_figure = px.bar(
-        px.data.gapminder().query("country == 'Canada'"),
-        x='year', y='pop'
+    display = (
+        [*create_check_result_display(), DisplayMap(a=create_check_result_display())]
+        if include_display
+        else None
     )
-    display = [
-        header,
-        pd.DataFrame({'foo': range(10), 'bar': range(10)}),
-        pd.DataFrame({'foo': range(10), 'bar': range(10)}).style,
-        plotly_figure,
-        draw_plot
-    ]
     result = CheckResult(
         value=value or 1000,
-        header='Dummy Result',
-        display=display if include_display else None,
+        header=header,
+        display=display,
     )
 
     if include_conditions:
@@ -92,6 +113,23 @@ def create_check_result(
     return result
 
 
+def create_check_result_display():
+    def draw_plot():
+        plt.subplots()
+        plt.plot([1, 2, 3, 4], [1, 4, 2, 3])
+
+    return [
+        'Hello world',
+        pd.DataFrame({'foo': range(3), 'bar': range(3)}),
+        pd.DataFrame({'foo': range(3), 'bar': range(3)}).style,
+        px.bar(
+            px.data.gapminder().query("country == 'Canada'"),
+            x='year', y='pop'
+        ),
+        draw_plot
+    ]
+
+
 def instance_of_ipython_formatter():
     return any_of(
         instance_of(HTMLFormatter),
@@ -102,3 +140,25 @@ def instance_of_ipython_formatter():
         instance_of(IPythonDisplayFormatter),
         instance_of(MimeBundleFormatter),
     )
+
+
+def assert_class_performance_display(
+    xaxis,  # classes
+    yaxis,  # values
+    metrics=('Recall', 'Precision'),
+):
+    pairs = (
+        (dataset, metric)
+        for dataset in ('Train', 'Test')
+        for metric in metrics
+    )
+    return contains_exactly(*[
+        all_of(
+            instance_of(Histogram),
+            has_property('name', equal_to(dataset)),
+            has_property('hovertemplate', contains_string(f'Metric={metric}')),
+            has_property('x', xaxis[index]),
+            has_property('y', yaxis[index]),
+        )
+        for index, (dataset, metric) in enumerate(pairs)
+    ])

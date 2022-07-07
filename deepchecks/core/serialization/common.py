@@ -31,11 +31,15 @@ from plotly.io._utils import plotly_cdn_url
 from plotly.offline.offline import get_plotlyjs
 
 from deepchecks.core import check_result as check_types
+from deepchecks.core import errors
 from deepchecks.utils.dataframes import un_numpy
+from deepchecks.utils.html import linktag
 from deepchecks.utils.strings import get_ellipsis
 
 __all__ = [
     'aggregate_conditions',
+    'create_results_dataframe',
+    'create_failures_dataframe',
     'form_output_anchor',
     'Html',
     'normalize_widget_style',
@@ -105,17 +109,18 @@ def normalize_value(value: object) -> t.Any:
 
 
 def aggregate_conditions(
-    check_results: t.Union['check_types.CheckResult', t.List['check_types.CheckResult']],
+    check_results: t.Union['check_types.CheckResult', t.Sequence['check_types.CheckResult']],
     max_info_len: int = 3000,
     include_icon: bool = True,
     include_check_name: bool = False,
     output_id: t.Optional[str] = None,
+    is_for_iframe_with_srcdoc: bool = False
 ) -> pd.DataFrame:
     """Return the conditions table as DataFrame.
 
     Parameters
     ----------
-    check_results : Union['CheckResult', List['CheckResult']]
+    check_results : Union['CheckResult', Sequence['CheckResult']]
         check results to show conditions of.
     max_info_len : int
         max length of the additional info.
@@ -124,7 +129,13 @@ def aggregate_conditions(
     include_check_name : bool, default False
         whether to include check name into dataframe or not
     output_id : str
-        the unique id to append for the check names to create links (won't create links if None/empty).
+        unique identifier of the output, it will be used to
+        form a link (html '<a></a>' tag) to the check result
+        full output
+    is_for_iframe_with_srcdoc : bool, default False
+        anchor links, in order to work within iframe require additional prefix
+        'about:srcdoc'. This flag tells function whether to add that prefix to
+        the anchor links or not
 
     Returns
     -------
@@ -148,7 +159,11 @@ def aggregate_conditions(
 
             # If there is no display we won't generate a section to link to
             if output_id and check_result.display:
-                link = f'<a href=#{check_result.get_check_id(output_id)}>{check_header}</a>'
+                link = linktag(
+                    text=check_header,
+                    href=f'#{check_result.get_check_id(output_id)}',
+                    is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
+                )
             else:
                 link = check_header
                 # if it has no display show on bottom for the category (lower priority)
@@ -174,6 +189,95 @@ def aggregate_conditions(
     with warnings.catch_warnings():
         warnings.simplefilter(action='ignore', category=FutureWarning)
         return df.style.hide_index()
+
+
+def create_results_dataframe(
+    results: t.Sequence['check_types.CheckResult'],
+    output_id: t.Optional[str] = None,
+    is_for_iframe_with_srcdoc: bool = False,
+) -> pd.DataFrame:
+    """Create dataframe with check results.
+
+    Parameters
+    ----------
+    results : Sequence['CheckResult']
+        check results
+    output_id : str
+        unique identifier of the output, it will be used to
+        form a link (html '<a></a>' tag) to the check result
+        full output
+    is_for_iframe_with_srcdoc : bool, default False
+        anchor links, in order to work within iframe require additional prefix
+        'about:srcdoc'. This flag tells function whether to add that prefix to
+        the anchor links or not
+
+    Returns
+    -------
+    pd.Dataframe:
+        the condition table.
+    """
+    data = []
+
+    for check_result in results:
+        check_header = check_result.get_header()
+        if output_id and check_result.display:
+            header = linktag(
+                text=check_header,
+                href=f'#{check_result.get_check_id(output_id)}',
+                is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
+            )
+        else:
+            header = check_header
+        summary = check_result.get_metadata(with_doc_link=True)['summary']
+        data.append([header, summary])
+
+    return pd.DataFrame(
+        data=data,
+        columns=['Check', 'Summary']
+    )
+
+
+def create_failures_dataframe(
+    failures: t.Sequence[t.Union['check_types.CheckFailure', 'check_types.CheckResult']]
+) -> pd.DataFrame:
+    """Create dataframe with check failures.
+
+    Parameters
+    ----------
+    failures : Sequence[Union[CheckFailure, CheckResult]]
+        check failures
+
+    Returns
+    -------
+    pd.Dataframe:
+        the condition table.
+    """
+    data = []
+
+    for it in failures:
+        if isinstance(it, check_types.CheckResult):
+            data.append([it.get_header(), 'Nothing found', 2])
+        elif isinstance(it, check_types.CheckFailure):
+            message = (
+                it.exception.html
+                if isinstance(it.exception, errors.DeepchecksBaseError)
+                else str(it.exception)
+            )
+            error_types = (
+                errors.DatasetValidationError,
+                errors.ModelValidationError,
+                errors.DeepchecksProcessError,
+            )
+            if isinstance(it.exception, error_types):
+                message = f'{type(it.exception).__name__}: {message}'
+            data.append((it.header, message, 1))
+        else:
+            raise TypeError(f'Unknown result type - {type(it).__name__}')
+
+    df = pd.DataFrame(data=data, columns=['Check', 'Reason', 'priority'])
+    df.sort_values(by=['priority'], inplace=True)
+    df.drop('priority', axis=1, inplace=True)
+    return df
 
 
 def requirejs_script(connected: bool = True):
@@ -346,11 +450,16 @@ T = t.TypeVar('T')
 DeepIterable = t.Iterable[t.Union[T, 'DeepIterable[T]']]
 
 
-def flatten(l: DeepIterable[T]) -> t.Iterable[T]:
+def flatten(
+    l: DeepIterable[T],
+    stop: t.Optional[t.Callable[[t.Any], bool]] = None,
+) -> t.Iterable[T]:
     """Flatten nested iterables."""
     for it in l:
-        if isinstance(it, (list, tuple, set, t.Generator, t.Iterator)):
-            yield from flatten(it)
+        if callable(stop) and stop(it) is True:
+            yield t.cast(T, it)
+        elif isinstance(it, (list, tuple, set, t.Generator, t.Iterator)):
+            yield from flatten(it, stop=stop)
         else:
             yield t.cast(T, it)
 
