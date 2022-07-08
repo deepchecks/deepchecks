@@ -222,7 +222,10 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
             go.FigureWidget(data=item)
             if not plotly_to_image
             else HTML(value=super().handle_figure(
-                item, index, plotly_to_image, **kwargs
+                item=item,
+                index=index,
+                plotly_to_image=plotly_to_image,
+                **kwargs
             ))
         )
 

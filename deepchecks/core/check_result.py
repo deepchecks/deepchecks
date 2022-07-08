@@ -27,14 +27,12 @@ from deepchecks.core.display import DisplayableResult, save_as_html
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.serialization.abc import HTMLFormatter
 from deepchecks.core.serialization.check_failure.html import CheckFailureSerializer as CheckFailureHtmlSerializer
-from deepchecks.core.serialization.check_failure.ipython import CheckFailureSerializer as CheckFailureIPythonSerializer
 from deepchecks.core.serialization.check_failure.json import CheckFailureSerializer as CheckFailureJsonSerializer
-from deepchecks.core.serialization.check_failure.widget import CheckFailureSerializer as CheckFailureWidgetSerializer
+# from deepchecks.core.serialization.check_failure.widget import CheckFailureSerializer as CheckFailureWidgetSerializer
 from deepchecks.core.serialization.check_result.html import CheckResultSection
 from deepchecks.core.serialization.check_result.html import CheckResultSerializer as CheckResultHtmlSerializer
-from deepchecks.core.serialization.check_result.ipython import CheckResultSerializer as CheckResultIPythonSerializer
 from deepchecks.core.serialization.check_result.json import CheckResultSerializer as CheckResultJsonSerializer
-from deepchecks.core.serialization.check_result.widget import CheckResultSerializer as CheckResultWidgetSerializer
+# from deepchecks.core.serialization.check_result.widget import CheckResultSerializer as CheckResultWidgetSerializer
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.wandb_utils import wandb_run
 
@@ -205,15 +203,10 @@ class CheckResult(BaseCheckResult, DisplayableResult):
             return self.check.reduce_output(self)
         raise DeepchecksValueError('Check needs to be an instance of ReduceMixin to use this function')
 
-    @property
-    def widget_serializer(self) -> CheckResultWidgetSerializer:
-        """Return WidgetSerializer instance."""
-        return CheckResultWidgetSerializer(self)
-
-    @property
-    def ipython_serializer(self) -> CheckResultIPythonSerializer:
-        """Return IPythonSerializer instance."""
-        return CheckResultIPythonSerializer(self)
+    # @property
+    # def widget_serializer(self) -> CheckResultWidgetSerializer:
+    #     """Return WidgetSerializer instance."""
+    #     return CheckResultWidgetSerializer(self)
 
     @property
     def html_serializer(self) -> CheckResultHtmlSerializer:
@@ -297,29 +290,29 @@ class CheckResult(BaseCheckResult, DisplayableResult):
             **kwargs
         )
 
-    def to_widget(
-        self,
-        unique_id: Optional[str] = None,
-        show_additional_outputs: bool = True,
-        **kwargs
-    ) -> Widget:
-        """Return CheckResult as a ipywidgets.Widget instance.
+    # def to_widget(
+    #     self,
+    #     unique_id: Optional[str] = None,
+    #     show_additional_outputs: bool = True,
+    #     **kwargs
+    # ) -> Widget:
+    #     """Return CheckResult as a ipywidgets.Widget instance.
 
-        Parameters
-        ----------
-        unique_id : Optional[str], default None
-            unique identifier of the result output
-        show_additional_outputs : bool, default True
-            whether to show additional outputs or not
+    #     Parameters
+    #     ----------
+    #     unique_id : Optional[str], default None
+    #         unique identifier of the result output
+    #     show_additional_outputs : bool, default True
+    #         whether to show additional outputs or not
 
-        Returns
-        -------
-        Widget
-        """
-        return self.widget_serializer.serialize(
-            output_id=unique_id,
-            check_sections=detalize_additional_output(show_additional_outputs)
-        )
+    #     Returns
+    #     -------
+    #     Widget
+    #     """
+    #     return self.widget_serializer.serialize(
+    #         output_id=unique_id,
+    #         check_sections=detalize_additional_output(show_additional_outputs)
+    #     )
 
     def to_wandb(
         self,
@@ -447,15 +440,10 @@ class CheckFailure(BaseCheckResult, DisplayableResult):
         self.exception = exception
         self.header = check.name() + header_suffix
 
-    @property
-    def widget_serializer(self) -> CheckFailureWidgetSerializer:
-        """Return WidgetSerializer instance."""
-        return CheckFailureWidgetSerializer(self)
-
-    @property
-    def ipython_serializer(self) -> CheckFailureIPythonSerializer:
-        """Return IPythonSerializer instance."""
-        return CheckFailureIPythonSerializer(self)
+    # @property
+    # def widget_serializer(self) -> CheckFailureWidgetSerializer:
+    #     """Return WidgetSerializer instance."""
+    #     return CheckFailureWidgetSerializer(self)
 
     @property
     def html_serializer(self) -> CheckFailureHtmlSerializer:
@@ -488,9 +476,9 @@ class CheckFailure(BaseCheckResult, DisplayableResult):
             serializer=self.html_serializer,
         )
 
-    def to_widget(self, **kwargs) -> Widget:
-        """Return CheckFailure as a ipywidgets.Widget instance."""
-        return CheckFailureWidgetSerializer(self).serialize()
+    # def to_widget(self, **kwargs) -> Widget:
+    #     """Return CheckFailure as a ipywidgets.Widget instance."""
+    #     return CheckFailureWidgetSerializer(self).serialize()
 
     def to_json(self, **kwargs):
         """Serialize CheckFailure into a json string.

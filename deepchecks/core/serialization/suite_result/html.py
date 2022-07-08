@@ -13,21 +13,22 @@
 import textwrap
 import typing as t
 import warnings
-import htmlmin
 
+import htmlmin
 from plotly.offline.offline import get_plotlyjs
 
 from deepchecks.core import check_result as check_types
 from deepchecks.core import suite
-from deepchecks.core.resources import DEEPCHECKS_STYLE, DEEPCHECKS_HTML_PAGE_STYLE
+from deepchecks.core.resources import DEEPCHECKS_HTML_PAGE_STYLE, DEEPCHECKS_STYLE
 from deepchecks.core.serialization.abc import HtmlSerializer
-from deepchecks.core.serialization.check_result.html import CheckResultSerializer as CheckResultHtmlSerializer
 from deepchecks.core.serialization.check_failure.html import CheckFailureSerializer as CheckFailureHtmlSerializer
-from deepchecks.core.serialization.dataframe.html import DataFrameSerializer
+from deepchecks.core.serialization.check_result.html import CheckResultSerializer as CheckResultHtmlSerializer
+from deepchecks.core.serialization.check_result.html import EmbedmentWay as CheckEmbedmentWay
 from deepchecks.core.serialization.common import (Html, aggregate_conditions, create_failures_dataframe,
-                                                  form_output_anchor, create_results_dataframe, plotly_loader_script)
+                                                  create_results_dataframe, form_output_anchor, plotly_loader_script)
+from deepchecks.core.serialization.dataframe.html import DataFrameSerializer
+from deepchecks.utils.html import details_tag, expendable_iframe
 from deepchecks.utils.strings import get_random_string
-from deepchecks.utils.html import details_tag
 
 __all__ = ['SuiteResultSerializer']
 
@@ -52,9 +53,9 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         self,
         output_id: t.Optional[str] = None,
         full_html: bool = False,
-        # connected: bool = True,
         is_for_iframe_with_srcdoc: bool = False,
         plotly_to_image: bool = False,
+        embed_into_iframe: bool = False,
         **kwargs,
     ) -> str:
         """Serialize a SuiteResult instance into HTML format.
@@ -65,8 +66,6 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             unique output identifier that will be used to form anchor links
         full_html : bool, default False
             whether to return a fully independent HTML document or only CheckResult content
-        connected : bool, default True
-            whether to use CDN to load js libraries or to inject their code into output
         is_for_iframe_with_srcdoc : bool, default False
             anchor links, in order to work within iframe require additional prefix
             'about:srcdoc'. This flag tells function whether to add that prefix to
@@ -81,7 +80,10 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         -------
         str
         """
-        kwargs['embedment_way'] = 'suite-html-page' if full_html is True else 'suite'
+        if embed_into_iframe is True:
+            is_for_iframe_with_srcdoc = True
+
+        kwargs['check_embedment_way'] = 'suite-html-page' if full_html or embed_into_iframe else 'suite'
         kwargs['is_for_iframe_with_srcdoc'] = is_for_iframe_with_srcdoc
         kwargs['plotly_to_image'] = plotly_to_image
 
@@ -96,7 +98,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
 
         content = (
             self.prepare_summary(
-                output_id=output_id, 
+                output_id=output_id,
                 **kwargs
             ),
             self.prepare_results(
@@ -130,18 +132,20 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         )
 
         if full_html is False:
-            output = details_tag(
-                title=suite_result.name,
-                content=''.join(content),
-                id=output_id or '',
-                attrs='open class="deepchecks"',
-            )
-            return ''.join((
-                f'<style>{DEEPCHECKS_STYLE}</style>',
-                plotly_loader_script(),
-                output
-            ))
+            if embed_into_iframe is True:
+                return self._serialize_to_iframe(content)
+            else:
+                output = details_tag(
+                    title=suite_result.name,
+                    content=''.join(content),
+                    id=output_id or '',
+                    attrs='open class="deepchecks"',
+                )
+                return f'{plotly_loader_script()}{output}'
 
+        return self._serialize_to_full_html(content)
+
+    def _serialize_to_full_html(self, content: t.Sequence[str]) -> str:
         return htmlmin.minify(f"""
             <html>
             <head>
@@ -149,9 +153,17 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
                 <script type="text/javascript">{get_plotlyjs()}</script>
                 <style>{DEEPCHECKS_HTML_PAGE_STYLE}</style>
             </head>
-            <body>{''.join(content)}</body>
+            <body class="deepchecks">{''.join(content)}</body>
             </html>
         """)
+
+    def _serialize_to_iframe(self, content: t.Sequence[str]) -> str:
+        iframe = expendable_iframe(
+            title=self.value.name,
+            srcdoc=self._serialize_to_full_html(content),
+            style="resize: vertical!important;",
+        )
+        return f'<style>{DEEPCHECKS_HTML_PAGE_STYLE}</style>{iframe}'
 
     def prepare_prologue(self) -> str:
         """Prepare prologue section."""
@@ -177,13 +189,12 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         str
         """
         idattr = f' id="{form_output_anchor(output_id)}"' if output_id else ''
-        return f'<h1{idattr}>{self.value.name}</h1>'
+        return f'<h1{idattr}><b>{self.value.name}</b></h1>'
 
     def prepare_extra_info(self) -> str:
         """Prepare extra info section."""
         if self.value.extra_info:
-            extra_info = '<br>'.join(f'<div>{it}</div>' for it in self.value.extra_info)
-            return f'<br>{extra_info}'
+            return ''.join(f'<p>{it}</p>' for it in self.value.extra_info)
         else:
             return ''
 
@@ -219,12 +230,14 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
                 {prologue}<br>
                 Each check may contain conditions (which will result in pass / fail / warning / error
                 , represented by {icons}) as well as other outputs such as plots or tables.<br>
+            </p>
+            <p>
                 Suites, checks and conditions can all be modified. Read more about
                 <a href={suite_creation_example_link} target="_blank">custom suites</a>.
             </p>
             {extra_info}
         """)
-    
+
     def prepare_conditions_summary(
         self,
         results: t.Sequence['check_types.CheckResult'],
@@ -317,19 +330,20 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         else:
             df = create_failures_dataframe(failures)
             content = DataFrameSerializer(df.style.hide_index()).serialize()
-        
+
         return details_tag(
             title=title,
             content=content,
             attrs='class="deepchecks"'
         )
-        
+
     def prepare_results(
         self,
         results: t.Sequence['check_types.CheckResult'],
         title: str,
         output_id: t.Optional[str] = None,
         summary_creation_method: t.Optional[t.Callable[..., str]] = None,
+        check_embedment_way: CheckEmbedmentWay = 'suite',
         **kwargs
     ) -> str:
         """Prepare results section.
@@ -355,7 +369,11 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         else:
             section_id = f'{output_id}-section-{get_random_string()}'
             serialized_results = (
-                select_serializer(it).serialize(output_id=section_id, **kwargs)
+                select_serializer(it).serialize(
+                    output_id=section_id,
+                    embedment_way=check_embedment_way,
+                    **kwargs
+                )
                 for it in results
                 if it.display  # we do not form full-output for the check results without display
             )
@@ -366,7 +384,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
                 ))
             else:
                 content = Html.light_hr.join(serialized_results)
-        
+
         return details_tag(
             title=title,
             content=content,

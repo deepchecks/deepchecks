@@ -92,7 +92,7 @@ def create_check_result(
 ) -> CheckResult:
     display = (
         [
-            *create_check_result_display(), 
+            *create_check_result_display(),
             DisplayMap(foo=create_check_result_display(), bar=create_check_result_display())
         ]
         if include_display

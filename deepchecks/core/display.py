@@ -11,21 +11,20 @@
 # pylint: disable=unused-argument
 """Module with check/suite result display strategy in different envs."""
 import abc
-import html
 import io
 import sys
 import typing as t
 
 import plotly.io as pio
 from IPython.core.display import display_html
-from ipywidgets import Widget
 
-from deepchecks.core.serialization.abc import HTMLFormatter, HtmlSerializer, IPythonSerializer, WidgetSerializer
-from deepchecks.core.resources import DEEPCHECKS_STYLE
+from deepchecks.core.serialization.abc import HTMLFormatter, HtmlSerializer, WidgetSerializer
 from deepchecks.utils.ipython import is_colab_env
 from deepchecks.utils.logger import get_logger
-from deepchecks.utils.strings import create_new_file_name, get_random_string, widget_to_html, widget_to_html_string
-from deepchecks.utils.html import details_tag
+from deepchecks.utils.strings import create_new_file_name, get_random_string, widget_to_html
+
+# from ipywidgets import Widget
+
 
 if t.TYPE_CHECKING:
     from wandb.sdk.data_types.base_types.wb_value import WBValue  # pylint: disable=unused-import
@@ -39,17 +38,11 @@ T = t.TypeVar('T')
 class DisplayableResult(abc.ABC):
     """Display API for the check/suite result objects."""
 
-    @property
-    @abc.abstractmethod
-    def widget_serializer(self) -> WidgetSerializer[t.Any]:
-        """Return WidgetSerializer instance."""
-        raise NotImplementedError()
-
-    @property
-    @abc.abstractmethod
-    def ipython_serializer(self) -> IPythonSerializer[t.Any]:
-        """Return IPythonSerializer instance."""
-        raise NotImplementedError()
+    # @property
+    # @abc.abstractmethod
+    # def widget_serializer(self) -> WidgetSerializer[t.Any]:
+    #     """Return WidgetSerializer instance."""
+    #     raise NotImplementedError()
 
     @property
     @abc.abstractmethod
@@ -82,11 +75,7 @@ class DisplayableResult(abc.ABC):
         """
         if 'sphinx_gallery' in pio.renderers.default:
             # TODO: why we need this? add comments
-            html = widget_to_html_string(  # pylint: disable=redefined-outer-name
-                self.widget_serializer.serialize(output_id=unique_id, **kwargs),
-                title=get_result_name(self),
-                requirejs=False
-            )
+            html = self.html_serializer.serialize(output_id=unique_id, **kwargs)
 
             class TempSphinx:
                 def _repr_html_(self):
@@ -96,12 +85,12 @@ class DisplayableResult(abc.ABC):
 
         if is_colab_env():
             display_html(
-                self.html_serializer.serialize(full_html=True, **kwargs), 
+                self.html_serializer.serialize(full_html=True, **kwargs),
                 raw=True
             )
         else:
             display_html(
-                self.html_serializer.serialize(output_id=unique_id, **kwargs), 
+                self.html_serializer.serialize(output_id=unique_id, **kwargs),
                 raw=True
             )
 
@@ -127,19 +116,15 @@ class DisplayableResult(abc.ABC):
 
         if is_colab_env():
             display_html(
-                self.html_serializer.serialize(full_html=True, **kwargs), 
+                self.html_serializer.serialize(full_html=True, **kwargs),
                 raw=True
             )
         else:
             display_html(
-                iframe(
-                    title=get_result_name(self),
-                    srcdoc=self.html_serializer.serialize(
-                        output_id=output_id,
-                        full_html=True,
-                        is_for_iframe_with_srcdoc=True,
-                        **kwargs
-                    )
+                self.html_serializer.serialize(
+                    output_id=output_id,
+                    embed_into_iframe=True,
+                    **kwargs
                 ),
                 raw=True
             )
@@ -162,7 +147,7 @@ class DisplayableResult(abc.ABC):
         ----------
         unique_id : Optional[str], default None
             unique identifier of the result output
-        **kwrgs :
+        **kawrgs :
             other key-value arguments will be passed to the `Serializer.serialize`
             method
         """
@@ -179,10 +164,10 @@ class DisplayableResult(abc.ABC):
         """Display result.."""
         self.show(**kwargs)
 
-    @abc.abstractmethod
-    def to_widget(self, **kwargs) -> Widget:
-        """Serialize result into a ipywidgets.Widget instance."""
-        raise NotImplementedError()
+    # @abc.abstractmethod
+    # def to_widget(self, **kwargs) -> Widget:
+    #     """Serialize result into a ipywidgets.Widget instance."""
+    #     raise NotImplementedError()
 
     @abc.abstractmethod
     def to_json(self, **kwargs) -> str:
@@ -312,65 +297,3 @@ def save_as_html(
 
     if isinstance(file, str):
         return file
-
-
-def iframe(
-    *,
-    title: str,
-    id: t.Optional[str] = None,  # pylint: disable=redefined-builtin
-    height: str = '800px',
-    width: str = '100%',
-    allow: str = 'fullscreen',
-    frameborder: str = '0',
-    with_fullscreen_btn: bool = True,
-    **attributes
-) -> str:
-    """Return html iframe tag."""
-    id = id or f'deepchecks-result-iframe-{get_random_string()}'
-
-    attributes = {
-        'id': id,
-        'height': height,
-        'width': width,
-        'allow': allow,
-        'frameborder': frameborder,
-        **attributes
-    }
-    attributes = {
-        k: v
-        for k, v
-        in attributes.items()
-        if v is not None
-    }
-
-    if 'srcdoc' in attributes:
-        attributes['srcdoc'] = html.escape(attributes['srcdoc'])
-
-    attributes = '\n'.join([
-        f'{k}="{v}"'
-        for k, v in attributes.items()
-    ])
-
-    if with_fullscreen_btn is False:
-        return details_tag(
-            title=title,
-            content=f'<iframe {attributes}></iframe>',
-            attrs='open class="deepchecks"',
-            additional_style="padding: 0!important;"
-        )
-
-    fullscreen_btn = f"""
-        <div style="position: absolute; top: 3rem; right: 3rem;">
-            <button onclick="document.querySelector('#{id}').requestFullscreen();" >
-                Full Screen
-            </button>
-        </div>
-    """
-    iframe = details_tag(
-        title=title,
-        content=f"{fullscreen_btn}<iframe allowfullscreen {attributes}></iframe>",
-        attrs='open class="deepchecks"',
-        additional_style="padding: 0!important;",
-    )
-    
-    return f'<style>{DEEPCHECKS_STYLE}</style>{iframe}'

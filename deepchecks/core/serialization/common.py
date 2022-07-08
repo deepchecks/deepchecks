@@ -24,15 +24,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import plotly.io._html as plotlyhtml
-from plotly.basedatatypes import BaseFigure
 from ipywidgets import DOMWidget
 from jsonpickle.pickler import Pickler
 from pandas.io.formats.style import Styler
+from plotly.basedatatypes import BaseFigure
 from plotly.io._utils import plotly_cdn_url
 from plotly.offline.offline import get_plotlyjs
 
 from deepchecks.core import check_result as check_types
 from deepchecks.core import errors
+from deepchecks.core.resources import DEEPCHECKS_STYLE
 from deepchecks.utils.dataframes import un_numpy
 from deepchecks.utils.html import linktag
 from deepchecks.utils.strings import get_ellipsis
@@ -479,102 +480,136 @@ def join(l: t.List[A], item: B) -> t.Iterator[t.Union[A, B]]:
 
 
 def figure_creation_script(
-    figure: BaseFigure, 
+    figure: BaseFigure,
     div_id: str,
     **kwargs
 ) -> str:
     data = figure.to_json()
-    return FIGURE_CREATION_SCRIPT.format(
-        container_id=div_id, 
-        figure_data=data
-    )
+    return FIGURE_CREATION_SCRIPT.replace('%container-id', div_id).replace('%figure-data', data)
 
 
 def plotly_loader_script() -> str:
-    return PLOTLY_DEPENDENCY_SCRIPT
+    return DEEPCHECKS_SCRIPT
 
 
-FIGURE_CREATION_SCRIPT = """
-(async () => {{
-    const containerId = '{container_id}';
-    const container = document.querySelector(`#${{containerId}}`);
-    if (container === undefined || container === null) {{
+
+FIGURE_CREATION_SCRIPT = r"""
+;(async () => {
+    const containerId = '%container-id';
+    const container = document.querySelector(`#${containerId}`);
+
+    if (typeof container !== 'object') {
         console.error('Did not find plot container');
         return;
-    }}
-    if (typeof Deepchecks !== 'object' || typeof Deepchecks.PlotlyDependency !== 'object') {{
-        container.innerHTML = 'Failed to display plotly figure, try result.show_in_iframe';
-        return;
-    }}
-    container.innerHTML = '<h1>Verifying needed dependencies</h1>';
-    try {{
-        const Plotly = await Deepchecks.PlotlyDependency;
+    }
+
+    function clearPlotContainer() {
         container.innerHTML = '';
-        Plotly.newPlot(container, {figure_data});
-    }} catch(error) {{
+    };
+
+    function showNotification(kind, msg) {
+        let headerTxt = 'Info:';
+        let cssClass = `deepchecks-alert deepchecks-alert-info`;
+
+        if (kind === 'error') {
+            headerTxt = 'Error:'
+            cssClass = 'deepchecks-alert deepchecks-alert-error';
+        } else if(kind === 'warning') {
+            headerTxt = 'Warning:'
+            cssClass = 'deepchecks-alert deepchecks-alert-warn';
+        }
+
+        const h = document.createElement('h5');
+        const div = document.createElement('div');
+        const p = document.createElement('p');
+
+        h.innerHTML = headerTxt;
+        p.innerHTML = msg;
+        div.setAttribute('class', cssClass);
+        div.appendChild(h);
+        div.appendChild(p);
+        container.appendChild(div);
+    };
+
+    if (typeof deepchecksPlotlyPromise === 'undefined') {
+        console.log('[Deepchecks] did not find plotly promise');
+        clearPlotContainer();
+        showNotification('error', 'Failed to display plotly figure, try instead <code>result.show_in_iframe()</code>');
+        return;
+    }
+
+    try {
+        const Plotly = await deepchecksPlotlyPromise;
+        clearPlotContainer();
+        await Plotly.newPlot(container, %figure-data);
+
+        const mutationListener = new MutationObserver(function (mutations, observer) {
+            var display = window.getComputedStyle(container).display;
+            if (!display || display === 'none') {
+                console.log([container, 'removed!']);
+                Plotly.purge(gd);
+                observer.disconnect();
+            }
+        });
+
+        /* Listen for the removal of the full notebook cells */
+        const notebookContainer = container.closest('#notebook-container');
+        if (notebookContainer) { mutationListener.observe(notebookContainer, {childList: true}); }
+
+        /* Listen for the clearing of the current output cell */
+        var outputEl = container.closest('.output');
+        if (outputEl) { mutationListener.observe(outputEl, {childList: true}); }
+
+    } catch(error) {
         console.dir(error);
-        container.innerHTML = 'Failed to display plotly figure, try result.show_in_iframe';
-    }}
-}})();
+        clearPlotContainer();
+        showNotification('error', 'Failed to display plotly figure, try instead <code>result.show_in_iframe()</code>');
+    }
+})();
 """
 
 
-PLOTLY_DEPENDENCY_SCRIPT = """
-<script id="deepchecks-plotly-src" type="text/plain">%plotly-script</script>
+DEEPCHECKS_SCRIPT = """
+<script id="deepchecks-style" type="text/plain">
+    %deepchecks-style
+</script>
+<script id="deepchecks-plotly-src" type="text/plain">
+    /* Transforming plotly script into ecmascript module */
+    let define = undefined;
+    let require = undefined;
+    let exports = undefined;
+    let modules = undefined;
+    const removeGlobal = typeof window.Plotly === 'object' && window.Plotly.newPlot === 'function' ? false : true;
+    %plotly-script
+    const Plotly = window.Plotly;
+    if(removeGlobal) { window.Plotly = undefined; }
+    export { Plotly };
+</script>
 <script type="text/javascript">
-    window.Deepchecks = window.Deepchecks || {};
-    window.Deepchecks.loadPlotly = (plotlySrc) => new Promise(async (resolve, reject) => {
-        try {
-            const getPlotlyModule = () => {
-                if (typeof require !== 'function')
-                    return null;
-                let definedModules = (
-                    require.s 
-                    && require.s.contexts 
-                    && require.s.contexts._
-                    && require.s.contexts._.defined 
-                    || {}
-                );
-                return definedModules.plotly || null;
-            };
-            if (typeof Plotly !== 'object') {
-                if (typeof define === "function" && define.amd) {
-                    let Plotly = getPlotlyModule();
-                    if (Plotly !== undefined && Plotly !== null) {
-                        window.Plotly = Plotly;
-                        resolve(Plotly);
-                        return;
-                    }
-                    const s = `define('plotly', function(require, exports, module) {${plotlySrc.text}});`;
-                    (new Function(s))();
-                    const exist = (Plotly) => {
-                        window.Plotly = Plotly;
-                        resolve(Plotly);
-                    };
-                    const failure = (e) => {
-                        console.dir(e);
-                        reject(new Error(`Failed to load plotly library: ${e.message}`));
-                    };
-                    require(['plotly'], exist, failure);
-                } else {
-                    try {
-                        (new Function(plotlySrc.text))();
-                        resolve(Plotly);
-                    } catch(error) {
-                        console.dir(error);
-                        reject(new Error(`Failed to load plotly library: ${e.message}`));
-                    }
-                }
-            } else {
-                resolve(Plotly);
-            }
-        } catch(error) {
-            reject(error);
-        }
-    });
-    if (typeof Deepchecks.PlotlyDependency !== 'object') {
-        let plotlySrc = document.querySelector('#deepchecks-plotly-src');
-        Deepchecks.PlotlyDependency = Deepchecks.loadPlotly(plotlySrc);
+    (function deepchecksLoadStyle() {
+        if (document.querySelector('head style#deepchecks-style'))
+            return;
+        const styleSrcCode = document.querySelector('script#deepchecks-style');
+        const container = document.createElement('style');
+        container.innerText = styleSrcCode.text;
+        container.setAttribute('id', 'deepchecks-style');
+        document.head.appendChild(container);
+    })();
+
+    async function deepchecksCreatePlotlyPromise() {
+        const srcCode = document.querySelector('script#deepchecks-plotly-src');
+        const blob = new Blob([srcCode.text], {type: 'text/javascript'});
+        const url = URL.createObjectURL(blob);
+        const m = await import(url);
+        const Plotly = m.Plotly;
+        URL.revokeObjectURL(url);
+        return Plotly;
+    }
+
+    if (typeof Plotly === 'object' && Plotly.newPlot === 'function') {
+        var deepchecksPlotlyPromise = new Promise(resolve => resolve(Plotly));
+    } else if (typeof deepchecksPlotlyPromise === 'undefined') {
+        var deepchecksPlotlyPromise = deepchecksCreatePlotlyPromise();
     }
 </script>
-""".replace('%plotly-script', get_plotlyjs())
+""".replace('%plotly-script', get_plotlyjs()).replace('%deepchecks-style', DEEPCHECKS_STYLE)
