@@ -10,14 +10,17 @@
 #
 """suites tests"""
 import random
+from typing import List
 
-from hamcrest import assert_that, calling, equal_to, has_length, instance_of, is_, raises
+from hamcrest import all_of, assert_that, calling, equal_to, has_entry, has_items, has_length, instance_of, is_, raises
 
 from deepchecks import ConditionCategory, ConditionResult, SuiteResult
 from deepchecks.core import CheckFailure, CheckResult
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.core.suite import BaseSuite
 from deepchecks.tabular import SingleDatasetCheck, Suite, TrainTestCheck
 from deepchecks.tabular import checks as tabular_checks
+from deepchecks.tabular.suites import model_evaluation
 
 
 class SimpleDatasetCheck(SingleDatasetCheck):
@@ -42,7 +45,7 @@ def test_run_suite_with_incorrect_args():
     suite = Suite("test suite", SimpleDatasetCheck(), SimpleTwoDatasetsCheck())
 
     # incorrect, at least one dataset (or model) must be provided
-    args = {"train_dataset": None, "test_dataset": None,}
+    args = {"train_dataset": None, "test_dataset": None, }
     assert_that(
         calling(suite.run).with_args(**args),
         raises(DeepchecksValueError, r"At least one dataset \(or model\) must be passed to the method!")
@@ -51,7 +54,7 @@ def test_run_suite_with_incorrect_args():
 
 def test_add_check_to_the_suite():
     number_of_checks = random.randint(0, 50)
-    produce_checks = lambda count: [SimpleDatasetCheck() for _ in range(count)]
+    def produce_checks(count): return [SimpleDatasetCheck() for _ in range(count)]
 
     first_suite = Suite("first suite", )
     second_suite = Suite("second suite", )
@@ -66,7 +69,6 @@ def test_add_check_to_the_suite():
 
     second_suite.add(first_suite)
     assert_that(len(second_suite.checks), equal_to(number_of_checks))
-
 
 
 def test_try_add_not_a_check_to_the_suite():
@@ -202,3 +204,20 @@ def test_suite_result_passed_fn():
     assert_that(passed, equal_to(True))
     passed = SuiteResult('test', [result1, result4]).passed(fail_if_check_not_run=True)
     assert_that(passed, equal_to(False))
+
+
+def test_config():
+    model_eval_suite = model_evaluation()
+    check_amount = len(model_eval_suite.checks)
+
+    suite_mod = model_eval_suite.config()
+
+    assert_that(suite_mod, all_of(
+        has_entry('name', 'Model Evaluation Suite'),
+        has_entry('module_name', 'deepchecks.tabular.suite'),
+        has_entry('checks', instance_of(list))
+    ))
+    
+    conf_suite_mod = BaseSuite.from_config(suite_mod)
+    assert_that(conf_suite_mod.name, equal_to('Model Evaluation Suite'))
+    assert_that(conf_suite_mod.checks.values(), has_length(check_amount))
