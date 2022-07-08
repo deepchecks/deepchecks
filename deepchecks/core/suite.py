@@ -11,16 +11,18 @@
 # pylint: disable=unused-argument, import-outside-toplevel
 """Module containing the Suite object, used for running a set of checks together."""
 import abc
+import importlib
 import io
 import warnings
 from collections import OrderedDict
-from typing import List, Optional, Sequence, Set, Tuple, Union, cast
+from typing import List, Optional, Sequence, Set, Tuple, Type, Union, cast
 
 import jsonpickle
 from ipywidgets import Widget
+from typing_extensions import TypedDict
 
 from deepchecks.core import check_result as check_types
-from deepchecks.core.checks import BaseCheck
+from deepchecks.core.checks import BaseCheck, CheckConfig
 from deepchecks.core.display import DisplayableResult, save_as_html
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.serialization.abc import HTMLFormatter
@@ -32,6 +34,12 @@ from deepchecks.utils.strings import get_random_string, widget_to_html_string
 from deepchecks.utils.wandb_utils import wandb_run
 
 __all__ = ['BaseSuite', 'SuiteResult']
+
+
+class SuiteConfig(TypedDict):
+    name: str
+    module_name: str
+    checks: List[CheckConfig]
 
 
 class SuiteResult(DisplayableResult):
@@ -478,6 +486,41 @@ class BaseSuite:
             raise DeepchecksValueError(f'No index {index} in suite')
         self.checks.pop(index)
         return self
+
+    def config(self) -> SuiteConfig:
+        """Return suite configuration (checks' conditions' configuration not yet supported).
+
+        Returns
+        -------
+        SuiteConfig
+            includes the suite name, and list of check configs.
+        """
+        meta_data = SuiteConfig(name=self.name, checks=[], module_name=self.__module__)
+        for check in self.checks.values():
+            meta_data['checks'].append(check.config())
+        return meta_data
+
+    @staticmethod
+    def from_config(conf: SuiteConfig) -> 'BaseSuite':
+        """Return suite object from a CheckConfig object.
+
+        Parameters
+        ----------
+        conf : SuiteConfig
+            the SuiteConfig object
+
+        Returns
+        -------
+        BaseSuite
+            the suite class object from given config
+        """
+        checks = []
+        for check_conf in conf['checks']:
+            checks.append(BaseCheck.from_config(check_conf))
+
+        module = importlib.import_module(conf['module_name'])
+        suite_cls: Type[BaseSuite] = getattr(module, 'Suite')
+        return suite_cls(conf['name'], *checks)
 
 
 def sort_check_results(
