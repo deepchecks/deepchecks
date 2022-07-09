@@ -17,7 +17,7 @@ import wandb
 from hamcrest import (all_of, assert_that, calling, contains_exactly, contains_string, equal_to, greater_than,
                       has_entries, has_item, has_length, has_property, instance_of, matches_regexp, only_contains,
                       raises, starts_with)
-from IPython.display import Image
+
 from ipywidgets import HTML, Tab, VBox
 from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
@@ -25,16 +25,13 @@ from plotly.basedatatypes import BaseFigure
 from deepchecks.core.check_result import DisplayMap
 from deepchecks.core.serialization.check_result.html import CheckResultSerializer as HtmlSerializer
 from deepchecks.core.serialization.check_result.html import DisplayItemsHandler as HtmlDisplayItemsHandler
-from deepchecks.core.serialization.check_result.ipython import CheckResultSerializer as IPythonSerializer
-from deepchecks.core.serialization.check_result.ipython import DisplayItemsHandler as IPythonDisplayItemsHandler
 from deepchecks.core.serialization.check_result.json import CheckResultSerializer as JsonSerializer
 from deepchecks.core.serialization.check_result.json import DisplayItemsHandler as JsonDisplayItemsHandler
 from deepchecks.core.serialization.check_result.wandb import CheckResultSerializer as WandbSerializer
 from deepchecks.core.serialization.check_result.widget import CheckResultSerializer as WidgetSerializer
 from deepchecks.core.serialization.check_result.widget import DisplayItemsHandler as WidgetDisplayItemsHandler
-from deepchecks.core.serialization.common import plotlyjs_script
 from deepchecks.utils.strings import get_random_string
-from tests.common import DummyCheck, create_check_result, create_check_result_display, instance_of_ipython_formatter
+from tests.common import DummyCheck, create_check_result, create_check_result_display
 
 # ===========================================
 
@@ -106,20 +103,6 @@ def test_check_result_without_display_and_conditions_into_html_serialization():
     )
 
     assert_that(len(full_output) > len(output_without_conditions))
-
-
-
-def test_html_serialization_with_plotply_activation_script():
-    result = create_check_result()
-    output = HtmlSerializer(result).serialize()
-
-    assert_that(
-        output,
-        all_of(
-            instance_of(str),
-            has_length(greater_than(0)),
-            starts_with(plotlyjs_script()))
-    )
 
 
 def test_html_serialization_to_full_html_page():
@@ -195,76 +178,6 @@ def is_display_map_sections(*section_names):
         instance_of(str),
         matches_regexp(pattern)
     )
-
-
-# ===========================================
-
-
-def test_ipython_serializer_initialization():
-    serializer = IPythonSerializer(create_check_result())
-
-
-def test_ipython_serializer_initialization_with_incorrect_type_of_value():
-    assert_that(
-        calling(IPythonSerializer).with_args([]),
-        raises(
-            TypeError,
-            'Expected "CheckResult" but got "list"')
-    )
-
-
-def test_ipython_serialization():
-    result = create_check_result()
-    output = IPythonSerializer(result).serialize()
-
-    assert_that(
-        output,
-        all_of(
-            instance_of(list),
-            has_length(greater_than(0)),
-            only_contains(instance_of_ipython_formatter()),
-            has_item(instance_of(Image)),
-            has_item(instance_of(BaseFigure)))
-    )
-
-
-def test_ipython_serialization_with_empty__check_sections__parameter():
-    result = create_check_result()
-    assert_that(
-        calling(IPythonSerializer(result).serialize).with_args(check_sections=[]),
-        raises(ValueError, 'include parameter cannot be empty')
-    )
-
-
-def test_display_map_serialization_to_list_of_ipython_formatters():
-    formatters = IPythonDisplayItemsHandler.handle_display(
-        display=[DisplayMap(a=create_check_result_display())],
-        include_header=False,
-        include_trailing_link=False
-    )
-    assert_that(formatters, all_of(
-        instance_of(list),
-        has_length(equal_to(6)), # section header + five display items created by create_check_result_display
-        only_contains(instance_of_ipython_formatter()),
-    ))
-
-
-def test_nested_display_map_serialization_to_list_of_ipython_formatters():
-    formatters = IPythonDisplayItemsHandler.handle_display(
-        display=[
-            DisplayMap(
-                a=create_check_result_display(),
-                b=[DisplayMap(a=create_check_result_display())],
-            ),
-        ],
-        include_header=False,
-        include_trailing_link=False
-    )
-    assert_that(formatters, all_of(
-        instance_of(list),
-        has_length(equal_to(13)), # three section headers + ten display items created by create_check_result_display
-        only_contains(instance_of_ipython_formatter()),
-    ))
 
 
 # ===========================================

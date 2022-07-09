@@ -22,9 +22,8 @@ from plotly.basedatatypes import BaseFigure
 from wandb.sdk.data_types.base_types.wb_value import WBValue
 
 from deepchecks.core.check_result import CheckFailure, CheckResult
-from deepchecks.core.serialization.common import form_output_anchor, plotlyjs_script
+from deepchecks.core.serialization.common import form_output_anchor
 from deepchecks.core.serialization.suite_result.html import SuiteResultSerializer as HtmlSerializer
-from deepchecks.core.serialization.suite_result.ipython import SuiteResultSerializer as IPythonSerializer
 from deepchecks.core.serialization.suite_result.json import SuiteResultSerializer as JsonSerializer
 from deepchecks.core.serialization.suite_result.wandb import SuiteResultSerializer as WandbSerializer
 from deepchecks.core.serialization.suite_result.widget import SuiteResultSerializer as WidgetSerializer
@@ -102,18 +101,6 @@ def are_navigation_links_present(
     ))
 
 
-def test_html_serialization_with_plotply_activation_script():
-    result = create_suite_result()
-    output = HtmlSerializer(result).serialize()
-
-    assert_that(
-        output,
-        all_of(
-            instance_of(str),
-            has_length(greater_than(0)),
-            starts_with(plotlyjs_script()))
-    )
-
 
 def test_html_serialization_to_full_html_page():
     result = create_suite_result()
@@ -130,36 +117,6 @@ def test_html_serialization_to_full_html_page():
         all_of(instance_of(str), matches_regexp(regexp))
     )
 
-
-# ============================================================================
-
-
-def test_ipython_serializer_initialization():
-    serializer = IPythonSerializer(create_suite_result())
-
-
-def test_ipython_serializer_initialization_with_incorrect_type_of_value():
-    assert_that(
-        calling(IPythonSerializer).with_args(set()),
-        raises(
-            TypeError,
-            'Expected "SuiteResult" but got "set"')
-    )
-
-
-def test_ipython_serialization():
-    suite_result = create_suite_result()
-    output = IPythonSerializer(suite_result).serialize()
-
-    assert_that(
-        output,
-        all_of(
-            instance_of(list),
-            has_length(greater_than(0)),
-            only_contains(instance_of_ipython_formatter()),
-            has_item(instance_of(Image)),
-            has_item(instance_of(BaseFigure)))
-    )
 
 # ============================================================================
 
