@@ -9,10 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing html serializer for the CheckResult type."""
-import textwrap
 import typing as t
 
-import htmlmin
 from plotly.basedatatypes import BaseFigure
 from plotly.io import to_html
 from plotly.offline.offline import get_plotlyjs
@@ -136,7 +134,7 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
         return f'<style>{DEEPCHECKS_STYLE}</style>{iframe}'
 
     def _serialize_to_full_html(self, content: str) -> str:
-        return htmlmin.minify(f"""
+        return f"""
             <html>
             <head>
                 <meta charset="utf-8"/>
@@ -147,7 +145,7 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
             {content}
             </body>
             </html>
-        """)
+        """
 
     def prepare_header(self, output_id: t.Optional[str] = None) -> str:
         """Prepare the header section of the html output."""

@@ -14,7 +14,6 @@ import textwrap
 import typing as t
 import warnings
 
-import htmlmin
 from plotly.offline.offline import get_plotlyjs
 
 from deepchecks.core import check_result as check_types
@@ -146,7 +145,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         return self._serialize_to_full_html(content)
 
     def _serialize_to_full_html(self, content: t.Sequence[str]) -> str:
-        return htmlmin.minify(f"""
+        return f"""
             <html>
             <head>
                 <meta charset="utf-8"/>
@@ -155,7 +154,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             </head>
             <body class="deepchecks">{''.join(content)}</body>
             </html>
-        """)
+        """
 
     def _serialize_to_iframe(self, content: t.Sequence[str]) -> str:
         iframe = expendable_iframe(
