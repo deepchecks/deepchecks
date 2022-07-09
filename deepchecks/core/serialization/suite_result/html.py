@@ -21,12 +21,12 @@ from deepchecks.core import suite
 from deepchecks.core.resources import DEEPCHECKS_HTML_PAGE_STYLE, DEEPCHECKS_STYLE
 from deepchecks.core.serialization.abc import HtmlSerializer
 from deepchecks.core.serialization.check_failure.html import CheckFailureSerializer as CheckFailureHtmlSerializer
+from deepchecks.core.serialization.check_result.html import CheckEmbedmentWay
 from deepchecks.core.serialization.check_result.html import CheckResultSerializer as CheckResultHtmlSerializer
-from deepchecks.core.serialization.check_result.html import EmbedmentWay as CheckEmbedmentWay
 from deepchecks.core.serialization.common import (Html, aggregate_conditions, create_failures_dataframe,
                                                   create_results_dataframe, form_output_anchor, plotly_loader_script)
 from deepchecks.core.serialization.dataframe.html import DataFrameSerializer
-from deepchecks.utils.html import details_tag, expendable_iframe
+from deepchecks.utils.html import details_tag, iframe_tag
 from deepchecks.utils.strings import get_random_string
 
 __all__ = ['SuiteResultSerializer']
@@ -54,8 +54,8 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         full_html: bool = False,
         collapsible: bool = False,
         is_for_iframe_with_srcdoc: bool = False,
-        plotly_to_image: bool = False,
         embed_into_iframe: bool = False,
+        use_javascript: bool = True,
         **kwargs,
     ) -> str:
         """Serialize a SuiteResult instance into HTML format.
@@ -70,8 +70,6 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             anchor links, in order to work within iframe require additional prefix
             'about:srcdoc'. This flag tells function whether to add that prefix to
             the anchor links or not
-        plotly_to_image : bool, default False
-            whether to transform Plotly figure instance into static image or not
         **kwargs :
             all other key-value arguments will be passed to the CheckResult/CheckFailure
             serializers
@@ -83,9 +81,9 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         if embed_into_iframe is True:
             is_for_iframe_with_srcdoc = True
 
-        kwargs['check_embedment_way'] = 'suite-html-page' if full_html or embed_into_iframe else 'suite'
+        check_embedment_way = 'suite-html-page' if full_html or embed_into_iframe else 'suite'
         kwargs['is_for_iframe_with_srcdoc'] = is_for_iframe_with_srcdoc
-        kwargs['plotly_to_image'] = plotly_to_image
+        kwargs['use_javascript'] = use_javascript
 
         suite_result = self.value
         passed_checks = suite_result.get_passed_checks()
@@ -106,6 +104,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
                 results=not_passed_checks,
                 output_id=output_id,
                 summary_creation_method=self.prepare_conditions_summary,
+                check_embedment_way=check_embedment_way,
                 **kwargs
             ),
             self.prepare_results(
@@ -113,6 +112,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
                 results=passed_checks,
                 output_id=output_id,
                 summary_creation_method=self.prepare_conditions_summary,
+                check_embedment_way=check_embedment_way,
                 **kwargs
             ),
             self.prepare_results(
@@ -121,6 +121,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
                 output_id=output_id,
                 summary_creation_method=self.prepare_unconditioned_results_summary,
                 check_sections=['additional-output'],
+                check_embedment_way=check_embedment_way,
                 **kwargs
             ),
             self.prepare_failures(
@@ -131,21 +132,30 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             )
         )
 
-        if full_html is False:
-            if embed_into_iframe is True:
-                return self._serialize_to_iframe(content)
-            else:
-                output = details_tag(
-                    title=suite_result.name,
-                    content=''.join(content),
-                    id=output_id or '',
-                    attrs='open class="deepchecks"',
-                )
-                return f'{plotly_loader_script()}{output}'
+        if full_html is True:
+            return self._serialize_to_full_html(content, collapsible, use_javascript)
 
-        return self._serialize_to_full_html(content, collapsible)
+        if embed_into_iframe is True:
+            return self._serialize_to_iframe(content, use_javascript)
 
-    def _serialize_to_full_html(self, content: t.Sequence[str], collapsible: bool = False) -> str:
+        output = details_tag(
+            title=suite_result.name,
+            content=''.join(content),
+            id=output_id or '',
+            attrs='open class="deepchecks"',
+        )
+        return (
+            f'{plotly_loader_script()}{output}'
+            if use_javascript
+            else f'<style>{DEEPCHECKS_STYLE}</style>{output}'
+        )
+
+    def _serialize_to_full_html(
+        self,
+        content: t.Sequence[str],
+        collapsible: bool = False,
+        use_javascript: bool = True
+    ) -> str:
         content = (
             details_tag(
                 title=self.value.name,
@@ -155,23 +165,37 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             if collapsible is True
             else ''.join(content)
         )
+        script = (
+            f'<script type="text/javascript">{get_plotlyjs()}</script>'
+            if use_javascript
+            else ''
+        )
         return f"""
             <html>
             <head>
                 <meta charset="utf-8"/>
-                <script type="text/javascript">{get_plotlyjs()}</script>
                 <style>{DEEPCHECKS_HTML_PAGE_STYLE}</style>
+                {script}
             </head>
             <body class="deepchecks">{content}</body>
             </html>
         """
 
-    def _serialize_to_iframe(self, content: t.Sequence[str]) -> str:
-        iframe = expendable_iframe(
+    def _serialize_to_iframe(
+        self,
+        content: t.Sequence[str],
+        use_javascript: bool = True
+    ) -> str:
+        content = iframe_tag(
             title=self.value.name,
-            srcdoc=self._serialize_to_full_html(content, collapsible=False)
+            collapsible=True,
+            srcdoc=self._serialize_to_full_html(
+                content,
+                collapsible=False,
+                use_javascript=use_javascript
+            )
         )
-        return f'<style>{DEEPCHECKS_HTML_PAGE_STYLE}</style>{iframe}'
+        return f'<style>{DEEPCHECKS_STYLE}</style>{content}'
 
     def prepare_prologue(self) -> str:
         """Prepare prologue section."""
@@ -383,7 +407,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             serialized_results = (
                 select_serializer(it).serialize(
                     output_id=section_id,
-                    embedment_way=check_embedment_way,
+                    embed_into_suite=check_embedment_way,
                     **kwargs
                 )
                 for it in results

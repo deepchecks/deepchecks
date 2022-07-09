@@ -12,9 +12,6 @@
 """Module with common utilities routines for serialization subpackage."""
 import io
 import json
-import os
-import pkgutil
-import textwrap
 import typing as t
 import warnings
 from contextlib import contextmanager
@@ -23,12 +20,10 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import plotly.io._html as plotlyhtml
 from ipywidgets import DOMWidget
 from jsonpickle.pickler import Pickler
 from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
-from plotly.io._utils import plotly_cdn_url
 from plotly.offline.offline import get_plotlyjs
 
 from deepchecks.core import check_result as check_types
@@ -36,7 +31,7 @@ from deepchecks.core import errors
 from deepchecks.core.resources import DEEPCHECKS_STYLE
 from deepchecks.utils.dataframes import un_numpy
 from deepchecks.utils.html import linktag
-from deepchecks.utils.strings import get_ellipsis
+from deepchecks.utils.strings import get_ellipsis, get_random_string
 
 __all__ = [
     'aggregate_conditions',
@@ -51,7 +46,6 @@ __all__ = [
     'concatv_images',
     'switch_matplot_backend',
     'plotlyjs_script',
-    'requirejs_script',
     'flatten',
     'join'
 ]
@@ -282,105 +276,6 @@ def create_failures_dataframe(
     return df
 
 
-def requirejs_script(connected: bool = True):
-    """Return requirejs script tag.
-
-    Parameters
-    ----------
-    connected : bool, default True
-
-    Returns
-    -------
-    str
-    """
-    if connected is True:
-        return textwrap.dedent("""
-            <script
-                src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js"
-                integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg=="
-                crossorigin="anonymous"
-                referrerpolicy="no-referrer">
-            </script>
-        """)
-    else:
-        path = os.path.join('core', 'resources', 'requirejs.min.js')
-        js = pkgutil.get_data('deepchecks', path).decode('utf-8')
-        return f'<script>{js}</script>'
-
-
-def plotlyjs_script(connected: bool = True) -> str:
-    """Return plotly activation script in the requirejs enviroment.
-
-    Parameters
-    ----------
-    connected : bool, default True
-
-    Returns
-    -------
-    str
-    """
-    if connected is True:
-        # Connected so we configure requirejs with the plotly CDN
-        script = textwrap.dedent("""
-            {win_config}
-            {mathjax_config}
-            <script type="text/javascript">
-                if (typeof require !== 'undefined') {{
-                    require.undef("plotly");
-                    requirejs.config({{
-                        paths: {{'plotly': ['{plotly_cdn}']}}
-                    }});
-                    require(
-                        ['plotly'],
-                        function(Plotly) {{
-                            window._Plotly = Plotly;
-                            window.Plotly = Plotly;
-                            console.log('Loaded plotly successfully');
-                        }},
-                        function() {{console.log('Failed to load plotly')}}
-                    );
-                }} else {{
-                    console.log('requirejs is not present');
-                }}
-            </script>
-        """)
-        return script.format(
-            win_config=plotlyhtml._window_plotly_config,
-            mathjax_config=plotlyhtml._mathjax_config,
-            plotly_cdn=plotly_cdn_url().rstrip('.js'),
-        )
-    else:
-        # If not connected then we embed a copy of the plotly.js library
-        script = textwrap.dedent("""
-            {win_config}
-            {mathjax_config}
-            <script type="text/javascript">
-                if (typeof require !== 'undefined') {{
-                    require.undef("plotly");
-                    define('plotly', function(require, exports, module) {{
-                        {script}
-                    }});
-                    require(
-                        ['plotly'],
-                        function(Plotly) {{
-                            window._Plotly = Plotly;
-                            window.Plotly = Plotly;
-                            console.log('Loaded plotly successfully');
-                        }},
-                        function() {{console.log('Failed to load plotly')}}
-                    );
-                }} else {{
-                    console.log('requirejs is not present');
-                }}
-            </script>
-        """)
-        return script.format(
-            script=get_plotlyjs(),
-            win_config=plotlyhtml._window_plotly_config,
-            mathjax_config=plotlyhtml._mathjax_config,
-        )
-
-
 def read_matplot_figures() -> t.List[io.BytesIO]:
     """Return all active matplot figures."""
     output = []
@@ -479,7 +374,8 @@ def join(l: t.List[A], item: B) -> t.Iterator[t.Union[A, B]]:
             yield item
 
 
-def figure_creation_script(figure: BaseFigure, div_id: str) -> str:
+def figure_to_html(figure: BaseFigure) -> str:
+    div_id = f'deepchecks-{get_random_string(n=25)}'
     data = figure.to_json()
     script = FIGURE_CREATION_SCRIPT.replace('%container-id', div_id).replace('%figure-data', data)
     return (

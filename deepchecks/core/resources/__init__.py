@@ -69,10 +69,12 @@ DEEPCHECKS_STYLE = """
 }
 
 details.deepchecks {
+    position: relative;
     border: 1px solid #d6d6d6;
     margin-bottom: 0.25em;
 }
 details.deepchecks > div {
+    position: relative;
     display: none;
     flex-direction: column;
     padding: 1em 1.5em 1em 1.5em;
@@ -158,19 +160,22 @@ div.deepchecks-tabs > div.deepchecks-tab[open] {
     bottom: 30px;
     right: 60px;
     opacity: 0.4;
-    font-size: 22px;
-    font-weight: bold;
+    font-size: 32px;
+    font-weight: 600;
     line-height: 1;
     background-color: #f9f9f9;
     border: 1px solid #d6d6d6;
-    border-radius: 2px;
+    border-radius: 50%;
     cursor: pointer;
-    padding: 3px;
+    padding: 6px;
     text-align: center;
     vertical-align: middle;
 }
 .deepchecks-fullscreen-btn:hover {
     opacity: 1;
+}
+.deepchecks-fullscreen-btn::after {
+    content: '⤡';
 }
 """
 

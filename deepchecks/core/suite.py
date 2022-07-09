@@ -134,9 +134,6 @@ class SuiteResult(DisplayableResult):
             'text/html': self._repr_html_(),
             'application/json': self._repr_json_()
         }
-    
-    def _ipython_display_(self, unique_id: Optional[str] = None):
-        self.show(unique_id=unique_id)
 
     # @property
     # def widget_serializer(self) -> SuiteResultWidgetSerializer:
@@ -147,54 +144,6 @@ class SuiteResult(DisplayableResult):
     def html_serializer(self) -> SuiteResultHtmlSerializer:
         """Return HtmlSerializer instance."""
         return SuiteResultHtmlSerializer(self)
-
-    def show(
-        self,
-        unique_id: Optional[str] = None,
-        **kwargs
-    ) -> Optional[HTMLFormatter]:
-        """Display result.
-
-        Parameters
-        ----------
-        unique_id : Optional[str], default None
-            unique identifier of the result output
-        **kwargs :
-            other key-value arguments will be passed to the `Serializer.serialize`
-            method
-
-        Returns
-        -------
-        Optional[HTMLFormatter] :
-            when used by sphinx-gallery
-        """
-        return super().show(
-            unique_id=unique_id or get_random_string(n=25),
-            **kwargs
-        )
-
-    def show_not_interactive(
-        self,
-        unique_id: Optional[str] = None,
-        **kwargs
-    ):
-        """Display the not interactive version of result output.
-
-        In this case, ipywidgets will not be used and plotly
-        figures will be transformed into jpeg images.
-
-        Parameters
-        ----------
-        unique_id : Optional[str], default None
-            unique identifier of the result output
-        **kwrgs :
-            other key-value arguments will be passed to the `Serializer.serialize`
-            method
-        """
-        return super().show_not_interactive(
-            unique_id or get_random_string(n=25),
-            **kwargs
-        )
 
     def save_as_html(
         self,

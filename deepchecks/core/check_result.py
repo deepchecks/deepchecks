@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union, ca
 import jsonpickle
 import jsonpickle.ext.pandas as jsonpickle_pd
 import pandas as pd
-from ipywidgets import Widget
+# from ipywidgets import Widget
 from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
 

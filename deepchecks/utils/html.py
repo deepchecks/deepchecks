@@ -15,7 +15,7 @@ import typing as t
 
 from deepchecks.utils.strings import get_random_string
 
-__all__ = ['imagetag', 'linktag', 'details_tag', 'expendable_iframe']
+__all__ = ['imagetag', 'linktag', 'details_tag', 'iframe']
 
 
 def _stringify(
@@ -175,7 +175,7 @@ def tabs_widget(data: t.Mapping[str, t.Union[str, t.List[str]]]) -> str:
     )
 
 
-def expendable_iframe(
+def iframe_tag(
     *,
     title: str,
     id: t.Optional[str] = None,  # pylint: disable=redefined-builtin
@@ -185,6 +185,7 @@ def expendable_iframe(
     allow: str = 'fullscreen',
     frameborder: str = '0',
     with_fullscreen_btn: bool = True,
+    collapsible: bool = False,
     **attributes
 ) -> str:
     """Return html iframe tag."""
@@ -215,21 +216,25 @@ def expendable_iframe(
     ])
 
     if with_fullscreen_btn is False:
+        if collapsible is False:
+            return f'<iframe {attributes}></iframe>'
+        else:
+            return details_tag(
+                title=title,
+                content=f'<iframe {attributes}></iframe>',
+                attrs='open class="deepchecks"',
+                content_style="padding: 0!important;"
+            )
+
+    onclick = f"document.querySelector('#{id}').requestFullscreen();"
+    fullscreen_btn = f'<button class="deepchecks-fullscreen-btn" onclick="{onclick}"></button>'
+
+    if collapsible is False:
+        return f'{fullscreen_btn}<iframe allowfullscreen {attributes}></iframe>'
+    else:
         return details_tag(
             title=title,
-            content=f'<iframe {attributes}></iframe>',
+            content=f"{fullscreen_btn}<iframe allowfullscreen {attributes}></iframe>",
             attrs='open class="deepchecks"',
-            content_style="padding: 0!important;"
+            content_style="padding: 0!important;",
         )
-
-    fullscreen_btn = f"""
-        <button class="deepchecks-fullscreen-btn" onclick="document.querySelector('#{id}').requestFullscreen();" >
-            &#9974;
-        </button>
-    """
-    return details_tag(
-        title=title,
-        content=f"{fullscreen_btn}<iframe allowfullscreen {attributes}></iframe>",
-        attrs='open class="deepchecks"',
-        content_style="padding: 0!important;",
-    )

@@ -52,7 +52,6 @@ class DisplayableResult(abc.ABC):
 
     def show(
         self,
-        # as_widget: bool = True,
         unique_id: t.Optional[str] = None,
         **kwargs
     ) -> t.Optional[HTMLFormatter]:
@@ -60,11 +59,9 @@ class DisplayableResult(abc.ABC):
 
         Parameters
         ----------
-        as_widget : bool, default True
-            whether to display result with help of ipywidgets or not
         unique_id : Optional[str], default None
             unique identifier of the result output
-        **kwrgs :
+        **kawrgs :
             other key-value arguments will be passed to the `Serializer.serialize`
             method
 
@@ -73,9 +70,11 @@ class DisplayableResult(abc.ABC):
         Optional[HTMLFormatter] :
             when used by sphinx-gallery
         """
+        output_id = unique_id or get_random_string(n=25)
+
         if 'sphinx_gallery' in pio.renderers.default:
             # TODO: why we need this? add comments
-            html = self.html_serializer.serialize(output_id=unique_id, **kwargs)
+            html = self.html_serializer.serialize(output_id=output_id, **kwargs)
 
             class TempSphinx:
                 def _repr_html_(self):
@@ -86,7 +85,7 @@ class DisplayableResult(abc.ABC):
         if is_colab_env():
             display_html(
                 self.html_serializer.serialize(
-                    full_html=True, 
+                    full_html=True,
                     is_for_iframe_with_srcdoc=True,
                     collapsible=True,
                     **kwargs
@@ -95,13 +94,15 @@ class DisplayableResult(abc.ABC):
             )
         else:
             display_html(
-                self.html_serializer.serialize(output_id=unique_id, **kwargs),
+                self.html_serializer.serialize(
+                    output_id=output_id,
+                    **kwargs
+                ),
                 raw=True
             )
 
     def show_in_iframe(
         self,
-        # as_widget: bool = True,
         unique_id: t.Optional[str] = None,
         **kwargs
     ):
@@ -109,8 +110,6 @@ class DisplayableResult(abc.ABC):
 
         Parameters
         ----------
-        as_widget : bool, default True
-            whether to display result with help of ipywidgets or not
         unique_id : Optional[str], default None
             unique identifier of the result output
         **kwrgs :
@@ -123,7 +122,6 @@ class DisplayableResult(abc.ABC):
             display_html(
                 self.html_serializer.serialize(
                     full_html=True,
-                    is_for_iframe_with_srcdoc=True,
                     collapsible=True,
                     **kwargs
                 ),
@@ -150,9 +148,6 @@ class DisplayableResult(abc.ABC):
     ):
         """Display the not interactive version of result output.
 
-        In this case, ipywidgets will not be used and plotly
-        figures will be transformed into png images.
-
         Parameters
         ----------
         unique_id : Optional[str], default None
@@ -161,14 +156,26 @@ class DisplayableResult(abc.ABC):
             other key-value arguments will be passed to the `Serializer.serialize`
             method
         """
-        display_html(
-            self.html_serializer.serialize(
-                output_id=unique_id,
-                plotly_to_image=True,
-                **kwargs
-            ),
-            raw=True
-        )
+        output_id = unique_id or get_random_string(n=25)
+
+        if is_colab_env():
+            display_html(
+                self.html_serializer.serialize(
+                    full_html=True,
+                    use_javascript=False,
+                    **kwargs
+                ),
+                raw=True
+            )
+        else:
+            display_html(
+                self.html_serializer.serialize(
+                    output_id=output_id,
+                    use_javascript=False,
+                    **kwargs
+                ),
+                raw=True
+            )
 
     def _ipython_display_(self, **kwargs):
         """Display result.."""
@@ -291,8 +298,6 @@ def save_as_html(
     elif isinstance(serializer, HtmlSerializer):
         html = serializer.serialize(  # pylint: disable=redefined-outer-name
             full_html=True,
-            include_requirejs=requirejs,
-            include_plotlyjs=True,
             **kwargs
         )
         if isinstance(file, str):
