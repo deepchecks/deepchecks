@@ -23,8 +23,9 @@ from deepchecks.core.serialization.abc import HtmlSerializer
 from deepchecks.core.serialization.check_failure.html import CheckFailureSerializer as CheckFailureHtmlSerializer
 from deepchecks.core.serialization.check_result.html import CheckEmbedmentWay
 from deepchecks.core.serialization.check_result.html import CheckResultSerializer as CheckResultHtmlSerializer
-from deepchecks.core.serialization.common import (Html, aggregate_conditions, create_failures_dataframe,
-                                                  create_results_dataframe, form_output_anchor, plotly_loader_script)
+from deepchecks.core.serialization.common import (DEEPCHECKS_SCRIPT, Html, aggregate_conditions,
+                                                  create_failures_dataframe, create_results_dataframe,
+                                                  form_output_anchor)
 from deepchecks.core.serialization.dataframe.html import DataFrameSerializer
 from deepchecks.utils.html import details_tag, iframe_tag
 from deepchecks.utils.strings import get_random_string
@@ -65,11 +66,24 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         output_id : Optional[str], default None
             unique output identifier that will be used to form anchor links
         full_html : bool, default False
-            whether to return a fully independent HTML document or only CheckResult content
+            whether to return a fully independent HTML document or not
+        collapsible : bool, default False
+            Note: this parameter is used only when the 'full_html' parameter is
+            set to 'True' otherwise it is totally ignored.
+            It tells a serializer whether the suite result output must be
+            embedded into HTML '<details>' tag or not.
         is_for_iframe_with_srcdoc : bool, default False
             anchor links, in order to work within iframe require additional prefix
             'about:srcdoc'. This flag tells function whether to add that prefix to
             the anchor links or not
+        embed_into_iframe : bool , default False
+            whether to embed output into iframe or not
+        use_javascript : bool , default True
+            whether to use  javascript in an output or not.
+            If set to 'False', all components that require javascript
+            to work will be replaced by plain HTML components (if possible).
+            For example, plotly figures will be transformed into JPEG images,
+            tabs widgets will be replaced by HTML '<details>' tag
         **kwargs :
             all other key-value arguments will be passed to the CheckResult/CheckFailure
             serializers
@@ -132,11 +146,11 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             )
         )
 
-        if full_html is True:
-            return self._serialize_to_full_html(content, collapsible, use_javascript)
-
         if embed_into_iframe is True:
             return self._serialize_to_iframe(content, use_javascript)
+
+        if full_html is True:
+            return self._serialize_to_full_html(content, collapsible, use_javascript)
 
         output = details_tag(
             title=suite_result.name,
@@ -144,11 +158,12 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             id=output_id or '',
             attrs='open class="deepchecks"',
         )
-        return (
-            f'{plotly_loader_script()}{output}'
-            if use_javascript
-            else f'<style>{DEEPCHECKS_STYLE}</style>{output}'
-        )
+
+        if use_javascript is False:
+            return f'<style>{DEEPCHECKS_STYLE}</style>{output}'
+
+        # NOTE: style tag is not needed here because deepchecks-script will take care of it
+        return f'{DEEPCHECKS_SCRIPT}{output}'
 
     def _serialize_to_full_html(
         self,
@@ -390,6 +405,9 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             unique output identifier that will be used to form anchor links
         summary_creation_method : Optional[Callable[..., Widget]], default None
             function to create summary table
+        check_embedment_way : Union[Literal['suite'], Literal['suite-html-page']], default 'suite'
+            check embedment strategy, it tells the 'CheckResult' serializer
+            in what way Plotly figures must be serialized into HTML.
 
         Returns
         -------

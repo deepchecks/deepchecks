@@ -19,8 +19,8 @@ from typing_extensions import Literal as L
 from deepchecks.core import check_result as check_types
 from deepchecks.core.resources import DEEPCHECKS_HTML_PAGE_STYLE, DEEPCHECKS_STYLE
 from deepchecks.core.serialization.abc import ABCDisplayItemsHandler, HtmlSerializer
-from deepchecks.core.serialization.common import (aggregate_conditions, figure_to_html, form_output_anchor,
-                                                  plotly_loader_script)
+from deepchecks.core.serialization.common import (DEEPCHECKS_SCRIPT, aggregate_conditions, figure_to_html,
+                                                  form_output_anchor)
 from deepchecks.core.serialization.dataframe.html import DataFrameSerializer as DataFrameHtmlSerializer
 from deepchecks.utils.html import details_tag, iframe_tag, imagetag, linktag, tabs_widget
 
@@ -28,14 +28,14 @@ __all__ = ['CheckResultSerializer']
 
 
 CheckResultSection = t.Union[
-    L['condition-table'],
-    L['additional-output'],
+    L['condition-table'],  # noqa
+    L['additional-output'],  # noqa
 ]
 
 
 CheckEmbedmentWay = t.Union[
-    L['suite'],            # embedded into suite display
-    L['suite-html-page'],  # embedded into suite display serialized with 'full_html' flag set to True
+    L['suite'],            # embedded into suite display  # noqa
+    L['suite-html-page'],  # embedded into suite display serialized with 'full_html' flag set to True  # noqa
 ]
 
 
@@ -70,17 +70,34 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
 
         Parameters
         ----------
-        output_id : Optional[str], default None
+        output_id : Optional[str] , default None
             unique output identifier that will be used to form anchor links
-        check_sections : Optional[Sequence[Literal['condition-table', 'additional-output']]], default None
+        check_sections : Optional[Sequence[Literal['condition-table', 'additional-output']]] , default None
             sequence of check result sections to include into the output,
             in case of 'None' all sections will be included
-        full_html : bool, default False
-            whether to return a fully independent HTML document or only CheckResult content
-        is_for_iframe_with_srcdoc : bool, default False
+        full_html : bool , default False
+            whether to return a fully independent HTML document or not.
+        is_for_iframe_with_srcdoc : bool , default False
             anchor links, in order to work within iframe require additional prefix
             'about:srcdoc'. This flag tells function whether to add that prefix to
-            the anchor links or not
+            the anchor links or not.
+            Is automatically set to 'True' if the 'embed_into_iframe' parameter is
+            set to 'True'
+        use_javascript : bool , default True
+            whether to use  javascript in an output or not.
+            If set to 'False', all components that require javascript
+            to work will be replaced by plain HTML components (if possible).
+            For example, plotly figures will be transformed into JPEG images,
+            tabs widgets will be replaced by HTML '<details>' tag
+        embed_into_iframe : bool , default False
+            whether to embed output into iframe or not
+        embed_into_suite : Union[Literal['suite'], Literal['suite-html-page'], None] , default None
+            flag indicating that the 'CheckResult' output will be embedded
+            into the 'SuiteResult' output. This flag tells the serializer
+            how to serialize Plotly figures and whether navigation links
+            should be included in the output.
+            This parameter does not have any effect if the 'full_html'
+            parameter was set to 'True'
 
         Returns
         -------
@@ -113,15 +130,20 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
 
         content = f'<article class="deepchecks">{header}{summary}{condition_table}{additional_output}</article>'
 
-        if full_html is False:
-            if embed_into_iframe is True:
-                return self._serialize_to_iframe(content, use_javascript)
-            elif embed_into_suite is not None or use_javascript is False:
-                return content
-            else:
-                return f'{plotly_loader_script()}{content}'
+        if embed_into_iframe is True:
+            return self._serialize_to_iframe(content, use_javascript)
 
-        return self._serialize_to_full_html(content)
+        if full_html is True:
+            return self._serialize_to_full_html(content, use_javascript)
+
+        if embed_into_suite is not None:
+            return content
+
+        if use_javascript is False:
+            return f'<style>{DEEPCHECKS_STYLE}</style>{content}'
+
+        # NOTE: style tag is not needed here because deepchecks-script will take care of it
+        return f'{DEEPCHECKS_SCRIPT}{content}'
 
     def _serialize_to_iframe(self, content: str, use_javascript: bool = True) -> str:
         content = iframe_tag(
@@ -212,10 +234,25 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
         ----------
         output_id : Optional[str], default None
             unique output identifier that will be used to form anchor links
+        embed_into_iframe : bool , default False
+            whether to embed output into iframe or not
+        embed_into_suite : Union[Literal['suite'], Literal['suite-html-page'], None] , default None
+            flag indicating that the 'CheckResult' output will be embedded
+            into the 'SuiteResult' output. This flag tells the serializer
+            how to serialize Plotly figures and whether navigation links
+            should be included in the output.
+            This parameter does not have any effect if the 'full_html'
+            parameter was set to 'True'
         is_for_iframe_with_srcdoc : bool, default False
             anchor links, in order to work within iframe require additional prefix
             'about:srcdoc'. This flag tells function whether to add that prefix to
             the anchor links or not
+        use_javascript : bool , default True
+            whether to use  javascript in an output or not.
+            If set to 'False', all components that require javascript
+            to work will be replaced by plain HTML components (if possible).
+            For example, plotly figures will be transformed into JPEG images,
+            tabs widgets will be replaced by HTML '<details>' tag
 
         Returns
         -------
@@ -263,6 +300,21 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
             whether to include header
         include_trailing_link: bool, default True
             whether to include "go to top" link
+        embed_into_iframe : bool , default False
+            whether to embed output into iframe or not
+        embed_into_suite : Union[Literal['suite'], Literal['suite-html-page'], None] , default None
+            flag indicating that the 'CheckResult' output will be embedded
+            into the 'SuiteResult' output. This flag tells the serializer
+            how to serialize Plotly figures and whether navigation links
+            should be included in the output.
+            This parameter does not have any effect if the 'full_html'
+            parameter was set to 'True'
+        use_javascript : bool , default True
+            whether to use  javascript in an output or not.
+            If set to 'False', all components that require javascript
+            to work will be replaced by plain HTML components (if possible).
+            For example, plotly figures will be transformed into JPEG images,
+            tabs widgets will be replaced by HTML '<details>' tag
 
         Returns
         -------

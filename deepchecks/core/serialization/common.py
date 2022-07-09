@@ -45,7 +45,6 @@ __all__ = [
     'read_matplot_figures',
     'concatv_images',
     'switch_matplot_backend',
-    'plotlyjs_script',
     'flatten',
     'join'
 ]
@@ -384,11 +383,6 @@ def figure_to_html(figure: BaseFigure) -> str:
     )
 
 
-def plotly_loader_script() -> str:
-    return DEEPCHECKS_SCRIPT
-
-
-
 FIGURE_CREATION_SCRIPT = r"""
 ;(async () => {
     const containerId = '%container-id';
@@ -491,7 +485,6 @@ DEEPCHECKS_SCRIPT = """
         container.setAttribute('id', 'deepchecks-style');
         document.head.appendChild(container);
     })();
-
     async function deepchecksCreatePlotlyPromise() {
         const srcCode = document.querySelector('script#deepchecks-plotly-src');
         const blob = new Blob([srcCode.text], {type: 'text/javascript'});
@@ -501,7 +494,6 @@ DEEPCHECKS_SCRIPT = """
         URL.revokeObjectURL(url);
         return Plotly;
     }
-
     if (typeof Plotly === 'object' && Plotly.newPlot === 'function') {
         var deepchecksPlotlyPromise = new Promise(resolve => resolve(Plotly));
     } else if (typeof deepchecksPlotlyPromise === 'undefined') {

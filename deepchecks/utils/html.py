@@ -15,7 +15,7 @@ import typing as t
 
 from deepchecks.utils.strings import get_random_string
 
-__all__ = ['imagetag', 'linktag', 'details_tag', 'iframe']
+__all__ = ['imagetag', 'linktag', 'details_tag', 'iframe_tag']
 
 
 def _stringify(
@@ -100,7 +100,7 @@ def linktag(
 def details_tag(
     title: str,
     content: str,
-    id: t.Optional[str] = None,
+    id: t.Optional[str] = None,  # pylint: disable=redefined-builtin
     attrs: t.Union[str, t.Mapping[str, str], None] = None,
     style: t.Union[str, t.Mapping[str, str], None] = None,
     content_attrs: t.Union[str, t.Mapping[str, str], None] = None,
@@ -140,7 +140,7 @@ def tabs_widget(data: t.Mapping[str, t.Union[str, t.List[str]]]) -> str:
         if isinstance(v, list):
             v = ''.join(v)
         elif isinstance(v, str):
-            v = v
+            pass
         else:
             raise TypeError(f'Unsupported data value type - {type(v).__name__}')
 
@@ -223,7 +223,7 @@ def iframe_tag(
                 title=title,
                 content=f'<iframe {attributes}></iframe>',
                 attrs='open class="deepchecks"',
-                content_style="padding: 0!important;"
+                content_style='padding: 0!important;'
             )
 
     onclick = f"document.querySelector('#{id}').requestFullscreen();"
@@ -234,7 +234,7 @@ def iframe_tag(
     else:
         return details_tag(
             title=title,
-            content=f"{fullscreen_btn}<iframe allowfullscreen {attributes}></iframe>",
+            content=f'{fullscreen_btn}<iframe allowfullscreen {attributes}></iframe>',
             attrs='open class="deepchecks"',
-            content_style="padding: 0!important;",
+            content_style='padding: 0!important;',
         )

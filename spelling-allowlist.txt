@@ -106,3 +106,5 @@ Appender
 desc
 astype
 nullable
+SuiteResultWidgetSerializer
+detalize

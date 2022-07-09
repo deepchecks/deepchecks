@@ -61,7 +61,7 @@ class DisplayableResult(abc.ABC):
         ----------
         unique_id : Optional[str], default None
             unique identifier of the result output
-        **kawrgs :
+        **kwargs :
             other key-value arguments will be passed to the `Serializer.serialize`
             method
 
@@ -112,7 +112,7 @@ class DisplayableResult(abc.ABC):
         ----------
         unique_id : Optional[str], default None
             unique identifier of the result output
-        **kwrgs :
+        **kwargs :
             other key-value arguments will be passed to the `Serializer.serialize`
             method
         """
@@ -152,7 +152,7 @@ class DisplayableResult(abc.ABC):
         ----------
         unique_id : Optional[str], default None
             unique identifier of the result output
-        **kawrgs :
+        **kwargs :
             other key-value arguments will be passed to the `Serializer.serialize`
             method
         """

@@ -17,7 +17,6 @@ import wandb
 from hamcrest import (all_of, assert_that, calling, contains_exactly, contains_string, equal_to, greater_than,
                       has_entries, has_item, has_length, has_property, instance_of, matches_regexp, only_contains,
                       raises, starts_with)
-
 from ipywidgets import HTML, Tab, VBox
 from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure

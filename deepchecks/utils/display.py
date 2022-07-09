@@ -10,4 +10,3 @@
 #
 """Module with display utility functions."""
 __all__ = []
-

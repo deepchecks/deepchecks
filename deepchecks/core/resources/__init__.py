@@ -227,5 +227,3 @@ body.deepchecks {
 }
 %deepchecks-style
 """.replace('%deepchecks-style', DEEPCHECKS_STYLE)
-
-
