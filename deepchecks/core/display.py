@@ -116,7 +116,12 @@ class DisplayableResult(abc.ABC):
 
         if is_colab_env():
             display_html(
-                self.html_serializer.serialize(full_html=True, **kwargs),
+                self.html_serializer.serialize(
+                    full_html=True,
+                    is_for_iframe_with_srcdoc=True,
+                    collapsible=True,
+                    **kwargs
+                ),
                 raw=True
             )
         else:

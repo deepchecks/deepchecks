@@ -52,6 +52,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         self,
         output_id: t.Optional[str] = None,
         full_html: bool = False,
+        collapsible: bool = False,
         is_for_iframe_with_srcdoc: bool = False,
         plotly_to_image: bool = False,
         embed_into_iframe: bool = False,
@@ -142,9 +143,18 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
                 )
                 return f'{plotly_loader_script()}{output}'
 
-        return self._serialize_to_full_html(content)
+        return self._serialize_to_full_html(content, collapsible)
 
-    def _serialize_to_full_html(self, content: t.Sequence[str]) -> str:
+    def _serialize_to_full_html(self, content: t.Sequence[str], collapsible: bool = False) -> str:
+        content = (
+            details_tag(
+                title=self.value.name,
+                content=''.join(content),
+                attrs='open class="deepchecks"',
+            )
+            if collapsible is True
+            else ''.join(content)
+        )
         return f"""
             <html>
             <head>
@@ -152,14 +162,14 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
                 <script type="text/javascript">{get_plotlyjs()}</script>
                 <style>{DEEPCHECKS_HTML_PAGE_STYLE}</style>
             </head>
-            <body class="deepchecks">{''.join(content)}</body>
+            <body class="deepchecks">{content}</body>
             </html>
         """
 
     def _serialize_to_iframe(self, content: t.Sequence[str]) -> str:
         iframe = expendable_iframe(
             title=self.value.name,
-            srcdoc=self._serialize_to_full_html(content)
+            srcdoc=self._serialize_to_full_html(content, collapsible=False)
         )
         return f'<style>{DEEPCHECKS_HTML_PAGE_STYLE}</style>{iframe}'
 

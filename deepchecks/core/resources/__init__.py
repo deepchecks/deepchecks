@@ -57,6 +57,12 @@ DEEPCHECKS_STYLE = """
 .deepchecks table {
     max-width: fit-content!important;
     font-size: 12px!important;
+    text-align: left!important;
+}
+.deepchecks tr,
+.deepchecks th,
+.deepchecks td {
+    text-align: left!important;
 }
 .deepchecks iframe {
     resize: vertical!important;
@@ -194,7 +200,7 @@ body.deepchecks {
 .deepchecks tr,
 .deepchecks th,
 .deepchecks td {
-    text-align: right;
+    text-align: left;
     vertical-align: middle;
     padding: 0.5em 0.5em;
     line-height: normal;
