@@ -134,6 +134,9 @@ class SuiteResult(DisplayableResult):
             'text/html': self._repr_html_(),
             'application/json': self._repr_json_()
         }
+    
+    def _ipython_display_(self, unique_id: Optional[str] = None):
+        self.show(unique_id=unique_id)
 
     # @property
     # def widget_serializer(self) -> SuiteResultWidgetSerializer:

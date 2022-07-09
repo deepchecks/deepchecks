@@ -372,10 +372,14 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         str
         """
         if len(results) == 0:
-            section_id = ''
+            section_id = None
             content = '<p>No outputs to show.</p>'
         else:
-            section_id = f'{output_id}-section-{get_random_string()}'
+            section_id = (
+                f'{output_id}-section-{get_random_string()}'
+                if output_id is not None
+                else None
+            )
             serialized_results = (
                 select_serializer(it).serialize(
                     output_id=section_id,
@@ -396,7 +400,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         return details_tag(
             title=title,
             content=content,
-            id=form_output_anchor(section_id),
+            id=form_output_anchor(section_id) if section_id else None,
             attrs='class="deepchecks"',
         )
 
