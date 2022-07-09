@@ -131,8 +131,7 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
     def _serialize_to_iframe(self, content: str) -> str:
         iframe = expendable_iframe(
             title=self.value.get_header(),
-            srcdoc=self._serialize_to_full_html(content),
-            style="resize: vertical!important;",
+            srcdoc=self._serialize_to_full_html(content)
         )
         return f'<style>{DEEPCHECKS_STYLE}</style>{iframe}'
 
@@ -299,7 +298,6 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
         """Return 'Go To Top' link."""
         link = linktag(
             text='Go to top',
-            style={'font-size': '14px'},
             href=f'#{form_output_anchor(output_id)}',
             is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
         )
@@ -358,11 +356,7 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
             )
         elif embedment_way in {'suite', None}:
             container_id = f'deepchecks-{get_random_string(n=25)}'
-            script = figure_creation_script(item, div_id=container_id)
-            return (
-                f'<div><div id="{container_id}"></div>'
-                f'<script type="module">{script}</script></div>'
-            )
+            return figure_creation_script(item, div_id=container_id)
         else:
             raise ValueError(f'Unknown "embedment_way" parameter value - {embedment_way}')
 

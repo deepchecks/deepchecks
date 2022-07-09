@@ -160,8 +160,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
     def _serialize_to_iframe(self, content: t.Sequence[str]) -> str:
         iframe = expendable_iframe(
             title=self.value.name,
-            srcdoc=self._serialize_to_full_html(content),
-            style="resize: vertical!important;",
+            srcdoc=self._serialize_to_full_html(content)
         )
         return f'<style>{DEEPCHECKS_HTML_PAGE_STYLE}</style>{iframe}'
 

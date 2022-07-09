@@ -479,13 +479,13 @@ def join(l: t.List[A], item: B) -> t.Iterator[t.Union[A, B]]:
             yield item
 
 
-def figure_creation_script(
-    figure: BaseFigure,
-    div_id: str,
-    **kwargs
-) -> str:
+def figure_creation_script(figure: BaseFigure, div_id: str) -> str:
     data = figure.to_json()
-    return FIGURE_CREATION_SCRIPT.replace('%container-id', div_id).replace('%figure-data', data)
+    script = FIGURE_CREATION_SCRIPT.replace('%container-id', div_id).replace('%figure-data', data)
+    return (
+        f'<div><div id="{div_id}"></div>'
+        f'<script type="text/javascript">{script}</script></div>'
+    )
 
 
 def plotly_loader_script() -> str:

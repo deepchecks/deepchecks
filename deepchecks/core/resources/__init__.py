@@ -14,14 +14,14 @@ __all__ = ['DEEPCHECKS_STYLE', 'DEEPCHECKS_HTML_PAGE_STYLE']
 
 
 DEEPCHECKS_STYLE = """
-/* General style rules for deepchecks output */
+
 .deepchecks {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
-    font-size: 14px;
-    line-height: 1.5;
-    color: #212529;
-    text-align: left;
-    background-color: white;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'!important;
+    font-size: 14px!important;
+    line-height: 1.5!important;
+    color: #212529!important;
+    text-align: left!important;
+    background-color: white!important;
 }
 .deepchecks h1,
 .deepchecks h2,
@@ -29,67 +29,47 @@ DEEPCHECKS_STYLE = """
 .deepchecks h4,
 .deepchecks h5,
 .deepchecks h6 {
-    font-size: revert;
-    font-style: normal;
-    font-weight: normal;
-    text-transform: none;
-    text-decoration: none;
-    text-align: left;
-    margin: revert;
-    margin-top: revert;
+    font-style: normal!important;
+    font-weight: 600!important;
+    text-transform: none!important;
+    text-decoration: none!important;
+    text-align: left!important;
+    margin: revert!important;
+    margin-top: revert!important;
+    margin-bottom: revert!important;
 }
 .deepchecks p {
-    font-size: revert;
-    margin: revert;
-    text-align: justify;
+    font-size: revert!important;
+    margin: revert!important;
+    margin-top: revert!important;
+    margin-bottom: revert!important;
+    text-align: justify!important;
 }
-.deepchecks a {
-    color: #106ba3;
-    text-decoration: none;
+.deepchecks a:link {
+    font-size: revert!important;
+    color: #106ba3!important;
+    text-decoration: none!important;
+}
+.deepchecks a:link:hover {
+    text-decoration: underline!important;
+    cursor: pointer!important;
 }
 .deepchecks table {
-    border: none;
-    border-collapse: collapse;
-    border-spacing: 0;
-    color: black;
-    max-width: fit-content;
+    max-width: fit-content!important;
+    font-size: 12px!important;
 }
-.deepchecks thead {
-    border-bottom: 1px solid black;
-    vertical-align: bottom;
+.deepchecks iframe {
+    resize: vertical!important;
 }
-.deepchecks tr,
-.deepchecks th,
-.deepchecks td {
-    text-align: right;
-    vertical-align: middle;
-    padding: 0.5em 0.5em;
-    line-height: normal;
-    white-space: normal;
-    max-width: none;
-    border: none;
-}
-.deepchecks th {
-    font-weight: bold;
-}
-.deepchecks tbody tr:nth-child(odd) {
-    background: white;
-}
-.deepchecks tbody tr:nth-child(even) {
-    background: #f5f5f5;
-}
-.deepchecks tbody tbody tr:hover {
-    background: rgba(66, 165, 245, 0.2);
-}
-/* Deepchecks widgets style rules */
+
 details.deepchecks {
     border: 1px solid #d6d6d6;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.25em;
 }
 details.deepchecks > div {
     display: none;
     flex-direction: column;
-    padding: 1rem 1.5rem 1rem 1.5rem;
+    padding: 1em 1.5em 1em 1.5em;
 }
 details.deepchecks[open] > div {
     display: flex;
@@ -105,18 +85,19 @@ details.deepchecks > summary {
 details.deepchecks[open] > summary {
     border-bottom: 1px solid #d6d6d6;
 }
-.deepchecks-tabs {
+div.deepchecks-tabs {
     width: 100%;
     display: flex;
     flex-direction: column;
+    margin-top: 1em;
 }
-.deepchecks-tabs-btns {
+div.deepchecks-tabs-btns {
     width: 100%;
     height: fit-content;
     display: flex;
     flex-direction: row;
 }
-.deepchecks-tabs-btns > button {
+div.deepchecks-tabs-btns > button {
     margin: 0;
     background-color: #f9f9f9;
     border: 1px solid #d6d6d6;
@@ -125,31 +106,31 @@ details.deepchecks[open] > summary {
     transform: translateY(1px);
     z-index: 2;
 }
-.deepchecks-tabs-btns > button:focus {
+div.deepchecks-tabs-btns > button:focus {
     box-shadow: none;
     outline: none;
 }
-.deepchecks-tabs-btns > button[open] {
+div.deepchecks-tabs-btns > button[open] {
     background-color: white;
     border-bottom: none;
     border-top: 2px solid #1975FA;
 }
-.deepchecks-tabs > .deepchecks-tab {
+div.deepchecks-tabs > div.deepchecks-tab {
     display: None;
 }
-.deepchecks-tabs > .deepchecks-tab[open] {
+div.deepchecks-tabs > div.deepchecks-tab[open] {
     display: flex;
     flex-direction: column;
     border: 1px solid #d6d6d6;
-    padding: 1rem;
+    padding: 1em;
     z-index: 1;
 }
 .deepchecks-alert {
     border: 1px solid transparent;
-    border-radius: 0.25rem;
-    padding: 0.5rem 1rem 0.5rem 1rem;
-    margin-top: 0.5rem;
-    margin-bottom: 0.5rem;
+    border-radius: 0.25em;
+    padding: 0.5em 1em 0.5em 1em;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
 }
 .deepchecks-alert-error {
     color: #721c24;
@@ -200,7 +181,38 @@ body.deepchecks {
     padding: 1rem 1rem 0 1rem;
 }
 .deepchecks table {
-    font-size: 14px;
+    border: none;
+    border-collapse: collapse;
+    border-spacing: 0;
+    color: black;
+    max-width: fit-content;
+}
+.deepchecks thead {
+    border-bottom: 1px solid black;
+    vertical-align: bottom;
+}
+.deepchecks tr,
+.deepchecks th,
+.deepchecks td {
+    text-align: right;
+    vertical-align: middle;
+    padding: 0.5em 0.5em;
+    line-height: normal;
+    white-space: normal;
+    max-width: none;
+    border: none;
+}
+.deepchecks th {
+    font-weight: bold;
+}
+.deepchecks tbody tr:nth-child(odd) {
+    background: white;
+}
+.deepchecks tbody tr:nth-child(even) {
+    background: #f5f5f5;
+}
+.deepchecks tbody tbody tr:hover {
+    background: rgba(66, 165, 245, 0.2);
 }
 %deepchecks-style
 """.replace('%deepchecks-style', DEEPCHECKS_STYLE)
