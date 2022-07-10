@@ -55,8 +55,8 @@ def gower_matrix(data: np.ndarray, cat_features: np.array) -> np.ndarray:
     return result
 
 
-def calculate_nearest_neighbours_distances(data: pd.DataFrame, cat_cols: List[str], numeric_cols: List[str],
-                                           num_neighbours: int, samples_to_calculate_neighbors_for: List[Any] = None):
+def calculate_nearest_neighbors_distances(data: pd.DataFrame, cat_cols: List[str], numeric_cols: List[str],
+                                          num_neighbors: int, samples_to_calculate_neighbors_for: List[Any] = None):
     """
     Calculate distance matrix for a dataset using Gower's method.
 
@@ -64,7 +64,7 @@ def calculate_nearest_neighbours_distances(data: pd.DataFrame, cat_cols: List[st
     per feature. For numeric features it calculates the absolute distance divide by the range of the feature. For
     categorical features it is an indicator whether the values are the same.
     See https://www.jstor.org/stable/2528823 for further details.
-    This method minimizes memory usage by saving in memory and returning only the closest neighbours of each sample.
+    This method minimizes memory usage by saving in memory and returning only the closest neighbors of each sample.
     In addition, it can deal with missing values.
     Parameters
     ----------
@@ -74,17 +74,17 @@ def calculate_nearest_neighbours_distances(data: pd.DataFrame, cat_cols: List[st
         List of categorical columns in the data.
     numeric_cols: List[str]
         List of numerical columns in the data.
-    num_neighbours: int
-        Number of neighbours to return. For example, for n=2 for each sample returns the distances to the two closest
+    num_neighbors: int
+        Number of neighbors to return. For example, for n=2 for each sample returns the distances to the two closest
         samples in the dataset.
     samples_to_calculate_neighbors_for: List[Any], default None
-        List of indexes in data to calculate its nearest neighbours. If None, calculates for all given data samples.
+        List of indexes in data to calculate its nearest neighbors. If None, calculates for all given data samples.
     Returns
     -------
     numpy.ndarray
-        representing the distance matrix to the nearest neighbours.
+        representing the distance matrix to the nearest neighbors.
     numpy.ndarray
-        representing the indexes of the nearest neighbours.
+        representing the indexes of the nearest neighbors.
     """
     cat_data = data[cat_cols]
     numeric_data = data[numeric_cols]
@@ -92,12 +92,14 @@ def calculate_nearest_neighbours_distances(data: pd.DataFrame, cat_cols: List[st
     num_features = len(cat_cols + numeric_cols)
 
     if samples_to_calculate_neighbors_for is not None:
-        #TODO: Test this works:
-        indices_to_calculate_neighbors_for = np.argwhere(np.array(data.index) == np.array(samples_to_calculate_neighbors_for))
+        indices_to_calculate_neighbors_for = \
+            np.argwhere([x in samples_to_calculate_neighbors_for for x in data.index]).flatten()
     else:
         indices_to_calculate_neighbors_for = list(range(num_samples))
 
-    distances, indexes = np.zeros((num_samples, num_neighbours)), np.zeros((num_samples, num_neighbours))
+    num_indices_to_calc = len(indices_to_calculate_neighbors_for)
+
+    distances, indexes = np.zeros((num_indices_to_calc, num_neighbors)), np.zeros((num_indices_to_calc, num_neighbors))
     # handle categorical - transform to an ordinal numpy array
     cat_data = np.asarray(cat_data.apply(lambda x: pd.factorize(x)[0])) if not cat_data.empty else np.asarray(cat_data)
     # handle numerical - calculate ranges per feature and fill numerical nan to minus np.inf
@@ -110,11 +112,11 @@ def calculate_nearest_neighbours_distances(data: pd.DataFrame, cat_cols: List[st
     original_error_state = np.geterr()['invalid']
     np.seterr(invalid='ignore')
 
-    for i in indices_to_calculate_neighbors_for:  # TODO: parallelize this loop
-        dist_to_sample_i = _calculate_distances_to_sample(i, cat_data, numeric_data, numeric_feature_ranges,
+    for i, sample_i in enumerate(indices_to_calculate_neighbors_for):  # TODO: parallelize this loop
+        dist_to_sample_i = _calculate_distances_to_sample(sample_i, cat_data, numeric_data, numeric_feature_ranges,
                                                           num_features)
         # sort to find the closest samples (including self)
-        min_dist_indexes = np.argpartition(dist_to_sample_i, num_neighbours)[:num_neighbours]
+        min_dist_indexes = np.argpartition(dist_to_sample_i, num_neighbors)[:num_neighbors]
         min_dist_indexes_ordered = sorted(min_dist_indexes, key=lambda x, arr=dist_to_sample_i: arr[x], reverse=False)
         indexes[i, :] = min_dist_indexes_ordered
         distances[i, :] = dist_to_sample_i[min_dist_indexes_ordered]
