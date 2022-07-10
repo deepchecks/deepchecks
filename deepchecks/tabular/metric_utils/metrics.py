@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Utils module containing utilities for checks working with metrics."""
-import copy
 import typing as t
 from numbers import Number
 
@@ -35,7 +34,6 @@ __all__ = [
     'DEFAULT_MULTICLASS_SCORERS',
     'MULTICLASS_SCORERS_NON_AVERAGE',
     'DeepcheckScorer',
-    'get_gain',
     'init_validate_scorers',
     'get_default_scorers'
 ]
@@ -49,8 +47,8 @@ DEFAULT_BINARY_SCORERS = {
 
 DEFAULT_MULTICLASS_SCORERS = {
     'Accuracy': 'accuracy',
-    'Precision - Macro Average': 'precision_macro',
-    'Recall - Macro Average': 'recall_macro',
+    'Precision - Macro Average': make_scorer(precision_score, average='macro', zero_division=0),
+    'Recall - Macro Average': make_scorer(recall_score, average='macro', zero_division=0),
 }
 
 MULTICLASS_SCORERS_NON_AVERAGE = {
@@ -254,7 +252,7 @@ def get_default_scorers(model_type, class_avg: bool = True):
         return DEFAULT_SCORERS_DICT[model_type]
 
 
-def init_validate_scorers(scorers: t.Mapping[str, t.Union[str, t.Callable]],
+def init_validate_scorers(scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]], t.List[str]],
                           model: BasicModel,
                           dataset: 'tabular.Dataset',
                           model_type: TaskType,
@@ -279,21 +277,3 @@ def init_validate_scorers(scorers: t.Mapping[str, t.Union[str, t.Callable]],
     for s in scorers:
         s.validate_fitting(model, dataset, return_array)
     return scorers
-
-
-def get_gain(base_score, score, perfect_score, max_gain):
-    """Get gain between base score and score compared to the distance from the perfect score."""
-    distance_from_perfect = perfect_score - base_score
-    scores_diff = score - base_score
-    if distance_from_perfect == 0:
-        # If both base score and score are perfect, return 0 gain
-        if scores_diff == 0:
-            return 0
-        # else base_score is better than score, return -max_gain
-        return -max_gain
-    ratio = scores_diff / distance_from_perfect
-    if ratio < -max_gain:
-        return -max_gain
-    if ratio > max_gain:
-        return max_gain
-    return ratio

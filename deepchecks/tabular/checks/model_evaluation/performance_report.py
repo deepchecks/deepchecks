@@ -20,7 +20,7 @@ from deepchecks.core.check_utils.class_performance_utils import (
     get_condition_train_test_relative_degradation_less_than)
 from deepchecks.core.checks import DatasetKind, ReduceMixin
 from deepchecks.tabular import Context, TrainTestCheck
-from deepchecks.tabular.metric_utils.metrics import MULTICLASS_SCORERS_NON_AVERAGE, TaskType
+from deepchecks.tabular.metric_utils import MULTICLASS_SCORERS_NON_AVERAGE, TaskType
 from deepchecks.utils.strings import format_percent
 
 __all__ = ['PerformanceReport']

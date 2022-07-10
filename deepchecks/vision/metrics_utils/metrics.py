@@ -21,12 +21,10 @@ from sklearn.metrics._scorer import _BaseScorer, _ProbaScorer
 
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
-from deepchecks.tabular.metric_utils.metrics import DeepcheckScorer
-from deepchecks.vision.metrics_utils.custom_scorer import CustomScorer
-from deepchecks.vision.metrics_utils.detection_precision_recall import ObjectDetectionAveragePrecision
+from deepchecks.tabular.metric_utils import DeepcheckScorer
+from deepchecks.vision.metrics_utils import (AVAILABLE_EVALUTING_FUNCTIONS, CustomScorer,
+                                             ObjectDetectionAveragePrecision, ObjectDetectionTpFpFn)
 from deepchecks.vision.vision_data import TaskType, VisionData
-from deepchecks.vision.metrics_utils.detection_tp_fp_fn_calc import ObjectDetectionTpFpFn
-from deepchecks.vision.metrics_utils.confusion_matrix_counts_metrics import AVAILABLE_EVALUTING_FUNCTIONS
 
 __all__ = [
     'get_scorers_list',
@@ -92,7 +90,7 @@ def convert_detection_scorers(scorer: t.Union[Metric, str, t.Callable]):
 
 def get_scorers_list(
         dataset: VisionData,
-        alternative_scorers: t.Union[t.Dict[str, t.Union[Metric, t.Callable]], t.List[str]] = None,
+        alternative_scorers: t.Union[t.Dict[str, t.Union[Metric, t.Callable, str]], t.List[t.Any]] = None,
 ) -> t.Dict[str, Metric]:
     """Get scorers list according to model object and label column.
 
@@ -100,8 +98,8 @@ def get_scorers_list(
     ----------
     dataset : VisionData
         Dataset object
-    alternative_scorers : t.Dict[str, Metric], default: None
-        Alternative scorers dictionary
+    alternative_scorers : t.Union[t.Dict[str, t.Union[Metric, t.Callable, str]], t.List[str]], default: None
+        Alternative scorers dictionary (or a list)
     Returns
     -------
     t.Dict[str, Metric]
@@ -113,7 +111,8 @@ def get_scorers_list(
         # For alternative scorers we create a copy since in suites we are running in parallel, so we can't use the same
         # instance for several checks.
         if isinstance(alternative_scorers, list):
-            alternative_scorers = {name: name for name in alternative_scorers}
+            alternative_scorers = {(name if isinstance(name, str) else type(name).__name__):
+                                   name for name in alternative_scorers}
         scorers = {}
         for name, met in alternative_scorers.items():
             # Validate that each alternative scorer is a correct type
@@ -128,7 +127,8 @@ def get_scorers_list(
                 if met is None:
                     raise DeepchecksNotSupportedError(
                         f'Unsupported metric: {name} of type {type(met).__name__} was given.')
-            raise DeepchecksValueError(f'Excepted metric type one of [ignite.Metric, str, callable], was {type(met).__name__}.')
+            raise DeepchecksValueError(
+                f'Excepted metric type one of [ignite.Metric, str, callable], was {type(met).__name__}.')
 
         return scorers
     elif task_type == TaskType.CLASSIFICATION:
