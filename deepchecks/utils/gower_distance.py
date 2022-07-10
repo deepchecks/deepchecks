@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module for calculating distance matrix via Gower method."""
-from typing import List, Any
+from typing import Any, List
 
 import numpy as np
 import pandas as pd
