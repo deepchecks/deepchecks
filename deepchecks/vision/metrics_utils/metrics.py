@@ -17,11 +17,16 @@ import pandas as pd
 import torch
 from ignite.engine import Engine
 from ignite.metrics import Metric, Precision, Recall
+from sklearn.metrics._scorer import _BaseScorer, _ProbaScorer
 
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
+from deepchecks.tabular.metric_utils.metrics import DeepcheckScorer
+from deepchecks.vision.metrics_utils.custom_scorer import CustomScorer
 from deepchecks.vision.metrics_utils.detection_precision_recall import ObjectDetectionAveragePrecision
 from deepchecks.vision.vision_data import TaskType, VisionData
+from deepchecks.vision.metrics_utils.detection_tp_fp_fn_calc import ObjectDetectionTpFpFn
+from deepchecks.vision.metrics_utils.confusion_matrix_counts_metrics import AVAILABLE_EVALUTING_FUNCTIONS
 
 __all__ = [
     'get_scorers_list',
@@ -43,6 +48,38 @@ def get_default_object_detection_scorers() -> t.Dict[str, Metric]:
         'Average Precision': ObjectDetectionAveragePrecision(return_option='ap'),
         'Average Recall': ObjectDetectionAveragePrecision(return_option='ar')
     }
+
+
+_func_naming_dict = {
+    'precision': 'Precision',
+    'recall': 'Recall',
+    'sensetivity': 'Recall',
+    'average precision': 'Average Precision',
+    'average recall': 'Average Recall',
+    'ap': 'Average Precision',
+    'ar': 'Average Recall',
+    'f1': 'F1',
+    'fpr': 'FPR',
+    'fnr': 'FNR'
+}
+
+
+def convert_classification_scorers(scorers: t.Dict[str, t.Union[Metric, str, t.Callable]]):
+    for scorer_name, scorer in scorers.items():
+        if isinstance(scorer, str) or isinstance(scorer, _BaseScorer):
+            scorer = DeepcheckScorer(scorer, scorer_name, TaskType.CLASSIFICATION)
+            needs_proba = isinstance(scorer, _ProbaScorer)
+            scorers[scorer_name] = CustomScorer(scorer.run_on_pred, needs_proba=needs_proba)
+        elif callable(scorer):
+            scorers[scorer_name] = CustomScorer(scorer)
+
+
+def convert_threshold_detection_scorers(scorers: t.Dict[str, t.Union[Metric, str, t.Callable]]):
+    for given_scorer_name, scorer in scorers.items():
+        if isinstance(scorer, str):
+            scorer_name = _func_naming_dict.get(given_scorer_name.lower().replace('_', ' '), given_scorer_name).lower()
+            if scorer_name in AVAILABLE_EVALUTING_FUNCTIONS:
+                scorers[given_scorer_name] = ObjectDetectionTpFpFn(evaluting_function=scorer_name)
 
 
 def get_scorers_list(

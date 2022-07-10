@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.metrics import f1_score, get_scorer, make_scorer, precision_score, recall_score
-from sklearn.metrics._scorer import _BaseScorer
+from sklearn.metrics._scorer import _BaseScorer, _ProbaScorer
 
 from deepchecks import tabular  # pylint: disable=unused-import; it is used for type annotations
 from deepchecks.core import errors
@@ -71,6 +71,22 @@ DEFAULT_SCORERS_DICT = {
 }
 
 
+_func_naming_dict = {
+    'precision': 'Precision',
+    'recall': 'Recall',
+    'sensetivity': 'Recall',
+    'accuracy': 'Accuracy',
+    'precision macro': 'Precision - Macro Average',
+    'recall macro': 'Recall - Macro Average',
+    'r2': 'R2',
+    'neg rmse': 'Neg RMSE',
+    'neg mae': 'Neg MAE',  
+    'f1': 'F1',
+    'fpr': 'FPR',
+    'fnr': 'FNR'
+}
+
+
 class DeepcheckScorer:
     """Encapsulate scorer function with extra methods.
 
@@ -104,15 +120,13 @@ class DeepcheckScorer:
                         agg_scorer_dict.update(DEFAULT_MULTICLASS_SCORERS)
                 else:
                     agg_scorer_dict.update(MULTICLASS_SCORERS_NON_AVERAGE)
-            if scorer in agg_scorer_dict:
-                self.scorer = agg_scorer_dict['scorer']
-                self.sklearn_scorer_name = None
+            formated_scorer_name = scorer.lower().replace('_', ' ')
+            if formated_scorer_name in _func_naming_dict:
+                self.scorer = agg_scorer_dict[formated_scorer_name]
             else:
                 self.scorer: t.Callable = get_scorer(scorer)
-                self.sklearn_scorer_name = scorer
         elif callable(scorer):
             self.scorer: t.Callable = scorer
-            self.sklearn_scorer_name = None
         else:
             scorer_type = type(scorer).__name__
             if name:
@@ -131,9 +145,13 @@ class DeepcheckScorer:
         """Run scorer with model, data and labels without null filtering."""
         return self.scorer(model, data, label_col)
 
-    def run_on_pred(self, y_pred, y_true):
+    def run_on_pred(self, y_true, y_pred=None, y_proba=None):
         if isinstance(self.scorer, _BaseScorer):
-            return self.scorer._score_func(y_pred, y_true, self.scorer._kwargs) * self.scorer._sign
+            if y_proba and isinstance(self.scorer, _ProbaScorer):
+                pred_to_use = y_proba
+            else:
+                pred_to_use = y_pred
+            return self.scorer._score_func(y_true, pred_to_use, self.scorer._kwargs) * self.scorer._sign
         raise errors.DeepchecksValueError('Only supports sklearn scorers')
 
     def _run_score(self, model, dataset: 'tabular.Dataset'):
@@ -189,10 +207,6 @@ class DeepcheckScorer:
             if not isinstance(result, Number):
                 raise errors.DeepchecksValueError(f'Expected scorer {self.name} to return number '
                                                   f'but got: {type(result).__name__}')
-
-    def is_negative_scorer(self):
-        """If initialized as sklearn scorer name, return whether it's negative scorer."""
-        return self.sklearn_scorer_name is not None and self.sklearn_scorer_name.startswith('neg_')
 
 
 def task_type_check(
@@ -284,7 +298,8 @@ def init_validate_scorers(scorers: t.Mapping[str, t.Union[str, t.Callable]],
         for classification whether to return scorers of average score or per class
     """
     return_array = model_type in [TaskType.MULTICLASS, TaskType.BINARY] and class_avg is False
-    scorers: t.List[DeepcheckScorer] = [DeepcheckScorer(scorer, name, model_type, class_avg) for name, scorer in scorers.items()]
+    scorers: t.List[DeepcheckScorer] = [DeepcheckScorer(
+        scorer, name, model_type, class_avg) for name, scorer in scorers.items()]
     for s in scorers:
         s.validate_fitting(model, dataset, return_array)
     return scorers
