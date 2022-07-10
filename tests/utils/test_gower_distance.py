@@ -21,7 +21,7 @@ def test_mix_columns():
     data = pd.DataFrame({'col1': ['a', 'a', 'a', 'b', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'b'],
                          'col2': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1000]})
     # Act
-    dist, _ = gower_distance.calculate_nearest_neighbours_distances(data[['col1']], data[['col2']], 5)
+    dist, _ = gower_distance.calculate_nearest_neighbours_distances(data, ['col1'], ['col2'], 5)
     # Assert
     assert_that(dist[-1], has_item(1))
     assert_that(dist[3], has_item(greater_than(0.49)))
@@ -63,7 +63,7 @@ def test_mix_columns_nn_matrix_with_nulls_vectorized():
     data = pd.DataFrame({'col1': ['a', 'a', 'a', 'b', 'a', 'a', None, 'a', 'a', 'a', 'a', 'a', 'a', 'b'],
                          'col2': [1, 1, 1, 1, 1, 1, None, 1, 1, 1, 1, 1, 1, 1000]})
     # Act
-    dist, _ = gower_distance.calculate_nearest_neighbours_distances(data[['col1']], data[['col2']], 3)
+    dist, _ = gower_distance.calculate_nearest_neighbours_distances(data, ['col1'], ['col2'], 3)
     # Assert
     assert_that(dist[-1], has_item(1))
     assert_that(dist[3], has_item(greater_than(0.4)))
@@ -73,8 +73,8 @@ def test_mix_columns_nn_matrix_with_nulls_vectorized():
 def test_compare_other_package_iris(iris_dataset):
     data = iris_dataset.data
     data.drop_duplicates(inplace=True)
-    dist, _ = gower_distance.calculate_nearest_neighbours_distances(data[iris_dataset.cat_features],
-                                                                    data[iris_dataset.numerical_features], 3)
+    dist, _ = gower_distance.calculate_nearest_neighbours_distances(data, iris_dataset.cat_features,
+                                                                    iris_dataset.numerical_features, 3)
     dist = dist.round(5).astype(np.float32)
     for i in range(data.shape[0]):
         closest_to_i = gower.gower_topn(data.iloc[i:i + 1, :4], data.iloc[:, :4], n=3)

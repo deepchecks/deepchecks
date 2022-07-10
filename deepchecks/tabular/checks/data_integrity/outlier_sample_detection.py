@@ -101,8 +101,9 @@ class OutlierSampleDetection(SingleDatasetCheck):
 
         start_time = time.time()
         gower_distance.calculate_nearest_neighbours_distances(
-            cat_data=df[dataset.cat_features].iloc[:DATASET_TIME_EVALUATION_SIZE],
-            numeric_data=df[dataset.numerical_features].iloc[:DATASET_TIME_EVALUATION_SIZE],
+            data=df.iloc[:DATASET_TIME_EVALUATION_SIZE],
+            cat_cols=dataset.cat_features,
+            numeric_cols=dataset.numerical_features,
             num_neighbours=int(min(np.sqrt(DATASET_TIME_EVALUATION_SIZE), num_neighbours)))
         predicted_time_to_run_in_seconds = ((time.time() - start_time) / 130000) * (df.shape[0] ** 2)
         if predicted_time_to_run_in_seconds > self.timeout > 0:
@@ -112,7 +113,8 @@ class OutlierSampleDetection(SingleDatasetCheck):
 
         try:
             dist_matrix, idx_matrix = gower_distance.calculate_nearest_neighbours_distances(
-                df[dataset.cat_features], df[dataset.numerical_features], num_neighbours)
+                data=df, cat_cols=dataset.cat_features, numeric_cols=dataset.numerical_features,
+                num_neighbours=num_neighbours)
         except MemoryError as e:
             raise DeepchecksProcessError('Out of memory error occurred while calculating the distance matrix. Try '
                                          'reducing n_samples or nearest_neighbors_percent parameters values.') from e
