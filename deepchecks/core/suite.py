@@ -18,7 +18,7 @@ from collections import OrderedDict
 from typing import List, Optional, Sequence, Set, Tuple, Type, Union, cast
 
 import jsonpickle
-# from ipywidgets import Widget
+from ipywidgets import Widget
 from typing_extensions import TypedDict
 
 from deepchecks.core import check_result as check_types
@@ -27,11 +27,9 @@ from deepchecks.core.display import DisplayableResult, save_as_html
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.serialization.suite_result.html import SuiteResultSerializer as SuiteResultHtmlSerializer
 from deepchecks.core.serialization.suite_result.json import SuiteResultSerializer as SuiteResultJsonSerializer
-# from deepchecks.core.serialization.suite_result.widget import SuiteResultSerializer as SuiteResultWidgetSerializer
+from deepchecks.core.serialization.suite_result.widget import SuiteResultSerializer as SuiteResultWidgetSerializer
 from deepchecks.utils.strings import get_random_string
 from deepchecks.utils.wandb_utils import wandb_run
-
-# from ipywidgets import Widget
 
 
 __all__ = ['BaseSuite', 'SuiteResult']
@@ -175,24 +173,24 @@ class SuiteResult(DisplayableResult):
             output_id=unique_id or get_random_string(n=25),
         )
 
-    # def to_widget(
-    #     self,
-    #     unique_id: Optional[str] = None,
-    #     **kwargs
-    # ) -> Widget:
-    #     """Return SuiteResult as a ipywidgets.Widget instance.
+    def to_widget(
+        self,
+        unique_id: Optional[str] = None,
+        **kwargs
+    ) -> Widget:
+        """Return SuiteResult as a ipywidgets.Widget instance.
 
-    #     Parameters
-    #     ----------
-    #     unique_id : Optional[str], default None
-    #         unique identifier of the result output
+        Parameters
+        ----------
+        unique_id : Optional[str], default None
+            unique identifier of the result output
 
-    #     Returns
-    #     -------
-    #     Widget
-    #     """
-    #     output_id = unique_id or get_random_string(n=25)
-    #     return SuiteResultWidgetSerializer(self).serialize(output_id=output_id)
+        Returns
+        -------
+        Widget
+        """
+        output_id = unique_id or get_random_string(n=25)
+        return SuiteResultWidgetSerializer(self).serialize(output_id=output_id)
 
     def to_json(self, with_display: bool = True, **kwargs):
         """Return check result as json.

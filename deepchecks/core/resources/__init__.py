@@ -55,7 +55,10 @@ DEEPCHECKS_STYLE = """
     cursor: pointer!important;
 }
 .deepchecks table {
-    max-width: fit-content!important;
+    display: block!important;
+    width: fit-content!important;
+    max-width: 100%!important;
+    overflow-x: auto!important;
     font-size: 12px!important;
     text-align: left!important;
 }
