@@ -31,7 +31,6 @@ from deepchecks.core.serialization.suite_result.widget import SuiteResultSeriali
 from deepchecks.utils.strings import get_random_string
 from deepchecks.utils.wandb_utils import wandb_run
 
-
 __all__ = ['BaseSuite', 'SuiteResult']
 
 

@@ -30,7 +30,7 @@ from deepchecks.core import check_result as check_types
 from deepchecks.core import errors
 from deepchecks.core.resources import DEEPCHECKS_STYLE
 from deepchecks.utils.dataframes import un_numpy
-from deepchecks.utils.html import linktag
+from deepchecks.utils.html import imagetag, linktag
 from deepchecks.utils.strings import get_ellipsis, get_random_string
 
 __all__ = [
@@ -46,7 +46,10 @@ __all__ = [
     'concatv_images',
     'switch_matplot_backend',
     'flatten',
-    'join'
+    'join',
+    'go_to_top_link',
+    'read_matplot_figures_as_html',
+    'figure_to_html_image_tag'
 ]
 
 
@@ -55,6 +58,9 @@ class Html:
 
     bold_hr = '<hr style="background-color:black;border: 0 none;color:black;height:1px;width:100%;">'
     light_hr = '<hr style="background-color:#eee;border: 0 none;color:#eee;height:4px;width:100%;">'
+    conditions_summary_header = '<h4><b>Conditions Summary</b></h4>'
+    additional_output_header = '<h4><b>Additional Outputs</b></h4>'
+    empty_content_placeholder = '<p><b>&#x2713;</b>Nothing to display</p>'
 
 
 def form_output_anchor(output_id: str) -> str:
@@ -79,6 +85,19 @@ def normalize_widget_style(w: TDOMWidget) -> TDOMWidget:
 def prettify(data: t.Any, indent: int = 3) -> str:
     """Prettify data."""
     return json.dumps(data, indent=indent, default=repr)
+
+
+def go_to_top_link(
+    output_id: str,
+    is_for_iframe_with_srcdoc: bool
+) -> str:
+    """Return 'Go To Top' link."""
+    link = linktag(
+        text='Go to top',
+        href=f'#{form_output_anchor(output_id)}',
+        is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
+    )
+    return f'<br>{link}'
 
 
 def normalize_value(value: object) -> t.Any:
@@ -275,18 +294,47 @@ def create_failures_dataframe(
     return df
 
 
-def read_matplot_figures() -> t.List[io.BytesIO]:
+def read_matplot_figures(drawer: t.Optional[t.Callable[[], None]] = None) -> t.List[io.BytesIO]:
     """Return all active matplot figures."""
-    output = []
-    figures = [plt.figure(n) for n in plt.get_fignums()]
-    for fig in figures:
-        buffer = io.BytesIO()
-        fig.savefig(buffer, format='jpeg')
+    if callable(drawer):
+        with switch_matplot_backend('agg'):
+            drawer()
+            return read_matplot_figures()
+    else:
+        output = []
+        figures = [plt.figure(n) for n in plt.get_fignums()]
+        for fig in figures:
+            buffer = io.BytesIO()
+            fig.savefig(buffer, format='jpeg')
+            buffer.seek(0)
+            output.append(buffer)
+            fig.clear()
+            plt.close(fig)
+        return output
+
+
+def read_matplot_figures_as_html(drawer: t.Optional[t.Callable[[], None]] = None) -> t.List[str]:
+    """Read all active matplot figures and return list of html image tags."""
+    images = read_matplot_figures(drawer)
+    tags = []
+    for buffer in images:
         buffer.seek(0)
-        output.append(buffer)
-        fig.clear()
-        plt.close(fig)
-    return output
+        tags.append(imagetag(
+            buffer.read(),
+            prevent_resize=False,
+            style='min-width: 300px; width: 70%; height: 100%;'
+        ))
+        buffer.close()
+    return tags
+
+
+def figure_to_html_image_tag(figure: BaseFigure) -> str:
+    """Transform plotly figure into html image tag."""
+    return imagetag(
+        figure.to_image(format='jpeg', engine='auto'),
+        prevent_resize=False,
+        style='min-width: 300px; width: 70%; height: 100%;'
+    )
 
 
 @contextmanager

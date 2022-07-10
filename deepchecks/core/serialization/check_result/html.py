@@ -18,11 +18,14 @@ from typing_extensions import Literal as L
 
 from deepchecks.core import check_result as check_types
 from deepchecks.core.resources import DEEPCHECKS_HTML_PAGE_STYLE, DEEPCHECKS_STYLE
-from deepchecks.core.serialization.abc import ABCDisplayItemsHandler, HtmlSerializer
-from deepchecks.core.serialization.common import (DEEPCHECKS_SCRIPT, aggregate_conditions, figure_to_html,
-                                                  form_output_anchor)
+from deepchecks.core.serialization.abc import DisplayItemsSerializer as ABCDisplayItemsSerializer
+from deepchecks.core.serialization.abc import HtmlSerializer
+from deepchecks.core.serialization.common import DEEPCHECKS_SCRIPT
+from deepchecks.core.serialization.common import Html as CommonHtml
+from deepchecks.core.serialization.common import (aggregate_conditions, figure_to_html, figure_to_html_image_tag,
+                                                  go_to_top_link, read_matplot_figures_as_html)
 from deepchecks.core.serialization.dataframe.html import DataFrameSerializer as DataFrameHtmlSerializer
-from deepchecks.utils.html import details_tag, iframe_tag, imagetag, linktag, tabs_widget
+from deepchecks.utils.html import details_tag, iframe_tag, tabs_widget
 
 __all__ = ['CheckResultSerializer']
 
@@ -54,6 +57,7 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
                 f'Expected "CheckResult" but got "{type(value).__name__}"'
             )
         super().__init__(value=value)
+        self._display_serializer = DisplayItemsSerializer(self.value.display)
 
     def serialize(
         self,
@@ -218,7 +222,7 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
             include_check_name=include_check_name,
             output_id=output_id
         )).serialize()
-        return f'<section><h4><b>Conditions Summary</b></h4>{table}</section>'
+        return f'<section>{CommonHtml.conditions_summary_header}{table}</section>'
 
     def prepare_additional_output(
         self,
@@ -258,48 +262,53 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
         -------
         str
         """
-        content = ''.join(DisplayItemsHandler.handle_display(
-            self.value.display,
-            output_id=output_id,
-            embed_into_iframe=embed_into_iframe,
-            embed_into_suite=embed_into_suite,
-            use_javascript=use_javascript,
-            is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
-        ))
-        return f'<section>{content}</section>'
+        output = [CommonHtml.additional_output_header]
+
+        if len(self.value.display) == 0:
+            output.append(CommonHtml.empty_content_placeholder)
+        else:
+            output.append(''.join(self._display_serializer.serialize(
+                output_id=output_id,
+                embed_into_iframe=embed_into_iframe,
+                embed_into_suite=embed_into_suite,
+                use_javascript=use_javascript,
+                is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
+            )))
+
+        if (
+            output_id is not None
+            and embed_into_suite is not None  # whether was embedded into suite output
+        ):
+            output.append(go_to_top_link(
+                output_id=output_id,
+                is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
+            ))
+
+        return f'<section>{"".join(output)}</section>'
 
 
-class DisplayItemsHandler(ABCDisplayItemsHandler):
-    """Auxiliary class to decouple display handling logic from other functionality."""
+class DisplayItemsSerializer(ABCDisplayItemsSerializer[str]):
+    """CheckResult display items serializer."""
 
-    @classmethod
-    def handle_display(
-        cls,
-        display: t.List['check_types.TDisplayItem'],
+    def serialize(
+        self,
         output_id: t.Optional[str] = None,
         is_for_iframe_with_srcdoc: bool = False,
-        include_header: bool = True,
-        include_trailing_link: bool = True,
         embed_into_iframe: bool = False,
         embed_into_suite: t.Optional[CheckEmbedmentWay] = None,
+        use_javascript: bool = True,
         **kwargs
     ) -> t.List[str]:
         """Serialize CheckResult display items into HTML.
 
         Parameters
         ----------
-        display : List[Union[str, DataFrame, Styler, BaseFigure, Callable, DisplayMap]]
-            list of display items
         output_id : Optional[str], default None
             unique output identifier that will be used to form anchor links
         is_for_iframe_with_srcdoc : bool, default False
             anchor links, in order to work within iframe require additional prefix
             'about:srcdoc'. This flag tells function whether to add that prefix to
             the anchor links or not
-        include_header: bool, default True
-            whether to include header
-        include_trailing_link: bool, default True
-            whether to include "go to top" link
         embed_into_iframe : bool , default False
             whether to embed output into iframe or not
         embed_into_suite : Union[Literal['suite'], Literal['suite-html-page'], None] , default None
@@ -320,85 +329,30 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
         -------
         List[str]
         """
-        output = [cls.header()] if include_header else []
-
-        output.extend(super().handle_display(
-            display,
+        return self.handle_display(
+            self.value,
             output_id=output_id,
+            is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc,
             embed_into_iframe=embed_into_iframe,
             embed_into_suite=embed_into_suite,
+            use_javascript=use_javascript,
             **kwargs
-        ))
-
-        if len(display) == 0:
-            output.append(cls.empty_content_placeholder())
-
-        if (
-            output_id is not None
-            and include_trailing_link
-            and embed_into_suite is not None  # whether was embedded into suite output
-        ):
-            output.append(cls.go_to_top_link(
-                output_id,
-                is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
-            ))
-
-        return output
-
-    @classmethod
-    def header(cls) -> str:
-        """Return header section."""
-        return '<h4><b>Additional Outputs</b></h4>'
-
-    @classmethod
-    def empty_content_placeholder(cls) -> str:
-        """Return placeholder in case of content absence."""
-        return '<p><b>&#x2713;</b>Nothing to display</p>'
-
-    @classmethod
-    def go_to_top_link(
-        cls,
-        output_id: str,
-        is_for_iframe_with_srcdoc: bool
-    ) -> str:
-        """Return 'Go To Top' link."""
-        link = linktag(
-            text='Go to top',
-            href=f'#{form_output_anchor(output_id)}',
-            is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
         )
-        return f'<br>{link}'
 
-    @classmethod
-    def handle_string(cls, item, index, **kwargs) -> str:
+    def handle_string(self, item, index, **kwargs) -> str:
         """Handle textual item."""
         return f'<div>{item}</div>'
 
-    @classmethod
-    def handle_dataframe(cls, item, index, **kwargs) -> str:
+    def handle_dataframe(self, item, index, **kwargs) -> str:
         """Handle dataframe item."""
         return DataFrameHtmlSerializer(item).serialize()
 
-    @classmethod
-    def handle_callable(cls, item, index, **kwargs) -> str:
+    def handle_callable(self, item, index, **kwargs) -> str:
         """Handle callable."""
-        images = super().handle_callable(item, index, **kwargs)
-        tags = []
+        return ''.join(read_matplot_figures_as_html(item))
 
-        for buffer in images:
-            buffer.seek(0)
-            tags.append(imagetag(
-                buffer.read(),
-                prevent_resize=False,
-                style='min-width: 300px; width: 70%; height: 100%;'
-            ))
-            buffer.close()
-
-        return ''.join(tags)
-
-    @classmethod
     def handle_figure(
-        cls,
+        self,
         item: BaseFigure,
         index: int,
         embed_into_iframe: bool = False,
@@ -409,12 +363,7 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
     ) -> str:
         """Handle plotly figure item."""
         if use_javascript is False or plotly_to_image is True:
-            img = item.to_image(format='jpeg', engine='auto')
-            return imagetag(
-                img,
-                prevent_resize=False,
-                style='min-width: 300px; width: 70%; height: 100%;'
-            )
+            return figure_to_html_image_tag(item)
 
         if embed_into_iframe or embed_into_suite == 'suite-html-page':
             return to_html(
@@ -432,9 +381,8 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
 
         raise ValueError(f'Unknown "embed_into_suite" parameter value - {embed_into_suite}')
 
-    @classmethod
     def handle_display_map(
-        cls,
+        self,
         item: 'check_types.DisplayMap',
         index: int,
         use_javascript: bool = True,
@@ -443,10 +391,8 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
         """Handle display map instance item."""
         if use_javascript is True:
             return tabs_widget({
-                name: cls.handle_display(
+                name: self.handle_display(
                     display_items,
-                    include_header=False,
-                    include_trailing_link=False,
                     use_javascript=use_javascript,
                     **kwargs
                 )
@@ -457,10 +403,8 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
                 details_tag(
                     title=name,
                     attrs='class="deepchecks"',
-                    content=''.join(cls.handle_display(
+                    content=''.join(self.handle_display(
                         display_items,
-                        include_header=False,
-                        include_trailing_link=False,
                         use_javascript=use_javascript,
                         **kwargs
                     ))

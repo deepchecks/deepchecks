@@ -19,8 +19,9 @@ from typing_extensions import TypedDict
 
 from deepchecks.core import check_result as check_types
 from deepchecks.core import checks  # pylint: disable=unused-import
-from deepchecks.core.serialization.abc import ABCDisplayItemsHandler, JsonSerializer
-from deepchecks.core.serialization.common import aggregate_conditions, normalize_value
+from deepchecks.core.serialization.abc import DisplayItemsSerializer as ABCDisplayItemsSerializer
+from deepchecks.core.serialization.abc import JsonSerializable, JsonSerializer
+from deepchecks.core.serialization.common import aggregate_conditions, normalize_value, read_matplot_figures
 
 __all__ = ['CheckResultSerializer']
 
@@ -91,20 +92,21 @@ class CheckResultSerializer(JsonSerializer['check_types.CheckResult']):
 
     def prepare_display(self) -> t.List[t.Dict[str, t.Any]]:
         """Serialize CheckResult display items into JSON."""
-        return DisplayItemsHandler.handle_display(self.value.display)
+        return t.cast(
+            t.List[t.Dict[str, t.Any]],
+            DisplayItemsSerializer(self.value.display).serialize()
+        )
 
 
-class DisplayItemsHandler(ABCDisplayItemsHandler):
-    """Auxiliary class to decouple display handling logic from other functionality."""
+class DisplayItemsSerializer(ABCDisplayItemsSerializer[JsonSerializable]):
+    """CheckResult display items serializer."""
 
-    @classmethod
-    def handle_string(cls, item: str, index: int, **kwargs) -> t.Dict[str, str]:
+    def handle_string(self, item: str, index: int, **kwargs) -> t.Dict[str, str]:
         """Handle textual item."""
         return {'type': 'html', 'payload': item}
 
-    @classmethod
     def handle_dataframe(
-        cls,
+        self,
         item: t.Union[pd.DataFrame, Styler],
         index: int,
         **kwargs
@@ -121,29 +123,26 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
                 'payload': item.to_dict(orient='records')
             }
 
-    @classmethod
-    def handle_callable(cls, item: t.Callable, index: int, **kwargs) -> t.Dict[str, t.Any]:
+    def handle_callable(self, item: t.Callable, index: int, **kwargs) -> t.Dict[str, t.Any]:
         """Handle callable."""
         return {
             'type': 'images',
             'payload': [
                 base64.b64encode(buffer.read()).decode('ascii')
-                for buffer in super().handle_callable(item, index, **kwargs)
+                for buffer in read_matplot_figures(item)
             ]
         }
 
-    @classmethod
-    def handle_figure(cls, item: BaseFigure, index: int, **kwargs) -> t.Dict[str, t.Any]:
+    def handle_figure(self, item: BaseFigure, index: int, **kwargs) -> t.Dict[str, t.Any]:
         """Handle plotly figure item."""
         return {'type': 'plotly', 'payload': item.to_json()}
 
-    @classmethod
-    def handle_display_map(cls, item: 'check_types.DisplayMap', index: int, **kwargs) -> t.Dict[str, t.Any]:
+    def handle_display_map(self, item: 'check_types.DisplayMap', index: int, **kwargs) -> t.Dict[str, t.Any]:
         """Handle display map instance item."""
         return {
             'type': 'displaymap',
             'payload': {
-                k: cls.handle_display(v, **kwargs)
+                k: self.handle_display(v, **kwargs)
                 for k, v in item.items()
             }
         }

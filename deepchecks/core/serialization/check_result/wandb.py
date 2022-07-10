@@ -18,9 +18,10 @@ from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
 
 from deepchecks.core import check_result as check_types
-from deepchecks.core.serialization.abc import ABCDisplayItemsHandler, WandbSerializer
+from deepchecks.core.serialization.abc import DisplayItemsSerializer as ABCDisplayItemsSerializer
+from deepchecks.core.serialization.abc import WandbSerializer
 from deepchecks.core.serialization.common import (aggregate_conditions, concatv_images, flatten, normalize_value,
-                                                  prettify)
+                                                  prettify, read_matplot_figures)
 from deepchecks.utils.wandb_utils import WANDB_INSTALLATION_CMD
 
 try:
@@ -54,6 +55,7 @@ class CheckResultSerializer(WandbSerializer['check_types.CheckResult']):
                 f'Expected "CheckResult" but got "{type(value).__name__}"'
             )
         super().__init__(value=value)
+        self._display_serializer = DisplayItemsSerializer(self.value.display)
 
     def serialize(self, **kwargs) -> t.Dict[str, 'WBValue']:
         """Serialize a CheckResult instance into Wandb media metadata.
@@ -98,15 +100,14 @@ class CheckResultSerializer(WandbSerializer['check_types.CheckResult']):
 
     def prepare_display(self) -> t.List[t.Tuple[str, 'WBValue']]:
         """Serialize display items into Wandb media format."""
-        return DisplayItemsHandler.handle_display(self.value.display)
+        return self._display_serializer.serialize()
 
 
-class DisplayItemsHandler(ABCDisplayItemsHandler):
-    """Auxiliary class to decouple display handling logic from other functionality."""
+class DisplayItemsSerializer(ABCDisplayItemsSerializer[t.Tuple[str, 'WBValue']]):
+    """CheckResult display items serializer."""
 
-    @classmethod
     def handle_display(
-        cls,
+        self,
         display: t.List['check_types.TDisplayItem'],
         **kwargs
     ) -> t.List[t.Tuple[str, 'WBValue']]:
@@ -126,14 +127,12 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
             stop=lambda it: isinstance(it, tuple) and len(it) == 2
         ))
 
-    @classmethod
-    def handle_string(cls, item: str, index: int, **kwargs) -> t.Tuple[str, 'WBValue']:
+    def handle_string(self, item: str, index: int, **kwargs) -> t.Tuple[str, 'WBValue']:
         """Handle textual item."""
         return (f'item-{index}-html', wandb.Html(data=item))
 
-    @classmethod
     def handle_dataframe(
-        cls,
+        self,
         item: t.Union[pd.DataFrame, Styler],
         index: int,
         **kwargs
@@ -150,8 +149,7 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
                 wandb.Table(dataframe=item.reset_index(), allow_mixed_types=True)
             )
 
-    @classmethod
-    def handle_callable(cls, item: t.Callable, index: int, **kwargs) -> t.Tuple[str, 'WBValue']:
+    def handle_callable(self, item: t.Callable, index: int, **kwargs) -> t.Tuple[str, 'WBValue']:
         """Handle callable."""
         try:
             import PIL.Image as pilimage
@@ -161,18 +159,16 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
                 'to process matplot figures. To get it, run "pip install pillow".'
             ) from error
         else:
-            images = super().handle_callable(item, index, **kwargs)
+            images = read_matplot_figures(item)
             image = concatv_images([pilimage.open(buffer) for buffer in images])
             return (f'item-{index}-figure', wandb.Image(image))
 
-    @classmethod
-    def handle_figure(cls, item: BaseFigure, index: int, **kwargs) -> t.Tuple[str, 'WBValue']:
+    def handle_figure(self, item: BaseFigure, index: int, **kwargs) -> t.Tuple[str, 'WBValue']:
         """Handle plotly figure item."""
         return f'item-{index}-plot', wandb.Plotly(item)
 
-    @classmethod
     def handle_display_map(
-        cls,
+        self,
         item: 'check_types.DisplayMap',
         index: int,
         **kwargs
@@ -184,5 +180,5 @@ class DisplayItemsHandler(ABCDisplayItemsHandler):
                 wbvalue
             )
             for name, display_items in item.items()
-            for section_name, wbvalue in cls.handle_display(display_items, **kwargs)
+            for section_name, wbvalue in self.handle_display(display_items, **kwargs)
         ]
