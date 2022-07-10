@@ -69,7 +69,7 @@ def convert_classification_scorers(scorer: t.Union[Metric, str, t.Callable]):
         if scorer_name in classification_scores:
             return classification_scores[scorer_name]
     if isinstance(scorer, (_BaseScorer, str)):
-        scorer = DeepcheckScorer(scorer, '')
+        scorer = DeepcheckScorer(scorer)
         needs_proba = isinstance(scorer, _ProbaScorer)
         return CustomScorer(scorer.run_on_pred, needs_proba=needs_proba)
     elif callable(scorer):
@@ -127,8 +127,9 @@ def get_scorers_list(
                 if met is None:
                     raise DeepchecksNotSupportedError(
                         f'Unsupported metric: {name} of type {type(met).__name__} was given.')
-            raise DeepchecksValueError(
-                f'Excepted metric type one of [ignite.Metric, str, callable], was {type(met).__name__}.')
+            else:
+                raise DeepchecksValueError(
+                    f'Excepted metric type one of [ignite.Metric, str, callable], was {type(met).__name__}.')
 
         return scorers
     elif task_type == TaskType.CLASSIFICATION:

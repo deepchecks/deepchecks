@@ -346,7 +346,9 @@ class Context:
                 self.train.label_type != TaskType.REGRESSION):
             raise ModelValidationError('Check is irrelevant for classification tasks')
 
-    def get_scorers(self, alternative_scorers: t.Mapping[str, t.Union[str, t.Callable]] = None, class_avg=True):
+    def get_scorers(self,
+                    alternative_scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]], t.List[str]] = None,
+                    class_avg=True):
         """Return initialized & validated scorers in a given priority.
 
         If receive `alternative_scorers` return them,
@@ -356,7 +358,7 @@ class Context:
         Parameters
         ----------
         alternative_scorers : Mapping[str, Union[str, Callable]], default None
-            dict of scorers names to scorer sklearn_name/function
+            dict of scorers names to scorer sklearn_name/function or a list
         class_avg : bool, default True
             for classification whether to return scorers of average score or score per class
         """
@@ -366,9 +368,11 @@ class Context:
             user_scorers = self._user_scorers_per_class
 
         scorers = alternative_scorers or user_scorers or get_default_scorers(self.task_type, class_avg)
-        return init_validate_scorers(scorers, self.model, self.train, class_avg, self.task_type)
+        return init_validate_scorers(scorers, self.model, self.train, self.task_type, class_avg)
 
-    def get_single_scorer(self, alternative_scorers: t.Mapping[str, t.Union[str, t.Callable]] = None, class_avg=True):
+    def get_single_scorer(self,
+                          alternative_scorers: t.Mapping[str, t.Union[str, t.Callable]] = None,
+                          class_avg=True):
         """Return initialized & validated single scorer in a given priority.
 
         If receive `alternative_scorers` use them,
@@ -379,7 +383,7 @@ class Context:
         Parameters
         ----------
         alternative_scorers : Mapping[str, Union[str, Callable]], default None
-            dict of scorers names to scorer sklearn_name/function. Only first scorer will be used.
+            dict of scorers names to scorer sklearn_name/function or a list. Only first scorer will be used.
         class_avg : bool, default True
             for classification whether to return scorers of average score or score per class
         """
@@ -392,7 +396,7 @@ class Context:
         # The single scorer is the first one in the dict
         scorer_name = next(iter(scorers))
         single_scorer_dict = {scorer_name: scorers[scorer_name]}
-        return init_validate_scorers(single_scorer_dict, self.model, self.train, class_avg, self.task_type)[0]
+        return init_validate_scorers(single_scorer_dict, self.model, self.train, self.task_type, class_avg)[0]
 
     def get_data_by_kind(self, kind: DatasetKind):
         """Return the relevant Dataset by given kind."""

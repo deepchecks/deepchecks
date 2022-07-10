@@ -71,6 +71,8 @@ DEFAULT_SCORERS_DICT = {
 
 
 _func_dict = {
+    'neg_rmse': 'neg_root_mean_squared_error',
+    'neg_mae': 'neg_mean_absolute_error',
     'precision_per_class': make_scorer(precision_score, average=None, zero_division=0),
     'recall_per_class': make_scorer(recall_score, average=None, zero_division=0),
     'f1_per_class': make_scorer(f1_score, average=None, zero_division=0)
@@ -92,8 +94,7 @@ class DeepcheckScorer:
         scorer name
     """
 
-    def __init__(self, scorer: t.Union[str, t.Callable], name: str):
-        self.name = name
+    def __init__(self, scorer: t.Union[str, t.Callable], name: str = None):
         if isinstance(scorer, str):
             formated_scorer_name = scorer.lower().replace('sensitivity', 'recall').replace(' ', '_')
             if formated_scorer_name in _func_dict:
@@ -109,6 +110,7 @@ class DeepcheckScorer:
             else:
                 message = f'Scorer should be should be either a callable or string but got: {scorer_type}'
             raise errors.DeepchecksValueError(message)
+        self.name = name or (scorer if isinstance(scorer, str) else type(scorer).__name__)
 
     @classmethod
     def filter_nulls(cls, dataset: 'tabular.Dataset') -> 'tabular.Dataset':
@@ -262,7 +264,7 @@ def init_validate_scorers(scorers: t.Union[t.Mapping[str, t.Union[str, t.Callabl
     Parameters
     ----------
     scorers : Mapping[str, Union[str, Callable]]
-        dict of scorers names to scorer sklearn_name/function
+        dict of scorers names to scorer sklearn_name/function or a list without a name
     model : BasicModel
         used to validate the scorers, and calculate mode_type if None.
     dataset : Dataset
@@ -273,7 +275,11 @@ def init_validate_scorers(scorers: t.Union[t.Mapping[str, t.Union[str, t.Callabl
         for classification whether to return scorers of average score or per class
     """
     return_array = model_type in [TaskType.MULTICLASS, TaskType.BINARY] and class_avg is False
-    scorers: t.List[DeepcheckScorer] = [DeepcheckScorer(scorer, name) for name, scorer in scorers.items()]
+    if isinstance(scorers, t.Mapping):
+        scorers: t.List[DeepcheckScorer] = [DeepcheckScorer(scorer, name) for name, scorer in scorers.items()]
+    else:
+        scorers: t.List[DeepcheckScorer] = [DeepcheckScorer(scorer) for scorer in scorers]
     for s in scorers:
+        print(s.name, return_array, model_type, class_avg)
         s.validate_fitting(model, dataset, return_array)
     return scorers
