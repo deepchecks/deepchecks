@@ -353,7 +353,9 @@ def column_importance_sorter_dict(
         the dict of columns sorted and limited by feature importance.
     """
     feature_importances = {} if feature_importances is None else feature_importances
-    def key(name): return get_importance(name[0], feature_importances, dataset)
+
+    def key(name):
+        return get_importance(name[0], feature_importances, dataset)
     cols_dict = dict(sorted(cols_dict.items(), key=key, reverse=True))
     if n_top:
         return dict(list(cols_dict.items())[:n_top])
@@ -392,7 +394,9 @@ def column_importance_sorter_df(
         return df
 
     feature_importances = {} if feature_importances is None else feature_importances
-    def key(column): return [get_importance(name, feature_importances, ds) for name in column]
+
+    def key(column):
+        return [get_importance(name, feature_importances, ds) for name in column]
     if col:
         df = df.sort_values(by=[col], key=key, ascending=False)
     df = df.sort_index(key=key, ascending=False)

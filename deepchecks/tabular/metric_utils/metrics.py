@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Utils module containing utilities for checks working with metrics."""
+import copy
 import typing as t
 from numbers import Number
 
@@ -48,20 +49,20 @@ DEFAULT_BINARY_SCORERS = {
 
 DEFAULT_MULTICLASS_SCORERS = {
     'Accuracy': 'accuracy',
-    'Precision - Macro Average': make_scorer(precision_score, average='macro', zero_division=0),
-    'Recall - Macro Average': make_scorer(recall_score, average='macro', zero_division=0)
+    'Precision - Macro Average': 'precision_macro',
+    'Recall - Macro Average': 'recall_macro',
 }
 
 MULTICLASS_SCORERS_NON_AVERAGE = {
-    'F1': make_scorer(f1_score, average=None, zero_division=0),
-    'Precision': make_scorer(precision_score, average=None, zero_division=0),
-    'Recall': make_scorer(recall_score, average=None, zero_division=0)
+    'F1': 'f1_per_class',
+    'Precision': 'precision_per_class',
+    'Recall': 'recall_per_class',
 }
 
 DEFAULT_REGRESSION_SCORERS = {
     'Neg RMSE': 'neg_root_mean_squared_error',
     'Neg MAE': 'neg_mean_absolute_error',
-    'R2': 'r2'
+    'R2': 'r2',
 }
 
 DEFAULT_SCORERS_DICT = {
@@ -71,19 +72,10 @@ DEFAULT_SCORERS_DICT = {
 }
 
 
-_func_naming_dict = {
-    'precision': 'Precision',
-    'recall': 'Recall',
-    'sensetivity': 'Recall',
-    'accuracy': 'Accuracy',
-    'precision macro': 'Precision - Macro Average',
-    'recall macro': 'Recall - Macro Average',
-    'r2': 'R2',
-    'neg rmse': 'Neg RMSE',
-    'neg mae': 'Neg MAE',  
-    'f1': 'F1',
-    'fpr': 'FPR',
-    'fnr': 'FNR'
+_func_dict = {
+    'precision_per_class': make_scorer(precision_score, average=None, zero_division=0),
+    'recall_per_class': make_scorer(recall_score, average=None, zero_division=0),
+    'f1_per_class': make_scorer(f1_score, average=None, zero_division=0)
 }
 
 
@@ -100,33 +92,18 @@ class DeepcheckScorer:
         sklearn scorer name or callable
     name : str
         scorer name
-    model_type : TaskType
-        model type to return scorers for
-    class_avg : bool , default True
-        for classification whether to return scorers of average score or per class
     """
 
-    def __init__(self, scorer: t.Union[str, t.Callable], name: str, model_type: TaskType, class_avg: bool = True):
+    def __init__(self, scorer: t.Union[str, t.Callable], name: str):
         self.name = name
         if isinstance(scorer, str):
-            agg_scorer_dict = {}
-            if model_type == TaskType.REGRESSION:
-                agg_scorer_dict.update(DEFAULT_REGRESSION_SCORERS)
+            formated_scorer_name = scorer.lower().replace('sensitivity', 'recall').replace(' ', '_')
+            if formated_scorer_name in _func_dict:
+                self.scorer = _func_dict[formated_scorer_name]
             else:
-                if class_avg:
-                    if model_type == TaskType.BINARY:
-                        agg_scorer_dict.update(DEFAULT_BINARY_SCORERS)
-                    else:
-                        agg_scorer_dict.update(DEFAULT_MULTICLASS_SCORERS)
-                else:
-                    agg_scorer_dict.update(MULTICLASS_SCORERS_NON_AVERAGE)
-            formated_scorer_name = scorer.lower().replace('_', ' ')
-            if formated_scorer_name in _func_naming_dict:
-                self.scorer = agg_scorer_dict[formated_scorer_name]
-            else:
-                self.scorer: t.Callable = get_scorer(scorer)
+                self.scorer = get_scorer(scorer)
         elif callable(scorer):
-            self.scorer: t.Callable = scorer
+            self.scorer = scorer
         else:
             scorer_type = type(scorer).__name__
             if name:
@@ -146,6 +123,7 @@ class DeepcheckScorer:
         return self.scorer(model, data, label_col)
 
     def run_on_pred(self, y_true, y_pred=None, y_proba=None):
+        # pylint: disable=protected-access
         if isinstance(self.scorer, _BaseScorer):
             if y_proba and isinstance(self.scorer, _ProbaScorer):
                 pred_to_use = y_proba
@@ -272,7 +250,6 @@ def get_default_scorers(model_type, class_avg: bool = True):
 
     if return_array:
         return MULTICLASS_SCORERS_NON_AVERAGE
-
     else:
         return DEFAULT_SCORERS_DICT[model_type]
 
@@ -298,8 +275,7 @@ def init_validate_scorers(scorers: t.Mapping[str, t.Union[str, t.Callable]],
         for classification whether to return scorers of average score or per class
     """
     return_array = model_type in [TaskType.MULTICLASS, TaskType.BINARY] and class_avg is False
-    scorers: t.List[DeepcheckScorer] = [DeepcheckScorer(
-        scorer, name, model_type, class_avg) for name, scorer in scorers.items()]
+    scorers: t.List[DeepcheckScorer] = [DeepcheckScorer(scorer, name) for name, scorer in scorers.items()]
     for s in scorers:
         s.validate_fitting(model, dataset, return_array)
     return scorers

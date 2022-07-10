@@ -53,9 +53,9 @@ def get_default_object_detection_scorers() -> t.Dict[str, Metric]:
 _func_naming_dict = {
     'precision': 'Precision',
     'recall': 'Recall',
-    'sensetivity': 'Recall',
-    'average precision': 'Average Precision',
-    'average recall': 'Average Recall',
+    'sensitivity': 'Recall',
+    'average_precision': 'Average Precision',
+    'average_recall': 'Average Recall',
     'ap': 'Average Precision',
     'ar': 'Average Recall',
     'f1': 'F1',
@@ -64,27 +64,35 @@ _func_naming_dict = {
 }
 
 
-def convert_classification_scorers(scorers: t.Dict[str, t.Union[Metric, str, t.Callable]]):
-    for scorer_name, scorer in scorers.items():
-        if isinstance(scorer, str) or isinstance(scorer, _BaseScorer):
-            scorer = DeepcheckScorer(scorer, scorer_name, TaskType.CLASSIFICATION)
-            needs_proba = isinstance(scorer, _ProbaScorer)
-            scorers[scorer_name] = CustomScorer(scorer.run_on_pred, needs_proba=needs_proba)
-        elif callable(scorer):
-            scorers[scorer_name] = CustomScorer(scorer)
+def convert_classification_scorers(scorer: t.Union[Metric, str, t.Callable]):
+    classification_scores = get_default_classification_scorers()
+    if isinstance(scorer, str):
+        scorer_name = _func_naming_dict.get(scorer.lower().replace(' ', '_'), scorer).lower()
+        if scorer_name in classification_scores:
+            return classification_scores[scorer_name]
+    if isinstance(scorer, (_BaseScorer, str)):
+        scorer = DeepcheckScorer(scorer, '')
+        needs_proba = isinstance(scorer, _ProbaScorer)
+        return CustomScorer(scorer.run_on_pred, needs_proba=needs_proba)
+    elif callable(scorer):
+        return CustomScorer(scorer)
+    return None
 
 
-def convert_threshold_detection_scorers(scorers: t.Dict[str, t.Union[Metric, str, t.Callable]]):
-    for given_scorer_name, scorer in scorers.items():
-        if isinstance(scorer, str):
-            scorer_name = _func_naming_dict.get(given_scorer_name.lower().replace('_', ' '), given_scorer_name).lower()
-            if scorer_name in AVAILABLE_EVALUTING_FUNCTIONS:
-                scorers[given_scorer_name] = ObjectDetectionTpFpFn(evaluting_function=scorer_name)
+def convert_detection_scorers(scorer: t.Union[Metric, str, t.Callable]):
+    if isinstance(scorer, str):
+        scorer_name = _func_naming_dict.get(scorer.lower().replace(' ', '_'), scorer).lower()
+        detection_scores = get_default_object_detection_scorers()
+        if scorer_name in detection_scores:
+            return detection_scores[scorer_name]
+        if scorer_name in AVAILABLE_EVALUTING_FUNCTIONS:
+            return ObjectDetectionTpFpFn(evaluting_function=scorer_name)
+    return None
 
 
 def get_scorers_list(
         dataset: VisionData,
-        alternative_scorers: t.Dict[str, Metric] = None,
+        alternative_scorers: t.Union[t.Dict[str, t.Union[Metric, t.Callable]], t.List[str]] = None,
 ) -> t.Dict[str, Metric]:
     """Get scorers list according to model object and label column.
 
@@ -104,13 +112,24 @@ def get_scorers_list(
     if alternative_scorers:
         # For alternative scorers we create a copy since in suites we are running in parallel, so we can't use the same
         # instance for several checks.
+        if isinstance(alternative_scorers, list):
+            alternative_scorers = {name: name for name in alternative_scorers}
         scorers = {}
         for name, met in alternative_scorers.items():
             # Validate that each alternative scorer is a correct type
-            if not isinstance(met, Metric):
-                raise DeepchecksValueError('alternative_scorers should contain metrics of type ignite.Metric')
-            met.reset()
-            scorers[name] = copy(met)
+            if isinstance(met, Metric):
+                met.reset()
+                scorers[name] = copy(met)
+            elif isinstance(met, str) or callable(met):
+                if task_type == TaskType.OBJECT_DETECTION:
+                    met = convert_detection_scorers(met)
+                else:
+                    met = convert_classification_scorers(met)
+                if met is None:
+                    raise DeepchecksNotSupportedError(
+                        f'Unsupported metric: {name} of type {type(met).__name__} was given.')
+            raise DeepchecksValueError(f'Excepted metric type one of [ignite.Metric, str, callable], was {type(met).__name__}.')
+
         return scorers
     elif task_type == TaskType.CLASSIFICATION:
         scorers = get_default_classification_scorers()
