@@ -11,7 +11,6 @@
 """Module for calculating distance matrix via Gower method."""
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import OrdinalEncoder
 
 from deepchecks.utils.array_math import fast_sum_by_row
 
@@ -84,13 +83,11 @@ def calculate_nearest_neighbours_distances(cat_data: pd.DataFrame, numeric_data:
     num_features = cat_data.shape[1] + numeric_data.shape[1]
     distances, indexes = np.zeros((num_samples, num_neighbours)), np.zeros((num_samples, num_neighbours))
     # handle categorical - transform to an ordinal numpy array
-    enc = OrdinalEncoder()
-    if not cat_data.empty:
-        cat_data = cat_data.apply(lambda x: pd.factorize(x)[0])
-    cat_data = enc.fit_transform(cat_data)
+    cat_data = np.asarray(cat_data.apply(lambda x: pd.factorize(x)[0])) if not cat_data.empty else np.asarray(cat_data)
     # handle numerical - calculate ranges per feature and fill numerical nan to minus np.inf
-    numeric_data = np.asarray(numeric_data.fillna(value=np.nan))
+    numeric_data = np.asarray(numeric_data.fillna(value=np.nan)).astype('float64')
     numeric_feature_ranges = np.nanmax(numeric_data, axis=0) - np.nanmin(numeric_data, axis=0)
+    numeric_feature_ranges = np.where(numeric_feature_ranges == 0, 1, numeric_feature_ranges)
     numeric_data = np.nan_to_num(numeric_data, nan=np.inf)
 
     # do not warn on operations that include usage of math involving inf

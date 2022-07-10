@@ -11,7 +11,7 @@
 import gower
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, greater_than, has_item, has_length, less_than_or_equal_to
+from hamcrest import assert_that, greater_than, has_item, has_length, less_than_or_equal_to, equal_to
 
 from deepchecks.utils import gower_distance
 
@@ -68,6 +68,19 @@ def test_mix_columns_nn_matrix_with_nulls_vectorized():
     assert_that(dist[-1], has_item(1))
     assert_that(dist[3], has_item(greater_than(0.4)))
     assert_that(min(dist[0]), less_than_or_equal_to(0))
+
+
+def test_numeric_columns_single_value_vectorized():
+    # Arrange
+    data = pd.DataFrame({'col1': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                         'col2': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                         'col3': [1, 1, 1, 1, 1, 1, None, 1, 1, 1, 1, 1, 1000],
+                         'col4': [True, True, True, True, True, True, True, True, True, True, True, True, True]})
+    # Act
+    dist, _ = gower_distance.calculate_nearest_neighbours_distances(data[[]], data, 3)
+    # Assert
+    assert_that(dist[-1], has_item(0.25))
+    assert_that(min(dist[0]), equal_to(0))
 
 
 def test_compare_other_package_iris(iris_dataset):
