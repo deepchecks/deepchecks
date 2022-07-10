@@ -27,7 +27,7 @@ def is_correct_image_property_outliers_result(with_display: bool = True) -> Matc
     if with_display:
         display_assertion = all_of(
             instance_of(list),
-            any_of(has_length(1), has_length(2)),
+            any_of(has_length(1), has_length(2), has_length(3), has_length(4)),
         )
     else:
         display_assertion = all_of(
