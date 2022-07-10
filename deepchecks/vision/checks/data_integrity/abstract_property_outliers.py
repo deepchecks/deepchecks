@@ -17,6 +17,7 @@ from numbers import Number
 from secrets import choice
 
 import numpy as np
+import pandas as pd
 
 from deepchecks import CheckResult
 from deepchecks.core import DatasetKind
@@ -178,12 +179,13 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         # Create display
         if context.with_display:
             display = []
+            no_outliers = pd.Series([])
             for property_name, info in result.items():
                 # If info is string it means there was error
                 if isinstance(info, str):
-                    html = NO_IMAGES_TEMPLATE.format(prop_name=property_name, message=info)
+                    no_outliers = pd.concat([no_outliers, pd.Series(property_name, index=[info])])
                 elif len(info['indices']) == 0:
-                    html = NO_IMAGES_TEMPLATE.format(prop_name=property_name, message='No outliers found.')
+                    no_outliers = pd.concat([no_outliers, pd.Series(property_name, index=['No outliers found.'])])
                 else:
                     # Create id of alphabetic characters
                     sid = ''.join([choice(string.ascii_uppercase) for _ in range(6)])
@@ -203,8 +205,17 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
                         id=sid
                     )
 
-                display.append(html)
-            display = ''.join(display)
+                    display.append(html)
+            display = [''.join(display)]
+
+            if not no_outliers.empty:
+                grouped = no_outliers.groupby(level=0).unique().str.join(', ')
+                grouped_df = pd.DataFrame(grouped, columns=['Properties'])
+                grouped_df['More Info'] = grouped_df.index
+                grouped_df = grouped_df[['More Info', 'Properties']]
+                display.append('<h5><b>Properties With No Outliers Found</h5></b>')
+                display.append(grouped_df.style.hide_index())
+
         else:
             display = None
 
@@ -310,7 +321,7 @@ HTML_TEMPLATE = """
         width: fill-available;
     }}
 </style>
-<h3><b>Property "{prop_name}"</b></h3>
+<h5><b>Property "{prop_name}"</b></h5>
 <div>
 Total number of outliers: {count}
 </div>
