@@ -41,6 +41,7 @@ class Batch:
         self._labels = None
         self._predictions = None
         self._images = None
+        self._image_properties = None
 
     @property
     def labels(self):
@@ -93,6 +94,14 @@ class Batch:
         """Return length of batch."""
         dataset = self._context.get_data_by_kind(self._dataset_kind)
         return len(list(dataset.data_loader.batch_sampler)[self.batch_index])
+
+    @property
+    def image_properties(self):
+        self._image_properties = self._context.get_cached_properties_by_kind(self._dataset_kind)
+        if self._image_properties is None:
+            dataset = self._context.get_data_by_kind(self._dataset_kind)
+            self._image_properties = dataset.batch_to_image_properties(self._batch)
+        return self._image_properties
 
 
 T = TypeVar('T')

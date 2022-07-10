@@ -27,6 +27,7 @@ from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.utils.image_functions import ImageInfo
 from deepchecks.vision.utils.transformations import get_transforms_handler
+from deepchecks.vision.utils.image_properties import default_image_properties
 
 __all__ = ['VisionData']
 
@@ -68,6 +69,7 @@ class VisionData:
         self._image_formatter_error = None
         self._label_formatter_error = None
         self._get_classes_error = None
+
 
         batch = next(iter(self._data_loader))
         try:
@@ -223,6 +225,45 @@ class VisionData:
         grayscale images should have 1 channel.
         """
         raise DeepchecksNotImplementedError('batch_to_images() must be implemented in a subclass')
+
+    def calc_image_properties(self, images) -> Dict[str, float]:
+        """
+        Calculates the image properties for a batch of images.
+
+        Parameters
+        ----------
+        images : torch.Tensor
+            Batch of images to transform to image properties.
+
+        Returns
+        ------
+        image_properties: dict[str, List]
+            A dict of property name, property value per image
+        """
+        properties = defaultdict(list)
+        for single_property in default_image_properties:
+            property_list = single_property['method'](images)
+            properties[single_property['name']].extend(property_list)
+        return properties
+
+    def batch_to_image_properties(self, batch) -> Dict[str, float]:
+        """
+        Transform a batch of data to image properties in the accpeted format.
+
+        Parameters
+        ----------
+        batch : torch.Tensor
+            Batch of data to transform to image properties.
+
+        Returns
+        ------
+        image_properties: dict[str, List]
+            A dict of property name, property value per image
+        """
+        images = self.batch_to_images(batch)
+        return self.calc_image_properties(images)
+
+
 
     def validate_label(self, batch):
         """Validate a batch of labels."""

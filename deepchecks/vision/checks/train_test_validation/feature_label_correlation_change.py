@@ -116,11 +116,15 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
 
     def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Calculate image properties for train or test batches."""
+
+        dataset = context.get_data_by_kind(dataset_kind)
+        # properties = batch.image_properties
+
         if dataset_kind == DatasetKind.TRAIN:
-            dataset = context.train
+            # dataset = context.train
             properties = self._train_properties
         else:
-            dataset = context.test
+            # dataset = context.test
             properties = self._test_properties
 
         imgs = []
@@ -144,8 +148,8 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
 
         properties['target'] += target
 
-        for single_property in self.image_properties:
-            properties[single_property['name']].extend(single_property['method'](imgs))
+        for property_name, value in batch.image_properties.items():
+            properties[property_name].extend(value)
 
     def compute(self, context: Context) -> CheckResult:
         """Calculate the PPS between each property and the label.
