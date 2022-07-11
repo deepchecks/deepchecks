@@ -15,7 +15,7 @@ from typing import Union
 import numpy as np
 from sklearn.metrics import confusion_matrix
 
-__all__ = ['get_false_positive_rate_scorer', 'get_false_negative_rate_scorer', 'get_true_negative_rate_scorer']
+__all__ = ['false_positive_rate_metric', 'false_negative_rate_metric', 'true_negative_rate_metric']
 
 
 def _false_positive_rate_per_class(y_true, y_pred):  # False Positives / (False Positives + True Negatives)
@@ -37,8 +37,19 @@ def _micro_false_positive_rate(y_true, y_pred):
     return fp / (fp + tn) if (fp + tn) > 0 else 0
 
 
-def get_false_positive_rate_scorer(y_true, y_pred, averaging_method: str = 'per_class') -> Union[np.ndarray, float]:
-    """Get false positive rate scorer."""
+def false_positive_rate_metric(y_true, y_pred, averaging_method: str = 'per_class') -> Union[np.ndarray, float]:
+    """Receive a metric which calculates false positive rate.
+
+    The rate is calculated as: False Positives / (False Positives + True Negatives)
+    Parameters
+    ----------
+    y_true : array-like of shape (n_samples,)
+        True labels.
+    y_pred : array-like of shape (n_samples,)
+        Predicted labels.
+    averaging_method : str, optional (default='per_class')
+        The method used to average the scores.
+    """
     if averaging_method == 'micro':
         return _micro_false_positive_rate(y_true, y_pred)
 
@@ -65,8 +76,19 @@ def _micro_false_negative_rate(y_true, y_pred):
     return fn / (fn + tp) if (fn + tp) > 0 else 0
 
 
-def get_false_negative_rate_scorer(y_true, y_pred, averaging_method: str = 'per_class') -> Union[np.ndarray, float]:
-    """Get false negative rate scorer."""
+def false_negative_rate_metric(y_true, y_pred, averaging_method: str = 'per_class') -> Union[np.ndarray, float]:
+    """Receive a metric which calculates false negative rate.
+
+    The rate is calculated as: False Negatives / (False Negatives + True Positives)
+    Parameters
+    ----------
+    y_true : array-like of shape (n_samples,)
+        True labels.
+    y_pred : array-like of shape (n_samples,)
+        Predicted labels.
+    averaging_method : str, optional (default='per_class')
+        The method used to average the scores.
+    """
     if averaging_method == 'micro':
         return _micro_false_negative_rate(y_true, y_pred)
 
@@ -93,8 +115,19 @@ def _micro_true_negative_rate(y_true, y_pred):
     return tn / (tn + fp) if (tn + fp) > 0 else 0
 
 
-def get_true_negative_rate_scorer(y_true, y_pred, averaging_method: str = 'per_class') -> Union[np.ndarray, float]:
-    """Get false negative rate scorer, same as specificity."""
+def true_negative_rate_metric(y_true, y_pred, averaging_method: str = 'per_class') -> Union[np.ndarray, float]:
+    """Receive a metric which calculates true negative rate. Alternative name to the same metric is specificity.
+
+    The rate is calculated as: True Negatives / (True Negatives + False Positives)
+    Parameters
+    ----------
+    y_true : array-like of shape (n_samples,)
+        True labels.
+    y_pred : array-like of shape (n_samples,)
+        Predicted labels.
+    averaging_method : str, optional (default='per_class')
+        The method used to average the scores.
+    """
     if averaging_method == 'micro':
         return _micro_true_negative_rate(y_true, y_pred)
 

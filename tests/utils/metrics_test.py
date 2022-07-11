@@ -14,8 +14,8 @@ from sklearn.metrics import make_scorer
 from sklearn.svm import SVC
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.tabular.metric_utils.additional_metrics import get_false_positive_rate_scorer, \
-    get_false_negative_rate_scorer, get_true_negative_rate_scorer
+from deepchecks.tabular.metric_utils.additional_metrics import false_positive_rate_metric, \
+    false_negative_rate_metric, true_negative_rate_metric
 
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.tabular.metric_utils.scorers import task_type_check
@@ -95,7 +95,7 @@ def test_task_type_check_class_with_no_proba(iris_dataset_single_class):
 def test_lending_club_false_positive_rate_scorer_binary(lending_club_split_dataset_and_model):
     # Arrange
     _, test_ds, clf = lending_club_split_dataset_and_model
-    binary = make_scorer(get_false_positive_rate_scorer, averaging='binary')
+    binary = make_scorer(false_positive_rate_metric, averaging_method='binary')
 
     # Act
     score = binary(clf, test_ds.features_columns, test_ds.label_col)
@@ -107,10 +107,10 @@ def test_lending_club_false_positive_rate_scorer_binary(lending_club_split_datas
 def test_iris_false_positive_rate_scorer_multiclass(iris_split_dataset_and_model):
     # Arrange
     _, test_ds, clf = iris_split_dataset_and_model
-    per_class = make_scorer(get_false_positive_rate_scorer, averaging='per_class')
-    macro = make_scorer(get_false_positive_rate_scorer, averaging='macro')
-    micro = make_scorer(get_false_positive_rate_scorer, averaging='micro')
-    weighted = make_scorer(get_false_positive_rate_scorer, averaging='weighted')
+    per_class = make_scorer(false_positive_rate_metric, averaging_method='per_class')
+    macro = make_scorer(false_positive_rate_metric, averaging_method='macro')
+    micro = make_scorer(false_positive_rate_metric, averaging_method='micro')
+    weighted = make_scorer(false_positive_rate_metric, averaging_method='weighted')
 
     # Act
     score_per_class = per_class(clf, test_ds.features_columns, test_ds.label_col)
@@ -130,7 +130,7 @@ def test_iris_false_positive_rate_scorer_multiclass(iris_split_dataset_and_model
 def test_lending_club_false_negative_rate_scorer_binary(lending_club_split_dataset_and_model):
     # Arrange
     _, test_ds, clf = lending_club_split_dataset_and_model
-    binary = make_scorer(get_false_negative_rate_scorer, averaging='binary')
+    binary = make_scorer(false_negative_rate_metric, averaging_method='binary')
 
     # Act
     score = binary(clf, test_ds.features_columns, test_ds.label_col)
@@ -142,10 +142,10 @@ def test_lending_club_false_negative_rate_scorer_binary(lending_club_split_datas
 def test_iris_false_negative_rate_scorer_multiclass(iris_split_dataset_and_model):
     # Arrange
     _, test_ds, clf = iris_split_dataset_and_model
-    per_class = make_scorer(get_false_negative_rate_scorer, averaging='per_class')
-    macro = make_scorer(get_false_negative_rate_scorer, averaging='macro')
-    micro = make_scorer(get_false_negative_rate_scorer, averaging='micro')
-    weighted = make_scorer(get_false_negative_rate_scorer, averaging='weighted')
+    per_class = make_scorer(false_negative_rate_metric, averaging_method='per_class')
+    macro = make_scorer(false_negative_rate_metric, averaging_method='macro')
+    micro = make_scorer(false_negative_rate_metric, averaging_method='micro')
+    weighted = make_scorer(false_negative_rate_metric, averaging_method='weighted')
 
     # Act
     score_per_class = per_class(clf, test_ds.features_columns, test_ds.label_col)
@@ -165,7 +165,7 @@ def test_iris_false_negative_rate_scorer_multiclass(iris_split_dataset_and_model
 def test_lending_club_true_negative_rate_scorer_binary(lending_club_split_dataset_and_model):
     # Arrange
     _, test_ds, clf = lending_club_split_dataset_and_model
-    binary = make_scorer(get_true_negative_rate_scorer, averaging='binary')
+    binary = make_scorer(true_negative_rate_metric, averaging_method='binary')
 
     # Act
     score = binary(clf, test_ds.features_columns, test_ds.label_col)
@@ -177,10 +177,10 @@ def test_lending_club_true_negative_rate_scorer_binary(lending_club_split_datase
 def test_iris_true_negative_rate_scorer_multiclass(iris_split_dataset_and_model):
     # Arrange
     _, test_ds, clf = iris_split_dataset_and_model
-    per_class = make_scorer(get_true_negative_rate_scorer, averaging='per_class')
-    macro = make_scorer(get_true_negative_rate_scorer, averaging='macro')
-    micro = make_scorer(get_true_negative_rate_scorer, averaging='micro')
-    weighted = make_scorer(get_true_negative_rate_scorer, averaging='weighted')
+    per_class = make_scorer(true_negative_rate_metric, averaging_method='per_class')
+    macro = make_scorer(true_negative_rate_metric, averaging_method='macro')
+    micro = make_scorer(true_negative_rate_metric, averaging_method='micro')
+    weighted = make_scorer(true_negative_rate_metric, averaging_method='weighted')
 
     # Act
     score_per_class = per_class(clf, test_ds.features_columns, test_ds.label_col)
