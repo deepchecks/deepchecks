@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module for calculating distance matrix via Gower method."""
-from typing import Any, List
+from typing import Any, List, Hashable
 
 import numpy as np
 import pandas as pd
@@ -55,7 +55,7 @@ def gower_matrix(data: np.ndarray, cat_features: np.array) -> np.ndarray:
     return result
 
 
-def calculate_nearest_neighbors_distances(data: pd.DataFrame, cat_cols: List[str], numeric_cols: List[str],
+def calculate_nearest_neighbors_distances(data: pd.DataFrame, cat_cols: List[Hashable], numeric_cols: List[Hashable],
                                           num_neighbors: int, indices_to_calc_neighbors_for: List[Any] = None):
     """
     Calculate distance matrix for a dataset using Gower's method.
@@ -70,9 +70,9 @@ def calculate_nearest_neighbors_distances(data: pd.DataFrame, cat_cols: List[str
     ----------
     data: pd.DataFrame
         DataFrame including all
-    cat_cols: List[str]
+    cat_cols: List[Hashable]
         List of categorical columns in the data.
-    numeric_cols: List[str]
+    numeric_cols: List[Hashable]
         List of numerical columns in the data.
     num_neighbors: int
         Number of neighbors to return. For example, for n=2 for each sample returns the distances to the two closest
