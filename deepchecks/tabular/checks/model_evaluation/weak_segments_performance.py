@@ -26,6 +26,7 @@ from deepchecks.core.check_result import DisplayMap
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksProcessError
 from deepchecks.tabular import Context, Dataset, SingleDatasetCheck
 from deepchecks.tabular.context import _DummyModel
+from deepchecks.tabular.metric_utils.metrics import DeepcheckScorer
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.dataframes import default_fill_na_per_column_type
 from deepchecks.utils.performance.partition import (convert_tree_leaves_into_filters,
@@ -261,7 +262,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
 
         return weak_segments.drop_duplicates().sort_values(f'{scorer.name} score')
 
-    def _find_weak_segment(self, dummy_model, dataset, features_for_segment, scorer, loss_per_sample):
+    def _find_weak_segment(self, dummy_model, dataset, features_for_segment, scorer: DeepcheckScorer, loss_per_sample):
         """Find weak segment based on scorer for specified features."""
         if version.parse(sklearn.__version__) < version.parse('1.0.0'):
             criterion = ['mse', 'mae']

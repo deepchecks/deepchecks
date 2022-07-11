@@ -22,7 +22,7 @@ from deepchecks.tabular.metrics import get_false_positive_rate_scorer_binary, \
     get_true_negative_rate_scorer_macro, get_true_negative_rate_scorer_micro, \
     get_true_negative_rate_scorer_weighted, get_true_negative_rate_scorer_binary
 from deepchecks.tabular.utils.task_type import TaskType
-from deepchecks.utils.metrics import task_type_check
+from deepchecks.tabular.metric_utils.metrics import task_type_check
 
 
 def test_task_type_check_binary(iris_dataset_single_class, iris_random_forest_single_class):
