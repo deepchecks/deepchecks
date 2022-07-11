@@ -17,6 +17,8 @@ from sklearn.metrics import confusion_matrix
 
 __all__ = ['false_positive_rate_metric', 'false_negative_rate_metric', 'true_negative_rate_metric']
 
+from deepchecks.core.errors import DeepchecksValueError
+
 
 def _false_positive_rate_per_class(y_true, y_pred):  # False Positives / (False Positives + True Negatives)
     result = []
@@ -47,8 +49,17 @@ def false_positive_rate_metric(y_true, y_pred, averaging_method: str = 'per_clas
         True labels.
     y_pred : array-like of shape (n_samples,)
         Predicted labels.
-    averaging_method : str, optional (default='per_class')
-        The method used to average the scores.
+    averaging_method : str, default: 'per_class'
+        Determines which averaging method to apply, possible values are:
+        'per_class': Return a np array with the scores for each class (sorted by class name).
+        'binary': Returns the score for the positive class. Should be used only in binary classification cases.
+        'micro': Returns the micro-averaged score.
+        'macro': Returns the mean of scores per class.
+        'weighted': Returns a weighted mean of scores based of the class size in y_true.
+    Returns
+    -------
+    score : Union[np.ndarray, float]
+        The score for the given metric.
     """
     if averaging_method == 'micro':
         return _micro_false_positive_rate(y_true, y_pred)
@@ -86,8 +97,17 @@ def false_negative_rate_metric(y_true, y_pred, averaging_method: str = 'per_clas
         True labels.
     y_pred : array-like of shape (n_samples,)
         Predicted labels.
-    averaging_method : str, optional (default='per_class')
-        The method used to average the scores.
+    averaging_method : str, default: 'per_class'
+        Determines which averaging method to apply, possible values are:
+        'per_class': Return a np array with the scores for each class (sorted by class name).
+        'binary': Returns the score for the positive class. Should be used only in binary classification cases.
+        'micro': Returns the micro-averaged score.
+        'macro': Returns the mean of scores per class.
+        'weighted': Returns a weighted mean of scores based of the class size in y_true.
+    Returns
+    -------
+    score : Union[np.ndarray, float]
+        The score for the given metric.
     """
     if averaging_method == 'micro':
         return _micro_false_negative_rate(y_true, y_pred)
@@ -125,8 +145,17 @@ def true_negative_rate_metric(y_true, y_pred, averaging_method: str = 'per_class
         True labels.
     y_pred : array-like of shape (n_samples,)
         Predicted labels.
-    averaging_method : str, optional (default='per_class')
-        The method used to average the scores.
+    averaging_method : str, default: 'per_class'
+        Determines which averaging method to apply, possible values are:
+        'per_class': Return a np array with the scores for each class (sorted by class name).
+        'binary': Returns the score for the positive class. Should be used only in binary classification cases.
+        'micro': Returns the micro-averaged score.
+        'macro': Returns the mean of scores per class.
+        'weighted': Returns a weighted mean of scores based of the class size in y_true.
+    Returns
+    -------
+    score : Union[np.ndarray, float]
+        The score for the given metric.
     """
     if averaging_method == 'micro':
         return _micro_true_negative_rate(y_true, y_pred)
@@ -137,6 +166,8 @@ def true_negative_rate_metric(y_true, y_pred, averaging_method: str = 'per_class
 
 def _averaging_mechanism(averaging_method, scores_per_class, y_true):
     if averaging_method == 'binary':
+        if len(scores_per_class) != 2:
+            raise DeepchecksValueError('Averaging method "binary" can only be used in binary classification.')
         return scores_per_class[1]
     elif averaging_method == 'per_class':
         return np.asarray(scores_per_class)
@@ -146,4 +177,4 @@ def _averaging_mechanism(averaging_method, scores_per_class, y_true):
         weights = [sum(y_true == cls) for cls in sorted(y_true.dropna().unique().tolist())]
         return np.multiply(scores_per_class, weights).sum() / sum(weights)
     else:
-        raise ValueError(f'Unknown averaging {averaging_method}')
+        raise DeepchecksValueError(f'Unknown averaging {averaging_method}')

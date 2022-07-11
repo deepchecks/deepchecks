@@ -358,8 +358,8 @@ class Context:
         alternative_scorers : Mapping[str, Union[str, Callable]], default None
             dict of scorers names to scorer sklearn_name/function or a list
         use_avg_defaults : bool, default True
-            If no scorers were provided, for classification,
-            determines whether to use default averaged scorers or default per class scorers.
+            If no scorers were provided, for classification, determines whether to use default scorers that return
+            an averaged metric, or default scorers that return a metric per class.
         """
         scorers = alternative_scorers or self._user_scorers or get_default_scorers(self.task_type, use_avg_defaults)
         return init_validate_scorers(scorers, self.model, self.train, self.task_type, use_avg_defaults)
@@ -379,8 +379,8 @@ class Context:
         alternative_scorers : Mapping[str, Union[str, Callable]], default None
             dict of scorers names to scorer sklearn_name/function or a list. Only first scorer will be used.
         use_avg_defaults : bool, default True
-            If no scorers were provided, for classification,
-            determines whether to use default averaged scorers or default per class scorers.
+            If no scorers were provided, for classification, determines whether to use default scorers that return
+            an averaged metric, or default scorers that return a metric per class.
         """
         scorers = alternative_scorers or self._user_scorers or get_default_scorers(self.task_type, use_avg_defaults)
         # The single scorer is the first one in the dict
