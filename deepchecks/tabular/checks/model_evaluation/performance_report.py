@@ -98,7 +98,7 @@ class PerformanceReport(TrainTestCheck, ReduceMixin):
         model = context.model
         task_type = context.task_type
 
-        scorers = context.get_scorers(self.user_scorers, class_avg=False)
+        scorers = context.get_scorers(self.user_scorers, use_avg_defaults=False)
         datasets = {'Train': train_dataset, 'Test': test_dataset}
 
         if task_type in {TaskType.MULTICLASS, TaskType.BINARY}:

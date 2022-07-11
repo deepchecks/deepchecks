@@ -35,7 +35,7 @@ def _false_positive_rate_per_class(y_true, y_pred):
     for cls in sorted(y_true.dropna().unique().tolist()):
         y_true_cls, y_pred_cls = np.asarray(y_true) == cls, np.asarray(y_pred) == cls
         result.append(_false_positive_rate(y_true_cls, y_pred_cls))
-    return result
+    return np.asarray(result)
 
 
 def get_false_positive_rate_scorer_binary() -> Callable:
@@ -93,7 +93,7 @@ def _false_negative_rate_per_class(y_true, y_pred):
     for cls in sorted(y_true.dropna().unique().tolist()):
         y_true_cls, y_pred_cls = np.asarray(y_true) == cls, np.asarray(y_pred) == cls
         result.append(_false_negative_rate(y_true_cls, y_pred_cls))
-    return result
+    return np.asarray(result)
 
 
 def get_false_negative_rate_scorer_binary() -> Callable:
@@ -151,7 +151,7 @@ def _true_negative_rate_per_class(y_true, y_pred):
     for cls in sorted(y_true.dropna().unique().tolist()):
         y_true_cls, y_pred_cls = np.asarray(y_true) == cls, np.asarray(y_pred) == cls
         result.append(_true_negative_rate(y_true_cls, y_pred_cls))
-    return result
+    return np.asarray(result)
 
 
 def get_true_negative_rate_scorer_binary() -> Callable:

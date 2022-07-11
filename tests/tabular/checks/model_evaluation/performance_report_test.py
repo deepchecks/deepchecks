@@ -291,6 +291,18 @@ def test_classification_alt_scores_list(iris_split_dataset_and_model):
     assert_that(result['jaccard_score'], close_to(0.846, 0.001))
 
 
+def test_classification_deepchecks_scorers(iris_split_dataset_and_model):
+    # Arrange
+    train, test, model = iris_split_dataset_and_model
+    check = PerformanceReport(alternative_scorers=['fpr_per_class',
+                              'fnr_per_class', 'specificity_per_class'])
+    # Act X
+    result = check.run(train, test, model).reduce_output()
+    # Assert
+    assert_that(result['fpr_per_class'], close_to(0.070, 0.001))
+    assert_that(result['fnr_per_class'], close_to(0.035, 0.001))
+    assert_that(result['specificity_per_class'], close_to(0.929, 0.001))
+
 def test_regression_alt_scores_list(diabetes_split_dataset_and_model):
     # Arrange
     train, test, model = diabetes_split_dataset_and_model
