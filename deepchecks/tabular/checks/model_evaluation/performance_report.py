@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing performance report check."""
+from numbers import Number
 from typing import Callable, Dict, TypeVar, Union, cast
 
 import pandas as pd
@@ -101,36 +102,26 @@ class PerformanceReport(TrainTestCheck, ReduceMixin):
         scorers = context.get_scorers(self.user_scorers, use_avg_defaults=False)
         datasets = {'Train': train_dataset, 'Test': test_dataset}
 
-        if task_type in {TaskType.MULTICLASS, TaskType.BINARY}:
-            plot_x_axis = 'Class'
-            results = []
+        results = []
+        for dataset_name, dataset in datasets.items():
+            classes = dataset.classes
+            label = cast(pd.Series, dataset.label_col)
+            n_samples = label.groupby(label).count()
+            for scorer in scorers:
+                scorer_value = scorer(model, dataset)
+                if isinstance(scorer_value, Number):
+                    results.append([dataset_name, '', scorer.name, scorer_value, len(label)])
+                else:
+                    results.extend(
+                        [[dataset_name, class_name, scorer.name, class_score, n_samples[class_name]]
+                            for class_score, class_name in zip(scorer_value, classes)])
 
-            for dataset_name, dataset in datasets.items():
-                classes = dataset.classes
-                label = cast(pd.Series, dataset.label_col)
-                n_samples = label.groupby(label).count()
-                results.extend(
-                    [dataset_name, class_name, scorer.name, class_score, n_samples[class_name]]
-                    for scorer in scorers
-                    # scorer returns numpy array of results with item per class
-                    for class_score, class_name in zip(scorer(model, dataset), classes)
-                )
-
-            results_df = pd.DataFrame(results, columns=['Dataset', 'Class', 'Metric', 'Value', 'Number of samples'])
-
-        else:
-            plot_x_axis = 'Dataset'
-            results = [
-                [dataset_name, scorer.name, scorer(model, dataset), cast(pd.Series, dataset.label_col).count()]
-                for dataset_name, dataset in datasets.items()
-                for scorer in scorers
-            ]
-            results_df = pd.DataFrame(results, columns=['Dataset', 'Metric', 'Value', 'Number of samples'])
+        results_df = pd.DataFrame(results, columns=['Dataset', 'Class', 'Metric', 'Value', 'Number of samples'])
 
         if context.with_display:
             fig = px.histogram(
                 results_df,
-                x=plot_x_axis,
+                x='Class',
                 y='Value',
                 color='Dataset',
                 barmode='group',

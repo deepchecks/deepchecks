@@ -362,7 +362,7 @@ class Context:
             determines whether to use default averaged scorers or default per class scorers.
         """
         scorers = alternative_scorers or self._user_scorers or get_default_scorers(self.task_type, use_avg_defaults)
-        return init_validate_scorers(scorers, self.model, self.train, self.task_type, use_avg_defaults)
+        return init_validate_scorers(scorers, self.model, self.train)
 
     def get_single_scorer(self,
                           alternative_scorers: t.Mapping[str, t.Union[str, t.Callable]] = None,
