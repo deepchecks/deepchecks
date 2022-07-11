@@ -24,7 +24,7 @@ from sklearn.pipeline import Pipeline
 
 from deepchecks import tabular
 from deepchecks.core import errors
-from deepchecks.tabular.metric_utils.metrics import (DeepcheckScorer, get_default_scorers, init_validate_scorers,
+from deepchecks.tabular.metric_utils.scorers import (DeepcheckScorer, get_default_scorers, init_validate_scorers,
                                                      task_type_check)
 from deepchecks.tabular.utils.validation import validate_model
 from deepchecks.utils.logger import get_logger

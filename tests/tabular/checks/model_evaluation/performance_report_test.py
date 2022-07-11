@@ -23,7 +23,7 @@ from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupport
                                     ModelValidationError)
 from deepchecks.tabular.checks.model_evaluation import PerformanceReport
 from deepchecks.tabular.dataset import Dataset
-from deepchecks.tabular.metric_utils.metrics import DEFAULT_REGRESSION_SCORERS, MULTICLASS_SCORERS_NON_AVERAGE
+from deepchecks.tabular.metric_utils.scorers import DEFAULT_REGRESSION_SCORERS, MULTICLASS_SCORERS_NON_AVERAGE
 from tests.base.utils import equal_condition_result
 
 

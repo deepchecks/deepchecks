@@ -13,7 +13,7 @@ from hamcrest import assert_that, calling, equal_to, raises, close_to
 from sklearn.svm import SVC
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.tabular.metrics import get_false_positive_rate_scorer_binary, \
+from deepchecks.tabular.metric_utils.additional_metrics import get_false_positive_rate_scorer_binary, \
     get_false_positive_rate_scorer_per_class, get_false_positive_rate_scorer_macro, \
     get_false_positive_rate_scorer_weighted, get_false_positive_rate_scorer_micro, \
     get_false_negative_rate_scorer_per_class, get_false_negative_rate_scorer_macro, \
@@ -22,7 +22,7 @@ from deepchecks.tabular.metrics import get_false_positive_rate_scorer_binary, \
     get_true_negative_rate_scorer_macro, get_true_negative_rate_scorer_micro, \
     get_true_negative_rate_scorer_weighted, get_true_negative_rate_scorer_binary
 from deepchecks.tabular.utils.task_type import TaskType
-from deepchecks.tabular.metric_utils.metrics import task_type_check
+from deepchecks.tabular.metric_utils.scorers import task_type_check
 
 
 def test_task_type_check_binary(iris_dataset_single_class, iris_random_forest_single_class):
