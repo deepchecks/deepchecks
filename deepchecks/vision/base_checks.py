@@ -50,6 +50,8 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         with_display: bool = True,
         train_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
         test_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
+        train_image_properties: Dict = None,
+        test_image_properties: Dict = None
     ) -> CheckResult:
         """Run check.
 
@@ -79,6 +81,8 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
                     with_display=with_display,
                     train_predictions=train_predictions,
                     test_predictions=test_predictions,
+                    train_image_properties=train_image_properties,
+                    test_image_properties=test_image_properties
                 )
                 self.initialize_run(context, DatasetKind.TRAIN)
 

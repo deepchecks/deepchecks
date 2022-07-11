@@ -57,6 +57,8 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         Two percentiles which define the IQR range
     iqr_scale: float, default: 1.5
         The scale to multiply the IQR range for the outliers detection
+    properties_precalculated: bool, default: False
+        Are the properties passed to the check precalculated
     """
 
     def __init__(self,
@@ -64,6 +66,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
                  n_show_top: int = 5,
                  iqr_percentiles: t.Tuple[int, int] = (25, 75),
                  iqr_scale: float = 1.5,
+                 properties_precalculated: bool = False,
                  **kwargs):
         super().__init__(**kwargs)
         if properties is not None:
@@ -80,12 +83,13 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
 
         self._properties_results = None
         self._properties_funcs = None
+        self.properties_precalculated = properties_precalculated
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
         """Initialize the properties state."""
-        self._properties_results = defaultdict(list)
         data = context.get_data_by_kind(dataset_kind)
 
+        self._properties_results = defaultdict(list)
         # Take either alternative properties if defined or default properties defined by the child class
         if self.user_properties is not None:
             self._properties_funcs = self.user_properties
@@ -98,11 +102,15 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         """Aggregate image properties from batch."""
         data_for_properties = self.get_relevant_data(batch)
 
-        for single_property in self._properties_funcs:
-            prop_name = single_property['name']
-            property_values = single_property['method'](data_for_properties)
-            _ensure_property_shape(property_values, data_for_properties, prop_name)
-            self._properties_results[prop_name].extend(property_values)
+        if self.properties_precalculated:
+            for prop_name, property_values in data_for_properties.items():
+                self._properties_results[prop_name].extend(property_values)
+        else:
+            for single_property in self._properties_funcs:
+                prop_name = single_property['name']
+                property_values = single_property['method'](data_for_properties)
+                _ensure_property_shape(property_values, data_for_properties, prop_name)
+                self._properties_results[prop_name].extend(property_values)
 
     def compute(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
         """Compute final result."""

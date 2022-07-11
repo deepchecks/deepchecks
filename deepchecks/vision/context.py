@@ -57,8 +57,8 @@ class Context:
         with_display: bool = True,
         train_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
         test_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
-        train_image_properties: List = None,
-        test_image_properties: List = None
+        train_image_properties: Dict = None,
+        test_image_properties: Dict = None
 
     ):
         # Validations

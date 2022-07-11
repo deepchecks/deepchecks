@@ -58,7 +58,8 @@ class VisionData:
         data_loader: DataLoader,
         num_classes: Optional[int] = None,
         label_map: Optional[Dict[int, str]] = None,
-        transform_field: Optional[str] = 'transforms'
+        transform_field: Optional[str] = 'transforms',
+        image_properties: List[Dict] = default_image_properties
     ):
         # Create data loader that uses IndicesSequentialSampler, which always return batches in the same order
         self._data_loader, self._sampler = self._get_data_loader_sequential(data_loader)
@@ -69,7 +70,7 @@ class VisionData:
         self._image_formatter_error = None
         self._label_formatter_error = None
         self._get_classes_error = None
-
+        self.image_properties = image_properties
 
         batch = next(iter(self._data_loader))
         try:
@@ -226,7 +227,7 @@ class VisionData:
         """
         raise DeepchecksNotImplementedError('batch_to_images() must be implemented in a subclass')
 
-    def calc_image_properties(self, images) -> Dict[str, float]:
+    def calc_image_properties(self, images) -> Dict[str, list]:
         """
         Calculates the image properties for a batch of images.
 
@@ -240,13 +241,13 @@ class VisionData:
         image_properties: dict[str, List]
             A dict of property name, property value per image
         """
-        properties = defaultdict(list)
-        for single_property in default_image_properties:
+        batch_properties = defaultdict(list)
+        for single_property in self.image_properties:
             property_list = single_property['method'](images)
-            properties[single_property['name']].extend(property_list)
-        return properties
+            batch_properties[single_property['name']] = property_list
+        return batch_properties
 
-    def batch_to_image_properties(self, batch) -> Dict[str, float]:
+    def batch_to_image_properties(self, batch) -> Dict[str, list]:
         """
         Transform a batch of data to image properties in the accpeted format.
 
