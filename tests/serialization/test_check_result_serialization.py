@@ -14,21 +14,20 @@ import typing as t
 
 import pandas as pd
 import wandb
-from hamcrest import (all_of, assert_that, calling, contains_exactly, contains_string, equal_to, greater_than,
-                      has_entries, has_item, has_length, has_property, instance_of, matches_regexp, only_contains,
-                      raises, starts_with)
+from hamcrest import *
+from bs4 import BeautifulSoup
 from ipywidgets import HTML, Tab, VBox
 from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
 
 from deepchecks.core.check_result import DisplayMap
 from deepchecks.core.serialization.check_result.html import CheckResultSerializer as HtmlSerializer
-from deepchecks.core.serialization.check_result.html import DisplayItemsHandler as HtmlDisplayItemsHandler
+from deepchecks.core.serialization.check_result.html import DisplayItemsSerializer as HtmlDisplayItemsSerializer
 from deepchecks.core.serialization.check_result.json import CheckResultSerializer as JsonSerializer
-from deepchecks.core.serialization.check_result.json import DisplayItemsHandler as JsonDisplayItemsHandler
+from deepchecks.core.serialization.check_result.json import DisplayItemsSerializer as JsonDisplayItemsSerializer
 from deepchecks.core.serialization.check_result.wandb import CheckResultSerializer as WandbSerializer
 from deepchecks.core.serialization.check_result.widget import CheckResultSerializer as WidgetSerializer
-from deepchecks.core.serialization.check_result.widget import DisplayItemsHandler as WidgetDisplayItemsHandler
+from deepchecks.core.serialization.check_result.widget import DisplayItemsSerializer as WidgetDisplayItemsSerializer
 from deepchecks.utils.strings import get_random_string
 from tests.common import DummyCheck, create_check_result, create_check_result_display
 
@@ -52,14 +51,30 @@ def test_html_serialization():
     result = create_check_result()
     output = HtmlSerializer(result).serialize()
 
-    assert_that(
-        output,
-        all_of(
-            instance_of(str),
-            has_length(greater_than(0)),
-            contains_string(result.get_header()),
-            contains_string(t.cast(str, DummyCheck.__doc__)))
-    )
+    assert_that(output, instance_of(str))
+
+    soup = BeautifulSoup(output, 'html.parser')
+    deepchecks_style = soup.select_one('script#deepchecks-style')
+    plotly_src = soup.select_one('script#deepchecks-plotly-src')
+    deepchecks_script = soup.select_one('script#deepchecks-plotly-src')
+
+    assert_that(deepchecks_style, not_none())
+    assert_that(plotly_src, not_none())
+    assert_that(deepchecks_script, not_none())
+
+    assert_check_result_html_output_structure(soup)
+
+
+def test_html_serialization_without_javascript():
+    result = create_check_result()
+    output = HtmlSerializer(result).serialize(use_javascript=False)
+
+    assert_that(output, instance_of(str))
+
+    soup = BeautifulSoup(output, 'html.parser')
+    scripts = soup.select('script')
+    assert_that(scripts, has_length(0))
+    assert_check_result_html_output_structure(soup)
 
 
 def test_html_serialization_with_empty__check_sections__parameter():
@@ -73,15 +88,21 @@ def test_html_serialization_with_empty__check_sections__parameter():
 def test_html_serialization_with__output_id__parameter():
     result = create_check_result()
     output_id = get_random_string(n=25)
-    output = HtmlSerializer(result).serialize(output_id=output_id)
+    output = HtmlSerializer(result).serialize(output_id=output_id, embed_into_suite='suite')
 
-    assert_that(
-        output,
-        all_of(
-            instance_of(str),
-            has_length(greater_than(0)),
-            contains_string(output_id)),
-    )
+    assert_that(output, instance_of(str))
+
+    soup = BeautifulSoup(output, 'html.parser')
+    assert_check_result_html_output_structure(soup)
+
+    headers = [it for it in soup.select('h3[id]') if it.get('id', '').endswith(output_id)]
+    links = [it for it in soup.select('a[href]') if it.get('href', '').endswith(output_id)]
+    go_to_top_links = [it for it in links if it.text == 'Go to top']
+
+    assert_that(headers, has_length(greater_than(0)))
+    assert_that(links, has_length(greater_than(0)))
+    assert_that(go_to_top_links, has_length(greater_than(0)))
+
 
 
 def test_check_result_without_display_and_conditions_into_html_serialization():
@@ -108,75 +129,35 @@ def test_html_serialization_to_full_html_page():
     result = create_check_result()
     output = HtmlSerializer(result).serialize(full_html=True)
 
-    whitespace = r'[\s]*'
-    anything = r'([\s\S\d\D\w\W]*)'
+    assert_that(output, instance_of(str))
 
-    regexp = (
-        fr'^{whitespace}{anything}<html>{whitespace}'
-        fr'<head><meta charset="utf-8"\/><\/head>{whitespace}'
-        fr'<body{anything}>{anything}<\/body>{whitespace}'
-        fr'<\/html>{whitespace}$'
-    )
+    soup = BeautifulSoup(output, 'html.parser')
 
-    assert_that(
-        output,
-        all_of(
-            instance_of(str),
-            matches_regexp(regexp)
-        )
-    )
+    html = soup.select_one('html')
+    assert_that(html, not_none())
+
+    head = html.select_one('head')
+    body = html.select_one('body.deepchecks')
+    assert_that(head, not_none())
+    assert_that(body, not_none())
+
+    assert_check_result_html_output_structure(body)
 
 
-def test_display_map_serialization_to_html():
-    html_section = HtmlDisplayItemsHandler.handle_display(
-        display=[DisplayMap(a=create_check_result_display())],
-        include_header=False,
-        include_trailing_link=False
-    )
-    assert_that(html_section, all_of(
-        instance_of(list),
-        contains_exactly(is_display_map_sections('a'))
-    ))
+def assert_check_result_html_output_structure(soup):
+    if isinstance(soup, str):
+        soup = BeautifulSoup(soup, 'html.parser')
 
+    content = soup.select_one('article.deepchecks')
+    assert_that(content, not_none())
 
-def test_nested_display_map_serialization_to_html():
-    html_section = HtmlDisplayItemsHandler.handle_display(
-        display=[
-            DisplayMap(
-                a=create_check_result_display(),
-                b=[DisplayMap(a=create_check_result_display())],
-            ),
-        ],
-        include_header=False,
-        include_trailing_link=False
-    )
-    assert_that(html_section, all_of(
-        instance_of(list),
-        contains_exactly(is_display_map_sections('a', 'b'))
-    ))
+    header = content.select_one('h3')
+    conditions_table = content.select_one('section[name="conditions-table"]')
+    additional_output = content.select_one('section[name="conditions-table"]')
 
-
-def is_display_map_sections(*section_names):
-    assert len(section_names) != 0
-    patterns = []
-
-    for name in section_names:
-        patterns.append(
-            r"<details>[\s]*"
-            r"<summary>[\s]*"
-            fr"<strong>{name}<\/strong>[\s]*"
-            r"<\/summary>[\s]*"
-            r"<div([\s\S\d\D\w\W]*)>([\s\S\d\D\w\W]*)<\/div>[\s]*"
-            r"<\/details>"
-        )
-
-    pattern = r'[\s]*'.join(patterns)
-    pattern = rf'^[\s]*{pattern}[\s]*$'
-
-    return all_of(
-        instance_of(str),
-        matches_regexp(pattern)
-    )
+    assert_that(header, not_none())
+    assert_that(conditions_table, not_none())
+    assert_that(additional_output, not_none())
 
 
 # ===========================================
@@ -210,58 +191,6 @@ def test_check_result_without_conditions_and_display_into_json_serialization():
         with_conditions_table=False,
         with_display=False
     )
-
-
-def test_display_map_serialization_to_json():
-    output = JsonDisplayItemsHandler.handle_display(
-        display=[DisplayMap(a=create_check_result_display())],
-    )
-    assert_that(output, all_of(
-        instance_of(list),
-        only_contains(has_entries({
-            'type': equal_to('displaymap'),
-            'payload': has_entries({
-                'a': all_of(
-                    instance_of(list),
-                    has_length(equal_to(5))
-                )
-            })
-        }))
-    ))
-
-
-def test_nested_display_map_serialization_to_json():
-    output = JsonDisplayItemsHandler.handle_display(
-        display=[
-            DisplayMap(
-                a=create_check_result_display(),
-                b=[DisplayMap(a=create_check_result_display())],
-            ),
-        ],
-    )
-    assert_that(output, all_of(
-        instance_of(list),
-        contains_exactly(
-            serialized_to_json_displaymap(has_entries({
-                'a': all_of(
-                    instance_of(list),
-                    has_length(equal_to(5))),
-                'b': all_of(
-                    instance_of(list),
-                    contains_exactly(
-                        serialized_to_json_displaymap(has_entries({
-                            'a': all_of(instance_of(list), has_length(equal_to(5)))
-                        }))))
-            }))
-        )
-    ))
-
-
-def serialized_to_json_displaymap(entries_matcher):
-    return has_entries({
-        'type': equal_to('displaymap'),
-        'payload': entries_matcher
-    })
 
 
 def assert_json_output(
@@ -449,6 +378,7 @@ def test_widget_serialization_without_conditions_section():
         with_display_section=True
     )
 
+
 def test_widget_serialization_without_display_section():
     check_result = create_check_result()
     output = WidgetSerializer(check_result).serialize(check_sections=['condition-table'])
@@ -465,82 +395,6 @@ def test_widget_serialization_with_empty__check_sections__parameter():
     assert_that(
         calling(WidgetSerializer(result).serialize).with_args(check_sections=[]),
         raises(ValueError, 'include parameter cannot be empty')
-    )
-
-
-def test_display_map_serialization_to_widget():
-    display_items = create_check_result_display()
-    displaymap = DisplayMap(a=display_items)
-    output = WidgetDisplayItemsHandler.handle_display(
-        display=[displaymap],
-        include_header=False,
-        include_trailing_link=False
-    )
-    assert_that(output, contains_exactly(
-        serialized_to_widget_displaymap(
-            displaymap=displaymap,
-            display_items=display_items
-        )
-    ))
-
-
-def test_nested_display_map_serialization_to_widget():
-    display_items = create_check_result_display()
-    inner_displaymap = DisplayMap(a=display_items)
-    outer_displaymap = DisplayMap(a=display_items, b=[inner_displaymap])
-
-    output = WidgetDisplayItemsHandler.handle_display(
-        display=[outer_displaymap],
-        include_header=False,
-        include_trailing_link=False
-    )
-    assert_that(output, contains_exactly(
-        serialized_to_widget_displaymap(
-            displaymap=outer_displaymap,
-            tabs=[
-                has_length(len(display_items)),  # tab 'a'
-                contains_exactly(serialized_to_widget_displaymap(  # tab 'b'
-                    displaymap=inner_displaymap,
-                    display_items=display_items
-                ))
-            ]
-        )
-    ))
-
-
-def serialized_to_widget_displaymap(
-    displaymap: DisplayMap,
-    display_items: t.Optional[t.List[t.Any]] = None,
-    tabs: t.Optional[t.List[t.Any]] = None
-):
-    if display_items is not None:
-        tabs_matcher = [
-            all_of(
-                instance_of(VBox),
-                has_property('children', has_length(len(display_items)))
-            )
-            for _ in range(len(displaymap))
-        ]
-    elif tabs is not None:
-        tabs_matcher = [
-            all_of(
-                instance_of(VBox),
-                has_property('children', m)
-            )
-            for m in tabs
-        ]
-    else:
-        raise ValueError('At least one of the parameters must be provided - [display_items, tabs]')
-
-    return all_of(
-        instance_of(VBox),
-        has_property('children', contains_exactly(
-            instance_of(HTML),
-            all_of(
-                instance_of(Tab),
-                has_property('children', all_of(contains_exactly(*tabs_matcher)))
-            )
-        ))
     )
 
 

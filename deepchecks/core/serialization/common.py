@@ -302,14 +302,15 @@ def read_matplot_figures(drawer: t.Optional[t.Callable[[], None]] = None) -> t.L
             return read_matplot_figures()
     else:
         output = []
-        figures = [plt.figure(n) for n in plt.get_fignums()]
+        fignums = plt.get_fignums()[:]
+        figures = [plt.figure(n) for n in fignums]
         for fig in figures:
             buffer = io.BytesIO()
             fig.savefig(buffer, format='jpeg')
             buffer.seek(0)
             output.append(buffer)
-            fig.clear()
-            plt.close(fig)
+            # fig.clear()
+            # plt.close(fig)
         return output
 
 

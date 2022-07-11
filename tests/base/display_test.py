@@ -20,15 +20,16 @@ import jsonpickle
 import pandas as pd
 import plotly.express
 import plotly.io as pio
-from hamcrest import (all_of, any_of, assert_that, calling, equal_to, greater_than, has_entries, has_length,
-                      instance_of, is_, matches_regexp, only_contains, raises)
+from hamcrest import *
 from ipywidgets import VBox, Widget
 
 from deepchecks.core.check_result import CheckFailure, CheckResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.checks import ColumnsInfo, MixedNulls
 from deepchecks.utils.json_utils import from_json
+
 from tests.common import DummyCheck, create_check_result, create_suite_result, instance_of_ipython_formatter
+from tests.serialization.test_check_result_serialization import assert_check_result_html_output_structure
 
 
 def test_check_result_display():
@@ -37,14 +38,9 @@ def test_check_result_display():
         result = create_check_result()
         assert_that(result.display_check(), is_(None))
         mock.assert_called_once()
-
-
-def test_check_result_display_without_ipywidgets():
-    # Arrange
-    with patch('deepchecks.core.display.display') as mock:
-        result = create_check_result()
-        assert_that(result.display_check(as_widget=False), is_(None))
-        mock.assert_called_once()
+        args, kwargs = list(mock.call_args)
+        html, *_ = args
+        assert_check_result_html_output_structure(html)
 
 
 def test_check_result_serialization_to_widget():
@@ -122,14 +118,9 @@ def test_check_result_show_with_sphinx_gallery_env_enabled():
         # Assert
         r = check_result.show()
         assert_that(hasattr(r, '_repr_html_'))
-        assert_that(
-            r._repr_html_(),
-            all_of(
-                instance_of(str),
-                has_length(greater_than(0)),
-                is_html_document()
-            )
-        )
+        html = r._repr_html_()
+        assert_that(html, instance_of(str))
+        assert_check_result_html_output_structure(html)
 
 
 def test_check_result_display_with_enabled_colab_enviroment():
@@ -138,24 +129,12 @@ def test_check_result_display_with_enabled_colab_enviroment():
     # Assert
     with patch('deepchecks.core.display.is_colab_env', return_value=True):
         with patch('deepchecks.core.display.display_html') as mock:
-            result.show(as_widget=True)
+            result.show()
             mock.assert_called_once()
             args, kwargs = list(mock.call_args)
             html, *_ = args
-            assert_that(html, all_of(instance_of(str), is_html_document()))
-            assert_that('iframe' not in html)
-
-
-def test_check_result_display_with_enabled_colab_env_and_as_widget_parameter_set_to_false():
-    # Arrange
-    result = create_check_result(value=[10, 20, 30])
-    # Assert
-    with patch('deepchecks.core.display.is_colab_env', return_value=True):
-        with patch('deepchecks.core.display.display') as mock:
-            result.show(as_widget=False)
-            mock.assert_called_once()
-            args, kwargs = list(mock.call_args)
-            assert_that(args, only_contains(instance_of_ipython_formatter()))
+            assert_that(html, instance_of(str))
+            assert_check_result_html_output_structure(html)
 
 
 def test_check_result_ipython_display():
@@ -165,6 +144,10 @@ def test_check_result_ipython_display():
     with patch('deepchecks.core.display.display_html') as mock:
         result._ipython_display_()
         mock.assert_called_once()
+        args, kwargs = list(mock.call_args)
+        html, *_ = args
+        assert_that(html, instance_of(str))
+        assert_check_result_html_output_structure(html)
 
 
 def test_check_result_repr_mimebundle():
@@ -177,7 +160,7 @@ def test_check_result_repr_mimebundle():
             instance_of(dict),
             has_length(greater_than(0)),
             has_entries({
-                'text/html': all_of(instance_of(str), is_html_document()),
+                'text/html': instance_of(str),
                 'application/json': any_of(instance_of(dict), instance_of(list))
             }))
     )
@@ -187,14 +170,9 @@ def test_check_result_repr_html():
     # Arrange
     result = create_check_result(value=10)
     # Assert
-    assert_that(
-        result._repr_html_(),
-        all_of(
-            instance_of(str),
-            has_length(greater_than(0)),
-            is_html_document()
-        )
-    )
+    html = result._repr_html_()
+    assert_that(html, instance_of(str))
+    assert_check_result_html_output_structure(html)
 
 
 def test_check_result_repr_json():
@@ -264,7 +242,7 @@ def test_check_failure_display_with_enabled_colab_enviroment():
     # Assert
     with patch('deepchecks.core.display.is_colab_env', return_value=True):
         with patch('deepchecks.core.display.display_html') as mock:
-            failure.display_check(as_widget=True)
+            failure.display_check()
             mock.assert_called_once()
             args, kwargs = list(mock.call_args)
             html, *_ = args
@@ -274,22 +252,16 @@ def test_check_failure_display_with_enabled_colab_enviroment():
             ))
 
 
-def test_check_failure_display_with_enabled_widgets():
-    # Arrange
-    failure = CheckFailure(DummyCheck(), Exception('error message'))
-    # Assert
-    with patch('deepchecks.core.display.display_html', Mock(return_value=True)) as mock:
-        w = failure.display_check(as_widget=True)
-        mock.assert_called_once()
-
-
 def test_check_failure_display():
     # Arrange
     failure = CheckFailure(DummyCheck(), Exception('error message'))
     # Assert
     with patch('deepchecks.core.display.display') as mock:
-        failure.display_check(as_widget=False)
+        failure.display_check()
         mock.assert_called_once()
+        args, kwargs = list(mock.call_args)
+        html, *_ = args
+        assert_that(html, instance_of(str))
 
 
 def test_check_failure_show():
@@ -300,6 +272,9 @@ def test_check_failure_show():
         # Assert
         assert_that(failure.show(), is_(None))
         mock.assert_called_once()
+        args, kwargs = list(mock.call_args)
+        html, *_ = args
+        assert_that(html, instance_of(str))
 
 
 def test_check_failure_show_with_sphinx_gallery_env_enabled():
@@ -326,6 +301,9 @@ def test_check_failure_ipython_display():
     with patch('deepchecks.core.display.display_html') as mock:
         failure._ipython_display_()
         mock.assert_called_once()
+        args, kwargs = list(mock.call_args)
+        html, *_ = args
+        assert_that(html, instance_of(str))
 
 
 def test_check_failure_repr_mimebundle():
@@ -423,30 +401,12 @@ def test_suite_result_show():
         mock.assert_called_once()
 
 
-def test_suite_result_show_with_as_widget_parameter_set_to_false():
-    # Arrange
-    suite_result = create_suite_result()
-    # Assert
-    with patch('deepchecks.core.display.display') as mock:
-        suite_result.show(as_widget=False)
-        mock.assert_called_once()
-
-
 def test_suite_result_ipython_display():
     # Arrange
     suite_result = create_suite_result()
     # Assert
     with patch('deepchecks.core.display.display_html') as mock:
         suite_result._ipython_display_()
-        mock.assert_called_once()
-
-
-def test_suite_result_ipython_display_with_as_widget_set_to_false():
-    # Arrange
-    suite_result = create_suite_result()
-    # Assert
-    with patch('deepchecks.core.display.display') as mock:
-        suite_result._ipython_display_(as_widget=False)
         mock.assert_called_once()
 
 

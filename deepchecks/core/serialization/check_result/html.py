@@ -222,7 +222,7 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
             include_check_name=include_check_name,
             output_id=output_id
         )).serialize()
-        return f'<section>{CommonHtml.conditions_summary_header}{table}</section>'
+        return f'<section name="conditions-table">{CommonHtml.conditions_summary_header}{table}</section>'
 
     def prepare_additional_output(
         self,
@@ -284,7 +284,7 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
                 is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
             ))
 
-        return f'<section>{"".join(output)}</section>'
+        return f'<section name="additional-output">{"".join(output)}</section>'
 
 
 class DisplayItemsSerializer(ABCDisplayItemsSerializer[str]):

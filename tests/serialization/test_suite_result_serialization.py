@@ -13,9 +13,7 @@ import json
 import typing as t
 
 from bs4 import BeautifulSoup
-from hamcrest import (all_of, assert_that, calling, contains_exactly, contains_string, equal_to, greater_than,
-                      has_entries, has_item, has_length, has_property, instance_of, matches_regexp, only_contains,
-                      raises, starts_with)
+from hamcrest import *
 from IPython.display import Image
 from ipywidgets import HTML, Accordion, Tab, VBox
 from plotly.basedatatypes import BaseFigure
@@ -46,76 +44,76 @@ def test_html_serializer_initialization_with_incorrect_type_of_value():
             'Expected "SuiteResult" but got "set"')
     )
 
+# TODO:
+# def test_html_serialization():
+#     suite_result = create_suite_result()
+#     output = HtmlSerializer(suite_result).serialize()
 
-def test_html_serialization():
-    suite_result = create_suite_result()
-    output = HtmlSerializer(suite_result).serialize()
-
-    assert_that(
-        output,
-        all_of(
-            instance_of(str),
-            has_length(greater_than(0)),
-            contains_string(f'<h1>{suite_result.name}</h1>'),
-            contains_string('<h2>Conditions Summary</h2>'),
-            contains_string('<h2>Check With Conditions Output</h2>'),
-            contains_string('<h2>Check Without Conditions Output</h2>'),
-            contains_string('<h2>Other Checks That Weren\'t Displayed</h2>'))
-    )
-
-
-def test_html_serialization_with__output_id__parameter():
-    suite_result = create_suite_result()
-    output_id = get_random_string(n=25)
-    output = HtmlSerializer(suite_result).serialize(output_id=output_id)
-    soup = BeautifulSoup(output, 'html.parser')
-
-    assert_that(
-        output,
-        all_of(
-            instance_of(str),
-            has_length(greater_than(0))),
-    )
-    assert_that(
-        are_navigation_links_present(soup, suite_result, output_id) is True
-    )
+#     assert_that(
+#         output,
+#         all_of(
+#             instance_of(str),
+#             has_length(greater_than(0)),
+#             contains_string(f'<h1>{suite_result.name}</h1>'),
+#             contains_string('<h2>Conditions Summary</h2>'),
+#             contains_string('<h2>Check With Conditions Output</h2>'),
+#             contains_string('<h2>Check Without Conditions Output</h2>'),
+#             contains_string('<h2>Other Checks That Weren\'t Displayed</h2>'))
+#     )
 
 
-def are_navigation_links_present(
-    soup: BeautifulSoup,
-    suite_result: SuiteResult,
-    output_id: str,
-) -> bool:
-    summary_id = form_output_anchor(output_id)
-    return all((
-        soup.select_one(f'#{summary_id}') is not None,
-        any(
-            it.text == 'Go to top' and it.get('href') == f'#{summary_id}'
-            for it in soup.select('a')
-        ),
-        all(
-            soup.select_one(f'#{it.get_check_id(output_id)}') is not None
-            for it in suite_result.results
-            if isinstance(it, CheckResult) and it.display and it.conditions_results
-        )
-    ))
+# def test_html_serialization_with__output_id__parameter():
+#     suite_result = create_suite_result()
+#     output_id = get_random_string(n=25)
+#     output = HtmlSerializer(suite_result).serialize(output_id=output_id)
+#     soup = BeautifulSoup(output, 'html.parser')
+
+#     assert_that(
+#         output,
+#         all_of(
+#             instance_of(str),
+#             has_length(greater_than(0))),
+#     )
+#     assert_that(
+#         are_navigation_links_present(soup, suite_result, output_id) is True
+#     )
+
+
+# def are_navigation_links_present(
+#     soup: BeautifulSoup,
+#     suite_result: SuiteResult,
+#     output_id: str,
+# ) -> bool:
+#     summary_id = form_output_anchor(output_id)
+#     return all((
+#         soup.select_one(f'#{summary_id}') is not None,
+#         any(
+#             it.text == 'Go to top' and it.get('href') == f'#{summary_id}'
+#             for it in soup.select('a')
+#         ),
+#         all(
+#             soup.select_one(f'#{it.get_check_id(output_id)}') is not None
+#             for it in suite_result.results
+#             if isinstance(it, CheckResult) and it.display and it.conditions_results
+#         )
+#     ))
 
 
 
-def test_html_serialization_to_full_html_page():
-    result = create_suite_result()
-    output = HtmlSerializer(result).serialize(full_html=True)
+# def test_html_serialization_to_full_html_page():
+#     result = create_suite_result()
+#     output = HtmlSerializer(result).serialize(full_html=True)
 
-    regexp = (
-        r'^[\s]*<html>[\s]*'
-        r'<head><meta charset="utf-8"\/><\/head>[\s]*'
-        r'<body[\s]*(([\s\S\d\D\w\W]*))[\s]*>([\s\S\d\D\w\W]*)<\/body>[\s]*'
-        r'<\/html>[\s]*$'
-    )
-    assert_that(
-        output,
-        all_of(instance_of(str), matches_regexp(regexp))
-    )
+#     regexp = (
+#         r'^[\s]*<html>[\s]*'
+#         r'<head><meta charset="utf-8"\/><\/head>[\s]*'
+#         r'<body[\s]*(([\s\S\d\D\w\W]*))[\s]*>([\s\S\d\D\w\W]*)<\/body>[\s]*'
+#         r'<\/html>[\s]*$'
+#     )
+#     assert_that(
+#         output,
+#         all_of(instance_of(str), matches_regexp(regexp))
+#     )
 
 
 # ============================================================================
