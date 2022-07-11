@@ -12,8 +12,6 @@
 """Module with common utilities routines for serialization subpackage."""
 import io
 import json
-import os
-import pkgutil
 import textwrap
 import typing as t
 import warnings
@@ -49,7 +47,6 @@ __all__ = [
     'concatv_images',
     'switch_matplot_backend',
     'plotlyjs_script',
-    'requirejs_script',
     'flatten',
     'join',
 ]
@@ -278,32 +275,6 @@ def create_failures_dataframe(
     df.sort_values(by=['priority'], inplace=True)
     df.drop('priority', axis=1, inplace=True)
     return df
-
-
-def requirejs_script(connected: bool = True):
-    """Return requirejs script tag.
-
-    Parameters
-    ----------
-    connected : bool, default True
-
-    Returns
-    -------
-    str
-    """
-    if connected is True:
-        return textwrap.dedent("""
-            <script
-                src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js"
-                integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg=="
-                crossorigin="anonymous"
-                referrerpolicy="no-referrer">
-            </script>
-        """)
-    else:
-        path = os.path.join('core', 'resources', 'requirejs.min.js')
-        js = pkgutil.get_data('deepchecks', path).decode('utf-8')
-        return f'<script>{js}</script>'
 
 
 def plotlyjs_script(connected: bool = True) -> str:

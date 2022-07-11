@@ -252,6 +252,7 @@ class CheckResult(BaseCheckResult, DisplayableResult):
         show_additional_outputs: bool = True,
         as_widget: bool = True,
         requirejs: bool = True,
+        connected: bool = False,
         **kwargs
     ):
         """Save a result to an HTML file.
@@ -268,6 +269,12 @@ class CheckResult(BaseCheckResult, DisplayableResult):
             whether to use ipywidgets or not
         requirejs: bool , default: True
             whether to include requirejs library into output HTML or not
+        connected: bool , default False
+            indicates whether internet connection is available or not,
+            if 'True' then CDN urls will be used to load javascript otherwise
+            javascript libraries will be injected directly into HTML output.
+            Set to 'False' to make results viewing possible when the internet
+            connection is not available.
 
         Returns
         -------
@@ -277,10 +284,11 @@ class CheckResult(BaseCheckResult, DisplayableResult):
         return save_as_html(
             file=file,
             serializer=self.widget_serializer if as_widget else self.html_serializer,
+            connected=connected,
             # next kwargs will be passed to serializer.serialize method
             requirejs=requirejs,
             output_id=unique_id,
-            check_sections=detalize_additional_output(show_additional_outputs)
+            check_sections=detalize_additional_output(show_additional_outputs),
         )
 
     def show(
@@ -499,6 +507,7 @@ class CheckFailure(BaseCheckResult, DisplayableResult):
         file: Union[str, io.TextIOWrapper, None] = None,
         as_widget: bool = True,
         requirejs: bool = True,
+        connected: bool = False,
         **kwargs
     ) -> Optional[str]:
         """Save output as html file.
@@ -511,6 +520,12 @@ class CheckFailure(BaseCheckResult, DisplayableResult):
             whether to use ipywidgets or not
         requirejs: bool , default: True
             whether to include requirejs library into output HTML or not
+        connected: bool , default False
+            indicates whether internet connection is available or not,
+            if 'True' then CDN urls will be used to load javascript otherwise
+            javascript libraries will be injected directly into HTML output.
+            Set to 'False' to make results viewing possible when the internet
+            connection is not available.
 
         Returns
         -------
@@ -520,6 +535,7 @@ class CheckFailure(BaseCheckResult, DisplayableResult):
         return save_as_html(
             file=file,
             serializer=self.widget_serializer if as_widget else self.html_serializer,
+            connected=connected,
             requirejs=requirejs,
         )
 
