@@ -117,6 +117,7 @@ class DisplayableResult(abc.ABC):
         self,
         as_widget: bool = True,
         unique_id: t.Optional[str] = None,
+        connected: bool = False,
         **kwargs
     ):
         """Display result in an iframe.
@@ -127,7 +128,13 @@ class DisplayableResult(abc.ABC):
             whether to display result with help of ipywidgets or not
         unique_id : Optional[str], default None
             unique identifier of the result output
-        **kwrgs :
+        connected: bool , default False
+            indicates whether internet connection is available or not,
+            if 'True' then CDN urls will be used to load javascript otherwise
+            javascript libraries will be injected directly into HTML output.
+            Set to 'False' to make results viewing possible when the internet
+            connection is not available.
+        **kwargs :
             other key-value arguments will be passed to the `Serializer.serialize`
             method
         """
@@ -141,7 +148,7 @@ class DisplayableResult(abc.ABC):
             display(*self.ipython_serializer.serialize(**kwargs))
         elif as_widget is True:
             widget = self.widget_serializer.serialize(output_id=output_id, is_for_iframe_with_srcdoc=True, **kwargs)
-            content = widget_to_html_string(widget, title=get_result_name(self), connected=False)
+            content = widget_to_html_string(widget, title=get_result_name(self), connected=connected)
             display_html(iframe(srcdoc=content), raw=True)
         else:
             display_html(
@@ -151,6 +158,7 @@ class DisplayableResult(abc.ABC):
                     include_requirejs=True,
                     include_plotlyjs=True,
                     is_for_iframe_with_srcdoc=True,
+                    connected=connected,
                     **kwargs
                 )),
                 raw=True
