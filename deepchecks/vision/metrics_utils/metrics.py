@@ -23,8 +23,7 @@ from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.tabular.metric_utils import DeepcheckScorer
 from deepchecks.utils.metrics import get_scorer_name
-from deepchecks.vision.metrics_utils import (AVAILABLE_EVALUTING_FUNCTIONS, CustomScorer,
-                                             ObjectDetectionAveragePrecision, ObjectDetectionTpFpFn)
+from deepchecks.vision.metrics_utils import CustomScorer, ObjectDetectionAveragePrecision, ObjectDetectionTpFpFn
 from deepchecks.vision.vision_data import TaskType, VisionData
 
 __all__ = [
@@ -37,38 +36,39 @@ __all__ = [
 
 def get_default_classification_scorers():
     return {
-        'Precision': Precision(),
-        'Recall': Recall()
+        'Precision': classification_dict['precision_per_class'](),
+        'Recall':  classification_dict['recall_per_class']()
     }
 
 
 def get_default_object_detection_scorers() -> t.Dict[str, Metric]:
     return {
-        'Average Precision': ObjectDetectionAveragePrecision(return_option='ap'),
-        'Average Recall': ObjectDetectionAveragePrecision(return_option='ar')
+        'Average Precision': detection_dict['average_precision_per_class'](),
+        'Average Recall': detection_dict['average_recall_per_class']()
     }
 
 
-_func_naming_dict = {
-    'precision': 'Precision',
-    'recall': 'Recall',
-    'sensitivity': 'Recall',
-    'average_precision': 'Average Precision',
-    'average_recall': 'Average Recall',
-    'ap': 'Average Precision',
-    'ar': 'Average Recall',
-    'f1': 'F1',
-    'fpr': 'FPR',
-    'fnr': 'FNR'
+classification_dict = {
+    'precision_per_class': Precision,
+    'recall_per_class': Recall,
+}
+
+detection_dict = {
+    'precision_per_class': lambda: ObjectDetectionTpFpFn(evaluting_function='precision'),
+    'recall_per_class': lambda: ObjectDetectionTpFpFn(evaluting_function='recall'),
+    'average_precision_per_class': lambda: ObjectDetectionAveragePrecision(return_option='ap'),
+    'average_recall_per_class': lambda: ObjectDetectionAveragePrecision(return_option='ar'),
+    'f1_per_class': lambda: ObjectDetectionTpFpFn(evaluting_function='f1'),
+    'fpr_per_class': lambda: ObjectDetectionTpFpFn(evaluting_function='fpr'),
+    'fnr_per_class': lambda: ObjectDetectionTpFpFn(evaluting_function='fnr')
 }
 
 
 def convert_classification_scorers(scorer: t.Union[Metric, str, t.Callable]):
-    classification_scores = get_default_classification_scorers()
     if isinstance(scorer, str):
-        scorer_name = _func_naming_dict.get(scorer.lower().replace(' ', '_'), scorer).lower()
-        if scorer_name in classification_scores:
-            return classification_scores[scorer_name]
+        scorer_name = scorer.lower().replace(' ', '_').replace('sensitivity', 'recall')
+        if scorer_name in classification_dict:
+            return classification_dict[scorer_name]()
     if isinstance(scorer, (_BaseScorer, str)):
         scorer = DeepcheckScorer(scorer)
         needs_proba = isinstance(scorer, _ProbaScorer)
@@ -80,12 +80,9 @@ def convert_classification_scorers(scorer: t.Union[Metric, str, t.Callable]):
 
 def convert_detection_scorers(scorer: t.Union[Metric, str, t.Callable]):
     if isinstance(scorer, str):
-        scorer_name = _func_naming_dict.get(scorer.lower().replace(' ', '_'), scorer).lower()
-        detection_scores = get_default_object_detection_scorers()
-        if scorer_name in detection_scores:
-            return detection_scores[scorer_name]
-        if scorer_name in AVAILABLE_EVALUTING_FUNCTIONS:
-            return ObjectDetectionTpFpFn(evaluting_function=scorer_name)
+        scorer_name = scorer.lower().replace(' ', '_').replace('sensitivity', 'recall')
+        if scorer_name in detection_dict:
+            return detection_dict[scorer_name]()
     return None
 
 
@@ -118,7 +115,7 @@ def get_scorers_list(
             # Validate that each alternative scorer is a correct type
             if isinstance(met, Metric):
                 met.reset()
-                scorers[name] = copy([name])
+                scorers[name] = copy(met)
             elif isinstance(met, str) or callable(met):
                 if task_type == TaskType.OBJECT_DETECTION:
                     converted_met = convert_detection_scorers(met)
@@ -131,7 +128,6 @@ def get_scorers_list(
             else:
                 raise DeepchecksValueError(
                     f'Excepted metric type one of [ignite.Metric, str, callable], was {type(met).__name__}.')
-
         return scorers
     elif task_type == TaskType.CLASSIFICATION:
         scorers = get_default_classification_scorers()

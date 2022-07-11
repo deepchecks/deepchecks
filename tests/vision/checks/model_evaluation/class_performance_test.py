@@ -504,14 +504,15 @@ def test_custom_task(mnist_train_custom_task, mnist_test_custom_task, mock_train
 def test_coco_thershold_scorer_list_strings(coco_train_visiondata, coco_test_visiondata,
                                             mock_trained_yolov5_object_detection, device):
     # Arrange
-    check = ClassPerformance(alternative_metrics=list(AVAILABLE_EVALUTING_FUNCTIONS.keys()))
+    scorers = [name + '_per_class' for name in AVAILABLE_EVALUTING_FUNCTIONS.keys()]
+    check = ClassPerformance(alternative_metrics=scorers)
     # Act
     result = check.run(coco_train_visiondata, coco_test_visiondata,
                        mock_trained_yolov5_object_detection, device=device)
     # Assert
     assert_that(result.value, has_length(589))
     assert_that(result.display, has_length(greater_than(0)))
-    assert_that(set(result.value['Metric']), equal_to(AVAILABLE_EVALUTING_FUNCTIONS.keys()))
+    assert_that(set(result.value['Metric']), equal_to(set(scorers)))
 
 
 def test_mnist_sklearn_scorer(
@@ -536,7 +537,7 @@ def test_mnist_sklearn_scorer(
 def test_coco_unsupported_scorers(coco_train_visiondata, coco_test_visiondata,
                                   mock_trained_yolov5_object_detection, device):
     # Arrange
-    check = ClassPerformance(alternative_metrics=['fnr', 'r3'])
+    check = ClassPerformance(alternative_metrics=['fnr_per_class', 'r3'])
     # Act
     assert_that(
         calling(check.run
