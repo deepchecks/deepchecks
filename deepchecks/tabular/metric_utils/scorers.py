@@ -20,21 +20,9 @@ from sklearn.metrics._scorer import _BaseScorer, _ProbaScorer
 
 from deepchecks import tabular  # pylint: disable=unused-import; it is used for type annotations
 from deepchecks.core import errors
-from deepchecks.tabular.metric_utils.additional_metrics import (get_false_negative_rate_scorer_binary,
-                                                                get_false_negative_rate_scorer_macro,
-                                                                get_false_negative_rate_scorer_micro,
-                                                                get_false_negative_rate_scorer_per_class,
-                                                                get_false_negative_rate_scorer_weighted,
-                                                                get_false_positive_rate_scorer_binary,
-                                                                get_false_positive_rate_scorer_macro,
-                                                                get_false_positive_rate_scorer_micro,
-                                                                get_false_positive_rate_scorer_per_class,
-                                                                get_false_positive_rate_scorer_weighted,
-                                                                get_true_negative_rate_scorer_binary,
-                                                                get_true_negative_rate_scorer_macro,
-                                                                get_true_negative_rate_scorer_micro,
-                                                                get_true_negative_rate_scorer_per_class,
-                                                                get_true_negative_rate_scorer_weighted)
+from deepchecks.tabular.metric_utils.additional_metrics import (get_false_negative_rate_scorer,
+                                                                get_false_positive_rate_scorer,
+                                                                get_true_negative_rate_scorer)
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.metrics import get_scorer_name
@@ -92,21 +80,21 @@ _func_dict = {
     'precision_per_class': make_scorer(precision_score, average=None, zero_division=0),
     'recall_per_class': make_scorer(recall_score, average=None, zero_division=0),
     'f1_per_class': make_scorer(f1_score, average=None, zero_division=0),
-    'fpr_per_class': get_false_positive_rate_scorer_per_class(),
-    'fpr_binary': get_false_positive_rate_scorer_binary(),
-    'fpr_macro': get_false_positive_rate_scorer_macro(),
-    'fpr_micro': get_false_positive_rate_scorer_micro(),
-    'fpr_weighted': get_false_positive_rate_scorer_weighted(),
-    'fnr_per_class': get_false_negative_rate_scorer_per_class(),
-    'fnr_binary': get_false_negative_rate_scorer_binary(),
-    'fnr_macro': get_false_negative_rate_scorer_macro(),
-    'fnr_micro': get_false_negative_rate_scorer_micro(),
-    'fnr_weighted': get_false_negative_rate_scorer_weighted(),
-    'tnr_per_class': get_true_negative_rate_scorer_per_class(),
-    'tnr_binary': get_true_negative_rate_scorer_binary(),
-    'tnr_macro': get_true_negative_rate_scorer_macro(),
-    'tnr_micro': get_true_negative_rate_scorer_micro(),
-    'tnr_weighted': get_true_negative_rate_scorer_weighted(),
+    'fpr_per_class': make_scorer(get_false_positive_rate_scorer, averaging='per_class'),
+    'fpr_binary': make_scorer(get_false_positive_rate_scorer, averaging='binary'),
+    'fpr_macro': make_scorer(get_false_positive_rate_scorer, averaging='macro'),
+    'fpr_micro': make_scorer(get_false_positive_rate_scorer, averaging='micro'),
+    'fpr_weighted': make_scorer(get_false_positive_rate_scorer, averaging='weighted'),
+    'fnr_per_class': make_scorer(get_false_negative_rate_scorer, averaging='per_class'),
+    'fnr_binary': make_scorer(get_false_negative_rate_scorer, averaging='binary'),
+    'fnr_macro': make_scorer(get_false_negative_rate_scorer, averaging='macro'),
+    'fnr_micro': make_scorer(get_false_negative_rate_scorer, averaging='micro'),
+    'fnr_weighted': make_scorer(get_false_negative_rate_scorer, averaging='weighted'),
+    'tnr_per_class': make_scorer(get_true_negative_rate_scorer, averaging='per_class'),
+    'tnr_binary': make_scorer(get_true_negative_rate_scorer, averaging='binary'),
+    'tnr_macro': make_scorer(get_true_negative_rate_scorer, averaging='macro'),
+    'tnr_micro': make_scorer(get_true_negative_rate_scorer, averaging='micro'),
+    'tnr_weighted': make_scorer(get_true_negative_rate_scorer, averaging='weighted'),
 }
 
 
@@ -218,6 +206,7 @@ class DeepcheckScorer:
             if not isinstance(result, Number):
                 raise errors.DeepchecksValueError(f'Expected scorer {self.name} to return number '
                                                   f'but got: {type(result).__name__}')
+
 
 def task_type_check(
         model: BasicModel,
