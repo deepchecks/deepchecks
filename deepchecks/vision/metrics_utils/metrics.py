@@ -22,6 +22,7 @@ from sklearn.metrics._scorer import _BaseScorer, _ProbaScorer
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.tabular.metric_utils import DeepcheckScorer
+from deepchecks.utils.metrics import get_scorer_name
 from deepchecks.vision.metrics_utils import (AVAILABLE_EVALUTING_FUNCTIONS, CustomScorer,
                                              ObjectDetectionAveragePrecision, ObjectDetectionTpFpFn)
 from deepchecks.vision.vision_data import TaskType, VisionData
@@ -111,22 +112,22 @@ def get_scorers_list(
         # For alternative scorers we create a copy since in suites we are running in parallel, so we can't use the same
         # instance for several checks.
         if isinstance(alternative_scorers, list):
-            alternative_scorers = {(name if isinstance(name, str) else type(name).__name__):
-                                   name for name in alternative_scorers}
+            alternative_scorers = {get_scorer_name(name): name for name in alternative_scorers}
         scorers = {}
         for name, met in alternative_scorers.items():
             # Validate that each alternative scorer is a correct type
             if isinstance(met, Metric):
                 met.reset()
-                scorers[name] = copy(met)
+                scorers[name] = copy([name])
             elif isinstance(met, str) or callable(met):
                 if task_type == TaskType.OBJECT_DETECTION:
-                    met = convert_detection_scorers(met)
+                    converted_met = convert_detection_scorers(met)
                 else:
-                    met = convert_classification_scorers(met)
-                if met is None:
+                    converted_met = convert_classification_scorers(met)
+                if converted_met is None:
                     raise DeepchecksNotSupportedError(
                         f'Unsupported metric: {name} of type {type(met).__name__} was given.')
+                scorers[name] = converted_met
             else:
                 raise DeepchecksValueError(
                     f'Excepted metric type one of [ignite.Metric, str, callable], was {type(met).__name__}.')

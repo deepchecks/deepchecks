@@ -22,6 +22,7 @@ from deepchecks import tabular  # pylint: disable=unused-import; it is used for 
 from deepchecks.core import errors
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.logger import get_logger
+from deepchecks.utils.metrics import get_scorer_name
 from deepchecks.utils.simple_models import PerfectModel
 from deepchecks.utils.strings import is_string_column
 from deepchecks.utils.typing import BasicModel, ClassificationModel
@@ -110,7 +111,7 @@ class DeepcheckScorer:
             else:
                 message = f'Scorer should be should be either a callable or string but got: {scorer_type}'
             raise errors.DeepchecksValueError(message)
-        self.name = name or (scorer if isinstance(scorer, str) else type(scorer).__name__)
+        self.name = name if name else get_scorer_name(scorer)
 
     @classmethod
     def filter_nulls(cls, dataset: 'tabular.Dataset') -> 'tabular.Dataset':
@@ -123,13 +124,14 @@ class DeepcheckScorer:
         return self.scorer(model, data, label_col)
 
     def run_on_pred(self, y_true, y_pred=None, y_proba=None):
+        """Run sklearn scorer on the labels and the pred/proba according to scorer type."""
         # pylint: disable=protected-access
         if isinstance(self.scorer, _BaseScorer):
             if y_proba and isinstance(self.scorer, _ProbaScorer):
                 pred_to_use = y_proba
             else:
                 pred_to_use = y_pred
-            return self.scorer._score_func(y_true, pred_to_use, self.scorer._kwargs) * self.scorer._sign
+            return self.scorer._score_func(y_true, pred_to_use, **self.scorer._kwargs) * self.scorer._sign
         raise errors.DeepchecksValueError('Only supports sklearn scorers')
 
     def _run_score(self, model, dataset: 'tabular.Dataset'):
@@ -280,6 +282,5 @@ def init_validate_scorers(scorers: t.Union[t.Mapping[str, t.Union[str, t.Callabl
     else:
         scorers: t.List[DeepcheckScorer] = [DeepcheckScorer(scorer) for scorer in scorers]
     for s in scorers:
-        print(s.name, return_array, model_type, class_avg)
         s.validate_fitting(model, dataset, return_array)
     return scorers

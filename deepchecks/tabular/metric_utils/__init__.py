@@ -11,8 +11,8 @@
 """Module containing metrics utils."""
 
 from .metrics import (DEFAULT_BINARY_SCORERS, DEFAULT_MULTICLASS_SCORERS, DEFAULT_REGRESSION_SCORERS,
-                      DEFAULT_SCORERS_DICT, MULTICLASS_SCORERS_NON_AVERAGE, DeepcheckScorer, get_default_scorers,
-                      init_validate_scorers, task_type_check, TaskType)
+                      DEFAULT_SCORERS_DICT, MULTICLASS_SCORERS_NON_AVERAGE, DeepcheckScorer, TaskType,
+                      get_default_scorers, init_validate_scorers, task_type_check)
 
 __all__ = [
     'TaskType',

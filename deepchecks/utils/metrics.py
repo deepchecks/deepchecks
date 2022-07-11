@@ -9,6 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Utils module with methods for general metrics."""
+from sklearn.metrics._scorer import _BaseScorer
+
+__all__ = ['get_gain', 'get_scorer_name']
 
 
 def get_gain(base_score, score, perfect_score, max_gain):
@@ -27,3 +30,14 @@ def get_gain(base_score, score, perfect_score, max_gain):
     if ratio > max_gain:
         return max_gain
     return ratio
+
+
+def get_scorer_name(scorer) -> str:
+    """Get scorer name from a scorer."""
+    if isinstance(scorer, str):
+        return scorer
+    if hasattr(scorer, '__name__'):
+        return scorer.__name__
+    if isinstance(scorer, _BaseScorer):
+        return scorer._score_func.__name__  # pylint: disable=protected-access
+    return type(scorer).__name__

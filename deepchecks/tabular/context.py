@@ -19,13 +19,13 @@ from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupport
                                     ModelValidationError)
 from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.tabular.dataset import Dataset
+from deepchecks.tabular.metric_utils import get_default_scorers, init_validate_scorers, task_type_check
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.tabular.utils.validation import (ensure_predictions_proba, ensure_predictions_shape,
                                                  model_type_validation, validate_model)
 from deepchecks.utils.decorators import deprecate_kwarg
 from deepchecks.utils.features import calculate_feature_importance_or_none
 from deepchecks.utils.logger import get_logger
-from deepchecks.tabular.metric_utils import get_default_scorers, init_validate_scorers, task_type_check
 from deepchecks.utils.typing import BasicModel
 
 __all__ = [
