@@ -118,9 +118,9 @@ new_custom_suite.run(model=rf_clf, train_dataset=train_dataset, test_dataset=tes
 # Modify an Existing Suite
 # ========================
 
-from deepchecks.tabular.suites import train_test_leakage
+from deepchecks.tabular.suites import train_test_validation
 
-customized_suite = train_test_leakage()
+customized_suite = train_test_validation()
 
 # let's check what it has:
 customized_suite
