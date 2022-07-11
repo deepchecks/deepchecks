@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Utils module containing utilities for checks working with metrics."""
+"""Utils module containing utilities for checks working with scorers."""
 import typing as t
 from numbers import Number
 
