@@ -17,6 +17,7 @@ from plotly.basedatatypes import BaseFigure
 from deepchecks.core import check_result as check_types
 from deepchecks.core.serialization.abc import IPythonFormatter, IPythonSerializer
 from deepchecks.core.serialization.common import flatten
+from deepchecks.core.serialization.dataframe.html import DataFrameSerializer
 
 from . import html
 
@@ -224,7 +225,7 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
     @classmethod
     def handle_dataframe(cls, item, index, **kwargs):
         """Handle dataframe item."""
-        return item
+        return HTML(DataFrameSerializer(item).serialize())
 
     @classmethod
     def handle_callable(cls, item, index, **kwargs):
