@@ -15,6 +15,7 @@ from typing import List
 import numpy as np
 from hamcrest import assert_that, calling, close_to, greater_than, has_items, has_length, instance_of, raises
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
+from sklearn.metrics import jaccard_score, make_scorer
 from sklearn.model_selection import train_test_split
 
 from deepchecks.core import ConditionResult
@@ -22,7 +23,7 @@ from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupport
                                     ModelValidationError)
 from deepchecks.tabular.checks.model_evaluation import PerformanceReport
 from deepchecks.tabular.dataset import Dataset
-from deepchecks.utils.metrics import DEFAULT_REGRESSION_SCORERS, MULTICLASS_SCORERS_NON_AVERAGE
+from deepchecks.tabular.metric_utils.metrics import DEFAULT_REGRESSION_SCORERS, MULTICLASS_SCORERS_NON_AVERAGE
 from tests.base.utils import equal_condition_result
 
 
@@ -275,3 +276,28 @@ def test_condition_class_performance_imbalance_ratio_less_than_passed(iris_split
                                    'Relative ratio difference between highest and lowest in Test dataset classes is 14.29%'),
                                name='Relative ratio difference between labels \'F1\' score is less than 100%')
     ))
+
+
+def test_classification_alt_scores_list(iris_split_dataset_and_model):
+    # Arrange
+    train, test, model = iris_split_dataset_and_model
+    check = PerformanceReport(alternative_scorers=['recall_per_class',
+                              'f1_per_class', make_scorer(jaccard_score, average=None)])
+    # Act X
+    result = check.run(train, test, model).reduce_output()
+    # Assert
+    assert_that(result['f1_per_class'], close_to(0.913, 0.001))
+    assert_that(result['recall_per_class'], close_to(0.916, 0.001))
+    assert_that(result['jaccard_score'], close_to(0.846, 0.001))
+
+
+def test_regression_alt_scores_list(diabetes_split_dataset_and_model):
+    # Arrange
+    train, test, model = diabetes_split_dataset_and_model
+    check = PerformanceReport(alternative_scorers=['max_error', 'r2', 'neg_mean_absolute_error'])
+    # Act X
+    result = check.run(train, test, model).reduce_output()
+    # Assert
+    assert_that(result['max_error'], close_to(-171.719, 0.001))
+    assert_that(result['r2'], close_to(0.427, 0.001))
+    assert_that(result['neg_mean_absolute_error'], close_to(-45.564, 0.001))

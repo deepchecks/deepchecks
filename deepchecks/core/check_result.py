@@ -152,6 +152,7 @@ class CheckResult(BaseCheckResult, DisplayableResult):
 
     def process_conditions(self):
         """Process the conditions results from current result and check."""
+        assert self.check is not None
         self.conditions_results = self.check.conditions_decision(self)
 
     def have_conditions(self) -> bool:
@@ -261,7 +262,7 @@ class CheckResult(BaseCheckResult, DisplayableResult):
             serializer=self.html_serializer,
             # next kwargs will be passed to serializer.serialize method
             output_id=unique_id,
-            check_sections=detalize_additional_output(show_additional_outputs)
+            check_sections=detalize_additional_output(show_additional_outputs),
         )
 
     def show(

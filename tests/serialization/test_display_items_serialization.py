@@ -1,19 +1,17 @@
+import matplotlib.pyplot as plt
 import pandas as pd
 import plotly.express as px
-import matplotlib.pyplot as plt
 import wandb
-from plotly.basedatatypes import BaseFigure
 from bs4 import BeautifulSoup
-from pandas.io.formats.style import Styler
 from hamcrest import *
+from pandas.io.formats.style import Styler
+from plotly.basedatatypes import BaseFigure
 
 from deepchecks.core.check_result import DisplayMap
 from deepchecks.core.serialization.check_result.html import DisplayItemsSerializer as HtmlSerializer
 from deepchecks.core.serialization.check_result.json import DisplayItemsSerializer as JsonSerializer
 from deepchecks.core.serialization.check_result.wandb import DisplayItemsSerializer as WandbSerializer
-
 from tests.common import create_check_result_display
-
 
 # =========================================================================
 

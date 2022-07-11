@@ -27,7 +27,6 @@ from deepchecks.core.check_result import CheckFailure, CheckResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.checks import ColumnsInfo, MixedNulls
 from deepchecks.utils.json_utils import from_json
-
 from tests.common import DummyCheck, create_check_result, create_suite_result, instance_of_ipython_formatter
 from tests.serialization.test_check_result_serialization import assert_check_result_html_output_structure
 

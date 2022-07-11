@@ -25,7 +25,6 @@ from deepchecks.utils.strings import create_new_file_name, get_random_string, wi
 
 # from ipywidgets import Widget
 
-
 if t.TYPE_CHECKING:
     from wandb.sdk.data_types.base_types.wb_value import WBValue  # pylint: disable=unused-import
 
@@ -104,6 +103,7 @@ class DisplayableResult(abc.ABC):
     def show_in_iframe(
         self,
         unique_id: t.Optional[str] = None,
+        connected: bool = False,
         **kwargs
     ):
         """Display result in an iframe.
@@ -132,14 +132,9 @@ class DisplayableResult(abc.ABC):
                 self.html_serializer.serialize(
                     output_id=output_id,
                     embed_into_iframe=True,
-                    **kwargs
                 ),
                 raw=True
             )
-
-    def show_in_window(self, **kwargs):
-        """Display result in a separate window."""
-        display_in_gui(self)
 
     def show_not_interactive(
         self,
@@ -265,6 +260,7 @@ def save_as_html(
     serializer: t.Union[HtmlSerializer[T], WidgetSerializer[T]],
     file: t.Union[str, io.TextIOWrapper, None] = None,
     requirejs: bool = True,
+    connected: bool = False,
     **kwargs
 ) -> t.Optional[str]:
     """Save a result to an HTML file.
@@ -277,6 +273,12 @@ def save_as_html(
         The file to write the HTML output to. If None writes to output.html
     requirejs: bool , default: True
         whether to include requirejs library into output HTML or not
+    connected: bool , default False
+        indicates whether internet connection is available or not,
+        if 'True' then CDN urls will be used to load javascript otherwise
+        javascript libraries will be injected directly into HTML output.
+        Set to 'False' to make results viewing possible when the internet
+        connection is not available.
 
     Returns
     -------
@@ -293,7 +295,8 @@ def save_as_html(
             serializer.serialize(**kwargs),
             html_out=file,
             title=get_result_name(serializer.value),
-            requirejs=requirejs
+            requirejs=requirejs,
+            connected=connected,
         )
     elif isinstance(serializer, HtmlSerializer):
         html = serializer.serialize(  # pylint: disable=redefined-outer-name
@@ -303,7 +306,7 @@ def save_as_html(
         if isinstance(file, str):
             with open(file, 'w', encoding='utf-8') as f:
                 f.write(html)
-        elif isinstance(file, io.StringIO):
+        elif isinstance(file, io.TextIOWrapper):
             file.write(html)
         else:
             raise TypeError(f'Unsupported type of "file" parameter - {type(file)}')

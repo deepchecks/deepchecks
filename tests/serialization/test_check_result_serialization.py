@@ -14,8 +14,8 @@ import typing as t
 
 import pandas as pd
 import wandb
-from hamcrest import *
 from bs4 import BeautifulSoup
+from hamcrest import *
 from ipywidgets import HTML, Tab, VBox
 from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
