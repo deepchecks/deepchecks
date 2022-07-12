@@ -23,85 +23,58 @@ from deepchecks.utils.strings import format_number
 from deepchecks.vision import Batch, Context, SingleDatasetCheck
 from deepchecks.vision.metrics_utils.detection_precision_recall import ObjectDetectionAveragePrecision
 from deepchecks.vision.vision_data import TaskType
+from deepchecks.core.checks import ReduceMixin
+from deepchecks.vision.metrics_utils.metrics import get_scorers_dict, calculate_metrics, metric_results_to_df
 
 __all__ = ['SingleDatasetScalarPerformance']
 
 
-class SingleDatasetScalarPerformance(SingleDatasetCheck):
+class SingleDatasetScalarPerformance(SingleDatasetCheck, ReduceMixin):
     """Calculate a performance metric as a scalar for a given model and a given dataset.
 
     Parameters
     ----------
-    metric: Metric, default: None
-        An ignite.Metric object whose score should be used. If None is given, use the default metric.
-    reduce: torch function, default: None
-        The function to reduce the scores tensor into a single scalar. For metrics that return a scalar use None
-        (default).
-    metric_name: str, default: None
-        A name for the metric to show in the check results.
-    reduce_name: str, default: None
-        A name for the reduce function to show in the check results.
+    alternative_scorers : Dict[str, Callable], default: None
+        An optional dictionary of scorer name to scorer functions.
+        If none given, using default scorers
+    reduce: Union[Callable, str], default: 'mean'
+        An optional argument only used for the reduce_output function when using
+        non-average scorers.
 
     """
 
     def __init__(self,
-                 metric: Metric = None,
-                 reduce: t.Callable = None,
-                 metric_name: str = None,
-                 reduce_name: str = None,
+                 alternative_scorers : Dict[str, Callable] = None,
+                 reduce: Union[Callable, str] = 'mean',
                  **kwargs):
         super().__init__(**kwargs)
-        self.metric = metric
+        self.user_scorers = alternative_scorers
         self.reduce = reduce
 
-        self.metric_name = metric_name or (metric.__class__.__name__ if metric else None)
-        self.reduce_name = reduce_name or (reduce.__name__ if reduce else None)
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind.TRAIN):
         """Initialize the metric for the check, and validate task type is relevant."""
-        if self.metric is None:
-            if context.train.task_type == TaskType.CLASSIFICATION:
-                self.metric = Accuracy()
-                if self.metric_name is None:
-                    self.metric_name = 'accuracy'
-            elif context.train.task_type == TaskType.OBJECT_DETECTION:
-                self.metric = ObjectDetectionAveragePrecision()
-                if self.metric_name is None:
-                    self.metric_name = 'object_detection_average_precision'
-                if self.reduce is None:
-                    self.reduce = torch.nanmean
-                    self.reduce_name = 'nan_mean'
-            else:
-                raise DeepchecksValueError('For task types other then classification or object detection, '
-                                           'pass a metric explicitly')
-        self.metric.reset()
+        self.scorers = get_scorers_dict(context.get_data_by_kind(dataset_kind), self.user_scorers)
 
     def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind.TRAIN):
         """Update the metrics by passing the batch to ignite metric update method."""
         label = batch.labels
         prediction = batch.predictions
-        self.metric.update((prediction, label))
+        for scorer in self.scorers.values():
+            self.scorer.update((prediction, label))
 
     def compute(self, context: Context, dataset_kind: DatasetKind.TRAIN) -> CheckResult:
         """Compute the metric result using the ignite metrics compute method and reduce to a scalar."""
-        metric_result = self.metric.compute()
-        if self.reduce is not None:
-            if isinstance(metric_result, numbers.Real):
-                warnings.warn(SyntaxWarning('Metric result is already scalar, skipping reduce operation.'
-                                            'Pass reduce=None to prevent this'))
-                result_value = float(metric_result)
-            else:
-                result_value = float(self.reduce(metric_result))
-        elif isinstance(metric_result, float):
-            result_value = metric_result
-        else:
-            raise DeepchecksValueError(f'The metric {self.metric.__class__} return a non-scalar value, '
-                                       f'please specify a reduce function or choose a different metric')
+        for scorer in self.scorers.values():
+            self.scorer.compute()
+        result_df = metric_results_to_df()
+        return CheckResult(result_df)
 
-        result_dict = {'score': result_value,
-                       'metric': self.metric_name,
-                       'reduce': self.reduce_name}
-        return CheckResult(result_dict)
+    def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
+        """Return the values of the metrics for the test dataset in {metric: value} format."""
+        reduced_output = check_result.value.apply(self.reduce).to_dict()
+        return reduced_output
+
 
     def add_condition_greater_than(self, threshold: float) -> ConditionResult:
         """Add condition - the result is greater than the threshold."""
