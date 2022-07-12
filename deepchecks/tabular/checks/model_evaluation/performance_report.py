@@ -10,7 +10,7 @@
 #
 """Module containing performance report check."""
 from numbers import Number
-from typing import Callable, Dict, TypeVar, Union, cast
+from typing import Callable, Dict, TypeVar, Union, cast, List
 
 import pandas as pd
 import plotly.express as px
@@ -21,7 +21,7 @@ from deepchecks.core.check_utils.class_performance_utils import (
     get_condition_train_test_relative_degradation_less_than)
 from deepchecks.core.checks import DatasetKind, ReduceMixin
 from deepchecks.tabular import Context, TrainTestCheck
-from deepchecks.tabular.metric_utils import MULTICLASS_SCORERS_NON_AVERAGE, TaskType
+from deepchecks.tabular.metric_utils import MULTICLASS_SCORERS_NON_AVERAGE
 from deepchecks.utils.strings import format_percent
 
 __all__ = ['PerformanceReport']
@@ -35,12 +35,12 @@ class PerformanceReport(TrainTestCheck, ReduceMixin):
 
     Parameters
     ----------
-    alternative_scorers : Dict[str, Callable], default: None
-        An optional dictionary of scorer name to scorer functions.
-        If none given, using default scorers
+    scorers : Union[List[str], Dict[str, Union[str, Callable]]], default: None
+        List of scorers to use. If None, use default scorers.
+        Scorers can be supplied as a list of scorer names or as a dictionary of names and functions.
     reduce: Union[Callable, str], default: 'mean'
         An optional argument only used for the reduce_output function when using
-        non-average scorers.
+        per-class scorers.
 
     Notes
     -----
@@ -78,11 +78,11 @@ class PerformanceReport(TrainTestCheck, ReduceMixin):
     """
 
     def __init__(self,
-                 alternative_scorers: Dict[str, Callable] = None,
+                 scorers: Union[List[str], Dict[str, Union[str, Callable]]] = None,
                  reduce: Union[Callable, str] = 'mean',
                  **kwargs):
         super().__init__(**kwargs)
-        self.user_scorers = alternative_scorers
+        self.user_scorers = scorers
         self.reduce = reduce
 
     def run_logic(self, context: Context) -> CheckResult:
@@ -95,10 +95,7 @@ class PerformanceReport(TrainTestCheck, ReduceMixin):
         """
         train_dataset = context.train
         test_dataset = context.test
-
         model = context.model
-        task_type = context.task_type
-
         scorers = context.get_scorers(self.user_scorers, use_avg_defaults=False)
         datasets = {'Train': train_dataset, 'Test': test_dataset}
 
@@ -110,7 +107,7 @@ class PerformanceReport(TrainTestCheck, ReduceMixin):
             for scorer in scorers:
                 scorer_value = scorer(model, dataset)
                 if isinstance(scorer_value, Number):
-                    results.append([dataset_name, '', scorer.name, scorer_value, len(label)])
+                    results.append([dataset_name, None, scorer.name, scorer_value, len(label)])
                 else:
                     results.extend(
                         [[dataset_name, class_name, scorer.name, class_score, n_samples[class_name]]
@@ -119,33 +116,37 @@ class PerformanceReport(TrainTestCheck, ReduceMixin):
         results_df = pd.DataFrame(results, columns=['Dataset', 'Class', 'Metric', 'Value', 'Number of samples'])
 
         if context.with_display:
-            fig = px.histogram(
-                results_df,
-                x='Class',
-                y='Value',
-                color='Dataset',
-                barmode='group',
-                facet_col='Metric',
-                facet_col_spacing=0.05,
-                hover_data=['Number of samples']
-            )
-
-            if task_type in [TaskType.MULTICLASS, TaskType.BINARY]:
-                fig.update_xaxes(tickprefix='Class ', tickangle=60)
-
-            fig = (
-                fig.update_xaxes(title=None, type='category')
-                .update_yaxes(title=None, matches=None)
-                .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
-                .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
-            )
+            figs = []
+            data_scorers_per_class = results_df[results_df['Class'].notna()]
+            data_scorers_per_dataset = results_df[results_df['Class'].isna()].drop(columns=['Class'])
+            for data in [data_scorers_per_class, data_scorers_per_dataset]:
+                if data.shape[0] == 0:
+                    continue
+                fig = px.histogram(
+                    data,
+                    x='Class' if 'Class' in data.columns else 'Dataset',
+                    y='Value',
+                    color='Dataset',
+                    barmode='group',
+                    facet_col='Metric',
+                    facet_col_spacing=0.05,
+                    hover_data=['Number of samples']
+                )
+                if 'Class' in data.columns:
+                    fig.update_xaxes(tickprefix='Class ', tickangle=60)
+                fig = (
+                    fig.update_xaxes(title=None, type='category')
+                    .update_yaxes(title=None, matches=None)
+                    .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
+                    .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True)))
+                figs.append(fig)
         else:
-            fig = None
+            figs = None
 
         return CheckResult(
             results_df,
             header='Performance Report',
-            display=fig
+            display=figs
         )
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:

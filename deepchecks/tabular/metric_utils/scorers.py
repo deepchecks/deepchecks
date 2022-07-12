@@ -279,10 +279,6 @@ def init_validate_scorers(scorers: t.Union[t.Mapping[str, t.Union[str, t.Callabl
         used to validate the scorers, and calculate mode_type if None.
     dataset : Dataset
         used to validate the scorers, and calculate mode_type if None.
-    model_type : TaskType
-        model type to return scorers for
-    class_avg : bool , default True
-        for classification whether to return scorers of average score or per class
     """
     if isinstance(scorers, t.Mapping):
         scorers: t.List[DeepcheckScorer] = [DeepcheckScorer(scorer, name) for name, scorer in scorers.items()]

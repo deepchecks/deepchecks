@@ -79,7 +79,7 @@ def test_classification(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
     check = PerformanceReport()
-    # Act X
+    # Act
     result = check.run(train, test, model)
     # Assert
     assert_classification_result(result.value, test)
@@ -90,7 +90,7 @@ def test_classification_without_display(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
     check = PerformanceReport()
-    # Act X
+    # Act
     result = check.run(train, test, model, with_display=False)
     # Assert
     assert_classification_result(result.value, test)
@@ -106,7 +106,7 @@ def test_classification_binary(iris_dataset_single_class_labeled):
     clf.fit(train_ds.data[train_ds.features], train_ds.data[train_ds.label_name])
     check = PerformanceReport()
 
-    # Act X
+    # Act
     result = check.run(train_ds, test_ds, clf).value
     # Assert
     assert_classification_result(result, test_ds)
@@ -122,7 +122,7 @@ def test_classification_string_labels(iris_labeled_dataset):
     iris_adaboost = AdaBoostClassifier(random_state=0)
     iris_adaboost.fit(iris_labeled_dataset.data[iris_labeled_dataset.features],
                       iris_labeled_dataset.data[iris_labeled_dataset.label_name])
-    # Act X
+    # Act
     result = check.run(iris_labeled_dataset, iris_labeled_dataset, iris_adaboost).value
     # Assert
     assert_classification_result(result, iris_labeled_dataset)
@@ -135,7 +135,7 @@ def test_classification_nan_labels(iris_labeled_dataset, iris_adaboost):
     data_with_nan[iris_labeled_dataset.label_name].iloc[0] = float('nan')
     iris_labeled_dataset = Dataset(data_with_nan,
                                    label=iris_labeled_dataset.label_name)
-    # Act X
+    # Act
     result = check.run(iris_labeled_dataset, iris_labeled_dataset, iris_adaboost).value
     # Assert
     assert_classification_result(result, iris_labeled_dataset)
@@ -145,7 +145,7 @@ def test_regression(diabetes_split_dataset_and_model):
     # Arrange
     train, test, model = diabetes_split_dataset_and_model
     check = PerformanceReport()
-    # Act X
+    # Act
     result = check.run(train, test, model).value
     # Assert
     for dataset in ['Test', 'Train']:
@@ -159,7 +159,7 @@ def test_regression_reduced(diabetes_split_dataset_and_model):
     # Arrange
     train, test, model = diabetes_split_dataset_and_model
     check = PerformanceReport()
-    # Act X
+    # Act
     result = check.run(train, test, model).reduce_output()
     # Assert
     assert_that(result['Neg RMSE'], close_to(-57.412, 0.001))
@@ -171,7 +171,7 @@ def test_classification_reduced(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
     check = PerformanceReport()
-    # Act X
+    # Act
     result = check.run(train, test, model).reduce_output()
     # Assert
     assert_that(result['F1'], close_to(0.913, 0.001))
@@ -183,7 +183,7 @@ def test_classification_reduced_param(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
     check = PerformanceReport(reduce=np.min)
-    # Act X
+    # Act
     result = check.run(train, test, model).reduce_output()
     # Assert
     assert_that(result['F1'], close_to(0.857, 0.001))
@@ -195,7 +195,7 @@ def test_condition_min_score_not_passed(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
     check = PerformanceReport().add_condition_test_performance_greater_than(1)
-    # Act X
+    # Act
     result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
     # Assert
     assert_that(result, has_items(
@@ -210,7 +210,7 @@ def test_condition_min_score_passed(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
     check = PerformanceReport().add_condition_test_performance_greater_than(0.5)
-    # Act X
+    # Act
     result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
     # Assert
     assert_that(result, has_items(
@@ -224,7 +224,7 @@ def test_condition_degradation_ratio_less_than_not_passed(iris_split_dataset_and
     # Arrange
     train, test, model = iris_split_dataset_and_model
     check = PerformanceReport().add_condition_train_test_relative_degradation_less_than(0)
-    # Act X
+    # Act
     result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
     # Assert
     assert_that(result, has_items(
@@ -238,7 +238,7 @@ def test_condition_degradation_ratio_less_than_passed(iris_split_dataset_and_mod
     # Arrange
     train, test, model = iris_split_dataset_and_model
     check = PerformanceReport().add_condition_train_test_relative_degradation_less_than(1)
-    # Act X
+    # Act
     result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
     # Assert
     assert_that(result, has_items(
@@ -252,7 +252,7 @@ def test_condition_class_performance_imbalance_ratio_less_than_not_passed(iris_s
     # ArrangeF
     train, test, model = iris_split_dataset_and_model
     check = PerformanceReport().add_condition_class_performance_imbalance_ratio_less_than(0)
-    # Act X
+    # Act
     result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
     # Assert
     assert_that(result, has_items(
@@ -267,7 +267,7 @@ def test_condition_class_performance_imbalance_ratio_less_than_passed(iris_split
     # Arrange
     train, test, model = iris_split_dataset_and_model
     check = PerformanceReport().add_condition_class_performance_imbalance_ratio_less_than(1)
-    # Act X
+    # Act
     result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
     # Assert
     assert_that(result, has_items(
@@ -281,9 +281,9 @@ def test_condition_class_performance_imbalance_ratio_less_than_passed(iris_split
 def test_classification_alt_scores_list(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
-    check = PerformanceReport(alternative_scorers=['recall_per_class',
+    check = PerformanceReport(scorers=['recall_per_class',
                               'f1_per_class', make_scorer(jaccard_score, average=None)])
-    # Act X
+    # Act
     result = check.run(train, test, model).reduce_output()
     # Assert
     assert_that(result['f1_per_class'], close_to(0.913, 0.001))
@@ -294,22 +294,36 @@ def test_classification_alt_scores_list(iris_split_dataset_and_model):
 def test_classification_deepchecks_scorers(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
-    check = PerformanceReport(alternative_scorers=['fpr_per_class',
-                              'fnr_per_class', 'specificity_per_class'])
-    # Act X
+    check = PerformanceReport(scorers=['fpr_per_class', 'fnr_per_class', 'specificity_per_class'])
+    # Act
     result = check.run(train, test, model).reduce_output()
     # Assert
     assert_that(result['fpr_per_class'], close_to(0.070, 0.001))
     assert_that(result['fnr_per_class'], close_to(0.035, 0.001))
     assert_that(result['specificity_per_class'], close_to(0.929, 0.001))
+    
 
 def test_regression_alt_scores_list(diabetes_split_dataset_and_model):
     # Arrange
     train, test, model = diabetes_split_dataset_and_model
-    check = PerformanceReport(alternative_scorers=['max_error', 'r2', 'neg_mean_absolute_error'])
-    # Act X
+    check = PerformanceReport(scorers=['max_error', 'r2', 'neg_mean_absolute_error'])
+    # Act
     result = check.run(train, test, model).reduce_output()
     # Assert
     assert_that(result['max_error'], close_to(-171.719, 0.001))
     assert_that(result['r2'], close_to(0.427, 0.001))
     assert_that(result['neg_mean_absolute_error'], close_to(-45.564, 0.001))
+
+
+def test_classification_alt_scores_per_class_and_macro(iris_split_dataset_and_model):
+    # Arrange
+    train, test, model = iris_split_dataset_and_model
+    check = PerformanceReport(scorers=['recall_per_class', 'f1_per_class', 'f1_macro', 'recall_micro'])
+    # Act
+    result = check.run(train, test, model).reduce_output()
+    # Assert
+    assert_that(result['f1_per_class'], close_to(0.913, 0.001))
+    assert_that(result['f1_macro'], close_to(result['f1_per_class'], 0.001))
+    assert_that(result['recall_per_class'], close_to(0.916, 0.001))
+    assert_that(result['recall_micro'], close_to(0.92, 0.001))
+
