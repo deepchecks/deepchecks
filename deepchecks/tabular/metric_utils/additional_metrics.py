@@ -8,192 +8,173 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Utils module containing utilities for checks working with metrics."""
+"""Utils module containing additional metrics that can be used via scorers."""
 
-from typing import Callable
+from typing import Union
 
 import numpy as np
-from sklearn.metrics import confusion_matrix, make_scorer
+from sklearn.metrics import confusion_matrix
 
-__all__ = ['get_false_positive_rate_scorer_binary', 'get_false_positive_rate_scorer_per_class',
-           'get_false_positive_rate_scorer_macro', 'get_false_positive_rate_scorer_weighted',
-           'get_false_positive_rate_scorer_micro', 'get_false_negative_rate_scorer_binary',
-           'get_false_negative_rate_scorer_per_class', 'get_false_negative_rate_scorer_macro',
-           'get_false_negative_rate_scorer_micro', 'get_false_negative_rate_scorer_weighted',
-           'get_true_negative_rate_scorer_binary', 'get_true_negative_rate_scorer_macro',
-           'get_true_negative_rate_scorer_weighted',
-           'get_true_negative_rate_scorer_micro', 'get_true_negative_rate_scorer_per_class', ]
+__all__ = ['false_positive_rate_metric', 'false_negative_rate_metric', 'true_negative_rate_metric']
+
+from deepchecks.core.errors import DeepchecksValueError
 
 
-def _false_positive_rate(y_true, y_pred):  # False Positives / (False Positives + True Negatives)
-    matrix = confusion_matrix(y_true, y_pred)
-    return matrix[0, 1] / (matrix[0, 1] + matrix[1, 1]) if (matrix[0, 1] + matrix[1, 1]) > 0 else 0
-
-
-def _false_positive_rate_per_class(y_true, y_pred):
+def _false_positive_rate_per_class(y_true, y_pred):  # False Positives / (False Positives + True Negatives)
     result = []
     for cls in sorted(y_true.dropna().unique().tolist()):
         y_true_cls, y_pred_cls = np.asarray(y_true) == cls, np.asarray(y_pred) == cls
-        result.append(_false_positive_rate(y_true_cls, y_pred_cls))
+        matrix = confusion_matrix(y_true_cls, y_pred_cls)
+        result.append(matrix[0, 1] / (matrix[0, 1] + matrix[1, 1]) if (matrix[0, 1] + matrix[1, 1]) > 0 else 0)
     return np.asarray(result)
 
 
-def get_false_positive_rate_scorer_binary() -> Callable:
-    """Get binary false positive rate scorer."""
-    return make_scorer(_false_positive_rate)
+def _micro_false_positive_rate(y_true, y_pred):
+    fp, tn = 0, 0
+    for cls in sorted(y_true.dropna().unique().tolist()):
+        y_true_cls, y_pred_cls = np.asarray(y_true) == cls, np.asarray(y_pred) == cls
+        matrix = confusion_matrix(y_true_cls, y_pred_cls)
+        fp += matrix[0, 1]
+        tn += matrix[1, 1]
+    return fp / (fp + tn) if (fp + tn) > 0 else 0
 
 
-def get_false_positive_rate_scorer_per_class() -> Callable:
-    """Get false positive rate scorer per class."""
-    return make_scorer(_false_positive_rate_per_class)
+def false_positive_rate_metric(y_true, y_pred, averaging_method: str = 'per_class') -> Union[np.ndarray, float]:
+    """Receive a metric which calculates false positive rate.
+
+    The rate is calculated as: False Positives / (False Positives + True Negatives)
+    Parameters
+    ----------
+    y_true : array-like of shape (n_samples,)
+        True labels.
+    y_pred : array-like of shape (n_samples,)
+        Predicted labels.
+    averaging_method : str, default: 'per_class'
+        Determines which averaging method to apply, possible values are:
+        'per_class': Return a np array with the scores for each class (sorted by class name).
+        'binary': Returns the score for the positive class. Should be used only in binary classification cases.
+        'micro': Returns the micro-averaged score.
+        'macro': Returns the mean of scores per class.
+        'weighted': Returns a weighted mean of scores based of the class size in y_true.
+    Returns
+    -------
+    score : Union[np.ndarray, float]
+        The score for the given metric.
+    """
+    if averaging_method == 'micro':
+        return _micro_false_positive_rate(y_true, y_pred)
+
+    scores_per_class = _false_positive_rate_per_class(y_true, y_pred)
+    return _averaging_mechanism(averaging_method, scores_per_class, y_true)
 
 
-def get_false_positive_rate_scorer_macro() -> Callable:
-    """Get macro false positive rate scorer."""
-
-    def macro_false_positive_rate(y_true, y_pred):
-        return np.mean(_false_positive_rate_per_class(y_true, y_pred))
-
-    return make_scorer(macro_false_positive_rate)
-
-
-def get_false_positive_rate_scorer_weighted() -> Callable:
-    """Get weighted false positive rate scorer."""
-
-    def weighted_false_positive_rate(y_true, y_pred):
-        result_per_class = _false_positive_rate_per_class(y_true, y_pred)
-        weights = [sum(y_true == cls) for cls in sorted(y_true.dropna().unique().tolist())]
-        return np.multiply(result_per_class, weights).sum() / sum(weights)
-
-    return make_scorer(weighted_false_positive_rate)
-
-
-def get_false_positive_rate_scorer_micro() -> Callable:
-    """Get micro false positive rate scorer."""
-
-    def micro_false_positive_rate(y_true, y_pred):
-        fp, tn = 0, 0
-        for cls in sorted(y_true.dropna().unique().tolist()):
-            y_true_cls, y_pred_cls = np.asarray(y_true) == cls, np.asarray(y_pred) == cls
-            matrix = confusion_matrix(y_true_cls, y_pred_cls)
-            fp += matrix[0, 1]
-            tn += matrix[1, 1]
-        return fp / (fp + tn) if (fp + tn) > 0 else 0
-
-    return make_scorer(micro_false_positive_rate)
-
-
-def _false_negative_rate(y_true, y_pred):  # False Negatives / (False Negatives + True Positives)
-    matrix = confusion_matrix(y_true, y_pred)
-    return matrix[1, 0] / (matrix[1, 0] + matrix[0, 0]) if (matrix[1, 0] + matrix[0, 0]) > 0 else 0
-
-
-def _false_negative_rate_per_class(y_true, y_pred):
+def _false_negative_rate_per_class(y_true, y_pred):  # False Negatives / (False Negatives + True Positives)
     result = []
     for cls in sorted(y_true.dropna().unique().tolist()):
         y_true_cls, y_pred_cls = np.asarray(y_true) == cls, np.asarray(y_pred) == cls
-        result.append(_false_negative_rate(y_true_cls, y_pred_cls))
+        matrix = confusion_matrix(y_true_cls, y_pred_cls)
+        result.append(matrix[1, 0] / (matrix[1, 0] + matrix[0, 0]) if (matrix[1, 0] + matrix[0, 0]) > 0 else 0)
     return np.asarray(result)
 
 
-def get_false_negative_rate_scorer_binary() -> Callable:
-    """Get binary false negative rate scorer."""
-    return make_scorer(_false_negative_rate)
+def _micro_false_negative_rate(y_true, y_pred):
+    fn, tp = 0, 0
+    for cls in sorted(y_true.dropna().unique().tolist()):
+        y_true_cls, y_pred_cls = np.asarray(y_true) == cls, np.asarray(y_pred) == cls
+        matrix = confusion_matrix(y_true_cls, y_pred_cls)
+        fn += matrix[1, 0]
+        tp += matrix[0, 0]
+    return fn / (fn + tp) if (fn + tp) > 0 else 0
 
 
-def get_false_negative_rate_scorer_per_class() -> Callable:
-    """Get false negative rate scorer per class."""
-    return make_scorer(_false_negative_rate_per_class)
+def false_negative_rate_metric(y_true, y_pred, averaging_method: str = 'per_class') -> Union[np.ndarray, float]:
+    """Receive a metric which calculates false negative rate.
+
+    The rate is calculated as: False Negatives / (False Negatives + True Positives)
+    Parameters
+    ----------
+    y_true : array-like of shape (n_samples,)
+        True labels.
+    y_pred : array-like of shape (n_samples,)
+        Predicted labels.
+    averaging_method : str, default: 'per_class'
+        Determines which averaging method to apply, possible values are:
+        'per_class': Return a np array with the scores for each class (sorted by class name).
+        'binary': Returns the score for the positive class. Should be used only in binary classification cases.
+        'micro': Returns the micro-averaged score.
+        'macro': Returns the mean of scores per class.
+        'weighted': Returns a weighted mean of scores based of the class size in y_true.
+    Returns
+    -------
+    score : Union[np.ndarray, float]
+        The score for the given metric.
+    """
+    if averaging_method == 'micro':
+        return _micro_false_negative_rate(y_true, y_pred)
+
+    scores_per_class = _false_negative_rate_per_class(y_true, y_pred)
+    return _averaging_mechanism(averaging_method, scores_per_class, y_true)
 
 
-def get_false_negative_rate_scorer_macro() -> Callable:
-    """Get macro false negative rate scorer."""
-
-    def macro_false_negative_rate(y_true, y_pred):
-        return np.mean(_false_negative_rate_per_class(y_true, y_pred))
-
-    return make_scorer(macro_false_negative_rate)
-
-
-def get_false_negative_rate_scorer_weighted() -> Callable:
-    """Get weighted false negative rate scorer."""
-
-    def weighted_false_negative_rate(y_true, y_pred):
-        result_per_class = _false_negative_rate_per_class(y_true, y_pred)
-        weights = [sum(y_true == cls) for cls in sorted(y_true.dropna().unique().tolist())]
-        return np.multiply(result_per_class, weights).sum() / sum(weights)
-
-    return make_scorer(weighted_false_negative_rate)
-
-
-def get_false_negative_rate_scorer_micro() -> Callable:
-    """Get micro false negative rate scorer."""
-
-    def micro_false_negative_rate(y_true, y_pred):
-        fn, tp = 0, 0
-        for cls in sorted(y_true.dropna().unique().tolist()):
-            y_true_cls, y_pred_cls = np.asarray(y_true) == cls, np.asarray(y_pred) == cls
-            matrix = confusion_matrix(y_true_cls, y_pred_cls)
-            fn += matrix[1, 0]
-            tp += matrix[0, 0]
-        return fn / (fn + tp) if (fn + tp) > 0 else 0
-
-    return make_scorer(micro_false_negative_rate)
-
-
-def _true_negative_rate(y_true, y_pred):  # True Negatives / (True Negatives + False Positives) same as specificity
-    matrix = confusion_matrix(y_true, y_pred)
-    return matrix[1, 1] / (matrix[1, 1] + matrix[0, 1]) if (matrix[1, 1] + matrix[0, 1]) > 0 else 0
-
-
-def _true_negative_rate_per_class(y_true, y_pred):
+def _true_negative_rate_per_class(y_true, y_pred):  # True Negatives / (True Negatives + False Positives)
     result = []
     for cls in sorted(y_true.dropna().unique().tolist()):
         y_true_cls, y_pred_cls = np.asarray(y_true) == cls, np.asarray(y_pred) == cls
-        result.append(_true_negative_rate(y_true_cls, y_pred_cls))
+        matrix = confusion_matrix(y_true_cls, y_pred_cls)
+        result.append(matrix[1, 1] / (matrix[1, 1] + matrix[0, 1]) if (matrix[1, 1] + matrix[0, 1]) > 0 else 0)
     return np.asarray(result)
 
 
-def get_true_negative_rate_scorer_binary() -> Callable:
-    """Get binary true negative rate scorer."""
-    return make_scorer(_true_negative_rate)
+def _micro_true_negative_rate(y_true, y_pred):
+    tn, fp = 0, 0
+    for cls in sorted(y_true.dropna().unique().tolist()):
+        y_true_cls, y_pred_cls = np.asarray(y_true) == cls, np.asarray(y_pred) == cls
+        matrix = confusion_matrix(y_true_cls, y_pred_cls)
+        tn += matrix[1, 1]
+        fp += matrix[0, 1]
+    return tn / (tn + fp) if (tn + fp) > 0 else 0
 
 
-def get_true_negative_rate_scorer_per_class() -> Callable:
-    """Get true negative rate scorer per class."""
-    return make_scorer(_true_negative_rate_per_class)
+def true_negative_rate_metric(y_true, y_pred, averaging_method: str = 'per_class') -> Union[np.ndarray, float]:
+    """Receive a metric which calculates true negative rate. Alternative name to the same metric is specificity.
+
+    The rate is calculated as: True Negatives / (True Negatives + False Positives)
+    Parameters
+    ----------
+    y_true : array-like of shape (n_samples,)
+        True labels.
+    y_pred : array-like of shape (n_samples,)
+        Predicted labels.
+    averaging_method : str, default: 'per_class'
+        Determines which averaging method to apply, possible values are:
+        'per_class': Return a np array with the scores for each class (sorted by class name).
+        'binary': Returns the score for the positive class. Should be used only in binary classification cases.
+        'micro': Returns the micro-averaged score.
+        'macro': Returns the mean of scores per class.
+        'weighted': Returns a weighted mean of scores based of the class size in y_true.
+    Returns
+    -------
+    score : Union[np.ndarray, float]
+        The score for the given metric.
+    """
+    if averaging_method == 'micro':
+        return _micro_true_negative_rate(y_true, y_pred)
+
+    scores_per_class = _true_negative_rate_per_class(y_true, y_pred)
+    return _averaging_mechanism(averaging_method, scores_per_class, y_true)
 
 
-def get_true_negative_rate_scorer_macro() -> Callable:
-    """Get macro true negative rate scorer."""
-
-    def macro_true_negative_rate(y_true, y_pred):
-        return np.mean(_true_negative_rate_per_class(y_true, y_pred))
-
-    return make_scorer(macro_true_negative_rate)
-
-
-def get_true_negative_rate_scorer_weighted() -> Callable:
-    """Get weighted true negative rate scorer."""
-
-    def weighted_true_negative_rate(y_true, y_pred):
-        result_per_class = _true_negative_rate_per_class(y_true, y_pred)
+def _averaging_mechanism(averaging_method, scores_per_class, y_true):
+    if averaging_method == 'binary':
+        if len(scores_per_class) != 2:
+            raise DeepchecksValueError('Averaging method "binary" can only be used in binary classification.')
+        return scores_per_class[1]
+    elif averaging_method == 'per_class':
+        return np.asarray(scores_per_class)
+    elif averaging_method == 'macro':
+        return np.mean(scores_per_class)
+    elif averaging_method == 'weighted':
         weights = [sum(y_true == cls) for cls in sorted(y_true.dropna().unique().tolist())]
-        return np.multiply(result_per_class, weights).sum() / sum(weights)
-
-    return make_scorer(weighted_true_negative_rate)
-
-
-def get_true_negative_rate_scorer_micro() -> Callable:
-    """Get micro true negative rate scorer."""
-
-    def micro_true_negative_rate(y_true, y_pred):
-        tn, fp = 0, 0
-        for cls in sorted(y_true.dropna().unique().tolist()):
-            y_true_cls, y_pred_cls = np.asarray(y_true) == cls, np.asarray(y_pred) == cls
-            matrix = confusion_matrix(y_true_cls, y_pred_cls)
-            tn += matrix[1, 1]
-            fp += matrix[0, 1]
-        return tn / (tn + fp) if (tn + fp) > 0 else 0
-
-    return make_scorer(micro_true_negative_rate)
+        return np.multiply(scores_per_class, weights).sum() / sum(weights)
+    else:
+        raise DeepchecksValueError(f'Unknown averaging {averaging_method}')
