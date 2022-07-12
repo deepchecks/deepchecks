@@ -24,6 +24,7 @@ checks_dirs = ["deepchecks/tabular/checks", "deepchecks/vision/checks"]
 
 ignored_files = [
     "deepchecks/vision/checks/data_integrity/abstract_property_outliers.py",
+    "deepchecks/tabular/checks/model_evaluation/performance_report.py"
     ]
 
 
