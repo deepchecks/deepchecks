@@ -24,11 +24,11 @@ from deepchecks.tabular.checks import (BoostingOverfit, CalibrationScore, Catego
                                        FeatureLabelCorrelation, FeatureLabelCorrelationChange,
                                        IdentifierLabelCorrelation, IndexTrainTestLeakage, IsSingleValue, MixedDataTypes,
                                        MixedNulls, ModelInferenceTime, NewLabelTrainTest, OutlierSampleDetection,
-                                       TrainTestPerformance, RegressionErrorDistribution, RegressionSystematicError,
-                                       RocReport, SimpleModelComparison, SpecialCharacters, StringLengthOutOfBounds,
+                                       RegressionErrorDistribution, RegressionSystematicError, RocReport,
+                                       SimpleModelComparison, SpecialCharacters, StringLengthOutOfBounds,
                                        StringMismatch, StringMismatchComparison, TrainTestFeatureDrift,
-                                       TrainTestLabelDrift, TrainTestPredictionDrift, TrainTestSamplesMix,
-                                       UnusedFeatures, WeakSegmentsPerformance, WholeDatasetDrift)
+                                       TrainTestLabelDrift, TrainTestPerformance, TrainTestPredictionDrift,
+                                       TrainTestSamplesMix, UnusedFeatures, WeakSegmentsPerformance, WholeDatasetDrift)
 
 __all__ = ['single_dataset_integrity', 'train_test_leakage', 'train_test_validation',
            'model_evaluation', 'full_suite']

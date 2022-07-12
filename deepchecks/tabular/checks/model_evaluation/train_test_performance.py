@@ -10,7 +10,7 @@
 #
 """Module containing the train test performance check."""
 from numbers import Number
-from typing import Callable, Dict, TypeVar, Union, cast, List
+from typing import Callable, Dict, List, TypeVar, Union, cast
 
 import pandas as pd
 import plotly.express as px
@@ -22,6 +22,7 @@ from deepchecks.core.check_utils.class_performance_utils import (
 from deepchecks.core.checks import DatasetKind, ReduceMixin
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.tabular.metric_utils import MULTICLASS_SCORERS_NON_AVERAGE
+from deepchecks.utils.plot import colors
 from deepchecks.utils.strings import format_percent
 
 __all__ = ['TrainTestPerformance']
@@ -31,7 +32,7 @@ PR = TypeVar('PR', bound='TrainTestPerformance')
 
 
 class TrainTestPerformance(TrainTestCheck, ReduceMixin):
-    """Summarize given scores on a dataset and model.
+    """Summarize given model performance on the train and test datasets based on selected scorers.
 
     Parameters
     ----------
@@ -119,7 +120,7 @@ class TrainTestPerformance(TrainTestCheck, ReduceMixin):
             figs = []
             data_scorers_per_class = results_df[results_df['Class'].notna()]
             data_scorers_per_dataset = results_df[results_df['Class'].isna()].drop(columns=['Class'])
-            for data in [data_scorers_per_class, data_scorers_per_dataset]:
+            for data in [data_scorers_per_dataset, data_scorers_per_class]:
                 if data.shape[0] == 0:
                     continue
                 fig = px.histogram(
@@ -130,7 +131,8 @@ class TrainTestPerformance(TrainTestCheck, ReduceMixin):
                     barmode='group',
                     facet_col='Metric',
                     facet_col_spacing=0.05,
-                    hover_data=['Number of samples']
+                    hover_data=['Number of samples'],
+                    color_discrete_map={'Train': colors['Train'], 'Test': colors['Test']},
                 )
                 if 'Class' in data.columns:
                     fig.update_xaxes(tickprefix='Class ', tickangle=60)

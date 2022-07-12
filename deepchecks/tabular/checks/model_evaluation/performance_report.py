@@ -11,13 +11,13 @@
 """module contains the Identifier Leakage check - deprecated."""
 
 import warnings
-from typing import Union, List, Dict, Callable
+from typing import Callable, Dict, List, Union
 
-from deepchecks.tabular.checks import TrainTestPerformance
+from deepchecks.tabular.checks.model_evaluation import TrainTestPerformance
 
 
 class PerformanceReport(TrainTestPerformance):
-    """Deprecated. Check if identifiers (Index/Date) can be used to predict the label."""
+    """Deprecated. Summarize given scores on a dataset and model."""
 
     def __init__(self,
                  scorers: Union[List[str], Dict[str, Union[str, Callable]]] = None,

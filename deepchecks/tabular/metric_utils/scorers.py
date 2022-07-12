@@ -199,6 +199,7 @@ class DeepcheckScorer:
             raise errors.DeepchecksValueError(f'Expected scorer {self.name} to return number or np.ndarray '
                                               f'but got: {type(result).__name__}')
 
+
 def task_type_check(
         model: BasicModel,
         dataset: 'tabular.Dataset'

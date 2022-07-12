@@ -66,6 +66,7 @@ __all__ = [
 
     # performance checks
     'TrainTestPerformance',
+    'PerformanceReport',
     'ConfusionMatrixReport',
     'RocReport',
     'SimpleModelComparison',
