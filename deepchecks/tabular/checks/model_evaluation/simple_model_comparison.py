@@ -126,9 +126,9 @@ class SimpleModelComparison(TrainTestCheck):
 
         # If user defined scorers used them, else use a single scorer
         if self.user_scorers:
-            scorers = context.get_scorers(self.user_scorers, class_avg=False)
+            scorers = context.get_scorers(self.user_scorers, use_avg_defaults=False)
         else:
-            scorers = [context.get_single_scorer(class_avg=False)]
+            scorers = [context.get_single_scorer(use_avg_defaults=False)]
 
         simple_model = self._create_simple_model(train_dataset, task_type)
 
