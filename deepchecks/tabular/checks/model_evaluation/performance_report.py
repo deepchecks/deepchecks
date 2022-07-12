@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""module contains the Identifier Leakage check - deprecated."""
+"""module contains the PerformanceReport check - deprecated."""
 
 import warnings
 from typing import Callable, Dict, List, Union

@@ -73,4 +73,5 @@ from sklearn.metrics import fbeta_score, make_scorer
 fbeta_scorer = make_scorer(fbeta_score, labels=[0, 1, 2], average=None, beta=0.2)
 
 check = TrainTestPerformance(scorers={'my scorer': fbeta_scorer, 'recall': 'recall_per_class'})
-check.run(train_dataset, test_dataset, model)
+result = check.run(train_dataset, test_dataset, model)
+result.show()
