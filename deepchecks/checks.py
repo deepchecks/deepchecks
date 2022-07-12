@@ -65,7 +65,7 @@ __all__ = [
     'TrainTestPredictionDrift',
 
     # performance checks
-    'PerformanceReport',
+    'TrainTestPerformance',
     'ConfusionMatrixReport',
     'RocReport',
     'SimpleModelComparison',

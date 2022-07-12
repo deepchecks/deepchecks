@@ -16,7 +16,7 @@ from .model_error_analysis import ModelErrorAnalysis
 from .model_inference_time import ModelInferenceTime
 from .model_info import ModelInfo
 from .multi_model_performance_report import MultiModelPerformanceReport
-from .performance_report import PerformanceReport
+from .train_test_performance import TrainTestPerformance
 from .regression_error_distribution import RegressionErrorDistribution
 from .regression_systematic_error import RegressionSystematicError
 from .roc_report import RocReport
@@ -33,7 +33,7 @@ __all__ = [
     'ModelInferenceTime',
     'ModelInfo',
     'MultiModelPerformanceReport',
-    'PerformanceReport',
+    'TrainTestPerformance',
     'RegressionErrorDistribution',
     'RegressionSystematicError',
     'RocReport',

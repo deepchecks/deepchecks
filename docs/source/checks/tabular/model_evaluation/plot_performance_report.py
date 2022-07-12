@@ -38,9 +38,9 @@ model = load_fitted_model()
 # Run the check
 # =============
 
-from deepchecks.tabular.checks import PerformanceReport
+from deepchecks.tabular.checks import TrainTestPerformance
 
-check = PerformanceReport()
+check = TrainTestPerformance()
 check.run(train_dataset, test_dataset, model)
 
 #%%
@@ -51,7 +51,7 @@ check.run(train_dataset, test_dataset, model)
 #
 # Let's add a condition to the check and see what happens when it fails:
 
-check = PerformanceReport()
+check = TrainTestPerformance()
 check.add_condition_train_test_relative_degradation_less_than(0.05)
 result = check.run(train_dataset, test_dataset, model)
 result.show(show_additional_outputs=False)
@@ -68,5 +68,5 @@ from sklearn.metrics import fbeta_score, make_scorer
 
 fbeta_scorer = make_scorer(fbeta_score, labels=[0, 1], average=None, beta=0.2)
 
-check = PerformanceReport(scorers={'my scorer': fbeta_scorer})
+check = TrainTestPerformance(scorers={'my scorer': fbeta_scorer})
 check.run(train_dataset, test_dataset, model)

@@ -13,7 +13,7 @@ from .data_integrity import (ColumnsInfo, ConflictingLabels, DataDuplicates, Fea
                              MixedDataTypes, MixedNulls, OutlierSampleDetection, SpecialCharacters,
                              StringLengthOutOfBounds, StringMismatch)
 from .model_evaluation import (BoostingOverfit, CalibrationScore, ConfusionMatrixReport, ModelErrorAnalysis,
-                               ModelInferenceTime, ModelInfo, MultiModelPerformanceReport, PerformanceReport,
+                               ModelInferenceTime, ModelInfo, MultiModelPerformanceReport, TrainTestPerformance,
                                RegressionErrorDistribution, RegressionSystematicError, RocReport, SegmentPerformance,
                                SimpleModelComparison, TrainTestPredictionDrift, UnusedFeatures, WeakSegmentsPerformance)
 from .train_test_validation import (CategoryMismatchTrainTest, DatasetsSizeComparison, DateTrainTestLeakageDuplicates,
@@ -62,7 +62,7 @@ __all__ = [
     'TrainTestPredictionDrift',
 
     # performance checks
-    'PerformanceReport',
+    'TrainTestPerformance',
     'ConfusionMatrixReport',
     'RocReport',
     'SimpleModelComparison',
