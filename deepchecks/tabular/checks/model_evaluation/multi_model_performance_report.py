@@ -38,7 +38,7 @@ class MultiModelPerformanceReport(ModelComparisonCheck):
     def run_logic(self, multi_context: ModelComparisonContext):
         """Run check logic."""
         first_context = multi_context[0]
-        scorers = first_context.get_scorers(self.user_scorers, class_avg=False)
+        scorers = first_context.get_scorers(self.user_scorers, use_avg_defaults=False)
 
         if multi_context.task_type in [TaskType.MULTICLASS, TaskType.BINARY]:
             plot_x_axis = ['Class', 'Model']

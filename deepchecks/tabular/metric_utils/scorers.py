@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Utils module containing utilities for checks working with metrics."""
+"""Utils module containing utilities for checks working with scorers."""
 import typing as t
 from numbers import Number
 
@@ -20,6 +20,8 @@ from sklearn.metrics._scorer import _BaseScorer, _ProbaScorer
 
 from deepchecks import tabular  # pylint: disable=unused-import; it is used for type annotations
 from deepchecks.core import errors
+from deepchecks.tabular.metric_utils.additional_metrics import (false_negative_rate_metric, false_positive_rate_metric,
+                                                                true_negative_rate_metric)
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.metrics import get_scorer_name
@@ -76,7 +78,22 @@ _func_dict = {
     'neg_mae': 'neg_mean_absolute_error',
     'precision_per_class': make_scorer(precision_score, average=None, zero_division=0),
     'recall_per_class': make_scorer(recall_score, average=None, zero_division=0),
-    'f1_per_class': make_scorer(f1_score, average=None, zero_division=0)
+    'f1_per_class': make_scorer(f1_score, average=None, zero_division=0),
+    'fpr_per_class': make_scorer(false_positive_rate_metric, averaging_method='per_class'),
+    'fpr': make_scorer(false_positive_rate_metric, averaging_method='binary'),
+    'fpr_macro': make_scorer(false_positive_rate_metric, averaging_method='macro'),
+    'fpr_micro': make_scorer(false_positive_rate_metric, averaging_method='micro'),
+    'fpr_weighted': make_scorer(false_positive_rate_metric, averaging_method='weighted'),
+    'fnr_per_class': make_scorer(false_negative_rate_metric, averaging_method='per_class'),
+    'fnr': make_scorer(false_negative_rate_metric, averaging_method='binary'),
+    'fnr_macro': make_scorer(false_negative_rate_metric, averaging_method='macro'),
+    'fnr_micro': make_scorer(false_negative_rate_metric, averaging_method='micro'),
+    'fnr_weighted': make_scorer(false_negative_rate_metric, averaging_method='weighted'),
+    'tnr_per_class': make_scorer(true_negative_rate_metric, averaging_method='per_class'),
+    'tnr': make_scorer(true_negative_rate_metric, averaging_method='binary'),
+    'tnr_macro': make_scorer(true_negative_rate_metric, averaging_method='macro'),
+    'tnr_micro': make_scorer(true_negative_rate_metric, averaging_method='micro'),
+    'tnr_weighted': make_scorer(true_negative_rate_metric, averaging_method='weighted'),
 }
 
 
@@ -97,7 +114,8 @@ class DeepcheckScorer:
 
     def __init__(self, scorer: t.Union[str, t.Callable], name: str = None):
         if isinstance(scorer, str):
-            formated_scorer_name = scorer.lower().replace('sensitivity', 'recall').replace(' ', '_')
+            formated_scorer_name = scorer.lower().replace('sensitivity', 'recall').replace('specificity', 'tnr')\
+                .replace(' ', '_')
             if formated_scorer_name in _func_dict:
                 self.scorer = _func_dict[formated_scorer_name]
             else:
