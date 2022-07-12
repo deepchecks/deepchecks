@@ -146,7 +146,7 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
 
         if use_javascript is False:
             return f'<style>{DEEPCHECKS_STYLE}</style>{content}'
-        
+
         if not contains_plots(self.value):
             return f'{STYLE_LOADER}{content}'
 

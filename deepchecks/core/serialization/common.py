@@ -65,7 +65,7 @@ class Html:
 
 def contains_plots(result) -> bool:
     from deepchecks.core import suite  # circular import fix
-    
+
     if isinstance(result, suite.SuiteResult):
         for it in result.results:
             if isinstance(it, check_types.CheckResult) and contains_plots(it):
@@ -85,7 +85,7 @@ def contains_plots(result) -> bool:
                     return True
     else:
         raise TypeError(f'Unsupported type - {type(result).__name__}')
-    
+
     return False
 
 

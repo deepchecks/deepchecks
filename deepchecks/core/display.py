@@ -13,6 +13,7 @@
 import abc
 import io
 import sys
+import pathlib
 import typing as t
 
 import plotly.io as pio
@@ -217,10 +218,26 @@ class DisplayableResult(abc.ABC):
 
 
 def display_in_gui(result: DisplayableResult):
-    """Display suite result or check result in a new python gui window."""
+    """Display suite result or check result in a new python gui window.
+
+    NOTE: regarding 'QWebEngineView().setHtml()'
+    Content larger than 2 MB cannot be displayed, because converts the
+    provided HTML to percent-encoding and places data : in front of it
+    to create the URL that it navigates to. Thereby, the provided code
+    becomes a URL that exceeds the 2 MB limit set by Chromium. If the
+    content is too large, the loadFinished() signal is triggered with
+    success=false.
+    Link: "https://doc.qt.io/qtforpython-5/PySide2/QtWebEngineWidgets
+    /QWebEngineView.html#PySide2.QtWebEngineWidgets.PySide2.QtWebEngineWidgets
+    .QWebEngineView.setHtml"
+
+    Plotly src code is near 3 MB, as result Suite/Check result output
+    cannot be displayed with inlined plotlyjs library.
+    """
     try:
         from PyQt5.QtWebEngineWidgets import QWebEngineView  # pylint: disable=import-outside-toplevel
         from PyQt5.QtWidgets import QApplication  # pylint: disable=import-outside-toplevel
+        from PyQt5.Qt import QUrl
     except ImportError:
         get_logger().error(
             'Missing packages in order to display result in GUI, '
@@ -228,24 +245,23 @@ def display_in_gui(result: DisplayableResult):
             'or use "result.save_as_html()" to save result'
         )
     else:
+        filename = t.cast(str, result.save_as_html('deepchecks-report.html'))
+        filepath = pathlib.Path(filename).absolute()
         try:
-            app = QApplication(sys.argv)
+            app = QApplication([*sys.argv, "--disable-web-security"])
             web = QWebEngineView()
             web.setWindowTitle('deepchecks')
             web.setGeometry(0, 0, 1200, 1200)
-
-            html_out = io.StringIO()
-            result.save_as_html(html_out)
-            web.setHtml(html_out.getvalue())
+            web.load(QUrl().fromLocalFile(str(filepath)))
             web.show()
-
-            sys.exit(app.exec_())
-        except BaseException as error:  # pylint: disable=broad-except
-            raise
+            app.exec_()
+        except BaseException:  # pylint: disable=broad-except
             get_logger().error(
                 'Unable to show result, run in an interactive environment '
                 'or use "result.save_as_html()" to save result'
             )
+        finally:
+            filepath.unlink()
 
 
 def get_result_name(result) -> str:

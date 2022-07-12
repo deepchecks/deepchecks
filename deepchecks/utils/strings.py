@@ -644,8 +644,7 @@ def create_new_file_name(file_name: str, default_suffix: str = 'html'):
         basename = file_name
         ext = default_suffix
     file_name = f'{basename}.{ext}'
-    c = itertools.count()
-    next(c)
+    c = itertools.count(start=1)
     while os.path.exists(file_name):
         file_name = f'{basename} ({str(next(c))}).{ext}'
     return file_name

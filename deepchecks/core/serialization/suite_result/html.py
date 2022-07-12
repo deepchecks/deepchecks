@@ -162,7 +162,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
 
         if use_javascript is False:
             return f'<style>{DEEPCHECKS_STYLE}</style>{output}'
-        
+
         if not contains_plots(self.value):
             return f'{STYLE_LOADER}{output}'
 
