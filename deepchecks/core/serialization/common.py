@@ -63,6 +63,32 @@ class Html:
     empty_content_placeholder = '<p><b>&#x2713;</b>Nothing to display</p>'
 
 
+def contains_plots(result) -> bool:
+    from deepchecks.core import suite  # circular import fix
+    
+    if isinstance(result, suite.SuiteResult):
+        for it in result.results:
+            if isinstance(it, check_types.CheckResult) and contains_plots(it):
+                return True
+    elif isinstance(result, check_types.CheckResult):
+        for it in result.display:
+            if isinstance(it, BaseFigure):
+                return True
+            elif isinstance(it, check_types.DisplayMap) and contains_plots(it):
+                return True
+    elif isinstance(result, check_types.DisplayMap):
+        for display in result.values():
+            for it in display:
+                if isinstance(it, BaseFigure):
+                    return True
+                elif isinstance(it, check_types.DisplayMap) and contains_plots(it):
+                    return True
+    else:
+        raise TypeError(f'Unsupported type - {type(result).__name__}')
+    
+    return False
+
+
 def form_output_anchor(output_id: str) -> str:
     """Form unique output anchor."""
     return f'summary_{output_id}'
@@ -428,17 +454,16 @@ def figure_to_html(figure: BaseFigure) -> str:
     script = FIGURE_CREATION_SCRIPT.replace('%container-id', div_id).replace('%figure-data', data)
     return (
         f'<div><div id="{div_id}"></div>'
-        f'<script type="text/javascript">{script}</script></div>'
+        f'<script id="deepchecks-plot-initializer" type="text/javascript">{script}</script></div>'
     )
 
 
 FIGURE_CREATION_SCRIPT = r"""
 ;(async () => {
-    const containerId = '%container-id';
-    const container = document.querySelector(`#${containerId}`);
+    const container = document.querySelector(`#%container-id`);
 
     if (typeof container !== 'object') {
-        console.error('Did not find plot container');
+        console.error('[Deepchecks] Did not find plot container');
         return;
     }
 
@@ -470,7 +495,7 @@ FIGURE_CREATION_SCRIPT = r"""
         container.appendChild(div);
     };
 
-    if (typeof deepchecksPlotlyPromise === 'undefined') {
+    if (typeof Deepchecks !== 'object' || typeof Deepchecks.Plotly !== 'object') {
         console.log('[Deepchecks] did not find plotly promise');
         clearPlotContainer();
         showNotification('error', 'Failed to display plotly figure, try instead <code>result.show_in_iframe()</code>');
@@ -478,7 +503,7 @@ FIGURE_CREATION_SCRIPT = r"""
     }
 
     try {
-        const Plotly = await deepchecksPlotlyPromise;
+        const Plotly = await Deepchecks.Plotly;
         clearPlotContainer();
         await Plotly.newPlot(container, %figure-data);
 
@@ -490,11 +515,9 @@ FIGURE_CREATION_SCRIPT = r"""
                 observer.disconnect();
             }
         });
-
         /* Listen for the removal of the full notebook cells */
         const notebookContainer = container.closest('#notebook-container');
         if (notebookContainer) { mutationListener.observe(notebookContainer, {childList: true}); }
-
         /* Listen for the clearing of the current output cell */
         var outputEl = container.closest('.output');
         if (outputEl) { mutationListener.observe(outputEl, {childList: true}); }
@@ -508,10 +531,21 @@ FIGURE_CREATION_SCRIPT = r"""
 """
 
 
-DEEPCHECKS_SCRIPT = """
-<script id="deepchecks-style" type="text/plain">
-    %deepchecks-style
+STYLE_LOADER = """
+<script id="deepchecks-style-loader" type="text/javascript">
+(function() {
+    if (document.querySelector('style#deepchecks-style'))
+        return;
+    const container = document.createElement('style');
+    container.innerText = `%style`;
+    container.setAttribute('id', 'deepchecks-style');
+    document.head.appendChild(container);
+})();
 </script>
+""".replace('%style', DEEPCHECKS_STYLE)
+
+
+PLOTLY_LOADER = """
 <script id="deepchecks-plotly-src" type="text/plain">
     /* Transforming plotly script into ecmascript module */
     let define = undefined;
@@ -524,17 +558,14 @@ DEEPCHECKS_SCRIPT = """
     if(removeGlobal) { window.Plotly = undefined; }
     export { Plotly };
 </script>
-<script type="text/javascript">
-    (function deepchecksLoadStyle() {
-        if (document.querySelector('head style#deepchecks-style'))
-            return;
-        const styleSrcCode = document.querySelector('script#deepchecks-style');
-        const container = document.createElement('style');
-        container.innerText = styleSrcCode.text;
-        container.setAttribute('id', 'deepchecks-style');
-        document.head.appendChild(container);
-    })();
-    async function deepchecksCreatePlotlyPromise() {
+<script id="deepchecks-plotly-loader" type="text/javascript">
+(function() {
+    const Deepchecks = window.Deepchecks = window.Deepchecks || {};
+    if (typeof Deepchecks.Plotly === 'object')
+        return;
+    async function loadPlotly() {
+        if (typeof window.Plotly === 'object' && window.Plotly.newPlot === 'function')
+            return window.Plotly;
         const srcCode = document.querySelector('script#deepchecks-plotly-src');
         const blob = new Blob([srcCode.text], {type: 'text/javascript'});
         const url = URL.createObjectURL(blob);
@@ -543,10 +574,7 @@ DEEPCHECKS_SCRIPT = """
         URL.revokeObjectURL(url);
         return Plotly;
     }
-    if (typeof Plotly === 'object' && Plotly.newPlot === 'function') {
-        var deepchecksPlotlyPromise = new Promise(resolve => resolve(Plotly));
-    } else if (typeof deepchecksPlotlyPromise === 'undefined') {
-        var deepchecksPlotlyPromise = deepchecksCreatePlotlyPromise();
-    }
+    Deepchecks.Plotly = loadPlotly();
+})();
 </script>
-""".replace('%plotly-script', get_plotlyjs()).replace('%deepchecks-style', DEEPCHECKS_STYLE)
+""".replace('%plotly-script', get_plotlyjs())

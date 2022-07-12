@@ -23,9 +23,10 @@ from deepchecks.core.serialization.abc import HtmlSerializer
 from deepchecks.core.serialization.check_failure.html import CheckFailureSerializer as CheckFailureHtmlSerializer
 from deepchecks.core.serialization.check_result.html import CheckEmbedmentWay
 from deepchecks.core.serialization.check_result.html import CheckResultSerializer as CheckResultHtmlSerializer
-from deepchecks.core.serialization.common import (DEEPCHECKS_SCRIPT, Html, aggregate_conditions,
+from deepchecks.core.serialization.common import STYLE_LOADER, PLOTLY_LOADER
+from deepchecks.core.serialization.common import (Html, aggregate_conditions,
                                                   create_failures_dataframe, create_results_dataframe,
-                                                  form_output_anchor)
+                                                  form_output_anchor, contains_plots)
 from deepchecks.core.serialization.dataframe.html import DataFrameSerializer
 from deepchecks.utils.html import details_tag, iframe_tag
 from deepchecks.utils.strings import get_random_string
@@ -161,9 +162,11 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
 
         if use_javascript is False:
             return f'<style>{DEEPCHECKS_STYLE}</style>{output}'
+        
+        if not contains_plots(self.value):
+            return f'{STYLE_LOADER}{output}'
 
-        # NOTE: style tag is not needed here because deepchecks-script will take care of it
-        return f'{DEEPCHECKS_SCRIPT}{output}'
+        return f'{STYLE_LOADER}{PLOTLY_LOADER}{output}'
 
     def _serialize_to_full_html(
         self,

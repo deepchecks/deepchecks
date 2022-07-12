@@ -20,10 +20,10 @@ from deepchecks.core import check_result as check_types
 from deepchecks.core.resources import DEEPCHECKS_HTML_PAGE_STYLE, DEEPCHECKS_STYLE
 from deepchecks.core.serialization.abc import DisplayItemsSerializer as ABCDisplayItemsSerializer
 from deepchecks.core.serialization.abc import HtmlSerializer
-from deepchecks.core.serialization.common import DEEPCHECKS_SCRIPT
+from deepchecks.core.serialization.common import PLOTLY_LOADER, STYLE_LOADER
 from deepchecks.core.serialization.common import Html as CommonHtml
 from deepchecks.core.serialization.common import (aggregate_conditions, figure_to_html, figure_to_html_image_tag,
-                                                  go_to_top_link, read_matplot_figures_as_html)
+                                                  go_to_top_link, read_matplot_figures_as_html, contains_plots)
 from deepchecks.core.serialization.dataframe.html import DataFrameSerializer as DataFrameHtmlSerializer
 from deepchecks.utils.html import details_tag, iframe_tag, tabs_widget
 
@@ -132,7 +132,8 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
             else ''
         )
 
-        content = f'<article class="deepchecks">{header}{summary}{condition_table}{additional_output}</article>'
+        content = f'{header}{summary}{condition_table}{additional_output}'
+        content = f'<article class="deepchecks">{content}</article>'
 
         if embed_into_iframe is True:
             return self._serialize_to_iframe(content, use_javascript)
@@ -145,9 +146,11 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
 
         if use_javascript is False:
             return f'<style>{DEEPCHECKS_STYLE}</style>{content}'
+        
+        if not contains_plots(self.value):
+            return f'{STYLE_LOADER}{content}'
 
-        # NOTE: style tag is not needed here because deepchecks-script will take care of it
-        return f'{DEEPCHECKS_SCRIPT}{content}'
+        return f'{STYLE_LOADER}{PLOTLY_LOADER}{content}'
 
     def _serialize_to_iframe(self, content: str, use_javascript: bool = True) -> str:
         content = iframe_tag(
@@ -155,12 +158,16 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
             srcdoc=self._serialize_to_full_html(content, use_javascript),
             collapsible=False
         )
-        return f'<style>{DEEPCHECKS_STYLE}</style>{content}'
+        return (
+            f'{STYLE_LOADER}{content}'
+            if use_javascript
+            else f'<style>{DEEPCHECKS_STYLE}</style>{content}'
+        )
 
     def _serialize_to_full_html(self, content: str, use_javascript: bool = True) -> str:
         script = (
             f'<script type="text/javascript">{get_plotlyjs()}</script>'
-            if use_javascript
+            if use_javascript and contains_plots(self.value)
             else ''
         )
         return f"""

@@ -9,4 +9,5 @@
 # ----------------------------------------------------------------------------
 #
 """Subpackage with a set of serializers for the pandas.DataFrame type."""
+
 __all__ = []

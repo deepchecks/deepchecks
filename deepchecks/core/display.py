@@ -136,6 +136,10 @@ class DisplayableResult(abc.ABC):
                 raw=True
             )
 
+    def show_in_window(self, **kwargs):
+        """Display result in a separate window."""
+        display_in_gui(self)
+
     def show_not_interactive(
         self,
         unique_id: t.Optional[str] = None,
@@ -236,7 +240,8 @@ def display_in_gui(result: DisplayableResult):
             web.show()
 
             sys.exit(app.exec_())
-        except BaseException:  # pylint: disable=broad-except
+        except BaseException as error:  # pylint: disable=broad-except
+            raise
             get_logger().error(
                 'Unable to show result, run in an interactive environment '
                 'or use "result.save_as_html()" to save result'
@@ -306,7 +311,7 @@ def save_as_html(
         if isinstance(file, str):
             with open(file, 'w', encoding='utf-8') as f:
                 f.write(html)
-        elif isinstance(file, io.TextIOWrapper):
+        elif isinstance(file, (io.TextIOWrapper, io.TextIOBase)):
             file.write(html)
         else:
             raise TypeError(f'Unsupported type of "file" parameter - {type(file)}')
