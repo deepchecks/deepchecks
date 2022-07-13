@@ -78,25 +78,50 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
         return reduced_output
 
 
-    def add_condition_greater_than(self, threshold: float) -> ConditionResult:
-        """Add condition - the result is greater than the threshold."""
+    def add_condition_greater_than(self, threshold: float, metric: str, class_mode: str = 'all'):
+
+        """Add condition - the result is greater than the threshold.
+
+        Parameters
+        ----------
+        threshold: float
+            The threshold that the metrics result should be grater than.
+
+        metric: str
+            The name of the metric from the check to apply the condition to.
+
+       class_mode: str, default: 'all'
+            The decision rule over the classes, one of 'any', 'all', class name. If 'any', passes if at least one class
+            result is above the threshold, if 'all' passes if all of the class results are above the threshold,
+            class name, passes if the result for this specified class is above the thershold.
+        """
+
         def condition(check_result):
-            details = f'The score {self.metric_name} is {format_number(check_result["score"])}'
-            if check_result['score'] > threshold:
+
+            if metric not in check_result.Metric.unique():
+                DeepchecksValueError(f'The requested metric was not calculated, the metrics calculated in this check '
+                                     f'are: {check_result.Metric.unique()}.')
+
+            class_val = check_result[check_result.Metric == metric].groupby('Class Name').Value
+            class_gt = class_val.apply(lambda x: x > threshold)
+
+            if class_mode is 'all':
+                reduced_result = all(class_gt)
+                details = f'The lowest score is {min(class_val)}'
+            elif class_mode is 'any':
+                reduced_result = any(class_gt)
+                details = f'The highest score is {max(class_val)}'
+            elif class_mode in metric_class_val.groups:
+                reduced_result = class_val.get_group(class_mode) > threshold
+                details = f'The score for class {class_mode} is {class_val.get_group(class_mode)}'
+            else:
+                ValueError(f'{for_class} should be one of the classes in the check results or any or all')
+
+            if reduced_result:
                 return ConditionResult(ConditionCategory.PASS, details)
             else:
                 return ConditionResult(ConditionCategory.FAIL, details)
         return self.add_condition(f'Score is greater than {threshold}', condition)
-
-    def add_condition_greater_or_equal(self, threshold: float) -> ConditionResult:
-        """Add condition - the result is greater or equal to the threshold."""
-        def condition(check_result):
-            details = f'The score {self.metric_name} is {format_number(check_result["score"])}'
-            if check_result['score'] >= threshold:
-                return ConditionResult(ConditionCategory.PASS, details)
-            else:
-                return ConditionResult(ConditionCategory.FAIL, details)
-        return self.add_condition(f'Score is greater or equal to {threshold}', condition)
 
     def add_condition_less_than(self, threshold: float) -> ConditionResult:
         """Add condition - the result is less than the threshold."""
@@ -108,14 +133,3 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
                 return ConditionResult(ConditionCategory.FAIL, details)
         return self.add_condition(f'Score is less than {threshold}', condition)
 
-    def add_condition_less_or_equal(self, threshold: float) -> ConditionResult:
-        """Add condition - the result is less or equal to the threshold."""
-
-        def condition(check_result):
-            details = f'The score {self.metric_name} is {format_number(check_result["score"])}'
-            if check_result['score'] <= threshold:
-                return ConditionResult(ConditionCategory.PASS, details)
-            else:
-                return ConditionResult(ConditionCategory.FAIL, details)
-
-        return self.add_condition(f'Score is less or equal to {threshold}', condition)
