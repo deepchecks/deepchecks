@@ -18,11 +18,13 @@ What is the purpose of the check?
 =================================
 This check helps you compare your model's performance between the train and test datasets based on multiple scorers.
 
-The default scorers that are used are F1, Percision, and Recall for Classification
-and Negative Root Mean Square Error, Negative Mean Absolute Error, and R2 for Regression. RMSE and MAE Scorers are
-negative because we subscribe to the sklearn convention of defining scoring functions.
-`See scorers documentation <https://scikit-learn.org/stable/modules/model_evaluation.html#scoring>`_
+Scorers are a convention of sklearn to evaluate a model,
+it is a function which accepts (model, X, y_true) and returns a float result which is the score.
+A sklearn convention is that higher scores are better than lower scores. For additional details `see scorers
+documentation <https://scikit-learn.org/stable/modules/model_evaluation.html#scoring>`_.
 
+The default scorers that are used are F1, Percision, and Recall for Classification
+and Negative Root Mean Square Error, Negative Mean Absolute Error, and R2 for Regression.
 """
 
 #%%

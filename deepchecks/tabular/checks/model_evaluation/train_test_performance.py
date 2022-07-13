@@ -147,7 +147,7 @@ class TrainTestPerformance(TrainTestCheck, ReduceMixin):
 
         return CheckResult(
             results_df,
-            header='Performance Report',
+            header='Train Test Performance',
             display=figs
         )
 
