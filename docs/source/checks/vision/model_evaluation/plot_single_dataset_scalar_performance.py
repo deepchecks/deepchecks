@@ -29,7 +29,7 @@ In this example we use 'nanmean' that returns the mean over the classes, while i
 # Generate data and model
 # -----------------------
 
-from deepchecks.vision.checks import SingleDatasetScalarPerformance
+from deepchecks.vision.checks import SingleDatasetPerformance
 from deepchecks.vision.datasets.classification import mnist
 
 #%%
@@ -48,7 +48,7 @@ train_ds = mnist.load_dataset(train=True, object_type='VisionData')
 # The default metric returns a scalar, therefore we will use the reduce function default - None.
 
 
-check = SingleDatasetScalarPerformance()
+check = SingleDatasetPerformance()
 result = check.run(train_ds, mnist_model)
 result
 
@@ -74,7 +74,7 @@ result.value
 from ignite.metrics import Precision
 from torch import nanmean
 
-check = SingleDatasetScalarPerformance(Precision(), nanmean, metric_name='precision', reduce_name='mean')
+check = SingleDatasetPerformance(Precision(), nanmean, metric_name='precision', reduce_name='mean')
 result = check.run(train_ds, mnist_model)
 result.value
 
@@ -85,7 +85,7 @@ result.value
 # The condition is defined as a function that takes the results of the check as input and
 # returns a ConditionResult object.
 
-check = SingleDatasetScalarPerformance()
+check = SingleDatasetPerformance()
 check.add_condition_greater_than(0.5)
 result = check.run(train_ds, mnist_model)
 result.show(show_additional_outputs=False)

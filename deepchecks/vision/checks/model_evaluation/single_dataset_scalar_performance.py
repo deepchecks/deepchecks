@@ -26,10 +26,10 @@ from deepchecks.vision.vision_data import TaskType
 from deepchecks.core.checks import ReduceMixin
 from deepchecks.vision.metrics_utils.metrics import get_scorers_dict, calculate_metrics, metric_results_to_df
 
-__all__ = ['SingleDatasetScalarPerformance']
+__all__ = ['SingleDatasetPerformance']
 
 
-class SingleDatasetScalarPerformance(SingleDatasetCheck, ReduceMixin):
+class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
     """Calculate a performance metric as a scalar for a given model and a given dataset.
 
     Parameters
