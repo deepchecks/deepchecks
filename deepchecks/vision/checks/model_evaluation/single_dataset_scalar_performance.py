@@ -44,7 +44,7 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck, ReduceMixin):
     """
 
     def __init__(self,
-                 alternative_scorers : Dict[str, Union[Callable, Metric]] = None,
+                 alternative_scorers : Dict[str, Metric] = None,
                  reduce: Union[Callable, str] = 'mean',
                  **kwargs):
         super().__init__(**kwargs)

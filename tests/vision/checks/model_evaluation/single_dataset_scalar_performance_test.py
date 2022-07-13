@@ -11,10 +11,12 @@
 
 import warnings
 
+import pandas as pd
 import torch
 from hamcrest import assert_that, calling, close_to, equal_to, greater_than_or_equal_to, has_items, none, raises
 from ignite.metrics import Accuracy, Precision
 from sklearn.metrics import cohen_kappa_score
+from deepchecks.vision.metrics_utils import ObjectDetectionTpFpFn
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks import SingleDatasetScalarPerformance
@@ -30,18 +32,14 @@ def test_detection_defaults(coco_train_visiondata, mock_trained_yolov5_object_de
     result = check.run(coco_train_visiondata, mock_trained_yolov5_object_detection, device=device)
 
     # Assert
-    # scalar
-    assert_that(type(result.value['score']), equal_to(float))
-    # metric
-    assert_that(result.value['score'], close_to(0.39, 0.001))
+    assert_that(result.value.Value.mean(), close_to(0.416, 0.001))
 
 
 def test_detection_w_params(coco_train_visiondata, mock_trained_yolov5_object_detection, device):
     # params that should run normally
-    check = SingleDatasetScalarPerformance(reduce=torch.nansum, reduce_name='nan_sum')
+    check = SingleDatasetScalarPerformance(alternative_scorers={'f1': ObjectDetectionTpFpFn(evaluting_function='f1')})
     result = check.run(coco_train_visiondata, mock_trained_yolov5_object_detection, device=device)
-    assert_that(type(result.value['score']), equal_to(float))
-    assert_that(result.value['score'], close_to(24.596, 0.001))
+    assert_that(result.value.Value.mean(), close_to(0.505, 0.001))
 
 
 def test_classification_defaults(mnist_dataset_train, mock_trained_mnist, device):
@@ -52,53 +50,15 @@ def test_classification_defaults(mnist_dataset_train, mock_trained_mnist, device
     result = check.run(mnist_dataset_train, mock_trained_mnist, device=device)
 
     # Assert
-    # scalar
-    assert_that(type(result.value['score']), equal_to(float))
-    # metric
-    assert_that(result.value['score'], close_to(0.98, 0.001))
+    assert_that(result.value.Value.mean(), close_to(0.98, 0.001))
 
 
 def test_classification_custom_scorer(mnist_dataset_test, mock_trained_mnist, device):
     # Arrange
-    check = SingleDatasetScalarPerformance(CustomScorer(cohen_kappa_score), metric_name='cohen_kappa_score')
+    check = SingleDatasetScalarPerformance(alternative_scorers={'kappa': CustomScorer(cohen_kappa_score)})
 
     # Act
     result = check.run(mnist_dataset_test, mock_trained_mnist, device=device, n_samples=None)
 
     # Assert
-    assert_that(result.value['score'], close_to(0.979, 0.001))
-    assert_that(result.value['metric'], equal_to('cohen_kappa_score'))
-    assert_that(result.value['reduce'], none())
-
-
-def test_classification_w_params(mnist_dataset_train, mock_trained_mnist, device):
-    # params that should run normally
-    check = SingleDatasetScalarPerformance(Precision(), torch.max, reduce_name='max')
-    check.add_condition_greater_than(0.5)
-    check.add_condition_less_or_equal(0.2)
-    result = check.run(mnist_dataset_train, mock_trained_mnist, device=device)
-    assert_that(type(result.value['score']), equal_to(float))
-    assert_that(result.value['score'], close_to(0.993, 0.001))
-    assert_that(result.conditions_results, has_items(
-        equal_condition_result(is_pass=True,
-                               details='The score Precision is 0.99',
-                               name='Score is greater than 0.5'),
-        equal_condition_result(is_pass=False,
-                               details='The score Precision is 0.99',
-                               name='Score is less or equal to 0.2'))
-    )
-
-    # params that should raise a warning but still run
-    check = SingleDatasetScalarPerformance(Accuracy(), torch.min)
-    with warnings.catch_warnings(record=True) as w:
-        warnings.simplefilter('always')
-        result = check.run(mnist_dataset_train, mock_trained_mnist, device=device)
-        assert issubclass(w[-1].category, SyntaxWarning)
-        assert isinstance(result.value['score'], float)
-
-    # params that should raise an error
-    check = SingleDatasetScalarPerformance(Precision())
-    assert_that(calling(check.run).with_args(mnist_dataset_train, mock_trained_mnist, device=device),
-                raises(DeepchecksValueError, f'The metric {Precision().__class__} return a non-scalar value, '
-                                             f'please specify a reduce function or choose a different metric'))
-
+    assert_that(result.value.Value.mean(), close_to(0.979, 0.001))
