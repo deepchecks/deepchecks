@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_vision_single_dataset_scalar_performance:
+.. _plot_vision_single_dataset_performance:
 
-Single Dataset Scalar Performance
+Single Dataset Performance
 *********************************
 
-This notebooks provides an overview for using and understanding single dataset scalar performance check.
+This notebooks provides an overview for using and understanding single dataset performance check.
 
 **Structure:**
 
@@ -16,13 +16,8 @@ This notebooks provides an overview for using and understanding single dataset s
 
 What Is the Purpose of the Check?
 =================================
-This check returns a metric result as a single scalar, which is especially useful for monitoring a model in production.
-
-Some metrics return a single score, but others return a tensor of scores.
-
-For example, Precision returns a tensor in the size of the number of classes. In that case, we will use a
-reduce function - a function that aggregates the scores into a scalar.
-In this example we use 'nanmean' that returns the mean over the classes, while ignoring NaNs.
+This check returns the results from a dict of metrics, in the format metric name: ignite.Metric, calculated for the
+given model dataset.
 
 """
 #%%
@@ -43,9 +38,9 @@ train_ds = mnist.load_dataset(train=True, object_type='VisionData')
 # -------------
 # We will run the check with the model defined above.
 #
-# The check will use the default classification metric -
-# `ignite.Accuracy <https://pytorch.org/ignite/generated/ignite.metrics.Accuracy.html>`__.
-# The default metric returns a scalar, therefore we will use the reduce function default - None.
+# The check will use the default classification metrics - `Precision
+# <https://pytorch.org/ignite/generated/ignite.metrics.precision.Precision.html#ignite.metrics.precision.Precision>`__.
+# and `Recall <https://pytorch.org/ignite/generated/ignite.metrics.recall.Recall.html#ignite.metrics.recall.Recall>`__.
 
 
 check = SingleDatasetPerformance()
@@ -62,21 +57,12 @@ result
 # The result will be displayed in a new window.
 
 #%%
-# The result value is a dictionary with the following fields:
-# score - the actual result,
-# metric - the name of metric used
-# reduce - the name of the reduce function used.
-result.value
+# Now we will run a check with a metric different from the defaults- F-1.
+from ignite.metrics import Fbeta
 
-#%%
-# Now we will run a check with parameters, to use a metric and a reduce function different from the defaults.
-# We will also pass names for them, so that the return value will look neat.
-from ignite.metrics import Precision
-from torch import nanmean
-
-check = SingleDatasetPerformance(Precision(), nanmean, metric_name='precision', reduce_name='mean')
+check = SingleDatasetPerformance(alternative_scorers={'f1': Fbeta(1)})
 result = check.run(train_ds, mnist_model)
-result.value
+result
 
 #%%
 # Define a Condition
@@ -89,5 +75,3 @@ check = SingleDatasetPerformance()
 check.add_condition_greater_than(0.5)
 result = check.run(train_ds, mnist_model)
 result.show(show_additional_outputs=False)
-
-
