@@ -13,6 +13,7 @@ from typing import Dict, List, Union
 
 import pandas as pd
 
+from deepchecks.core.checks import ReduceMixin
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.tabular.utils.messages import get_condition_passed_message
@@ -23,7 +24,7 @@ from deepchecks.utils.typing import Hashable
 __all__ = ['CategoryMismatchTrainTest']
 
 
-class CategoryMismatchTrainTest(TrainTestCheck):
+class CategoryMismatchTrainTest(TrainTestCheck, ReduceMixin):
     """Find new categories in the test set.
 
     Parameters
@@ -110,6 +111,19 @@ class CategoryMismatchTrainTest(TrainTestCheck):
         else:
             display = None
         return CheckResult({'new_categories': new_categories, 'test_count': n_test_samples}, display=display)
+
+    def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
+        """Reduce check result value.
+
+        Returns
+        -------
+        Dict[str, float]
+            number of new categories per feature
+        """
+        return {
+            feature_name: sum(categories.values())
+            for feature_name, categories in check_result.value['new_categories'].items()
+        }
 
     def add_condition_new_categories_less_or_equal(self, max_new: int = 0):
         """Add condition - require column's number of different new categories to be less or equal to threshold.

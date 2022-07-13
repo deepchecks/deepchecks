@@ -13,6 +13,7 @@ from typing import Dict
 
 import pandas as pd
 
+from deepchecks.core.checks import ReduceMixin
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.strings import format_percent
@@ -23,7 +24,7 @@ pd.options.mode.chained_assignment = None
 __all__ = ['NewLabelTrainTest']
 
 
-class NewLabelTrainTest(TrainTestCheck):
+class NewLabelTrainTest(TrainTestCheck, ReduceMixin):
     """Find new labels in test."""
 
     def run_logic(self, context: Context) -> CheckResult:
@@ -56,12 +57,15 @@ class NewLabelTrainTest(TrainTestCheck):
         new_labels = unique_test_values.difference(unique_training_values)
 
         if new_labels:
-            n_new_label = len(test_label[test_label.isin(new_labels)])
+            new_labels = test_label[test_label.isin(new_labels)]
+            n_new_label = len(new_labels)
+            samples_per_label = dict(new_labels.value_counts())
 
             result = {
                 'n_samples': n_test_samples,
                 'n_new_labels_samples': n_new_label,
-                'new_labels': sorted(new_labels)
+                'new_labels': sorted(samples_per_label.keys()),
+                'n_samples_per_new_label': samples_per_label
             }
 
             if context.with_display:
@@ -78,6 +82,16 @@ class NewLabelTrainTest(TrainTestCheck):
             result = {}
 
         return CheckResult(result, display=display)
+
+    def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
+        """Reduce check result value.
+
+        Returns
+        -------
+        Dict[str, float]
+            number of samples per each new label
+        """
+        return check_result.value['n_samples_per_new_label']
 
     def add_condition_new_labels_number_less_or_equal(self, max_new: int = 0):
         """Add condition - require label column's number of different new labels to be less or equal to the threshold.

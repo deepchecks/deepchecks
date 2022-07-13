@@ -70,7 +70,7 @@ class PercentOfNulls(SingleDatasetCheck, ReduceMixin):
         )
 
     def reduce_output(self, check_result: CheckResult) -> t.Dict[str, float]:
-        """Reduce output.
+        """Reduce check result value.
 
         Returns
         -------
