@@ -33,7 +33,7 @@ def test_read_more_link(check_class, compiled_dir: str):
     # For path "/stable/examples/..." remove the version part
     relevant_path_parts = link.path.split("/")[2:]
     file_path = os.path.join(*compiled_dir.split("/"), *relevant_path_parts)
-    if not os.path.exists(file_path):
+    if not os.path.exists(file_path) and file_path not in ignored_files:
         print(f"Check {check_class.__name__} 'read more' link didn't correspond to an html file")
         return False
     return True
