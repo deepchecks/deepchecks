@@ -17,7 +17,7 @@ from .mean_average_recall_report import MeanAverageRecallReport
 from .model_error_analysis import ModelErrorAnalysis
 from .robustness_report import RobustnessReport
 from .simple_model_comparison import SimpleModelComparison
-from .single_dataset_scalar_performance import SingleDatasetPerformance
+from .single_dataset_performance import SingleDatasetPerformance
 from .train_test_prediction_drift import TrainTestPredictionDrift
 
 __all__ = [
