@@ -29,6 +29,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import FunctionTransformer, KBinsDiscretizer, OrdinalEncoder
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.utils import shuffle
 from xgboost import XGBClassifier, XGBRegressor
 
 from deepchecks.core.check_result import CheckFailure, CheckResult
@@ -148,14 +149,16 @@ def kiss_dataset_and_model():
     return train_ds, test_ds, clf
 
 
-@pytest.fixture(scope='session')
-def wierd_classification_dataset_and_model():
-    """A small and stupid dataset and model to catch edge cases."""
-    np.random.seed(42)
+def _get_wierd_dataset_and_model(is_classification, seed=42):
+    np.random.seed(seed)
 
     def string_to_length(data: pd.DataFrame):
         data = data.copy()
-        data['weird_feature'] = data['weird_feature'].apply(len)
+        def _len_or_val(x):
+            if isinstance(x, str):
+                return len(x)
+            return x
+        data['weird_feature'] = data['weird_feature'].apply(_len_or_val)
         return data
 
     def sum_tuples(data: pd.DataFrame):
@@ -167,67 +170,49 @@ def wierd_classification_dataset_and_model():
         data = data.copy()
         data = data.fillna(0)
         return data
-
+    index_col = shuffle(list(range(500)) + [str(i) for i in range(500)])
     df = pd.DataFrame(
         {
-            'binary_feature': [np.random.choice([0, 1]) for _ in range(1000)],
-            'bool_feature': [np.random.choice([True, False]) for _ in range(1000)],
-            'fake_bool_feature': [np.random.choice([True, False, 0, 1, np.nan], p=[0.4, 0.4, 0.1, 0.05, 0.05]) for _ in range(1000)],
-            'weird_feature': [np.random.choice([1, 100, 1.0, 'ahh?', 'wee', np.nan, 0]) for _ in range(1000)],
-            '8': pd.array([np.random.choice([0, 1, 5, 6, np.nan]) for _ in range(1000)], dtype='Int64'),
-            'tuples': [np.random.choice([(0, 2), (1 ,6 ,8), (9, 1), (8, 1, 9, 8)]) for _ in range(1000)],
-            'classification_label': [np.random.choice([0, 1, 9, 8]) for _ in range(1000)],
-        })
+            'index_col': index_col,
+            # 'index_col_again': index_col,
+            'binary_feature': np.random.choice([0, 1], size=1000),
+            'bool_feature': np.random.choice([True, False], size=1000),
+            'fake_bool_feature': np.random.choice([True, False, 0, 1, np.nan], p=[0.4, 0.4, 0.1, 0.05, 0.05], size=1000),
+            'weird_feature': np.random.choice(np.array([1, 100, 1.0, 'ahh?', 'wee', np.nan, 0], dtype='object'), size=1000),
+            8: pd.array(np.random.choice([0, 1, 5, 6, np.nan], size=1000), dtype='Int64'),
+            'tuples': np.random.choice([(0, 2), (1 ,6 ,8), (9, 1), (8, 1, 9, 8)], size=1000),
+            'classification_label': np.random.choice([0, 1, 9, 8], size=1000),
+            'regression_label': np.random.random_sample(1000),
+        }
+    )
+    if is_classification:
+        df.drop(columns='regression_label', inplace=True)
+        label = 'classification_label'
+        model_to_use = AdaBoostClassifier
+    else:
+        df.drop(columns='classification_label', inplace=True)
+        label = 'regression_label'
+        model_to_use = AdaBoostRegressor
     train, test = train_test_split(df, test_size=0.33, random_state=42)
-    train_ds = Dataset(train, label='classification_label', cat_features=['binary_feature'])
-    test_ds = Dataset(test, label='classification_label', cat_features=['binary_feature'])
+    train_ds = Dataset(train, label=label, index_name='index_col', cat_features=['binary_feature'])
+    test_ds = Dataset(test, label=label, index_name='index_col', cat_features=['binary_feature'])
     clf = Pipeline([('fillna', FunctionTransformer(fillna)),
                     ('sum_tuples', FunctionTransformer(sum_tuples)),
                     ('lengthifier', FunctionTransformer(string_to_length)),
-                    ('clf', AdaBoostClassifier(random_state=0))])
+                    ('clf', model_to_use(random_state=0))])
     clf.fit(train_ds.features_columns, train_ds.label_col)
     return train_ds, test_ds, clf
+
+@pytest.fixture(scope='session')
+def wierd_classification_dataset_and_model():
+    """A big randomized value dataset for classification."""
+    return _get_wierd_dataset_and_model(is_classification=True)
 
 
 @pytest.fixture(scope='session')
 def wierd_regression_dataset_and_model():
-    """A small and stupid dataset and model to catch edge cases."""
-    np.random.seed(42)
-
-    def string_to_length(data: pd.DataFrame):
-        data = data.copy()
-        data['weird_feature'] = data['weird_feature'].apply(len)
-        return data
-
-    def sum_tuples(data: pd.DataFrame):
-        data = data.copy()
-        data['tuples'] = data['tuples'].apply(sum)
-        return data
-
-    def fillna(data: pd.DataFrame):
-        data = data.copy()
-        data = data.fillna(0)
-        return data
-
-    df = pd.DataFrame(
-        {
-            'binary_feature': [np.random.choice([0, 1]) for _ in range(1000)],
-            'bool_feature': [np.random.choice([True, False]) for _ in range(1000)],
-            'fake_bool_feature': [np.random.choice([True, False, 0, 1, np.nan], p=[0.4, 0.4, 0.1, 0.05, 0.05]) for _ in range(1000)],
-            'weird_feature': [np.random.choice([1, 100, 1.0, 'ahh?', 'wee', np.nan, 0]) for _ in range(1000)],
-            '8': pd.array([np.random.choice([0, 1, 5, 6, np.nan]) for _ in range(1000)], dtype='Int64'),
-            'tuples': [np.random.choice([(0, 2), (1 ,6 ,8), (9, 1), (8, 1, 9, 8)]) for _ in range(1000)],
-            'regression_label': np.random.random_sample(1000),
-        })
-    train, test = train_test_split(df, test_size=0.33, random_state=42)
-    train_ds = Dataset(train, label='regression_label', cat_features=['binary_feature'])
-    test_ds = Dataset(test, label='regression_label', cat_features=['binary_feature'])
-    clf = Pipeline([('fillna', FunctionTransformer(fillna)),
-                    ('sum_tuples', FunctionTransformer(sum_tuples)),
-                    ('lengthifier', FunctionTransformer(string_to_length)),
-                    ('clf', AdaBoostRegressor(random_state=0))])
-    clf.fit(train_ds.features_columns, train_ds.label_col)
-    return train_ds, test_ds, clf
+    """A big randomized value dataset for regression."""
+    return _get_wierd_dataset_and_model(is_classification=False)
 
 
 @pytest.fixture(scope='session')
