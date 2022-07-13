@@ -10,7 +10,7 @@
 #
 """Module containing a check for computing a scalar performance metric for a single dataset."""
 import numbers
-import typing as t
+from typing import Callable, Dict, Union
 import warnings
 
 import torch
@@ -61,13 +61,13 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck, ReduceMixin):
         label = batch.labels
         prediction = batch.predictions
         for scorer in self.scorers.values():
-            self.scorer.update((prediction, label))
+            scorer.update((prediction, label))
 
     def compute(self, context: Context, dataset_kind: DatasetKind.TRAIN) -> CheckResult:
         """Compute the metric result using the ignite metrics compute method and reduce to a scalar."""
         for scorer in self.scorers.values():
-            self.scorer.compute()
-        result_df = metric_results_to_df()
+            scorer.compute()
+        result_df = metric_results_to_df(self.scorers, context.get_data_by_kind(dataset_kind))
         return CheckResult(result_df)
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
