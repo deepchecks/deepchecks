@@ -65,14 +65,15 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck, ReduceMixin):
 
     def compute(self, context: Context, dataset_kind: DatasetKind.TRAIN) -> CheckResult:
         """Compute the metric result using the ignite metrics compute method and reduce to a scalar."""
-        for scorer in self.scorers.values():
-            scorer.compute()
-        result_df = metric_results_to_df(self.scorers, context.get_data_by_kind(dataset_kind))
+        results_dict = {}
+        for name, scorer in self.scorers.items():
+            results_dict[name] = scorer.compute()
+        result_df = metric_results_to_df(results_dict, context.get_data_by_kind(dataset_kind))
         return CheckResult(result_df)
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return the values of the metrics for the test dataset in {metric: value} format."""
-        reduced_output = check_result.value.apply(self.reduce).to_dict()
+        reduced_output = check_result.value.aggeregate(self.reduce).to_dict()
         return reduced_output
 
 
