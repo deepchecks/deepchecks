@@ -66,7 +66,8 @@ class PercentOfNulls(SingleDatasetCheck, ReduceMixin):
         )
         return CheckResult(
             value=dict(zip(data.columns, percent_of_nulls)),
-            display=display
+            display=display,
+            header='PercentOfNulls'
         )
 
     def reduce_output(self, check_result: CheckResult) -> t.Dict[str, float]:
@@ -81,13 +82,13 @@ class PercentOfNulls(SingleDatasetCheck, ReduceMixin):
 
     def add_condition_percent_of_nulls_not_greater_than(
         self: TPercentOfNulls,
-        threshold: float = 0.0
+        threshold: float = 0.05
     ) -> TPercentOfNulls:
         """Add condition - percent of null values in each column is not greater than the threshold.
 
         Parameters
         ----------
-        threshold : float , default: 0.0
+        threshold : float , default: 0.05
             Maximum threshold allowed.
         """
         def condition(result: t.Dict[str, float]) -> ConditionResult:
