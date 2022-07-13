@@ -127,9 +127,9 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
 
         if context.feature_importance is not None:
             feature_rank = context.feature_importance.sort_values(ascending=False).keys()
-            feature_rank = np.asarray([col for col in feature_rank if col in encoded_dataset.features])
+            feature_rank = np.asarray([col for col in feature_rank if col in encoded_dataset.features], dtype='object')
         else:
-            feature_rank = np.asarray(encoded_dataset.features)
+            feature_rank = np.asarray(encoded_dataset.features, dtype='object')
 
         scorer = context.get_single_scorer(self.user_scorer)
         weak_segments = self._weak_segments_search(dummy_model, encoded_dataset, feature_rank,

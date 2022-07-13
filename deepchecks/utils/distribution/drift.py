@@ -48,10 +48,10 @@ def get_drift_method(result_dict: Dict):
     """
     result_df = pd.DataFrame(result_dict).T
     cat_mthod_arr = result_df[result_df['Method'].isin(SUPPORTED_CATEGORICAL_METHODS)]['Method']
-    cat_method = cat_mthod_arr[0] if len(cat_mthod_arr) else None
+    cat_method = cat_mthod_arr[:1] if len(cat_mthod_arr) else None
 
     num_mthod_arr = result_df[result_df['Method'].isin(SUPPORTED_NUMERIC_METHODS)]['Method']
-    num_method = num_mthod_arr[0] if len(num_mthod_arr) else None
+    num_method = num_mthod_arr[:1] if len(num_mthod_arr) else None
 
     return cat_method, num_method
 

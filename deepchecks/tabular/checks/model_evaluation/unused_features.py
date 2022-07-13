@@ -223,13 +223,13 @@ def naive_encoder(dataset: Dataset) -> Tuple[TransformerMixin, list]:
                 ('nan_handling', SimpleImputer()),
                 ('norm', RobustScaler())
             ]),
-                dataset.numerical_features),
+                np.array(dataset.numerical_features, dtype='object')),
             ('cat',
              Pipeline([
                  ('nan_handling', SimpleImputer(strategy='most_frequent')),
                  ('encode', run_available_kwargs(OrdinalEncoder, handle_unknown='use_encoded_value', unknown_value=-1)),
                  ('norm', RobustScaler())
              ]),
-             dataset.cat_features)
+             np.array(dataset.cat_features, dtype='object'))
         ]
     ), dataset.numerical_features + dataset.cat_features
