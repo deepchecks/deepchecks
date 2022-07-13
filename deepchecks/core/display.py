@@ -12,19 +12,18 @@
 """Module with check/suite result display strategy in different envs."""
 import abc
 import io
-import sys
 import pathlib
+import sys
 import typing as t
 
 import plotly.io as pio
 from IPython.core.display import display_html
+from ipywidgets import Widget
 
 from deepchecks.core.serialization.abc import HTMLFormatter, HtmlSerializer, WidgetSerializer
 from deepchecks.utils.ipython import is_colab_env
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.strings import create_new_file_name, get_random_string, widget_to_html
-
-# from ipywidgets import Widget
 
 if t.TYPE_CHECKING:
     from wandb.sdk.data_types.base_types.wb_value import WBValue  # pylint: disable=unused-import
@@ -38,11 +37,11 @@ T = t.TypeVar('T')
 class DisplayableResult(abc.ABC):
     """Display API for the check/suite result objects."""
 
-    # @property
-    # @abc.abstractmethod
-    # def widget_serializer(self) -> WidgetSerializer[t.Any]:
-    #     """Return WidgetSerializer instance."""
-    #     raise NotImplementedError()
+    @property
+    @abc.abstractmethod
+    def widget_serializer(self) -> WidgetSerializer[t.Any]:
+        """Return WidgetSerializer instance."""
+        raise NotImplementedError()
 
     @property
     @abc.abstractmethod
@@ -181,10 +180,10 @@ class DisplayableResult(abc.ABC):
         """Display result.."""
         self.show(**kwargs)
 
-    # @abc.abstractmethod
-    # def to_widget(self, **kwargs) -> Widget:
-    #     """Serialize result into a ipywidgets.Widget instance."""
-    #     raise NotImplementedError()
+    @abc.abstractmethod
+    def to_widget(self, **kwargs) -> Widget:
+        """Serialize result into a ipywidgets.Widget instance."""
+        raise NotImplementedError()
 
     @abc.abstractmethod
     def to_json(self, **kwargs) -> str:
@@ -235,9 +234,9 @@ def display_in_gui(result: DisplayableResult):
     cannot be displayed with inlined plotlyjs library.
     """
     try:
+        from PyQt5.Qt import QUrl  # pylint: disable=import-outside-toplevel
         from PyQt5.QtWebEngineWidgets import QWebEngineView  # pylint: disable=import-outside-toplevel
         from PyQt5.QtWidgets import QApplication  # pylint: disable=import-outside-toplevel
-        from PyQt5.Qt import QUrl
     except ImportError:
         get_logger().error(
             'Missing packages in order to display result in GUI, '
@@ -248,7 +247,7 @@ def display_in_gui(result: DisplayableResult):
         filename = t.cast(str, result.save_as_html('deepchecks-report.html'))
         filepath = pathlib.Path(filename).absolute()
         try:
-            app = QApplication([*sys.argv, "--disable-web-security"])
+            app = QApplication([*sys.argv, '--disable-web-security'])
             web = QWebEngineView()
             web.setWindowTitle('deepchecks')
             web.setGeometry(0, 0, 1200, 1200)

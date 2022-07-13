@@ -23,10 +23,9 @@ from deepchecks.core.serialization.abc import HtmlSerializer
 from deepchecks.core.serialization.check_failure.html import CheckFailureSerializer as CheckFailureHtmlSerializer
 from deepchecks.core.serialization.check_result.html import CheckEmbedmentWay
 from deepchecks.core.serialization.check_result.html import CheckResultSerializer as CheckResultHtmlSerializer
-from deepchecks.core.serialization.common import STYLE_LOADER, PLOTLY_LOADER
-from deepchecks.core.serialization.common import (Html, aggregate_conditions,
-                                                  create_failures_dataframe, create_results_dataframe,
-                                                  form_output_anchor, contains_plots)
+from deepchecks.core.serialization.common import (PLOTLY_LOADER, STYLE_LOADER, Html, aggregate_conditions,
+                                                  contains_plots, create_failures_dataframe, create_results_dataframe,
+                                                  form_output_anchor)
 from deepchecks.core.serialization.dataframe.html import DataFrameSerializer
 from deepchecks.utils.html import details_tag, iframe_tag
 from deepchecks.utils.strings import get_random_string
@@ -53,10 +52,10 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
     def serialize(
         self,
         output_id: t.Optional[str] = None,
+        embed_into_iframe: bool = False,
         full_html: bool = False,
         collapsible: bool = False,
         is_for_iframe_with_srcdoc: bool = False,
-        embed_into_iframe: bool = False,
         use_javascript: bool = True,
         **kwargs,
     ) -> str:
@@ -66,21 +65,25 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         ----------
         output_id : Optional[str], default None
             unique output identifier that will be used to form anchor links
+        embed_into_iframe : bool , default False
+            whether to embed output into iframe or not
         full_html : bool, default False
             whether to return a fully independent HTML document or not
+            NOTE: this parameter is ignored if the 'embed_into_iframe' parameter
+            is set to 'True'.
         collapsible : bool, default False
-            Note: this parameter is used only when the 'full_html' parameter is
-            set to 'True' otherwise it is totally ignored.
-            It tells a serializer whether the suite result output must be
+            It tells a serializer whether the suite result output content must be
             embedded into HTML '<details>' tag or not.
+            NOTE: this parameter is used only when the 'full_html' parameter is
+            set to 'True' otherwise it is totally ignored.
         is_for_iframe_with_srcdoc : bool, default False
             anchor links, in order to work within iframe require additional prefix
             'about:srcdoc'. This flag tells function whether to add that prefix to
-            the anchor links or not
-        embed_into_iframe : bool , default False
-            whether to embed output into iframe or not
+            the anchor links or not.
+            Is automatically set to 'True' if the 'embed_into_iframe' parameter is
+            set to 'True'
         use_javascript : bool , default True
-            whether to use  javascript in an output or not.
+            whether to use javascript in an output or not.
             If set to 'False', all components that require javascript
             to work will be replaced by plain HTML components (if possible).
             For example, plotly figures will be transformed into JPEG images,

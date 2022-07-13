@@ -15,7 +15,6 @@ import textwrap
 
 from ipywidgets.embed import __html_manager_version__
 
-
 __all__ = ['DEEPCHECKS_STYLE', 'DEEPCHECKS_HTML_PAGE_STYLE']
 
 

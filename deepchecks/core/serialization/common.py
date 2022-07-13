@@ -64,6 +64,7 @@ class Html:
 
 
 def contains_plots(result) -> bool:
+    """Determine whether result contains plotly figures or not."""
     from deepchecks.core import suite  # circular import fix
 
     if isinstance(result, suite.SuiteResult):
@@ -335,8 +336,8 @@ def read_matplot_figures(drawer: t.Optional[t.Callable[[], None]] = None) -> t.L
             fig.savefig(buffer, format='jpeg')
             buffer.seek(0)
             output.append(buffer)
-            # fig.clear()
-            # plt.close(fig)
+            fig.clear()
+            plt.close(fig)
         return output
 
 
@@ -511,7 +512,7 @@ FIGURE_CREATION_SCRIPT = r"""
             var display = window.getComputedStyle(container).display;
             if (!display || display === 'none') {
                 console.log([container, 'removed!']);
-                Plotly.purge(gd);
+                Plotly.purge(container);
                 observer.disconnect();
             }
         });
@@ -552,7 +553,7 @@ PLOTLY_LOADER = """
     let require = undefined;
     let exports = undefined;
     let modules = undefined;
-    const removeGlobal = typeof window.Plotly === 'object' && window.Plotly.newPlot === 'function' ? false : true;
+    const removeGlobal = typeof window.Plotly === 'object' && typeof window.Plotly.newPlot === 'function' ? false : true;
     %plotly-script
     const Plotly = window.Plotly;
     if(removeGlobal) { window.Plotly = undefined; }

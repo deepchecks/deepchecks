@@ -230,7 +230,7 @@ def iframe_tag(
     fullscreen_btn = f'<button class="deepchecks-fullscreen-btn" onclick="{onclick}"></button>'
 
     if collapsible is False:
-        return f'{fullscreen_btn}<iframe allowfullscreen {attributes}></iframe>'
+        return f'<div style="position:relative;">{fullscreen_btn}<iframe allowfullscreen {attributes}></iframe></div>'
     else:
         return details_tag(
             title=title,

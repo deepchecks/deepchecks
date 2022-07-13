@@ -22,8 +22,9 @@ from deepchecks.core.serialization.abc import DisplayItemsSerializer as ABCDispl
 from deepchecks.core.serialization.abc import HtmlSerializer
 from deepchecks.core.serialization.common import PLOTLY_LOADER, STYLE_LOADER
 from deepchecks.core.serialization.common import Html as CommonHtml
-from deepchecks.core.serialization.common import (aggregate_conditions, figure_to_html, figure_to_html_image_tag,
-                                                  go_to_top_link, read_matplot_figures_as_html, contains_plots)
+from deepchecks.core.serialization.common import (aggregate_conditions, contains_plots, figure_to_html,
+                                                  figure_to_html_image_tag, go_to_top_link,
+                                                  read_matplot_figures_as_html)
 from deepchecks.core.serialization.dataframe.html import DataFrameSerializer as DataFrameHtmlSerializer
 from deepchecks.utils.html import details_tag, iframe_tag, tabs_widget
 
@@ -63,10 +64,10 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
         self,
         output_id: t.Optional[str] = None,
         check_sections: t.Optional[t.Sequence[CheckResultSection]] = None,
+        embed_into_iframe: bool = False,
         full_html: bool = False,
         is_for_iframe_with_srcdoc: bool = False,
         use_javascript: bool = True,
-        embed_into_iframe: bool = False,
         embed_into_suite: t.Optional[CheckEmbedmentWay] = None,
         **kwargs
     ) -> str:
@@ -79,28 +80,30 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
         check_sections : Optional[Sequence[Literal['condition-table', 'additional-output']]] , default None
             sequence of check result sections to include into the output,
             in case of 'None' all sections will be included
+        embed_into_iframe : bool , default False
+            whether to embed output into iframe or not
         full_html : bool , default False
             whether to return a fully independent HTML document or not.
+            NOTE: this parameter is ignored if the 'embed_into_iframe' parameter
+            is set to 'True'.
         is_for_iframe_with_srcdoc : bool , default False
             anchor links, in order to work within iframe require additional prefix
             'about:srcdoc'. This flag tells function whether to add that prefix to
             the anchor links or not.
-            Is automatically set to 'True' if the 'embed_into_iframe' parameter is
+            NOTE: Is automatically set to 'True' if the 'embed_into_iframe' parameter is
             set to 'True'
         use_javascript : bool , default True
-            whether to use  javascript in an output or not.
+            whether to use javascript in an output or not.
             If set to 'False', all components that require javascript
             to work will be replaced by plain HTML components (if possible).
             For example, plotly figures will be transformed into JPEG images,
             tabs widgets will be replaced by HTML '<details>' tag
-        embed_into_iframe : bool , default False
-            whether to embed output into iframe or not
         embed_into_suite : Union[Literal['suite'], Literal['suite-html-page'], None] , default None
             flag indicating that the 'CheckResult' output will be embedded
             into the 'SuiteResult' output. This flag tells the serializer
             how to serialize Plotly figures and whether navigation links
             should be included in the output.
-            This parameter does not have any effect if the 'full_html'
+            NOTE: this parameter does not have any effect if the 'full_html'
             parameter was set to 'True'
 
         Returns
@@ -229,7 +232,7 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
             include_check_name=include_check_name,
             output_id=output_id
         )).serialize()
-        return f'<section name="conditions-table">{CommonHtml.conditions_summary_header}{table}</section>'
+        return f'<section data-name="conditions-table">{CommonHtml.conditions_summary_header}{table}</section>'
 
     def prepare_additional_output(
         self,
@@ -291,7 +294,7 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
                 is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
             ))
 
-        return f'<section name="additional-output">{"".join(output)}</section>'
+        return f'<section data-name="additional-output">{"".join(output)}</section>'
 
 
 class DisplayItemsSerializer(ABCDisplayItemsSerializer[str]):

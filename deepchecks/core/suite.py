@@ -131,10 +131,10 @@ class SuiteResult(DisplayableResult):
             'application/json': self._repr_json_()
         }
 
-    # @property
-    # def widget_serializer(self) -> SuiteResultWidgetSerializer:
-    #     """Return WidgetSerializer instance."""
-    #     return SuiteResultWidgetSerializer(self)
+    @property
+    def widget_serializer(self) -> SuiteResultWidgetSerializer:
+        """Return WidgetSerializer instance."""
+        return SuiteResultWidgetSerializer(self)
 
     @property
     def html_serializer(self) -> SuiteResultHtmlSerializer:
