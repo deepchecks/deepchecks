@@ -11,7 +11,7 @@
 """module contains the PerformanceReport check - deprecated."""
 
 import warnings
-from typing import Callable, Dict, List, Union
+from typing import Callable, Dict, Union
 
 from deepchecks.tabular.checks.model_evaluation import TrainTestPerformance
 
@@ -20,9 +20,9 @@ class PerformanceReport(TrainTestPerformance):
     """Deprecated. Summarize given scores on a dataset and model."""
 
     def __init__(self,
-                 scorers: Union[List[str], Dict[str, Union[str, Callable]]] = None,
+                 alternative_scorers: Dict[str, Callable] = None,
                  reduce: Union[Callable, str] = 'mean',
                  **kwargs):
         warnings.warn('the performance report check is deprecated. use the train test performance check instead',
                       DeprecationWarning, stacklevel=2)
-        TrainTestPerformance.__init__(self, scorers, reduce, **kwargs)
+        TrainTestPerformance.__init__(self, alternative_scorers, reduce, **kwargs)
