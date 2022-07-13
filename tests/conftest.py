@@ -24,7 +24,7 @@ from hamcrest.core.matcher import Matcher
 from lightgbm import LGBMClassifier, LGBMRegressor
 from sklearn.compose import ColumnTransformer
 from sklearn.datasets import load_diabetes, load_iris
-from sklearn.ensemble import AdaBoostClassifier, GradientBoostingRegressor, RandomForestClassifier
+from sklearn.ensemble import AdaBoostClassifier, AdaBoostRegressor, GradientBoostingRegressor, RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import FunctionTransformer, KBinsDiscretizer, OrdinalEncoder
@@ -45,6 +45,7 @@ from .vision.vision_conftest import *  # pylint: disable=wildcard-import, unused
 
 set_verbosity(logging.WARNING)
 
+
 def get_expected_results_length(suite: BaseSuite, args: Dict):
     num_single = len([c for c in suite.checks.values() if isinstance(c, SingleDatasetBaseCheck)])
     num_others = len(suite.checks.values()) - num_single
@@ -59,6 +60,7 @@ def get_expected_results_length(suite: BaseSuite, args: Dict):
 
     return num_single * multiply + num_others
 
+
 def validate_suite_result(
     result: SuiteResult,
     min_length: int,
@@ -70,7 +72,7 @@ def validate_suite_result(
 
     exception_matcher = exception_matcher or only_contains(instance_of(DeepchecksBaseError))
 
-    assert_that(result.results, only_contains(any_of( # type: ignore
+    assert_that(result.results, only_contains(any_of(  # type: ignore
         instance_of(CheckFailure),
         instance_of(CheckResult),
     )))
@@ -82,7 +84,7 @@ def validate_suite_result(
     ]
 
     if len(failures) != 0:
-        assert_that(actual=failures, matcher=exception_matcher) # type: ignore
+        assert_that(actual=failures, matcher=exception_matcher)  # type: ignore
 
     for check_result in result.results:
         if isinstance(check_result, CheckResult) and check_result.have_conditions():
@@ -90,6 +92,7 @@ def validate_suite_result(
                 assert_that(cond.category, any_of(ConditionCategory.PASS,
                                                   ConditionCategory.WARN,
                                                   ConditionCategory.FAIL,))
+
 
 @pytest.fixture(scope='session')
 def multi_index_dataframe():
@@ -124,6 +127,7 @@ def kiss_dataset_and_model():
     def fillna(data: pd.DataFrame):
         data = data.copy()
         data['numeric_feature'] = data['numeric_feature'].fillna(0)
+        data['none_column'] = data['none_column'].fillna(0)
         return data
 
     df = pd.DataFrame(
@@ -131,6 +135,7 @@ def kiss_dataset_and_model():
             'binary_feature': [0, 1, 1, 0, 0, 1],
             'string_feature': ['ahhh', 'no', 'weeee', 'arg', 'eh', 'E'],
             'numeric_feature': pd.array([4, np.nan, 7, 3, 2, np.nan], dtype='Int64'),
+            'none_column': [np.nan, np.nan, np.nan, np.nan, np.nan, np.nan],
             'numeric_label': [3, 1, 5, 2, 1, 1],
         })
     train, test = train_test_split(df, test_size=0.33, random_state=42)
@@ -139,6 +144,88 @@ def kiss_dataset_and_model():
     clf = Pipeline([('fillna', FunctionTransformer(fillna)),
                     ('lengthifier', FunctionTransformer(string_to_length)),
                     ('clf', AdaBoostClassifier(random_state=0))])
+    clf.fit(train_ds.features_columns, train_ds.label_col)
+    return train_ds, test_ds, clf
+
+
+@pytest.fixture(scope='session')
+def wierd_classification_dataset_and_model():
+    """A small and stupid dataset and model to catch edge cases."""
+    np.random.seed(42)
+
+    def string_to_length(data: pd.DataFrame):
+        data = data.copy()
+        data['weird_feature'] = data['weird_feature'].apply(len)
+        return data
+
+    def sum_tuples(data: pd.DataFrame):
+        data = data.copy()
+        data['tuples'] = data['tuples'].apply(sum)
+        return data
+
+    def fillna(data: pd.DataFrame):
+        data = data.copy()
+        data = data.fillna(0)
+        return data
+
+    df = pd.DataFrame(
+        {
+            'binary_feature': [np.random.choice([0, 1]) for _ in range(1000)],
+            'bool_feature': [np.random.choice([True, False]) for _ in range(1000)],
+            'fake_bool_feature': [np.random.choice([True, False, 0, 1, np.nan], p=[0.4, 0.4, 0.1, 0.05, 0.05]) for _ in range(1000)],
+            'weird_feature': [np.random.choice([1, 100, 1.0, 'ahh?', 'wee', np.nan, 0]) for _ in range(1000)],
+            '8': pd.array([np.random.choice([0, 1, 5, 6, np.nan]) for _ in range(1000)], dtype='Int64'),
+            'tuples': [np.random.choice([(0, 2), (1 ,6 ,8), (9, 1), (8, 1, 9, 8)]) for _ in range(1000)],
+            'classification_label': [np.random.choice([0, 1, 9, 8]) for _ in range(1000)],
+        })
+    train, test = train_test_split(df, test_size=0.33, random_state=42)
+    train_ds = Dataset(train, label='classification_label', cat_features=['binary_feature'])
+    test_ds = Dataset(test, label='classification_label', cat_features=['binary_feature'])
+    clf = Pipeline([('fillna', FunctionTransformer(fillna)),
+                    ('sum_tuples', FunctionTransformer(sum_tuples)),
+                    ('lengthifier', FunctionTransformer(string_to_length)),
+                    ('clf', AdaBoostClassifier(random_state=0))])
+    clf.fit(train_ds.features_columns, train_ds.label_col)
+    return train_ds, test_ds, clf
+
+
+@pytest.fixture(scope='session')
+def wierd_regression_dataset_and_model():
+    """A small and stupid dataset and model to catch edge cases."""
+    np.random.seed(42)
+
+    def string_to_length(data: pd.DataFrame):
+        data = data.copy()
+        data['weird_feature'] = data['weird_feature'].apply(len)
+        return data
+
+    def sum_tuples(data: pd.DataFrame):
+        data = data.copy()
+        data['tuples'] = data['tuples'].apply(sum)
+        return data
+
+    def fillna(data: pd.DataFrame):
+        data = data.copy()
+        data = data.fillna(0)
+        return data
+
+    df = pd.DataFrame(
+        {
+            'binary_feature': [np.random.choice([0, 1]) for _ in range(1000)],
+            'bool_feature': [np.random.choice([True, False]) for _ in range(1000)],
+            'fake_bool_feature': [np.random.choice([True, False, 0, 1, np.nan], p=[0.4, 0.4, 0.1, 0.05, 0.05]) for _ in range(1000)],
+            'weird_feature': [np.random.choice([1, 100, 1.0, 'ahh?', 'wee', np.nan, 0]) for _ in range(1000)],
+            '8': pd.array([np.random.choice([0, 1, 5, 6, np.nan]) for _ in range(1000)], dtype='Int64'),
+            'tuples': [np.random.choice([(0, 2), (1 ,6 ,8), (9, 1), (8, 1, 9, 8)]) for _ in range(1000)],
+            'regression_label': np.random.random_sample(1000),
+        })
+    train, test = train_test_split(df, test_size=0.33, random_state=42)
+    train_ds = Dataset(train, label='regression_label', cat_features=['binary_feature'])
+    test_ds = Dataset(test, label='regression_label', cat_features=['binary_feature'])
+    clf = Pipeline([('fillna', FunctionTransformer(fillna)),
+                    ('sum_tuples', FunctionTransformer(sum_tuples)),
+                    ('lengthifier', FunctionTransformer(string_to_length)),
+                    ('clf', AdaBoostRegressor(random_state=0))])
     clf.fit(train_ds.features_columns, train_ds.label_col)
     return train_ds, test_ds, clf
 
@@ -182,10 +269,12 @@ def diabetes_split_dataset_and_model(diabetes, diabetes_model):
 @pytest.fixture(scope='session')
 def diabetes_split_dataset_and_model_custom(diabetes, diabetes_model):
     train, test = diabetes
+
     class MyModel:
         def predict(self, *args, **kwargs):
             return diabetes_model.predict(*args, **kwargs)
         # sklearn scorers in python 3.6 check fit attr
+
         def fit(self, *args, **kwargs):
             return diabetes_model.fit(*args, **kwargs)
     return train, test, MyModel()
@@ -342,12 +431,15 @@ def avocado_split_dataset_and_model() -> Tuple[Dataset, Dataset, Pipeline]:
 def iris_split_dataset_and_model_custom(iris_split_dataset_and_model) -> Tuple[Dataset, Dataset, Any]:
     """Return Iris train and val datasets and trained AdaBoostClassifier model."""
     train_ds, test_ds, clf = iris_split_dataset_and_model
+
     class MyModel:
         def predict(self, *args, **kwargs):
             return clf.predict(*args, **kwargs)
+
         def predict_proba(self, *args, **kwargs):
             return clf.predict_proba(*args, **kwargs)
         # sklearn scorers in python 3.6 check fit attr
+
         def fit(self, *args, **kwargs):
             return clf.fit(*args, **kwargs)
     return train_ds, test_ds, MyModel()
@@ -559,21 +651,22 @@ def drifted_regression_label() -> Tuple[Dataset, Dataset]:
 
     return train_ds, test_ds
 
+
 @pytest.fixture(scope='session')
 def simple_custom_plt_check():
     class DatasetSizeComparison(TrainTestCheck):
         """Check which compares the sizes of train and test datasets."""
 
         def run_logic(self, context: Context) -> CheckResult:
-            ## Check logic
+            # Check logic
             train_size = context.train.n_samples
             test_size = context.test.n_samples
 
-            ## Create the check result value
+            # Create the check result value
             sizes = {'Train': train_size, 'Test': test_size}
-            sizes_df_for_display =  pd.DataFrame(sizes, index=['Size'])
+            sizes_df_for_display = pd.DataFrame(sizes, index=['Size'])
 
-            ## Display function of matplotlib graph:
+            # Display function of matplotlib graph:
             def graph_display():
                 plt.bar(sizes.keys(), sizes.values(), color='green')
                 plt.xlabel('Dataset')

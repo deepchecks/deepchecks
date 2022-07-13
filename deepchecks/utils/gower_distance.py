@@ -103,7 +103,7 @@ def calculate_nearest_neighbors_distances(data: pd.DataFrame, cat_cols: List[Has
     # handle categorical - transform to an ordinal numpy array
     cat_data = np.asarray(cat_data.apply(lambda x: pd.factorize(x)[0])) if not cat_data.empty else np.asarray(cat_data)
     # handle numerical - calculate ranges per feature and fill numerical nan to minus np.inf
-    numeric_data = np.asarray(numeric_data.fillna(value=np.nan)).astype('float64')
+    numeric_data = np.asarray(numeric_data.fillna(value=np.nan).astype('float64'))
     numeric_feature_ranges = np.nanmax(numeric_data, axis=0) - np.nanmin(numeric_data, axis=0)
     numeric_feature_ranges = np.where(numeric_feature_ranges == 0, 1, numeric_feature_ranges)
     numeric_data = np.nan_to_num(numeric_data, nan=np.inf)

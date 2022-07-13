@@ -232,8 +232,8 @@ def calc_drift_and_plot(train_column: pd.Series,
         numerical, PSI for categorical)
         graph comparing the two distributions (density for numerical, stack bar for categorical)
     """
-    train_dist = train_column.dropna().values.reshape(-1)
-    test_dist = test_column.dropna().values.reshape(-1)
+    train_dist = np.array(train_column.dropna().values).reshape(-1)
+    test_dist =  np.array(test_column.dropna().values).reshape(-1)
 
     if len(train_dist) < min_samples or len(test_dist) < min_samples:
         raise NotEnoughSamplesError(f'For drift need {min_samples} samples but got {len(train_dist)} for train '

@@ -78,5 +78,6 @@ def test_other_feature(kiss_dataset_and_model):
     # Assert
     assert_that(result_value,  equal_to(
         {'binary_feature': 'categorical feature', 'string_feature': 'other feature',
-         'numeric_feature': 'numerical feature', 'numeric_label': 'label'}
+         'numeric_feature': 'numerical feature', 'none_feature': 'numerical feature',
+          'numeric_label': 'label'}
         ))
