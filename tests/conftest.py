@@ -170,11 +170,11 @@ def _get_wierd_dataset_and_model(is_classification, seed=42):
         data = data.copy()
         data = data.fillna(0)
         return data
-    index_col = shuffle(list(range(500)) + [str(i) for i in range(500)])
+    index_col = shuffle(list(range(500)) + [str(i) for i in range(500)], random_state=42)
     df = pd.DataFrame(
         {
             'index_col': index_col,
-            # 'index_col_again': index_col,
+            'index_col_again': index_col,
             'binary_feature': np.random.choice([0, 1], size=1000),
             'bool_feature': np.random.choice([True, False], size=1000),
             'fake_bool_feature': np.random.choice([True, False, 0, 1, np.nan], p=[0.4, 0.4, 0.1, 0.05, 0.05], size=1000),
