@@ -34,6 +34,7 @@ def test_read_more_link(check_class, compiled_dir: str):
     relevant_path_parts = link.path.split("/")[2:]
     file_path = os.path.join(*compiled_dir.split("/"), *relevant_path_parts)
     if not os.path.exists(file_path) and file_path not in ignored_files:
+        print(f"Check {file_path}")
         print(f"Check {check_class.__name__} 'read more' link didn't correspond to an html file")
         return False
     return True
@@ -53,18 +54,19 @@ def validate_dir(checks_path, examples_path):
         for file_name in files:
             if file_name != "__init__.py" and file_name.endswith(".py"):
                 check_path = os.path.join(root, file_name)
-                if check_path not in ignored_files:
-                    example_file_name = "plot_" + file_name
-                    splitted_path = check_path.split("/")
-                    submodule_name = splitted_path[1]
-                    check_type = splitted_path[-2]
-                    example_path = os.path.join(examples_path, submodule_name, check_type, example_file_name)
-                    if not os.path.exists(example_path):
-                        print(f"Check {check_path} does not have a corresponding example file")
-                        all_valid = False
-                    else:
-                        # validate_example(example_path)
-                        pass
+                if check_path in ignored_files:
+                    continue
+                example_file_name = "plot_" + file_name
+                splitted_path = check_path.split("/")
+                submodule_name = splitted_path[1]
+                check_type = splitted_path[-2]
+                example_path = os.path.join(examples_path, submodule_name, check_type, example_file_name)
+                if not os.path.exists(example_path):
+                    print(f"Check {check_path} does not have a corresponding example file")
+                    all_valid = False
+                else:
+                    # validate_example(example_path)
+                    pass
     return all_valid
 
 
