@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing a check for computing a scalar performance metric for a single dataset."""
-import numbers
+from numbers import Number
 from typing import Callable, Dict, Union
 import warnings
 
@@ -44,7 +44,7 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck, ReduceMixin):
     """
 
     def __init__(self,
-                 alternative_scorers : Dict[str, Callable] = None,
+                 alternative_scorers : Dict[str, Union[Callable, Metric]] = None,
                  reduce: Union[Callable, str] = 'mean',
                  **kwargs):
         super().__init__(**kwargs)
@@ -67,7 +67,8 @@ class SingleDatasetScalarPerformance(SingleDatasetCheck, ReduceMixin):
         """Compute the metric result using the ignite metrics compute method and reduce to a scalar."""
         results_dict = {}
         for name, scorer in self.scorers.items():
-            results_dict[name] = scorer.compute()
+            result = scorer.compute()
+            results_dict[name] = [result] if isinstance(result, Number) else result
         result_df = metric_results_to_df(results_dict, context.get_data_by_kind(dataset_kind))
         return CheckResult(result_df)
 
