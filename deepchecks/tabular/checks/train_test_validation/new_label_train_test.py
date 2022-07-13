@@ -13,8 +13,8 @@ from typing import Dict
 
 import pandas as pd
 
-from deepchecks.core.checks import ReduceMixin
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
+from deepchecks.core.checks import ReduceMixin
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.strings import format_percent
 

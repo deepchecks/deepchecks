@@ -13,12 +13,12 @@ import typing as t
 
 import plotly.express as px
 
-from deepchecks.utils.typing import Hashable
-from deepchecks.core.checks import ReduceMixin, DatasetKind
-from deepchecks.core.condition import ConditionResult, ConditionCategory
 from deepchecks.core.check_result import CheckResult
-from deepchecks.utils.strings import format_percent, format_list
-from deepchecks.tabular import SingleDatasetCheck, Context
+from deepchecks.core.checks import DatasetKind, ReduceMixin
+from deepchecks.core.condition import ConditionCategory, ConditionResult
+from deepchecks.tabular import Context, SingleDatasetCheck
+from deepchecks.utils.strings import format_list, format_percent
+from deepchecks.utils.typing import Hashable
 
 __all__ = ['PercentOfNulls']
 

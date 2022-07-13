@@ -15,8 +15,8 @@ from typing import Dict
 
 import torch
 
-from deepchecks.core.checks import ReduceMixin
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
+from deepchecks.core.checks import ReduceMixin
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_number, format_percent
