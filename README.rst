@@ -108,7 +108,7 @@ Using conda
 Head over to one of our following quickstart tutorials, and have deepchecks running on your environment in less than 5 min:
 
 - `Train-Test Validation Quickstart (loans data) <https://docs.deepchecks.com/stable/user-guide/tabular/
-  auto_tutorials/plot_quick_data_integrity.html?
+  auto_tutorials/plot_quick_train_test_validation.html?
   utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`__
 
 - `Data Integrity Quickstart (avocado sales data) <https://docs.deepchecks.com/stable/user-guide/tabular/
@@ -235,7 +235,7 @@ and/or validate your model and evaluate it.
 
 
 See more about typical usage scenarios and the built-in suites in the
-`docs <https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utme_content=what_do_you_need_in_order_to_start_validating>`__.
+`docs <https://docs.deepchecks.com/stable/getting-started/welcome.html#when-should-you-use-deepchecks>`__.
 
 
 
@@ -255,8 +255,8 @@ covering all kinds of common issues, such as:
 and `many more checks`_.
 
 .. _many more checks:
-   https://docs.deepchecks.com/en/stable/
-   api/checks/index.html
+   https://docs.deepchecks.com/stable/
+   checks_gallery/tabular.html
    ?utm_source=github.com&utm_medium=referral&
    utm_campaign=readme&utm_content=key_concepts__check
 
