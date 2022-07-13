@@ -3,7 +3,6 @@ import pandas as pd
 from hamcrest import *
 
 from deepchecks.core.check_result import CheckResult
-from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.checks.data_integrity import PercentOfNulls
 from tests.base.utils import equal_condition_result
 
@@ -24,6 +23,18 @@ def test_percent_of_nulls():
             }))
         )
     )
+
+
+def test_percent_of_nulls_without_display():
+    # Arrange
+    df = pd.DataFrame({'foo': ['a','b', np.nan, None], 'bar': [None, 'a', 'b', 'a']})
+    # Act
+    result = PercentOfNulls().run(df, with_display=False)
+    # Assert
+    assert_that(result, all_of(
+        instance_of(CheckResult),
+        has_property('display', any_of(none(), empty()))
+    ))
 
 
 def test_percent_of_nulls_with_columns_of_categorical_dtype():

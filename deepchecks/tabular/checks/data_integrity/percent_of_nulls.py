@@ -61,7 +61,7 @@ class PercentOfNulls(SingleDatasetCheck, ReduceMixin):
 
         display = (
             [px.bar(x=data.columns, y=percent_of_nulls, title='Percent Of Nulls', range_y=(0, 1))]
-            if sum(n_of_nulls) > 0
+            if sum(n_of_nulls) > 0 and context.with_display is True
             else None
         )
         return CheckResult(
