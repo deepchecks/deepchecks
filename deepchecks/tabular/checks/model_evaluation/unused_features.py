@@ -87,11 +87,11 @@ class UnusedFeatures(TrainTestCheck):
 
         # Calculate normalized variance per feature based on PCA decomposition
         pre_pca_transformer, var_col_order = naive_encoder(dataset)
-        pca_trans = PCA(n_components=len(dataset.features) // 2, random_state=self.random_state)
+        pca_trans = PCA(n_components=len(var_col_order) // 2, random_state=self.random_state)
+
         n_samples = min(10000, dataset.n_samples)
-        pca_trans.fit(pre_pca_transformer.fit_transform(
-            dataset.features_columns.sample(n_samples, random_state=self.random_state)
-        ))
+        fit_data = dataset.features_columns[var_col_order].sample(n_samples, random_state=self.random_state)
+        pca_trans.fit(pre_pca_transformer.fit_transform(fit_data.fillna(0)))
 
         feature_normed_variance = pd.Series(np.abs(pca_trans.components_).sum(axis=0), index=var_col_order)
         feature_normed_variance = feature_normed_variance / feature_normed_variance.sum()
@@ -223,13 +223,13 @@ def naive_encoder(dataset: Dataset) -> Tuple[TransformerMixin, list]:
                 ('nan_handling', SimpleImputer()),
                 ('norm', RobustScaler())
             ]),
-                dataset.numerical_features),
+                np.array(dataset.numerical_features, dtype='object')),
             ('cat',
              Pipeline([
                  ('nan_handling', SimpleImputer(strategy='most_frequent')),
                  ('encode', run_available_kwargs(OrdinalEncoder, handle_unknown='use_encoded_value', unknown_value=-1)),
                  ('norm', RobustScaler())
              ]),
-             dataset.cat_features)
+             np.array(dataset.cat_features, dtype='object'))
         ]
     ), dataset.numerical_features + dataset.cat_features
