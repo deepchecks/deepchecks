@@ -173,18 +173,16 @@ class DeepcheckScorer:
             return first_score
         return score
 
-    def validate_fitting(self, model, dataset: 'tabular.Dataset', should_return_array: bool):
+    def validate_fitting(self, model, dataset: 'tabular.Dataset'):
         """Validate given scorer for the model and dataset."""
         dataset.assert_label()
         dataset.assert_features()
         dataset = self.filter_nulls(dataset)
-        if should_return_array:
-            # In order for scorer to return array in right length need to pass him samples from all labels
-            single_label_data = dataset.data.groupby(dataset.label_name).head(1)
-            result = self._run_score(model, dataset.copy(single_label_data))
-            if not isinstance(result, np.ndarray):
-                raise errors.DeepchecksValueError(f'Expected scorer {self.name} to return np.ndarray '
-                                                  f'but got: {type(result).__name__}')
+        # In order for scorer to return result in right dimensions need to pass it samples from all labels
+        single_label_data = dataset.data.groupby(dataset.label_name).head(1)
+        result = self._run_score(model, dataset.copy(single_label_data))
+
+        if isinstance(result, np.ndarray):
             expected_types = t.cast(
                 str,
                 np.typecodes['AllInteger'] + np.typecodes['AllFloat']  # type: ignore
@@ -197,14 +195,9 @@ class DeepcheckScorer:
             if len(result) != len(single_label_data):
                 raise errors.DeepchecksValueError(f'Found {len(single_label_data)} classes, but scorer {self.name} '
                                                   f'returned only {len(result)} elements in the score array value')
-
-        else:
-            # In order for scorer to run, it must have at least one sample of each label.
-            single_label_data = dataset.data.groupby(dataset.label_name).head(1)
-            result = self._run_score(model, dataset.copy(single_label_data))
-            if not isinstance(result, Number):
-                raise errors.DeepchecksValueError(f'Expected scorer {self.name} to return number '
-                                                  f'but got: {type(result).__name__}')
+        elif not isinstance(result, Number):
+            raise errors.DeepchecksValueError(f'Expected scorer {self.name} to return number or np.ndarray '
+                                              f'but got: {type(result).__name__}')
 
 
 def task_type_check(
@@ -276,9 +269,7 @@ def get_default_scorers(model_type, class_avg: bool = True):
 
 def init_validate_scorers(scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]], t.List[str]],
                           model: BasicModel,
-                          dataset: 'tabular.Dataset',
-                          model_type: TaskType,
-                          class_avg: bool = True) -> t.List[DeepcheckScorer]:
+                          dataset: 'tabular.Dataset') -> t.List[DeepcheckScorer]:
     """Initialize scorers and return all of them as deepchecks scorers.
 
     Parameters
@@ -289,16 +280,11 @@ def init_validate_scorers(scorers: t.Union[t.Mapping[str, t.Union[str, t.Callabl
         used to validate the scorers, and calculate mode_type if None.
     dataset : Dataset
         used to validate the scorers, and calculate mode_type if None.
-    model_type : TaskType
-        model type to return scorers for
-    class_avg : bool , default True
-        for classification whether to return scorers of average score or per class
     """
-    return_array = model_type in [TaskType.MULTICLASS, TaskType.BINARY] and class_avg is False
     if isinstance(scorers, t.Mapping):
         scorers: t.List[DeepcheckScorer] = [DeepcheckScorer(scorer, name) for name, scorer in scorers.items()]
     else:
         scorers: t.List[DeepcheckScorer] = [DeepcheckScorer(scorer) for scorer in scorers]
     for s in scorers:
-        s.validate_fitting(model, dataset, return_array)
+        s.validate_fitting(model, dataset)
     return scorers
