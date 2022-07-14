@@ -529,6 +529,9 @@ def format_number(x, floating_point: int = 2) -> str:
     def add_commas(x):
         return f'{x:,}'  # yes this actually formats the number 1000 to "1,000"
 
+    if np.isnan(x):
+        return 'nan'
+
     # 0 is lost in the next if case, so we have it here as a special use-case
     if x == 0:
         return '0'
