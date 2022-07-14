@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -233,7 +233,7 @@ class RobustnessReport(SingleDatasetCheck):
         return diff_dict
 
     def _calc_mean_metrics(self, metrics_df: pd.DataFrame) -> dict:
-        metrics_df = metrics_df[['Metric', 'Value']].groupby(['Metric']).mean()
+        metrics_df = metrics_df[['Metric', 'Value']].groupby(['Metric']).aggregate('mean')
         return metrics_df.to_dict()['Value']
 
     def _create_augmentation_figures(self, dataset, base_mean_results, aug_all_data):

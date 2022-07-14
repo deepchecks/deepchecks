@@ -21,7 +21,7 @@ from sklearn.model_selection import train_test_split
 from deepchecks.core import ConditionResult
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
                                     ModelValidationError)
-from deepchecks.tabular.checks.model_evaluation import PerformanceReport
+from deepchecks.tabular.checks.model_evaluation import TrainTestPerformance
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.metric_utils.scorers import DEFAULT_REGRESSION_SCORERS, MULTICLASS_SCORERS_NON_AVERAGE
 from tests.base.utils import equal_condition_result
@@ -31,7 +31,7 @@ def test_dataset_wrong_input():
     bad_dataset = 'wrong_input'
     # Act & Assert
     assert_that(
-        calling(PerformanceReport().run).with_args(bad_dataset, None, None),
+        calling(TrainTestPerformance().run).with_args(bad_dataset, None, None),
         raises(DeepchecksValueError, 'non-empty instance of Dataset or DataFrame was expected, instead got str')
     )
 
@@ -40,7 +40,7 @@ def test_model_wrong_input(iris_labeled_dataset):
     bad_model = 'wrong_input'
     # Act & Assert
     assert_that(
-        calling(PerformanceReport().run).with_args(iris_labeled_dataset, iris_labeled_dataset, bad_model),
+        calling(TrainTestPerformance().run).with_args(iris_labeled_dataset, iris_labeled_dataset, bad_model),
         raises(
             ModelValidationError,
             r'Model supplied does not meets the minimal interface requirements. Read more about .*')
@@ -50,7 +50,7 @@ def test_model_wrong_input(iris_labeled_dataset):
 def test_dataset_no_label(iris_dataset_no_label, iris_adaboost):
     # Assert
     assert_that(
-        calling(PerformanceReport().run).with_args(iris_dataset_no_label, iris_dataset_no_label, iris_adaboost),
+        calling(TrainTestPerformance().run).with_args(iris_dataset_no_label, iris_dataset_no_label, iris_adaboost),
         raises(DeepchecksNotSupportedError,
                'Dataset does not contain a label column')
     )
@@ -60,7 +60,7 @@ def test_dataset_no_shared_label(iris_labeled_dataset):
     # Assert
     iris_dataset_2 = Dataset(iris_labeled_dataset.data, label='sepal length (cm)')
     assert_that(
-        calling(PerformanceReport().run).with_args(iris_labeled_dataset, iris_dataset_2, None),
+        calling(TrainTestPerformance().run).with_args(iris_labeled_dataset, iris_dataset_2, None),
         raises(DatasetValidationError, 'train and test requires to have and to share the same label')
     )
 
@@ -78,8 +78,8 @@ def assert_classification_result(result, dataset: Dataset):
 def test_classification(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
-    check = PerformanceReport()
-    # Act X
+    check = TrainTestPerformance()
+    # Act
     result = check.run(train, test, model)
     # Assert
     assert_classification_result(result.value, test)
@@ -89,8 +89,8 @@ def test_classification(iris_split_dataset_and_model):
 def test_classification_without_display(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
-    check = PerformanceReport()
-    # Act X
+    check = TrainTestPerformance()
+    # Act
     result = check.run(train, test, model, with_display=False)
     # Assert
     assert_classification_result(result.value, test)
@@ -104,9 +104,9 @@ def test_classification_binary(iris_dataset_single_class_labeled):
     test_ds = iris_dataset_single_class_labeled.copy(test)
     clf = RandomForestClassifier(random_state=0)
     clf.fit(train_ds.data[train_ds.features], train_ds.data[train_ds.label_name])
-    check = PerformanceReport()
+    check = TrainTestPerformance()
 
-    # Act X
+    # Act
     result = check.run(train_ds, test_ds, clf).value
     # Assert
     assert_classification_result(result, test_ds)
@@ -114,7 +114,7 @@ def test_classification_binary(iris_dataset_single_class_labeled):
 
 def test_classification_string_labels(iris_labeled_dataset):
     # Arrange
-    check = PerformanceReport()
+    check = TrainTestPerformance()
     replace_dict = {iris_labeled_dataset.label_name: {0: 'b', 1: 'e', 2: 'a'}}
     iris_labeled_dataset = Dataset(iris_labeled_dataset.data.replace(replace_dict),
                                    label=iris_labeled_dataset.label_name)
@@ -122,7 +122,7 @@ def test_classification_string_labels(iris_labeled_dataset):
     iris_adaboost = AdaBoostClassifier(random_state=0)
     iris_adaboost.fit(iris_labeled_dataset.data[iris_labeled_dataset.features],
                       iris_labeled_dataset.data[iris_labeled_dataset.label_name])
-    # Act X
+    # Act
     result = check.run(iris_labeled_dataset, iris_labeled_dataset, iris_adaboost).value
     # Assert
     assert_classification_result(result, iris_labeled_dataset)
@@ -130,12 +130,12 @@ def test_classification_string_labels(iris_labeled_dataset):
 
 def test_classification_nan_labels(iris_labeled_dataset, iris_adaboost):
     # Arrange
-    check = PerformanceReport()
+    check = TrainTestPerformance()
     data_with_nan = iris_labeled_dataset.data.copy()
     data_with_nan[iris_labeled_dataset.label_name].iloc[0] = float('nan')
     iris_labeled_dataset = Dataset(data_with_nan,
                                    label=iris_labeled_dataset.label_name)
-    # Act X
+    # Act
     result = check.run(iris_labeled_dataset, iris_labeled_dataset, iris_adaboost).value
     # Assert
     assert_classification_result(result, iris_labeled_dataset)
@@ -144,8 +144,8 @@ def test_classification_nan_labels(iris_labeled_dataset, iris_adaboost):
 def test_regression(diabetes_split_dataset_and_model):
     # Arrange
     train, test, model = diabetes_split_dataset_and_model
-    check = PerformanceReport()
-    # Act X
+    check = TrainTestPerformance()
+    # Act
     result = check.run(train, test, model).value
     # Assert
     for dataset in ['Test', 'Train']:
@@ -158,8 +158,8 @@ def test_regression(diabetes_split_dataset_and_model):
 def test_regression_reduced(diabetes_split_dataset_and_model):
     # Arrange
     train, test, model = diabetes_split_dataset_and_model
-    check = PerformanceReport()
-    # Act X
+    check = TrainTestPerformance()
+    # Act
     result = check.run(train, test, model).reduce_output()
     # Assert
     assert_that(result['Neg RMSE'], close_to(-57.412, 0.001))
@@ -170,8 +170,8 @@ def test_regression_reduced(diabetes_split_dataset_and_model):
 def test_classification_reduced(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
-    check = PerformanceReport()
-    # Act X
+    check = TrainTestPerformance()
+    # Act
     result = check.run(train, test, model).reduce_output()
     # Assert
     assert_that(result['F1'], close_to(0.913, 0.001))
@@ -182,8 +182,8 @@ def test_classification_reduced(iris_split_dataset_and_model):
 def test_classification_reduced_param(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
-    check = PerformanceReport(reduce=np.min)
-    # Act X
+    check = TrainTestPerformance(reduce=np.min)
+    # Act
     result = check.run(train, test, model).reduce_output()
     # Assert
     assert_that(result['F1'], close_to(0.857, 0.001))
@@ -194,8 +194,8 @@ def test_classification_reduced_param(iris_split_dataset_and_model):
 def test_condition_min_score_not_passed(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
-    check = PerformanceReport().add_condition_test_performance_greater_than(1)
-    # Act X
+    check = TrainTestPerformance().add_condition_test_performance_greater_than(1)
+    # Act
     result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
     # Assert
     assert_that(result, has_items(
@@ -209,8 +209,8 @@ def test_condition_min_score_not_passed(iris_split_dataset_and_model):
 def test_condition_min_score_passed(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
-    check = PerformanceReport().add_condition_test_performance_greater_than(0.5)
-    # Act X
+    check = TrainTestPerformance().add_condition_test_performance_greater_than(0.5)
+    # Act
     result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
     # Assert
     assert_that(result, has_items(
@@ -223,8 +223,8 @@ def test_condition_min_score_passed(iris_split_dataset_and_model):
 def test_condition_degradation_ratio_less_than_not_passed(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
-    check = PerformanceReport().add_condition_train_test_relative_degradation_less_than(0)
-    # Act X
+    check = TrainTestPerformance().add_condition_train_test_relative_degradation_less_than(0)
+    # Act
     result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
     # Assert
     assert_that(result, has_items(
@@ -237,8 +237,8 @@ def test_condition_degradation_ratio_less_than_not_passed(iris_split_dataset_and
 def test_condition_degradation_ratio_less_than_passed(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
-    check = PerformanceReport().add_condition_train_test_relative_degradation_less_than(1)
-    # Act X
+    check = TrainTestPerformance().add_condition_train_test_relative_degradation_less_than(1)
+    # Act
     result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
     # Assert
     assert_that(result, has_items(
@@ -251,8 +251,8 @@ def test_condition_degradation_ratio_less_than_passed(iris_split_dataset_and_mod
 def test_condition_class_performance_imbalance_ratio_less_than_not_passed(iris_split_dataset_and_model):
     # ArrangeF
     train, test, model = iris_split_dataset_and_model
-    check = PerformanceReport().add_condition_class_performance_imbalance_ratio_less_than(0)
-    # Act X
+    check = TrainTestPerformance().add_condition_class_performance_imbalance_ratio_less_than(0)
+    # Act
     result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
     # Assert
     assert_that(result, has_items(
@@ -266,8 +266,8 @@ def test_condition_class_performance_imbalance_ratio_less_than_not_passed(iris_s
 def test_condition_class_performance_imbalance_ratio_less_than_passed(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
-    check = PerformanceReport().add_condition_class_performance_imbalance_ratio_less_than(1)
-    # Act X
+    check = TrainTestPerformance().add_condition_class_performance_imbalance_ratio_less_than(1)
+    # Act
     result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
     # Assert
     assert_that(result, has_items(
@@ -281,9 +281,9 @@ def test_condition_class_performance_imbalance_ratio_less_than_passed(iris_split
 def test_classification_alt_scores_list(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
-    check = PerformanceReport(alternative_scorers=['recall_per_class',
+    check = TrainTestPerformance(scorers=['recall_per_class',
                               'f1_per_class', make_scorer(jaccard_score, average=None)])
-    # Act X
+    # Act
     result = check.run(train, test, model).reduce_output()
     # Assert
     assert_that(result['f1_per_class'], close_to(0.913, 0.001))
@@ -294,22 +294,36 @@ def test_classification_alt_scores_list(iris_split_dataset_and_model):
 def test_classification_deepchecks_scorers(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
-    check = PerformanceReport(alternative_scorers=['fpr_per_class',
-                              'fnr_per_class', 'specificity_per_class'])
-    # Act X
+    check = TrainTestPerformance(scorers=['fpr_per_class', 'fnr_per_class', 'specificity_per_class'])
+    # Act
     result = check.run(train, test, model).reduce_output()
     # Assert
     assert_that(result['fpr_per_class'], close_to(0.070, 0.001))
     assert_that(result['fnr_per_class'], close_to(0.035, 0.001))
     assert_that(result['specificity_per_class'], close_to(0.929, 0.001))
+    
 
 def test_regression_alt_scores_list(diabetes_split_dataset_and_model):
     # Arrange
     train, test, model = diabetes_split_dataset_and_model
-    check = PerformanceReport(alternative_scorers=['max_error', 'r2', 'neg_mean_absolute_error'])
-    # Act X
+    check = TrainTestPerformance(scorers=['max_error', 'r2', 'neg_mean_absolute_error'])
+    # Act
     result = check.run(train, test, model).reduce_output()
     # Assert
     assert_that(result['max_error'], close_to(-171.719, 0.001))
     assert_that(result['r2'], close_to(0.427, 0.001))
     assert_that(result['neg_mean_absolute_error'], close_to(-45.564, 0.001))
+
+
+def test_classification_alt_scores_per_class_and_macro(iris_split_dataset_and_model):
+    # Arrange
+    train, test, model = iris_split_dataset_and_model
+    check = TrainTestPerformance(scorers=['recall_per_class', 'f1_per_class', 'f1_macro', 'recall_micro'])
+    # Act
+    result = check.run(train, test, model).reduce_output()
+    # Assert
+    assert_that(result['f1_per_class'], close_to(0.913, 0.001))
+    assert_that(result['f1_macro'], close_to(result['f1_per_class'], 0.001))
+    assert_that(result['recall_per_class'], close_to(0.916, 0.001))
+    assert_that(result['recall_micro'], close_to(0.92, 0.001))
+
