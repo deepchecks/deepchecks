@@ -130,3 +130,52 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
         return self.add_condition(f'Score is greater than {threshold}', condition)
 
 
+    def add_condition_less_than(self, threshold: float, metrics: List[str] = None, class_mode: str = 'all'):
+
+        """Add condition - the result is less than the threshold.
+
+        Parameters
+        ----------
+        threshold: float
+            The threshold that the metrics result should be less than.
+
+        metrics: List[str]
+            The names of the metrics from the check to apply the condition to. If None, runs on all of the metrics that
+            were calculated in the check.
+
+       class_mode: str, default: 'all'
+            The decision rule over the classes, one of 'any', 'all', class name. If 'any', passes if at least one class
+            result is above the threshold, if 'all' passes if all of the class results are above the threshold,
+            class name, passes if the result for this specified class is above the thershold.
+        """
+
+        def condition(check_result, metrics=metrics):
+            if metrics is None:
+                metrics = list(self.scorers.keys())
+            metrics_pass = []
+
+            for metric in metrics:
+                if metric not in check_result.Metric.unique():
+                    DeepchecksValueError(f'The requested metric was not calculated, the metrics calculated in this check '
+                                         f'are: {check_result.Metric.unique()}.')
+
+                class_val = check_result[check_result.Metric == metric].groupby('Class Name').Value
+                class_lt = class_val.apply(lambda x: x < threshold)
+                if class_mode == 'all':
+                    metrics_pass.append(all(class_lt))
+                elif class_mode == 'any':
+                    metrics_pass.append(any(class_lt))
+                elif class_mode in class_val.groups:
+                    metrics_pass.append(class_lt[class_val.indices[class_mode]].item())
+                else:
+                    raise ValueError(f'class_mode expected be one of the classes in the check results or any or all, '
+                                     f'recieved {class_mode}')
+
+
+            if all(metrics_pass):
+                return ConditionResult(ConditionCategory.PASS, 'Passed for all of the mertics.')
+            else:
+                failed_metrics = ([a for a, b in zip(metrics, metrics_pass) if not b])
+                return ConditionResult(ConditionCategory.FAIL, f'Failed for metrics: {failed_metrics}')
+        return self.add_condition(f'Score is less than {threshold}', condition)
+    
