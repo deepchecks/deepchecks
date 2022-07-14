@@ -151,7 +151,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             children = (HTML(value='<p>No outputs to show.</p>'),)
         else:
             styler = create_failures_dataframe(failures).style
-            # style.hide_index() was deprecated in the lates versions and new method was added
+            # style.hide_index() was deprecated in the latest versions and new method was added
             styler = styler.hide(axis='index') if hasattr(styler, 'hide') else styler.hide_index()
             table = DataFrameSerializer(styler).serialize()
             children = (table,)
