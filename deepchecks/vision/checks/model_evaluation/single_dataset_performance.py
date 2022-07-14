@@ -10,7 +10,7 @@
 #
 """Module containing a check for computing a scalar performance metric for a single dataset."""
 from numbers import Number
-from typing import Callable, Dict, Union
+from typing import Callable, Dict, Union, List
 import warnings
 
 import torch
@@ -37,19 +37,14 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
     alternative_scorers : Dict[str, Callable], default: None
         An optional dictionary of scorer name to scorer functions.
         If none given, using default scorers
-    reduce: Union[Callable, str], default: 'mean'
-        An optional argument only used for the reduce_output function when using
-        non-average scorers.
 
     """
 
     def __init__(self,
                  alternative_scorers : Dict[str, Metric] = None,
-                 reduce: Union[Callable, str] = 'mean',
                  **kwargs):
         super().__init__(**kwargs)
         self.user_scorers = alternative_scorers
-        self.reduce = reduce
 
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind.TRAIN):
@@ -74,11 +69,19 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return the values of the metrics for the test dataset in {metric: value} format."""
-        reduced_output = check_result.value.aggeregate(self.reduce).to_dict()
-        return reduced_output
+        # Find metrics that were reduced over the classes and replace the Class Name with None
+        is_reduced_metrics = check_result.value.groupby('Metric')['Class Name'].nunique() == 1
+        reduced_metrics = is_reduced_metrics[is_reduced_metrics == True].index.to_list()
+        check_result.value.loc[check_result.value.Metric.apply(lambda x: x in reduced_metrics), 'Class Name'] = None
+
+        # Dict keys are format metric_class
+        metric_class = check_result.value.loc[:, ['Metric', 'Class Name']].aggregate(lambda x:
+                                                                                     '_'.join(filter(None, x)), axis=1)
+        output_dict = dict(zip(metric_class, check_result.value['Value']))
+        return output_dict
 
 
-    def add_condition_greater_than(self, threshold: float, metric: str, class_mode: str = 'all'):
+    def add_condition_greater_than(self, threshold: float, metrics: List[str] = None, class_mode: str = 'all'):
 
         """Add condition - the result is greater than the threshold.
 
@@ -87,8 +90,9 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
         threshold: float
             The threshold that the metrics result should be grater than.
 
-        metric: str
-            The name of the metric from the check to apply the condition to.
+        metrics: str
+            The names of the metrics from the check to apply the condition to. If None, runs on all of the metrics that
+            were calculated in the check.
 
        class_mode: str, default: 'all'
             The decision rule over the classes, one of 'any', 'all', class name. If 'any', passes if at least one class
@@ -97,30 +101,34 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
         """
 
         def condition(check_result):
+            if metrics is None:
+                metrics = self.scorers.keys()
 
-            if metric not in check_result.Metric.unique():
-                DeepchecksValueError(f'The requested metric was not calculated, the metrics calculated in this check '
-                                     f'are: {check_result.Metric.unique()}.')
+            metrics_pass = []
 
-            class_val = check_result[check_result.Metric == metric].groupby('Class Name').Value
-            class_gt = class_val.apply(lambda x: x > threshold)
+            for metric in metrics:
+                if metric not in check_result.Metric.unique():
+                    DeepchecksValueError(f'The requested metric was not calculated, the metrics calculated in this check '
+                                         f'are: {check_result.Metric.unique()}.')
 
-            if class_mode is 'all':
-                reduced_result = all(class_gt)
-                details = f'The lowest score is {min(class_val)}'
-            elif class_mode is 'any':
-                reduced_result = any(class_gt)
-                details = f'The highest score is {max(class_val)}'
-            elif class_mode in metric_class_val.groups:
-                reduced_result = class_val.get_group(class_mode) > threshold
-                details = f'The score for class {class_mode} is {class_val.get_group(class_mode)}'
+                class_val = check_result[check_result.Metric == metric].groupby('Class Name').Value
+                class_gt = class_val.apply(lambda x: x > threshold)
+
+                if class_mode is 'all':
+                    metric_pass.append(all(class_gt))
+                elif class_mode is 'any':
+                    metric_pass.append(any(class_gt))
+                elif class_mode in metric_class_val.groups:
+                    metric_pass.append(class_val.get_group(class_mode) > threshold)
+                else:
+                    ValueError(f'{for_class} should be one of the classes in the check results or any or all')
+
+
+            if all(metrics_pass):
+                return ConditionResult(ConditionCategory.PASS, 'Passed for all of the mertics.')
             else:
-                ValueError(f'{for_class} should be one of the classes in the check results or any or all')
-
-            if reduced_result:
-                return ConditionResult(ConditionCategory.PASS, details)
-            else:
-                return ConditionResult(ConditionCategory.FAIL, details)
+                failed_metrics = ([b for a, b in zip(metrics, metric_pass) if not a])
+                return ConditionResult(ConditionCategory.FAIL, f'Failed for metrics: {failed_metrics}')
         return self.add_condition(f'Score is greater than {threshold}', condition)
 
     def add_condition_less_than(self, threshold: float) -> ConditionResult:
