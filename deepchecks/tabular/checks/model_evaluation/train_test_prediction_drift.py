@@ -137,9 +137,8 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         return CheckResult(value=values_dict, display=displays, header='Train Test Prediction Drift')
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
-        """Returns prediction score."""
+        """Return prediction score."""
         return {'Prediction Drift Score': check_result.value['Drift score']}
-
 
     def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.15,
                                             max_allowed_numeric_score: float = 0.075,

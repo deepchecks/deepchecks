@@ -12,7 +12,7 @@
 
 import warnings
 from collections import OrderedDict
-from typing import List, Union, Dict
+from typing import Dict, List, Union
 
 import numpy as np
 

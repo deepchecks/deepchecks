@@ -230,7 +230,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         return CheckResult(value=values_dict, display=displays, header='Train Test Prediction Drift')
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
-        """Returns prediction drift score per prediction property."""
+        """Return prediction drift score per prediction property."""
         drift_values = [predict_property['Drift score'] for predict_property in check_result.value.values()]
         return dict(zip(list(check_result.value.keys()), drift_values))
 
