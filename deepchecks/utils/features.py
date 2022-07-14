@@ -274,7 +274,7 @@ def _calc_permutation_importance(
         default_scorers = get_default_scorers(task_type)
         scorer_name = next(iter(default_scorers))
         single_scorer_dict = {scorer_name: default_scorers[scorer_name]}
-        scorer = init_validate_scorers(single_scorer_dict, model, dataset, model_type=task_type)[0]
+        scorer = init_validate_scorers(single_scorer_dict, model, dataset)[0]
 
     start_time = time.time()
     scorer(model, dataset_sample)

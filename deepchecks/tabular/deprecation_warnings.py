@@ -107,3 +107,10 @@ warnings.filterwarnings(
     category=DeprecationWarning,
     module=r'deepchecks.*'
 )
+
+warnings.filterwarnings(
+    action='once',
+    message=r'the performance report check.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.*'
+)

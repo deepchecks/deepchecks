@@ -119,12 +119,12 @@ suite_result.show()
 # Fix the Model and Re-run a Single Check
 # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-from deepchecks.tabular.checks import PerformanceReport
+from deepchecks.tabular.checks import TrainTestPerformance
 
 gbr = GradientBoostingRegressor(n_estimators=20)
 gbr.fit(X_train, y_train)
 # Initialize the check and add an optional condition
-check = PerformanceReport().add_condition_train_test_relative_degradation_less_than(0.3)
+check = TrainTestPerformance().add_condition_train_test_relative_degradation_less_than(0.3)
 result = check.run(train_ds, test_ds, gbr)
 result.show()
 
