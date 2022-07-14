@@ -90,7 +90,7 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
         threshold: float
             The threshold that the metrics result should be grater than.
 
-        metrics: str
+        metrics: List[str]
             The names of the metrics from the check to apply the condition to. If None, runs on all of the metrics that
             were calculated in the check.
 
@@ -100,10 +100,9 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
             class name, passes if the result for this specified class is above the thershold.
         """
 
-        def condition(check_result):
+        def condition(check_result, metrics=metrics):
             if metrics is None:
-                metrics = self.scorers.keys()
-
+                metrics = list(self.scorers.keys())
             metrics_pass = []
 
             for metric in metrics:
@@ -113,31 +112,21 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
 
                 class_val = check_result[check_result.Metric == metric].groupby('Class Name').Value
                 class_gt = class_val.apply(lambda x: x > threshold)
-
-                if class_mode is 'all':
-                    metric_pass.append(all(class_gt))
-                elif class_mode is 'any':
-                    metric_pass.append(any(class_gt))
-                elif class_mode in metric_class_val.groups:
-                    metric_pass.append(class_val.get_group(class_mode) > threshold)
+                if class_mode == 'all':
+                    metrics_pass.append(all(class_gt))
+                elif class_mode == 'any':
+                    metrics_pass.append(any(class_gt))
+                elif class_mode in class_val.groups:
+                    metrics_pass.append(class_gt[class_val.indices[class_mode]].item())
                 else:
-                    ValueError(f'{for_class} should be one of the classes in the check results or any or all')
+                    raise ValueError(f'{class_mode} should be one of the classes in the check results or any or all')
 
 
             if all(metrics_pass):
                 return ConditionResult(ConditionCategory.PASS, 'Passed for all of the mertics.')
             else:
-                failed_metrics = ([b for a, b in zip(metrics, metric_pass) if not a])
+                failed_metrics = ([a for a, b in zip(metrics, metrics_pass) if not b])
                 return ConditionResult(ConditionCategory.FAIL, f'Failed for metrics: {failed_metrics}')
         return self.add_condition(f'Score is greater than {threshold}', condition)
 
-    def add_condition_less_than(self, threshold: float) -> ConditionResult:
-        """Add condition - the result is less than the threshold."""
-        def condition(check_result):
-            details = f'The score {self.metric_name} is {format_number(check_result["score"])}'
-            if check_result['score'] < threshold:
-                return ConditionResult(ConditionCategory.PASS, details)
-            else:
-                return ConditionResult(ConditionCategory.FAIL, details)
-        return self.add_condition(f'Score is less than {threshold}', condition)
 
