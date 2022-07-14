@@ -10,21 +10,18 @@
 #
 """Module containing a check for computing a scalar performance metric for a single dataset."""
 from numbers import Number
-from typing import Callable, Dict, Union, List
-import warnings
+from typing import Dict, List
 
-import torch
-from ignite.metrics import Accuracy, Metric
+from ignite.metrics import Metric
 
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
+from deepchecks.core.checks import ReduceMixin
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Batch, Context, SingleDatasetCheck
-from deepchecks.vision.metrics_utils.detection_precision_recall import ObjectDetectionAveragePrecision
+from deepchecks.vision.metrics_utils.metrics import get_scorers_dict, metric_results_to_df
 from deepchecks.vision.vision_data import TaskType
-from deepchecks.core.checks import ReduceMixin
-from deepchecks.vision.metrics_utils.metrics import get_scorers_dict, calculate_metrics, metric_results_to_df
 
 __all__ = ['SingleDatasetPerformance']
 
@@ -107,7 +104,7 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
 
             for metric in metrics:
                 if metric not in check_result.Metric.unique():
-                    DeepchecksValueError(f'The requested metric was not calculated, the metrics calculated in this check '
+                    DeepchecksValueError(f'The requested metric was not calculated, the metrics calculated in this check'
                                          f'are: {check_result.Metric.unique()}.')
 
                 class_val = check_result[check_result.Metric == metric].groupby('Class Name').Value
@@ -156,7 +153,7 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
 
             for metric in metrics:
                 if metric not in check_result.Metric.unique():
-                    DeepchecksValueError(f'The requested metric was not calculated, the metrics calculated in this check '
+                    DeepchecksValueError(f'The requested metric was not calculated, the metrics calculated in this check'
                                          f'are: {check_result.Metric.unique()}.')
 
                 class_val = check_result[check_result.Metric == metric].groupby('Class Name').Value
@@ -178,4 +175,3 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
                 failed_metrics = ([a for a, b in zip(metrics, metrics_pass) if not b])
                 return ConditionResult(ConditionCategory.FAIL, f'Failed for metrics: {failed_metrics}')
         return self.add_condition(f'Score is less than {threshold}', condition)
-    
