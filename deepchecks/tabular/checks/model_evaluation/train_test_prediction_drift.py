@@ -17,6 +17,7 @@ import numpy as np
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
+from deepchecks.core.checks import ReduceMixin
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERIC_METHODS,
@@ -27,7 +28,7 @@ __all__ = ['TrainTestPredictionDrift']
 from deepchecks.utils.strings import format_number
 
 
-class TrainTestPredictionDrift(TrainTestCheck):
+class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
     """
     Calculate prediction drift between train dataset and test dataset, using statistical measures.
 
@@ -134,6 +135,11 @@ class TrainTestPredictionDrift(TrainTestCheck):
         values_dict = {'Drift score': drift_score, 'Method': method}
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Prediction Drift')
+
+    def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
+        """Returns prediction score."""
+        return {'Prediction Drift Score': check_result.value['Drift score']}
+
 
     def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.15,
                                             max_allowed_numeric_score: float = 0.075,
