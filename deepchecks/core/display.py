@@ -14,8 +14,8 @@ import abc
 import html
 import io
 import pathlib
-import typing as t
 import sys
+import typing as t
 from multiprocessing import Process
 
 import plotly.io as pio
@@ -265,7 +265,7 @@ def display_in_gui(result: DisplayableResult):
                 sys.exit(app.exec_())
             finally:
                 filepath.unlink()
-        
+
         Process(target=app, args=(str(filepath),)).start()
 
 

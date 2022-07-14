@@ -9,16 +9,15 @@
 # ----------------------------------------------------------------------------
 #
 """Test metrics utils"""
-from hamcrest import assert_that, calling, equal_to, raises, close_to
+from hamcrest import assert_that, calling, close_to, equal_to, raises
 from sklearn.metrics import make_scorer
 from sklearn.svm import SVC
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.tabular.metric_utils.additional_metrics import false_positive_rate_metric, \
-    false_negative_rate_metric, true_negative_rate_metric
-
-from deepchecks.tabular.utils.task_type import TaskType
+from deepchecks.tabular.metric_utils.additional_metrics import (false_negative_rate_metric, false_positive_rate_metric,
+                                                                true_negative_rate_metric)
 from deepchecks.tabular.metric_utils.scorers import task_type_check
+from deepchecks.tabular.utils.task_type import TaskType
 
 
 def test_task_type_check_binary(iris_dataset_single_class, iris_random_forest_single_class):
