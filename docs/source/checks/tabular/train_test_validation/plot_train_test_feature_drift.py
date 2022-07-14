@@ -13,6 +13,7 @@ This notebooks provides an overview for using and understanding feature drift ch
 * `Generate data & model <#generate-data-model>`__
 * `Run the check <#run-the-check>`__
 * `Define a condition <#define-a-condition>`__
+* `Get an aggregated value <#get-an-aggregated-value>`__
 
 What is a feature drift?
 ========================
@@ -118,7 +119,7 @@ from deepchecks.tabular.checks import TrainTestFeatureDrift
 
 check = TrainTestFeatureDrift()
 result = check.run(train_dataset=train_dataset, test_dataset=test_dataset, model=model)
-result
+result.show()
 
 #%%
 # Observe the check's output
@@ -156,3 +157,27 @@ result.show(show_additional_outputs=False)
 #%%
 # As we see, our condition successfully detects and filters the problematic
 # features that contains a drift!
+#
+# Get an aggregated value
+# =======================
+# Using the reduce_output function we can aggregate the drift values per feature and get a collective score
+# that reflects the affect of the drift across all features on the model. In an unlabeled environment this value
+# can be a good indicator of possible deterioration in the model performance.
+#
+# We can define the type of aggregation we want to use via the `aggregation_method` parameter. Its possible values are:
+#
+# ``weighted``: The default. Weighted mean of drift scores based on each feature's feature importance. This method
+# underlying logic is that drift in a feature with a higher feature importance will have a greater effect on the model's
+# performance.
+#
+# ``mean``: Simple mean of all the features drift scores.
+#
+# ``none``: No averaging. Return a dict with a drift score for each feature.
+#
+# ``max``: Maximum of all the features drift scores.
+#
+
+check = TrainTestFeatureDrift(aggregation_method='weighted')
+result = check.run(train_dataset=train_dataset, test_dataset=test_dataset, model=model)
+result.reduce_output()
+#%%
