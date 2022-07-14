@@ -154,6 +154,7 @@ def _get_wierd_dataset_and_model(is_classification, seed=42):
 
     def string_to_length(data: pd.DataFrame):
         data = data.copy()
+
         def _len_or_val(x):
             if isinstance(x, str):
                 return len(x)
@@ -177,10 +178,12 @@ def _get_wierd_dataset_and_model(is_classification, seed=42):
             'index_col_again': index_col,
             'binary_feature': np.random.choice([0, 1], size=1000),
             'bool_feature': np.random.choice([True, False], size=1000),
-            'fake_bool_feature': np.random.choice([True, False, 0, 1, np.nan], p=[0.4, 0.4, 0.1, 0.05, 0.05], size=1000),
-            'weird_feature': np.random.choice(np.array([1, 100, 1.0, 'ahh?', 'wee', np.nan, 0], dtype='object'), size=1000),
+            'fake_bool_feature': np.random.choice([True, False, 0, 1, np.nan],
+                                                  p=[0.4, 0.4, 0.1, 0.05, 0.05], size=1000),
+            'weird_feature': np.random.choice(np.array([1, 100, 1.0, 'ahh?', 'wee', np.nan, 0],
+                                              dtype='object'), size=1000),
             8: pd.array(np.random.choice([0, 1, 5, 6, np.nan], size=1000), dtype='Int64'),
-            'tuples': np.random.choice([(0, 2), (1 ,6 ,8), (9, 1), (8, 1, 9, 8)], size=1000),
+            'tuples': np.random.choice([(0, 2), (1, 6, 8), (9, 1), (8, 1, 9, 8)], size=1000),
             'classification_label': np.random.choice([0, 1, 9, 8], size=1000),
             'regression_label': np.random.random_sample(1000),
         }
@@ -202,6 +205,7 @@ def _get_wierd_dataset_and_model(is_classification, seed=42):
                     ('clf', model_to_use(random_state=0))])
     clf.fit(train_ds.features_columns, train_ds.label_col)
     return train_ds, test_ds, clf
+
 
 @pytest.fixture(scope='session')
 def wierd_classification_dataset_and_model():
