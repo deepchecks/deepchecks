@@ -106,7 +106,6 @@ def load_fitted_model(pretrained=True):
         model = _build_model()
         train, _ = load_data()
         model.fit(train.data[train.features], train.data[train.label_name])
-        joblib.dump(model, 'wine_quality_model.sav')
     return model
 
 

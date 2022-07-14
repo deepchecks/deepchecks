@@ -44,6 +44,8 @@ def run_whole_dataset_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
                             min_meaningful_drift_score: float,
                             with_display: bool):
     """Calculate whole dataset drift."""
+    numerical_features = np.array(numerical_features, dtype='object')
+    cat_features = np.array(cat_features, dtype='object')
     domain_classifier = generate_model(numerical_features, cat_features, random_state)
 
     train_sample_df = train_dataframe.sample(sample_size, random_state=random_state)

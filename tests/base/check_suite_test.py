@@ -134,7 +134,7 @@ def test_check_suite_instantiation_by_extending_another_check_suite():
             "inner1",
             tabular_checks.MixedNulls(),
             Suite("inner2", tabular_checks.MixedDataTypes()),
-            tabular_checks.PerformanceReport()
+            tabular_checks.TrainTestPerformance()
         )
     )
 
@@ -148,7 +148,7 @@ def test_check_suite_instantiation_by_extending_another_check_suite():
         tabular_checks.IsSingleValue,
         tabular_checks.MixedNulls,
         tabular_checks.MixedDataTypes,
-        tabular_checks.PerformanceReport
+        tabular_checks.TrainTestPerformance
     ]
 
 
