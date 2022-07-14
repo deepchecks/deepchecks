@@ -301,7 +301,7 @@ def test_classification_deepchecks_scorers(iris_split_dataset_and_model):
     assert_that(result['fpr_per_class'], close_to(0.070, 0.001))
     assert_that(result['fnr_per_class'], close_to(0.035, 0.001))
     assert_that(result['specificity_per_class'], close_to(0.929, 0.001))
-    
+
 
 def test_regression_alt_scores_list(diabetes_split_dataset_and_model):
     # Arrange
