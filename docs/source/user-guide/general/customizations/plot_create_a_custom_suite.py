@@ -40,16 +40,16 @@ from deepchecks.tabular.checks import *
 # Each check can have an optional condition(/s)
 # Multiple conditions can be applied subsequentially
 new_custom_suite = Suite('Simple Suite For Model Performance',
-    ModelInfo(),
-    # use custom scorers for performance report:
-    PerformanceReport().add_condition_train_test_relative_degradation_less_than(threshold=0.15\
-                     ).add_condition_test_performance_greater_than(0.8),
-    ConfusionMatrixReport(),
-    SimpleModelComparison(simple_model_type='constant', \
+                         ModelInfo(),
+                         # use custom scorers for performance report:
+                         TrainTestPerformance().add_condition_train_test_relative_degradation_less_than(threshold=0.15 \
+                                                                                                        ).add_condition_test_performance_greater_than(0.8),
+                         ConfusionMatrixReport(),
+                         SimpleModelComparison(simple_model_type='constant', \
                           alternative_scorers={'Recall (Multiclass)': make_scorer(recall_score, average=None), \
                                                'Precision (Multiclass)': make_scorer(precision_score, average=None)} \
                          ).add_condition_gain_greater_than(0.3)
-    )
+                         )
 # Let's see the suite:
 new_custom_suite
 
