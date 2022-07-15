@@ -125,12 +125,12 @@ class ConditionResult:
     def get_icon(self):
         """Return icon of the result to display."""
         if self.category == ConditionCategory.PASS:
-            return '<div style="color: green;text-align: center">\U00002713</div>'
+            return '<span class="deepchecks-i-ok"></span>'
         elif self.category == ConditionCategory.FAIL:
-            return '<div style="color: red;text-align: center">\U00002716</div>'
+            return '<span class="deepchecks-i-error"></span>'
         elif self.category == ConditionCategory.WARN:
-            return '<div style="color: orange;text-align: center;font-weight:bold">\U00000021</div>'
-        return '<div style="color: firebrick;text-align: center;font-weight:bold">\U00002048</div>'
+            return '<span class="deepchecks-i-warn"></span>'
+        return '<span class="deepchecks-i-attention"></span>'
 
     def __repr__(self):
         """Return string representation for printing."""

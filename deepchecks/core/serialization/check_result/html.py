@@ -136,7 +136,7 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
         )
 
         content = f'{header}{summary}{condition_table}{additional_output}'
-        content = f'<article class="deepchecks">{content}</article>'
+        content = f'<article>{content}</article>'
 
         if embed_into_iframe is True:
             return self._serialize_to_iframe(content, use_javascript)
@@ -180,7 +180,7 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
                 <style>{DEEPCHECKS_HTML_PAGE_STYLE}</style>
                 {script}
             </head>
-            <body class="deepchecks">
+            <body>
             {content}
             </body>
             </html>
@@ -295,6 +295,19 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
             ))
 
         return f'<section data-name="additional-output">{"".join(output)}</section>'
+
+
+SeqCheckResults = t.Union['check_types.CheckResult', t.Sequence['check_types.CheckResult']]
+
+# TODO:  move to other a seperate package
+
+class ConditionResultsSerializer(HtmlSerializer[SeqCheckResults]):
+    
+    def __init__(self, value: SeqCheckResults, **kwargs):
+        super().__init__(value, **kwargs)
+    
+    def serialize(self, **kwargs) -> str:
+        return super().serialize(**kwargs)
 
 
 class DisplayItemsSerializer(ABCDisplayItemsSerializer[str]):
@@ -412,7 +425,8 @@ class DisplayItemsSerializer(ABCDisplayItemsSerializer[str]):
             return ''.join(
                 details_tag(
                     title=name,
-                    attrs='class="deepchecks"',
+                    attrs='class="deepchecks-collapsible"',
+                    content_attrs='class="deepchecks-collapsible-content"',
                     content=''.join(self.handle_display(
                         display_items,
                         use_javascript=use_javascript,

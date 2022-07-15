@@ -26,7 +26,8 @@ def _stringify(
     if isinstance(value, str):
         return value
     elif isinstance(value, t.Mapping):
-        return ''.join(template.format(k=k, v=v) for k, v in value.items())
+        attrs = ((k if k != 'clazz' else 'class', v) for k, v in value.items())
+        return ''.join(template.format(k=k, v=v) for k, v in attrs)
     elif value is None:
         return ''
     else:
@@ -42,7 +43,7 @@ def imagetag(
 ) -> str:
     """Return html image tag with embedded image."""
     style = _stringify(style, 'style')
-    attrs = _stringify(attrs, 'attrs')
+    attrs = _stringify(attrs, 'attrs', template='{k}="{v}"')
 
     if prevent_resize is True:
         style = f'{style}; min-width:max-content; min-height:max-content;'
@@ -81,10 +82,7 @@ def linktag(
     str
     """
     style = _stringify(style, 'style')
-    attrs = _stringify(attrs, 'attrs')
-
-    if is_for_iframe_with_srcdoc and href and href.startswith('#'):
-        href = f'about:srcdoc{href}'
+    attrs = _stringify(attrs, 'attrs', template='{k}="{v}"')
 
     if href:
         if is_for_iframe_with_srcdoc and href.startswith('#'):
@@ -108,9 +106,9 @@ def details_tag(
 ) -> str:
     """Return HTML <details> tag."""
     style = _stringify(style, 'style')
-    attrs = _stringify(attrs, 'attrs')
+    attrs = _stringify(attrs, 'attrs', template='{k}="{v}"')
     content_style = _stringify(content_style, 'content_style')
-    content_attrs = _stringify(content_attrs, 'content_attrs')
+    content_attrs = _stringify(content_attrs, 'content_attrs', template='{k}="{v}"')
 
     if id:
         attrs = f'id="{id}" {attrs}'
@@ -121,7 +119,7 @@ def details_tag(
 
     return f"""
         <details {attrs}>
-            <summary><strong>{title}</strong></summary>
+            <summary>{title}</summary>
             <div {content_attrs}>
             {content}
             </div>
@@ -222,7 +220,8 @@ def iframe_tag(
             return details_tag(
                 title=title,
                 content=f'<iframe {attributes}></iframe>',
-                attrs='open class="deepchecks"',
+                attrs='open class="deepchecks-collapsible"',
+                content_attrs='class="deepchecks-collapsible-content"',
                 content_style='padding: 0!important;'
             )
 
@@ -235,6 +234,7 @@ def iframe_tag(
         return details_tag(
             title=title,
             content=f'{fullscreen_btn}<iframe allowfullscreen {attributes}></iframe>',
-            attrs='open class="deepchecks"',
+            attrs='open class="deepchecks-collapsible"',
+            content_attrs='class="deepchecks-collapsible-content"',
             content_style='padding: 0!important;',
         )

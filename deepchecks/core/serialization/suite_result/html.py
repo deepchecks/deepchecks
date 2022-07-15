@@ -160,7 +160,8 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             title=suite_result.name,
             content=''.join(content),
             id=output_id or '',
-            attrs='open class="deepchecks"',
+            attrs='open class="deepchecks-collapsible"',
+            content_attrs='class="deepchecks-collapsible-content"',
         )
 
         if use_javascript is False:
@@ -181,7 +182,8 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             details_tag(
                 title=self.value.name,
                 content=''.join(content),
-                attrs='open class="deepchecks"',
+                attrs='open class="deepchecks-collapsible"',
+                content_attrs='class="deepchecks-collapsible-content"',
             )
             if collapsible is True
             else ''.join(content)
@@ -198,7 +200,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
                 <style>{DEEPCHECKS_HTML_PAGE_STYLE}</style>
                 {script}
             </head>
-            <body class="deepchecks">{content}</body>
+            <body>{content}</body>
             </html>
         """
 
@@ -272,10 +274,10 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             '?utm_source=display_output&utm_medium=referral&utm_campaign=suite_link'
         )
         icons = textwrap.dedent("""
-            <span style="color: green;display:inline-block">\U00002713</span> /
-            <span style="color: red;display:inline-block">\U00002716</span> /
-            <span style="color: orange;font-weight:bold;display:inline-block">\U00000021</span> /
-            <span style="color: firebrick;font-weight:bold;display:inline-block">\U00002048</span>
+            <span class="deepchecks-i-ok"></span>
+            <span class="deepchecks-i-error"></span>
+            <span class="deepchecks-i-warn"></span>
+            <span class="deepchecks-i-attention"></span>
         """)
         return textwrap.dedent(f"""
             {header}
@@ -387,7 +389,8 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         return details_tag(
             title=title,
             content=content,
-            attrs='class="deepchecks"'
+            attrs='class="deepchecks-collapsible"',
+            content_attrs='class="deepchecks-collapsible-content"'
         )
 
     def prepare_results(
@@ -449,7 +452,8 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             title=title,
             content=content,
             id=form_output_anchor(section_id) if section_id else None,
-            attrs='class="deepchecks"',
+            attrs='class="deepchecks-collapsible"',
+            content_attrs='class="deepchecks-collapsible-content"',
         )
 
 

@@ -56,10 +56,10 @@ __all__ = [
 class Html:
     """Set of commonly used HTML tags."""
 
-    bold_hr = '<hr style="background-color:black;border: 0 none;color:black;height:1px;width:100%;">'
-    light_hr = '<hr style="background-color:#eee;border: 0 none;color:#eee;height:4px;width:100%;">'
-    conditions_summary_header = '<h4><b>Conditions Summary</b></h4>'
-    additional_output_header = '<h4><b>Additional Outputs</b></h4>'
+    bold_hr = '<hr class="deepchecks-bold-divider">'
+    light_hr = '<hr class="deepchecks-light-divider">'
+    conditions_summary_header = '<h5><b>Conditions Summary</b></h5>'
+    additional_output_header = '<h5><b>Additional Outputs</b></h5>'
     empty_content_placeholder = '<p><b>&#x2713;</b>Nothing to display</p>'
 
 
@@ -122,7 +122,8 @@ def go_to_top_link(
     link = linktag(
         text='Go to top',
         href=f'#{form_output_anchor(output_id)}',
-        is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
+        is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc,
+        clazz='deepchecks-i-arrow-up'
     )
     return f'<br>{link}'
 

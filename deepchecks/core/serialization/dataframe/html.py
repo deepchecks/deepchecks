@@ -39,7 +39,7 @@ class DataFrameSerializer(HtmlSerializer[DataFrameOrStyler]):
             )
         super().__init__(value=value)
 
-    def serialize(self, classes: t.Optional[str] = 'deepchecks', **kwargs) -> str:
+    def serialize(self, classes: t.Optional[str] = 'deepchecks-table', **kwargs) -> str:
         """Serialize pandas.DataFrame instance into HTML format."""
         table_attributes = f'class="{classes}"' if classes is not None else ''
         try:
