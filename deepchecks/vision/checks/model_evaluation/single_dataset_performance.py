@@ -18,10 +18,8 @@ from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.checks import ReduceMixin
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.utils.strings import format_number
 from deepchecks.vision import Batch, Context, SingleDatasetCheck
 from deepchecks.vision.metrics_utils.metrics import get_scorers_dict, metric_results_to_df
-from deepchecks.vision.vision_data import TaskType
 
 __all__ = ['SingleDatasetPerformance']
 
@@ -68,6 +66,7 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
         """Return the values of the metrics for the test dataset in {metric: value} format."""
         # Find metrics that were reduced over the classes and replace the Class Name with None
         is_reduced_metrics = check_result.value.groupby('Metric')['Class Name'].nunique() == 1
+        # pylint: disable=singleton-comparison
         reduced_metrics = is_reduced_metrics[is_reduced_metrics == True].index.to_list()
         check_result.value.loc[check_result.value.Metric.apply(lambda x: x in reduced_metrics), 'Class Name'] = None
 
@@ -104,8 +103,8 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
 
             for metric in metrics:
                 if metric not in check_result.Metric.unique():
-                    DeepchecksValueError(f'The requested metric was not calculated, the metrics calculated in this check'
-                                         f'are: {check_result.Metric.unique()}.')
+                    DeepchecksValueError(f'The requested metric was not calculated, the metrics calculated in this'
+                                         f'check are: {check_result.Metric.unique()}.')
 
                 class_val = check_result[check_result.Metric == metric].groupby('Class Name').Value
                 class_gt = class_val.apply(lambda x: x > threshold)
@@ -153,8 +152,8 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
 
             for metric in metrics:
                 if metric not in check_result.Metric.unique():
-                    DeepchecksValueError(f'The requested metric was not calculated, the metrics calculated in this check'
-                                         f'are: {check_result.Metric.unique()}.')
+                    DeepchecksValueError(f'The requested metric was not calculated, the metrics calculated in this'
+                                         f'check are: {check_result.Metric.unique()}.')
 
                 class_val = check_result[check_result.Metric == metric].groupby('Class Name').Value
                 class_lt = class_val.apply(lambda x: x < threshold)
