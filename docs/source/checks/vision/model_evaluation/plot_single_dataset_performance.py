@@ -16,8 +16,9 @@ This notebooks provides an overview for using and understanding single dataset p
 
 What Is the Purpose of the Check?
 =================================
-This check returns the results from a dict of metrics, in the format metric name: ignite.Metric, calculated for the
-given model dataset.
+This check returns the results from a dict of metrics, in the format metric name: scorer, calculated for the
+given model dataset. The scorer can be an ignite.Metric or Sklearn scorer.
+Use this check to evaluate the performance on a single vision dataset such as a test set.
 
 """
 #%%
