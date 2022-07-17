@@ -235,8 +235,8 @@ and/or validate your model and evaluate it.
 
 
 See more about typical usage scenarios and the built-in suites in the
-`docs <https://docs.deepchecks.com/stable/getting-started/welcome.html#when-should-you-use-deepchecks?
-utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=what_do_you_need_in_order_to_start_validating>`__.
+`docs <https://docs.deepchecks.com/stable/getting-started/welcome.html?
+utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=what_do_you_need_in_order_to_start_validating#when-should-you-use-deepchecks>`__.
 
 
 🗝️ Key Concepts
