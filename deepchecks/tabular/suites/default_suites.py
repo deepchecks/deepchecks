@@ -24,11 +24,11 @@ from deepchecks.tabular.checks import (BoostingOverfit, CalibrationScore, Catego
                                        FeatureLabelCorrelation, FeatureLabelCorrelationChange,
                                        IdentifierLabelCorrelation, IndexTrainTestLeakage, IsSingleValue, MixedDataTypes,
                                        MixedNulls, ModelInferenceTime, NewLabelTrainTest, OutlierSampleDetection,
-                                       PerformanceReport, RegressionErrorDistribution, RegressionSystematicError,
-                                       RocReport, SimpleModelComparison, SpecialCharacters, StringLengthOutOfBounds,
+                                       RegressionErrorDistribution, RegressionSystematicError, RocReport,
+                                       SimpleModelComparison, SpecialCharacters, StringLengthOutOfBounds,
                                        StringMismatch, StringMismatchComparison, TrainTestFeatureDrift,
-                                       TrainTestLabelDrift, TrainTestPredictionDrift, TrainTestSamplesMix,
-                                       UnusedFeatures, WeakSegmentsPerformance, WholeDatasetDrift)
+                                       TrainTestLabelDrift, TrainTestPerformance, TrainTestPredictionDrift,
+                                       TrainTestSamplesMix, UnusedFeatures, WeakSegmentsPerformance, WholeDatasetDrift)
 
 __all__ = ['single_dataset_integrity', 'train_test_leakage', 'train_test_validation',
            'model_evaluation', 'full_suite']
@@ -344,7 +344,7 @@ def model_evaluation(alternative_scorers: Dict[str, Callable] = None,
 
     return Suite(
         'Model Evaluation Suite',
-        PerformanceReport(**kwargs).add_condition_train_test_relative_degradation_less_than(),
+        TrainTestPerformance(**kwargs).add_condition_train_test_relative_degradation_less_than(),
         RocReport(**kwargs).add_condition_auc_greater_than(),
         ConfusionMatrixReport(**kwargs),
         TrainTestPredictionDrift(**kwargs).add_condition_drift_score_less_than(),
