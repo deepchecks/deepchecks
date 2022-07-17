@@ -16,7 +16,7 @@ Accepted Image Format
 ---------------------
 All checks in deepchecks require images in the same format. They use the :func:`~deepchecks.vision.VisionData.batch_to_images` function in order to get
 the images in the correct format. For more info on the accepted formats, please visit the
-`VisionData User Guide </user-guide/vision/data-classes/VisionData.html>`__.
+:doc:`VisionData User Guide </user-guide/vision/data-classes/VisionData>`.
 
 Accepted Label Format
 ---------------------
