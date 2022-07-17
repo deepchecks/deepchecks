@@ -29,17 +29,15 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
 
     Parameters
     ----------
-    alternative_scorers : Dict[str, Callable], default: None
+    scorers : Dict[str, Callable], default: None
         An optional dictionary of scorer name to scorer functions.
         If none given, using default scorers
 
     """
 
-    def __init__(self,
-                 alternative_scorers : Dict[str, Metric] = None,
-                 **kwargs):
+    def __init__(self, scorers: Dict[str, Metric] = None, **kwargs):
         super().__init__(**kwargs)
-        self.user_scorers = alternative_scorers
+        self.user_scorers = scorers
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind.TRAIN):
         """Initialize the metric for the check, and validate task type is relevant."""

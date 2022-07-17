@@ -38,7 +38,7 @@ def test_detection_defaults(coco_train_visiondata, mock_trained_yolov5_object_de
 
 def test_detection_w_params(coco_train_visiondata, mock_trained_yolov5_object_detection, device):
     # params that should run normally
-    check = SingleDatasetPerformance(alternative_scorers={'f1': ObjectDetectionTpFpFn(evaluting_function='f1')})
+    check = SingleDatasetPerformance(scorers={'f1': ObjectDetectionTpFpFn(evaluting_function='f1')})
     result = check.run(coco_train_visiondata, mock_trained_yolov5_object_detection, device=device)
     assert_that(result.value.Value.mean(), close_to(0.505, 0.001))
 
@@ -56,7 +56,7 @@ def test_classification_defaults(mnist_dataset_train, mock_trained_mnist, device
 
 def test_classification_custom_scorer(mnist_dataset_test, mock_trained_mnist, device):
     # Arrange
-    check = SingleDatasetPerformance(alternative_scorers={'kappa': CustomScorer(cohen_kappa_score)})
+    check = SingleDatasetPerformance(scorers={'kappa': CustomScorer(cohen_kappa_score)})
 
     # Act
     result = check.run(mnist_dataset_test, mock_trained_mnist, device=device, n_samples=None)
@@ -105,7 +105,7 @@ def test_condition_greater_than(mnist_dataset_test, mock_trained_mnist, device):
 
 def test_reduce_output(mnist_dataset_test, mock_trained_mnist, device):
     # Arrange
-    check = SingleDatasetPerformance(alternative_scorers={'pr': Precision(), 'ac': Accuracy()})
+    check = SingleDatasetPerformance(scorers={'pr': Precision(), 'ac': Accuracy()})
 
     # Act
     result = check.run(mnist_dataset_test, mock_trained_mnist, device=device).reduce_output()

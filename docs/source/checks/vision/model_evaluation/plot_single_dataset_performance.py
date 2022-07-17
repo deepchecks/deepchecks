@@ -60,7 +60,7 @@ result
 # Now we will run a check with a metric different from the defaults- F-1.
 from ignite.metrics import Fbeta
 
-check = SingleDatasetPerformance(alternative_scorers={'f1': Fbeta(1)})
+check = SingleDatasetPerformance(scorers={'f1': Fbeta(1)})
 result = check.run(train_ds, mnist_model)
 result
 
