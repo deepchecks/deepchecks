@@ -25,7 +25,7 @@ __all__ = ['SingleDatasetPerformance']
 
 
 class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
-    """Calculate a performance metric as a scalar for a given model and a given dataset.
+    """Calculate performance metrics of a given model on a given dataset.
 
     Parameters
     ----------
