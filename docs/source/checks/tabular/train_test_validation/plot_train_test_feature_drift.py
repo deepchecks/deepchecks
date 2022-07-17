@@ -161,10 +161,10 @@ result.show(show_additional_outputs=False)
 # Get an aggregated value
 # =======================
 # Using the reduce_output function we can aggregate the drift values per feature and get a collective score
-# that reflects the affect of the drift across all features on the model. In an unlabeled environment this value
+# that reflects the effect of the drift across all features on the model. In an unlabeled environment this value
 # can be a good indicator of possible deterioration in the model performance.
 #
-# We can define the type of aggregation we want to use via the `aggregation_method` parameter. Its possible values are:
+# We can define the type of aggregation we want to use via the `aggregation_method` parameter. The possible values are:
 #
 # ``weighted``: The default. Weighted mean of drift scores based on each feature's feature importance. This method
 # underlying logic is that drift in a feature with a higher feature importance will have a greater effect on the model's

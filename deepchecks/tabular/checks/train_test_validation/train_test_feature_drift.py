@@ -75,10 +75,11 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceMixin):
         decides which method to use on categorical variables. Possible values are:
         "cramers_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
     aggregation_method: str, default: "weighted"
-        decides how to aggregate the drift scores for a collective score. Possible values are:
+        argument for the reduce_output functionality, decides how to aggregate the drift scores for a
+        collective score. Possible values are:
         'weighted': Weighted mean based on feature importance, provides a robust estimation on how
         much the drift will affect the model's performance.
-        'mean': Simple mean of all drift scores.
+        'mean': Mean of all drift scores.
         'none': No averaging. Return a dict with a drift score for each feature.
         'max': Maximum of all the features drift scores.
     n_samples : int , default: 100_000

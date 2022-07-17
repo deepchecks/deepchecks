@@ -231,8 +231,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return label drift score per label property."""
-        drift_values = [label_property['Drift score'] for label_property in check_result.value.values()]
-        return dict(zip(list(check_result.value.keys()), drift_values))
+        return {name: label_property['Drift score'] for name, label_property in check_result.value.items()}
 
     def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.15,
                                             max_allowed_numeric_score: float = 0.075,
