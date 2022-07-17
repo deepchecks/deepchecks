@@ -36,9 +36,9 @@ vision module, and just implement there 3 functions:
     - `batch_to_labels`: Returns a list of labels in the correct format from a batch of data.
     - `infer_on_batch`: Returns a list of a model's predictions in the correct format from a batch of data.
 
-Please see specific examples in the `VisionData </user-guide/vision/data-classes/VisionData.html>`__,
-`ClassificationData </user-guide/vision/data-classes/ClassificationData.html>`__,
-and `DetectionData </user-guide/vision/data-classes/DetectionData.html>`_ classes.
+Please see specific examples in the :doc:`VisionData </user-guide/vision/data-classes/VisionData>`,
+:doc:`ClassificationData </user-guide/vision/data-classes/ClassificationData>`,
+and :doc:`DetectionData </user-guide/vision/data-classes/DetectionData>` classes.
 
 Validating Your Data Class Implementation
 =========================================

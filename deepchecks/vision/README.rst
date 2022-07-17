@@ -93,14 +93,11 @@ Using conda
 
 Check out the following tutorials for a quick start with deepchecks for CV:
 
-- `Deepchecks Example - Simple Image Classification Tutorial <https://docs.deepchecks.com/en/stable/tutorials/vision/examples/plot_simple_classification_tutorial.html\
-  ?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`_
+- `Deepchecks for Simple Image Classification Tutorial (for data without model) <https://docs.deepchecks.com/stable/user-guide/vision/auto_tutorials/plot_simple_classification_tutorial.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`_
 
-- `Deepchecks for Object Detection Tutorial <https://docs.deepchecks.com/en/stable/tutorials/vision/examples/plot_detection_tutorial.html \
-  ?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`_
+- `Deepchecks for Object Detection Tutorial <https://docs.deepchecks.com/stable/user-guide/vision/auto_tutorials/plot_detection_tutorial.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`_
 
-- `Deepchecks for Classification Tutorial <https://docs.deepchecks.com/en/stable/tutorials/vision/examples/plot_classification_tutorial.html \
-  ?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`_
+- `Deepchecks for Classification Tutorial <https://docs.deepchecks.com/stable/user-guide/vision/auto_tutorials/plot_classification_tutorial.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`_
 
 
 📊 Check Examples
@@ -121,7 +118,7 @@ Model Evaluation Checks
 ------------------------
 
 Evaluation checks help you to validate your model's performance.
-See all evaluation checks `here <https://docs.deepchecks.com/en/stable/examples/vision/checks/performance/examples/index.html
+See all evaluation checks `here <https://docs.deepchecks.com/en/stable/api/generated/deepchecks.vision.checks.model_evaluation.html
 ?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=documentation>`_.
 Example for a model evaluation check calculating mAP:
 
@@ -144,8 +141,7 @@ Example for a model evaluation check calculating mAP:
       <h4>Mean Average Precision Report</h4>
       <p>Summarize mean average precision metrics on a dataset
       and model per IoU and area range.</p>
-      <a href="https://https://docs.deepchecks.com/en/stable/examples/vision/checks/performance/examples/plot_mean_average_precision_report.html
-      utm_source=display_output&utm_medium=referral&utm_campaign=readme_check_link" target="_blank">
+      <a href="https://docs.deepchecks.com/en/stable/checks_gallery/vision/model_evaluation/plot_mean_average_precision_report.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=documentation" target="_blank">
       Read More...</a>
       <h5>Additional Outputs</h5>
       <table id="T_908a2_">
@@ -220,7 +216,10 @@ Example of a property distribution check and its output:
  .. raw:: html
 
       <h4>Image Property Outliers</h4>
-         <p>Find outliers images with respect to the given properties. <a           href="https://docs.deepchecks.com/dev/examples/vision/checks/distribution/image_property_outliers.html?utm_source=display_output&amp;utm_medium=referral&amp;utm_campaign=check_link" target="_blank">Read More...</a></p>
+         <p>
+            Find outliers images with respect to the given properties.
+            <a href="https://docs.deepchecks.com/en/stable/checks_gallery/vision/data_integrity/plot_image_property_outliers.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=documentation" target="_blank">Read More...</a>
+         </p>
          <h5>Additional Outputs</h5>
       <h3><b>Property "Brightness"</b></h3>
       <div>

@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Test functions of the train test drift."""
-from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_length
+from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_length, has_item
 
 from deepchecks.tabular.checks import TrainTestFeatureDrift
 from tests.base.utils import equal_condition_result
@@ -46,6 +46,43 @@ def test_drift_with_model(drifted_data_and_model):
         ),
     }))
     assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_weighted_aggregation_drift_with_model(drifted_data_and_model):
+    # Arrange
+    train, test, model = drifted_data_and_model
+    check = TrainTestFeatureDrift(categorical_drift_method='PSI', aggregation_method='weighted')
+
+    # Act
+    aggregated_result = check.run(train, test, model).reduce_output()
+    # Assert
+    assert_that(aggregated_result.keys(), has_item('Weighted Drift Score'))
+    assert_that(aggregated_result['Weighted Drift Score'], close_to(0.1195, 0.01))
+
+
+def test_none_aggregation_drift_with_model(drifted_data_and_model):
+    # Arrange
+    train, test, model = drifted_data_and_model
+    check = TrainTestFeatureDrift(categorical_drift_method='PSI', aggregation_method='none')
+
+    # Act
+    aggregated_result = check.run(train, test, model).reduce_output()
+    # Assert
+    assert_that(aggregated_result.keys(), has_length(4))
+    assert_that(aggregated_result.keys(), has_item('numeric_with_drift'))
+    assert_that(aggregated_result['numeric_with_drift'], close_to(0.343, 0.01))
+
+
+def test_weighted_aggregation_drift_no_model(drifted_data_and_model):
+    # Arrange
+    train, test, model = drifted_data_and_model
+    check = TrainTestFeatureDrift(categorical_drift_method='PSI')
+    # Act
+    aggregated_result = check.run(train, test).reduce_output()
+    # Assert
+    assert_that(aggregated_result.keys(), has_length(1))
+    assert_that(aggregated_result.keys(), has_item('Mean Drift Score'))
+    assert_that(aggregated_result['Mean Drift Score'], close_to(0.1475, 0.01))
 
 
 def test_drift_with_model_without_display(drifted_data_and_model):
