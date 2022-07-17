@@ -93,11 +93,11 @@ Using conda
 
 Check out the following tutorials for a quick start with deepchecks for CV:
 
-- `Deepchecks for Simple Image Classification Tutorial (for data without model) <https://docs.deepchecks.com/stable/user-guide/vision/auto_tutorials/plot_simple_classification_tutorial.html>`_
+- `Deepchecks for Simple Image Classification Tutorial (for data without model) <https://docs.deepchecks.com/stable/user-guide/vision/auto_tutorials/plot_simple_classification_tutorial.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`_
 
-- `Deepchecks for Object Detection Tutorial <https://docs.deepchecks.com/stable/user-guide/vision/auto_tutorials/plot_detection_tutorial.html>`_
+- `Deepchecks for Object Detection Tutorial <https://docs.deepchecks.com/stable/user-guide/vision/auto_tutorials/plot_detection_tutorial.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`_
 
-- `Deepchecks for Classification Tutorial <https://docs.deepchecks.com/stable/user-guide/vision/auto_tutorials/plot_classification_tutorial.html>`_
+- `Deepchecks for Classification Tutorial <https://docs.deepchecks.com/stable/user-guide/vision/auto_tutorials/plot_classification_tutorial.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`_
 
 
 📊 Check Examples
@@ -141,7 +141,7 @@ Example for a model evaluation check calculating mAP:
       <h4>Mean Average Precision Report</h4>
       <p>Summarize mean average precision metrics on a dataset
       and model per IoU and area range.</p>
-      <a href="https://docs.deepchecks.com/en/stable/checks_gallery/vision/model_evaluation/plot_mean_average_precision_report.html#sphx-glr-checks-gallery-vision-model-evaluation-plot-mean-average-precision-report-py" target="_blank">
+      <a href="https://docs.deepchecks.com/en/stable/checks_gallery/vision/model_evaluation/plot_mean_average_precision_report.html" target="_blank">
       Read More...</a>
       <h5>Additional Outputs</h5>
       <table id="T_908a2_">
@@ -218,7 +218,7 @@ Example of a property distribution check and its output:
       <h4>Image Property Outliers</h4>
          <p>
             Find outliers images with respect to the given properties.
-            <a href="https://docs.deepchecks.com/en/stable/checks_gallery/vision/data_integrity/plot_image_property_outliers.html#sphx-glr-checks-gallery-vision-data-integrity-plot-image-property-outliers-py" target="_blank">Read More...</a>
+            <a href="https://docs.deepchecks.com/en/stable/checks_gallery/vision/data_integrity/plot_image_property_outliers.html" target="_blank">Read More...</a>
          </p>
          <h5>Additional Outputs</h5>
       <h3><b>Property "Brightness"</b></h3>
