@@ -109,7 +109,7 @@ def test_displaymap_serialization_to_html_without_javascript():
     soup = BeautifulSoup(output[0], 'html.parser')
 
     details_tags = soup.select('details')
-    summary_tags = [it.select_one('summary > strong').text for it in details_tags]
+    summary_tags = [it.select_one('summary').text for it in details_tags]
 
     assert_that(details_tags, has_length(len(value)))
     assert_that(summary_tags, contains_exactly(*[equal_to(k) for k in value.keys()]))
@@ -206,6 +206,8 @@ def test_displaymap_serialization_to_json():
                     'type': 'images',
                     'payload': instance_of(list)
                 }))
+            else:
+                raise RuntimeError(f'Unknown display item type - {type(it)}')
 
         assert_that(payload, has_entry(name, contains_exactly(*items_assertion)))
 

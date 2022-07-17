@@ -160,7 +160,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             title=suite_result.name,
             content=''.join(content),
             id=output_id or '',
-            attrs='open class="deepchecks-collapsible"',
+            attrs='open class="deepchecks-collapsible" data-name="suite-result"',
             content_attrs='class="deepchecks-collapsible-content"',
         )
 
@@ -212,6 +212,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         content = iframe_tag(
             title=self.value.name,
             collapsible=True,
+            clazz='deepchecks-resizable',
             srcdoc=self._serialize_to_full_html(
                 content,
                 collapsible=False,
@@ -389,7 +390,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         return details_tag(
             title=title,
             content=content,
-            attrs='class="deepchecks-collapsible"',
+            attrs='class="deepchecks-collapsible" data-name="check-results-list"',
             content_attrs='class="deepchecks-collapsible-content"'
         )
 
@@ -427,7 +428,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             content = '<p>No outputs to show.</p>'
         else:
             section_id = (
-                f'{output_id}-section-{get_random_string()}'
+                f'{get_random_string()}-{output_id}'
                 if output_id is not None
                 else None
             )
@@ -452,7 +453,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             title=title,
             content=content,
             id=form_output_anchor(section_id) if section_id else None,
-            attrs='class="deepchecks-collapsible"',
+            attrs='class="deepchecks-collapsible" data-name="check-results-list"',
             content_attrs='class="deepchecks-collapsible-content"',
         )
 

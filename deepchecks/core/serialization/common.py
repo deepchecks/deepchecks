@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-# pylint: disable=unused-import,import-outside-toplevel, protected-access
+# pylint: disable=unused-import,import-outside-toplevel, protected-access, # noqa: E501
 """Module with common utilities routines for serialization subpackage."""
 import io
 import json

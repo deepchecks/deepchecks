@@ -136,7 +136,7 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
         )
 
         content = f'{header}{summary}{condition_table}{additional_output}'
-        content = f'<article>{content}</article>'
+        content = f'<article data-name="check-result">{content}</article>'
 
         if embed_into_iframe is True:
             return self._serialize_to_iframe(content, use_javascript)
@@ -150,7 +150,7 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
         if use_javascript is False:
             return f'<style>{DEEPCHECKS_STYLE}</style>{content}'
 
-        if not contains_plots(self.value):
+        if not contains_plots(self.value) or 'additional-output' not in sections_to_include:
             return f'{STYLE_LOADER}{content}'
 
         return f'{STYLE_LOADER}{PLOTLY_LOADER}{content}'
@@ -159,7 +159,8 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
         content = iframe_tag(
             title=self.value.get_header(),
             srcdoc=self._serialize_to_full_html(content, use_javascript),
-            collapsible=False
+            collapsible=False,
+            clazz='deepchecks-resizable'
         )
         return (
             f'{STYLE_LOADER}{content}'
@@ -297,19 +298,6 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
         return f'<section data-name="additional-output">{"".join(output)}</section>'
 
 
-SeqCheckResults = t.Union['check_types.CheckResult', t.Sequence['check_types.CheckResult']]
-
-# TODO:  move to other a seperate package
-
-class ConditionResultsSerializer(HtmlSerializer[SeqCheckResults]):
-    
-    def __init__(self, value: SeqCheckResults, **kwargs):
-        super().__init__(value, **kwargs)
-    
-    def serialize(self, **kwargs) -> str:
-        return super().serialize(**kwargs)
-
-
 class DisplayItemsSerializer(ABCDisplayItemsSerializer[str]):
     """CheckResult display items serializer."""
 
@@ -394,8 +382,6 @@ class DisplayItemsSerializer(ABCDisplayItemsSerializer[str]):
                 auto_play=False,
                 include_plotlyjs=False,
                 full_html=False,
-                default_width='100%',
-                default_height=525,
                 validate=True,
             )
 

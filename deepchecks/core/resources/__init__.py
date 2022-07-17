@@ -8,6 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+# noqa: E501
 """Package for common static resources."""
 import os
 import pkgutil
@@ -182,26 +183,30 @@ DEEPCHECKS_STYLE = """
 }
 
 .deepchecks-i-ok::after {
-    color: green;
-    font-weight: bold;
+    color: green!important;
+    font-weight: bold!important;
+    font-size: 1em!important;
     content: var(--deepchecks-i-ok);
 }
 
 .deepchecks-i-error::after {
-    color: red;
-    font-weight: bold;
+    color: red!important;
+    font-weight: bold!important;
+    font-size: 1em!important;
     content: var(--deepchecks-i-error);
 }
 
 .deepchecks-i-warn::after {
-    color: orange;
-    font-weight: bold;
+    color: orange!important;
+    font-weight: bold!important;
+    font-size: 1em!important;
     content: var(--deepchecks-i-warn);
 }
 
 .deepchecks-i-attention::after {
-    color: firebrick;
-    font-weight: bold;
+    color: firebrick!important;
+    font-weight: bold!important;
+    font-size: 1em!important;
     content: var(--deepchecks-i-attention);
 }
 
@@ -221,6 +226,11 @@ DEEPCHECKS_STYLE = """
     color: var(--deepchecks-color-light)!important;
     height: 4px!important;
     width: 100%!important;
+}
+
+.deepchecks-resizable {
+    boorder-style: none;
+    resize: vertical!important;
 }
 """
 
@@ -276,12 +286,6 @@ body {
     color: var(--deepchecks-font-color);
     background-color: white;
     padding: 0 1rem 0 1rem;
-}
-
-@media (width >= 1000px) { 
-    body {
-        padding: 20px 10vw 0 10vw;
-    }
 }
 
 h1, h2, h3, h4, h5, h6 {

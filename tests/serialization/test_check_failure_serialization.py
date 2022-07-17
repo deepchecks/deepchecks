@@ -12,8 +12,7 @@
 import typing as t
 
 import wandb
-from hamcrest import (all_of, any_of, assert_that, calling, contains_string, equal_to, has_entry, has_length,
-                      has_property, instance_of, only_contains, raises)
+from hamcrest import *
 from ipywidgets import HTML, VBox
 
 from deepchecks.core.check_result import CheckFailure

@@ -208,6 +208,9 @@ def iframe_tag(
     if 'srcdoc' in attributes:
         attributes['srcdoc'] = html.escape(attributes['srcdoc'])
 
+    if 'clazz' in attributes:
+        attributes['class'] = attributes.pop('clazz')
+
     attributes = '\n'.join([
         f'{k}="{v}"'
         for k, v in attributes.items()

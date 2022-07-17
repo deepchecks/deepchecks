@@ -16,20 +16,17 @@ import pandas as pd
 import wandb
 from bs4 import BeautifulSoup
 from hamcrest import *
-from ipywidgets import HTML, Tab, VBox
+from ipywidgets import HTML, VBox
 from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
 
 from deepchecks.core.check_result import DisplayMap
 from deepchecks.core.serialization.check_result.html import CheckResultSerializer as HtmlSerializer
-from deepchecks.core.serialization.check_result.html import DisplayItemsSerializer as HtmlDisplayItemsSerializer
 from deepchecks.core.serialization.check_result.json import CheckResultSerializer as JsonSerializer
-from deepchecks.core.serialization.check_result.json import DisplayItemsSerializer as JsonDisplayItemsSerializer
 from deepchecks.core.serialization.check_result.wandb import CheckResultSerializer as WandbSerializer
 from deepchecks.core.serialization.check_result.widget import CheckResultSerializer as WidgetSerializer
-from deepchecks.core.serialization.check_result.widget import DisplayItemsSerializer as WidgetDisplayItemsSerializer
 from deepchecks.utils.strings import get_random_string
-from tests.common import DummyCheck, create_check_result, create_check_result_display
+from tests.common import DummyCheck, create_check_result
 
 # ===========================================
 
@@ -52,17 +49,12 @@ def test_html_serialization():
     output = HtmlSerializer(result).serialize()
 
     assert_that(output, instance_of(str))
-
     soup = BeautifulSoup(output, 'html.parser')
-    deepchecks_style = soup.select_one('script#deepchecks-style')
-    plotly_src = soup.select_one('script#deepchecks-plotly-src')
-    deepchecks_script = soup.select_one('script#deepchecks-plotly-src')
-
-    assert_that(deepchecks_style, not_none())
-    assert_that(plotly_src, not_none())
-    assert_that(deepchecks_script, not_none())
 
     assert_check_result_html_output_structure(soup)
+    assert_style_loader(soup, 'presence')
+    assert_plotly_loader(soup, 'presence')
+    assert_chart_initializers(soup, 'presence')
 
 
 def test_html_serialization_without_javascript():
@@ -94,6 +86,9 @@ def test_html_serialization_with__output_id__parameter():
 
     soup = BeautifulSoup(output, 'html.parser')
     assert_check_result_html_output_structure(soup)
+    assert_style_loader(soup, 'absence')
+    assert_plotly_loader(soup, 'absence')
+    assert_chart_initializers(soup, 'presence')
 
     headers = [it for it in soup.select('h3[id]') if it.get('id', '').endswith(output_id)]
     links = [it for it in soup.select('a[href]') if it.get('href', '').endswith(output_id)]
@@ -104,25 +99,55 @@ def test_html_serialization_with__output_id__parameter():
     assert_that(go_to_top_links, has_length(greater_than(0)))
 
 
+def test_html_serialization_without_display_items_and_condition_results():
+    check_result = create_check_result(include_conditions=False, include_display=False)
+    output = HtmlSerializer(check_result).serialize()
 
-def test_check_result_without_display_and_conditions_into_html_serialization():
-    check_result_without_conditions = create_check_result(include_conditions=False, include_display=False)
-    output_without_conditions = HtmlSerializer(check_result_without_conditions).serialize()
+    assert_that(output, instance_of(str))
 
-    assert_that(
-        output_without_conditions,
-        all_of(instance_of(str), has_length(greater_than(0)))
+    soup = BeautifulSoup(output, 'html.parser')
+    assert_check_result_html_output_structure(
+        soup,
+        assert_additional_ouput='presence',  # section tag still will be present but it will be empty
+        assert_condition_table='absence'
     )
+    assert_style_loader(soup, 'presence')
+    assert_plotly_loader(soup, 'absence')
+    assert_chart_initializers(soup, 'absence')
 
-    full_check_result = create_check_result()
-    full_output = HtmlSerializer(full_check_result).serialize()
 
-    assert_that(
-        full_output,
-        all_of(instance_of(str), has_length(greater_than(0)))
+def test_html_serialization_without_additional_output_section():
+    check_result = create_check_result()
+    output = HtmlSerializer(check_result).serialize(check_sections=['condition-table'])
+
+    assert_that(output, instance_of(str))
+
+    soup = BeautifulSoup(output, 'html.parser')
+    assert_check_result_html_output_structure(
+        soup,
+        assert_additional_ouput='absence',
+        assert_condition_table='presence'
     )
+    assert_style_loader(soup, 'presence')
+    assert_plotly_loader(soup, 'absence')
+    assert_chart_initializers(soup, 'absence')
 
-    assert_that(len(full_output) > len(output_without_conditions))
+
+def test_html_serialization_without_condition_table_section():
+    check_result = create_check_result()
+    output = HtmlSerializer(check_result).serialize(check_sections=['additional-output'])
+
+    assert_that(output, instance_of(str))
+
+    soup = BeautifulSoup(output, 'html.parser')
+    assert_check_result_html_output_structure(
+        soup,
+        assert_additional_ouput='presence',
+        assert_condition_table='absence'
+    )
+    assert_style_loader(soup, 'presence')
+    assert_plotly_loader(soup, 'presence')
+    assert_chart_initializers(soup, 'presence')
 
 
 def test_html_serialization_to_full_html_page():
@@ -137,27 +162,99 @@ def test_html_serialization_to_full_html_page():
     assert_that(html, not_none())
 
     head = html.select_one('head')
-    body = html.select_one('body.deepchecks')
+    body = html.select_one('body')
     assert_that(head, not_none())
     assert_that(body, not_none())
 
+    style = head.select('style')
+    script = head.select('script')
+
+    assert_that(style, not_none())
+    assert_that(script, not_none())
+
     assert_check_result_html_output_structure(body)
+    assert_style_loader(soup, what='absence')
+    assert_plotly_loader(soup, what='absence')
+    assert_chart_initializers(soup, what='presence')
 
 
-def assert_check_result_html_output_structure(soup):
+def assert_check_result_html_output_structure(
+    soup,
+    assert_condition_table='presence',
+    assert_additional_ouput='presence',
+):
     if isinstance(soup, str):
         soup = BeautifulSoup(soup, 'html.parser')
 
-    content = soup.select_one('article.deepchecks')
+    content = soup.select_one('article')
     assert_that(content, not_none())
 
     header = content.select_one('h3')
-    conditions_table = content.select_one('section[name="conditions-table"]')
-    additional_output = content.select_one('section[name="conditions-table"]')
-
     assert_that(header, not_none())
-    assert_that(conditions_table, not_none())
-    assert_that(additional_output, not_none())
+
+    if assert_condition_table == 'presence':
+        conditions_table = content.select_one('section[data-name="conditions-table"]')
+        assert_that(conditions_table, not_none())
+    elif assert_condition_table == 'absence':
+        conditions_table = content.select_one('section[data-name="conditions-table"]')
+        assert_that(conditions_table, none())
+    else:
+        raise RuntimeError(f'unknown value - {assert_condition_table}')
+
+    if assert_additional_ouput == 'presence':
+        additional_output = content.select_one('section[data-name="additional-output"]')
+        assert_that(additional_output, not_none())
+    elif assert_additional_ouput == 'absence':
+        additional_output = content.select_one('section[data-name="additional-output"]')
+        assert_that(additional_output, none())
+    else:
+        raise RuntimeError(f'unknown value - {assert_condition_table}')
+
+
+def assert_style_loader(soup, what='presence'):
+    if isinstance(soup, str):
+        soup = BeautifulSoup(soup, 'html.parser')
+
+    if what == 'presence':
+        tags = soup.select('script#deepchecks-style-loader')
+        assert_that(tags, has_length(1))
+    elif what == 'absence':
+        tags = soup.select('script#deepchecks-style-loader')
+        assert_that(tags, has_length(0))
+    else:
+        raise RuntimeError(f'unknown value - {what}')
+
+
+def assert_plotly_loader(soup, what='presence'):
+    if isinstance(soup, str):
+        soup = BeautifulSoup(soup, 'html.parser')
+
+    if what == 'presence':
+        tags = soup.select('script#deepchecks-plotly-src')
+        assert_that(tags, has_length(1))
+        tags = soup.select('script#deepchecks-plotly-loader')
+        assert_that(tags, has_length(1))
+    elif what == 'absence':
+        tags = soup.select('script#deepchecks-plotly-src')
+        assert_that(tags, has_length(0))
+        tags = soup.select('script#deepchecks-plotly-loader')
+        assert_that(tags, has_length(0))
+    else:
+        raise RuntimeError(f'unknown value - {what}')
+
+
+def assert_chart_initializers(soup, what='presence'):
+    if isinstance(soup, str):
+        soup = BeautifulSoup(soup, 'html.parser')
+
+    if what == 'presence':
+        tags = soup.select('script#deepchecks-plot-initializer')
+        assert_that(tags, has_length(greater_than(0)))
+    elif what == 'absence':
+        tags = soup.select('script#deepchecks-plot-initializer')
+        assert_that(tags, has_length(0))
+    else:
+        raise RuntimeError(f'unknown value - {what}')
 
 
 # ===========================================

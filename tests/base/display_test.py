@@ -20,6 +20,7 @@ import jsonpickle
 import pandas as pd
 import plotly.express
 import plotly.io as pio
+from bs4 import BeautifulSoup
 from hamcrest import *
 from ipywidgets import VBox, Widget
 
@@ -28,18 +29,22 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.checks import ColumnsInfo, MixedNulls
 from deepchecks.utils.json_utils import from_json
 from tests.common import DummyCheck, create_check_result, create_suite_result, instance_of_ipython_formatter
-from tests.serialization.test_check_result_serialization import assert_check_result_html_output_structure
+from tests.serialization.test_check_result_serialization import (assert_check_result_html_output_structure,
+                                                                 assert_plotly_loader, assert_style_loader)
+from tests.serialization.test_suite_result_serialization import assert_suite_result_output_structure
 
 
 def test_check_result_display():
     # Arrange
     with patch('deepchecks.core.display.display_html') as mock:
         result = create_check_result()
-        assert_that(result.display_check(), is_(None))
+        result.show()
         mock.assert_called_once()
         args, kwargs = list(mock.call_args)
         html, *_ = args
         assert_check_result_html_output_structure(html)
+        assert_plotly_loader(html, 'presence')
+        assert_style_loader(html, 'presence')
 
 
 def test_check_result_serialization_to_widget():
@@ -78,8 +83,10 @@ def test_check_result_repr(iris_dataset):
 
 
 def test_check_result_init():
-    assert_that(calling(CheckResult).with_args(value=None, display={}),
-                raises(DeepchecksValueError, 'Can\'t display item of type: <class \'dict\'>'))
+    assert_that(
+        calling(CheckResult).with_args(value=None, display={}),
+        raises(DeepchecksValueError, 'Can\'t display item of type: <class \'dict\'>')
+    )
 
 
 def test_check_result_deserialization_from_json(iris):
@@ -120,6 +127,8 @@ def test_check_result_show_with_sphinx_gallery_env_enabled():
         html = r._repr_html_()
         assert_that(html, instance_of(str))
         assert_check_result_html_output_structure(html)
+        assert_plotly_loader(html, 'presence')
+        assert_style_loader(html, 'presence')
 
 
 def test_check_result_display_with_enabled_colab_enviroment():
@@ -130,10 +139,24 @@ def test_check_result_display_with_enabled_colab_enviroment():
         with patch('deepchecks.core.display.display_html') as mock:
             result.show()
             mock.assert_called_once()
+
             args, kwargs = list(mock.call_args)
             html, *_ = args
             assert_that(html, instance_of(str))
-            assert_check_result_html_output_structure(html)
+
+            soup = BeautifulSoup(html, 'html.parser')
+            html_tag = soup.select_one('html')
+            body_tag = soup.select_one('body')
+            head_tag = soup.select_one('head')
+            style_tag = soup.select_one('head > style')
+            script_tag = soup.select_one('head > script')
+
+            assert_that(html_tag, not_none())
+            assert_that(body_tag, not_none())
+            assert_that(head_tag, not_none())
+            assert_that(style_tag, not_none())
+            assert_that(script_tag, not_none())
+            assert_check_result_html_output_structure(soup)
 
 
 def test_check_result_ipython_display():
@@ -147,6 +170,59 @@ def test_check_result_ipython_display():
         html, *_ = args
         assert_that(html, instance_of(str))
         assert_check_result_html_output_structure(html)
+        assert_plotly_loader(html, 'presence')
+        assert_style_loader(html, 'presence')
+
+
+def test_check_result_ipython_display():
+    # Arrange
+    result = create_check_result(value=[10, 20, 30])
+    # Assert
+    with patch('deepchecks.core.display.display_html') as mock:
+        result._ipython_display_()
+        mock.assert_called_once()
+        args, kwargs = list(mock.call_args)
+        html, *_ = args
+        assert_that(html, instance_of(str))
+        assert_check_result_html_output_structure(html)
+        assert_plotly_loader(html, 'presence')
+        assert_style_loader(html, 'presence')
+
+
+def test_check_result_display_in_iframe():
+    # Arrange
+    result = create_check_result(value=[10, 20, 30])
+    # Assert
+    with patch('deepchecks.core.display.display_html') as mock:
+        result.show_in_iframe()
+        mock.assert_called_once()
+        args, kwargs = list(mock.call_args)
+        html, *_ = args
+
+        assert_that(html, instance_of(str))
+        soup = BeautifulSoup(html, 'html.parser')
+        iframe = soup.select_one('iframe')
+
+        assert_that(iframe, not_none())
+        assert_that(iframe.get('srcdoc'), not_none())
+
+
+def test_check_result_not_interactive_display():
+    # Arrange
+    result = create_check_result(value=[10, 20, 30])
+    # Assert
+    with patch('deepchecks.core.display.display_html') as mock:
+        result.show_not_interactive()
+        mock.assert_called_once()
+        args, kwargs = list(mock.call_args)
+        html, *_ = args
+
+        assert_that(html, instance_of(str))
+        soup = BeautifulSoup(html, 'html.parser')
+        assert_check_result_html_output_structure(soup)
+
+        scripts = soup.select('scripts')
+        assert_that(scripts, has_length(equal_to(0)))
 
 
 def test_check_result_repr_mimebundle():
@@ -241,35 +317,19 @@ def test_check_failure_display_with_enabled_colab_enviroment():
     # Assert
     with patch('deepchecks.core.display.is_colab_env', return_value=True):
         with patch('deepchecks.core.display.display_html') as mock:
-            failure.display_check()
+            failure.show()
             mock.assert_called_once()
             args, kwargs = list(mock.call_args)
             html, *_ = args
-            assert_that(html, all_of(
-                instance_of(str),
-                is_html_document()
-            ))
+            assert_that(html,instance_of(str))
 
 
 def test_check_failure_display():
     # Arrange
     failure = CheckFailure(DummyCheck(), Exception('error message'))
     # Assert
-    with patch('deepchecks.core.display.display') as mock:
-        failure.display_check()
-        mock.assert_called_once()
-        args, kwargs = list(mock.call_args)
-        html, *_ = args
-        assert_that(html, instance_of(str))
-
-
-def test_check_failure_show():
-    # Arrange
-    failure = CheckFailure(DummyCheck(), Exception('error message'))
-
     with patch('deepchecks.core.display.display_html') as mock:
-        # Assert
-        assert_that(failure.show(), is_(None))
+        failure.show()
         mock.assert_called_once()
         args, kwargs = list(mock.call_args)
         html, *_ = args
@@ -283,14 +343,7 @@ def test_check_failure_show_with_sphinx_gallery_env_enabled():
         # Assert
         r = failure.show()
         assert_that(hasattr(r, '_repr_html_'))
-        assert_that(
-            r._repr_html_(),
-            all_of(
-                instance_of(str),
-                has_length(greater_than(0)),
-                is_html_document()
-            )
-        )
+        assert_that(r._repr_html_(), instance_of(str))
 
 
 def test_check_failure_ipython_display():
@@ -324,10 +377,7 @@ def test_check_failure_repr_html():
     # Arrange
     failure = CheckFailure(DummyCheck(), Exception('error message'))
     # Assert
-    assert_that(
-        failure._repr_html_(),
-        all_of(instance_of(str), has_length(greater_than(0)))
-    )
+    assert_that(failure._repr_html_(), all_of(instance_of(str)))
 
 
 def test_check_failure_repr_json():
@@ -398,6 +448,11 @@ def test_suite_result_show():
     with patch('deepchecks.core.display.display_html') as mock:
         suite_result.show()
         mock.assert_called_once()
+        args, kwargs = list(mock.call_args)
+        html, *_ = args
+        assert_suite_result_output_structure(html)
+        assert_style_loader(html, 'presence')
+        assert_plotly_loader(html, 'presence')
 
 
 def test_suite_result_ipython_display():
@@ -407,6 +462,47 @@ def test_suite_result_ipython_display():
     with patch('deepchecks.core.display.display_html') as mock:
         suite_result._ipython_display_()
         mock.assert_called_once()
+        args, kwargs = list(mock.call_args)
+        html, *_ = args
+        assert_suite_result_output_structure(html)
+        assert_style_loader(html, 'presence')
+        assert_plotly_loader(html, 'presence')
+
+
+def test_suite_result_display_in_iframe():
+    # Arrange
+    suite_result = create_suite_result()
+    # Assert
+    with patch('deepchecks.core.display.display_html') as mock:
+        suite_result.show_in_iframe()
+        mock.assert_called_once()
+        args, kwargs = list(mock.call_args)
+        html, *_ = args
+
+        assert_that(html, instance_of(str))
+        soup = BeautifulSoup(html, 'html.parser')
+        iframe = soup.select_one('iframe')
+
+        assert_that(iframe, not_none())
+        assert_that(iframe.get('srcdoc'), not_none())
+
+
+def test_suite_result_not_interactive_display():
+    # Arrange
+    suite_result = create_suite_result()
+    # Assert
+    with patch('deepchecks.core.display.display_html') as mock:
+        suite_result.show_not_interactive()
+        mock.assert_called_once()
+        args, kwargs = list(mock.call_args)
+        html, *_ = args
+
+        assert_that(html, instance_of(str))
+        soup = BeautifulSoup(html, 'html.parser')
+        assert_suite_result_output_structure(soup)
+
+        scripts = soup.select('scripts')
+        assert_that(scripts, has_length(equal_to(0)))
 
 
 def test_suite_result_ipython_display_with_colab_env_enabled():
@@ -419,10 +515,19 @@ def test_suite_result_ipython_display_with_colab_env_enabled():
             mock.assert_called_once()
             args, kwargs = list(mock.call_args)
             html, *_ = args
-            assert_that(html, all_of(
-                instance_of(str),
-                is_html_document()
-            ))
+            assert_that(html, instance_of(str))
+
+            soup = BeautifulSoup(html, 'html.parser')
+            html_tag = soup.select_one('html')
+            body_tag = soup.select_one('body')
+            head_tag = soup.select_one('head')
+            style_tag = soup.select_one('head > style')
+            script_tag = soup.select_one('head > script')
+            assert_that(html_tag, not_none())
+            assert_that(body_tag, not_none())
+            assert_that(head_tag, not_none())
+            assert_that(style_tag, not_none())
+            assert_that(script_tag, not_none())
 
 
 def test_suite_result_repr_mimebundle():
@@ -514,7 +619,13 @@ def assert_saved_html_file(filename='output.html'):
     assert_that(output.exists() and output.is_file())
     try:
         content = output.open('r', encoding='utf-8').read()
-        assert_that(content, is_html_document())
+        soup = BeautifulSoup(content, 'html.parser')
+        html_tag = soup.select_one('html')
+        head_tag = soup.select_one('html > head')
+        body_tag = soup.select_one('html > body')
+        assert_that(html_tag, not_none())
+        assert_that(head_tag, not_none())
+        assert_that(body_tag, not_none())
     finally:
         output.unlink()
 

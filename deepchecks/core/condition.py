@@ -124,13 +124,14 @@ class ConditionResult:
 
     def get_icon(self):
         """Return icon of the result to display."""
+        wrapper = '<div style="display: flex; justify-content: center;">{}</div>'
         if self.category == ConditionCategory.PASS:
-            return '<span class="deepchecks-i-ok"></span>'
+            return wrapper.format('<span class="deepchecks-i-ok"></span>')
         elif self.category == ConditionCategory.FAIL:
-            return '<span class="deepchecks-i-error"></span>'
+            return wrapper.format('<span class="deepchecks-i-error"></span>')
         elif self.category == ConditionCategory.WARN:
-            return '<span class="deepchecks-i-warn"></span>'
-        return '<span class="deepchecks-i-attention"></span>'
+            return wrapper.format('<span class="deepchecks-i-warn"></span>')
+        return wrapper.format('<span class="deepchecks-i-attention"></span>')
 
     def __repr__(self):
         """Return string representation for printing."""
