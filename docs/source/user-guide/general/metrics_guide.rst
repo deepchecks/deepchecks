@@ -4,174 +4,29 @@
 Metrics Guide
 ====================
 
-This guide will help you understand what metrics are and how you can use them to validate and monitor your data with
+This guide will help you understand how to control the metrics that validate and monitor your data with
 Deepchecks.
+The assessment of how well the model performs should drive informed decision making regarding the usage of that model,
+so we have to make sure that we measure the right things, i.e. the criteria that represnt tha key factors in the
+decision making process.
 
 **Structure:**
 
-* `Why do we need metrics? <#why-do-we-need-metrics>`__
-* `What is a metric? <#what-is-a-metric>`__
-* `How are metrics different from loss functions? <#how-are-metrics-different-from-loss-functions>`__
-* `Common metrics <#common-metrics>`__
 * `How can I use metrics with Deepchecks? <#how-can-i-use-metrics-with-deepchecks>`__
-* `Code examples <#code-examples>`__
-
-Why do we need metrics?
-=======================
-When asking how well a model performs, we want to get an answer that’s more informative than “nice”.
-The assessment of how well the model performs should drive informed decision making regarding the usage of that model,
-and for that “nice” is just not enough.
-Some usages for such assessment are:
-
-* Defining a goal for the model
-* Comparing different models
-* Monitoring performance changes
-* Communicating all of the above to colleagues, clients, etc.
-
-What is a metric?
-=================
-A metric is a function that quantifies the model performance into a single score.
-
-Ideally, a metric approximates how well the model would perform in the real world. While it’s only tested on a pre
-collected subset of the data, the score on this subset of data is normally used as a proxy of the performance on the
-data that it will encounter in the future, in order to make the informed decisions previously mentioned.
-
-What is a good metric?
-----------------------
-There is no metric for the goodness of metrics, but for the metric to be useful the following four characteristics
-should generally apply:
-
-1.  Deterministic - for the metric to be reliable it has to be reproducible, meaning that given the same data and the
-    same model, the metric will always return the same result. It should be precisely defined. For that matter, a metric cannot
-    rely on personal taste and opinions as those change between viewers and are therefore not reproducible.
-2.  Comparable - for the metric result to be meaningful, we need to be able to compare it to other results.
-    For that, the result has to be ordinal, so we can answer questions such as: “is the current result better or worse
-    than the previous result?”. Moreover, the result should be on a clear scale so we would also be able to answer
-    questions such as: “how much better is the current result compared to the previous?”
-3.  Explainable- we would like to communicate the results to other stakeholders, as well as getting some intuition
-    regarding the meaning of the results.
-4.  Resonates with domain/business sense - this point is too often overlooked. We have to make sure that we are
-    measuring the right thing, that is the level of success in the actual problem that the model is meant to solve.
-    For example, if we use object detection for inventory count of a certain product, we care more about how many
-    targets were detected rather than the targets’ exact location, so the fraction of predictions above a certain IoU
-    would be more relevant than the IoU itself.
-
-.. figure:: /_static/images/general/tomato_sauce_on_shelf.jpg
-   :alt: inventory object detection example
-   :width: 400
-
-   Using object detection for inventory count illustration by Sol Yarkoni
+* `Default metrics <#default-metrics>`__
+* `Alternative metrics <#alternative-metrics>`__
 
 
-Other consideration for choosing a metric might be:
-
-* Time to implement- we might prefer a metric that can be used off the self.
-* Using an academy or industry standard.
-* Computation time and memory.
-
-How are metrics different from loss functions?
-==============================================
-Metrics are used for model *evaluation* and loss functions are used for model *optimization*.
-
-Since loss functions are used as objectives in optimization problems they need to satisfy some conditions that metrics
-don’t such as differentiability.
-
-During the optimization process the loss function is called many times, while the metric function is only called once at
-the end of the process (except in some specific cases like `early stopping
-<https://pytorch-lightning.readthedocs.io/en/stable/common/early_stopping.html>`__ condition) so the calculation speed
-is more crucial for loss functions than for metrics.
-
-On the other hand, loss functions face inward- the results are returned to the optimizer (the entity managing the
-optimization process), while metrics face outward, presenting the results to the user and because of that explainability
-is more crucial for metrics than loss functions.
-
-As a rule of thumb, loss function should be minimized and therefore a smaller result means better performance, while for
-most metrics larger means better.
-
-Many functions can be used as both metric or loss function. In this case an adjustment for the direction (minimize loss
-or maximize metric) like a minus sign is commonly used.
-
-Common Metrics
-==============
-Regression
-----------
-*   `MSE <https://en.wikipedia.org/wiki/Mean_squared_error>`__ - mean squared error, the average squared difference
-    between the estimated values and the actual values. Probably the most common metric for regression.
-*   RMSE/ `RMSD <https://en.wikipedia.org/wiki/Root-mean-square_deviation>`__ - root mean square error/ deviation - the
-    square root of MSE, also commonly used.
-*   `MAE <https://en.wikipedia.org/wiki/Mean_absolute_error>`__ - mean absolute error, the average absolute difference
-    between the estimated values and the actual values.
-*   `Cosine similarity <https://en.wikipedia.org/wiki/Cosine_similarity>`__ - the cosine of the angle between two
-    sequences or vectors of numbers. The cosine similarity does not depend on the magnitudes of the vectors, only on
-    their angle, similar vectors are vectors pointing in the same direction.
-*   R2/ `coefficient of determination <https://en.wikipedia.org/wiki/Coefficient_of_determination>`__ - The ratio
-    between the variance of the model’s predictions and the variance of the ground truth. Can be also viewed as how much
-    of the variation in the model results comes from the model.
-
-Classification
---------------
-In general, the common classification metrics are based on the concept of comparing the predicted label with the ground
-truth label and counting the matches and mismatches between them.
-
-This is usually done with the assistance of a confusion matrix. If you are not familiar with the concept of confusion
-matrix, check out this `link <https://en.wikipedia.org/wiki/Confusion_matrix>`__ .
-
-.. figure:: /_static/images/general/truth_table.png
-   :alt: Truth Table
-
-   Truth table by Sol Yarkoni
-
-*   `Accuracy <https://developers.google.com/machine-learning/crash-course/classification/accuracy>`__ - how many
-    samples were classified correctly out of the total number of samples. Though very intuitive, it can often be
-    misleading, especially for imbalanced data.
-*   `Precision <https://en.wikipedia.org/wiki/Precision_and_recall>`__ - how many samples were classified correctly as
-    positive out of the total number of samples classified as positive. Can be also viewed as the fraction of relevant
-    samples out of the samples spotted by the model.
-*   `Recall <https://en.wikipedia.org/wiki/Precision_and_recall>`__ /
-    `Sensitivity <https://en.wikipedia.org/wiki/Sensitivity_and_specificity>`__ / TPR - how many samples were classified
-    correctly as positive out of the total number of positive samples. Can be also viewed as the fraction of the
-    relevant samples that were spotted by the model.
-
-
-.. figure:: /_static/images/general/PrecisionRecall_wikipedia.svg.png
-   :alt: Precision and recall
-
-   Precision and Recall by Walber - `source <https://commons.wikimedia.org/w/index.php?curid=36926283>`__
-
-
-*   `Specificity <https://en.wikipedia.org/wiki/Sensitivity_and_specificity>`__/ TNR - how many samples were classified
-    correctly as negative out of the total number of negative samples. Complementary to sensitivity.
-
-.. figure:: /_static/images/general/Sensitivity_and_specificity_wikipedia.svg.png
-   :alt: Specificity and sensitivity
-
-   Specificity and Sensitivity by FeanDoe - `source <https://commons.wikimedia.org/w/index.php?curid=94134880>`__
-
-*   `F-1 <https://en.wikipedia.org/wiki/F-score>`__ - combines the precision and recall into one metric by taking their
-    harmonic mean. More robust to class imbalance than accuracy.
-*   `AUC <https://developers.google.com/machine-learning/crash-course/classification/roc-and-auc>`__  - The area under
-    the curve of the ROC graph. For the previous classification metrics, a threshold on the model output was chosen
-    above which the sample is classified as positive and below as negative. The AUC takes into account all possible
-    thresholds.
-
-Object Detection
-----------------
-*   `Jaccard Index <https://en.wikipedia.org/wiki/Jaccard_index>`__ / IoU - the ratio between the overlapping area of
-    predicted and the actual bounding box and the union of their areas. The most intuitive metric for object detection.
-*   mAP - mean average precision. The mean of the average precision per class over the classes. Calculated at a certain
-    threshold, usually 0.5. Commonly used for benchmarking object detection models. A good explanation of how it is
-    calculated can be found
-    `here <https://towardsdatascience.com/breaking-down-mean-average-precision-map-ae462f623a52>`__.
-*   mAR - mean average recall. The mean of the average precision per class over the classes. Summed over the threshold
-    range [0.5, 1].
 
 How can I use metrics with Deepchecks?
 ======================================
 The metrics used in deepchecks are in accordance with sklearn scorer API for tabular checks and with Torch Ignite metric
 API for vision checks.
+To use metrics with Deepchecks suites and checks you can use the defaults, that fits the most common usecase, or pass
+alternative scorers that are more accurate for your specific usecase.
 
 Default metrics
----------------
+===============
 All of our relevant checks come with default metrics.
 
 The default scorers by task type are:
@@ -209,10 +64,8 @@ Object detection:
 *   Mean average recall
 
 Alternative metrics
--------------------
-As mentioned in the section “what is a good metric” the metrics should resonate with the logic of the problem at hand,
-and that means that sometimes the defaults aren’t good enough to describe the specifics of the problem.
-
+===================
+Sometimes the defaults aren’t good enough to describe the specifics of the problem.
 If this is the case, you can pass a list of metrics as a parameter to the check.
 
 The metrics on the list can be existing
