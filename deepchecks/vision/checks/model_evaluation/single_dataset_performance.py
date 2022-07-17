@@ -41,7 +41,6 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
         super().__init__(**kwargs)
         self.user_scorers = alternative_scorers
 
-
     def initialize_run(self, context: Context, dataset_kind: DatasetKind.TRAIN):
         """Initialize the metric for the check, and validate task type is relevant."""
         self.scorers = get_scorers_dict(context.get_data_by_kind(dataset_kind), self.user_scorers)
@@ -66,8 +65,7 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
         """Return the values of the metrics for the test dataset in {metric: value} format."""
         # Find metrics that were reduced over the classes and replace the Class Name with None
         is_reduced_metrics = check_result.value.groupby('Metric')['Class Name'].nunique() == 1
-        # pylint: disable=singleton-comparison
-        reduced_metrics = is_reduced_metrics[is_reduced_metrics == True].index.to_list()
+        reduced_metrics = is_reduced_metrics[is_reduced_metrics].index.to_list()
         check_result.value.loc[check_result.value.Metric.apply(lambda x: x in reduced_metrics), 'Class Name'] = None
 
         # Dict keys are format metric_class
@@ -75,7 +73,6 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
                                                                                      '_'.join(filter(None, x)), axis=1)
         output_dict = dict(zip(metric_class, check_result.value['Value']))
         return output_dict
-
 
     def add_condition_greater_than(self, threshold: float, metrics: List[str] = None, class_mode: str = 'all'):
 
@@ -99,12 +96,13 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
         def condition(check_result, metrics=metrics):
             if metrics is None:
                 metrics = list(self.scorers.keys())
+
             metrics_pass = []
 
             for metric in metrics:
                 if metric not in check_result.Metric.unique():
-                    DeepchecksValueError(f'The requested metric was not calculated, the metrics calculated in this'
-                                         f'check are: {check_result.Metric.unique()}.')
+                    raise DeepchecksValueError(f'The requested metric was not calculated, the metrics calculated in '
+                                               f'this check are: {check_result.Metric.unique()}.')
 
                 class_val = check_result[check_result.Metric == metric].groupby('Class Name').Value
                 class_gt = class_val.apply(lambda x: x > threshold)
@@ -115,8 +113,8 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
                 elif class_mode in class_val.groups:
                     metrics_pass.append(class_gt[class_val.indices[class_mode]].item())
                 else:
-                    raise ValueError(f'{class_mode} should be one of the classes in the check results or any or all')
-
+                    raise DeepchecksValueError(f'class_mode expected be one of the classes in the check results or any '
+                                               f'or all, recieved {class_mode}.')
 
             if all(metrics_pass):
                 return ConditionResult(ConditionCategory.PASS, 'Passed for all of the mertics.')
@@ -124,7 +122,6 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
                 failed_metrics = ([a for a, b in zip(metrics, metrics_pass) if not b])
                 return ConditionResult(ConditionCategory.FAIL, f'Failed for metrics: {failed_metrics}')
         return self.add_condition(f'Score is greater than {threshold}', condition)
-
 
     def add_condition_less_than(self, threshold: float, metrics: List[str] = None, class_mode: str = 'all'):
 
@@ -148,12 +145,13 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
         def condition(check_result, metrics=metrics):
             if metrics is None:
                 metrics = list(self.scorers.keys())
+
             metrics_pass = []
 
             for metric in metrics:
                 if metric not in check_result.Metric.unique():
-                    DeepchecksValueError(f'The requested metric was not calculated, the metrics calculated in this'
-                                         f'check are: {check_result.Metric.unique()}.')
+                    raise DeepchecksValueError(f'The requested metric was not calculated, the metrics calculated in '
+                                               f'this check are: {check_result.Metric.unique()}.')
 
                 class_val = check_result[check_result.Metric == metric].groupby('Class Name').Value
                 class_lt = class_val.apply(lambda x: x < threshold)
@@ -164,9 +162,8 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
                 elif class_mode in class_val.groups:
                     metrics_pass.append(class_lt[class_val.indices[class_mode]].item())
                 else:
-                    raise ValueError(f'class_mode expected be one of the classes in the check results or any or all, '
-                                     f'recieved {class_mode}')
-
+                    raise DeepchecksValueError(f'class_mode expected be one of the classes in the check results or any '
+                                               f'or all, recieved {class_mode}.')
 
             if all(metrics_pass):
                 return ConditionResult(ConditionCategory.PASS, 'Passed for all of the mertics.')
