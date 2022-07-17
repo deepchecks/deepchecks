@@ -16,7 +16,7 @@ from deepdiff import DeepDiff
 from hamcrest import assert_that, instance_of
 
 from deepchecks.tabular.datasets.classification import adult, breast_cancer, iris, lending_club, phishing
-from deepchecks.tabular.datasets.regression import avocado
+from deepchecks.tabular.datasets.regression import avocado, wine_quality
 from deepchecks.utils.model import get_model_of_pipeline
 
 
@@ -68,3 +68,7 @@ def test_model_predict_on_avocado():
 
 def test_model_predict_on_lending_club():
     assert_dataset_module(lending_club)
+
+
+def test_model_predict_on_wine_quality():
+    assert_dataset_module(wine_quality)

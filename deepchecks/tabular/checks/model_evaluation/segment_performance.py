@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module of segment performance check."""
+import warnings
 from typing import Callable, List, Optional, Tuple, Union, cast
 
 import numpy as np
@@ -26,6 +27,10 @@ __all__ = ['SegmentPerformance']
 
 class SegmentPerformance(SingleDatasetCheck):
     """Display performance score segmented by 2 top (or given) features in a heatmap.
+
+    .. deprecated:: 0.8.1
+        The SegmentPerformance check is deprecated and will be removed in the 0.11 version. Please use the
+        WeakSegmentsPerformance check instead.
 
     Parameters
     ----------
@@ -54,6 +59,8 @@ class SegmentPerformance(SingleDatasetCheck):
         **kwargs
     ):
         super().__init__(**kwargs)
+        warnings.warn('The SegmentPerformance check is deprecated and will be removed in the 0.11 version. '
+                      'Please use the WeakSegmentsPerformance check instead.', DeprecationWarning)
 
         # if they're both none it's ok
         if feature_1 and feature_1 == feature_2:

@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_tabular_feature_label_correlation_change:
+
 Feature Label Correlation Change
-**************************************
+********************************
 
 This notebook provides an overview for using and understanding the "Feature Label Correlation Change" check.
 
@@ -74,20 +76,21 @@ The process of calculating the PPS is the following:
 # 1. Extract from the data only the label and the feature being tested
 # 2. Drop samples with missing values
 # 3. Keep 5000 (this is configurable parameter) samples from the data
-# 4. Preprocess categorical columns. For the label using ``sklearn.LabelEncoder``
-#   and for the feature using ``sklearn.OneHotEncoder``
+# 4. Preprocess categorical columns. For the label using ``sklearn.LabelEncoder`` and for the feature using ``sklearn.OneHotEncoder``
 # 5. Partition the data with 4-fold cross-validation
 # 6. Train decision tree
 # 7. Compare the trained model's performance with naive model's performance as follows:
 #
-#   Regression: The naive model always predicts the median of the label column,
-#   the metric being used is MAE and the PPS calculation is: :math:`1 - \frac{\text{MAE model}}{\text{MAE naive}}`
-#   Classification: The naive model always predicts the most common class of
-#   the label column, The metric being used is F1 and the PPS calculation is:
-#   :math:`\frac{\text{F1 model} - \text{F1 naive}}{1 - \text{F1 naive}}`
+# Regression: The naive model always predicts the median of the label column,
+# the metric being used is MAE and the PPS calculation is: :math:`1 - \frac{\text{MAE model}}{\text{MAE naive}}`
 #
-# Note: all the PPS parameters can be changed by passing to the check the
-# parameter ``ppscore_params``*
+# Classification: The naive model always predicts the most common class of
+# the label column, The metric being used is F1 and the PPS calculation is:
+# :math:`\frac{\text{F1 model} - \text{F1 naive}}{1 - \text{F1 naive}}`
+#
+# .. note::
+#
+#    All the PPS parameters can be changed by passing to the check the parameter ``ppscore_params``
 #
 # For further information about PPS you can visit the `ppscore github
 # <https://github.com/8080labs/ppscore>`__ or the following blog post: `RIP correlation.
@@ -136,8 +139,7 @@ result
 #
 # * train - for train dataset for each column the numeric PPS score (0 to 1)
 # * test - for test dataset for each column the numeric PPS score (0 to 1)
-# * train-test difference - for each column the difference between the datasets scores,
-# as ``train - test``
+# * train-test difference - for each column the difference between the datasets scores, as ``train - test``
 
 result.value
 

@@ -16,8 +16,10 @@ from hamcrest import (all_of, assert_that, calling, close_to, contains_exactly, 
 from ignite.metrics import Precision, Recall
 from plotly.basedatatypes import BaseFigure
 
-from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.vision.checks import ClassPerformance
+from deepchecks.vision.metrics_utils.confusion_matrix_counts_metrics import AVAILABLE_EVALUTING_FUNCTIONS
+from deepchecks.vision.metrics_utils.detection_tp_fp_fn_calc import ObjectDetectionTpFpFn
 from tests.base.utils import equal_condition_result
 from tests.common import assert_class_performance_display
 
@@ -351,11 +353,10 @@ def test_class_list(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
     ))
 
 
-
 def test_condition_test_performance_greater_than_pass(mnist_dataset_train,
-                                                       mnist_dataset_test,
-                                                       mock_trained_mnist,
-                                                       device):
+                                                      mnist_dataset_test,
+                                                      mock_trained_mnist,
+                                                      device):
     # Arrange
     check = ClassPerformance().add_condition_test_performance_greater_than(0.5)
 
@@ -365,9 +366,9 @@ def test_condition_test_performance_greater_than_pass(mnist_dataset_train,
 
     assert_that(result.conditions_results, has_items(
         equal_condition_result(is_pass=True,
-                               details='Found minimum score for Recall metric of value 0.97 for class 9',
+                               details=re.compile(r'Found minimum score for Recall metric of value 0.97 for class \d.'),
                                name='Scores are greater than 0.5'))
-    )
+                )
 
 
 def test_condition_test_performance_greater_than_fail(
@@ -389,7 +390,8 @@ def test_condition_test_performance_greater_than_fail(
     assert_that(result.conditions_results, has_items(
         equal_condition_result(
             is_pass=False,
-            details=re.compile(r"Found metrics with scores below threshold:.*"),
+            details=re.compile(
+                r'Found 20 scores below threshold.\nFound minimum score for r metric of value 0.97 for class \d.'),
             name='Scores are greater than 1'
         )
     ))
@@ -411,7 +413,7 @@ def test_condition_train_test_relative_degradation_less_than_pass(
     assert_that(result.conditions_results, has_items(
         equal_condition_result(
             is_pass=True,
-            details='Found max degradation of 0.86% for metric Precision and class 5',
+            details=r'Found max degradation of 0.86% for metric Precision and class 5.',
             name='Train-Test scores relative degradation is less than 0.1'
         )
     ))
@@ -434,10 +436,7 @@ def test_condition_train_test_relative_degradation_less_than_fail(
         equal_condition_result(
             is_pass=False,
             name='Train-Test scores relative degradation is less than 0.0001',
-            details=(
-                '10 classes scores failed. Found max degradation of 0.86% for metric Precision '
-                'and class 5'
-            )
+            details=r'10 scores failed. Found max degradation of 0.86% for metric Precision and class 5.'
         )
     ))
 
@@ -490,13 +489,86 @@ def test_condition_class_performance_imbalance_ratio_less_than_fail(
                                        'classes is 3.78%, using Precision metric. Lowest class - 9: 0.96; Highest class'
                                        ' - 6: 0.99',
                                name='Relative ratio difference between labels \'Precision\' score is less than 0.01%'))
-    )
+                )
 
 
-def test_custom_task(mnist_train_custom_task, mnist_test_custom_task, device, mock_trained_mnist):
+def test_custom_task(mnist_train_custom_task, mnist_test_custom_task, mock_trained_mnist, device):
     # Arrange
     metrics = {'metric': Precision()}
     check = ClassPerformance(alternative_metrics=metrics)
 
     # Act & Assert - check runs without errors
     check.run(mnist_train_custom_task, mnist_test_custom_task, model=mock_trained_mnist, device=device)
+
+
+def test_coco_thershold_scorer_list_strings(coco_train_visiondata, coco_test_visiondata,
+                                            mock_trained_yolov5_object_detection, device):
+    # Arrange
+    scorers = [name + '_per_class' for name in AVAILABLE_EVALUTING_FUNCTIONS.keys()]
+    check = ClassPerformance(alternative_metrics=scorers)
+    # Act
+    result = check.run(coco_train_visiondata, coco_test_visiondata,
+                       mock_trained_yolov5_object_detection, device=device)
+    # Assert
+    assert_that(result.value, has_length(589))
+    assert_that(result.display, has_length(greater_than(0)))
+    assert_that(set(result.value['Metric']), equal_to(set(scorers)))
+
+
+def test_mnist_sklearn_scorer(
+    mnist_dataset_train,
+    mnist_dataset_test,
+    mock_trained_mnist,
+    device
+):
+    # Arrange
+    check = ClassPerformance(
+        alternative_metrics={'f1': 'f1_per_class', 'recall': 'recall_per_class'}
+    )
+
+    # Act
+    result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
+                       device=device)
+        # Assert
+    assert_that(result.value, has_length(40))
+    assert_that(result.display, has_length(greater_than(0)))
+    assert_that(set(result.value['Metric']), equal_to({'f1', 'recall'}))
+
+def test_coco_unsupported_scorers(coco_train_visiondata, coco_test_visiondata,
+                                  mock_trained_yolov5_object_detection, device):
+    # Arrange
+    check = ClassPerformance(alternative_metrics=['fnr_per_class', 'r3'])
+    # Act
+    assert_that(
+        calling(check.run
+                ).with_args(coco_train_visiondata, coco_test_visiondata, mock_trained_yolov5_object_detection,
+                            device=device),
+        raises(DeepchecksNotSupportedError,
+               r'Unsupported metric: r3 of type str was given.')
+    )
+
+def test_mnist_unsupported_sklearn_scorers(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
+    # Arrange
+    check = ClassPerformance(alternative_metrics={'f1': 'f1_per_class', 'recall': 'recall_per_class', 'R3': 'r3'})
+    # Act
+    assert_that(
+        calling(check.run
+                ).with_args(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
+                            device=device),
+        raises(ValueError,
+               r'\'r3\' is not a valid scoring value. Use sorted\(sklearn.metrics.SCORERS.keys\(\)\) to get valid options.')
+    )
+
+
+def test_coco_bad_value_type_scorers(coco_train_visiondata, coco_test_visiondata,
+                                  mock_trained_yolov5_object_detection, device):
+    # Arrange
+    check = ClassPerformance(alternative_metrics={'r2': 2})
+    # Act
+    assert_that(
+        calling(check.run
+                ).with_args(coco_train_visiondata, coco_test_visiondata, mock_trained_yolov5_object_detection,
+                            device=device),
+        raises(DeepchecksValueError,
+               r'Excepted metric type one of \[ignite.Metric, str, callable\], was int.')
+    )

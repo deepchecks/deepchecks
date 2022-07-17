@@ -14,23 +14,22 @@ import typing as t
 import numpy as np
 import pandas as pd
 
-from deepchecks import CheckFailure, CheckResult
-from deepchecks.core import DatasetKind
+from deepchecks.core import CheckFailure, CheckResult, DatasetKind
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
                                     ModelValidationError)
 from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.tabular.dataset import Dataset
+from deepchecks.tabular.metric_utils import DeepcheckScorer, get_default_scorers, init_validate_scorers, task_type_check
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.tabular.utils.validation import (ensure_predictions_proba, ensure_predictions_shape,
                                                  model_type_validation, validate_model)
 from deepchecks.utils.decorators import deprecate_kwarg
 from deepchecks.utils.features import calculate_feature_importance_or_none
 from deepchecks.utils.logger import get_logger
-from deepchecks.utils.metrics import get_default_scorers, init_validate_scorers, task_type_check
 from deepchecks.utils.typing import BasicModel
 
 __all__ = [
-    'Context'
+    'Context', '_DummyModel'
 ]
 
 
@@ -51,19 +50,22 @@ class _DummyModel:
         Array of the model prediction probabilities over the train dataset.
     y_proba_test: np.ndarray
         Array of the model prediction probabilities over the test dataset.
+    validate_data_on_predict: bool, default = True
+        If true, before predicting validates that the received data samples have the same index as in original data.
     """
 
-    features: t.List[pd.DataFrame]
+    feature_df_list: t.List[pd.DataFrame]
     predictions: pd.DataFrame
     proba: pd.DataFrame
 
     def __init__(self,
-                 train: Dataset,
                  test: Dataset,
-                 y_pred_train: np.ndarray,
-                 y_pred_test: np.ndarray,
-                 y_proba_train: np.ndarray,
-                 y_proba_test: np.ndarray,):
+                 y_pred_test: t.Union[np.ndarray, t.List[t.Hashable]],
+                 y_proba_test: np.ndarray,
+                 train: t.Union[Dataset, None] = None,
+                 y_pred_train: t.Union[np.ndarray, t.List[t.Hashable], None] = None,
+                 y_proba_train: t.Union[np.ndarray, None] = None,
+                 validate_data_on_predict: bool = True):
 
         if train is not None and test is not None:
             # check if datasets have same indexes
@@ -74,7 +76,7 @@ class _DummyModel:
                                      ' prefixes. To avoid that provide datasets with no common indexes '
                                      'or pass the model object instead of the predictions.')
 
-        features = []
+        feature_df_list = []
         predictions = []
         probas = []
 
@@ -82,10 +84,12 @@ class _DummyModel:
                                             [y_pred_train, y_pred_test],
                                             [y_proba_train, y_proba_test]):
             if dataset is not None:
-                features.append(dataset.features_columns)
+                feature_df_list.append(dataset.features_columns)
                 if y_pred is None and y_proba is not None:
                     y_pred = np.argmax(y_proba, axis=-1)
                 if y_pred is not None:
+                    if len(y_pred.shape) > 1 and y_pred.shape[1] == 1:
+                        y_pred = y_pred[:, 0]
                     ensure_predictions_shape(y_pred, dataset.data)
                     predictions.append(pd.Series(y_pred, index=dataset.data.index))
                     if y_proba is not None:
@@ -94,7 +98,8 @@ class _DummyModel:
 
         self.predictions = pd.concat(predictions, axis=0) if predictions else None
         self.probas = pd.concat(probas, axis=0) if probas else None
-        self.features = features
+        self.feature_df_list = feature_df_list
+        self.validate_data_on_predict = validate_data_on_predict
 
         if self.predictions is not None:
             self.predict = self._predict
@@ -103,13 +108,13 @@ class _DummyModel:
             self.predict_proba = self._predict_proba
 
     def _validate_data(self, data: pd.DataFrame):
-        # Validate only up to 10000 samples
-        data = data.sample(min(10_000, len(data)))
-        for df_features in self.features:
+        # Validate only up to 100 samples
+        data = data.sample(min(100, len(data)))
+        for feature_df in self.feature_df_list:
             # If all indices are found than test for equality
-            if set(data.index).issubset(set(df_features.index)):
+            if set(data.index).issubset(set(feature_df.index)):
                 # If equal than data is valid, can return
-                if df_features.loc[data.index].fillna('').equals(data.fillna('')):
+                if feature_df.loc[data.index].fillna('').equals(data.fillna('')):
                     return
                 else:
                     raise DeepchecksValueError('Data that has not been seen before passed for inference with static '
@@ -119,12 +124,14 @@ class _DummyModel:
 
     def _predict(self, data: pd.DataFrame):
         """Predict on given data by the data indexes."""
-        self._validate_data(data)
+        if self.validate_data_on_predict:
+            self._validate_data(data)
         return self.predictions.loc[data.index].to_numpy()
 
     def _predict_proba(self, data: pd.DataFrame):
         """Predict probabilities on given data by the data indexes."""
-        self._validate_data(data)
+        if self.validate_data_on_predict:
+            self._validate_data(data)
         return self.probas.loc[data.index].to_numpy()
 
     def fit(self, *args, **kwargs):
@@ -157,7 +164,6 @@ class Context:
         feature_importance_force_permutation: bool = False,
         feature_importance_timeout: int = 120,
         scorers: t.Optional[t.Mapping[str, t.Union[str, t.Callable]]] = None,
-        scorers_per_class: t.Optional[t.Mapping[str, t.Union[str, t.Callable]]] = None,
         with_display: bool = True,
         y_pred_train: t.Optional[np.ndarray] = None,
         y_pred_test: t.Optional[np.ndarray] = None,
@@ -213,7 +219,6 @@ class Context:
         self._validated_model = False
         self._task_type = None
         self._user_scorers = scorers
-        self._user_scorers_per_class = scorers_per_class
         self._model_name = model_name
         self._with_display = with_display
 
@@ -339,53 +344,59 @@ class Context:
                 self.train.label_type != TaskType.REGRESSION):
             raise ModelValidationError('Check is irrelevant for classification tasks')
 
-    def get_scorers(self, alternative_scorers: t.Mapping[str, t.Union[str, t.Callable]] = None, class_avg=True):
+    def get_scorers(self,
+                    scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]], t.List[str]] = None,
+                    use_avg_defaults=True) -> t.List[DeepcheckScorer]:
         """Return initialized & validated scorers in a given priority.
 
-        If receive `alternative_scorers` return them,
-        Else if user defined global scorers return them,
-        Else return default scorers.
+        If receive `scorers` use them,
+        Else if user defined global scorers use them,
+        Else use default scorers.
 
         Parameters
         ----------
-        alternative_scorers : Mapping[str, Union[str, Callable]], default None
-            dict of scorers names to scorer sklearn_name/function
-        class_avg : bool, default True
-            for classification whether to return scorers of average score or score per class
+        scorers : Union[List[str], Dict[str, Union[str, Callable]]], default: None
+            List of scorers to use. If None, use default scorers.
+            Scorers can be supplied as a list of scorer names or as a dictionary of names and functions.
+        use_avg_defaults : bool, default True
+            If no scorers were provided, for classification, determines whether to use default scorers that return
+            an averaged metric, or default scorers that return a metric per class.
+        Returns
+        -------
+        List[DeepcheckScorer]
+            A list of initialized & validated scorers.
         """
-        if class_avg:
-            user_scorers = self._user_scorers
-        else:
-            user_scorers = self._user_scorers_per_class
+        scorers = scorers or self._user_scorers or get_default_scorers(self.task_type, use_avg_defaults)
+        return init_validate_scorers(scorers, self.model, self.train)
 
-        scorers = alternative_scorers or user_scorers or get_default_scorers(self.task_type, class_avg)
-        return init_validate_scorers(scorers, self.model, self.train, class_avg, self.task_type)
-
-    def get_single_scorer(self, alternative_scorers: t.Mapping[str, t.Union[str, t.Callable]] = None, class_avg=True):
+    def get_single_scorer(self,
+                          scorers: t.Mapping[str, t.Union[str, t.Callable]] = None,
+                          use_avg_defaults=True) -> DeepcheckScorer:
         """Return initialized & validated single scorer in a given priority.
 
-        If receive `alternative_scorers` use them,
+        If receive `scorers` use them,
         Else if user defined global scorers use them,
         Else use default scorers.
         Returns the first scorer from the scorers described above.
 
         Parameters
         ----------
-        alternative_scorers : Mapping[str, Union[str, Callable]], default None
-            dict of scorers names to scorer sklearn_name/function. Only first scorer will be used.
-        class_avg : bool, default True
-            for classification whether to return scorers of average score or score per class
+        scorers : Union[List[str], Dict[str, Union[str, Callable]]], default: None
+            List of scorers to use. If None, use default scorers.
+            Scorers can be supplied as a list of scorer names or as a dictionary of names and functions.
+        use_avg_defaults : bool, default True
+            If no scorers were provided, for classification, determines whether to use default scorers that return
+            an averaged metric, or default scorers that return a metric per class.
+        Returns
+        -------
+        List[DeepcheckScorer]
+            An initialized & validated scorer.
         """
-        if class_avg:
-            user_scorers = self._user_scorers
-        else:
-            user_scorers = self._user_scorers_per_class
-
-        scorers = alternative_scorers or user_scorers or get_default_scorers(self.task_type, class_avg)
+        scorers = scorers or self._user_scorers or get_default_scorers(self.task_type, use_avg_defaults)
         # The single scorer is the first one in the dict
         scorer_name = next(iter(scorers))
         single_scorer_dict = {scorer_name: scorers[scorer_name]}
-        return init_validate_scorers(single_scorer_dict, self.model, self.train, class_avg, self.task_type)[0]
+        return init_validate_scorers(single_scorer_dict, self.model, self.train)[0]
 
     def get_data_by_kind(self, kind: DatasetKind):
         """Return the relevant Dataset by given kind."""

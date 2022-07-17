@@ -41,6 +41,7 @@ class OutlierSampleDetection(SingleDatasetCheck):
     LoOP relies on a distance matrix, in our implementation we use the Gower distance that measure the distance
     between two samples based on its numeric and categorical features.
     See https://statisticaloddsandends.wordpress.com/2021/02/23/what-is-gowers-distance/ for further details.
+
     Parameters
     ----------
     columns : Union[Hashable, List[Hashable]] , default: None
@@ -93,16 +94,17 @@ class OutlierSampleDetection(SingleDatasetCheck):
         dataset = context.get_data_by_kind(dataset_kind)
         dataset = dataset.sample(self.n_samples, random_state=self.random_state, drop_na_label=True)
         df = select_from_dataframe(dataset.data, self.columns, self.ignore_columns)
-        num_neighbours = int(max(self.nearest_neighbors_percent * df.shape[0], MINIMUM_NUM_NEAREST_NEIGHBORS))
+        num_neighbors = int(max(self.nearest_neighbors_percent * df.shape[0], MINIMUM_NUM_NEAREST_NEIGHBORS))
         if df.shape[0] < 1 / self.nearest_neighbors_percent:
             raise NotEnoughSamplesError(
                 f'There are not enough samples to run this check, found only {format_number(df.shape[0])} samples.')
 
         start_time = time.time()
-        gower_distance.calculate_nearest_neighbours_distances(
-            cat_data=df[dataset.cat_features].iloc[:DATASET_TIME_EVALUATION_SIZE],
-            numeric_data=df[dataset.numerical_features].iloc[:DATASET_TIME_EVALUATION_SIZE],
-            num_neighbours=int(min(np.sqrt(DATASET_TIME_EVALUATION_SIZE), num_neighbours)))
+        gower_distance.calculate_nearest_neighbors_distances(
+            data=df.iloc[:DATASET_TIME_EVALUATION_SIZE],
+            cat_cols=dataset.cat_features,
+            numeric_cols=dataset.numerical_features,
+            num_neighbors=int(min(np.sqrt(DATASET_TIME_EVALUATION_SIZE), num_neighbors)))
         predicted_time_to_run_in_seconds = ((time.time() - start_time) / 130000) * (df.shape[0] ** 2)
         if predicted_time_to_run_in_seconds > self.timeout > 0:
             raise DeepchecksTimeoutError(
@@ -110,15 +112,16 @@ class OutlierSampleDetection(SingleDatasetCheck):
                 f'but timeout was configured to {self.timeout} seconds')
 
         try:
-            dist_matrix, idx_matrix = gower_distance.calculate_nearest_neighbours_distances(
-                df[dataset.cat_features], df[dataset.numerical_features], num_neighbours)
+            dist_matrix, idx_matrix = gower_distance.calculate_nearest_neighbors_distances(
+                data=df, cat_cols=dataset.cat_features, numeric_cols=dataset.numerical_features,
+                num_neighbors=num_neighbors)
         except MemoryError as e:
             raise DeepchecksProcessError('Out of memory error occurred while calculating the distance matrix. Try '
                                          'reducing n_samples or nearest_neighbors_percent parameters values.') from e
 
         # Calculate outlier probability score using loop algorithm.
         m = loop.LocalOutlierProbability(distance_matrix=dist_matrix, neighbor_matrix=idx_matrix,
-                                         extent=self.extent_parameter, n_neighbors=num_neighbours).fit()
+                                         extent=self.extent_parameter, n_neighbors=num_neighbors).fit()
         prob_vector = np.asarray(m.local_outlier_probabilities, dtype=float)
         # if we couldn't calculate the outlier probability score for a sample we treat it as not an outlier.
         prob_vector[np.isnan(prob_vector)] = 0

@@ -47,7 +47,7 @@ def test_indexes_from_val_in_train_without_display():
 def test_limit_indexes_from_val_in_train():
     train_ds = dataset_from_dict({'col1': [1, 2, 3, 4, 10, 11]}, 'col1')
     val_ds = dataset_from_dict({'col1': [4, 3, 6, 7]}, 'col1')
-    check_obj = IndexTrainTestLeakage(n_index_to_show=1)
+    check_obj = IndexTrainTestLeakage(n_to_show=1)
     assert_that(check_obj.run(train_ds, val_ds).value, close_to(0.5, 0.01))
 
 
@@ -75,7 +75,7 @@ def test_dataset_no_index():
 def test_nan():
     train_ds = dataset_from_dict({'col1': [1, 2, 3, 4, 10, 11, np.nan]}, 'col1')
     val_ds = dataset_from_dict({'col1': [4, 5, 6, 7, np.nan]}, 'col1')
-    check_obj = IndexTrainTestLeakage(n_index_to_show=1)
+    check_obj = IndexTrainTestLeakage(n_to_show=1)
     assert_that(check_obj.run(train_ds, val_ds).value, close_to(0.2, 0.01))
 
 
@@ -83,7 +83,7 @@ def test_condition_leakage_fail():
     # Arrange
     train_ds = dataset_from_dict({'col1': [1, 2, 3, 4, 10, 11, np.nan]}, 'col1')
     val_ds = dataset_from_dict({'col1': [4, 5, 6, 7, np.nan]}, 'col1')
-    check = IndexTrainTestLeakage(n_index_to_show=1).add_condition_ratio_less_or_equal(max_ratio=0.19)
+    check = IndexTrainTestLeakage(n_to_show=1).add_condition_ratio_less_or_equal(max_ratio=0.19)
 
     result = check.conditions_decision(check.run(train_ds, val_ds))
 
@@ -98,7 +98,7 @@ def test_condition_leakage_passesl():
     # Arrange
     train_ds = dataset_from_dict({'col1': [1, 2, 3, 4, 10, 11]}, 'col1')
     val_ds = dataset_from_dict({'col1': [20, 5, 6, 7]}, 'col1')
-    check = IndexTrainTestLeakage(n_index_to_show=1).add_condition_ratio_less_or_equal()
+    check = IndexTrainTestLeakage(n_to_show=1).add_condition_ratio_less_or_equal()
 
     result = check.conditions_decision(check.run(train_ds, val_ds))
 

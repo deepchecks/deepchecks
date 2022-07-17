@@ -13,14 +13,26 @@ import typing as t
 
 import numpy as np
 import pandas as pd
-from pandas.core.dtypes.common import is_integer_dtype
+from pandas.core.dtypes.common import is_integer_dtype, is_numeric_dtype
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.validation import ensure_hashable_or_mutable_sequence
 
 __all__ = ['validate_columns_exist', 'select_from_dataframe', 'un_numpy', 'generalized_corrwith',
-           'floatify_dataframe', 'floatify_series']
+           'floatify_dataframe', 'floatify_series', 'default_fill_na_per_column_type']
+
+
+def default_fill_na_per_column_type(df: pd.DataFrame, cat_features: t.Union[pd.Series, t.List]) -> pd.DataFrame:
+    """Fill NaN values per column type."""
+    for col_name in df.columns:
+        if col_name in cat_features:
+            df[col_name].fillna('None', inplace=True)
+        elif is_numeric_dtype(df[col_name]):
+            df[col_name] = df[col_name].astype('float64').fillna(df[col_name].mean())
+        else:
+            df[col_name].fillna(df[col_name].mode(), inplace=True)
+    return df
 
 
 def floatify_dataframe(df: pd.DataFrame):
@@ -177,7 +189,7 @@ def generalized_corrwith(x1: pd.DataFrame, x2: pd.DataFrame, method: t.Callable)
     this generalized method applies to any two Dataframes with the same number of rows, regardless of the column names.
 
     Parameters
-    __________
+    ----------
     x1: DataFrame
         Left data frame to compute correlations.
     x2: Dataframe

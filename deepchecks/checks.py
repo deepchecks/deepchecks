@@ -65,6 +65,7 @@ __all__ = [
     'TrainTestPredictionDrift',
 
     # performance checks
+    'TrainTestPerformance',
     'PerformanceReport',
     'ConfusionMatrixReport',
     'RocReport',
@@ -74,5 +75,6 @@ __all__ = [
     'RegressionSystematicError',
     'RegressionErrorDistribution',
     'MultiModelPerformanceReport',
-    'ModelErrorAnalysis'
+    'ModelErrorAnalysis',
+    'WeakSegmentsPerformance'
 ]

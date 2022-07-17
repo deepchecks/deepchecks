@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_vision_feature_label_correlation_change:
+
 Feature Label Correlation Change
 ********************************
 
@@ -74,32 +76,31 @@ The process of calculating the PPS is the following:
 The properties' predictive score results in a numeric score between 0 (feature has no predictive power) and 1 (feature can fully predict the label alone).
 
 The process of calculating the PPS is the following:
-
-1. Extract from the data only the label and the feature being tested
-2. Drop samples with missing values
-3. Keep 5000 (this is configurable parameter) samples from the data
-4. Preprocess categorical columns. For the label using `sklearn.LabelEncoder` and
-   for the feature using `sklearn.OneHotEncoder`
-5. Partition the data with 4-fold cross-validation
-6. Train decision tree
-7. Compare the trained model's performance with naive model's performance as follows:
-   
-   Regression: The naive model always predicts the median of the label column, the
-   metric being used is MAE and the PPS calculation is: :math:`1 - \frac{\text{MAE model}}
-   {\text{MAE naive}}`
-
-   Classification: The naive model always predicts the most common class of the label
-   column, The metric being used is F1 and the PPS calculation is:
-   :math:`\frac{\text{F1 model} - \text{F1 naive}}{1 - \text{F1 naive}}`
-
-*Note: all the PPS parameters can be changed by passing to the check the parameter ``ppscore_params``*
-
-
-
-For further information about PPS you can visit the `ppscore github <https://github.com/8080labs/ppscore>`__
-or the following blog post: `RIP correlation. Introducing the Predictive Power Score
-<https://towardsdatascience.com/rip-correlation-introducing-the-predictive-power-score-3d90808b9598>`__
 """
+#%%
+# 1. Extract from the data only the label and the feature being tested
+# 2. Drop samples with missing values
+# 3. Keep 5000 (this is configurable parameter) samples from the data
+# 4. Preprocess categorical columns. For the label using `sklearn.LabelEncoder` and for the feature using `sklearn.OneHotEncoder`
+# 5. Partition the data with 4-fold cross-validation
+# 6. Train decision tree
+# 7. Compare the trained model's performance with naive model's performance as follows:
+#
+# Regression: The naive model always predicts the median of the label column,
+# the metric being used is MAE and the PPS calculation is: :math:`1 - \frac{\text{MAE model}}{\text{MAE naive}}`
+#
+# Classification: The naive model always predicts the most common class of
+# the label column, The metric being used is F1 and the PPS calculation is:
+# :math:`\frac{\text{F1 model} - \text{F1 naive}}{1 - \text{F1 naive}}`
+#
+# .. note::
+#
+#    All the PPS parameters can be changed by passing to the check the parameter ``ppscore_params``
+#
+#
+# For further information about PPS you can visit the `ppscore github <https://github.com/8080labs/ppscore>`__
+# or the following blog post: `RIP correlation. Introducing the Predictive Power Score
+# <https://towardsdatascience.com/rip-correlation-introducing-the-predictive-power-score-3d90808b9598>`__
 
 #%%
 # Run the check on a classification task (MNIST)

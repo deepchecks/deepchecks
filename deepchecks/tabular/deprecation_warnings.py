@@ -93,3 +93,24 @@ warnings.filterwarnings(
     category=DeprecationWarning,
     module=r'deepchecks.*'
 )
+
+warnings.filterwarnings(
+    action='once',
+    message=r'The ModelErrorAnalysis check is deprecated.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.*'
+)
+
+warnings.filterwarnings(
+    action='once',
+    message=r'The SegmentPerformance check is deprecated.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.*'
+)
+
+warnings.filterwarnings(
+    action='once',
+    message=r'the performance report check.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.*'
+)

@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _plot_vision_single_dataset_scalar_performance:
+
 Single Dataset Scalar Performance
 *********************************
 

@@ -17,10 +17,13 @@ import pandas as pd
 import torch
 from ignite.engine import Engine
 from ignite.metrics import Metric, Precision, Recall
+from sklearn.metrics._scorer import _BaseScorer, _ProbaScorer
 
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
-from deepchecks.vision.metrics_utils.object_detection_precision_recall import ObjectDetectionAveragePrecision
+from deepchecks.tabular.metric_utils import DeepcheckScorer
+from deepchecks.utils.metrics import get_scorer_name
+from deepchecks.vision.metrics_utils import CustomScorer, ObjectDetectionAveragePrecision, ObjectDetectionTpFpFn
 from deepchecks.vision.vision_data import TaskType, VisionData
 
 __all__ = [
@@ -33,21 +36,59 @@ __all__ = [
 
 def get_default_classification_scorers():
     return {
-        'Precision': Precision(),
-        'Recall': Recall()
+        'Precision': classification_dict['precision_per_class'](),
+        'Recall':  classification_dict['recall_per_class']()
     }
 
 
-def get_default_object_detection_scorers():
+def get_default_object_detection_scorers() -> t.Dict[str, Metric]:
     return {
-        'Average Precision': ObjectDetectionAveragePrecision(),
-        'Average Recall': ObjectDetectionAveragePrecision(return_option=1)
+        'Average Precision': detection_dict['average_precision_per_class'](),
+        'Average Recall': detection_dict['average_recall_per_class']()
     }
+
+
+classification_dict = {
+    'precision_per_class': Precision,
+    'recall_per_class': Recall,
+}
+
+detection_dict = {
+    'precision_per_class': lambda: ObjectDetectionTpFpFn(evaluting_function='precision'),
+    'recall_per_class': lambda: ObjectDetectionTpFpFn(evaluting_function='recall'),
+    'average_precision_per_class': lambda: ObjectDetectionAveragePrecision(return_option='ap'),
+    'average_recall_per_class': lambda: ObjectDetectionAveragePrecision(return_option='ar'),
+    'f1_per_class': lambda: ObjectDetectionTpFpFn(evaluting_function='f1'),
+    'fpr_per_class': lambda: ObjectDetectionTpFpFn(evaluting_function='fpr'),
+    'fnr_per_class': lambda: ObjectDetectionTpFpFn(evaluting_function='fnr')
+}
+
+
+def convert_classification_scorers(scorer: t.Union[Metric, str, t.Callable]):
+    if isinstance(scorer, str):
+        scorer_name = scorer.lower().replace(' ', '_').replace('sensitivity', 'recall')
+        if scorer_name in classification_dict:
+            return classification_dict[scorer_name]()
+    if isinstance(scorer, (_BaseScorer, str)):
+        scorer = DeepcheckScorer(scorer)
+        needs_proba = isinstance(scorer, _ProbaScorer)
+        return CustomScorer(scorer.run_on_pred, needs_proba=needs_proba)
+    elif callable(scorer):
+        return CustomScorer(scorer)
+    return None
+
+
+def convert_detection_scorers(scorer: t.Union[Metric, str, t.Callable]):
+    if isinstance(scorer, str):
+        scorer_name = scorer.lower().replace(' ', '_').replace('sensitivity', 'recall')
+        if scorer_name in detection_dict:
+            return detection_dict[scorer_name]()
+    return None
 
 
 def get_scorers_list(
         dataset: VisionData,
-        alternative_scorers: t.Dict[str, Metric] = None
+        alternative_scorers: t.Union[t.Dict[str, t.Union[Metric, t.Callable, str]], t.List[t.Any]] = None,
 ) -> t.Dict[str, Metric]:
     """Get scorers list according to model object and label column.
 
@@ -55,8 +96,8 @@ def get_scorers_list(
     ----------
     dataset : VisionData
         Dataset object
-    alternative_scorers : t.Dict[str, Metric]
-        Alternative scorers dictionary
+    alternative_scorers : t.Union[t.Dict[str, t.Union[Metric, t.Callable, str]], t.List[str]], default: None
+        Alternative scorers dictionary (or a list)
     Returns
     -------
     t.Dict[str, Metric]
@@ -67,13 +108,26 @@ def get_scorers_list(
     if alternative_scorers:
         # For alternative scorers we create a copy since in suites we are running in parallel, so we can't use the same
         # instance for several checks.
+        if isinstance(alternative_scorers, list):
+            alternative_scorers = {get_scorer_name(name): name for name in alternative_scorers}
         scorers = {}
         for name, met in alternative_scorers.items():
             # Validate that each alternative scorer is a correct type
-            if not isinstance(met, Metric):
-                raise DeepchecksValueError('alternative_scorers should contain metrics of type ignite.Metric')
-            met.reset()
-            scorers[name] = copy(met)
+            if isinstance(met, Metric):
+                met.reset()
+                scorers[name] = copy(met)
+            elif isinstance(met, str) or callable(met):
+                if task_type == TaskType.OBJECT_DETECTION:
+                    converted_met = convert_detection_scorers(met)
+                else:
+                    converted_met = convert_classification_scorers(met)
+                if converted_met is None:
+                    raise DeepchecksNotSupportedError(
+                        f'Unsupported metric: {name} of type {type(met).__name__} was given.')
+                scorers[name] = converted_met
+            else:
+                raise DeepchecksValueError(
+                    f'Excepted metric type one of [ignite.Metric, str, callable], was {type(met).__name__}.')
         return scorers
     elif task_type == TaskType.CLASSIFICATION:
         scorers = get_default_classification_scorers()

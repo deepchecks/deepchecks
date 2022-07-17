@@ -14,8 +14,9 @@ import warnings
 
 import pytest
 
-from deepchecks.tabular.checks import (DominantFrequencyChange, TrainTestFeatureDrift, TrainTestLabelDrift,
-                                       TrainTestPredictionDrift, WholeDatasetDrift)
+from deepchecks.tabular.checks import (DominantFrequencyChange, ModelErrorAnalysis, SegmentPerformance,
+                                       TrainTestFeatureDrift, TrainTestLabelDrift, TrainTestPredictionDrift,
+                                       WholeDatasetDrift, PerformanceReport)
 
 
 def test_deprecation_warning_label_drift():
@@ -63,6 +64,23 @@ def test_deprecation_warning_whole_dataset_drift():
 
 
 def test_deprecation_dominant_freq_change_warning():
-    # Test that warning is raised when max_num_categories has value:
     with pytest.warns(DeprecationWarning, match='The DominantFrequencyChange check is deprecated'):
         _ = DominantFrequencyChange()
+
+
+def test_deprecation_model_error_analysis_warning():
+    with pytest.warns(DeprecationWarning, match='The ModelErrorAnalysis check is deprecated and will be removed in the '
+                                                '0.11 version. Please use the WeakSegmentsPerformance check instead.'):
+        _ = ModelErrorAnalysis()
+
+
+def test_deprecation_segment_performance_warning():
+    with pytest.warns(DeprecationWarning, match='The SegmentPerformance check is deprecated and will be removed in the '
+                                                '0.11 version. Please use the WeakSegmentsPerformance check instead.'):
+        _ = SegmentPerformance()
+
+
+def test_deprecation_performance_report_warning():
+    with pytest.warns(DeprecationWarning, match='the performance report check is deprecated. use the train test '
+                                                'performance check instead'):
+        _ = PerformanceReport()
