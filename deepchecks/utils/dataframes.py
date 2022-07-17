@@ -29,7 +29,7 @@ def default_fill_na_per_column_type(df: pd.DataFrame, cat_features: t.Union[pd.S
         if col_name in cat_features:
             df[col_name].fillna('None', inplace=True)
         elif is_numeric_dtype(df[col_name]):
-            df[col_name].fillna(df[col_name].mean(), inplace=True)
+            df[col_name] = df[col_name].astype('float64').fillna(df[col_name].mean())
         else:
             df[col_name].fillna(df[col_name].mode(), inplace=True)
     return df
