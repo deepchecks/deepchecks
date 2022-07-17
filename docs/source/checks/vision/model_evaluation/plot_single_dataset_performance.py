@@ -75,3 +75,12 @@ check = SingleDatasetPerformance()
 check.add_condition_greater_than(0.5)
 result = check.run(train_ds, mnist_model)
 result.show(show_additional_outputs=False)
+
+#%%
+# We can also define a condition on a specific metric (or a subset of the metrics) that was passed to the check and a
+# specific class, instead of testing all the metrics and all the classes which is the default mode.
+
+check = SingleDatasetPerformance()
+check.add_condition_greater_than(0.8, metrics=['Precision'], class_mode='3')
+result = check.run(train_ds, mnist_model)
+result.show(show_additional_outputs=False)
