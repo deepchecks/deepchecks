@@ -529,8 +529,7 @@ FIGURE_CREATION_SCRIPT = r"""
         clearPlotContainer();
         showNotification('error', 'Failed to display plotly figure, try instead <code>result.show_in_iframe()</code>');
     }
-})();
-"""
+})();"""  # noqa
 
 
 STYLE_LOADER = """

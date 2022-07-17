@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-# noqa: E501
+# flake8: noqa
 """Package for common static resources."""
 import os
 import pkgutil
@@ -56,6 +56,8 @@ DEEPCHECKS_STYLE = """
     position: relative;
     display: none;
     padding: 1em 1.5em 1em 1.5em;
+    max-width: 100%;
+    overflow-x: auto;
 }
 
 .deepchecks-collapsible[open] > .deepchecks-collapsible-content {
@@ -352,10 +354,7 @@ tfoot {
 
 tbody tr:nth-child(odd) {
     background-color: var(--deepchecks-color-light);
-}
-
-
-""".replace('%deepchecks-style', DEEPCHECKS_STYLE)
+}""".replace('%deepchecks-style', DEEPCHECKS_STYLE)  # noqa
 
 
 def requirejs_script(connected: bool = True):
