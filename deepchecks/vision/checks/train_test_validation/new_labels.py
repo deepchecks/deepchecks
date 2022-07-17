@@ -16,15 +16,16 @@ from typing import Dict
 import torch
 
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
+from deepchecks.core.checks import ReduceMixin
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.vision import Batch, Context, TrainTestCheck, VisionData
 from deepchecks.vision.utils.image_functions import draw_bboxes, prepare_thumbnail
+from deepchecks.vision.vision_data import TaskType
 
 __all__ = ['NewLabels']
 
-from deepchecks.vision.vision_data import TaskType
 
 THUMBNAIL_SIZE = (200, 200)
 
@@ -58,7 +59,7 @@ def draw_image(data: VisionData, sample_index: int, class_id: int) -> str:
     return image_thumbnail
 
 
-class NewLabels(TrainTestCheck):
+class NewLabels(TrainTestCheck, ReduceMixin):
     """Detects labels that apper only in the test set.
 
     Parameters
@@ -135,6 +136,16 @@ class NewLabels(TrainTestCheck):
             displays = None
 
         return CheckResult(result_value, display=displays)
+
+    def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
+        """Reduce check result value.
+
+        Returns
+        -------
+        Dict[str, float]
+            number of samples per each new label
+        """
+        return check_result.value['new_labels']
 
     def add_condition_new_label_ratio_less_or_equal(self, max_allowed_new_labels_ratio: float = 0.005):
         # Default value set to 0.005 because of sampling mechanism
