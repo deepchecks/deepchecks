@@ -160,9 +160,11 @@ result.show(show_additional_outputs=False)
 #
 # Get an aggregated value
 # =======================
-# Using the reduce_output function we can aggregate the drift values per feature and get a collective score
-# that reflects the effect of the drift across all features on the model. In an unlabeled environment this value
-# can be a good indicator of possible deterioration in the model performance.
+# Using the :func:`deepchecks.tabular.checks.train_test_validation.TrainTestFeatureDrift.reduce_output` function we
+# can combine the drift values per feature and get a collective score
+# that reflects the effect of the drift on the model, taking into account all the features.
+# In scenarios where labels are unavailable (either temporary of permanently)
+# this value can be a good indicator of possible deterioration in the model's performance.
 #
 # We can define the type of aggregation we want to use via the `aggregation_method` parameter. The possible values are:
 #
@@ -174,7 +176,7 @@ result.show(show_additional_outputs=False)
 #
 # ``none``: No averaging. Return a dict with a drift score for each feature.
 #
-# ``max``: Maximum of all the features drift scores.
+# ``max``: Maximum value of all the individual feature's drift scores.
 #
 
 check = TrainTestFeatureDrift(aggregation_method='weighted')
