@@ -151,7 +151,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             children = (HTML(value='<p>No outputs to show.</p>'),)
         else:
             df = create_failures_dataframe(failures)
-            table = DataFrameSerializer(df.style.hide_index()).serialize()
+            table = DataFrameSerializer(df.style.hide(axis='index')).serialize()
             children = (table,)
         accordion = normalize_widget_style(Accordion(
             children=children,
@@ -298,7 +298,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                 output_id=output_id,
                 is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
             )
-            return DataFrameSerializer(df.style.hide_index()).serialize()
+            return DataFrameSerializer(df.style.hide(axis='index')).serialize()
 
 
 def select_serializer(result):

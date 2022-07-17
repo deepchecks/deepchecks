@@ -63,6 +63,17 @@ Object detection:
 *   Mean average precision
 *   Mean average recall
 
+To run a check with the default metrics, run it wihout passing the scorers.
+
+:doc:`ClassPerformance </checks_gallery/vision/model_evaluation/plot_class_performance>`:
+
+.. code-block:: python
+
+    check = ClassPerformance()
+    result = check.run(train_ds, test_ds, mnist_model)
+    result
+
+
 Alternative metrics
 ===================
 Sometimes the defaults aren’t good enough to describe the specifics of the problem.
@@ -72,6 +83,7 @@ The metrics on the list can be existing
 `Ignite metrics <https://pytorch.org/ignite/metrics.html#complete-list-of-metrics>`__ or
 `Sklearn scorers <https://scikit-learn.org/stable/modules/model_evaluation.html>`__ or your own implementations.
 
+
 Custom metrics
 --------------
 You can also pass your own custom metric to relevant checks and suites.
@@ -80,27 +92,29 @@ Custom metrics should follow the
 `Ignite Metric <https://pytorch.org/ignite/metrics.html#how-to-create-a-custom-metric>`__ API for computer vision or
 `Sklearn scorer <https://scikit-learn.org/stable/modules/generated/sklearn.metrics.make_scorer.html>`__ API for tabular.
 
-Code Examples
-==============
-:doc:`PerformanceReport </checks_gallery/tabular/model_evaluation/plot_performance_report>`:
-
 .. code-block:: python
 
-    from sklearn.metrics import fbeta_score, make_scorer
+    from deepchecks.tabular.datasets.classification import adult
+    from deepchecks.tabular.suites import model_evaluation
+    from sklearn.metrics import cohen_kappa_score, fbeta_score, make_scorer
 
-    fbeta_scorer = make_scorer(fbeta_score, labels=[0, 1], average=None, beta=0.2)
+    f1_scorer = make_scorer(fbeta_score, labels=[0, 1], average=None, beta=0.2)
+    ck_scorer = make_scorer(cohen_kappa_score)
+    custom_scorers = {'f1': f1_scorer, 'cohen': ck_scorer}
 
-    check = PerformanceReport(alternative_scorers={'my scorer': fbeta_scorer})
-    check.run(train_dataset, test_dataset, model)
+    train_ds, test_ds = adult.load_data(data_format='Dataset', as_train_test=True)
+    model = adult.load_fitted_model()
+    suite = model_evaluation(alternative_scorers=custom_scorers)
+    result = suite.run(train_dataset, test_dataset, model)
 
-
-:doc:`SingleDatasetScalarPerformance </checks_gallery/vision/model_evaluation/plot_single_dataset_scalar_performance>`:
 
 .. code-block:: python
 
     from ignite.metrics import Precision
-    from torch import nanmean
 
-    check = SingleDatasetScalarPerformance(Precision(), nanmean, metric_name='precision', reduce_name='mean')
+    precision = Precision(average=True)
+    double_precision = 2 * precision
+
+    check = SingleDatasetPerformance({'precision2': double_precision})
     result = check.run(train_ds, mnist_model)
     result.value
