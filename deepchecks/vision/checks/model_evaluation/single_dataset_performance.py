@@ -73,7 +73,6 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
         return output_dict
 
     def add_condition_greater_than(self, threshold: float, metrics: List[str] = None, class_mode: str = 'all'):
-
         """Add condition - the result is greater than the threshold.
 
         Parameters
@@ -122,7 +121,6 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
         return self.add_condition(f'Score is greater than {threshold}', condition)
 
     def add_condition_less_than(self, threshold: float, metrics: List[str] = None, class_mode: str = 'all'):
-
         """Add condition - the result is less than the threshold.
 
         Parameters
@@ -134,7 +132,7 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
             The names of the metrics from the check to apply the condition to. If None, runs on all of the metrics that
             were calculated in the check.
 
-       class_mode: str, default: 'all'
+        class_mode: str, default: 'all'
             The decision rule over the classes, one of 'any', 'all', class name. If 'any', passes if at least one class
             result is above the threshold, if 'all' passes if all of the class results are above the threshold,
             class name, passes if the result for this specified class is above the thershold.
