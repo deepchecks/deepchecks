@@ -15,7 +15,7 @@ decision making process.
 * `How can I use metrics with Deepchecks? <#how-can-i-use-metrics-with-deepchecks>`__
 * `Default metrics <#default-metrics>`__
 * `Alternative metrics <#alternative-metrics>`__
-
+* `List of Supported Strings <#list-of-supported-strings>`__
 
 
 How can I use metrics with Deepchecks?
@@ -65,7 +65,7 @@ Object detection:
 
 To run a check with the default metrics, run it wihout passing the scorers.
 
-:doc:`ClassPerformance </checks_gallery/vision/model_evaluation/plot_class_performance>`:
+:doc: `ClassPerformance </checks_gallery/vision/model_evaluation/plot_class_performance>`:
 
 .. code-block:: python
 
@@ -81,8 +81,57 @@ If this is the case, you can pass a list of metrics as a parameter to the check.
 
 The metrics on the list can be existing
 `Ignite metrics <https://pytorch.org/ignite/metrics.html#complete-list-of-metrics>`__ or
-`Sklearn scorers <https://scikit-learn.org/stable/modules/model_evaluation.html>`__ or your own implementations.
+`Sklearn scorers <https://scikit-learn.org/stable/modules/model_evaluation.html>`__ or
+or a string from Deepchecks' `supported strings <#list-of-supported-strings>`__ or your own implementations.
 
+List of Supported Strings
+=========================
+.. list-table:: Supported Strings
+   :widths: 25 75
+   :header-rows: 1
+
+   * - String
+     - Metric
+   * - 'neg_rmse'
+     - negative root mean squared error (Sklearn)
+   * - 'neg_mae'
+     - negative mean absolute error (Sklearn)
+   * - 'precision_per_class'
+     - precision per class - no averaging
+   * - 'recall_per_class'
+     - recall per class - no averaging
+   * - 'f1_per_class'
+     - F-1  per class - no averaging
+   * - 'fpr_per_class'
+     - False Positive Rate per class - no averaging
+   * - 'fpr'
+     - False Positive Rate - binary
+   * - 'fpr_macro'
+     - False Positive Rate - macro averaging
+   * - 'fpr_micro'
+     - False Positive Rate - micro averaging
+   * - 'fpr_weighted'
+     - False Positive Rate - weighted macro averaging
+   * - 'fnr_per_class'
+     - False Negative Rate per class - no averaging
+   * - 'fnr'
+     - False Negative Rate - binary
+   * - 'fnr_macro'
+     - False Negative Rate - macro averaging
+   * - 'fnr_micro'
+     - False Negative Rate - micro averaging
+   * - 'fnr_weighted'
+     - False Negative Rate - weighted macro averaging
+   * - 'tnr_per_class'
+     - True Negative Rate per class - no averaging
+   * - 'tnr'
+     - True Negative Rate - binary
+   * - 'tnr_macro'
+     - True Negative Rate - macro averaging
+   * - 'tnr_micro'
+     - True Negative Rate - micro averaging
+   * - 'tnr_weighted'
+     - True Negative Rate - weighted macro averaging
 
 Custom metrics
 --------------
