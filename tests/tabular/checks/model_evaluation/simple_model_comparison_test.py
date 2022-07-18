@@ -31,6 +31,16 @@ def test_dataset_wrong_input():
 def test_classification_random(iris_split_dataset_and_model):
     train_ds, test_ds, clf = iris_split_dataset_and_model
     # Arrange
+    check = SimpleModelComparison(strategy='stratified')
+    # Act X
+    result = check.run(train_ds, test_ds, clf).value
+    # Assert
+    assert_classification(result, [0, 1, 2])
+
+
+def test_classification_uniform(iris_split_dataset_and_model):
+    train_ds, test_ds, clf = iris_split_dataset_and_model
+    # Arrange
     check = SimpleModelComparison(strategy='uniform')
     # Act X
     result = check.run(train_ds, test_ds, clf).value
@@ -61,7 +71,7 @@ def test_classification_binary_string_labels(iris_binary_string_split_dataset_an
 def test_classification_random_custom_metric(iris_split_dataset_and_model):
     train_ds, test_ds, clf = iris_split_dataset_and_model
     # Arrange
-    check = SimpleModelComparison(strategy='uniform',
+    check = SimpleModelComparison(strategy='stratified',
                                   alternative_scorers={'recall': make_scorer(recall_score, average=None)})
     # Act X
     result = check.run(train_ds, test_ds, clf)
@@ -73,7 +83,7 @@ def test_classification_random_custom_metric(iris_split_dataset_and_model):
 def test_classification_random_custom_metric_without_display(iris_split_dataset_and_model):
     train_ds, test_ds, clf = iris_split_dataset_and_model
     # Arrange
-    check = SimpleModelComparison(strategy='uniform',
+    check = SimpleModelComparison(strategy='stratified',
                                   alternative_scorers={'recall': make_scorer(recall_score, average=None)})
     # Act X
     result = check.run(train_ds, test_ds, clf, with_display=False)
@@ -85,7 +95,7 @@ def test_classification_random_custom_metric_without_display(iris_split_dataset_
 def test_regression_random(diabetes_split_dataset_and_model):
     train_ds, test_ds, clf = diabetes_split_dataset_and_model
     # Arrange
-    check = SimpleModelComparison(strategy='uniform')
+    check = SimpleModelComparison(strategy='stratified')
     # Act X
     result = check.run(train_ds, test_ds, clf).value
     # Assert
@@ -95,7 +105,7 @@ def test_regression_random(diabetes_split_dataset_and_model):
 def test_regression_random_state(diabetes_split_dataset_and_model):
     train_ds, test_ds, clf = diabetes_split_dataset_and_model
     # Arrange
-    check = SimpleModelComparison(strategy='uniform', random_state=0)
+    check = SimpleModelComparison(strategy='stratified', random_state=0)
     # Act X
     result = check.run(train_ds, test_ds, clf).value
     # Assert
@@ -106,6 +116,16 @@ def test_regression_constant(diabetes_split_dataset_and_model):
     train_ds, test_ds, clf = diabetes_split_dataset_and_model
     # Arrange
     check = SimpleModelComparison(strategy='most_frequent')
+    # Act X
+    result = check.run(train_ds, test_ds, clf).value
+    # Assert
+    assert_regression(result)
+
+
+def test_regression_uniform(diabetes_split_dataset_and_model):
+    train_ds, test_ds, clf = diabetes_split_dataset_and_model
+    # Arrange
+    check = SimpleModelComparison(strategy='uniform')
     # Act X
     result = check.run(train_ds, test_ds, clf).value
     # Assert
@@ -201,7 +221,7 @@ def test_condition_pass_for_new_test_classes(kiss_dataset_and_model):
 def test_condition_ratio_not_less_than_passed(diabetes_split_dataset_and_model):
     # Arrange
     train_ds, test_ds, clf = diabetes_split_dataset_and_model
-    check = SimpleModelComparison(strategy='uniform').add_condition_gain_greater_than()
+    check = SimpleModelComparison(strategy='stratified').add_condition_gain_greater_than()
 
     # Act
     check_result = check.run(train_ds, test_ds, clf)

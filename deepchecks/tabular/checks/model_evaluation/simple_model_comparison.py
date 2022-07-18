@@ -27,19 +27,20 @@ from deepchecks.tabular import Context, Dataset, TrainTestCheck
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.distribution.preprocessing import ScaledNumerics
 from deepchecks.utils.metrics import get_gain
-from deepchecks.utils.simple_models import RandomModel
+from deepchecks.utils.simple_models import RandomModel, UniformModel
 from deepchecks.utils.strings import format_percent
 
 __all__ = ['SimpleModelComparison']
 
 _allowed_strategies = (
+    'stratified',
     'most_frequent',
     'uniform',
     'tree'
 )
 
 _depr_strategies = {
-    'random': 'uniform',
+    'random': 'stratified',
     'constant': 'most_frequent',
 }
 
@@ -50,8 +51,11 @@ class SimpleModelComparison(TrainTestCheck):
     Parameters
     ----------
     strategy : str, default: 'constant'
-        Strategy to use to generate the predictions of the simple model ['uniform', 'most_frequent', 'tree'].
-        * `uniform`: select one of the labels by random. (Previously 'random')
+        Strategy to use to generate the predictions of the simple model ['stratified', 'uniform',
+        'most_frequent', 'tree'].
+
+        * `stratified`: select one of the labels by random. (Previously 'random')
+        * `uniform`: draws predictions uniformly at random from the list of values in y.
         * `most_frequent`: in regression is mean value, in classification the most common value. (Previously 'constant')
         * `tree`: runs a simple decision tree.
     simple_model_type : str , default: most_frequent
@@ -299,8 +303,9 @@ class SimpleModelComparison(TrainTestCheck):
         np.random.seed(self.random_state)
 
         if self.strategy == 'uniform':
+            simple_model = UniformModel()
+        elif self.strategy == 'stratified':
             simple_model = RandomModel()
-
         elif self.strategy == 'most_frequent':
             if task_type == TaskType.REGRESSION:
                 simple_model = DummyRegressor(strategy='mean')
@@ -328,7 +333,7 @@ class SimpleModelComparison(TrainTestCheck):
         else:
             raise DeepchecksValueError(
                 f'Unknown model type - {self.strategy}, expected to be one of '
-                f"['uniform', 'most_frequent', 'tree'] "
+                f"['uniform', 'stratified', 'most_frequent', 'tree'] "
                 f"but instead got {self.strategy}"  # pylint: disable=inconsistent-quotes
             )
 

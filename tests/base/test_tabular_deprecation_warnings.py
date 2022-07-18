@@ -92,5 +92,5 @@ def test_simple_model_args_warning():
 
 
 def test_simple_model_strategy_warning():
-    with pytest.warns(DeprecationWarning, match='strategy random is deprecated. please use uniform instead.'):
+    with pytest.warns(DeprecationWarning, match='strategy random is deprecated. please use stratified instead.'):
         _ = SimpleModelComparison(strategy='random')
