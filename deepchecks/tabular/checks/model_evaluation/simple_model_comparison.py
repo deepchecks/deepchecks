@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing simple comparison check."""
+import warnings
 from collections import defaultdict
 from typing import Callable, Dict, Hashable, List
 
@@ -31,18 +32,31 @@ from deepchecks.utils.strings import format_percent
 
 __all__ = ['SimpleModelComparison']
 
+_allowed_strategies = (
+    'most_frequent',
+    'uniform',
+    'tree'
+)
+
+_depr_strategies = {
+    'random': 'uniform',
+    'constant': 'most_frequent',
+}
+
 
 class SimpleModelComparison(TrainTestCheck):
     """Compare given model score to simple model score (according to given model type).
 
     Parameters
     ----------
-    simple_model_type : str , default: constant
-        Type of the simple model ['random', 'constant', 'tree'].
-        + random - select one of the labels by random.
-        + constant - in regression is mean value, in classification the most common value.
-        + tree - runs a simple decision tree.
-    alternative_scorers : Dict[str, Callable], default None
+    strategy : str, default: 'constant'
+        Strategy to use to generate the predictions of the simple model ['uniform', 'most_frequent', 'tree'].
+        * `uniform`: select one of the labels by random. (Previously 'random')
+        * `most_frequent`: in regression is mean value, in classification the most common value. (Previously 'constant')
+        * `tree`: runs a simple decision tree.
+    simple_model_type : str , default: most_frequent
+        Deprecated. Please use strategy instead.
+    alternative_scorers : Dict[str, Callable], default: None
         An optional dictionary of scorer title to scorer functions/names. If none given, using default scorers.
         For description about scorers see Notes below.
     max_gain : float , default: 50
@@ -89,7 +103,8 @@ class SimpleModelComparison(TrainTestCheck):
 
     def __init__(
         self,
-        simple_model_type: str = 'constant',
+        strategy: str = 'most_frequent',
+        simple_model_type: str = None,
         alternative_scorers: Dict[str, Callable] = None,
         max_gain: float = 50,
         max_depth: int = 3,
@@ -97,11 +112,33 @@ class SimpleModelComparison(TrainTestCheck):
         **kwargs
     ):
         super().__init__(**kwargs)
-        self.simple_model_type = simple_model_type
         self.user_scorers = alternative_scorers
         self.max_gain = max_gain
         self.max_depth = max_depth
         self.random_state = random_state
+
+        if simple_model_type is not None:
+            warnings.warn(
+                f'{self.__class__.__name__}: simple_model_type is deprecated. please use strategy instead.',
+                DeprecationWarning
+            )
+            self.strategy = simple_model_type
+        else:
+            self.strategy = strategy
+
+        if self.strategy in _depr_strategies:
+            warnings.warn(
+                f'{self.__class__.__name__}: strategy {self.strategy} is deprecated. '
+                f'please use { _depr_strategies[self.strategy] } instead.',
+                DeprecationWarning
+            )
+            self.strategy = _depr_strategies[self.strategy]
+
+        if self.strategy not in _allowed_strategies:
+            raise DeepchecksValueError(
+                f'{self.__class__.__name__}: strategy {self.strategy} is not allowed. '
+                f'allowed strategies are {_allowed_strategies}.'
+            )
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check.
@@ -134,7 +171,7 @@ class SimpleModelComparison(TrainTestCheck):
 
         models = [
             (f'{type(model).__name__} model', 'Origin', model),
-            (f'Simple model - {self.simple_model_type}', 'Simple', simple_model)
+            (f'Simple model - {self.strategy}', 'Simple', simple_model)
         ]
 
         # Multiclass have different return type from the scorer, list of score per class instead of single score
@@ -257,21 +294,21 @@ class SimpleModelComparison(TrainTestCheck):
         Raises
         ------
         NotImplementedError
-            If the simple_model_type is not supported
+            If the strategy is not supported
         """
         np.random.seed(self.random_state)
 
-        if self.simple_model_type == 'random':
+        if self.strategy == 'uniform':
             simple_model = RandomModel()
 
-        elif self.simple_model_type == 'constant':
+        elif self.strategy == 'most_frequent':
             if task_type == TaskType.REGRESSION:
                 simple_model = DummyRegressor(strategy='mean')
             elif task_type in {TaskType.BINARY, TaskType.MULTICLASS}:
                 simple_model = DummyClassifier(strategy='most_frequent')
             else:
                 raise DeepchecksValueError(f'Unknown task type - {task_type}')
-        elif self.simple_model_type == 'tree':
+        elif self.strategy == 'tree':
             if task_type == TaskType.REGRESSION:
                 clf = DecisionTreeRegressor(
                     max_depth=self.max_depth,
@@ -290,9 +327,9 @@ class SimpleModelComparison(TrainTestCheck):
                                      ('tree-model', clf)])
         else:
             raise DeepchecksValueError(
-                f'Unknown model type - {self.simple_model_type}, expected to be one of '
-                f"['random', 'constant', 'tree'] "
-                f"but instead got {self.simple_model_type}"  # pylint: disable=inconsistent-quotes
+                f'Unknown model type - {self.strategy}, expected to be one of '
+                f"['uniform', 'most_frequent', 'tree'] "
+                f"but instead got {self.strategy}"  # pylint: disable=inconsistent-quotes
             )
 
         simple_model.fit(train_ds.data[train_ds.features], train_ds.data[train_ds.label_name])
