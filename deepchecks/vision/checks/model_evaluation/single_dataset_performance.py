@@ -60,7 +60,7 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
         return CheckResult(result_df, header='Single Dataset Performance')
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
-       """Return the values of the metrics for the dataset provided in a {metric: value} format."""
+        """Return the values of the metrics for the dataset provided in a {metric: value} format."""
         # Find metrics that were reduced over the classes and replace the Class Name with None
         is_reduced_metrics = check_result.value.groupby('Metric')['Class Name'].nunique() == 1
         reduced_metrics = is_reduced_metrics[is_reduced_metrics].index.to_list()
