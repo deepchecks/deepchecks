@@ -29,6 +29,19 @@ def test_no_drift_classification_label(diabetes, diabetes_model):
              'Method': equal_to('Earth Mover\'s Distance')}
     ))
 
+def test_reduce_no_drift_classification_label(diabetes, diabetes_model):
+    # Arrange
+    train, test = diabetes
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI')
+
+    # Act
+    result = check.run(train, test, diabetes_model)
+
+    # Assert
+    assert_that(result.reduce_output(), has_entries(
+            {'Prediction Drift Score': close_to(0.04, 0.01)}
+    ))
+
 
 def test_drift_classification_label(drifted_data_and_model):
     # Arrange

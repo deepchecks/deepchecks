@@ -56,6 +56,20 @@ def test_no_drift_object_detection(coco_train_visiondata, device):
     ))
 
 
+def test_reduce_output_no_drift_object_detection(coco_train_visiondata, device):
+    # Arrange
+    check = TrainTestLabelDrift(categorical_drift_method='PSI')
+
+    # Act
+    result = check.run(coco_train_visiondata, coco_train_visiondata, device=device)
+
+    # Assert
+    assert_that(result.reduce_output(), has_entries(
+        {'Samples Per Class': 0,
+         'Bounding Box Area (in pixels)': 0, 'Number of Bounding Boxes Per Image': 0}
+    ))
+
+
 def test_with_drift_classification(mnist_dataset_train, mnist_dataset_test, device):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_test
@@ -236,6 +250,7 @@ def test_with_drift_object_detection_alternative_properties(coco_train_visiondat
     # Arrange
     def prop(labels):
         return [int(x[0][0]) if len(x) != 0 else 0 for x in labels]
+
     alternative_properties = [
         {'name': 'test', 'method': prop, 'output_type': 'continuous'}]
     check = TrainTestLabelDrift(label_properties=alternative_properties)
