@@ -29,7 +29,7 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
 
     Parameters
     ----------
-    scorers : Dict[str, Callable], default: None
+    scorers : Dict[str, Metric], default: None
         An optional dictionary of scorer name to scorer functions.
         If none given, using default scorers
 
