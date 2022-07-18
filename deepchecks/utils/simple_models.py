@@ -68,7 +68,7 @@ class RandomModel:
 
 
 class UniformModel:
-    """Model that draws predictions uniformly at random from the list of values in y"""
+    """Model that draws predictions uniformly at random from the list of values in y."""
 
     def __init__(self):
         self.unique_labels = None
