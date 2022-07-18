@@ -11,7 +11,7 @@ While some aspects for writing a check are similar when writing checks for the
 ``deepchecks.tabular`` ``and deepchecks.vision`` subpackages, there are major differences
 that warrant a separate guide for each:
 
-- :doc:`Tabular Custom Check Guide. </user-guide/tabular/tutorials/plot_add_a_custom_check>`
-- :doc:`Vision Custom Check Guide. </user-guide/vision/tutorials/plot_custom_checks>`
+- :doc:`Tabular Custom Check Guide. </user-guide/tabular/tutorials/plot_add_a_custom_check>`__
+- :doc:`Vision Custom Check Guide. </user-guide/vision/tutorials/plot_custom_checks>`__
 
 """

@@ -36,4 +36,4 @@ Custom Checks
     :maxdepth: 1
     :glob:
 
-    tabular/custom/plot_*
+    vision/custom/plot_*
