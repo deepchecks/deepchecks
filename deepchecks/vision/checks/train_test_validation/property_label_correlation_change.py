@@ -30,16 +30,16 @@ from deepchecks.vision.utils.image_functions import crop_image
 from deepchecks.vision.utils.image_properties import default_image_properties, validate_properties
 from deepchecks.vision.vision_data import TaskType
 
-__all__ = ['FeatureLabelCorrelationChange']
+__all__ = ['PropertyLabelCorrelationChange']
 
 pps_url = 'https://docs.deepchecks.com/en/stable/checks_gallery/vision/' \
           'train_test_validation/plot_feature_label_correlation_change.html'
 pps_html = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
 
-FLC = TypeVar('FLC', bound='FeatureLabelCorrelationChange')
+FLC = TypeVar('FLC', bound='PropertyLabelCorrelationChange')
 
-
-class FeatureLabelCorrelationChange(TrainTestCheck):
+# FeatureLabelCorrelationChange
+class PropertyLabelCorrelationChange(TrainTestCheck):
     """
     Return the Predictive Power Score of image properties, in order to estimate their ability to predict the label.
 

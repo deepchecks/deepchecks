@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_length
 
-from deepchecks.vision.checks import FeatureLabelCorrelationChange
+from deepchecks.vision.checks import PropertyLabelCorrelationChange
 from deepchecks.vision.utils.transformations import un_normalize_batch
 from tests.base.utils import equal_condition_result
 from tests.vision.vision_conftest import *
@@ -60,25 +60,25 @@ def get_coco_batch_to_images_with_bias_one_class(label_formatter):
 
 def test_is_float_column():
     col = pd.Series([1, 2, 3, 4, 5])
-    assert_that(FeatureLabelCorrelationChange.is_float_column(col), equal_to(False))
+    assert_that(PropertyLabelCorrelationChange.is_float_column(col), equal_to(False))
 
     col = pd.Series(['a', 'b', 'c'])
-    assert_that(FeatureLabelCorrelationChange.is_float_column(col), equal_to(False))
+    assert_that(PropertyLabelCorrelationChange.is_float_column(col), equal_to(False))
 
     col = pd.Series(['a', 'b', 5.5])
-    assert_that(FeatureLabelCorrelationChange.is_float_column(col), equal_to(False))
+    assert_that(PropertyLabelCorrelationChange.is_float_column(col), equal_to(False))
 
     col = pd.Series([1, 2, 3, 4, 5], dtype='float')
-    assert_that(FeatureLabelCorrelationChange.is_float_column(col), equal_to(False))
+    assert_that(PropertyLabelCorrelationChange.is_float_column(col), equal_to(False))
 
     col = pd.Series([1, 2, 3, 4, 5.5], dtype='float64')
-    assert_that(FeatureLabelCorrelationChange.is_float_column(col), equal_to(True))
+    assert_that(PropertyLabelCorrelationChange.is_float_column(col), equal_to(True))
 
 
 def test_no_drift_classification(mnist_dataset_train, device):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_train
-    check = FeatureLabelCorrelationChange(per_class=False, random_state=42)
+    check = PropertyLabelCorrelationChange(per_class=False, random_state=42)
 
     # Act
     result = check.run(train, test, device=device)
@@ -96,7 +96,7 @@ def test_drift_classification(mnist_dataset_train, mnist_dataset_test, device):
 
     train, test = mnist_dataset_train, mnist_dataset_test
 
-    check = FeatureLabelCorrelationChange(per_class=False, random_state=42)
+    check = PropertyLabelCorrelationChange(per_class=False, random_state=42)
 
     # Act
     result = check.run(train, test, device=device)
@@ -112,7 +112,7 @@ def test_drift_classification(mnist_dataset_train, mnist_dataset_test, device):
 def test_no_drift_object_detection(coco_train_visiondata, device):
     # Arrange
     train, test = coco_train_visiondata, coco_train_visiondata
-    check = FeatureLabelCorrelationChange(per_class=False, random_state=42)
+    check = PropertyLabelCorrelationChange(per_class=False, random_state=42)
 
     # Act
     result = check.run(train, test, device=device)
@@ -128,7 +128,7 @@ def test_no_drift_object_detection(coco_train_visiondata, device):
 def test_drift_object_detection(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
     train, test = coco_train_visiondata, coco_test_visiondata
-    check = FeatureLabelCorrelationChange(per_class=False, random_state=42)
+    check = PropertyLabelCorrelationChange(per_class=False, random_state=42)
     train = copy(train)
     train.batch_to_images = get_coco_batch_to_images_with_bias(train.batch_to_labels)
 
@@ -147,7 +147,7 @@ def test_drift_object_detection(coco_train_visiondata, coco_test_visiondata, dev
 def test_drift_object_detection_without_display(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
     train, test = coco_train_visiondata, coco_test_visiondata
-    check = FeatureLabelCorrelationChange(per_class=False, random_state=42)
+    check = PropertyLabelCorrelationChange(per_class=False, random_state=42)
     train = copy(train)
     train.batch_to_images = get_coco_batch_to_images_with_bias(train.batch_to_labels)
 
@@ -166,7 +166,7 @@ def test_drift_object_detection_without_display(coco_train_visiondata, coco_test
 def test_no_drift_classification_per_class(mnist_dataset_train, device):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_train
-    check = FeatureLabelCorrelationChange(per_class=True, random_state=42)
+    check = PropertyLabelCorrelationChange(per_class=True, random_state=42)
 
     # Act
     result = check.run(train, test, n_samples=None, device=device)
@@ -184,7 +184,7 @@ def test_drift_classification_per_class(mnist_dataset_train, mnist_dataset_test,
 
     train, test = mnist_dataset_train, mnist_dataset_test
 
-    check = FeatureLabelCorrelationChange(per_class=True, random_state=42)
+    check = PropertyLabelCorrelationChange(per_class=True, random_state=42)
 
     # Act
     result = check.run(train, test, n_samples=None, device=device)
@@ -200,7 +200,7 @@ def test_drift_classification_per_class(mnist_dataset_train, mnist_dataset_test,
 def test_no_drift_object_detection_per_class(coco_train_visiondata, device):
     # Arrange
     train, test = coco_train_visiondata, coco_train_visiondata
-    check = FeatureLabelCorrelationChange(per_class=True, random_state=42)
+    check = PropertyLabelCorrelationChange(per_class=True, random_state=42)
 
     # Act
     result = check.run(train, test, device=device)
@@ -216,7 +216,7 @@ def test_no_drift_object_detection_per_class(coco_train_visiondata, device):
 def test_no_drift_object_detection_per_class_min_pps(coco_train_visiondata, device):
     # Arrange
     train, test = coco_train_visiondata, coco_train_visiondata
-    check = FeatureLabelCorrelationChange(per_class=True, random_state=42, min_pps_to_show=2)
+    check = PropertyLabelCorrelationChange(per_class=True, random_state=42, min_pps_to_show=2)
 
     # Act
     result = check.run(train, test, device=device)
@@ -233,7 +233,7 @@ def test_no_drift_object_detection_per_class_min_pps(coco_train_visiondata, devi
 def test_drift_object_detections_min_pps(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
     train, test = coco_train_visiondata, coco_test_visiondata
-    check = FeatureLabelCorrelationChange(per_class=False, random_state=42, min_pps_to_show=2)
+    check = PropertyLabelCorrelationChange(per_class=False, random_state=42, min_pps_to_show=2)
     train = copy(train)
     train.batch_to_images = get_coco_batch_to_images_with_bias(train.batch_to_labels)
 
@@ -252,7 +252,7 @@ def test_drift_object_detections_min_pps(coco_train_visiondata, coco_test_vision
 def test_drift_object_detection_per_class(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
     train, test = coco_train_visiondata, coco_test_visiondata
-    check = FeatureLabelCorrelationChange(per_class=True, random_state=42)
+    check = PropertyLabelCorrelationChange(per_class=True, random_state=42)
     train = copy(train)
     train.batch_to_images = get_coco_batch_to_images_with_bias(train.batch_to_labels)
 
@@ -271,7 +271,7 @@ def test_train_test_condition_pps_train_pass(coco_train_visiondata, device):
     # Arrange
     train, test = coco_train_visiondata, coco_train_visiondata
     condition_value = 0.3
-    check = FeatureLabelCorrelationChange(per_class=False, random_state=42
+    check = PropertyLabelCorrelationChange(per_class=False, random_state=42
                                           ).add_condition_feature_pps_in_train_less_than(condition_value)
 
     # Act
@@ -291,7 +291,7 @@ def test_train_test_condition_pps_train_fail(coco_train_visiondata, coco_test_vi
     # Arrange
     train, test = coco_train_visiondata, coco_test_visiondata
     condition_value = 0.09
-    check = FeatureLabelCorrelationChange(per_class=False, random_state=42
+    check = PropertyLabelCorrelationChange(per_class=False, random_state=42
                                           ).add_condition_feature_pps_in_train_less_than(condition_value)
     train = copy(train)
     train.batch_to_images = get_coco_batch_to_images_with_bias(train.batch_to_labels)
@@ -317,7 +317,7 @@ def test_train_test_condition_pps_train_pass_per_class(mnist_dataset_train, devi
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_train
     condition_value = 0.3
-    check = FeatureLabelCorrelationChange(per_class=True, random_state=42
+    check = PropertyLabelCorrelationChange(per_class=True, random_state=42
                                           ).add_condition_feature_pps_in_train_less_than(condition_value)
 
     # Act
@@ -337,7 +337,7 @@ def test_train_test_condition_pps_train_fail_per_class(coco_train_visiondata, co
     # Arrange
     train, test = coco_train_visiondata, coco_test_visiondata
     condition_value = 0.3
-    check = FeatureLabelCorrelationChange(per_class=True, random_state=42
+    check = PropertyLabelCorrelationChange(per_class=True, random_state=42
                                           ).add_condition_feature_pps_in_train_less_than(condition_value)
     train = copy(train)
     train.batch_to_images = get_coco_batch_to_images_with_bias_one_class(train.batch_to_labels)
@@ -361,7 +361,7 @@ def test_train_test_condition_pps_diff_pass(coco_train_visiondata, device):
     # Arrange
     train, test = coco_train_visiondata, coco_train_visiondata
     condition_value = 0.01
-    check = FeatureLabelCorrelationChange(per_class=False, random_state=42
+    check = PropertyLabelCorrelationChange(per_class=False, random_state=42
                                           ).add_condition_feature_pps_difference_less_than(condition_value)
 
     # Act
@@ -381,7 +381,7 @@ def test_train_test_condition_pps_positive_diff_fail(coco_train_visiondata, coco
     # Arrange
     train, test = coco_train_visiondata, coco_test_visiondata
     condition_value = 0.09
-    check = FeatureLabelCorrelationChange(per_class=False, random_state=42
+    check = PropertyLabelCorrelationChange(per_class=False, random_state=42
                                           ).add_condition_feature_pps_difference_less_than(condition_value)
     train = copy(train)
     train.batch_to_images = get_coco_batch_to_images_with_bias(train.batch_to_labels)
@@ -406,7 +406,7 @@ def test_train_test_condition_pps_diff_fail(coco_train_visiondata, coco_test_vis
     # Arrange
     train, test = coco_train_visiondata, coco_test_visiondata
     condition_value = 0.09
-    check = FeatureLabelCorrelationChange(per_class=False, random_state=42).\
+    check = PropertyLabelCorrelationChange(per_class=False, random_state=42).\
         add_condition_feature_pps_difference_less_than(condition_value, include_negative_diff=False)
     train = copy(train)
     train.batch_to_images = get_coco_batch_to_images_with_bias(train.batch_to_labels)
@@ -431,7 +431,7 @@ def test_train_test_condition_pps_diff_pass_per_class(mnist_dataset_train, devic
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_train
     condition_value = 0.3
-    check = FeatureLabelCorrelationChange(per_class=True, random_state=42
+    check = PropertyLabelCorrelationChange(per_class=True, random_state=42
                                           ).add_condition_feature_pps_difference_less_than(condition_value)
 
     # Act
@@ -451,7 +451,7 @@ def test_train_test_condition_pps_positive_diff_fail_per_class(coco_train_vision
     # Arrange
     train, test = coco_train_visiondata, coco_test_visiondata
     condition_value = 0.4
-    check = FeatureLabelCorrelationChange(per_class=True, random_state=42).\
+    check = PropertyLabelCorrelationChange(per_class=True, random_state=42).\
         add_condition_feature_pps_difference_less_than(condition_value, include_negative_diff=False)
     train = copy(train)
     train.batch_to_images = get_coco_batch_to_images_with_bias_one_class(train.batch_to_labels)
@@ -474,7 +474,7 @@ def test_train_test_condition_pps_diff_fail_per_class(coco_train_visiondata, coc
     # Arrange
     train, test = coco_train_visiondata, coco_test_visiondata
     condition_value = 0.3
-    check = FeatureLabelCorrelationChange(per_class=True, random_state=42
+    check = PropertyLabelCorrelationChange(per_class=True, random_state=42
                                           ).add_condition_feature_pps_difference_less_than(condition_value)
     train = copy(train)
     train.batch_to_images = get_coco_batch_to_images_with_bias_one_class(train.batch_to_labels)
