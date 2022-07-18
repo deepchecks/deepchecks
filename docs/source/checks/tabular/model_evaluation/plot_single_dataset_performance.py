@@ -16,7 +16,7 @@ This notebooks provides an overview for using and understanding single dataset p
 
 What is the purpose of the check?
 =================================
-This check is designed for evaluating a model's performance on a labeled dataset based on multiple scorers.
+This check is designed for evaluating a model's performance on a labeled dataset based on a scorer or multiple scorers.
 
 Scorers are a convention of sklearn to evaluate a model,
 it is a function which accepts (model, X, y_true) and returns a float result which is the score.
