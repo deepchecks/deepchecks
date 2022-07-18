@@ -50,7 +50,7 @@ class SimpleModelComparison(TrainTestCheck):
 
     Parameters
     ----------
-    strategy : str, default: 'constant'
+    strategy : str, default: 'most_frequent'
         Strategy to use to generate the predictions of the simple model ['stratified', 'uniform',
         'most_frequent', 'tree'].
 
