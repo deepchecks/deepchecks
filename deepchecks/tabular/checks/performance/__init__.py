@@ -19,7 +19,8 @@ import warnings
 
 from ..model_evaluation import (CalibrationScore, ConfusionMatrixReport, ModelErrorAnalysis,
                                 MultiModelPerformanceReport, RegressionErrorDistribution, RegressionSystematicError,
-                                RocReport, SegmentPerformance, SimpleModelComparison, TrainTestPerformance)
+                                RocReport, SegmentPerformance, SimpleModelComparison, SingleDatasetPerformance,
+                                TrainTestPerformance)
 
 __all__ = [
     'TrainTestPerformance',
@@ -31,7 +32,8 @@ __all__ = [
     'RegressionSystematicError',
     'RegressionErrorDistribution',
     'MultiModelPerformanceReport',
-    'ModelErrorAnalysis'
+    'ModelErrorAnalysis',
+    'SingleDatasetPerformance'
 ]
 
 warnings.warn(

@@ -87,13 +87,7 @@ class TrainTestPerformance(TrainTestCheck, ReduceMixin):
         self.reduce = reduce
 
     def run_logic(self, context: Context) -> CheckResult:
-        """Run check.
-
-        Returns
-        -------
-        CheckResult
-            value is dictionary in format 'score-name': score-value
-        """
+        """Run check."""
         train_dataset = context.train
         test_dataset = context.test
         model = context.model

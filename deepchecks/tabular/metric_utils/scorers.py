@@ -124,11 +124,8 @@ class DeepcheckScorer:
             self.scorer = scorer
         else:
             scorer_type = type(scorer).__name__
-            if name:
-                message = f'Scorer {name} value should be either a callable or string but got: {scorer_type}'
-            else:
-                message = f'Scorer should be should be either a callable or string but got: {scorer_type}'
-            raise errors.DeepchecksValueError(message)
+            msg = f'Scorer {name if name else ""} value should be either a callable or string but got: {scorer_type}'
+            raise errors.DeepchecksValueError(msg)
         self.name = name if name else get_scorer_name(scorer)
 
     @classmethod
