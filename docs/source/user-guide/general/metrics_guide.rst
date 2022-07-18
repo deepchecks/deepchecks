@@ -63,7 +63,7 @@ Object detection:
 *   Mean average precision
 *   Mean average recall
 
-To run a check with the default metrics, run it wihout passing the scorers.
+To run a check with the default metrics, run it without passing the scorers.
 
 :doc: `ClassPerformance </checks_gallery/vision/model_evaluation/plot_class_performance>`:
 
