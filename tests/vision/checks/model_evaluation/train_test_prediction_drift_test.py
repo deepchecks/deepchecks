@@ -103,6 +103,19 @@ def test_with_drift_classification(mnist_dataset_train, mnist_dataset_test, mock
         }
     ))
 
+def test_reduce_with_drift_classification(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
+    # Arrange
+    train, test = mnist_dataset_train, mnist_dataset_test
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI')
+    # Act
+    result = check.run(train, test, mock_trained_mnist,
+                       device=device)
+    # Assert
+    assert_that(result.reduce_output(), has_entries(
+        {'Samples Per Class': close_to(0, 0.001)}
+    ))
+
+
 
 def test_with_drift_classification_cramer(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
     # Arrange

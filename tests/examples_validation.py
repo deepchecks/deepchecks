@@ -8,10 +8,10 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+import inspect
 import os
 import sys
 from urllib.parse import urlparse
-import inspect
 
 import deepchecks.tabular.checks as tabular_checks
 import deepchecks.vision.checks as vision_checks

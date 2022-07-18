@@ -150,8 +150,10 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         if len(failures) == 0:
             children = (HTML(value='<p>No outputs to show.</p>'),)
         else:
-            df = create_failures_dataframe(failures)
-            table = DataFrameSerializer(df.style.hide(axis='index')).serialize()
+            styler = create_failures_dataframe(failures).style
+            # style.hide_index() was deprecated in the latest versions and new method was added
+            styler = styler.hide(axis='index') if hasattr(styler, 'hide') else styler.hide_index()
+            table = DataFrameSerializer(styler).serialize()
             children = (table,)
         accordion = normalize_widget_style(Accordion(
             children=children,
@@ -159,7 +161,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             selected_index=None
         ))
         return VBox(children=(
-            # by putting `section_anchor`` before the results accordion
+            # by putting `section_anchor` before the results accordion
             # we create a gap between them`s, failures section does not have
             # `section_anchor`` but we need to create a gap.
             # Take a look at the `prepare_results` method to understand
@@ -298,7 +300,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                 output_id=output_id,
                 is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
             )
-            return DataFrameSerializer(df.style.hide(axis='index')).serialize()
+            return DataFrameSerializer(df.style.hide_index()).serialize()
 
 
 def select_serializer(result):
