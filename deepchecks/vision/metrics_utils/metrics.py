@@ -27,7 +27,7 @@ from deepchecks.vision.metrics_utils import CustomScorer, ObjectDetectionAverage
 from deepchecks.vision.vision_data import TaskType, VisionData
 
 __all__ = [
-    'get_scorers_list',
+    'get_scorers_dict',
     'calculate_metrics',
     'metric_results_to_df',
     'filter_classes_for_display',
@@ -86,7 +86,7 @@ def convert_detection_scorers(scorer: t.Union[Metric, str, t.Callable]):
     return None
 
 
-def get_scorers_list(
+def get_scorers_dict(
         dataset: VisionData,
         alternative_scorers: t.Union[t.Dict[str, t.Union[Metric, t.Callable, str]], t.List[t.Any]] = None,
 ) -> t.Dict[str, Metric]:
