@@ -33,6 +33,7 @@ The simple models are:
   mean value, in classification the prediction is equal to the most common value.
 * A **uniform** model - In regression, selects a random value from the y range.
   In classification, selects one of the labels by random.
+* A **stratified** model - Draws the prediction from the distribution of the labels in the train.
 * A **tree** model - Trains a simple decision tree with a given depth. The depth
   can be customized using the ``max_depth`` parameter.
 """
