@@ -77,13 +77,13 @@ def test_condition_greater_than(mnist_dataset_test, mock_trained_mnist, device):
     # Assert
     assert_that(result.conditions_results[0], equal_condition_result(
         is_pass=True,
-        name='Score is greater than 0.8',
+        name='Score is greater than 0.8 for classes: all',
         details='Passed for all of the mertics.'
         ))
 
     assert_that(result.conditions_results[1], equal_condition_result(
         is_pass=False,
-        name='Score is greater than 1.0',
+        name='Score is greater than 1.0 for classes: all',
         details='Failed for metrics: [\'Precision\']'
         ))
 
@@ -92,7 +92,7 @@ def test_condition_greater_than(mnist_dataset_test, mock_trained_mnist, device):
         category=ConditionCategory.ERROR,
         details='Exception in condition: DeepchecksValueError: The requested metric was not calculated, the metrics '
                 'calculated in this check are: [\'Precision\' \'Recall\'].',
-        name='Score is greater than 0.5'
+        name='Score is greater than 0.5 for classes: all'
         ))
 
     assert_that(result.conditions_results[3], equal_condition_result(
@@ -100,8 +100,9 @@ def test_condition_greater_than(mnist_dataset_test, mock_trained_mnist, device):
         category=ConditionCategory.ERROR,
         details='Exception in condition: DeepchecksValueError: class_mode expected be one of the classes in the check '
                 'results or any or all, recieved a.',
-        name='Score is greater than 0.5'
+        name='Score is greater than 0.5 for classes: a'
         ))
+
 
 def test_reduce_output(mnist_dataset_test, mock_trained_mnist, device):
     # Arrange

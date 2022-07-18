@@ -118,7 +118,7 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
             else:
                 failed_metrics = ([a for a, b in zip(metrics, metrics_pass) if not b])
                 return ConditionResult(ConditionCategory.FAIL, f'Failed for metrics: {failed_metrics}')
-        return self.add_condition(f'Score is greater than {threshold}', condition)
+        return self.add_condition(f'Score is greater than {threshold} for classes: {class_mode}', condition)
 
     def add_condition_less_than(self, threshold: float, metrics: List[str] = None, class_mode: str = 'all'):
         """Add condition - the result is less than the threshold.
@@ -166,4 +166,4 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
             else:
                 failed_metrics = ([a for a, b in zip(metrics, metrics_pass) if not b])
                 return ConditionResult(ConditionCategory.FAIL, f'Failed for metrics: {failed_metrics}')
-        return self.add_condition(f'Score is less than {threshold}', condition)
+        return self.add_condition(f'Score is less than {threshold} for classes: {class_mode}', condition)
