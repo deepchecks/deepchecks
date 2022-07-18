@@ -239,7 +239,7 @@ result
 #
 # Let's add the conditions, and re-run the check:
 
-check = PropertyLabelCorrelationChange(per_class=False).add_condition_feature_pps_difference_less_than(0.1) \
-        .add_condition_feature_pps_in_train_less_than()
+check = PropertyLabelCorrelationChange(per_class=False).add_condition_property_pps_difference_less_than(0.1) \
+        .add_condition_property_pps_in_train_less_than()
 result = check.run(train_dataset=train_ds, test_dataset=test_ds)
 result.show(show_additional_outputs=False)
