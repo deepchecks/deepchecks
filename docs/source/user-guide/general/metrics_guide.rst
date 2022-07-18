@@ -77,12 +77,24 @@ To run a check with the default metrics, run it wihout passing the scorers.
 Alternative metrics
 ===================
 Sometimes the defaults aren’t good enough to describe the specifics of the problem.
-If this is the case, you can pass a list of metrics as a parameter to the check.
+If this is the case, you can pass a list of metrics or a dict in the format {metric name: metric} as a parameter to the
+check.
 
 The metrics on the list can be existing
 `Ignite metrics <https://pytorch.org/ignite/metrics.html#complete-list-of-metrics>`__ or
 `Sklearn scorers <https://scikit-learn.org/stable/modules/model_evaluation.html>`__ or
 or a string from Deepchecks' `supported strings <#list-of-supported-strings>`__ or your own implementations.
+
+.. code-block:: python
+
+   train_ds, test_ds = adult.load_data(data_format='Dataset', as_train_test=True)
+   model = adult.load_fitted_model()
+
+   scorer = ['precision_per_class', 'recall_per_class', 'fnr_macro']
+   check = TrainTestPerformance(scorers=scorer)
+   result = check.run(train_ds, test_ds, model)
+   result
+
 
 List of Supported Strings
 =========================
@@ -153,7 +165,7 @@ Custom metrics should follow the
 
     train_ds, test_ds = adult.load_data(data_format='Dataset', as_train_test=True)
     model = adult.load_fitted_model()
-    suite = model_evaluation(alternative_scorers=custom_scorers)
+    suite = model_evaluation(scorers=custom_scorers)
     result = suite.run(train_dataset, test_dataset, model)
 
 
