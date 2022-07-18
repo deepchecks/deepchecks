@@ -29,7 +29,7 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils import plot
 from deepchecks.utils.strings import format_percent, split_camel_case
 from deepchecks.vision import Batch, Context, SingleDatasetCheck, VisionData
-from deepchecks.vision.metrics_utils import calculate_metrics, get_scorers_list, metric_results_to_df
+from deepchecks.vision.metrics_utils import calculate_metrics, get_scorers_dict, metric_results_to_df
 from deepchecks.vision.utils.image_functions import ImageInfo, draw_bboxes, prepare_thumbnail
 from deepchecks.vision.utils.transformations import AbstractTransformations
 from deepchecks.vision.utils.validation import set_seeds
@@ -70,7 +70,7 @@ class RobustnessReport(SingleDatasetCheck):
         """Initialize the metrics for the check, and validate task type is relevant."""
         dataset = context.get_data_by_kind(dataset_kind)
         # Set empty version of metrics
-        self._state = {'metrics': get_scorers_list(dataset, self.alternative_metrics)}
+        self._state = {'metrics': get_scorers_dict(dataset, self.alternative_metrics)}
 
     def update(self, context: Context, batch: Batch, dataset_kind):
         """Accumulates batch data into the metrics."""
