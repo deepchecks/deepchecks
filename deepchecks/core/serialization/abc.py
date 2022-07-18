@@ -169,6 +169,7 @@ class DisplayItemsSerializer(Serializer[DisplayItems, t.List[T]]):
         ])
 
     def serialize(self, **kwargs) -> t.List[T]:
+        """Serialize display items."""
         return self.handle_display(self.value, **kwargs)
 
     def handle_display(self, display: DisplayItems, **kwargs) -> t.List[T]:
