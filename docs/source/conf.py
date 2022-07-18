@@ -222,6 +222,8 @@ autosummary_context = {
 autosummary_filename_map = {
     "deepchecks.tabular.checks": "../deepchecks.tabular.checks",
     "deepchecks.vision.checks": "../deepchecks.vision.checks",
+    "deepchecks.tabular.suites": "../deepchecks.tabular.suites",
+    "deepchecks.vision.suites": "../deepchecks.vision.suites",
 }
 
 # -- autodoc settings --------------------------------------------------
