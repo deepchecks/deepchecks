@@ -62,9 +62,9 @@ class CheckFailureSerializer(HtmlSerializer['check_types.CheckFailure']):
         header = f'<b>{header}</b>'
         if output_id is not None:
             check_id = self.value.get_check_id(output_id)
-            return f'<h4 id="{check_id}">{header}</h4>'
+            return f'<h4 id="{check_id}"><b>{header}</b></h4>'
         else:
-            return f'<h4>{header}</h4>'
+            return f'<h4><b>{header}</b></h4>'
 
     def prepare_summary(self) -> str:
         """Prepare the summary section of the html output."""

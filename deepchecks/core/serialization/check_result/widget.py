@@ -17,8 +17,13 @@ from ipywidgets import HTML, Tab, VBox, Widget
 from plotly.basedatatypes import BaseFigure
 
 from deepchecks.core import check_result as check_types
+from deepchecks.core.serialization.abc import DisplayItems
+from deepchecks.core.serialization.abc import DisplayItemsSerializer as ABCDisplayItemsSerializer
 from deepchecks.core.serialization.abc import WidgetSerializer
-from deepchecks.core.serialization.common import normalize_widget_style
+from deepchecks.core.serialization.common import Html as CommonHtml
+from deepchecks.core.serialization.common import (figure_to_html_image_tag, go_to_top_link, normalize_widget_style,
+                                                  read_matplot_figures_as_html)
+from deepchecks.core.serialization.dataframe.widget import DataFrameSerializer
 
 from . import html
 
@@ -41,6 +46,7 @@ class CheckResultSerializer(WidgetSerializer['check_types.CheckResult']):
             )
         super().__init__(value=value)
         self._html_serializer = html.CheckResultSerializer(self.value)
+        self._display_serializer = DisplayItemsSerializer(self.value.display)
 
     def serialize(
         self,
@@ -119,13 +125,12 @@ class CheckResultSerializer(WidgetSerializer['check_types.CheckResult']):
         -------
         ipywidgets.HTML
         """
-        widget = HTML(value=self._html_serializer.prepare_conditions_table(
+        return HTML(value=self._html_serializer.prepare_conditions_table(
             max_info_len=max_info_len,
             include_icon=include_icon,
             include_check_name=include_check_name,
             output_id=output_id
         ))
-        return widget
 
     def prepare_additional_output(
         self,
@@ -150,106 +155,84 @@ class CheckResultSerializer(WidgetSerializer['check_types.CheckResult']):
         -------
         ipywidgets.VBox
         """
-        return VBox(children=DisplayItemsHandler.handle_display(
-            display=self.value.display,
-            output_id=output_id,
-            plotly_to_image=plotly_to_image,
-            is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
-        ))
+        output: t.List[Widget] = [HTML(value=CommonHtml.additional_output_header)]
+
+        if len(self.value.display) == 0:
+            output.append(HTML(value=CommonHtml.empty_content_placeholder))
+        else:
+            output.extend(self._display_serializer.serialize(
+                output_id=output_id,
+                plotly_to_image=plotly_to_image,
+                is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
+            ))
+
+        if output_id is not None:
+            output.append(HTML(value=go_to_top_link(
+                output_id=output_id,
+                is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
+            )))
+
+        return VBox(children=output)
 
 
-class DisplayItemsHandler(html.DisplayItemsHandler):
-    """Auxiliary class to decouple display handling logic from other functionality."""
+class DisplayItemsSerializer(ABCDisplayItemsSerializer[Widget]):
+    """CheckResult display items serializer."""
 
-    @classmethod
-    def handle_display(
-        cls,
-        display: t.List['check_types.TDisplayItem'],
+    def __init__(self, value: DisplayItems, **kwargs):
+        super().__init__(value, **kwargs)
+
+    def serialize(
+        self,
         output_id: t.Optional[str] = None,
-        include_header: bool = True,
-        include_trailing_link: bool = True,
         **kwargs
     ) -> t.List[Widget]:
         """Serialize CheckResult display items into list if Widget instances.
 
         Parameters
         ----------
-        display : List[Union[str, DataFrame, Styler, BaseFigure, Callable, DisplayMap]]
-            list of display items
         output_id : Optional[str], default None
             unique output identifier that will be used to form anchor links
-        include_header: bool, default True
-            whether to include header
-        include_trailing_link: bool, default True
-            whether to include "go to top" link
 
         Returns
         -------
         List[Widget]
         """
-        return t.cast(t.List[Widget], super().handle_display(
-            display=display,
-            output_id=output_id,
-            include_header=include_header,
-            include_trailing_link=include_trailing_link,
-            **kwargs
-        ))
+        return self.handle_display(self.value, output_id=output_id, **kwargs)
 
-    @classmethod
-    def header(cls) -> HTML:
-        """Return header section."""
-        return HTML(value=super().header())
-
-    @classmethod
-    def empty_content_placeholder(cls) -> HTML:
-        """Return placeholder in case of content absence."""
-        return HTML(value=super().empty_content_placeholder())
-
-    @classmethod
-    def go_to_top_link(cls, output_id: str, is_for_iframe_with_srcdoc: bool) -> HTML:
-        """Return 'Go To Top' link."""
-        return HTML(value=super().go_to_top_link(output_id, is_for_iframe_with_srcdoc))
-
-    @classmethod
     def handle_figure(
-        cls,
+        self,
         item: BaseFigure,
         index: int,
         plotly_to_image: bool = False,
         **kwargs
     ) -> Widget:
+        """Handle plotly figure."""
         return (
             go.FigureWidget(data=item)
             if not plotly_to_image
-            else HTML(value=super().handle_figure(
-                item, index, plotly_to_image, **kwargs
-            ))
+            else HTML(value=figure_to_html_image_tag(item))
         )
 
-    @classmethod
-    def handle_string(cls, item: str, index: int, **kwargs) -> HTML:
+    def handle_string(self, item: str, index: int, **kwargs) -> HTML:
         """Handle textual item."""
-        return HTML(value=super().handle_string(item, index, **kwargs))
+        return HTML(value=item)
 
-    @classmethod
-    def handle_dataframe(cls, item: pd.DataFrame, index: int, **kwargs) -> HTML:
+    def handle_dataframe(self, item: pd.DataFrame, index: int, **kwargs) -> HTML:
         """Handle dataframe item."""
-        return HTML(value=super().handle_dataframe(item, index, **kwargs))
+        return DataFrameSerializer(item).serialize()
 
-    @classmethod
-    def handle_callable(cls, item: t.Callable, index: int, **kwargs) -> HTML:
+    def handle_callable(self, item: t.Callable, index: int, **kwargs) -> HTML:
         """Handle callable."""
-        return HTML(value=super().handle_callable(item, index, **kwargs))
+        return HTML(value=''.join(read_matplot_figures_as_html(item)))
 
-    @classmethod
-    def handle_display_map(cls, item: 'check_types.DisplayMap', index: int, **kwargs) -> VBox:
+    def handle_display_map(self, item: 'check_types.DisplayMap', index: int, **kwargs) -> VBox:
         """Handle display map instance item."""
         tab = Tab()
         children = []
 
         for i, (name, display) in enumerate(item.items()):
             tab.set_title(i, name)
-            children.append(VBox(children=cls.handle_display(
+            children.append(VBox(children=self.handle_display(
                 display,
                 include_header=False,
                 include_trailing_link=False,
@@ -258,7 +241,4 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
 
         tab.children = children
         style = '<style>.jupyter-widgets.widget-tab > .p-TabBar .p-TabBar-tab {min-width: fit-content;}</style>'
-        return VBox(children=[
-            HTML(value=style),
-            tab
-        ])
+        return VBox(children=[HTML(value=style), tab])

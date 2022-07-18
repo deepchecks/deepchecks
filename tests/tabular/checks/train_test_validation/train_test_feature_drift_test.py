@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Test functions of the train test drift."""
-from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_length, has_item
+from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_item, has_length
 
 from deepchecks.tabular.checks import TrainTestFeatureDrift
 from tests.base.utils import equal_condition_result

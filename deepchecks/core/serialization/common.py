@@ -9,10 +9,10 @@
 # ----------------------------------------------------------------------------
 #
 # pylint: disable=unused-import,import-outside-toplevel, protected-access
+# flake8: noqa
 """Module with common utilities routines for serialization subpackage."""
 import io
 import json
-import textwrap
 import typing as t
 import warnings
 from contextlib import contextmanager
@@ -21,18 +21,18 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import plotly.io._html as plotlyhtml
 from ipywidgets import DOMWidget
 from jsonpickle.pickler import Pickler
 from pandas.io.formats.style import Styler
-from plotly.io._utils import plotly_cdn_url
+from plotly.basedatatypes import BaseFigure
 from plotly.offline.offline import get_plotlyjs
 
 from deepchecks.core import check_result as check_types
 from deepchecks.core import errors
+from deepchecks.core.resources import DEEPCHECKS_STYLE
 from deepchecks.utils.dataframes import un_numpy
-from deepchecks.utils.html import linktag
-from deepchecks.utils.strings import get_ellipsis
+from deepchecks.utils.html import imagetag, linktag
+from deepchecks.utils.strings import get_ellipsis, get_random_string
 
 __all__ = [
     'aggregate_conditions',
@@ -46,17 +46,49 @@ __all__ = [
     'read_matplot_figures',
     'concatv_images',
     'switch_matplot_backend',
-    'plotlyjs_script',
     'flatten',
     'join',
+    'go_to_top_link',
+    'read_matplot_figures_as_html',
+    'figure_to_html_image_tag'
 ]
 
 
 class Html:
     """Set of commonly used HTML tags."""
 
-    bold_hr = '<hr style="background-color: black;border: 0 none;color: black;height: 1px;">'
-    light_hr = '<hr style="background-color: #eee;border: 0 none;color: #eee;height: 4px;">'
+    bold_hr = '<hr class="deepchecks-bold-divider">'
+    light_hr = '<hr class="deepchecks-light-divider">'
+    conditions_summary_header = '<h5><b>Conditions Summary</b></h5>'
+    additional_output_header = '<h5><b>Additional Outputs</b></h5>'
+    empty_content_placeholder = '<p><b>&#x2713;</b>Nothing to display</p>'
+
+
+def contains_plots(result) -> bool:
+    """Determine whether result contains plotly figures or not."""
+    from deepchecks.core import suite  # circular import fix
+
+    if isinstance(result, suite.SuiteResult):
+        for it in result.results:
+            if isinstance(it, check_types.CheckResult) and contains_plots(it):
+                return True
+    elif isinstance(result, check_types.CheckResult):
+        for it in result.display:
+            if isinstance(it, BaseFigure):
+                return True
+            elif isinstance(it, check_types.DisplayMap) and contains_plots(it):
+                return True
+    elif isinstance(result, check_types.DisplayMap):
+        for display in result.values():
+            for it in display:
+                if isinstance(it, BaseFigure):
+                    return True
+                elif isinstance(it, check_types.DisplayMap) and contains_plots(it):
+                    return True
+    else:
+        raise TypeError(f'Unsupported type - {type(result).__name__}')
+
+    return False
 
 
 def form_output_anchor(output_id: str) -> str:
@@ -81,6 +113,20 @@ def normalize_widget_style(w: TDOMWidget) -> TDOMWidget:
 def prettify(data: t.Any, indent: int = 3) -> str:
     """Prettify data."""
     return json.dumps(data, indent=indent, default=repr)
+
+
+def go_to_top_link(
+    output_id: str,
+    is_for_iframe_with_srcdoc: bool
+) -> str:
+    """Return 'Go To Top' link."""
+    link = linktag(
+        text='Go to top',
+        href=f'#{form_output_anchor(output_id)}',
+        is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc,
+        clazz='deepchecks-i-arrow-up'
+    )
+    return f'<br>{link}'
 
 
 def normalize_value(value: object) -> t.Any:
@@ -277,91 +323,48 @@ def create_failures_dataframe(
     return df
 
 
-def plotlyjs_script(connected: bool = True) -> str:
-    """Return plotly activation script in the requirejs enviroment.
-
-    Parameters
-    ----------
-    connected : bool, default True
-
-    Returns
-    -------
-    str
-    """
-    if connected is True:
-        # Connected so we configure requirejs with the plotly CDN
-        script = textwrap.dedent("""
-            {win_config}
-            {mathjax_config}
-            <script type="text/javascript">
-                if (typeof require !== 'undefined') {{
-                    require.undef("plotly");
-                    requirejs.config({{
-                        paths: {{'plotly': ['{plotly_cdn}']}}
-                    }});
-                    require(
-                        ['plotly'],
-                        function(Plotly) {{
-                            window._Plotly = Plotly;
-                            window.Plotly = Plotly;
-                            console.log('Loaded plotly successfully');
-                        }},
-                        function() {{console.log('Failed to load plotly')}}
-                    );
-                }} else {{
-                    console.log('requirejs is not present');
-                }}
-            </script>
-        """)
-        return script.format(
-            win_config=plotlyhtml._window_plotly_config,
-            mathjax_config=plotlyhtml._mathjax_config,
-            plotly_cdn=plotly_cdn_url().rstrip('.js'),
-        )
-    else:
-        # If not connected then we embed a copy of the plotly.js library
-        script = textwrap.dedent("""
-            {win_config}
-            {mathjax_config}
-            <script type="text/javascript">
-                if (typeof require !== 'undefined') {{
-                    require.undef("plotly");
-                    define('plotly', function(require, exports, module) {{
-                        {script}
-                    }});
-                    require(
-                        ['plotly'],
-                        function(Plotly) {{
-                            window._Plotly = Plotly;
-                            window.Plotly = Plotly;
-                            console.log('Loaded plotly successfully');
-                        }},
-                        function() {{console.log('Failed to load plotly')}}
-                    );
-                }} else {{
-                    console.log('requirejs is not present');
-                }}
-            </script>
-        """)
-        return script.format(
-            script=get_plotlyjs(),
-            win_config=plotlyhtml._window_plotly_config,
-            mathjax_config=plotlyhtml._mathjax_config,
-        )
-
-
-def read_matplot_figures() -> t.List[io.BytesIO]:
+def read_matplot_figures(drawer: t.Optional[t.Callable[[], None]] = None) -> t.List[io.BytesIO]:
     """Return all active matplot figures."""
-    output = []
-    figures = [plt.figure(n) for n in plt.get_fignums()]
-    for fig in figures:
-        buffer = io.BytesIO()
-        fig.savefig(buffer, format='png')
+    if callable(drawer):
+        with switch_matplot_backend('agg'):
+            drawer()
+            return read_matplot_figures()
+    else:
+        output = []
+        fignums = plt.get_fignums()[:]
+        figures = [plt.figure(n) for n in fignums]
+        for fig in figures:
+            buffer = io.BytesIO()
+            fig.savefig(buffer, format='jpeg')
+            buffer.seek(0)
+            output.append(buffer)
+            fig.clear()
+            plt.close(fig)
+        return output
+
+
+def read_matplot_figures_as_html(drawer: t.Optional[t.Callable[[], None]] = None) -> t.List[str]:
+    """Read all active matplot figures and return list of html image tags."""
+    images = read_matplot_figures(drawer)
+    tags = []
+    for buffer in images:
         buffer.seek(0)
-        output.append(buffer)
-        fig.clear()
-        plt.close(fig)
-    return output
+        tags.append(imagetag(
+            buffer.read(),
+            prevent_resize=False,
+            style='min-width: 300px; width: 70%; height: 100%;'
+        ))
+        buffer.close()
+    return tags
+
+
+def figure_to_html_image_tag(figure: BaseFigure) -> str:
+    """Transform plotly figure into html image tag."""
+    return imagetag(
+        figure.to_image(format='jpeg', engine='auto'),
+        prevent_resize=False,
+        style='min-width: 300px; width: 70%; height: 100%;'
+    )
 
 
 @contextmanager
@@ -446,3 +449,134 @@ def join(l: t.List[A], item: B) -> t.Iterator[t.Union[A, B]]:
         yield el
         if index != list_len:
             yield item
+
+
+def figure_to_html(figure: BaseFigure) -> str:
+    div_id = f'deepchecks-{get_random_string(n=25)}'
+    data = figure.to_json()
+    script = FIGURE_CREATION_SCRIPT.replace('%container-id', div_id).replace('%figure-data', data)
+    return (
+        f'<div><div id="{div_id}"></div>'
+        f'<script id="deepchecks-plot-initializer" type="text/javascript">{script}</script></div>'
+    )
+
+
+FIGURE_CREATION_SCRIPT = r"""
+;(async () => {
+    const container = document.querySelector(`#%container-id`);
+
+    if (typeof container !== 'object') {
+        console.error('[Deepchecks] Did not find plot container');
+        return;
+    }
+
+    function clearPlotContainer() {
+        container.innerHTML = '';
+    };
+
+    function showNotification(kind, msg) {
+        let headerTxt = 'Info:';
+        let cssClass = `deepchecks-alert deepchecks-alert-info`;
+
+        if (kind === 'error') {
+            headerTxt = 'Error:'
+            cssClass = 'deepchecks-alert deepchecks-alert-error';
+        } else if(kind === 'warning') {
+            headerTxt = 'Warning:'
+            cssClass = 'deepchecks-alert deepchecks-alert-warn';
+        }
+
+        const h = document.createElement('h5');
+        const div = document.createElement('div');
+        const p = document.createElement('p');
+
+        h.innerHTML = headerTxt;
+        p.innerHTML = msg;
+        div.setAttribute('class', cssClass);
+        div.appendChild(h);
+        div.appendChild(p);
+        container.appendChild(div);
+    };
+
+    if (typeof Deepchecks !== 'object' || typeof Deepchecks.Plotly !== 'object') {
+        console.log('[Deepchecks] did not find plotly promise');
+        clearPlotContainer();
+        showNotification('error', 'Failed to display plotly figure, try instead <code>result.show_in_iframe()</code>');
+        return;
+    }
+
+    try {
+        const Plotly = await Deepchecks.Plotly;
+        clearPlotContainer();
+        await Plotly.newPlot(container, %figure-data);
+
+        const mutationListener = new MutationObserver(function (mutations, observer) {
+            var display = window.getComputedStyle(container).display;
+            if (!display || display === 'none') {
+                console.log([container, 'removed!']);
+                Plotly.purge(container);
+                observer.disconnect();
+            }
+        });
+        /* Listen for the removal of the full notebook cells */
+        const notebookContainer = container.closest('#notebook-container');
+        if (notebookContainer) { mutationListener.observe(notebookContainer, {childList: true}); }
+        /* Listen for the clearing of the current output cell */
+        var outputEl = container.closest('.output');
+        if (outputEl) { mutationListener.observe(outputEl, {childList: true}); }
+
+    } catch(error) {
+        console.dir(error);
+        clearPlotContainer();
+        showNotification('error', 'Failed to display plotly figure, try instead <code>result.show_in_iframe()</code>');
+    }
+})();"""  # noqa
+
+
+STYLE_LOADER = """
+<script id="deepchecks-style-loader" type="text/javascript">
+(function() {
+    if (document.querySelector('style#deepchecks-style'))
+        return;
+    const container = document.createElement('style');
+    container.innerText = `%style`;
+    container.setAttribute('id', 'deepchecks-style');
+    document.head.appendChild(container);
+})();
+</script>
+""".replace('%style', DEEPCHECKS_STYLE)
+
+
+PLOTLY_LOADER = """
+<script id="deepchecks-plotly-src" type="text/plain">
+    /* Transforming plotly script into ecmascript module */
+    let define = undefined;
+    let require = undefined;
+    let exports = undefined;
+    let modules = undefined;
+    const removeGlobal = typeof window.Plotly === 'object' && typeof window.Plotly.newPlot === 'function' ? false : true;
+    %plotly-script
+    const Plotly = window.Plotly;
+    if(removeGlobal) { window.Plotly = undefined; }
+    export { Plotly };
+</script>
+<script id="deepchecks-plotly-loader" type="text/javascript">
+(function() {
+    const Deepchecks = window.Deepchecks = window.Deepchecks || {};
+    if (typeof Deepchecks.Plotly === 'object')
+        return;
+    async function loadPlotly() {
+        if (typeof window.Plotly === 'object' && window.Plotly.newPlot === 'function')
+            return window.Plotly;
+        const srcCode = document.querySelector('script#deepchecks-plotly-src');
+        const blob = new Blob([srcCode.text], {type: 'text/javascript'});
+        const url = URL.createObjectURL(blob);
+        const m = await import(url);
+        const Plotly = m.Plotly;
+        URL.revokeObjectURL(url);
+        return Plotly;
+    }
+    Deepchecks.Plotly = loadPlotly();
+})();
+</script>
+""".replace('%plotly-script', get_plotlyjs())
