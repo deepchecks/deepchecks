@@ -136,7 +136,7 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
 
     def prepare_summary(self) -> str:
         """Prepare the summary section of the html output."""
-        return f'<p>{self.value.get_metadata()["summary"]}</p>'
+        return f'<p>{self.value.get_metadata(with_doc_link=True)["summary"]}</p>'
 
     def prepare_conditions_table(
         self,
