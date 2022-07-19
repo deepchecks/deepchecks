@@ -57,7 +57,8 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
             result = scorer.compute()
             results_dict[name] = [result] if isinstance(result, Number) else result
         result_df = metric_results_to_df(results_dict, context.get_data_by_kind(dataset_kind))
-        return CheckResult(result_df, header='Single Dataset Performance')
+        display = result_df if context.with_display else None
+        return CheckResult(result_df, header='Single Dataset Performance', display=display)
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return the values of the metrics for the dataset provided in a {metric: value} format."""
