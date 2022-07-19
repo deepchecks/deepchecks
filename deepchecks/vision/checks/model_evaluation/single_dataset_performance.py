@@ -10,7 +10,7 @@
 #
 """Module containing a check for computing a scalar performance metric for a single dataset."""
 from numbers import Number
-from typing import Dict, List, Union, Callable, Any
+from typing import Any, Callable, Dict, List, Union
 
 from ignite.metrics import Metric
 
