@@ -27,7 +27,7 @@ from deepchecks.tabular import Context, Dataset, TrainTestCheck
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.distribution.preprocessing import ScaledNumerics
 from deepchecks.utils.metrics import get_gain
-from deepchecks.utils.simple_models import RandomModel, ClassificationUniformModel, RegressionUniformModel
+from deepchecks.utils.simple_models import ClassificationUniformModel, RandomModel, RegressionUniformModel
 from deepchecks.utils.strings import format_percent
 
 __all__ = ['SimpleModelComparison']
