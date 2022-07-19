@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module for base tabular context."""
+import sys
 import typing as t
 
 import numpy as np
@@ -91,10 +92,14 @@ class _DummyModel:
                     if len(y_pred.shape) > 1 and y_pred.shape[1] == 1:
                         y_pred = y_pred[:, 0]
                     ensure_predictions_shape(y_pred, dataset.data)
-                    predictions.append(pd.Series(y_pred, index=dataset.data.index))
+                    y_pred_ser = pd.Series(y_pred)
+                    y_pred_ser.index = dataset.data.index
+                    predictions.append(y_pred_ser)
                     if y_proba is not None:
                         ensure_predictions_proba(y_proba, y_pred)
-                        probas.append(pd.DataFrame(data=y_proba, index=dataset.data.index))
+                        proba_df = pd.DataFrame(data=y_proba)
+                        proba_df.index = dataset.data.index
+                        probas.append(proba_df)
 
         self.predictions = pd.concat(predictions, axis=0) if predictions else None
         self.probas = pd.concat(probas, axis=0) if probas else None
