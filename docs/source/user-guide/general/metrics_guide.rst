@@ -66,13 +66,12 @@ Object detection:
 
 To run a check with the default metrics, run it without passing the scorers.
 
-:doc: `ClassPerformance </checks_gallery/vision/model_evaluation/plot_class_performance>`:
+:doc:`ClassPerformance </checks_gallery/vision/model_evaluation/plot_class_performance>`:
 
 .. code-block:: python
 
     check = ClassPerformance()
     result = check.run(train_ds, test_ds, mnist_model)
-    result
 
 
 Alternative metrics
@@ -179,6 +178,5 @@ Custom metrics should follow the
 
     check = SingleDatasetPerformance({'precision2': double_precision})
     result = check.run(train_ds, mnist_model)
-    result.value
 
 
