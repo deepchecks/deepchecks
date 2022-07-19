@@ -76,5 +76,6 @@ __all__ = [
     'RegressionErrorDistribution',
     'MultiModelPerformanceReport',
     'ModelErrorAnalysis',
-    'WeakSegmentsPerformance'
+    'WeakSegmentsPerformance',
+    'SingleDatasetPerformance'
 ]

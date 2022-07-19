@@ -21,6 +21,7 @@ from .regression_systematic_error import RegressionSystematicError
 from .roc_report import RocReport
 from .segment_performance import SegmentPerformance
 from .simple_model_comparison import SimpleModelComparison
+from .single_dataset_performance import SingleDatasetPerformance
 from .train_test_performance import TrainTestPerformance
 from .train_test_prediction_drift import TrainTestPredictionDrift
 from .unused_features import UnusedFeatures
@@ -43,7 +44,8 @@ __all__ = [
     'SimpleModelComparison',
     'TrainTestPredictionDrift',
     'WeakSegmentsPerformance',
-    'UnusedFeatures'
+    'UnusedFeatures',
+    'SingleDatasetPerformance'
 ]
 
 from .performance_report import PerformanceReport

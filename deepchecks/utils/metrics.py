@@ -35,7 +35,7 @@ def get_gain(base_score, score, perfect_score, max_gain):
 def get_scorer_name(scorer) -> str:
     """Get scorer name from a scorer."""
     if isinstance(scorer, str):
-        return scorer
+        return scorer[:scorer.index('_per_class')] if scorer.endswith('_per_class') else scorer
     if hasattr(scorer, '__name__'):
         return scorer.__name__
     if isinstance(scorer, _BaseScorer):

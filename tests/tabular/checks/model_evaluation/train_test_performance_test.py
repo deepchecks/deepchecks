@@ -286,8 +286,8 @@ def test_classification_alt_scores_list(iris_split_dataset_and_model):
     # Act
     result = check.run(train, test, model).reduce_output()
     # Assert
-    assert_that(result['f1_per_class'], close_to(0.913, 0.001))
-    assert_that(result['recall_per_class'], close_to(0.916, 0.001))
+    assert_that(result['f1'], close_to(0.913, 0.001))
+    assert_that(result['recall'], close_to(0.916, 0.001))
     assert_that(result['jaccard_score'], close_to(0.846, 0.001))
 
 
@@ -298,10 +298,10 @@ def test_classification_deepchecks_scorers(iris_split_dataset_and_model):
     # Act
     result = check.run(train, test, model).reduce_output()
     # Assert
-    assert_that(result['fpr_per_class'], close_to(0.070, 0.001))
-    assert_that(result['fnr_per_class'], close_to(0.035, 0.001))
-    assert_that(result['specificity_per_class'], close_to(0.929, 0.001))
-
+    assert_that(result['fpr'], close_to(0.070, 0.001))
+    assert_that(result['fnr'], close_to(0.035, 0.001))
+    assert_that(result['specificity'], close_to(0.929, 0.001))
+    
 
 def test_regression_alt_scores_list(diabetes_split_dataset_and_model):
     # Arrange
@@ -322,8 +322,8 @@ def test_classification_alt_scores_per_class_and_macro(iris_split_dataset_and_mo
     # Act
     result = check.run(train, test, model).reduce_output()
     # Assert
-    assert_that(result['f1_per_class'], close_to(0.913, 0.001))
-    assert_that(result['f1_macro'], close_to(result['f1_per_class'], 0.001))
-    assert_that(result['recall_per_class'], close_to(0.916, 0.001))
+    assert_that(result['f1'], close_to(0.913, 0.001))
+    assert_that(result['f1_macro'], close_to(result['f1'], 0.001))
+    assert_that(result['recall'], close_to(0.916, 0.001))
     assert_that(result['recall_micro'], close_to(0.92, 0.001))
 
