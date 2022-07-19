@@ -68,7 +68,7 @@ Build the suite with custom checks and desired parameters
        TrainTestDifferenceOverfit(),
        ConfusionMatrixReport(),
        SimpleModelComparision(),
-       SimpleModelComparision(simple_model_type='statistical')
+       SimpleModelComparision(strategy='most_frequent')
    )
 
 Then run with required input parameters (datasets and models)

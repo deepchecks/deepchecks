@@ -244,15 +244,15 @@ class MyCustomSegmentationData(VisionData):
 
 #%%
 # Now we are able to run checks that use only the image data, since it's in the standard Deepchecks format.
-# Let's run FeatureLabelCorrelationChange check with our task
+# Let's run PropertyLabelCorrelationChange check with our task
 
-from deepchecks.vision.checks import FeatureLabelCorrelationChange
+from deepchecks.vision.checks import PropertyLabelCorrelationChange
 
 # Create our task with the `DataLoader`s we defined before.
 train_task = MyCustomSegmentationData(train_data_loader)
 test_task = MyCustomSegmentationData(test_data_loader)
 
-result = FeatureLabelCorrelationChange().run(train_task, test_task)
+result = PropertyLabelCorrelationChange().run(train_task, test_task)
 result
 
 # Now in order to run more check, we'll need to define custom properties or metrics.

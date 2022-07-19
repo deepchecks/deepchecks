@@ -114,3 +114,17 @@ warnings.filterwarnings(
     category=DeprecationWarning,
     module=r'deepchecks.*'
 )
+
+warnings.filterwarnings(
+    action='once',
+    message=r'.*simple_model_type is deprecated. please use strategy.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.*'
+)
+
+warnings.filterwarnings(
+    action='once',
+    message=r'.*strategy .* is deprecated. please use.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.*'
+)
