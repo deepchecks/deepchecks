@@ -45,7 +45,7 @@ new_custom_suite = Suite('Simple Suite For Model Performance',
                          TrainTestPerformance().add_condition_train_test_relative_degradation_less_than(threshold=0.15 \
                                                                                                         ).add_condition_test_performance_greater_than(0.8),
                          ConfusionMatrixReport(),
-                         SimpleModelComparison(simple_model_type='constant', \
+                         SimpleModelComparison(strategy='most_frequent', \
                           alternative_scorers={'Recall (Multiclass)': make_scorer(recall_score, average=None), \
                                                'Precision (Multiclass)': make_scorer(precision_score, average=None)} \
                          ).add_condition_gain_greater_than(0.3)

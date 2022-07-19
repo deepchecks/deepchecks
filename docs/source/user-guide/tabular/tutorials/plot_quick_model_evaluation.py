@@ -96,7 +96,7 @@ suite_result.show()
 #
 # The result showcase a number of interesting insights, first let's inspect the "Didn't Pass" section.
 #
-# * :doc:`/checks_gallery/tabular/model_evaluation/plot_performance_report`
+# * :doc:`/checks_gallery/tabular/model_evaluation/plot_train_test_performance`
 #   check result implies that the model overfitted the training data.
 # * :doc:`/checks_gallery/tabular/model_evaluation/plot_regression_systematic_error`
 #   (test set) check result demonstrate the model small positive bias.
@@ -145,7 +145,7 @@ evaluation_suite
 
 #%%
 #
-# Next, we will update the Performance Report condition and remove the Regression Systematic Error check:
+# Next, we will update the Train Test Performance condition and remove the Regression Systematic Error check:
 
 evaluation_suite[0].clean_conditions()
 evaluation_suite[0].add_condition_train_test_relative_degradation_less_than(0.3)

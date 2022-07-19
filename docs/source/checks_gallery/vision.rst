@@ -29,3 +29,11 @@ Model Evaluation
 
     vision/model_evaluation/plot_*
 
+Custom Checks
+----------------
+
+.. toctree::
+    :maxdepth: 1
+    :glob:
+
+    vision/custom/plot_*
