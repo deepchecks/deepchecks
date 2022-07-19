@@ -17,7 +17,6 @@ decision making process.
 * `Alternative metrics <#alternative-metrics>`__
 * `List of Supported Strings <#list-of-supported-strings>`__
 * `Custom Metrics <#custom-metrics>`__
-* `Using Sklearn Metrics for Vision <#using-sklearn-metrics-for-vision>`__
 
 
 How can I use metrics with Deepchecks?
@@ -183,6 +182,3 @@ Custom metrics should follow the
     result.value
 
 
-Using Sklearn Metrics for Vision
-================================
-A cool feature in the deepcheck package is the ability to use Sklearn scorers for computer vision tasks.
