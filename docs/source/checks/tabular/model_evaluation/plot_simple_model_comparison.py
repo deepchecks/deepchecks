@@ -22,16 +22,18 @@ model achieves less or a similar score to the simple model, this is an indicator
 for a possible problem with the model (e.g. it wasn't trained properly).
 
 The check has three possible "simple model" heuristics, from which one is chosen and
-compared to. By default the check uses the **constant** heuristic, which can be
-overridden in the checks' parameters using simple_model_type. There is no simple
+compared to. By default the check uses the **most_frequent** heuristic, which can be
+overridden in the checks' parameters using strategy. There is no simple
 model which is more "correct" to use, each gives a different baseline to compare to,
 and you may experiment with the different types and see how it performs on your data.
 
 The simple models are:
 
-* A **constant** model - The default. In regression the prediction is equal to the
+* A **most_frequent** model - The default. In regression the prediction is equal to the
   mean value, in classification the prediction is equal to the most common value.
-* A **random** model - Draws the prediction from the distribution of the labels in the train.
+* A **uniform** model - In regression, selects a random value from the y range.
+  In classification, selects one of the labels by random.
+* A **stratified** model - Draws the prediction from the distribution of the labels in the train.
 * A **tree** model - Trains a simple decision tree with a given depth. The depth
   can be customized using the ``max_depth`` parameter.
 """
@@ -60,7 +62,7 @@ model = load_fitted_model()
 from deepchecks.tabular.checks import SimpleModelComparison
 
 # Using tree model as a simple model, and changing the tree depth from the default 3 to 5
-check = SimpleModelComparison(simple_model_type='tree', max_depth=5)
+check = SimpleModelComparison(strategy='tree', max_depth=5)
 check.run(train_dataset, test_dataset, model)
 
 #%%
@@ -104,7 +106,7 @@ result.value
 #
 # Let's add a condition to the check and see what happens when it fails:
 
-check = SimpleModelComparison(simple_model_type='tree')
+check = SimpleModelComparison(strategy='tree')
 check.add_condition_gain_greater_than(0.9)
 result = check.run(train_dataset, test_dataset, model)
 result.show(show_additional_outputs=False)
