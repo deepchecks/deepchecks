@@ -27,7 +27,7 @@ from deepchecks.tabular import Context, Dataset, TrainTestCheck
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.distribution.preprocessing import ScaledNumerics
 from deepchecks.utils.metrics import get_gain
-from deepchecks.utils.simple_models import RandomModel, UniformModel
+from deepchecks.utils.simple_models import RandomModel, ClassificationUniformModel, RegressionUniformModel
 from deepchecks.utils.strings import format_percent
 
 __all__ = ['SimpleModelComparison']
@@ -55,7 +55,8 @@ class SimpleModelComparison(TrainTestCheck):
         'most_frequent', 'tree'].
 
         * `stratified`: select one of the labels by random. (Previously 'random')
-        * `uniform`: draws predictions uniformly at random from the list of values in y.
+        * `uniform`: in regression samples predictions uniformly at random from the y ranges. in classification draws
+           predictions uniformly at random from the list of values in y.
         * `most_frequent`: in regression is mean value, in classification the most common value. (Previously 'constant')
         * `tree`: runs a simple decision tree.
     simple_model_type : str , default: most_frequent
@@ -303,7 +304,10 @@ class SimpleModelComparison(TrainTestCheck):
         np.random.seed(self.random_state)
 
         if self.strategy == 'uniform':
-            simple_model = UniformModel()
+            if task_type in [TaskType.BINARY, TaskType.MULTICLASS]:
+                simple_model = ClassificationUniformModel()
+            elif task_type == TaskType.REGRESSION:
+                simple_model = RegressionUniformModel()
         elif self.strategy == 'stratified':
             simple_model = RandomModel()
         elif self.strategy == 'most_frequent':
