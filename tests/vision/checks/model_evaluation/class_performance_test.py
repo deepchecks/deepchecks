@@ -512,7 +512,7 @@ def test_coco_thershold_scorer_list_strings(coco_train_visiondata, coco_test_vis
     # Assert
     assert_that(result.value, has_length(589))
     assert_that(result.display, has_length(greater_than(0)))
-    assert_that(set(result.value['Metric']), equal_to(set(scorers)))
+    assert_that(set(result.value['Metric']), equal_to(set(AVAILABLE_EVALUTING_FUNCTIONS.keys())))
 
 
 def test_mnist_sklearn_scorer(
