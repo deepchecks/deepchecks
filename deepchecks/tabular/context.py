@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module for base tabular context."""
-import sys
 import typing as t
 
 import numpy as np
