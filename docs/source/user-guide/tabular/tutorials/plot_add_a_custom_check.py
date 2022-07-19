@@ -22,7 +22,8 @@ Each check consists of 3 main parts:
 * Conditions
 
 This guide will demonstrate how to implement a Check with a return value and
-display, for adding a condition see `working with conditions <../../../user-guide/general/customizations/examples/plot_configure_check_conditions.html>`__.
+display, for adding a condition see `working with conditions <../../../user-guide/general/customizations/examples/plot_configure_check_conditions.html>`__,
+or have a look at the examples in `custom_check_templates <../../../user-guide/tabular/custom_check_templates.html>`__.
 
 Write a Basic Check
 ===================
@@ -37,6 +38,22 @@ logic inside it.
 
 *Good to know: the return value of a check can be any object, a number,
 dictionary, string, etc...*
+
+The Context Object
+------------------
+The logic of all tabular checks is executed inside the run_logic() function. The sole argument of the function is
+the context object, which has the following optional members:
+
+- **train**: the train dataset
+- **test**: the test dataset
+- **model**: the model
+
+When writing your run_logic() function, you can access the train and test datasets using the context object.
+For more examples of using the Context object for different types of base checks, see the
+`Custom Check Templates <../../../user-guide/tabular/custom_check_templates.html>`__ guide.
+
+Check Example
+-------------
 """
 
 #%%
@@ -144,12 +161,14 @@ DatasetSizeComparison().run(train_dataset, test_dataset)
 # Each base check is differed by the objects it requires in order to run,
 # and their sole difference is the ``run`` method's signature.
 #
-# +---------------------------+-------------------------------------------------------+------------------------------------------------------------------------------------------------------+
-# | Check                     | ``run`` Signature                                     | Notes                                                                                                |
-# +===========================+=======================================================+======================================================================================================+
-# |``SingleDatasetBaseCheck`` |``run(self, dataset, model=None)``                     | When used in a suite you can choose whether to run on the test dataset, the train dataset or on both |
-# +---------------------------+-------------------------------------------------------+------------------------------------------------------------------------------------------------------+
-# |``TrainTestBaseCheck``     |``run(self, train_dataset, test_dataset, model=None)`` |                                                                                                      |
-# +---------------------------+-------------------------------------------------------+------------------------------------------------------------------------------------------------------+
-# |``ModelOnlyBaseCheck``     |``run(self, model)``                                   |                                                                                                      |
-# +---------------------------+-------------------------------------------------------+------------------------------------------------------------------------------------------------------+
+# +---------------------------+--------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------+
+# | Check                     | ``run`` Signature                                                        | Notes                                                                                                |
+# +---------------------------+--------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------+
+# |``SingleDatasetBaseCheck`` |``run(self, dataset, model=None)``                                        | When used in a suite you can choose whether to run on the test dataset, the train dataset or on both |
+# +---------------------------+--------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------+
+# |``TrainTestBaseCheck``     |``run(self, train_dataset, test_dataset, model=None)``                    |                                                                                                      |
+# +---------------------------+--------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------+
+# |``ModelOnlyBaseCheck``     |``run(self, model)``                                                      |                                                                                                      |
+# +---------------------------+--------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------+
+# |``ModelComparisonCheck``   |``run(self, List[train_dataset], List[test_dataset], List[model])``       |                                                                                                      |
+# +---------------------------+--------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------+
