@@ -54,7 +54,7 @@ class SimpleModelComparison(TrainTestCheck):
         Strategy to use to generate the predictions of the simple model ['stratified', 'uniform',
         'most_frequent', 'tree'].
 
-        * `stratified`: select one of the labels by random. (Previously 'random')
+        * `stratified`: randomly draw a label based on the train set label distribution. (Previously 'random')
         * `uniform`: in regression samples predictions uniformly at random from the y ranges. in classification draws
            predictions uniformly at random from the list of values in y.
         * `most_frequent`: in regression is mean value, in classification the most common value. (Previously 'constant')
