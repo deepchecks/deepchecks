@@ -129,6 +129,23 @@ def test_simple_model_comparison_regression_random_state(diabetes_split_dataset_
     # Assert
     assert_regression(result)
 
+
+#  copied from simple_model_comparison_test
+def test_simple_model_comparison_regression_random_state_same_index(diabetes_split_dataset_and_model):
+    # Arrange
+    train_ds, test_ds, clf = diabetes_split_dataset_and_model
+    test_ds = test_ds.copy(test_ds.data.reset_index())
+    train_ds = train_ds.copy(train_ds.data.reset_index())
+    y_pred_train, y_pred_test, y_proba_train, y_proba_test = _dummify_model(train_ds, test_ds, clf)
+    check = SimpleModelComparison(strategy='uniform', random_state=0)
+    # Act X
+    result = check.run(train_ds, test_ds,
+                       y_pred_train=y_pred_train, y_pred_test=y_pred_test,
+                       y_proba_train=y_proba_train, y_proba_test=y_proba_test).value
+    # Assert
+    assert_regression(result)
+
+
 def test_new_data(diabetes_split_dataset_and_model):
     class NewDataCheck(TrainTestCheck):
         def run_logic(self, context: Context) -> CheckResult:
