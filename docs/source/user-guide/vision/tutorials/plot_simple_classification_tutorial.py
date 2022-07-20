@@ -1,9 +1,9 @@
 """
 .. _vision_simple_classification_tutorial:
 
-================================================
-Using Deepchecks Vision With a Few Lines of Code
-================================================
+========================================
+Deepchecks Out of the Box Classification
+========================================
 
 Deepchecks Vision is built to validate your data and model, however complex your model and data may be. That
 being said, sometime there is no need to write a full-blown
@@ -60,15 +60,19 @@ with zipfile.ZipFile('EuroSAT_data.zip', 'r') as zip_ref:
 #                 - class1/
 #                     image1.jpeg
 
-from deepchecks.vision.simple_classification_data import load_dataset
+from deepchecks.vision import classification_dataset_from_directory
 
-train_ds = load_dataset('./EuroSAT/euroSAT/', train=True, object_type='VisionData', image_extension='jpg')
-test_ds = load_dataset('./EuroSAT/euroSAT/', train=False, object_type='VisionData', image_extension='jpg')
+train_ds, test_ds = classification_dataset_from_directory(
+    root='./EuroSAT/euroSAT/', object_type='VisionData', image_extension='jpg')
 
 #%%
-# Running Deepchecks' full suite
-# ==============================
-# That's it, we have just defined the classification data object and are ready to run the train_test_validation suite:
+# Running Deepchecks' train_test_validation suite
+# ===============================================
+# That's it, we have just defined the classification data object and are ready can run the different deepchecks suites
+# and checks. Here we will demonstrate how to run train_test_validation suite:
+#
+# for additional information on the different suites and checks available see our
+# :doc:`check gallery </checks_gallery/vision/model_evaluation/plot_segment_performance>`
 
 from deepchecks.vision.suites import train_test_validation
 
@@ -77,7 +81,7 @@ result = suite.run(train_ds, test_ds)
 
 #%%
 # Observing the Results:
-# ===========================
+# ======================
 # The results can be saved as a html file with the following code:
 
 result.save_as_html('output.html')

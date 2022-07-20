@@ -22,38 +22,47 @@ from typing_extensions import Literal
 
 from deepchecks import vision
 
-__all__ = ['load_dataset', 'SimpleClassificationDataset', 'SimpleClassificationData']
+__all__ = ['classification_dataset_from_directory', 'SimpleClassificationDataset', 'SimpleClassificationData']
 
 
-def load_dataset(
-    root: str,
-    train: bool = True,
-    batch_size: int = 32,
-    num_workers: int = 0,
-    shuffle: bool = True,
-    pin_memory: bool = True,
-    object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader',
-    **kwargs
-) -> t.Union[DataLoader, vision.ClassificationData]:
+def classification_dataset_from_directory(
+        root: str,
+        batch_size: int = 32,
+        num_workers: int = 0,
+        shuffle: bool = True,
+        pin_memory: bool = True,
+        object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader',
+        **kwargs
+) -> t.Union[t.Tuple[t.Union[DataLoader, vision.ClassificationData]], t.Union[DataLoader, vision.ClassificationData]]:
     """Load a simple classification dataset.
 
     The function expects that the data within the root folder
-    to be structured in the following way:
+    to be structured one of the following ways:
 
         - root/
             - train/
+                - class1/
+                    image1.jpeg
+            - validation/
                 - class1/
                     image1.jpeg
             - test/
                 - class1/
                     image1.jpeg
 
+        - root/
+            - train/
+                - class1/
+                    image1.jpeg
+
+        - root/
+            - class1/
+                image1.jpeg
+
     Parameters
     ----------
     root : str
         path to the data
-    train : bool, default: True
-        if `True` load the train dataset, otherwise load the test dataset
     batch_size : int, default: 32
         Batch size for the dataloader.
     num_workers : int, default: 0
@@ -69,57 +78,65 @@ def load_dataset(
 
     Returns
     -------
-    Union[DataLoader, VisionDataset]
-
-        A DataLoader or VisionDataset instance representing the dataset
+    t.Union[t.Tuple[t.Union[DataLoader, vision.ClassificationData]], t.Union[DataLoader, vision.ClassificationData]]
+        A DataLoader or VisionDataset instance or tuple representing a single dataset or train and test datasets.
     """
 
     def batch_collate(batch):
         imgs, labels = zip(*batch)
         return list(imgs), list(labels)
 
-    dataset = SimpleClassificationDataset(root=root, train=train, **kwargs)
+    root_path = Path(root).absolute()
+    if not (root_path.exists() and root_path.is_dir()):
+        raise ValueError(f'{root_path} - path does not exist or is not a folder')
 
-    dataloader = DataLoader(
-        dataset=dataset,
-        batch_size=batch_size,
-        shuffle=shuffle,
-        num_workers=num_workers,
-        collate_fn=batch_collate,
-        pin_memory=pin_memory,
-        generator=torch.Generator()
-    )
+    roots_of_datasets = []
+    if root_path.joinpath('train').exists():
+        roots_of_datasets.append(root_path.joinpath('train'))
+    if root_path.joinpath('test').exists():
+        roots_of_datasets.append(root_path.joinpath('test'))
+    if root_path.joinpath('validation').exists():
+        roots_of_datasets.append(root_path.joinpath('validation'))
+    if len(roots_of_datasets) == 0:
+        roots_of_datasets.append(root_path)
 
-    if object_type == 'DataLoader':
-        return dataloader
-    elif object_type == 'VisionData':
-        return SimpleClassificationData(data_loader=dataloader, label_map=dataset.reverse_classes_map)
-    else:
-        raise TypeError(f'Unknown value of object_type - {object_type}')
+    result = []
+    for dataset_root in roots_of_datasets:
+        dataset = SimpleClassificationDataset(root=str(dataset_root), **kwargs)
+        dataloader = DataLoader(
+            dataset=dataset,
+            batch_size=batch_size,
+            shuffle=shuffle,
+            num_workers=num_workers,
+            collate_fn=batch_collate,
+            pin_memory=pin_memory,
+            generator=torch.Generator()
+        )
+        if object_type == 'DataLoader':
+            result.append(dataloader)
+        elif object_type == 'VisionData':
+            result.append(SimpleClassificationData(data_loader=dataloader, label_map=dataset.reverse_classes_map))
+        else:
+            raise TypeError(f'Unknown value of object_type - {object_type}')
+    return tuple(result) if len(result) > 1 else result[0]
 
 
 class SimpleClassificationDataset(VisionDataset):
     """Simple VisionDataset type for the classification tasks.
 
     The current class expects that data within the root folder
-    will be structured in a next way:
+    will be structured in one of the following ways:
 
         - root/
-            - train/
-                - class1/
-                    image1.jpeg
-            - test/
-                - class1/
-                    image1.jpeg
+            - class1/
+                image1.jpeg
 
-    Otherwise exception will be raised.
+    Otherwise, exception will be raised.
 
     Parameters
     ----------
     root : str
         Path to the root directory of the dataset.
-    train : bool
-        if `True` train dataset, otherwise test dataset
     transforms : Callable, optional
         A function/transform that takes in an PIL image and returns a transformed version.
         E.g, transforms.RandomCrop
@@ -134,13 +151,12 @@ class SimpleClassificationDataset(VisionDataset):
     """
 
     def __init__(
-        self,
-        root: str,
-        train: bool = True,
-        transforms: t.Optional[t.Callable] = None,
-        transform: t.Optional[t.Callable] = None,
-        target_transform: t.Optional[t.Callable] = None,
-        image_extension: str = 'jpg'
+            self,
+            root: str,
+            transforms: t.Optional[t.Callable] = None,
+            transform: t.Optional[t.Callable] = None,
+            target_transform: t.Optional[t.Callable] = None,
+            image_extension: str = 'jpg'
     ) -> None:
         self.root_path = Path(root).absolute()
 
@@ -149,11 +165,7 @@ class SimpleClassificationDataset(VisionDataset):
 
         super().__init__(str(self.root_path), transforms, transform, target_transform)
         self.image_extension = image_extension.lower()
-
-        if train is True:
-            self.images = sorted(self.root_path.glob(f'train/*/*.{self.image_extension}'))
-        else:
-            self.images = sorted(self.root_path.glob(f'test/*/*.{self.image_extension}'))
+        self.images = sorted(self.root_path.glob(f'*/*.{self.image_extension}'))
 
         if len(self.images) == 0:
             raise ValueError(f'{self.root_path} - is empty or has incorrect structure')
@@ -196,16 +208,16 @@ class SimpleClassificationData(vision.ClassificationData):
     """Simple ClassificationData type, matches the data returned by SimpleClassificationDataset getitem."""
 
     def batch_to_images(
-        self,
-        batch: t.Tuple[t.Sequence[np.ndarray], t.Sequence[int]]
+            self,
+            batch: t.Tuple[t.Sequence[np.ndarray], t.Sequence[int]]
     ) -> t.Sequence[np.ndarray]:
         """Extract the images from a batch of data."""
         images, _ = batch
         return images
 
     def batch_to_labels(
-        self,
-        batch: t.Tuple[t.Sequence[pilimage.Image], t.Sequence[int]]
+            self,
+            batch: t.Tuple[t.Sequence[pilimage.Image], t.Sequence[int]]
     ) -> torch.Tensor:
         """Extract the labels from a batch of data."""
         _, labels = batch
