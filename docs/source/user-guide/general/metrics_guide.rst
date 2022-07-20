@@ -21,14 +21,13 @@ decision making process.
 
 How can I use metrics with Deepchecks?
 ======================================
-Metrics in deepchecks are designed around the sklearn scorer API for tabular checks and are based on the Torch Ignite metric
-API for vision checks.
-To use metrics with Deepchecks suites and checks you can use the defaults, that fits the most common usecase, or pass
-alternative scorers that are more accurate for your specific usecase.
+Metrics in deepchecks are designed around the sklearn scorer API for tabular checks and are based on the Torch Ignite
+metric API for vision checks.
 
 Default metrics
 ===============
-All of our relevant checks come with default metrics.
+All of our relevant checks, meaning checks evaluating model performance, such as SingleDatasetPerformance, come with
+default metrics.
 
 The default scorers by task type are:
 
@@ -80,10 +79,13 @@ Sometimes the defaults aren’t good enough to describe the specifics of the pro
 If this is the case, you can pass a list of metrics or a dict in the format {metric name: metric} as a parameter to the
 check.
 
-The metrics on the list can be existing
-`Ignite metrics <https://pytorch.org/ignite/metrics.html#complete-list-of-metrics>`__ or
-`Sklearn scorers <https://scikit-learn.org/stable/modules/model_evaluation.html>`__ or
-or a string from Deepchecks' `supported strings <#list-of-supported-strings>`__ or your own implementations.
+The metrics on the list can be existing:
+
+*   `Ignite metrics <https://pytorch.org/ignite/metrics.html#complete-list-of-metrics>`__ for vision
+*   `Sklearn scorers <https://scikit-learn.org/stable/modules/model_evaluation.html>`__ for tabular
+*   strings from Deepchecks' `supported strings <#list-of-supported-strings>`__ for both vision and tabular
+
+or your own implementations.
 
 .. code-block:: python
 
@@ -144,6 +146,11 @@ List of Supported Strings
      - True Negative Rate - micro averaging
    * - 'tnr_weighted'
      - True Negative Rate - weighted macro averaging
+
+In addition to the strings listed above, all Sklearn
+`scorer strings
+<https://scikit-learn.org/stable/modules/model_evaluation.html#the-scoring-parameter-defining-model-evaluation-rules>`__
+apply.
 
 Custom metrics
 ==============
