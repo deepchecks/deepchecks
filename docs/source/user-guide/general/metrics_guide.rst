@@ -4,7 +4,7 @@
 Metrics Guide
 ====================
 
-This guide will help you understand how to control the metrics that validate and monitor your data with
+In this guide we'll explain how to customize the metrics that deepchecks uses to validate and monitor your data.
 Deepchecks.
 The assessment of how well the model performs should drive informed decision making regarding the usage of that model,
 so we have to make sure that we measure the right things, i.e. the criteria that represnt tha key factors in the
