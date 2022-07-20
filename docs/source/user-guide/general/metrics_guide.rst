@@ -21,7 +21,7 @@ decision making process.
 
 How can I use metrics with Deepchecks?
 ======================================
-The metrics used in deepchecks are in accordance with sklearn scorer API for tabular checks and with Torch Ignite metric
+Metrics in deepchecks are designed around the sklearn scorer API for tabular checks and are based on the Torch Ignite metric
 API for vision checks.
 To use metrics with Deepchecks suites and checks you can use the defaults, that fits the most common usecase, or pass
 alternative scorers that are more accurate for your specific usecase.
