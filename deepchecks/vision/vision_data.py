@@ -227,7 +227,7 @@ class VisionData:
         """
         raise DeepchecksNotImplementedError('batch_to_images() must be implemented in a subclass')
 
-    def calc_image_properties(self, images) -> Dict[str, list]:
+    def calc_image_properties(self, images, properties_to_calc) -> Dict[str, list]:
         """
         Calculates the image properties for a batch of images.
 
@@ -236,18 +236,22 @@ class VisionData:
         images : torch.Tensor
             Batch of images to transform to image properties.
 
+        image_properties: List[Dict] , default: None
+            overrides self.image_proerties, if None uses self.image properties
+
         Returns
         ------
-        image_properties: dict[str, List]
+        batch_properties: dict[str, List]
             A dict of property name, property value per image
         """
+
         batch_properties = defaultdict(list)
-        for single_property in self.image_properties:
+        for single_property in properties_to_calc:
             property_list = single_property['method'](images)
             batch_properties[single_property['name']] = property_list
         return batch_properties
 
-    def batch_to_image_properties(self, batch) -> Dict[str, list]:
+    def batch_to_image_properties(self, batch, image_properties: List[Dict] = None) -> Dict[str, list]:
         """
         Transform a batch of data to image properties in the accpeted format.
 
@@ -256,12 +260,16 @@ class VisionData:
         batch : torch.Tensor
             Batch of data to transform to image properties.
 
+        image_properties: List[Dict] , default: None
+            overrides self.image_proerties, if None uses self.image properties
+
         Returns
         ------
-        image_properties: dict[str, List]
+        batch_properties: dict[str, List]
             A dict of property name, property value per image
         """
-        images = self.batch_to_images(batch)
+        properties_to_calc = self.image_properties if image_properties is None else image_properties
+        images = self.batch_to_images(batch, properties_to_calc)
         return self.calc_image_properties(images)
 
 
