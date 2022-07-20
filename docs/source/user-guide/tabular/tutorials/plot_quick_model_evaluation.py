@@ -96,7 +96,7 @@ suite_result.show()
 #
 # The result showcase a number of interesting insights, first let's inspect the "Didn't Pass" section.
 #
-# * :doc:`/checks_gallery/tabular/model_evaluation/plot_performance_report`
+# * :doc:`/checks_gallery/tabular/model_evaluation/plot_train_test_performance`
 #   check result implies that the model overfitted the training data.
 # * :doc:`/checks_gallery/tabular/model_evaluation/plot_regression_systematic_error`
 #   (test set) check result demonstrate the model small positive bias.
@@ -119,12 +119,12 @@ suite_result.show()
 # Fix the Model and Re-run a Single Check
 # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-from deepchecks.tabular.checks import PerformanceReport
+from deepchecks.tabular.checks import TrainTestPerformance
 
 gbr = GradientBoostingRegressor(n_estimators=20)
 gbr.fit(X_train, y_train)
 # Initialize the check and add an optional condition
-check = PerformanceReport().add_condition_train_test_relative_degradation_less_than(0.3)
+check = TrainTestPerformance().add_condition_train_test_relative_degradation_less_than(0.3)
 result = check.run(train_ds, test_ds, gbr)
 result.show()
 
@@ -145,7 +145,7 @@ evaluation_suite
 
 #%%
 #
-# Next, we will update the Performance Report condition and remove the Regression Systematic Error check:
+# Next, we will update the Train Test Performance condition and remove the Regression Systematic Error check:
 
 evaluation_suite[0].clean_conditions()
 evaluation_suite[0].add_condition_train_test_relative_degradation_less_than(0.3)

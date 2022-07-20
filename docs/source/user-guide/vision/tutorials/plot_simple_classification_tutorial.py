@@ -100,7 +100,7 @@ result
 # dataset they make sense.
 #
 # The second failure is more interesting. The :doc:`Feature Label Correlation Change
-# </checks_gallery/vision/train_test_validation/plot_feature_label_correlation_change>` check computes various
+# </checks_gallery/vision/train_test_validation/plot_property_label_correlation_change>` check computes various
 # :doc:`image properties </user-guide/vision/vision_properties>` and checks if the image label can be inferred using a
 # simple model (for example, a Classification Tree) using the property values. The ability to predict the label using
 # these properties is measures by the Predictive Power Score (PPS) and this measure is compared between the training
@@ -109,7 +109,7 @@ result
 #
 # We'll show the relevant plot again for ease of discussion:
 
-check_idx = np.where([result.results[i].check.name() == 'Feature Label Correlation Change'
+check_idx = np.where([result.results[i].check.name() == 'Property Label Correlation Change'
                       for i in range(len(result.results))])[0][0]
 result.results[check_idx]
 

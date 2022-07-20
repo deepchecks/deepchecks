@@ -25,11 +25,6 @@ feature_importance_timeout : int , default: 120
     timeout in second for the permutation features importance calculation
 scorers : Optional[Mapping[str, Union[str, Callable]]] , default: None
     dict of scorers names to scorer sklearn_name/function
-scorers_per_class : Optional[Mapping[str, Union[str, Callable]]] , default: None
-    dict of scorers for classification without averaging of the classes.
-    See <a href=
-    "https://scikit-learn.org/stable/modules/model_evaluation.html#from-binary-to-multiclass-and-multilabel">
-    scikit-learn docs</a>
 y_pred_train: Optional[np.ndarray] , default: None
     Array of the model prediction over the train dataset.
 y_pred_test: Optional[np.ndarray] , default: None

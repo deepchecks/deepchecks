@@ -14,9 +14,9 @@ import warnings
 
 import pytest
 
-from deepchecks.tabular.checks import (DominantFrequencyChange, TrainTestFeatureDrift, TrainTestLabelDrift,
-                                       TrainTestPredictionDrift, WholeDatasetDrift, ModelErrorAnalysis,
-                                       SegmentPerformance)
+from deepchecks.tabular.checks import (DominantFrequencyChange, ModelErrorAnalysis, PerformanceReport,
+                                       SegmentPerformance, TrainTestFeatureDrift, TrainTestLabelDrift,
+                                       TrainTestPredictionDrift, WholeDatasetDrift, SimpleModelComparison)
 
 
 def test_deprecation_warning_label_drift():
@@ -78,3 +78,19 @@ def test_deprecation_segment_performance_warning():
     with pytest.warns(DeprecationWarning, match='The SegmentPerformance check is deprecated and will be removed in the '
                                                 '0.11 version. Please use the WeakSegmentsPerformance check instead.'):
         _ = SegmentPerformance()
+
+
+def test_deprecation_performance_report_warning():
+    with pytest.warns(DeprecationWarning, match='the performance report check is deprecated. use the train test '
+                                                'performance check instead'):
+        _ = PerformanceReport()
+
+
+def test_simple_model_args_warning():
+    with pytest.warns(DeprecationWarning, match='simple_model_type is deprecated. please use strategy instead'):
+        _ = SimpleModelComparison(simple_model_type='uniform')
+
+
+def test_simple_model_strategy_warning():
+    with pytest.warns(DeprecationWarning, match='strategy random is deprecated. please use stratified instead.'):
+        _ = SimpleModelComparison(strategy='random')

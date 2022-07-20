@@ -15,7 +15,8 @@ from .data_integrity import (ColumnsInfo, ConflictingLabels, DataDuplicates, Fea
 from .model_evaluation import (BoostingOverfit, CalibrationScore, ConfusionMatrixReport, ModelErrorAnalysis,
                                ModelInferenceTime, ModelInfo, MultiModelPerformanceReport, PerformanceReport,
                                RegressionErrorDistribution, RegressionSystematicError, RocReport, SegmentPerformance,
-                               SimpleModelComparison, TrainTestPredictionDrift, UnusedFeatures, WeakSegmentsPerformance)
+                               SimpleModelComparison, SingleDatasetPerformance, TrainTestPerformance,
+                               TrainTestPredictionDrift, UnusedFeatures, WeakSegmentsPerformance)
 from .train_test_validation import (CategoryMismatchTrainTest, DatasetsSizeComparison, DateTrainTestLeakageDuplicates,
                                     DateTrainTestLeakageOverlap, DominantFrequencyChange, FeatureLabelCorrelationChange,
                                     IdentifierLabelCorrelation, IndexTrainTestLeakage, NewLabelTrainTest,
@@ -62,6 +63,7 @@ __all__ = [
     'TrainTestPredictionDrift',
 
     # performance checks
+    'TrainTestPerformance',
     'PerformanceReport',
     'ConfusionMatrixReport',
     'RocReport',
@@ -72,5 +74,6 @@ __all__ = [
     'RegressionErrorDistribution',
     'MultiModelPerformanceReport',
     'WeakSegmentsPerformance',
-    'ModelErrorAnalysis'
+    'ModelErrorAnalysis',
+    'SingleDatasetPerformance'
 ]

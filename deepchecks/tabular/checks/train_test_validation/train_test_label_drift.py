@@ -13,6 +13,7 @@ import warnings
 from typing import Dict
 
 from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.core.checks import ReduceMixin
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERIC_METHODS,
@@ -24,7 +25,7 @@ from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.strings import format_number
 
 
-class TrainTestLabelDrift(TrainTestCheck):
+class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
     """
     Calculate label drift between train dataset and test dataset, using statistical measures.
 
@@ -127,6 +128,10 @@ class TrainTestLabelDrift(TrainTestCheck):
             displays = None
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Label Drift')
+
+    def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
+        """Return label drift score."""
+        return {'Label Drift Score': check_result.value['Drift score']}
 
     def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.2,
                                             max_allowed_numeric_score: float = 0.1,

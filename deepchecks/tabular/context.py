@@ -19,13 +19,13 @@ from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupport
                                     ModelValidationError)
 from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.tabular.dataset import Dataset
+from deepchecks.tabular.metric_utils import DeepcheckScorer, get_default_scorers, init_validate_scorers, task_type_check
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.tabular.utils.validation import (ensure_predictions_proba, ensure_predictions_shape,
                                                  model_type_validation, validate_model)
 from deepchecks.utils.decorators import deprecate_kwarg
 from deepchecks.utils.features import calculate_feature_importance_or_none
 from deepchecks.utils.logger import get_logger
-from deepchecks.utils.metrics import get_default_scorers, init_validate_scorers, task_type_check
 from deepchecks.utils.typing import BasicModel
 
 __all__ = [
@@ -91,10 +91,14 @@ class _DummyModel:
                     if len(y_pred.shape) > 1 and y_pred.shape[1] == 1:
                         y_pred = y_pred[:, 0]
                     ensure_predictions_shape(y_pred, dataset.data)
-                    predictions.append(pd.Series(y_pred, index=dataset.data.index))
+                    y_pred_ser = pd.Series(y_pred)
+                    y_pred_ser.index = dataset.data.index
+                    predictions.append(y_pred_ser)
                     if y_proba is not None:
                         ensure_predictions_proba(y_proba, y_pred)
-                        probas.append(pd.DataFrame(data=y_proba, index=dataset.data.index))
+                        proba_df = pd.DataFrame(data=y_proba)
+                        proba_df.index = dataset.data.index
+                        probas.append(proba_df)
 
         self.predictions = pd.concat(predictions, axis=0) if predictions else None
         self.probas = pd.concat(probas, axis=0) if probas else None
@@ -164,7 +168,6 @@ class Context:
         feature_importance_force_permutation: bool = False,
         feature_importance_timeout: int = 120,
         scorers: t.Optional[t.Mapping[str, t.Union[str, t.Callable]]] = None,
-        scorers_per_class: t.Optional[t.Mapping[str, t.Union[str, t.Callable]]] = None,
         with_display: bool = True,
         y_pred_train: t.Optional[np.ndarray] = None,
         y_pred_test: t.Optional[np.ndarray] = None,
@@ -220,7 +223,6 @@ class Context:
         self._validated_model = False
         self._task_type = None
         self._user_scorers = scorers
-        self._user_scorers_per_class = scorers_per_class
         self._model_name = model_name
         self._with_display = with_display
 
@@ -346,53 +348,59 @@ class Context:
                 self.train.label_type != TaskType.REGRESSION):
             raise ModelValidationError('Check is irrelevant for classification tasks')
 
-    def get_scorers(self, alternative_scorers: t.Mapping[str, t.Union[str, t.Callable]] = None, class_avg=True):
+    def get_scorers(self,
+                    scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]], t.List[str]] = None,
+                    use_avg_defaults=True) -> t.List[DeepcheckScorer]:
         """Return initialized & validated scorers in a given priority.
 
-        If receive `alternative_scorers` return them,
-        Else if user defined global scorers return them,
-        Else return default scorers.
+        If receive `scorers` use them,
+        Else if user defined global scorers use them,
+        Else use default scorers.
 
         Parameters
         ----------
-        alternative_scorers : Mapping[str, Union[str, Callable]], default None
-            dict of scorers names to scorer sklearn_name/function
-        class_avg : bool, default True
-            for classification whether to return scorers of average score or score per class
+        scorers : Union[List[str], Dict[str, Union[str, Callable]]], default: None
+            List of scorers to use. If None, use default scorers.
+            Scorers can be supplied as a list of scorer names or as a dictionary of names and functions.
+        use_avg_defaults : bool, default True
+            If no scorers were provided, for classification, determines whether to use default scorers that return
+            an averaged metric, or default scorers that return a metric per class.
+        Returns
+        -------
+        List[DeepcheckScorer]
+            A list of initialized & validated scorers.
         """
-        if class_avg:
-            user_scorers = self._user_scorers
-        else:
-            user_scorers = self._user_scorers_per_class
+        scorers = scorers or self._user_scorers or get_default_scorers(self.task_type, use_avg_defaults)
+        return init_validate_scorers(scorers, self.model, self.train)
 
-        scorers = alternative_scorers or user_scorers or get_default_scorers(self.task_type, class_avg)
-        return init_validate_scorers(scorers, self.model, self.train, class_avg, self.task_type)
-
-    def get_single_scorer(self, alternative_scorers: t.Mapping[str, t.Union[str, t.Callable]] = None, class_avg=True):
+    def get_single_scorer(self,
+                          scorers: t.Mapping[str, t.Union[str, t.Callable]] = None,
+                          use_avg_defaults=True) -> DeepcheckScorer:
         """Return initialized & validated single scorer in a given priority.
 
-        If receive `alternative_scorers` use them,
+        If receive `scorers` use them,
         Else if user defined global scorers use them,
         Else use default scorers.
         Returns the first scorer from the scorers described above.
 
         Parameters
         ----------
-        alternative_scorers : Mapping[str, Union[str, Callable]], default None
-            dict of scorers names to scorer sklearn_name/function. Only first scorer will be used.
-        class_avg : bool, default True
-            for classification whether to return scorers of average score or score per class
+        scorers : Union[List[str], Dict[str, Union[str, Callable]]], default: None
+            List of scorers to use. If None, use default scorers.
+            Scorers can be supplied as a list of scorer names or as a dictionary of names and functions.
+        use_avg_defaults : bool, default True
+            If no scorers were provided, for classification, determines whether to use default scorers that return
+            an averaged metric, or default scorers that return a metric per class.
+        Returns
+        -------
+        List[DeepcheckScorer]
+            An initialized & validated scorer.
         """
-        if class_avg:
-            user_scorers = self._user_scorers
-        else:
-            user_scorers = self._user_scorers_per_class
-
-        scorers = alternative_scorers or user_scorers or get_default_scorers(self.task_type, class_avg)
+        scorers = scorers or self._user_scorers or get_default_scorers(self.task_type, use_avg_defaults)
         # The single scorer is the first one in the dict
         scorer_name = next(iter(scorers))
         single_scorer_dict = {scorer_name: scorers[scorer_name]}
-        return init_validate_scorers(single_scorer_dict, self.model, self.train, class_avg, self.task_type)[0]
+        return init_validate_scorers(single_scorer_dict, self.model, self.train)[0]
 
     def get_data_by_kind(self, kind: DatasetKind):
         """Return the relevant Dataset by given kind."""

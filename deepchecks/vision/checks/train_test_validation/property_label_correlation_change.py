@@ -30,16 +30,18 @@ from deepchecks.vision.utils.image_functions import crop_image
 from deepchecks.vision.utils.image_properties import default_image_properties, validate_properties
 from deepchecks.vision.vision_data import TaskType
 
-__all__ = ['FeatureLabelCorrelationChange']
+__all__ = ['PropertyLabelCorrelationChange']
 
 pps_url = 'https://docs.deepchecks.com/en/stable/checks_gallery/vision/' \
           'train_test_validation/plot_feature_label_correlation_change.html'
 pps_html = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
 
-FLC = TypeVar('FLC', bound='FeatureLabelCorrelationChange')
+
+FLC = TypeVar('FLC', bound='PropertyLabelCorrelationChange')
 
 
-class FeatureLabelCorrelationChange(TrainTestCheck):
+# FeatureLabelCorrelationChange
+class PropertyLabelCorrelationChange(TrainTestCheck):
     """
     Return the Predictive Power Score of image properties, in order to estimate their ability to predict the label.
 
@@ -240,8 +242,8 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
 
         return (col.round() != col).any()
 
-    def add_condition_feature_pps_difference_less_than(self: FLC, threshold: float = 0.2,
-                                                       include_negative_diff: bool = False) -> FLC:
+    def add_condition_property_pps_difference_less_than(self: FLC, threshold: float = 0.2,
+                                                        include_negative_diff: bool = False) -> FLC:
         """Add new condition.
 
         Add condition that will check that difference between train
@@ -265,7 +267,6 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
         -------
         SFC
         """
-
         def condition(value: Union[Dict[Hashable, Dict[Hashable, float]],
                                    Dict[Hashable, Dict[Hashable, Dict[Hashable, float]]]],
                       ) -> ConditionResult:
@@ -285,31 +286,34 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
                     # Get max diff to display when condition is passing
                     max_class, max_pps = get_dict_entry_by_value(per_class_diff)
                     if max_pps > overall_max_pps[0]:
-                        overall_max_pps = max_pps, f'Found highest PPS {format_number(max_pps)} for feature {feature}' \
-                                                   f' and class {max_class}'
+                        overall_max_pps = (
+                            max_pps,
+                            f'Found highest PPS {format_number(max_pps)} for property {feature} '
+                            f'and class {max_class}'
+                        )
 
                 if failed_features:
-                    message = f'Features and classes with PPS difference above threshold: {failed_features}'
+                    message = f'Properties and classes with PPS difference above threshold: {failed_features}'
                     return ConditionResult(ConditionCategory.FAIL, message)
                 else:
-                    message = overall_max_pps[1] if overall_max_pps[0] > 0 else '0 PPS found for all features'
+                    message = overall_max_pps[1] if overall_max_pps[0] > 0 else '0 PPS found for all properties'
                     return ConditionResult(ConditionCategory.PASS, message)
             else:
                 failed_features = {feature: format_number(v) for feature, v in value['train-test difference'].items()
                                    if above_threshold_fn(v)}
                 if failed_features:
-                    message = f'Features with PPS difference above threshold: {failed_features}'
+                    message = f'Properties with PPS difference above threshold: {failed_features}'
                     return ConditionResult(ConditionCategory.FAIL, message)
                 else:
                     max_feature, max_pps = get_dict_entry_by_value(value['train-test difference'])
-                    message = f'Found highest PPS {format_number(max_pps)} for feature {max_feature}' \
-                              if max_pps > 0 else '0 PPS found for all features'
+                    message = f'Found highest PPS {format_number(max_pps)} for property {max_feature}' \
+                              if max_pps > 0 else '0 PPS found for all properties'
                     return ConditionResult(ConditionCategory.PASS, message)
 
         return self.add_condition(f'Train-Test properties\' Predictive Power Score difference is less than '
                                   f'{format_number(threshold)}', condition)
 
-    def add_condition_feature_pps_in_train_less_than(self: FLC, threshold: float = 0.2) -> FLC:
+    def add_condition_property_pps_in_train_less_than(self: FLC, threshold: float = 0.2) -> FLC:
         """Add new condition.
 
         Add condition that will check that train dataset property pps is less than X. If per_class is True, the
@@ -325,7 +329,6 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
         -------
         SFC
         """
-
         def condition(value: Union[Dict[Hashable, Dict[Hashable, float]],
                                    Dict[Hashable, Dict[Hashable, Dict[Hashable, float]]]]) -> ConditionResult:
 
@@ -341,13 +344,13 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
                     max_class, max_pps = get_dict_entry_by_value(pps_info['train'])
                     if max_pps > overall_max_pps[0]:
                         overall_max_pps = max_pps, f'Found highest PPS in train dataset {format_number(max_pps)} for ' \
-                                                   f'feature {feature} and class {max_class}'
+                                                   f'property {feature} and class {max_class}'
 
                 if failed_features:
-                    message = f'Features and classes in train dataset with PPS above threshold: {failed_features}'
+                    message = f'Properties and classes in train dataset with PPS above threshold: {failed_features}'
                     return ConditionResult(ConditionCategory.FAIL, message)
                 else:
-                    message = overall_max_pps[1] if overall_max_pps[0] > 0 else '0 PPS found for all features in ' \
+                    message = overall_max_pps[1] if overall_max_pps[0] > 0 else '0 PPS found for all properties in ' \
                                                                                 'train dataset'
                     return ConditionResult(ConditionCategory.PASS, message)
             else:
@@ -358,12 +361,15 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
                 }
 
                 if failed_features:
-                    message = f'Features in train dataset with PPS above threshold: {failed_features}'
+                    message = f'Properties in train dataset with PPS above threshold: {failed_features}'
                     return ConditionResult(ConditionCategory.FAIL, message)
                 else:
                     max_feature, max_pps = get_dict_entry_by_value(value['train-test difference'])
-                    message = f'Found highest PPS in train dataset {format_number(max_pps)} for feature {max_feature}' \
-                        if max_pps > 0 else '0 PPS found for all features in train dataset'
+                    message = (
+                        f'Found highest PPS in train dataset {format_number(max_pps)} for property {max_feature}'
+                        if max_pps > 0
+                        else '0 PPS found for all properties in train dataset'
+                    )
                     return ConditionResult(ConditionCategory.PASS, message)
 
         return self.add_condition(f'Train properties\' Predictive Power Score is less than '

@@ -16,14 +16,16 @@ from .model_error_analysis import ModelErrorAnalysis
 from .model_inference_time import ModelInferenceTime
 from .model_info import ModelInfo
 from .multi_model_performance_report import MultiModelPerformanceReport
-from .performance_report import PerformanceReport
 from .regression_error_distribution import RegressionErrorDistribution
 from .regression_systematic_error import RegressionSystematicError
 from .roc_report import RocReport
 from .segment_performance import SegmentPerformance
 from .simple_model_comparison import SimpleModelComparison
+from .single_dataset_performance import SingleDatasetPerformance
+from .train_test_performance import TrainTestPerformance
 from .train_test_prediction_drift import TrainTestPredictionDrift
 from .unused_features import UnusedFeatures
+from .weak_segments_performance import WeakSegmentsPerformance
 
 __all__ = [
     'BoostingOverfit',
@@ -33,6 +35,7 @@ __all__ = [
     'ModelInferenceTime',
     'ModelInfo',
     'MultiModelPerformanceReport',
+    'TrainTestPerformance',
     'PerformanceReport',
     'RegressionErrorDistribution',
     'RegressionSystematicError',
@@ -41,7 +44,8 @@ __all__ = [
     'SimpleModelComparison',
     'TrainTestPredictionDrift',
     'WeakSegmentsPerformance',
-    'UnusedFeatures'
+    'UnusedFeatures',
+    'SingleDatasetPerformance'
 ]
 
-from .weak_segments_performance import WeakSegmentsPerformance
+from .performance_report import PerformanceReport

@@ -17,9 +17,9 @@ from plotly.io import to_html
 from typing_extensions import Literal
 
 from deepchecks.core import check_result as check_types
+from deepchecks.core.resources import requirejs_script
 from deepchecks.core.serialization.abc import ABCDisplayItemsHandler, HtmlSerializer
-from deepchecks.core.serialization.common import (aggregate_conditions, form_output_anchor, plotlyjs_script,
-                                                  requirejs_script)
+from deepchecks.core.serialization.common import aggregate_conditions, form_output_anchor, plotlyjs_script
 from deepchecks.core.serialization.dataframe.html import DataFrameSerializer as DataFrameHtmlSerializer
 from deepchecks.utils.html import imagetag, linktag
 
@@ -136,7 +136,7 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
 
     def prepare_summary(self) -> str:
         """Prepare the summary section of the html output."""
-        return f'<p>{self.value.get_metadata()["summary"]}</p>'
+        return f'<p>{self.value.get_metadata(with_doc_link=True)["summary"]}</p>'
 
     def prepare_conditions_table(
         self,

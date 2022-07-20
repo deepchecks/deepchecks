@@ -13,8 +13,10 @@
 import abc
 import html
 import io
+import pathlib
 import sys
 import typing as t
+from multiprocessing import Process
 
 import plotly.io as pio
 from IPython.core.display import display, display_html
@@ -69,7 +71,7 @@ class DisplayableResult(abc.ABC):
             whether to display result with help of ipywidgets or not
         unique_id : Optional[str], default None
             unique identifier of the result output
-        **kwrgs :
+        **kwargs :
             other key-value arguments will be passed to the `Serializer.serialize`
             method
 
@@ -83,7 +85,9 @@ class DisplayableResult(abc.ABC):
             html = widget_to_html_string(  # pylint: disable=redefined-outer-name
                 self.widget_serializer.serialize(output_id=unique_id, **kwargs),
                 title=get_result_name(self),
-                requirejs=False
+                requirejs=False,
+                connected=True,
+                full_html=False,
             )
 
             class TempSphinx:
@@ -115,6 +119,7 @@ class DisplayableResult(abc.ABC):
         self,
         as_widget: bool = True,
         unique_id: t.Optional[str] = None,
+        connected: bool = False,
         **kwargs
     ):
         """Display result in an iframe.
@@ -125,7 +130,13 @@ class DisplayableResult(abc.ABC):
             whether to display result with help of ipywidgets or not
         unique_id : Optional[str], default None
             unique identifier of the result output
-        **kwrgs :
+        connected: bool , default False
+            indicates whether internet connection is available or not,
+            if 'True' then CDN urls will be used to load javascript otherwise
+            javascript libraries will be injected directly into HTML output.
+            Set to 'False' to make results viewing possible when the internet
+            connection is not available.
+        **kwargs :
             other key-value arguments will be passed to the `Serializer.serialize`
             method
         """
@@ -133,13 +144,13 @@ class DisplayableResult(abc.ABC):
 
         if is_colab_env() and as_widget is True:
             widget = self.widget_serializer.serialize(**kwargs)
-            content = widget_to_html_string(widget, title=get_result_name(self))
+            content = widget_to_html_string(widget, title=get_result_name(self), connected=True)
             display_html(content, raw=True)
         elif is_colab_env() and as_widget is False:
             display(*self.ipython_serializer.serialize(**kwargs))
         elif as_widget is True:
             widget = self.widget_serializer.serialize(output_id=output_id, is_for_iframe_with_srcdoc=True, **kwargs)
-            content = widget_to_html_string(widget, title=get_result_name(self))
+            content = widget_to_html_string(widget, title=get_result_name(self), connected=connected)
             display_html(iframe(srcdoc=content), raw=True)
         else:
             display_html(
@@ -149,6 +160,7 @@ class DisplayableResult(abc.ABC):
                     include_requirejs=True,
                     include_plotlyjs=True,
                     is_for_iframe_with_srcdoc=True,
+                    connected=connected,
                     **kwargs
                 )),
                 raw=True
@@ -225,6 +237,7 @@ class DisplayableResult(abc.ABC):
 def display_in_gui(result: DisplayableResult):
     """Display suite result or check result in a new python gui window."""
     try:
+        from PyQt5.QtCore import QUrl  # pylint: disable=import-outside-toplevel
         from PyQt5.QtWebEngineWidgets import QWebEngineView  # pylint: disable=import-outside-toplevel
         from PyQt5.QtWidgets import QApplication  # pylint: disable=import-outside-toplevel
     except ImportError:
@@ -234,23 +247,26 @@ def display_in_gui(result: DisplayableResult):
             'or use "result.save_as_html()" to save result'
         )
     else:
-        try:
-            app = QApplication(sys.argv)
-            web = QWebEngineView()
-            web.setWindowTitle('deepchecks')
-            web.setGeometry(0, 0, 1200, 1200)
+        filename = t.cast(str, result.save_as_html('deepchecks-report.html'))
+        filepath = pathlib.Path(filename).absolute()
 
-            html_out = io.StringIO()
-            result.save_as_html(html_out)
-            web.setHtml(html_out.getvalue())
-            web.show()
+        def app(filename: str):
+            filepath = pathlib.Path(filename)
+            try:
+                app = QApplication.instance()
+                if app is None:
+                    app = QApplication([])
+                    app.lastWindowClosed.connect(app.quit)
+                web = QWebEngineView()
+                web.setWindowTitle('deepchecks')
+                web.setGeometry(0, 0, 1200, 1200)
+                web.load(QUrl.fromLocalFile(str(filepath)))
+                web.show()
+                sys.exit(app.exec_())
+            finally:
+                filepath.unlink()
 
-            sys.exit(app.exec_())
-        except BaseException:  # pylint: disable=broad-except
-            get_logger().error(
-                'Unable to show result, run in an interactive environment '
-                'or use "result.save_as_html()" to save result'
-            )
+        Process(target=app, args=(str(filepath),)).start()
 
 
 def get_result_name(result) -> str:
@@ -270,6 +286,7 @@ def save_as_html(
     serializer: t.Union[HtmlSerializer[T], WidgetSerializer[T]],
     file: t.Union[str, io.TextIOWrapper, None] = None,
     requirejs: bool = True,
+    connected: bool = False,
     **kwargs
 ) -> t.Optional[str]:
     """Save a result to an HTML file.
@@ -282,6 +299,12 @@ def save_as_html(
         The file to write the HTML output to. If None writes to output.html
     requirejs: bool , default: True
         whether to include requirejs library into output HTML or not
+    connected: bool , default False
+        indicates whether internet connection is available or not,
+        if 'True' then CDN urls will be used to load javascript otherwise
+        javascript libraries will be injected directly into HTML output.
+        Set to 'False' to make results viewing possible when the internet
+        connection is not available.
 
     Returns
     -------
@@ -298,19 +321,21 @@ def save_as_html(
             serializer.serialize(**kwargs),
             html_out=file,
             title=get_result_name(serializer.value),
-            requirejs=requirejs
+            requirejs=requirejs,
+            connected=connected,
         )
     elif isinstance(serializer, HtmlSerializer):
         html = serializer.serialize(  # pylint: disable=redefined-outer-name
             full_html=True,
             include_requirejs=requirejs,
             include_plotlyjs=True,
+            connected=connected,
             **kwargs
         )
         if isinstance(file, str):
             with open(file, 'w', encoding='utf-8') as f:
                 f.write(html)
-        elif isinstance(file, io.StringIO):
+        elif isinstance(file, io.TextIOWrapper):
             file.write(html)
         else:
             raise TypeError(f'Unsupported type of "file" parameter - {type(file)}')

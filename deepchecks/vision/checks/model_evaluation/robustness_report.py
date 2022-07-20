@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -29,7 +29,7 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils import plot
 from deepchecks.utils.strings import format_percent, split_camel_case
 from deepchecks.vision import Batch, Context, SingleDatasetCheck, VisionData
-from deepchecks.vision.metrics_utils import calculate_metrics, get_scorers_list, metric_results_to_df
+from deepchecks.vision.metrics_utils import calculate_metrics, get_scorers_dict, metric_results_to_df
 from deepchecks.vision.utils.image_functions import ImageInfo, draw_bboxes, prepare_thumbnail
 from deepchecks.vision.utils.transformations import AbstractTransformations
 from deepchecks.vision.utils.validation import set_seeds
@@ -70,7 +70,7 @@ class RobustnessReport(SingleDatasetCheck):
         """Initialize the metrics for the check, and validate task type is relevant."""
         dataset = context.get_data_by_kind(dataset_kind)
         # Set empty version of metrics
-        self._state = {'metrics': get_scorers_list(dataset, self.alternative_metrics)}
+        self._state = {'metrics': get_scorers_dict(dataset, self.alternative_metrics)}
 
     def update(self, context: Context, batch: Batch, dataset_kind):
         """Accumulates batch data into the metrics."""
@@ -233,7 +233,7 @@ class RobustnessReport(SingleDatasetCheck):
         return diff_dict
 
     def _calc_mean_metrics(self, metrics_df: pd.DataFrame) -> dict:
-        metrics_df = metrics_df[['Metric', 'Value']].groupby(['Metric']).mean()
+        metrics_df = metrics_df[['Metric', 'Value']].groupby(['Metric']).aggregate('mean')
         return metrics_df.to_dict()['Value']
 
     def _create_augmentation_figures(self, dataset, base_mean_results, aug_all_data):

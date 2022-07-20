@@ -222,7 +222,8 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
                 grouped_df['More Info'] = grouped_df.index
                 grouped_df = grouped_df[['More Info', 'Properties']]
                 display.append('<h5><b>Properties With No Outliers Found</h5></b>')
-                display.append(grouped_df.style.hide_index())
+                display.append(grouped_df.style.hide(axis='index') if hasattr(grouped_df.style, 'hide') else
+                               grouped_df.style.hide_index())
 
         else:
             display = None
