@@ -42,7 +42,7 @@ class Batch:
         self._labels = None
         self._predictions = None
         self._images = None
-        self._image_properties = defaultdict(list)
+        self._image_properties = None
 
     @property
     def labels(self):
@@ -98,8 +98,9 @@ class Batch:
 
     @property
     def image_properties(self):
-        image_properties = self._context.get_cached_properties_by_kind(self._dataset_kind)
-        dataset = self._context.get_data_by_kind(self._dataset_kind)
+        if self._image_properties is None:
+            image_properties = self._context.get_cached_properties_by_kind(self._dataset_kind)
+            dataset = self._context.get_data_by_kind(self._dataset_kind)
 
         if image_properties is not None:
             indexes = list(dataset.data_loader.batch_sampler)[self.batch_index]
