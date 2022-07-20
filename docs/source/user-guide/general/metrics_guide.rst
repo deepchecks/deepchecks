@@ -109,7 +109,7 @@ List of Supported Strings
    * - 'neg_mae'
      - negative mean absolute error (Sklearn)
    * - 'precision_per_class'
-     - precision per class - no averaging
+     - precision per class - no averaging (results are returned per class)
    * - 'recall_per_class'
      - recall per class - no averaging
    * - 'f1_per_class'
