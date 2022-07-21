@@ -82,7 +82,7 @@ class BenchmarkVision:
 
 
 for name, check_class in inspect.getmembers(checks):
-    if inspect.isclass(check_class):
+    if inspect.isclass(check_class) and name != 'SimilarImageLeakage':
         run_fn = run_check_fn(check_class)
         setattr(BenchmarkVision, f'time_{name}', run_fn)
         setattr(BenchmarkVision, f'peakmem_{name}', run_fn)

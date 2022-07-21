@@ -161,8 +161,8 @@ result.show(show_additional_outputs=False)
 # Get an aggregated value
 # =======================
 #
-# Using the :func:`deepchecks.tabular.checks.train_test_validation.TrainTestFeatureDrift.reduce_output` function we
-# can combine the drift values per feature and get a collective score
+# Using the :func:`reduce_output <deepchecks.tabular.checks.train_test_validation.TrainTestFeatureDrift.reduce_output>`
+# function we can combine the drift values per feature and get a collective score
 # that reflects the effect of the drift on the model, taking into account all the features.
 # In scenarios where labels are unavailable (either temporarily of permanently)
 # this value can be a good indicator of possible deterioration in the model's performance.
