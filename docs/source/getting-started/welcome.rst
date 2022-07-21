@@ -78,7 +78,7 @@ Computer Vision
    `Github Issues <https://github.com/deepchecks/deepchecks/issues>`_ for feedback and feature requests are welcome!
 
 - :doc:`Object Detection Tutorial </user-guide/vision/auto_tutorials/plot_detection_tutorial>`
-- :doc:`Image Data Validation in 5 Minutes (for data without model) </user-guide/vision/auto_tutorials/plot_simple_classification_tutorial>`
+- :doc:`Image Data Validation in 5 Minutes </user-guide/vision/auto_tutorials/plot_simple_classification_tutorial>`
 - :doc:`Classification Tutorial</user-guide/vision/auto_tutorials/plot_classification_tutorial>`
 
 
