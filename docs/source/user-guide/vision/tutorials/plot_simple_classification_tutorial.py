@@ -1,9 +1,9 @@
 """
 .. _vision_simple_classification_tutorial:
 
-========================================
-Deepchecks Out of the Box Classification
-========================================
+==================================
+Image Data Validation in 5 Minutes
+==================================
 
 Deepchecks Vision is built to validate your data and model, however complex your model and data may be. That
 being said, sometime there is no need to write a full-blown
@@ -19,7 +19,7 @@ it contains.
 
 #%%
 # Downloading the Data
-# ===========================
+# ====================
 #
 # For this example we'll use a small sample of the RGB `EuroSAT dataset <https://github.com/phelber/eurosat#>`_.
 # EuroSAT dataset is based on Sentinel-2 satellite images covering 13 spectral bands and consisting of 10 classes
@@ -72,7 +72,7 @@ train_ds, test_ds = classification_dataset_from_directory(
 # and checks. Here we will demonstrate how to run train_test_validation suite:
 #
 # for additional information on the different suites and checks available see our
-# :doc:`check gallery </checks_gallery/vision/model_evaluation/plot_segment_performance>`
+# :doc:`check gallery </checks_gallery/vision>`
 
 from deepchecks.vision.suites import train_test_validation
 
@@ -89,7 +89,7 @@ result.save_as_html('output.html')
 #%%
 # Or, if working inside a notebook, the output can be displayed directly by simply printing the result object:
 
-result
+result.show()
 
 #%%
 # Understanding the Results:

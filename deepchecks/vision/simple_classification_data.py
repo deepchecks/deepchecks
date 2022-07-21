@@ -40,24 +40,16 @@ def classification_dataset_from_directory(
     to be structured one of the following ways:
 
         - root/
+            - class1/
+                image1.jpeg
+
+        - root/
             - train/
-                - class1/
-                    image1.jpeg
-            - validation/
                 - class1/
                     image1.jpeg
             - test/
                 - class1/
                     image1.jpeg
-
-        - root/
-            - train/
-                - class1/
-                    image1.jpeg
-
-        - root/
-            - class1/
-                image1.jpeg
 
     Parameters
     ----------
@@ -95,8 +87,6 @@ def classification_dataset_from_directory(
         roots_of_datasets.append(root_path.joinpath('train'))
     if root_path.joinpath('test').exists():
         roots_of_datasets.append(root_path.joinpath('test'))
-    if root_path.joinpath('validation').exists():
-        roots_of_datasets.append(root_path.joinpath('validation'))
     if len(roots_of_datasets) == 0:
         roots_of_datasets.append(root_path)
 
@@ -125,7 +115,7 @@ class SimpleClassificationDataset(VisionDataset):
     """Simple VisionDataset type for the classification tasks.
 
     The current class expects that data within the root folder
-    will be structured in one of the following ways:
+    will be structured the following way:
 
         - root/
             - class1/
