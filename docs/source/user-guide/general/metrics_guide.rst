@@ -112,7 +112,7 @@ List of Supported Strings
      - negative mean absolute error (Sklearn)
    * - 'precision_per_class'
      - precision per class - no averaging (results are returned per class)
-   * - 'recall_per_class'
+   * - 'recall_per_class' , 'sensitivity_per_class'
      - recall per class - no averaging
    * - 'f1_per_class'
      - F-1  per class - no averaging
@@ -138,13 +138,13 @@ List of Supported Strings
      - False Negative Rate - weighted macro averaging
    * - 'tnr_per_class'
      - True Negative Rate per class - no averaging
-   * - 'tnr'
+   * - 'tnr', 'specificity'
      - True Negative Rate - binary
-   * - 'tnr_macro'
+   * - 'tnr_macro', 'specificity_macro'
      - True Negative Rate - macro averaging
-   * - 'tnr_micro'
+   * - 'tnr_micro', 'specificity_micro'
      - True Negative Rate - micro averaging
-   * - 'tnr_weighted'
+   * - 'tnr_weighted', 'specificity_weighted'
      - True Negative Rate - weighted macro averaging
 
 In addition to the strings listed above, all Sklearn
