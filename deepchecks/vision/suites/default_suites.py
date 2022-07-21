@@ -20,12 +20,11 @@ from typing import Any, Dict, List, Tuple
 from ignite.metrics import Metric
 
 from deepchecks.vision import Suite
-from deepchecks.vision.checks import (ClassPerformance, ConfusionMatrixReport, HeatmapComparison, ImageDatasetDrift,
-                                      ImagePropertyDrift, ImagePropertyOutliers, ImageSegmentPerformance,
-                                      LabelPropertyOutliers, MeanAveragePrecisionReport, MeanAverageRecallReport,
-                                      ModelErrorAnalysis, NewLabels, PropertyLabelCorrelationChange,
-                                      # SimilarImageLeakage,
-                                      SimpleModelComparison, TrainTestLabelDrift,
+from deepchecks.vision.checks import (ClassPerformance, ConfusionMatrixReport,  # SimilarImageLeakage,
+                                      HeatmapComparison, ImageDatasetDrift, ImagePropertyDrift, ImagePropertyOutliers,
+                                      ImageSegmentPerformance, LabelPropertyOutliers, MeanAveragePrecisionReport,
+                                      MeanAverageRecallReport, ModelErrorAnalysis, NewLabels,
+                                      PropertyLabelCorrelationChange, SimpleModelComparison, TrainTestLabelDrift,
                                       TrainTestPredictionDrift)
 
 __all__ = ['train_test_validation', 'model_evaluation', 'full_suite', 'integrity_validation', 'data_integrity']
