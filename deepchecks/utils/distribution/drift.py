@@ -254,10 +254,10 @@ def calc_drift_and_plot(train_column: pd.Series,
 
         dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(train_dist, test_dist, value_name)
     elif column_type == 'categorical':
-        if categorical_drift_method == 'cramer_v':
+        if categorical_drift_method.lower() in ['cramer_v', 'cramers_v']:
             scorer_name = 'Cramer\'s V'
             score = cramers_v(dist1=train_dist, dist2=test_dist)
-        elif categorical_drift_method == 'PSI':
+        elif categorical_drift_method.lower() == 'psi':
             scorer_name = 'PSI'
             expected, actual, _ = \
                 preprocess_2_cat_cols_to_same_bins(dist1=train_column, dist2=test_column,
@@ -266,7 +266,7 @@ def calc_drift_and_plot(train_column: pd.Series,
             score = psi(expected_percents=expected_percents, actual_percents=actual_percents)
         else:
             raise ValueError('Excpected categorical_drift_method to be one '
-                             f'of [Cramer, PSI], recieved: {categorical_drift_method}')
+                             f'of [cramer_v, PSI], recieved: {categorical_drift_method}')
 
         if not with_display:
             return score, scorer_name, None
