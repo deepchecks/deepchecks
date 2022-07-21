@@ -110,6 +110,8 @@ sphinx_gallery_conf = {
         "checks/tabular",
         "user-guide/tabular/tutorials",
         "user-guide/vision/tutorials",
+        "user-guide/tabular/quickstarts",
+        "user-guide/vision/quickstarts",
         "user-guide/general/customizations",
         "user-guide/general/exporting_results",
     ],  # path to your example scripts
@@ -118,6 +120,8 @@ sphinx_gallery_conf = {
         "checks_gallery/tabular",
         "user-guide/tabular/auto_tutorials",
         "user-guide/vision/auto_tutorials",
+        "user-guide/tabular/auto_quickstarts",
+        "user-guide/vision/auto_quickstarts",
         "user-guide/general/customizations/examples",
         "user-guide/general/exporting_results/examples",
     ], # path to where to save gallery generated output
