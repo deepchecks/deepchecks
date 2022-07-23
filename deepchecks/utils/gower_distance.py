@@ -99,7 +99,8 @@ def calculate_nearest_neighbors_distances(data: pd.DataFrame, cat_cols: List[Has
 
     num_indices_to_calc = len(rows_to_calc_neighbors_for)
 
-    distances, indexes = np.zeros((num_indices_to_calc, num_neighbors)), np.zeros((num_indices_to_calc, num_neighbors))
+    distances = np.zeros((num_indices_to_calc, num_neighbors))
+    indexes = np.zeros((num_indices_to_calc, num_neighbors)).astype('O')
     # handle categorical - transform to an ordinal numpy array
     cat_data = np.asarray(cat_data.apply(lambda x: pd.factorize(x)[0])) if not cat_data.empty else np.asarray(cat_data)
     # handle numerical - calculate ranges per feature and fill numerical nan to minus np.inf
