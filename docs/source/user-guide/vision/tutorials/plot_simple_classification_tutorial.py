@@ -1,9 +1,9 @@
 """
 .. _vision_simple_classification_tutorial:
 
-================================================
-Using Deepchecks Vision With a Few Lines of Code
-================================================
+==================================
+Image Data Validation in 5 Minutes
+==================================
 
 Deepchecks Vision is built to validate your data and model, however complex your model and data may be. That
 being said, sometime there is no need to write a full-blown
@@ -19,7 +19,7 @@ it contains.
 
 #%%
 # Downloading the Data
-# ===========================
+# ====================
 #
 # For this example we'll use a small sample of the RGB `EuroSAT dataset <https://github.com/phelber/eurosat#>`_.
 # EuroSAT dataset is based on Sentinel-2 satellite images covering 13 spectral bands and consisting of 10 classes
@@ -60,15 +60,19 @@ with zipfile.ZipFile('EuroSAT_data.zip', 'r') as zip_ref:
 #                 - class1/
 #                     image1.jpeg
 
-from deepchecks.vision.simple_classification_data import load_dataset
+from deepchecks.vision import classification_dataset_from_directory
 
-train_ds = load_dataset('./EuroSAT/euroSAT/', train=True, object_type='VisionData', image_extension='jpg')
-test_ds = load_dataset('./EuroSAT/euroSAT/', train=False, object_type='VisionData', image_extension='jpg')
+train_ds, test_ds = classification_dataset_from_directory(
+    root='./EuroSAT/euroSAT/', object_type='VisionData', image_extension='jpg')
 
 #%%
-# Running Deepchecks' full suite
-# ==============================
-# That's it, we have just defined the classification data object and are ready to run the train_test_validation suite:
+# Running Deepchecks' train_test_validation suite
+# ===============================================
+# That's it, we have just defined the classification data object and are ready can run the different deepchecks suites
+# and checks. Here we will demonstrate how to run train_test_validation suite:
+#
+# for additional information on the different suites and checks available see our
+# :doc:`check gallery </checks_gallery/vision>`
 
 from deepchecks.vision.suites import train_test_validation
 
@@ -77,7 +81,7 @@ result = suite.run(train_ds, test_ds)
 
 #%%
 # Observing the Results:
-# ===========================
+# ======================
 # The results can be saved as a html file with the following code:
 
 result.save_as_html('output.html')
@@ -85,7 +89,7 @@ result.save_as_html('output.html')
 #%%
 # Or, if working inside a notebook, the output can be displayed directly by simply printing the result object:
 
-result
+result.show()
 
 #%%
 # Understanding the Results:
@@ -100,7 +104,7 @@ result
 # dataset they make sense.
 #
 # The second failure is more interesting. The :doc:`Feature Label Correlation Change
-# </checks_gallery/vision/train_test_validation/plot_feature_label_correlation_change>` check computes various
+# </checks_gallery/vision/train_test_validation/plot_property_label_correlation_change>` check computes various
 # :doc:`image properties </user-guide/vision/vision_properties>` and checks if the image label can be inferred using a
 # simple model (for example, a Classification Tree) using the property values. The ability to predict the label using
 # these properties is measures by the Predictive Power Score (PPS) and this measure is compared between the training
@@ -109,7 +113,7 @@ result
 #
 # We'll show the relevant plot again for ease of discussion:
 
-check_idx = np.where([result.results[i].check.name() == 'Feature Label Correlation Change'
+check_idx = np.where([result.results[i].check.name() == 'Property Label Correlation Change'
                       for i in range(len(result.results))])[0][0]
 result.results[check_idx]
 

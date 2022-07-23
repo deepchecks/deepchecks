@@ -23,7 +23,7 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils import plot
 from deepchecks.utils.strings import format_percent
 from deepchecks.vision import Batch, Context, TrainTestCheck
-from deepchecks.vision.metrics_utils.metrics import filter_classes_for_display, get_scorers_list, metric_results_to_df
+from deepchecks.vision.metrics_utils.metrics import filter_classes_for_display, get_scorers_dict, metric_results_to_df
 
 __all__ = ['ClassPerformance']
 
@@ -84,9 +84,9 @@ class ClassPerformance(TrainTestCheck):
     def initialize_run(self, context: Context):
         """Initialize run by creating the _state member with metrics for train and test."""
         self._data_metrics = {}
-        self._data_metrics[DatasetKind.TRAIN] = get_scorers_list(context.train,
+        self._data_metrics[DatasetKind.TRAIN] = get_scorers_dict(context.train,
                                                                  alternative_scorers=self.alternative_metrics)
-        self._data_metrics[DatasetKind.TEST] = get_scorers_list(context.train,
+        self._data_metrics[DatasetKind.TEST] = get_scorers_dict(context.train,
                                                                 alternative_scorers=self.alternative_metrics)
 
         if not self.metric_to_show_by:

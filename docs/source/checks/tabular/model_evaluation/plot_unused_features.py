@@ -28,13 +28,24 @@ increase the dimensionality without contributing anything. Nevertheless, models 
 reason the Unused Features check selects out of these features those that have high variance, as they may represent
 information that was ignored during model construction. We may wish to manually inspect those features to make sure
 our model is not missing on important information.
-
-Run the check
-=============
-We will run the check on the adult dataset which can be downloaded from the
-`UCI machine learning repository <http://archive.ics.uci.edu/ml>`_ and is also available in
-`deepchecks.tabular.datasets`.
 """
+
+#%%
+# Run the check
+# =============
+# The check has two key parameters (that are optional) that affect the behavior of the
+# check and especially its output.
+#
+# ``feature_variance_threshold``: Controls the threshold over which features are considered "high variance".
+# A higher threshold means that fewer features will be considered "high variance".
+#
+# ``feature_importance_threshold``: Controls the threshold over which features are considered important.
+# For additional information on how feature importance is being calculated, see
+# :doc:`Feature Importance </user-guide/tabular/feature_importance>`.
+#
+# We will run the check on the adult dataset which can be downloaded from the
+# `UCI machine learning repository <http://archive.ics.uci.edu/ml>`_ and is also available in
+# `deepchecks.tabular.datasets`.
 
 from deepchecks.tabular.checks import UnusedFeatures
 from deepchecks.tabular.datasets.classification import adult
@@ -42,28 +53,10 @@ from deepchecks.tabular.datasets.classification import adult
 train_ds, test_ds = adult.load_data()
 model = adult.load_fitted_model()
 
-UnusedFeatures().add_condition_number_of_high_variance_unused_features_less_or_equal()
-result = UnusedFeatures().run(train_ds, test_ds, model)
-result
-
-# %%
-# Controlling the variance threshold
-# ----------------------------------
-# The check can be configured to use a different threshold which controls which features are considered "high variance".
-# The default value is `0.4`. We will use a more strict value and see that fewer features are considered "high
-# variance".
 result = UnusedFeatures(feature_variance_threshold=1.5).run(train_ds, test_ds, model)
-result
+result.show()
 
 #%%
-# Controlling the importance threshold
-# ------------------------------------
-# We can also define the importance threshold which controls features are considered important. If we define it as 0
-# then all features are considered important.
-result = UnusedFeatures(feature_importance_threshold=0).run(train_ds, test_ds, model)
-result
-
-# %%
 # Define a condition
 # ==================
 # We can define a condition that enforces that number of unused features with high variance is not greater than a given

@@ -134,7 +134,7 @@ def test_check_suite_instantiation_by_extending_another_check_suite():
             "inner1",
             tabular_checks.MixedNulls(),
             Suite("inner2", tabular_checks.MixedDataTypes()),
-            tabular_checks.PerformanceReport()
+            tabular_checks.TrainTestPerformance()
         )
     )
 
@@ -148,7 +148,7 @@ def test_check_suite_instantiation_by_extending_another_check_suite():
         tabular_checks.IsSingleValue,
         tabular_checks.MixedNulls,
         tabular_checks.MixedDataTypes,
-        tabular_checks.PerformanceReport
+        tabular_checks.TrainTestPerformance
     ]
 
 
@@ -217,7 +217,7 @@ def test_config():
         has_entry('module_name', 'deepchecks.tabular.suite'),
         has_entry('checks', instance_of(list))
     ))
-    
+
     conf_suite_mod = BaseSuite.from_config(suite_mod)
     assert_that(conf_suite_mod.name, equal_to('Model Evaluation Suite'))
     assert_that(conf_suite_mod.checks.values(), has_length(check_amount))

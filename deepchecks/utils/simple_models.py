@@ -11,7 +11,7 @@
 """Contains simple models used in checks."""
 import numpy as np
 
-__all__ = ['PerfectModel', 'RandomModel']
+__all__ = ['PerfectModel', 'RandomModel', 'ClassificationUniformModel', 'RegressionUniformModel']
 
 
 def create_proba_result(predictions, classes):
@@ -65,3 +65,43 @@ class RandomModel:
         classes = sorted(self.labels.unique().tolist())
         predictions = self.predict(X)
         return create_proba_result(predictions, classes)
+
+
+class ClassificationUniformModel:
+    """Model that draws predictions uniformly at random from the list of classes in y."""
+
+    def __init__(self):
+        self.unique_labels = None
+
+    def fit(self, X, y):  # pylint: disable=unused-argument,invalid-name
+        """Fit model."""
+        # The X is not used, but it is needed to be matching to sklearn `fit` signature
+        self.unique_labels = np.unique(y)
+
+    def predict(self, X):  # pylint: disable=invalid-name
+        """Predict on given X."""
+        return np.random.choice(self.unique_labels, X.shape[0])
+
+    def predict_proba(self, X):  # pylint: disable=invalid-name
+        """Predict proba for given X."""
+        classes = sorted(self.unique_labels.tolist())
+        predictions = self.predict(X)
+        return create_proba_result(predictions, classes)
+
+
+class RegressionUniformModel:
+    """Model that draws predictions uniformly at random from the range of values in y."""
+
+    def __init__(self):
+        self.min_value = None
+        self.max_value = None
+
+    def fit(self, X, y):  # pylint: disable=unused-argument,invalid-name
+        """Fit model."""
+        # The X is not used, but it is needed to be matching to sklearn `fit` signature
+        self.min_value = y.min()
+        self.max_value = y.max()
+
+    def predict(self, X):  # pylint: disable=invalid-name
+        """Predict on given X."""
+        return np.random.uniform(self.min_value, self.max_value, X.shape[0])
