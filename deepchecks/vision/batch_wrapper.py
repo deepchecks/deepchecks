@@ -10,7 +10,7 @@
 #
 """Contains code for BatchWrapper."""
 from operator import itemgetter
-from typing import TYPE_CHECKING, Any, Callable, Iterable, Tuple, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Callable, Iterable, Tuple, TypeVar, cast, List, Dict
 from collections import defaultdict
 
 import torch
@@ -96,18 +96,10 @@ class Batch:
         dataset = self._context.get_data_by_kind(self._dataset_kind)
         return len(list(dataset.data_loader.batch_sampler)[self.batch_index])
 
-    @property
-    def image_properties(self):
+    def image_properties(self, properties_to_calc: List[Dict]=None):
         if self._image_properties is None:
-            image_properties = self._context.get_cached_properties_by_kind(self._dataset_kind)
             dataset = self._context.get_data_by_kind(self._dataset_kind)
-
-        if image_properties is not None:
-            indexes = list(dataset.data_loader.batch_sampler)[self.batch_index]
-            for property_name, property_values in image_properties.items():
-                self._image_properties[property_name] = [property_values[i] for i in indexes]
-        else:
-            self._image_properties = dataset.batch_to_image_properties(self._batch)
+            self._image_properties = dataset.batch_to_image_properties(self._batch, properties_to_calc)
         return self._image_properties
 
 

@@ -111,7 +111,7 @@ class ModelErrorAnalysis(TrainTestCheck):
 
         predictions = batch.predictions
         labels = batch.labels
-        properties_results = batch.image_properties
+        properties_results = batch.image_properties(self.image_properties)
 
         for prop_name, prop_value in properties_results.items():
             properties[prop_name].extend(prop_value)
