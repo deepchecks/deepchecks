@@ -14,7 +14,7 @@ from .batch_wrapper import Batch
 from .classification_data import ClassificationData
 from .context import Context
 from .detection_data import DetectionData
-from .simple_classification_data import SimpleClassificationData, SimpleClassificationDataset
+from .simple_classification_data import classification_dataset_from_directory
 from .suite import Suite
 from .vision_data import VisionData
 
@@ -30,8 +30,7 @@ __all__ = [
     "VisionData",
     "ClassificationData",
     "DetectionData",
-    "SimpleClassificationDataset",
-    "SimpleClassificationData",
+    "classification_dataset_from_directory",
     "Context",
     "SingleDatasetCheck",
     "TrainTestCheck",

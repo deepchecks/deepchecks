@@ -10,7 +10,7 @@
 #
 """Module containing a check for computing a scalar performance metric for a single dataset."""
 from numbers import Number
-from typing import Dict, List
+from typing import Any, Callable, Dict, List, Union
 
 from ignite.metrics import Metric
 
@@ -29,13 +29,13 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
 
     Parameters
     ----------
-    scorers : Dict[str, Metric], default: None
+    scorers : Union[Dict[str, Union[Metric, Callable, str]], List[Any]] = None,
         An optional dictionary of scorer name to scorer functions.
         If none given, using default scorers
 
     """
 
-    def __init__(self, scorers: Dict[str, Metric] = None, **kwargs):
+    def __init__(self, scorers: Union[Dict[str, Union[Metric, Callable, str]], List[Any]] = None, **kwargs):
         super().__init__(**kwargs)
         self.user_scorers = scorers
 
@@ -57,7 +57,8 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
             result = scorer.compute()
             results_dict[name] = [result] if isinstance(result, Number) else result
         result_df = metric_results_to_df(results_dict, context.get_data_by_kind(dataset_kind))
-        return CheckResult(result_df, header='Single Dataset Performance')
+        display = result_df if context.with_display else None
+        return CheckResult(result_df, header='Single Dataset Performance', display=display)
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return the values of the metrics for the dataset provided in a {metric: value} format."""

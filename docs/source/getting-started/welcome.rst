@@ -82,7 +82,6 @@ Computer Vision
 - :doc:`Classification Tutorial</user-guide/vision/auto_quickstarts/plot_classification_tutorial>`
 
 
-
 🙋🏼 When Should You Use Deepchecks?
 =====================================
 
