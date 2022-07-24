@@ -119,7 +119,6 @@ def calculate_nearest_neighbors_distances(data: pd.DataFrame, cat_cols: List[Has
         min_dist_indexes = np.argpartition(dist_to_sample_i, num_neighbors)[:num_neighbors]
         min_dist_indexes_ordered = sorted(min_dist_indexes, key=lambda x, arr=dist_to_sample_i: arr[x], reverse=False)
         indexes[i, :] = min_dist_indexes_ordered
-
         distances[i, :] = dist_to_sample_i[min_dist_indexes_ordered]
 
     np.seterr(invalid=original_error_state)
