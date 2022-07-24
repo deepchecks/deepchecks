@@ -147,9 +147,6 @@ class ImagePropertyDrift(TrainTestCheck):
 
         for prop_name, property_values in data_for_properties.items():
             properties_results[prop_name].extend(property_values)
-        # for single_property in self.image_properties:
-        #     property_list = single_property['method'](images)
-        #     properties[single_property['name']].extend(property_list)
 
     def compute(self, context: Context) -> CheckResult:
         """Calculate drift score between train and test datasets for the collected image properties.
