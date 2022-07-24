@@ -103,6 +103,8 @@ class ConflictingLabels(SingleDatasetCheck):
 
             if context.with_display is True:
                 index_names = group_unique_data.index.names
+                # In case of single feature the group_index is not a list so convert it
+                group_index = group_index if isinstance(group_index, list) else [group_index]
                 display_sample = dict(zip(index_names, group_index))
                 # Using tuple since it's hashable
                 display_sample[ambiguous_label_name] = tuple(ambiguous_labels)
