@@ -44,10 +44,10 @@ def run_check_fn(check_class) -> Callable:
         check = check_class()
         try:
             if isinstance(check, SingleDatasetCheck):
-                check.run(train_ds, train_predictions=train_pred, device=device)
+                check.run(train_ds, train_predictions=train_pred, device=device, n_samples=1_000)
             elif isinstance(check, TrainTestCheck):
                 check.run(train_ds, test_ds, train_predictions=train_pred,
-                          test_predictions=test_pred, device=device)
+                          test_predictions=test_pred, device=device, n_samples=1_000)
         except DeepchecksBaseError:
             pass
     return run
@@ -82,7 +82,7 @@ class BenchmarkVision:
 
 
 for name, check_class in inspect.getmembers(checks):
-    if inspect.isclass(check_class) and name != 'SimilarImageLeakage':
+    if inspect.isclass(check_class):
         run_fn = run_check_fn(check_class)
         setattr(BenchmarkVision, f'time_{name}', run_fn)
         setattr(BenchmarkVision, f'peakmem_{name}', run_fn)
