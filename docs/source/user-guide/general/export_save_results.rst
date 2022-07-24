@@ -96,7 +96,7 @@ Parse resulting json string as dict and observe the JSON's structure:
 Check Result
 ~~~~~~~~~~~~~~
 
-See docstring in code or in API reference: :meth:`deepchecks.core.CheckResult.to_json`
+See docstring in code or in method's API reference: :meth:`deepchecks.core.CheckResult.to_json`.
 
 .. code-block:: python
 
@@ -107,11 +107,11 @@ See docstring in code or in API reference: :meth:`deepchecks.core.CheckResult.to
 Inspect the check results output keys and content to see how the checks name, parameters, etc. are saved.
 
 
-Display the CheckResult Output from a JSON
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+View the CheckResult Output Display from the JSON
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The serialized JSON can be used to reproduce the run in other Python scopes,
-by using the ``from_json`` function
+by using the ``from_json`` method, and seeing the check's display.
 
 
 .. code-block:: python
@@ -122,12 +122,12 @@ by using the ``from_json`` function
 
 
 
-
 Suite Result
 ~~~~~~~~~~~~~~~
 
-See docstring in code or in API reference: :meth:`deepchecks.core.SuiteResult.to_json`.
-A Suite's output JSON is an arrya of all of the Check's output JSON's inside the ``results`` key, along with the suite's name.
+See docstring in code or in the method's API reference: :meth:`deepchecks.core.SuiteResult.to_json`.
+
+A Suite's output JSON is an array of all of the Check's output JSON's inside the ``results`` key, along with the suite's name.
 
 .. code-block:: python
 
@@ -140,18 +140,16 @@ See suite result json:
 
 .. code-block:: python
 
-   suite_json = suite_result.to_json()
+   # save as json string
+   suite_json_ = suite_result.to_json()
+   # load json to dict from string
+   json_output = json.loads(suite_json)
 
-   # Suite name:
-
-   json.loads(suite_json)['name']
+   # Suite name
+   json_output['name']
 
    # Results is an array of CheckResult JSON's, let's see how many checks ran in suite:
+   len(json_output['results'])
 
-   len(json.loads(suite_json)['results'])
-
-   Lets observe a specific check's output, which is similar to a single check's json format`Check output's
-
-   import json
-
-   json.loads(suite_json)['results'][0]
+   # Let's observe a specific check's output, which is similar to a single check's json format`Check output's
+   json_output['results'][0]

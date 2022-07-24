@@ -10,18 +10,15 @@ refer to the :doc:`exporting deepchecks results user guide </user-guide/general/
 Structure:
 
 - :ref:`showing_results_main_methods`
-
-    - :ref:`show_method`
-
-    - :ref:`show_in_window_method`
-
+   - :ref:`show_method`
+   - :ref:`show_in_window_method`
 - :ref:`alternative_show_options_for_troubleshooting`
 
 
 .. _showing_results_main_methods:
 
 Main Methods for Showing Results
-================================
+=================================
 
 Deepchecks Check and Suite results can be viewed in a separate window or inline if working within a notebook.
 

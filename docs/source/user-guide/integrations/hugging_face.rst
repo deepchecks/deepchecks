@@ -9,8 +9,8 @@ dataset.
 Implement a DetectionData Class for the DETR Model
 ----------------------------------------------------
 
-In order to use the DETR model, we need to wrap the COCO DataLoader with a custom ``DetectionData`` class, which is
-a subclass of ``VisionData``. This class enables deepchecks to interact with your model and data and transform them to
+In order to use the DETR model, we need to wrap the COCO DataLoader with a custom :class:`deepchecks.vision.DetectionData` class, which is
+a subclass of :class:`deepchecks.vision.VisionData`. This class enables deepchecks to interact with your model and data and transform them to
 this pre-defined format, which is set for each task type. To read more about the ``DetectionData`` class, please refer
 to the :doc:`Data Classes user guide </user-guide/vision/data-classes/index>`.
 
@@ -53,7 +53,7 @@ Great! We can see that the labels match the object locations, and that the label
 Load COCO and YOLOv5s
 ------------------------
 
-Next, we'll load from ``deepchecks.vision.datasets.detection.coco`` a sample of the COCO dataset (coco 128) and
+Next, we'll load from :mod:`deepchecks.vision.datasets.detection.coco` a sample of the COCO dataset (coco 128) and
 the YOLO model, both downloaded from `ultralytics <https://github.com/ultralytics/yolov5>`__ repository. We'll use yolo
 to benchmark the results achieved by the DETR model.
 
