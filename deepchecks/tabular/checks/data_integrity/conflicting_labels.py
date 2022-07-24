@@ -24,7 +24,7 @@ __all__ = ['ConflictingLabels']
 
 class ResultValue(TypedDict):
     percent: float
-    samples: List[pd.DataFrame]
+    samples_indices: List[List[int]]
 
 
 class ConflictingLabels(SingleDatasetCheck):
@@ -73,46 +73,47 @@ class ConflictingLabels(SingleDatasetCheck):
         label_name = dataset.label_name
 
         # HACK: pandas have bug with groupby on category dtypes, so until it fixed, change dtypes manually
-        df = dataset.data
+        df = dataset.data.copy()
         category_columns = df.dtypes[df.dtypes == 'category'].index.tolist()
         if category_columns:
             df = df.astype({c: 'object' for c in category_columns})
 
-        group_unique_data = df.groupby(features, dropna=False)
-        group_unique_labels = group_unique_data.nunique()[label_name]
+        # Get index in order to use in the display
+        index_col_name = '_dc_index'
+        df[index_col_name] = df.index
+        # Group by features
+        group_unique_data = df.groupby(features, dropna=False).agg(list)
+        # Calculate count per feature-group
+        group_unique_data['count'] = group_unique_data[index_col_name].apply(len)
+        # Sort by count
+        group_unique_data = group_unique_data.sort_values(by='count', ascending=False)
 
         num_ambiguous = 0
         ambiguous_label_name = 'Observed Labels'
+        indices_name = 'Instances'
         samples = []
         display_samples = []
 
-        data = sorted(
-            zip(group_unique_labels, group_unique_data),
-            key=lambda x: x[0],
-            reverse=True
-        )
-
-        for num_labels, group_data in data:
-            if num_labels == 1:
+        for group_index, group_data in group_unique_data.iterrows():
+            ambiguous_labels = set(group_data[label_name])
+            if len(ambiguous_labels) == 1:
                 continue
-
-            group_df = group_data[1]
-
-            n_data_sample = group_df.shape[0]
-            num_ambiguous += n_data_sample
-            samples.append(group_df.loc[:, [label_name, *features]].copy())
+            num_ambiguous += group_data['count']
+            samples.append(group_data[index_col_name])
 
             if context.with_display is True:
-                display_sample = dict(group_df[features].iloc[0])
-                ambiguous_labels = tuple(sorted(group_df[label_name].unique()))
-                display_sample[ambiguous_label_name] = ambiguous_labels
+                index_names = group_unique_data.index.names
+                display_sample = dict(zip(index_names, group_index))
+                # Using tuple since it's hashable
+                display_sample[ambiguous_label_name] = tuple(ambiguous_labels)
+                display_sample[indices_name] = tuple(group_data[index_col_name])
                 display_samples.append(display_sample)
 
         if len(display_samples) == 0:
             display = None
         else:
             display = pd.DataFrame.from_records(display_samples[:self.n_to_show])
-            display.set_index(ambiguous_label_name, inplace=True)
+            display.set_index([ambiguous_label_name, indices_name], inplace=True)
             display = [
                 'Each row in the table shows an example of a data sample '
                 'and the its observed labels as found in the dataset. '
@@ -124,7 +125,7 @@ class ConflictingLabels(SingleDatasetCheck):
             display=display,
             value=ResultValue(
                 percent=num_ambiguous / dataset.n_samples,
-                samples=samples,
+                samples_indices=samples,
             )
         )
 
