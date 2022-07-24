@@ -27,7 +27,7 @@ from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.utils.image_functions import ImageInfo
 from deepchecks.vision.utils.transformations import get_transforms_handler
-from deepchecks.vision.utils.image_properties import default_image_properties
+from deepchecks.vision.utils.image_properties import default_image_properties, calc_image_properties
 
 __all__ = ['VisionData']
 
@@ -636,31 +636,6 @@ class VisionData:
         props = VisionData._get_data_loader_props(data_loader)
         props['batch_sampler'] = new_batch_sampler
         return data_loader.__class__(**props), sampler
-
-    @staticmethod
-    def calc_image_properties(images, properties_to_calc) -> Dict[str, list]:
-        """
-        Calculates the image properties for a batch of images.
-
-        Parameters
-        ----------
-        images : torch.Tensor
-            Batch of images to transform to image properties.
-
-        image_properties: List[Dict] , default: None
-            overrides self.image_proerties, if None uses self.image properties
-
-        Returns
-        ------
-        batch_properties: dict[str, List]
-            A dict of property name, property value per image
-        """
-
-        batch_properties = defaultdict(list)
-        for single_property in properties_to_calc:
-            property_list = single_property['method'](images)
-            batch_properties[single_property['name']] = property_list
-        return batch_properties
 
 
 class IndicesSequentialSampler(Sampler):
