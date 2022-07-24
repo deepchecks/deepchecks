@@ -227,30 +227,6 @@ class VisionData:
         """
         raise DeepchecksNotImplementedError('batch_to_images() must be implemented in a subclass')
 
-    def calc_image_properties(self, images, properties_to_calc) -> Dict[str, list]:
-        """
-        Calculates the image properties for a batch of images.
-
-        Parameters
-        ----------
-        images : torch.Tensor
-            Batch of images to transform to image properties.
-
-        image_properties: List[Dict] , default: None
-            overrides self.image_proerties, if None uses self.image properties
-
-        Returns
-        ------
-        batch_properties: dict[str, List]
-            A dict of property name, property value per image
-        """
-
-        batch_properties = defaultdict(list)
-        for single_property in properties_to_calc:
-            property_list = single_property['method'](images)
-            batch_properties[single_property['name']] = property_list
-        return batch_properties
-
     def batch_to_image_properties(self, batch, image_properties: List[Dict] = None) -> Dict[str, list]:
         """
         Transform a batch of data to image properties in the accpeted format.
@@ -269,8 +245,8 @@ class VisionData:
             A dict of property name, property value per image
         """
         properties_to_calc = self.image_properties if image_properties is None else image_properties
-        images = self.batch_to_images(batch, properties_to_calc)
-        return self.calc_image_properties(images)
+        images = self.batch_to_images(batch)
+        return self.calc_image_properties(images, properties_to_calc)
 
 
 
@@ -660,6 +636,31 @@ class VisionData:
         props = VisionData._get_data_loader_props(data_loader)
         props['batch_sampler'] = new_batch_sampler
         return data_loader.__class__(**props), sampler
+
+    @staticmethod
+    def calc_image_properties(images, properties_to_calc) -> Dict[str, list]:
+        """
+        Calculates the image properties for a batch of images.
+
+        Parameters
+        ----------
+        images : torch.Tensor
+            Batch of images to transform to image properties.
+
+        image_properties: List[Dict] , default: None
+            overrides self.image_proerties, if None uses self.image properties
+
+        Returns
+        ------
+        batch_properties: dict[str, List]
+            A dict of property name, property value per image
+        """
+
+        batch_properties = defaultdict(list)
+        for single_property in properties_to_calc:
+            property_list = single_property['method'](images)
+            batch_properties[single_property['name']] = property_list
+        return batch_properties
 
 
 class IndicesSequentialSampler(Sampler):

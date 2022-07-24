@@ -83,10 +83,7 @@ class ModelErrorAnalysis(TrainTestCheck):
         self._train_scores = None
         self._test_scores = None
 
-        if image_properties is None:
-            self.image_properties = default_image_properties
-        else:
-            self.image_properties = validate_properties(image_properties)
+        self.image_properties = image_properties
 
     def initialize_run(self, context: Context):
         """Initialize property and score lists."""
@@ -112,12 +109,12 @@ class ModelErrorAnalysis(TrainTestCheck):
                 'be unreacheable was reached.'
             )
 
-        images = batch.images
         predictions = batch.predictions
         labels = batch.labels
+        properties_results = batch.image_properties
 
-        for single_property in self.image_properties:
-            properties[single_property['name']].extend(single_property['method'](images))
+        for prop_name, prop_value in properties_results.items():
+            properties[prop_name].extend(prop_value)
 
         if dataset.task_type == TaskType.CLASSIFICATION:
             def scoring_func(predictions, labels):
