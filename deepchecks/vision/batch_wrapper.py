@@ -17,6 +17,7 @@ import torch
 
 from deepchecks.core import DatasetKind
 from deepchecks.vision.task_type import TaskType
+from deepchecks.vision.utils.image_properties import validate_properties
 
 if TYPE_CHECKING:
     from deepchecks.vision.context import Context
@@ -99,6 +100,8 @@ class Batch:
     def image_properties(self, properties_to_calc: List[Dict]=None):
         if self._image_properties is None:
             dataset = self._context.get_data_by_kind(self._dataset_kind)
+            if properties_to_calc is not None:
+                properties_to_calc = validate_properties(properties_to_calc)
             self._image_properties = dataset.batch_to_image_properties(self._batch, properties_to_calc)
         return self._image_properties
 
