@@ -66,11 +66,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         **kwargs
     ):
         super().__init__(**kwargs)
-        if image_properties:
-            self.image_properties = validate_properties(image_properties)
-        else:
-            self.image_properties = default_image_properties
-
+        self.image_properties = image_properties
         self.alternative_metrics = alternative_metrics
         self.number_of_bins = number_of_bins
         self.number_of_samples_to_infer_bins = number_of_samples_to_infer_bins
@@ -89,15 +85,12 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         images = batch.images
         predictions = [tens.detach() for tens in batch.predictions]
         labels = [tens.detach() for tens in batch.labels]
+        properties_results = batch.image_properties(self.image_properties)
 
         samples_for_bin: t.List = self._state['samples_for_binning']
         bins = self._state['bins']
 
-        # Initialize a list of all properties per image sample
-        batch_properties = [{} for _ in range(len(images))]
-        for single_property in self.image_properties:
-            for index, image_result in enumerate(single_property['method'](images)):
-                batch_properties[index][single_property['name']] = image_result
+        batch_properties = [dict(zip(properties_results, t)) for t in zip(*properties_results.values())]
 
         batch_data = zip(labels, predictions, batch_properties)
         # If we already defined bins, add the current data to them
