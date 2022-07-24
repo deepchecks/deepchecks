@@ -143,8 +143,6 @@ class Context:
         self._model_name = model_name
         self._with_display = with_display
         self.random_state = random_state
-        self.train_image_properties = train_image_properties
-        self.test_image_properties = test_image_properties
 
     # Properties
     # Validations note: We know train & test fit each other so all validations can be run only on train
@@ -213,17 +211,6 @@ class Context:
             return self.train
         elif kind == DatasetKind.TEST:
             return self.test
-        else:
-            raise DeepchecksValueError(f'Unexpected dataset kind {kind}')
-
-
-    def get_cached_properties_by_kind(self, kind:DatasetKind):
-        """Return the relevant cached properties by given kind."""
-        if kind == DatasetKind.TRAIN:
-            return self.train_image_properties
-
-        elif kind == DatasetKind.TEST:
-            return self.test_image_properties
         else:
             raise DeepchecksValueError(f'Unexpected dataset kind {kind}')
 
