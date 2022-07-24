@@ -51,9 +51,6 @@ from deepchecks.tabular.datasets.classification import adult
 
 label_name = 'income'
 train_ds, test_ds = adult.load_data()
-encoder = LabelEncoder()
-train_ds.data[label_name] = encoder.fit_transform(train_ds.data[label_name])
-test_ds.data[label_name] = encoder.transform(test_ds.data[label_name])
 
 #%%
 # Introducing drift:
@@ -97,5 +94,13 @@ model = model.fit(train_ds.data[train_ds.features], train_ds.data[train_ds.label
 # =========
 
 check = TrainTestPredictionDrift()
+result = check.run(train_dataset=train_ds, test_dataset=test_ds, model=model)
+result
+
+#%%
+# The prediction drift check can also calculate drift on the predicted probabilities. This is the default behavior for
+# multiclass tasks. To force this behavior for binary tasks, set the ``probability_drift`` parameter to ``true``.
+
+check = TrainTestPredictionDrift(probability_drift='true')
 result = check.run(train_dataset=train_ds, test_dataset=test_ds, model=model)
 result

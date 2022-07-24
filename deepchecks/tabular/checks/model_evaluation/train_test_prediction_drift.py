@@ -46,6 +46,11 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
 
     Parameters
     ----------
+    probability_drift: str, default: 'auto'
+        Controls whether to compute drift on the predicted probabilities or the predicted classes. If 'auto', compute
+        drift on the predicted probabilities if the task is multiclass, and on the predicted classes otherwise.
+        Set to 'true' to force drift on the predicted probabilities, and 'false' to force drift on the predicted
+        classes.
     margin_quantile_filter: float, default: 0.025
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
@@ -64,21 +69,36 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
     categorical_drift_method: str, default: "cramer_v"
         decides which method to use on categorical variables. Possible values are:
         "cramers_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+    aggregation_method: str, default: "max"
+        argument for the reduce_output functionality, decides how to aggregate the drift scores of different classes
+        into a single score, when drift is computed on the class probabilities. Possible values are:
+        'weighted': Weighted mean based on the number of samples in each class.
+        'mean': Mean of all drift scores.
+        'none': No averaging. Return a dict with a drift score for each class.
+        'max': Maximum of all the class drift scores.
+    max_classes_to_display: int, default: 3
+        Max number of classes to show in the display when drift is computed on the class probabilities.
     max_num_categories: int, default: None
         Deprecated. Please use max_num_categories_for_drift and max_num_categories_for_display instead
     """
 
     def __init__(
             self,
+            probability_drift: str = 'auto',
             margin_quantile_filter: float = 0.025,
             max_num_categories_for_drift: int = 10,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
             categorical_drift_method='cramer_v',
+            aggregation_method='max',
+            max_classes_to_display: int = 3,
             max_num_categories: int = None,  # Deprecated
             **kwargs
     ):
         super().__init__(**kwargs)
+        self.probability_drift = probability_drift
+        if self.probability_drift not in ('auto', 'true', 'false'):
+            raise DeepchecksValueError('probability_drift must be one of "auto", "true", "false"')
         self.margin_quantile_filter = margin_quantile_filter
         if max_num_categories is not None:
             warnings.warn(
@@ -92,6 +112,10 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
         self.categorical_drift_method = categorical_drift_method
+        self.max_classes_to_display = max_classes_to_display
+        self.aggregation_method = aggregation_method
+        if self.aggregation_method not in ('weighted', 'mean', 'none', 'max'):
+            raise DeepchecksValueError('aggregation_method must be one of "weighted", "mean", "none", "max"')
 
     def run_logic(self, context: Context) -> CheckResult:
         """Calculate drift for all columns.
@@ -102,43 +126,83 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
             value: drift score.
             display: label distribution graph, comparing the train and test distributions.
         """
+        if (self.probability_drift == 'true') and (context.task_type == TaskType.REGRESSION):
+            raise DeepchecksValueError('probability_drift="true" is not supported for regression tasks')
+
         train_dataset = context.train
         test_dataset = context.test
         model = context.model
 
-        train_prediction = np.array(model.predict(train_dataset.features_columns))
-        test_prediction = np.array(model.predict(test_dataset.features_columns))
+        # Flag for computing drift on the probabilities rather than the predicted labels
+        proba_drift = ((context.task_type == TaskType.MULTICLASS) and (self.probability_drift == 'auto')) or \
+                      (self.probability_drift == 'true')
 
-        drift_score, method, display = calc_drift_and_plot(
-            train_column=pd.Series(train_prediction.flatten()),
-            test_column=pd.Series(test_prediction.flatten()),
-            value_name='model predictions',
-            column_type='categorical' if train_dataset.label_type != TaskType.REGRESSION else 'numerical',
-            margin_quantile_filter=self.margin_quantile_filter,
-            max_num_categories_for_drift=self.max_num_categories_for_drift,
-            max_num_categories_for_display=self.max_num_categories_for_display,
-            show_categories_by=self.show_categories_by,
-            categorical_drift_method=self.categorical_drift_method,
-            with_display=context.with_display,
-        )
+        if proba_drift:
+            train_prediction = np.array(model.predict_proba(train_dataset.features_columns))
+            test_prediction = np.array(model.predict_proba(test_dataset.features_columns))
+        else:
+            train_prediction = np.array(model.predict(train_dataset.features_columns)).reshape((-1, 1))
+            test_prediction = np.array(model.predict(test_dataset.features_columns)).reshape((-1, 1))
+
+        samples_per_class = train_dataset.label_col.value_counts().to_dict()
+
+        drift_score_dict = {}
+        drift_display_dict = {}
+        method = ''
+        classes = train_dataset.classes
+
+        for class_idx in range(train_prediction.shape[1]):
+            class_name = classes[class_idx]
+            drift_score_dict[class_name], method, drift_display_dict[class_name] = calc_drift_and_plot(
+                train_column=pd.Series(train_prediction[:, class_idx].flatten()),
+                test_column=pd.Series(test_prediction[:, class_idx].flatten()),
+                value_name='model predictions' if not proba_drift else
+                           f'predicted probabilities for class {class_name}',
+                column_type='categorical' if (train_dataset.label_type != TaskType.REGRESSION) and (not proba_drift)
+                            else 'numerical',
+                margin_quantile_filter=self.margin_quantile_filter,
+                max_num_categories_for_drift=self.max_num_categories_for_drift,
+                max_num_categories_for_display=self.max_num_categories_for_display,
+                show_categories_by=self.show_categories_by,
+                categorical_drift_method=self.categorical_drift_method,
+                with_display=context.with_display,
+            )
 
         if context.with_display:
-            headnote = """<span>
+            headnote = f"""<span>
                 The Drift score is a measure for the difference between two distributions, in this check - the test
-                and train distributions.<br> The check shows the drift score and distributions for the predictions.
+                and train distributions.<br> The check shows the drift score and distributions for the predicted 
+                {'class probabilities' if proba_drift else 'classes'}.
             </span>"""
 
-            displays = [headnote, display]
+            # sort classes by their drift score
+            print(drift_score_dict)
+            displays = [headnote] + [x for _, x in sorted(zip(drift_score_dict.values(), drift_display_dict.values()),
+                                                          reverse=True)][:self.max_classes_to_display]
         else:
             displays = None
 
-        values_dict = {'Drift score': drift_score, 'Method': method}
+        values_dict = {'Drift score': drift_score_dict, 'Method': method, "Samples per class": samples_per_class}
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Prediction Drift')
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return prediction drift score."""
-        return {'Prediction Drift Score': check_result.value['Drift score']}
+        if len(check_result.value['Drift score']) == 1:
+            return {'Prediction Drift score': list(check_result.value['Drift score'].values())[0]}
+
+        drift_values = list(check_result.value['Drift score'].values())
+        if self.aggregation_method == 'none':
+            return dict(zip(feature_names, drift_values))
+        elif self.aggregation_method == 'mean':
+            return {'Mean Drift Score': np.mean(drift_values)}
+        elif self.aggregation_method == 'max':
+            return {'Max Drift Score': np.max(drift_values)}
+        elif self.aggregation_method == 'weighted':
+            class_weight = np.array([check_result.value['Samples per class'][class_name] for class_name in
+                                     check_result.value['Drift score'].keys()])
+            class_weight = class_weight / np.sum(class_weight)
+            return {'Weighted Drift Score': np.sum(np.array(drift_values) * class_weight)}
 
     def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.15,
                                             max_allowed_numeric_score: float = 0.075,
@@ -186,15 +250,23 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
                 max_allowed_numeric_score = max_allowed_earth_movers_score
 
         def condition(result: Dict) -> ConditionResult:
-            drift_score = result['Drift score']
+            drift_score_dict = result['Drift score']
             method = result['Method']
-            has_failed = (drift_score >= max_allowed_categorical_score and method in SUPPORTED_CATEGORICAL_METHODS) or \
-                         (drift_score >= max_allowed_numeric_score and method in SUPPORTED_NUMERIC_METHODS)
+            has_failed = {}
+            drift_score = 0
+            for class_name, drift_score in drift_score_dict.items():
+                has_failed[class_name] = \
+                    (drift_score >= max_allowed_categorical_score and method in SUPPORTED_CATEGORICAL_METHODS) or \
+                    (drift_score >= max_allowed_numeric_score and method in SUPPORTED_NUMERIC_METHODS)
 
-            details = f'Found model prediction {method} drift score of {format_number(drift_score)}'
-            category = ConditionCategory.FAIL if has_failed else ConditionCategory.PASS
+            if len(has_failed) == 1:
+                details = f'Found model prediction {method} drift score of {format_number(drift_score)}'
+            else:
+                details = f'Found {sum(has_failed.values())} classes with model predicted probability {method} drift' \
+                          f' score above threshold: {format_number(max_allowed_numeric_score)}.'
+            category = ConditionCategory.FAIL if any(has_failed.values()) else ConditionCategory.PASS
             return ConditionResult(category, details)
 
-        return self.add_condition(f'categorical drift score < {max_allowed_categorical_score} and '
-                                  f'numerical drift score < {max_allowed_numeric_score}',
+        return self.add_condition(f'categorical drift score < {format_number(max_allowed_categorical_score)} and '
+                                  f'numerical drift score < {format_number(max_allowed_numeric_score)}',
                                   condition)
