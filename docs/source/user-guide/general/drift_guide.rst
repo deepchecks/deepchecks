@@ -101,11 +101,25 @@ There are many measures that can be used for this, such as the Kolmogorov-Smirno
 In deepchecks, we found that the best results are given by:
 
 * For continuous numeric distributions - `Wasserstein metric (Earth Movers Distance) <https://en.wikipedia.org/wiki/Wasserstein_metric>`__
-* For discrete or categorical distributions - `Population Stability Index (PSI) <https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf>`__ or `Cramer's V <https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V>`__
+* For discrete or categorical distributions - `Cramer's V <https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V>`__ or `Population Stability Index (PSI) <https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf>`__
 
 These methods have the advantage of being simple to use and produce explainable results. However, they are limited by
 checking each feature one at a time, and cannot detect drift in the relations between features. Also, these methods
 will usually detect drift multiple times if it occurs in several features.
+
+Choosing the Correct Method to Detect Drift
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+As mentioned above, we recommend to use either `Cramer's V <https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V>`__ or
+`PSI <https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf>`__ for categorical variables, and use Cramer's V by default.
+PSI is widely used in the industry, but does not have an upper limit and is not very explainable.
+Cramer's V is always in the range [0,1], and can be interpreted as the correlation between the variable's distribution and the dataset (train or test).
+
+Both methods are sensitive to changes in small categories. However, in deepchecks we implement a correction on PSI that prevents the value from diverging.
+
+In general, it is recommended to use Cramer's V, unless your variable includes categories with a small number of samples.
+However, in cases of a variable with a large number of unique categories, it is still recommended to use Cramer's V, as PSI will not be able to detect change in the smaller categories.
+
+
 
 .. _drift_detection_by_domain_classifier:
 
