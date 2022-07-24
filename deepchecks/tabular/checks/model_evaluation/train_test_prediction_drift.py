@@ -18,6 +18,7 @@ import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.checks import ReduceMixin
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERIC_METHODS,
@@ -193,7 +194,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
 
         drift_values = list(check_result.value['Drift score'].values())
         if self.aggregation_method == 'none':
-            return dict(zip(feature_names, drift_values))
+            return check_result.value['Drift score']
         elif self.aggregation_method == 'mean':
             return {'Mean Drift Score': np.mean(drift_values)}
         elif self.aggregation_method == 'max':
