@@ -1,4 +1,4 @@
-.. _custom_check_templates:
+.. _tabular_custom_check_templates:
 
 ======================
 Custom Check Templates

@@ -12,7 +12,7 @@ Implement a DetectionData Class for the DETR Model
 In order to use the DETR model, we need to wrap the COCO DataLoader with a custom ``DetectionData`` class, which is
 a subclass of ``VisionData``. This class enables deepchecks to interact with your model and data and transform them to
 this pre-defined format, which is set for each task type. To read more about the ``DetectionData`` class, please refer
-to the :doc:`Data Class guide</user-guide/vision/data-classes>`.
+to the :doc:`Data Classes user guide </user-guide/vision/data-classes/index>`.
 
 We'll start by loading the DETR ResNet model from the Hugging Face Transformers library:
 

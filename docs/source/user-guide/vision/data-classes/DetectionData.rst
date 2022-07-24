@@ -12,12 +12,14 @@ For more info, please visit the API reference page: :class:`~deepchecks.vision.D
 
 Accepted Image Format
 ---------------------
+
 All checks in deepchecks require images in the same format. They use the :func:`~deepchecks.vision.VisionData.batch_to_images` function in order to get
 the images in the correct format. For more info on the accepted formats, please visit the
 `VisionData User Guide </user-guide/vision/data-classes/VisionData.html>`__.
 
 Accepted Label Format
 ---------------------
+
 Deepchecks' checks use the :func:`~deepchecks.vision.DetectionData.batch_to_labels` function in order to get the labels in the correct format.
 The accepted label format for is a a list of length N containing tensors of shape (B, 5), where N is the number
 of samples within a batch, B is the number of bounding boxes in the sample and each bounding box is represented by 5 values:
@@ -31,6 +33,7 @@ For example, for a sample with 2 bounding boxes, the label format may be:
 
 Accepted Prediction Format
 --------------------------
+
 Deepchecks' checks use the :func:`~deepchecks.vision.DetectionData.infer_on_batch` function in order to get the predictions of the model in the correct format.
 The accepted prediction format is a list of length N containing tensors of shape (B, 6), where N is the number
 of images, B is the number of bounding boxes detected in the sample and each bounding box is represented by 6
@@ -44,6 +47,7 @@ For example, for a sample with 2 bounding boxes, the prediction format may be:
 
 Example
 --------
+
 Assuming we have implemented a torch DataLoader whose underlying __getitem__ method returns a tuple of the form:
 ``(images, bboxes)``. ``image`` is a tensor of shape (N, C, H, W) in which the images pixel values are normalized to
 [0, 1] range based on the mean and std of the ImageNet dataset. ``bboxes`` is a tensor of shape (N, B, 5) in which

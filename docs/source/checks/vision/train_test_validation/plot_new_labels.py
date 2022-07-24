@@ -42,7 +42,7 @@ result
 
 # %%
 # Observe the check’s output
-# ~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # The check searches for new labels in the test set. The value output is a dictionary containing of appearances of each
 # newly found class_id in addition to the total number of labels in the test set for comparison purposes.
 
