@@ -99,8 +99,7 @@ def calculate_nearest_neighbors_distances(data: pd.DataFrame, cat_cols: List[Has
 
     num_indices_to_calc = len(rows_to_calc_neighbors_for)
 
-    distances = np.zeros((num_indices_to_calc, num_neighbors))
-    indexes = np.zeros((num_indices_to_calc, num_neighbors)).astype('O')
+    distances, indexes = np.zeros((num_indices_to_calc, num_neighbors)), np.zeros((num_indices_to_calc, num_neighbors))
     # handle categorical - transform to an ordinal numpy array
     cat_data = np.asarray(cat_data.apply(lambda x: pd.factorize(x)[0])) if not cat_data.empty else np.asarray(cat_data)
     # handle numerical - calculate ranges per feature and fill numerical nan to minus np.inf
@@ -119,7 +118,8 @@ def calculate_nearest_neighbors_distances(data: pd.DataFrame, cat_cols: List[Has
         # sort to find the closest samples (including self)
         min_dist_indexes = np.argpartition(dist_to_sample_i, num_neighbors)[:num_neighbors]
         min_dist_indexes_ordered = sorted(min_dist_indexes, key=lambda x, arr=dist_to_sample_i: arr[x], reverse=False)
-        indexes[i, :] = np.asarray(data.iloc[min_dist_indexes_ordered].index)
+        indexes[i, :] = min_dist_indexes_ordered
+
         distances[i, :] = dist_to_sample_i[min_dist_indexes_ordered]
 
     np.seterr(invalid=original_error_state)
