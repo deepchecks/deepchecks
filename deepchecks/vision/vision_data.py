@@ -245,8 +245,9 @@ class VisionData:
             A dict of property name, property value per image
         """
         properties_to_calc = self.image_properties if image_properties is None else image_properties
-        images = self.batch_to_images(batch)
-        return self.calc_image_properties(images, properties_to_calc)
+        # images = self.batch_to_images(batch)
+        images = [image.astype('uint8') for image in self.batch_to_images(batch)]
+        return calc_image_properties(images, properties_to_calc)
 
 
 

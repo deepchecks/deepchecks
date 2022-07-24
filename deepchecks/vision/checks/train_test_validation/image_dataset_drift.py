@@ -73,30 +73,35 @@ class ImageDatasetDrift(TrainTestCheck):
             **kwargs
     ):
         super().__init__(**kwargs)
-        if image_properties:
-            self.image_properties = validate_properties(image_properties)
-        else:
-            self.image_properties = default_image_properties
+        self.image_properties = image_properties
 
         self.n_top_properties = n_top_properties
         self.min_feature_importance = min_feature_importance
         self.sample_size = sample_size
         self.test_size = test_size
         self.min_meaningful_drift_score = min_meaningful_drift_score
+        self.properties_list = None
+        self._train_properties = None
+        self._test_properties = None
 
+    def initialize_run(self, context: Context):
+        self.properties_list = context.get_data_by_kind(DatasetKind.TRAIN).image_properties \
+            if self.image_properties is None else self.image_properties
         self._train_properties = defaultdict(list)
         self._test_properties = defaultdict(list)
 
     def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Calculate image properties for train or test batches."""
         if dataset_kind == DatasetKind.TRAIN:
-            properties = self._train_properties
+            properties_results = self._train_properties
         else:
-            properties = self._test_properties
+            properties_results = self._test_properties
         images = batch.images
 
-        for single_property in self.image_properties:
-            properties[single_property['name']].extend(single_property['method'](images))
+        data_for_properties = batch.image_properties(self.properties_list)
+
+        for prop_name, prop_value in data_for_properties.items():
+            properties_results[prop_name].extend(prop_value)
 
     def compute(self, context: Context) -> CheckResult:
         """Train a Domain Classifier on image property data that was collected during update() calls.
@@ -123,7 +128,7 @@ class ImageDatasetDrift(TrainTestCheck):
 
         numeric_features = []
         categorical_features = []
-        for prop in self.image_properties:
+        for prop in self.properties_list:
             col_type = get_column_type(prop['output_type'])
             if col_type == 'numerical':
                 numeric_features.append(prop['name'])
