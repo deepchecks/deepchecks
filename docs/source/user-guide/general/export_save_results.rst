@@ -7,7 +7,7 @@ which enables saving them for later viewing, sharing the analysis results as a r
 sending to different tools, or for further processing steps 
 (e.g. in ci/cd for deciding whether a new model is good enough for deployment).
 
-We will will discuss the two main export options, that are relevant for saving Check or Suite results:
+We will discuss the two main export options, that are relevant for saving Check or Suite results:
 
 - :ref:`Saving an HTML File <export_save_results__save_result_to_html>` - saving the interactive report as a file
 - :ref:`Exporting to JSON <export_save_results__export_to_json>` - exporting to a serializeable object that can
@@ -20,7 +20,7 @@ our :ref:`integrations examples section <user_guide__integrations>` in the user 
 
 .. _export_save_results__save_result_to_html:
 
-Save Result to an HTML Report: ``save_as_html()``
+Save Result as an HTML Report: ``save_as_html()``
 ====================================================
 
 This method saves the Check or Suite's output as an HTML file.
@@ -36,20 +36,8 @@ Save as HTML
    result.save_as_html('my_results.html')
    
 
-Save to in-memory buffer
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The suite output can also be written into a file buffers. This can be done by
-setting the file argument with a ``StringIO`` or ``BytesIO`` buffer object.
-
-
-.. code-block:: python
-
-    import io
-
-    html_out = io.StringIO()
-    suite_result.save_as_html(file=html_out)
-
+For the method's API reference, check out: :meth:`deepchecks.core.SuiteResult.save_as_html` or 
+:meth:`deepchecks.core.CheckResult.save_as_html` for saving a Suite or a Check's result, respectively.
 
 .. _export_save_results__export_to_json:
 
@@ -107,20 +95,6 @@ See docstring in code or in method's API reference: :meth:`deepchecks.core.Check
 Inspect the check results output keys and content to see how the checks name, parameters, etc. are saved.
 
 
-View the CheckResult Output Display from the JSON
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The serialized JSON can be used to reproduce the run in other Python scopes,
-by using the ``from_json`` method, and seeing the check's display.
-
-
-.. code-block:: python
-
-   from deepchecks.utils.json_utils import from_json
-   
-   from_json(serialized_output)
-
-
 
 Suite Result
 ~~~~~~~~~~~~~~~
@@ -153,3 +127,19 @@ See suite result json:
 
    # Let's observe a specific check's output, which is similar to a single check's json format`Check output's
    json_output['results'][0]
+
+
+View the Output Display from the JSON
+---------------------------------------
+
+The serialized JSON can be used to reproduce the run in other Python scopes. The full display output 
+can be viewed by using the :func:`deepchecks.utils.json_utils.from_json` function
+(which calls :meth:`deepchecks.SuiteResult.from_json` for a Suite's result 
+or :meth:`deepchecks.CheckResult.from_json` for a Check's result).
+
+
+.. code-block:: python
+
+   from deepchecks.utils.json_utils import from_json
+   
+   from_json(serialized_output)
