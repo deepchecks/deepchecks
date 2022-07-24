@@ -9,13 +9,14 @@
 # ----------------------------------------------------------------------------
 #
 """Test functions of the train test label drift."""
-from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_length
+from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_length, calling, raises
 
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.checks import TrainTestPredictionDrift
 from tests.base.utils import equal_condition_result
 
 
-def test_no_drift_classification_label(diabetes, diabetes_model):
+def test_no_drift_regression_label(diabetes, diabetes_model):
     # Arrange
     train, test = diabetes
     check = TrainTestPredictionDrift(categorical_drift_method='PSI')
@@ -29,7 +30,7 @@ def test_no_drift_classification_label(diabetes, diabetes_model):
              'Method': equal_to('Earth Mover\'s Distance')}
     ))
 
-def test_reduce_no_drift_classification_label(diabetes, diabetes_model):
+def test_reduce_no_drift_regression_label(diabetes, diabetes_model):
     # Arrange
     train, test = diabetes
     check = TrainTestPredictionDrift(categorical_drift_method='PSI')
@@ -75,7 +76,18 @@ def test_drift_classification_label_without_display(drifted_data_and_model):
     assert_that(result.display, has_length(0))
 
 
-def test_drift_classification_label_cramer(drifted_data_and_model):
+def test_drift_regression_label_raise_on_proba(diabetes, diabetes_model):
+    # Arrange
+    train, test = diabetes
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI', drift_mode='proba')
+
+    # Act & Assert
+    assert_that(calling(check.run).with_args(train, test, diabetes_model),
+                raises(DeepchecksValueError,
+                       'probability_drift="proba" is not supported for regression tasks'))
+
+
+def test_drift_regression_label_cramer(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
     check = TrainTestPredictionDrift(categorical_drift_method='cramer_v')
@@ -102,7 +114,7 @@ def test_drift_max_drift_score_condition_fail_psi(drifted_data_and_model):
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name='categorical drift score < 0.15 and numerical drift score < 0.075',
+        name='categorical drift score < 0.15 and numerical drift score < 0.07',
         details='Found model prediction PSI drift score of 0.79'
     ))
 
@@ -123,4 +135,19 @@ def test_drift_max_drift_score_condition_pass_threshold(drifted_data_and_model):
         is_pass=True,
         details='Found model prediction PSI drift score of 0.79',
         name='categorical drift score < 1 and numerical drift score < 1'
+    ))
+
+
+def test_multiclass_proba(iris_split_dataset_and_model):
+    # Arrange
+    train, test, model = iris_split_dataset_and_model
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI')
+
+    # Act
+    result = check.run(train, test, model)
+
+    # Assert
+    assert_that(result.value, has_entries(
+        {'Drift score': has_entries({0: close_to(0.08, 0.01), 1: close_to(0.038, 0.01), 2: close_to(0.07, 0.01)}),
+         'Method': equal_to('Earth Mover\'s Distance')}
     ))

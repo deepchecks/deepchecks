@@ -131,8 +131,8 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
             value: drift score.
             display: label distribution graph, comparing the train and test distributions.
         """
-        if (self.drift_mode == 'true') and (context.task_type == TaskType.REGRESSION):
-            raise DeepchecksValueError('probability_drift="true" is not supported for regression tasks')
+        if (self.drift_mode == 'proba') and (context.task_type == TaskType.REGRESSION):
+            raise DeepchecksValueError('probability_drift="proba" is not supported for regression tasks')
 
         train_dataset = context.train
         test_dataset = context.test
@@ -184,14 +184,16 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         else:
             displays = None
 
-        values_dict = {'Drift score': drift_score_dict, 'Method': method, "Samples per class": samples_per_class}
+        values_dict = {
+            'Drift score': drift_score_dict if len(drift_score_dict) > 1 else list(drift_score_dict.values())[0],
+            'Method': method, "Samples per class": samples_per_class}
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Prediction Drift')
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return prediction drift score."""
-        if len(check_result.value['Drift score']) == 1:
-            return {'Prediction Drift score': list(check_result.value['Drift score'].values())[0]}
+        if isinstance(check_result.value['Drift score'], float):
+            return {'Prediction Drift Score': check_result.value['Drift score']}
 
         drift_values = list(check_result.value['Drift score'].values())
         if self.aggregation_method == 'none':
@@ -253,6 +255,9 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
 
         def condition(result: Dict) -> ConditionResult:
             drift_score_dict = result['Drift score']
+            # Move to dict for easier looping
+            if not isinstance(drift_score_dict, dict):
+                drift_score_dict = {0: drift_score_dict}
             method = result['Method']
             has_failed = {}
             drift_score = 0
