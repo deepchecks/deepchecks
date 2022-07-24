@@ -11,8 +11,8 @@
 import pathlib
 from shutil import rmtree
 
-import numpy as np
 import PIL.Image as pilimage
+import numpy as np
 import pytest
 from hamcrest import all_of, assert_that, calling, equal_to, has_length, has_property, instance_of, raises
 from torch.utils.data import DataLoader
@@ -60,19 +60,44 @@ def incorrect_images_folder():
 
 
 def test_load_simple_classification_dataset(correct_images_folder):
-    dataloader = simple.load_dataset(
+    train_test_dataloaders = simple.classification_dataset_from_directory(
         root=str(correct_images_folder),
         object_type="DataLoader",
         image_extension="PNG"
     )
 
-    assert_that(dataloader, all_of(
+    for data_loader in train_test_dataloaders:
+        assert_that(data_loader, all_of(
+            instance_of(DataLoader),
+            has_length(1),
+            has_property("dataset", instance_of(simple.SimpleClassificationDataset))
+        ))
+
+        img, label = data_loader.dataset[0]
+
+        assert_that(img, all_of(
+            instance_of(np.ndarray),
+            has_property("shape", equal_to((10, 10, 3)))
+        ))
+
+        assert_that(label, instance_of(int))
+        assert_that(data_loader.dataset.reverse_classes_map[label] == "class1")
+
+
+def test_load_simple_classification_dataset_only_train(correct_images_folder):
+    data_loader = simple.classification_dataset_from_directory(
+        root=str(correct_images_folder.joinpath('train')),
+        object_type="DataLoader",
+        image_extension="PNG"
+    )
+
+    assert_that(data_loader, all_of(
         instance_of(DataLoader),
         has_length(1),
         has_property("dataset", instance_of(simple.SimpleClassificationDataset))
     ))
 
-    img, label = dataloader.dataset[0]
+    img, label = data_loader.dataset[0]
 
     assert_that(img, all_of(
         instance_of(np.ndarray),
@@ -80,33 +105,34 @@ def test_load_simple_classification_dataset(correct_images_folder):
     ))
 
     assert_that(label, instance_of(int))
-    assert_that(dataloader.dataset.reverse_classes_map[label] == "class1")
+    assert_that(data_loader.dataset.reverse_classes_map[label] == "class1")
 
 
 def test_load_simple_classification_vision_data(correct_images_folder):
-    vision_data = simple.load_dataset(
+    train_vision_data, test_vision_data = simple.classification_dataset_from_directory(
         root=str(correct_images_folder),
         object_type="VisionData",
         image_extension="PNG"
     )
 
-    batches = list(vision_data)
-    assert_that(len(batches) == 1)
+    for vision_data in [train_vision_data, test_vision_data]:
+        batches = list(vision_data)
+        assert_that(len(batches) == 1)
 
-    images = vision_data.batch_to_images(batches[0])
-    labels = vision_data.batch_to_labels(batches[0])
-    assert_that(len(images) == 1 and len(labels) == 1)
+        images = vision_data.batch_to_images(batches[0])
+        labels = vision_data.batch_to_labels(batches[0])
+        assert_that(len(images) == 1 and len(labels) == 1)
 
-    assert_that(images[0], all_of(
-        instance_of(np.ndarray),
-        has_property("shape", equal_to((10, 10, 3)))
-    ))
-    assert_that(vision_data._data_loader.dataset.reverse_classes_map[labels[0].item()] == "class1")
+        assert_that(images[0], all_of(
+            instance_of(np.ndarray),
+            has_property("shape", equal_to((10, 10, 3)))
+        ))
+        assert_that(vision_data._data_loader.dataset.reverse_classes_map[labels[0].item()] == "class1")
 
 
 def test_load_simple_classification_dataset_from_broken_folder(incorrect_images_folder):
     assert_that(
-        calling(simple.load_dataset).with_args(
+        calling(simple.classification_dataset_from_directory).with_args(
             root=str(incorrect_images_folder),
             object_type="DataLoader",
             image_extension="PNG"),

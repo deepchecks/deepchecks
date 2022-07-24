@@ -26,8 +26,8 @@ def test_no_drift_classification_label(non_drifted_classification_label):
 
     # Assert
     assert_that(result.value, has_entries(
-            {'Drift score': close_to(0.003, 0.001),
-             'Method': equal_to('PSI')}
+        {'Drift score': close_to(0.003, 0.001),
+         'Method': equal_to('PSI')}
     ))
 
 
@@ -41,8 +41,8 @@ def test_drift_classification_label(drifted_classification_label):
 
     # Assert
     assert_that(result.value, has_entries(
-            {'Drift score': close_to(0.24, 0.01),
-             'Method': equal_to('PSI')}
+        {'Drift score': close_to(0.24, 0.01),
+         'Method': equal_to('PSI')}
     ))
     assert_that(result.display, has_length(greater_than(0)))
 
@@ -57,8 +57,8 @@ def test_drift_classification_label_without_display(drifted_classification_label
 
     # Assert
     assert_that(result.value, has_entries(
-            {'Drift score': close_to(0.24, 0.01),
-             'Method': equal_to('PSI')}
+        {'Drift score': close_to(0.24, 0.01),
+         'Method': equal_to('PSI')}
     ))
     assert_that(result.display, has_length(0))
 
@@ -75,7 +75,21 @@ def test_drift_regression_label(drifted_regression_label):
     assert_that(result.value, has_entries(
         {'Drift score': close_to(0.34, 0.01),
          'Method': equal_to('Earth Mover\'s Distance')}
-         ))
+    ))
+
+
+def test_reduce_output_drift_regression_label(drifted_regression_label):
+    # Arrange
+    train, test = drifted_regression_label
+    check = TrainTestLabelDrift(categorical_drift_method='PSI')
+
+    # Act
+    result = check.run(train, test)
+
+    # Assert
+    assert_that(result.reduce_output(), has_entries(
+        {'Label Drift Score': close_to(0.34, 0.01)}
+    ))
 
 
 def test_drift_max_drift_score_condition_fail_psi(drifted_classification_label):

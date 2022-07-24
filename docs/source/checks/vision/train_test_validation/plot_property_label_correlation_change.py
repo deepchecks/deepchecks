@@ -110,7 +110,7 @@ The process of calculating the PPS is the following:
 
 import numpy as np
 
-from deepchecks.vision.checks import FeatureLabelCorrelationChange
+from deepchecks.vision.checks import PropertyLabelCorrelationChange
 from deepchecks.vision.datasets.classification.mnist import load_dataset
 
 #%%
@@ -158,7 +158,7 @@ test_ds.batch_to_images = mnist_batch_to_images_with_bias_mod(2)
 # Run after bias
 # -----------------
 
-check = FeatureLabelCorrelationChange()
+check = PropertyLabelCorrelationChange()
 result = check.run(train_ds, test_ds)
 result
 
@@ -185,7 +185,7 @@ test_ds = load_dataset(train=False, object_type='VisionData')
 
 #%%
 
-check = FeatureLabelCorrelationChange(per_class=False)
+check = PropertyLabelCorrelationChange(per_class=False)
 result = check.run(train_ds, test_ds)
 result
 
@@ -218,7 +218,7 @@ test_ds.batch_to_images = coco_batch_to_images_with_bias_mod(2)
 # Re-run after bias
 # -----------------
 
-check = FeatureLabelCorrelationChange(per_class=False)
+check = PropertyLabelCorrelationChange(per_class=False)
 result = check.run(train_ds, test_ds)
 result
 
@@ -239,7 +239,7 @@ result
 #
 # Let's add the conditions, and re-run the check:
 
-check = FeatureLabelCorrelationChange(per_class=False).add_condition_feature_pps_difference_less_than(0.1) \
-        .add_condition_feature_pps_in_train_less_than()
+check = PropertyLabelCorrelationChange(per_class=False).add_condition_property_pps_difference_less_than(0.1) \
+        .add_condition_property_pps_in_train_less_than()
 result = check.run(train_dataset=train_ds, test_dataset=test_ds)
 result.show(show_additional_outputs=False)

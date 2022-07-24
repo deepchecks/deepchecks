@@ -12,13 +12,13 @@
 from .data_integrity import ImagePropertyOutliers, LabelPropertyOutliers
 from .model_evaluation import (ClassPerformance, ConfusionMatrixReport, ImageSegmentPerformance,
                                MeanAveragePrecisionReport, MeanAverageRecallReport, ModelErrorAnalysis,
-                               RobustnessReport, SimpleModelComparison, SingleDatasetScalarPerformance,
+                               RobustnessReport, SimpleModelComparison, SingleDatasetPerformance,
                                TrainTestPredictionDrift)
-from .train_test_validation import (FeatureLabelCorrelationChange, HeatmapComparison, ImageDatasetDrift,
-                                    ImagePropertyDrift, NewLabels, SimilarImageLeakage, TrainTestLabelDrift)
+from .train_test_validation import (HeatmapComparison, ImageDatasetDrift, ImagePropertyDrift, NewLabels,
+                                    PropertyLabelCorrelationChange, SimilarImageLeakage, TrainTestLabelDrift)
 
 __all__ = ['ClassPerformance', 'ConfusionMatrixReport', 'MeanAveragePrecisionReport', 'MeanAverageRecallReport',
            'RobustnessReport', 'SimpleModelComparison', 'TrainTestLabelDrift', 'ImageDatasetDrift',
            'ImagePropertyDrift', 'ModelErrorAnalysis', 'TrainTestPredictionDrift', 'ImageSegmentPerformance',
-           'FeatureLabelCorrelationChange', 'ImagePropertyOutliers', 'LabelPropertyOutliers', 'HeatmapComparison',
-           'SimilarImageLeakage', 'NewLabels', 'SingleDatasetScalarPerformance']
+           'PropertyLabelCorrelationChange', 'ImagePropertyOutliers', 'LabelPropertyOutliers', 'HeatmapComparison',
+           'SimilarImageLeakage', 'NewLabels', 'SingleDatasetPerformance']

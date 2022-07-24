@@ -43,6 +43,22 @@ We'll start by writing the simplest possible example, returning only a dict of t
 functions when implementing the check in order to be able to reuse them later.
 
 **Good to know: the return value of a check can be any object, a number, dictionary, string, etc…**
+
+The Context and Batch Objects
+-----------------------------
+The three methods of the vision check - initialize_run, update and compute, make use of the Context object and the Batch
+object.
+
+The context object contains the basic objects deepchecks uses - the train and test
+`VisionData </user-guide/vision/data_classes/VisionData>`__ objects, and the use model itself.
+The Batch objects contains processed data from the dataloader, such as the images, labels and model predictions.
+For some checks, such as the one shown in this example, the Context object is not needed.
+
+For more examples of using the Context and Batch objects for different types of base checks, see the
+`Custom Check Templates <../../../user-guide/vision/custom_check_templates.html>`__ guide.
+
+Check Example
+--------------
 """
 import typing as t
 

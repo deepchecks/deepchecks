@@ -13,8 +13,10 @@
 import abc
 import html
 import io
+import pathlib
 import sys
 import typing as t
+from multiprocessing import Process
 
 import plotly.io as pio
 from IPython.core.display import display, display_html
@@ -235,6 +237,7 @@ class DisplayableResult(abc.ABC):
 def display_in_gui(result: DisplayableResult):
     """Display suite result or check result in a new python gui window."""
     try:
+        from PyQt5.QtCore import QUrl  # pylint: disable=import-outside-toplevel
         from PyQt5.QtWebEngineWidgets import QWebEngineView  # pylint: disable=import-outside-toplevel
         from PyQt5.QtWidgets import QApplication  # pylint: disable=import-outside-toplevel
     except ImportError:
@@ -244,23 +247,26 @@ def display_in_gui(result: DisplayableResult):
             'or use "result.save_as_html()" to save result'
         )
     else:
-        try:
-            app = QApplication(sys.argv)
-            web = QWebEngineView()
-            web.setWindowTitle('deepchecks')
-            web.setGeometry(0, 0, 1200, 1200)
+        filename = t.cast(str, result.save_as_html('deepchecks-report.html'))
+        filepath = pathlib.Path(filename).absolute()
 
-            html_out = io.StringIO()
-            result.save_as_html(html_out)
-            web.setHtml(html_out.getvalue())
-            web.show()
+        def app(filename: str):
+            filepath = pathlib.Path(filename)
+            try:
+                app = QApplication.instance()
+                if app is None:
+                    app = QApplication([])
+                    app.lastWindowClosed.connect(app.quit)
+                web = QWebEngineView()
+                web.setWindowTitle('deepchecks')
+                web.setGeometry(0, 0, 1200, 1200)
+                web.load(QUrl.fromLocalFile(str(filepath)))
+                web.show()
+                sys.exit(app.exec_())
+            finally:
+                filepath.unlink()
 
-            sys.exit(app.exec_())
-        except BaseException:  # pylint: disable=broad-except
-            get_logger().error(
-                'Unable to show result, run in an interactive environment '
-                'or use "result.save_as_html()" to save result'
-            )
+        Process(target=app, args=(str(filepath),)).start()
 
 
 def get_result_name(result) -> str:

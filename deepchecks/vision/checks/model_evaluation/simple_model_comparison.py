@@ -23,7 +23,7 @@ from deepchecks.utils import plot
 from deepchecks.utils.metrics import get_gain
 from deepchecks.utils.strings import format_percent
 from deepchecks.vision import Batch, Context, TrainTestCheck
-from deepchecks.vision.metrics_utils import get_scorers_list, metric_results_to_df
+from deepchecks.vision.metrics_utils import get_scorers_dict, metric_results_to_df
 from deepchecks.vision.metrics_utils.metrics import filter_classes_for_display
 from deepchecks.vision.vision_data import TaskType
 
@@ -122,8 +122,8 @@ class SimpleModelComparison(TrainTestCheck):
             self._test_metrics = {'F1': Fbeta(beta=1, average=False)}
             self._perfect_metrics = {'F1': Fbeta(beta=1, average=False)}
         else:
-            self._test_metrics = get_scorers_list(context.train, self.alternative_metrics)
-            self._perfect_metrics = get_scorers_list(context.train, self.alternative_metrics)
+            self._test_metrics = get_scorers_dict(context.train, self.alternative_metrics)
+            self._perfect_metrics = get_scorers_dict(context.train, self.alternative_metrics)
 
     def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Update the metrics for the check."""
@@ -243,7 +243,7 @@ class SimpleModelComparison(TrainTestCheck):
         if self.alternative_metrics is None:
             metrics = {'F1': Fbeta(beta=1, average=False)}
         else:
-            metrics = get_scorers_list(train, self.alternative_metrics)
+            metrics = get_scorers_dict(train, self.alternative_metrics)
         for _, metric in metrics.items():
             metric.update((torch.stack(dummy_predictions), torch.LongTensor(labels)))
         return metrics
