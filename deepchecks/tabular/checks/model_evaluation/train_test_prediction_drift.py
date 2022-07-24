@@ -47,11 +47,11 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
 
     Parameters
     ----------
-    probability_drift: str, default: 'auto'
-        Controls whether to compute drift on the predicted probabilities or the predicted classes. If 'auto', compute
-        drift on the predicted probabilities if the task is multiclass, and on the predicted classes otherwise.
-        Set to 'true' to force drift on the predicted probabilities, and 'false' to force drift on the predicted
-        classes.
+    drift_mode: str, default: 'auto'
+        Controls whether to compute drift on the predicted probabilities or the predicted classes in case of a
+        classification task. If 'auto', compute drift on the predicted probabilities if the task is multiclass, and on
+        the predicted classes otherwise.Set to 'proba' to force drift on the predicted probabilities, and 'prediction'
+        to force drift on the predictedclasses.
     margin_quantile_filter: float, default: 0.025
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
@@ -71,35 +71,39 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         decides which method to use on categorical variables. Possible values are:
         "cramers_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
     aggregation_method: str, default: "max"
-        argument for the reduce_output functionality, decides how to aggregate the drift scores of different classes
-        into a single score, when drift is computed on the class probabilities. Possible values are:
-        'weighted': Weighted mean based on the number of samples in each class.
+        Argument for the reduce_output functionality, decides how to aggregate the drift scores of different classes
+        (for classification tasks) into a single score, when drift is computed on the class probabilities. Possible
+        values are:
+        'max': Maximum of all the class drift scores.
+        'weighted': Weighted mean based on the class sizes in the train data set.
         'mean': Mean of all drift scores.
         'none': No averaging. Return a dict with a drift score for each class.
-        'max': Maximum of all the class drift scores.
     max_classes_to_display: int, default: 3
-        Max number of classes to show in the display when drift is computed on the class probabilities.
+        Max number of classes to show in the display when drift is computed on the class probabilities for
+        classification tasks.
     max_num_categories: int, default: None
         Deprecated. Please use max_num_categories_for_drift and max_num_categories_for_display instead
     """
 
     def __init__(
             self,
-            probability_drift: str = 'auto',
+            drift_mode: str = 'auto',
             margin_quantile_filter: float = 0.025,
             max_num_categories_for_drift: int = 10,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
-            categorical_drift_method='cramer_v',
-            aggregation_method='max',
+            categorical_drift_method: str = 'cramer_v',
+            aggregation_method: str = 'max',
             max_classes_to_display: int = 3,
             max_num_categories: int = None,  # Deprecated
             **kwargs
     ):
         super().__init__(**kwargs)
-        self.probability_drift = probability_drift
-        if self.probability_drift not in ('auto', 'true', 'false'):
-            raise DeepchecksValueError('probability_drift must be one of "auto", "true", "false"')
+        if not isinstance(drift_mode, str):
+            raise DeepchecksValueError('drift_mode must be a string')
+        self.drift_mode = drift_mode.lower()
+        if self.drift_mode not in ('auto', 'proba', 'prediction'):
+            raise DeepchecksValueError('drift_mode must be one of "auto", "proba", "prediction"')
         self.margin_quantile_filter = margin_quantile_filter
         if max_num_categories is not None:
             warnings.warn(
@@ -127,16 +131,19 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
             value: drift score.
             display: label distribution graph, comparing the train and test distributions.
         """
-        if (self.probability_drift == 'true') and (context.task_type == TaskType.REGRESSION):
+        if (self.drift_mode == 'true') and (context.task_type == TaskType.REGRESSION):
             raise DeepchecksValueError('probability_drift="true" is not supported for regression tasks')
 
         train_dataset = context.train
         test_dataset = context.test
         model = context.model
 
+        drift_score_dict, drift_display_dict = {}, {}
+        method, classes = None, train_dataset.classes
+
         # Flag for computing drift on the probabilities rather than the predicted labels
-        proba_drift = ((context.task_type == TaskType.MULTICLASS) and (self.probability_drift == 'auto')) or \
-                      (self.probability_drift == 'true')
+        proba_drift = ((context.task_type == TaskType.MULTICLASS) and (self.drift_mode == 'auto')) or \
+                      (self.drift_mode == 'proba')
 
         if proba_drift:
             train_prediction = np.array(model.predict_proba(train_dataset.features_columns))
@@ -146,11 +153,6 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
             test_prediction = np.array(model.predict(test_dataset.features_columns)).reshape((-1, 1))
 
         samples_per_class = train_dataset.label_col.value_counts().to_dict()
-
-        drift_score_dict = {}
-        drift_display_dict = {}
-        method = ''
-        classes = train_dataset.classes
 
         for class_idx in range(train_prediction.shape[1]):
             class_name = classes[class_idx]
@@ -177,7 +179,6 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
             </span>"""
 
             # sort classes by their drift score
-            print(drift_score_dict)
             displays = [headnote] + [x for _, x in sorted(zip(drift_score_dict.values(), drift_display_dict.values()),
                                                           reverse=True)][:self.max_classes_to_display]
         else:
