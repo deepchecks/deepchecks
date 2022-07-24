@@ -16,7 +16,7 @@ from typing_extensions import TypedDict
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
-from deepchecks.utils.strings import format_percent
+from deepchecks.utils.strings import format_list, format_percent
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['ConflictingLabels']
@@ -108,7 +108,7 @@ class ConflictingLabels(SingleDatasetCheck):
                 display_sample = dict(zip(index_names, group_index))
                 # Using tuple since it's hashable
                 display_sample[ambiguous_label_name] = tuple(ambiguous_labels)
-                display_sample[indices_name] = tuple(group_data[index_col_name])
+                display_sample[indices_name] = format_list(group_data[index_col_name])
                 display_samples.append(display_sample)
 
         if len(display_samples) == 0:
