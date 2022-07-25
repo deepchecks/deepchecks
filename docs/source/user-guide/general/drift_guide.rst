@@ -192,7 +192,7 @@ estimate the effect of the change on your model's performance.
 After you have deeper insights on your data, you can choose to act in one of the following ways:
 
 Retrain Your Model
-^^^^^^^^^^^^^^^^^^
+-------------------
 
 If you have either kind of drift, retraining your model on new data that better represents the current distribution,
 is the most straight-forward solution.
@@ -209,7 +209,7 @@ training dataset is sampled so labels are evenly distributed).
     out-of-distribution data, in order for you model to adjust to the new data distribution.
 
 Adjust Your Prediction
-^^^^^^^^^^^^^^^^^^^^^^
+-----------------------
 
 When retraining is not an option, or if a quick action needs to be taken, adjustments to the output of the models may
 still help in cases of concept drift. This can be done by either recalibrating your model's output, or by changing your
@@ -219,7 +219,7 @@ However, these methods assume that there's still enough similarity between your 
 which may not always be the case.
 
 Do Nothing
-^^^^^^^^^^
+------------
 
 Not all drift is necessarily bad, and each case should be examined separately. Sometimes, data drift may be simply
 explained by changes in your label distribution (for example, in a dataset of food images, a drift in brightness of images can simply mean
