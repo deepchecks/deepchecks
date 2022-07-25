@@ -116,7 +116,7 @@ def test_drift_max_drift_score_condition_fail_psi(drifted_data_and_model):
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name='categorical drift score < 0.15 and numerical drift score < 0.07',
+        name='categorical drift score < 0.15 and numerical drift score < 0.075',
         details='Found model prediction PSI drift score of 0.79'
     ))
 
@@ -175,9 +175,9 @@ def test_binary_proba_condition_fail_threshold(drifted_data_and_model):
 
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name='categorical drift score < 0.15 and numerical drift score < 0.07',
+        name='categorical drift score < 0.15 and numerical drift score < 0.075',
         details='Found 2 classes with model predicted probability Earth Mover\'s Distance drift' 
-                ' score above threshold: 0.07.'
+                ' score above threshold: 0.075.'
     ))
 
 

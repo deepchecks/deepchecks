@@ -271,10 +271,10 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
                 details = f'Found model prediction {method} drift score of {format_number(drift_score)}'
             else:
                 details = f'Found {sum(has_failed.values())} classes with model predicted probability {method} drift' \
-                          f' score above threshold: {format_number(max_allowed_numeric_score)}.'
+                          f' score above threshold: {max_allowed_numeric_score}.'
             category = ConditionCategory.FAIL if any(has_failed.values()) else ConditionCategory.PASS
             return ConditionResult(category, details)
 
-        return self.add_condition(f'categorical drift score < {format_number(max_allowed_categorical_score)} and '
-                                  f'numerical drift score < {format_number(max_allowed_numeric_score)}',
+        return self.add_condition(f'categorical drift score < {max_allowed_categorical_score} and '
+                                  f'numerical drift score < {max_allowed_numeric_score}',
                                   condition)
