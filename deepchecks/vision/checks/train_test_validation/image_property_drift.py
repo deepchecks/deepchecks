@@ -22,7 +22,8 @@ from deepchecks.utils.dict_funcs import get_dict_entry_by_value
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Batch, Context, TrainTestCheck
-from deepchecks.vision.utils.image_properties import default_image_properties, get_column_type, calc_image_properties
+from deepchecks.vision.utils.image_properties import default_image_properties, get_column_type
+from deepchecks.vision.utils.vision_properties import PropertiesInputType
 
 __all__ = ['ImagePropertyDrift']
 
@@ -75,7 +76,7 @@ class ImagePropertyDrift(TrainTestCheck):
 
     def __init__(
             self,
-            image_properties: t.List[t.Dict[str, t.Any]] = None,
+            image_properties: t.List[t.Dict[str, t.Any]] = default_image_properties,
             margin_quantile_filter: float = 0.025,
             max_num_categories_for_drift: int = 10,
             max_num_categories_for_display: int = 10,
@@ -105,7 +106,6 @@ class ImagePropertyDrift(TrainTestCheck):
         self._train_properties = None
         self._test_properties = None
         self._class_to_string = None
-        self.properties_list = None
 
     def initialize_run(self, context: Context):
         """Initialize self state, and validate the run context."""
@@ -113,8 +113,6 @@ class ImagePropertyDrift(TrainTestCheck):
 
         self._train_properties = defaultdict(list)
         self._test_properties = defaultdict(list)
-        self.properties_list = context.get_data_by_kind(DatasetKind.TRAIN).vision_properties \
-            if self.image_properties is None else self.image_properties
 
     def update(
         self,
@@ -143,7 +141,7 @@ class ImagePropertyDrift(TrainTestCheck):
                 if any(cls in map(self._class_to_string, classes[idx]) for cls in self.classes_to_display)
             ]
 
-        data_for_properties = calc_image_properties(images, self.properties_list)
+        data_for_properties = batch.vision_properties(images, self.image_properties, PropertiesInputType.IMAGES)
 
         for prop_name, property_values in data_for_properties.items():
             properties_results[prop_name].extend(property_values)
@@ -183,7 +181,7 @@ class ImagePropertyDrift(TrainTestCheck):
         drifts = {}
         not_enough_samples = []
 
-        for single_property in self.properties_list:
+        for single_property in self.image_properties:
             property_name = single_property['name']
 
             try:
