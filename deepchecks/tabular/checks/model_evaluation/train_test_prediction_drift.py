@@ -48,10 +48,11 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
     Parameters
     ----------
     drift_mode: str, default: 'auto'
-        Controls whether to compute drift on the predicted probabilities or the predicted classes in case of a
-        classification task. If 'auto', compute drift on the predicted probabilities if the task is multiclass, and on
-        the predicted classes otherwise. Set to 'proba' to force drift on the predicted probabilities, and 'prediction'
-        to force drift on the predicted classes.
+        For classification task, controls whether to compute drift on the predicted probabilities or the predicted
+        classes. For regression task this parameter may be ignored.
+        If  set to 'auto', compute drift on the predicted class if the task is multiclass, and on
+        the predicted probabilities if binary. Set to 'proba' to force drift on the predicted probabilities, and
+        'prediction' to force drift on the predicted classes.
     margin_quantile_filter: float, default: 0.025
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
@@ -142,7 +143,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         method, classes = None, train_dataset.classes
 
         # Flag for computing drift on the probabilities rather than the predicted labels
-        proba_drift = ((context.task_type == TaskType.MULTICLASS) and (self.drift_mode == 'auto')) or \
+        proba_drift = ((context.task_type == TaskType.BINARY) and (self.drift_mode == 'auto')) or \
                       (self.drift_mode == 'proba')
 
         if proba_drift:
@@ -197,7 +198,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
 
         drift_values = list(check_result.value['Drift score'].values())
         if self.aggregation_method == 'none':
-            return check_result.value['Drift score']
+            return {f'Drift Score class {k}': v for k, v in check_result.value['Drift score'].items()}
         elif self.aggregation_method == 'mean':
             return {'Mean Drift Score': np.mean(drift_values)}
         elif self.aggregation_method == 'max':

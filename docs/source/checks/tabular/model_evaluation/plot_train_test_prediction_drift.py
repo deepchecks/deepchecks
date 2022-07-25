@@ -98,9 +98,10 @@ result = check.run(train_dataset=train_ds, test_dataset=test_ds, model=model)
 result
 
 #%%
-# The prediction drift check can also calculate drift on the predicted probabilities. This is the default behavior for
-# multiclass tasks. To force this behavior for binary tasks, set the ``drift_mode`` parameter to ``proba``.
+# The prediction drift check can also calculate drift on the predicted classes rather than the probabilities. This is
+# the default behavior for multiclass tasks. To force this behavior for binary tasks, set the ``drift_mode`` parameter
+# to ``prediction``.
 
-check = TrainTestPredictionDrift(drift_mode='proba')
+check = TrainTestPredictionDrift(drift_mode='prediction')
 result = check.run(train_dataset=train_ds, test_dataset=test_ds, model=model)
 result

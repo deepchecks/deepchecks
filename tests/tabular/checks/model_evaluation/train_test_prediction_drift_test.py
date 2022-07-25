@@ -48,7 +48,7 @@ def test_reduce_no_drift_regression_label(diabetes, diabetes_model):
 def test_drift_classification_label(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI')
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI', drift_mode='prediction')
 
     # Act
     result = check.run(train, test, model)
@@ -64,7 +64,7 @@ def test_drift_classification_label(drifted_data_and_model):
 def test_drift_classification_label_without_display(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI')
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI', drift_mode='prediction')
 
     # Act
     result = check.run(train, test, model, with_display=False)
@@ -91,7 +91,7 @@ def test_drift_regression_label_raise_on_proba(diabetes, diabetes_model):
 def test_drift_regression_label_cramer(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check = TrainTestPredictionDrift(categorical_drift_method='cramer_v')
+    check = TrainTestPredictionDrift(categorical_drift_method='cramer_v', drift_mode='prediction')
 
     # Act
     result = check.run(train, test, model)
@@ -106,7 +106,8 @@ def test_drift_regression_label_cramer(drifted_data_and_model):
 def test_drift_max_drift_score_condition_fail_psi(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI').add_condition_drift_score_less_than()
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI', drift_mode='prediction'
+                                     ).add_condition_drift_score_less_than()
 
     # Act
     result = check.run(train, test, model)
@@ -123,7 +124,7 @@ def test_drift_max_drift_score_condition_fail_psi(drifted_data_and_model):
 def test_drift_max_drift_score_condition_pass_threshold(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI') \
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI', drift_mode='prediction') \
         .add_condition_drift_score_less_than(max_allowed_categorical_score=1,
                                              max_allowed_numeric_score=1)
 
@@ -142,7 +143,7 @@ def test_drift_max_drift_score_condition_pass_threshold(drifted_data_and_model):
 def test_multiclass_proba(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI')
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI', drift_mode='proba')
 
     # Act
     result = check.run(train, test, model)
@@ -152,6 +153,8 @@ def test_multiclass_proba(iris_split_dataset_and_model):
         {'Drift score': has_entries({0: close_to(0.08, 0.01), 1: close_to(0.038, 0.01), 2: close_to(0.07, 0.01)}),
          'Method': equal_to('Earth Mover\'s Distance')}
     ))
+
+    assert_that(result.display, has_length(equal_to(4)))
 
 
 def test_binary_proba_condition_fail_threshold(drifted_data_and_model):
@@ -181,7 +184,7 @@ def test_binary_proba_condition_fail_threshold(drifted_data_and_model):
 def test_multiclass_proba_reduce_aggregations(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI', aggregation_method='weighted')
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI', drift_mode='proba', aggregation_method='weighted')
 
     # Act
     result = check.run(train, test, model)
@@ -203,5 +206,6 @@ def test_multiclass_proba_reduce_aggregations(iris_split_dataset_and_model):
 
     check.aggregation_method = 'none'
     assert_that(result.reduce_output(), has_entries(
-        {'Drift Score': has_entries({0: close_to(0.08, 0.01), 1: close_to(0.038, 0.01), 2: close_to(0.07, 0.01)})}
-    ))
+        {'Drift Score class 0': close_to(0.08, 0.01), 'Drift Score class 1': close_to(0.038, 0.01),
+         'Drift Score class 2': close_to(0.07, 0.01)})
+    )
