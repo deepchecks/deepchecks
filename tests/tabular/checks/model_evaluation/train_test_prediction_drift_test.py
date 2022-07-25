@@ -140,9 +140,9 @@ def test_drift_max_drift_score_condition_pass_threshold(drifted_data_and_model):
     ))
 
 
-def test_multiclass_proba(iris_split_dataset_and_model):
+def test_multiclass_proba(iris_split_dataset_and_model_rf):
     # Arrange
-    train, test, model = iris_split_dataset_and_model
+    train, test, model = iris_split_dataset_and_model_rf
     check = TrainTestPredictionDrift(categorical_drift_method='PSI', drift_mode='proba')
 
     # Act
@@ -150,7 +150,7 @@ def test_multiclass_proba(iris_split_dataset_and_model):
 
     # Assert
     assert_that(result.value, has_entries(
-        {'Drift score': has_entries({0: close_to(0.08, 0.01), 1: close_to(0.038, 0.01), 2: close_to(0.07, 0.01)}),
+        {'Drift score': has_entries({0: close_to(0.06, 0.01), 1: close_to(0.06, 0.01), 2: close_to(0.03, 0.01)}),
          'Method': equal_to('Earth Mover\'s Distance')}
     ))
 
@@ -181,9 +181,9 @@ def test_binary_proba_condition_fail_threshold(drifted_data_and_model):
     ))
 
 
-def test_multiclass_proba_reduce_aggregations(iris_split_dataset_and_model):
+def test_multiclass_proba_reduce_aggregations(iris_split_dataset_and_model_rf):
     # Arrange
-    train, test, model = iris_split_dataset_and_model
+    train, test, model = iris_split_dataset_and_model_rf
     check = TrainTestPredictionDrift(categorical_drift_method='PSI', drift_mode='proba', aggregation_method='weighted')
 
     # Act
@@ -191,21 +191,21 @@ def test_multiclass_proba_reduce_aggregations(iris_split_dataset_and_model):
 
     # Assert
     assert_that(result.reduce_output(), has_entries(
-        {'Weighted Drift Score': close_to(0.06, 0.01)}
+        {'Weighted Drift Score': close_to(0.05, 0.01)}
     ))
 
     check.aggregation_method = 'mean'
     assert_that(result.reduce_output(), has_entries(
-        {'Mean Drift Score': close_to(0.06, 0.01)}
+        {'Mean Drift Score': close_to(0.05, 0.01)}
     ))
 
     check.aggregation_method = 'max'
     assert_that(result.reduce_output(), has_entries(
-        {'Max Drift Score': close_to(0.08, 0.01)}
+        {'Max Drift Score': close_to(0.06, 0.01)}
     ))
 
     check.aggregation_method = 'none'
     assert_that(result.reduce_output(), has_entries(
-        {'Drift Score class 0': close_to(0.08, 0.01), 'Drift Score class 1': close_to(0.038, 0.01),
-         'Drift Score class 2': close_to(0.07, 0.01)})
+        {'Drift Score class 0': close_to(0.06, 0.01), 'Drift Score class 1': close_to(0.06, 0.01),
+         'Drift Score class 2': close_to(0.03, 0.01)})
     )
