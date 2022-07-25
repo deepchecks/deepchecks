@@ -14,8 +14,9 @@ General
     :caption: General
 
     general/deepchecks_hierarchy
+    general/showing_results
+    general/export_save_results
     general/customizations/examples/index
-    general/exporting_results/examples/index
     general/drift_guide
 
 Tabular
@@ -43,6 +44,7 @@ Vision
     vision/vision_properties
     vision/custom_check_templates
 
+.. _user_guide__integrations:
 
 Integrations
 ------------
