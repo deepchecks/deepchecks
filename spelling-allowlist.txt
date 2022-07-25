@@ -106,4 +106,5 @@ Appender
 desc
 astype
 nullable
+hashable
 SimilarImageLeakage
