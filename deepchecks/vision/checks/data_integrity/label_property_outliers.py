@@ -19,6 +19,7 @@ from deepchecks.vision.checks.data_integrity.abstract_property_outliers import A
 from deepchecks.vision.utils import label_prediction_properties
 from deepchecks.vision.utils.image_functions import draw_bboxes
 from deepchecks.vision.vision_data import TaskType, VisionData
+from deepchecks.vision.utils.vision_properties import PropertiesInputType
 
 __all__ = ['LabelPropertyOutliers']
 
@@ -50,11 +51,13 @@ class LabelPropertyOutliers(AbstractPropertyOutliers):
 
     def __init__(self,
                  label_properties: t.List[t.Dict[str, t.Any]] = None,
+                 property_input_type: PropertiesInputType = PropertiesInputType.LABELS,
                  n_show_top: int = 5,
                  iqr_percentiles: t.Tuple[int, int] = (25, 75),
                  iqr_scale: float = 1.5,
                  **kwargs):
-        super().__init__(properties=label_properties, n_show_top=n_show_top, iqr_percentiles=iqr_percentiles,
+        super().__init__(properties_list=label_properties, property_input_type=property_input_type,
+                         n_show_top=n_show_top, iqr_percentiles=iqr_percentiles,
                          iqr_scale=iqr_scale, **kwargs)
 
     def get_default_properties(self, data: VisionData):

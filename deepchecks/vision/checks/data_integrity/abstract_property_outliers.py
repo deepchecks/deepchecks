@@ -15,6 +15,7 @@ from abc import abstractmethod
 from collections import defaultdict
 from numbers import Number
 from secrets import choice
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -28,6 +29,7 @@ from deepchecks.vision import Batch, Context, SingleDatasetCheck
 from deepchecks.vision.utils import label_prediction_properties
 from deepchecks.vision.utils.image_functions import prepare_thumbnail
 from deepchecks.vision.vision_data import VisionData
+from deepchecks.vision.utils.vision_properties import PropertiesInputType
 
 __all__ = ['AbstractPropertyOutliers']
 
@@ -62,28 +64,20 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
     """
 
     def __init__(self,
-                 properties: t.List[t.Dict[str, t.Any]] = None,
+                 properties_list: t.List[t.Dict[str, t.Any]] = None,
+                 property_input_type: PropertiesInputType = PropertiesInputType.OTHER,
                  n_show_top: int = 5,
                  iqr_percentiles: t.Tuple[int, int] = (25, 75),
                  iqr_scale: float = 1.5,
-                 properties_precalculated: bool = False,
                  **kwargs):
         super().__init__(**kwargs)
-        if properties is not None:
-            self.user_properties = label_prediction_properties.validate_properties(properties)
-            # Validate no property have class_id as output_type
-            if any(p['output_type'] == 'class_id' for p in self.user_properties):
-                raise DeepchecksValueError('Properties cannot have class_id as output_type for outliers checks')
-        else:
-            self.user_properties = None
-
+        self.properties_list = properties_list
+        self.property_input_type = property_input_type
         self.iqr_percentiles = iqr_percentiles
         self.iqr_scale = iqr_scale
         self.n_show_top = n_show_top
 
         self._properties_results = None
-        self._properties_funcs = None
-        self.properties_precalculated = properties_precalculated
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
         """Initialize the properties state."""
@@ -91,26 +85,20 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
 
         self._properties_results = defaultdict(list)
         # Take either alternative properties if defined or default properties defined by the child class
-        if self.user_properties is not None:
-            self._properties_funcs = self.user_properties
-        else:
-            self._properties_funcs = self.get_default_properties(data)
-            # Filter out properties that have class_id as output_type
-            self._properties_funcs = [p for p in self._properties_funcs if p['output_type'] != 'class_id']
+        self.properties_list = self.properties_list if self.properties_list else self.get_default_properties(data)
+        if any(p['output_type'] == 'class_id' for p in self.properties_list):
+            warnings.warn('Properties that have class_id as output_type will be skipped.')
+        self.properties_list = [p for p in self.properties_list if p['output_type'] != 'class_id']
 
     def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Aggregate image properties from batch."""
-        data_for_properties = self.get_relevant_data(batch)
+        raw_data = self.get_relevant_data(batch)
+        batch_properties = batch.vision_properties(raw_data, self.properties_list, self.property_input_type)
 
-        if self.properties_precalculated:
-            for prop_name, property_values in data_for_properties.items():
-                self._properties_results[prop_name].extend(property_values)
-        else:
-            for single_property in self._properties_funcs:
-                prop_name = single_property['name']
-                property_values = single_property['method'](data_for_properties)
-                _ensure_property_shape(property_values, data_for_properties, prop_name)
-                self._properties_results[prop_name].extend(property_values)
+        for prop_name, property_values in batch_properties.items():
+            _ensure_property_shape(property_values, raw_data, prop_name)
+            self._properties_results[prop_name].extend(property_values)
+
 
     def compute(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
         """Compute final result."""
