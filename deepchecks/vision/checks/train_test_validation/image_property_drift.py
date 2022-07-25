@@ -130,20 +130,21 @@ class ImagePropertyDrift(TrainTestCheck):
                 f'Internal Error - Should not reach here! unknown dataset_kind: {dataset_kind}'
             )
 
-        images = batch.images
+        all_classes_properties = batch.vision_properties(
+            batch.images, self.image_properties, PropertiesInputType.IMAGES)
 
         if self.classes_to_display:
             # use only images belonging (or containing an annotation belonging) to one of the classes in
             # classes_to_display
             classes = context.train.get_classes(batch.labels)
-            images = [
-                image for idx, image in enumerate(images)
-                if any(cls in map(self._class_to_string, classes[idx]) for cls in self.classes_to_display)
-            ]
+            filtered_properties = dict.fromkeys(all_classes_properties.keys())
+            for prop_name, prop_values in all_classes_properties.items():
+                filtered_properties[prop_name] = [score for idx, score in enumerate(prop_values)
+                    if any(cls in map(self._class_to_string, classes[idx]) for cls in self.classes_to_display)]
+        else:
+            filtered_properties = all_classes_properties
 
-        data_for_properties = batch.vision_properties(images, self.image_properties, PropertiesInputType.IMAGES)
-
-        for prop_name, property_values in data_for_properties.items():
+        for prop_name, property_values in filtered_properties.items():
             properties_results[prop_name].extend(property_values)
 
     def compute(self, context: Context) -> CheckResult:
