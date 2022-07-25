@@ -25,6 +25,7 @@ from deepchecks.vision.utils.label_prediction_properties import (DEFAULT_CLASSIF
                                                                  get_column_type, properties_flatten,
                                                                  validate_properties)
 from deepchecks.vision.vision_data import TaskType
+from deepchecks.vision.utils.vision_properties import PropertiesInputType
 
 __all__ = ['TrainTestLabelDrift']
 
@@ -104,12 +105,6 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
             **kwargs
     ):
         super().__init__(**kwargs)
-        # validate label properties:
-        self.user_label_properties = (
-            validate_properties(label_properties)
-            if label_properties is not None
-            else None
-        )
         self.margin_quantile_filter = margin_quantile_filter
         if max_num_categories is not None:
             warnings.warn(
@@ -125,7 +120,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
         self.show_categories_by = show_categories_by
         self.categorical_drift_method = categorical_drift_method
 
-        self._label_properties = None
+        self.label_properties = label_properties
         self._train_label_properties = None
         self._test_label_properties = None
 
@@ -146,15 +141,14 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
 
         task_type = train_dataset.task_type
 
-        if self.user_label_properties is not None:
-            self._label_properties = self.user_label_properties
-        elif task_type == TaskType.CLASSIFICATION:
-            self._label_properties = DEFAULT_CLASSIFICATION_LABEL_PROPERTIES
-        elif task_type == TaskType.OBJECT_DETECTION:
-            self._label_properties = DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES
-        else:
-            raise NotImplementedError('Check must receive either label_properties or run '
-                                      'on Classification or Object Detection class')
+        if self.label_properties is None:
+            if task_type == TaskType.CLASSIFICATION:
+                self.label_properties = DEFAULT_CLASSIFICATION_LABEL_PROPERTIES
+            elif task_type == TaskType.OBJECT_DETECTION:
+                self.label_properties = DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES
+            else:
+                raise NotImplementedError('Check must receive either label_properties or run '
+                                          'on Classification or Object Detection class')
 
         self._train_label_properties = defaultdict(list)
         self._test_label_properties = defaultdict(list)
@@ -163,15 +157,20 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
         """Perform update on batch for train or test properties."""
         # For all transformers, calculate histograms by batch:
         if dataset_kind == DatasetKind.TRAIN:
-            properties = self._train_label_properties
+            properties_results = self._train_label_properties
         elif dataset_kind == DatasetKind.TEST:
-            properties = self._test_label_properties
+            properties_results = self._test_label_properties
         else:
             raise DeepchecksNotSupportedError(f'Unsupported dataset kind {dataset_kind}')
 
-        for label_property in self._label_properties:
-            # Flatten the properties since I don't care in this check about the property-per-sample coupling
-            properties[label_property['name']] += properties_flatten(label_property['method'](batch.labels))
+        properties_results = batch.vision_properties(batch.labels, self.label_properties, PropertiesInputType.LABELS)
+
+        for prop_name, prop_value in properties_results.items():
+            # Flatten the properties since we don't care in this check about the property-per-sample coupling
+            properties_results[prop_name] += properties_flatten(prop_value)
+        # for label_property in self._label_properties:
+        #     # Flatten the properties since I don't care in this check about the property-per-sample coupling
+        #     properties_results[label_property['name']] += properties_flatten(label_property['method'](batch.labels))
 
     def compute(self, context: Context) -> CheckResult:
         """Calculate drift on label properties samples that were collected during update() calls.
@@ -184,10 +183,10 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
         """
         values_dict = OrderedDict()
         displays_dict = OrderedDict()
-        label_properties_names = [x['name'] for x in self._label_properties]
-        for label_property in self._label_properties:
-            name = label_property['name']
-            output_type = label_property['output_type']
+        label_properties_names = [x['name'] for x in self.label_properties]
+        for label_prop in self.label_properties:
+            name = label_prop['name']
+            output_type = label_prop['output_type']
             # If type is class converts to label names
             if output_type == 'class_id':
                 self._train_label_properties[name] = [context.train.label_id_to_name(class_id) for class_id in
