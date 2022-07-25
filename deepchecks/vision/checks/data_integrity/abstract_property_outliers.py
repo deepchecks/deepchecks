@@ -11,25 +11,24 @@
 """Module contains AbstractPropertyOutliers check."""
 import string
 import typing as t
+import warnings
 from abc import abstractmethod
 from collections import defaultdict
 from numbers import Number
 from secrets import choice
-import warnings
 
 import numpy as np
 import pandas as pd
 
 from deepchecks import CheckResult
 from deepchecks.core import DatasetKind
-from deepchecks.core.errors import DeepchecksProcessError, DeepchecksValueError, NotEnoughSamplesError
+from deepchecks.core.errors import DeepchecksProcessError, NotEnoughSamplesError
 from deepchecks.utils.outliers import iqr_outliers_range
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Batch, Context, SingleDatasetCheck
-from deepchecks.vision.utils import label_prediction_properties
 from deepchecks.vision.utils.image_functions import prepare_thumbnail
-from deepchecks.vision.vision_data import VisionData
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
+from deepchecks.vision.vision_data import VisionData
 
 __all__ = ['AbstractPropertyOutliers']
 

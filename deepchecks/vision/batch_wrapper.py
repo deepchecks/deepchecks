@@ -10,14 +10,13 @@
 #
 """Contains code for BatchWrapper."""
 from operator import itemgetter
-from typing import TYPE_CHECKING, Any, Callable, Iterable, Tuple, TypeVar, cast, List, Dict
-from collections import defaultdict
+from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Tuple, TypeVar, cast
 
 import torch
 
 from deepchecks.core import DatasetKind
 from deepchecks.vision.task_type import TaskType
-from deepchecks.vision.utils.vision_properties import validate_properties, PropertiesInputType
+from deepchecks.vision.utils.vision_properties import PropertiesInputType, validate_properties
 
 if TYPE_CHECKING:
     from deepchecks.vision.context import Context

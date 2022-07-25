@@ -59,7 +59,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
 
     def __init__(
         self,
-        image_properties: t.List[t.Dict[str, t.Any]] = default_image_properties,
+        image_properties: t.List[t.Dict[str, t.Any]] = None,
         alternative_metrics: t.Optional[t.Dict[str, Metric]] = None,
         number_of_bins: int = 5,
         number_of_samples_to_infer_bins: int = 1000,
@@ -67,7 +67,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         **kwargs
     ):
         super().__init__(**kwargs)
-        self.image_properties = image_properties
+        self.image_properties = image_properties if image_properties else default_image_properties
         self.alternative_metrics = alternative_metrics
         self.number_of_bins = number_of_bins
         self.number_of_samples_to_infer_bins = number_of_samples_to_infer_bins

@@ -26,8 +26,8 @@ from deepchecks.utils.logger import get_logger
 from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.utils.image_functions import ImageInfo
+from deepchecks.vision.utils.image_properties import calc_image_properties
 from deepchecks.vision.utils.transformations import get_transforms_handler
-from deepchecks.vision.utils.image_properties import default_image_properties, calc_image_properties
 
 __all__ = ['VisionData']
 

@@ -14,7 +14,8 @@ from enum import Enum
 
 __all__ = ['PropertiesInputType', 'validate_properties']
 
-from typing import List, Dict, Any
+from collections import defaultdict
+from typing import Any, Dict, List
 
 from deepchecks.core.errors import DeepchecksValueError
 

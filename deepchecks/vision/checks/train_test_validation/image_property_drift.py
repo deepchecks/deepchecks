@@ -76,7 +76,7 @@ class ImagePropertyDrift(TrainTestCheck):
 
     def __init__(
             self,
-            image_properties: t.List[t.Dict[str, t.Any]] = default_image_properties,
+            image_properties: t.List[t.Dict[str, t.Any]] = None,
             margin_quantile_filter: float = 0.025,
             max_num_categories_for_drift: int = 10,
             max_num_categories_for_display: int = 10,
@@ -87,7 +87,7 @@ class ImagePropertyDrift(TrainTestCheck):
             **kwargs
     ):
         super().__init__(**kwargs)
-        self.image_properties = image_properties
+        self.image_properties = image_properties if image_properties else default_image_properties
         self.margin_quantile_filter = margin_quantile_filter
         if max_num_categories is not None:
             warnings.warn(

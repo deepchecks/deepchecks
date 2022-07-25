@@ -65,7 +65,7 @@ class ImageDatasetDrift(TrainTestCheck):
 
     def __init__(
             self,
-            image_properties: List[Dict[str, Any]] = default_image_properties,
+            image_properties: List[Dict[str, Any]] = None,
             n_top_properties: int = 3,
             min_feature_importance: float = 0.05,
             sample_size: int = 10_000,
@@ -74,7 +74,7 @@ class ImageDatasetDrift(TrainTestCheck):
             **kwargs
     ):
         super().__init__(**kwargs)
-        self.image_properties = image_properties
+        self.image_properties = image_properties if image_properties else default_image_properties
 
         self.n_top_properties = n_top_properties
         self.min_feature_importance = min_feature_importance

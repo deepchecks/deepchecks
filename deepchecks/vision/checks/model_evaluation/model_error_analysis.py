@@ -63,7 +63,7 @@ class ModelErrorAnalysis(TrainTestCheck):
     """
 
     def __init__(self,
-                 image_properties: t.List[t.Dict[str, t.Any]] = default_image_properties,
+                 image_properties: t.List[t.Dict[str, t.Any]] = None,
                  max_properties_to_show: int = 20,
                  min_property_contribution: float = 0.15,
                  min_error_model_score: float = 0.5,
@@ -84,7 +84,7 @@ class ModelErrorAnalysis(TrainTestCheck):
         self._train_scores = None
         self._test_scores = None
 
-        self.image_properties = image_properties
+        self.image_properties = image_properties if image_properties else default_image_properties
 
     def initialize_run(self, context: Context):
         """Initialize property and score lists."""

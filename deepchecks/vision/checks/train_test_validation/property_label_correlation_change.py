@@ -91,7 +91,7 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
 
     def __init__(
             self,
-            image_properties: Optional[List[Dict[str, Any]]] = default_image_properties,
+            image_properties: Optional[List[Dict[str, Any]]] = None,
             n_top_properties: int = 3,
             per_class: bool = True,
             random_state: int = None,
@@ -101,7 +101,7 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
     ):
         super().__init__(**kwargs)
 
-        self.image_properties = image_properties
+        self.image_properties = image_properties if image_properties else default_image_properties
 
         self.min_pps_to_show = min_pps_to_show
         self.per_class = per_class

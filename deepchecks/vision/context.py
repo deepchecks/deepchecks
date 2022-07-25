@@ -10,7 +10,7 @@
 #
 """Module for base vision context."""
 from operator import itemgetter
-from typing import Dict, Mapping, Optional, Sequence, Union, List
+from typing import Dict, Mapping, Optional, Sequence, Union
 
 import torch
 from ignite.metrics import Metric
@@ -57,9 +57,6 @@ class Context:
         with_display: bool = True,
         train_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
         test_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
-        train_image_properties: Dict = None,
-        test_image_properties: Dict = None
-
     ):
         # Validations
         if train is None and test is None and model is None:
