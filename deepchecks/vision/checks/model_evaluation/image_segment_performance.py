@@ -28,7 +28,7 @@ from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.vision import Batch, Context, SingleDatasetCheck
 from deepchecks.vision.metrics_utils import get_scorers_dict, metric_results_to_df
 from deepchecks.vision.utils.image_properties import default_image_properties
-from deepchecks.vision.utils.vision_properties import validate_properties
+from deepchecks.vision.utils.vision_properties import PropertiesInputType
 
 __all__ = ['ImageSegmentPerformance']
 
@@ -59,7 +59,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
 
     def __init__(
         self,
-        image_properties: t.List[t.Dict[str, t.Any]] = None,
+        image_properties: t.List[t.Dict[str, t.Any]] = default_image_properties,
         alternative_metrics: t.Optional[t.Dict[str, Metric]] = None,
         number_of_bins: int = 5,
         number_of_samples_to_infer_bins: int = 1000,
@@ -83,10 +83,9 @@ class ImageSegmentPerformance(SingleDatasetCheck):
 
     def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Update the bins by the image properties."""
-        images = batch.images
         predictions = [tens.detach() for tens in batch.predictions]
         labels = [tens.detach() for tens in batch.labels]
-        properties_results = batch.vision_properties(properties_list=self.image_properties)
+        properties_results = batch.vision_properties(batch.images, self.image_properties, PropertiesInputType.IMAGES)
 
         samples_for_bin: t.List = self._state['samples_for_binning']
         bins = self._state['bins']
