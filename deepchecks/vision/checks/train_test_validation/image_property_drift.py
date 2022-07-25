@@ -140,7 +140,7 @@ class ImagePropertyDrift(TrainTestCheck):
             filtered_properties = dict.fromkeys(all_classes_properties.keys())
             for prop_name, prop_values in all_classes_properties.items():
                 filtered_properties[prop_name] = [score for idx, score in enumerate(prop_values)
-                    if any(cls in map(self._class_to_string, classes[idx]) for cls in self.classes_to_display)]
+                        if any(cls in map(self._class_to_string, classes[idx]) for cls in self.classes_to_display)]
         else:
             filtered_properties = all_classes_properties
 

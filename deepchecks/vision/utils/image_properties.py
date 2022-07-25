@@ -147,6 +147,7 @@ def get_column_type(output_type):
     }
     return mapper[output_type]
 
+
 def calc_image_properties(images, properties_to_calc) -> Dict[str, list]:
     """
     Calculates the image properties for a batch of images.

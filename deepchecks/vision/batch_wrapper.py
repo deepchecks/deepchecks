@@ -99,17 +99,18 @@ class Batch:
     def vision_properties(self, raw_data: List, properties_list: List[Dict], input_type=PropertiesInputType):
         """Calculate and cache the properties for the batch according to the propety input type"""
         properties_list = validate_properties(properties_list)
-        properties_cache = self._vision_properties_cache[input_type.value]
         # if there are no cached properties at all, calculate all the properties on the list,
         # else calculate only those that were not yet calculated.
-        if properties_cache is None:
-            dataset = self._context.get_data_by_kind(self._dataset_kind)
-            properties_cache = dataset.calc_properties(raw_data, properties_list)
+        dataset = self._context.get_data_by_kind(self._dataset_kind)
+        if self._vision_properties_cache[input_type.value] is None:
+            self._vision_properties_cache[input_type.value] = dataset.calc_properties(raw_data, properties_list)
         else:
-            properties_to_calc = [p for p in properties_list if p['name'] not in properties_cache.keys()]
-            properties_cache.update(dataset.calc_properties(raw_data, properties_to_calc))
+            properties_to_calc = [p for p in properties_list if p['name'] not in
+                                  self._vision_properties_cache[input_type.value].keys()]
+            self._vision_properties_cache[input_type.value].update(
+                                                                dataset.calc_properties(raw_data, properties_to_calc))
         property_names_to_return = [p['name'] for p in properties_list]
-        result_dict = {k: properties_cache[k] for k in property_names_to_return}
+        result_dict = {k: self._vision_properties_cache[input_type.value][k] for k in property_names_to_return}
         return result_dict
 
 

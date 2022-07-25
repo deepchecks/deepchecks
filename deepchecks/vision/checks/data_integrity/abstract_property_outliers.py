@@ -98,7 +98,6 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
             _ensure_property_shape(property_values, raw_data, prop_name)
             self._properties_results[prop_name].extend(property_values)
 
-
     def compute(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
         """Compute final result."""
         data = context.get_data_by_kind(dataset_kind)

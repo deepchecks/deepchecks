@@ -244,8 +244,6 @@ class VisionData:
         """
         return calc_image_properties(raw_data, properties_list)
 
-
-
     def validate_label(self, batch):
         """Validate a batch of labels."""
         # default implementation just calling the function to see if it runs

@@ -29,6 +29,7 @@ class PropertiesInputType(Enum):
     PREDICTIONS = 'predictions'
     OTHER = 'other'
 
+
 def calc_vision_properties(raw_data, properties_list) -> Dict[str, list]:
     """
     Calculates the image properties for a batch of images.

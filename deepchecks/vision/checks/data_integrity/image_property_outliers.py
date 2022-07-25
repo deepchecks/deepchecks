@@ -53,7 +53,7 @@ class ImagePropertyOutliers(AbstractPropertyOutliers):
                  iqr_percentiles: t.Tuple[int, int] = (25, 75),
                  iqr_scale: float = 1.5,
                  **kwargs):
-        super().__init__(properties_list=image_properties, proprty_input_type=property_input_type,
+        super().__init__(properties_list=image_properties, property_input_type=property_input_type,
                          n_show_top=n_show_top, iqr_percentiles=iqr_percentiles,
                          iqr_scale=iqr_scale, **kwargs)
 
