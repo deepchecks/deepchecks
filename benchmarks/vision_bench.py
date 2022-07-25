@@ -81,8 +81,8 @@ class BenchmarkVision:
         return cache
 
 
-for name, check_class in inspect.getmembers(checks):
-    if inspect.isclass(check_class):
-        run_fn = run_check_fn(check_class)
-        setattr(BenchmarkVision, f'time_{name}', run_fn)
-        setattr(BenchmarkVision, f'peakmem_{name}', run_fn)
+# for name, check_class in inspect.getmembers(checks):
+#     if inspect.isclass(check_class):
+#         run_fn = run_check_fn(check_class)
+#         setattr(BenchmarkVision, f'time_{name}', run_fn)
+#         setattr(BenchmarkVision, f'peakmem_{name}', run_fn)
