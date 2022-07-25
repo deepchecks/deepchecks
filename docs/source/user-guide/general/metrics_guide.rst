@@ -4,8 +4,7 @@
 Metrics Guide
 ====================
 
-In this guide we'll explain how to customize the metrics that deepchecks uses to validate and monitor your data.
-Deepchecks.
+In this guide we'll explain how to customize the metrics that deepchecks uses to validate and monitor your model.
 The assessment of how well the model performs should drive informed decision making regarding the usage of that model,
 so we have to make sure that we measure the right things, i.e. the criteria that represnt tha key factors in the
 decision making process.
@@ -47,7 +46,7 @@ Multiclass classification per class:
 
 Regression:
 
-*   Negative RMSE (negative so larger is better)
+*   Negative RMSE (negative RMSE so that the convention that greater is better is kept)
 *   Negative MAE
 *   R2
 
@@ -63,7 +62,7 @@ Object detection:
 *   Mean average precision
 *   Mean average recall
 
-To run a check with the default metrics, run it without passing the scorers.
+To run a check with the default metrics, run it without any value to the "scorer" parameter. For example:
 
 :doc:`ClassPerformance </checks_gallery/vision/model_evaluation/plot_class_performance>`:
 
@@ -75,7 +74,7 @@ To run a check with the default metrics, run it without passing the scorers.
 
 Alternative metrics
 ===================
-Sometimes the defaults aren’t good enough to describe the specifics of the problem.
+Sometimes the defaults don't fit the specifics of the use-case.
 If this is the case, you can pass a list of metrics or a dict in the format {metric name: metric} as a parameter to the
 check.
 
