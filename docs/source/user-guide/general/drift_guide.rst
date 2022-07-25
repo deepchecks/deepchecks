@@ -114,10 +114,10 @@ As mentioned above, we recommend to use either `Cramer's V <https://en.wikipedia
 PSI is widely used in the industry, but does not have an upper limit and is not very explainable.
 Cramer's V is always in the range [0,1], and can be interpreted as the correlation between the variable's distribution and the dataset (train or test).
 
-Both methods are sensitive to changes in small categories. However, in deepchecks we implement a correction on PSI that prevents the value from diverging.
+Both methods are very sensitive to changes in small categories. However, in deepchecks we implement a correction on PSI that prevents the value from diverging.
 
-In general, it is recommended to use Cramer's V, unless your variable includes categories with a small number of samples.
-However, in cases of a variable with a large number of unique categories, it is still recommended to use Cramer's V, as PSI will not be able to detect change in the smaller categories.
+In general, it is recommended to use Cramer's V, unless your variable includes categories with a small number of samples (common practice is under 5 samples).
+However, in cases of a variable with a large number of categories with few samples, it is still recommended to use Cramer's V, as PSI will not be able to detect change in the smaller categories.
 
 
 
