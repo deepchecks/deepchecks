@@ -42,9 +42,9 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceMixin):
     We also support Population Stability Index (PSI).
     See https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf.
 
-    For categorical variables, it is recommended to use Cramer’s V, unless your variable includes categories with a
-    small number of samples, where PSI would perform better. However, in cases of a variable with a large number of
-    unique categories, it is still recommended to use Cramer’s V.
+    For categorical variables, it is recommended to use Cramer's V, unless your variable includes categories with a
+    small number of samples (common practice is under 5 samples). However, in cases of a variable with a large number
+    of categories with few samples, it is still recommended to use Cramer's V.
 
     Parameters
     ----------
