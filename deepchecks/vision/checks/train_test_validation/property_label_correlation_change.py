@@ -27,7 +27,8 @@ from deepchecks.utils.strings import format_number
 from deepchecks.vision import Context, TrainTestCheck
 from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.utils.image_functions import crop_image
-from deepchecks.vision.utils.image_properties import calc_image_properties
+from deepchecks.vision.utils.image_properties import default_image_properties
+from deepchecks.vision.utils.vision_properties import PropertiesInputType
 from deepchecks.vision.vision_data import TaskType
 
 __all__ = ['PropertyLabelCorrelationChange']
@@ -90,7 +91,7 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
 
     def __init__(
             self,
-            image_properties: Optional[List[Dict[str, Any]]] = None,
+            image_properties: Optional[List[Dict[str, Any]]] = default_image_properties,
             n_top_properties: int = 3,
             per_class: bool = True,
             random_state: int = None,
@@ -112,11 +113,6 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
         self._test_properties = defaultdict(list)
         self._train_properties['target'] = []
         self._test_properties['target'] = []
-
-    def initialize_run(self, context: Context):
-        """Initialize self state, and validate the run context."""
-        self.properties_list = context.get_data_by_kind(DatasetKind.TRAIN).vision_properties \
-            if self.image_properties is None else self.image_properties
 
     def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Calculate image properties for train or test batches."""
@@ -145,14 +141,16 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
                     class_id = int(label[0])
                     imgs += [cropped_img]
                     target += [dataset.label_id_to_name(class_id)]
+            property_type = PropertiesInputType.BBOXES
         else:
             for img, classes_ids in zip(batch.images, dataset.get_classes(batch.labels)):
                 imgs += [img] * len(classes_ids)
                 target += list(map(dataset.label_id_to_name, classes_ids))
+            property_type = PropertiesInputType.IMAGES
 
         properties_results['target'] += target
 
-        data_for_properties = calc_image_properties(imgs, self.properties_list)
+        data_for_properties = batch.vision_properties(imgs, self.image_properties, property_type)
 
         for prop_name, property_values in data_for_properties.items():
             properties_results[prop_name].extend(property_values)
