@@ -44,10 +44,10 @@ def run_check_fn(check_class) -> Callable:
         check = check_class()
         try:
             if isinstance(check, SingleDatasetCheck):
-                check.run(train_ds, train_predictions=train_pred, device=device, n_samples=1_000)
+                check.run(train_ds, train_predictions=train_pred, device=device)
             elif isinstance(check, TrainTestCheck):
                 check.run(train_ds, test_ds, train_predictions=train_pred,
-                          test_predictions=test_pred, device=device, n_samples=1_000)
+                          test_predictions=test_pred, device=device)
         except DeepchecksBaseError:
             pass
     return run
