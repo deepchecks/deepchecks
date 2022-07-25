@@ -17,7 +17,7 @@ import torch
 
 from deepchecks.core import DatasetKind
 from deepchecks.vision.task_type import TaskType
-from deepchecks.vision.utils.image_properties import validate_properties
+from deepchecks.vision.utils.vision_properties import validate_properties, PropertiesInputType
 
 if TYPE_CHECKING:
     from deepchecks.vision.context import Context
@@ -43,7 +43,7 @@ class Batch:
         self._labels = None
         self._predictions = None
         self._images = None
-        self._image_properties = None
+        self._vision_properties_cache = dict.fromkeys([p.value for p in PropertiesInputType])
 
     @property
     def labels(self):
@@ -97,13 +97,21 @@ class Batch:
         dataset = self._context.get_data_by_kind(self._dataset_kind)
         return len(list(dataset.data_loader.batch_sampler)[self.batch_index])
 
-    def image_properties(self, properties_to_calc: List[Dict]=None):
-        if self._image_properties is None:
+    def vision_properties(self, raw_data: List, properties_list: List[Dict], input_type=PropertiesInputType):
+        """Calculate and cache the properties for the batch according to the propety input type"""
+        properties_list = validate_properties(properties_list)
+        properties_cache = self._vision_properties_cache[input_type.value]
+        # if there are no cached properties at all, calculate all the properties on the list,
+        # else calculate only those that were not yet calculated.
+        if properties_cache is None:
             dataset = self._context.get_data_by_kind(self._dataset_kind)
-            if properties_to_calc is not None:
-                properties_to_calc = validate_properties(properties_to_calc)
-            self._image_properties = dataset.batch_to_image_properties(self._batch, properties_to_calc)
-        return self._image_properties
+            properties_cache = dataset.calc_properties(raw_data, properties_list)
+        else:
+            properties_to_calc = [p for p in properties_list if p['name'] not in properties_cache.keys()]
+            properties_cache.update(dataset.calc_properties(raw_data, properties_to_calc))
+        property_names_to_return = [p['name'] for p in properties_list]
+        result_dict = {k: properties_cache[k] for k in property_names_to_return}
+        return result_dict
 
 
 T = TypeVar('T')

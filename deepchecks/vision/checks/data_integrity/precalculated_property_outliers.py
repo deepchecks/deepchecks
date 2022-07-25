@@ -55,7 +55,7 @@ class PrecalculatedPropertyOutliers(AbstractPropertyOutliers):
 
     def get_relevant_data(self, batch: Batch):
         """Get the data on which the check calculates outliers for."""
-        return batch.image_properties
+        return batch.vision_properties
 
     def draw_image(self, data: VisionData, sample_index: int, index_of_value_in_sample: int,
                    num_properties_in_sample: int) -> np.ndarray:

@@ -125,10 +125,10 @@ check_result.show(show_additional_outputs=False)
 # ----------------
 # Image Property Drift Check accepts two parameters that allows us to control the look of the output:
 #
-# * `image_properties` - list of image properties that we are interested in
+# * `vision_properties` - list of image properties that we are interested in
 # * `max_num_categories` - Maximal number of categories to use for the calculation of drift using PSI (Population Stability Index)
 #
-# Only next string values are allowed for the `image_properties` parameter:
+# Only next string values are allowed for the `vision_properties` parameter:
 #
 # * `aspect_ratio`
 # * `area`

@@ -27,7 +27,8 @@ from deepchecks.utils.dict_funcs import get_dict_entry_by_value
 from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.vision import Batch, Context, SingleDatasetCheck
 from deepchecks.vision.metrics_utils import get_scorers_dict, metric_results_to_df
-from deepchecks.vision.utils.image_properties import default_image_properties, validate_properties
+from deepchecks.vision.utils.image_properties import default_image_properties
+from deepchecks.vision.utils.vision_properties import validate_properties
 
 __all__ = ['ImageSegmentPerformance']
 
@@ -85,7 +86,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         images = batch.images
         predictions = [tens.detach() for tens in batch.predictions]
         labels = [tens.detach() for tens in batch.labels]
-        properties_results = batch.image_properties(self.image_properties)
+        properties_results = batch.vision_properties(properties_list=self.image_properties)
 
         samples_for_bin: t.List = self._state['samples_for_binning']
         bins = self._state['bins']

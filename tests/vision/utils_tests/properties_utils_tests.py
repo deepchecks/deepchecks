@@ -13,7 +13,7 @@ from hamcrest import assert_that, calling, raises
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.utils.image_properties import default_image_properties
-from deepchecks.vision.utils.image_properties import validate_properties as validate_image_properties
+from deepchecks.vision.utils.vision_properties import validate_properties as validate_image_properties
 from deepchecks.vision.utils.label_prediction_properties import DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES
 from deepchecks.vision.utils.label_prediction_properties import \
     validate_properties as validate_label_prediction_properties

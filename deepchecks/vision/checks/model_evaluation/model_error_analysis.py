@@ -22,7 +22,8 @@ from deepchecks.utils.performance.error_model import error_model_display_datafra
 from deepchecks.utils.single_sample_metrics import per_sample_cross_entropy
 from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.metrics_utils.iou_utils import per_sample_mean_iou
-from deepchecks.vision.utils.image_properties import default_image_properties, validate_properties
+from deepchecks.vision.utils.image_properties import default_image_properties
+from deepchecks.vision.utils.vision_properties import validate_properties
 from deepchecks.vision.vision_data import TaskType
 
 __all__ = ['ModelErrorAnalysis']
@@ -111,7 +112,7 @@ class ModelErrorAnalysis(TrainTestCheck):
 
         predictions = batch.predictions
         labels = batch.labels
-        properties_results = batch.image_properties(self.image_properties)
+        properties_results = batch.vision_properties(properties_list=self.image_properties)
 
         for prop_name, prop_value in properties_results.items():
             properties[prop_name].extend(prop_value)

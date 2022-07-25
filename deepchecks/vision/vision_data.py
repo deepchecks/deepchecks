@@ -58,8 +58,7 @@ class VisionData:
         data_loader: DataLoader,
         num_classes: Optional[int] = None,
         label_map: Optional[Dict[int, str]] = None,
-        transform_field: Optional[str] = 'transforms',
-        image_properties: List[Dict] = default_image_properties
+        transform_field: Optional[str] = 'transforms'
     ):
         # Create data loader that uses IndicesSequentialSampler, which always return batches in the same order
         self._data_loader, self._sampler = self._get_data_loader_sequential(data_loader)
@@ -70,7 +69,6 @@ class VisionData:
         self._image_formatter_error = None
         self._label_formatter_error = None
         self._get_classes_error = None
-        self.image_properties = image_properties
 
         batch = next(iter(self._data_loader))
         try:
@@ -227,27 +225,24 @@ class VisionData:
         """
         raise DeepchecksNotImplementedError('batch_to_images() must be implemented in a subclass')
 
-    def batch_to_image_properties(self, batch, image_properties: List[Dict] = None) -> Dict[str, list]:
+    def calc_properties(self, raw_data: List = None, properties_list: List[Dict] = None) -> Dict[str, list]:
         """
-        Transform a batch of data to image properties in the accpeted format.
+        Transform a batch of data to properties in the accpeted format.
 
         Parameters
         ----------
-        batch : torch.Tensor
-            Batch of data to transform to image properties.
+        raw_data : torch.Tensor
+            Batch of data to transform to properties.
 
-        image_properties: List[Dict] , default: None
-            overrides self.image_proerties, if None uses self.image properties
+        properties_list: List[Dict] , default: None
+            A list of properties to calculate
 
         Returns
         ------
         batch_properties: dict[str, List]
-            A dict of property name, property value per image
+            A dict of property name, property value per sample
         """
-        properties_to_calc = self.image_properties if image_properties is None else image_properties
-        # images = self.batch_to_images(batch)
-        images = [image.astype('uint8') for image in self.batch_to_images(batch)]
-        return calc_image_properties(images, properties_to_calc)
+        return calc_image_properties(raw_data, properties_list)
 
 
 

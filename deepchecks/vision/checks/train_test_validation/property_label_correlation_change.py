@@ -115,14 +115,14 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
 
     def initialize_run(self, context: Context):
         """Initialize self state, and validate the run context."""
-        self.properties_list = context.get_data_by_kind(DatasetKind.TRAIN).image_properties \
+        self.properties_list = context.get_data_by_kind(DatasetKind.TRAIN).vision_properties \
             if self.image_properties is None else self.image_properties
 
     def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Calculate image properties for train or test batches."""
 
         dataset = context.get_data_by_kind(dataset_kind)
-        # properties = batch.image_properties
+        # properties = batch.vision_properties
 
         if dataset_kind == DatasetKind.TRAIN:
             # dataset = context.train

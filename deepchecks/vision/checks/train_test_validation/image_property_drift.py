@@ -113,7 +113,7 @@ class ImagePropertyDrift(TrainTestCheck):
 
         self._train_properties = defaultdict(list)
         self._test_properties = defaultdict(list)
-        self.properties_list = context.get_data_by_kind(DatasetKind.TRAIN).image_properties \
+        self.properties_list = context.get_data_by_kind(DatasetKind.TRAIN).vision_properties \
             if self.image_properties is None else self.image_properties
 
     def update(
