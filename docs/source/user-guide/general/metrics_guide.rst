@@ -5,9 +5,7 @@ Metrics Guide
 ====================
 
 In this guide we'll explain how to customize the metrics that deepchecks uses to validate and monitor your model.
-The assessment of how well the model performs should drive informed decision making regarding the usage of that model,
-so we have to make sure that we measure the right things, i.e. the criteria that represnt tha key factors in the
-decision making process.
+Controling the metrics helps you shape the checks and suites accoring to the specifics of you use case.
 
 **Structure:**
 
@@ -30,7 +28,8 @@ default metrics.
 
 The default scorers by task type are:
 
-Tabular:
+Tabular
+_______
 
 Classification, binary or multiclass averaged over the classes:
 
@@ -50,7 +49,8 @@ Regression:
 *   Negative MAE
 *   R2
 
-Vision:
+Vision
+______
 
 Classification:
 
@@ -62,7 +62,7 @@ Object detection:
 *   Mean average precision
 *   Mean average recall
 
-To run a check with the default metrics, run it without any value to the "scorer" parameter. For example:
+To run a check with the default metrics, run it without passing any value to the "scorer" parameter. For example:
 
 :doc:`ClassPerformance </checks_gallery/vision/model_evaluation/plot_class_performance>`:
 
