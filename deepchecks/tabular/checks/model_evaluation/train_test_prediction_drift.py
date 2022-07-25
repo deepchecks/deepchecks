@@ -50,8 +50,8 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
     drift_mode: str, default: 'auto'
         Controls whether to compute drift on the predicted probabilities or the predicted classes in case of a
         classification task. If 'auto', compute drift on the predicted probabilities if the task is multiclass, and on
-        the predicted classes otherwise.Set to 'proba' to force drift on the predicted probabilities, and 'prediction'
-        to force drift on the predictedclasses.
+        the predicted classes otherwise. Set to 'proba' to force drift on the predicted probabilities, and 'prediction'
+        to force drift on the predicted classes.
     margin_quantile_filter: float, default: 0.025
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
@@ -186,7 +186,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
 
         values_dict = {
             'Drift score': drift_score_dict if len(drift_score_dict) > 1 else list(drift_score_dict.values())[0],
-            'Method': method, "Samples per class": samples_per_class}
+            'Method': method, 'Samples per class': samples_per_class}
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Prediction Drift')
 

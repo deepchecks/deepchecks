@@ -178,7 +178,7 @@ def test_binary_proba_condition_fail_threshold(drifted_data_and_model):
     ))
 
 
-def test_multiclass_proba_reduce_weighted(iris_split_dataset_and_model):
+def test_multiclass_proba_reduce_aggregations(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
     check = TrainTestPredictionDrift(categorical_drift_method='PSI', aggregation_method='weighted')
@@ -187,7 +187,21 @@ def test_multiclass_proba_reduce_weighted(iris_split_dataset_and_model):
     result = check.run(train, test, model)
 
     # Assert
-    # Assert
     assert_that(result.reduce_output(), has_entries(
         {'Weighted Drift Score': close_to(0.06, 0.01)}
+    ))
+
+    check.aggregation_method = 'mean'
+    assert_that(result.reduce_output(), has_entries(
+        {'Mean Drift Score': close_to(0.06, 0.01)}
+    ))
+
+    check.aggregation_method = 'max'
+    assert_that(result.reduce_output(), has_entries(
+        {'Max Drift Score': close_to(0.08, 0.01)}
+    ))
+
+    check.aggregation_method = 'none'
+    assert_that(result.reduce_output(), has_entries(
+        {'Drift Score': has_entries({0: close_to(0.08, 0.01), 1: close_to(0.038, 0.01), 2: close_to(0.07, 0.01)})}
     ))
