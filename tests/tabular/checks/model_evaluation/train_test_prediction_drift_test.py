@@ -26,9 +26,10 @@ def test_no_drift_regression_label(diabetes, diabetes_model):
 
     # Assert
     assert_that(result.value, has_entries(
-            {'Drift score': close_to(0.04, 0.01),
-             'Method': equal_to('Earth Mover\'s Distance')}
+        {'Drift score': close_to(0.04, 0.01),
+         'Method': equal_to('Earth Mover\'s Distance')}
     ))
+
 
 def test_reduce_no_drift_regression_label(diabetes, diabetes_model):
     # Arrange
@@ -40,7 +41,7 @@ def test_reduce_no_drift_regression_label(diabetes, diabetes_model):
 
     # Assert
     assert_that(result.reduce_output(), has_entries(
-            {'Prediction Drift Score': close_to(0.04, 0.01)}
+        {'Prediction Drift Score': close_to(0.04, 0.01)}
     ))
 
 
@@ -54,8 +55,8 @@ def test_drift_classification_label(drifted_data_and_model):
 
     # Assert
     assert_that(result.value, has_entries(
-            {'Drift score': close_to(0.78, 0.01),
-             'Method': equal_to('PSI')}
+        {'Drift score': close_to(0.78, 0.01),
+         'Method': equal_to('PSI')}
     ))
     assert_that(result.display, has_length(greater_than(0)))
 
@@ -70,8 +71,8 @@ def test_drift_classification_label_without_display(drifted_data_and_model):
 
     # Assert
     assert_that(result.value, has_entries(
-            {'Drift score': close_to(0.78, 0.01),
-             'Method': equal_to('PSI')}
+        {'Drift score': close_to(0.78, 0.01),
+         'Method': equal_to('PSI')}
     ))
     assert_that(result.display, has_length(0))
 
@@ -97,8 +98,8 @@ def test_drift_regression_label_cramer(drifted_data_and_model):
 
     # Assert
     assert_that(result.value, has_entries(
-            {'Drift score': close_to(0.426, 0.01),
-             'Method': equal_to('Cramer\'s V')}
+        {'Drift score': close_to(0.426, 0.01),
+         'Method': equal_to('Cramer\'s V')}
     ))
 
 
@@ -150,4 +151,43 @@ def test_multiclass_proba(iris_split_dataset_and_model):
     assert_that(result.value, has_entries(
         {'Drift score': has_entries({0: close_to(0.08, 0.01), 1: close_to(0.038, 0.01), 2: close_to(0.07, 0.01)}),
          'Method': equal_to('Earth Mover\'s Distance')}
+    ))
+
+
+def test_binary_proba_condition_fail_threshold(drifted_data_and_model):
+    # Arrange
+    train, test, model = drifted_data_and_model
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI', drift_mode='proba'
+                                     ).add_condition_drift_score_less_than()
+
+    # Act
+    result = check.run(train, test, model)
+    condition_result, *_ = check.conditions_decision(result)
+
+    # Assert
+    assert_that(result.value, has_entries(
+        {'Drift score': has_entries({0: close_to(0.23, 0.01), 1: close_to(0.23, 0.01)}),
+         'Method': equal_to('Earth Mover\'s Distance')}
+    ))
+
+    assert_that(condition_result, equal_condition_result(
+        is_pass=False,
+        name='categorical drift score < 0.15 and numerical drift score < 0.07',
+        details='Found 2 classes with model predicted probability Earth Mover\'s Distance drift' 
+                ' score above threshold: 0.07.'
+    ))
+
+
+def test_multiclass_proba_reduce_weighted(iris_split_dataset_and_model):
+    # Arrange
+    train, test, model = iris_split_dataset_and_model
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI', aggregation_method='weighted')
+
+    # Act
+    result = check.run(train, test, model)
+
+    # Assert
+    # Assert
+    assert_that(result.reduce_output(), has_entries(
+        {'Weighted Drift Score': close_to(0.06, 0.01)}
     ))
