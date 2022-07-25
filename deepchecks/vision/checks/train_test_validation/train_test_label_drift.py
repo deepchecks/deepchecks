@@ -168,9 +168,6 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
         for prop_name, prop_value in properties_results.items():
             # Flatten the properties since we don't care in this check about the property-per-sample coupling
             properties_results[prop_name] += properties_flatten(prop_value)
-        # for label_property in self._label_properties:
-        #     # Flatten the properties since I don't care in this check about the property-per-sample coupling
-        #     properties_results[label_property['name']] += properties_flatten(label_property['method'](batch.labels))
 
     def compute(self, context: Context) -> CheckResult:
         """Calculate drift on label properties samples that were collected during update() calls.
