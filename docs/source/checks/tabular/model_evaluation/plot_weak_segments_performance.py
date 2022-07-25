@@ -68,7 +68,7 @@ model = load_fitted_model()
 # ``categorical_aggregation_threshold``: By default the check will combine rare categories into a single category called
 # "Other". This parameter determines the frequency threshold for categories to be mapped into to the "other" category.
 #
-# see :class:`deepchecks.tabular.checks.model_evaluation.WeakSegmentsPerformance` for more details.
+# see :class:`API reference <deepchecks.tabular.checks.model_evaluation.WeakSegmentsPerformance>` for more details.
 
 from deepchecks.tabular.datasets.classification import phishing
 from deepchecks.tabular.checks import WeakSegmentsPerformance
