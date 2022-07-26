@@ -13,19 +13,19 @@
 import typing as t
 import pandas as pd
 
-from deepchecks import tabular
+from deepchecks import Dataset
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.metric_utils import DeepcheckScorer
 from deepchecks.utils.features import calculate_feature_importance as _calculate_feature_importance
 
 __all__ = [
-    'feature_importance'
+    'calculate_feature_importance'
 ]
 
 
-def feature_importance(
+def calculate_feature_importance(
         model: t.Any,
-        dataset: t.Union['tabular.Dataset', pd.DataFrame],
+        dataset: Dataset,
         n_repeats: int = 30,
         mask_high_variance_features: bool = False,
         n_samples: int = 10_000,
@@ -35,7 +35,27 @@ def feature_importance(
     """
     Calculate feature importance outside of check and suite.
 
-    As many checks and suites use feature importance, it is rec
+    Many checks and suites in deepchecks use feature importance as part of its calculation or output. If your model
+    does not have built-in feature importance, the check or suite will calculate it for you. This calculation is done
+    in every call to the check or suite ``run`` function. Therefore, when running different checks outside of a suite,
+    or running the same suite several times, this calculation will be done every time.
+
+    The recalculation can be avoided by calculating the feature importance in advance. Use this function to calculate
+    your feature importance, and then give it as an input to the check or suite ``run`` function, as follows:
+
+    Calculate feature importance:
+
+    >>> from deepchecks.tabular.feature_importance import calculate_feature_importance
+    >>> from deepchecks.tabular.datasets.classification.iris import load_data, load_fitted_model
+    >>> iris_train_dataset, iris_test_dataset = load_data()
+    >>> iris_model = load_fitted_model()
+    >>> fi = calculate_feature_importance(model=iris_model, dataset=iris_train_dataset)
+
+    Use in check:
+
+    >>> from deepchecks.tabular.checks import UnusedFeatures
+    >>> result = UnusedFeatures().run(train_dataset=iris_train_dataset, test_dataset=iris_test_dataset,
+    ...                               model=iris_model, feature_importance=fi)
 
     Parameters
     ----------

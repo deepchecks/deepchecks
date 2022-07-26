@@ -12,15 +12,27 @@
 from hamcrest import assert_that, close_to, raises, calling
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.tabular.user_utils import feature_importance
+from deepchecks.tabular.feature_importance import calculate_feature_importance
 
 
-def test_calculate_importance_when_no_builtin(iris_split_dataset_and_model):
+def test_calculate_importance(iris_split_dataset_and_model):
     # Arrange
     train_ds, _, adaboost = iris_split_dataset_and_model
 
     # Act
-    fi = feature_importance(adaboost, train_ds)
+    fi = calculate_feature_importance(adaboost, train_ds)
+
+    # Assert
+    assert_that(fi.sum(), close_to(1, 0.000001))
+
+
+def test_calculate_importance_with_kwargs(iris_split_dataset_and_model):
+    # Arrange
+    train_ds, _, adaboost = iris_split_dataset_and_model
+
+    # Act
+    fi = calculate_feature_importance(adaboost, train_ds, n_repeats=30, mask_high_variance_features=False, n_samples=10_000,
+                                      alternative_scorer=None)
 
     # Assert
     assert_that(fi.sum(), close_to(1, 0.000001))
@@ -32,6 +44,6 @@ def test_calculate_importance_force_permutation_fail_on_dataframe(iris_split_dat
     df_only_features = train_ds.data.drop(train_ds.label_name, axis=1)
 
     # Assert
-    assert_that(calling(feature_importance)
+    assert_that(calling(calculate_feature_importance)
                 .with_args(adaboost, df_only_features),
                 raises(DeepchecksValueError, 'Cannot calculate permutation feature importance on a pandas Dataframe'))
