@@ -33,7 +33,7 @@ from deepchecks.utils.typing import Hashable
 from deepchecks.utils.validation import ensure_hashable_or_mutable_sequence
 
 __all__ = [
-    'calculate_feature_importance',
+    '_calculate_feature_importance',
     'calculate_feature_importance_or_none',
     'column_importance_sorter_dict',
     'column_importance_sorter_df',
@@ -76,7 +76,7 @@ def calculate_feature_importance_or_none(
         if model is None:
             return None
         # calculate feature importance if dataset has a label and the model is fitted on it
-        fi, calculation_type = calculate_feature_importance(
+        fi, calculation_type = _calculate_feature_importance(
             model=model,
             dataset=dataset,
             force_permutation=force_permutation,
@@ -105,7 +105,7 @@ def calculate_feature_importance_or_none(
         return None, None
 
 
-def calculate_feature_importance(
+def _calculate_feature_importance(
         model: t.Any,
         dataset: t.Union['tabular.Dataset', pd.DataFrame],
         force_permutation: bool = False,

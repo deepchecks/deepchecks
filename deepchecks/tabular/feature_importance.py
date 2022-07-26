@@ -17,7 +17,7 @@ import pandas as pd
 from deepchecks import Dataset
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.metric_utils import DeepcheckScorer
-from deepchecks.utils.features import calculate_feature_importance as _calculate_feature_importance
+from deepchecks.utils.features import _calculate_feature_importance
 
 __all__ = [
     'calculate_feature_importance'
