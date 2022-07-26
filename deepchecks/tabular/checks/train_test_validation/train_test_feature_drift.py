@@ -43,8 +43,9 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceMixin):
     See https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf.
 
     For categorical variables, it is recommended to use Cramer's V, unless your variable includes categories with a
-    small number of samples (common practice is under 5 samples). However, in cases of a variable with a large number
-    of categories with few samples, it is still recommended to use Cramer's V.
+    small number of samples (common practice is categories with less than 5 samples).
+    However, in cases of a variable with many categories with few samples, it is still recommended to use Cramer's V.
+
 
     Parameters
     ----------
