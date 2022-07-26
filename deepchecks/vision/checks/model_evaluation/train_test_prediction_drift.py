@@ -141,9 +141,9 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
 
         if self.prediction_properties is None:
             if task_type == TaskType.CLASSIFICATION:
-                self._prediction_properties = DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES
+                self.prediction_properties = DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES
             elif task_type == TaskType.OBJECT_DETECTION:
-                self._prediction_properties = DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES
+                self.prediction_properties = DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES
             else:
                 raise NotImplementedError('Check must receive either prediction_properties or '
                                           'run on Classification or Object Detection class')
@@ -161,10 +161,10 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         else:
             raise DeepchecksNotSupportedError(f'Unsupported dataset kind {dataset_kind}')
 
-        properties_results = batch.vision_properties(
-            batch.labels, self.label_properties, PropertiesInputType.PREDICTIONS)
+        batch_properties = batch.vision_properties(
+            batch.predictions, self.prediction_properties, PropertiesInputType.PREDICTIONS)
 
-        for prop_name, prop_value in properties_results.items():
+        for prop_name, prop_value in batch_properties.items():
             # Flatten the properties since we don't care in this check about the property-per-sample coupling
             properties_results[prop_name] += properties_flatten(prop_value)
 

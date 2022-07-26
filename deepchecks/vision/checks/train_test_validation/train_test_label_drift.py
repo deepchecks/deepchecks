@@ -162,9 +162,9 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
         else:
             raise DeepchecksNotSupportedError(f'Unsupported dataset kind {dataset_kind}')
 
-        properties_results = batch.vision_properties(batch.labels, self.label_properties, PropertiesInputType.LABELS)
+        batch_properties = batch.vision_properties(batch.labels, self.label_properties, PropertiesInputType.LABELS)
 
-        for prop_name, prop_value in properties_results.items():
+        for prop_name, prop_value in batch_properties.items():
             # Flatten the properties since we don't care in this check about the property-per-sample coupling
             properties_results[prop_name] += properties_flatten(prop_value)
 

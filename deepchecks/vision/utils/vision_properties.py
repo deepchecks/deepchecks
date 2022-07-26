@@ -68,7 +68,7 @@ def validate_properties(properties: List[Dict[str, Any]]):
 
     expected_keys = ('name', 'method', 'output_type')
     deprecated_output_types = ('discrete', 'continuous')
-    output_types = ('categorical', 'numerical')
+    output_types = ('categorical', 'numerical', 'class_id')
 
     list_of_warnings = []
     errors = []

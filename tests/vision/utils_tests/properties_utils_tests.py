@@ -69,6 +69,26 @@ def test_image_properties_validation_with_incorrect_property_output_type():
             rf"instead got hello-world")
     )
 
+def test_validate_properties_with_bad_name_field():
+    # Arrange
+    def prop(predictions):
+        return [int(x[0][0]) if len(x) != 0 else 0 for x in predictions]
+
+    alternative_measurements = [
+        {'name': 'test', 'method': prop, 'output_type': 'continuous'},
+        {'name234': 'test', 'method': prop, 'output_type': 'continuous'},
+    ]
+
+    # Assert
+    assert_that(
+        calling(validate_properties).with_args(alternative_measurements),
+        raises(
+            DeepchecksValueError,
+            r"List of properties contains next problems:\n"
+            rf"\+ Property #1: dictionary must include keys \('name', 'method', 'output_type'\)\. "
+            fr"Next keys are missed \['name'\]")
+    )
+
 
 # =====================================================
 
