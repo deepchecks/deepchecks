@@ -62,9 +62,9 @@ Alternative Methods for Showing Results (Troubleshooting)
 ==============================================================
 
 HTML output produced by ``show()`` method in order to work 
-requires additional jupyter extensions which are not distributed with 
-Deepchecks library and are not always supported or compatible with different
-cloud platforms like Databricks or SageMaker.
+requires additional jupyter extensions which are not always installed/enabled by default 
+and which are not always supported or compatible with different cloud platforms like Databricks 
+or Kaggle.
 
 So, if you experience any result display problems, you can consider any of the following 
 options to resolve them`s:
