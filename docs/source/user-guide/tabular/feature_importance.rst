@@ -62,6 +62,12 @@ importance.
 >>> check = UnusedFeatures()
 >>> check.run(ds_train, ds_test, model, feature_importance=pd.Series({'feat1': 0.3, 'feat2': 0.7}))
 
+If you don't have your feature importance precalculated, you can use deepchecks to calculate it:
+
+>>> from deepchecks.tabular.feature_importance import calculate_feature_importance
+>>> fi = calculate_feature_importance(model, ds_train)
+>>> check.run(ds_train, ds_test, model, feature_importance=fi)
+
 
 Deepchecks Calculates the Feature Importance for You
 ----------------------------------------------------
