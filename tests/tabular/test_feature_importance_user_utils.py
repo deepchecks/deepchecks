@@ -13,6 +13,7 @@ from hamcrest import assert_that, close_to, raises, calling
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.feature_importance import calculate_feature_importance
+from deepchecks.tabular.metric_utils import DeepcheckScorer
 
 
 def test_calculate_importance(iris_split_dataset_and_model):
@@ -32,7 +33,7 @@ def test_calculate_importance_with_kwargs(iris_split_dataset_and_model):
 
     # Act
     fi = calculate_feature_importance(adaboost, train_ds, n_repeats=30, mask_high_variance_features=False, n_samples=10_000,
-                                      alternative_scorer=None)
+                                      alternative_scorer=DeepcheckScorer('accuracy'))
 
     # Assert
     assert_that(fi.sum(), close_to(1, 0.000001))
