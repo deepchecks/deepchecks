@@ -96,7 +96,7 @@ class Batch:
         dataset = self._context.get_data_by_kind(self._dataset_kind)
         return len(list(dataset.data_loader.batch_sampler)[self.batch_index])
 
-    def vision_properties(self, raw_data: List, properties_list: List[Dict], input_type=PropertiesInputType):
+    def vision_properties(self, raw_data: List, properties_list: List[Dict], input_type: PropertiesInputType):
         """Calculate and cache the properties for the batch according to the propety input type"""
         properties_list = validate_properties(properties_list)
         # if there are no cached properties at all, calculate all the properties on the list,

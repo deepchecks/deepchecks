@@ -58,8 +58,6 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         Two percentiles which define the IQR range
     iqr_scale: float, default: 1.5
         The scale to multiply the IQR range for the outliers detection
-    properties_precalculated: bool, default: False
-        Are the properties passed to the check precalculated
     """
 
     def __init__(self,

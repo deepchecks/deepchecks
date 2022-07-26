@@ -118,13 +118,10 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
         """Calculate image properties for train or test batches."""
 
         dataset = context.get_data_by_kind(dataset_kind)
-        # properties = batch.vision_properties
 
         if dataset_kind == DatasetKind.TRAIN:
-            # dataset = context.train
             properties_results = self._train_properties
         else:
-            # dataset = context.test
             properties_results = self._test_properties
 
         imgs = []
