@@ -36,7 +36,7 @@ def test_label_ambiguity():
     # Assert
     assert_that(result.value, has_entries({
         'percent': equal_to(1),
-        'samples': instance_of(list)
+        'samples_indices': instance_of(list)
     }))
     assert_that(result.display[1], has_length(2))
 
@@ -58,7 +58,7 @@ def test_label_ambiguity_empty():
     # Assert
     assert_that(result.value, has_entries({
         'percent': equal_to(0),
-        'samples': has_length(0)
+        'samples_indices': has_length(0)
     }))
     assert_that(result.display, has_length(0))
 
@@ -78,7 +78,7 @@ def test_label_ambiguity_mixed():
     # Assert
     assert_that(result.value, has_entries({
         'percent': close_to(0.5, 0.01),
-        'samples': has_length(1)
+        'samples_indices': has_length(1)
     }))
     assert_that(
         result.display[1],
@@ -101,7 +101,7 @@ def test_label_ambiguity_mixed_without_display():
     # Assert
     assert_that(result.value, has_entries({
         'percent': close_to(0.5, 0.01),
-        'samples': has_length(1)
+        'samples_indices': has_length(1)
     }))
     assert_that(result.display, has_length(0))
 
@@ -150,3 +150,23 @@ def test_label_ambiguity_condition_pass():
                                details='Ratio of samples with conflicting labels: 50%',
                                name='Ambiguous sample ratio is less or equal to 70%')
     ))
+
+
+def test_label_ambiguity_single_column():
+    # Arrange
+    data = {
+        'col1': [1, 1, 1, 2, 2, 2]*100,
+        'label': [1, 1, 2, 2, 3, 4]*100
+    }
+    dataframe = pd.DataFrame(data)
+    ds = Dataset(dataframe, label='label')
+    check = ConflictingLabels()
+
+    # Act
+    result = check.run(ds)
+
+    # Assert
+    assert_that(result.value, has_entries({
+        'percent': equal_to(1),
+        'samples_indices': instance_of(list)
+    }))

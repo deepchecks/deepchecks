@@ -145,20 +145,20 @@ Example for running a suite on given `datasets`_ and with a `supported model`_:
    from deepchecks.tabular.suites import model_evaluation
    suite = model_evaluation()
    result = suite.run(train_dataset=train_dataset, test_dataset=test_dataset, model=model)
-   result.show()
+   result.save_as_html() # replace this with result.show() or result.show_in_window() to see results inline or in window
 
 Which will result in a report that looks like this:
 
 .. raw:: html
 
    <p align="center">
-      <img src="docs/source/_static/images/general/full_suite_output.gif" width="750">
+      <img src="docs/source/_static/images/general/model_evaluation_suite.gif" width="800">
    </p>
 
 
 Note:
 
-- Results can also be saved as an html report, saved as json, or exported to other tools (e.g Weights & Biases - wandb)
+- Results can also displayed inline, saved as an html report, saved as JSON, or exported to other tools (e.g Weights & Biases - wandb)
 - Other suites that run only on the data (``data_integrity``, ``train_test_validation``) don't require a model as part of the input.
 
 See the `full code tutorials here`_.

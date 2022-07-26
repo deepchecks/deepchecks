@@ -45,7 +45,7 @@ data.head(2)
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import GradientBoostingRegressor
 
-X_train, X_test, y_train, y_test = train_test_split(data.iloc[:, :-1], data['quality'], test_size=0.2)
+X_train, X_test, y_train, y_test = train_test_split(data.iloc[:, :-1], data['quality'], test_size=0.2, random_state=42)
 gbr = GradientBoostingRegressor()
 gbr.fit(X_train, y_train)
 
@@ -66,9 +66,11 @@ from deepchecks.tabular import Dataset
 # recommend to state them explicitly to avoid misclassification.
 
 # Metadata attributes are optional. Some checks will run only if specific attributes are declared.
+# Attributes such as "label_type" are not mandatory, but in a case of ordinal integers, the task type can be inferred
+# both as multiclass and regression, so it's recommended to declare directly.
 
-train_ds = Dataset(X_train, label=y_train, cat_features=[])
-test_ds = Dataset(X_test, label=y_test, cat_features=[])
+train_ds = Dataset(X_train, label=y_train, cat_features=[], label_type='regression_label')
+test_ds = Dataset(X_test, label=y_test, cat_features=[], label_type='regression_label')
 
 #%%
 # Run the Deepchecks Suite
