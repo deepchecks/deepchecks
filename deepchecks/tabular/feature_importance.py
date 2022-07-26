@@ -11,6 +11,7 @@
 """Public utils to be used by deepchecks users."""
 
 import typing as t
+
 import pandas as pd
 
 from deepchecks import Dataset
