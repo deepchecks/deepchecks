@@ -175,7 +175,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         if context.with_display:
             headnote = f"""<span>
                 The Drift score is a measure for the difference between two distributions, in this check - the test
-                and train distributions.<br> The check shows the drift score and distributions for the predicted 
+                and train distributions.<br> The check shows the drift score and distributions for the predicted
                 {'class probabilities' if proba_drift else 'classes'}.
             </span>"""
 
