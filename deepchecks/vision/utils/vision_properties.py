@@ -32,7 +32,7 @@ class PropertiesInputType(Enum):
 
 def calc_vision_properties(raw_data, properties_list) -> Dict[str, list]:
     """
-    Calculates the image properties for a batch of images.
+    Calculate the image properties for a batch of images.
 
     Parameters
     ----------
@@ -40,14 +40,13 @@ def calc_vision_properties(raw_data, properties_list) -> Dict[str, list]:
         Batch of images to transform to image properties.
 
     vision_properties: List[Dict] , default: None
-        A list of properties to calculate
+        A list of properties to calculate.
 
     Returns
     ------
     batch_properties: dict[str, List]
-        A dict of property name, property value per sample
+        A dict of property name, property value per sample.
     """
-
     batch_properties = defaultdict(list)
     for single_property in properties_list:
         property_list = single_property['method'](raw_data)

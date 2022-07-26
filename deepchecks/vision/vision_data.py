@@ -26,7 +26,7 @@ from deepchecks.utils.logger import get_logger
 from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.utils.image_functions import ImageInfo
-from deepchecks.vision.utils.image_properties import calc_image_properties
+from deepchecks.vision.utils.vision_properties import calc_vision_properties
 from deepchecks.vision.utils.transformations import get_transforms_handler
 
 __all__ = ['VisionData']
@@ -242,7 +242,7 @@ class VisionData:
         batch_properties: dict[str, List]
             A dict of property name, property value per sample
         """
-        return calc_image_properties(raw_data, properties_list)
+        return calc_vision_properties(raw_data, properties_list)
 
     def validate_label(self, batch):
         """Validate a batch of labels."""

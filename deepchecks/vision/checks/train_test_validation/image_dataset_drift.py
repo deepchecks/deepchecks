@@ -85,6 +85,7 @@ class ImageDatasetDrift(TrainTestCheck):
         self._test_properties = None
 
     def initialize_run(self, context: Context):
+        """Initialize self state, and validate the run context."""
         self._train_properties = defaultdict(list)
         self._test_properties = defaultdict(list)
 

@@ -146,28 +146,3 @@ def get_column_type(output_type):
         'categorical': 'categorical'
     }
     return mapper[output_type]
-
-
-def calc_image_properties(images, properties_to_calc) -> Dict[str, list]:
-    """
-    Calculates the image properties for a batch of images.
-
-    Parameters
-    ----------
-    images : torch.Tensor
-        Batch of images to transform to image properties.
-
-    vision_properties: List[Dict] , default: None
-        overrides self.image_proerties, if None uses self.image properties
-
-    Returns
-    ------
-    batch_properties: dict[str, List]
-        A dict of property name, property value per image
-    """
-
-    batch_properties = defaultdict(list)
-    for single_property in properties_to_calc:
-        property_list = single_property['method'](images)
-        batch_properties[single_property['name']] = property_list
-    return batch_properties
