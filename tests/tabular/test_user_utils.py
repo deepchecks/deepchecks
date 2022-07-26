@@ -10,10 +10,9 @@
 #
 """Test user utils"""
 from hamcrest import assert_that, close_to, raises, calling
-from sklearn.neural_network import MLPClassifier
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.tabular.user_utils import calculate_feature_importance
+from deepchecks.tabular.user_utils import feature_importance
 
 
 def test_calculate_importance_when_no_builtin(iris_split_dataset_and_model):
@@ -21,10 +20,10 @@ def test_calculate_importance_when_no_builtin(iris_split_dataset_and_model):
     train_ds, _, adaboost = iris_split_dataset_and_model
 
     # Act
-    feature_importance = calculate_feature_importance(adaboost, train_ds)
+    fi = feature_importance(adaboost, train_ds)
 
     # Assert
-    assert_that(feature_importance.sum(), close_to(1, 0.000001))
+    assert_that(fi.sum(), close_to(1, 0.000001))
 
 
 def test_calculate_importance_force_permutation_fail_on_dataframe(iris_split_dataset_and_model):
@@ -33,6 +32,6 @@ def test_calculate_importance_force_permutation_fail_on_dataframe(iris_split_dat
     df_only_features = train_ds.data.drop(train_ds.label_name, axis=1)
 
     # Assert
-    assert_that(calling(calculate_feature_importance)
+    assert_that(calling(feature_importance)
                 .with_args(adaboost, df_only_features),
                 raises(DeepchecksValueError, 'Cannot calculate permutation feature importance on a pandas Dataframe'))
