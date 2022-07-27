@@ -8,40 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""The phishing dataset contains a slightly synthetic dataset of urls - some regular and some used for phishing."""
-import typing as t
-from urllib.request import urlopen
-
-import joblib
-import pandas as pd
-import sklearn
-from category_encoders import OneHotEncoder
-from sklearn.compose import ColumnTransformer
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.impute import SimpleImputer
-from sklearn.pipeline import Pipeline
-
-from deepchecks.tabular.dataset import Dataset
-
-__all__ = ['load_data', 'load_fitted_model']
-
-_MODEL_URL = 'https://figshare.com/ndownloader/files/35122765'
-_FULL_DATA_URL = 'https://figshare.com/ndownloader/files/33079757'
-_TRAIN_DATA_URL = 'https://ndownloader.figshare.com/files/33079781'
-_TEST_DATA_URL = 'https://ndownloader.figshare.com/files/33079787'
-_MODEL_VERSION = '1.0.2'
-_target = 'target'
-_CAT_FEATURES = ['ext']
-_NON_FEATURES = ['month', 'has_ip', 'urlIsLive']
-_NUM_FEATURES = ['urlLength', 'numDigits', 'numParams', 'num_%20', 'num_@', 'entropy', 'hasHttp', 'hasHttps', 'dsr',
-                 'dse', 'bodyLength', 'numTitles', 'numImages', 'numLinks', 'specialChars', 'scriptLength', 'sbr',
-                 'bscr', 'sscr']
-_DATE_COL = 'scrape_date'
-
-
-def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
-        t.Union[t.Tuple, t.Union[Dataset, pd.DataFrame]]:
-    """Load and returns the phishing url dataset (classification).
+"""The phishing dataset contains a slightly synthetic dataset of urls - some regular and some used for phishing.
 
     The phishing url dataset contains slightly synthetic dataset of urls - some regular and some used for phishing.
 
@@ -154,6 +121,40 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
            * - sscr
              - Feature
              - The ratio of scriptLength to specialChars (`= scriptLength / specialChars`)
+"""
+import typing as t
+from urllib.request import urlopen
+
+import joblib
+import pandas as pd
+import sklearn
+from category_encoders import OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
+
+from deepchecks.tabular.dataset import Dataset
+
+__all__ = ['load_data', 'load_fitted_model']
+
+_MODEL_URL = 'https://figshare.com/ndownloader/files/35122765'
+_FULL_DATA_URL = 'https://figshare.com/ndownloader/files/33079757'
+_TRAIN_DATA_URL = 'https://ndownloader.figshare.com/files/33079781'
+_TEST_DATA_URL = 'https://ndownloader.figshare.com/files/33079787'
+_MODEL_VERSION = '1.0.2'
+_target = 'target'
+_CAT_FEATURES = ['ext']
+_NON_FEATURES = ['month', 'has_ip', 'urlIsLive']
+_NUM_FEATURES = ['urlLength', 'numDigits', 'numParams', 'num_%20', 'num_@', 'entropy', 'hasHttp', 'hasHttps', 'dsr',
+                 'dse', 'bodyLength', 'numTitles', 'numImages', 'numLinks', 'specialChars', 'scriptLength', 'sbr',
+                 'bscr', 'sscr']
+_DATE_COL = 'scrape_date'
+
+
+def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
+        t.Union[t.Tuple, t.Union[Dataset, pd.DataFrame]]:
+    """Load and returns the phishing url dataset (classification).
 
     Parameters
     ----------

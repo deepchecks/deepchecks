@@ -8,39 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""The data set contains features for binary prediction of the income of an adult (the adult dataset)."""
-import typing as t
-from urllib.request import urlopen
-
-import joblib
-import pandas as pd
-import sklearn
-from category_encoders import OrdinalEncoder
-from sklearn.compose import ColumnTransformer
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.impute import SimpleImputer
-from sklearn.pipeline import Pipeline
-
-from deepchecks.tabular.dataset import Dataset
-
-__all__ = ['load_data', 'load_fitted_model']
-
-_MODEL_URL = 'https://figshare.com/ndownloader/files/35122753'
-_FULL_DATA_URL = 'https://ndownloader.figshare.com/files/34516457'
-_TRAIN_DATA_URL = 'https://ndownloader.figshare.com/files/34516448'
-_TEST_DATA_URL = 'https://ndownloader.figshare.com/files/34516454'
-_MODEL_VERSION = '1.0.2'
-_FEATURES = ['age', 'workclass', 'fnlwgt', 'education', 'education-num', 'marital-status', 'occupation', 'relationship',
-             'race', 'sex', 'capital-gain', 'capital-loss', 'hours-per-week', 'native-country']
-_target = 'income'
-_CAT_FEATURES = ['workclass', 'education', 'marital-status', 'occupation', 'relationship', 'race', 'sex',
-                 'native-country']
-_NUM_FEATURES = sorted(list(set(_FEATURES) - set(_CAT_FEATURES)))
-
-
-def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
-        t.Union[t.Tuple, t.Union[Dataset, pd.DataFrame]]:
-    """Load and returns the Adult dataset (classification).
+"""The data set contains features for binary prediction of the income of an adult (the adult dataset).
 
     The data has 48842 records with 14 features and one binary target column, referring to whether the person's income
     is greater than 50K.
@@ -132,6 +100,38 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
            * - target
              - Target
              - The target variable, whether the person makes over 50K a year.
+"""
+import typing as t
+from urllib.request import urlopen
+
+import joblib
+import pandas as pd
+import sklearn
+from category_encoders import OrdinalEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
+
+from deepchecks.tabular.dataset import Dataset
+__all__ = ['load_data', 'load_fitted_model']
+
+_MODEL_URL = 'https://figshare.com/ndownloader/files/35122753'
+_FULL_DATA_URL = 'https://ndownloader.figshare.com/files/34516457'
+_TRAIN_DATA_URL = 'https://ndownloader.figshare.com/files/34516448'
+_TEST_DATA_URL = 'https://ndownloader.figshare.com/files/34516454'
+_MODEL_VERSION = '1.0.2'
+_FEATURES = ['age', 'workclass', 'fnlwgt', 'education', 'education-num', 'marital-status', 'occupation', 'relationship',
+             'race', 'sex', 'capital-gain', 'capital-loss', 'hours-per-week', 'native-country']
+_target = 'income'
+_CAT_FEATURES = ['workclass', 'education', 'marital-status', 'occupation', 'relationship', 'race', 'sex',
+                 'native-country']
+_NUM_FEATURES = sorted(list(set(_FEATURES) - set(_CAT_FEATURES)))
+
+
+def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
+        t.Union[t.Tuple, t.Union[Dataset, pd.DataFrame]]:
+    """Load and returns the Adult dataset (classification).
 
     Parameters
     ----------

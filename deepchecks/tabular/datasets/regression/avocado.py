@@ -8,36 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""The avocado dataset contains historical data on avocado prices and sales volume in multiple US markets."""
-import typing as t
-from urllib.request import urlopen
-
-import joblib
-import pandas as pd
-import sklearn
-from category_encoders import OneHotEncoder
-from sklearn.compose import ColumnTransformer
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.impute import SimpleImputer
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
-
-from deepchecks.tabular.dataset import Dataset
-
-__all__ = ['load_data', 'load_fitted_model']
-_MODEL_URL = 'https://figshare.com/ndownloader/files/35259829'
-_FULL_DATA_URL = 'https://figshare.com/ndownloader/files/35259799'
-_TRAIN_DATA_URL = 'https://figshare.com/ndownloader/files/35259769'
-_TEST_DATA_URL = 'https://figshare.com/ndownloader/files/35259814'
-_MODEL_VERSION = '1.0.2'
-_target = 'AveragePrice'
-_CAT_FEATURES = ['region', 'type']
-_NUM_FEATURES = ['Total Volume', '4046', '4225', 'Total Bags', 'Small Bags', 'Large Bags', 'XLarge Bags']
-
-
-def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
-        t.Union[t.Tuple, t.Union[Dataset, pd.DataFrame]]:
-    """Load and returns the Avocado dataset (regression).
+"""The avocado dataset contains historical data on avocado prices and sales volume in multiple US markets.
 
     The avocado dataset contains historical data on avocado prices and sales volume in multiple US markets
     https://www.kaggle.com/neuromusic/avocado-prices.
@@ -110,6 +81,36 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
            * - AveragePrice
              - Label
              - The average price of a single avocado
+"""
+import typing as t
+from urllib.request import urlopen
+
+import joblib
+import pandas as pd
+import sklearn
+from category_encoders import OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+
+from deepchecks.tabular.dataset import Dataset
+
+__all__ = ['load_data', 'load_fitted_model']
+_MODEL_URL = 'https://figshare.com/ndownloader/files/35259829'
+_FULL_DATA_URL = 'https://figshare.com/ndownloader/files/35259799'
+_TRAIN_DATA_URL = 'https://figshare.com/ndownloader/files/35259769'
+_TEST_DATA_URL = 'https://figshare.com/ndownloader/files/35259814'
+_MODEL_VERSION = '1.0.2'
+_target = 'AveragePrice'
+_CAT_FEATURES = ['region', 'type']
+_NUM_FEATURES = ['Total Volume', '4046', '4225', 'Total Bags', 'Small Bags', 'Large Bags', 'XLarge Bags']
+
+
+def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
+        t.Union[t.Tuple, t.Union[Dataset, pd.DataFrame]]:
+    """Load and returns the Avocado dataset (regression).
 
     Parameters
     ----------

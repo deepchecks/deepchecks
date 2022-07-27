@@ -8,31 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""The data set contains 3 classes of 50 instances each, where each class refers to a type of iris plant."""
-import typing as t
-from urllib.request import urlopen
-
-import joblib
-import pandas as pd
-import sklearn
-from sklearn.ensemble import RandomForestClassifier
-
-from deepchecks.tabular.dataset import Dataset
-
-__all__ = ['load_data', 'load_fitted_model']
-
-_MODEL_URL = 'https://figshare.com/ndownloader/files/35122762'
-_FULL_DATA_URL = 'https://figshare.com/ndownloader/files/32652977'
-_TRAIN_DATA_URL = 'https://figshare.com/ndownloader/files/32653172'
-_TEST_DATA_URL = 'https://figshare.com/ndownloader/files/32653130'
-_MODEL_VERSION = '1.0.2'
-_target = 'target'
-_CAT_FEATURES = []
-
-
-def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
-        t.Union[t.Tuple, t.Union[Dataset, pd.DataFrame]]:
-    """Load and returns the Iris dataset (classification).
+"""The data set contains 3 classes of 50 instances each, where each class refers to a type of iris plant.
 
     The data set contains 3 classes of 50 instances each, where each class refers to a type of iris plant.
     One class is linearly separable from the other 2; the latter are NOT linearly separable from each other.
@@ -88,6 +64,31 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
            * - target
              - Label
              - The class (Setosa,Versicolour,Virginica)
+"""
+import typing as t
+from urllib.request import urlopen
+
+import joblib
+import pandas as pd
+import sklearn
+from sklearn.ensemble import RandomForestClassifier
+
+from deepchecks.tabular.dataset import Dataset
+
+__all__ = ['load_data', 'load_fitted_model']
+
+_MODEL_URL = 'https://figshare.com/ndownloader/files/35122762'
+_FULL_DATA_URL = 'https://figshare.com/ndownloader/files/32652977'
+_TRAIN_DATA_URL = 'https://figshare.com/ndownloader/files/32653172'
+_TEST_DATA_URL = 'https://figshare.com/ndownloader/files/32653130'
+_MODEL_VERSION = '1.0.2'
+_target = 'target'
+_CAT_FEATURES = []
+
+
+def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
+        t.Union[t.Tuple, t.Union[Dataset, pd.DataFrame]]:
+    """Load and returns the Iris dataset (classification).
 
     Parameters
     ----------
