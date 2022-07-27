@@ -895,7 +895,8 @@ class Dataset:
         if isinstance(obj, pd.DataFrame):
             get_logger().warning(
                 'Received a "pandas.DataFrame" instance. It is recommended to pass a "deepchecks.tabular.Dataset" '
-                'instance by doing "Dataset(dataframe)"'
+                'instance by initializing it with the data and metadata, '
+                'for example by doing "Dataset(dataframe, label=label, cat_features=cat_features)"'
             )
             obj = Dataset(obj)
         elif not isinstance(obj, Dataset):

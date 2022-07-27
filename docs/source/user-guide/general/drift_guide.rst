@@ -101,11 +101,22 @@ There are many measures that can be used for this, such as the Kolmogorov-Smirno
 In deepchecks, we found that the best results are given by:
 
 * For continuous numeric distributions - `Wasserstein metric (Earth Movers Distance) <https://en.wikipedia.org/wiki/Wasserstein_metric>`__
-* For discrete or categorical distributions - `Population Stability Index (PSI) <https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf>`__ or `Cramer's V <https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V>`__
+* For discrete or categorical distributions - `Cramer's V <https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V>`__ or `Population Stability Index (PSI) <https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf>`__
 
 These methods have the advantage of being simple to use and produce explainable results. However, they are limited by
 checking each feature one at a time, and cannot detect drift in the relations between features. Also, these methods
 will usually detect drift multiple times if it occurs in several features.
+
+Choosing the Correct Method to Detect Drift
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+As mentioned above, we recommend to use either `Cramer's V <https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V>`__ or
+`PSI <https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf>`__ for categorical variables, and use Cramer's V by default.
+PSI is widely used in the industry, but does not have an upper limit and is not very explainable.
+Cramer's V is always in the range [0,1], and is based on the `Pearson's chi-squared test <https://en.wikipedia.org/wiki/Pearson%27s_chi-squared_test>`__.
+
+In general, it is recommended to use Cramer's V, unless your variable includes categories with a small number of samples (common practice is categories with less than 5 samples).
+However, in cases of a variable with many categories with few samples, it is still recommended to use Cramer's V, as PSI will not be able to detect change in the smaller categories.
+
 
 .. _drift_detection_by_domain_classifier:
 
@@ -192,7 +203,7 @@ estimate the effect of the change on your model's performance.
 After you have deeper insights on your data, you can choose to act in one of the following ways:
 
 Retrain Your Model
-^^^^^^^^^^^^^^^^^^
+-------------------
 
 If you have either kind of drift, retraining your model on new data that better represents the current distribution,
 is the most straight-forward solution.
@@ -209,7 +220,7 @@ training dataset is sampled so labels are evenly distributed).
     out-of-distribution data, in order for you model to adjust to the new data distribution.
 
 Adjust Your Prediction
-^^^^^^^^^^^^^^^^^^^^^^
+-----------------------
 
 When retraining is not an option, or if a quick action needs to be taken, adjustments to the output of the models may
 still help in cases of concept drift. This can be done by either recalibrating your model's output, or by changing your
@@ -219,7 +230,7 @@ However, these methods assume that there's still enough similarity between your 
 which may not always be the case.
 
 Do Nothing
-^^^^^^^^^^
+------------
 
 Not all drift is necessarily bad, and each case should be examined separately. Sometimes, data drift may be simply
 explained by changes in your label distribution (for example, in a dataset of food images, a drift in brightness of images can simply mean

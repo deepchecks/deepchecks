@@ -33,15 +33,15 @@ class CustomScorer(Metric):
     --------
     >>> from sklearn.metrics import cohen_kappa_score
     ... from deepchecks.vision.metrics_utils.custom_scorer import CustomScorer
-    ... from deepchecks.vision.checks.model_evaluation import SingleDatasetScalarPerformance
+    ... from deepchecks.vision.checks.model_evaluation import SingleDatasetPerformance
     ... from deepchecks.vision.datasets.classification import mnist
     ...
     ... mnist_model = mnist.load_model()
-    ... test_ds = mnist.load_dataset(train=True, object_type='VisionData')
+    ... test_ds = mnist.classification_dataset_from_directory(root='Data', object_type='VisionData')
     ...
     >>> ck = CustomScorer(cohen_kappa_score)
     ...
-    >>> check = SingleDatasetScalarPerformance(ck, metric_name='cohen_kappa_score')
+    >>> check = SingleDatasetPerformance(ck, metric_name='cohen_kappa_score')
     ... check.run(test_ds, mnist_model).value
     """
 
