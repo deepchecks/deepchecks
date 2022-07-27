@@ -35,6 +35,9 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
 
     Check calculates a drift score for the prediction in the test dataset, by comparing its distribution to the train
     dataset.
+    For classification tasks, by default the drift score will be computed on the predicted probability of the positive
+    (1) class for binary classification tasks, and on the predicted class itself for multiclass tasks. This behavior can
+    be controlled using the `drift_mode` parameter.
 
     For numerical columns, we use the Earth Movers Distance.
     See https://en.wikipedia.org/wiki/Wasserstein_metric
@@ -51,8 +54,9 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         For classification task, controls whether to compute drift on the predicted probabilities or the predicted
         classes. For regression task this parameter may be ignored.
         If  set to 'auto', compute drift on the predicted class if the task is multiclass, and on
-        the predicted probabilities if binary. Set to 'proba' to force drift on the predicted probabilities, and
-        'prediction' to force drift on the predicted classes.
+        the predicted probability of the positive class if binary. Set to 'proba' to force drift on the predicted
+        probabilities, and 'prediction' to force drift on the predicted classes. If set to 'proba', on a multiclass
+        task, drift would be calculated on each class independently.
     margin_quantile_filter: float, default: 0.025
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
@@ -149,6 +153,9 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         if proba_drift:
             train_prediction = np.array(model.predict_proba(train_dataset.features_columns))
             test_prediction = np.array(model.predict_proba(test_dataset.features_columns))
+            if test_prediction.shape[1] == 2:
+                train_prediction = train_prediction[:, [1]]
+                test_prediction = test_prediction[:, [1]]
         else:
             train_prediction = np.array(model.predict(train_dataset.features_columns)).reshape((-1, 1))
             test_prediction = np.array(model.predict(test_dataset.features_columns)).reshape((-1, 1))
@@ -185,6 +192,8 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         else:
             displays = None
 
+        # Return float if single value (happens by default) or the whole dict if computing on probabilities for
+        # multi-class tasks.
         values_dict = {
             'Drift score': drift_score_dict if len(drift_score_dict) > 1 else list(drift_score_dict.values())[0],
             'Method': method, 'Samples per class': samples_per_class}

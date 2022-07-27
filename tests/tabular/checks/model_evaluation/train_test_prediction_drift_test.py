@@ -169,22 +169,22 @@ def test_binary_proba_condition_fail_threshold(drifted_data_and_model):
 
     # Assert
     assert_that(result.value, has_entries(
-        {'Drift score': has_entries({0: close_to(0.23, 0.01), 1: close_to(0.23, 0.01)}),
+        {'Drift score': close_to(0.23, 0.01),
          'Method': equal_to('Earth Mover\'s Distance')}
     ))
 
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name='categorical drift score < 0.15 and numerical drift score < 0.075',
-        details='Found 2 classes with model predicted probability Earth Mover\'s Distance drift' 
-                ' score above threshold: 0.075.'
+        details='Found model prediction Earth Mover\'s Distance drift score of 0.23'
     ))
 
 
 def test_multiclass_proba_reduce_aggregations(iris_split_dataset_and_model_rf):
     # Arrange
     train, test, model = iris_split_dataset_and_model_rf
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI', drift_mode='proba', aggregation_method='weighted')
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI', drift_mode='proba', aggregation_method='weighted'
+                                     ).add_condition_drift_score_less_than(max_allowed_numeric_score=0.05)
 
     # Act
     result = check.run(train, test, model)
@@ -209,3 +209,13 @@ def test_multiclass_proba_reduce_aggregations(iris_split_dataset_and_model_rf):
         {'Drift Score class 0': close_to(0.06, 0.01), 'Drift Score class 1': close_to(0.06, 0.01),
          'Drift Score class 2': close_to(0.03, 0.01)})
     )
+
+    # Test condition
+    condition_result, *_ = check.conditions_decision(result)
+
+    assert_that(condition_result, equal_condition_result(
+        is_pass=False,
+        name='categorical drift score < 0.15 and numerical drift score < 0.05',
+        details='Found 2 classes with model predicted probability Earth Mover\'s '
+                'Distance drift score above threshold: 0.05.'
+    ))
