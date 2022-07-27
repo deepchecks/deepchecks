@@ -23,7 +23,7 @@ metric API for vision checks.
 
 Default metrics
 ===============
-All of our relevant checks, meaning checks evaluating model performance, such as SingleDatasetPerformance, come with
+All of the checks that evaluate model performance, such as SingleDatasetPerformance, come with
 default metrics.
 
 The default scorers by task type are:
