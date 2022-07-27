@@ -791,7 +791,6 @@ class Dataset:
             columns[column] = value
         return columns
 
-
     def has_label(self) -> bool:
         """Return True if label column exists.
 
