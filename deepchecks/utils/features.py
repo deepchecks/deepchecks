@@ -258,7 +258,7 @@ def _calc_permutation_importance(
     pd.Series
         feature importance normalized to 0-1 indexed by feature names
     """
-    if dataset.label_name is None:
+    if not dataset.has_label():
         raise errors.DatasetValidationError("Expected dataset with label.")
 
     if len(dataset.features) == 1:
@@ -323,7 +323,9 @@ def get_importance(name: str, feature_importances: pd.Series, ds: 'tabular.Datas
     """Return importance based on feature importance or label/date/index first."""
     if name in feature_importances.keys():
         return feature_importances[name]
-    if name in [ds.label_name, ds.datetime_name, ds.index_name]:
+    elif ds.has_label() and name == ds.label_name:
+        return 1
+    elif name in [ds.datetime_name, ds.index_name]:
         return 1
     return 0
 

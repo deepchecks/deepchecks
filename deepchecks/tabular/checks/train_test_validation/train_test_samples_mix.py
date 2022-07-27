@@ -46,9 +46,9 @@ class TrainTestSamplesMix(TrainTestCheck):
         test_dataset = context.test
         train_dataset = context.train
 
+        train_dataset.assert_features()
         test_dataset.assert_features()
-        test_dataset.assert_label()
-        columns = test_dataset.features + [test_dataset.label_name]
+        columns = test_dataset.features + ([test_dataset.label_name] if test_dataset.has_label() else [])
 
         # For pandas.groupby in python 3.6, there is problem with comparing numpy nan, so replace with placeholder
         train_df = _fillna(train_dataset.data)
