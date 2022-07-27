@@ -598,7 +598,7 @@ def format_list(l: t.List[Hashable], max_elements_to_show: int = 10, max_string_
 
 
 def format_datetime(
-    value,
+    value: t.Union[int, float, datetime],
 ) -> str:
     """Format datetime object or timestamp value.
 
