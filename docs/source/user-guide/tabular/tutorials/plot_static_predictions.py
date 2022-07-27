@@ -38,9 +38,9 @@ model = load_fitted_model()
 # For regression we would provide the predict result, we can also provide the predict result explicitly for classification (on default argmax will be used to calculate them).
 # In order to pass the decisions, we can provide them using the `y_pred_train` and `y_pred_test` arguments.
 
-from deepchecks.utils.features import calculate_feature_importance
+from deepchecks.utils.features import _calculate_feature_importance
 
-feature_importance, _ = calculate_feature_importance(model, test_dataset)
+feature_importance, _ = _calculate_feature_importance(model, test_dataset)
 
 train_proba = model.predict_proba(train_dataset.features_columns)
 test_proba = model.predict_proba(test_dataset.features_columns)

@@ -33,7 +33,7 @@ from deepchecks.utils.typing import Hashable
 from deepchecks.utils.validation import ensure_hashable_or_mutable_sequence
 
 __all__ = [
-    'calculate_feature_importance',
+    '_calculate_feature_importance',
     'calculate_feature_importance_or_none',
     'column_importance_sorter_dict',
     'column_importance_sorter_df',
@@ -76,7 +76,7 @@ def calculate_feature_importance_or_none(
         if model is None:
             return None
         # calculate feature importance if dataset has a label and the model is fitted on it
-        fi, calculation_type = calculate_feature_importance(
+        fi, calculation_type = _calculate_feature_importance(
             model=model,
             dataset=dataset,
             force_permutation=force_permutation,
@@ -105,7 +105,7 @@ def calculate_feature_importance_or_none(
         return None, None
 
 
-def calculate_feature_importance(
+def _calculate_feature_importance(
         model: t.Any,
         dataset: t.Union['tabular.Dataset', pd.DataFrame],
         force_permutation: bool = False,
@@ -150,15 +150,12 @@ def calculate_feature_importance(
 
     if force_permutation:
         if isinstance(dataset, pd.DataFrame):
-            permutation_failure = 'Cannot calculate permutation feature importance on a pandas Dataframe, using ' \
-                                  'built-in model\'s feature importance instead. In order to force permutation ' \
-                                  'feature importance, please use the Dataset object.'
+            raise errors.DeepchecksValueError('Cannot calculate permutation feature importance on a pandas Dataframe. '
+                                              'In order to force permutation feature importance, please use the Dataset'
+                                              ' object.')
         else:
-            try:
-                importance = _calc_permutation_importance(model, dataset, **permutation_kwargs)
-                calc_type = 'permutation_importance'
-            except errors.DeepchecksTimeoutError as e:
-                permutation_failure = f'{e.message}\n using model\'s built-in feature importance instead'
+            importance = _calc_permutation_importance(model, dataset, **permutation_kwargs)
+            calc_type = 'permutation_importance'
 
     # If there was no force permutation, or if it failed while trying to calculate importance,
     # we don't take built-in importance in pipelines because the pipeline is changing the features
@@ -310,13 +307,13 @@ def _calc_permutation_importance(
         else r.importances_mean > 0
     )
 
-    feature_importances = r.importances_mean * significance_mask
-    total = feature_importances.sum()
+    feature_importance = r.importances_mean * significance_mask
+    total = feature_importance.sum()
 
     if total != 0:
-        feature_importances = feature_importances / total
+        feature_importance = feature_importance / total
 
-    return pd.Series(feature_importances, index=dataset.features)
+    return pd.Series(feature_importance, index=dataset.features)
 
 
 def get_importance(name: str, feature_importances: pd.Series, ds: 'tabular.Dataset') -> int:
