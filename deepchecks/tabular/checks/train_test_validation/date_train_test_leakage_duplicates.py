@@ -50,12 +50,12 @@ class DateTrainTestLeakageDuplicates(TrainTestCheck):
 
         train_dataset.assert_datetime()
         train_date = train_dataset.datetime_col
-        val_date = test_dataset.datetime_col
+        test_date = test_dataset.datetime_col
 
-        date_intersection = tuple(set(train_date).intersection(val_date))
+        date_intersection = tuple(set(train_date).intersection(test_date))
 
         if len(date_intersection) > 0:
-            leakage_ratio = len(date_intersection) / test_dataset.n_samples
+            leakage_ratio = len([x for x in test_date if x in date_intersection]) / test_dataset.n_samples
             return_value = leakage_ratio
 
             if context.with_display:
