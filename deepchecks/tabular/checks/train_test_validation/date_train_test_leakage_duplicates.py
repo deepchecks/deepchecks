@@ -62,7 +62,7 @@ class DateTrainTestLeakageDuplicates(TrainTestCheck):
                 text = f'{format_percent(leakage_ratio)} of test data dates appear in training data'
                 table = pd.DataFrame(
                     [[list(format_datetime(it) for it in date_intersection[:self.n_to_show])]],
-                    index=['Sample of test dates in train:']
+                    index=['Sample of test dates in train:'], columns=['duplicate values']
                 )
                 display = [text, table]
             else:

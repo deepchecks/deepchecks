@@ -599,7 +599,6 @@ def format_list(l: t.List[Hashable], max_elements_to_show: int = 10, max_string_
 
 def format_datetime(
     value,
-    datetime_format: str = '%Y/%m/%d %H:%M:%S.%f %Z%z'  # # 1992/02/13 13:23:00 UTC+0000
 ) -> str:
     """Format datetime object or timestamp value.
 
@@ -607,8 +606,6 @@ def format_datetime(
     ----------
     value : Union[datetime, int, float]
         datetime (timestamp) to format
-    datetime_format : str , default: %Y/%m/%d %H:%M:%S.%f %Z%z
-        format to use
     Returns
     -------
     str
@@ -619,11 +616,18 @@ def format_datetime(
         if unexpected value type was passed to the function
     """
     if isinstance(value, datetime):
-        return value.strftime(datetime_format)
+        datetime_value = value
     elif isinstance(value, (int, float)):
-        return datetime.fromtimestamp(value).strftime(datetime_format)
+        datetime_value = datetime.fromtimestamp(value)
     else:
         raise ValueError(f'Unsupported value type - {type(value).__name__}')
+
+    if datetime_value.hour == 0 and datetime_value.minute == 0 and datetime_value.second == 0:
+        return datetime_value.strftime('%Y-%m-%d')
+    elif (datetime_value.hour != 0 or datetime_value.minute != 0) and datetime_value.second == 0:
+        return datetime_value.strftime('%Y-%m-%d %H:%M')
+    else:
+        return datetime_value.strftime('%Y-%m-%d %H:%M:%S')
 
 
 def create_new_file_name(file_name: str, default_suffix: str = 'html'):
