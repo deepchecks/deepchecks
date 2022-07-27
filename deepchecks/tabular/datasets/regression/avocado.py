@@ -10,77 +10,77 @@
 #
 """The avocado dataset contains historical data on avocado prices and sales volume in multiple US markets.
 
-    The avocado dataset contains historical data on avocado prices and sales volume in multiple US markets
-    https://www.kaggle.com/neuromusic/avocado-prices.
+The avocado dataset contains historical data on avocado prices and sales volume in multiple US markets
+https://www.kaggle.com/neuromusic/avocado-prices.
 
-    This dataset is licensed under the Open Data Commons Open Database License (ODbL) v1.0
-    (https://opendatacommons.org/licenses/odbl/1-0/).
+This dataset is licensed under the Open Data Commons Open Database License (ODbL) v1.0
+(https://opendatacommons.org/licenses/odbl/1-0/).
 
-    The typical ML task in this dataset is to build a model that predicts the average price of Avocados.
+The typical ML task in this dataset is to build a model that predicts the average price of Avocados.
 
-    Dataset Shape:
-        .. list-table:: Dataset Shape
-           :widths: 50 50
-           :header-rows: 1
+Dataset Shape:
+    .. list-table:: Dataset Shape
+       :widths: 50 50
+       :header-rows: 1
 
-           * - Property
-             - Value
-           * - Samples Total
-             - 18.2K
-           * - Dimensionality
-             - 14
-           * - Features
-             - real, string
-           * - Targets
-             - real 0.44 - 3.25
+       * - Property
+         - Value
+       * - Samples Total
+         - 18.2K
+       * - Dimensionality
+         - 14
+       * - Features
+         - real, string
+       * - Targets
+         - real 0.44 - 3.25
 
-    Description:
-        .. list-table:: Dataset Description
-           :widths: 50 50 50
-           :header-rows: 1
+Description:
+    .. list-table:: Dataset Description
+       :widths: 50 50 50
+       :header-rows: 1
 
-           * - Column name
-             - Column Role
-             - Description
-           * - Date
-             - Datetime
-             - The date of the observation
-           * - Total Volume
-             - Feature
-             - Total number of avocados sold
-           * - 4046
-             - Feature
-             - Total number of avocados with PLU 4046 (small avocados) sold
-           * - 4225
-             - Feature
-             - Total number of avocados with PLU 4225 (large avocados) sold
-           * - 4770
-             - Feature
-             - Total number of avocados with PLU 4770 (xlarge avocados) sold
-           * - Total Bags
-             - Feature
-             -
-           * - Small Bags
-             - Feature
-             -
-           * - Large Bags
-             - Feature
-             -
-           * - XLarge Bags
-             - Feature
-             -
-           * - type
-             - Feature
-             - Conventional or organic
-           * - year
-             - Feature
-             -
-           * - region
-             - Feature
-             - The city or region of the observation
-           * - AveragePrice
-             - Label
-             - The average price of a single avocado
+       * - Column name
+         - Column Role
+         - Description
+       * - Date
+         - Datetime
+         - The date of the observation
+       * - Total Volume
+         - Feature
+         - Total number of avocados sold
+       * - 4046
+         - Feature
+         - Total number of avocados with PLU 4046 (small avocados) sold
+       * - 4225
+         - Feature
+         - Total number of avocados with PLU 4225 (large avocados) sold
+       * - 4770
+         - Feature
+         - Total number of avocados with PLU 4770 (xlarge avocados) sold
+       * - Total Bags
+         - Feature
+         -
+       * - Small Bags
+         - Feature
+         -
+       * - Large Bags
+         - Feature
+         -
+       * - XLarge Bags
+         - Feature
+         -
+       * - type
+         - Feature
+         - Conventional or organic
+       * - year
+         - Feature
+         -
+       * - region
+         - Feature
+         - The city or region of the observation
+       * - AveragePrice
+         - Label
+         - The average price of a single avocado
 """
 import typing as t
 from urllib.request import urlopen

@@ -10,16 +10,16 @@
 #
 """The data set contains features for binary prediction of whether a loan will be approved or not.
 
-    The partial data has 21668 records with 26 features and one binary target column, referring to whether the specified
-    loan was approved. The partial data set contains the records from the years 2017,2018 for the months of June, July
-    and August. The train set are the records from 2017 and the test set consists of the records from 2018.
+The partial data has 21668 records with 26 features and one binary target column, referring to whether the specified
+loan was approved. The partial data set contains the records from the years 2017,2018 for the months of June, July
+and August. The train set are the records from 2017 and the test set consists of the records from 2018.
 
-    This is a partial copy of the dataset supplied in: https://www.kaggle.com/datasets/wordsforthewise/lending-club
+This is a partial copy of the dataset supplied in: https://www.kaggle.com/datasets/wordsforthewise/lending-club
 
-    The typical ML task in this dataset is to build a model that determines whether a loan will be approved.
+The typical ML task in this dataset is to build a model that determines whether a loan will be approved.
 
-    For further details regarding the dataset features see
-    https://figshare.com/articles/dataset/Lending_club_dataset_description/20016077
+For further details regarding the dataset features see
+https://figshare.com/articles/dataset/Lending_club_dataset_description/20016077
 """
 import typing as t
 import warnings

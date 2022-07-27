@@ -10,17 +10,17 @@
 #
 """The wine quality dataset contains data on different wines and their overall quality.
 
-    The data has 1599 records with 11 features and one ordinal target column, referring to the overall quality
-    of a specific wine. see https://www.kaggle.com/datasets/uciml/red-wine-quality-cortez-et-al-2009
-    for additional information.
+The data has 1599 records with 11 features and one ordinal target column, referring to the overall quality
+of a specific wine. see https://www.kaggle.com/datasets/uciml/red-wine-quality-cortez-et-al-2009
+for additional information.
 
-    The typical ML task in this dataset is to build a model that predicts the overall quality of Wine.
+The typical ML task in this dataset is to build a model that predicts the overall quality of Wine.
 
-    This dataset is licensed under the Open Data Commons Open Database License (ODbL) v1.0
-    (https://opendatacommons.org/licenses/odbl/1-0/).
-    Right reserved to P. Cortez, A. Cerdeira, F. Almeida, T. Matos and J. Reis.
-    Modeling wine preferences by data mining from physicochemical properties.
-    In Decision Support Systems, Elsevier, 47(4):547-553, 2009.
+This dataset is licensed under the Open Data Commons Open Database License (ODbL) v1.0
+(https://opendatacommons.org/licenses/odbl/1-0/).
+Right reserved to P. Cortez, A. Cerdeira, F. Almeida, T. Matos and J. Reis.
+Modeling wine preferences by data mining from physicochemical properties.
+In Decision Support Systems, Elsevier, 47(4):547-553, 2009.
 """
 import typing as t
 from urllib.request import urlopen

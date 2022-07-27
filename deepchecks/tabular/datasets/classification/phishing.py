@@ -10,117 +10,117 @@
 #
 """The phishing dataset contains a slightly synthetic dataset of urls - some regular and some used for phishing.
 
-    The phishing url dataset contains slightly synthetic dataset of urls - some regular and some used for phishing.
+The phishing url dataset contains slightly synthetic dataset of urls - some regular and some used for phishing.
 
-    The dataset is based on the `great project <https://github.com/Rohith-2/url_classification_dl>`_ by
-    `Rohith Ramakrishnan <https://www.linkedin.com/in/rohith-ramakrishnan-54094a1a0/>`_ and others, accompanied by
-    a `blog post <https://medium.com/nerd-for-tech/url-feature-engineering-and-classification-66c0512fb34d>`_.
-    The authors have released it under an open license per our request, and for that we are very grateful to them.
+The dataset is based on the `great project <https://github.com/Rohith-2/url_classification_dl>`_ by
+`Rohith Ramakrishnan <https://www.linkedin.com/in/rohith-ramakrishnan-54094a1a0/>`_ and others, accompanied by
+a `blog post <https://medium.com/nerd-for-tech/url-feature-engineering-and-classification-66c0512fb34d>`_.
+The authors have released it under an open license per our request, and for that we are very grateful to them.
 
-    This dataset is licensed under the `Creative Commons Zero v1.0 Universal (CC0 1.0)
-    <https://creativecommons.org/publicdomain/zero/1.0/>`_.
+This dataset is licensed under the `Creative Commons Zero v1.0 Universal (CC0 1.0)
+<https://creativecommons.org/publicdomain/zero/1.0/>`_.
 
-    The typical ML task in this dataset is to build a model that predicts the if the url is part of a phishing attack.
+The typical ML task in this dataset is to build a model that predicts the if the url is part of a phishing attack.
 
-    Dataset Shape:
-        .. list-table:: Dataset Shape
-           :widths: 50 50
-           :header-rows: 1
+Dataset Shape:
+    .. list-table:: Dataset Shape
+       :widths: 50 50
+       :header-rows: 1
 
-           * - Property
-             - Value
-           * - Samples Total
-             - 11.35K
-           * - Dimensionality
-             - 25
-           * - Features
-             - real, string
-           * - Targets
-             - boolean
+       * - Property
+         - Value
+       * - Samples Total
+         - 11.35K
+       * - Dimensionality
+         - 25
+       * - Features
+         - real, string
+       * - Targets
+         - boolean
 
-    Description:
-        .. list-table:: Dataset Description
-           :widths: 50 50 50
-           :header-rows: 1
+Description:
+    .. list-table:: Dataset Description
+       :widths: 50 50 50
+       :header-rows: 1
 
-           * - Column name
-             - Column Role
-             - Description
-           * - target
-             - Label
-             - 0 if the URL is benign, 1 if it is related to phishing
-           * - month
-             - Data
-             - The month this URL was first encountered, as an int
-           * - scrape_date
-             - Date
-             - The exact date this URL was first encountered
-           * - ext
-             - Feature
-             - The domain extension
-           * - urlLength
-             - Feature
-             - The number of characters in the URL
-           * - numDigits
-             - Feature
-             - The number of digits in the URL
-           * - numParams
-             - Feature
-             - The number of query parameters in the URL
-           * - num_%20
-             - Feature
-             - The number of '%20' substrings in the URL
-           * - num_@
-             - Feature
-             - The number of @ characters in the URL
-           * - entropy
-             - Feature
-             - The entropy of the URL
-           * - has_ip
-             - Feature
-             - True if the URL string contains an IP address
-           * - hasHttp
-             - Feature
-             - True if the url's domain supports http
-           * - hasHttps
-             - Feature
-             - True if the url's domain supports https
-           * - urlIsLive
-             - Feature
-             - The URL was live at the time of scraping
-           * - dsr
-             - Feature
-             - The number of days since domain registration
-           * - dse
-             - Feature
-             - The number of days since domain registration expired
-           * - bodyLength
-             - Feature
-             - The number of characters in the URL's web page
-           * - numTitles
-             - Feature
-             - The number of HTML titles (H1/H2/...) in the page
-           * - numImages
-             - Feature
-             - The number of images in the page
-           * - numLinks
-             - Feature
-             - The number of links in the page
-           * - specialChars
-             - Feature
-             - The number of special characters in the page
-           * - scriptLength
-             - Feature
-             - The number of characters in scripts embedded in the page
-           * - sbr
-             - Feature
-             - The ratio of scriptLength to bodyLength (`= scriptLength / bodyLength`)
-           * - bscr
-             - Feature
-             - The ratio of bodyLength to specialChars (`= specialChars / bodyLength`)
-           * - sscr
-             - Feature
-             - The ratio of scriptLength to specialChars (`= scriptLength / specialChars`)
+       * - Column name
+         - Column Role
+         - Description
+       * - target
+         - Label
+         - 0 if the URL is benign, 1 if it is related to phishing
+       * - month
+         - Data
+         - The month this URL was first encountered, as an int
+       * - scrape_date
+         - Date
+         - The exact date this URL was first encountered
+       * - ext
+         - Feature
+         - The domain extension
+       * - urlLength
+         - Feature
+         - The number of characters in the URL
+       * - numDigits
+         - Feature
+         - The number of digits in the URL
+       * - numParams
+         - Feature
+         - The number of query parameters in the URL
+       * - num_%20
+         - Feature
+         - The number of '%20' substrings in the URL
+       * - num_@
+         - Feature
+         - The number of @ characters in the URL
+       * - entropy
+         - Feature
+         - The entropy of the URL
+       * - has_ip
+         - Feature
+         - True if the URL string contains an IP address
+       * - hasHttp
+         - Feature
+         - True if the url's domain supports http
+       * - hasHttps
+         - Feature
+         - True if the url's domain supports https
+       * - urlIsLive
+         - Feature
+         - The URL was live at the time of scraping
+       * - dsr
+         - Feature
+         - The number of days since domain registration
+       * - dse
+         - Feature
+         - The number of days since domain registration expired
+       * - bodyLength
+         - Feature
+         - The number of characters in the URL's web page
+       * - numTitles
+         - Feature
+         - The number of HTML titles (H1/H2/...) in the page
+       * - numImages
+         - Feature
+         - The number of images in the page
+       * - numLinks
+         - Feature
+         - The number of links in the page
+       * - specialChars
+         - Feature
+         - The number of special characters in the page
+       * - scriptLength
+         - Feature
+         - The number of characters in scripts embedded in the page
+       * - sbr
+         - Feature
+         - The ratio of scriptLength to bodyLength (`= scriptLength / bodyLength`)
+       * - bscr
+         - Feature
+         - The ratio of bodyLength to specialChars (`= specialChars / bodyLength`)
+       * - sscr
+         - Feature
+         - The ratio of scriptLength to specialChars (`= scriptLength / specialChars`)
 """
 import typing as t
 from urllib.request import urlopen
