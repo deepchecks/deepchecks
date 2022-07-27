@@ -28,21 +28,21 @@ def test_default_properties():
     validate_properties(DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES)
 
 
-def test_image_properties_validation_with_instance_of_incorrect_type_provided():
+def test_validat_properties_with_instance_of_incorrect_type_provided():
     assert_that(
         calling(validate_properties).with_args(object()),
         detects_incorrect_type_of_input()
     )
 
 
-def test_image_properties_validation_with_empty_properties_list():
+def test_validate_properties_with_empty_properties_list():
     assert_that(
         calling(validate_properties).with_args([]),
         detects_empty_list()
     )
 
 
-def test_image_properties_validation_with_unsupported_item_type():
+def test_validate_properties_with_unsupported_item_type():
     properties = [*default_image_properties, object()]
 
     assert_that(
@@ -51,7 +51,7 @@ def test_image_properties_validation_with_unsupported_item_type():
     )
 
 
-def test_image_properties_validation_with_incorrect_property_dict_structure():
+def test_validate_properties_with_incorrect_property_dict_structure():
     property = default_image_properties[0].copy()
     property.pop('method')
 
@@ -80,48 +80,7 @@ def test_validate_properties_with_bad_name_field():
             fr"Next keys are missed \['name'\]")
     )
 
-
-# =====================================================
-
-
-def test_label_prediction_properties_validation():
-    validate_properties(DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES)
-
-
-def test_label_prediction_properties_validation_with_instance_of_incorrect_type_provided():
-    assert_that(
-        calling(validate_properties).with_args(object()),
-        detects_incorrect_type_of_input()
-    )
-
-
-def test_label_prediction_properties_validation_with_empty_properties_list():
-    assert_that(
-        calling(validate_properties).with_args([]),
-        detects_empty_list()
-    )
-
-
-def test_label_prediction_validation_with_unsupported_item_type():
-    properties = [*DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES, object()]
-
-    assert_that(
-        calling(validate_properties).with_args(properties),
-        detects_incorrect_item_type(item_index=len(properties) - 1),
-    )
-
-
-def test_label_prediction_properties_validation_with_incorrect_property_dict_structure():
-    property = DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES[0].copy()
-    property.pop('method')
-
-    assert_that(
-        calling(validate_properties).with_args([property]),
-        detects_incorrect_property_dict_structure(property_name=property['name'])
-    )
-
-
-def test_validation_with_incorrect_property_output_type():
+def test_validate_properties_with_incorrect_property_output_type():
     property = DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES[0].copy()
     property['output_type'] = 'hello-world'
 
