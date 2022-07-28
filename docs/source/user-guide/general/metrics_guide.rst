@@ -5,21 +5,15 @@ Metrics Guide
 ====================
 
 In this guide we'll explain how to customize the metrics that deepchecks uses to validate and monitor your model.
-Controling the metrics helps you shape the checks and suites accoring to the specifics of you use case.
+Controlling the metrics helps you shape the checks and suites according to the specifics of you use case.
 
 **Structure:**
 
-* `How can I use metrics with Deepchecks? <#how-can-i-use-metrics-with-deepchecks>`__
 * `Default metrics <#default-metrics>`__
 * `Alternative metrics <#alternative-metrics>`__
 * `List of Supported Strings <#list-of-supported-strings>`__
 * `Custom Metrics <#custom-metrics>`__
 
-
-How can I use metrics with Deepchecks?
-======================================
-Metrics in deepchecks are designed around the sklearn scorer API for tabular checks and are based on the Torch Ignite
-metric API for vision checks.
 
 Default metrics
 ===============
@@ -75,16 +69,16 @@ To run a check with the default metrics, run it without passing any value to the
 Alternative metrics
 ===================
 Sometimes the defaults don't fit the specifics of the use-case.
-If this is the case, you can pass a list of metrics or a dict in the format {metric name: metric} as a parameter to the
-check.
+If this is the case, you can pass a list of supported metric strings or a dict in the format {metric name: metric} as a
+parameter to the check.
 
-The metrics on the list can be existing:
+The metrics in the dict can be existing:
 
 *   `Ignite metrics <https://pytorch.org/ignite/metrics.html#complete-list-of-metrics>`__ for vision
-*   `Sklearn scorers <https://scikit-learn.org/stable/modules/model_evaluation.html>`__ for tabular
+*   `Sklearn scorers <https://scikit-learn.org/stable/modules/model_evaluation.html>`__ for both vision and tabular
 *   strings from Deepchecks' `supported strings <#list-of-supported-strings>`__ for both vision and tabular
 
-or your own implementations.
+or `your own implementation <#custom-metrics>`__.
 
 .. code-block:: python
 
@@ -100,51 +94,49 @@ or your own implementations.
 List of Supported Strings
 =========================
 .. list-table:: Supported Strings
-   :widths: 25 75
+   :widths: 25 75 75
    :header-rows: 1
 
    * - String
      - Metric
+     - Comments
    * - 'neg_rmse'
-     - negative root mean squared error (Sklearn)
+     - negative root mean squared error
+     - Sklearn
    * - 'neg_mae'
-     - negative mean absolute error (Sklearn)
+     - negative mean absolute error
+     - Sklearn
    * - 'precision_per_class'
      - precision per class - no averaging (results are returned per class)
+     -
    * - 'recall_per_class' , 'sensitivity_per_class'
      - recall per class - no averaging
+     -
    * - 'f1_per_class'
      - F-1  per class - no averaging
+     -
    * - 'fpr_per_class'
      - False Positive Rate per class - no averaging
+     -
    * - 'fpr'
      - False Positive Rate - binary
+     -
    * - 'fpr_macro'
      - False Positive Rate - macro averaging
+     -
    * - 'fpr_micro'
      - False Positive Rate - micro averaging
+     -
    * - 'fpr_weighted'
      - False Positive Rate - weighted macro averaging
-   * - 'fnr_per_class'
-     - False Negative Rate per class - no averaging
+     -
    * - 'fnr'
      - False Negative Rate - binary
-   * - 'fnr_macro'
-     - False Negative Rate - macro averaging
-   * - 'fnr_micro'
-     - False Negative Rate - micro averaging
-   * - 'fnr_weighted'
-     - False Negative Rate - weighted macro averaging
-   * - 'tnr_per_class'
-     - True Negative Rate per class - no averaging
+     - suffixes apply as with 'fpr'
    * - 'tnr', 'specificity'
      - True Negative Rate - binary
-   * - 'tnr_macro', 'specificity_macro'
-     - True Negative Rate - macro averaging
-   * - 'tnr_micro', 'specificity_micro'
-     - True Negative Rate - micro averaging
-   * - 'tnr_weighted', 'specificity_weighted'
-     - True Negative Rate - weighted macro averaging
+     - suffixes apply as with 'fpr'
+
 
 In addition to the strings listed above, all Sklearn
 `scorer strings
