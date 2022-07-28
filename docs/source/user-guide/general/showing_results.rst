@@ -99,7 +99,7 @@ libraries inlined, thus it does not require any jupyter extensions installed on 
 ---------------------------------------------
 
 This method displays a static version of the suite/check result.
-It converts all figures and charts into images. (no zoom, no dynamic legend)
+It converts all figures and charts into images (no zoom, no dynamic legend). 
 The result is a less detailed output, that doesn't require any javascript
 libraries or jupyter extensions in order to work.
 
