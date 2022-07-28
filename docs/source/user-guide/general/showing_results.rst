@@ -39,7 +39,7 @@ This is the main show method. It inlines check/suite result HTML into notebook o
 ``show_in_window()`` method
 ---------------------------
 
-This method shows the result in a separate window via PyQt5 library.
+This method shows the result in a separate window (using the PyQt5 library).
 It starts a PyQt5 application in a separate process therefore this display 
 method does not work on the cloud platforms like Kaggle or Google Colab.
 
