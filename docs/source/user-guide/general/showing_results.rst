@@ -85,8 +85,7 @@ options to resolve them`s:
 ---------------------------------
 
 This is the main alternative in case you experience any result display problems.
-It embeds HTML output into an iframe with all needed third-party javascript 
-libraries inlined, thus it does not require any jupyter extensions installed on the environment.
+It uses a different output technique (embedding the result's HTML output into an iframe) and thus doesn't require any jupyter extensions installed.
 
 .. code-block:: python
 
