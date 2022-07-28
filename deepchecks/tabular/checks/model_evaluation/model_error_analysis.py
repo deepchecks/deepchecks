@@ -121,7 +121,6 @@ class ModelErrorAnalysis(TrainTestCheck):
         """Run check."""
         train_dataset = context.train
         test_dataset = context.test
-        train_dataset.assert_label()
         task_type = context.task_type
         model = context.model
 
