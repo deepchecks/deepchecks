@@ -188,7 +188,8 @@ def calc_drift_and_plot(train_column: pd.Series,
                         max_num_categories_for_drift: int = 10,
                         max_num_categories_for_display: int = 10,
                         show_categories_by: str = 'largest_difference',
-                        categorical_drift_method='cramer_v',
+                        categorical_drift_method: str = 'cramer_v',
+                        ignore_na: bool = True,
                         min_samples: int = 10,
                         with_display: bool = True) -> Tuple[float, str, Callable]:
     """
@@ -222,9 +223,14 @@ def calc_drift_and_plot(train_column: pd.Series,
         - 'largest_difference': Show the largest difference between categories.
     categorical_drift_method: str, default: "cramer_v"
         decides which method to use on categorical variables. Possible values are:
-        "cramers_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+        "cramer_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+    ignore_na: bool, default True
+        For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
+        separate category. For numerical columns we always ignore nones.
     min_samples: int, default: 10
         Minimum number of samples for each column in order to calculate draft
+    with_display: bool, default: True
+        flag that determines if function will calculate display.
     Returns
     -------
     Tuple[float, str, Callable]
@@ -232,8 +238,13 @@ def calc_drift_and_plot(train_column: pd.Series,
         numerical, PSI for categorical)
         graph comparing the two distributions (density for numerical, stack bar for categorical)
     """
-    train_dist = np.array(train_column.dropna().values).reshape(-1)
-    test_dist = np.array(test_column.dropna().values).reshape(-1)
+    if column_type == 'categorical' and ignore_na is False:
+        train_dist = np.array(train_column.values).reshape(-1)
+        test_dist = np.array(test_column.values).reshape(-1)
+
+    else:
+        train_dist = np.array(train_column.dropna().values).reshape(-1)
+        test_dist = np.array(test_column.dropna().values).reshape(-1)
 
     if len(train_dist) < min_samples or len(test_dist) < min_samples:
         raise NotEnoughSamplesError(f'For drift need {min_samples} samples but got {len(train_dist)} for train '
@@ -260,7 +271,7 @@ def calc_drift_and_plot(train_column: pd.Series,
         elif categorical_drift_method.lower() == 'psi':
             scorer_name = 'PSI'
             expected, actual, _ = \
-                preprocess_2_cat_cols_to_same_bins(dist1=train_column, dist2=test_column,
+                preprocess_2_cat_cols_to_same_bins(dist1=train_dist, dist2=test_dist,
                                                    max_num_categories=max_num_categories_for_drift)
             expected_percents, actual_percents = expected / len(train_column), actual / len(test_column)
             score = psi(expected_percents=expected_percents, actual_percents=actual_percents)
