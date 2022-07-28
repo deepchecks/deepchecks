@@ -561,6 +561,21 @@ def drifted_data() -> Tuple[Dataset, Dataset]:
 
 
 @pytest.fixture(scope='session')
+def drifted_data_with_nulls(drifted_data) -> Tuple[Dataset, Dataset]:
+    train_ds, test_ds = drifted_data
+    n_train_nulls = int(train_ds.n_samples / 10)
+    n_test_nulls = int(train_ds.n_samples / 20)
+
+    train_ds = train_ds.copy(train_ds.data)
+    test_ds = train_ds.copy(test_ds.data)
+
+    train_ds.data.iloc[:n_train_nulls] = None
+    test_ds.data.iloc[:n_test_nulls] = None
+
+    return train_ds, test_ds
+
+
+@pytest.fixture(scope='session')
 def drifted_data_and_model(drifted_data) -> Tuple[Dataset, Dataset, Pipeline]:
 
     train_ds, test_ds = drifted_data
