@@ -104,7 +104,7 @@ result.show()
 # dataset they make sense.
 #
 # The second failure is more interesting. The :doc:`Feature Label Correlation Change
-# </checks_gallery/vision/train_test_validation/plot_feature_label_correlation_change>` check computes various
+# </checks_gallery/vision/train_test_validation/plot_property_label_correlation_change>` check computes various
 # :doc:`image properties </user-guide/vision/vision_properties>` and checks if the image label can be inferred using a
 # simple model (for example, a Classification Tree) using the property values. The ability to predict the label using
 # these properties is measures by the Predictive Power Score (PPS) and this measure is compared between the training
