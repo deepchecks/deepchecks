@@ -99,10 +99,8 @@ def test_leakage_without_display(iris_clean):
 
 
 def test_nan():
-    train_dataset = Dataset(pd.DataFrame({'col1': [1, 2, 3, np.nan], 'col2': [1, 2, 1, 1]}),
-                            label='col2')
-    test_dataset = Dataset(pd.DataFrame({'col1': [2, np.nan, np.nan, np.nan], 'col2': [1, 1, 2, 1]}),
-                           label='col2')
+    train_dataset = Dataset(pd.DataFrame({'col1': [1, 2, 3, np.nan], 'col2': [1, 2, 1, 1]}))
+    test_dataset = Dataset(pd.DataFrame({'col1': [2, np.nan, np.nan, np.nan], 'col2': [1, 1, 2, 1]}))
     # Arrange
     check = TrainTestSamplesMix()
     # Act X

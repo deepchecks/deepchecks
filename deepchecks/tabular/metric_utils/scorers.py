@@ -172,7 +172,6 @@ class DeepcheckScorer:
 
     def validate_fitting(self, model, dataset: 'tabular.Dataset'):
         """Validate given scorer for the model and dataset."""
-        dataset.assert_label()
         dataset.assert_features()
         dataset = self.filter_nulls(dataset)
         # In order for scorer to return result in right dimensions need to pass it samples from all labels

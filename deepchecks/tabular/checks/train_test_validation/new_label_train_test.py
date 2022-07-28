@@ -44,7 +44,6 @@ class NewLabelTrainTest(TrainTestCheck, ReduceMixin):
         test_dataset = context.test
         train_dataset = context.train
         context.assert_classification_task()
-        train_dataset.assert_label()
 
         n_test_samples = test_dataset.n_samples
 

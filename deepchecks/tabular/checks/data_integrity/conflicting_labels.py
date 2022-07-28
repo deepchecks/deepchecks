@@ -66,7 +66,6 @@ class ConflictingLabels(SingleDatasetCheck):
         """
         dataset = context.get_data_by_kind(dataset_kind)
         context.assert_classification_task()
-        dataset.assert_label()
 
         dataset = dataset.select(self.columns, self.ignore_columns, keep_label=True)
         features = dataset.features
