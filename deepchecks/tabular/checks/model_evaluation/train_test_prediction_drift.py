@@ -178,7 +178,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
                 test_column=pd.Series(test_prediction[:, class_idx].flatten()),
                 value_name='model predictions' if not proba_drift else
                            f'predicted probabilities for class {class_name}',
-                column_type='categorical' if (train_dataset.label_type != TaskType.REGRESSION) and (not proba_drift)
+                column_type='categorical' if (context.task_type != TaskType.REGRESSION) and (not proba_drift)
                             else 'numerical',
                 margin_quantile_filter=self.margin_quantile_filter,
                 max_num_categories_for_drift=self.max_num_categories_for_drift,
