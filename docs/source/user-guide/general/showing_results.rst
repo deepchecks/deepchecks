@@ -108,7 +108,7 @@ libraries or jupyter extensions in order to work.
    result.show_not_interactive()
 
 To be able to use this method you need to install an optional dependency package called 'kaleido'
-that is used to transform figures and charts into images. In order to install it run the next command:
+that is used to transform figures and charts into images. In order to install it run the command:
 
 .. code-block:: sh
     
