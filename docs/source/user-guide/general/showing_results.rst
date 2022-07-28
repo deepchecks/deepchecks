@@ -27,7 +27,7 @@ Deepchecks Check and Suite results can be viewed in a separate window or inline 
 ``show()`` method
 -------------------
 
-This is the main show method. It inlines check/suite result HTML into notebook output cell.
+This is the main show method. It will show the check/suite result's HTML output inline, in a notebook cell.
 
 .. code-block:: python
 
