@@ -61,10 +61,10 @@ to install it manually by running the next command:
 Alternative Methods for Showing Results (Troubleshooting)
 ==============================================================
 
-HTML output produced by ``show()`` method in order to work 
-requires additional jupyter extensions which are not always installed/enabled by default 
-and which are not always supported or compatible with different cloud platforms like Databricks 
-or Kaggle.
+The result's HTML output produced by the ``show()`` method 
+requires specific jupyter extensions to display properly.
+These extensions may not be installed/enabled by default,
+or may have compatibility issues with different environments (e.g. some cloud platforms).
 
 So, if you experience any result display problems, you can consider any of the following 
 options to resolve them`s:
