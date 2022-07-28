@@ -410,7 +410,7 @@ def lending_club_split_dataset_and_model() -> Tuple[Dataset, Dataset, Pipeline]:
 
 @pytest.fixture(scope='session')
 def avocado_split_dataset_and_model() -> Tuple[Dataset, Dataset, Pipeline]:
-    """Return Adult train and val datasets and trained RandomForestClassifier model."""
+    """Return Adult train and val datasets and trained RandomForestRegressor model."""
     train_ds, test_ds = avocado.load_data(as_train_test=True)
     model = avocado.load_fitted_model()
     return train_ds, test_ds, model
