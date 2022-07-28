@@ -53,7 +53,6 @@ class IdentifierLabelCorrelation(SingleDatasetCheck):
             If the object is not a Dataset instance with a label.
         """
         dataset = context.get_data_by_kind(dataset_kind)
-        dataset.assert_label()
         label_name = dataset.label_name
 
         relevant_data = pd.DataFrame({

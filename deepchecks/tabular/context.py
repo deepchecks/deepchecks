@@ -183,7 +183,7 @@ class Context:
             test = Dataset.cast_to_dataset(test)
         # If both dataset, validate they fit each other
         if train and test:
-            if not Dataset.datasets_share_label(train, test):
+            if test.has_label() and train.has_label() and not Dataset.datasets_share_label(train, test):
                 raise DatasetValidationError('train and test requires to have and to share the same label')
             if not Dataset.datasets_share_features(train, test):
                 raise DatasetValidationError('train and test requires to share the same features columns')

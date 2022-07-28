@@ -87,7 +87,6 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
         test_dataset = context.test
 
         train_dataset.assert_features()
-        train_dataset.assert_label()
         relevant_columns = train_dataset.features + [train_dataset.label_name]
 
         text = [
