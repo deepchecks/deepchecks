@@ -147,7 +147,7 @@ evaluation_suite
 
 #%%
 #
-# Next, we will update the Performance Train Test condition and remove the Regression Systematic Error check:
+# Next, we will update the Train Test Performance condition and remove the Regression Systematic Error check:
 
 evaluation_suite[0].clean_conditions()
 evaluation_suite[0].add_condition_train_test_relative_degradation_less_than(0.3)
