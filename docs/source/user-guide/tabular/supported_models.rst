@@ -7,26 +7,31 @@ Working with Models and Predictions
 Some checks, specially the model evaluation related checks, require model predictions in order to run.
 In deepchecks, predictions are passed into the suite / check ``run`` method in one of the following ways:
 
-* Passing a :ref:`model object <passing_a_model>` that will compute the
+* Passing a :ref:`model object <supported_models__passing_a_model>` that will compute the
   predictions on the input data.
-* Passing :ref:`pre-computed predictions <using_pre-computed_predictions>`.
+* Passing :ref:`pre-computed predictions <supported_models_using_pre-computed_predictions>`.
 
-Passing pre-computed predictions is a low code alternative to passing a model. It is specifically recommended to use
+Passing pre-computed predictions is a simple alternative to passing a model. It is specifically recommended to use
 this option if your model object is unavailable locally (for example if placed on a separate prediction server)
 or if the predicting process is computationally expensive or time consuming.
 
-Predictions Format
-==================
+.. _supported_models__predictions_format:
+
+Supported Tasks and Predictions Format
+======================================
 
 Deepchecks currently supports model predictions for regression, binary and multiclass classification tasks.
 Whether provided from a model interface or as a pre-computed predicted values,
 the predictions must be in the following format based on the task type:
 
-* Predicted values should be provided as an |array-like| of shape ``(n_samples,)``, containing the predicted value
+* **Predicted values**: should be provided as an |array-like| of shape ``(n_samples,)``, containing the predicted value
   for each sample in the dataset. Predicted values are required for all task types.
-* Probabilities per class should be provided as an |array-like| of shape ``(n_samples, n_classes)``
+
+* **Probabilities per class**: should be provided as an |array-like| of shape ``(n_samples, n_classes)``
   containing the predicted probability of each class per sample. Probabilities per class are only required for
   classification tasks.
+
+.. _supported_models__passing_a_model:
 
 Passing a Model
 ===============
@@ -38,48 +43,10 @@ along with many additional popular models types (e.g. XGBoost, LightGBM, CatBoos
 Specifically, deepchecks requires the following methods to be implemented in the model object:
 
 * ``predict`` method which receives an |array-like|  of shape ``(n_samples, n_features)`` containing the
-  input features and returns :ref:`predicted values <predictions_format>`.
+  input features and returns :ref:`predicted values <supported_models__predictions_format>`.
 * ``predict_proba`` method which receives an |array-like|  of shape ``(n_samples, n_features)`` containing the
-  input features and returns :ref:`probabilities per class <predictions_format>`.
+  input features and returns :ref:`probabilities per class <supported_models__predictions_format>`.
   This method is required only for classification tasks.
-
-
-.. note::
-    If your model does not support those interfaces, you can either create a wrapper class that implements the
-    required methods by calling the relevant APIs from your model or by implementing them directly inside your model's
-    class.
-
-Example Custom Classification Model Wrapper
--------------------------------------------
-
->>> class SimpleClassificationModelWrapper:
-...     def predict(X: pd.DataFrame) -> np.ndarray:
-...         # Implement based on base model's API
-...         ...
-...     def predict_proba(X: pd.DataFrame) -> np.ndarray: # only required for classification tasks.
-...         # Implement based on base model's API
-...         ...
-...     @property
-...     def feature_importances_(self):
-...         ...
-
-Optional Model Interfaces
--------------------------
-
-Feature Importance
-~~~~~~~~~~~~~~~~~~
-
-Some checks require the model's
-:doc:`feature importance </api/generated/deepchecks.user-guide.tabular.feature_importance>`
-for their analysis. By default, if available, it is extracted directly from the model via property
-(``feature_importances_`` or ``coef_`` for a linear model) otherwise it is calculated
-using |permutation importance|.
-
-Check-Specific Model Interfaces
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Some checks require specific apis to run. For example, :doc:`BoostingOverfit </api/generated/deepchecks.tabular.checks.model_evaluation.BoostingOverfit>`
-requires model to be a supported boosting model type. Examples for such models include XGBoost, LightGBM, CatBoost and additional GBM implementations.
 
 Running Deepchecks with a Supported Model
 -----------------------------------------
@@ -89,17 +56,50 @@ Running Deepchecks with a Supported Model
     :lines: 0-7
     :tab-width: 0
 
+
+Adapting Your Model
+-------------------
+
+If you are using a model that does not support those interfaces you can either add the required methods to the
+model's class or create a wrapper class that implements the required interfaces by calling the relevant APIs of your
+model. Below is a general structure of such wrapper class.
+
+>>> class MyModelWrapper:
+...     def predict(X: pd.DataFrame) -> np.ndarray:
+...         # Implement based on base model's API
+...         ...
+...     def predict_proba(X: pd.DataFrame) -> np.ndarray:
+...         # Implement based on base model's API, only required for classification tasks.
+...         ...
+...     @property
+...     def feature_importances_(self) -> pd.Series:  # optional
+...         # Return a pandas Series with feature names as index and their corresponding importance as values.
+...         ...
+
+Feature Importance (Optional)
+-----------------------------
+
+Some checks require the model's
+:doc:`feature importance </api/generated/deepchecks.user-guide.tabular.feature_importance>`
+for their analysis. By default, if available, it is extracted directly from the model via property
+(``feature_importances_`` or ``coef_`` for a linear model) otherwise it is calculated
+using |permutation importance|. The required format for the feature importance is a pandas series with feature names
+as index and their corresponding importance as values.
+
+.. _supported_models_using_pre-computed_predictions:
+
 Using Pre-computed Predictions
 ==============================
 
 The predictions should be passed via the y_proba and y_pred arguments of the suite / check run method in
-the :ref:`appropriate format <predictions_format>`. y_pred receives the predicted values of the model
+the :ref:`appropriate format <supported_models__predictions_format>`. y_pred receives the predicted values of the model
 and y_proba receives the probabilities per class, which is only required for classification tasks.
 
 The predictions should be provided for each dataset supplied to the suite / check. For example the
 :doc:`Simple Model Comparison </api/generated/deepchecks.tabular.checks.model_evaluation.SimpleModelComparison>`
-check for a **regression** model
-requires both train and test predicted values to be provided via the y_pred_train, y_pred_test arguments.
+check for a regression model
+requires both train and test :ref:`predicted values <supported_models__predictions_format>`
+to be provided via the y_pred_train, y_pred_test arguments.
 
 For classification tasks, predicted values are not mandatory. If not supplied,
 deepchecks will assume the predicted class is the class with the highest predicted probability.
