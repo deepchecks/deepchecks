@@ -125,7 +125,7 @@ class Context:
                     if msg:
                         self._prediction_formatter_error[dataset_type] = msg
                         get_logger().warning(msg)
-
+        self._static_properties = None
         if train_properties is not None or test_properties is not None:
             self._static_properties = {}
             for dataset, dataset_type, properties in zip([train, test],
@@ -135,7 +135,7 @@ class Context:
                     try:
                         props = itemgetter(*list(dataset.data_loader.batch_sampler)[0])(properties)
                         msg = None
-                        self._static_predictions[dataset_type] = props
+                        self._static_properties[dataset_type] = props
                     except ValidationError as ex:
                         msg = f'the predictions given were not in a correct format in the {dataset_type} dataset, ' \
                             f'the validation has failed with the error: {ex}.'
