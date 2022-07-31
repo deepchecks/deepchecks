@@ -78,7 +78,10 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         - 'largest_difference': Show the largest difference between categories.
     categorical_drift_method: str, default: "cramer_v"
         decides which method to use on categorical variables. Possible values are:
-        "cramers_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+        "cramer_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+    ignore_na: bool, default True
+        For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
+        separate category. For numerical columns we always ignore nones.
     aggregation_method: str, default: "max"
         Argument for the reduce_output functionality, decides how to aggregate the drift scores of different classes
         (for classification tasks) into a single score, when drift is computed on the class probabilities. Possible
@@ -102,6 +105,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
             categorical_drift_method: str = 'cramer_v',
+            ignore_na: bool = True,
             aggregation_method: str = 'max',
             max_classes_to_display: int = 3,
             max_num_categories: int = None,  # Deprecated
@@ -126,6 +130,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
         self.categorical_drift_method = categorical_drift_method
+        self.ignore_na = ignore_na
         self.max_classes_to_display = max_classes_to_display
         self.aggregation_method = aggregation_method
         if self.aggregation_method not in ('weighted', 'mean', 'none', 'max'):
@@ -173,13 +178,14 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
                 test_column=pd.Series(test_prediction[:, class_idx].flatten()),
                 value_name='model predictions' if not proba_drift else
                            f'predicted probabilities for class {class_name}',
-                column_type='categorical' if (train_dataset.label_type != TaskType.REGRESSION) and (not proba_drift)
+                column_type='categorical' if (context.task_type != TaskType.REGRESSION) and (not proba_drift)
                             else 'numerical',
                 margin_quantile_filter=self.margin_quantile_filter,
                 max_num_categories_for_drift=self.max_num_categories_for_drift,
                 max_num_categories_for_display=self.max_num_categories_for_display,
                 show_categories_by=self.show_categories_by,
                 categorical_drift_method=self.categorical_drift_method,
+                ignore_na=self.ignore_na,
                 with_display=context.with_display,
             )
 
