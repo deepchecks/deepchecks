@@ -167,7 +167,6 @@ class Context:
         feature_importance: t.Optional[pd.Series] = None,
         feature_importance_force_permutation: bool = False,
         feature_importance_timeout: int = 120,
-        scorers: t.Optional[t.Mapping[str, t.Union[str, t.Callable]]] = None,
         with_display: bool = True,
         y_pred_train: t.Optional[np.ndarray] = None,
         y_pred_test: t.Optional[np.ndarray] = None,
@@ -222,7 +221,6 @@ class Context:
         self._importance_type = None
         self._validated_model = False
         self._task_type = None
-        self._user_scorers = scorers
         self._model_name = model_name
         self._with_display = with_display
 
@@ -370,7 +368,7 @@ class Context:
         List[DeepcheckScorer]
             A list of initialized & validated scorers.
         """
-        scorers = scorers or self._user_scorers or get_default_scorers(self.task_type, use_avg_defaults)
+        scorers = scorers or get_default_scorers(self.task_type, use_avg_defaults)
         return init_validate_scorers(scorers, self.model, self.train)
 
     def get_single_scorer(self,
@@ -396,7 +394,7 @@ class Context:
         List[DeepcheckScorer]
             An initialized & validated scorer.
         """
-        scorers = scorers or self._user_scorers or get_default_scorers(self.task_type, use_avg_defaults)
+        scorers = scorers or get_default_scorers(self.task_type, use_avg_defaults)
         # The single scorer is the first one in the dict
         scorer_name = next(iter(scorers))
         single_scorer_dict = {scorer_name: scorers[scorer_name]}
