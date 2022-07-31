@@ -28,6 +28,7 @@ def test_calc_properties(coco_train_visiondata):
         'Mean Red Relative Intensity', 'Mean Green Relative Intensity', 'Mean Blue Relative Intensity'))
     assert_that(sum(results['Brightness']), close_to(15.56, 0.01))
 
+
 def test_default_properties():
     validate_properties(default_image_properties)
     validate_properties(DEFAULT_CLASSIFICATION_LABEL_PROPERTIES)
