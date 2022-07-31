@@ -163,7 +163,6 @@ class Context:
         train: t.Union[Dataset, pd.DataFrame, None] = None,
         test: t.Union[Dataset, pd.DataFrame, None] = None,
         model: t.Optional[BasicModel] = None,
-        model_name: str = '',
         feature_importance: t.Optional[pd.Series] = None,
         feature_importance_force_permutation: bool = False,
         feature_importance_timeout: int = 120,
@@ -221,7 +220,6 @@ class Context:
         self._importance_type = None
         self._validated_model = False
         self._task_type = None
-        self._model_name = model_name
         self._with_display = with_display
 
     # Properties
@@ -260,7 +258,7 @@ class Context:
     @property
     def model_name(self):
         """Return model name."""
-        return self._model_name
+        return type(self.model).__name__
 
     @property
     def task_type(self) -> TaskType:
