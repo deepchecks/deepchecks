@@ -74,9 +74,13 @@ parameter to the check.
 
 The metrics in the dict can be existing:
 
-*   `Ignite metrics <https://pytorch.org/ignite/metrics.html#complete-list-of-metrics>`__ for vision
-*   `Sklearn scorers <https://scikit-learn.org/stable/modules/model_evaluation.html>`__ for both vision and tabular
-*   strings from Deepchecks' `supported strings <#list-of-supported-strings>`__ for both vision and tabular
+*   `Ignite metrics <https://pytorch.org/ignite/metrics.html#complete-list-of-metrics>`__ for vision.
+    An Ignite Metric is a class with the methods: reset, compute, and update, that iterates over batches of data and
+    aggregates the result.
+*   `Sklearn scorers <https://scikit-learn.org/stable/modules/model_evaluation.html>`__ for both vision and tabular.
+    An Sklearn Scorer is a function that accepts the parameters: (model, x, y_True), and returns a score with the
+    convention that higher is better.
+*   strings from Deepchecks' `supported strings <#list-of-supported-strings>`__ for both vision and tabular.
 
 or `your own implementation <#custom-metrics>`__.
 
@@ -109,9 +113,15 @@ List of Supported Strings
    * - 'precision_per_class'
      - precision per class - no averaging (results are returned per class)
      -
+   * - 'average_precision_per_class'
+     - average precision for object detection
+     - only for object detection
    * - 'recall_per_class' , 'sensitivity_per_class'
      - recall per class - no averaging
      -
+   * - 'average_recall_per_class'
+     - average recall for object detection
+     - only for object detection
    * - 'f1_per_class'
      - F-1  per class - no averaging
      -
