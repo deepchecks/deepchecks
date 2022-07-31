@@ -57,6 +57,7 @@ class Context:
         with_display: bool = True,
         train_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
         test_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
+
     ):
         # Validations
         if train is None and test is None and model is None:
@@ -115,9 +116,9 @@ class Context:
                         msg = None
                         self._static_predictions[dataset_type] = predictions
                     except ValidationError as ex:
-                        msg = f'the predictions given were not in a currect format in the {dataset_type} dataset, ' \
+                        msg = f'the predictions given were not in a correct format in the {dataset_type} dataset, ' \
                             f'the validation has failed with the error: {ex}. To test your prediction formatting' \
-                            ' use the function `vision_data.validate_infered_batch_predictions(predictions)`'
+                            ' use the function `vision_data.validate_inferred_batch_predictions(predictions)`'
 
                     if msg:
                         self._prediction_formatter_error[dataset_type] = msg
