@@ -101,8 +101,7 @@ class Batch:
         props = self._context.static_properties[self._dataset_kind]
         dataset = self._context.get_data_by_kind(self._dataset_kind)
         indexes = list(dataset.data_loader.batch_sampler)[self.batch_index]
-        props = itemgetter(*indexes)(props)
-        props_to_cache = static_prop_to_cache_format()
+        props_to_cache = static_prop_to_cache_format(dict(zip(indexes, props)))
         return props_to_cache
 
     def vision_properties(self, raw_data: List, properties_list: List[Dict], input_type: PropertiesInputType):
@@ -116,13 +115,14 @@ class Batch:
                 self._vision_properties_cache = self._do_static_prop()
             else:
                 self._vision_properties_cache[input_type.value] = calc_vision_properties(raw_data, properties_list)
+            result_dict = self._vision_properties_cache[input_type.value]
         else:
             properties_to_calc = [p for p in properties_list if p['name'] not in
                                   self._vision_properties_cache[input_type.value].keys()]
             self._vision_properties_cache[input_type.value].update(
                                                                 calc_vision_properties(raw_data, properties_to_calc))
-        property_names_to_return = [p['name'] for p in properties_list]
-        result_dict = {k: self._vision_properties_cache[input_type.value][k] for k in property_names_to_return}
+            property_names_to_return = [p['name'] for p in properties_list]
+            result_dict = {k: self._vision_properties_cache[input_type.value][k] for k in property_names_to_return}
         return result_dict
 
 

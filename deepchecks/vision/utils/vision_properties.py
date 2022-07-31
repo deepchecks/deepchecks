@@ -128,11 +128,11 @@ def static_prop_to_cache_format(static_props:STATIC_PROPERTIES_FORMAT) -> PROPER
     """
     indices = list(static_props.keys())
     input_types = list(static_props[indices[0]].keys())
-    prop_names = list(static_props[indices[0]][input_types[0]].keys())
-    props_cache = dict.fromkeys(input_types, dict.fromkeys(prop_names, list()))
+    prop_names = [list(static_props[indices[0]][input_type].keys()) for input_type in input_types]
+    props_cache = dict.fromkeys(input_types, defaultdict(list))
 
     for input_type in input_types:
-        for prop_name in prop_names:
+        for prop_name in list(static_props[indices[0]][input_type].keys()):
             for index in indices:
                 props_cache[input_type][prop_name].append(static_props[index][input_type][prop_name])
 

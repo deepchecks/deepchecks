@@ -62,7 +62,7 @@ def _create_static_properties(train: VisionData, test: VisionData):
                 static_image_prop = vision_props_to_static_format(indexes, image_props, PropertiesInputType.IMAGES)
                 static_label_prop = vision_props_to_static_format(indexes, label_props, PropertiesInputType.LABELS)
                 static_prop.update({index: {**static_image_prop[index], **static_label_prop[index]} for index in
-                               static_label_prop.keys()})
+                               indexes})
 
         else:
             static_prop = None
@@ -73,5 +73,6 @@ def _create_static_properties(train: VisionData, test: VisionData):
 
 def test_image_properties_outliers(mnist_dataset_train, mnist_dataset_test):
     train_props, test_props = _create_static_properties(mnist_dataset_train, mnist_dataset_test)
-    check_results = ImagePropertyOutliers().run(mnist_dataset_train, train_properties=train_props)
-    assert_that(check_results.value, equal_to(6))
+    check_results = ImagePropertyOutliers().run(mnist_dataset_train,train_properties=train_props)
+    assert_that(check_results.value.keys(), contains_exactly('random', 'mean brightness', 'log'))
+    assert_that(check_results.value['mean brightness']['lower_limit'], close_to(58.986, 0.001))
