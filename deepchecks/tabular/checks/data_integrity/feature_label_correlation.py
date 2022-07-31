@@ -77,7 +77,6 @@ class FeatureLabelCorrelation(SingleDatasetCheck):
         """
         dataset = context.get_data_by_kind(dataset_kind)
         dataset.assert_features()
-        dataset.assert_label()
         relevant_columns = dataset.features + [dataset.label_name]
 
         df_pps = pps.predictors(df=dataset.data[relevant_columns], y=dataset.label_name, random_seed=self.random_state,
