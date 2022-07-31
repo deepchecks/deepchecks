@@ -410,7 +410,7 @@ def lending_club_split_dataset_and_model() -> Tuple[Dataset, Dataset, Pipeline]:
 
 @pytest.fixture(scope='session')
 def avocado_split_dataset_and_model() -> Tuple[Dataset, Dataset, Pipeline]:
-    """Return Adult train and val datasets and trained RandomForestClassifier model."""
+    """Return Adult train and val datasets and trained RandomForestRegressor model."""
     train_ds, test_ds = avocado.load_data(as_train_test=True)
     model = avocado.load_fitted_model()
     return train_ds, test_ds, model
@@ -556,6 +556,21 @@ def drifted_data() -> Tuple[Dataset, Dataset]:
     label = np.random.randint(0, 2, size=(df_test.shape[0],))
     df_test['target'] = label
     test_ds = Dataset(df_test, label='target')
+
+    return train_ds, test_ds
+
+
+@pytest.fixture(scope='session')
+def drifted_data_with_nulls(drifted_data) -> Tuple[Dataset, Dataset]:
+    train_ds, test_ds = drifted_data
+    n_train_nulls = int(train_ds.n_samples / 10)
+    n_test_nulls = int(train_ds.n_samples / 20)
+
+    train_ds = train_ds.copy(train_ds.data)
+    test_ds = train_ds.copy(test_ds.data)
+
+    train_ds.data.iloc[:n_train_nulls] = None
+    test_ds.data.iloc[:n_test_nulls] = None
 
     return train_ds, test_ds
 

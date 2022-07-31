@@ -92,7 +92,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         - 'largest_difference': Show the largest difference between categories.
     categorical_drift_method: str, default: "cramer_v"
         decides which method to use on categorical variables. Possible values are:
-        "cramers_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+        "cramer_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
     max_num_categories: int, default: None
         Deprecated. Please use max_num_categories_for_drift and max_num_categories_for_display instead
     """
@@ -104,7 +104,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
             max_num_categories_for_drift: int = 10,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
-            categorical_drift_method='cramer_v',
+            categorical_drift_method: str = 'cramer_v',
             max_num_categories: int = None,  # Deprecated
             **kwargs
     ):
@@ -113,6 +113,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         self.prediction_properties = prediction_properties
         self.margin_quantile_filter = margin_quantile_filter
         self.categorical_drift_method = categorical_drift_method
+
         if max_num_categories is not None:
             warnings.warn(
                 f'{self.__class__.__name__}: max_num_categories is deprecated. please use max_num_categories_for_drift '

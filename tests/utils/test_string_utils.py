@@ -60,6 +60,25 @@ def test_float_timestamp_format():
     )
 
 
+def test_round_timestamp():
+    now = datetime.now()
+    now = now.replace(second=0, microsecond=0)
+    result = format_datetime(now)
+    pattern = rf'{now.year}/{now.month}/{now.day} {now.hour}:{now.minute}'
+    assert_that(
+        result,
+        instance_of(str),
+        matches_regexp(pattern) # type: ignore
+    )
+
+    now = now.replace(hour=0, minute=0)
+    pattern = rf'{now.year}/{now.month}/{now.day}'
+    assert_that(
+        result,
+        instance_of(str),
+        matches_regexp(pattern) # type: ignore
+    )
+
 def test_format_datetime_with_unsuported_value_type():
     assert_that(
         calling(format_datetime).with_args('hello'),
