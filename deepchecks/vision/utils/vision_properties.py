@@ -116,3 +116,24 @@ def validate_properties(properties: List[Dict[str, Any]]):
         )
 
     return properties
+
+
+STATIC_PROPERTIES_FORMAT = Dict[int, Dict[PropertiesInputType, Dict[str, Any]]]
+PROPERTIES_CACHE_FORMAT = Dict[PropertiesInputType, Dict[str, List]]
+
+def static_prop_to_cache_format(static_props:STATIC_PROPERTIES_FORMAT) -> PROPERTIES_CACHE_FORMAT:
+    """
+    format a batch of static predictions to the format in the batch object cache.
+    Expects the items in all of the indices to have the same properties.
+    """
+    indices = list(static_props.keys())
+    input_types = list(static_props[indices[0]].keys())
+    prop_names = list(static_props[indices[0]][input_types[0]].keys())
+    props_cache = dict.fromkeys(input_types, dict.fromkeys(prop_names, list()))
+
+    for input_type in input_types:
+        for prop_name in prop_names:
+            for index in indices:
+                props_cache[input_type][prop_name].append(static_props[index][input_type][prop_name])
+
+    return props_cache

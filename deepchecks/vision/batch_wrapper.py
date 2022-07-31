@@ -16,7 +16,8 @@ import torch
 
 from deepchecks.core import DatasetKind
 from deepchecks.vision.task_type import TaskType
-from deepchecks.vision.utils.vision_properties import calc_vision_properties, PropertiesInputType, validate_properties
+from deepchecks.vision.utils.vision_properties import (PropertiesInputType, calc_vision_properties,
+                                                       static_prop_to_cache_format, validate_properties)
 
 if TYPE_CHECKING:
     from deepchecks.vision.context import Context
@@ -96,6 +97,14 @@ class Batch:
         dataset = self._context.get_data_by_kind(self._dataset_kind)
         return len(list(dataset.data_loader.batch_sampler)[self.batch_index])
 
+    def _do_static_prop(self):
+        props = self._context.static_properties[self._dataset_kind]
+        dataset = self._context.get_data_by_kind(self._dataset_kind)
+        indexes = list(dataset.data_loader.batch_sampler)[self.batch_index]
+        props = itemgetter(*indexes)(props)
+        props_to_cache = static_prop_to_cache_format()
+        return props_to_cache
+
     def vision_properties(self, raw_data: List, properties_list: List[Dict], input_type: PropertiesInputType):
         """Calculate and cache the properties for the batch according to the propety input type"""
         properties_list = validate_properties(properties_list)
@@ -103,7 +112,10 @@ class Batch:
         # else calculate only those that were not yet calculated.
         dataset = self._context.get_data_by_kind(self._dataset_kind)
         if self._vision_properties_cache[input_type.value] is None:
-            self._vision_properties_cache[input_type.value] = calc_vision_properties(raw_data, properties_list)
+            if self._context.static_properties is not None:
+                self._vision_properties_cache = self._do_static_prop()
+            else:
+                self._vision_properties_cache[input_type.value] = calc_vision_properties(raw_data, properties_list)
         else:
             properties_to_calc = [p for p in properties_list if p['name'] not in
                                   self._vision_properties_cache[input_type.value].keys()]
