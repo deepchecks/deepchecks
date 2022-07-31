@@ -30,7 +30,7 @@ class PropertiesInputType(Enum):
     OTHER = 'other'
 
 
-def calc_vision_properties(raw_data, properties_list) -> Dict[str, list]:
+def calc_vision_properties(raw_data: List, properties_list: List) -> Dict[str, list]:
     """
     Calculate the image properties for a batch of images.
 
@@ -39,7 +39,7 @@ def calc_vision_properties(raw_data, properties_list) -> Dict[str, list]:
     raw_data : torch.Tensor
         Batch of images to transform to image properties.
 
-    vision_properties: List[Dict] , default: None
+    properties_list: List[Dict] , default: None
         A list of properties to calculate.
 
     Returns

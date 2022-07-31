@@ -16,7 +16,7 @@ import torch
 
 from deepchecks.core import DatasetKind
 from deepchecks.vision.task_type import TaskType
-from deepchecks.vision.utils.vision_properties import PropertiesInputType, validate_properties
+from deepchecks.vision.utils.vision_properties import calc_vision_properties, PropertiesInputType, validate_properties
 
 if TYPE_CHECKING:
     from deepchecks.vision.context import Context
@@ -103,12 +103,12 @@ class Batch:
         # else calculate only those that were not yet calculated.
         dataset = self._context.get_data_by_kind(self._dataset_kind)
         if self._vision_properties_cache[input_type.value] is None:
-            self._vision_properties_cache[input_type.value] = dataset.calc_properties(raw_data, properties_list)
+            self._vision_properties_cache[input_type.value] = calc_vision_properties(raw_data, properties_list)
         else:
             properties_to_calc = [p for p in properties_list if p['name'] not in
                                   self._vision_properties_cache[input_type.value].keys()]
             self._vision_properties_cache[input_type.value].update(
-                                                                dataset.calc_properties(raw_data, properties_to_calc))
+                                                                calc_vision_properties(raw_data, properties_to_calc))
         property_names_to_return = [p['name'] for p in properties_list]
         result_dict = {k: self._vision_properties_cache[input_type.value][k] for k in property_names_to_return}
         return result_dict

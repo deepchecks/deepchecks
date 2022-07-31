@@ -225,25 +225,6 @@ class VisionData:
         """
         raise DeepchecksNotImplementedError('batch_to_images() must be implemented in a subclass')
 
-    def calc_properties(self, raw_data: List = None, properties_list: List[Dict] = None) -> Dict[str, list]:
-        """
-        Transform a batch of data to properties in the accpeted format.
-
-        Parameters
-        ----------
-        raw_data : torch.Tensor
-            Batch of data to transform to properties.
-
-        properties_list: List[Dict] , default: None
-            A list of properties to calculate
-
-        Returns
-        ------
-        batch_properties: dict[str, List]
-            A dict of property name, property value per sample
-        """
-        return calc_vision_properties(raw_data, properties_list)
-
     def validate_label(self, batch):
         """Validate a batch of labels."""
         # default implementation just calling the function to see if it runs
