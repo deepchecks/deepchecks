@@ -4,7 +4,7 @@
 Working with Models and Predictions
 ===================================
 
-Some checks, specially the model evaluation related checks, require model predictions in order to run.
+Some checks, mainly the ones related to model evaluation, require model predictions in order to run.
 In deepchecks, predictions are passed into the suite / check ``run`` method in one of the following ways:
 
 * Passing a :ref:`model object <supported_models__passing_a_model>` that will compute the
@@ -48,17 +48,17 @@ Specifically, deepchecks requires the following methods to be implemented in the
   input features and returns :ref:`probabilities per class <supported_models__predictions_format>`.
   This method is required only for classification tasks.
 
-Running Deepchecks with a Supported Model
+Running Deepchecks With a Supported Model
 -----------------------------------------
 
 .. literalinclude:: ../../../../examples/examples_supported_models.py
     :language: python
-    :lines: 0-7
+    :lines: 1-6
     :tab-width: 0
 
 
-Adapting Your Model
--------------------
+Adapting Your Custom Model
+--------------------------
 
 If you are using a model that does not support those interfaces you can either add the required methods to the
 model's class or create a wrapper class that implements the required interfaces by calling the relevant APIs of your
@@ -66,7 +66,7 @@ model. Below is a general structure of such wrapper class.
 
 >>> class MyModelWrapper:
 ...     def predict(X: pd.DataFrame) -> np.ndarray:
-...         # Implement based on base model's API
+...         # Implement based on base model's API.
 ...         ...
 ...     def predict_proba(X: pd.DataFrame) -> np.ndarray:
 ...         # Implement based on base model's API, only required for classification tasks.
@@ -79,9 +79,9 @@ model. Below is a general structure of such wrapper class.
 Feature Importance (Optional)
 -----------------------------
 
-Some checks require the model's
+Some checks uses the model's
 :doc:`feature importance </api/generated/deepchecks.user-guide.tabular.feature_importance>`
-for their analysis. By default, if available, it is extracted directly from the model via property
+in their analysis. By default, if available, it is extracted directly from the model via property
 (``feature_importances_`` or ``coef_`` for a linear model) otherwise it is calculated
 using |permutation importance|. The required format for the feature importance is a pandas series with feature names
 as index and their corresponding importance as values.
@@ -91,15 +91,15 @@ as index and their corresponding importance as values.
 Using Pre-computed Predictions
 ==============================
 
-The predictions should be passed via the y_proba and y_pred arguments of the suite / check run method in
-the :ref:`appropriate format <supported_models__predictions_format>`. y_pred receives the predicted values of the model
-and y_proba receives the probabilities per class, which is only required for classification tasks.
+The predictions should be passed via the ``y_proba`` and ``y_pred`` arguments of the suite / check's ``run`` method in
+the :ref:`appropriate format <supported_models__predictions_format>`. ``y_pred`` receives the predicted values of
+the model and ``y_proba`` receives the probabilities per class, which is only required for classification tasks.
 
 The predictions should be provided for each dataset supplied to the suite / check. For example the
 :doc:`Simple Model Comparison </api/generated/deepchecks.tabular.checks.model_evaluation.SimpleModelComparison>`
 check for a regression model
 requires both train and test :ref:`predicted values <supported_models__predictions_format>`
-to be provided via the y_pred_train, y_pred_test arguments.
+to be provided via the ``y_pred_train``, ``y_pred_test`` arguments.
 
 For classification tasks, predicted values are not mandatory. If not supplied,
 deepchecks will assume the predicted class is the class with the highest predicted probability.
@@ -114,12 +114,13 @@ Running Deepchecks with Pre-computed Predictions
 
 We will run the deepchecks model evaluation suite using pre-computed predictions from a random forest classification
 model. In addition, we will calculate and pass |permutation importance| which provides a better estimate of the
-effect of different features on the model's performance. see
-:doc:`Feature Importance </api/generated/deepchecks.user-guide.tabular.feature_importance>` for more details.
+effect of different features on the model's performance. See the
+:doc:`feature importance API reference </api/generated/deepchecks.user-guide.tabular.feature_importance>`
+for more details.
 
 .. literalinclude:: ../../../../examples/examples_supported_models.py
     :language: python
-    :lines: 7-23
+    :lines: 8-22
     :tab-width: 0
 
 
