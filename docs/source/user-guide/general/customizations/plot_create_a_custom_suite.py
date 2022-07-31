@@ -66,7 +66,7 @@ new_custom_suite
 # --------------------------------------------
 # * Checks in the built-in suites come with pre-defined conditions, and when building
 #   your custom suite you should choose which conditions to add.
-# * Most check classes have built-in methods for adding monditions. These apply to the
+# * Most check classes have built-in methods for adding conditions. These apply to the
 #   naming convention ``add_condition_...``, which enables adding a condition logic to parse
 #   the check's results.
 # * Each check instance can have several conditions or none. Each condition will be
