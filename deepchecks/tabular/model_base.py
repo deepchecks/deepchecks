@@ -10,7 +10,7 @@
 #
 """Module for base tabular model abstractions."""
 # pylint: disable=broad-except
-from typing import Any, List, Mapping, Tuple, Union
+from typing import Any, Dict, List, Mapping, Tuple, Union
 
 from deepchecks.core.check_result import CheckFailure, CheckResult
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
@@ -128,13 +128,18 @@ class ModelComparisonContext:
             train = train_datasets[i]
             test = test_datasets[i]
             model = list(models.values())[i]
-            name = list(models.keys())[i]
-            context = Context(train, test, model, model_name=name)
+            context = Context(train, test, model)
             if self.task_type is None:
                 self.task_type = context.task_type
             elif self.task_type != context.task_type:
                 raise DeepchecksNotSupportedError('Got models of different task types')
             self.contexts.append(context)
+        self._models = models
+
+    @property
+    def models(self) -> Dict:
+        """Return the models' dict."""
+        return self._models
 
     def __len__(self):
         """Return number of contexts."""
