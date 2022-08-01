@@ -24,7 +24,7 @@ from .string_mismatch_comparison import StringMismatchComparison
 from .train_test_feature_drift import TrainTestFeatureDrift
 from .train_test_label_drift import TrainTestLabelDrift
 from .train_test_samples_mix import TrainTestSamplesMix
-from .whole_dataset_drift import WholeDatasetDrift
+from .multivariate_drift import MultiVariateDrift
 
 __all__ = [
     'CategoryMismatchTrainTest',
@@ -40,5 +40,5 @@ __all__ = [
     'TrainTestFeatureDrift',
     'TrainTestLabelDrift',
     'TrainTestSamplesMix',
-    'WholeDatasetDrift',
+    'MultiVariateDrift',
 ]

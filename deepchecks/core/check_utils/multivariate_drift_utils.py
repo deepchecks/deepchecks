@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module containing common WholeDatasetDriftCheck (domain classifier drift) utils."""
+"""Module containing common MultiVariateDriftCheck (domain classifier drift) utils."""
 import warnings
 from typing import Container, List
 
@@ -37,13 +37,13 @@ from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
 
 
-def run_whole_dataset_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.DataFrame,
+def run_multivariate_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.DataFrame,
                             numerical_features: List[Hashable], cat_features: List[Hashable], sample_size: int,
                             random_state: int, test_size: float, n_top_columns: int, min_feature_importance: float,
                             max_num_categories_for_display: int, show_categories_by: str,
                             min_meaningful_drift_score: float,
                             with_display: bool):
-    """Calculate whole dataset drift."""
+    """Calculate multivariate drift."""
     numerical_features = np.array(numerical_features, dtype='object')
     cat_features = np.array(cat_features, dtype='object')
     domain_classifier = generate_model(numerical_features, cat_features, random_state)
@@ -175,7 +175,7 @@ def build_drift_plot(score):
     bar_traces, x_axis, y_axis = drift_score_bar_traces(score)
     x_axis['title'] = 'Drift score'
     drift_plot = go.Figure(layout=dict(
-        title='Drift Score - Whole Dataset Total',
+        title='Multivariate Drift Score',
         xaxis=x_axis,
         yaxis=y_axis,
         height=200

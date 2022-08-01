@@ -12,14 +12,14 @@
 import warnings
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
-from deepchecks.core.check_utils.whole_dataset_drift_utils import run_whole_dataset_drift
+from deepchecks.core.check_utils.multivariate_drift_utils import run_multivariate_drift
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.strings import format_number
 
-__all__ = ['WholeDatasetDrift']
+__all__ = ['MultiVariateDrift']
 
 
-class WholeDatasetDrift(TrainTestCheck):
+class MultiVariateDrift(TrainTestCheck):
     """
     Calculate drift between the entire train and test datasets using a model trained to distinguish between them.
 
@@ -121,7 +121,7 @@ class WholeDatasetDrift(TrainTestCheck):
         </span>
         """
 
-        values_dict, displays = run_whole_dataset_drift(
+        values_dict, displays = run_multivariate_drift(
             train_dataframe=train_dataset.features_columns,
             test_dataframe=test_dataset.features_columns,
             numerical_features=numerical_features,
@@ -137,7 +137,7 @@ class WholeDatasetDrift(TrainTestCheck):
         if displays:
             displays.insert(0, headnote)
 
-        return CheckResult(value=values_dict, display=displays, header='Whole Dataset Drift')
+        return CheckResult(value=values_dict, display=displays, header='MultiVariate Drift')
 
     def add_condition_overall_drift_value_less_than(self, max_drift_value: float = 0.25):
         """Add condition.
