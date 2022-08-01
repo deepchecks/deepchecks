@@ -3,7 +3,7 @@
 .. _plot_tabular_date_train_test_validation_leakage_duplicates:
 
 Date Train Test Leakage Duplicates
-**********************************
+**************************************
 """
 
 #%%
