@@ -5,17 +5,17 @@ Metrics Guide
 ====================
 
 In this guide we'll explain how to customize the metrics that deepchecks uses to validate and monitor your model.
-Controlling the metrics helps you shape the checks and suites according to the specifics of you use case.
+Controlling the metrics helps you shape the checks and suites according to the specifics of your use case.
 
 **Structure:**
 
-* `Default metrics <#default-metrics>`__
-* `Alternative metrics <#alternative-metrics>`__
-* `List of Supported Strings <#list-of-supported-strings>`__
-* `Custom Metrics <#custom-metrics>`__
+* `Default Metrics <#default-metrics>`__
+* `Alternative Metrics <#alternative-metrics>`__  - How to pass to the checks your desired metrics and override the default ones.
+* `List of Supported Strings <#list-of-supported-strings>`__ - List of the names of the pre-implemented metrics that can be passed to the checks.
+* `Custom Metrics <#custom-metrics>`__ - How to pass to the checks a custom metric that is not in the pre-implemented ones.
 
 
-Default metrics
+Default Metrics
 ===============
 All of the checks that evaluate model performance, such as SingleDatasetPerformance, come with
 default metrics.
@@ -72,10 +72,10 @@ To run a check with the default metrics, run it without passing any value to the
     result = check.run(train_ds, test_ds, mnist_model)
 
 
-Alternative metrics
+Alternative Metrics
 ===================
-Sometimes the defaults don't fit the specifics of the use-case.
-If this is the case, you can pass a list of supported metric strings or a dict in the format {metric name: metric} as a
+Sometimes the defaults don't fit the specifics of the use case.
+If this is the case, you can pass a list of supported metric strings or a dict in the format {``metric_name_string``: ``metric``} as a
 parameter to the check.
 
 The metrics in the dict can be existing:
@@ -98,7 +98,7 @@ or `your own implementation <#custom-metrics>`__.
    scorer = ['precision_per_class', 'recall_per_class', 'fnr_macro']
    check = TrainTestPerformance(scorers=scorer)
    result = check.run(train_ds, test_ds, model)
-   result
+   result.show()
 
 
 List of Supported Strings
@@ -159,7 +159,7 @@ apply.
      - only for object detection
 
 
-Custom metrics
+Custom Metrics
 ==============
 You can also pass your own custom metric to relevant checks and suites.
 
