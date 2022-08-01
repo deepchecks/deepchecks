@@ -74,13 +74,13 @@ parameter to the check.
 
 The metrics in the dict can be existing:
 
+*   Strings from Deepchecks' `supported strings <#list-of-supported-strings>`__ for both vision and tabular.
 *   `Ignite metrics <https://pytorch.org/ignite/metrics.html#complete-list-of-metrics>`__ for vision.
     An Ignite Metric is a class with the methods: reset, compute, and update, that iterates over batches of data and
     aggregates the result.
 *   `Sklearn scorers <https://scikit-learn.org/stable/modules/model_evaluation.html>`__ for both vision and tabular.
     An Sklearn Scorer is a function that accepts the parameters: (model, x, y_true), and returns a score with the
     convention that higher is better.
-*   strings from Deepchecks' `supported strings <#list-of-supported-strings>`__ for both vision and tabular.
 
 or `your own implementation <#custom-metrics>`__.
 
