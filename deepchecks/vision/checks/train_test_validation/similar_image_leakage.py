@@ -16,8 +16,7 @@ import numpy as np
 from imagehash import average_hash
 from PIL.Image import fromarray
 
-from deepchecks import ConditionCategory, ConditionResult
-from deepchecks.core import CheckResult, DatasetKind
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult, DatasetKind
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision import Batch, Context, TrainTestCheck
 
