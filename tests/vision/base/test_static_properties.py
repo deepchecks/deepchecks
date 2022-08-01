@@ -14,14 +14,15 @@ import typing as t
 import numpy as np
 import pandas as pd
 from hamcrest import (assert_that, close_to, contains_exactly, equal_to, greater_than, has_entries, has_items,
-                      has_length, instance_of)
+                      has_length, instance_of, calling, raises)
 from plotly.basedatatypes import BaseFigure
 
-from deepchecks.vision.checks.data_integrity import ImagePropertyOutliers
+from deepchecks.vision.checks import ImagePropertyOutliers,PropertyLabelCorrelationChange, LabelPropertyOutliers
+from deepchecks.vision.utils.label_prediction_properties import DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES
 from deepchecks.vision.suites.default_suites import full_suite
 from deepchecks.vision.vision_data import VisionData
 from deepchecks.vision.utils.vision_properties import calc_vision_properties, PropertiesInputType
-from deepchecks.vision.utils.image_properties import default_image_properties
+from deepchecks.vision.utils.image_properties import aspect_ratio
 from tests.base.utils import equal_condition_result
 from tests.common import assert_class_performance_display
 from tests.conftest import get_expected_results_length, validate_suite_result
@@ -41,13 +42,7 @@ def vision_props_to_static_format(indexes, vision_props):
     index_properties = dict(zip(indexes, [dict(zip(vision_props, t)) for t in zip(*vision_props.values())]))
     return index_properties
 
-def _create_static_properties(train: VisionData, test: VisionData):
-    image_properties = [{'name': 'random', 'method': rand_prop, 'output_type': 'numerical'},
-                        {'name': 'mean brightness', 'method': mean_prop, 'output_type': 'numerical'},
-                        ]
-
-    label_properties = [{'name': 'log', 'method': label_prop, 'output_type': 'numerical'}]
-
+def _create_static_properties(train: VisionData, test: VisionData, image_properties, label_properties):
     static_props = []
     for vision_data in [train, test]:
         if vision_data is not None:
@@ -59,7 +54,7 @@ def _create_static_properties(train: VisionData, test: VisionData):
                 static_image_prop = vision_props_to_static_format(indexes, image_props)
                 static_label_prop = vision_props_to_static_format(indexes, label_props)
                 static_prop.update({k: {'images': static_image_prop[k], 'labels': static_label_prop[k]} for k in
-                                    static_image_prop.keys()})
+                                    indexes})
 
         else:
             static_prop = None
@@ -69,7 +64,33 @@ def _create_static_properties(train: VisionData, test: VisionData):
 
 
 def test_image_properties_outliers(mnist_dataset_train, mnist_dataset_test):
-    train_props, test_props = _create_static_properties(mnist_dataset_train, mnist_dataset_test)
+    image_properties = [{'name': 'random', 'method': rand_prop, 'output_type': 'numerical'},
+                        {'name': 'mean brightness', 'method': mean_prop, 'output_type': 'numerical'},
+                        ]
+
+    label_properties = [{'name': 'log', 'method': label_prop, 'output_type': 'numerical'}]
+    train_props, test_props = _create_static_properties(mnist_dataset_train, mnist_dataset_test,
+                                                        image_properties, label_properties)
     check_results = ImagePropertyOutliers().run(mnist_dataset_train,train_properties=train_props)
     assert_that(check_results.value.keys(), contains_exactly('random', 'mean brightness'))
     assert_that(check_results.value['mean brightness']['lower_limit'], close_to(13.87, 0.001))
+
+
+def test_object_detection(coco_train_visiondata, coco_test_visiondata):
+    image_properties = [{'name': 'aspect_ratio', 'method': aspect_ratio, 'output_type': 'numerical'}]
+    label_properties = DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES
+    train_props, test_props = _create_static_properties(coco_train_visiondata, coco_test_visiondata,
+                                                        image_properties, label_properties)
+
+    # assert error is raised if no bbox properties passed in a check that calls bbox properties
+    assert_that(calling(PropertyLabelCorrelationChange().run)
+                .with_args(
+        train_dataset=coco_train_visiondata, test_dataset=coco_test_visiondata,
+        train_properties=train_props, test_properties=test_props)), \
+    raises(KeyError)
+
+    # assert that label properties also work for bboxes
+    check_results = LabelPropertyOutliers().run(coco_train_visiondata, train_properties=train_props)
+    assert_that(check_results.value.keys(),
+                contains_exactly(
+                    'Samples Per Class', 'Bounding Box Area (in pixels)', 'Number of Bounding Boxes Per Image'))
