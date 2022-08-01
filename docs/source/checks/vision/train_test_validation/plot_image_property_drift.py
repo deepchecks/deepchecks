@@ -2,8 +2,8 @@
 """
 .. _plot_vision_image_property_drift:
 
-Image Property Drift Check
-**************************
+Image Property Drift
+********************
 
 This notebooks provides an overview for using and understanding the image property drift check.
 

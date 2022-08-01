@@ -107,6 +107,8 @@ class CategoryMismatchTrainTest(TrainTestCheck, ReduceMixin):
                                             'Percent of new categories in sample',
                                             'New categories examples'])\
                                     .set_index(['Column'])
+            display['Percent of new categories in sample'] = display['Percent of new categories in sample'].apply(
+                format_percent)
 
         else:
             display = None
@@ -162,8 +164,8 @@ class CategoryMismatchTrainTest(TrainTestCheck, ReduceMixin):
         """
         def new_category_count_condition(result: Dict) -> ConditionResult:
             columns_new_categories = result['new_categories']
-            ratio_new_per_column = [(feature, len(new_categories) / result['test_count']) for feature, new_categories
-                                    in columns_new_categories.items()]
+            ratio_new_per_column = [(feature, sum(new_categories.values()) / result['test_count'])
+                                    for feature, new_categories in columns_new_categories.items()]
             sorted_columns = sorted(ratio_new_per_column, key=lambda x: x[1], reverse=True)
             failing = [(feature, format_percent(ratio_new)) for feature, ratio_new in sorted_columns
                        if ratio_new > max_ratio]
