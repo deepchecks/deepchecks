@@ -137,7 +137,7 @@ class Context:
                         msg = None
                         self._static_properties[dataset_type] = props
                     except ValidationError as ex:
-                        msg = f'the predictions given were not in a correct format in the {dataset_type} dataset, ' \
+                        msg = f'the properties given were not in a correct format in the {dataset_type} dataset, ' \
                             f'the validation has failed with the error: {ex}.'
 
         # The copy does 2 things: Sample n_samples if parameter exists, and shuffle the data.

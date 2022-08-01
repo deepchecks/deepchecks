@@ -37,12 +37,9 @@ def mean_prop(batch):
 def label_prop(batch):
     return [int(np.log(int(x)+1)) for x in batch]
 
-def vision_props_to_static_format(indexes, vision_props, input_type):
+def vision_props_to_static_format(indexes, vision_props):
     index_properties = dict(zip(indexes, [dict(zip(vision_props, t)) for t in zip(*vision_props.values())]))
-    static_props = dict.fromkeys(indexes, dict.fromkeys([input_type.value], dict.fromkeys(vision_props.keys())))
-    for index in indexes:
-        static_props[index][input_type.value].update(index_properties[index])
-    return static_props
+    return index_properties
 
 def _create_static_properties(train: VisionData, test: VisionData):
     image_properties = [{'name': 'random', 'method': rand_prop, 'output_type': 'numerical'},
@@ -59,10 +56,10 @@ def _create_static_properties(train: VisionData, test: VisionData):
                 image_props = calc_vision_properties(vision_data.batch_to_images(batch), image_properties)
                 label_props = calc_vision_properties(vision_data.batch_to_labels(batch), label_properties)
                 indexes = list(vision_data.data_loader.batch_sampler)[i]
-                static_image_prop = vision_props_to_static_format(indexes, image_props, PropertiesInputType.IMAGES)
-                static_label_prop = vision_props_to_static_format(indexes, label_props, PropertiesInputType.LABELS)
-                static_prop.update({index: {**static_image_prop[index], **static_label_prop[index]} for index in
-                               indexes})
+                static_image_prop = vision_props_to_static_format(indexes, image_props)
+                static_label_prop = vision_props_to_static_format(indexes, label_props)
+                static_prop.update({k: {'images': static_image_prop[k], 'labels': static_label_prop[k]} for k in
+                                    static_image_prop.keys()})
 
         else:
             static_prop = None
@@ -74,5 +71,5 @@ def _create_static_properties(train: VisionData, test: VisionData):
 def test_image_properties_outliers(mnist_dataset_train, mnist_dataset_test):
     train_props, test_props = _create_static_properties(mnist_dataset_train, mnist_dataset_test)
     check_results = ImagePropertyOutliers().run(mnist_dataset_train,train_properties=train_props)
-    assert_that(check_results.value.keys(), contains_exactly('random', 'mean brightness', 'log'))
-    assert_that(check_results.value['mean brightness']['lower_limit'], close_to(58.986, 0.001))
+    assert_that(check_results.value.keys(), contains_exactly('random', 'mean brightness'))
+    assert_that(check_results.value['mean brightness']['lower_limit'], close_to(13.87, 0.001))
