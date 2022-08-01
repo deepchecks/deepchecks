@@ -107,7 +107,7 @@ result.show()
 # </checks_gallery/vision/train_test_validation/plot_property_label_correlation_change>` check computes various
 # :doc:`image properties </user-guide/vision/vision_properties>` and checks if the image label can be inferred using a
 # simple model (for example, a Classification Tree) using the property values. The ability to predict the label using
-# these properties is measures by the Predictive Power Score (PPS) and this measure is compared between the training
+# these properties is measured by the Predictive Power Score (PPS) and this measure is compared between the training
 # and test dataset. In this case, the condition alerts us to the fact that this PPS for the "RMS Contrast" property was
 # significantly higher in the training dataset than in the test dataset.
 #
