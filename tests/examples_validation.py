@@ -15,7 +15,7 @@ from urllib.parse import urlparse
 
 import deepchecks.tabular.checks as tabular_checks
 import deepchecks.vision.checks as vision_checks
-from deepchecks import BaseCheck
+from deepchecks.core import BaseCheck
 from deepchecks.utils.strings import generate_check_docs_link
 from deepchecks.vision.checks.data_integrity.abstract_property_outliers import AbstractPropertyOutliers
 

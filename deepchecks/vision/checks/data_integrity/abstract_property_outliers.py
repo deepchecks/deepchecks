@@ -19,8 +19,7 @@ from secrets import choice
 import numpy as np
 import pandas as pd
 
-from deepchecks import CheckResult
-from deepchecks.core import DatasetKind
+from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import DeepchecksProcessError, DeepchecksValueError, NotEnoughSamplesError
 from deepchecks.utils.outliers import iqr_outliers_range
 from deepchecks.utils.strings import format_number

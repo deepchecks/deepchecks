@@ -14,12 +14,11 @@ from typing import Callable, Dict, List, TypeVar, Union, cast
 
 import pandas as pd
 
-from deepchecks.core import ConditionCategory, ConditionResult
-from deepchecks.tabular.base_checks import SingleDatasetCheck
-from deepchecks.core import CheckResult
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.checks import ReduceMixin
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context
+from deepchecks.tabular.base_checks import SingleDatasetCheck
 from deepchecks.utils.strings import format_number
 
 __all__ = ['SingleDatasetPerformance']

@@ -12,7 +12,7 @@
 
 from hamcrest import assert_that, equal_to, greater_than, has_length, instance_of
 
-from deepchecks import CheckFailure
+from deepchecks.core import CheckFailure
 from deepchecks.vision.checks import ModelErrorAnalysis
 
 
