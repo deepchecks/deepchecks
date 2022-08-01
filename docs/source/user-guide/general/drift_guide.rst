@@ -131,15 +131,6 @@ If the classifier can easily predict which sample is from which dataset, it woul
 The main advantage of this method is that it can also uncover covariate drift, meaning drift in the data that does not
 affect the distribution of each individual variable, but does affect the relationship between them.
 
-In deepchecks (in checks :doc:`Multivariate Drift</checks_gallery/tabular/train_test_validation/plot_multivariate_drift>` and
-:doc:`Image Dataset Drift</checks_gallery/vision/train_test_validation/plot_image_dataset_drift>`) we merge
-the train and the test sets, and assign label 0 to samples that come from the training set, and 1 to those who are
-from the test set. Then, we train a binary classifer of type
-`Histogram-based Gradient Boosting Classification Tree
-<https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.HistGradientBoostingClassifier.html>`__.
-We then normalize the AUC score of this classifier and use it as the drift score, as the higher the AUC, the better the model,
-meaning the datasets are significantly different.
-
 How Can I Use Deepchecks to Detect Drift?
 =========================================
 
@@ -175,8 +166,7 @@ drift, as image data and labels are not simple one-dimensional variables.
 
 To detect `data <#data-drift>`__ or `concept drift <#concept-drift>`__, deepchecks offers the
 :doc:`Image Property Drift check </checks_gallery/vision/train_test_validation/plot_image_property_drift>` which uses
-`univariate measures <#detection-by-univariate-measure>`__ and the :doc:`Image Dataset Drift check</checks_gallery/vision/train_test_validation/plot_image_dataset_drift>`
-which uses a `domain classifier <#detection-by-domain-classifier>`__ in order to detect multivariate drift.
+`univariate measures <#detection-by-univariate-measure>`__.
 
 For drift in your label's distribution, deepchecks offers the :doc:`Label Drift check </checks_gallery/vision/train_test_validation/plot_train_test_label_drift>`,
 which also uses `univariate measures <#detection-by-univariate-measure>`__.
@@ -286,14 +276,6 @@ Computer Vision Checks
 
     from deepchecks.vision.checks import ImagePropertyDrift
     check = TrainTestPropertyDrift()
-    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
-
-:doc:`ImageDatasetDrift </checks_gallery/vision/train_test_validation/plot_image_dataset_drift>`:
-
-.. code-block:: python
-
-    from deepchecks.vision.checks import ImageDatasetDrift
-    check = ImageDatasetDrift()
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
 
 :doc:`TrainTestLabelDrift </checks_gallery/vision/train_test_validation/plot_train_test_label_drift>`:
