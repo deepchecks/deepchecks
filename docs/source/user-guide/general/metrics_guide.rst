@@ -10,15 +10,18 @@ Controlling the metrics helps you shape the checks and suites according to the s
 **Structure:**
 
 * `Default Metrics <#default-metrics>`__
-* `Alternative Metrics <#alternative-metrics>`__  - How to pass to the checks your desired metrics and override the default ones.
-* `List of Supported Strings <#list-of-supported-strings>`__ - List of the names of the pre-implemented metrics that can be passed to the checks.
-* `Custom Metrics <#custom-metrics>`__ - How to pass to the checks a custom metric that is not in the pre-implemented ones.
+* `Alternative Metrics <#alternative-metrics>`__  - How to pass to the checks your desired metrics and override the
+  default ones.
+* `List of Supported Strings <#list-of-supported-strings>`__ - List of the names of the pre-implemented metrics that can
+  be passed to the checks.
+* `Custom Metrics <#custom-metrics>`__ - How to pass to the checks a custom metric that is not in the pre-implemented
+  ones.
 
 
 Default Metrics
 ===============
-All of the checks that evaluate model performance, such as SingleDatasetPerformance, come with
-default metrics.
+All of the checks that evaluate model performance, such as `SingleDatasetPerformance
+</checks_gallery/vision/model_evaluation/plot_single_dataset_performance>`, come with default metrics.
 
 The default metrics by task type are:
 
@@ -167,6 +170,10 @@ Custom metrics should follow the
 `Ignite Metric <https://pytorch.org/ignite/metrics.html#how-to-create-a-custom-metric>`__ API for computer vision or
 `Sklearn scorer <https://scikit-learn.org/stable/modules/generated/sklearn.metrics.make_scorer.html>`__ API for tabular.
 
+Tabular Example
+_______________
+
+
 .. code-block:: python
 
     from deepchecks.tabular.datasets.classification import adult
@@ -182,6 +189,9 @@ Custom metrics should follow the
     suite = model_evaluation(scorers=custom_scorers)
     result = suite.run(train_dataset, test_dataset, model)
 
+
+Vision Example
+______________
 
 .. code-block:: python
 
