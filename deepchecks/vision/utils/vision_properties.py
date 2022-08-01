@@ -118,10 +118,14 @@ def validate_properties(properties: List[Dict[str, Any]]):
     return properties
 
 
+# pylint: disable=invalid-name
 STATIC_PROPERTIES_FORMAT = Dict[int, Dict[PropertiesInputType, Dict[str, Any]]]
+
+
 PROPERTIES_CACHE_FORMAT = Dict[PropertiesInputType, Dict[str, List]]
 
-def static_prop_to_cache_format(static_props:STATIC_PROPERTIES_FORMAT) -> PROPERTIES_CACHE_FORMAT:
+
+def static_prop_to_cache_format(static_props: STATIC_PROPERTIES_FORMAT) -> PROPERTIES_CACHE_FORMAT:
     """
     format a batch of static predictions to the format in the batch object cache.
     Expects the items in all of the indices to have the same properties.

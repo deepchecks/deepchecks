@@ -9,12 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing measurements for labels and predictions."""
-import warnings
-from typing import Any, Dict, List, Sequence
+from typing import List, Sequence
 
 import torch
-
-from deepchecks.core.errors import DeepchecksValueError
 
 # Labels
 

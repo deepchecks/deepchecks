@@ -24,7 +24,7 @@ from deepchecks.utils.logger import get_logger
 from deepchecks.vision._shared_docs import docstrings
 from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.vision_data import VisionData
-from deepchecks.vision.utils.vision_properties import PropertiesInputType, STATIC_PROPERTIES_FORMAT
+from deepchecks.vision.utils.vision_properties import STATIC_PROPERTIES_FORMAT
 
 __all__ = ['Context']
 
@@ -129,8 +129,8 @@ class Context:
         if train_properties is not None or test_properties is not None:
             self._static_properties = {}
             for dataset, dataset_type, properties in zip([train, test],
-                                                          [DatasetKind.TRAIN, DatasetKind.TEST],
-                                                          [train_properties, test_properties]):
+                                                         [DatasetKind.TRAIN, DatasetKind.TEST],
+                                                         [train_properties, test_properties]):
                 if dataset is not None:
                     try:
                         props = itemgetter(*list(dataset.data_loader.batch_sampler)[0])(properties)

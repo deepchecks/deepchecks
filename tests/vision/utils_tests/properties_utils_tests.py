@@ -85,8 +85,8 @@ def test_validate_properties_with_bad_name_field():
         raises(
             DeepchecksValueError,
             r"List of properties contains next problems:\n"
-            rf"\+ Property #1: dictionary must include keys \('name', 'method', 'output_type'\)\. "
-            fr"Next keys are missed \['name'\]")
+            r"\+ Property #1: dictionary must include keys \('name', 'method', 'output_type'\)\. "
+            r"Next keys are missed \['name'\]")
     )
 
 def test_validate_properties_with_incorrect_property_output_type():

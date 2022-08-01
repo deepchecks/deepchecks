@@ -13,19 +13,20 @@ import typing as t
 
 import numpy as np
 import pandas as pd
-from hamcrest import (assert_that, close_to, contains_exactly, equal_to, greater_than, has_entries, has_items,
-                      has_length, instance_of, calling, raises)
+from hamcrest import (assert_that, calling, close_to, contains_exactly, equal_to, greater_than, has_entries, has_items,
+                      has_length, instance_of, raises)
 from plotly.basedatatypes import BaseFigure
 
-from deepchecks.vision.checks import ImagePropertyOutliers,PropertyLabelCorrelationChange, LabelPropertyOutliers
-from deepchecks.vision.utils.label_prediction_properties import DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES
+from deepchecks.vision.checks import ImagePropertyOutliers, LabelPropertyOutliers, PropertyLabelCorrelationChange
 from deepchecks.vision.suites.default_suites import full_suite
-from deepchecks.vision.vision_data import VisionData
-from deepchecks.vision.utils.vision_properties import calc_vision_properties, PropertiesInputType
 from deepchecks.vision.utils.image_properties import aspect_ratio
+from deepchecks.vision.utils.label_prediction_properties import DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES
+from deepchecks.vision.utils.vision_properties import PropertiesInputType, calc_vision_properties
+from deepchecks.vision.vision_data import VisionData
 from tests.base.utils import equal_condition_result
 from tests.common import assert_class_performance_display
 from tests.conftest import get_expected_results_length, validate_suite_result
+
 
 def rand_prop(batch):
     return [np.random.rand() for x in batch]

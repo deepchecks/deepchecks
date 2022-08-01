@@ -109,7 +109,6 @@ class Batch:
         properties_list = validate_properties(properties_list)
         # if there are no cached properties at all, calculate all the properties on the list,
         # else calculate only those that were not yet calculated.
-        dataset = self._context.get_data_by_kind(self._dataset_kind)
         if self._vision_properties_cache[input_type.value] is None:
             if self._context.static_properties is not None:
                 self._vision_properties_cache = self._do_static_prop()
