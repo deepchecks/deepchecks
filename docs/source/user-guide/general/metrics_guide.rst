@@ -97,6 +97,11 @@ or `your own implementation <#custom-metrics>`__.
 
 List of Supported Strings
 =========================
+
+In addition to the strings listed below, all Sklearn `scorer strings
+<https://scikit-learn.org/stable/modules/model_evaluation.html#the-scoring-parameter-defining-model-evaluation-rules>`__
+apply.
+
 .. list-table:: Supported Strings
    :widths: 25 75 75
    :header-rows: 1
@@ -110,18 +115,6 @@ List of Supported Strings
    * - 'neg_mae'
      - negative mean absolute error
      - Sklearn
-   * - 'precision_per_class'
-     - precision per class - no averaging (results are returned per class)
-     -
-   * - 'average_precision_per_class'
-     - average precision for object detection
-     - only for object detection
-   * - 'recall_per_class' , 'sensitivity_per_class'
-     - recall per class - no averaging
-     -
-   * - 'average_recall_per_class'
-     - average recall for object detection
-     - only for object detection
    * - 'f1_per_class'
      - F-1  per class - no averaging
      -
@@ -146,12 +139,19 @@ List of Supported Strings
    * - 'tnr', 'specificity'
      - True Negative Rate - binary
      - suffixes apply as with 'fpr'
+   * - 'precision'
+     - precision
+     - suffixes apply as with 'fpr'
+   * - 'recall' , 'sensitivity'
+     - recall (sensitivity)
+     - suffixes apply as with 'fpr'
+   * - 'average_precision_per_class'
+     - average precision for object detection
+     - only for object detection
+   * - 'average_recall_per_class'
+     - average recall for object detection
+     - only for object detection
 
-
-In addition to the strings listed above, all Sklearn
-`scorer strings
-<https://scikit-learn.org/stable/modules/model_evaluation.html#the-scoring-parameter-defining-model-evaluation-rules>`__
-apply.
 
 Custom metrics
 ==============
