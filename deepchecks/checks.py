@@ -44,6 +44,7 @@ __all__ = [
     # methodology checks
     'BoostingOverfit',
     'UnusedFeatures',
+    'FeatureFeatureCorrelation',
     'FeatureLabelCorrelation',
     'FeatureLabelCorrelationChange',
     'IndexTrainTestLeakage',
