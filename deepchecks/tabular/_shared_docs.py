@@ -15,16 +15,12 @@ _shared_docstrings = {}
 
 
 _shared_docstrings['additional_context_params'] = """
-model_name: str , default: ''
-    The name of the model
 feature_importance: pd.Series , default: None
     pass manual features importance
 feature_importance_force_permutation : bool , default: False
     force calculation of permutation features importance
 feature_importance_timeout : int , default: 120
     timeout in second for the permutation features importance calculation
-scorers : Optional[Mapping[str, Union[str, Callable]]] , default: None
-    dict of scorers names to scorer sklearn_name/function
 y_pred_train: Optional[np.ndarray] , default: None
     Array of the model prediction over the train dataset.
 y_pred_test: Optional[np.ndarray] , default: None

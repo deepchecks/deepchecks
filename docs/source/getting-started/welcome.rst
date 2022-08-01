@@ -52,11 +52,11 @@ Tabular Data
 
 Head over to one of our following quickstart tutorials, and have deepchecks running on your environment in less than 5 min:
 
-- :doc:`Data Integrity Quickstart </user-guide/tabular/auto_tutorials/plot_quick_data_integrity>`
+- :doc:`Data Integrity Quickstart </user-guide/tabular/auto_quickstarts/plot_quick_data_integrity>`
 
-- :doc:`Train-Test Validation Quickstart </user-guide/tabular/auto_tutorials/plot_quick_train_test_validation>`
+- :doc:`Train-Test Validation Quickstart </user-guide/tabular/auto_quickstarts/plot_quick_train_test_validation>`
 
-- :doc:`Model Evaluation Quickstart </user-guide/tabular/auto_tutorials/plot_quick_model_evaluation>`
+- :doc:`Model Evaluation Quickstart </user-guide/tabular/auto_quickstarts/plot_quick_model_evaluation>`
 
  **Recommended - download the code and run it locally** on the built-in dataset and (optional) model, or **replace them with your own**.
 
@@ -77,10 +77,9 @@ Computer Vision
    It is :doc:`available for installation </getting-started/installation>` from PyPi, use at your own discretion.
    `Github Issues <https://github.com/deepchecks/deepchecks/issues>`_ for feedback and feature requests are welcome!
 
-- :doc:`Object Detection Tutorial </user-guide/vision/auto_tutorials/plot_detection_tutorial>`
-- :doc:`Image Data Validation in 5 Minutes </user-guide/vision/auto_tutorials/plot_simple_classification_tutorial>`
-- :doc:`Classification Tutorial</user-guide/vision/auto_tutorials/plot_classification_tutorial>`
-
+- :doc:`Object Detection Tutorial </user-guide/vision/auto_quickstarts/plot_detection_tutorial>`
+- :doc:`Simple Image Classification Tutorial (for data without model) </user-guide/vision/auto_quickstarts/plot_simple_classification_tutorial>`
+- :doc:`Classification Tutorial</user-guide/vision/auto_quickstarts/plot_classification_tutorial>`
 
 
 🙋🏼 When Should You Use Deepchecks?

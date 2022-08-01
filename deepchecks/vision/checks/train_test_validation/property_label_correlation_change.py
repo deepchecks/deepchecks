@@ -16,8 +16,7 @@ import numpy as np
 import pandas as pd
 from pandas.core.dtypes.common import is_float_dtype
 
-from deepchecks import ConditionResult
-from deepchecks.core import CheckResult, DatasetKind
+from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.check_utils.feature_label_correlation_utils import (get_feature_label_correlation,
                                                                          get_feature_label_correlation_per_class)
 from deepchecks.core.condition import ConditionCategory

@@ -16,8 +16,7 @@ import torch
 from ignite.metrics import Metric
 from torch import nn
 
-from deepchecks import CheckFailure, CheckResult, SuiteResult
-from deepchecks.core import DatasetKind
+from deepchecks.core import CheckFailure, CheckResult, DatasetKind, SuiteResult
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotImplementedError, DeepchecksNotSupportedError,
                                     DeepchecksValueError, ModelValidationError, ValidationError)
 from deepchecks.utils.logger import get_logger
