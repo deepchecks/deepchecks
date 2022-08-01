@@ -20,7 +20,7 @@ Default metrics
 All of the checks that evaluate model performance, such as SingleDatasetPerformance, come with
 default metrics.
 
-The default scorers by task type are:
+The default metrics by task type are:
 
 Tabular
 _______
