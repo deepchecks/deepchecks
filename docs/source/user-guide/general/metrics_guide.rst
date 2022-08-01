@@ -25,36 +25,42 @@ The default metrics by task type are:
 Tabular
 _______
 
-Classification, binary or multiclass averaged over the classes:
+Binary classification:
 
-*   Accuracy
-*   Precision
-*   Recall
+*   Accuracy 'accuracy'
+*   Precision 'precision'
+*   Recall 'recall'
+
+Multiclass classification averaged over the classes:
+
+*   Accuracy 'accuracy'
+*   Precision 'precision_macro'
+*   Recall 'recall_macro'
 
 Multiclass classification per class:
 
-*   F1
-*   Precision
-*   Recall
+*   F1 'f1_per_class'
+*   Precision 'precision_per_class'
+*   Recall 'recall_per_class'
 
 Regression:
 
-*   Negative RMSE (negative RMSE so that the convention that greater is better is kept)
-*   Negative MAE
-*   R2
+*   Negative RMSE (negative RMSE so that the convention that greater is better is kept) 'neg_rmse'
+*   Negative MAE 'neg_mae'
+*   R2 'r2'
 
 Vision
 ______
 
 Classification:
 
-*   Precision
-*   Recall
+*   Precision 'precision_per_class'
+*   Recall 'recall_per_class'
 
 Object detection:
 
-*   Mean average precision
-*   Mean average recall
+*   Mean average precision 'average_precision_per_class'
+*   Mean average recall  'average_recall_per_class'
 
 To run a check with the default metrics, run it without passing any value to the "scorer" parameter. For example:
 
