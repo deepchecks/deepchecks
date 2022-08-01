@@ -21,7 +21,7 @@ from ignite.metrics import Metric
 
 from deepchecks.vision import Suite
 from deepchecks.vision.checks import (ClassPerformance, ConfusionMatrixReport,  # SimilarImageLeakage,
-                                      HeatmapComparison, ImageDatasetDrift, ImagePropertyDrift, ImagePropertyOutliers,
+                                      HeatmapComparison, ImagePropertyDrift, ImagePropertyOutliers,
                                       ImageSegmentPerformance, LabelPropertyOutliers, MeanAveragePrecisionReport,
                                       MeanAverageRecallReport, ModelErrorAnalysis, NewLabels,
                                       PropertyLabelCorrelationChange, SimpleModelComparison, TrainTestLabelDrift,
@@ -56,8 +56,6 @@ def train_test_validation(n_top_show: int = 5,
              - :class:`~deepchecks.vision.checks.train_test_validation.TrainTestLabelDrift`
            * - :ref:`plot_vision_image_property_drift`
              - :class:`~deepchecks.vision.checks.train_test_validation.ImagePropertyDrift`
-           * - :ref:`plot_vision_image_dataset_drift`
-             - :class:`~deepchecks.vision.checks.train_test_validation.ImageDatasetDrift`
            * - :ref:`plot_vision_feature_label_correlation_change`
              - :class:`~deepchecks.vision.checks.train_test_validation.PropertyLabelCorrelationChange`
 
@@ -120,7 +118,6 @@ def train_test_validation(n_top_show: int = 5,
         HeatmapComparison(**kwargs),
         TrainTestLabelDrift(**kwargs).add_condition_drift_score_less_than(),
         ImagePropertyDrift(**kwargs).add_condition_drift_score_less_than(),
-        ImageDatasetDrift(**kwargs),
         PropertyLabelCorrelationChange(**kwargs).add_condition_property_pps_difference_less_than(),
     )
 

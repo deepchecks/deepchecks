@@ -10,7 +10,6 @@
 # ----------------------------------------------------------------------------
 #
 from .heatmap_comparison import HeatmapComparison
-from .image_dataset_drift import ImageDatasetDrift
 from .image_property_drift import ImagePropertyDrift
 from .new_labels import NewLabels
 from .property_label_correlation_change import PropertyLabelCorrelationChange
@@ -19,7 +18,6 @@ from .train_test_label_drift import TrainTestLabelDrift
 
 __all__ = [
     'HeatmapComparison',
-    'ImageDatasetDrift',
     'ImagePropertyDrift',
     'NewLabels',
     'SimilarImageLeakage',

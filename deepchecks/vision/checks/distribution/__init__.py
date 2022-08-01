@@ -19,13 +19,12 @@ import warnings
 
 from ..data_integrity import ImagePropertyOutliers, LabelPropertyOutliers
 from ..model_evaluation import TrainTestPredictionDrift
-from ..train_test_validation import (HeatmapComparison, ImageDatasetDrift, ImagePropertyDrift, NewLabels,
+from ..train_test_validation import (HeatmapComparison, ImagePropertyDrift, NewLabels,
                                      TrainTestLabelDrift)
 
 __all__ = [
     'TrainTestLabelDrift',
     'TrainTestPredictionDrift',
-    'ImageDatasetDrift',
     'HeatmapComparison',
     'ImagePropertyDrift',
     'ImagePropertyOutliers',
