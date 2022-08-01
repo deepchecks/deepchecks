@@ -48,6 +48,131 @@ def test_drift_with_model(drifted_data_and_model):
     assert_that(result.display, has_length(greater_than(0)))
 
 
+def test_drift_with_nulls(drifted_data_with_nulls):
+    # Arrange
+    train, test = drifted_data_with_nulls
+
+    # Cramer's V with ignore_na=True:
+
+    # Act
+    check = TrainTestFeatureDrift()
+    result = check.run(train, test)
+    # Assert
+    assert_that(result.value, has_entries({
+        'numeric_without_drift': has_entries(
+            {'Drift score': close_to(0.02, 0.01),
+             'Method': equal_to('Earth Mover\'s Distance'),
+             'Importance': equal_to(None)}
+        ),
+        'numeric_with_drift': has_entries(
+            {'Drift score': close_to(0.35, 0.01),
+             'Method': equal_to('Earth Mover\'s Distance'),
+             'Importance': equal_to(None)}
+        ),
+        'categorical_without_drift': has_entries(
+            {'Drift score': close_to(0.02, 0.01),
+             'Method': equal_to('Cramer\'s V'),
+             'Importance': equal_to(None)}
+        ),
+        'categorical_with_drift': has_entries(
+            {'Drift score': close_to(0.23, 0.01),
+             'Method': equal_to('Cramer\'s V'),
+             'Importance': equal_to(None)}
+        ),
+    }))
+    assert_that(result.display, has_length(greater_than(0)))
+
+    # PSI with ignore_na=True:
+
+    # Act
+    check = TrainTestFeatureDrift(categorical_drift_method='PSI')
+    result = check.run(train, test)
+    # Assert
+    assert_that(result.value, has_entries({
+        'numeric_without_drift': has_entries(
+            {'Drift score': close_to(0.02, 0.01),
+             'Method': equal_to('Earth Mover\'s Distance'),
+             'Importance': equal_to(None)}
+        ),
+        'numeric_with_drift': has_entries(
+            {'Drift score': close_to(0.35, 0.01),
+             'Method': equal_to('Earth Mover\'s Distance'),
+             'Importance': equal_to(None)}
+        ),
+        'categorical_without_drift': has_entries(
+            {'Drift score': close_to(0, 0.01),
+             'Method': equal_to('PSI'),
+             'Importance': equal_to(None)}
+        ),
+        'categorical_with_drift': has_entries(
+            {'Drift score': close_to(0.2, 0.01),
+             'Method': equal_to('PSI'),
+             'Importance': equal_to(None)}
+        ),
+    }))
+    assert_that(result.display, has_length(greater_than(0)))
+
+    # Cramer's V with ignore_na=False:
+
+    # Act
+    check = TrainTestFeatureDrift(ignore_na=False)
+    result = check.run(train, test)
+    # Assert
+    assert_that(result.value, has_entries({
+        'numeric_without_drift': has_entries(
+            {'Drift score': close_to(0.02, 0.01),
+             'Method': equal_to('Earth Mover\'s Distance'),
+             'Importance': equal_to(None)}
+        ),
+        'numeric_with_drift': has_entries(
+            {'Drift score': close_to(0.35, 0.01),
+             'Method': equal_to('Earth Mover\'s Distance'),
+             'Importance': equal_to(None)}
+        ),
+        'categorical_without_drift': has_entries(
+            {'Drift score': close_to(0.09, 0.01),
+             'Method': equal_to('Cramer\'s V'),
+             'Importance': equal_to(None)}
+        ),
+        'categorical_with_drift': has_entries(
+            {'Drift score': close_to(0.24, 0.01),
+             'Method': equal_to('Cramer\'s V'),
+             'Importance': equal_to(None)}
+        ),
+    }))
+    assert_that(result.display, has_length(greater_than(0)))
+
+    # PSI with ignore_na=False:
+
+    # Act
+    check = TrainTestFeatureDrift(categorical_drift_method='PSI', ignore_na=False)
+    result = check.run(train, test)
+    # Assert
+    assert_that(result.value, has_entries({
+        'numeric_without_drift': has_entries(
+            {'Drift score': close_to(0.02, 0.01),
+             'Method': equal_to('Earth Mover\'s Distance'),
+             'Importance': equal_to(None)}
+        ),
+        'numeric_with_drift': has_entries(
+            {'Drift score': close_to(0.35, 0.01),
+             'Method': equal_to('Earth Mover\'s Distance'),
+             'Importance': equal_to(None)}
+        ),
+        'categorical_without_drift': has_entries(
+            {'Drift score': close_to(0.04, 0.01),
+             'Method': equal_to('PSI'),
+             'Importance': equal_to(None)}
+        ),
+        'categorical_with_drift': has_entries(
+            {'Drift score': close_to(0.24, 0.01),
+             'Method': equal_to('PSI'),
+             'Importance': equal_to(None)}
+        ),
+    }))
+    assert_that(result.display, has_length(greater_than(0)))
+
+
 def test_weighted_aggregation_drift_with_model(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
