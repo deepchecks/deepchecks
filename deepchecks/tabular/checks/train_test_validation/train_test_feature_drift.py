@@ -42,6 +42,10 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceMixin):
     We also support Population Stability Index (PSI).
     See https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf.
 
+    For categorical variables, it is recommended to use Cramer's V, unless your variable includes categories with a
+    small number of samples (common practice is categories with less than 5 samples).
+    However, in cases of a variable with many categories with few samples, it is still recommended to use Cramer's V.
+
 
     Parameters
     ----------
@@ -73,7 +77,10 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceMixin):
         - 'largest_difference': Show the largest difference between categories.
     categorical_drift_method: str, default: "cramer_v"
         decides which method to use on categorical variables. Possible values are:
-        "cramers_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+        "cramer_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+    ignore_na: bool, default True
+        For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
+        separate category. For numerical columns we always ignore nones.
     aggregation_method: str, default: "weighted"
         argument for the reduce_output functionality, decides how to aggregate the drift scores for a
         collective score. Possible values are:
@@ -101,6 +108,7 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceMixin):
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
             categorical_drift_method='cramer_v',
+            ignore_na: bool = True,
             aggregation_method='weighted',
             n_samples: int = 100_000,
             random_state: int = 42,
@@ -128,6 +136,7 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceMixin):
             raise DeepchecksValueError('sort_feature_by must be either "feature importance" or "drift score"')
         self.n_top_columns = n_top_columns
         self.categorical_drift_method = categorical_drift_method
+        self.ignore_na = ignore_na
         self.aggregation_method = aggregation_method
         self.n_samples = n_samples
         self.random_state = random_state
@@ -202,6 +211,7 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceMixin):
                 max_num_categories_for_display=self.max_num_categories_for_display,
                 show_categories_by=self.show_categories_by,
                 categorical_drift_method=self.categorical_drift_method,
+                ignore_na=self.ignore_na,
                 with_display=context.with_display,
             )
             values_dict[column] = {

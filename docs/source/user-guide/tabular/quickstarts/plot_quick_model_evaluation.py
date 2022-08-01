@@ -66,11 +66,9 @@ from deepchecks.tabular import Dataset
 # recommend to state them explicitly to avoid misclassification.
 
 # Metadata attributes are optional. Some checks will run only if specific attributes are declared.
-# Attributes such as "label_type" are not mandatory, but in a case of ordinal integers, the task type can be inferred
-# both as multiclass and regression, so it's recommended to declare directly.
 
-train_ds = Dataset(X_train, label=y_train, cat_features=[], label_type='regression_label')
-test_ds = Dataset(X_test, label=y_test, cat_features=[], label_type='regression_label')
+train_ds = Dataset(X_train, label=y_train, cat_features=[])
+test_ds = Dataset(X_test, label=y_test, cat_features=[])
 
 #%%
 # Run the Deepchecks Suite

@@ -40,6 +40,10 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
     We also support Population Stability Index (PSI).
     See https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf.
 
+    For categorical labels, it is recommended to use Cramer's V, unless your variable includes categories with a
+    small number of samples (common practice is categories with less than 5 samples).
+    However, in cases of a variable with many categories with few samples, it is still recommended to use Cramer's V.
+
 
     Parameters
     ----------
@@ -60,7 +64,10 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
         - 'largest_difference': Show the largest difference between categories.
     categorical_drift_method: str, default: "cramer_v"
         decides which method to use on categorical variables. Possible values are:
-        "cramers_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+        "cramer_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+    ignore_na: bool, default True
+        For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
+        separate category. For numerical columns we always ignore nones.
     max_num_categories: int, default: None
         Deprecated. Please use max_num_categories_for_drift and max_num_categories_for_display instead
     """
@@ -72,6 +79,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
             categorical_drift_method='cramer_v',
+            ignore_na: bool = True,
             max_num_categories: int = None,
             **kwargs
     ):
@@ -89,6 +97,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
         self.categorical_drift_method = categorical_drift_method
+        self.ignore_na = ignore_na
 
     def run_logic(self, context: Context) -> CheckResult:
         """Calculate drift for all columns.
@@ -112,6 +121,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
             max_num_categories_for_display=self.max_num_categories_for_display,
             show_categories_by=self.show_categories_by,
             categorical_drift_method=self.categorical_drift_method,
+            ignore_na=self.ignore_na,
             with_display=context.with_display,
         )
 

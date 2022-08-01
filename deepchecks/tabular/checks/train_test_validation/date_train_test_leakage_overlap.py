@@ -17,7 +17,7 @@ __all__ = ['DateTrainTestLeakageOverlap']
 
 
 class DateTrainTestLeakageOverlap(TrainTestCheck):
-    """Check test data that is dated earlier than latest date in train."""
+    """Check test data that is dated earlier than the latest date in train."""
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check.
@@ -38,16 +38,18 @@ class DateTrainTestLeakageOverlap(TrainTestCheck):
 
         train_dataset.assert_datetime()
         train_date = train_dataset.datetime_col
-        val_date = test_dataset.datetime_col
+        test_date = test_dataset.datetime_col
 
         max_train_date = max(train_date)
-        dates_leaked = sum(date <= max_train_date for date in val_date)
+        min_test_date = min(test_date)
+        dates_leaked = sum(date < max_train_date for date in test_date)
 
         if dates_leaked > 0:
             leakage_ratio = dates_leaked / test_dataset.n_samples
             return_value = leakage_ratio
-            display = f'{format_percent(leakage_ratio)} of test data dates '\
-                      f'before last training data date ({format_datetime(max_train_date)})'
+            display = f'{format_percent(leakage_ratio)} of test data samples are in the date range ' \
+                      f'{format_datetime(min_test_date)} - {format_datetime(max_train_date)}'\
+                      f', which occurs before last training data date ({format_datetime(max_train_date)})'
         else:
             display = None
             return_value = 0
