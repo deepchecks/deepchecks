@@ -14,7 +14,8 @@ from typing import Callable, Dict, List, TypeVar, Union, cast
 
 import pandas as pd
 
-from deepchecks import ConditionCategory, ConditionResult, SingleDatasetCheck
+from deepchecks.core import ConditionCategory, ConditionResult
+from deepchecks.tabular.base_checks import SingleDatasetCheck
 from deepchecks.core import CheckResult
 from deepchecks.core.checks import ReduceMixin
 from deepchecks.core.errors import DeepchecksValueError
