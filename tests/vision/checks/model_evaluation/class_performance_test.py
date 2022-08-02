@@ -501,32 +501,19 @@ def test_coco_thershold_scorer_list_strings(coco_train_visiondata, coco_test_vis
     assert_that(set(result.value['Metric']), equal_to(set(AVAILABLE_EVALUTING_FUNCTIONS.keys())))
 
 
-def test_coco_deepchecks_scorer_list_strings_macro(coco_train_visiondata, coco_test_visiondata,
+def test_coco_deepchecks_scorer_list_strings_averaging(coco_train_visiondata, coco_test_visiondata,
                                                    mock_trained_yolov5_object_detection, device):
-    # Arrange
-    scorers = [name + '_macro' for name in AVAILABLE_EVALUTING_FUNCTIONS.keys()]
-    check = ClassPerformance(alternative_metrics=scorers)
-    # Act
-    result = check.run(coco_train_visiondata, coco_test_visiondata,
-                       mock_trained_yolov5_object_detection, device=device)
-    # Assert
-    assert_that(result.value, has_length(10))
-    assert_that(result.display, has_length(greater_than(0)))
-    assert_that(set(result.value['Metric']), equal_to(set(scorers)))
-
-
-def test_coco_deepchecks_scorer_list_strings_micro(coco_train_visiondata, coco_test_visiondata,
-                                                   mock_trained_yolov5_object_detection, device):
-    # Arrange
-    scorers = [name + '_micro' for name in AVAILABLE_EVALUTING_FUNCTIONS.keys()]
-    check = ClassPerformance(alternative_metrics=scorers)
-    # Act
-    result = check.run(coco_train_visiondata, coco_test_visiondata,
-                       mock_trained_yolov5_object_detection, device=device)
-    # Assert
-    assert_that(result.value, has_length(10))
-    assert_that(result.display, has_length(greater_than(0)))
-    assert_that(set(result.value['Metric']), equal_to(set(scorers)))
+    for avg_method in ['macro', 'micro', 'weighted']:
+        # Arrange
+        scorers = [name + '_' + avg_method for name in AVAILABLE_EVALUTING_FUNCTIONS.keys()]
+        check = ClassPerformance(alternative_metrics=scorers)
+        # Act
+        result = check.run(coco_train_visiondata, coco_test_visiondata,
+                           mock_trained_yolov5_object_detection, device=device)
+        # Assert
+        assert_that(result.value, has_length(10))
+        assert_that(result.display, has_length(greater_than(0)))
+        assert_that(set(result.value['Metric']), equal_to(set(scorers)))
 
 
 def test_mnist_sklearn_scorer(
