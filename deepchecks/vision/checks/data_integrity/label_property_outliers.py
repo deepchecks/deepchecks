@@ -53,12 +53,11 @@ class LabelPropertyOutliers(AbstractPropertyOutliers):
 
     def __init__(self,
                  label_properties: t.List[t.Dict[str, t.Any]] = None,
-                 property_input_type: PropertiesInputType = PropertiesInputType.LABELS,
                  n_show_top: int = 5,
                  iqr_percentiles: t.Tuple[int, int] = (25, 75),
                  iqr_scale: float = 1.5,
                  **kwargs):
-        super().__init__(properties_list=label_properties, property_input_type=property_input_type,
+        super().__init__(properties_list=label_properties, property_input_type=PropertiesInputType.LABELS,
                          n_show_top=n_show_top, iqr_percentiles=iqr_percentiles,
                          iqr_scale=iqr_scale, **kwargs)
 
