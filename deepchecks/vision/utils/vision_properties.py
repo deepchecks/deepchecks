@@ -127,7 +127,8 @@ PROPERTIES_CACHE_FORMAT = Dict[PropertiesInputType, Dict[str, List]]
 
 def static_prop_to_cache_format(static_props: STATIC_PROPERTIES_FORMAT) -> PROPERTIES_CACHE_FORMAT:
     """
-    format a batch of static predictions to the format in the batch object cache.
+    Format a batch of static predictions to the format in the batch object cache.
+
     Expects the items in all of the indices to have the same properties.
     """
     indices = list(static_props.keys())
