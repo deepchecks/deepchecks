@@ -80,14 +80,14 @@ Sometimes the defaults don't fit the specifics of the use case.
 If this is the case, you can pass a list of supported metric strings or a dict in the format {``metric_name_string``: ``metric``} as a
 parameter to the check.
 
-The metrics in the dict can be existing:
+The metrics in the dict can be some of the existing:
 
 *   Strings from Deepchecks' `supported strings <#list-of-supported-strings>`__ for both vision and tabular.
-*   `Ignite metrics <https://pytorch.org/ignite/metrics.html#complete-list-of-metrics>`__ for vision.
+*   `Ignite Metrics <https://pytorch.org/ignite/metrics.html#complete-list-of-metrics>`__ for vision.
     An Ignite Metric is a class with the methods: reset, compute, and update, that iterates over batches of data and
     aggregates the result.
-*   `Sklearn scorers <https://scikit-learn.org/stable/modules/model_evaluation.html>`__ for both vision and tabular.
-    An Sklearn Scorer is a function that accepts the parameters: (model, x, y_true), and returns a score with the
+*   `Scikit-learn Scorers <https://scikit-learn.org/stable/modules/model_evaluation.html>`__ for both vision and tabular.
+    A Scikit-learn Scorer is a function that accepts the parameters: (model, x, y_true), and returns a score with the
     convention that higher is better.
 
 or `your own implementation <#custom-metrics>`__.
@@ -114,10 +114,10 @@ apply.
      - Comments
    * - 'neg_rmse'
      - negative root mean squared error
-     - Sklearn
+     - scikit-learn
    * - 'neg_mae'
      - negative mean absolute error
-     - Sklearn
+     - scikit-learn
    * - 'f1_per_class'
      - F-1  per class - no averaging
      -
