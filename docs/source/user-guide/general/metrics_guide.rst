@@ -69,11 +69,10 @@ To run a check with the default metrics, run it without passing any value to the
 
 :doc:`ClassPerformance </checks_gallery/vision/model_evaluation/plot_class_performance>`:
 
-.. code-block:: python
-
-    check = ClassPerformance()
-    result = check.run(train_ds, test_ds, mnist_model)
-
+.. literalinclude:: ../../../../examples/examples_metrics_guide.py
+    :language: python
+    :lines: 2-8
+    :tab-width: 0
 
 Alternative Metrics
 ===================
@@ -93,17 +92,12 @@ The metrics in the dict can be existing:
 
 or `your own implementation <#custom-metrics>`__.
 
-.. code-block:: python
+:doc:`ClassPerformance </checks_gallery/vision/model_evaluation/plot_class_performance>`:
 
-   train_ds, test_ds = adult.load_data(data_format='Dataset', as_train_test=True)
-   model = adult.load_fitted_model()
-
-   scorer = ['precision_per_class', 'recall_per_class', 'fnr_macro']
-   check = TrainTestPerformance(scorers=scorer)
-   result = check.run(train_ds, test_ds, model)
-   result.show()
-
-
+.. literalinclude:: ../../../../examples/examples_metrics_guide.py
+    :language: python
+    :lines: 11-18
+    :tab-width: 0
 List of Supported Strings
 =========================
 
@@ -173,34 +167,16 @@ Custom metrics should follow the
 Tabular Example
 _______________
 
-
-.. code-block:: python
-
-    from deepchecks.tabular.datasets.classification import adult
-    from deepchecks.tabular.suites import model_evaluation
-    from sklearn.metrics import cohen_kappa_score, fbeta_score, make_scorer
-
-    f1_scorer = make_scorer(fbeta_score, labels=[0, 1], average=None, beta=0.2)
-    ck_scorer = make_scorer(cohen_kappa_score)
-    custom_scorers = {'f1': f1_scorer, 'cohen': ck_scorer}
-
-    train_ds, test_ds = adult.load_data(data_format='Dataset', as_train_test=True)
-    model = adult.load_fitted_model()
-    suite = model_evaluation(scorers=custom_scorers)
-    result = suite.run(train_dataset, test_dataset, model)
+.. literalinclude:: ../../../../examples/examples_metrics_guide.py
+    :language: python
+    :lines: 21-32
+    :tab-width: 0
 
 
 Vision Example
 ______________
 
-.. code-block:: python
-
-    from ignite.metrics import Precision
-
-    precision = Precision(average=True)
-    double_precision = 2 * precision
-
-    check = SingleDatasetPerformance({'precision2': double_precision})
-    result = check.run(train_ds, mnist_model)
-
-
+.. literalinclude:: ../../../../examples/examples_metrics_guide.py
+    :language: python
+    :lines: 35-42
+    :tab-width: 0
