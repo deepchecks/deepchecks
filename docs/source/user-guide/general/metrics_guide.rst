@@ -123,38 +123,36 @@ apply.
      - classification accuracy
      - scikit-learn
    * - ‘roc_auc’
-     - Area Under the Receiver Operating Characteristic Curve (ROC AUC)
-     - scikit-learn
+     - Area Under the Receiver Operating Characteristic Curve (ROC AUC) - binary
+     - scikit-learn, for multiclass options check
+       `scikit-learn's documentation <https://scikit-learn.org/stable/modules/model_evaluation.html>`__
+   * - 'f1'
+     - F-1 - binary
+     -
    * - 'f1_per_class'
      - F-1  per class - no averaging
      -
-   * - 'fpr_per_class'
-     - False Positive Rate per class - no averaging
+   * - 'f1_macro'
+     - F-1 - macro averaging
+     -
+   * - 'f1_micro'
+     - F-1 - micro averaging
      -
    * - 'fpr'
      - False Positive Rate - binary
-     -
-   * - 'fpr_macro'
-     - False Positive Rate - macro averaging
-     -
-   * - 'fpr_micro'
-     - False Positive Rate - micro averaging
-     -
-   * - 'fpr_weighted'
-     - False Positive Rate - weighted macro averaging
-     -
+     - suffixes apply as with 'f1'
    * - 'fnr'
      - False Negative Rate - binary
-     - suffixes apply as with 'fpr'
+     - suffixes apply as with 'f1'
    * - 'tnr', 'specificity'
      - True Negative Rate - binary
-     - suffixes apply as with 'fpr'
+     - suffixes apply as with 'f1'
    * - 'precision'
      - precision
-     - suffixes apply as with 'fpr'
+     - suffixes apply as with 'f1'
    * - 'recall' , 'sensitivity'
      - recall (sensitivity)
-     - suffixes apply as with 'fpr'
+     - suffixes apply as with 'f1'
    * - 'average_precision_per_class'
      - average precision for object detection
      - only for object detection
