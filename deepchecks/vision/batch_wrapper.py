@@ -98,6 +98,7 @@ class Batch:
         return len(list(dataset.data_loader.batch_sampler)[self.batch_index])
 
     def _do_static_prop(self):
+        """Get a batch of static properties and transform it to the cache format."""
         props = self._context.static_properties[self._dataset_kind]
         dataset = self._context.get_data_by_kind(self._dataset_kind)
         indexes = list(dataset.data_loader.batch_sampler)[self.batch_index]
