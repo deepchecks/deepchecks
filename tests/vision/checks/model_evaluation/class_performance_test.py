@@ -558,7 +558,7 @@ def test_mnist_unsupported_sklearn_scorers(mnist_dataset_train, mnist_dataset_te
         calling(check.run
                 ).with_args(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
                             device=device),
-        raises(ValueError,
+        raises(DeepchecksValueError,
                pattern=r'Scorer name r3 is unknown. See metric guide for a list of allowed scorer names.')
     )
 
