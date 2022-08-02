@@ -22,8 +22,8 @@ from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotImpleme
 from deepchecks.utils.logger import get_logger
 from deepchecks.vision._shared_docs import docstrings
 from deepchecks.vision.task_type import TaskType
-from deepchecks.vision.vision_data import VisionData
 from deepchecks.vision.utils.vision_properties import STATIC_PROPERTIES_FORMAT
+from deepchecks.vision.vision_data import VisionData
 
 __all__ = ['Context']
 

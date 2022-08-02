@@ -22,8 +22,8 @@ from deepchecks.vision import deprecation_warnings  # pylint: disable=unused-imp
 from deepchecks.vision._shared_docs import docstrings
 from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.context import Context
-from deepchecks.vision.vision_data import VisionData
 from deepchecks.vision.utils.vision_properties import STATIC_PROPERTIES_FORMAT
+from deepchecks.vision.vision_data import VisionData
 
 __all__ = [
     'SingleDatasetCheck',
