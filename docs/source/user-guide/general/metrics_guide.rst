@@ -4,7 +4,8 @@
 Metrics Guide
 ====================
 
-In this guide we'll explain how to customize the metrics that deepchecks uses to validate and monitor your model.
+In this guide we'll explain how to customize the metrics that deepchecks uses to validate and monitor your model
+performance.
 Controlling the metrics helps you shape the checks and suites according to the specifics of your use case.
 
 **Structure:**
@@ -117,6 +118,12 @@ apply.
      - scikit-learn
    * - 'neg_mae'
      - negative mean absolute error
+     - scikit-learn
+   * - 'accuracy'
+     - classification accuracy
+     - scikit-learn
+   * - ‘roc_auc’
+     - Area Under the Receiver Operating Characteristic Curve (ROC AUC)
      - scikit-learn
    * - 'f1_per_class'
      - F-1  per class - no averaging
