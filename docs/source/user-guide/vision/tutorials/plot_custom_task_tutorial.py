@@ -25,7 +25,7 @@ In this guide we will implement a custom instance segmentation task and run chec
 4. `Implement Custom Metric <#implement-custom-metric>`__
 """
 
-#%%
+# %%
 # Defining the Data
 # =================
 # First we will define a `PyTorch Dataset <https://pytorch.org/tutorials/beginner/basics/data_tutorial.html>`_.
@@ -154,7 +154,7 @@ class CocoSegmentDataset(VisionDataset):
                     extract_root=str(root),
                     md5=md5
                 )
-            
+
             try:
                 # remove coco128's README.txt so that it does not come in docs
                 os.remove("coco128/README.txt")
@@ -190,7 +190,7 @@ test_data_loader = DataLoader(
     collate_fn=batch_collate
 )
 
-#%%
+# %%
 # Visualizing that we loaded our datasets correctly:
 
 masked_images = [draw_segmentation_masks(train_ds[i][0], masks=train_ds[i][2], alpha=0.7)
@@ -203,9 +203,9 @@ for i, img in enumerate(masked_images):
     axs[i].imshow(np.asarray(img))
     axs[i].set(xticklabels=[], yticklabels=[], xticks=[], yticks=[])
 
-fix
+fix.show()
 
-#%%
+# %%
 # Implement Custom Task
 # =====================
 # With our data and model ready we can write the task class.
@@ -242,7 +242,8 @@ class MyCustomSegmentationData(VisionData):
         """Convert the batch to a list of images as (H, W, C) 3D numpy array per image."""
         return [tensor.numpy().transpose((1, 2, 0)) for tensor in batch[0]]
 
-#%%
+
+# %%
 # Now we are able to run checks that use only the image data, since it's in the standard Deepchecks format.
 # Let's run PropertyLabelCorrelationChange check with our task
 
@@ -253,8 +254,9 @@ train_task = MyCustomSegmentationData(train_data_loader)
 test_task = MyCustomSegmentationData(test_data_loader)
 
 result = PropertyLabelCorrelationChange().run(train_task, test_task)
-result
+result.show()
 
+# %%
 # Now in order to run more check, we'll need to define custom properties or metrics.
 #
 # Implement Custom Properties
@@ -268,6 +270,7 @@ result
 from itertools import chain
 
 from deepchecks.vision.checks import TrainTestLabelDrift
+
 
 # The labels object is the result of `batch_to_labels` function we defined earlier. The property should return a flat
 # list of values.
@@ -292,11 +295,10 @@ label_properties = [
     {'name': 'Classes in Labels', 'method': classes_in_labels, 'output_type': 'class_id'}
 ]
 
-
 result = TrainTestLabelDrift(label_properties=label_properties).run(train_task, test_task)
-result
+result.show()
 
-#%%
+# %%
 # Implement Custom Metric
 # =======================
 #

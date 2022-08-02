@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""The vision/dataset module containing the vision Dataset class and its functions."""
+"""Module containing the VisionData class and its functions."""
 # pylint: disable=protected-access
 import random
 from abc import abstractmethod
