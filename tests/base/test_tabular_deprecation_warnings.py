@@ -16,7 +16,7 @@ import pytest
 
 from deepchecks.tabular.checks import (DominantFrequencyChange, ModelErrorAnalysis, PerformanceReport,
                                        SegmentPerformance, TrainTestFeatureDrift, TrainTestLabelDrift,
-                                       TrainTestPredictionDrift, MultiVariateDrift, SimpleModelComparison)
+                                       TrainTestPredictionDrift, MultivariateDrift, SimpleModelComparison)
 
 
 def test_deprecation_warning_label_drift():
@@ -55,12 +55,12 @@ def test_deprecation_warning_feature_drift():
 def test_deprecation_warning_multivariate_drift():
     # Test that warning is raised when max_num_categories has value:
     with pytest.warns(DeprecationWarning, match='max_num_categories'):
-        _ = MultiVariateDrift(max_num_categories=10)
+        _ = MultivariateDrift(max_num_categories=10)
 
     # Check to see no warnings are raised when deprecated feature doesn't exist:
     with warnings.catch_warnings():
         warnings.simplefilter('error')
-        _ = MultiVariateDrift()
+        _ = MultivariateDrift()
 
 
 def test_deprecation_dominant_freq_change_warning():

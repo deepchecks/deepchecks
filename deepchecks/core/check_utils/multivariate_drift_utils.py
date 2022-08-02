@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module containing common MultiVariateDriftCheck (domain classifier drift) utils."""
+"""Module containing common MultivariateDriftCheck (domain classifier drift) utils."""
 import warnings
 from typing import Container, List
 

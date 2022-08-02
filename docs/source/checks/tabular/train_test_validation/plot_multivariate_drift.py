@@ -70,9 +70,9 @@ train_ds.label_name
 #%%
 # Run the Check
 # =============
-from deepchecks.tabular.checks import MultiVariateDrift
+from deepchecks.tabular.checks import MultivariateDrift
 
-check = MultiVariateDrift()
+check = MultivariateDrift()
 check.run(train_dataset=train_ds, test_dataset=test_ds)
 
 #%%
@@ -99,7 +99,7 @@ test_drifted_ds = Dataset(test_drifted_df, label=label_name, cat_features=test_d
 
 #%%
 
-check = MultiVariateDrift()
+check = MultivariateDrift()
 check.run(train_dataset=train_drifted_ds, test_dataset=test_drifted_ds)
 
 #%%
@@ -114,7 +114,7 @@ check.run(train_dataset=train_drifted_ds, test_dataset=test_drifted_ds)
 # below 0.1. A condition is deepchecks' way to validate model and data quality,
 # and let you know if anything goes wrong.
 
-check = MultiVariateDrift()
+check = MultivariateDrift()
 check.add_condition_overall_drift_value_less_than(0.1)
 check.run(train_dataset=train_drifted_ds, test_dataset=test_drifted_ds)
 

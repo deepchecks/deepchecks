@@ -16,10 +16,10 @@ from deepchecks.core.check_utils.multivariate_drift_utils import run_multivariat
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.strings import format_number
 
-__all__ = ['MultiVariateDrift']
+__all__ = ['MultivariateDrift']
 
 
-class MultiVariateDrift(TrainTestCheck):
+class MultivariateDrift(TrainTestCheck):
     """
     Calculate drift between the entire train and test datasets using a model trained to distinguish between them.
 

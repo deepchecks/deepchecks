@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 from hamcrest import assert_that, close_to, greater_than, has_entries, has_length
 
-from deepchecks.tabular.checks import MultiVariateDrift
+from deepchecks.tabular.checks import MultivariateDrift
 from deepchecks.tabular.dataset import Dataset
 from tests.base.utils import equal_condition_result
 
@@ -29,7 +29,7 @@ def test_no_drift(drifted_data):
                        label=train_ds.label_name)
     test_ds = Dataset(test_ds.data.drop(columns=['numeric_with_drift', 'categorical_with_drift']),
                       label=test_ds.label_name)
-    check = MultiVariateDrift()
+    check = MultivariateDrift()
 
     # Act
     result = check.run(train_ds, test_ds)
@@ -49,7 +49,7 @@ def test_drift(drifted_data):
 
     # Arrange
     train_ds, test_ds = drifted_data
-    check = MultiVariateDrift()
+    check = MultivariateDrift()
 
     # Act
     result = check.run(train_ds, test_ds)
@@ -73,7 +73,7 @@ def test_drift_without_display(drifted_data):
 
     # Arrange
     train_ds, test_ds = drifted_data
-    check = MultiVariateDrift()
+    check = MultivariateDrift()
 
     # Act
     result = check.run(train_ds, test_ds, with_display=False)
@@ -100,7 +100,7 @@ def test_max_drift_score_condition_pass(drifted_data):
                        label=train_ds.label_name)
     test_ds = Dataset(test_ds.data.drop(columns=['numeric_with_drift', 'categorical_with_drift']),
                       label=test_ds.label_name)
-    check = MultiVariateDrift().add_condition_overall_drift_value_less_than()
+    check = MultivariateDrift().add_condition_overall_drift_value_less_than()
 
     # Act
     result = check.run(train_ds, test_ds)
@@ -117,7 +117,7 @@ def test_max_drift_score_condition_pass(drifted_data):
 def test_max_drift_score_condition_fail(drifted_data):
     # Arrange
     train_ds, test_ds = drifted_data
-    check = MultiVariateDrift().add_condition_overall_drift_value_less_than()
+    check = MultivariateDrift().add_condition_overall_drift_value_less_than()
 
     # Act
     result = check.run(train_ds, test_ds)
@@ -161,7 +161,7 @@ def test_over_255_categories_in_column():
     df_test['target'] = label
     test_ds = Dataset(df_test, cat_features=['categorical_with_many_categories'], label='target')
 
-    check = MultiVariateDrift()
+    check = MultivariateDrift()
 
     # Act
     result = check.run(train_ds, test_ds)

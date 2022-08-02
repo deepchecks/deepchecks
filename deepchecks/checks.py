@@ -62,7 +62,7 @@ __all__ = [
     # distribution checks
     'TrainTestFeatureDrift',
     'TrainTestLabelDrift',
-    'MultiVariateDrift',
+    'MultivariateDrift',
     'TrainTestPredictionDrift',
 
     # performance checks

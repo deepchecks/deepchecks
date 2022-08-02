@@ -242,12 +242,12 @@ Tabular Checks
     check = TrainTestFeatureDrift()
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
 
-:doc:`MultiVariateDrift </checks_gallery/tabular/train_test_validation/plot_multivariate_drift>`:
+:doc:`MultivariateDrift </checks_gallery/tabular/train_test_validation/plot_multivariate_drift>`:
 
 .. code-block:: python
 
-    from deepchecks.tabular.checks import MultiVariateDrift
-    check = MultiVariateDrift()
+    from deepchecks.tabular.checks import MultivariateDrift
+    check = MultivariateDrift()
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
 
 :doc:`TrainTestLabelDrift </checks_gallery/tabular/train_test_validation/plot_train_test_label_drift>`:
