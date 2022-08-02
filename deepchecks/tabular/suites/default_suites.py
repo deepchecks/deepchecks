@@ -139,8 +139,8 @@ def data_integrity(columns: Union[Hashable, List[Hashable]] = None,
         StringLengthOutOfBounds(**kwargs).add_condition_ratio_of_outliers_less_or_equal(),
         ConflictingLabels(**kwargs).add_condition_ratio_of_conflicting_labels_less_or_equal(),
         OutlierSampleDetection(**kwargs),
-        FeatureFeatureCorrelation(**kwargs).add_condition_max_number_of_pairs_above_threshold(),
         FeatureLabelCorrelation(**kwargs).add_condition_feature_pps_less_than(),
+        FeatureFeatureCorrelation(**kwargs).add_condition_max_number_of_pairs_above_threshold(),
         IdentifierLabelCorrelation(**kwargs).add_condition_pps_less_or_equal()
     )
 
