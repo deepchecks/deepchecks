@@ -39,11 +39,11 @@ class WholeDatasetDrift(MultivariateDrift):
             **kwargs
     ):
 
-        warnings.warn("The WholeDatasetDrift check is deprecated. " +
-                      "Use the MultivariateDrift check instead",
+        warnings.warn('The WholeDatasetDrift check is deprecated. ' +
+                      'Use the MultivariateDrift check instead.',
                     DeprecationWarning, stacklevel=2)
 
-        MultivariateDrift().__init__(self, n_top_columns, min_feature_importance,
+        MultivariateDrift.__init__(self, n_top_columns, min_feature_importance,
                                      max_num_categories_for_display,
                                      show_categories_by, sample_size,
                                      random_state, test_size,
