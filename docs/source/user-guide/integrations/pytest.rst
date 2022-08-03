@@ -52,11 +52,11 @@ the test sets.
 
         assert result.passed_conditions()
 
-Please note the ``passed_conditions()`` method of the result object. This method will return ``True`` if all the
+Please note the :meth:`passed_conditions() <deepchecks.core.CheckResult.passed_conditions>` method of the :class:`deepchecks.core.CheckResult` object. This method will return ``True`` if all the
 conditions are met, and ``False`` otherwise.
 
 It's possible to evaluate the result of a suite of checks, and to get the overall result of the test, by using the
-``passed()`` method.
+:meth:`deepchecks.core.SuiteResult.passed` method.
 
 .. code-block:: python
 
