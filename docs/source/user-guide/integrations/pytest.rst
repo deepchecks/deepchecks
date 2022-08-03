@@ -61,7 +61,6 @@ It's possible to evaluate the result of a suite of checks, and to get the overal
 .. code-block:: python
 
     def test_diabetes_integrity(diabetes_df):
-        train_df, test_df = train_test_split(diabetes_df, test_size=0.33, random_state=42)
         ds = Dataset(diabetes_df, label='target', cat_features=['sex'])
 
         suite = data_integrity()
