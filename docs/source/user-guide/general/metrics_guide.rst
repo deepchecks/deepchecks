@@ -167,7 +167,7 @@ You can also pass your own custom metric to relevant checks and suites.
 
 Custom metrics should follow the
 `Ignite Metric <https://pytorch.org/ignite/metrics.html#how-to-create-a-custom-metric>`__ API for computer vision or
-`Sklearn scorer <https://scikit-learn.org/stable/modules/generated/sklearn.metrics.make_scorer.html>`__ API for tabular.
+`sklearn scorer <https://scikit-learn.org/stable/modules/generated/sklearn.metrics.make_scorer.html>`__ API for tabular.
 
 Tabular Example
 _______________
