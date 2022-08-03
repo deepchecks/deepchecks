@@ -131,7 +131,7 @@ def correlation_ratio(categorical_data: Union[List, np.ndarray, pd.Series],
     for i in range(cat_num):
         cat_measures = numerical_data[categorical_data == i]
         n_array[i] = cat_measures.shape[0]
-        y_avg_array[i] = np.average(cat_measures)
+        y_avg_array[i] = np.average(cat_measures.astype(float))  # Cast to float to avoid error in python 3.6
     y_total_avg = np.sum(np.multiply(y_avg_array, n_array)) / np.sum(n_array)
     numerator = np.sum(np.multiply(n_array, np.power(np.subtract(y_avg_array, y_total_avg), 2)))
     denominator = np.sum(np.power(np.subtract(numerical_data, y_total_avg), 2))

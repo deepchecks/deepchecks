@@ -55,6 +55,14 @@ class ImageDatasetDrift(TrainTestCheck):
         Feature importance sums to 1, so for example the default value of 0.05 means that all features with importance
         contributing less than 5% to the predictive power of the Domain Classifier won't be displayed. This limit is
         used together (AND) with n_top_columns, so features more important than min_feature_importance can be hidden.
+    max_num_categories_for_display: int, default: 10
+        Max number of categories to show in plot.
+    show_categories_by: str, default: 'largest_difference'
+        Specify which categories to show for categorical features' graphs, as the number of shown categories is limited
+        by max_num_categories_for_display. Possible values:
+        - 'train_largest': Show the largest train categories.
+        - 'test_largest': Show the largest test categories.
+        - 'largest_difference': Show the largest difference between categories.
     sample_size : int , default: 10_000
         Max number of rows to use from each dataset for the training and evaluation of the domain classifier.
     test_size : float , default: 0.3
@@ -71,6 +79,8 @@ class ImageDatasetDrift(TrainTestCheck):
             sample_size: int = 10_000,
             test_size: float = 0.3,
             min_meaningful_drift_score: float = 0.05,
+            max_num_categories_for_display: int = 10,
+            show_categories_by: str = 'largest_difference',
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -83,6 +93,8 @@ class ImageDatasetDrift(TrainTestCheck):
         self.min_meaningful_drift_score = min_meaningful_drift_score
         self._train_properties = None
         self._test_properties = None
+        self.max_num_categories_for_display = max_num_categories_for_display
+        self.show_categories_by = show_categories_by
 
     def initialize_run(self, context: Context):
         """Initialize self state, and validate the run context."""
@@ -137,8 +149,9 @@ class ImageDatasetDrift(TrainTestCheck):
             train_dataframe=df_train, test_dataframe=df_test, numerical_features=numeric_features,
             cat_features=categorical_features, sample_size=sample_size, random_state=context.random_state,
             test_size=self.test_size, n_top_columns=self.n_top_properties,
-            min_feature_importance=self.min_feature_importance, max_num_categories_for_display=None,
-            show_categories_by=None, min_meaningful_drift_score=self.min_meaningful_drift_score,
+            min_feature_importance=self.min_feature_importance,
+            max_num_categories_for_display=self.max_num_categories_for_display,
+            show_categories_by=self.show_categories_by, min_meaningful_drift_score=self.min_meaningful_drift_score,
             with_display=context.with_display
         )
 
