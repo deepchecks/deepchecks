@@ -19,8 +19,7 @@ import plotly.express as px
 import torch
 from ignite.metrics import Metric
 
-from deepchecks import ConditionResult
-from deepchecks.core import CheckResult, DatasetKind
+from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.utils import plot
 from deepchecks.utils.dict_funcs import get_dict_entry_by_value

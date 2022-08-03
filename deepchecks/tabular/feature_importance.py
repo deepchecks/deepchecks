@@ -14,8 +14,8 @@ import typing as t
 
 import pandas as pd
 
-from deepchecks import Dataset
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.tabular import Dataset
 from deepchecks.tabular.metric_utils import DeepcheckScorer
 from deepchecks.utils.features import _calculate_feature_importance
 

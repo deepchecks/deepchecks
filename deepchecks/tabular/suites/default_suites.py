@@ -21,11 +21,11 @@ from deepchecks.tabular import Suite
 from deepchecks.tabular.checks import (BoostingOverfit, CalibrationScore, CategoryMismatchTrainTest, ConflictingLabels,
                                        ConfusionMatrixReport, DataDuplicates, DatasetsSizeComparison,
                                        DateTrainTestLeakageDuplicates, DateTrainTestLeakageOverlap,
-                                       FeatureLabelCorrelation, FeatureLabelCorrelationChange,
-                                       IdentifierLabelCorrelation, IndexTrainTestLeakage, IsSingleValue, MixedDataTypes,
-                                       MixedNulls, ModelInferenceTime, NewLabelTrainTest, OutlierSampleDetection,
-                                       RegressionErrorDistribution, RegressionSystematicError, RocReport,
-                                       SimpleModelComparison, SpecialCharacters, StringLengthOutOfBounds,
+                                       FeatureFeatureCorrelation, FeatureLabelCorrelation,
+                                       FeatureLabelCorrelationChange, IdentifierLabelCorrelation, IndexTrainTestLeakage,
+                                       IsSingleValue, MixedDataTypes, MixedNulls, ModelInferenceTime, NewLabelTrainTest,
+                                       OutlierSampleDetection, RegressionErrorDistribution, RegressionSystematicError,
+                                       RocReport, SimpleModelComparison, SpecialCharacters, StringLengthOutOfBounds,
                                        StringMismatch, StringMismatchComparison, TrainTestFeatureDrift,
                                        TrainTestLabelDrift, TrainTestPerformance, TrainTestPredictionDrift,
                                        TrainTestSamplesMix, UnusedFeatures, WeakSegmentsPerformance, MultivariateDrift)
@@ -140,6 +140,7 @@ def data_integrity(columns: Union[Hashable, List[Hashable]] = None,
         ConflictingLabels(**kwargs).add_condition_ratio_of_conflicting_labels_less_or_equal(),
         OutlierSampleDetection(**kwargs),
         FeatureLabelCorrelation(**kwargs).add_condition_feature_pps_less_than(),
+        FeatureFeatureCorrelation(**kwargs).add_condition_max_number_of_pairs_above_threshold(),
         IdentifierLabelCorrelation(**kwargs).add_condition_pps_less_or_equal()
     )
 

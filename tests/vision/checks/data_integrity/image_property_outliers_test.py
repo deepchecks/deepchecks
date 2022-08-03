@@ -12,7 +12,7 @@ from hamcrest import (all_of, any_of, assert_that, calling, close_to, contains_e
                       has_entries, has_key, has_length, has_properties, instance_of, is_, raises)
 from hamcrest.core.matcher import Matcher
 
-from deepchecks import CheckResult
+from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.vision.checks import ImagePropertyOutliers
 from deepchecks.vision.utils.image_properties import default_image_properties
