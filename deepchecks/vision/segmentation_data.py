@@ -33,7 +33,7 @@ class SegmentationData(VisionData):
 
     @abstractmethod
     def batch_to_labels(self, batch) -> Tuple[List[List[Any]], List[torch.Tensor]]:
-        """Extract the labels from a batch of data. #TODO: Define and refactor docstring
+        """Extract the labels from a batch of data.
 
         Parameters
         ----------
@@ -172,13 +172,13 @@ class SegmentationData(VisionData):
         if not isinstance(labels[1][0], torch.Tensor):
             raise ValidationError('Deepchecks requires semantic segmentation label 2nd list to be a list of '
                                   'torch.Tensor')
-        # sample_idx = 0
-        # # Find a non empty tensor to validate
-        # while labels[sample_idx].shape[0] == 0:
+        sample_idx = 0
+        # Find a non empty tensor to validate
+        # while labels[0][sample_idx].shape[0] == 0:
         #     sample_idx += 1
         #     if sample_idx == len(labels):
         #         return  # No labels to validate
-        # if len(labels[sample_idx].shape) != 2:
+        # if len(labels[1][sample_idx][0].shape) != 2:
         #     raise ValidationError('Check requires object detection label to be a list of 2D tensors')
         # if labels[sample_idx].shape[1] != 5:
         #     raise ValidationError('Check requires object detection label to be a list of 2D tensors, when '
