@@ -20,8 +20,9 @@ from sklearn.metrics._scorer import _BaseScorer, _ProbaScorer
 
 from deepchecks import tabular  # pylint: disable=unused-import; it is used for type annotations
 from deepchecks.core import errors
-from deepchecks.tabular.metric_utils.additional_metrics import (false_negative_rate_metric, false_positive_rate_metric,
-                                                                true_negative_rate_metric)
+from deepchecks.tabular.metric_utils.additional_classification_metrics import (false_negative_rate_metric,
+                                                                               false_positive_rate_metric,
+                                                                               true_negative_rate_metric)
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.metrics import get_scorer_name
@@ -119,7 +120,11 @@ class DeepcheckScorer:
             if formated_scorer_name in _func_dict:
                 self.scorer = _func_dict[formated_scorer_name]
             else:
-                self.scorer = get_scorer(scorer)
+                try:
+                    self.scorer = get_scorer(scorer)
+                except ValueError as e:
+                    raise errors.DeepchecksValueError(f'Scorer name {scorer} is unknown. '
+                                                      f'See metric guide for a list of allowed scorer names.') from e
         elif callable(scorer):
             self.scorer = scorer
         else:

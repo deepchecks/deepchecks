@@ -14,8 +14,8 @@ from sklearn.metrics import make_scorer
 from sklearn.svm import SVC
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.tabular.metric_utils.additional_metrics import (false_negative_rate_metric, false_positive_rate_metric,
-                                                                true_negative_rate_metric)
+from deepchecks.tabular.metric_utils.additional_classification_metrics import (false_negative_rate_metric, false_positive_rate_metric,
+                                                                               true_negative_rate_metric)
 from deepchecks.tabular.metric_utils.scorers import task_type_check
 from deepchecks.tabular.utils.task_type import TaskType
 

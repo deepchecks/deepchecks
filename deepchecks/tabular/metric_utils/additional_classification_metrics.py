@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Utils module containing additional metrics that can be used via scorers."""
+"""Utils module containing additional classification metrics that can be used via scorers."""
 
 from typing import Union
 
@@ -17,7 +17,7 @@ from sklearn.metrics import confusion_matrix
 
 __all__ = ['false_positive_rate_metric', 'false_negative_rate_metric', 'true_negative_rate_metric']
 
-from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.utils.metrics import averaging_mechanism
 
 
 def _false_positive_rate_per_class(y_true, y_pred):  # False Positives / (False Positives + True Negatives)
@@ -65,7 +65,8 @@ def false_positive_rate_metric(y_true, y_pred, averaging_method: str = 'per_clas
         return _micro_false_positive_rate(y_true, y_pred)
 
     scores_per_class = _false_positive_rate_per_class(y_true, y_pred)
-    return _averaging_mechanism(averaging_method, scores_per_class, y_true)
+    weights = [sum(y_true == cls) for cls in sorted(y_true.dropna().unique().tolist())]
+    return averaging_mechanism(averaging_method, scores_per_class, weights)
 
 
 def _false_negative_rate_per_class(y_true, y_pred):  # False Negatives / (False Negatives + True Positives)
@@ -113,7 +114,8 @@ def false_negative_rate_metric(y_true, y_pred, averaging_method: str = 'per_clas
         return _micro_false_negative_rate(y_true, y_pred)
 
     scores_per_class = _false_negative_rate_per_class(y_true, y_pred)
-    return _averaging_mechanism(averaging_method, scores_per_class, y_true)
+    weights = [sum(y_true == cls) for cls in sorted(y_true.dropna().unique().tolist())]
+    return averaging_mechanism(averaging_method, scores_per_class, weights)
 
 
 def _true_negative_rate_per_class(y_true, y_pred):  # True Negatives / (True Negatives + False Positives)
@@ -161,20 +163,5 @@ def true_negative_rate_metric(y_true, y_pred, averaging_method: str = 'per_class
         return _micro_true_negative_rate(y_true, y_pred)
 
     scores_per_class = _true_negative_rate_per_class(y_true, y_pred)
-    return _averaging_mechanism(averaging_method, scores_per_class, y_true)
-
-
-def _averaging_mechanism(averaging_method, scores_per_class, y_true):
-    if averaging_method == 'binary':
-        if len(scores_per_class) != 2:
-            raise DeepchecksValueError('Averaging method "binary" can only be used in binary classification.')
-        return scores_per_class[1]
-    elif averaging_method == 'per_class':
-        return np.asarray(scores_per_class)
-    elif averaging_method == 'macro':
-        return np.mean(scores_per_class)
-    elif averaging_method == 'weighted':
-        weights = [sum(y_true == cls) for cls in sorted(y_true.dropna().unique().tolist())]
-        return np.multiply(scores_per_class, weights).sum() / sum(weights)
-    else:
-        raise DeepchecksValueError(f'Unknown averaging {averaging_method}')
+    weights = [sum(y_true == cls) for cls in sorted(y_true.dropna().unique().tolist())]
+    return averaging_mechanism(averaging_method, scores_per_class, weights)
