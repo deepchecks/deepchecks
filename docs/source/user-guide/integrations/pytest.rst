@@ -15,6 +15,7 @@ between the training and the test sets.
 
     from deepchecks import Dataset
     from deepchecks.tabular.checks import TrainTestFeatureDrift
+    from deepchecks.tabular.suites import data_integrity
 
 Defining Pytest Fixtures
 -------------------------
@@ -53,3 +54,17 @@ the test sets.
 
 Please note the ``passed_conditions()`` method of the result object. This method will return ``True`` if all the
 conditions are met, and ``False`` otherwise.
+
+It's possible to evaluate the result of a suite of checks, and to get the overall result of the test, by using the
+``passed()`` method.
+
+.. code-block:: python
+
+    def test_diabetes_integrity(diabetes_df):
+        train_df, test_df = train_test_split(diabetes_df, test_size=0.33, random_state=42)
+        ds = Dataset(diabetes_df, label='target', cat_features=['sex'])
+
+        suite = data_integrity()
+        result = suite.run(ds)
+
+        assert result.passed(fail_if_warning=True, fail_if_check_not_run=False)
