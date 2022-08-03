@@ -63,6 +63,7 @@ __all__ = [
     'TrainTestFeatureDrift',
     'TrainTestLabelDrift',
     'MultivariateDrift',
+    'WholeDatasetDrift',
     'TrainTestPredictionDrift',
 
     # performance checks
