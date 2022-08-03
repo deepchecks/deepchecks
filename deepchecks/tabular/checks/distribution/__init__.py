@@ -17,11 +17,12 @@
 import warnings
 
 from ..model_evaluation import TrainTestPredictionDrift
-from ..train_test_validation import TrainTestFeatureDrift, TrainTestLabelDrift, MultivariateDrift
+from ..train_test_validation import TrainTestFeatureDrift, TrainTestLabelDrift, MultivariateDrift, WholeDatasetDrift
 
 __all__ = [
     'TrainTestFeatureDrift',
     'MultivariateDrift',
+    'WholeDatasetDrift',
     'TrainTestLabelDrift',
     'TrainTestPredictionDrift'
 ]
