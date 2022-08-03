@@ -19,7 +19,7 @@ from deepchecks.core.checks import ReduceMixin
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision import Batch, Context, SingleDatasetCheck
-from deepchecks.vision.metrics_utils.metrics import get_scorers_dict, metric_results_to_df
+from deepchecks.vision.metrics_utils.scorers import get_scorers_dict, metric_results_to_df
 
 __all__ = ['SingleDatasetPerformance']
 
@@ -37,11 +37,11 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
 
     def __init__(self, scorers: Union[Dict[str, Union[Metric, Callable, str]], List[Any]] = None, **kwargs):
         super().__init__(**kwargs)
-        self.user_scorers = scorers
+        self.scorers = scorers
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind.TRAIN):
         """Initialize the metric for the check, and validate task type is relevant."""
-        self.scorers = get_scorers_dict(context.get_data_by_kind(dataset_kind), self.user_scorers)
+        self.scorers = get_scorers_dict(context.get_data_by_kind(dataset_kind), self.scorers)
 
     def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind.TRAIN):
         """Update the metrics by passing the batch to ignite metric update method."""
@@ -62,16 +62,11 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return the values of the metrics for the dataset provided in a {metric: value} format."""
-        # Find metrics that were reduced over the classes and replace the Class Name with None
-        is_reduced_metrics = check_result.value.groupby('Metric')['Class Name'].nunique() == 1
-        reduced_metrics = is_reduced_metrics[is_reduced_metrics].index.to_list()
-        check_result.value.loc[check_result.value.Metric.apply(lambda x: x in reduced_metrics), 'Class Name'] = None
-
-        # Dict keys are format metric_class
-        metric_class = check_result.value.loc[:, ['Metric', 'Class Name']].aggregate(lambda x:
-                                                                                     '_'.join(filter(None, x)), axis=1)
-        output_dict = dict(zip(metric_class, check_result.value['Value']))
-        return output_dict
+        result = {row['Metric'] + '_' + str(row['Class Name']): row['Value'] for _, row in
+                  check_result.value.iterrows()}
+        for key in [key for key in result.keys() if key.endswith('_<NA>')]:
+            result[key.replace('_<NA>', '')] = result.pop(key)
+        return result
 
     def add_condition_greater_than(self, threshold: float, metrics: List[str] = None, class_mode: str = 'all'):
         """Add condition - the result is greater than the threshold.
@@ -119,6 +114,7 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
             else:
                 failed_metrics = ([a for a, b in zip(metrics, metrics_pass) if not b])
                 return ConditionResult(ConditionCategory.FAIL, f'Failed for metrics: {failed_metrics}')
+
         return self.add_condition(f'Score is greater than {threshold} for classes: {class_mode}', condition)
 
     def add_condition_less_than(self, threshold: float, metrics: List[str] = None, class_mode: str = 'all'):
@@ -167,4 +163,5 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
             else:
                 failed_metrics = ([a for a, b in zip(metrics, metrics_pass) if not b])
                 return ConditionResult(ConditionCategory.FAIL, f'Failed for metrics: {failed_metrics}')
+
         return self.add_condition(f'Score is less than {threshold} for classes: {class_mode}', condition)

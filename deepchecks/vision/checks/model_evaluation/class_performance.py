@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing class performance check."""
-from typing import Dict, List, TypeVar
+from typing import Dict, List, TypeVar, Union
 
 import pandas as pd
 import plotly.express as px
@@ -23,7 +23,7 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils import plot
 from deepchecks.utils.strings import format_percent
 from deepchecks.vision import Batch, Context, TrainTestCheck
-from deepchecks.vision.metrics_utils.metrics import filter_classes_for_display, get_scorers_dict, metric_results_to_df
+from deepchecks.vision.metrics_utils.scorers import filter_classes_for_display, get_scorers_dict, metric_results_to_df
 
 __all__ = ['ClassPerformance']
 
@@ -36,7 +36,7 @@ class ClassPerformance(TrainTestCheck):
 
     Parameters
     ----------
-    alternative_metrics : Dict[str, Metric], default: None
+    alternative_metrics : Union[Dict[str, Union[Metric,str]], List[str]], default: None
         A dictionary of metrics, where the key is the metric name and the value is an ignite.Metric object whose score
         should be used. If None are given, use the default metrics.
     n_to_show : int, default: 20
@@ -57,7 +57,7 @@ class ClassPerformance(TrainTestCheck):
     """
 
     def __init__(self,
-                 alternative_metrics: Dict[str, Metric] = None,
+                 alternative_metrics: Union[Dict[str, Union[Metric, str]], List[str]] = None,
                  n_to_show: int = 20,
                  show_only: str = 'largest',
                  metric_to_show_by: str = None,

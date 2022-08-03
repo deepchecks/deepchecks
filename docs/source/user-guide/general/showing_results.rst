@@ -27,8 +27,7 @@ Deepchecks Check and Suite results can be viewed in a separate window or inline 
 ``show()`` method
 -------------------
 
-This is the main show method. It will show the block inline if possible,
-and in a window (using the ``show_in_window()`` functionality) if running from an IDE.
+This is the main show method. It will show the check/suite result's HTML output inline, in a notebook cell.
 
 .. code-block:: python
 
@@ -36,30 +35,41 @@ and in a window (using the ``show_in_window()`` functionality) if running from a
 
 .. _show_in_window_method:
 
+
 ``show_in_window()`` method
 ---------------------------
 
-This will show the results in a separate window.
-
-It requires installation of the following python libraries: ``pyQt5``, ``pygtwebengine``,
-and it may not work on cloud environments such as kaggle and colab.
+This method shows the result in a separate window (using the PyQt5 library).
+It starts a PyQt5 application in a separate process therefore this display 
+method does not work on cloud platforms like Kaggle or Google Colab.
 
 .. code-block:: python
 
    result.show_in_window()
+
+Note, PyQt5 library is an optional dependency and it is not installed 
+along with Deepchecks automatically, therefore to use ``show_in_window()`` you need 
+to install it manually by running the next command:
+
+.. code-block:: sh
+
+   $ pip install PyQt5 pygtwebengine
+
 
 .. _alternative_show_options_for_troubleshooting:
 
 Alternative Methods for Showing Results (Troubleshooting)
 ==============================================================
 
-Some environments may have certain limitations with the display,
-that may result with partial output (e.g. without plots) of the main
-``show()`` or ``show_in_window()`` methods.
+The result's HTML output produced by the ``show()`` method 
+requires specific jupyter extensions to display properly.
+These extensions may not be installed/enabled by default,
+or may have compatibility issues with different environments (e.g. some cloud platforms).
 
-If you experience result display problems, you can consider any of the following options:
+Therefore, if you experience any result display problems, you can consider any of the following 
+options to resolve them:
 
-- Using one of the alternatives: :ref:`show_in_iframe` or :ref:`show_not_interactive`
+- Using one of the alternatives: :ref:`show_in_iframe` or :ref:`show_not_interactive`,
   elaborated below.
 
 - | Verifying that the ``jupyter-widgets`` extension is installed and enabled.
@@ -69,16 +79,13 @@ If you experience result display problems, you can consider any of the following
 - Exporting the results (e.g. :doc:`saving them to html </user-guide/general/export_save_results>`) 
   and viewing the output file.
 
-
 .. _show_in_iframe:
 
 ``show_in_iframe()`` method
 ---------------------------------
 
-This is the main alternative in case plots aren't displayed properly.
-It embeds the output into an iframe with the html content,
-thus does not require any jupyter extensions installed on the environment,
-and uses the needed javascript libraries inline. 
+This is the main alternative in case you experience any result display problems.
+It uses a different output technique (embedding the result's HTML output into an iframe) and thus doesn't require any jupyter extensions installed.
 
 .. code-block:: python
 
@@ -86,15 +93,22 @@ and uses the needed javascript libraries inline.
 
 .. _show_not_interactive:
 
+
 ``show_not_interactive()`` method
 ---------------------------------------------
 
-This displays a static version of the suite/check result:
-all figures and charts are converted into non-interactive 
-(no zoom, no dynamic legend) images.
-The result is a less detailed output, that doesnt require any javascript
+This method displays a static version of the suite/check result.
+It converts all figures and charts into images (no zoom, no dynamic legend). 
+The result is a less detailed output, that doesn't require any javascript
 libraries or jupyter extensions in order to work.
 
 .. code-block:: python
 
    result.show_not_interactive()
+
+To be able to use this method you need to install an optional dependency package called 'kaleido'
+that is used to transform figures and charts into images. In order to install it run the command:
+
+.. code-block:: sh
+    
+   $ pip install kaleido

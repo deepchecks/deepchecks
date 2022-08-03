@@ -2,7 +2,7 @@
 """
 .. _plot_tabular_date_train_test_validation_leakage_overlap:
 
-Date Train Test Validation Leakage Overlap
+Date Train Test Leakage Overlap
 ******************************************
 """
 

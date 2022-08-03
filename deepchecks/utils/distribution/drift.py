@@ -17,7 +17,7 @@ import pandas as pd
 from plotly.subplots import make_subplots
 from scipy.stats import chi2_contingency, wasserstein_distance
 
-from deepchecks import ConditionCategory, ConditionResult
+from deepchecks.core import ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
 from deepchecks.utils.dict_funcs import get_dict_entry_by_value
 from deepchecks.utils.distribution.plot import drift_score_bar_traces, feature_distribution_traces
