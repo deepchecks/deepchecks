@@ -17,6 +17,7 @@ General
     general/showing_results
     general/export_save_results
     general/customizations/examples/index
+    general/metrics_guide
     general/drift_guide
 
 Tabular
