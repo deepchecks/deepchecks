@@ -102,7 +102,7 @@ check_result.value
 # min_samples to 5 to tell the check to calculate drift despite having only a few images left after the class
 # filtration)
 
-check_result = ImagePropertyDrift(classes_to_display=['bicycle', 'bench', 'bus', 'truck'], min_samples=5
+check_result = ImagePropertyDrift(classes_to_display=['person', 'traffic light'], min_samples=5
                                   ).run(train_dataset, test_dataset)
 check_result
 
@@ -153,8 +153,8 @@ def aspect_ratio(images: List[np.ndarray]) -> List[float]:
 
 
 properties = [
-    {'name': 'Area', 'method': area, 'output_type': 'continuous'},
-    {'name': 'Aspect Ratio', 'method': aspect_ratio, 'output_type': 'continuous'}
+    {'name': 'Area', 'method': area, 'output_type': 'numerical'},
+    {'name': 'Aspect Ratio', 'method': aspect_ratio, 'output_type': 'numerical'}
 ]
 
 check_result = ImagePropertyDrift(
