@@ -14,8 +14,7 @@ from typing import List
 
 from hamcrest import all_of, assert_that, calling, equal_to, has_entry, has_items, has_length, instance_of, is_, raises
 
-from deepchecks.core import ConditionCategory, ConditionResult, SuiteResult
-from deepchecks.core import CheckFailure, CheckResult
+from deepchecks.core import CheckFailure, CheckResult, ConditionCategory, ConditionResult, SuiteResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.suite import BaseSuite
 from deepchecks.tabular import SingleDatasetCheck, Suite, TrainTestCheck

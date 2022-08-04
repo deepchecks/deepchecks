@@ -11,8 +11,8 @@
 import pathlib
 from shutil import rmtree
 
-import PIL.Image as pilimage
 import numpy as np
+import PIL.Image as pilimage
 import pytest
 from hamcrest import all_of, assert_that, calling, equal_to, has_length, has_property, instance_of, raises
 from torch.utils.data import DataLoader

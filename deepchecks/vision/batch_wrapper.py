@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Tuple, Ty
 import torch
 
 from deepchecks.core import DatasetKind
+from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.utils.vision_properties import (PropertiesInputType, calc_vision_properties,
                                                        static_prop_to_cache_format, validate_properties)
@@ -123,6 +124,10 @@ class Batch:
                                                                 calc_vision_properties(raw_data, properties_to_calc))
             property_names_to_return = [p['name'] for p in properties_list]
             result_dict = {k: self._vision_properties_cache[input_type.value][k] for k in property_names_to_return}
+        # validate properties length
+        static_prop_lens = [len(pr) for pr in result_dict.values()]
+        if any([(p != len(raw_data) and p != 1) for p in static_prop_lens]):  # pylint: disable=use-a-generator
+            raise DeepchecksProcessError('The properties should have the same length as the raw data')
         return result_dict
 
 

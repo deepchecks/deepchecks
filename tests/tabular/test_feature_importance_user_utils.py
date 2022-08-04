@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Test user utils"""
-from hamcrest import assert_that, close_to, raises, calling
+from hamcrest import assert_that, calling, close_to, raises
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.feature_importance import calculate_feature_importance
