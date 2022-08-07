@@ -73,12 +73,12 @@ DEFAULT_SEMANTIC_SEGMENTATION_LABEL_PROPERTIES = [
 
 # Predictions
 
-def _get_samples_per_predicted_class_classification(predictions: torch.Tensor) -> List[int]:
+def _get_samples_per_pred_class_classification(predictions: torch.Tensor) -> List[int]:
     """Return a list containing the classes in batch."""
     return torch.argmax(predictions, dim=1).tolist()
 
 
-def _get_samples_per_predicted_class_object_detection(predictions: List[torch.Tensor]) -> List[List[int]]:
+def _get_samples_per_pred_class_object_detection(predictions: List[torch.Tensor]) -> List[List[int]]:
     """Return a list containing the classes in batch."""
     return [tensor.reshape((-1, 6))[:, -1].tolist() for tensor in predictions]
 
@@ -90,29 +90,17 @@ def _get_predicted_bbox_area(predictions: List[torch.Tensor]) -> List[List[int]]
 
 
 DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES = [
-    {
-        'name': 'Samples Per Class',
-        'method': _get_samples_per_predicted_class_classification,
-        'output_type': 'class_id'
-    }
+    {'name': 'Samples Per Class', 'method': _get_samples_per_pred_class_classification, 'output_type': 'class_id'}
 ]
 
 DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES = [
-    {
-        'name': 'Samples Per Class',
-        'method': _get_samples_per_predicted_class_object_detection,
-        'output_type': 'class_id'
-    },
-    {
-        'name': 'Bounding Box Area (in pixels)',
-        'method': _get_predicted_bbox_area,
-        'output_type': 'numerical'},
-    {
-        'name': 'Number of Bounding Boxes Per Image',
-        'method': _count_num_bboxes,
-        'output_type': 'numerical'
-    },
+    {'name': 'Samples Per Class', 'method': _get_samples_per_pred_class_object_detection, 'output_type': 'class_id'},
+    {'name': 'Bounding Box Area (in pixels)', 'method': _get_predicted_bbox_area, 'output_type': 'numerical'},
+    {'name': 'Number of Bounding Boxes Per Image', 'method': _count_num_bboxes, 'output_type': 'numerical'},
 ]
+
+# TODO: Change when update prediction format:
+DEFAULT_SEMANTIC_SEGMENTATION_PREDICTION_PROPERTIES = DEFAULT_SEMANTIC_SEGMENTATION_LABEL_PROPERTIES
 
 
 # Helper functions
