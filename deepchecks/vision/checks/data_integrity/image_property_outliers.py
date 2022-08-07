@@ -16,6 +16,7 @@ import numpy as np
 from deepchecks.vision import Batch, VisionData
 from deepchecks.vision.checks.data_integrity.abstract_property_outliers import AbstractPropertyOutliers
 from deepchecks.vision.utils.image_properties import default_image_properties
+from deepchecks.vision.utils.vision_properties import PropertiesInputType
 
 __all__ = ['ImagePropertyOutliers']
 
@@ -51,7 +52,8 @@ class ImagePropertyOutliers(AbstractPropertyOutliers):
                  iqr_percentiles: t.Tuple[int, int] = (25, 75),
                  iqr_scale: float = 1.5,
                  **kwargs):
-        super().__init__(properties=image_properties, n_show_top=n_show_top, iqr_percentiles=iqr_percentiles,
+        super().__init__(properties_list=image_properties, property_input_type=PropertiesInputType.IMAGES,
+                         n_show_top=n_show_top, iqr_percentiles=iqr_percentiles,
                          iqr_scale=iqr_scale, **kwargs)
 
     def get_relevant_data(self, batch: Batch):

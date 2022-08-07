@@ -18,7 +18,7 @@ from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import Pipeline
 
-from deepchecks.core.errors import DeepchecksValueError, ModelValidationError, DeepchecksTimeoutError
+from deepchecks.core.errors import DeepchecksTimeoutError, DeepchecksValueError, ModelValidationError
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.utils.features import (_calculate_feature_importance, calculate_feature_importance_or_none,
                                        column_importance_sorter_df, column_importance_sorter_dict)

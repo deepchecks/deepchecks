@@ -13,8 +13,7 @@ from collections import defaultdict
 
 from hamcrest import assert_that, calling, is_, raises
 
-from deepchecks.core import CheckResult
-from deepchecks.core import DatasetKind
+from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.vision.base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
 from deepchecks.vision.datasets.detection import coco
 

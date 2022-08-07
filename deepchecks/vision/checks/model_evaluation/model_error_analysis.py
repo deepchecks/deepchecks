@@ -21,7 +21,8 @@ from deepchecks.utils.performance.error_model import error_model_display_datafra
 from deepchecks.utils.single_sample_metrics import per_sample_cross_entropy
 from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.metrics_utils.iou_utils import per_sample_mean_iou
-from deepchecks.vision.utils.image_properties import default_image_properties, validate_properties
+from deepchecks.vision.utils.image_properties import default_image_properties
+from deepchecks.vision.utils.vision_properties import PropertiesInputType
 from deepchecks.vision.vision_data import TaskType
 
 __all__ = ['ModelErrorAnalysis']
@@ -82,10 +83,7 @@ class ModelErrorAnalysis(TrainTestCheck):
         self._train_scores = None
         self._test_scores = None
 
-        if image_properties is None:
-            self.image_properties = default_image_properties
-        else:
-            self.image_properties = validate_properties(image_properties)
+        self.image_properties = image_properties if image_properties else default_image_properties
 
     def initialize_run(self, context: Context):
         """Initialize property and score lists."""
@@ -111,12 +109,12 @@ class ModelErrorAnalysis(TrainTestCheck):
                 'be unreacheable was reached.'
             )
 
-        images = batch.images
         predictions = batch.predictions
         labels = batch.labels
+        properties_results = batch.vision_properties(batch.images, self.image_properties, PropertiesInputType.IMAGES)
 
-        for single_property in self.image_properties:
-            properties[single_property['name']].extend(single_property['method'](images))
+        for prop_name, prop_value in properties_results.items():
+            properties[prop_name].extend(prop_value)
 
         if dataset.task_type == TaskType.CLASSIFICATION:
             def scoring_func(predictions, labels):
