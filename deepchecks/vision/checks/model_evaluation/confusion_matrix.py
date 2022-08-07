@@ -47,7 +47,7 @@ def filter_confusion_matrix(confusion_matrix: pd.DataFrame, number_of_categories
 class ConfusionMatrixReport(SingleDatasetCheck):
     """Calculate the confusion matrix of the model on the given dataset.
 
-    For object detection, each detected bounding box calculates the IoU for each label and then is that label class is
+    For object detection, each detected bounding box calculates the IoU for each label and then that label class is
     used for the confusion matrix. detected bounding boxes that don't match a label has their own class and same
     for labels without detected bounding boxes.
 
