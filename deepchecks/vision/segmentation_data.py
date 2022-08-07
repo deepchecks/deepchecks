@@ -162,33 +162,17 @@ class SegmentationData(VisionData):
             If batch_to_labels not implemented
         """
         labels = self.batch_to_labels(batch)
-        if not len(labels) == 2 or not isinstance(labels[0], list) or not isinstance(labels[1], list):
-            raise ValidationError('Deepchecks requires semantic segmentation label to be a tuple of 2 lists, one for '
-                                  'class ids and one for boolean segment maps')
-        if len(labels[0]) == 0:
+        imgs = self.batch_to_images(batch)
+        if not isinstance(labels, Sequence) or not len(labels) == len(imgs):
+            raise ValidationError('Deepchecks requires semantic segmentation labels to be a sequence with an entry for '
+                                  'each sample')
+        if len(labels) == 0:
             raise ValidationError('Deepchecks requires semantic segmentation label to be a non-empty list')
-        if not isinstance(labels[0][0], list):
-            raise ValidationError('Deepchecks requires semantic segmentation label 1st list to be a list of lists')
-        if not isinstance(labels[1][0], torch.Tensor):
-            raise ValidationError('Deepchecks requires semantic segmentation label 2nd list to be a list of '
-                                  'torch.Tensor')
-        sample_idx = 0
-        # Find a non empty tensor to validate
-        # while labels[0][sample_idx].shape[0] == 0:
-        #     sample_idx += 1
-        #     if sample_idx == len(labels):
-        #         return  # No labels to validate
-        # if len(labels[1][sample_idx][0].shape) != 2:
-        #     raise ValidationError('Check requires object detection label to be a list of 2D tensors')
-        # if labels[sample_idx].shape[1] != 5:
-        #     raise ValidationError('Check requires object detection label to be a list of 2D tensors, when '
-        #                           'each row has 5 columns: [class_id, x, y, width, height]')
-        # if torch.min(labels[sample_idx]) < 0:
-        #     raise ValidationError('Found one of coordinates to be negative, check requires object detection '
-        #                           'bounding box coordinates to be of format [class_id, x, y, width, height].')
-        # if torch.max(labels[sample_idx][:, 0] % 1) > 0:
-        #     raise ValidationError('Class_id must be a positive integer. Object detection labels per image should '
-        #                           'be a Bx5 tensor of format [class_id, x, y, width, height].')
+        if not isinstance(labels[0], torch.Tensor):
+            raise ValidationError('Deepchecks requires semantic segmentation label to be of type torch.Tensor')
+        if not labels[0].shape == imgs[0].shape[1:]:
+            raise ValidationError('Deepchecks requires semantic segmentation label to be of same width and height as '
+                                  'image')
 
     @staticmethod
     def validate_infered_batch_predictions(batch_predictions):
@@ -207,6 +191,7 @@ class SegmentationData(VisionData):
         DeepchecksNotImplementedError
             If infer_on_batch not implemented
         """
+
         # if not isinstance(batch_predictions, Sequence):
         #     raise ValidationError('Check requires detection predictions to be a sequence with an entry for each'
         #                           ' sample')
