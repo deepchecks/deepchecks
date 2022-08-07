@@ -38,7 +38,7 @@ def validate_latest_version():
                 with open(os.path.join(MODULE_DIR, '.user_id'), 'w', encoding='utf8') as f:
                     f.write(user_id)
 
-            conn = http.client.HTTPConnection('localhost', timeout=3)
+            conn = http.client.HTTPSConnection('api.deepchecks.com', timeout=3)
             conn.request('GET', f'/v3/latest?version={deepchecks.__version__}&uuid={user_id}')
             result = conn.getresponse()
             is_on_latest = result.read().decode() == 'True'
