@@ -9,113 +9,92 @@
 # ----------------------------------------------------------------------------
 #
 # pylint: disable=inconsistent-quotes, redefined-builtin
-from hamcrest import assert_that, calling, raises
+from hamcrest import assert_that, calling, close_to, contains_exactly, raises
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.utils.image_properties import default_image_properties
-from deepchecks.vision.utils.image_properties import validate_properties as validate_image_properties
-from deepchecks.vision.utils.label_prediction_properties import DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES
-from deepchecks.vision.utils.label_prediction_properties import \
-    validate_properties as validate_label_prediction_properties
+from deepchecks.vision.utils.label_prediction_properties import (DEFAULT_CLASSIFICATION_LABEL_PROPERTIES,
+                                                                 DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES,
+                                                                 DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES,
+                                                                 DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES)
+from deepchecks.vision.utils.vision_properties import calc_vision_properties, validate_properties
 
 
-def test_image_properties_validation():
-    validate_image_properties(default_image_properties)
+def test_calc_properties(coco_train_visiondata):
+    images = coco_train_visiondata.batch_to_images(next(iter(coco_train_visiondata.data_loader)))
+    results = calc_vision_properties(images, default_image_properties)
+    assert_that(results.keys(), contains_exactly(
+        'Aspect Ratio', 'Area', 'Brightness', 'RMS Contrast',
+        'Mean Red Relative Intensity', 'Mean Green Relative Intensity', 'Mean Blue Relative Intensity'))
+    assert_that(sum(results['Brightness']), close_to(15.56, 0.01))
 
 
-def test_image_properties_validation_with_instance_of_incorrect_type_provided():
+def test_default_properties():
+    validate_properties(default_image_properties)
+    validate_properties(DEFAULT_CLASSIFICATION_LABEL_PROPERTIES)
+    validate_properties(DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES)
+    validate_properties(DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES)
+    validate_properties(DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES)
+
+
+def test_validate_properties_with_instance_of_incorrect_type_provided():
     assert_that(
-        calling(validate_image_properties).with_args(object()),
+        calling(validate_properties).with_args(object()),
         detects_incorrect_type_of_input()
     )
 
 
-def test_image_properties_validation_with_empty_properties_list():
+def test_validate_properties_with_empty_properties_list():
     assert_that(
-        calling(validate_image_properties).with_args([]),
+        calling(validate_properties).with_args([]),
         detects_empty_list()
     )
 
 
-def test_image_properties_validation_with_unsupported_item_type():
+def test_validate_properties_with_unsupported_item_type():
     properties = [*default_image_properties, object()]
 
     assert_that(
-        calling(validate_image_properties).with_args(properties),
+        calling(validate_properties).with_args(properties),
         detects_incorrect_item_type(item_index=len(properties) - 1),
     )
 
 
-def test_image_properties_validation_with_incorrect_property_dict_structure():
+def test_validate_properties_with_incorrect_property_dict_structure():
     property = default_image_properties[0].copy()
     property.pop('method')
 
     assert_that(
-        calling(validate_image_properties).with_args([property]),
+        calling(validate_properties).with_args([property]),
         detects_incorrect_property_dict_structure(property_name=property['name'])
     )
 
+def test_validate_properties_with_bad_name_field():
+    # Arrange
+    def prop(predictions):
+        return [int(x[0][0]) if len(x) != 0 else 0 for x in predictions]
 
-def test_image_properties_validation_with_incorrect_property_output_type():
-    property = default_image_properties[0].copy()
-    property['output_type'] = 'hello-world'
+    alternative_measurements = [
+        {'name': 'test', 'method': prop, 'output_type': 'continuous'},
+        {'name234': 'test', 'method': prop, 'output_type': 'continuous'},
+    ]
 
+    # Assert
     assert_that(
-        calling(validate_image_properties).with_args([property]),
+        calling(validate_properties).with_args(alternative_measurements),
         raises(
             DeepchecksValueError,
             r"List of properties contains next problems:\n"
-            rf"\+ Property {property['name']}: field \"output_type\" must be one of \('categorical', 'numerical'\), "
-            rf"instead got hello-world")
+            r"\+ Property #1: dictionary must include keys \('name', 'method', 'output_type'\)\. "
+            r"Next keys are missed \['name'\]")
     )
 
-
-# =====================================================
-
-
-def test_label_prediction_properties_validation():
-    validate_label_prediction_properties(DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES)
-
-
-def test_label_prediction_properties_validation_with_instance_of_incorrect_type_provided():
-    assert_that(
-        calling(validate_label_prediction_properties).with_args(object()),
-        detects_incorrect_type_of_input()
-    )
-
-
-def test_label_prediction_properties_validation_with_empty_properties_list():
-    assert_that(
-        calling(validate_label_prediction_properties).with_args([]),
-        detects_empty_list()
-    )
-
-
-def test_label_prediction_validation_with_unsupported_item_type():
-    properties = [*DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES, object()]
-
-    assert_that(
-        calling(validate_label_prediction_properties).with_args(properties),
-        detects_incorrect_item_type(item_index=len(properties) - 1),
-    )
-
-
-def test_label_prediction_properties_validation_with_incorrect_property_dict_structure():
-    property = DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES[0].copy()
-    property.pop('method')
-
-    assert_that(
-        calling(validate_label_prediction_properties).with_args([property]),
-        detects_incorrect_property_dict_structure(property_name=property['name'])
-    )
-
-
-def test_label_prediction_properties_validation_with_incorrect_property_output_type():
+def test_validate_properties_with_incorrect_property_output_type():
     property = DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES[0].copy()
     property['output_type'] = 'hello-world'
 
     assert_that(
-        calling(validate_label_prediction_properties).with_args([property]),
+        calling(validate_properties).with_args([property]),
         raises(
             DeepchecksValueError,
             r"List of properties contains next problems:\n"

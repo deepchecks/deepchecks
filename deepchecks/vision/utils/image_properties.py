@@ -9,13 +9,10 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the image formatter class for the vision module."""
-import warnings
-from typing import Any, Dict, List, Tuple
+from typing import List, Tuple
 
 import numpy as np
 from skimage.color import rgb2gray
-
-from deepchecks.core.errors import DeepchecksValueError
 
 __all__ = ['default_image_properties',
            'aspect_ratio',
@@ -27,7 +24,6 @@ __all__ = ['default_image_properties',
            'mean_green_relative_intensity',
            'get_size',
            'get_dimension',
-           'validate_properties',
            'get_column_type']
 
 
@@ -136,70 +132,6 @@ default_image_properties = [
     {'name': 'Mean Green Relative Intensity', 'method': mean_green_relative_intensity, 'output_type': 'numerical'},
     {'name': 'Mean Blue Relative Intensity', 'method': mean_blue_relative_intensity, 'output_type': 'numerical'}
 ]
-
-
-def validate_properties(properties: List[Dict[str, Any]]):
-    """Validate structure of measurements."""
-    if not isinstance(properties, list):
-        raise DeepchecksValueError(
-            'Expected properties to be a list, '
-            f'instead got {type(properties).__name__}'
-        )
-
-    if len(properties) == 0:
-        raise DeepchecksValueError('Properties list can\'t be empty')
-
-    expected_keys = ('name', 'method', 'output_type')
-    deprecated_output_types = ('discrete', 'continuous')
-    output_types = ('categorical', 'numerical')
-
-    list_of_warnings = []
-    errors = []
-
-    for index, image_property in enumerate(properties):
-
-        if not isinstance(image_property, dict):
-            errors.append(
-                f'Item #{index}: property must be of type dict, '
-                f'and include keys {expected_keys}. Instead got {type(image_property).__name__}'
-            )
-            continue
-
-        property_name = image_property.get('name') or f'#{index}'
-        difference = sorted(set(expected_keys).difference(set(image_property.keys())))
-
-        if len(difference) > 0:
-            errors.append(
-                f'Property {property_name}: dictionary must include keys {expected_keys}. '
-                f'Next keys are missed {difference}'
-            )
-            continue
-
-        property_output_type = image_property['output_type']
-
-        if property_output_type in deprecated_output_types:
-            list_of_warnings.append(
-                f'Property {property_name}: output types {deprecated_output_types} are deprecated, '
-                f'use instead {output_types}'
-            )
-        elif property_output_type not in output_types:
-            errors.append(
-                f'Property {property_name}: field "output_type" must be one of {output_types}, '
-                f'instead got {property_output_type}'
-            )
-
-    if len(errors) > 0:
-        errors = '\n+ '.join(errors)
-        raise DeepchecksValueError(f'List of properties contains next problems:\n+ {errors}')
-
-    if len(list_of_warnings) > 0:
-        concatenated_warnings = '\n+ '.join(list_of_warnings)
-        warnings.warn(
-            f'Property Warnings:\n+ {concatenated_warnings}',
-            category=DeprecationWarning
-        )
-
-    return properties
 
 
 def get_column_type(output_type):

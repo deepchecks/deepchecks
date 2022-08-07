@@ -18,7 +18,8 @@ from deepchecks.core import CheckResult, ConditionCategory, ConditionResult, Dat
 from deepchecks.core.check_utils.whole_dataset_drift_utils import run_whole_dataset_drift
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Batch, Context, TrainTestCheck
-from deepchecks.vision.utils.image_properties import default_image_properties, get_column_type, validate_properties
+from deepchecks.vision.utils.image_properties import default_image_properties, get_column_type
+from deepchecks.vision.utils.vision_properties import PropertiesInputType
 
 __all__ = ['ImageDatasetDrift']
 
@@ -83,32 +84,34 @@ class ImageDatasetDrift(TrainTestCheck):
             **kwargs
     ):
         super().__init__(**kwargs)
-        if image_properties:
-            self.image_properties = validate_properties(image_properties)
-        else:
-            self.image_properties = default_image_properties
+        self.image_properties = image_properties if image_properties else default_image_properties
 
         self.n_top_properties = n_top_properties
         self.min_feature_importance = min_feature_importance
         self.sample_size = sample_size
         self.test_size = test_size
         self.min_meaningful_drift_score = min_meaningful_drift_score
+        self._train_properties = None
+        self._test_properties = None
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
 
+    def initialize_run(self, context: Context):
+        """Initialize self state, and validate the run context."""
         self._train_properties = defaultdict(list)
         self._test_properties = defaultdict(list)
 
     def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Calculate image properties for train or test batches."""
         if dataset_kind == DatasetKind.TRAIN:
-            properties = self._train_properties
+            properties_results = self._train_properties
         else:
-            properties = self._test_properties
-        images = batch.images
+            properties_results = self._test_properties
 
-        for single_property in self.image_properties:
-            properties[single_property['name']].extend(single_property['method'](images))
+        data_for_properties = batch.vision_properties(batch.images, self.image_properties, PropertiesInputType.IMAGES)
+
+        for prop_name, prop_value in data_for_properties.items():
+            properties_results[prop_name].extend(prop_value)
 
     def compute(self, context: Context) -> CheckResult:
         """Train a Domain Classifier on image property data that was collected during update() calls.

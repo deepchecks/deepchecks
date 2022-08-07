@@ -22,8 +22,8 @@ from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condi
 from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.utils.label_prediction_properties import (DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES,
                                                                  DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES,
-                                                                 get_column_type, properties_flatten,
-                                                                 validate_properties)
+                                                                 get_column_type, properties_flatten)
+from deepchecks.vision.utils.vision_properties import PropertiesInputType
 from deepchecks.vision.vision_data import TaskType
 
 __all__ = ['TrainTestPredictionDrift']
@@ -110,11 +110,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
     ):
         super().__init__(**kwargs)
         # validate prediction properties:
-        self.user_prediction_properties = (
-            validate_properties(prediction_properties)
-            if prediction_properties is not None
-            else None
-        )
+        self.prediction_properties = prediction_properties
         self.margin_quantile_filter = margin_quantile_filter
         self.categorical_drift_method = categorical_drift_method
 
@@ -130,7 +126,6 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
 
-        self._prediction_properties = None
         self._train_prediction_properties = None
         self._test_prediction_properties = None
 
@@ -149,15 +144,14 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
 
         task_type = train_dataset.task_type
 
-        if self.user_prediction_properties is not None:
-            self._prediction_properties = self.user_prediction_properties
-        elif task_type == TaskType.CLASSIFICATION:
-            self._prediction_properties = DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES
-        elif task_type == TaskType.OBJECT_DETECTION:
-            self._prediction_properties = DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES
-        else:
-            raise NotImplementedError('Check must receive either prediction_properties or '
-                                      'run on Classification or Object Detection class')
+        if self.prediction_properties is None:
+            if task_type == TaskType.CLASSIFICATION:
+                self.prediction_properties = DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES
+            elif task_type == TaskType.OBJECT_DETECTION:
+                self.prediction_properties = DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES
+            else:
+                raise NotImplementedError('Check must receive either prediction_properties or '
+                                          'run on Classification or Object Detection class')
 
         self._train_prediction_properties = defaultdict(list)
         self._test_prediction_properties = defaultdict(list)
@@ -166,17 +160,18 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         """Perform update on batch for train or test properties."""
         # For all transformers, calculate histograms by batch:
         if dataset_kind == DatasetKind.TRAIN:
-            properties = self._train_prediction_properties
+            properties_results = self._train_prediction_properties
         elif dataset_kind == DatasetKind.TEST:
-            properties = self._test_prediction_properties
+            properties_results = self._test_prediction_properties
         else:
             raise DeepchecksNotSupportedError(f'Unsupported dataset kind {dataset_kind}')
 
-        for prediction_property in self._prediction_properties:
-            # Flatten the properties since I don't care in this check about the property-per-sample coupling
-            properties[prediction_property['name']] += properties_flatten(
-                prediction_property['method'](batch.predictions)
-            )
+        batch_properties = batch.vision_properties(
+            batch.predictions, self.prediction_properties, PropertiesInputType.PREDICTIONS)
+
+        for prop_name, prop_value in batch_properties.items():
+            # Flatten the properties since we don't care in this check about the property-per-sample coupling
+            properties_results[prop_name] += properties_flatten(prop_value)
 
     def compute(self, context: Context) -> CheckResult:
         """Calculate drift on prediction properties samples that were collected during update() calls.
@@ -189,8 +184,8 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         """
         values_dict = OrderedDict()
         displays_dict = OrderedDict()
-        prediction_properties_names = [x['name'] for x in self._prediction_properties]
-        for prediction_property in self._prediction_properties:
+        prediction_properties_names = [x['name'] for x in self.prediction_properties]
+        for prediction_property in self.prediction_properties:
             name = prediction_property['name']
             output_type = prediction_property['output_type']
             # If type is class converts to label names
