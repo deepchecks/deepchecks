@@ -67,7 +67,7 @@ class ImagePropertyDrift(TrainTestCheck):
     classes_to_display : Optional[List[float]], default: None
         List of classes to display. The distribution of the properties would include only samples belonging (or
         containing an annotation belonging) to one of these classes. If None, samples from all classes are displayed.
-    min_samples: int, default: 10
+    min_samples: int, default: 30
         Minimum number of samples needed in each dataset needed to calculate the drift.
     max_num_categories: int, default: None
         Deprecated. Please use max_num_categories_for_drift and max_num_categories_for_display instead
