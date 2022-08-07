@@ -17,13 +17,13 @@ import http.client
 import os
 import pathlib
 import uuid
-import warnings
 
 import deepchecks
 from deepchecks.utils.logger import get_logger
 
 MODULE_DIR = pathlib.Path(__file__).absolute().parent.parent
-ANALYTICS_DISABLED = os.environ.get('DISABLE_DEEPCHECKS_ANONYMOUS_TELEMETRY', False)
+ANALYTICS_DISABLED = os.environ.get('DISABLE_DEEPCHECKS_ANONYMOUS_TELEMETRY', False) or \
+    os.environ.get('DISABLE_LATEST_VERSION_CHECK', False)
 
 
 def validate_latest_version():
@@ -43,9 +43,9 @@ def validate_latest_version():
             result = conn.getresponse()
             is_on_latest = result.read().decode() == 'True'
             if not is_on_latest:
-                get_logger().warning(f'You are using deepchecks version {deepchecks.__version__}, however a '
-                                     f'newer version is available.'
-                                     f'Deepchecks is frequently updated with major improvements. You should consider '
-                                     f'upgrading via the "python -m pip install --upgrade deepchecks" command.')
+                get_logger().warning('You are using deepchecks version %s, however a newer version is available.'
+                                     'Deepchecks is frequently updated with major improvements. You should consider '
+                                     'upgrading via the "python -m pip install --upgrade deepchecks" command.',
+                                     deepchecks.__version__)
         except Exception:  # pylint: disable=broad-except
             pass
