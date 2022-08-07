@@ -19,7 +19,7 @@ from importlib._bootstrap import _init_module_attrs
 import matplotlib
 import plotly.io as pio
 
-from deepchecks.analytics.anonymous_telemetry import send_anonymous_import_event
+from deepchecks.analytics.anonymous_telemetry import validate_latest_version
 from deepchecks.core import (BaseCheck, BaseSuite, CheckFailure, CheckResult, Condition, ConditionCategory,
                              ConditionResult, ModelOnlyBaseCheck, SingleDatasetBaseCheck, SuiteResult,
                              TrainTestBaseCheck)
@@ -83,7 +83,7 @@ except:  # pylint: disable=bare-except # noqa
 
 
 # Send an import event if not disabled
-send_anonymous_import_event()
+validate_latest_version()
 
 # ================================================================
 
