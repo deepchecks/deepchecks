@@ -107,7 +107,7 @@ class Batch:
         return props_to_cache
 
     def vision_properties(self, raw_data: List, properties_list: List[Dict], input_type: PropertiesInputType):
-        """Calculate and cache the properties for the batch according to the propety input type."""
+        """Calculate and cache the properties for the batch according to the property input type."""
         properties_list = validate_properties(properties_list)
         # if there are no cached properties at all, calculate all the properties on the list,
         # else calculate only those that were not yet calculated.
