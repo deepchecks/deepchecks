@@ -33,7 +33,7 @@ class SegmentationData(VisionData):
 
     @abstractmethod
     def batch_to_labels(self, batch) -> Tuple[List[List[Any]], List[torch.Tensor]]:
-        """Extract the labels from a batch of data.
+        """Extract the labels from a batch of data. #TODO: Refactor
 
         Parameters
         ----------
@@ -49,7 +49,7 @@ class SegmentationData(VisionData):
                 number of detections per that image.
             See the notes for more info.
 
-        Examples #TODO: Improve code of example
+        Examples #TODO: Replace example again
         --------
         >>> import torch
         ...
