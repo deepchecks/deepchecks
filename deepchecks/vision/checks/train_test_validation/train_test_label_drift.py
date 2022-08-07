@@ -22,8 +22,8 @@ from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condi
 from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.utils.label_prediction_properties import (DEFAULT_CLASSIFICATION_LABEL_PROPERTIES,
                                                                  DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES,
-                                                                 get_column_type, properties_flatten,
-                                                                 DEFAULT_SEMANTIC_SEGMENTATION_LABEL_PROPERTIES)
+                                                                 DEFAULT_SEMANTIC_SEGMENTATION_LABEL_PROPERTIES,
+                                                                 get_column_type, properties_flatten)
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
 from deepchecks.vision.vision_data import TaskType
 

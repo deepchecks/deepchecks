@@ -10,7 +10,7 @@
 #
 """Module containing the SegmentationData class and its functions."""
 from abc import abstractmethod
-from typing import List, Sequence, Tuple, Any
+from typing import Any, List, Sequence, Tuple
 
 import torch
 
