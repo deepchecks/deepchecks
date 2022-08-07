@@ -136,7 +136,16 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
                     class_id = int(label[0])
                     imgs += [cropped_img]
                     target += [dataset.label_id_to_name(class_id)]
-            property_type = PropertiesInputType.BBOXES
+            property_type = PropertiesInputType.PARTIAL_IMAGES
+        elif dataset.task_type == TaskType.SEMANTIC_SEGMENTATION:
+            for img, label in zip(batch.images, batch.labels):
+                for seg_label in np.unique(label):
+                    seg_location = label == seg_label
+                    seg_img = np.expand_dims(seg_location, axis=2) * img
+                    class_id = int(seg_label)
+                    imgs += [seg_img]
+                    target += [dataset.label_id_to_name(class_id)]
+            property_type = PropertiesInputType.PARTIAL_IMAGES
         else:
             for img, classes_ids in zip(batch.images, dataset.get_classes(batch.labels)):
                 imgs += [img] * len(classes_ids)
@@ -169,7 +178,8 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
         if context.train.task_type == TaskType.OTHER:
             if self.is_float_column(df_train['target']) or self.is_float_column(df_test['target']):
                 col_dtype = 'float'
-        elif context.train.task_type not in (TaskType.OBJECT_DETECTION, TaskType.CLASSIFICATION):
+        elif context.train.task_type not in (TaskType.OBJECT_DETECTION, TaskType.CLASSIFICATION,
+                                             TaskType.SEMANTIC_SEGMENTATION):
             raise ModelValidationError(
                 f'Check must be explicitly adopted to the new task type {context.train.task_type}, so that the '
                 f'label type used by the PPS predictor would be appropriate.')

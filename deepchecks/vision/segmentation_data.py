@@ -142,7 +142,7 @@ class SegmentationData(VisionData):
         """Get a labels batch and return classes inside it.""" #TODO: Refactor
 
         def get_classes_from_single_label(tensor: torch.Tensor):
-            return list(tensor[:, 0].type(torch.IntTensor).tolist()) if len(tensor) > 0 else []
+            return torch.unique(tensor).type(torch.IntTensor).tolist()
 
         return [get_classes_from_single_label(x) for x in batch_labels]
 
@@ -170,7 +170,7 @@ class SegmentationData(VisionData):
             raise ValidationError('Deepchecks requires semantic segmentation label to be a non-empty list')
         if not isinstance(labels[0], torch.Tensor):
             raise ValidationError('Deepchecks requires semantic segmentation label to be of type torch.Tensor')
-        if not labels[0].shape == imgs[0].shape[1:]:
+        if not labels[0].shape == imgs[0].shape[:2]:
             raise ValidationError('Deepchecks requires semantic segmentation label to be of same width and height as '
                                   'image')
 
