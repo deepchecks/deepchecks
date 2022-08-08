@@ -9,13 +9,14 @@
 # ----------------------------------------------------------------------------
 #
 """Module importing all tabular checks."""
-from .data_integrity import (ColumnsInfo, ConflictingLabels, DataDuplicates, FeatureLabelCorrelation, IsSingleValue,
-                             MixedDataTypes, MixedNulls, OutlierSampleDetection, SpecialCharacters,
-                             StringLengthOutOfBounds, StringMismatch)
+from .data_integrity import (ColumnsInfo, ConflictingLabels, DataDuplicates, FeatureFeatureCorrelation,
+                             FeatureLabelCorrelation, IsSingleValue, MixedDataTypes, MixedNulls, OutlierSampleDetection,
+                             SpecialCharacters, StringLengthOutOfBounds, StringMismatch)
 from .model_evaluation import (BoostingOverfit, CalibrationScore, ConfusionMatrixReport, ModelErrorAnalysis,
                                ModelInferenceTime, ModelInfo, MultiModelPerformanceReport, PerformanceReport,
                                RegressionErrorDistribution, RegressionSystematicError, RocReport, SegmentPerformance,
-                               SimpleModelComparison, TrainTestPredictionDrift, UnusedFeatures, WeakSegmentsPerformance)
+                               SimpleModelComparison, SingleDatasetPerformance, TrainTestPerformance,
+                               TrainTestPredictionDrift, UnusedFeatures, WeakSegmentsPerformance)
 from .train_test_validation import (CategoryMismatchTrainTest, DatasetsSizeComparison, DateTrainTestLeakageDuplicates,
                                     DateTrainTestLeakageOverlap, DominantFrequencyChange, FeatureLabelCorrelationChange,
                                     IdentifierLabelCorrelation, IndexTrainTestLeakage, NewLabelTrainTest,
@@ -41,6 +42,7 @@ __all__ = [
     # methodology checks
     'BoostingOverfit',
     'UnusedFeatures',
+    'FeatureFeatureCorrelation',
     'FeatureLabelCorrelation',
     'FeatureLabelCorrelationChange',
     'IndexTrainTestLeakage',
@@ -62,6 +64,7 @@ __all__ = [
     'TrainTestPredictionDrift',
 
     # performance checks
+    'TrainTestPerformance',
     'PerformanceReport',
     'ConfusionMatrixReport',
     'RocReport',
@@ -72,5 +75,6 @@ __all__ = [
     'RegressionErrorDistribution',
     'MultiModelPerformanceReport',
     'WeakSegmentsPerformance',
-    'ModelErrorAnalysis'
+    'ModelErrorAnalysis',
+    'SingleDatasetPerformance'
 ]

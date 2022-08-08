@@ -20,11 +20,12 @@ from typing import Any, Dict, List, Tuple
 from ignite.metrics import Metric
 
 from deepchecks.vision import Suite
-from deepchecks.vision.checks import (ClassPerformance, ConfusionMatrixReport, FeatureLabelCorrelationChange,
+from deepchecks.vision.checks import (ClassPerformance, ConfusionMatrixReport,  # SimilarImageLeakage,
                                       HeatmapComparison, ImageDatasetDrift, ImagePropertyDrift, ImagePropertyOutliers,
                                       ImageSegmentPerformance, LabelPropertyOutliers, MeanAveragePrecisionReport,
-                                      MeanAverageRecallReport, ModelErrorAnalysis, NewLabels, SimilarImageLeakage,
-                                      SimpleModelComparison, TrainTestLabelDrift, TrainTestPredictionDrift)
+                                      MeanAverageRecallReport, ModelErrorAnalysis, NewLabels,
+                                      PropertyLabelCorrelationChange, SimpleModelComparison, TrainTestLabelDrift,
+                                      TrainTestPredictionDrift)
 
 __all__ = ['train_test_validation', 'model_evaluation', 'full_suite', 'integrity_validation', 'data_integrity']
 
@@ -58,7 +59,7 @@ def train_test_validation(n_top_show: int = 5,
            * - :ref:`plot_vision_image_dataset_drift`
              - :class:`~deepchecks.vision.checks.train_test_validation.ImageDatasetDrift`
            * - :ref:`plot_vision_feature_label_correlation_change`
-             - :class:`~deepchecks.vision.checks.train_test_validation.FeatureLabelCorrelationChange`
+             - :class:`~deepchecks.vision.checks.train_test_validation.PropertyLabelCorrelationChange`
 
     Parameters
     ----------
@@ -115,12 +116,12 @@ def train_test_validation(n_top_show: int = 5,
     return Suite(
         'Train Test Validation Suite',
         NewLabels(**kwargs).add_condition_new_label_ratio_less_or_equal(),
-        SimilarImageLeakage(**kwargs).add_condition_similar_images_less_or_equal(),
+        # SimilarImageLeakage(**kwargs).add_condition_similar_images_less_or_equal(),
         HeatmapComparison(**kwargs),
         TrainTestLabelDrift(**kwargs).add_condition_drift_score_less_than(),
         ImagePropertyDrift(**kwargs).add_condition_drift_score_less_than(),
         ImageDatasetDrift(**kwargs),
-        FeatureLabelCorrelationChange(**kwargs).add_condition_feature_pps_difference_less_than(),
+        PropertyLabelCorrelationChange(**kwargs).add_condition_property_pps_difference_less_than(),
     )
 
 

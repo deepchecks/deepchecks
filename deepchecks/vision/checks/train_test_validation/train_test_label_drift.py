@@ -16,19 +16,20 @@ from typing import Any, Dict, List
 import pandas as pd
 
 from deepchecks.core import CheckResult, DatasetKind
+from deepchecks.core.checks import ReduceMixin
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition
 from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.utils.label_prediction_properties import (DEFAULT_CLASSIFICATION_LABEL_PROPERTIES,
                                                                  DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES,
-                                                                 get_column_type, properties_flatten,
-                                                                 validate_properties)
+                                                                 get_column_type, properties_flatten)
+from deepchecks.vision.utils.vision_properties import PropertiesInputType
 from deepchecks.vision.vision_data import TaskType
 
 __all__ = ['TrainTestLabelDrift']
 
 
-class TrainTestLabelDrift(TrainTestCheck):
+class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
     """
     Calculate label drift between train dataset and test dataset, using statistical measures.
 
@@ -86,7 +87,7 @@ class TrainTestLabelDrift(TrainTestCheck):
         - 'largest_difference': Show the largest difference between categories.
     categorical_drift_method: str, default: "cramer_v"
         decides which method to use on categorical variables. Possible values are:
-        "cramers_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+        "cramer_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
     max_num_categories: int, default: None
         Deprecated. Please use max_num_categories_for_drift and max_num_categories_for_display instead
     """
@@ -103,12 +104,6 @@ class TrainTestLabelDrift(TrainTestCheck):
             **kwargs
     ):
         super().__init__(**kwargs)
-        # validate label properties:
-        self.user_label_properties = (
-            validate_properties(label_properties)
-            if label_properties is not None
-            else None
-        )
         self.margin_quantile_filter = margin_quantile_filter
         if max_num_categories is not None:
             warnings.warn(
@@ -124,7 +119,7 @@ class TrainTestLabelDrift(TrainTestCheck):
         self.show_categories_by = show_categories_by
         self.categorical_drift_method = categorical_drift_method
 
-        self._label_properties = None
+        self.label_properties = label_properties
         self._train_label_properties = None
         self._test_label_properties = None
 
@@ -145,15 +140,14 @@ class TrainTestLabelDrift(TrainTestCheck):
 
         task_type = train_dataset.task_type
 
-        if self.user_label_properties is not None:
-            self._label_properties = self.user_label_properties
-        elif task_type == TaskType.CLASSIFICATION:
-            self._label_properties = DEFAULT_CLASSIFICATION_LABEL_PROPERTIES
-        elif task_type == TaskType.OBJECT_DETECTION:
-            self._label_properties = DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES
-        else:
-            raise NotImplementedError('Check must receive either label_properties or run '
-                                      'on Classification or Object Detection class')
+        if self.label_properties is None:
+            if task_type == TaskType.CLASSIFICATION:
+                self.label_properties = DEFAULT_CLASSIFICATION_LABEL_PROPERTIES
+            elif task_type == TaskType.OBJECT_DETECTION:
+                self.label_properties = DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES
+            else:
+                raise NotImplementedError('Check must receive either label_properties or run '
+                                          'on Classification or Object Detection class')
 
         self._train_label_properties = defaultdict(list)
         self._test_label_properties = defaultdict(list)
@@ -162,15 +156,17 @@ class TrainTestLabelDrift(TrainTestCheck):
         """Perform update on batch for train or test properties."""
         # For all transformers, calculate histograms by batch:
         if dataset_kind == DatasetKind.TRAIN:
-            properties = self._train_label_properties
+            properties_results = self._train_label_properties
         elif dataset_kind == DatasetKind.TEST:
-            properties = self._test_label_properties
+            properties_results = self._test_label_properties
         else:
             raise DeepchecksNotSupportedError(f'Unsupported dataset kind {dataset_kind}')
 
-        for label_property in self._label_properties:
-            # Flatten the properties since I don't care in this check about the property-per-sample coupling
-            properties[label_property['name']] += properties_flatten(label_property['method'](batch.labels))
+        batch_properties = batch.vision_properties(batch.labels, self.label_properties, PropertiesInputType.LABELS)
+
+        for prop_name, prop_value in batch_properties.items():
+            # Flatten the properties since we don't care in this check about the property-per-sample coupling
+            properties_results[prop_name] += properties_flatten(prop_value)
 
     def compute(self, context: Context) -> CheckResult:
         """Calculate drift on label properties samples that were collected during update() calls.
@@ -183,10 +179,10 @@ class TrainTestLabelDrift(TrainTestCheck):
         """
         values_dict = OrderedDict()
         displays_dict = OrderedDict()
-        label_properties_names = [x['name'] for x in self._label_properties]
-        for label_property in self._label_properties:
-            name = label_property['name']
-            output_type = label_property['output_type']
+        label_properties_names = [x['name'] for x in self.label_properties]
+        for label_prop in self.label_properties:
+            name = label_prop['name']
+            output_type = label_prop['output_type']
             # If type is class converts to label names
             if output_type == 'class_id':
                 self._train_label_properties[name] = [context.train.label_id_to_name(class_id) for class_id in
@@ -227,6 +223,10 @@ class TrainTestLabelDrift(TrainTestCheck):
             displays = None
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Label Drift')
+
+    def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
+        """Return label drift score per label property."""
+        return {name: label_property['Drift score'] for name, label_property in check_result.value.items()}
 
     def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.15,
                                             max_allowed_numeric_score: float = 0.075,

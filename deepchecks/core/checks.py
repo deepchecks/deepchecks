@@ -12,6 +12,7 @@
 # pylint: disable=broad-except
 import abc
 import enum
+import importlib
 from collections import OrderedDict
 from typing import Any, Callable, ClassVar, Dict, List, Optional, Type, Union
 
@@ -29,6 +30,7 @@ __all__ = [
     'SingleDatasetBaseCheck',
     'TrainTestBaseCheck',
     'ModelOnlyBaseCheck',
+    'ReduceMixin'
 ]
 
 
@@ -43,6 +45,12 @@ class CheckMetadata(TypedDict):
     name: str
     params: Dict[Any, Any]
     summary: str
+
+
+class CheckConfig(TypedDict):
+    class_name: str
+    module_name: Optional[str]
+    params: Dict[Any, Any]
 
 
 class ReduceMixin(abc.ABC):
@@ -159,6 +167,38 @@ class BaseCheck(abc.ABC):
             params=self.params(show_defaults=True),
             summary=get_docs_summary(self, with_doc_link)
         )
+
+    def config(self) -> CheckConfig:
+        """Return check configuration (conditions' configuration not yet supported).
+
+        Returns
+        -------
+        CheckConfig
+            includes the checks class name, params, and module name.
+        """
+        conf = CheckConfig(
+            class_name=self.__class__.__name__,
+            params=self.params(show_defaults=True),
+            module_name=self.__module__
+        )
+        return conf
+
+    @staticmethod
+    def from_config(conf: CheckConfig) -> 'BaseCheck':
+        """Return check object from a CheckConfig object.
+
+        Parameters
+        ----------
+        conf : CheckConfig
+            the CheckConfig object
+
+        Returns
+        -------
+        BaseCheck
+            the check class object from given config
+        """
+        module = importlib.import_module(conf['module_name'])
+        return getattr(module, conf['class_name'])(**conf['params'])
 
     def __repr__(self, tabs=0, prefix=''):
         """Representation of check as string.

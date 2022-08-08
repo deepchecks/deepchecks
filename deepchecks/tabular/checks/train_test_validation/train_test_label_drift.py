@@ -13,6 +13,7 @@ import warnings
 from typing import Dict
 
 from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.core.checks import ReduceMixin
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERIC_METHODS,
@@ -24,7 +25,7 @@ from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.strings import format_number
 
 
-class TrainTestLabelDrift(TrainTestCheck):
+class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
     """
     Calculate label drift between train dataset and test dataset, using statistical measures.
 
@@ -38,6 +39,10 @@ class TrainTestLabelDrift(TrainTestCheck):
     See https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V
     We also support Population Stability Index (PSI).
     See https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf.
+
+    For categorical labels, it is recommended to use Cramer's V, unless your variable includes categories with a
+    small number of samples (common practice is categories with less than 5 samples).
+    However, in cases of a variable with many categories with few samples, it is still recommended to use Cramer's V.
 
 
     Parameters
@@ -59,7 +64,10 @@ class TrainTestLabelDrift(TrainTestCheck):
         - 'largest_difference': Show the largest difference between categories.
     categorical_drift_method: str, default: "cramer_v"
         decides which method to use on categorical variables. Possible values are:
-        "cramers_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+        "cramer_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+    ignore_na: bool, default True
+        For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
+        separate category. For numerical columns we always ignore nones.
     max_num_categories: int, default: None
         Deprecated. Please use max_num_categories_for_drift and max_num_categories_for_display instead
     """
@@ -71,6 +79,7 @@ class TrainTestLabelDrift(TrainTestCheck):
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
             categorical_drift_method='cramer_v',
+            ignore_na: bool = True,
             max_num_categories: int = None,
             **kwargs
     ):
@@ -88,6 +97,7 @@ class TrainTestLabelDrift(TrainTestCheck):
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
         self.categorical_drift_method = categorical_drift_method
+        self.ignore_na = ignore_na
 
     def run_logic(self, context: Context) -> CheckResult:
         """Calculate drift for all columns.
@@ -111,6 +121,7 @@ class TrainTestLabelDrift(TrainTestCheck):
             max_num_categories_for_display=self.max_num_categories_for_display,
             show_categories_by=self.show_categories_by,
             categorical_drift_method=self.categorical_drift_method,
+            ignore_na=self.ignore_na,
             with_display=context.with_display,
         )
 
@@ -127,6 +138,10 @@ class TrainTestLabelDrift(TrainTestCheck):
             displays = None
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Label Drift')
+
+    def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
+        """Return label drift score."""
+        return {'Label Drift Score': check_result.value['Drift score']}
 
     def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.2,
                                             max_allowed_numeric_score: float = 0.1,

@@ -26,6 +26,7 @@ from deepchecks.core.check_result import DisplayMap
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksProcessError
 from deepchecks.tabular import Context, Dataset, SingleDatasetCheck
 from deepchecks.tabular.context import _DummyModel
+from deepchecks.tabular.metric_utils.scorers import DeepcheckScorer
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.dataframes import default_fill_na_per_column_type
 from deepchecks.utils.performance.partition import (convert_tree_leaves_into_filters,
@@ -124,11 +125,12 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
         dummy_model = _DummyModel(test=encoded_dataset, y_pred_test=predictions, y_proba_test=y_proba,
                                   validate_data_on_predict=False)
 
+        relevant_features = encoded_dataset.cat_features + encoded_dataset.numerical_features
         if context.feature_importance is not None:
             feature_rank = context.feature_importance.sort_values(ascending=False).keys()
-            feature_rank = np.asarray([col for col in feature_rank if col in encoded_dataset.features])
+            feature_rank = np.asarray([col for col in feature_rank if col in relevant_features], dtype='object')
         else:
-            feature_rank = np.asarray(encoded_dataset.features)
+            feature_rank = np.asarray(relevant_features, dtype='object')
 
         scorer = context.get_single_scorer(self.user_scorer)
         weak_segments = self._weak_segments_search(dummy_model, encoded_dataset, feature_rank,
@@ -261,7 +263,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
 
         return weak_segments.drop_duplicates().sort_values(f'{scorer.name} score')
 
-    def _find_weak_segment(self, dummy_model, dataset, features_for_segment, scorer, loss_per_sample):
+    def _find_weak_segment(self, dummy_model, dataset, features_for_segment, scorer: DeepcheckScorer, loss_per_sample):
         """Find weak segment based on scorer for specified features."""
         if version.parse(sklearn.__version__) < version.parse('1.0.0'):
             criterion = ['mse', 'mae']

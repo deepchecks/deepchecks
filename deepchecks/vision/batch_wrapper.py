@@ -10,12 +10,15 @@
 #
 """Contains code for BatchWrapper."""
 from operator import itemgetter
-from typing import TYPE_CHECKING, Any, Callable, Iterable, Tuple, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Tuple, TypeVar, cast
 
 import torch
 
 from deepchecks.core import DatasetKind
+from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.vision.task_type import TaskType
+from deepchecks.vision.utils.vision_properties import (PropertiesInputType, calc_vision_properties,
+                                                       static_prop_to_cache_format, validate_properties)
 
 if TYPE_CHECKING:
     from deepchecks.vision.context import Context
@@ -41,6 +44,7 @@ class Batch:
         self._labels = None
         self._predictions = None
         self._images = None
+        self._vision_properties_cache = dict.fromkeys([p.value for p in PropertiesInputType])
 
     @property
     def labels(self):
@@ -93,6 +97,38 @@ class Batch:
         """Return length of batch."""
         dataset = self._context.get_data_by_kind(self._dataset_kind)
         return len(list(dataset.data_loader.batch_sampler)[self.batch_index])
+
+    def _do_static_prop(self):
+        """Get a batch of static properties and transform it to the cache format."""
+        props = self._context.static_properties[self._dataset_kind]
+        dataset = self._context.get_data_by_kind(self._dataset_kind)
+        indexes = list(dataset.data_loader.batch_sampler)[self.batch_index]
+        props_to_cache = static_prop_to_cache_format(dict(zip(indexes, props)))
+        return props_to_cache
+
+    def vision_properties(self, raw_data: List, properties_list: List[Dict], input_type: PropertiesInputType):
+        """Calculate and cache the properties for the batch according to the property input type."""
+        properties_list = validate_properties(properties_list)
+        # if there are no cached properties at all, calculate all the properties on the list,
+        # else calculate only those that were not yet calculated.
+        if self._vision_properties_cache[input_type.value] is None:
+            if self._context.static_properties is not None:
+                self._vision_properties_cache = self._do_static_prop()
+            else:
+                self._vision_properties_cache[input_type.value] = calc_vision_properties(raw_data, properties_list)
+            result_dict = self._vision_properties_cache[input_type.value]
+        else:
+            properties_to_calc = [p for p in properties_list if p['name'] not in
+                                  self._vision_properties_cache[input_type.value].keys()]
+            self._vision_properties_cache[input_type.value].update(
+                                                                calc_vision_properties(raw_data, properties_to_calc))
+            property_names_to_return = [p['name'] for p in properties_list]
+            result_dict = {k: self._vision_properties_cache[input_type.value][k] for k in property_names_to_return}
+        # validate properties length
+        static_prop_lens = [len(pr) for pr in result_dict.values()]
+        if any([(p != len(raw_data) and p != 1) for p in static_prop_lens]):  # pylint: disable=use-a-generator
+            raise DeepchecksProcessError('The properties should have the same length as the raw data')
+        return result_dict
 
 
 T = TypeVar('T')

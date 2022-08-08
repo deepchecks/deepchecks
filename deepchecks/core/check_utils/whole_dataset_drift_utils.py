@@ -12,10 +12,8 @@
 import warnings
 from typing import Container, List
 
-import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-from sklearn.compose import ColumnTransformer
 
 with warnings.catch_warnings():
     warnings.simplefilter('ignore')
@@ -24,15 +22,13 @@ with warnings.catch_warnings():
 from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split
-from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OrdinalEncoder
 
 from deepchecks.tabular import Dataset
-from deepchecks.utils.dataframes import floatify_dataframe, floatify_series
+from deepchecks.utils.dataframes import floatify_dataframe
 from deepchecks.utils.distribution.plot import drift_score_bar_traces, feature_distribution_traces
 from deepchecks.utils.distribution.rare_category_encoder import RareCategoryEncoder
 from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none
-from deepchecks.utils.function import run_available_kwargs
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
 
@@ -44,27 +40,25 @@ def run_whole_dataset_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
                             min_meaningful_drift_score: float,
                             with_display: bool):
     """Calculate whole dataset drift."""
-    domain_classifier = generate_model(numerical_features, cat_features, random_state)
-
-    train_sample_df = train_dataframe.sample(sample_size, random_state=random_state)
-    test_sample_df = test_dataframe.sample(sample_size, random_state=random_state)
+    train_sample_df = train_dataframe.sample(sample_size, random_state=random_state)[numerical_features + cat_features]
+    test_sample_df = test_dataframe.sample(sample_size, random_state=random_state)[numerical_features + cat_features]
 
     # create new dataset, with label denoting whether sample belongs to test dataset
     domain_class_df = pd.concat([train_sample_df, test_sample_df])
+    domain_class_df[cat_features] = RareCategoryEncoder(254).fit_transform(domain_class_df[cat_features].astype(str))
+    domain_class_df[cat_features] = OrdinalEncoder().fit_transform(domain_class_df[cat_features].astype(str))
     domain_class_labels = pd.Series([0] * len(train_sample_df) + [1] * len(test_sample_df))
 
-    x_train, x_test, y_train, y_test = train_test_split(domain_class_df, domain_class_labels,
+    x_train, x_test, y_train, y_test = train_test_split(floatify_dataframe(domain_class_df), domain_class_labels,
                                                         stratify=domain_class_labels,
                                                         random_state=random_state,
                                                         test_size=test_size)
 
-    # domain_classifier has problems with nullable int series
-    x_train = floatify_dataframe(x_train)
-    x_test = floatify_dataframe(x_test)
-    y_train = floatify_series(y_train)
-    y_test = floatify_series(y_test)
-
-    domain_classifier = domain_classifier.fit(x_train, y_train)
+    # train a model to disguise between train and test samples
+    domain_classifier = HistGradientBoostingClassifier(max_depth=2, max_iter=10, random_state=random_state,
+                                                       categorical_features=[x in cat_features for x in
+                                                                             domain_class_df.columns])
+    domain_classifier.fit(x_train, y_train)
 
     y_test.name = 'belongs_to_test'
     domain_test_dataset = Dataset(pd.concat([x_test.reset_index(drop=True), y_test.reset_index(drop=True)], axis=1),
@@ -131,32 +125,6 @@ def run_whole_dataset_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
     return values_dict, displays
 
 
-def generate_model(numerical_columns: List[Hashable], categorical_columns: List[Hashable],
-                   random_state: int = 42) -> Pipeline:
-    """Generate the unfitted Domain Classifier model."""
-    categorical_transformer = Pipeline(
-        steps=[('rare', RareCategoryEncoder(254)),
-               ('encoder', run_available_kwargs(OrdinalEncoder, handle_unknown='use_encoded_value',
-                                                unknown_value=np.nan,
-                                                dtype=np.float64))]
-    )
-
-    preprocessor = ColumnTransformer(
-        transformers=[
-            ('num', 'passthrough', numerical_columns),
-            ('cat', categorical_transformer, categorical_columns),
-        ]
-    )
-
-    return Pipeline(
-        steps=[('preprocessing', preprocessor),
-               ('model', run_available_kwargs(HistGradientBoostingClassifier,
-                                              max_depth=2, max_iter=10, random_state=random_state,
-                                              categorical_features=[False] * len(numerical_columns)
-                                              + [True] * len(categorical_columns)
-                                              ))])
-
-
 def auc_to_drift_score(auc: float) -> float:
     """Calculate the drift score, which is 2*auc - 1, with auc being the auc of the Domain Classifier.
 
@@ -184,12 +152,12 @@ def build_drift_plot(score):
 
 
 def display_dist(
-    train_column: pd.Series,
-    test_column: pd.Series,
-    fi: pd.Series,
-    cat_features: Container[str],
-    max_num_categories: int,
-    show_categories_by: str
+        train_column: pd.Series,
+        test_column: pd.Series,
+        fi: pd.Series,
+        cat_features: Container[str],
+        max_num_categories: int,
+        show_categories_by: str
 ):
     """Create a distribution comparison plot for the given columns."""
     column_name = train_column.name or ''

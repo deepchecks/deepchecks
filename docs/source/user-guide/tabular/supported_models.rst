@@ -1,107 +1,128 @@
 .. _supported_models:
 
-====================
-Supported Models
-====================
+===================================
+Working with Models and Predictions
+===================================
 
-Many checks require passing a model object. These include all model-evaluation related checks,
-and in general any check that requires the model's predictions for its analysis.
+Some checks, mainly the ones related to model evaluation, require model predictions in order to run.
+In deepchecks, predictions are passed into the suite / check ``run`` method in one of the following ways:
 
-.. Note::
-    In order to be compatible with deepchecks, the model object should adhere to one requirement:
+* Passing a :ref:`model object <supported_models__passing_a_model>` that will compute the
+  predictions on the input data.
+* Passing :ref:`pre-computed predictions <supported_models_using_pre-computed_predictions>`.
 
-    - It has to have a a method enabling **prediction**
+Passing pre-computed predictions is a simple alternative to passing a model. It is specifically recommended to use
+this option if your model object is unavailable locally (for example if placed on a separate prediction server)
+or if the predicting process is computationally expensive or time consuming.
 
-More specifically, the model should have a ``predict`` method for regression tasks, 
-and for classification tasks also a ``predict_proba`` method, 
-which should be implemented using the scikit-learn api conventions. 
-Some checks may attempt using additional model methods if those exist, 
-for more information see :ref:`Optional Model Interface <supported_models__optional_model_interface>`.
+.. _supported_models__predictions_format:
 
-Note that built-in scikit-learn classifiers and regressors, 
-along with many additional popular models types (e.g. XGBoost, LightGBM, CatBoost etc.) implement these methods 
-and are thus supported.
+Supported Tasks and Predictions Format
+======================================
+
+Deepchecks currently supports model predictions for regression, binary and multiclass classification tasks.
+Whether provided from a model interface or as a pre-computed predicted values,
+the predictions must be in the following format based on the task type:
+
+* **Predicted values**: should be provided as an |array-like| of shape ``(n_samples,)``, containing the predicted value
+  for each sample in the dataset. Predicted values are required for all task types.
+
+* **Probabilities per class**: should be provided as an |array-like| of shape ``(n_samples, n_classes)``
+  containing the predicted probability of each class per sample. Probabilities per class are only required for
+  classification tasks.
+
+.. _supported_models__passing_a_model:
+
+Passing a Model
+===============
+
+Deepchecks requires models to follow the |scikit-learn API conventions| for calculating predicted values
+and probabilities per class. Therefore built-in scikit-learn classifiers and regressors,
+along with many additional popular models types (e.g. XGBoost, LightGBM, CatBoost etc.) are supported out of the box.
+
+Specifically, deepchecks requires the following methods to be implemented in the model object:
+
+* ``predict`` method which receives an |array-like|  of shape ``(n_samples, n_features)`` containing the
+  input features and returns :ref:`predicted values <supported_models__predictions_format>`.
+* ``predict_proba`` method which receives an |array-like|  of shape ``(n_samples, n_features)`` containing the
+  input features and returns :ref:`probabilities per class <supported_models__predictions_format>`.
+  This method is required only for classification tasks.
+
+Running Deepchecks With a Supported Model
+-----------------------------------------
+
+.. literalinclude:: ../../../../examples/examples_supported_models.py
+    :language: python
+    :lines: 1-6
+    :tab-width: 0
 
 
-Required Model Interface
-==========================
+Adapting Your Custom Model
+--------------------------
 
-Regression
-----------
+If you are using a model that does not support those interfaces you can either add the required methods to the
+model's class or create a wrapper class that implements the required interfaces by calling the relevant APIs of your
+model. Below is a general structure of such wrapper class.
 
-All that is necessary for a regression model is the ``predict`` function.
-The predict function should expect an |array-like|  of shape ``(n_samples, n_features)``
-and is expected to return an `ndarray` of shape ``(n_samples,)``, a vector containing the predicted value for each sample.
-
-Example of a simple regression model:
-
->>> class simple_regression_model:
-...     def predict(X: pd.DataFrame) -> pd.Series:
+>>> class MyModelWrapper:
+...     def predict(X: pd.DataFrame) -> np.ndarray:
+...         # Implement based on base model's API.
 ...         ...
-
-Instead of passing a model object you can pass the precomputed predictions as keyword arguments to the run function as shown here:
-
->>> train_pred = model.predict(train_dataset.features_columns)
-... test_pred = model.predict(test_dataset.features_columns)
-... 
-... suite.run(train_dataset=train_dataset, test_dataset=test_dataset,
-...           features_importance=feature_importance,
-...           y_pred_train=train_pred, y_pred_test=test_pred)
-
-For more info check out :doc:`Using Pre-computed Predictions </user-guide/tabular/tutorials/plot_static_predictions>`
-
-
-Classification
---------------
-
-For classification models, we require both the  the ``predict`` and the ``predict_proba`` function.
-They both should expect an |array-like| of shape ``(n_samples, n_features)``, but ``predict``
-is expected to return an `ndarray` of shape ``(n_samples,)``, a vector containing the predicted class label for each sample, and ``predict_proba``
-is expected to return an `ndarray` of shape ``(n_samples, n_classes)``, an array containing the predicted probability of each class per sample.
-
->>> class simple_classification_model:
-...     def predict(X: np.ndarray) -> np.ndarray:
-...         ...
-...     def predict_proba(X: np.ndarray) -> np.ndarray:
-...         ...
-
-Instead of a model you can also pass the model predicted probabilities as keyword arguments to the run function as follows:
-
->>> train_proba = model.predict_proba(train_dataset.features_columns)
-... test_proba = model.predict_proba(test_dataset.features_columns)
-... 
-... suite.run(train_dataset=train_dataset, test_dataset=test_dataset,
-...           features_importance=feature_importance,
-...           y_proba_train=train_proba, y_proba_test=test_proba)
-
-You may also provide the predictions as was done in the Regression example (by default the predictions will be assumed to be the argmax of the probability matrix)
-For more info check out :doc:`Using Pre-computed Predictions </user-guide/tabular/tutorials/plot_static_predictions>`
-
-
-.. _supported_models__optional_model_interface:
-
-Optional Model Interface 
-===========================
-
-Feature Importance
--------------------
-
-Deepchecks can calculate feature importance using |permutation importance|, and it also supports the builtin feature importance property: ``feature_importances_`` or ``coef_`` for a linear model.
-The default behavior is to use the builtin feature importance property if it exists, and if it doesn't, we calculate the feature importance using permutation importance.
-
-
->>> class simple_importance_model:
-...     def predict(X: pd.DataFrame) -> pd.Series:
+...     def predict_proba(X: pd.DataFrame) -> np.ndarray:
+...         # Implement based on base model's API, only required for classification tasks.
 ...         ...
 ...     @property
-...     def feature_importances_(self):
+...     def feature_importances_(self) -> pd.Series:  # optional
+...         # Return a pandas Series with feature names as index and their corresponding importance as values.
 ...         ...
 
-Check-Specific Model Interfaces
---------------------------------
+Feature Importance (Optional)
+-----------------------------
 
-Some checks require specific apis to run. For example, :doc:`BoostingOverfit </api/generated/deepchecks.tabular.checks.model_evaluation.BoostingOverfit>`
-requires model to be a supported boosting model type. Examples for such models include XGBoost, LightGBM, CatBoost and additional GBM implementations.
+Some checks uses the model's
+:doc:`feature importance </api/generated/deepchecks.user-guide.tabular.feature_importance>`
+in their analysis. By default, if available, it is extracted directly from the model via property
+(``feature_importances_`` or ``coef_`` for a linear model) otherwise it is calculated
+using |permutation importance|. The required format for the feature importance is a pandas series with feature names
+as index and their corresponding importance as values.
+
+.. _supported_models_using_pre-computed_predictions:
+
+Using Pre-computed Predictions
+==============================
+
+The predictions should be passed via the ``y_proba`` and ``y_pred`` arguments of the suite / check's ``run`` method in
+the :ref:`appropriate format <supported_models__predictions_format>`. ``y_pred`` receives the predicted values of
+the model and ``y_proba`` receives the probabilities per class, which is only required for classification tasks.
+
+The predictions should be provided for each dataset supplied to the suite / check. For example the
+:doc:`Simple Model Comparison </api/generated/deepchecks.tabular.checks.model_evaluation.SimpleModelComparison>`
+check for a regression model
+requires both train and test :ref:`predicted values <supported_models__predictions_format>`
+to be provided via the ``y_pred_train``, ``y_pred_test`` arguments.
+
+For classification tasks, predicted values are not mandatory. If not supplied,
+deepchecks will assume the predicted class is the class with the highest predicted probability.
+
+.. Note::
+    When using pre-computed predictions, if the train dataset shares indices with the test dataset we
+    will add train/test prefixes to the indexes.
+
+
+Running Deepchecks with Pre-computed Predictions
+------------------------------------------------
+
+We will run the deepchecks model evaluation suite using pre-computed predictions from a random forest classification
+model. In addition, we will calculate and pass |permutation importance| which provides a better estimate of the
+effect of different features on the model's performance. See the
+:doc:`feature importance API reference </api/generated/deepchecks.user-guide.tabular.feature_importance>`
+for more details.
+
+.. literalinclude:: ../../../../examples/examples_supported_models.py
+    :language: python
+    :lines: 8-22
+    :tab-width: 0
+
 
 ..
     external links to open in new window
@@ -113,3 +134,6 @@ requires model to be a supported boosting model type. Examples for such models i
 .. |permutation importance| raw:: html
 
     <a href="https://scikit-learn.org/stable/modules/permutation_importance.html" target="_blank">sklearn permutation_importance</a>
+
+.. |scikit-learn API conventions| raw:: html
+    <a href="https://scikit-learn.org/stable/developers/develop.html" target="_blank">scikit-learn API conventions</a>

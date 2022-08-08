@@ -17,12 +17,13 @@ import torch
 from ignite.metrics import Metric
 from ignite.metrics.metric import reinit__is_reduced, sync_all_reduce
 
+from deepchecks.utils.metrics import averaging_mechanism
 from deepchecks.vision.metrics_utils.confusion_matrix_counts_metrics import AVAILABLE_EVALUTING_FUNCTIONS
 from deepchecks.vision.metrics_utils.metric_mixin import MetricMixin, ObjectDetectionMetricMixin
 
 
 class TpFpFn(Metric, MetricMixin):
-    """Abstract class to calculate the TP, FP, FN and runs an evaluting function on the result.
+    """Abstract class to calculate the TP, FP, FN and runs an evaluating function on the result.
 
     Parameters
     ----------
@@ -30,23 +31,31 @@ class TpFpFn(Metric, MetricMixin):
         IoU below this threshold will be ignored.
     confidence_thres: float, default: 0.5
         Confidence below this threshold will be ignored.
-    evaluting_function: Union[Callable, str], default: "recall"
+    evaluating_function: Union[Callable, str], default: "recall"
         will run on each class result i.e `func(tp, fp, fn)`
+    averaging_method : str, default: 'per_class'
+        Determines which averaging method to apply, possible values are:
+        'per_class': Return a np array with the scores for each class (sorted by class name).
+        'binary': Returns the score for the positive class. Should be used only in binary classification cases.
+        'micro': Returns the micro-averaged score.
+        'macro': Returns the mean of scores per class.
+        'weighted': Returns a weighted mean of scores based of the class size in y_true.
     """
 
     def __init__(self, *args, iou_thres: float = 0.5, confidence_thres: float = 0.5,
-                 evaluting_function: t.Union[t.Callable, str] = "recall", **kwargs):
+                 evaluating_function: t.Union[t.Callable, str] = "recall", averaging_method="per_class", **kwargs):
         super().__init__(*args, **kwargs)
 
         self.iou_thres = iou_thres
         self.confidence_thres = confidence_thres
-        if isinstance(evaluting_function, str):
-            evaluting_function = AVAILABLE_EVALUTING_FUNCTIONS.get(evaluting_function)
-            if evaluting_function is None:
+        if isinstance(evaluating_function, str):
+            evaluating_function = AVAILABLE_EVALUTING_FUNCTIONS.get(evaluating_function)
+            if evaluating_function is None:
                 raise ValueError(
-                    f"Expected evaluting_function one of {list(AVAILABLE_EVALUTING_FUNCTIONS.keys())},"
-                    f" recived: {evaluting_function}")
-            self.evaluting_function = evaluting_function
+                    f"Expected evaluating_function one of {list(AVAILABLE_EVALUTING_FUNCTIONS.keys())},"
+                    f" received: {evaluating_function}")
+        self.evaluating_function = evaluating_function
+        self.averaging_method = averaging_method
 
     @reinit__is_reduced
     def reset(self):
@@ -75,11 +84,22 @@ class TpFpFn(Metric, MetricMixin):
         # now reduce accumulations
         sorted_classes = [int(class_id) for class_id in sorted(self._evals.keys())]
         max_class = max(sorted_classes)
-        res = -np.ones(max_class + 1)
+
+        if self.averaging_method == "micro":
+            tp, fp, fn = 0, 0, 0
+            # Classes that did not appear in the data are not considered as part of micro averaging.
+            for class_id in sorted_classes:
+                ev = self._evals[class_id]
+                tp, fp, fn = tp + ev["tp"], fp + ev["fp"], fn + ev["fn"]
+            return self.evaluating_function(tp, fp, fn)
+
+        scores_per_class, weights = -np.ones(max_class + 1), np.zeros(max_class + 1)
         for class_id in sorted_classes:
             ev = self._evals[class_id]
-            res[class_id] = self.evaluting_function(ev["tp"], ev["fp"], ev["fn"])
-        return res
+            scores_per_class[class_id] = self.evaluating_function(ev["tp"], ev["fp"], ev["fn"])
+            weights[class_id] = ev["tp"] + ev["fn"]
+
+        return averaging_mechanism(self.averaging_method, scores_per_class, weights)
 
     def _group_detections(self, detected, ground_truth):
         """Group gts and dts on a imageXclass basis."""
@@ -142,7 +162,7 @@ class TpFpFn(Metric, MetricMixin):
 
 
 class ObjectDetectionTpFpFn(TpFpFn, ObjectDetectionMetricMixin):
-    """Calculate the TP, FP, FN and runs an evaluting function on the result.
+    """Calculate the TP, FP, FN and runs an evaluating function on the result.
 
     Parameters
     ----------
@@ -150,6 +170,6 @@ class ObjectDetectionTpFpFn(TpFpFn, ObjectDetectionMetricMixin):
         Threshold of the IoU.
     confidence_thres: float, default: 0.5
         Threshold of the confidence.
-    evaluting_function: Union[Callable, str], default: "recall"
+    evaluating_function: Union[Callable, str], default: "recall"
         will run on each class result i.e `func(tp, fp, fn)`
     """

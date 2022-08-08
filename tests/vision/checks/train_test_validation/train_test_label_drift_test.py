@@ -56,6 +56,20 @@ def test_no_drift_object_detection(coco_train_visiondata, device):
     ))
 
 
+def test_reduce_output_no_drift_object_detection(coco_train_visiondata, device):
+    # Arrange
+    check = TrainTestLabelDrift(categorical_drift_method='PSI')
+
+    # Act
+    result = check.run(coco_train_visiondata, coco_train_visiondata, device=device)
+
+    # Assert
+    assert_that(result.reduce_output(), has_entries(
+        {'Samples Per Class': 0,
+         'Bounding Box Area (in pixels)': 0, 'Number of Bounding Boxes Per Image': 0}
+    ))
+
+
 def test_with_drift_classification(mnist_dataset_train, mnist_dataset_test, device):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_test
@@ -236,6 +250,7 @@ def test_with_drift_object_detection_alternative_properties(coco_train_visiondat
     # Arrange
     def prop(labels):
         return [int(x[0][0]) if len(x) != 0 else 0 for x in labels]
+
     alternative_properties = [
         {'name': 'test', 'method': prop, 'output_type': 'continuous'}]
     check = TrainTestLabelDrift(label_properties=alternative_properties)
@@ -251,32 +266,3 @@ def test_with_drift_object_detection_alternative_properties(coco_train_visiondat
         )
         }
     ))
-
-
-def test_with_drift_object_detection_defected_alternative_properties():
-    # Arrange
-    alternative_properties = [
-        {'name': 'test', 'method': lambda x: x[0][0] if len(x) != 0 else 0, 'output_type': 'continuous'},
-        {'name234': 'test', 'method': lambda x: x[0][0] if len(x) != 0 else 0, 'output_type': 'continuous'},
-    ]
-
-    # Assert
-    assert_that(
-        calling(TrainTestLabelDrift).with_args(alternative_properties),
-        raises(
-            DeepchecksValueError,
-            r"List of properties contains next problems:\n"
-            rf"\+ Property #1: dictionary must include keys \('name', 'method', 'output_type'\)\. "
-            fr"Next keys are missed \['name'\]")
-    )
-
-
-def test_with_drift_object_detection_defected_alternative_properties2():
-    # Arrange
-    alternative_properties = {'name': 'test', 'method': lambda x, dataset: x, 'output_type': 'continuous'}
-
-    # Assert
-    assert_that(calling(TrainTestLabelDrift).with_args(alternative_properties),
-                raises(DeepchecksValueError,
-                       "Expected properties to be a list, instead got dict")
-                )

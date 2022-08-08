@@ -19,6 +19,7 @@ from .is_single_value import IsSingleValue
 from .mixed_data_types import MixedDataTypes
 from .mixed_nulls import MixedNulls
 from .outlier_sample_detection import OutlierSampleDetection
+from .percent_of_nulls import PercentOfNulls
 from .special_chars import SpecialCharacters
 from .string_length_out_of_bounds import StringLengthOutOfBounds
 from .string_mismatch import StringMismatch
@@ -36,5 +37,6 @@ __all__ = [
     'OutlierSampleDetection',
     'FeatureLabelCorrelation',
     'FeatureFeatureCorrelation',
-    'IdentifierLabelCorrelation'
+    'IdentifierLabelCorrelation',
+    'PercentOfNulls'
 ]

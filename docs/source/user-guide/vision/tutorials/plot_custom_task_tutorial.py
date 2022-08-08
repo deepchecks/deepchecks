@@ -226,15 +226,15 @@ class MyCustomSegmentationData(VisionData):
     def get_classes(self, batch_labels) -> List[List[int]]:
         """Return per label a list of classes (by id) in it."""
         # The input `batch_labels` is the result of `batch_to_labels` function.
-        return batch_labels[0]
+        return [x[0] for x in batch_labels]
 
     def batch_to_labels(self, batch):
-        """Extract from the batch only the labels. No standard format is needed here."""
+        """Extract from the batch only the labels. Must return an iterable with an element per image."""
         _, classes, masks = batch
-        return classes, masks
+        return [(classes[idx], masks[idx]) for idx in range(len(classes))]
 
     def infer_on_batch(self, batch, model, device):
-        """Infer on a batch of images. No standard format is needed here."""
+        """Infer on a batch of images. Must return an iterable with an element per image."""
         predictions = model.to(device)(batch[0])
         return predictions
 
@@ -244,15 +244,15 @@ class MyCustomSegmentationData(VisionData):
 
 #%%
 # Now we are able to run checks that use only the image data, since it's in the standard Deepchecks format.
-# Let's run FeatureLabelCorrelationChange check with our task
+# Let's run PropertyLabelCorrelationChange check with our task
 
-from deepchecks.vision.checks import FeatureLabelCorrelationChange
+from deepchecks.vision.checks import PropertyLabelCorrelationChange
 
 # Create our task with the `DataLoader`s we defined before.
 train_task = MyCustomSegmentationData(train_data_loader)
 test_task = MyCustomSegmentationData(test_data_loader)
 
-result = FeatureLabelCorrelationChange().run(train_task, test_task)
+result = PropertyLabelCorrelationChange().run(train_task, test_task)
 result
 
 # Now in order to run more check, we'll need to define custom properties or metrics.
@@ -275,15 +275,14 @@ from deepchecks.vision.checks import TrainTestLabelDrift
 
 def number_of_detections(labels) -> List[int]:
     """Return a list containing the number of detections per sample in batch."""
-    classes, all_masks = labels
+    all_masks = [x[1] for x in labels]
     return [sample_masks.shape[0] for sample_masks in all_masks]
 
 
 def classes_in_labels(labels: List[torch.Tensor]) -> List[int]:
     """Return a list containing the classes in batch."""
-    classes, all_masks = labels
-    # Flatten list of lists into a single list
-    return list(chain.from_iterable(classes))
+    classes = [x[0] for x in labels]
+    return classes
 
 
 # We will pass this object as parameter to checks that are using label properties

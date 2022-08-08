@@ -24,15 +24,16 @@ from sklearn.pipeline import Pipeline
 
 from deepchecks import tabular
 from deepchecks.core import errors
+from deepchecks.tabular.metric_utils.scorers import (DeepcheckScorer, get_default_scorers, init_validate_scorers,
+                                                     task_type_check)
 from deepchecks.tabular.utils.validation import validate_model
 from deepchecks.utils.logger import get_logger
-from deepchecks.utils.metrics import DeepcheckScorer, get_default_scorers, init_validate_scorers, task_type_check
 from deepchecks.utils.strings import is_string_column
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.validation import ensure_hashable_or_mutable_sequence
 
 __all__ = [
-    'calculate_feature_importance',
+    '_calculate_feature_importance',
     'calculate_feature_importance_or_none',
     'column_importance_sorter_dict',
     'column_importance_sorter_df',
@@ -75,7 +76,7 @@ def calculate_feature_importance_or_none(
         if model is None:
             return None
         # calculate feature importance if dataset has a label and the model is fitted on it
-        fi, calculation_type = calculate_feature_importance(
+        fi, calculation_type = _calculate_feature_importance(
             model=model,
             dataset=dataset,
             force_permutation=force_permutation,
@@ -104,7 +105,7 @@ def calculate_feature_importance_or_none(
         return None, None
 
 
-def calculate_feature_importance(
+def _calculate_feature_importance(
         model: t.Any,
         dataset: t.Union['tabular.Dataset', pd.DataFrame],
         force_permutation: bool = False,
@@ -149,15 +150,12 @@ def calculate_feature_importance(
 
     if force_permutation:
         if isinstance(dataset, pd.DataFrame):
-            permutation_failure = 'Cannot calculate permutation feature importance on a pandas Dataframe, using ' \
-                                  'built-in model\'s feature importance instead. In order to force permutation ' \
-                                  'feature importance, please use the Dataset object.'
+            raise errors.DeepchecksValueError('Cannot calculate permutation feature importance on a pandas Dataframe. '
+                                              'In order to force permutation feature importance, please use the Dataset'
+                                              ' object.')
         else:
-            try:
-                importance = _calc_permutation_importance(model, dataset, **permutation_kwargs)
-                calc_type = 'permutation_importance'
-            except errors.DeepchecksTimeoutError as e:
-                permutation_failure = f'{e.message}\n using model\'s built-in feature importance instead'
+            importance = _calc_permutation_importance(model, dataset, **permutation_kwargs)
+            calc_type = 'permutation_importance'
 
     # If there was no force permutation, or if it failed while trying to calculate importance,
     # we don't take built-in importance in pipelines because the pipeline is changing the features
@@ -257,7 +255,7 @@ def _calc_permutation_importance(
     pd.Series
         feature importance normalized to 0-1 indexed by feature names
     """
-    if dataset.label_name is None:
+    if not dataset.has_label():
         raise errors.DatasetValidationError("Expected dataset with label.")
 
     if len(dataset.features) == 1:
@@ -273,7 +271,7 @@ def _calc_permutation_importance(
         default_scorers = get_default_scorers(task_type)
         scorer_name = next(iter(default_scorers))
         single_scorer_dict = {scorer_name: default_scorers[scorer_name]}
-        scorer = init_validate_scorers(single_scorer_dict, model, dataset, model_type=task_type)[0]
+        scorer = init_validate_scorers(single_scorer_dict, model, dataset)[0]
 
     start_time = time.time()
     scorer(model, dataset_sample)
@@ -309,20 +307,22 @@ def _calc_permutation_importance(
         else r.importances_mean > 0
     )
 
-    feature_importances = r.importances_mean * significance_mask
-    total = feature_importances.sum()
+    feature_importance = r.importances_mean * significance_mask
+    total = feature_importance.sum()
 
     if total != 0:
-        feature_importances = feature_importances / total
+        feature_importance = feature_importance / total
 
-    return pd.Series(feature_importances, index=dataset.features)
+    return pd.Series(feature_importance, index=dataset.features)
 
 
 def get_importance(name: str, feature_importances: pd.Series, ds: 'tabular.Dataset') -> int:
     """Return importance based on feature importance or label/date/index first."""
     if name in feature_importances.keys():
         return feature_importances[name]
-    if name in [ds.label_name, ds.datetime_name, ds.index_name]:
+    elif ds.has_label() and name == ds.label_name:
+        return 1
+    elif name in [ds.datetime_name, ds.index_name]:
         return 1
     return 0
 
@@ -352,7 +352,9 @@ def column_importance_sorter_dict(
         the dict of columns sorted and limited by feature importance.
     """
     feature_importances = {} if feature_importances is None else feature_importances
-    key = lambda name: get_importance(name[0], feature_importances, dataset)
+
+    def key(name):
+        return get_importance(name[0], feature_importances, dataset)
     cols_dict = dict(sorted(cols_dict.items(), key=key, reverse=True))
     if n_top:
         return dict(list(cols_dict.items())[:n_top])
@@ -391,7 +393,9 @@ def column_importance_sorter_df(
         return df
 
     feature_importances = {} if feature_importances is None else feature_importances
-    key = lambda column: [get_importance(name, feature_importances, ds) for name in column]
+
+    def key(column):
+        return [get_importance(name, feature_importances, ds) for name in column]
     if col:
         df = df.sort_values(by=[col], key=key, ascending=False)
     df = df.sort_index(key=key, ascending=False)

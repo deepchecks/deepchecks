@@ -49,6 +49,8 @@ def test_dates_from_val_in_train():
         datetime(2021, 9, 4, 0, 0),
         datetime(2021, 10, 4, 0, 0),
         datetime(2021, 10, 5, 0, 0),
+        datetime(2021, 10, 5, 0, 0),
+        datetime(2021, 10, 5, 0, 0),
         datetime(2021, 10, 6, 0, 0),
         datetime(2021, 10, 6, 0, 0),
         datetime(2021, 10, 7, 0, 0),
@@ -59,7 +61,7 @@ def test_dates_from_val_in_train():
         datetime(2021, 10, 9, 0, 0)
     ]}, 'col1')
     check_obj = DateTrainTestLeakageDuplicates()
-    assert_that(check_obj.run(train_ds, val_ds).value, close_to(0.182, 0.01))
+    assert_that(check_obj.run(train_ds, val_ds).value, close_to(0.31, 0.01))
 
 
 def test_limit_dates_from_val_in_train():
@@ -178,7 +180,7 @@ def test_dates_from_val_before_train():
         datetime(2021, 10, 9, 0, 0)
     ]}, 'col1')
     check_obj = DateTrainTestLeakageOverlap()
-    assert_that(check_obj.run(train_ds, val_ds).value, close_to(0.27, 0.01))
+    assert_that(check_obj.run(train_ds, val_ds).value, close_to(0.18, 0.01))
 
 
 def test_no_dates_from_val_before_train():
@@ -273,15 +275,15 @@ def test_condition_fail_on_overlap():
         datetime(2021, 10, 9, 0, 0)
     ]}, 'col1')
 
-    check = DateTrainTestLeakageOverlap().add_condition_leakage_ratio_less_or_equal(0.2)
+    check = DateTrainTestLeakageOverlap().add_condition_leakage_ratio_less_or_equal(0.17)
 
     # Act
     result = check.conditions_decision(check.run(train_ds, val_ds))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Date leakage ratio is less or equal to 20%',
-                               details='Found 27.27% leaked dates')
+                               name='Date leakage ratio is less or equal to 17%',
+                               details='Found 18.18% leaked dates')
     ))
 
 
@@ -318,15 +320,15 @@ def test_condition_fail_on_overlap_date_in_index():
         datetime(2021, 10, 9, 0, 0)
     ]), set_datetime_from_dataframe_index=True)
 
-    check = DateTrainTestLeakageOverlap().add_condition_leakage_ratio_less_or_equal(0.2)
+    check = DateTrainTestLeakageOverlap().add_condition_leakage_ratio_less_or_equal(0.17)
 
     # Act
     result = check.conditions_decision(check.run(train_ds, val_ds))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Date leakage ratio is less or equal to 20%',
-                               details='Found 27.27% leaked dates')
+                               name='Date leakage ratio is less or equal to 17%',
+                               details='Found 18.18% leaked dates')
     ))
 
 

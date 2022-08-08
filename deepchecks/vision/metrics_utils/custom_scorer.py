@@ -17,13 +17,19 @@ from ignite.metrics import Metric
 from ignite.metrics.metric import reinit__is_reduced, sync_all_reduce
 
 
-class CustomScorer(Metric):
-    """Metric that runs a custom scorer in the compute on the y, y_pred (can work with sklearn scorers).
+class CustomClassificationScorer(Metric):
+    """Scorer that runs a custom metric for the vision classification task.
 
+    Custom scorers can be passed to all model evaluation related checks as can be seen in the example below.
     Parameters
     ----------
-    score_func: Callable, default: None
-        Score function (or loss function) with signature `score_func(y_true, y_pred, **kwargs)`
+    meric_func: Callable
+        A metric function (or loss function) that takes the ground truth and the predictions as input and returns a
+        scalar value. Specifically, the function should have the following signature
+        `metric_func(labels, y_pred, **kwargs)` where:
+        - labels: List[Hashable] are the labels per sample.
+        - predictions: Union[List[Hashable], List[np.array]] are the predictions per sample. If needs_proba argument is
+          True, then the predictions are probabilities per class otherwise it is the predicted class.
     needs_proba: bool, default: False
         Whether score_func requires the probabilites or not.
     **kwargs
@@ -32,16 +38,16 @@ class CustomScorer(Metric):
     Examples
     --------
     >>> from sklearn.metrics import cohen_kappa_score
-    ... from deepchecks.vision.metrics_utils.custom_scorer import CustomScorer
-    ... from deepchecks.vision.checks.model_evaluation import SingleDatasetScalarPerformance
+    ... from deepchecks.vision.metrics_utils.custom_scorer import CustomClassificationScorer
+    ... from deepchecks.vision.checks.model_evaluation import SingleDatasetPerformance
     ... from deepchecks.vision.datasets.classification import mnist
     ...
     ... mnist_model = mnist.load_model()
-    ... test_ds = mnist.load_dataset(train=True, object_type='VisionData')
+    ... test_ds = mnist.load_dataset(root='Data', object_type='VisionData')
     ...
-    >>> ck = CustomScorer(cohen_kappa_score)
+    >>> ck = CustomClassificationScorer(cohen_kappa_score)
     ...
-    >>> check = SingleDatasetScalarPerformance(ck, metric_name='cohen_kappa_score')
+    >>> check = SingleDatasetPerformance(scorers={'cohen_kappa_score': ck})
     ... check.run(test_ds, mnist_model).value
     """
 

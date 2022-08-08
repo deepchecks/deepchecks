@@ -38,19 +38,19 @@ class MultiModelPerformanceReport(ModelComparisonCheck):
     def run_logic(self, multi_context: ModelComparisonContext):
         """Run check logic."""
         first_context = multi_context[0]
-        scorers = first_context.get_scorers(self.user_scorers, class_avg=False)
+        scorers = first_context.get_scorers(self.user_scorers, use_avg_defaults=False)
 
         if multi_context.task_type in [TaskType.MULTICLASS, TaskType.BINARY]:
             plot_x_axis = ['Class', 'Model']
             results = []
 
-            for context in multi_context:
+            for context, model_name in zip(multi_context, multi_context.models.keys()):
                 test = context.test
                 model = context.model
                 label = cast(pd.Series, test.label_col)
                 n_samples = label.groupby(label).count()
                 results.extend(
-                    [context.model_name, class_score, scorer.name, class_name, n_samples[class_name]]
+                    [model_name, class_score, scorer.name, class_name, n_samples[class_name]]
                     for scorer in scorers
                     # scorer returns numpy array of results with item per class
                     for class_score, class_name in zip(scorer(model, test), test.classes)
@@ -61,9 +61,9 @@ class MultiModelPerformanceReport(ModelComparisonCheck):
         else:
             plot_x_axis = 'Model'
             results = [
-                [context.model_name, scorer(context.model, context.test), scorer.name,
+                [model_name, scorer(context.model, context.test), scorer.name,
                  cast(pd.Series, context.test.label_col).count()]
-                for context in multi_context
+                for context, model_name in zip(multi_context, multi_context.models.keys())
                 for scorer in scorers
             ]
             results_df = pd.DataFrame(results, columns=['Model', 'Value', 'Metric', 'Number of samples'])

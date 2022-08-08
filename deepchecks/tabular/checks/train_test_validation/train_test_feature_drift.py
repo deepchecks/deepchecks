@@ -12,18 +12,22 @@
 
 import warnings
 from collections import OrderedDict
-from typing import List, Union
+from typing import Dict, List, Union
+
+import numpy as np
 
 from deepchecks.core import CheckResult
+from deepchecks.core.checks import ReduceMixin
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
 from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition
+from deepchecks.utils.logger import get_logger
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['TrainTestFeatureDrift']
 
 
-class TrainTestFeatureDrift(TrainTestCheck):
+class TrainTestFeatureDrift(TrainTestCheck, ReduceMixin):
     """
     Calculate drift between train dataset and test dataset per feature, using statistical measures.
 
@@ -37,6 +41,10 @@ class TrainTestFeatureDrift(TrainTestCheck):
     See https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V
     We also support Population Stability Index (PSI).
     See https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf.
+
+    For categorical variables, it is recommended to use Cramer's V, unless your variable includes categories with a
+    small number of samples (common practice is categories with less than 5 samples).
+    However, in cases of a variable with many categories with few samples, it is still recommended to use Cramer's V.
 
 
     Parameters
@@ -69,7 +77,18 @@ class TrainTestFeatureDrift(TrainTestCheck):
         - 'largest_difference': Show the largest difference between categories.
     categorical_drift_method: str, default: "cramer_v"
         decides which method to use on categorical variables. Possible values are:
-        "cramers_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+        "cramer_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+    ignore_na: bool, default True
+        For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
+        separate category. For numerical columns we always ignore nones.
+    aggregation_method: str, default: "weighted"
+        argument for the reduce_output functionality, decides how to aggregate the drift scores for a
+        collective score. Possible values are:
+        'weighted': Weighted mean based on feature importance, provides a robust estimation on how
+        much the drift will affect the model's performance.
+        'mean': Mean of all drift scores.
+        'none': No averaging. Return a dict with a drift score for each feature.
+        'max': Maximum of all the features drift scores.
     n_samples : int , default: 100_000
         Number of samples to use for drift computation and plot.
     random_state : int , default: 42
@@ -89,6 +108,8 @@ class TrainTestFeatureDrift(TrainTestCheck):
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
             categorical_drift_method='cramer_v',
+            ignore_na: bool = True,
+            aggregation_method='weighted',
             n_samples: int = 100_000,
             random_state: int = 42,
             max_num_categories: int = None,  # Deprecated
@@ -115,6 +136,8 @@ class TrainTestFeatureDrift(TrainTestCheck):
             raise DeepchecksValueError('sort_feature_by must be either "feature importance" or "drift score"')
         self.n_top_columns = n_top_columns
         self.categorical_drift_method = categorical_drift_method
+        self.ignore_na = ignore_na
+        self.aggregation_method = aggregation_method
         self.n_samples = n_samples
         self.random_state = random_state
 
@@ -188,6 +211,7 @@ class TrainTestFeatureDrift(TrainTestCheck):
                 max_num_categories_for_display=self.max_num_categories_for_display,
                 show_categories_by=self.show_categories_by,
                 categorical_drift_method=self.categorical_drift_method,
+                ignore_na=self.ignore_na,
                 with_display=context.with_display,
             )
             values_dict[column] = {
@@ -219,6 +243,27 @@ class TrainTestFeatureDrift(TrainTestCheck):
             displays = None
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Feature Drift')
+
+    def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
+        """Return an aggregated drift score based on aggregation method defined."""
+        drift_values = [col['Drift score'] for col in check_result.value.values()]
+        feature_names = list(check_result.value.keys())
+        if self.aggregation_method == 'none':
+            return dict(zip(feature_names, drift_values))
+        elif self.aggregation_method == 'mean':
+            return {'Mean Drift Score': np.mean(drift_values)}
+        elif self.aggregation_method == 'max':
+            return {'Max Drift Score': np.max(drift_values)}
+        elif self.aggregation_method == 'weighted':
+            feature_importance = [col['Importance'] for col in check_result.value.values()]
+            if any(importance is None for importance in feature_importance):
+                get_logger().warning(
+                    'Failed to calculate feature importance to all features, using uniform mean instead.')
+                return {'Mean Drift Score': np.mean(drift_values)}
+            else:
+                return {'Weighted Drift Score': np.sum(np.array(drift_values) * np.array(feature_importance))}
+        else:
+            raise DeepchecksValueError(f'Unknown aggregation method: {self.aggregation_method}')
 
     def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.2,
                                             max_allowed_numeric_score: float = 0.1,

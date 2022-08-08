@@ -17,7 +17,7 @@ import pandas as pd
 from plotly.subplots import make_subplots
 from scipy.stats import chi2_contingency, wasserstein_distance
 
-from deepchecks import ConditionCategory, ConditionResult
+from deepchecks.core import ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
 from deepchecks.utils.dict_funcs import get_dict_entry_by_value
 from deepchecks.utils.distribution.plot import drift_score_bar_traces, feature_distribution_traces
@@ -48,10 +48,10 @@ def get_drift_method(result_dict: Dict):
     """
     result_df = pd.DataFrame(result_dict).T
     cat_mthod_arr = result_df[result_df['Method'].isin(SUPPORTED_CATEGORICAL_METHODS)]['Method']
-    cat_method = cat_mthod_arr[0] if len(cat_mthod_arr) else None
+    cat_method = cat_mthod_arr.iloc[0] if len(cat_mthod_arr) else None
 
     num_mthod_arr = result_df[result_df['Method'].isin(SUPPORTED_NUMERIC_METHODS)]['Method']
-    num_method = num_mthod_arr[0] if len(num_mthod_arr) else None
+    num_method = num_mthod_arr.iloc[0] if len(num_mthod_arr) else None
 
     return cat_method, num_method
 
@@ -89,12 +89,12 @@ def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.S
     # (https://towardsdatascience.com/the-search-for-categorical-correlation-a1cf7f1888c9) # noqa: SC100
     chi2 = chi2_contingency(contingency_matrix)[0]
     n = contingency_matrix.sum().sum()
-    phi2 = chi2/n
+    phi2 = chi2 / n
     r, k = contingency_matrix.shape
-    phi2corr = max(0, phi2 - ((k-1)*(r-1))/(n-1))
-    rcorr = r - ((r-1)**2)/(n-1)
-    kcorr = k - ((k-1)**2)/(n-1)
-    return np.sqrt(phi2corr / min((kcorr-1), (rcorr-1)))
+    phi2corr = max(0, phi2 - ((k - 1) * (r - 1)) / (n - 1))
+    rcorr = r - ((r - 1)**2) / (n - 1)
+    kcorr = k - ((k - 1)**2) / (n - 1)
+    return np.sqrt(phi2corr / min((kcorr - 1), (rcorr - 1)))
 
 
 def psi(expected_percents: np.ndarray, actual_percents: np.ndarray):
@@ -161,8 +161,8 @@ def earth_movers_distance(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.n
             f'margin_quantile_filter expected a value in range [0, 0.5), instead got {margin_quantile_filter}')
 
     if margin_quantile_filter != 0:
-        dist1_qt_min, dist1_qt_max = np.quantile(dist1, [margin_quantile_filter, 1-margin_quantile_filter])
-        dist2_qt_min, dist2_qt_max = np.quantile(dist2, [margin_quantile_filter, 1-margin_quantile_filter])
+        dist1_qt_min, dist1_qt_max = np.quantile(dist1, [margin_quantile_filter, 1 - margin_quantile_filter])
+        dist2_qt_min, dist2_qt_max = np.quantile(dist2, [margin_quantile_filter, 1 - margin_quantile_filter])
         dist1 = dist1[(dist1_qt_max >= dist1) & (dist1 >= dist1_qt_min)]
         dist2 = dist2[(dist2_qt_max >= dist2) & (dist2 >= dist2_qt_min)]
 
@@ -188,7 +188,8 @@ def calc_drift_and_plot(train_column: pd.Series,
                         max_num_categories_for_drift: int = 10,
                         max_num_categories_for_display: int = 10,
                         show_categories_by: str = 'largest_difference',
-                        categorical_drift_method='cramer_v',
+                        categorical_drift_method: str = 'cramer_v',
+                        ignore_na: bool = True,
                         min_samples: int = 10,
                         with_display: bool = True) -> Tuple[float, str, Callable]:
     """
@@ -222,9 +223,14 @@ def calc_drift_and_plot(train_column: pd.Series,
         - 'largest_difference': Show the largest difference between categories.
     categorical_drift_method: str, default: "cramer_v"
         decides which method to use on categorical variables. Possible values are:
-        "cramers_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+        "cramer_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+    ignore_na: bool, default True
+        For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
+        separate category. For numerical columns we always ignore nones.
     min_samples: int, default: 10
         Minimum number of samples for each column in order to calculate draft
+    with_display: bool, default: True
+        flag that determines if function will calculate display.
     Returns
     -------
     Tuple[float, str, Callable]
@@ -232,8 +238,13 @@ def calc_drift_and_plot(train_column: pd.Series,
         numerical, PSI for categorical)
         graph comparing the two distributions (density for numerical, stack bar for categorical)
     """
-    train_dist = train_column.dropna().values.reshape(-1)
-    test_dist = test_column.dropna().values.reshape(-1)
+    if column_type == 'categorical' and ignore_na is False:
+        train_dist = np.array(train_column.values).reshape(-1)
+        test_dist = np.array(test_column.values).reshape(-1)
+
+    else:
+        train_dist = np.array(train_column.dropna().values).reshape(-1)
+        test_dist = np.array(test_column.dropna().values).reshape(-1)
 
     if len(train_dist) < min_samples or len(test_dist) < min_samples:
         raise NotEnoughSamplesError(f'For drift need {min_samples} samples but got {len(train_dist)} for train '
@@ -254,19 +265,19 @@ def calc_drift_and_plot(train_column: pd.Series,
 
         dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(train_dist, test_dist, value_name)
     elif column_type == 'categorical':
-        if categorical_drift_method == 'cramer_v':
+        if categorical_drift_method.lower() in ['cramer_v', 'cramers_v']:
             scorer_name = 'Cramer\'s V'
             score = cramers_v(dist1=train_dist, dist2=test_dist)
-        elif categorical_drift_method == 'PSI':
+        elif categorical_drift_method.lower() == 'psi':
             scorer_name = 'PSI'
             expected, actual, _ = \
-                preprocess_2_cat_cols_to_same_bins(dist1=train_column, dist2=test_column,
+                preprocess_2_cat_cols_to_same_bins(dist1=train_dist, dist2=test_dist,
                                                    max_num_categories=max_num_categories_for_drift)
             expected_percents, actual_percents = expected / len(train_column), actual / len(test_column)
             score = psi(expected_percents=expected_percents, actual_percents=actual_percents)
         else:
             raise ValueError('Excpected categorical_drift_method to be one '
-                             f'of [Cramer, PSI], recieved: {categorical_drift_method}')
+                             f'of [cramer_v, PSI], recieved: {categorical_drift_method}')
 
         if not with_display:
             return score, scorer_name, None

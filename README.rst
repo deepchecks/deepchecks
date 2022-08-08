@@ -108,15 +108,15 @@ Using conda
 Head over to one of our following quickstart tutorials, and have deepchecks running on your environment in less than 5 min:
 
 - `Train-Test Validation Quickstart (loans data) <https://docs.deepchecks.com/stable/user-guide/tabular/
-  auto_tutorials/plot_quick_data_integrity.html?
+  auto_quickstarts/plot_quick_train_test_validation.html?
   utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`__
 
 - `Data Integrity Quickstart (avocado sales data) <https://docs.deepchecks.com/stable/user-guide/tabular/
-  auto_tutorials/plot_quick_data_integrity.html?
+  auto_quickstarts/plot_quick_data_integrity.html?
   utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`__
 
 - `Full Suite (many checks) Quickstart (iris data) <https://docs.deepchecks.com/en/stable/user-guide/tabular/
-  auto_tutorials/plot_quickstart_in_5_minutes.html?
+  auto_quickstarts/plot_quickstart_in_5_minutes.html?
   utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`__
 
  **Recommended - download the code and run it locally** on the built-in dataset and (optional) model, or **replace them with your own**.
@@ -145,26 +145,26 @@ Example for running a suite on given `datasets`_ and with a `supported model`_:
    from deepchecks.tabular.suites import model_evaluation
    suite = model_evaluation()
    result = suite.run(train_dataset=train_dataset, test_dataset=test_dataset, model=model)
-   result.show()
+   result.save_as_html() # replace this with result.show() or result.show_in_window() to see results inline or in window
 
 Which will result in a report that looks like this:
 
 .. raw:: html
 
    <p align="center">
-      <img src="docs/source/_static/images/general/full_suite_output.gif" width="750">
+      <img src="docs/source/_static/images/general/model_evaluation_suite.gif" width="800">
    </p>
 
 
 Note:
 
-- Results can also be saved as an html report, saved as json, or exported to other tools (e.g Weights & Biases - wandb)
+- Results can also displayed inline, saved as an html report, saved as JSON, or exported to other tools (e.g Weights & Biases - wandb)
 - Other suites that run only on the data (``data_integrity``, ``train_test_validation``) don't require a model as part of the input.
 
 See the `full code tutorials here`_.
 
 .. _full code tutorials here:
-   https://docs.deepchecks.com/dev/user-guide/tabular/auto_tutorials/index.html?
+   https://docs.deepchecks.com/dev/user-guide/tabular/auto_quickstarts/index.html?
    utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out
 
 .. _datasets:
@@ -235,8 +235,8 @@ and/or validate your model and evaluate it.
 
 
 See more about typical usage scenarios and the built-in suites in the
-`docs <https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utme_content=what_do_you_need_in_order_to_start_validating>`__.
-
+`docs <https://docs.deepchecks.com/stable/getting-started/welcome.html?
+utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=what_do_you_need_in_order_to_start_validating#when-should-you-use-deepchecks>`__.
 
 
 🗝️ Key Concepts
@@ -255,8 +255,8 @@ covering all kinds of common issues, such as:
 and `many more checks`_.
 
 .. _many more checks:
-   https://docs.deepchecks.com/en/stable/
-   api/checks/index.html
+   https://docs.deepchecks.com/stable/
+   checks_gallery/tabular.html
    ?utm_source=github.com&utm_medium=referral&
    utm_campaign=readme&utm_content=key_concepts__check
 

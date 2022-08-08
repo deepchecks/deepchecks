@@ -13,6 +13,7 @@ This notebooks provides an overview for using and understanding feature drift ch
 * `Generate data & model <#generate-data-model>`__
 * `Run the check <#run-the-check>`__
 * `Define a condition <#define-a-condition>`__
+* `Get an aggregated value <#get-an-aggregated-value>`__
 
 What is a feature drift?
 ========================
@@ -118,7 +119,7 @@ from deepchecks.tabular.checks import TrainTestFeatureDrift
 
 check = TrainTestFeatureDrift()
 result = check.run(train_dataset=train_dataset, test_dataset=test_dataset, model=model)
-result
+result.show()
 
 #%%
 # Observe the check's output
@@ -156,3 +157,30 @@ result.show(show_additional_outputs=False)
 #%%
 # As we see, our condition successfully detects and filters the problematic
 # features that contains a drift!
+#
+# Get an aggregated value
+# =======================
+#
+# Using the :func:`reduce_output <deepchecks.tabular.checks.train_test_validation.TrainTestFeatureDrift.reduce_output>`
+# function we can combine the drift values per feature and get a collective score
+# that reflects the effect of the drift on the model, taking into account all the features.
+# In scenarios where labels are unavailable (either temporarily of permanently)
+# this value can be a good indicator of possible deterioration in the model's performance.
+#
+# We can define the type of aggregation we want to use via the `aggregation_method` parameter. The possible values are:
+#
+# ``weighted``: The default. Weighted mean of drift scores based on each feature's feature importance. This method
+# underlying logic is that drift in a feature with a higher feature importance will have a greater effect on the model's
+# performance.
+#
+# ``mean``: Simple mean of all the features drift scores.
+#
+# ``none``: No averaging. Return a dict with a drift score for each feature.
+#
+# ``max``: Maximum value of all the individual feature's drift scores.
+#
+
+check = TrainTestFeatureDrift(aggregation_method='weighted')
+result = check.run(train_dataset=train_dataset, test_dataset=test_dataset, model=model)
+result.reduce_output()
+#%%

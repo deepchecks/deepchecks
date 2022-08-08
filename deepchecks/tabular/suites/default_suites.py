@@ -21,14 +21,14 @@ from deepchecks.tabular import Suite
 from deepchecks.tabular.checks import (BoostingOverfit, CalibrationScore, CategoryMismatchTrainTest, ConflictingLabels,
                                        ConfusionMatrixReport, DataDuplicates, DatasetsSizeComparison,
                                        DateTrainTestLeakageDuplicates, DateTrainTestLeakageOverlap,
-                                       FeatureLabelCorrelation, FeatureLabelCorrelationChange,
-                                       IdentifierLabelCorrelation, IndexTrainTestLeakage, IsSingleValue, MixedDataTypes,
-                                       MixedNulls, ModelInferenceTime, NewLabelTrainTest, OutlierSampleDetection,
-                                       PerformanceReport, RegressionErrorDistribution, RegressionSystematicError,
+                                       FeatureFeatureCorrelation, FeatureLabelCorrelation,
+                                       FeatureLabelCorrelationChange, IdentifierLabelCorrelation, IndexTrainTestLeakage,
+                                       IsSingleValue, MixedDataTypes, MixedNulls, ModelInferenceTime, NewLabelTrainTest,
+                                       OutlierSampleDetection, RegressionErrorDistribution, RegressionSystematicError,
                                        RocReport, SimpleModelComparison, SpecialCharacters, StringLengthOutOfBounds,
                                        StringMismatch, StringMismatchComparison, TrainTestFeatureDrift,
-                                       TrainTestLabelDrift, TrainTestPredictionDrift, TrainTestSamplesMix,
-                                       UnusedFeatures, WeakSegmentsPerformance, WholeDatasetDrift)
+                                       TrainTestLabelDrift, TrainTestPerformance, TrainTestPredictionDrift,
+                                       TrainTestSamplesMix, UnusedFeatures, WeakSegmentsPerformance, WholeDatasetDrift)
 
 __all__ = ['single_dataset_integrity', 'train_test_leakage', 'train_test_validation',
            'model_evaluation', 'full_suite']
@@ -140,6 +140,7 @@ def data_integrity(columns: Union[Hashable, List[Hashable]] = None,
         ConflictingLabels(**kwargs).add_condition_ratio_of_conflicting_labels_less_or_equal(),
         OutlierSampleDetection(**kwargs),
         FeatureLabelCorrelation(**kwargs).add_condition_feature_pps_less_than(),
+        FeatureFeatureCorrelation(**kwargs).add_condition_max_number_of_pairs_above_threshold(),
         IdentifierLabelCorrelation(**kwargs).add_condition_pps_less_or_equal()
     )
 
@@ -344,7 +345,7 @@ def model_evaluation(alternative_scorers: Dict[str, Callable] = None,
 
     return Suite(
         'Model Evaluation Suite',
-        PerformanceReport(**kwargs).add_condition_train_test_relative_degradation_less_than(),
+        TrainTestPerformance(**kwargs).add_condition_train_test_relative_degradation_less_than(),
         RocReport(**kwargs).add_condition_auc_greater_than(),
         ConfusionMatrixReport(**kwargs),
         TrainTestPredictionDrift(**kwargs).add_condition_drift_score_less_than(),

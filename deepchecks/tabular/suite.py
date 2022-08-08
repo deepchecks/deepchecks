@@ -10,7 +10,7 @@
 #
 """Module for base tabular abstractions."""
 # pylint: disable=broad-except
-from typing import Callable, Mapping, Optional, Tuple, Union
+from typing import Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -48,14 +48,11 @@ class Suite(BaseSuite):
         feature_importance: Optional[pd.Series] = None,
         feature_importance_force_permutation: bool = False,
         feature_importance_timeout: int = 120,
-        scorers: Optional[Mapping[str, Union[str, Callable]]] = None,
-        scorers_per_class: Optional[Mapping[str, Union[str, Callable]]] = None,
         with_display: bool = True,
         y_pred_train: Optional[np.ndarray] = None,
         y_pred_test: Optional[np.ndarray] = None,
         y_proba_train: Optional[np.ndarray] = None,
         y_proba_test: Optional[np.ndarray] = None,
-        model_name: str = '',
     ) -> SuiteResult:
         """Run all checks.
 
@@ -81,14 +78,11 @@ class Suite(BaseSuite):
             feature_importance=feature_importance,
             feature_importance_force_permutation=feature_importance_force_permutation,
             feature_importance_timeout=feature_importance_timeout,
-            scorers=scorers,
-            scorers_per_class=scorers_per_class,
             with_display=with_display,
             y_pred_train=y_pred_train,
             y_pred_test=y_pred_test,
             y_proba_train=y_proba_train,
             y_proba_test=y_proba_test,
-            model_name=model_name
         )
 
         progress_bar = create_progress_bar(

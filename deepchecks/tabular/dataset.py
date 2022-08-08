@@ -461,7 +461,7 @@ class Dataset:
         Dataset
             instance of the Dataset with sampled internal dataframe.
         """
-        if drop_na_label and self.label_name:
+        if drop_na_label and self.has_label():
             valid_idx = self.data[self.label_name].notna()
             data_to_sample = self.data[valid_idx]
         else:
@@ -678,13 +678,18 @@ class Dataset:
 
     @property
     def label_name(self) -> t.Optional[Hashable]:
-        """If label column exists, return its name.
+        """If label column exists, return its name. Otherwise, throw an exception.
 
         Returns
         -------
         t.Optional[Hashable]
            Label name
         """
+        if not self._label_name:
+            raise DeepchecksNotSupportedError(
+                'Dataset does not contain a label column',
+                html=f'Dataset does not contain a label column. see {_get_dataset_docs_tag()}'
+            )
         return self._label_name
 
     @property
@@ -717,7 +722,6 @@ class Dataset:
         -------
         pd.Series
         """
-        self.assert_label()
         return self.data[self.label_name]
 
     @property
@@ -752,7 +756,7 @@ class Dataset:
             Sorted classes
         """
         if self._classes is None:
-            if self.label_name is not None:
+            if self.has_label():
                 self._classes = tuple(sorted(self.data[self.label_name].dropna().unique().tolist()))
             else:
                 self._classes = tuple()
@@ -787,18 +791,15 @@ class Dataset:
             columns[column] = value
         return columns
 
-    def assert_label(self):
-        """Check if label is defined and if not raise error.
+    def has_label(self) -> bool:
+        """Return True if label column exists.
 
-        Raises
-        ------
-        DeepchecksNotSupportedError
+        Returns
+        -------
+        bool
+           True if label column exists.
         """
-        if not self.label_name:
-            raise DeepchecksNotSupportedError(
-                'Dataset does not contain a label column',
-                html=f'Dataset does not contain a label column. see {_get_dataset_docs_tag()}'
-            )
+        return self._label_name is not None
 
     def assert_features(self):
         """Check if features are defined (not empty) and if not raise error.
@@ -895,7 +896,8 @@ class Dataset:
         if isinstance(obj, pd.DataFrame):
             get_logger().warning(
                 'Received a "pandas.DataFrame" instance. It is recommended to pass a "deepchecks.tabular.Dataset" '
-                'instance by doing "Dataset(dataframe)"'
+                'instance by initializing it with the data and metadata, '
+                'for example by doing "Dataset(dataframe, label=label, cat_features=cat_features)"'
             )
             obj = Dataset(obj)
         elif not isinstance(obj, Dataset):
@@ -1068,7 +1070,7 @@ class Dataset:
         categorical_features = self.cat_features
         numerical_features = self.numerical_features
 
-        label_column = t.cast(pd.Series, data[self.label_name]) if self.label_name else None
+        label_column = t.cast(pd.Series, data[self.label_name]) if self.has_label() else None
         index_column = self.index_col
         datetime_column = self.datetime_col
 

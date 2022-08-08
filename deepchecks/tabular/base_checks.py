@@ -10,7 +10,7 @@
 #
 """Module for tabular base checks."""
 import abc
-from typing import Callable, List, Mapping, Optional, Union
+from typing import List, Mapping, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -46,12 +46,9 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         self,
         dataset: Union[Dataset, pd.DataFrame],
         model: Optional[BasicModel] = None,
-        model_name: str = '',
         feature_importance: Optional[pd.Series] = None,
         feature_importance_force_permutation: bool = False,
         feature_importance_timeout: int = 120,
-        scorers: Optional[Mapping[str, Union[str, Callable]]] = None,
-        scorers_per_class: Optional[Mapping[str, Union[str, Callable]]] = None,
         with_display: bool = True,
         y_pred_train: Optional[np.ndarray] = None,
         y_pred_test: Optional[np.ndarray] = None,
@@ -72,12 +69,9 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         context = self.context_type(  # pylint: disable=not-callable
             train=dataset,
             model=model,
-            model_name=model_name,
             feature_importance=feature_importance,
             feature_importance_force_permutation=feature_importance_force_permutation,
             feature_importance_timeout=feature_importance_timeout,
-            scorers=scorers,
-            scorers_per_class=scorers_per_class,
             with_display=with_display,
             y_pred_train=y_pred_train,
             y_pred_test=y_pred_test,
@@ -109,12 +103,9 @@ class TrainTestCheck(TrainTestBaseCheck):
         train_dataset: Union[Dataset, pd.DataFrame],
         test_dataset: Union[Dataset, pd.DataFrame],
         model: Optional[BasicModel] = None,
-        model_name: str = '',
         feature_importance: Optional[pd.Series] = None,
         feature_importance_force_permutation: bool = False,
         feature_importance_timeout: int = 120,
-        scorers: Optional[Mapping[str, Union[str, Callable]]] = None,
-        scorers_per_class: Optional[Mapping[str, Union[str, Callable]]] = None,
         with_display: bool = True,
         y_pred_train: Optional[np.ndarray] = None,
         y_pred_test: Optional[np.ndarray] = None,
@@ -138,12 +129,9 @@ class TrainTestCheck(TrainTestBaseCheck):
             train=train_dataset,
             test=test_dataset,
             model=model,
-            model_name=model_name,
             feature_importance=feature_importance,
             feature_importance_force_permutation=feature_importance_force_permutation,
             feature_importance_timeout=feature_importance_timeout,
-            scorers=scorers,
-            scorers_per_class=scorers_per_class,
             y_pred_train=y_pred_train,
             y_pred_test=y_pred_test,
             y_proba_train=y_proba_train,
@@ -170,12 +158,9 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
     def run(
         self,
         model: BasicModel,
-        model_name: str = '',
         feature_importance: Optional[pd.Series] = None,
         feature_importance_force_permutation: bool = False,
         feature_importance_timeout: int = 120,
-        scorers: Optional[Mapping[str, Union[str, Callable]]] = None,
-        scorers_per_class: Optional[Mapping[str, Union[str, Callable]]] = None,
         with_display: bool = True,
         y_pred_train: Optional[np.ndarray] = None,
         y_pred_test: Optional[np.ndarray] = None,
@@ -193,12 +178,9 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
         assert self.context_type is not None
         context = self.context_type(
             model=model,
-            model_name=model_name,
             feature_importance=feature_importance,
             feature_importance_force_permutation=feature_importance_force_permutation,
             feature_importance_timeout=feature_importance_timeout,
-            scorers=scorers,
-            scorers_per_class=scorers_per_class,
             y_pred_train=y_pred_train,
             y_pred_test=y_pred_test,
             y_proba_train=y_proba_train,

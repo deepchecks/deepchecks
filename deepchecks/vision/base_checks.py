@@ -22,6 +22,7 @@ from deepchecks.vision import deprecation_warnings  # pylint: disable=unused-imp
 from deepchecks.vision._shared_docs import docstrings
 from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.context import Context
+from deepchecks.vision.utils.vision_properties import STATIC_PROPERTIES_FORMAT
 from deepchecks.vision.vision_data import VisionData
 
 __all__ = [
@@ -50,6 +51,8 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         with_display: bool = True,
         train_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
         test_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
+        train_properties: Optional[STATIC_PROPERTIES_FORMAT] = None,
+        test_properties: Optional[STATIC_PROPERTIES_FORMAT] = None
     ) -> CheckResult:
         """Run check.
 
@@ -79,6 +82,8 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
                     with_display=with_display,
                     train_predictions=train_predictions,
                     test_predictions=test_predictions,
+                    train_properties=train_properties,
+                    test_properties=test_properties
                 )
                 self.initialize_run(context, DatasetKind.TRAIN)
 
@@ -135,6 +140,8 @@ class TrainTestCheck(TrainTestBaseCheck):
         with_display: bool = True,
         train_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
         test_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
+        train_properties: Optional[STATIC_PROPERTIES_FORMAT] = None,
+        test_properties: Optional[STATIC_PROPERTIES_FORMAT] = None
     ) -> CheckResult:
         """Run check.
 
@@ -167,6 +174,8 @@ class TrainTestCheck(TrainTestBaseCheck):
                     with_display=with_display,
                     train_predictions=train_predictions,
                     test_predictions=test_predictions,
+                    train_properties=train_properties,
+                    test_properties=test_properties
                 )
                 self.initialize_run(context)
 
@@ -231,6 +240,8 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
         with_display: bool = True,
         train_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
         test_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
+        train_properties: Optional[STATIC_PROPERTIES_FORMAT] = None,
+        test_properties: Optional[STATIC_PROPERTIES_FORMAT] = None
     ) -> CheckResult:
         """Run check.
 
@@ -256,6 +267,8 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
                     with_display=with_display,
                     train_predictions=train_predictions,
                     test_predictions=test_predictions,
+                    train_properties=train_properties,
+                    test_properties=test_properties
                 )
                 self.initialize_run(context)
 
