@@ -107,16 +107,13 @@ Using conda
 
 Head over to one of our following quickstart tutorials, and have deepchecks running on your environment in less than 5 min:
 
-- `Train-Test Validation Quickstart (loans data) <https://docs.deepchecks.com/stable/user-guide/tabular/
-  auto_quickstarts/plot_quick_train_test_validation.html?
+- `Train-Test Validation Quickstart (loans data) <https://docs.deepchecks.com/stable/user-guide/tabular/auto_tutorials/plot_quick_train_test_validation.html?
   utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`__
 
-- `Data Integrity Quickstart (avocado sales data) <https://docs.deepchecks.com/stable/user-guide/tabular/
-  auto_quickstarts/plot_quick_data_integrity.html?
+- `Data Integrity Quickstart (avocado sales data) <https://docs.deepchecks.com/stable/user-guide/tabular/auto_tutorials/plot_quick_data_integrity.html?
   utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`__
 
-- `Full Suite (many checks) Quickstart (iris data) <https://docs.deepchecks.com/en/stable/user-guide/tabular/
-  auto_quickstarts/plot_quickstart_in_5_minutes.html?
+- `Full Suite (many checks) Quickstart (iris data) <https://docs.deepchecks.com/stable/user-guide/tabular/auto_tutorials/plot_quickstart_in_5_minutes.html?
   utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`__
 
  **Recommended - download the code and run it locally** on the built-in dataset and (optional) model, or **replace them with your own**.
