@@ -186,6 +186,19 @@ class BaseCheck(abc.ABC):
         check_conf = json.loads(conf)
         return self.from_config(check_conf, version_unmatch=version_unmatch)
 
+    def _prepare_config(
+        self,
+        params: Dict[str, Any],
+        include_version: bool = True
+    ) -> CheckConfig:
+        conf = CheckConfig(
+            kind=common.importable_name(self),
+            params=params,
+        )
+        if include_version is True:
+            conf['version'] = __version__
+        return conf
+
     def config(self, include_version: bool = True) -> CheckConfig:
         """Return check configuration (conditions' configuration not yet supported).
 
@@ -208,13 +221,10 @@ class BaseCheck(abc.ABC):
         # after it recreation from config.
         # Again if that is not true for some sub-check it must override this method and to ensure
         # this assumption
-        conf = CheckConfig(
-            kind=common.importable_name(self),
+        return self._prepare_config(
             params=initvars(self, include_defaults=True),
+            include_version=include_version
         )
-        if include_version is True:
-            conf['version'] = __version__
-        return conf
 
     @classmethod
     def from_config(

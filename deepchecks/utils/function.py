@@ -43,7 +43,7 @@ def initvars(
     Dict[Any, Any] subset of the obj __dict__
     """
     assert hasattr(obj, '__init__')
-    state = obj.__dict__
+    state = {k: v for k, v in obj.__dict__ if not k.startswith('_')}
     s = extract_signature(obj.__init__)
     bind = s.bind(**state)
 

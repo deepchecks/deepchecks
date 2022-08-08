@@ -16,7 +16,7 @@ from typing import Any, Dict, List
 import pandas as pd
 
 from deepchecks.core import CheckResult, DatasetKind
-from deepchecks.core.checks import ReduceMixin
+from deepchecks.core.checks import CheckConfig, ReduceMixin
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition
 from deepchecks.vision import Batch, Context, TrainTestCheck
@@ -228,6 +228,30 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
             displays = None
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Label Drift')
+
+    def config(self, include_version: bool = True) -> CheckConfig:
+        if isinstance(self.user_label_properties, list):
+            for prop in self.user_label_properties:
+                if 'method' not in prop or not prop['method']:
+                    raise ValueError('Each label property is expected to contain not emtpy "method" key')
+                if callable(prop['method']):
+                    type_name = type(self).__name__
+                    raise ValueError(
+                        f'Serialization of "{type_name}" check instance is not supported '
+                        'if custom user defined properties were passed to the "label_properties" '
+                        f'parameter during instance initialization. Property name: {prop["name"]}'
+                    )
+        return self._prepare_config(
+            include_version=include_version,
+            params={
+                'label_properties': self.user_label_properties,
+                'margin_quantile_filter': self.margin_quantile_filter,
+                'max_num_categories_for_drift': self.max_num_categories_for_drift,
+                'max_num_categories_for_display': self.max_num_categories_for_display,
+                'show_categories_by': self.show_categories_by,
+                'categorical_drift_method': self.categorical_drift_method
+            },
+        )
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return label drift score per label property."""

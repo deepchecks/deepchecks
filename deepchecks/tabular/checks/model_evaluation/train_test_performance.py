@@ -19,7 +19,7 @@ from deepchecks.core import CheckResult
 from deepchecks.core.check_utils.class_performance_utils import (
     get_condition_class_performance_imbalance_ratio_less_than, get_condition_test_performance_greater_than,
     get_condition_train_test_relative_degradation_less_than)
-from deepchecks.core.checks import DatasetKind, ReduceMixin
+from deepchecks.core.checks import CheckConfig, DatasetKind, ReduceMixin
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.tabular.metric_utils import MULTICLASS_SCORERS_NON_AVERAGE
 from deepchecks.utils.plot import colors
@@ -143,6 +143,31 @@ class TrainTestPerformance(TrainTestCheck, ReduceMixin):
             results_df,
             header='Train Test Performance',
             display=figs
+        )
+
+    def config(self, include_version: bool = True) -> CheckConfig:
+        name = type(self).__name__
+
+        if callable(self.reduce):
+            raise ValueError(
+                f'Serialization of "{name}" check instance is not supported '
+                'if custom user defined callable was passed to the "reduce" parameter '
+                f'during instance initialization'
+            )
+
+        if isinstance(self.user_scorers, dict):
+            for k, v in self.user_scorers.items():
+                if not isinstance(v, str):
+                    name = type(self).__name__
+                    raise ValueError(
+                        f'Serialization of "{name}" check instance is not supported '
+                        'if custom user defined scorers were passed to the "scorers" parameter '
+                        f'during instance initialization. Scorer name: {k}'
+                    )
+
+        return self._prepare_config(
+            params={'reduce': self.reduce, 'scorers': self.user_scorers},
+            include_version=include_version
         )
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:

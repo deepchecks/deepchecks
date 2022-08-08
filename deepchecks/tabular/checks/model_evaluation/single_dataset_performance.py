@@ -15,7 +15,7 @@ from typing import Callable, Dict, List, TypeVar, Union, cast
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
-from deepchecks.core.checks import ReduceMixin
+from deepchecks.core.checks import CheckConfig, ReduceMixin
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context
 from deepchecks.tabular.base_checks import SingleDatasetCheck
@@ -69,6 +69,24 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
             display = []
 
         return CheckResult(results_df, header='Single Dataset Performance', display=display)
+
+    def config(
+        self,
+        include_version: bool = True
+    ) -> 'CheckConfig':
+        if isinstance(self.user_scorers, dict):
+            for k, v in self.user_scorers.items():
+                if not isinstance(v, str):
+                    name = type(self).__name__
+                    raise ValueError(
+                        f'Serialization of "{name}" check instance is not supported '
+                        'if custom user defined scorers were passed to the "scorers" parameter '
+                        f'during instance initialization. Scorer name: {k}'
+                    )
+        return self._prepare_config(
+            params={'scorers': self.user_scorers},
+            include_version=include_version
+        )
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return the values of the metrics for the dataset provided in a {metric: value} format."""

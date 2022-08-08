@@ -125,7 +125,7 @@ def validate_properties(properties: List[Dict[str, Any]]):
             )
             continue
 
-        property_name = label_property.get('name') or f'#{index}'
+        label_property['name'] = property_name = label_property.get('name') or f'#{index}'
         difference = sorted(set(expected_keys).difference(set(label_property.keys())))
 
         if len(difference) > 0:
