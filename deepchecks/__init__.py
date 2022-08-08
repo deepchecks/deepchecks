@@ -13,8 +13,12 @@ import sys
 import types
 import warnings
 from importlib._bootstrap import _init_module_attrs
-from importlib.metadata import version
 
+try:
+    from importlib.metadata import version
+except ImportError:
+    from importlib_metadata import version
+    
 # NOTE: it is here, before other import, in order to omit circular import error
 __version__ = version('deepchecks')
 
