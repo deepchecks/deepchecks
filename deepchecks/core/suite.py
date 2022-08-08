@@ -24,7 +24,7 @@ from typing_extensions import Self, TypedDict
 
 from deepchecks import __version__
 from deepchecks.core import check_result as check_types
-from deepchecks.core.checks import BaseCheck, CheckConfig
+from deepchecks.core.checks import BaseCheck, CheckConfig  # pylint: disable=unused-import # is used for type checking
 from deepchecks.core.display import DisplayableResult, save_as_html
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.serialization.abc import HTMLFormatter

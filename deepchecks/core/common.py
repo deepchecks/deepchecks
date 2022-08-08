@@ -70,7 +70,7 @@ def validate_config(
                 'Therefore a behavior of the check might be different than expected.\n'
                 'Configuration version: %s\n'
                 'Deepchecks version: %s\n',
-                conf["version"],
+                conf['version'],
                 __version__
             )
 

@@ -16,7 +16,7 @@ from importlib._bootstrap import _init_module_attrs
 from importlib.metadata import version
 
 # NOTE: it is here, before other import, in order to omit circular import error
-__version__ = version("deepchecks")
+__version__ = version('deepchecks')
 
 import matplotlib
 import plotly.io as pio
