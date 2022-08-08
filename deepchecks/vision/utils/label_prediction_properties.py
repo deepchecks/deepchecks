@@ -9,12 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing measurements for labels and predictions."""
-import warnings
-from typing import Any, Dict, List, Sequence
+from typing import List, Sequence
 
 import torch
-
-from deepchecks.core.errors import DeepchecksValueError
 
 # Labels
 
@@ -97,71 +94,6 @@ DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES = [
 
 
 # Helper functions
-
-def validate_properties(properties: List[Dict[str, Any]]):
-    """Validate structure of measurements."""
-    if not isinstance(properties, list):
-        raise DeepchecksValueError(
-            'Expected properties to be a list, '
-            f'instead got {type(properties).__name__}'
-        )
-
-    if len(properties) == 0:
-        raise DeepchecksValueError('Properties list can\'t be empty')
-
-    expected_keys = ('name', 'method', 'output_type')
-    deprecated_output_types = ('discrete', 'continuous')
-    output_types = ('categorical', 'numerical', 'class_id')
-
-    errors = []
-    list_of_warnings = []
-
-    for index, label_property in enumerate(properties):
-
-        if not isinstance(label_property, dict):
-            errors.append(
-                f'Item #{index}: property must be of type dict, '
-                f'and include keys {expected_keys}. Instead got {type(label_property).__name__}'
-            )
-            continue
-
-        label_property['name'] = property_name = label_property.get('name') or f'#{index}'
-        difference = sorted(set(expected_keys).difference(set(label_property.keys())))
-
-        if len(difference) > 0:
-            errors.append(
-                f'Property {property_name}: dictionary must include keys {expected_keys}. '
-                f'Next keys are missed {difference}'
-            )
-            continue
-
-        property_output_type = label_property['output_type']
-
-        if property_output_type in deprecated_output_types:
-            list_of_warnings.append(
-                f'Property {property_name}: output types {deprecated_output_types} are deprecated, '
-                f'use instead {output_types}'
-            )
-        elif property_output_type not in output_types:
-            errors.append(
-                f'Property {property_name}: field "output_type" must be one of {output_types}, '
-                f'instead got {property_output_type}'
-            )
-
-    if len(errors) > 0:
-        errors = '\n+ '.join(errors)
-        raise DeepchecksValueError(f'List of properties contains next problems:\n+ {errors}')
-
-    if len(list_of_warnings) > 0:
-        concatenated_warnings = '\n+ '.join(list_of_warnings)
-        warnings.warn(
-            f'Property Warnings:\n+ {concatenated_warnings}',
-            category=DeprecationWarning
-        )
-
-    return properties
-
-
 def get_column_type(output_type):
     """Get column type to use in drift functions."""
     # TODO smarter mapping based on data?

@@ -26,7 +26,8 @@ from deepchecks.utils.strings import format_number
 from deepchecks.vision import Context, TrainTestCheck
 from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.utils.image_functions import crop_image
-from deepchecks.vision.utils.image_properties import default_image_properties, validate_properties
+from deepchecks.vision.utils.image_properties import default_image_properties
+from deepchecks.vision.utils.vision_properties import PropertiesInputType
 from deepchecks.vision.vision_data import TaskType
 
 __all__ = ['PropertyLabelCorrelationChange']
@@ -99,10 +100,7 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
     ):
         super().__init__(**kwargs)
 
-        if image_properties:
-            self.image_properties = validate_properties(image_properties)
-        else:
-            self.image_properties = default_image_properties
+        self.image_properties = image_properties if image_properties else default_image_properties
 
         self.min_pps_to_show = min_pps_to_show
         self.per_class = per_class
@@ -117,12 +115,12 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
 
     def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Calculate image properties for train or test batches."""
+        dataset = context.get_data_by_kind(dataset_kind)
+
         if dataset_kind == DatasetKind.TRAIN:
-            dataset = context.train
-            properties = self._train_properties
+            properties_results = self._train_properties
         else:
-            dataset = context.test
-            properties = self._test_properties
+            properties_results = self._test_properties
 
         imgs = []
         target = []
@@ -138,15 +136,19 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
                     class_id = int(label[0])
                     imgs += [cropped_img]
                     target += [dataset.label_id_to_name(class_id)]
+            property_type = PropertiesInputType.BBOXES
         else:
             for img, classes_ids in zip(batch.images, dataset.get_classes(batch.labels)):
                 imgs += [img] * len(classes_ids)
                 target += list(map(dataset.label_id_to_name, classes_ids))
+            property_type = PropertiesInputType.IMAGES
 
-        properties['target'] += target
+        properties_results['target'] += target
 
-        for single_property in self.image_properties:
-            properties[single_property['name']].extend(single_property['method'](imgs))
+        data_for_properties = batch.vision_properties(imgs, self.image_properties, property_type)
+
+        for prop_name, property_values in data_for_properties.items():
+            properties_results[prop_name].extend(property_values)
 
     def compute(self, context: Context) -> CheckResult:
         """Calculate the PPS between each property and the label.

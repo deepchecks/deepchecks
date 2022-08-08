@@ -90,17 +90,20 @@ Start Working with the Package
 Now it's time to :doc:`check out </index>` deepchecks!
 
 
-Anonymous Usage Telemetry
--------------------------
-We want to keep building and improving deepchecks, so we'd like to know how many people are using it.
-For that we added an anonymous usage metrics collection system to the package, that sends a single anonymous event on
-the first import of the package.
+Latest Version Check
+--------------------
+We are improving and updating our package constantly, so it's important to work on the latest version whenever possible.
+Because of that, the package checks by default if it is the latest version. If not, a warning is printed.
 
-No credentials, data, personal information or anything private is collected (and will never be).
+As a side benefit, the latest version check helps us estimate how many people are using the package.
+We want to keep building and improving deepchecks, so this metric is important to us. The check is performed
+only once, on the first import of the package in the python context.
 
-By default, the anonymous collection mechanism is turned on. You can opt-out at any time by setting the
-``DISABLE_DEEPCHECKS_ANONYMOUS_TELEMETRY`` environment variable to ``True``.
+No credentials, data, personal information or anything private is collected, and will never be.
+
+By default, the latest version check is turned on. You can opt-out at any time by setting the
+``DISABLE_LATEST_VERSION_CHECK`` environment variable to ``True``.
 
 .. code-block:: bash
 
-    export DISABLE_DEEPCHECKS_ANONYMOUS_TELEMETRY=True
+    export DISABLE_LATEST_VERSION_CHECK=True

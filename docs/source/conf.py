@@ -140,6 +140,8 @@ sphinx_gallery_conf = {
     "remove_config_comments": True,
 }
 
+html_title = "Deepchecks Documentation"
+
 # Add any paths that contain templates here, relative to this directory.
 #
 templates_path = ['_templates']
@@ -443,10 +445,8 @@ for line in open('nitpick-exceptions'):
 
 def get_check_example_api_reference(filepath: str) -> t.Optional[str]:
     if not (
-        filepath.startswith("docs/source/checks/tabular/")
-        or filepath.startswith("docs/source/checks/vision/")
-        or filepath.startswith("checks/tabular/")
-        or filepath.startswith("checks/vision/")
+        filepath.startswith("checks_gallery/tabular/")
+        or filepath.startswith("checks_gallery/vision/")
     ):
         return ''
 
@@ -457,8 +457,12 @@ def get_check_example_api_reference(filepath: str) -> t.Optional[str]:
             .replace(".py", "")
     )
 
-    import deepchecks.checks
-    check_clazz = getattr(deepchecks.checks, notebook_name, None)
+    if filepath.startswith("checks_gallery/tabular/"):
+        import deepchecks.tabular.checks
+        check_clazz = getattr(deepchecks.tabular.checks, notebook_name, None)
+    else:
+        import deepchecks.vision.checks
+        check_clazz = getattr(deepchecks.vision.checks, notebook_name, None)
 
     if check_clazz is None or not hasattr(check_clazz, "__module__"):
         return

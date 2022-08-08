@@ -21,7 +21,7 @@ __version__ = version("deepchecks")
 import matplotlib
 import plotly.io as pio
 
-from deepchecks.analytics.anonymous_telemetry import send_anonymous_import_event
+from deepchecks.analytics.anonymous_telemetry import validate_latest_version
 from deepchecks.core import (BaseCheck, BaseSuite, CheckFailure, CheckResult, Condition, ConditionCategory,
                              ConditionResult, ModelOnlyBaseCheck, SingleDatasetBaseCheck, SuiteResult,
                              TrainTestBaseCheck)
@@ -75,7 +75,7 @@ if 'notebook_connected' in pio_backends:
 
 
 # Send an import event if not disabled
-send_anonymous_import_event()
+validate_latest_version()
 
 # ================================================================
 
