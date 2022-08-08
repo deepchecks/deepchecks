@@ -11,8 +11,8 @@
 import re
 import typing as t
 
-from hamcrest import (assert_that, calling, close_to, contains_exactly, equal_to, greater_than,
-                      has_items, has_length, instance_of, raises)
+from hamcrest import (assert_that, calling, close_to, contains_exactly, equal_to, greater_than, has_items, has_length,
+                      instance_of, raises)
 from ignite.metrics import Precision, Recall
 from plotly.basedatatypes import BaseFigure
 

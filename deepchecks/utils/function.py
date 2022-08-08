@@ -9,7 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Contain functions for handling function in checks."""
-from inspect import signature
+from functools import lru_cache
+from inspect import Signature, signature
 from typing import Any, Callable, Dict
 
 __all__ = ['run_available_kwargs', 'initvars']
@@ -27,7 +28,7 @@ def run_available_kwargs(func: Callable, **kwargs):
 
 def initvars(
     obj: object,
-    show_defaults: bool = False
+    include_defaults: bool = False
 ) -> Dict[Any, Any]:
     """Return object __dict__ variables that was passed throw constructor (__init__ method).
 
@@ -42,16 +43,21 @@ def initvars(
     Dict[Any, Any] subset of the obj __dict__
     """
     assert hasattr(obj, '__init__')
-    params = signature(obj.__init__).parameters
+    state = obj.__dict__
+    s = extract_signature(obj.__init__)
+    bind = s.bind(**state)
 
-    if show_defaults is True:
-        return {
-            k: v
-            for k, v in vars(obj).items()
-            if k in params
-        }
-    return {
-        k: v
-        for k, v in vars(obj).items()
-        if k in params and v != params[k].default
-    }
+    if include_defaults is True:
+        bind.apply_defaults()
+
+    return bind.arguments
+
+
+@lru_cache(maxsize=None)
+def extract_signature(obj: Callable[..., Any]) -> Signature:
+    """Extract signature object from a callable instance.
+
+    Getting a callable signature is a heavy and not cheap op
+    therefore we are caching it.
+    """
+    return signature(obj)

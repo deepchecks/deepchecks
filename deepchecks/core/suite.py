@@ -11,16 +11,18 @@
 # pylint: disable=unused-argument, import-outside-toplevel
 """Module containing the Suite object, used for running a set of checks together."""
 import abc
-import importlib
 import io
+import json
 import warnings
 from collections import OrderedDict
-from typing import List, Optional, Sequence, Set, Tuple, Type, Union, cast
+from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, Type, Union, cast
 
 import jsonpickle
 from ipywidgets import Widget
-from typing_extensions import TypedDict
+from typing_extensions import Literal as L
+from typing_extensions import Self, TypedDict
 
+from deepchecks import __version__
 from deepchecks.core import check_result as check_types
 from deepchecks.core.checks import BaseCheck, CheckConfig
 from deepchecks.core.display import DisplayableResult, save_as_html
@@ -33,13 +35,16 @@ from deepchecks.core.serialization.suite_result.widget import SuiteResultSeriali
 from deepchecks.utils.strings import get_random_string, widget_to_html_string
 from deepchecks.utils.wandb_utils import wandb_run
 
+from . import common
+
 __all__ = ['BaseSuite', 'SuiteResult']
 
 
 class SuiteConfig(TypedDict):
+    kind: str
+    version: str
     name: str
-    module_name: str
-    checks: List[CheckConfig]
+    checks: List['CheckConfig']
 
 
 class SuiteResult(DisplayableResult):
@@ -487,6 +492,20 @@ class BaseSuite:
         self.checks.pop(index)
         return self
 
+    def to_json(self, indent: int = 3) -> str:
+        """Serialize suite instance to JSON string."""
+        conf = self.config()
+        return json.dumps(conf, indent=indent)
+
+    def from_json(
+        self,
+        conf: str,
+        version_unmatch: Union[L['raise'], L['warn'], None] = 'warn'
+    ) -> Self:
+        """Deserialize suite instance from JSON string."""
+        suite_conf = json.loads(conf)
+        return self.from_config(suite_conf, version_unmatch=version_unmatch)
+
     def config(self) -> SuiteConfig:
         """Return suite configuration (checks' conditions' configuration not yet supported).
 
@@ -495,13 +514,23 @@ class BaseSuite:
         SuiteConfig
             includes the suite name, and list of check configs.
         """
-        meta_data = SuiteConfig(name=self.name, checks=[], module_name=self.__module__)
-        for check in self.checks.values():
-            meta_data['checks'].append(check.config())
-        return meta_data
+        checks = [
+            it.config(include_version=False)
+            for it in self.checks.values()
+        ]
+        return SuiteConfig(
+            kind=common.importable_name(self),
+            name=self.name,
+            version=__version__,
+            checks=checks,
+        )
 
-    @staticmethod
-    def from_config(conf: SuiteConfig) -> 'BaseSuite':
+    @classmethod
+    def from_config(
+        cls: Type[Self],
+        conf: SuiteConfig,
+        version_unmatch: Union[L['raise'], L['warn'], None] = 'warn'
+    ) -> Self:
         """Return suite object from a CheckConfig object.
 
         Parameters
@@ -514,13 +543,27 @@ class BaseSuite:
         BaseSuite
             the suite class object from given config
         """
-        checks = []
-        for check_conf in conf['checks']:
-            checks.append(BaseCheck.from_config(check_conf))
+        # NOTE:
+        # within the method we need to treat conf as a dict with unknow structure/content
+        suite_conf = cast(Dict[str, Any], conf)
+        suite_conf = common.validate_config(suite_conf, version_unmatch)
 
-        module = importlib.import_module(conf['module_name'])
-        suite_cls: Type[BaseSuite] = getattr(module, 'Suite')
-        return suite_cls(conf['name'], *checks)
+        if 'checks' not in suite_conf or not isinstance(suite_conf['checks'], list):
+            raise ValueError('Configuration must contain "checks" key of type list')
+
+        if 'name' not in suite_conf or not isinstance(suite_conf['name'], str):
+            raise ValueError('Configuration must contain "name" key of type string')
+
+        suite_type = common.import_type(suite_conf['kind'], base=cls)
+
+        checks = [
+            BaseCheck.from_config(check_conf, version_unmatch=None)
+            for check_conf in suite_conf['checks']
+        ]
+        return suite_type(
+            suite_conf['name'],
+            *checks
+        )
 
 
 def sort_check_results(

@@ -12,17 +12,21 @@
 # pylint: disable=broad-except
 import abc
 import enum
-import importlib
+import json
 from collections import OrderedDict
-from typing import Any, Callable, ClassVar, Dict, List, Optional, Type, Union
+from typing import Any, Callable, ClassVar, Dict, List, Optional, Type, Union, cast
 
-from typing_extensions import TypedDict
+from typing_extensions import Literal as L
+from typing_extensions import NotRequired, Self, TypedDict
 
+from deepchecks import __version__
 from deepchecks.core import check_result as check_types  # pylint: disable=unused-import
 from deepchecks.core.condition import Condition, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.function import initvars
 from deepchecks.utils.strings import get_docs_summary, split_camel_case
+
+from . import common
 
 __all__ = [
     'DatasetKind',
@@ -48,8 +52,8 @@ class CheckMetadata(TypedDict):
 
 
 class CheckConfig(TypedDict):
-    class_name: str
-    module_name: Optional[str]
+    kind: str
+    version: NotRequired[str]
     params: Dict[Any, Any]
 
 
@@ -143,7 +147,7 @@ class BaseCheck(abc.ABC):
 
     def params(self, show_defaults: bool = False) -> Dict:
         """Return parameters to show when printing the check."""
-        return initvars(self, show_defaults)
+        return initvars(self, include_defaults=show_defaults)
 
     @classmethod
     def name(cls) -> str:
@@ -168,7 +172,21 @@ class BaseCheck(abc.ABC):
             summary=get_docs_summary(self, with_doc_link)
         )
 
-    def config(self) -> CheckConfig:
+    def to_json(self, indent: int = 3) -> str:
+        """Serialize check instance to JSON string."""
+        conf = self.config()
+        return json.dumps(conf, indent=indent)
+
+    def from_json(
+        self,
+        conf: str,
+        version_unmatch: Union[L['raise'], L['warn'], None] = 'warn'
+    ) -> Self:
+        """Deserialize check instance from JSON string."""
+        check_conf = json.loads(conf)
+        return self.from_config(check_conf, version_unmatch=version_unmatch)
+
+    def config(self, include_version: bool = True) -> CheckConfig:
         """Return check configuration (conditions' configuration not yet supported).
 
         Returns
@@ -176,29 +194,51 @@ class BaseCheck(abc.ABC):
         CheckConfig
             includes the checks class name, params, and module name.
         """
+        # NOTE:
+        # default implementation of the config method makes an assumption
+        # that Check type '__init__' method represents check instance internal
+        # state, it is true for some of our checks but not for all.
+        # To not do any implicit magical stuff the simplest solution for those
+        # check types for which this assumption is not true is to override the
+        # 'config' method.
+        # Another important assumption about the config method and it return value is
+        # that a check instance state (config.params) is represented by simple builtin
+        # types that can be serialized to json/yaml and will not lose type information
+        # between serialization/deserialization that might cause check instance to fall
+        # after it recreation from config.
+        # Again if that is not true for some sub-check it must override this method and to ensure
+        # this assumption
         conf = CheckConfig(
-            class_name=self.__class__.__name__,
-            params=self.params(show_defaults=True),
-            module_name=self.__module__
+            kind=common.importable_name(self),
+            params=initvars(self, include_defaults=True),
         )
+        if include_version is True:
+            conf['version'] = __version__
         return conf
 
-    @staticmethod
-    def from_config(conf: CheckConfig) -> 'BaseCheck':
+    @classmethod
+    def from_config(
+        cls: Type[Self],
+        conf: CheckConfig,
+        version_unmatch: Union[L['raise'], L['warn'], None] = 'warn'
+    ) -> Self:
         """Return check object from a CheckConfig object.
 
         Parameters
         ----------
-        conf : CheckConfig
-            the CheckConfig object
+        conf : Dict[Any, Any]
 
         Returns
         -------
         BaseCheck
             the check class object from given config
         """
-        module = importlib.import_module(conf['module_name'])
-        return getattr(module, conf['class_name'])(**conf['params'])
+        # NOTE:
+        # within the method we need to treat conf as a dict with unknow structure/content
+        check_conf = cast(Dict[str, Any], conf)
+        check_conf = common.validate_config(check_conf, version_unmatch=version_unmatch)
+        type_ = common.import_type(check_conf['kind'], base=cls)
+        return type_(**check_conf['params'])
 
     def __repr__(self, tabs=0, prefix=''):
         """Representation of check as string.
