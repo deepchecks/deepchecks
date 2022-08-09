@@ -228,6 +228,7 @@ test-win:
 		-r $(REQUIRE_DIR)/vision-$(REQUIRE_FILE)  \
 		-r $(REQUIRE_DIR)/nlp-$(REQUIRE_FILE)  \
 		-r $(REQUIRE_DIR)/dev-$(REQUIRE_FILE) 
+	@$(PIP_WIN) install -e .
 	python -m pytest $(WIN_TESTDIR)
 
 
@@ -431,10 +432,10 @@ $(LYCHEE):
 .PHONY: develop install download jupyter
 
 develop:
-	$(PYTHON) setup.py develop
+	$(PIP) install -e .
 
 install:
-	$(PYTHON) setup.py install
+	$(PIP) install .
 
 download:
 	$(PIP) install $(PROJECT)
