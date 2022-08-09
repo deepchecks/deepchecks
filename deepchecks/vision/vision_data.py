@@ -243,15 +243,15 @@ class VisionData:
         Raises
         ------
         ValidationError
-            If predictions format is invalid (depends on validate_infered_batch_predictions implementations)
+            If predictions format is invalid (depends on validate_inferred_batch_predictions implementations)
         DeepchecksNotImplementedError
             If infer_on_batch not implemented
         """
-        self.validate_infered_batch_predictions(self.infer_on_batch(batch, model, device))
+        self.validate_inferred_batch_predictions(self.infer_on_batch(batch, model, device))
 
     @staticmethod
-    def validate_infered_batch_predictions(batch_predictions):
-        """Validate the infered predictions from the batch."""
+    def validate_inferred_batch_predictions(batch_predictions):
+        """Validate the inferred predictions from the batch."""
         # isn't relevant for this class but is still a function we want to inherit
 
     def update_cache(self, batch: Batch):

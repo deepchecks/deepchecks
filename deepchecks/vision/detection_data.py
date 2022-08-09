@@ -166,21 +166,19 @@ class DetectionData(VisionData):
                                   'be a Bx5 tensor of format [class_id, x, y, width, height].')
 
     @staticmethod
-    def validate_infered_batch_predictions(batch_predictions):
+    def validate_inferred_batch_predictions(batch_predictions):
         """
-        Validate the infered predictions from the batch.
+        Validate the inferred predictions from the batch.
 
         Parameters
         ----------
         batch_predictions : t.Any
-            The infered predictions from the batch
+            The inferred predictions from the batch
 
         Raises
         ------
         ValidationError
             If predictions format is invalid
-        DeepchecksNotImplementedError
-            If infer_on_batch not implemented
         """
         if not isinstance(batch_predictions, Sequence):
             raise ValidationError('Check requires detection predictions to be a sequence with an entry for each'

@@ -13,7 +13,6 @@ from typing import List, Sequence
 
 import torch
 
-
 # Labels
 
 
@@ -91,17 +90,17 @@ def _get_predicted_bbox_area(predictions: List[torch.Tensor]) -> List[List[int]]
 
 def _get_samples_per_pred_class_semantic_segmentation(labels: List[torch.Tensor]) -> List[List[int]]:
     """Return a list containing the classes in batch."""
-    return [torch.unique(tensor.argmax(1)).tolist() for tensor in labels]
+    return [torch.unique(tensor.argmax(0)).tolist() for tensor in labels]
 
 
 def _get_segment_pred_area(labels: List[torch.Tensor]) -> List[List[int]]:
     """Return a list containing the area of segments in batch."""
-    return [torch.unique(tensor.argmax(1), return_counts=True)[1].tolist() for tensor in labels]
+    return [torch.unique(tensor.argmax(0), return_counts=True)[1].tolist() for tensor in labels]
 
 
 def _count_pred_classes_by_segment_in_image(labels: List[torch.Tensor]) -> List[int]:
     """Return a list containing the number of unique classes per image for semantic segmentation."""
-    return [torch.unique(tensor.argmax(1)).shape[0] for tensor in labels]
+    return [torch.unique(tensor.argmax(0)).shape[0] for tensor in labels]
 
 
 DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES = [

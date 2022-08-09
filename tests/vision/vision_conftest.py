@@ -31,6 +31,8 @@ from deepchecks.vision.datasets.detection.coco import LABEL_MAP as coco_labels
 from deepchecks.vision.datasets.detection.coco import COCOData, CocoDataset
 from deepchecks.vision.datasets.detection.coco import load_dataset as load_coco_dataset
 from deepchecks.vision.datasets.detection.coco import load_model as load_yolov5_model
+from deepchecks.vision.datasets.segmentation.segmentation_coco import load_dataset as load_segmentation_coco_dataset
+from deepchecks.vision.datasets.segmentation.segmentation_coco import load_model as load_segmentation_coco_model
 from deepchecks.vision.vision_data import TaskType
 from tests.vision.assets.coco_detections_dict import coco_detections_dict
 from tests.vision.assets.mnist_predictions_dict import mnist_predictions_dict
@@ -64,6 +66,9 @@ __all__ = ['device',
            'coco_train_custom_task',
            'mnist_dataset_train_torch',
            'coco_train_visiondata_torch',
+           'segmentation_coco_train_visiondata',
+           'segmentation_coco_test_visiondata',
+           'trained_segmentation_deeplabv3_mobilenet_model'
            ]
 
 
@@ -372,3 +377,18 @@ def run_update_loop(dataset: VisionData):
     for i, batch in enumerate(context.train):
         batch = Batch(batch, context, DatasetKind.TRAIN, i)
         dataset.update_cache(batch)
+
+
+@pytest.fixture(scope='session')
+def segmentation_coco_train_visiondata():
+    return load_segmentation_coco_dataset(train=True, object_type='VisionData', shuffle=False)
+
+
+@pytest.fixture(scope='session')
+def segmentation_coco_test_visiondata():
+    return load_segmentation_coco_dataset(train=False, object_type='VisionData', shuffle=False)
+
+
+@pytest.fixture(scope='session')
+def trained_segmentation_deeplabv3_mobilenet_model():
+    return load_segmentation_coco_model()

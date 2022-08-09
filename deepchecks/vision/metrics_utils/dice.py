@@ -21,7 +21,7 @@ class MeanDice(Metric):
 
         for i in range(len(y)):
             for class_id in [int(x) for x in torch.unique(y[i])]:
-                y_pred_this_label = (y_pred[i].argmax(1) == class_id).numpy()
+                y_pred_this_label = (y_pred[i].argmax(0) == class_id).numpy()
                 y_this_label = (y[i] == class_id).numpy()
 
                 tp = np.logical_and(y_pred_this_label, y_this_label).sum()

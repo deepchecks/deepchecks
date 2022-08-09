@@ -32,8 +32,8 @@ class SegmentationData(VisionData):
         return TaskType.SEMANTIC_SEGMENTATION
 
     @abstractmethod
-    def batch_to_labels(self, batch) -> Tuple[List[List[Any]], List[torch.Tensor]]:
-        """Extract the labels from a batch of data. #TODO: Refactor
+    def batch_to_labels(self, batch) -> List[torch.Tensor]:
+        """Extract the labels from a batch of data.
 
         Parameters
         ----------
@@ -42,56 +42,45 @@ class SegmentationData(VisionData):
 
         Returns
         -------
-        Tuple[List[List[Any]], List[torch.Tensor]]
-            The labels extracted from the batch. The labels should be a tuple of 2 lists:
-            1st list: list of length N containing lists of detected classes (each list references a single image)
-            2nd list: list of length N containing torch.Tensor of shape (k, img_width, img_height), where k is the
-                number of detections per that image.
-            See the notes for more info.
+        List[torch.Tensor]
+            List of torch.Tensors. Each tensor should be of same width and height of corresponding image, and its values
+            are the true class_ids of the corresponding pixels in that image.
+            Note that the tensor should 2D, as the number of channels on the original image are irrelevant to the class.
 
-        Examples #TODO: Replace example again
+        Examples
         --------
         >>> import torch
         ...
         ...
         ... def batch_to_labels(self, batch):
-        ...     # each image's label is of format torch.Tensor, where the tensor is of correct size, but each pixel
-        ...     # represents a different class_id (or none).
-        ...     # We would like to convert to a format where the function returns a tuple of 2 lists: one for class_ids
-        ...     # and one for tensors of boolean images:
-        ...     class_ids: list = self._class_ids
-        ...     classes_list = []
-        ...     tensors_list = []
-        ...     for label in batch[1]:
-        ...         image_classes = []
-        ...         image_segments = []
-        ...         for class_id in class_ids:
-        ...             detection_tensor = label == class_id
-        ...             if detection_tensor.sum() == 0:
-        ...                 continue
-        ...             else:
-        ...                 image_classes.append(class_id)
-        ...                 image_segments.append(detection_tensor)
-        ...         tensors_list.append(image_classes)
-        ...         classes_list.append(torch.stack(image_segments))
-
-
-        Notes
-        -----
-        The accepted label format for is a tuple of 2 lists:
-            1st list: list of length N containing lists of detected classes (each list references a single image)
-            2nd list: list of length N containing torch.Tensor of shape (k, img_width, img_height), where k is the
-                number of detections per that image, and img_width and img_height are the dimensions of the image
-                (regardless of addional channels).
-                Practically, this tensor is k boolean images, each one correlates to a detection and class, and the
-                values themselves reference each pixel in the original image and whether that object class was detected
-                in them or not.
+        ...     # In this example, each image's label is a tensor of boolean masks, one per class_id, indicating whether
+        ...     # that pixel is of that class.
+        ...     # We would like to convert to a format where the function returns a single mask indicating the exact
+        ...     # of each pixel:
+        ...     images = batch[0]
+        ...     labels = batch[1]
+        ...     return_labels = []
+        ...
+        ...     for label, image in zip(images, labels):
+        ...         # Here, class_id "0" is "background" or "no class detected"
+        ...         ret_label = np.zeros((image.shape[0], image.shape[1]))
+        ...         # Mask to mark which pixels are already identified as classes, in case of overlap in boolean masks
+        ...         ret_label_taken_positions = np.zeros(ret_label.shape)
+        ...
+        ...         # Go over all masks of this image and transform them to a single one:
+        ...         for i in range(len(label)):
+        ...             mask = np.logical_and(np.logical_not(ret_label_taken_positions),  np.array(masks[i]))
+        ...             ret_label += classes[i] * mask
+        ...             ret_label_taken_positions = np.logical_or(ret_label_mask, mask) # Update the taken positions
+        ...         return_labels.append(ret_label)
+        ...
+        ...     return return_labels
         """
         raise DeepchecksNotImplementedError('batch_to_labels() must be implemented in a subclass')
 
     @abstractmethod
     def infer_on_batch(self, batch, model, device) -> Sequence[torch.Tensor]:
-        """Return the predictions of the model on a batch of data. #TODO: Define and refactor docstring
+        """Return the predictions of the model on a batch of data.
 
         Parameters
         ----------
@@ -106,8 +95,9 @@ class SegmentationData(VisionData):
         -------
         Sequence[torch.Tensor]
             The predictions of the model on the batch. The predictions should be in a sequence of length N containing
-            tensors of shape (B, 6), where N is the number of images, B is the number of bounding boxes detected in the
-            sample and each bounding box is represented by 6 values. See the notes for more info.
+            tensors of shape (C, H, W), where N is the number of images, H and W are the height and width of the
+            corresponding image, and C is the number of classes that can be detected, each channel corresponds to a
+            class_id.
 
         Examples
         --------
@@ -115,39 +105,26 @@ class SegmentationData(VisionData):
         ...
         ...
         ... def infer_on_batch(self, batch, model, device):
-        ...     # Converts a yolo prediction batch to the accepted xywh format
+        ...     # Converts prediction received as (H, W, C) format to (C, H, W) format:
         ...     return_list = []
         ...
         ...     predictions = model(batch[0])
-        ...     # yolo Detections objects have List[torch.Tensor] xyxy output in .pred
-        ...     for single_image_tensor in predictions.pred:
-        ...         pred_modified = torch.clone(single_image_tensor)
-        ...         pred_modified[:, 2] = pred_modified[:, 2] - pred_modified[:, 0]
-        ...         pred_modified[:, 3] = pred_modified[:, 3] - pred_modified[:, 1]
-        ...         return_list.append(pred_modified)
+        ...     for single_image_tensor in predictions:
+        ...         single_image_tensor = torch.transpose(single_image_tensor, 0, 2)
+        ...         single_image_tensor = torch.transpose(single_image_tensor, 1, 2)
+        ...         return_list.append(single_image_tensor)
         ...
         ...     return return_list
-
-        Notes
-        -----
-        The accepted prediction format is a list of length N containing tensors of shape (B, 6), where N is the number
-        of images, B is the number of bounding boxes detected in the sample and each bounding box is represented by 6
-        values: [x, y, w, h, confidence, class_id]. x and y are the coordinates (in pixels) of the upper left corner
-        of the bounding box, w and h are the width and height of the bounding box (in pixels), confidence is the
-        confidence of the model and class_id is the class id.
         """
         raise DeepchecksNotImplementedError('infer_on_batch() must be implemented in a subclass')
 
     def get_classes(self, batch_labels: List[torch.Tensor]):
-        """Get a labels batch and return classes inside it.""" #TODO: Refactor
+        """Get a labels batch and return classes inside it."""
 
-        def get_classes_from_single_label(tensor: torch.Tensor):
-            return torch.unique(tensor).type(torch.IntTensor).tolist()
-
-        return [get_classes_from_single_label(x) for x in batch_labels]
+        return [torch.unique(tensor).type(torch.IntTensor).tolist() for tensor in batch_labels]
 
     def validate_label(self, batch):
-        """ #TODO: Refactor
+        """
         Validate the label.
 
         Parameters
@@ -161,62 +138,54 @@ class SegmentationData(VisionData):
         DeepchecksNotImplementedError
             If batch_to_labels not implemented
         """
+        images = self.batch_to_images(batch)
         labels = self.batch_to_labels(batch)
-        imgs = self.batch_to_images(batch)
-        if not isinstance(labels, Sequence) or not len(labels) == len(imgs):
+        if not isinstance(labels, Sequence) or not len(labels) == len(images):
             raise ValidationError('Deepchecks requires semantic segmentation labels to be a sequence with an entry for '
                                   'each sample')
         if len(labels) == 0:
             raise ValidationError('Deepchecks requires semantic segmentation label to be a non-empty list')
-        if not isinstance(labels[0], torch.Tensor):
-            raise ValidationError('Deepchecks requires semantic segmentation label to be of type torch.Tensor')
-        if not labels[0].shape == imgs[0].shape[:2]:
-            raise ValidationError('Deepchecks requires semantic segmentation label to be of same width and height as '
-                                  'image')
+        for image, label in zip(images, labels):
+            if not isinstance(label, torch.Tensor):
+                raise ValidationError('Deepchecks requires semantic segmentation label to be of type torch.Tensor')
+            if not label.shape == image.shape[:2]:
+                raise ValidationError('Deepchecks requires semantic segmentation label to be of same width and height'
+                                      ' as the corresponding image')
 
     @staticmethod
-    def validate_infered_batch_predictions(batch_predictions):
-        """ #TODO: Refactor
-        Validate the infered predictions from the batch.
+    def validate_inferred_batch_predictions(batch_predictions, n_classes: int = None, eps: float = 1e-3):
+        """
+        Validate the inferred predictions from the batch.
 
         Parameters
         ----------
         batch_predictions : t.Any
-            The infered predictions from the batch
+            The inferred predictions from the batch
+        n_classes : int , default: None
+            Number of classes.
+        eps : float , default: 1e-3
+            Epsilon value to be used in the validation, by default 1e-3
+
 
         Raises
         ------
         ValidationError
             If predictions format is invalid
-        DeepchecksNotImplementedError
-            If infer_on_batch not implemented
         """
-
-        # if not isinstance(batch_predictions, Sequence):
-        #     raise ValidationError('Check requires detection predictions to be a sequence with an entry for each'
-        #                           ' sample')
-        # if len(batch_predictions) == 0:
-        #     raise ValidationError('Check requires detection predictions to be a non-empty sequence')
-        # if not isinstance(batch_predictions[0], torch.Tensor):
-        #     raise ValidationError('Check requires detection predictions to be a sequence of torch.Tensor')
-        # sample_idx = 0
-        # # Find a non empty tensor to validate
-        # while batch_predictions[sample_idx].shape[0] == 0:
-        #     sample_idx += 1
-        #     if sample_idx == len(batch_predictions):
-        #         return  # No predictions to validate
-        # if len(batch_predictions[sample_idx].shape) != 2:
-        #     raise ValidationError('Check requires detection predictions to be a sequence of 2D tensors')
-        # if batch_predictions[sample_idx].shape[1] != 6:
-        #     raise ValidationError('Check requires detection predictions to be a sequence of 2D tensors, when '
-        #                           'each row has 6 columns: [x, y, width, height, class_probability, class_id]')
-        # if torch.min(batch_predictions[sample_idx]) < 0:
-        #     raise ValidationError('Found one of coordinates to be negative, Check requires object detection '
-        #                           'bounding box predictions to be of format [x, y, width, height, confidence,'
-        #                           ' class_id]. ')
-        # if torch.min(batch_predictions[sample_idx][:, 4]) < 0 or torch.max(batch_predictions[sample_idx][:, 4]) > 1:
-        #     raise ValidationError('Confidence must be between 0 and 1. Object detection predictions per image '
-        #                           'should be a Bx6 tensor of format [x, y, width, height, confidence, class_id].')
-        # if torch.max(batch_predictions[sample_idx][:, 5] % 1) > 0:
-        #     raise ValidationError('Class_id must be a positive integer. Object detection predictions per image '
-        #                           'should be a Bx6 tensor of format [x, y, width, height, confidence, class_id].')
+        if not isinstance(batch_predictions, Sequence):
+            raise ValidationError('Deepchecks requires semantic segmentation predictions to be a sequence with an entry'
+                                  ' for each sample')
+        if len(batch_predictions) == 0:
+            raise ValidationError('Deepchecks requires semantic segmentation predictions to be a non-empty list')
+        for prediction in batch_predictions:
+            if not isinstance(prediction, torch.Tensor):
+                raise ValidationError('Deepchecks requires semantic segmentation predictions to be of type torch.Tensor')
+            if len(prediction.shape) != 3:
+                raise ValidationError('Deepchecks requires semantic segmentation predictions to be a 3D tensor, but got'
+                                      f'a tensor with {len(prediction.shape)} dimensions')
+            if n_classes and prediction.shape[2] != n_classes:
+                raise ValidationError(f'Deepchecks requires semantic segmentation predictions to have {n_classes} '
+                                      f'columns')
+            if abs(float(prediction[:, 0, 0].sum(dim=0)) - 1) > eps:
+                raise ValidationError('Deepchecks requires semantic segmentation predictions to be a probability '
+                                      'distribution and sum to 1 for each row')
