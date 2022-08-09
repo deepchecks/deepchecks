@@ -17,8 +17,12 @@ from importlib._bootstrap import _init_module_attrs
 try:
     from importlib.metadata import version
 except ImportError:
+    # NOTE:
+    # 'importlib.metadata' was added to python>=3.8
+    # for versions that are <3.8 we need to install
+    # 'importlib_metadata' package
     from importlib_metadata import version
-    
+
 # NOTE: it is here, before other import, in order to omit circular import error
 __version__ = version('deepchecks')
 

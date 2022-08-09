@@ -1,3 +1,14 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
+"""Module containing common (shared) functionality among core modules."""
 import importlib
 import typing as t
 
@@ -10,14 +21,16 @@ __all__ = ['importable_name', 'import_type', 'validate_config']
 
 
 def importable_name(obj: t.Any) -> str:
+    """Return the full import name of an object type."""
     kind = type(obj) if not isinstance(obj, type) else obj
     name = kind.__qualname__
     module = kind.__module__
-    return f'{name}.{module}'
+    return f'{module}.{name}'
 
 
-def import_type(full_name: str, base: t.Optional[t.Type[t.Any]] = None):
-    s = full_name.rstrip('.')
+def import_type(full_name: str, base: t.Optional[t.Type[t.Any]] = None) -> t.Type[t.Any]:
+    """Import and return type instance by name."""
+    s = full_name.rsplit('.', maxsplit=1)
 
     if len(s) < 2:
         raise ValueError(f'Incorrect import name - {full_name}')
@@ -38,10 +51,14 @@ def import_type(full_name: str, base: t.Optional[t.Type[t.Any]] = None):
     return type_
 
 
+VersionUnmatchAction = t.Union[L['raise'], L['warn'], None]  # noqa
+
+
 def validate_config(
     conf: t.Dict[str, t.Any],
-    version_unmatch: t.Union[L['raise'], L['warn'], None] = 'warn'
+    version_unmatch: VersionUnmatchAction = 'warn'
 ) -> t.Dict[str, t.Any]:
+    """Validate check/suite configuration dictionary."""
     if 'kind' not in conf or not conf['kind']:
         raise ValueError('Configuration must contain not empty "kind" key of type string')
 

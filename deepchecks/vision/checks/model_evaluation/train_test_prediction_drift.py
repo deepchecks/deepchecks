@@ -230,8 +230,9 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         return CheckResult(value=values_dict, display=displays, header='Train Test Prediction Drift')
 
     def config(self, include_version: bool = True) -> CheckConfig:
-        if isinstance(self.user_prediction_properties, list):
-            for prop in self.user_prediction_properties:
+        """Return check configuration."""
+        if isinstance(self.prediction_properties, list):
+            for prop in self.prediction_properties:
                 if 'method' not in prop or not prop['method']:
                     raise ValueError('Each prediction property is expected to contain not emtpy "method" key')
                 if callable(prop['method']):
@@ -241,17 +242,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
                         'if custom user defined properties were passed to the "prediction_properties" '
                         f'parameter during instance initialization. Property name: {prop["name"]}'
                     )
-        return self._prepare_config(
-            include_version=include_version,
-            params={
-                'prediction_properties': self.user_prediction_properties,
-                'margin_quantile_filter': self.margin_quantile_filter,
-                'max_num_categories_for_drift': self.max_num_categories_for_drift,
-                'max_num_categories_for_display': self.max_num_categories_for_display,
-                'show_categories_by': self.show_categories_by,
-                'categorical_drift_method': self.categorical_drift_method
-            }
-        )
+        return super().config(include_version=include_version)
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return prediction drift score per prediction property."""

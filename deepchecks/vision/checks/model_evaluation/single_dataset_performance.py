@@ -10,16 +10,19 @@
 #
 """Module containing a check for computing a scalar performance metric for a single dataset."""
 from numbers import Number
-from typing import Any, Callable, Dict, List, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Union
 
 from ignite.metrics import Metric
 
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
-from deepchecks.core.checks import CheckConfig, ReduceMixin
+from deepchecks.core.checks import ReduceMixin
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision import Batch, Context, SingleDatasetCheck
 from deepchecks.vision.metrics_utils.scorers import get_scorers_dict, metric_results_to_df
+
+if TYPE_CHECKING:
+    from deepchecks.core.checks import CheckConfig
 
 __all__ = ['SingleDatasetPerformance']
 
@@ -63,7 +66,8 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
     def config(
         self,
         include_version: bool = True
-    ) -> CheckConfig:
+    ) -> 'CheckConfig':
+        """Return check configuration."""
         if isinstance(self.scorers, dict):
             for k, v in self.scorers.items():
                 if not isinstance(v, str):
@@ -73,10 +77,7 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
                         'if custom user defined scorers (metrics) were passed to the "scorers" parameter '
                         f'during instance initialization. Scorer name: {k}'
                     )
-        return self._prepare_config(
-            params={'scorers': self.scorers},
-            include_version=include_version
-        )
+        return super().config(include_version=include_version)
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return the values of the metrics for the dataset provided in a {metric: value} format."""

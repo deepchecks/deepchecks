@@ -28,14 +28,15 @@ def run_available_kwargs(func: Callable, **kwargs):
 
 def initvars(
     obj: object,
-    include_defaults: bool = False
+    include_defaults: bool = False,
+    include_kwargs: bool = False,
 ) -> Dict[Any, Any]:
     """Return object __dict__ variables that was passed throw constructor (__init__ method).
 
     Parameters
     ----------
     obj : object
-    show_defaults : bool, default False
+    include_defaults : bool, default False
         wherether to include vars with default value or not
 
     Returns
@@ -43,14 +44,24 @@ def initvars(
     Dict[Any, Any] subset of the obj __dict__
     """
     assert hasattr(obj, '__init__')
-    state = {k: v for k, v in obj.__dict__ if not k.startswith('_')}
-    s = extract_signature(obj.__init__)
-    bind = s.bind(**state)
+    state = {k: v for k, v in obj.__dict__.items() if not k.startswith('_')}
+    signature = extract_signature(obj.__init__)  # pylint: disable=redefined-outer-name
+    bind = signature.bind(**state)
 
     if include_defaults is True:
         bind.apply_defaults()
+        arguments = bind.arguments
+    else:
+        arguments = {
+            k: v
+            for k, v in bind.arguments.items()
+            if signature.parameters[k].default is not v
+        }
 
-    return bind.arguments
+    if not include_kwargs:
+        arguments.pop('kwargs', None)
+
+    return arguments
 
 
 @lru_cache(maxsize=None)

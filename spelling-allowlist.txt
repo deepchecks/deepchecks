@@ -108,3 +108,5 @@ astype
 nullable
 hashable
 SimilarImageLeakage
+conf
+deserialization

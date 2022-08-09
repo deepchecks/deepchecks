@@ -19,7 +19,6 @@ from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, Type, Union,
 
 import jsonpickle
 from ipywidgets import Widget
-from typing_extensions import Literal as L
 from typing_extensions import Self, TypedDict
 
 from deepchecks import __version__
@@ -500,7 +499,7 @@ class BaseSuite:
     def from_json(
         self,
         conf: str,
-        version_unmatch: Union[L['raise'], L['warn'], None] = 'warn'
+        version_unmatch: 'common.VersionUnmatchAction' = 'warn'
     ) -> Self:
         """Deserialize suite instance from JSON string."""
         suite_conf = json.loads(conf)
@@ -529,7 +528,7 @@ class BaseSuite:
     def from_config(
         cls: Type[Self],
         conf: SuiteConfig,
-        version_unmatch: Union[L['raise'], L['warn'], None] = 'warn'
+        version_unmatch: 'common.VersionUnmatchAction' = 'warn'
     ) -> Self:
         """Return suite object from a CheckConfig object.
 
@@ -544,7 +543,7 @@ class BaseSuite:
             the suite class object from given config
         """
         # NOTE:
-        # within the method we need to treat conf as a dict with unknow structure/content
+        # within the method we need to treat conf as a dict with unknown structure/content
         suite_conf = cast(Dict[str, Any], conf)
         suite_conf = common.validate_config(suite_conf, version_unmatch)
 

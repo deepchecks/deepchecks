@@ -83,7 +83,7 @@ class TrainTestPerformance(TrainTestCheck, ReduceMixin):
                  reduce: Union[Callable, str] = 'mean',
                  **kwargs):
         super().__init__(**kwargs)
-        self.user_scorers = scorers
+        self.scorers = scorers
         self.reduce = reduce
 
     def run_logic(self, context: Context) -> CheckResult:
@@ -91,7 +91,7 @@ class TrainTestPerformance(TrainTestCheck, ReduceMixin):
         train_dataset = context.train
         test_dataset = context.test
         model = context.model
-        scorers = context.get_scorers(self.user_scorers, use_avg_defaults=False)
+        scorers = context.get_scorers(self.scorers, use_avg_defaults=False)
         datasets = {'Train': train_dataset, 'Test': test_dataset}
 
         results = []
@@ -146,6 +146,7 @@ class TrainTestPerformance(TrainTestCheck, ReduceMixin):
         )
 
     def config(self, include_version: bool = True) -> CheckConfig:
+        """Return check configuration."""
         name = type(self).__name__
 
         if callable(self.reduce):
@@ -155,8 +156,8 @@ class TrainTestPerformance(TrainTestCheck, ReduceMixin):
                 f'during instance initialization'
             )
 
-        if isinstance(self.user_scorers, dict):
-            for k, v in self.user_scorers.items():
+        if isinstance(self.scorers, dict):
+            for k, v in self.scorers.items():
                 if not isinstance(v, str):
                     name = type(self).__name__
                     raise ValueError(
@@ -165,10 +166,7 @@ class TrainTestPerformance(TrainTestCheck, ReduceMixin):
                         f'during instance initialization. Scorer name: {k}'
                     )
 
-        return self._prepare_config(
-            params={'reduce': self.reduce, 'scorers': self.user_scorers},
-            include_version=include_version
-        )
+        return super().config(include_version=include_version)
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return the values of the metrics for the test dataset in {metric: value} format."""

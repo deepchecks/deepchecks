@@ -16,7 +16,6 @@ import json
 from collections import OrderedDict
 from typing import Any, Callable, ClassVar, Dict, List, Optional, Type, Union, cast
 
-from typing_extensions import Literal as L
 from typing_extensions import NotRequired, Self, TypedDict
 
 from deepchecks import __version__
@@ -180,7 +179,7 @@ class BaseCheck(abc.ABC):
     def from_json(
         self,
         conf: str,
-        version_unmatch: Union[L['raise'], L['warn'], None] = 'warn'
+        version_unmatch: 'common.VersionUnmatchAction' = 'warn'
     ) -> Self:
         """Deserialize check instance from JSON string."""
         check_conf = json.loads(conf)
@@ -230,7 +229,7 @@ class BaseCheck(abc.ABC):
     def from_config(
         cls: Type[Self],
         conf: CheckConfig,
-        version_unmatch: Union[L['raise'], L['warn'], None] = 'warn'
+        version_unmatch: 'common.VersionUnmatchAction' = 'warn'
     ) -> Self:
         """Return check object from a CheckConfig object.
 
@@ -244,7 +243,7 @@ class BaseCheck(abc.ABC):
             the check class object from given config
         """
         # NOTE:
-        # within the method we need to treat conf as a dict with unknow structure/content
+        # within the method we need to treat conf as a dict with unknown structure/content
         check_conf = cast(Dict[str, Any], conf)
         check_conf = common.validate_config(check_conf, version_unmatch=version_unmatch)
         type_ = common.import_type(check_conf['kind'], base=cls)

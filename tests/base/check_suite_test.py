@@ -14,6 +14,7 @@ from typing import List
 
 from hamcrest import all_of, assert_that, calling, equal_to, has_entry, has_items, has_length, instance_of, is_, raises
 
+from deepchecks import __version__
 from deepchecks.core import CheckFailure, CheckResult, ConditionCategory, ConditionResult, SuiteResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.suite import BaseSuite
@@ -212,8 +213,9 @@ def test_config():
     suite_mod = model_eval_suite.config()
 
     assert_that(suite_mod, all_of(
+        has_entry('kind', 'deepchecks.tabular.suite.Suite'),
         has_entry('name', 'Model Evaluation Suite'),
-        has_entry('module_name', 'deepchecks.tabular.suite'),
+        has_entry('version', __version__),
         has_entry('checks', instance_of(list))
     ))
 

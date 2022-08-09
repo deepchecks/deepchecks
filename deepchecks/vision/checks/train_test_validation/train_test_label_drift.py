@@ -225,8 +225,9 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
         return CheckResult(value=values_dict, display=displays, header='Train Test Label Drift')
 
     def config(self, include_version: bool = True) -> CheckConfig:
-        if isinstance(self.user_label_properties, list):
-            for prop in self.user_label_properties:
+        """Return check configuration."""
+        if isinstance(self.label_properties, list):
+            for prop in self.label_properties:
                 if 'method' not in prop or not prop['method']:
                     raise ValueError('Each label property is expected to contain not emtpy "method" key')
                 if callable(prop['method']):
@@ -236,17 +237,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
                         'if custom user defined properties were passed to the "label_properties" '
                         f'parameter during instance initialization. Property name: {prop["name"]}'
                     )
-        return self._prepare_config(
-            include_version=include_version,
-            params={
-                'label_properties': self.user_label_properties,
-                'margin_quantile_filter': self.margin_quantile_filter,
-                'max_num_categories_for_drift': self.max_num_categories_for_drift,
-                'max_num_categories_for_display': self.max_num_categories_for_display,
-                'show_categories_by': self.show_categories_by,
-                'categorical_drift_method': self.categorical_drift_method
-            },
-        )
+        return super().config(include_version=include_version)
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return label drift score per label property."""
