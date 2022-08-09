@@ -8,22 +8,24 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module for defining metrics for the vision module."""
+"""Module for defining scorers for the vision module."""
 import typing as t
 from copy import copy
+from numbers import Number
 
 import numpy as np
 import pandas as pd
 import torch
 from ignite.engine import Engine
 from ignite.metrics import Metric, Precision, Recall
-from sklearn.metrics._scorer import _BaseScorer, _ProbaScorer
+from sklearn.metrics._scorer import _ProbaScorer
 
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.tabular.metric_utils import DeepcheckScorer
 from deepchecks.utils.metrics import get_scorer_name
-from deepchecks.vision.metrics_utils import CustomScorer, ObjectDetectionAveragePrecision, ObjectDetectionTpFpFn
+from deepchecks.vision.metrics_utils import (CustomClassificationScorer, ObjectDetectionAveragePrecision,
+                                             ObjectDetectionTpFpFn)
 from deepchecks.vision.vision_data import TaskType, VisionData
 
 __all__ = [
@@ -54,41 +56,39 @@ classification_dict = {
 }
 
 detection_dict = {
-    'precision_per_class': lambda: ObjectDetectionTpFpFn(evaluting_function='precision'),
-    'recall_per_class': lambda: ObjectDetectionTpFpFn(evaluting_function='recall'),
+    'precision_per_class': lambda: ObjectDetectionTpFpFn(evaluating_function='precision', averaging_method='per_class'),
+    'precision': lambda: ObjectDetectionTpFpFn(evaluating_function='precision', averaging_method='binary'),
+    'precision_macro': lambda: ObjectDetectionTpFpFn(evaluating_function='precision', averaging_method='macro'),
+    'precision_micro': lambda: ObjectDetectionTpFpFn(evaluating_function='precision', averaging_method='micro'),
+    'precision_weighted': lambda: ObjectDetectionTpFpFn(evaluating_function='precision', averaging_method='weighted'),
+    'recall_per_class': lambda: ObjectDetectionTpFpFn(evaluating_function='recall', averaging_method='per_class'),
+    'recall': lambda: ObjectDetectionTpFpFn(evaluating_function='recall', averaging_method='binary'),
+    'recall_macro': lambda: ObjectDetectionTpFpFn(evaluating_function='recall', averaging_method='macro'),
+    'recall_micro': lambda: ObjectDetectionTpFpFn(evaluating_function='recall', averaging_method='micro'),
+    'recall_weighted': lambda: ObjectDetectionTpFpFn(evaluating_function='recall', averaging_method='weighted'),
+    'f1_per_class': lambda: ObjectDetectionTpFpFn(evaluating_function='f1', averaging_method='per_class'),
+    'f1': lambda: ObjectDetectionTpFpFn(evaluating_function='f1', averaging_method='binary'),
+    'f1_macro': lambda: ObjectDetectionTpFpFn(evaluating_function='f1', averaging_method='macro'),
+    'f1_micro': lambda: ObjectDetectionTpFpFn(evaluating_function='f1', averaging_method='micro'),
+    'f1_weighted': lambda: ObjectDetectionTpFpFn(evaluating_function='f1', averaging_method='weighted'),
+    'fpr_per_class': lambda: ObjectDetectionTpFpFn(evaluating_function='fpr', averaging_method='per_class'),
+    'fpr': lambda: ObjectDetectionTpFpFn(evaluating_function='fpr', averaging_method='binary'),
+    'fpr_macro': lambda: ObjectDetectionTpFpFn(evaluating_function='fpr', averaging_method='macro'),
+    'fpr_micro': lambda: ObjectDetectionTpFpFn(evaluating_function='fpr', averaging_method='micro'),
+    'fpr_weighted': lambda: ObjectDetectionTpFpFn(evaluating_function='fpr', averaging_method='weighted'),
+    'fnr_per_class': lambda: ObjectDetectionTpFpFn(evaluating_function='fnr', averaging_method='per_class'),
+    'fnr': lambda: ObjectDetectionTpFpFn(evaluating_function='fnr', averaging_method='binary'),
+    'fnr_macro': lambda: ObjectDetectionTpFpFn(evaluating_function='fnr', averaging_method='macro'),
+    'fnr_micro': lambda: ObjectDetectionTpFpFn(evaluating_function='fnr', averaging_method='micro'),
+    'fnr_weighted': lambda: ObjectDetectionTpFpFn(evaluating_function='fnr', averaging_method='weighted'),
     'average_precision_per_class': lambda: ObjectDetectionAveragePrecision(return_option='ap'),
-    'average_recall_per_class': lambda: ObjectDetectionAveragePrecision(return_option='ar'),
-    'f1_per_class': lambda: ObjectDetectionTpFpFn(evaluting_function='f1'),
-    'fpr_per_class': lambda: ObjectDetectionTpFpFn(evaluting_function='fpr'),
-    'fnr_per_class': lambda: ObjectDetectionTpFpFn(evaluting_function='fnr')
+    'average_recall_per_class': lambda: ObjectDetectionAveragePrecision(return_option='ar')
 }
-
-
-def convert_classification_scorers(scorer: t.Union[Metric, str, t.Callable]):
-    if isinstance(scorer, str):
-        scorer_name = scorer.lower().replace(' ', '_').replace('sensitivity', 'recall')
-        if scorer_name in classification_dict:
-            return classification_dict[scorer_name]()
-    if isinstance(scorer, (_BaseScorer, str)):
-        scorer = DeepcheckScorer(scorer)
-        needs_proba = isinstance(scorer, _ProbaScorer)
-        return CustomScorer(scorer.run_on_pred, needs_proba=needs_proba)
-    elif callable(scorer):
-        return CustomScorer(scorer)
-    return None
-
-
-def convert_detection_scorers(scorer: t.Union[Metric, str, t.Callable]):
-    if isinstance(scorer, str):
-        scorer_name = scorer.lower().replace(' ', '_').replace('sensitivity', 'recall')
-        if scorer_name in detection_dict:
-            return detection_dict[scorer_name]()
-    return None
 
 
 def get_scorers_dict(
         dataset: VisionData,
-        alternative_scorers: t.Union[t.Dict[str, t.Union[Metric, t.Callable, str]], t.List[t.Any]] = None,
+        alternative_scorers: t.Union[t.Dict[str, t.Union[Metric, str]], t.List[t.Union[Metric, str]]] = None,
 ) -> t.Dict[str, Metric]:
     """Get scorers list according to model object and label column.
 
@@ -109,25 +109,31 @@ def get_scorers_dict(
         # For alternative scorers we create a copy since in suites we are running in parallel, so we can't use the same
         # instance for several checks.
         if isinstance(alternative_scorers, list):
-            alternative_scorers = {get_scorer_name(name): name for name in alternative_scorers}
+            alternative_scorers = {get_scorer_name(scorer): scorer for scorer in alternative_scorers}
         scorers = {}
-        for name, met in alternative_scorers.items():
+        for name, metric in alternative_scorers.items():
             # Validate that each alternative scorer is a correct type
-            if isinstance(met, Metric):
-                met.reset()
-                scorers[name] = copy(met)
-            elif isinstance(met, str) or callable(met):
-                if task_type == TaskType.OBJECT_DETECTION:
-                    converted_met = convert_detection_scorers(met)
+            if isinstance(metric, Metric):
+                metric.reset()
+                scorers[name] = copy(metric)
+            elif isinstance(metric, str):
+                metric_name = metric.lower().replace(' ', '_').replace('sensitivity', 'recall')
+                if task_type == TaskType.OBJECT_DETECTION and metric_name in detection_dict:
+                    converted_met = detection_dict[metric_name]()
+                elif task_type == TaskType.CLASSIFICATION:
+                    if metric_name in classification_dict:
+                        converted_met = classification_dict[metric_name]()
+                    else:
+                        scorer = DeepcheckScorer(metric_name)
+                        needs_proba = isinstance(scorer, _ProbaScorer)
+                        converted_met = CustomClassificationScorer(scorer.run_on_pred, needs_proba=needs_proba)
                 else:
-                    converted_met = convert_classification_scorers(met)
-                if converted_met is None:
                     raise DeepchecksNotSupportedError(
-                        f'Unsupported metric: {name} of type {type(met).__name__} was given.')
+                        f'Unsupported metric: {name} of type {type(metric).__name__} was given.')
                 scorers[name] = converted_met
             else:
                 raise DeepchecksValueError(
-                    f'Excepted metric type one of [ignite.Metric, str, callable], was {type(met).__name__}.')
+                    f'Excepted metric type one of [ignite.Metric, str], was {type(metric).__name__}.')
         return scorers
     elif task_type == TaskType.CLASSIFICATION:
         scorers = get_default_classification_scorers()
@@ -176,34 +182,30 @@ def calculate_metrics(
     return state.metrics
 
 
-def _validate_metric_type(metric_name: str, score: t.Any) -> bool:
-    """Raise error if metric has incorrect type, or return true."""
-    if not isinstance(score, (torch.Tensor, list, np.ndarray)):
-        raise DeepchecksValueError(f'The metric {metric_name} returned a '
-                                   f'{type(score)} instead of an array/tensor')
-    return True
-
-
 def metric_results_to_df(results: dict, dataset: VisionData) -> pd.DataFrame:
     """Get dict of metric name to tensor of classes scores, and convert it to dataframe."""
-    # The data might contain fewer classes than the model was trained on. filtering out any class id which is not
-    # presented in the data.
     data_classes = dataset.classes_indices.keys()
+    result_list = []
 
-    per_class_result = [
-        [metric, class_id, dataset.label_id_to_name(class_id),
-         class_score.item() if isinstance(class_score, torch.Tensor) else class_score]
-        for metric, score in results.items()
-        if _validate_metric_type(metric, score)
-        # scorer returns results as array, containing result per class
-        for class_id, class_score in enumerate(score)
-        if not np.isnan(class_score) and class_id in data_classes
-    ]
+    for metric, scores in results.items():
+        if isinstance(scores, Number):
+            result_list.append([metric, pd.NA, pd.NA, scores])
+        elif len(scores) == 1:
+            score = scores[0].item() if isinstance(scores[0], torch.Tensor) else scores[0]
+            result_list.append([metric, pd.NA, pd.NA, score])
+        elif isinstance(scores, (torch.Tensor, list, np.ndarray)):
+            for class_id, class_score in enumerate(scores):
+                # The data might contain fewer classes than the model was trained on. filtering out
+                # any class id which is not presented in the data.
+                if np.isnan(class_score) or class_id not in data_classes:
+                    continue
+                score = class_score.item() if isinstance(class_score, torch.Tensor) else class_score
+                result_list.append([metric, class_id, dataset.label_id_to_name(class_id), score])
+        else:
+            raise DeepchecksValueError(f'The metric {metric} returned a '
+                                       f'{type(scores)} instead of an array/tensor')
 
-    return pd.DataFrame(per_class_result, columns=['Metric',
-                                                   'Class',
-                                                   'Class Name',
-                                                   'Value']).sort_values(by=['Metric', 'Class'])
+    return pd.DataFrame(result_list, columns=['Metric', 'Class', 'Class Name', 'Value'])
 
 
 def filter_classes_for_display(metrics_df: pd.DataFrame,

@@ -12,7 +12,7 @@ from hamcrest import (all_of, any_of, assert_that, calling, close_to, contains_e
                       has_entries, has_key, has_length, has_properties, instance_of, is_, raises)
 from hamcrest.core.matcher import Matcher
 
-from deepchecks import CheckResult
+from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.vision.checks import ImagePropertyOutliers
 from deepchecks.vision.utils.image_properties import default_image_properties
@@ -153,8 +153,7 @@ def test_incorrect_properties_count_exception(mnist_dataset_train, device):
     check = ImagePropertyOutliers(image_properties=image_properties)
     # Act - Assert check raise exception
     assert_that(calling(check.run).with_args(mnist_dataset_train, device=device),
-                raises(DeepchecksProcessError, 'Properties are expected to return value per image but instead got 65 '
-                                               'values for 64 images for property test'))
+                raises(DeepchecksProcessError, 'The properties should have the same length as the raw data'))
 
 
 def test_property_with_nones(mnist_dataset_train, device):

@@ -23,7 +23,7 @@ import torch
 from ignite.metrics import Metric
 from plotly.subplots import make_subplots
 
-from deepchecks import CheckResult, ConditionResult
+from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils import plot

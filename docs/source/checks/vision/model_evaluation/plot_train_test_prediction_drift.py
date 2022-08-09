@@ -134,6 +134,8 @@ from torch.utils.data._utils.collate import default_collate
 
 np.random.seed(42)
 
+images, labels = next(iter(mnist_dataloader_test))
+
 
 def collate_test(batch):
     modified_batch = []
@@ -143,10 +145,10 @@ def collate_test(batch):
             if np.random.randint(5) == 0:
                 modified_batch.append(item)
             else:
-                modified_batch.append((image, 1))
+                modified_batch.append((images[0], 1))
         else:
             modified_batch.append(item)
-            
+
     return default_collate(modified_batch)
 
 mod_train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=64)

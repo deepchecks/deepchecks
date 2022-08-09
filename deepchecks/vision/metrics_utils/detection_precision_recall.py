@@ -11,7 +11,7 @@
 """Module for calculating detection precision and recall."""
 import warnings
 from collections import defaultdict
-from typing import List, Optional, Tuple, Union
+from typing import List, Tuple, Union
 
 import numpy as np
 import torch
@@ -46,12 +46,12 @@ class AveragePrecisionRecall(Metric, MetricMixin):
     area_range: tuple, default: (32**2, 96**2)
         Slices for small/medium/large buckets.
     return_option: str, default: 'ap'
-        ap: ap only, ar: ar only, None: all (not ignite complient)
+        ap: ap only, ar: ar only, None: all (not ignite compliant)
     """
 
     def __init__(self, *args, max_dets: Union[List[int], Tuple[int]] = (1, 10, 100),
                  area_range: Tuple = (32**2, 96**2),
-                 return_option: Optional[int] = "ap", **kwargs):
+                 return_option: str = "ap", **kwargs):
         super().__init__(*args, **kwargs)
 
         self.return_option = return_option

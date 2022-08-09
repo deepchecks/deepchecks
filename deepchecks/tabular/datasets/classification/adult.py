@@ -8,7 +8,99 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""The data set contains features for binary prediction of the income of an adult (the adult dataset)."""
+"""The data set contains features for binary prediction of the income of an adult (the adult dataset).
+
+The data has 48842 records with 14 features and one binary target column, referring to whether the person's income
+is greater than 50K.
+
+This is a copy of UCI ML Adult dataset. https://archive.ics.uci.edu/ml/datasets/adult
+
+References:
+    * Ron Kohavi, "Scaling Up the Accuracy of Naive-Bayes Classifiers: a Decision-Tree Hybrid",
+      Proceedings of the Second International Conference on Knowledge Discovery and Data Mining, 1996
+
+The typical ML task in this dataset is to build a model that determines whether a person makes over 50K a year.
+
+Dataset Shape:
+    .. list-table:: Dataset Shape
+       :widths: 50 50
+        :header-rows: 1
+
+       * - Property
+         - Value
+        * - Samples Total
+         - 48842
+        * - Dimensionality
+         - 14
+        * - Features
+         - real, string
+        * - Targets
+         - 2
+        * - Samples per class
+         - '>50K' - 23.93%, '<=50K' - 76.07%
+
+Description:
+    .. list-table:: Dataset Description
+       :widths: 50 50 50
+       :header-rows: 1
+
+       * - Column name
+         - Column Role
+         - Description
+       * - Age
+         - Feature
+         - The age of the person.
+       * - workclass
+         - Feature
+         - [Private, Self-emp-not-inc, Self-emp-inc, Federal-gov, Local-gov, State-gov, Without-pay, Never-worked]
+       * - fnlwgt
+         - Feature
+         - Final weight.
+       * - education
+         - Feature
+         - [Bachelors, Some-college, 11th, HS-grad, Prof-school, Assoc-acdm, Assoc-voc, 9th, 7th-8th, 12th, Masters,
+            1st-4th, 10th, Doctorate, 5th-6th, Preschool]
+       * - education-num
+         - Feature
+         - Number of years of education
+       * - marital-status
+         - Feature
+         - [Married-civ-spouse, Divorced, Never-married, Separated, Widowed, Married-spouse-absent,
+            Married-AF-spouse]
+       * - occupation
+         - Feature
+         - [Tech-support, Craft-repair, Other-service, Sales, Exec-managerial, Prof-specialty, Handlers-cleaners,
+            Machine-op-inspct, Adm-clerical, Farming-fishing, Transport-moving, Priv-house-serv, Protective-serv,
+            Armed-Forces]
+       * - relationship
+         - Feature
+         - [Wife, Own-child, Husband, Not-in-family, Other-relative, Unmarried]
+       * - race
+         - Feature
+         - [White, Asian-Pac-Islander, Amer-Indian-Eskimo, Other, Black]
+       * - sex
+         - Feature
+         - [Male, Female]
+       * - capital-gain
+         - Feature
+         - The capital gain of the person
+       * - capital-loss
+         - Feature
+         - The capital loss of the person
+       * - hours-per-week
+         - Feature
+         - The number of hours worked per week
+       * - native-country
+         - Feature
+         - [United-States, Cambodia, England, Puerto-Rico, Canada, Germany, Outlying-US(Guam-USVI-etc), India,
+            Japan, Greece, South, China, Cuba, Iran, Honduras, Philippines, Italy, Poland, Jamaica, Vietnam, Mexico,
+            Portugal, Ireland, France, Dominican-Republic, Laos, Ecuador, Taiwan, Haiti, Columbia, Hungary,
+            Guatemala, Nicaragua, Scotland, Thailand, Yugoslavia, El-Salvador, Trinadad&Tobago, Peru, Hong,
+            Holand-Netherlands]
+       * - target
+         - Target
+         - The target variable, whether the person makes over 50K a year.
+"""
 import typing as t
 from urllib.request import urlopen
 
@@ -41,97 +133,6 @@ _NUM_FEATURES = sorted(list(set(_FEATURES) - set(_CAT_FEATURES)))
 def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
         t.Union[t.Tuple, t.Union[Dataset, pd.DataFrame]]:
     """Load and returns the Adult dataset (classification).
-
-    The data has 48842 records with 14 features and one binary target column, referring to whether the person's income
-    is greater than 50K.
-
-    This is a copy of UCI ML Adult dataset. https://archive.ics.uci.edu/ml/datasets/adult
-
-    References:
-        * Ron Kohavi, "Scaling Up the Accuracy of Naive-Bayes Classifiers: a Decision-Tree Hybrid",
-          Proceedings of the Second International Conference on Knowledge Discovery and Data Mining, 1996
-
-    The typical ML task in this dataset is to build a model that determines whether a person makes over 50K a year.
-
-    Dataset Shape:
-        .. list-table:: Dataset Shape
-           :widths: 50 50
-           :header-rows: 1
-
-           * - Property
-             - Value
-           * - Samples Total
-             - 48842
-           * - Dimensionality
-             - 14
-           * - Features
-             - real, string
-           * - Targets
-             - 2
-           * - Samples per class
-             - '>50K' - 23.93%, '<=50K' - 76.07%
-
-    Description:
-        .. list-table:: Dataset Description
-           :widths: 50 50 50
-           :header-rows: 1
-
-           * - Column name
-             - Column Role
-             - Description
-           * - Age
-             - Feature
-             - The age of the person.
-           * - workclass
-             - Feature
-             - [Private, Self-emp-not-inc, Self-emp-inc, Federal-gov, Local-gov, State-gov, Without-pay, Never-worked]
-           * - fnlwgt
-             - Feature
-             - Final weight.
-           * - education
-             - Feature
-             - [Bachelors, Some-college, 11th, HS-grad, Prof-school, Assoc-acdm, Assoc-voc, 9th, 7th-8th, 12th, Masters,
-                1st-4th, 10th, Doctorate, 5th-6th, Preschool]
-           * - education-num
-             - Feature
-             - Number of years of education
-           * - marital-status
-             - Feature
-             - [Married-civ-spouse, Divorced, Never-married, Separated, Widowed, Married-spouse-absent,
-                Married-AF-spouse]
-           * - occupation
-             - Feature
-             - [Tech-support, Craft-repair, Other-service, Sales, Exec-managerial, Prof-specialty, Handlers-cleaners,
-                Machine-op-inspct, Adm-clerical, Farming-fishing, Transport-moving, Priv-house-serv, Protective-serv,
-                Armed-Forces]
-           * - relationship
-             - Feature
-             - [Wife, Own-child, Husband, Not-in-family, Other-relative, Unmarried]
-           * - race
-             - Feature
-             - [White, Asian-Pac-Islander, Amer-Indian-Eskimo, Other, Black]
-           * - sex
-             - Feature
-             - [Male, Female]
-           * - capital-gain
-             - Feature
-             - The capital gain of the person
-           * - capital-loss
-             - Feature
-             - The capital loss of the person
-           * - hours-per-week
-             - Feature
-             - The number of hours worked per week
-           * - native-country
-             - Feature
-             - [United-States, Cambodia, England, Puerto-Rico, Canada, Germany, Outlying-US(Guam-USVI-etc), India,
-                Japan, Greece, South, China, Cuba, Iran, Honduras, Philippines, Italy, Poland, Jamaica, Vietnam, Mexico,
-                Portugal, Ireland, France, Dominican-Republic, Laos, Ecuador, Taiwan, Haiti, Columbia, Hungary,
-                Guatemala, Nicaragua, Scotland, Thailand, Yugoslavia, El-Salvador, Trinadad&Tobago, Peru, Hong,
-                Holand-Netherlands]
-           * - target
-             - Target
-             - The target variable, whether the person makes over 50K a year.
 
     Parameters
     ----------

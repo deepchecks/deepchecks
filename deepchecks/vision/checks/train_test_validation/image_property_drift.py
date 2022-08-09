@@ -22,7 +22,8 @@ from deepchecks.utils.dict_funcs import get_dict_entry_by_value
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Batch, Context, TrainTestCheck
-from deepchecks.vision.utils.image_properties import default_image_properties, get_column_type, validate_properties
+from deepchecks.vision.utils.image_properties import default_image_properties, get_column_type
+from deepchecks.vision.utils.vision_properties import PropertiesInputType
 
 __all__ = ['ImagePropertyDrift']
 
@@ -67,7 +68,7 @@ class ImagePropertyDrift(TrainTestCheck):
     classes_to_display : Optional[List[float]], default: None
         List of classes to display. The distribution of the properties would include only samples belonging (or
         containing an annotation belonging) to one of these classes. If None, samples from all classes are displayed.
-    min_samples: int, default: 10
+    min_samples: int, default: 30
         Minimum number of samples needed in each dataset needed to calculate the drift.
     max_num_categories: int, default: None
         Deprecated. Please use max_num_categories_for_drift and max_num_categories_for_display instead
@@ -86,11 +87,7 @@ class ImagePropertyDrift(TrainTestCheck):
             **kwargs
     ):
         super().__init__(**kwargs)
-        if image_properties is not None:
-            self.image_properties = validate_properties(image_properties)
-        else:
-            self.image_properties = default_image_properties
-
+        self.image_properties = image_properties if image_properties else default_image_properties
         self.margin_quantile_filter = margin_quantile_filter
         if max_num_categories is not None:
             warnings.warn(
@@ -113,6 +110,7 @@ class ImagePropertyDrift(TrainTestCheck):
     def initialize_run(self, context: Context):
         """Initialize self state, and validate the run context."""
         self._class_to_string = context.train.label_id_to_name
+
         self._train_properties = defaultdict(list)
         self._test_properties = defaultdict(list)
 
@@ -124,28 +122,31 @@ class ImagePropertyDrift(TrainTestCheck):
     ):
         """Calculate image properties for train or test batch."""
         if dataset_kind == DatasetKind.TRAIN:
-            properties = self._train_properties
+            properties_results = self._train_properties
         elif dataset_kind == DatasetKind.TEST:
-            properties = self._test_properties
+            properties_results = self._test_properties
         else:
             raise RuntimeError(
                 f'Internal Error - Should not reach here! unknown dataset_kind: {dataset_kind}'
             )
 
-        images = batch.images
+        all_classes_properties = batch.vision_properties(
+            batch.images, self.image_properties, PropertiesInputType.IMAGES)
 
         if self.classes_to_display:
             # use only images belonging (or containing an annotation belonging) to one of the classes in
             # classes_to_display
             classes = context.train.get_classes(batch.labels)
-            images = [
-                image for idx, image in enumerate(images)
-                if any(cls in map(self._class_to_string, classes[idx]) for cls in self.classes_to_display)
-            ]
+            filtered_properties = dict.fromkeys(all_classes_properties.keys())
+            for prop_name, prop_values in all_classes_properties.items():
+                filtered_properties[prop_name] = [score for idx, score in enumerate(prop_values)
+                                                  if any(cls in map(self._class_to_string, classes[idx]) for cls
+                                                         in self.classes_to_display)]
+        else:
+            filtered_properties = all_classes_properties
 
-        for single_property in self.image_properties:
-            property_list = single_property['method'](images)
-            properties[single_property['name']].extend(property_list)
+        for prop_name, property_values in filtered_properties.items():
+            properties_results[prop_name].extend(property_values)
 
     def compute(self, context: Context) -> CheckResult:
         """Calculate drift score between train and test datasets for the collected image properties.

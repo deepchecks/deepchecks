@@ -2,16 +2,16 @@
 """
 .. _plot_vision_feature_label_correlation_change:
 
-Feature Label Correlation Change
+Property Label Correlation Change
 ********************************
 
-This notebook provides an overview for using and understanding the "Feature Label Correlation Change" check.
+This notebook provides an overview for using and understanding the "Property Label Correlation Change" check.
 
 **Structure:**
 
 * `What is the purpose of the check? <#what-is-the-purpose-of-the-check>`__
-* `Run check on a classification task <#run-the-check-on-a-classification-task-mnist>`__
-* `Run check on an Object Detection task <#run-the-check-on-an-object-detection-task-coco>`__
+* `Run check on a Classification task <#run-the-check-on-a-classification-task>`__
+* `Run check on an Object Detection task <#run-the-check-on-an-object-detection-task>`__
 * `Define a condition <#define-a-condition>`__
 
 What is the purpose of the check?
@@ -81,7 +81,8 @@ The process of calculating the PPS is the following:
 # 1. Extract from the data only the label and the feature being tested
 # 2. Drop samples with missing values
 # 3. Keep 5000 (this is configurable parameter) samples from the data
-# 4. Preprocess categorical columns. For the label using `sklearn.LabelEncoder` and for the feature using `sklearn.OneHotEncoder`
+# 4. Preprocess categorical columns. For the label using `sklearn.LabelEncoder` and for the feature
+#    using `sklearn.OneHotEncoder`
 # 5. Partition the data with 4-fold cross-validation
 # 6. Train decision tree
 # 7. Compare the trained model's performance with naive model's performance as follows:
@@ -103,24 +104,19 @@ The process of calculating the PPS is the following:
 # <https://towardsdatascience.com/rip-correlation-introducing-the-predictive-power-score-3d90808b9598>`__
 
 #%%
-# Run the check on a classification task (MNIST)
-# ==============================================
-# Imports
-# -------
+# Run the check on a Classification task
+# ======================================
+
+#%%
+# Loading data (MNIST)
+# --------------------
 
 import numpy as np
-
 from deepchecks.vision.checks import PropertyLabelCorrelationChange
 from deepchecks.vision.datasets.classification.mnist import load_dataset
 
-#%%
-# Loading data
-# ------------
-
-
 train_ds = load_dataset(train=True, object_type='VisionData')
 test_ds = load_dataset(train=False, object_type='VisionData')
-
 
 #%%
 # Insert bias
@@ -132,7 +128,6 @@ test_ds = load_dataset(train=False, object_type='VisionData')
 # and the label (also a small correlation of the index)
 
 from deepchecks.vision.utils.transformations import un_normalize_batch
-
 
 def mnist_batch_to_images_with_bias_mod(mod):
     def mnist_batch_to_images_with_bias(batch):
@@ -152,15 +147,13 @@ def mnist_batch_to_images_with_bias_mod(mod):
 train_ds.batch_to_images = mnist_batch_to_images_with_bias_mod(9)
 test_ds.batch_to_images = mnist_batch_to_images_with_bias_mod(2)
 
-
-
 #%%
-# Run after bias
-# -----------------
+# Run the check
+# -------------
 
 check = PropertyLabelCorrelationChange()
 result = check.run(train_ds, test_ds)
-result
+result.show()
 
 #%%
 # To display the results in an IDE like PyCharm, you can use the following code:
@@ -174,20 +167,16 @@ result
 # brightness property of the image has a high PPS, meaning it can be used to
 # solely predict the label.
 #
-# Run the check on an Object Detection task (COCO)
-# ================================================
+# Run the check on an Object Detection task
+# =========================================
 
-from deepchecks.vision.datasets.detection.coco import (load_dataset,
-                                                       yolo_label_formatter)
+#%%
+# Loading data (COCO)
+# --------------------
+from deepchecks.vision.datasets.detection.coco import load_dataset
 
 train_ds = load_dataset(train=True, object_type='VisionData')
 test_ds = load_dataset(train=False, object_type='VisionData')
-
-#%%
-
-check = PropertyLabelCorrelationChange(per_class=False)
-result = check.run(train_ds, test_ds)
-result
 
 #%%
 # Insert bias
@@ -199,6 +188,7 @@ result
 # of image and the label
 
 # Increase the pixel values of all bounding boxes by the labels value:
+
 def coco_batch_to_images_with_bias_mod(mod):
     def coco_batch_to_images_with_bias(batch):
         import numpy as np
@@ -211,16 +201,18 @@ def coco_batch_to_images_with_bias_mod(mod):
         return ret
     return coco_batch_to_images_with_bias
 
+
 train_ds.batch_to_images = coco_batch_to_images_with_bias_mod(12)
 test_ds.batch_to_images = coco_batch_to_images_with_bias_mod(2)
 
+
 #%%
-# Re-run after bias
-# -----------------
+# Run the check
+# -------------
 
 check = PropertyLabelCorrelationChange(per_class=False)
 result = check.run(train_ds, test_ds)
-result
+result.show()
 
 #%%
 # We can see that the check detected the bias we inserted, and that the brightness

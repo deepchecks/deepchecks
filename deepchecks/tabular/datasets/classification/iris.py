@@ -8,7 +8,63 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""The data set contains 3 classes of 50 instances each, where each class refers to a type of iris plant."""
+"""The data set contains 3 classes of 50 instances each, where each class refers to a type of iris plant.
+
+The data set contains 3 classes of 50 instances each, where each class refers to a type of iris plant.
+One class is linearly separable from the other 2; the latter are NOT linearly separable from each other.
+
+References
+----------
+* Fisher, R.A. “The use of multiple measurements in taxonomic problems” Annual Eugenics, 7, Part II,
+  179-188 (1936); also in “Contributions to Mathematical Statistics” (John Wiley, NY, 1950).
+* Duda, R.O., & Hart, P.E. (1973) Pattern Classification and Scene Analysis. (Q327.D83) John Wiley & Sons.
+  ISBN 0-471-22361-1. See page 218.
+* And many more..
+
+The typical ML task in this dataset is to build a model that classifies the type of flower.
+
+Dataset Shape:
+    .. list-table:: Dataset Shape
+       :widths: 50 50
+       :header-rows: 1
+
+       * - Property
+         - Value
+       * - Samples Total
+         - 150
+       * - Dimensionality
+         - 4
+       * - Features
+         - real
+       * - Targets
+         - 3
+       * - Samples per class
+         - 50
+
+Description:
+    .. list-table:: Dataset Description
+       :widths: 50 50 50
+       :header-rows: 1
+
+       * - Column name
+         - Column Role
+         - Description
+       * - sepal length (cm)
+         - Feature
+         - The length of the flower's sepal (in cm)
+       * - sepal width (cm)
+         - Feature
+         - The width of the flower's sepal (in cm)
+       * - petal length (cm)
+         - Feature
+         - The length of the flower's petal (in cm)
+       * - petal width (cm)
+         - Feature
+         - The width of the flower's petal (in cm)
+       * - target
+         - Label
+         - The class (Setosa,Versicolour,Virginica)
+"""
 import typing as t
 from urllib.request import urlopen
 
@@ -33,61 +89,6 @@ _CAT_FEATURES = []
 def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
         t.Union[t.Tuple, t.Union[Dataset, pd.DataFrame]]:
     """Load and returns the Iris dataset (classification).
-
-    The data set contains 3 classes of 50 instances each, where each class refers to a type of iris plant.
-    One class is linearly separable from the other 2; the latter are NOT linearly separable from each other.
-
-    References
-    ----------
-    * Fisher, R.A. “The use of multiple measurements in taxonomic problems” Annual Eugenics, 7, Part II,
-      179-188 (1936); also in “Contributions to Mathematical Statistics” (John Wiley, NY, 1950).
-    * Duda, R.O., & Hart, P.E. (1973) Pattern Classification and Scene Analysis. (Q327.D83) John Wiley & Sons.
-      ISBN 0-471-22361-1. See page 218.
-    * And many more..
-
-    The typical ML task in this dataset is to build a model that classifies the type of flower.
-
-    Dataset Shape:
-        .. list-table:: Dataset Shape
-           :widths: 50 50
-           :header-rows: 1
-
-           * - Property
-             - Value
-           * - Samples Total
-             - 150
-           * - Dimensionality
-             - 4
-           * - Features
-             - real
-           * - Targets
-             - 3
-           * - Samples per class
-             - 50
-
-    Description:
-        .. list-table:: Dataset Description
-           :widths: 50 50 50
-           :header-rows: 1
-
-           * - Column name
-             - Column Role
-             - Description
-           * - sepal length (cm)
-             - Feature
-             - The length of the flower's sepal (in cm)
-           * - sepal width (cm)
-             - Feature
-             - The width of the flower's sepal (in cm)
-           * - petal length (cm)
-             - Feature
-             - The length of the flower's petal (in cm)
-           * - petal width (cm)
-             - Feature
-             - The width of the flower's petal (in cm)
-           * - target
-             - Label
-             - The class (Setosa,Versicolour,Virginica)
 
     Parameters
     ----------

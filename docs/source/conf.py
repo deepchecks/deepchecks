@@ -110,6 +110,8 @@ sphinx_gallery_conf = {
         "checks/tabular",
         "user-guide/tabular/tutorials",
         "user-guide/vision/tutorials",
+        "user-guide/tabular/quickstarts",
+        "user-guide/vision/quickstarts",
         "user-guide/general/customizations",
         "user-guide/general/exporting_results",
     ],  # path to your example scripts
@@ -118,6 +120,8 @@ sphinx_gallery_conf = {
         "checks_gallery/tabular",
         "user-guide/tabular/auto_tutorials",
         "user-guide/vision/auto_tutorials",
+        "user-guide/tabular/auto_quickstarts",
+        "user-guide/vision/auto_quickstarts",
         "user-guide/general/customizations/examples",
         "user-guide/general/exporting_results/examples",
     ], # path to where to save gallery generated output
@@ -135,6 +139,8 @@ sphinx_gallery_conf = {
     "inspect_global_variables": True,
     "remove_config_comments": True,
 }
+
+html_title = "Deepchecks Documentation"
 
 # Add any paths that contain templates here, relative to this directory.
 #
@@ -439,10 +445,8 @@ for line in open('nitpick-exceptions'):
 
 def get_check_example_api_reference(filepath: str) -> t.Optional[str]:
     if not (
-        filepath.startswith("docs/source/checks/tabular/")
-        or filepath.startswith("docs/source/checks/vision/")
-        or filepath.startswith("checks/tabular/")
-        or filepath.startswith("checks/vision/")
+        filepath.startswith("checks_gallery/tabular/")
+        or filepath.startswith("checks_gallery/vision/")
     ):
         return ''
 
@@ -453,8 +457,12 @@ def get_check_example_api_reference(filepath: str) -> t.Optional[str]:
             .replace(".py", "")
     )
 
-    import deepchecks.checks
-    check_clazz = getattr(deepchecks.checks, notebook_name, None)
+    if filepath.startswith("checks_gallery/tabular/"):
+        import deepchecks.tabular.checks
+        check_clazz = getattr(deepchecks.tabular.checks, notebook_name, None)
+    else:
+        import deepchecks.vision.checks
+        check_clazz = getattr(deepchecks.vision.checks, notebook_name, None)
 
     if check_clazz is None or not hasattr(check_clazz, "__module__"):
         return

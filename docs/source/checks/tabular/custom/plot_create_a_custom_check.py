@@ -8,6 +8,6 @@ enables you to have your own logic of metrics or validation, or even just to dis
 suite.
 
 For more information about writing custom tabular checks, please refer to the
-:doc:`Tabular Custom Check Guide. </user-guide/tabular/tutorials/plot_add_a_custom_check>`__
+:doc:`Tabular Custom Check Guide. </user-guide/tabular/auto_tutorials/plot_add_a_custom_check>`__
 
 """

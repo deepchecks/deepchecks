@@ -11,30 +11,16 @@
 import re
 import typing as t
 
-from hamcrest import (all_of, assert_that, calling, close_to, contains_exactly, contains_string, equal_to, greater_than,
-                      has_items, has_length, has_property, instance_of, is_, is_in, raises)
+from hamcrest import (assert_that, calling, close_to, contains_exactly, equal_to, greater_than, has_items, has_length,
+                      instance_of, raises)
 from ignite.metrics import Precision, Recall
 from plotly.basedatatypes import BaseFigure
 
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.vision.checks import ClassPerformance
 from deepchecks.vision.metrics_utils.confusion_matrix_counts_metrics import AVAILABLE_EVALUTING_FUNCTIONS
-from deepchecks.vision.metrics_utils.detection_tp_fp_fn_calc import ObjectDetectionTpFpFn
 from tests.base.utils import equal_condition_result
 from tests.common import assert_class_performance_display
-
-
-def test_mnist_average_error_error(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
-    # Arrange
-    check = ClassPerformance(alternative_metrics={'p': Precision(average=True)})
-    # Act
-    assert_that(
-        calling(check.run
-                ).with_args(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
-                            device=device),
-        raises(DeepchecksValueError,
-               r'The metric p returned a <class \'float\'> instead of an array/tensor')
-    )
 
 
 def test_mnist_largest(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
@@ -372,10 +358,10 @@ def test_condition_test_performance_greater_than_pass(mnist_dataset_train,
 
 
 def test_condition_test_performance_greater_than_fail(
-    mnist_dataset_train,
-    mnist_dataset_test,
-    mock_trained_mnist,
-    device
+        mnist_dataset_train,
+        mnist_dataset_test,
+        mock_trained_mnist,
+        device
 ):
     # Arrange
     check = ClassPerformance(
@@ -398,10 +384,10 @@ def test_condition_test_performance_greater_than_fail(
 
 
 def test_condition_train_test_relative_degradation_less_than_pass(
-    mnist_dataset_train,
-    mnist_dataset_test,
-    mock_trained_mnist,
-    device
+        mnist_dataset_train,
+        mnist_dataset_test,
+        mock_trained_mnist,
+        device
 ):
     # Arrange
     check = ClassPerformance().add_condition_train_test_relative_degradation_less_than(0.1)
@@ -420,10 +406,10 @@ def test_condition_train_test_relative_degradation_less_than_pass(
 
 
 def test_condition_train_test_relative_degradation_less_than_fail(
-    mnist_dataset_train,
-    mnist_dataset_test,
-    mock_trained_mnist,
-    device
+        mnist_dataset_train,
+        mnist_dataset_test,
+        mock_trained_mnist,
+        device
 ):
     # Arrange
     check = ClassPerformance().add_condition_train_test_relative_degradation_less_than(0.0001)
@@ -442,10 +428,10 @@ def test_condition_train_test_relative_degradation_less_than_fail(
 
 
 def test_condition_class_performance_imbalance_ratio_less_than(
-    mnist_dataset_train,
-    mnist_dataset_test,
-    mock_trained_mnist,
-    device
+        mnist_dataset_train,
+        mnist_dataset_test,
+        mock_trained_mnist,
+        device
 ):
     # Arrange
     check = ClassPerformance().add_condition_class_performance_imbalance_ratio_less_than(0.5, 'Precision')
@@ -468,10 +454,10 @@ def test_condition_class_performance_imbalance_ratio_less_than(
 
 
 def test_condition_class_performance_imbalance_ratio_less_than_fail(
-    mnist_dataset_train,
-    mnist_dataset_test,
-    mock_trained_mnist,
-    device
+        mnist_dataset_train,
+        mnist_dataset_test,
+        mock_trained_mnist,
+        device
 ):
     # Arrange
     check = ClassPerformance() \
@@ -515,11 +501,26 @@ def test_coco_thershold_scorer_list_strings(coco_train_visiondata, coco_test_vis
     assert_that(set(result.value['Metric']), equal_to(set(AVAILABLE_EVALUTING_FUNCTIONS.keys())))
 
 
+def test_coco_deepchecks_scorer_list_strings_averaging(coco_train_visiondata, coco_test_visiondata,
+                                                   mock_trained_yolov5_object_detection, device):
+    for avg_method in ['macro', 'micro', 'weighted']:
+        # Arrange
+        scorers = [name + '_' + avg_method for name in AVAILABLE_EVALUTING_FUNCTIONS.keys()]
+        check = ClassPerformance(alternative_metrics=scorers)
+        # Act
+        result = check.run(coco_train_visiondata, coco_test_visiondata,
+                           mock_trained_yolov5_object_detection, device=device)
+        # Assert
+        assert_that(result.value, has_length(10))
+        assert_that(result.display, has_length(greater_than(0)))
+        assert_that(set(result.value['Metric']), equal_to(set(scorers)))
+
+
 def test_mnist_sklearn_scorer(
-    mnist_dataset_train,
-    mnist_dataset_test,
-    mock_trained_mnist,
-    device
+        mnist_dataset_train,
+        mnist_dataset_test,
+        mock_trained_mnist,
+        device
 ):
     # Arrange
     check = ClassPerformance(
@@ -529,10 +530,11 @@ def test_mnist_sklearn_scorer(
     # Act
     result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
                        device=device)
-        # Assert
+    # Assert
     assert_that(result.value, has_length(40))
     assert_that(result.display, has_length(greater_than(0)))
     assert_that(set(result.value['Metric']), equal_to({'f1', 'recall'}))
+
 
 def test_coco_unsupported_scorers(coco_train_visiondata, coco_test_visiondata,
                                   mock_trained_yolov5_object_detection, device):
@@ -547,6 +549,7 @@ def test_coco_unsupported_scorers(coco_train_visiondata, coco_test_visiondata,
                r'Unsupported metric: r3 of type str was given.')
     )
 
+
 def test_mnist_unsupported_sklearn_scorers(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
     # Arrange
     check = ClassPerformance(alternative_metrics={'f1': 'f1_per_class', 'recall': 'recall_per_class', 'R3': 'r3'})
@@ -555,13 +558,13 @@ def test_mnist_unsupported_sklearn_scorers(mnist_dataset_train, mnist_dataset_te
         calling(check.run
                 ).with_args(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
                             device=device),
-        raises(ValueError,
-               r'\'r3\' is not a valid scoring value. Use sorted\(sklearn.metrics.SCORERS.keys\(\)\) to get valid options.')
+        raises(DeepchecksValueError,
+               pattern=r'Scorer name r3 is unknown. See metric guide for a list of allowed scorer names.')
     )
 
 
 def test_coco_bad_value_type_scorers(coco_train_visiondata, coco_test_visiondata,
-                                  mock_trained_yolov5_object_detection, device):
+                                     mock_trained_yolov5_object_detection, device):
     # Arrange
     check = ClassPerformance(alternative_metrics={'r2': 2})
     # Act
@@ -570,5 +573,5 @@ def test_coco_bad_value_type_scorers(coco_train_visiondata, coco_test_visiondata
                 ).with_args(coco_train_visiondata, coco_test_visiondata, mock_trained_yolov5_object_detection,
                             device=device),
         raises(DeepchecksValueError,
-               r'Excepted metric type one of \[ignite.Metric, str, callable\], was int.')
+               r'Excepted metric type one of \[ignite.Metric, str\], was int.')
     )

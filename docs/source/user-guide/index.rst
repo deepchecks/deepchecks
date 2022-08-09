@@ -17,6 +17,7 @@ General
     general/showing_results
     general/export_save_results
     general/customizations/examples/index
+    general/metrics_guide
     general/drift_guide
 
 Tabular
@@ -26,6 +27,7 @@ Tabular
     :maxdepth: 2
     :caption: Tabular
 
+    tabular/auto_quickstarts/index
     tabular/auto_tutorials/index
     tabular/dataset_object
     tabular/supported_models
@@ -39,6 +41,7 @@ Vision
     :maxdepth: 2
     :caption: Vision
 
+    vision/auto_quickstarts/index
     vision/auto_tutorials/index
     vision/data-classes/index
     vision/vision_properties

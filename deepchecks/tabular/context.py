@@ -163,11 +163,9 @@ class Context:
         train: t.Union[Dataset, pd.DataFrame, None] = None,
         test: t.Union[Dataset, pd.DataFrame, None] = None,
         model: t.Optional[BasicModel] = None,
-        model_name: str = '',
         feature_importance: t.Optional[pd.Series] = None,
         feature_importance_force_permutation: bool = False,
         feature_importance_timeout: int = 120,
-        scorers: t.Optional[t.Mapping[str, t.Union[str, t.Callable]]] = None,
         with_display: bool = True,
         y_pred_train: t.Optional[np.ndarray] = None,
         y_pred_test: t.Optional[np.ndarray] = None,
@@ -183,7 +181,7 @@ class Context:
             test = Dataset.cast_to_dataset(test)
         # If both dataset, validate they fit each other
         if train and test:
-            if not Dataset.datasets_share_label(train, test):
+            if test.has_label() and train.has_label() and not Dataset.datasets_share_label(train, test):
                 raise DatasetValidationError('train and test requires to have and to share the same label')
             if not Dataset.datasets_share_features(train, test):
                 raise DatasetValidationError('train and test requires to share the same features columns')
@@ -222,8 +220,6 @@ class Context:
         self._importance_type = None
         self._validated_model = False
         self._task_type = None
-        self._user_scorers = scorers
-        self._model_name = model_name
         self._with_display = with_display
 
     # Properties
@@ -262,7 +258,7 @@ class Context:
     @property
     def model_name(self):
         """Return model name."""
-        return self._model_name
+        return type(self.model).__name__
 
     @property
     def task_type(self) -> TaskType:
@@ -370,7 +366,7 @@ class Context:
         List[DeepcheckScorer]
             A list of initialized & validated scorers.
         """
-        scorers = scorers or self._user_scorers or get_default_scorers(self.task_type, use_avg_defaults)
+        scorers = scorers or get_default_scorers(self.task_type, use_avg_defaults)
         return init_validate_scorers(scorers, self.model, self.train)
 
     def get_single_scorer(self,
@@ -396,7 +392,7 @@ class Context:
         List[DeepcheckScorer]
             An initialized & validated scorer.
         """
-        scorers = scorers or self._user_scorers or get_default_scorers(self.task_type, use_avg_defaults)
+        scorers = scorers or get_default_scorers(self.task_type, use_avg_defaults)
         # The single scorer is the first one in the dict
         scorer_name = next(iter(scorers))
         single_scorer_dict = {scorer_name: scorers[scorer_name]}
