@@ -359,7 +359,7 @@ test-release: dist test-upload
 .PHONY: docs validate-examples website dev-docs gen-static-notebooks license-check links-check
 
 
-docs: requirements doc-requirements dev-requirements $(DOCS_SRC)
+docs: requirements doc-requirements dev-requirements develop $(DOCS_SRC)
 	@export WANDB_MODE=offline
 	cd $(DOCS) && make html SPHINXBUILD=$(SPHINX_BUILD) SPHINXOPTS=$(SPHINXOPTS) 2> docs.error.log
 	@echo ""
