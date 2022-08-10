@@ -161,7 +161,7 @@ requirements: $(ENV)
 	elif [ $(OS) = "Linux" ]; \
 	then \
 		$(PIP) install -q\
-			"torch==1.10.2+cpu" "torchvision==0.11.3+cpu" "torchaudio==0.10.2+cpu" \
+			"torch==1.10.2+cpu" "torchvision==0.13.0+cpu" "torchaudio==0.10.2+cpu" \
 			-f https://s3.amazonaws.com/pytorch/whl/torch_stable.html; \
 	else \
 		$(PIP) install -q torch "torchvision==0.11.2" torchaudio; \
@@ -220,7 +220,7 @@ test-win:
 	@test -d $(WIN_ENV) || python -m venv $(WIN_ENV)
 	@$(WIN_ENV)\Scripts\activate.bat
 	$(PIP_WIN) install -q\
-			"torch==1.10.2+cpu" "torchvision==0.11.3+cpu" "torchaudio==0.10.2+cpu" \
+			"torch==1.10.2+cpu" "torchvision==0.13.0+cpu" "torchaudio==0.10.2+cpu" \
 			-f https://s3.amazonaws.com/pytorch/whl/torch_stable.html;
 	@$(PIP_WIN) install -U pip
 	@$(PIP_WIN) install -q \
