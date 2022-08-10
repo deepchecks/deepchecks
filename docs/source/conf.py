@@ -469,7 +469,7 @@ def get_check_example_api_reference(filepath: str) -> t.Optional[str]:
 
     clazz_module = ".".join(check_clazz.__module__.split(".")[:-1])
 
-    apipath = f"<ul><li><a href='../../../../api/generated/{clazz_module}.{notebook_name}.html'>API Reference - {notebook_name}</a></li></ul>"
+    apipath = f"<ul><li><a href='../../../api/generated/{clazz_module}.{notebook_name}.html'>API Reference - {notebook_name}</a></li></ul>"
     return apipath
 
 def get_report_issue_url(pagename: str) -> str:
