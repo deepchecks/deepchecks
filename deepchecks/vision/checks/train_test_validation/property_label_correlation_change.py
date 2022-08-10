@@ -137,15 +137,6 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
                     imgs += [cropped_img]
                     target += [dataset.label_id_to_name(class_id)]
             property_type = PropertiesInputType.PARTIAL_IMAGES
-        elif dataset.task_type == TaskType.SEMANTIC_SEGMENTATION:
-            for img, label in zip(batch.images, batch.labels):
-                for seg_label in np.unique(label):
-                    seg_location = label == seg_label
-                    seg_img = np.expand_dims(seg_location, axis=2) * img
-                    class_id = int(seg_label)
-                    imgs += [seg_img]
-                    target += [dataset.label_id_to_name(class_id)]
-            property_type = PropertiesInputType.PARTIAL_IMAGES
         else:
             for img, classes_ids in zip(batch.images, dataset.get_classes(batch.labels)):
                 imgs += [img] * len(classes_ids)
