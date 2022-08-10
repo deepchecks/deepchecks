@@ -25,7 +25,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 from torchvision.datasets import VisionDataset
 from torchvision.datasets.utils import download_and_extract_archive
-from torchvision.models.segmentation import DeepLabV3_MobileNet_V3_Large_Weights, deeplabv3_mobilenet_v3_large
+from torchvision.models.segmentation import deeplabv3_mobilenet_v3_large
 from typing_extensions import Literal
 
 from deepchecks import vision
@@ -39,8 +39,8 @@ DATA_DIR = Path(__file__).absolute().parent
 def load_model(pretrained: bool = True, device: t.Union[str, torch.device] = 'cpu') -> nn.Module:
     """Load the deeplabv3_mobilenet_v3_large model and return it."""
     dev = torch.device(device) if isinstance(device, str) else device
-    weights = DeepLabV3_MobileNet_V3_Large_Weights.DEFAULT if pretrained else None
-    model = deeplabv3_mobilenet_v3_large(weights=weights)
+    # weights = DeepLabV3_MobileNet_V3_Large_Weights.DEFAULT if pretrained else None
+    model = deeplabv3_mobilenet_v3_large(pretrained=True, progress=False)
     model.eval()
 
     return model
@@ -52,7 +52,7 @@ class CocoSegmentationData(SegmentationData):
     Implement the necessary methods to load the dataset.
     """
 
-    preprocess = DeepLabV3_MobileNet_V3_Large_Weights.DEFAULT.transforms(resize_size=None)
+    # preprocess = DeepLabV3_MobileNet_V3_Large_Weights.DEFAULT.transforms(resize_size=None)
 
     def batch_to_labels(self, batch):
         """Extract from the batch only the labels. No standard format is needed here."""
@@ -60,11 +60,14 @@ class CocoSegmentationData(SegmentationData):
 
     def infer_on_batch(self, batch, model, device):
         """Infer on a batch of images. No standard format is needed here."""
+        import torchvision.transforms.functional as F
 
-        imgs = [self.preprocess(img) for img in batch[0]]
+        # imgs = [self.preprocess(img) for img in batch[0]]
+        normalized_batch = [F.normalize(img.unsqueeze(0).float()/255, mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)) for img in batch[0]]
 
-        predictions = [model(img.unsqueeze(0))["out"].squeeze(0) for img in imgs]
+        predictions = [model(img)["out"].squeeze(0) for img in normalized_batch]
         predictions = [torch.nn.functional.softmax(pred, dim=0) for pred in predictions]
+
         return predictions
 
     def batch_to_images(self, batch) -> Sequence[np.ndarray]:
@@ -73,7 +76,7 @@ class CocoSegmentationData(SegmentationData):
 
 
 def _batch_collate(batch):
-    """Function which gets list of samples from `CocoSegmentDataset` and combine them to a batch."""
+    """Get list of samples from `CocoSegmentDataset` and combine them to a batch."""
     images, masks = zip(*batch)
     return list(images), list(masks)
 
@@ -249,10 +252,12 @@ class CocoSegmentationDataset(VisionDataset):
         return image, torch.as_tensor(ret_label)
 
     def __len__(self):
+        """Return the number of images in the dataset."""
         return len(self.images)
 
     @classmethod
     def load_or_download(cls, root: Path, train: bool) -> 'CocoSegmentationDataset':
+        """Load or download the coco128 dataset with segment annotations."""
         extract_dir = root / 'coco128segments'
         coco_dir = root / 'coco128segments' / 'coco128'
         folder = 'train2017'

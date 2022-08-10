@@ -26,7 +26,7 @@ from deepchecks.tabular.metric_utils import DeepcheckScorer
 from deepchecks.utils.metrics import get_scorer_name
 from deepchecks.vision.metrics_utils import (CustomClassificationScorer, ObjectDetectionAveragePrecision,
                                              ObjectDetectionTpFpFn)
-from deepchecks.vision.metrics_utils.dice import MeanDice
+from deepchecks.vision.metrics_utils.semantic_segmentation_metrics import MeanDice
 from deepchecks.vision.vision_data import TaskType, VisionData
 
 __all__ = [

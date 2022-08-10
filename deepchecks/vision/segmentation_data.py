@@ -120,7 +120,6 @@ class SegmentationData(VisionData):
 
     def get_classes(self, batch_labels: List[torch.Tensor]):
         """Get a labels batch and return classes inside it."""
-
         return [torch.unique(tensor).type(torch.IntTensor).tolist() for tensor in batch_labels]
 
     def validate_label(self, batch):
