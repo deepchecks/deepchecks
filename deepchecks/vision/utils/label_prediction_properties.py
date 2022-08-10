@@ -13,6 +13,7 @@ from typing import List, Sequence
 
 import torch
 
+
 # Labels
 
 
@@ -117,7 +118,8 @@ DEFAULT_SEMANTIC_SEGMENTATION_PREDICTION_PROPERTIES = [
     {'name': 'Samples Per Class', 'method': _get_samples_per_pred_class_semantic_segmentation,
      'output_type': 'class_id'},
     {'name': 'Segment Area (in pixels)', 'method': _get_segment_pred_area, 'output_type': 'numerical'},
-    {'name': 'Number of Classes Per Image', 'method': _count_pred_classes_by_segment_in_image, 'output_type': 'numerical'},
+    {'name': 'Number of Classes Per Image', 'method': _count_pred_classes_by_segment_in_image,
+     'output_type': 'numerical'},
 ]
 
 

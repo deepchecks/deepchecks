@@ -12,13 +12,13 @@
 import contextlib
 import os
 import typing as t
-import warnings
 from pathlib import Path
 from typing import Sequence
 
 import albumentations as A
 import numpy as np
 import torch
+import torchvision.transforms.functional as F
 from albumentations.pytorch.transforms import ToTensorV2
 from PIL import Image, ImageDraw
 from torch import nn
@@ -38,9 +38,7 @@ DATA_DIR = Path(__file__).absolute().parent
 
 def load_model(pretrained: bool = True, device: t.Union[str, torch.device] = 'cpu') -> nn.Module:
     """Load the deeplabv3_mobilenet_v3_large model and return it."""
-    dev = torch.device(device) if isinstance(device, str) else device
-    # weights = DeepLabV3_MobileNet_V3_Large_Weights.DEFAULT if pretrained else None
-    model = deeplabv3_mobilenet_v3_large(pretrained=True, progress=False)
+    model = deeplabv3_mobilenet_v3_large(pretrained=pretrained, progress=False)
     model.eval()
 
     return model
@@ -52,18 +50,14 @@ class CocoSegmentationData(SegmentationData):
     Implement the necessary methods to load the dataset.
     """
 
-    # preprocess = DeepLabV3_MobileNet_V3_Large_Weights.DEFAULT.transforms(resize_size=None)
-
     def batch_to_labels(self, batch):
-        """Extract from the batch only the labels. No standard format is needed here."""
+        """Extract from the batch only the labels by the given format in SegmentationData class."""
         return batch[1]
 
     def infer_on_batch(self, batch, model, device):
-        """Infer on a batch of images. No standard format is needed here."""
-        import torchvision.transforms.functional as F
-
-        # imgs = [self.preprocess(img) for img in batch[0]]
-        normalized_batch = [F.normalize(img.unsqueeze(0).float()/255, mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)) for img in batch[0]]
+        """Infer on a batch of images by the given format in SegmentationData class."""
+        normalized_batch = [F.normalize(img.unsqueeze(0).float()/255,
+                                        mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)) for img in batch[0]]
 
         predictions = [model(img)["out"].squeeze(0) for img in normalized_batch]
         predictions = [torch.nn.functional.softmax(pred, dim=0) for pred in predictions]
@@ -275,9 +269,9 @@ class CocoSegmentationDataset(VisionDataset):
                 )
 
             try:
-                # remove coco128's README.txt so that it does not come in docs
+                # remove coco128 README.txt so that it does not come in docs
                 os.remove("coco128segments/coco128/README.txt")
-            except:
+            except:  # pylint: disable=bare-except # noqa
                 pass
         return CocoSegmentationDataset(coco_dir, folder, train=train, transforms=A.Compose([ToTensorV2()]))
 

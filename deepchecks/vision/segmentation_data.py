@@ -10,7 +10,7 @@
 #
 """Module containing the SegmentationData class and its functions."""
 from abc import abstractmethod
-from typing import Any, List, Sequence, Tuple
+from typing import List, Sequence
 
 import torch
 
@@ -49,7 +49,7 @@ class SegmentationData(VisionData):
 
         Examples
         --------
-        >>> import torch
+        >>> import numpy as np
         ...
         ...
         ... def batch_to_labels(self, batch):
@@ -69,9 +69,11 @@ class SegmentationData(VisionData):
         ...
         ...         # Go over all masks of this image and transform them to a single one:
         ...         for i in range(len(label)):
-        ...             mask = np.logical_and(np.logical_not(ret_label_taken_positions),  np.array(masks[i]))
-        ...             ret_label += classes[i] * mask
-        ...             ret_label_taken_positions = np.logical_or(ret_label_mask, mask) # Update the taken positions
+        ...             mask = np.logical_and(np.logical_not(ret_label_taken_positions), np.array(label[i]))
+        ...             ret_label += i * mask
+        ...
+        ...             # Update the taken positions:
+        ...             ret_label_taken_positions = np.logical_or(ret_label_taken_positions, mask)
         ...         return_labels.append(ret_label)
         ...
         ...     return return_labels
@@ -178,7 +180,8 @@ class SegmentationData(VisionData):
             raise ValidationError('Deepchecks requires semantic segmentation predictions to be a non-empty list')
         for prediction in batch_predictions:
             if not isinstance(prediction, torch.Tensor):
-                raise ValidationError('Deepchecks requires semantic segmentation predictions to be of type torch.Tensor')
+                raise ValidationError(
+                    'Deepchecks requires semantic segmentation predictions to be of type torch.Tensor')
             if len(prediction.shape) != 3:
                 raise ValidationError('Deepchecks requires semantic segmentation predictions to be a 3D tensor, but got'
                                       f'a tensor with {len(prediction.shape)} dimensions')
