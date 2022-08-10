@@ -25,7 +25,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 from torchvision.datasets import VisionDataset
 from torchvision.datasets.utils import download_and_extract_archive
-from torchvision.models.segmentation import deeplabv3_mobilenet_v3_large
+from torchvision.models.segmentation import lraspp_mobilenet_v3_large
 from typing_extensions import Literal
 
 from deepchecks import vision
@@ -37,8 +37,8 @@ DATA_DIR = Path(__file__).absolute().parent
 
 
 def load_model(pretrained: bool = True, device: t.Union[str, torch.device] = 'cpu') -> nn.Module:
-    """Load the deeplabv3_mobilenet_v3_large model and return it."""
-    model = deeplabv3_mobilenet_v3_large(pretrained=pretrained, progress=False)
+    """Load the lraspp_mobilenet_v3_large model and return it."""
+    model = lraspp_mobilenet_v3_large(pretrained=pretrained, progress=False)
     model.eval()
 
     return model

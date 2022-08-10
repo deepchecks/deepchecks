@@ -117,10 +117,10 @@ def test_with_drift_segmentation(segmentation_coco_train_visiondata, segmentatio
     # Assert
     assert_that(result.value, has_entries(
         {'Samples Per Class': has_entries(
-            {'Drift score': close_to(0.1, 0.01),
+            {'Drift score': close_to(0.06, 0.01),
              'Method': equal_to('Cramer\'s V')}
         ), 'Number of Classes Per Image': has_entries(
-            {'Drift score': close_to(0.04, 0.01),
+            {'Drift score': close_to(0.08, 0.01),
              'Method': equal_to('Earth Mover\'s Distance')}
         ), 'Segment Area (in pixels)': has_entries(
             {'Drift score': close_to(0.02, 0.01),
