@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing multi model performance report check."""
-from typing import Callable, Dict, cast
+from typing import TYPE_CHECKING, Callable, Dict, cast
 
 import pandas as pd
 import plotly.express as px
@@ -17,6 +17,9 @@ import plotly.express as px
 from deepchecks.core import CheckResult
 from deepchecks.tabular import ModelComparisonCheck, ModelComparisonContext
 from deepchecks.tabular.utils.task_type import TaskType
+
+if TYPE_CHECKING:
+    from deepchecks.core.checks import CheckConfig
 
 __all__ = ['MultiModelPerformanceReport']
 
@@ -33,12 +36,12 @@ class MultiModelPerformanceReport(ModelComparisonCheck):
 
     def __init__(self, alternative_scorers: Dict[str, Callable] = None, **kwargs):
         super().__init__(**kwargs)
-        self.user_scorers = alternative_scorers
+        self.alternative_scorers = alternative_scorers
 
     def run_logic(self, multi_context: ModelComparisonContext):
         """Run check logic."""
         first_context = multi_context[0]
-        scorers = first_context.get_scorers(self.user_scorers, use_avg_defaults=False)
+        scorers = first_context.get_scorers(self.alternative_scorers, use_avg_defaults=False)
 
         if multi_context.task_type in [TaskType.MULTICLASS, TaskType.BINARY]:
             plot_x_axis = ['Class', 'Model']
@@ -91,3 +94,16 @@ class MultiModelPerformanceReport(ModelComparisonCheck):
         )
 
         return CheckResult(results_df, display=[fig])
+
+    def config(self, include_version: bool = True) -> 'CheckConfig':
+        """Return check instance config."""
+        if self.alternative_scorers is not None:
+            for k, v in self.alternative_scorers.items():
+                if not isinstance(v, str):
+                    name = type(self).__name__
+                    raise ValueError(
+                        f'Serialization of "{name}" check instance is not supported '
+                        'if custom user defined scorers were passed to the "alternative_scorers" '
+                        f'parameter during instance initialization. Scorer name: {k}'
+                    )
+        return super().config(include_version)

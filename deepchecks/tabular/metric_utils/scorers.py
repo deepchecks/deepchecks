@@ -18,7 +18,6 @@ from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.metrics import f1_score, get_scorer, make_scorer, precision_score, recall_score
 from sklearn.metrics._scorer import _BaseScorer, _ProbaScorer
 
-from deepchecks import tabular  # pylint: disable=unused-import; it is used for type annotations
 from deepchecks.core import errors
 from deepchecks.tabular.metric_utils.additional_classification_metrics import (false_negative_rate_metric,
                                                                                false_positive_rate_metric,
@@ -29,6 +28,8 @@ from deepchecks.utils.metrics import get_scorer_name
 from deepchecks.utils.simple_models import PerfectModel
 from deepchecks.utils.strings import is_string_column
 from deepchecks.utils.typing import BasicModel, ClassificationModel
+
+from deepchecks import tabular  # pylint: disable=unused-import; it is used for type annotations
 
 __all__ = [
     'task_type_check',

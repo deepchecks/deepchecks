@@ -10,7 +10,7 @@
 #
 """Module of weak segments performance check."""
 from collections import defaultdict
-from typing import Callable, Dict, List, Union
+from typing import TYPE_CHECKING, Callable, Dict, List, Union
 
 import numpy as np
 import pandas as pd
@@ -34,6 +34,9 @@ from deepchecks.utils.performance.partition import (convert_tree_leaves_into_fil
 from deepchecks.utils.single_sample_metrics import calculate_per_sample_loss
 from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.utils.typing import Hashable
+
+if TYPE_CHECKING:
+    from deepchecks.core.checks import CheckConfig
 
 __all__ = ['WeakSegmentsPerformance']
 
@@ -83,8 +86,8 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
             n_top_features: int = 5,
             segment_minimum_size_ratio: float = 0.05,
             alternative_scorer: Dict[str, Callable] = None,
-            loss_per_sample: Union[np.array, pd.Series, None] = None,
-            classes_index_order: Union[np.array, pd.Series, None] = None,
+            loss_per_sample: Union[np.ndarray, pd.Series, None] = None,
+            classes_index_order: Union[np.ndarray, pd.Series, None] = None,
             n_samples: int = 10_000,
             categorical_aggregation_threshold: float = 0.05,
             n_to_show: int = 3,
@@ -101,7 +104,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
         self.random_state = random_state
         self.loss_per_sample = loss_per_sample
         self.classes_index_order = classes_index_order
-        self.user_scorer = alternative_scorer if alternative_scorer else None
+        self.alternative_scorer = alternative_scorer if alternative_scorer else None
         self.categorical_aggregation_threshold = categorical_aggregation_threshold
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
@@ -132,7 +135,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
         else:
             feature_rank = np.asarray(relevant_features, dtype='object')
 
-        scorer = context.get_single_scorer(self.user_scorer)
+        scorer = context.get_single_scorer(self.alternative_scorer)
         weak_segments = self._weak_segments_search(dummy_model, encoded_dataset, feature_rank,
                                                    loss_per_sample, scorer)
         if len(weak_segments) == 0:
@@ -153,6 +156,19 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
                       'weak segments can be observed in the check result value. '
         return CheckResult({'weak_segments_list': weak_segments, 'avg_score': avg_score, 'scorer_name': scorer.name},
                            display=[display_msg, DisplayMap(display)])
+
+    def config(self, include_version: bool = True) -> 'CheckConfig':
+        """Return checks instance config."""
+        if isinstance(self.alternative_scorer, dict):
+            for k, v in self.alternative_scorer.items():
+                if callable(v):
+                    name = type(self).__name__
+                    raise ValueError(
+                        f'Serialization of "{name}" check instance is not supported '
+                        'if custom user defined scorer was passed to the "alternative_scorer" parameter '
+                        f'during instance initialization. Scorer name: {k}'
+                    )
+        return super().config(include_version)
 
     def _target_encode_categorical_features_fill_na(self, dataset: Dataset) -> Dataset:
         values_mapping = defaultdict(list)  # mapping of per feature of original values to their encoded value

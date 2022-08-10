@@ -10,7 +10,7 @@
 #
 """Module of model error analysis check."""
 import warnings
-from typing import Callable, Dict, Tuple, Union
+from typing import TYPE_CHECKING, Callable, Dict, Tuple, Union
 
 from sklearn import preprocessing
 
@@ -21,6 +21,9 @@ from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.performance.error_model import error_model_display, model_error_contribution
 from deepchecks.utils.single_sample_metrics import per_sample_cross_entropy, per_sample_mse
 from deepchecks.utils.strings import format_percent
+
+if TYPE_CHECKING:
+    from deepchecks.core.checks import CheckConfig
 
 __all__ = ['ModelErrorAnalysis']
 
@@ -112,7 +115,7 @@ class ModelErrorAnalysis(TrainTestCheck):
         self.min_feature_contribution = min_feature_contribution
         self.min_error_model_score = min_error_model_score
         self.min_segment_size = min_segment_size
-        self.user_scorer = dict([alternative_scorer]) if alternative_scorer else None
+        self.alternative_scorer = dict([alternative_scorer]) if alternative_scorer else None
         self.n_samples = n_samples
         self.n_display_samples = n_display_samples
         self.random_state = random_state
@@ -124,7 +127,7 @@ class ModelErrorAnalysis(TrainTestCheck):
         task_type = context.task_type
         model = context.model
 
-        scorer = context.get_single_scorer(self.user_scorer)
+        scorer = context.get_single_scorer(self.alternative_scorer)
         train_dataset = train_dataset.sample(self.n_samples, random_state=self.random_state, drop_na_label=True)
         test_dataset = test_dataset.sample(self.n_samples, random_state=self.random_state, drop_na_label=True)
 
@@ -210,3 +213,16 @@ class ModelErrorAnalysis(TrainTestCheck):
 
         return self.add_condition(f'The performance difference of the detected segments is '
                                   f'less than {format_percent(max_ratio_change)}', condition)
+
+    def config(self, include_version: bool = True) -> 'CheckConfig':
+        """Return check instance config."""
+        if self.alternative_scorer is not None:
+            for k, v in self.alternative_scorer.items():
+                if not isinstance(v, str):
+                    name = type(self).__name__
+                    raise ValueError(
+                        f'Serialization of "{name}" check instance is not supported '
+                        'if custom user defined scorer was passed to the "alternative_scorer" '
+                        f'parameter during instance initialization. Scorer name: {k}'
+                    )
+        return super().config(include_version)
