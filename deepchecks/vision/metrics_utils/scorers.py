@@ -89,7 +89,7 @@ detection_dict = {
     'fnr_micro': lambda: ObjectDetectionTpFpFn(evaluating_function='fnr', averaging_method='micro'),
     'fnr_weighted': lambda: ObjectDetectionTpFpFn(evaluating_function='fnr', averaging_method='weighted'),
     'average_precision_per_class': lambda: ObjectDetectionAveragePrecision(return_option='ap'),
-    'average_recall_per_class': lambda: ObjectDetectionAveragePrecision(return_option='ar'),
+    'average_recall_per_class': lambda: ObjectDetectionAveragePrecision(return_option='ar')
 }
 
 semantic_segmentation_dict = {

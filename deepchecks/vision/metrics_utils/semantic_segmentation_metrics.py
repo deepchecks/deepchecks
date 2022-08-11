@@ -38,14 +38,14 @@ class MeanDice(Metric):
 
         for i in range(len(y)):
             for class_id in [int(x) for x in torch.unique(y[i])]:
-                y_pred_this_label = (y_pred[i].argmax(0) == class_id).numpy()
-                y_this_label = (y[i] == class_id).numpy()
+                y_pred_i = (y_pred[i].argmax(0) == class_id).numpy()
+                y_i = (y[i] == class_id).numpy()
 
-                tp = np.logical_and(y_pred_this_label, y_this_label).sum()
-                total_y_pred = y_pred_this_label.sum()
-                total_y = y_this_label.sum()
+                tp = np.logical_and(y_pred_i, y_i).sum()
+                y_pred_i_count = y_pred_i.sum()
+                y_i_count = y_i.sum()
 
-                self._evals[class_id]['dice'] += (2*tp) / (total_y_pred + total_y)
+                self._evals[class_id]['dice'] += (2*tp) / (y_pred_i_count + y_i_count)
                 self._evals[class_id]['count'] += 1
 
     def compute(self):

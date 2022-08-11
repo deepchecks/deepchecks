@@ -43,8 +43,9 @@ class SegmentationData(VisionData):
         Returns
         -------
         List[torch.Tensor]
-            List of torch.Tensors. Each tensor should be of same width and height of corresponding image, and its values
-            are the true class_ids of the corresponding pixels in that image.
+            The labels the images in the batch. The images should be in a list of length N containing
+            tensors of shape (H, W), where N is the number of images, and H and W are the height and width of the
+            corresponding image, and its values are the true class_ids of the corresponding pixels in that image.
             Note that the tensor should 2D, as the number of channels on the original image are irrelevant to the class.
 
         Examples
@@ -100,6 +101,7 @@ class SegmentationData(VisionData):
             tensors of shape (C, H, W), where N is the number of images, H and W are the height and width of the
             corresponding image, and C is the number of classes that can be detected, each channel corresponds to a
             class_id.
+            Note that the values of dimension C are the probabilities for each class and should sum to 1.
 
         Examples
         --------

@@ -65,7 +65,7 @@ class CocoSegmentationData(SegmentationData):
         return predictions
 
     def batch_to_images(self, batch) -> Sequence[np.ndarray]:
-        """Convert the batch to a list of images as (H, W, C) 3D numpy array per image."""
+        """Convert the batch to a list of images, where each image is a 3D numpy array in the format (H, W, C)."""
         return [tensor.numpy().transpose((1, 2, 0)) for tensor in batch[0]]
 
 
