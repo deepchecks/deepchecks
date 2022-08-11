@@ -85,7 +85,7 @@ def validate_suite_result(
     ]
 
     if len(failures) != 0:
-        assert_that(actual=failures, matcher=exception_matcher)  # type: ignore
+        assert_that(failures, matcher=exception_matcher)  # type: ignore
 
     for check_result in result.results:
         if isinstance(check_result, CheckResult) and check_result.have_conditions():
