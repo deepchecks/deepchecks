@@ -242,7 +242,6 @@ class MyCustomSegmentationData(VisionData):
         """Convert the batch to a list of images as (H, W, C) 3D numpy array per image."""
         return [tensor.numpy().transpose((1, 2, 0)) for tensor in batch[0]]
 
-
 # %%
 # Now we are able to run checks that use only the image data, since it's in the standard Deepchecks format.
 # Let's run PropertyLabelCorrelationChange check with our task
@@ -270,7 +269,6 @@ result.show()
 from itertools import chain
 
 from deepchecks.vision.checks import TrainTestLabelDrift
-
 
 # The labels object is the result of `batch_to_labels` function we defined earlier. The property should return a flat
 # list of values.
