@@ -51,11 +51,15 @@ class CocoSegmentationData(SegmentationData):
     """
 
     def batch_to_labels(self, batch):
-        """Extract from the batch only the labels by the given format in SegmentationData class."""
+        """Extract from the batch only the labels and return the labels in format (H, W).
+
+        See SegmentationData for more details on format."""
         return batch[1]
 
     def infer_on_batch(self, batch, model, device):
-        """Infer on a batch of images by the given format in SegmentationData class."""
+        """Infer on a batch of images and return predictions in format (C, H, W), where C is the class_id dimension.
+
+        See SegmentationData for more details on format."""
         normalized_batch = [F.normalize(img.unsqueeze(0).float()/255,
                                         mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)) for img in batch[0]]
 
