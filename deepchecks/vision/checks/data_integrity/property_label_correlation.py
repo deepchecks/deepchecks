@@ -1,3 +1,15 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
+"""Module contains the property label correlation check."""
+
 from collections import defaultdict
 from typing import Any, Dict, Hashable, List, Optional, TypeVar, Union
 
@@ -10,8 +22,6 @@ from deepchecks.core.errors import ModelValidationError
 from deepchecks.vision import Context, SingleDatasetCheck, Batch
 from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.utils.image_properties import default_image_properties
-from deepchecks.vision.utils.vision_properties import PropertiesInputType
-from deepchecks.vision.utils.image_functions import crop_image
 from deepchecks.vision.utils.property_label_correlation_utils import calc_properties_for_property_label_correlation, \
     is_float_column
 

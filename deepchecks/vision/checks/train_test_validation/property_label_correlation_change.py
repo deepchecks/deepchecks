@@ -8,13 +8,12 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module contains the simple feature distribution check."""
+"""Module contains the property label correlation change check."""
 from collections import defaultdict
 from typing import Any, Dict, Hashable, List, Optional, TypeVar, Union
 
 import numpy as np
 import pandas as pd
-from pandas.core.dtypes.common import is_float_dtype
 
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.check_utils.feature_label_correlation_utils import (get_feature_label_correlation,
@@ -25,11 +24,9 @@ from deepchecks.utils.dict_funcs import get_dict_entry_by_value
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Context, TrainTestCheck
 from deepchecks.vision.batch_wrapper import Batch
-from deepchecks.vision.utils.image_functions import crop_image
 from deepchecks.vision.utils.image_properties import default_image_properties
 from deepchecks.vision.utils.property_label_correlation_utils import (calc_properties_for_property_label_correlation,
                                                                       is_float_column)
-from deepchecks.vision.utils.vision_properties import PropertiesInputType
 from deepchecks.vision.vision_data import TaskType
 
 __all__ = ['PropertyLabelCorrelationChange']
