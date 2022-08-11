@@ -49,7 +49,7 @@ from torchvision.datasets.utils import download_and_extract_archive
 from torchvision.utils import draw_segmentation_masks
 
 
-class CocoSegmentDataset(VisionDataset):
+class CocoInstanceSegmentationDataset(VisionDataset):
     """An instance of PyTorch VisionData the represents the COCO128-segments dataset.
 
     Parameters
@@ -139,7 +139,7 @@ class CocoSegmentDataset(VisionDataset):
         return len(self.images)
 
     @classmethod
-    def load_or_download(cls, root: Path, train: bool) -> 'CocoSegmentDataset':
+    def load_or_download(cls, root: Path, train: bool) -> 'CocoInstanceSegmentationDataset':
         coco_dir = root / 'coco128'
         folder = 'train2017'
 
@@ -160,17 +160,17 @@ class CocoSegmentDataset(VisionDataset):
                 os.remove("coco128/README.txt")
             except:
                 pass
-        return CocoSegmentDataset(coco_dir, folder, train=train, transforms=A.Compose([ToTensorV2()]))
+        return CocoInstanceSegmentationDataset(coco_dir, folder, train=train, transforms=A.Compose([ToTensorV2()]))
 
 
 # Download and load the datasets
 curr_dir = Path('.')
-train_ds = CocoSegmentDataset.load_or_download(curr_dir, train=True)
-test_ds = CocoSegmentDataset.load_or_download(curr_dir, train=False)
+train_ds = CocoInstanceSegmentationDataset.load_or_download(curr_dir, train=True)
+test_ds = CocoInstanceSegmentationDataset.load_or_download(curr_dir, train=False)
 
 
 def batch_collate(batch):
-    """Function which gets list of samples from `CocoSegmentDataset` and combine them to a batch."""
+    """Function which gets list of samples from `CocoInstanceSegmentationDataset` and combine them to a batch."""
     images, classes, masks = zip(*batch)
     return list(images), list(classes), list(masks)
 
@@ -220,8 +220,8 @@ from typing import List, Sequence
 from deepchecks.vision import VisionData
 
 
-class MyCustomSegmentationData(VisionData):
-    """Class for loading the COCO segmentation dataset."""
+class MyCustomInstanceSegmentationData(VisionData):
+    """Class for loading the COCO instance segmentation dataset."""
 
     def get_classes(self, batch_labels) -> List[List[int]]:
         """Return per label a list of classes (by id) in it."""
@@ -249,8 +249,8 @@ class MyCustomSegmentationData(VisionData):
 from deepchecks.vision.checks import PropertyLabelCorrelationChange
 
 # Create our task with the `DataLoader`s we defined before.
-train_task = MyCustomSegmentationData(train_data_loader)
-test_task = MyCustomSegmentationData(test_data_loader)
+train_task = MyCustomInstanceSegmentationData(train_data_loader)
+test_task = MyCustomInstanceSegmentationData(test_data_loader)
 
 result = PropertyLabelCorrelationChange().run(train_task, test_task)
 result.show()
