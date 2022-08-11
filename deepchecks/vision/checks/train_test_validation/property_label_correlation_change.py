@@ -27,6 +27,7 @@ from deepchecks.vision import Context, TrainTestCheck
 from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.utils.image_functions import crop_image
 from deepchecks.vision.utils.image_properties import default_image_properties
+from deepchecks.vision.utils.property_label_correlation_utils import calc_properties_for_property_label_correlation
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
 from deepchecks.vision.vision_data import TaskType
 
@@ -122,30 +123,10 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
         else:
             properties_results = self._test_properties
 
-        imgs = []
-        target = []
-
-        if dataset.task_type == TaskType.OBJECT_DETECTION:
-            for img, labels in zip(batch.images, batch.labels):
-                for label in labels:
-                    label = label.cpu().detach().numpy()
-                    bbox = label[1:]
-                    cropped_img = crop_image(img, *bbox)
-                    if cropped_img.shape[0] == 0 or cropped_img.shape[1] == 0:
-                        continue
-                    class_id = int(label[0])
-                    imgs += [cropped_img]
-                    target += [dataset.label_id_to_name(class_id)]
-            property_type = PropertiesInputType.BBOXES
-        else:
-            for img, classes_ids in zip(batch.images, dataset.get_classes(batch.labels)):
-                imgs += [img] * len(classes_ids)
-                target += list(map(dataset.label_id_to_name, classes_ids))
-            property_type = PropertiesInputType.IMAGES
+        data_for_properties, target = calc_properties_for_property_label_correlation(
+            context, batch, dataset_kind, self.image_properties)
 
         properties_results['target'] += target
-
-        data_for_properties = batch.vision_properties(imgs, self.image_properties, property_type)
 
         for prop_name, property_values in data_for_properties.items():
             properties_results[prop_name].extend(property_values)
