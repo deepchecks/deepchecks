@@ -9,8 +9,8 @@ on the structure of the data and the possible actions on it.
 The first step before running any Deepchecks checks is to create an implementation of
 :class:`VisionData <vision_data.VisionData>`. Each implementation represents and standardize a computer vision task
 and allows to run a more complex checks which relates to the given task's characteristics. There are default
-base classes for a few known tasks like object detection and classification, however not all tasks have a base
-implementation, meaning you will have to create your own task.
+base classes for a few known tasks like classification, object detection, and semantic segmentation however not all
+tasks have a base implementation, meaning you will have to create your own task.
 
 When creating your own task you will be limited to run checks which are agnostic to the specific task type.
 For example performance checks that uses IOU works only on object detection tasks, since they need to know
@@ -18,6 +18,7 @@ the exact bounding box format in order to run, while other checks that uses
 :doc:`/user-guide/vision/vision_properties` or custom metrics are agnostic to the task type.
 
 In this guide we will implement a custom instance segmentation task and run checks on it.
+Note that instance segmentation is different from semantic segmentation, which is currently supported in Deepchecks.
 
 1. `Defining the Data <#defining-the-data>`__
 2. `Implement Custom Task <#implement-custom-task>`__
