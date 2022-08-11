@@ -6,6 +6,8 @@ from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.utils.image_functions import crop_image
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
+import pandas as pd
+from pandas.core.dtypes.common import is_float_dtype
 
 
 def calc_properties_for_property_label_correlation(
@@ -42,3 +44,22 @@ def calc_properties_for_property_label_correlation(
     data_for_properties = batch.vision_properties(imgs, image_properties, property_type)
 
     return data_for_properties, target
+
+
+def is_float_column(col: pd.Series) -> bool:
+    """Check if a column must be a float - meaning does it contain fractions.
+
+    Parameters
+    ----------
+    col : pd.Series
+        The column to check.
+
+    Returns
+    -------
+    bool
+        True if the column is float, False otherwise.
+    """
+    if not is_float_dtype(col):
+        return False
+
+    return (col.round() != col).any()

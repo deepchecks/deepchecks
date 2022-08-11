@@ -58,23 +58,6 @@ def get_coco_batch_to_images_with_bias_one_class(label_formatter):
     return ret_func
 
 
-def test_is_float_column():
-    col = pd.Series([1, 2, 3, 4, 5])
-    assert_that(PropertyLabelCorrelationChange.is_float_column(col), equal_to(False))
-
-    col = pd.Series(['a', 'b', 'c'])
-    assert_that(PropertyLabelCorrelationChange.is_float_column(col), equal_to(False))
-
-    col = pd.Series(['a', 'b', 5.5])
-    assert_that(PropertyLabelCorrelationChange.is_float_column(col), equal_to(False))
-
-    col = pd.Series([1, 2, 3, 4, 5], dtype='float')
-    assert_that(PropertyLabelCorrelationChange.is_float_column(col), equal_to(False))
-
-    col = pd.Series([1, 2, 3, 4, 5.5], dtype='float64')
-    assert_that(PropertyLabelCorrelationChange.is_float_column(col), equal_to(True))
-
-
 def test_no_drift_classification(mnist_dataset_train, device):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_train

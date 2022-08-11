@@ -1,6 +1,9 @@
 from collections import defaultdict
 from typing import Any, Dict, Hashable, List, Optional, TypeVar, Union
 
+import pandas as pd
+
+from deepchecks import CheckResult
 from deepchecks.core import DatasetKind
 from deepchecks.vision import Context, SingleDatasetCheck, Batch
 from deepchecks.vision.task_type import TaskType
@@ -86,3 +89,13 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
         for prop_name, property_values in data_for_properties.items():
             self._properties_results[prop_name].extend(property_values)
 
+    def compute(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
+        """Calculate the PPS between each property and the label.
+
+        Returns
+        -------
+        CheckResult
+            value: dictionaries of PPS values.
+            display: bar graph of the PPS of each feature.
+        """
+        df_props = pd.DataFrame(self._properties_results)

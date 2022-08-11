@@ -27,7 +27,8 @@ from deepchecks.vision import Context, TrainTestCheck
 from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.utils.image_functions import crop_image
 from deepchecks.vision.utils.image_properties import default_image_properties
-from deepchecks.vision.utils.property_label_correlation_utils import calc_properties_for_property_label_correlation
+from deepchecks.vision.utils.property_label_correlation_utils import (calc_properties_for_property_label_correlation,
+                                                                      is_float_column)
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
 from deepchecks.vision.vision_data import TaskType
 
@@ -148,7 +149,7 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
         # For the known task types (object detection, classification), classification is always selected.
         col_dtype = 'object'
         if context.train.task_type == TaskType.OTHER:
-            if self.is_float_column(df_train['target']) or self.is_float_column(df_test['target']):
+            if is_float_column(df_train['target']) or is_float_column(df_test['target']):
                 col_dtype = 'float'
         elif context.train.task_type not in (TaskType.OBJECT_DETECTION, TaskType.CLASSIFICATION):
             raise ModelValidationError(
@@ -200,25 +201,6 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
             display += text
 
         return CheckResult(value=ret_value, display=display, header='Feature Label Correlation Change')
-
-    @staticmethod
-    def is_float_column(col: pd.Series) -> bool:
-        """Check if a column must be a float - meaning does it contain fractions.
-
-        Parameters
-        ----------
-        col : pd.Series
-            The column to check.
-
-        Returns
-        -------
-        bool
-            True if the column is float, False otherwise.
-        """
-        if not is_float_dtype(col):
-            return False
-
-        return (col.round() != col).any()
 
     def add_condition_property_pps_difference_less_than(self: FLC, threshold: float = 0.2,
                                                         include_negative_diff: bool = False) -> FLC:
