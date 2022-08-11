@@ -32,6 +32,19 @@ def mnist_batch_to_images_with_bias(batch):
     return ret
 
 
+def get_coco_batch_to_images_with_bias(label_formatter):
+    def ret_func(batch):
+        ret = [np.array(x) for x in batch[0]]
+        for i, labels in enumerate(label_formatter(batch)):
+            for label in labels:
+                if label[0] > 40:
+                    x, y, w, h = [round(float(n)) for n in label[1:]]
+                    ret[i][y:y + h, x:x + w] = ret[i][y:y + h, x:x + w].clip(min=200)
+        return ret
+
+    return ret_func
+
+
 def med_prop(batch):
     return [np.median(x) for x in batch]
 
@@ -57,3 +70,14 @@ def test_classification_with_alternative_properties(mnist_dataset_train, device)
     result = PropertyLabelCorrelation(image_properties=alt_props).run(mnist_dataset_train, device=device)
     assert_that(result.value.keys(), contains_exactly('med', 'mean'))
     assert_that(result.value['med'], close_to(1.0, 0.005))
+
+
+def test_object_detection_without_bias(coco_train_visiondata, device):
+    result = PropertyLabelCorrelation().run(coco_train_visiondata, device=device)
+    assert_that(result.value, has_entries({'Brightness': close_to(0.0, 0.005), 'Area': close_to(0.0, 0.005)}))
+
+
+def test_object_detection_with_bias(coco_train_visiondata, device):
+    coco_train_visiondata.batch_to_images = get_coco_batch_to_images_with_bias(coco_train_visiondata.batch_to_labels)
+    result = PropertyLabelCorrelation().run(coco_train_visiondata, device=device)
+    assert_that(result.value, has_entries({'Brightness': close_to(0.0459, 0.005), 'Area': close_to(0.0, 0.005)}))
