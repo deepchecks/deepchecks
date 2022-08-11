@@ -14,6 +14,7 @@ from collections import defaultdict
 from typing import Any, Dict, Hashable, List, Optional, TypeVar, Union
 
 import pandas as pd
+import deepchecks.ppscore as pps
 
 from deepchecks import CheckResult
 from deepchecks.core import DatasetKind
@@ -107,7 +108,7 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
         for prop_name, property_values in data_for_properties.items():
             self._properties_results[prop_name].extend(property_values)
 
-    def compute(self, context: Context, dataset_kind: DatasetKind, pps=None) -> CheckResult:
+    def compute(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
         """Calculate the PPS between each property and the label.
 
         Returns

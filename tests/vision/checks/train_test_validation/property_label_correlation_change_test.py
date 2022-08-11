@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Test functions of the VISION train test label drift."""
+"""Test for the check property label correlation change."""
 from copy import copy
 
 import numpy as np
