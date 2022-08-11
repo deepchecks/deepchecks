@@ -5,14 +5,22 @@ import pandas as pd
 
 from deepchecks import CheckResult
 from deepchecks.core import DatasetKind
+from deepchecks.core.check_utils.feature_label_correlation_utils import get_pps_figure, pd_series_to_trace
+from deepchecks.core.errors import ModelValidationError
 from deepchecks.vision import Context, SingleDatasetCheck, Batch
 from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.utils.image_properties import default_image_properties
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
 from deepchecks.vision.utils.image_functions import crop_image
-from deepchecks.vision.utils.property_label_correlation_utils import calc_properties_for_property_label_correlation
+from deepchecks.vision.utils.property_label_correlation_utils import calc_properties_for_property_label_correlation, \
+    is_float_column
 
 __all__ = ['PropertyLabelCorrelation']
+
+pps_url = 'https://docs.deepchecks.com/en/stable/checks_gallery/vision/' \
+          'train_test_validation/plot_feature_label_correlation_change.html'
+pps_html = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
+
 FLC = TypeVar('FLC', bound='PropertyLabelCorrelation')
 
 
@@ -89,7 +97,7 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
         for prop_name, property_values in data_for_properties.items():
             self._properties_results[prop_name].extend(property_values)
 
-    def compute(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
+    def compute(self, context: Context, dataset_kind: DatasetKind, pps=None) -> CheckResult:
         """Calculate the PPS between each property and the label.
 
         Returns
@@ -99,3 +107,47 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
             display: bar graph of the PPS of each feature.
         """
         df_props = pd.DataFrame(self._properties_results)
+
+        # PPS task type is inferred from label dtype. For most computer vision tasks, it's safe to assume that unless
+        # the label is a float, then the task type is not regression and thus the label is cast to object dtype.
+        # For the known task types (object detection, classification), classification is always selected.
+
+        col_dtype = 'object'
+        if context.train.task_type == TaskType.OTHER:
+            if is_float_column(df_props['target']):
+                col_dtype = 'float'
+        elif context.train.task_type not in (TaskType.OBJECT_DETECTION, TaskType.CLASSIFICATION):
+            raise ModelValidationError(
+                f'Check must be explicitly adopted to the new task type {context.train.task_type}, so that the '
+                f'label type used by the PPS predictor would be appropriate.')
+
+        df_props['target'] = df_props['target'].astype(col_dtype)
+
+        df_pps = pps.predictors(df=df_props, y='target', random_seed=self.random_state,
+                                **self.ppscore_params)
+        s_ppscore = df_pps.set_index('x', drop=True)['ppscore']
+
+        if context.with_display:
+            top_to_show = s_ppscore.head(self.n_top_properties)
+
+            fig = get_pps_figure(per_class=False, n_of_features=len(top_to_show))
+            fig.add_trace(pd_series_to_trace(top_to_show, dataset_kind.value))
+
+            text = [
+                'The Predictive Power Score (PPS) is used to estimate the ability of an image property (such as '
+                'brightness)'
+                f'to predict the label by itself. (Read more about {pps_html})'
+                '',
+                '<u>In the graph above</u>, we should suspect we have problems in our data if:',
+                ''
+                '<b>Train dataset PPS values are high</b>:',
+                '   A high PPS (close to 1) can mean that there\'s a bias in the dataset, as a single property can '
+                'predict the label successfully, using simple classic ML algorithms'
+            ]
+
+            # display only if not all scores are 0
+            display = [fig, *text] if s_ppscore.sum() else None
+        else:
+            display = None
+
+        return CheckResult(value=s_ppscore.to_dict(), display=display, header='Property Label Correlation')
