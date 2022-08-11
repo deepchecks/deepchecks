@@ -24,7 +24,7 @@ class PropertiesInputType(Enum):
     """Enum containing supported task types."""
 
     IMAGES = 'images'
-    PARTIAL_IMAGES = 'partial_images'
+    BBOXES = 'bounding_boxes'
     LABELS = 'labels'
     PREDICTIONS = 'predictions'
     OTHER = 'other'
