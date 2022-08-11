@@ -220,7 +220,7 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
                 'Importance': feature_importance[column] if feature_importance is not None else None
             }
             displays_dict[column] = display
-        features_order = list(filter(lambda feat: feat in train_dataset.features, features_order))
+
         if context.with_display:
             if self.sort_feature_by == 'feature importance' and feature_importance is not None:
                 columns_order = features_order[:self.n_top_columns]
