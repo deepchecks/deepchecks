@@ -51,7 +51,8 @@ class CheckMetadata(TypedDict):
 
 
 class CheckConfig(TypedDict):
-    kind: str
+    module_name: str
+    class_name: str
     version: NotRequired[str]
     params: Dict[Any, Any]
 
@@ -190,8 +191,10 @@ class BaseCheck(abc.ABC):
         params: Dict[str, Any],
         include_version: bool = True
     ) -> CheckConfig:
+        module_name, type_name = common.importable_name(self)
         conf = CheckConfig(
-            kind=common.importable_name(self),
+            class_name=type_name,
+            module_name=module_name,
             params=params,
         )
         if include_version is True:
@@ -246,7 +249,11 @@ class BaseCheck(abc.ABC):
         # within the method we need to treat conf as a dict with unknown structure/content
         check_conf = cast(Dict[str, Any], conf)
         check_conf = common.validate_config(check_conf, version_unmatch=version_unmatch)
-        type_ = common.import_type(check_conf['kind'], base=cls)
+        type_ = common.import_type(
+            type_name=check_conf['class_name'],
+            module_name=check_conf['module_name'],
+            base=cls
+        )
         return type_(**check_conf['params'])
 
     def __repr__(self, tabs=0, prefix=''):

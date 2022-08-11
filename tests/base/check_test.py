@@ -160,7 +160,8 @@ def test_config():
     check = DummyCheck(param2=5).config()
 
     assert_that(check, equal_to({
-        'kind': f'{DummyCheck.__module__}.DummyCheck',
+        'module_name': f'{DummyCheck.__module__}',
+        'class_name': 'DummyCheck',
         'version': __version__,
         'params': {'param1': 1, 'param2': 5},
     }))

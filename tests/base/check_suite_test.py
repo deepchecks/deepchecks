@@ -213,7 +213,8 @@ def test_config():
     suite_mod = model_eval_suite.config()
 
     assert_that(suite_mod, all_of(
-        has_entry('kind', 'deepchecks.tabular.suite.Suite'),
+        has_entry('module_name', 'deepchecks.tabular.suite'),
+        has_entry('class_name', 'Suite'),
         has_entry('name', 'Model Evaluation Suite'),
         has_entry('version', __version__),
         has_entry('checks', instance_of(list))

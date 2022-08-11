@@ -40,7 +40,8 @@ __all__ = ['BaseSuite', 'SuiteResult']
 
 
 class SuiteConfig(TypedDict):
-    kind: str
+    module_name: str
+    class_name: str
     version: str
     name: str
     checks: List['CheckConfig']
@@ -517,8 +518,10 @@ class BaseSuite:
             it.config(include_version=False)
             for it in self.checks.values()
         ]
+        module_name, class_name = common.importable_name(self)
         return SuiteConfig(
-            kind=common.importable_name(self),
+            module_name=module_name,
+            class_name=class_name,
             name=self.name,
             version=__version__,
             checks=checks,
@@ -553,7 +556,11 @@ class BaseSuite:
         if 'name' not in suite_conf or not isinstance(suite_conf['name'], str):
             raise ValueError('Configuration must contain "name" key of type string')
 
-        suite_type = common.import_type(suite_conf['kind'], base=cls)
+        suite_type = common.import_type(
+            module_name=suite_conf['module_name'],
+            type_name=suite_conf['class_name'],
+            base=cls
+        )
 
         checks = [
             BaseCheck.from_config(check_conf, version_unmatch=None)

@@ -20,22 +20,20 @@ from deepchecks.utils.logger import get_logger
 __all__ = ['importable_name', 'import_type', 'validate_config']
 
 
-def importable_name(obj: t.Any) -> str:
+def importable_name(obj: t.Any) -> t.Tuple[str, str]:
     """Return the full import name of an object type."""
     kind = type(obj) if not isinstance(obj, type) else obj
     name = kind.__qualname__
     module = kind.__module__
-    return f'{module}.{name}'
+    return module, name
 
 
-def import_type(full_name: str, base: t.Optional[t.Type[t.Any]] = None) -> t.Type[t.Any]:
+def import_type(
+    module_name: str,
+    type_name: str,
+    base: t.Optional[t.Type[t.Any]] = None
+) -> t.Type[t.Any]:
     """Import and return type instance by name."""
-    s = full_name.rsplit('.', maxsplit=1)
-
-    if len(s) < 2:
-        raise ValueError(f'Incorrect import name - {full_name}')
-
-    module_name, type_name = s
     module = importlib.import_module(module_name)
     type_ = getattr(module, type_name, None)
 
@@ -59,8 +57,11 @@ def validate_config(
     version_unmatch: VersionUnmatchAction = 'warn'
 ) -> t.Dict[str, t.Any]:
     """Validate check/suite configuration dictionary."""
-    if 'kind' not in conf or not conf['kind']:
-        raise ValueError('Configuration must contain not empty "kind" key of type string')
+    if 'module_name' not in conf or not conf['module_name']:
+        raise ValueError('Configuration must contain not empty "module_name" key of type string')
+
+    if 'class_name' not in conf or not conf['class_name']:
+        raise ValueError('Configuration must contain not empty "class_name" key of type string')
 
     if 'version' not in conf or not conf['version']:
         if version_unmatch == 'raise':
