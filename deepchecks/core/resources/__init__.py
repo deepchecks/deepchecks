@@ -8,14 +8,353 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Package for static assets."""
+# flake8: noqa
+"""Package for common static resources."""
 import os
 import pkgutil
 import textwrap
 
 from ipywidgets.embed import __html_manager_version__
 
-__all__ = ['requirejs_script', 'widgets_script', 'suite_template', 'jupyterlab_plotly_script']
+__all__ = ['DEEPCHECKS_STYLE', 'DEEPCHECKS_HTML_PAGE_STYLE']
+
+
+DEEPCHECKS_STYLE = """
+:root {
+    --deepchecks-font-color: #212529;
+    --deepchecks-bg-color: white;
+    --deepchecks-link-color: #106ba3;
+    --deepchecks-color-dark: #d6d6d6;
+    --deepchecks-color-light: #f9f9f9;
+    --deepchecks-color-blue: #1975FA;
+    --deepchecks-i-arrow-up: '⬆';
+    --deepchecks-i-window-expand: '⤡';
+    --deepchecks-i-ok: '✓';
+    --deepchecks-i-error: '✖';
+    --deepchecks-i-warn: '!';
+    --deepchecks-i-attention: '⁈';
+}
+
+.deepchecks-table {
+    max-width: 100%!important;
+    overflow-x: auto!important;
+}
+
+.deepchecks-collapsible {
+    position: relative;
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--deepchecks-color-dark);
+    margin: 0;
+    margin-top: 0.25em;
+    margin-bottom: 0.25em;
+}
+
+.deepchecks-collapsible-content {
+    position: relative;
+    display: none;
+    padding: 1em 1.5em 1em 1.5em;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.deepchecks-collapsible[open] > .deepchecks-collapsible-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.deepchecks-collapsible > summary {
+    display: list-item;
+    background-color: var(--deepchecks-color-light);
+    font-size: 1em;
+    color: var(--deepchecks-font-color);
+    font-weight: bold;
+    padding: 10px 15px 10px 15px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.deepchecks-collapsible[open] > summary {
+    border-bottom: 1px solid var(--deepchecks-color-dark);
+}
+
+.deepchecks-tabs {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    margin-top: 1em;
+}
+
+.deepchecks-tabs-btns {
+    width: 100%;
+    height: fit-content;
+    display: flex;
+    flex-direction: row;
+}
+
+.deepchecks-tabs-btns > button {
+    margin: 0;
+    background-color: var(--deepchecks-color-light);
+    border: 1px solid var(--deepchecks-color-dark);
+    padding: 8px 16px 8px 16px;
+    cursor: pointer;
+    transform: translateY(1px);
+    z-index: 2;
+}
+
+.deepchecks-tabs-btns > button:focus {
+    box-shadow: none;
+    outline: none;
+}
+
+.deepchecks-tabs-btns > button[open] {
+    background-color: white;
+    border-bottom: none;
+    border-top: 2px solid var(--deepchecks-color-blue);
+}
+
+.deepchecks-tabs > .deepchecks-tab {
+    display: None;
+}
+
+.deepchecks-tabs > .deepchecks-tab[open] {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--deepchecks-color-dark);
+    padding: 1em;
+    z-index: 1;
+}
+
+.deepchecks-alert {
+    border: 1px solid transparent;
+    border-radius: 0.25em;
+    padding: 0.5em 1em 0.5em 1em;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+.deepchecks-alert-error {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+}
+
+.deepchecks-alert-warn {
+    color: #856404;
+    background-color: #fff3cd;
+    border-color: #ffeeba;
+}
+
+.deepchecks-alert-info {
+    color: #004085;
+    background-color: #cce5ff;
+    border-color: #b8daf;
+}
+
+.deepchecks-fullscreen-btn {
+    position: absolute;
+    bottom: 30px;
+    right: 60px;
+    opacity: 0.4;
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 1;
+    background-color: var(--deepchecks-color-light);
+    border: 1px solid var(--deepchecks-color-dark);
+    border-radius: 50%;
+    cursor: pointer;
+    padding: 6px;
+}
+
+.deepchecks-fullscreen-btn:hover {
+    opacity: 1;
+}
+
+.deepchecks-fullscreen-btn::after {
+    content: var(--deepchecks-i-window-expand);
+}
+
+.deepchecks-i-expandable::after {
+    content: var(--deepchecks-i-window-expand);
+}
+
+.deepchecks-i-arrow-up::after {
+    content: var(--deepchecks-i-arrow-up);
+}
+
+.deepchecks-i-ok::after {
+    color: green!important;
+    font-weight: bold!important;
+    font-size: 1em!important;
+    content: var(--deepchecks-i-ok);
+}
+
+.deepchecks-i-error::after {
+    color: red!important;
+    font-weight: bold!important;
+    font-size: 1em!important;
+    content: var(--deepchecks-i-error);
+}
+
+.deepchecks-i-warn::after {
+    color: orange!important;
+    font-weight: bold!important;
+    font-size: 1em!important;
+    content: var(--deepchecks-i-warn);
+}
+
+.deepchecks-i-attention::after {
+    color: firebrick!important;
+    font-weight: bold!important;
+    font-size: 1em!important;
+    content: var(--deepchecks-i-attention);
+}
+
+.deepchecks-bold-divider {
+    display: block!important;
+    background-color: var(--deepchecks-color-dark)!important;
+    border: 0 none!important;
+    color: var(--deepchecks-color-dark)!important;
+    height: 1px!important;
+    width: 100%!important;
+}
+
+.deepchecks-light-divider {
+    display: block!important;
+    background-color: var(--deepchecks-color-light)!important;
+    border: 0 none!important;
+    color: var(--deepchecks-color-light)!important;
+    height: 4px!important;
+    width: 100%!important;
+}
+
+.deepchecks-resizable {
+    boorder-style: none;
+    resize: vertical!important;
+}
+"""
+
+
+DEEPCHECKS_HTML_PAGE_STYLE = """
+%deepchecks-style
+
+html {
+  box-sizing: border-box;
+  -moz-tab-size: 4;
+  tab-size: 4;
+}
+
+*, ::before, ::after {
+  background-repeat: no-repeat;
+  box-sizing: inherit;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
+details, main {
+    display: block;
+}
+
+summary {
+    display: list-item;
+}
+
+iframe {
+    border-style: none;
+    resize: vertical;
+}
+
+button, select {
+    font: inherit;
+}
+
+progress {
+    vertical-align: baseline;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    text-rendering: optimizeLegibility;
+    word-wrap: break-word;
+    color: var(--deepchecks-font-color);
+    background-color: white;
+    padding: 0 1rem 0 1rem;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    margin-bottom: 12px;
+    margin-top: 24px;
+}
+
+h5, h6 {
+    font-size: 1em;
+}
+
+p {
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+a {
+  text-decoration: none;
+  color: var(--deepchecks-link-color);
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+a > code, a > strong {
+    color: inherit;
+}
+
+table {
+    font-size: 12px;
+    text-indent: 0;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+    margin-bottom: 10px;
+    max-width: 100%;
+    overflow-x: auto;
+    table-layout: fixed;
+}
+
+table caption {
+    text-align: left;
+}
+
+td, th {
+    padding: 6px;
+    vertical-align: top;
+    word-wrap: break-word;
+    text-align: left;
+}
+
+th {
+    font-weight: bold;
+}
+
+thead {
+    border-bottom: 1px solid black;
+    vertical-align: bottom;
+}
+
+tfoot {
+    border-top: 1px solid black;
+}
+
+tbody tr:nth-child(odd) {
+    background-color: var(--deepchecks-color-light);
+}""".replace('%deepchecks-style', DEEPCHECKS_STYLE)  # noqa
 
 
 def requirejs_script(connected: bool = True):

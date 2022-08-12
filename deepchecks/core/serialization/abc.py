@@ -11,7 +11,7 @@
 # pylint: disable=unused-argument
 """Main serialization abstractions."""
 import abc
-import io
+# import io
 import typing as t
 
 import pandas as pd
@@ -21,7 +21,8 @@ from plotly.basedatatypes import BaseFigure
 from typing_extensions import Protocol, runtime_checkable
 
 from deepchecks.core import check_result as check_types  # pylint: disable=unused-import
-from deepchecks.core.serialization import common
+
+# from deepchecks.core.serialization import common
 
 try:
     from wandb.sdk.data_types.base_types.wb_value import WBValue  # pylint: disable=unused-import
@@ -35,56 +36,46 @@ __all__ = [
     'JsonSerializer',
     'WidgetSerializer',
     'WandbSerializer',
-    'ABCDisplayItemsHandler'
+    'DisplayItemsSerializer'
 ]
 
 
 T = t.TypeVar('T')
+TInput = t.TypeVar('TInput')
+TOutput = t.TypeVar('TOutput')
 
 
-class Serializer(abc.ABC, t.Generic[T]):
+class Serializer(abc.ABC, t.Generic[TInput, TOutput]):
     """Base protocol for all other serializers."""
 
-    value: T
+    value: TInput
 
-    def __init__(self, value: T, **kwargs):
+    def __init__(self, value: TInput, **kwargs):
         self.value = value
 
-
-class HtmlSerializer(Serializer[T]):
-    """To html serializer protocol."""
-
     @abc.abstractmethod
-    def serialize(self, **kwargs) -> str:
+    def serialize(self, **kwargs) -> TOutput:
         """Serialize into html."""
         raise NotImplementedError()
 
 
-class JsonSerializer(Serializer[T]):
+class HtmlSerializer(Serializer[TInput, str]):
+    """To html serializer protocol."""
+
+
+JsonSerializable = t.Union[t.Dict[str, t.Any], t.List[t.Any]]
+
+
+class JsonSerializer(Serializer[TInput, JsonSerializable]):
     """To json serializer protocol."""
 
-    @abc.abstractmethod
-    def serialize(self, **kwargs) -> t.Union[t.Dict[t.Any, t.Any], t.List[t.Any]]:
-        """Serialize into json."""
-        raise NotImplementedError()
 
-
-class WidgetSerializer(Serializer[T]):
+class WidgetSerializer(Serializer[TInput, Widget]):
     """To ipywidget serializer protocol."""
 
-    @abc.abstractmethod
-    def serialize(self, **kwargs) -> Widget:
-        """Serialize into ipywidgets.Widget instance."""
-        raise NotImplementedError()
 
-
-class WandbSerializer(Serializer[T]):
+class WandbSerializer(Serializer[TInput, t.Dict[str, 'WBValue']]):
     """To wandb metadata serializer protocol."""
-
-    @abc.abstractmethod
-    def serialize(self, **kwargs) -> t.Dict[str, 'WBValue']:
-        """Serialize into Wandb media format."""
-        raise NotImplementedError()
 
 
 @runtime_checkable
@@ -159,16 +150,15 @@ IPythonFormatter = t.Union[
 ]
 
 
-class IPythonSerializer(Serializer[T]):
+class IPythonSerializer(Serializer[TInput, t.List[IPythonFormatter]]):
     """To IPython formatters list serializer."""
 
-    @abc.abstractmethod
-    def serialize(self, **kwargs) -> t.List[IPythonFormatter]:
-        """Serialize into a list of objects that are Ipython displayable."""
-        raise NotImplementedError()
+
+DisplayItems = t.Sequence['check_types.TDisplayItem']
+T = t.TypeVar('T')
 
 
-class ABCDisplayItemsHandler(Protocol):
+class DisplayItemsSerializer(Serializer[DisplayItems, t.List[T]]):
     """Trait that describes 'CheckResult.dislay' processing logic."""
 
     @classmethod
@@ -178,13 +168,11 @@ class ABCDisplayItemsHandler(Protocol):
             str, pd.DataFrame, Styler, BaseFigure, t.Callable, check_types.DisplayMap
         ])
 
-    @classmethod
-    @abc.abstractmethod
-    def handle_display(
-        cls,
-        display: t.List['check_types.TDisplayItem'],
-        **kwargs
-    ) -> t.List[t.Any]:
+    def serialize(self, **kwargs) -> t.List[T]:
+        """Serialize display items."""
+        return self.handle_display(self.value, **kwargs)
+
+    def handle_display(self, display: DisplayItems, **kwargs) -> t.List[T]:
         """Serialize list of display items.
 
         Parameters
@@ -196,54 +184,44 @@ class ABCDisplayItemsHandler(Protocol):
         -------
         List[Any]
         """
-        return [cls.handle_item(it, index, **kwargs) for index, it in enumerate(display)]
+        return [self.handle_item(it, index, **kwargs) for index, it in enumerate(display)]
 
-    @classmethod
-    @abc.abstractmethod
-    def handle_item(cls, item: 'check_types.TDisplayItem', index: int, **kwargs) -> t.Any:
+    def handle_item(self, item: 'check_types.TDisplayItem', index: int, **kwargs) -> T:
         """Serialize display item."""
         if isinstance(item, str):
-            return cls.handle_string(item, index, **kwargs)
+            return self.handle_string(item, index, **kwargs)
         elif isinstance(item, (pd.DataFrame, Styler)):
-            return cls.handle_dataframe(item, index, **kwargs)
+            return self.handle_dataframe(item, index, **kwargs)
         elif isinstance(item, BaseFigure):
-            return cls.handle_figure(item, index, **kwargs)
+            return self.handle_figure(item, index, **kwargs)
         elif isinstance(item, check_types.DisplayMap):
-            return cls.handle_display_map(item, index, **kwargs)
+            return self.handle_display_map(item, index, **kwargs)
         elif callable(item):
-            return cls.handle_callable(item, index, **kwargs)
+            return self.handle_callable(item, index, **kwargs)
         else:
             raise TypeError(f'Unable to handle display item of type: {type(item)}')
 
-    @classmethod
     @abc.abstractmethod
-    def handle_string(cls, item: str, index: int, **kwargs) -> t.Any:
+    def handle_string(self, item: str, index: int, **kwargs) -> T:
         """Handle textual item."""
         raise NotImplementedError()
 
-    @classmethod
     @abc.abstractmethod
-    def handle_dataframe(cls, item: t.Union[pd.DataFrame, Styler], index: int, **kwargs) -> t.Any:
+    def handle_dataframe(self, item: t.Union[pd.DataFrame, Styler], index: int, **kwargs) -> T:
         """Handle dataframe item."""
         raise NotImplementedError()
 
-    @classmethod
     @abc.abstractmethod
-    def handle_callable(cls, item: t.Callable, index: int, **kwargs) -> t.List[io.BytesIO]:
+    def handle_callable(self, item: t.Callable[[], None], index: int, **kwargs) -> T:
         """Handle callable."""
-        # TODO: callable is a special case, add comments
-        with common.switch_matplot_backend('agg'):
-            item()
-            return common.read_matplot_figures()
+        raise NotImplementedError()
 
-    @classmethod
     @abc.abstractmethod
-    def handle_figure(cls, item: BaseFigure, index: int, **kwargs) -> t.Any:
+    def handle_figure(self, item: BaseFigure, index: int, **kwargs) -> T:
         """Handle plotly figure item."""
         raise NotImplementedError()
 
-    @classmethod
     @abc.abstractmethod
-    def handle_display_map(cls, item: 'check_types.DisplayMap', index: int, **kwargs) -> t.Any:
+    def handle_display_map(self, item: 'check_types.DisplayMap', index: int, **kwargs) -> T:
         """Handle display map instance item."""
         raise NotImplementedError()

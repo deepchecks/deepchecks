@@ -188,14 +188,13 @@ Total number of test samples with similar images in train: {count}
 <h4>Samples</h4>
 <div
     style="
-        overflow-x: auto;
+        overflow-x: scroll;
         display: grid;
         grid-template-columns: auto repeat({n_of_images}, 1fr);
         grid-gap: 1.5rem;
         justify-items: center;
         align-items: center;
-        padding: 2rem;
-        width: max-content;">
+        padding: 2rem;">
     <h5>Train</h5>{train_images}
     <h5>Test</h5>{test_images}
 </div>

@@ -14,16 +14,21 @@ import textwrap
 import typing as t
 import warnings
 
+from plotly.offline.offline import get_plotlyjs
+
 from deepchecks.core import check_result as check_types
 from deepchecks.core import suite
-from deepchecks.core.resources import requirejs_script
+from deepchecks.core.resources import DEEPCHECKS_HTML_PAGE_STYLE, DEEPCHECKS_STYLE
 from deepchecks.core.serialization.abc import HtmlSerializer
-from deepchecks.core.serialization.check_result.html import CheckResultSection
+from deepchecks.core.serialization.check_failure.html import CheckFailureSerializer as CheckFailureHtmlSerializer
+from deepchecks.core.serialization.check_result.html import CheckEmbedmentWay
 from deepchecks.core.serialization.check_result.html import CheckResultSerializer as CheckResultHtmlSerializer
-from deepchecks.core.serialization.common import (Html, aggregate_conditions, create_failures_dataframe,
-                                                  form_output_anchor, plotlyjs_script)
-from deepchecks.core.serialization.dataframe.html import DataFrameSerializer as DataFrameHtmlSerializer
-from deepchecks.utils.html import linktag
+from deepchecks.core.serialization.common import (PLOTLY_LOADER, STYLE_LOADER, Html, aggregate_conditions,
+                                                  contains_plots, create_failures_dataframe, create_results_dataframe,
+                                                  form_output_anchor)
+from deepchecks.core.serialization.dataframe.html import DataFrameSerializer
+from deepchecks.utils.html import details_tag, iframe_tag
+from deepchecks.utils.strings import get_random_string
 
 __all__ = ['SuiteResultSerializer']
 
@@ -47,11 +52,11 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
     def serialize(
         self,
         output_id: t.Optional[str] = None,
+        embed_into_iframe: bool = False,
         full_html: bool = False,
-        include_requirejs: bool = False,
-        include_plotlyjs: bool = True,
-        connected: bool = True,
+        collapsible: bool = False,
         is_for_iframe_with_srcdoc: bool = False,
+        use_javascript: bool = True,
         **kwargs,
     ) -> str:
         """Serialize a SuiteResult instance into HTML format.
@@ -60,18 +65,29 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         ----------
         output_id : Optional[str], default None
             unique output identifier that will be used to form anchor links
+        embed_into_iframe : bool , default False
+            whether to embed output into iframe or not
         full_html : bool, default False
-            whether to return a fully independent HTML document or only CheckResult content
-        include_requirejs : bool, default False
-            whether to include requirejs library into output or not
-        include_plotlyjs : bool, default True
-            whether to include plotlyjs library into output or not
-        connected : bool, default True
-            whether to use CDN to load js libraries or to inject their code into output
+            whether to return a fully independent HTML document or not
+            NOTE: this parameter is ignored if the 'embed_into_iframe' parameter
+            is set to 'True'.
+        collapsible : bool, default False
+            It tells a serializer whether the suite result output content must be
+            embedded into HTML '<details>' tag or not.
+            NOTE: this parameter is used only when the 'full_html' parameter is
+            set to 'True' otherwise it is totally ignored.
         is_for_iframe_with_srcdoc : bool, default False
             anchor links, in order to work within iframe require additional prefix
             'about:srcdoc'. This flag tells function whether to add that prefix to
-            the anchor links or not
+            the anchor links or not.
+            Is automatically set to 'True' if the 'embed_into_iframe' parameter is
+            set to 'True'
+        use_javascript : bool , default True
+            whether to use javascript in an output or not.
+            If set to 'False', all components that require javascript
+            to work will be replaced by plain HTML components (if possible).
+            For example, plotly figures will be transformed into JPEG images,
+            tabs widgets will be replaced by HTML '<details>' tag
         **kwargs :
             all other key-value arguments will be passed to the CheckResult/CheckFailure
             serializers
@@ -80,78 +96,138 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         -------
         str
         """
-        if full_html is True:
-            include_plotlyjs = True
-            include_requirejs = True
-            connected = False
+        if embed_into_iframe is True:
+            is_for_iframe_with_srcdoc = True
 
+        check_embedment_way = 'suite-html-page' if full_html or embed_into_iframe else 'suite'
         kwargs['is_for_iframe_with_srcdoc'] = is_for_iframe_with_srcdoc
+        kwargs['use_javascript'] = use_javascript
 
-        summary = self.prepare_summary(output_id=output_id, **kwargs)
-        conditions_table = self.prepare_conditions_table(output_id=output_id, **kwargs)
-        failures = self.prepare_failures_list()
-
-        results_with_conditions = self.prepare_results_with_condition_and_display(
-            output_id=output_id,
-            check_sections=['condition-table', 'additional-output'],
-            **kwargs
+        suite_result = self.value
+        passed_checks = suite_result.get_passed_checks()
+        not_passed_checks = suite_result.get_not_passed_checks()
+        not_ran_checks = suite_result.get_not_ran_checks()
+        other_checks = t.cast(
+            t.List[check_types.CheckResult],
+            suite_result.select_results(self.value.results_without_conditions)
         )
-        results_without_conditions = self.prepare_results_without_condition(
-            output_id=output_id,
-            check_sections=['additional-output'],
-            **kwargs
-        )
-        sections = [
-            summary,
-            Html.bold_hr,
-            conditions_table,
-            Html.bold_hr,
-            results_with_conditions,
-            Html.bold_hr,
-            results_without_conditions,
-        ]
 
-        if failures:
-            sections.extend([Html.bold_hr, failures])
-
-        if output_id:
-            anchor = form_output_anchor(output_id)
-            link = linktag(
-                text='Go to top',
-                href=f'#{anchor}',
-                style={'font-size': '14px'},
-                is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
+        content = (
+            self.prepare_summary(
+                output_id=output_id,
+                **kwargs
+            ),
+            self.prepare_results(
+                title='Didn`t Pass',
+                results=not_passed_checks,
+                output_id=output_id,
+                summary_creation_method=self.prepare_conditions_summary,
+                check_embedment_way=check_embedment_way,
+                **kwargs
+            ),
+            self.prepare_results(
+                title='Passed',
+                results=passed_checks,
+                output_id=output_id,
+                summary_creation_method=self.prepare_conditions_summary,
+                check_embedment_way=check_embedment_way,
+                **kwargs
+            ),
+            self.prepare_results(
+                title='Other',
+                results=other_checks,
+                output_id=output_id,
+                summary_creation_method=self.prepare_unconditioned_results_summary,
+                check_sections=['additional-output'],
+                check_embedment_way=check_embedment_way,
+                **kwargs
+            ),
+            self.prepare_failures(
+                title='Didn`t Run',
+                failures=not_ran_checks,
+                output_id=output_id,
+                **kwargs
             )
-            sections.append(f'<br>{link}')
+        )
 
-        plotlyjs = plotlyjs_script(connected) if include_plotlyjs is True else ''
-        requirejs = requirejs_script(connected) if include_requirejs is True else ''
+        if embed_into_iframe is True:
+            return self._serialize_to_iframe(content, use_javascript)
 
-        if full_html is False:
-            return ''.join([requirejs, plotlyjs, *sections])
+        if full_html is True:
+            return self._serialize_to_full_html(content, collapsible, use_javascript)
 
-        # TODO: use some style to make it pretty
-        return textwrap.dedent(f"""
+        output = details_tag(
+            title=suite_result.name,
+            content=''.join(content),
+            id=output_id or '',
+            attrs='open class="deepchecks-collapsible" data-name="suite-result"',
+            content_attrs='class="deepchecks-collapsible-content"',
+        )
+
+        if use_javascript is False:
+            return f'<style>{DEEPCHECKS_STYLE}</style>{output}'
+
+        if not contains_plots(self.value):
+            return f'{STYLE_LOADER}{output}'
+
+        return f'{STYLE_LOADER}{PLOTLY_LOADER}{output}'
+
+    def _serialize_to_full_html(
+        self,
+        content: t.Sequence[str],
+        collapsible: bool = False,
+        use_javascript: bool = True
+    ) -> str:
+        content = (
+            details_tag(
+                title=self.value.name,
+                content=''.join(content),
+                attrs='open class="deepchecks-collapsible"',
+                content_attrs='class="deepchecks-collapsible-content"',
+            )
+            if collapsible is True
+            else ''.join(content)
+        )
+        script = (
+            f'<script type="text/javascript">{get_plotlyjs()}</script>'
+            if use_javascript
+            else ''
+        )
+        return f"""
             <html>
-            <head><meta charset="utf-8"/></head>
-            <body style="background-color: white; padding: 1rem 1rem 0 1rem;">
-                {requirejs}
-                {plotlyjs}
-                {''.join(sections)}
-            </body>
+            <head>
+                <meta charset="utf-8"/>
+                <style>{DEEPCHECKS_HTML_PAGE_STYLE}</style>
+                {script}
+            </head>
+            <body>{content}</body>
             </html>
-        """)
+        """
+
+    def _serialize_to_iframe(
+        self,
+        content: t.Sequence[str],
+        use_javascript: bool = True
+    ) -> str:
+        content = iframe_tag(
+            title=self.value.name,
+            collapsible=True,
+            clazz='deepchecks-resizable',
+            srcdoc=self._serialize_to_full_html(
+                content,
+                collapsible=False,
+                use_javascript=use_javascript
+            )
+        )
+        return f'<style>{DEEPCHECKS_STYLE}</style>{content}'
 
     def prepare_prologue(self) -> str:
         """Prepare prologue section."""
         long_prologue_version = 'The suite is composed of various checks such as: {names}, etc...'
         short_prologue_version = 'The suite is composed of the following checks: {names}.'
-        check_names = list(set(
-            it.check.name()
-            for it in self.value.results
-        ))
+        check_names = set(it.check.name() for it in self.value.results)
         return (
-            long_prologue_version.format(names=', '.join(check_names[:3]))
+            long_prologue_version.format(names=', '.join(tuple(check_names)[:3]))
             if len(check_names) > 3
             else short_prologue_version.format(names=', '.join(check_names))
         )
@@ -169,13 +245,12 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         str
         """
         idattr = f' id="{form_output_anchor(output_id)}"' if output_id else ''
-        return f'<h1{idattr}>{self.value.name}</h1>'
+        return f'<h1{idattr}><b>{self.value.name}</b></h1>'
 
     def prepare_extra_info(self) -> str:
         """Prepare extra info section."""
         if self.value.extra_info:
-            extra_info = '<br>'.join(f'<div>{it}</div>' for it in self.value.extra_info)
-            return f'<br>{extra_info}'
+            return ''.join(f'<p>{it}</p>' for it in self.value.extra_info)
         else:
             return ''
 
@@ -200,10 +275,10 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             '?utm_source=display_output&utm_medium=referral&utm_campaign=suite_link'
         )
         icons = textwrap.dedent("""
-            <span style="color: green;display:inline-block">\U00002713</span> /
-            <span style="color: red;display:inline-block">\U00002716</span> /
-            <span style="color: orange;font-weight:bold;display:inline-block">\U00000021</span> /
-            <span style="color: firebrick;font-weight:bold;display:inline-block">\U00002048</span>
+            <span class="deepchecks-i-ok"></span>
+            <span class="deepchecks-i-error"></span>
+            <span class="deepchecks-i-warn"></span>
+            <span class="deepchecks-i-attention"></span>
         """)
         return textwrap.dedent(f"""
             {header}
@@ -211,23 +286,28 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
                 {prologue}<br>
                 Each check may contain conditions (which will result in pass / fail / warning / error
                 , represented by {icons}) as well as other outputs such as plots or tables.<br>
+            </p>
+            <p>
                 Suites, checks and conditions can all be modified. Read more about
                 <a href={suite_creation_example_link} target="_blank">custom suites</a>.
             </p>
             {extra_info}
         """)
 
-    def prepare_conditions_table(
+    def prepare_conditions_summary(
         self,
+        results: t.Sequence['check_types.CheckResult'],
         output_id: t.Optional[str] = None,
         include_check_name: bool = True,
         is_for_iframe_with_srcdoc: bool = False,
         **kwargs
     ) -> str:
-        """Prepare conditions table section.
+        """Prepare conditions summary table.
 
         Parameters
         ----------
+        results : Sequence[CheckResult]
+            sequence of check results
         output_id : Optional[str], default None
             unique output identifier that will be used to form anchor links
         include_check_name : bool, default True
@@ -241,14 +321,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         -------
         str
         """
-        if not self.value.results_with_conditions:
-            return '<p>No conditions defined on checks in the suite.</p>'
-
-        results = t.cast(
-            t.List[check_types.CheckResult],
-            self.value.select_results(self.value.results_with_conditions)
-        )
-        table = DataFrameHtmlSerializer(aggregate_conditions(
+        return DataFrameSerializer(aggregate_conditions(
             results,
             output_id=output_id,
             include_check_name=include_check_name,
@@ -256,96 +329,139 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
         )).serialize()
 
-        return f'<h2>Conditions Summary</h2>{table}'
-
-    def prepare_results_with_condition_and_display(
+    def prepare_unconditioned_results_summary(
         self,
+        results: t.Sequence['check_types.CheckResult'],
         output_id: t.Optional[str] = None,
-        check_sections: t.Optional[t.Sequence[CheckResultSection]] = None,
+        is_for_iframe_with_srcdoc: bool = False,
         **kwargs
     ) -> str:
-        """Prepare subsection of the content that shows results with conditions.
+        """Prepare results summary table.
 
         Parameters
         ----------
+        results : Sequence[CheckResult]
+            sequence of check results
         output_id : Optional[str], default None
             unique output identifier that will be used to form anchor links
-        check_sections : Optional[Sequence[Literal['condition-table', 'additional-output']]], default None
-            sequence of check result sections to include into the output,
-            in case of 'None' all sections will be included
+        is_for_iframe_with_srcdoc : bool, default False
+            anchor links, in order to work within iframe require additional prefix
+            'about:srcdoc'. This flag tells function whether to add that prefix to
+            the anchor links or not
 
         Returns
         -------
         str
         """
-        results = t.cast(
-            t.List[check_types.CheckResult],
-            self.value.select_results(
-                self.value.results_with_conditions & self.value.results_with_display
-            )
-        )
-        results_with_condition_and_display = [
-            CheckResultHtmlSerializer(it).serialize(
-                output_id=output_id,
-                check_sections=check_sections,
-                include_plotlyjs=False,
-                include_requirejs=False,
-                **kwargs
-            )
-            for it in results
-        ]
-        content = Html.light_hr.join(results_with_condition_and_display)
-        return f'<h2>Check With Conditions Output</h2>{content}'
-
-    def prepare_results_without_condition(
-        self,
-        output_id: t.Optional[str] = None,
-        check_sections: t.Optional[t.Sequence[CheckResultSection]] = None,
-        **kwargs
-    ) -> str:
-        """Prepare subsection of the content that shows results without conditions.
-
-        Parameters
-        ----------
-        output_id : Optional[str], default None
-            unique output identifier that will be used to form anchor links
-        check_sections : Optional[Sequence[Literal['condition-table', 'additional-output']]], default None
-            sequence of check result sections to include into the output,
-            in case of 'None' all sections will be included
-
-        Returns
-        -------
-        str
-        """
-        results = t.cast(
-            t.List[check_types.CheckResult],
-            self.value.select_results(
-                self.value.results_without_conditions & self.value.results_with_display,
-            )
-        )
-        results_without_conditions = [
-            CheckResultHtmlSerializer(it).serialize(
-                output_id=output_id,
-                include=check_sections,
-                include_plotlyjs=False,
-                include_requirejs=False,
-                **kwargs
-            )
-            for it in results
-        ]
-        content = Html.light_hr.join(results_without_conditions)
-        return f'<h2>Check Without Conditions Output</h2>{content}'
-
-    def prepare_failures_list(self, **kwargs) -> str:
-        """Prepare subsection of the content that shows list of failures."""
-        results = self.value.select_results(self.value.failures | self.value.results_without_display)
-
-        if not results:
-            return ''
-
-        df = create_failures_dataframe(results)
-
         with warnings.catch_warnings():
             warnings.simplefilter(action='ignore', category=FutureWarning)
-            table = DataFrameHtmlSerializer(df.style.hide_index()).serialize()
-            return f'<h2>Other Checks That Weren\'t Displayed</h2>\n{table}'
+            df = create_results_dataframe(
+                results=results,
+                output_id=output_id,
+                is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
+            )
+            return DataFrameSerializer(df.style.hide_index()).serialize()
+
+    def prepare_failures(
+        self,
+        failures: t.Sequence['check_types.CheckFailure'],
+        title: str,
+        **kwargs
+    ) -> str:
+        """Prepare failures section.
+
+        Parameters
+        ----------
+        failures : Sequence[CheckFailure]
+            sequence of check failures
+        title : str
+            accordion title
+
+        Returns
+        -------
+        str
+        """
+        if len(failures) == 0:
+            content = '<p>No outputs to show.</p>'
+        else:
+            df = create_failures_dataframe(failures)
+            content = DataFrameSerializer(df.style.hide_index()).serialize()
+
+        return details_tag(
+            title=title,
+            content=content,
+            attrs='class="deepchecks-collapsible" data-name="check-results-list"',
+            content_attrs='class="deepchecks-collapsible-content"'
+        )
+
+    def prepare_results(
+        self,
+        results: t.Sequence['check_types.CheckResult'],
+        title: str,
+        output_id: t.Optional[str] = None,
+        summary_creation_method: t.Optional[t.Callable[..., str]] = None,
+        check_embedment_way: CheckEmbedmentWay = 'suite',
+        **kwargs
+    ) -> str:
+        """Prepare results section.
+
+        Parameters
+        ----------
+        results : Sequence[CheckResult]
+            sequence of check results
+        title : str
+            accordion title
+        output_id : Optional[str], default None
+            unique output identifier that will be used to form anchor links
+        summary_creation_method : Optional[Callable[..., Widget]], default None
+            function to create summary table
+        check_embedment_way : Union[Literal['suite'], Literal['suite-html-page']], default 'suite'
+            check embedment strategy, it tells the 'CheckResult' serializer
+            in what way Plotly figures must be serialized into HTML.
+
+        Returns
+        -------
+        str
+        """
+        if len(results) == 0:
+            section_id = None
+            content = '<p>No outputs to show.</p>'
+        else:
+            section_id = (
+                f'{get_random_string()}-{output_id}'
+                if output_id is not None
+                else None
+            )
+            serialized_results = (
+                select_serializer(it).serialize(
+                    output_id=section_id,
+                    embed_into_suite=check_embedment_way,
+                    **kwargs
+                )
+                for it in results
+                if it.display  # we do not form full-output for the check results without display
+            )
+            if callable(summary_creation_method):
+                content = Html.light_hr.join((
+                    summary_creation_method(results=results, output_id=section_id, **kwargs),
+                    *serialized_results
+                ))
+            else:
+                content = Html.light_hr.join(serialized_results)
+
+        return details_tag(
+            title=title,
+            content=content,
+            id=form_output_anchor(section_id) if section_id else None,
+            attrs='class="deepchecks-collapsible" data-name="check-results-list"',
+            content_attrs='class="deepchecks-collapsible-content"',
+        )
+
+
+def select_serializer(result):
+    if isinstance(result, check_types.CheckResult):
+        return CheckResultHtmlSerializer(result)
+    elif isinstance(result, check_types.CheckFailure):
+        return CheckFailureHtmlSerializer(result)
+    else:
+        raise TypeError(f'Unknown type of result - {type(result)}')

@@ -11,7 +11,6 @@
 # pylint: disable=unused-argument
 """Module with check/suite result display strategy in different envs."""
 import abc
-import html
 import io
 import pathlib
 import sys
@@ -19,13 +18,13 @@ import typing as t
 from multiprocessing import Process
 
 import plotly.io as pio
-from IPython.core.display import display, display_html
+from IPython.core.display import display_html
 from ipywidgets import Widget
 
-from deepchecks.core.serialization.abc import HTMLFormatter, HtmlSerializer, IPythonSerializer, WidgetSerializer
-from deepchecks.utils.ipython import is_colab_env, is_databricks_env, is_kaggle_env, is_sagemaker_env
+from deepchecks.core.serialization.abc import HTMLFormatter, HtmlSerializer, WidgetSerializer
+from deepchecks.utils.ipython import is_colab_env
 from deepchecks.utils.logger import get_logger
-from deepchecks.utils.strings import create_new_file_name, get_random_string, widget_to_html, widget_to_html_string
+from deepchecks.utils.strings import create_new_file_name, get_random_string, widget_to_html
 
 if t.TYPE_CHECKING:
     from wandb.sdk.data_types.base_types.wb_value import WBValue  # pylint: disable=unused-import
@@ -47,19 +46,12 @@ class DisplayableResult(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def ipython_serializer(self) -> IPythonSerializer[t.Any]:
-        """Return IPythonSerializer instance."""
-        raise NotImplementedError()
-
-    @property
-    @abc.abstractmethod
     def html_serializer(self) -> HtmlSerializer[t.Any]:
         """Return HtmlSerializer instance."""
         raise NotImplementedError()
 
     def show(
         self,
-        as_widget: bool = True,
         unique_id: t.Optional[str] = None,
         **kwargs
     ) -> t.Optional[HTMLFormatter]:
@@ -67,8 +59,6 @@ class DisplayableResult(abc.ABC):
 
         Parameters
         ----------
-        as_widget : bool, default True
-            whether to display result with help of ipywidgets or not
         unique_id : Optional[str], default None
             unique identifier of the result output
         **kwargs :
@@ -80,15 +70,11 @@ class DisplayableResult(abc.ABC):
         Optional[HTMLFormatter] :
             when used by sphinx-gallery
         """
+        output_id = unique_id or get_random_string(n=25)
+
         if 'sphinx_gallery' in pio.renderers.default:
             # TODO: why we need this? add comments
-            html = widget_to_html_string(  # pylint: disable=redefined-outer-name
-                self.widget_serializer.serialize(output_id=unique_id, **kwargs),
-                title=get_result_name(self),
-                requirejs=False,
-                connected=True,
-                full_html=False,
-            )
+            html = self.html_serializer.serialize(output_id=output_id, **kwargs)
 
             class TempSphinx:
                 def _repr_html_(self):
@@ -96,28 +82,27 @@ class DisplayableResult(abc.ABC):
 
             return TempSphinx()
 
-        if is_kaggle_env() or is_databricks_env() or is_sagemaker_env():
-            self.show_in_iframe(as_widget=as_widget, unique_id=unique_id, **kwargs)
-        elif is_colab_env() and as_widget is True:
-            widget = self.widget_serializer.serialize(**kwargs)
-            content = widget_to_html_string(widget, title=get_result_name(self))
-            display_html(content, raw=True)
-        elif is_colab_env() and as_widget is False:
-            display(*self.ipython_serializer.serialize(**kwargs))
-        elif as_widget is True:
-            display_html(self.widget_serializer.serialize(
-                output_id=unique_id,
-                **kwargs
-            ))
+        if is_colab_env():
+            display_html(
+                self.html_serializer.serialize(
+                    full_html=True,
+                    is_for_iframe_with_srcdoc=True,
+                    collapsible=True,
+                    **kwargs
+                ),
+                raw=True
+            )
         else:
-            display(*self.ipython_serializer.serialize(
-                output_id=unique_id,
-                **kwargs
-            ))
+            display_html(
+                self.html_serializer.serialize(
+                    output_id=output_id,
+                    **kwargs
+                ),
+                raw=True
+            )
 
     def show_in_iframe(
         self,
-        as_widget: bool = True,
         unique_id: t.Optional[str] = None,
         connected: bool = False,
         **kwargs
@@ -126,43 +111,29 @@ class DisplayableResult(abc.ABC):
 
         Parameters
         ----------
-        as_widget : bool, default True
-            whether to display result with help of ipywidgets or not
         unique_id : Optional[str], default None
             unique identifier of the result output
-        connected: bool , default False
-            indicates whether internet connection is available or not,
-            if 'True' then CDN urls will be used to load javascript otherwise
-            javascript libraries will be injected directly into HTML output.
-            Set to 'False' to make results viewing possible when the internet
-            connection is not available.
         **kwargs :
             other key-value arguments will be passed to the `Serializer.serialize`
             method
         """
         output_id = unique_id or get_random_string(n=25)
 
-        if is_colab_env() and as_widget is True:
-            widget = self.widget_serializer.serialize(**kwargs)
-            content = widget_to_html_string(widget, title=get_result_name(self), connected=True)
-            display_html(content, raw=True)
-        elif is_colab_env() and as_widget is False:
-            display(*self.ipython_serializer.serialize(**kwargs))
-        elif as_widget is True:
-            widget = self.widget_serializer.serialize(output_id=output_id, is_for_iframe_with_srcdoc=True, **kwargs)
-            content = widget_to_html_string(widget, title=get_result_name(self), connected=connected)
-            display_html(iframe(srcdoc=content), raw=True)
+        if is_colab_env():
+            display_html(
+                self.html_serializer.serialize(
+                    full_html=True,
+                    collapsible=True,
+                    **kwargs
+                ),
+                raw=True
+            )
         else:
             display_html(
-                iframe(srcdoc=self.html_serializer.serialize(
+                self.html_serializer.serialize(
                     output_id=output_id,
-                    full_html=True,
-                    include_requirejs=True,
-                    include_plotlyjs=True,
-                    is_for_iframe_with_srcdoc=True,
-                    connected=connected,
-                    **kwargs
-                )),
+                    embed_into_iframe=True,
+                ),
                 raw=True
             )
 
@@ -177,22 +148,34 @@ class DisplayableResult(abc.ABC):
     ):
         """Display the not interactive version of result output.
 
-        In this case, ipywidgets will not be used and plotly
-        figures will be transformed into png images.
-
         Parameters
         ----------
         unique_id : Optional[str], default None
             unique identifier of the result output
-        **kwrgs :
+        **kwargs :
             other key-value arguments will be passed to the `Serializer.serialize`
             method
         """
-        display(*self.ipython_serializer.serialize(
-            output_id=unique_id,
-            plotly_to_image=True,
-            **kwargs
-        ))
+        output_id = unique_id or get_random_string(n=25)
+
+        if is_colab_env():
+            display_html(
+                self.html_serializer.serialize(
+                    full_html=True,
+                    use_javascript=False,
+                    **kwargs
+                ),
+                raw=True
+            )
+        else:
+            display_html(
+                self.html_serializer.serialize(
+                    output_id=output_id,
+                    use_javascript=False,
+                    **kwargs
+                ),
+                raw=True
+            )
 
     def _ipython_display_(self, **kwargs):
         """Display result.."""
@@ -235,7 +218,22 @@ class DisplayableResult(abc.ABC):
 
 
 def display_in_gui(result: DisplayableResult):
-    """Display suite result or check result in a new python gui window."""
+    """Display suite result or check result in a new pyqt5 gui window.
+
+    NOTE: regarding 'QWebEngineView().setHtml()'
+    Content larger than 2 MB cannot be displayed, because converts the
+    provided HTML to percent-encoding and places data : in front of it
+    to create the URL that it navigates to. Thereby, the provided code
+    becomes a URL that exceeds the 2 MB limit set by Chromium. If the
+    content is too large, the loadFinished() signal is triggered with
+    success=false.
+    Link: "https://doc.qt.io/qtforpython-5/PySide2/QtWebEngineWidgets
+    /QWebEngineView.html#PySide2.QtWebEngineWidgets.PySide2.QtWebEngineWidgets
+    .QWebEngineView.setHtml"
+
+    Plotly src code is near 3 MB, as result Suite/Check result output
+    cannot be displayed with inlined plotlyjs library.
+    """
     try:
         from PyQt5.QtCore import QUrl  # pylint: disable=import-outside-toplevel
         from PyQt5.QtWebEngineWidgets import QWebEngineView  # pylint: disable=import-outside-toplevel
@@ -327,15 +325,12 @@ def save_as_html(
     elif isinstance(serializer, HtmlSerializer):
         html = serializer.serialize(  # pylint: disable=redefined-outer-name
             full_html=True,
-            include_requirejs=requirejs,
-            include_plotlyjs=True,
-            connected=connected,
             **kwargs
         )
         if isinstance(file, str):
             with open(file, 'w', encoding='utf-8') as f:
                 f.write(html)
-        elif isinstance(file, io.TextIOWrapper):
+        elif isinstance(file, (io.TextIOWrapper, io.TextIOBase)):
             file.write(html)
         else:
             raise TypeError(f'Unsupported type of "file" parameter - {type(file)}')
@@ -344,56 +339,3 @@ def save_as_html(
 
     if isinstance(file, str):
         return file
-
-
-def iframe(
-    *,
-    id: t.Optional[str] = None,  # pylint: disable=redefined-builtin
-    height: str = '600px',
-    width: str = '100%',
-    allow: str = 'fullscreen',
-    frameborder: str = '0',
-    with_fullscreen_btn: bool = True,
-    **attributes
-) -> str:
-    """Return html iframe tag."""
-    if id is None:
-        id = f'deepchecks-result-iframe-{get_random_string()}'
-
-    attributes = {
-        'id': id,
-        'height': height,
-        'width': width,
-        'allow': allow,
-        'frameborder': frameborder,
-        **attributes
-    }
-    attributes = {
-        k: v
-        for k, v
-        in attributes.items()
-        if v is not None
-    }
-
-    if 'srcdoc' in attributes:
-        attributes['srcdoc'] = html.escape(attributes['srcdoc'])
-
-    attributes = '\n'.join([
-        f'{k}="{v}"'
-        for k, v in attributes.items()
-    ])
-
-    if not with_fullscreen_btn:
-        return f'<iframe {attributes}></iframe>'
-
-    fullscreen_script = (
-        f"document.querySelector('#{id}').requestFullscreen();"
-    )
-    return f"""
-        <div style="display: flex; justify-content: flex-end; padding: 1rem 2rem 1rem 2rem;">
-            <button onclick="{fullscreen_script}" >
-                Full Screen
-            </button>
-        </div>
-        <iframe allowfullscreen {attributes}></iframe>
-    """
