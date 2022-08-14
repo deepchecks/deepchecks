@@ -113,7 +113,7 @@ class Context:
                         preds = itemgetter(*list(dataset.data_loader.batch_sampler)[0])(predictions)
                         if dataset.task_type == TaskType.CLASSIFICATION:
                             preds = torch.stack(preds)
-                        dataset.validate_infered_batch_predictions(preds)
+                        dataset.validate_inferred_batch_predictions(preds)
                         msg = None
                         self._static_predictions[dataset_type] = predictions
                     except ValidationError as ex:
