@@ -53,13 +53,15 @@ class CocoSegmentationData(SegmentationData):
     def batch_to_labels(self, batch):
         """Extract from the batch only the labels and return the labels in format (H, W).
 
-        See SegmentationData for more details on format."""
+        See SegmentationData for more details on format.
+        """
         return batch[1]
 
     def infer_on_batch(self, batch, model, device):
         """Infer on a batch of images and return predictions in format (C, H, W), where C is the class_id dimension.
 
-        See SegmentationData for more details on format."""
+        See SegmentationData for more details on format.
+        """
         normalized_batch = [F.normalize(img.unsqueeze(0).float()/255,
                                         mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)) for img in batch[0]]
 
@@ -85,7 +87,8 @@ def load_dataset(
         num_workers: int = 0,
         shuffle: bool = True,
         pin_memory: bool = True,
-        object_type: Literal['VisionData', 'DataLoader'] = 'VisionData'
+        object_type: Literal['VisionData', 'DataLoader'] = 'VisionData',
+        test_mode: bool = False
 ) -> t.Union[DataLoader, vision.VisionData]:
     """Get the COCO128 dataset and return a dataloader.
 
@@ -105,6 +108,9 @@ def load_dataset(
     object_type : Literal['Dataset', 'DataLoader'], default: 'DataLoader'
         type of the return value. If 'Dataset', :obj:`deepchecks.vision.VisionDataset`
         will be returned, otherwise :obj:`torch.utils.data.DataLoader`
+    test_mode: bool, default False
+        whether to load this dataset in "test_mode", meaning very minimal number of images in order to use for
+        unittests.
 
     Returns
     -------
@@ -113,7 +119,7 @@ def load_dataset(
         A DataLoader or VisionDataset instance representing COCO128 dataset
     """
     root = DATA_DIR
-    dataset = CocoSegmentationDataset.load_or_download(root, train)
+    dataset = CocoSegmentationDataset.load_or_download(root=root, train=train, test_mode=test_mode)
 
     dataloader = DataLoader(
         dataset=dataset,
@@ -122,7 +128,7 @@ def load_dataset(
         num_workers=num_workers,
         collate_fn=_batch_collate,
         pin_memory=pin_memory,
-        generator=torch.Generator()
+        generator=torch.Generator(),
     )
 
     if object_type == 'DataLoader':
@@ -131,7 +137,7 @@ def load_dataset(
         return CocoSegmentationData(
             data_loader=dataloader,
             num_classes=21,
-            label_map=LABEL_MAP
+            label_map=LABEL_MAP,
         )
     else:
         raise TypeError(f'Unknown value of object_type - {object_type}')
@@ -165,6 +171,7 @@ class CocoSegmentationDataset(VisionDataset):
             name: str,
             train: bool = True,
             transforms: t.Optional[t.Callable] = None,
+            test_mode: bool = False
     ) -> None:
         super().__init__(root, transforms=transforms)
 
@@ -194,12 +201,20 @@ class CocoSegmentationDataset(VisionDataset):
 
         train_len = int(self.TRAIN_FRACTION * len(images))
 
-        if self.train is True:
-            self.images = images[0:train_len]
-            self.labels = labels[0:train_len]
+        if test_mode is True:
+            if self.train is True:
+                self.images = images[0:5] * 2
+                self.labels = labels[0:5] * 2
+            else:
+                self.images = images[1:6] * 2
+                self.labels = labels[1:6] * 2
         else:
-            self.images = images[train_len:]
-            self.labels = labels[train_len:]
+            if self.train is True:
+                self.images = images[0:train_len]
+                self.labels = labels[0:train_len]
+            else:
+                self.images = images[train_len:]
+                self.labels = labels[train_len:]
 
     def __getitem__(self, idx: int) -> t.Tuple[torch.Tensor, torch.Tensor]:
         """Get the image and label at the given index."""
@@ -254,7 +269,7 @@ class CocoSegmentationDataset(VisionDataset):
         return len(self.images)
 
     @classmethod
-    def load_or_download(cls, root: Path, train: bool) -> 'CocoSegmentationDataset':
+    def load_or_download(cls, root: Path, train: bool, test_mode: bool) -> 'CocoSegmentationDataset':
         """Load or download the coco128 dataset with segment annotations."""
         extract_dir = root / 'coco128segments'
         coco_dir = root / 'coco128segments' / 'coco128'
@@ -277,7 +292,8 @@ class CocoSegmentationDataset(VisionDataset):
                 os.remove("coco128segments/coco128/README.txt")
             except:  # pylint: disable=bare-except # noqa
                 pass
-        return CocoSegmentationDataset(coco_dir, folder, train=train, transforms=A.Compose([ToTensorV2()]))
+        return CocoSegmentationDataset(coco_dir, folder, train=train, transforms=A.Compose([ToTensorV2()]),
+                                       test_mode=test_mode)
 
 
 _ORIG_LABEL_MAP = {
