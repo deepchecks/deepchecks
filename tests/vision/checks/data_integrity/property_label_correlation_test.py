@@ -54,14 +54,26 @@ def mean_prop(batch):
 
 
 def test_classification_without_bias(mnist_dataset_train, device):
-    result = PropertyLabelCorrelation().run(mnist_dataset_train, device=device)
+    result = PropertyLabelCorrelation().add_condition_feature_pps_less_than().run(mnist_dataset_train, device=device)
+    # assert check result
     assert_that(result.value, has_entries({'Brightness': close_to(0.0737, 0.005), 'Area': close_to(0.0, 0.005)}))
+    # assert condition
+    assert_that(result.conditions_results[0], equal_condition_result(
+        is_pass=True,
+        details='Passed for all of the properties',
+        name='Properties\' Predictive Power Score is less than 0.8'))
 
 
 def test_classification_with_bias(mnist_dataset_train, device):
     mnist_dataset_train.batch_to_images = mnist_batch_to_images_with_bias
-    result = PropertyLabelCorrelation().run(mnist_dataset_train, device=device)
+    result = PropertyLabelCorrelation().add_condition_feature_pps_less_than(0.2).run(mnist_dataset_train, device=device)
+    # assert check result
     assert_that(result.value, has_entries({'Brightness': close_to(0.234, 0.005), 'Area': close_to(0.0, 0.005)}))
+    # assert condition
+    assert_that(result.conditions_results[0], equal_condition_result(
+        is_pass=False,
+        details='Found 1 out of 7 properties with PPS above threshold: {\'Brightness\': \'0.23\'}',
+        name='Properties\' Predictive Power Score is less than 0.2'))
 
 
 def test_classification_with_alternative_properties(mnist_dataset_train, device):
@@ -81,3 +93,4 @@ def test_object_detection_with_bias(coco_train_visiondata, device):
     coco_train_visiondata.batch_to_images = get_coco_batch_to_images_with_bias(coco_train_visiondata.batch_to_labels)
     result = PropertyLabelCorrelation().run(coco_train_visiondata, device=device)
     assert_that(result.value, has_entries({'Brightness': close_to(0.0459, 0.005), 'Area': close_to(0.0, 0.005)}))
+

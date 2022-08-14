@@ -16,10 +16,11 @@ from typing import Any, Dict, Hashable, List, Optional, TypeVar, Union
 import pandas as pd
 import deepchecks.ppscore as pps
 
-from deepchecks import CheckResult
+from deepchecks import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.core import DatasetKind
 from deepchecks.core.check_utils.feature_label_correlation_utils import get_pps_figure, pd_series_to_trace
 from deepchecks.core.errors import ModelValidationError
+from deepchecks.utils.strings import format_number
 from deepchecks.vision import Context, SingleDatasetCheck, Batch
 from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.utils.image_properties import default_image_properties
@@ -162,3 +163,32 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
             display = None
 
         return CheckResult(value=s_ppscore.to_dict(), display=display, header='Property Label Correlation')
+
+    def add_condition_feature_pps_less_than(self: FLC, threshold: float = 0.8) -> FLC:
+        """
+        Add condition that will check that pps of the specified properties is less than the threshold.
+
+        Parameters
+        ----------
+        threshold : float , default: 0.8
+            pps upper bound
+        Returns
+        -------
+        FLC
+        """
+        def condition(value: Dict[Hashable, float]) -> ConditionResult:
+            failed_props = {
+                prop_name: format_number(pps_value)
+                for prop_name, pps_value in value.items()
+                if pps_value >= threshold
+            }
+
+            if failed_props:
+                message = f'Found {len(failed_props)} out of {len(value)} properties with PPS above threshold: ' \
+                          f'{failed_props}'
+                return ConditionResult(ConditionCategory.FAIL, message)
+            else:
+                return ConditionResult(ConditionCategory.PASS, 'Passed for all of the properties')
+
+        return self.add_condition(f'Properties\' Predictive Power Score is less than {format_number(threshold)}',
+                                  condition)
