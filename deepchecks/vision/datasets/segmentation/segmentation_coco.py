@@ -128,7 +128,7 @@ def load_dataset(
         num_workers=num_workers,
         collate_fn=_batch_collate,
         pin_memory=pin_memory,
-        generator=torch.Generator(),
+        generator=torch.Generator()
     )
 
     if object_type == 'DataLoader':
@@ -137,7 +137,7 @@ def load_dataset(
         return CocoSegmentationData(
             data_loader=dataloader,
             num_classes=21,
-            label_map=LABEL_MAP,
+            label_map=LABEL_MAP
         )
     else:
         raise TypeError(f'Unknown value of object_type - {object_type}')
