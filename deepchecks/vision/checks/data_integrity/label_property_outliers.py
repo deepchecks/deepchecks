@@ -66,6 +66,8 @@ class LabelPropertyOutliers(AbstractPropertyOutliers):
                                          'properties for label outliers.')
         elif data.task_type == TaskType.OBJECT_DETECTION:
             return label_prediction_properties.DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES
+        elif data.task_type == TaskType.SEMANTIC_SEGMENTATION:
+            return label_prediction_properties.DEFAULT_SEMANTIC_SEGMENTATION_LABEL_PROPERTIES
         else:
             raise DeepchecksProcessError(f'task type {data.task_type} does not have default label '
                                          f'properties defined.')

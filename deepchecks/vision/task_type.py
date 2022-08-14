@@ -19,4 +19,5 @@ class TaskType(Enum):
 
     CLASSIFICATION = 'classification'
     OBJECT_DETECTION = 'object_detection'
+    SEMANTIC_SEGMENTATION = 'semantic_segmentation'
     OTHER = 'other'

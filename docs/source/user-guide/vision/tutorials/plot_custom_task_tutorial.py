@@ -9,8 +9,8 @@ on the structure of the data and the possible actions on it.
 The first step before running any Deepchecks checks is to create an implementation of
 :class:`VisionData <vision_data.VisionData>`. Each implementation represents and standardize a computer vision task
 and allows to run a more complex checks which relates to the given task's characteristics. There are default
-base classes for a few known tasks like object detection and classification, however not all tasks have a base
-implementation, meaning you will have to create your own task.
+base classes for a few known tasks like classification, object detection, and semantic segmentation however not all
+tasks have a base implementation, meaning you will have to create your own task.
 
 When creating your own task you will be limited to run checks which are agnostic to the specific task type.
 For example performance checks that uses IOU works only on object detection tasks, since they need to know
@@ -18,6 +18,7 @@ the exact bounding box format in order to run, while other checks that uses
 :doc:`/user-guide/vision/vision_properties` or custom metrics are agnostic to the task type.
 
 In this guide we will implement a custom instance segmentation task and run checks on it.
+Note that instance segmentation is different from semantic segmentation, which is currently supported in Deepchecks.
 
 1. `Defining the Data <#defining-the-data>`__
 2. `Implement Custom Task <#implement-custom-task>`__
@@ -25,7 +26,7 @@ In this guide we will implement a custom instance segmentation task and run chec
 4. `Implement Custom Metric <#implement-custom-metric>`__
 """
 
-#%%
+# %%
 # Defining the Data
 # =================
 # First we will define a `PyTorch Dataset <https://pytorch.org/tutorials/beginner/basics/data_tutorial.html>`_.
@@ -49,7 +50,7 @@ from torchvision.datasets.utils import download_and_extract_archive
 from torchvision.utils import draw_segmentation_masks
 
 
-class CocoSegmentDataset(VisionDataset):
+class CocoInstanceSegmentationDataset(VisionDataset):
     """An instance of PyTorch VisionData the represents the COCO128-segments dataset.
 
     Parameters
@@ -139,7 +140,7 @@ class CocoSegmentDataset(VisionDataset):
         return len(self.images)
 
     @classmethod
-    def load_or_download(cls, root: Path, train: bool) -> 'CocoSegmentDataset':
+    def load_or_download(cls, root: Path, train: bool) -> 'CocoInstanceSegmentationDataset':
         coco_dir = root / 'coco128'
         folder = 'train2017'
 
@@ -154,23 +155,23 @@ class CocoSegmentDataset(VisionDataset):
                     extract_root=str(root),
                     md5=md5
                 )
-            
+
             try:
                 # remove coco128's README.txt so that it does not come in docs
                 os.remove("coco128/README.txt")
             except:
                 pass
-        return CocoSegmentDataset(coco_dir, folder, train=train, transforms=A.Compose([ToTensorV2()]))
+        return CocoInstanceSegmentationDataset(coco_dir, folder, train=train, transforms=A.Compose([ToTensorV2()]))
 
 
 # Download and load the datasets
 curr_dir = Path('.')
-train_ds = CocoSegmentDataset.load_or_download(curr_dir, train=True)
-test_ds = CocoSegmentDataset.load_or_download(curr_dir, train=False)
+train_ds = CocoInstanceSegmentationDataset.load_or_download(curr_dir, train=True)
+test_ds = CocoInstanceSegmentationDataset.load_or_download(curr_dir, train=False)
 
 
 def batch_collate(batch):
-    """Function which gets list of samples from `CocoSegmentDataset` and combine them to a batch."""
+    """Function which gets list of samples from `CocoInstanceSegmentationDataset` and combine them to a batch."""
     images, classes, masks = zip(*batch)
     return list(images), list(classes), list(masks)
 
@@ -190,7 +191,7 @@ test_data_loader = DataLoader(
     collate_fn=batch_collate
 )
 
-#%%
+# %%
 # Visualizing that we loaded our datasets correctly:
 
 masked_images = [draw_segmentation_masks(train_ds[i][0], masks=train_ds[i][2], alpha=0.7)
@@ -203,9 +204,9 @@ for i, img in enumerate(masked_images):
     axs[i].imshow(np.asarray(img))
     axs[i].set(xticklabels=[], yticklabels=[], xticks=[], yticks=[])
 
-fix
+fix.show()
 
-#%%
+# %%
 # Implement Custom Task
 # =====================
 # With our data and model ready we can write the task class.
@@ -220,8 +221,8 @@ from typing import List, Sequence
 from deepchecks.vision import VisionData
 
 
-class MyCustomSegmentationData(VisionData):
-    """Class for loading the COCO segmentation dataset."""
+class MyCustomInstanceSegmentationData(VisionData):
+    """Class for loading the COCO instance segmentation dataset."""
 
     def get_classes(self, batch_labels) -> List[List[int]]:
         """Return per label a list of classes (by id) in it."""
@@ -242,19 +243,20 @@ class MyCustomSegmentationData(VisionData):
         """Convert the batch to a list of images as (H, W, C) 3D numpy array per image."""
         return [tensor.numpy().transpose((1, 2, 0)) for tensor in batch[0]]
 
-#%%
+# %%
 # Now we are able to run checks that use only the image data, since it's in the standard Deepchecks format.
 # Let's run PropertyLabelCorrelationChange check with our task
 
 from deepchecks.vision.checks import PropertyLabelCorrelationChange
 
 # Create our task with the `DataLoader`s we defined before.
-train_task = MyCustomSegmentationData(train_data_loader)
-test_task = MyCustomSegmentationData(test_data_loader)
+train_task = MyCustomInstanceSegmentationData(train_data_loader)
+test_task = MyCustomInstanceSegmentationData(test_data_loader)
 
 result = PropertyLabelCorrelationChange().run(train_task, test_task)
-result
+result.show()
 
+# %%
 # Now in order to run more check, we'll need to define custom properties or metrics.
 #
 # Implement Custom Properties
@@ -291,11 +293,10 @@ label_properties = [
     {'name': 'Classes in Labels', 'method': classes_in_labels, 'output_type': 'class_id'}
 ]
 
-
 result = TrainTestLabelDrift(label_properties=label_properties).run(train_task, test_task)
-result
+result.show()
 
-#%%
+# %%
 # Implement Custom Metric
 # =======================
 #
