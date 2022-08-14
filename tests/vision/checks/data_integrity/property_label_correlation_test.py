@@ -9,16 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """Test for the check property label correlation."""
-from copy import copy
-
 import numpy as np
-import pandas as pd
-from hamcrest import assert_that, close_to, has_entries, contains_exactly
+from hamcrest import assert_that, close_to, contains_exactly, has_entries
 
 from deepchecks.vision.checks import PropertyLabelCorrelation
 from deepchecks.vision.utils.transformations import un_normalize_batch
 from tests.base.utils import equal_condition_result
-from tests.vision.vision_conftest import *
 
 
 def mnist_batch_to_images_with_bias(batch):
