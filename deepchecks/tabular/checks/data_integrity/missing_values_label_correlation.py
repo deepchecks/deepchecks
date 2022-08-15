@@ -43,7 +43,7 @@ class MissingValuesLabelCorrelation(SingleDatasetCheck):
     ----------
     n_top_features: int, default: 5
         Number of features to show, sorted by correlation score
-    empty_string_is_na: bool =False
+    empty_string_is_na: bool, default: False
         Count empty strings as missing values
     """
 
