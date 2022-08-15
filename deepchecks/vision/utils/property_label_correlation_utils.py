@@ -1,13 +1,14 @@
 from typing import List
 
+import pandas as pd
+from pandas.core.dtypes.common import is_float_dtype
+
 from deepchecks import Context
 from deepchecks.core import DatasetKind
 from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.utils.image_functions import crop_image
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
-import pandas as pd
-from pandas.core.dtypes.common import is_float_dtype
 
 
 def calc_properties_for_property_label_correlation(

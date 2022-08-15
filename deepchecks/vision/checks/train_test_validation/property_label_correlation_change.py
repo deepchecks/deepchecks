@@ -114,7 +114,6 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
 
     def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Calculate image properties for train or test batches."""
-        dataset = context.get_data_by_kind(dataset_kind)
 
         if dataset_kind == DatasetKind.TRAIN:
             properties_results = self._train_properties

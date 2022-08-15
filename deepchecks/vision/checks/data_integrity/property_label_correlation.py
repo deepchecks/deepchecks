@@ -11,21 +11,21 @@
 """Module contains the property label correlation check."""
 
 from collections import defaultdict
-from typing import Any, Dict, Hashable, List, Optional, TypeVar, Union
+from typing import Any, Dict, Hashable, List, Optional, TypeVar
 
 import pandas as pd
-import deepchecks.ppscore as pps
 
-from deepchecks import CheckResult, ConditionResult, ConditionCategory
+import deepchecks.ppscore as pps
+from deepchecks import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core import DatasetKind
 from deepchecks.core.check_utils.feature_label_correlation_utils import get_pps_figure, pd_series_to_trace
 from deepchecks.core.errors import ModelValidationError
 from deepchecks.utils.strings import format_number
-from deepchecks.vision import Context, SingleDatasetCheck, Batch
+from deepchecks.vision import Batch, Context, SingleDatasetCheck
 from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.utils.image_properties import default_image_properties
-from deepchecks.vision.utils.property_label_correlation_utils import calc_properties_for_property_label_correlation, \
-    is_float_column
+from deepchecks.vision.utils.property_label_correlation_utils import (calc_properties_for_property_label_correlation,
+                                                                      is_float_column)
 
 __all__ = ['PropertyLabelCorrelation']
 
