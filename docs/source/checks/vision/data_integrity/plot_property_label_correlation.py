@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_vision_feature_label_correlation_change:
+.. _plot_vision_feature_label_correlation:
 
-Property Label Correlation Change
-********************************
+Property Label Correlation
+**************************
 
 This notebook provides an overview for using and understanding the "Property Label Correlation Change" check.
 
@@ -63,12 +63,23 @@ How do we calculate for different vision tasks?
 
 from deepchecks.vision.checks import PropertyLabelCorrelation
 from deepchecks.vision.simple_classification_data import classification_dataset_from_directory
+import albumentations as A
+import urllib.request
+import zipfile
 
-dataset = classification_dataset_from_directory('wolf_vs_dogs', object_type='VisionData', shuffle=True)
+url = 'https://figshare.com/ndownloader/files/36671001'
+urllib.request.urlretrieve(url, 'wolves_vs_dogs_mini.zip')
+
+with zipfile.ZipFile('wolves_vs_dogs_mini.zip', 'r') as zip_ref:
+    zip_ref.extractall('.')
+
+dataset = classification_dataset_from_directory(
+    'wolves_vs_dogs_mini', object_type='VisionData', transforms=A.Resize(64, 64))
 
 check_result = PropertyLabelCorrelation().run(dataset)
 check_result.show()
 
+#%%
 # We can see that both the "Brightness" property and the "Mean Green Relative Intensity" property have a significant
 # ability to predict the label.
 #
@@ -81,7 +92,8 @@ check_result.show()
 # Define a condition
 # ------------------
 # We can define a condition to verify that the results are less than a certain threshold.
-check_result = PropertyLabelCorrelation().add_condition_property_pps_less_than(0.5).run()
+check_result = PropertyLabelCorrelation().add_condition_property_pps_less_than(0.5).run(dataset)
 check_result.show(show_additional_outputs=False)
 
-# We can now see that the condition failed because
+#%%
+# We can now see that the condition failed because the results here are above the threshold.
