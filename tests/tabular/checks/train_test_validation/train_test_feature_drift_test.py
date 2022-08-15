@@ -48,6 +48,23 @@ def test_drift_with_model(drifted_data_and_model):
     assert_that(result.display, has_length(greater_than(0)))
 
 
+def test_drift_with_model_n_top(drifted_data_and_model):
+    # Arrange
+    train, test, model = drifted_data_and_model
+    check = TrainTestFeatureDrift(categorical_drift_method='PSI', columns=['categorical_with_drift'], n_top_columns=1)
+
+    # Act
+    result = check.run(train, test, model)
+    # Assert
+    assert_that(result.value, has_entries({
+        'categorical_with_drift': has_entries(
+            {'Drift score': close_to(0.22, 0.01),
+             'Method': equal_to('PSI'),
+             'Importance': close_to(0, 0.01)}
+        ),
+    }))
+    assert_that(result.display, has_length(equal_to(2)))
+
 def test_drift_with_nulls(drifted_data_with_nulls):
     # Arrange
     train, test = drifted_data_with_nulls

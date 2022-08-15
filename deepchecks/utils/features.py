@@ -277,7 +277,7 @@ def _calc_permutation_importance(
     scorer(model, dataset_sample)
     calc_time = time.time() - start_time
 
-    predicted_time_to_run = int(np.ceil(calc_time * n_repeats * len(dataset.features)))
+    predicted_time_to_run = int(np.ceil(calc_time * n_repeats * len(dataset.features))) or 1
 
     if timeout is not None:
         if predicted_time_to_run > timeout:

@@ -22,6 +22,7 @@ from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condi
 from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.utils.label_prediction_properties import (DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES,
                                                                  DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES,
+                                                                 DEFAULT_SEMANTIC_SEGMENTATION_PREDICTION_PROPERTIES,
                                                                  get_column_type, properties_flatten)
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
 from deepchecks.vision.vision_data import TaskType
@@ -149,6 +150,8 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
                 self.prediction_properties = DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES
             elif task_type == TaskType.OBJECT_DETECTION:
                 self.prediction_properties = DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES
+            elif task_type == TaskType.SEMANTIC_SEGMENTATION:
+                self.prediction_properties = DEFAULT_SEMANTIC_SEGMENTATION_PREDICTION_PROPERTIES
             else:
                 raise NotImplementedError('Check must receive either prediction_properties or '
                                           'run on Classification or Object Detection class')

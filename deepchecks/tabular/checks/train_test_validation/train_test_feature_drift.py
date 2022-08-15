@@ -227,6 +227,7 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceMixin):
 
         if context.with_display:
             if self.sort_feature_by == 'feature importance' and feature_importance is not None:
+                features_order = [feat for feat in features_order if feat in train_dataset.features]
                 columns_order = features_order[:self.n_top_columns]
             else:
                 columns_order = sorted(values_dict.keys(), key=lambda col: values_dict[col]['Drift score'],

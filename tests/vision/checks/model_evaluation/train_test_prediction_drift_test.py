@@ -103,6 +103,33 @@ def test_with_drift_classification(mnist_dataset_train, mnist_dataset_test, mock
         }
     ))
 
+
+def test_with_drift_segmentation(segmentation_coco_train_visiondata, segmentation_coco_test_visiondata,
+                                 trained_segmentation_deeplabv3_mobilenet_model, device):
+    # Arrange
+    train, test = segmentation_coco_train_visiondata, segmentation_coco_test_visiondata
+    model = trained_segmentation_deeplabv3_mobilenet_model
+    check = TrainTestPredictionDrift()
+
+    # Act
+    result = check.run(train, test, model,
+                       device=device)
+    # Assert
+    assert_that(result.value, has_entries(
+        {'Samples Per Class': has_entries(
+            {'Drift score': equal_to(0),
+             'Method': equal_to('Cramer\'s V')}
+        ), 'Number of Classes Per Image': has_entries(
+            {'Drift score': equal_to(0),
+             'Method': equal_to('Earth Mover\'s Distance')}
+        ), 'Segment Area (in pixels)': has_entries(
+            {'Drift score': close_to(0.03, 0.01),
+             'Method': equal_to('Earth Mover\'s Distance')}
+        )
+        }
+    ))
+
+
 def test_reduce_with_drift_classification(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_test
