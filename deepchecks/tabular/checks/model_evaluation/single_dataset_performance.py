@@ -19,6 +19,7 @@ from deepchecks.core.checks import ReduceMixin
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context
 from deepchecks.tabular.base_checks import SingleDatasetCheck
+from deepchecks.utils.docref import doclink
 from deepchecks.utils.strings import format_number
 
 if TYPE_CHECKING:
@@ -81,11 +82,13 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
         if isinstance(self.scorers, dict):
             for k, v in self.scorers.items():
                 if not isinstance(v, str):
-                    name = type(self).__name__
+                    reference = doclink(
+                        'tabular-builtin-metrics',
+                        template='For a list of built-in scorers please refer to {link}'
+                    )
                     raise ValueError(
-                        f'Serialization of "{name}" check instance is not supported '
-                        'if custom user defined scorers were passed to the "scorers" parameter '
-                        f'during instance initialization. Scorer name: {k}'
+                        'Only built-in scorers are allowed when serializing check instances. '
+                        f'{reference}. Scorer name: {k}'
                     )
         return super().config(include_version=include_version)
 

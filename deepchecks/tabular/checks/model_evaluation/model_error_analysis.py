@@ -18,6 +18,7 @@ from deepchecks.core import CheckFailure, CheckResult, ConditionCategory, Condit
 from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
 from deepchecks.tabular.utils.task_type import TaskType
+from deepchecks.utils.docref import doclink
 from deepchecks.utils.performance.error_model import error_model_display, model_error_contribution
 from deepchecks.utils.single_sample_metrics import per_sample_cross_entropy, per_sample_mse
 from deepchecks.utils.strings import format_percent
@@ -219,10 +220,12 @@ class ModelErrorAnalysis(TrainTestCheck):
         if self.alternative_scorer is not None:
             for k, v in self.alternative_scorer.items():
                 if not isinstance(v, str):
-                    name = type(self).__name__
+                    reference = doclink(
+                        'tabular-builtin-metrics',
+                        template='For a list of built-in scorers please refer to {link}. '
+                    )
                     raise ValueError(
-                        f'Serialization of "{name}" check instance is not supported '
-                        'if custom user defined scorer was passed to the "alternative_scorer" '
-                        f'parameter during instance initialization. Scorer name: {k}'
+                        'Only built-in scorers are allowed when serializing check instances. '
+                        f'{reference}Scorer name: {k}'
                     )
         return super().config(include_version)

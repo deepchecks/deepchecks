@@ -18,6 +18,7 @@ from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.checks import ReduceMixin
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.utils.docref import doclink
 from deepchecks.vision import Batch, Context, SingleDatasetCheck
 from deepchecks.vision.metrics_utils.scorers import get_scorers_dict, metric_results_to_df
 
@@ -71,11 +72,13 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
         if isinstance(self.scorers, dict):
             for k, v in self.scorers.items():
                 if not isinstance(v, str):
-                    name = type(self).__name__
+                    reference = doclink(
+                        'vision-builtin-metrics',
+                        template='For a list of built-in scorers please refer to {link}. ',
+                    )
                     raise ValueError(
-                        f'Serialization of "{name}" check instance is not supported '
-                        'if custom user defined scorers (metrics) were passed to the "scorers" parameter '
-                        f'during instance initialization. Scorer name: {k}'
+                        'Only built-in scorers are allowed when serializing check instances. '
+                        f'{reference}Scorer name: {k}'
                     )
         return super().config(include_version=include_version)
 

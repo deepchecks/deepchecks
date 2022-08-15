@@ -26,6 +26,7 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.distribution.preprocessing import ScaledNumerics
+from deepchecks.utils.docref import doclink
 from deepchecks.utils.metrics import get_gain
 from deepchecks.utils.simple_models import ClassificationUniformModel, RandomModel, RegressionUniformModel
 from deepchecks.utils.strings import format_percent
@@ -289,11 +290,13 @@ class SimpleModelComparison(TrainTestCheck):
         if self.alternative_scorers is not None:
             for k, v in self.alternative_scorers.items():
                 if callable(v):
-                    name = type(self).__name__
+                    reference = doclink(
+                        'tabular-builtin-metrics',
+                        template='For a list of built-in scorers please refer to {link}. '
+                    )
                     raise ValueError(
-                        f'Serialization of "{name}" check instance is not supported '
-                        'if custom user defined scorers were passed to the "alternative_scorers" '
-                        f'parameter during instance initialization. Scorer name: {k}'
+                        'Only built-in scorers are allowed when serializing check instances. '
+                        f'{reference}Scorer name: {k}'
                     )
         return super().config(include_version)
 

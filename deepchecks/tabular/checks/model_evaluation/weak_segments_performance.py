@@ -29,6 +29,7 @@ from deepchecks.tabular.context import _DummyModel
 from deepchecks.tabular.metric_utils.scorers import DeepcheckScorer
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.dataframes import default_fill_na_per_column_type
+from deepchecks.utils.docref import doclink
 from deepchecks.utils.performance.partition import (convert_tree_leaves_into_filters,
                                                     partition_numeric_feature_around_segment)
 from deepchecks.utils.single_sample_metrics import calculate_per_sample_loss
@@ -162,11 +163,13 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
         if isinstance(self.alternative_scorer, dict):
             for k, v in self.alternative_scorer.items():
                 if callable(v):
-                    name = type(self).__name__
+                    reference = doclink(
+                        'tabular-builtin-metrics',
+                        template='For a list of built-in scorers please refer to {link}. ',
+                    )
                     raise ValueError(
-                        f'Serialization of "{name}" check instance is not supported '
-                        'if custom user defined scorer was passed to the "alternative_scorer" parameter '
-                        f'during instance initialization. Scorer name: {k}'
+                        'Only built-in scorers are allowed when serializing check instances. '
+                        f'{reference}Scorer name: {k}'
                     )
         return super().config(include_version)
 

@@ -19,6 +19,7 @@ from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.checks import CheckConfig, ReduceMixin
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition
+from deepchecks.utils.docref import doclink
 from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.utils.label_prediction_properties import (DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES,
                                                                  DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES,
@@ -231,17 +232,12 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
 
     def config(self, include_version: bool = True) -> CheckConfig:
         """Return check configuration."""
-        if isinstance(self.prediction_properties, list):
-            for prop in self.prediction_properties:
-                if 'method' not in prop or not prop['method']:
-                    raise ValueError('Each prediction property is expected to contain not emtpy "method" key')
-                if callable(prop['method']):
-                    type_name = type(self).__name__
-                    raise ValueError(
-                        f'Serialization of "{type_name}" check instance is not supported '
-                        'if custom user defined properties were passed to the "prediction_properties" '
-                        f'parameter during instance initialization. Property name: {prop["name"]}'
-                    )
+        # NOTE: prediction_properties if passed always contain callables
+        if self.prediction_properties is not None:
+            raise ValueError(
+                'Serialization of check instances with provided '
+                '"prediction_properties" parameter is not supported'
+            )
         return super().config(include_version=include_version)
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:

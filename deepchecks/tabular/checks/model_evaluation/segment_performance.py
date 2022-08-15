@@ -18,6 +18,7 @@ import plotly.express as px
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DatasetValidationError, DeepchecksValueError
 from deepchecks.tabular import Context, SingleDatasetCheck
+from deepchecks.utils.docref import doclink
 from deepchecks.utils.performance.partition import partition_column
 from deepchecks.utils.strings import format_number
 from deepchecks.utils.typing import Hashable
@@ -172,10 +173,12 @@ class SegmentPerformance(SingleDatasetCheck):
         if self.alternative_scorer is not None:
             for k, v in self.alternative_scorer.items():
                 if not isinstance(v, str):
-                    name = type(self).__name__
+                    reference = doclink(
+                        'tabular-builtin-metrics',
+                        template='For a list of built-in scorers please refer to {link}. '
+                    )
                     raise ValueError(
-                        f'Serialization of "{name}" check instance is not supported '
-                        'if custom user defined scorer was passed to the "alternative_scorer" '
-                        f'parameter during instance initialization. Scorer name: {k}'
+                        'Only built-in scorers are allowed when serializing check instances. '
+                        f'{reference}Scorer name: {k}'
                     )
         return super().config(include_version)

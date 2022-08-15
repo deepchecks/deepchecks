@@ -17,6 +17,7 @@ import plotly.express as px
 from deepchecks.core import CheckResult
 from deepchecks.tabular import ModelComparisonCheck, ModelComparisonContext
 from deepchecks.tabular.utils.task_type import TaskType
+from deepchecks.utils.docref import doclink
 
 if TYPE_CHECKING:
     from deepchecks.core.checks import CheckConfig
@@ -100,10 +101,12 @@ class MultiModelPerformanceReport(ModelComparisonCheck):
         if self.alternative_scorers is not None:
             for k, v in self.alternative_scorers.items():
                 if not isinstance(v, str):
-                    name = type(self).__name__
+                    reference = doclink(
+                        'tabular-builtin-metrics',
+                        template='For a list of built-in scorers please refer to {link}. '
+                    )
                     raise ValueError(
-                        f'Serialization of "{name}" check instance is not supported '
-                        'if custom user defined scorers were passed to the "alternative_scorers" '
-                        f'parameter during instance initialization. Scorer name: {k}'
+                        'Only built-in scorers are allowed when serializing check instances. '
+                        f'{reference}Scorer name: {k}'
                     )
         return super().config(include_version)
