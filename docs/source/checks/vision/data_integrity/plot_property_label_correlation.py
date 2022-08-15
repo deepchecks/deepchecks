@@ -5,7 +5,7 @@
 Property Label Correlation
 **************************
 
-This notebook provides an overview for using and understanding the "Property Label Correlation Change" check.
+This notebook provides an overview for using and understanding the "Property Label Correlation" check.
 
 **Structure:**
 
