@@ -143,4 +143,4 @@ class MissingValuesLabelCorrelation(SingleDatasetCheck):
             # categorical to numberical corr
             return correlation_ratio(categorical_data=is_missing, numerical_data=target)
         else:
-            raise ValueError(f'No correlation method defined yet for TaskType {task_type}')
+            raise DeepchecksValueError(f'No correlation method defined yet for TaskType {task_type}')
