@@ -76,7 +76,7 @@ class MissingValuesLabelCorrelation(SingleDatasetCheck):
         dataset.assert_label()
         relevant_columns = dataset.features + [dataset.label_name]
 
-        df_corr = self.calculate_correlation_missing_values(
+        df_corr = self._calculate_correlation_missing_values(
             df=dataset.data[relevant_columns], y=dataset.label_name, task_type=dataset.label_type)
 
         if context.with_display:
@@ -89,7 +89,7 @@ class MissingValuesLabelCorrelation(SingleDatasetCheck):
 
         return CheckResult(value=df_corr.to_dict(), display=display, header='Missing Values Label Correlation')
 
-    def calculate_correlation_missing_values(self, df: pd.DataFrame, y: str, task_type: TaskType) -> pd.DataFrame:
+    def _calculate_correlation_missing_values(self, df: pd.DataFrame, y: str, task_type: TaskType) -> pd.DataFrame:
         """
         Calculate the correlation of missing values with the target.
 
@@ -130,11 +130,11 @@ class MissingValuesLabelCorrelation(SingleDatasetCheck):
             df[columns] = df[columns].apply(lambda col: col.str.strip().replace("", np.NaN))
 
         cols = [column for column in df.columns if column != y]
-        scores = [self.score(df[column].isna(), df[y], task_type) for column in cols]
+        scores = [self._score(df[column].isna(), df[y], task_type) for column in cols]
 
         return pd.Series(data=scores, index=cols)
 
-    def score(self, is_missing: pd.Series, target: pd.Series, task_type: TaskType) -> float:
+    def _score(self, is_missing: pd.Series, target: pd.Series, task_type: TaskType) -> float:
 
         if task_type in [TaskType.MULTICLASS, TaskType.BINARY]:
             # asymmetric categorical to categorical corr

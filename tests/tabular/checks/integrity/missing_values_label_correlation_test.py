@@ -81,7 +81,6 @@ def test_missing_values_are_correlated_to_label(example_data):
     example_data.loc[idx, "label"] = 1
 
     example_data.loc[idx, "x2"] = np.NaN
-    example_data.loc[idx, "label"] = 1
 
     result = MissingValuesLabelCorrelation().run(dataset=Dataset(example_data, label='label',
                                                                  cat_features=["x2"]))
