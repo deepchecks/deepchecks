@@ -26,6 +26,7 @@ from deepchecks.tabular.metric_utils import DeepcheckScorer
 from deepchecks.utils.metrics import get_scorer_name
 from deepchecks.vision.metrics_utils import (CustomClassificationScorer, ObjectDetectionAveragePrecision,
                                              ObjectDetectionTpFpFn)
+from deepchecks.vision.metrics_utils.semantic_segmentation_metrics import MeanDice
 from deepchecks.vision.vision_data import TaskType, VisionData
 
 __all__ = [
@@ -47,6 +48,12 @@ def get_default_object_detection_scorers() -> t.Dict[str, Metric]:
     return {
         'Average Precision': detection_dict['average_precision_per_class'](),
         'Average Recall': detection_dict['average_recall_per_class']()
+    }
+
+
+def get_default_semantic_segmentation_scorers() -> t.Dict[str, Metric]:
+    return {
+        'Dice': semantic_segmentation_dict['dice'](),
     }
 
 
@@ -83,6 +90,10 @@ detection_dict = {
     'fnr_weighted': lambda: ObjectDetectionTpFpFn(evaluating_function='fnr', averaging_method='weighted'),
     'average_precision_per_class': lambda: ObjectDetectionAveragePrecision(return_option='ap'),
     'average_recall_per_class': lambda: ObjectDetectionAveragePrecision(return_option='ar')
+}
+
+semantic_segmentation_dict = {
+    'dice': MeanDice
 }
 
 
@@ -139,6 +150,8 @@ def get_scorers_dict(
         scorers = get_default_classification_scorers()
     elif task_type == TaskType.OBJECT_DETECTION:
         scorers = get_default_object_detection_scorers()
+    elif task_type == TaskType.SEMANTIC_SEGMENTATION:
+        scorers = get_default_semantic_segmentation_scorers()
     else:
         raise DeepchecksNotSupportedError(f'No scorers match task_type {task_type}')
 

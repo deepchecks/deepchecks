@@ -16,6 +16,16 @@ import torch
 # Labels
 
 
+def _get_samples_per_class_classification(labels: torch.Tensor) -> List[int]:
+    """Return a list containing the class per image in batch."""
+    return labels.tolist()
+
+
+def _get_samples_per_class_object_detection(labels: List[torch.Tensor]) -> List[List[int]]:
+    """Return a list containing the classes in batch."""
+    return [tensor.reshape((-1, 5))[:, 0].tolist() for tensor in labels]
+
+
 def _get_bbox_area(labels: List[torch.Tensor]) -> List[List[int]]:
     """Return a list containing the area of bboxes in batch."""
     return [(label.reshape((-1, 5))[:, 4] * label.reshape((-1, 5))[:, 3]).tolist()
@@ -28,14 +38,19 @@ def _count_num_bboxes(labels: List[torch.Tensor]) -> List[int]:
     return num_bboxes
 
 
-def _get_samples_per_class_object_detection(labels: List[torch.Tensor]) -> List[List[int]]:
+def _get_samples_per_class_semantic_segmentation(labels: List[torch.Tensor]) -> List[List[int]]:
     """Return a list containing the classes in batch."""
-    return [tensor.reshape((-1, 5))[:, 0].tolist() for tensor in labels]
+    return [torch.unique(tensor).tolist() for tensor in labels]
 
 
-def _get_samples_per_class_classification(labels: torch.Tensor) -> List[int]:
-    """Return a list containing the class per image in batch."""
-    return labels.tolist()
+def _get_segment_area(labels: List[torch.Tensor]) -> List[List[int]]:
+    """Return a list containing the area of segments in batch."""
+    return [torch.unique(tensor, return_counts=True)[1].tolist() for tensor in labels]
+
+
+def _count_classes_by_segment_in_image(labels: List[torch.Tensor]) -> List[int]:
+    """Return a list containing the number of unique classes per image for semantic segmentation."""
+    return [torch.unique(tensor).shape[0] for tensor in labels]
 
 
 DEFAULT_CLASSIFICATION_LABEL_PROPERTIES = [
@@ -48,15 +63,21 @@ DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES = [
     {'name': 'Number of Bounding Boxes Per Image', 'method': _count_num_bboxes, 'output_type': 'numerical'},
 ]
 
+DEFAULT_SEMANTIC_SEGMENTATION_LABEL_PROPERTIES = [
+    {'name': 'Samples Per Class', 'method': _get_samples_per_class_semantic_segmentation, 'output_type': 'class_id'},
+    {'name': 'Segment Area (in pixels)', 'method': _get_segment_area, 'output_type': 'numerical'},
+    {'name': 'Number of Classes Per Image', 'method': _count_classes_by_segment_in_image, 'output_type': 'numerical'},
+]
+
 
 # Predictions
 
-def _get_samples_per_predicted_class_classification(predictions: torch.Tensor) -> List[int]:
+def _get_samples_per_pred_class_classification(predictions: torch.Tensor) -> List[int]:
     """Return a list containing the classes in batch."""
     return torch.argmax(predictions, dim=1).tolist()
 
 
-def _get_samples_per_predicted_class_object_detection(predictions: List[torch.Tensor]) -> List[List[int]]:
+def _get_samples_per_pred_class_object_detection(predictions: List[torch.Tensor]) -> List[List[int]]:
     """Return a list containing the classes in batch."""
     return [tensor.reshape((-1, 6))[:, -1].tolist() for tensor in predictions]
 
@@ -67,29 +88,37 @@ def _get_predicted_bbox_area(predictions: List[torch.Tensor]) -> List[List[int]]
             for prediction in predictions]
 
 
+def _get_samples_per_pred_class_semantic_segmentation(labels: List[torch.Tensor]) -> List[List[int]]:
+    """Return a list containing the classes in batch."""
+    return [torch.unique(tensor.argmax(0)).tolist() for tensor in labels]
+
+
+def _get_segment_pred_area(labels: List[torch.Tensor]) -> List[List[int]]:
+    """Return a list containing the area of segments in batch."""
+    return [torch.unique(tensor.argmax(0), return_counts=True)[1].tolist() for tensor in labels]
+
+
+def _count_pred_classes_by_segment_in_image(labels: List[torch.Tensor]) -> List[int]:
+    """Return a list containing the number of unique classes per image for semantic segmentation."""
+    return [torch.unique(tensor.argmax(0)).shape[0] for tensor in labels]
+
+
 DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES = [
-    {
-        'name': 'Samples Per Class',
-        'method': _get_samples_per_predicted_class_classification,
-        'output_type': 'class_id'
-    }
+    {'name': 'Samples Per Class', 'method': _get_samples_per_pred_class_classification, 'output_type': 'class_id'}
 ]
 
 DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES = [
-    {
-        'name': 'Samples Per Class',
-        'method': _get_samples_per_predicted_class_object_detection,
-        'output_type': 'class_id'
-    },
-    {
-        'name': 'Bounding Box Area (in pixels)',
-        'method': _get_predicted_bbox_area,
-        'output_type': 'numerical'},
-    {
-        'name': 'Number of Bounding Boxes Per Image',
-        'method': _count_num_bboxes,
-        'output_type': 'numerical'
-    },
+    {'name': 'Samples Per Class', 'method': _get_samples_per_pred_class_object_detection, 'output_type': 'class_id'},
+    {'name': 'Bounding Box Area (in pixels)', 'method': _get_predicted_bbox_area, 'output_type': 'numerical'},
+    {'name': 'Number of Bounding Boxes Per Image', 'method': _count_num_bboxes, 'output_type': 'numerical'},
+]
+
+DEFAULT_SEMANTIC_SEGMENTATION_PREDICTION_PROPERTIES = [
+    {'name': 'Samples Per Class', 'method': _get_samples_per_pred_class_semantic_segmentation,
+     'output_type': 'class_id'},
+    {'name': 'Segment Area (in pixels)', 'method': _get_segment_pred_area, 'output_type': 'numerical'},
+    {'name': 'Number of Classes Per Image', 'method': _count_pred_classes_by_segment_in_image,
+     'output_type': 'numerical'},
 ]
 
 

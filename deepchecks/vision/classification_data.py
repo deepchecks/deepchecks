@@ -112,14 +112,14 @@ class ClassificationData(VisionData):
             raise ValidationError('Check requires classification label to be a 1D tensor')
 
     @staticmethod
-    def validate_infered_batch_predictions(batch_predictions, n_classes: int = None, eps: float = 1e-3):
+    def validate_inferred_batch_predictions(batch_predictions, n_classes: int = None, eps: float = 1e-3):
         """
-        Validate the infered predictions from the batch.
+        Validate the inferred predictions from the batch.
 
         Parameters
         ----------
         batch_predictions : t.Any
-            The infered predictions from the batch
+            The inferred predictions from the batch
         n_classes : int , default: None
             Number of classes.
         eps : float , default: 1e-3
@@ -129,8 +129,6 @@ class ClassificationData(VisionData):
         ------
         ValidationError
             If predictions format is invalid
-        DeepchecksNotImplementedError
-            If infer_on_batch not implemented
         """
         if not isinstance(batch_predictions, torch.Tensor):
             raise ValidationError('Check requires classification predictions to be a torch.Tensor')
