@@ -78,6 +78,7 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
     ppscore_params: dict, default: None
         dictionary of additional parameters for the ppscore predictor function
     """
+
     def __init__(
             self,
             image_properties: Optional[List[Dict[str, Any]]] = None,
