@@ -24,7 +24,7 @@ aspect ratio and more. This is a critical problem, that will likely stay hidden
 without this check (as it won't pop up when comparing model performance on train
 and test).
 
-A famous example is the case of dogs vs. dogs classification, where a model needs to classify whether an image
+A famous example is the case of wolfs vs. dogs classification, where a model needs to classify whether an image
 contains a wolf or a dog, and can learn to do it by the background instead of the actual animal - in the dataset
 all the wolves were pictured in the snow and therefore had a white background while all the dogs were pictured in the
 grass and therefore had a green background.
