@@ -41,7 +41,7 @@ class MissingValuesLabelCorrelation(SingleDatasetCheck):
      sales data where some fields were only filled if the offer was accepted.
     Parameters
     ----------
-    n_top_features : int , default: 5
+    n_top_features: int, default: 5
         Number of features to show, sorted by correlation score
     empty_string_is_na: bool =False
         Count empty strings as missing values
