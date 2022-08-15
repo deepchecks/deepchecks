@@ -56,7 +56,7 @@ How do we calculate for different vision tasks?
 """
 #%%
 # Run the Check
-# -------------
+# =============
 # In this example we will run the check on the dataset of wolves vs. dogs.
 # For example purposes we picked 10 images of dogs and 10 images of wolves out of the full dataset.
 # The original data was downloaded from https://www.kaggle.com/datasets/harishvutukuri/dogs-vs-wolves.
@@ -90,7 +90,7 @@ check_result.show()
 
 #%%
 # Define a condition
-# ------------------
+# ==================
 # We can define a condition to verify that the results are less than a certain threshold.
 check_result = PropertyLabelCorrelation().add_condition_property_pps_less_than(0.5).run(dataset)
 check_result.show(show_additional_outputs=False)

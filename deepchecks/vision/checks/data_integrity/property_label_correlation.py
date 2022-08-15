@@ -66,9 +66,6 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
         - 'categorical' - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
         For more on image / label properties, see the :ref:`property guide </user-guide/vision/vision_properties.rst>`
-    per_class : bool, default: True
-        boolean that indicates whether the results of this check should be calculated for all classes or per class in
-        label. If True, the conditions will be run per class as well.
     n_top_properties: int, default: 5
         Number of features to show, sorted by the magnitude of difference in PPS
     random_state: int, default: None
@@ -83,7 +80,6 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
             self,
             image_properties: Optional[List[Dict[str, Any]]] = None,
             n_top_properties: int = 3,
-            per_class: bool = True,
             random_state: int = None,
             min_pps_to_show: float = 0.05,
             ppscore_params: dict = None,
@@ -94,7 +90,6 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
         self.image_properties = image_properties if image_properties else default_image_properties
 
         self.min_pps_to_show = min_pps_to_show
-        self.per_class = per_class
         self.n_top_properties = n_top_properties
         self.random_state = random_state
         self.ppscore_params = ppscore_params or {}
