@@ -110,3 +110,5 @@ hashable
 SimilarImageLeakage
 conf
 deserialization
+coco128
+callables

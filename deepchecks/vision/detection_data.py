@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""The vision/dataset module containing the vision Dataset class and its functions."""
+"""Module containing the DetectionData class and its functions."""
 from abc import abstractmethod
 from typing import List, Sequence
 
@@ -21,7 +21,7 @@ from deepchecks.vision.vision_data import TaskType, VisionData
 class DetectionData(VisionData):
     """The DetectionData class is used to load and preprocess data for a object detection task.
 
-    It is a subclass of the VisionData class. The DetectionData class is containing additional data and general
+    It is a subclass of the VisionData class. The DetectionData class contains additional data and general
     methods intended for easily accessing metadata relevant for validating a computer vision object detection ML models.
     """
 
@@ -60,7 +60,7 @@ class DetectionData(VisionData):
 
         Notes
         -----
-        The accepted label format for is a a list of length N containing tensors of shape (B, 5), where N is the number
+        The accepted label format for is a list of length N containing tensors of shape (B, 5), where N is the number
         of samples, B is the number of bounding boxes in the sample and each bounding box is represented by 5 values:
         (class_id, x, y, w, h). x and y are the coordinates (in pixels) of the upper left corner of the bounding box, w
          and h are the width and height of the bounding box (in pixels) and class_id is the class id of the prediction.
@@ -166,21 +166,19 @@ class DetectionData(VisionData):
                                   'be a Bx5 tensor of format [class_id, x, y, width, height].')
 
     @staticmethod
-    def validate_infered_batch_predictions(batch_predictions):
+    def validate_inferred_batch_predictions(batch_predictions):
         """
-        Validate the infered predictions from the batch.
+        Validate the inferred predictions from the batch.
 
         Parameters
         ----------
         batch_predictions : t.Any
-            The infered predictions from the batch
+            The inferred predictions from the batch
 
         Raises
         ------
         ValidationError
             If predictions format is invalid
-        DeepchecksNotImplementedError
-            If infer_on_batch not implemented
         """
         if not isinstance(batch_predictions, Sequence):
             raise ValidationError('Check requires detection predictions to be a sequence with an entry for each'

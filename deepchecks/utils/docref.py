@@ -18,11 +18,10 @@ __all__ = ['doclink']
 # TODO:
 links = {
     'default': {
-        'tabular-builtin-metrics': 'https://docs.deepchecks.com/en/stable/user-guide/general/metrics_guide.html#list-of-supported-strings',
+        'tabular-builtin-metrics': 'https://docs.deepchecks.com/en/stable/user-guide/general/metrics_guide.html#list-of-supported-strings',  # pylint: disable=line-too-long  # noqa
     },
-    # '0.0.1': {},
-    # '0.0.2': {},
-    # ...
+    # '0.0.1': {},  # noqa
+    # '0.0.2': {},  # noqa
 }
 
 
