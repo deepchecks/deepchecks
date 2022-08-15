@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Contains unit tests for the identifier_label_correlation check."""
+"""Contains unit tests for the missing_values_label_correlation check."""
 import math
 
 import numpy as np
