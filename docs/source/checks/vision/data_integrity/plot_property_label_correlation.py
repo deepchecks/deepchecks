@@ -18,16 +18,17 @@ What is the purpose of the check?
 The check estimates for every image property (such as brightness, contrast etc.)
 its ability to predict the label by itself.
 
-This check can help find a potential bias the dataset, that might lead to shortcut learning - the labels being
-strongly correlated with simple image properties such as color, brightness,
-aspect ratio and more. This is a critical problem, that will likely stay hidden
-without this check (as it won't pop up when comparing model performance on train
-and test).
+This check can help find a potential bias in the dataset, that might lead to shortcut learning - the labels being
+strongly correlated with simple image properties such as color, brightness, aspect ratio and more. This is a critical
+problem, because the model is likely to learn this property instead of the actual visual characteristics of each class,
+as it's easier to do so. In this case, the model will show high performance on images taken in similar conditions, but
+will fail in the wild, where the simple properties don't hold true.
+This kind of correlation will likely stay hidden without this check until tested in the wild.
 
-A famous example is the case of wolfs vs. dogs classification, where a model needs to classify whether an image
+A famous example is the case of wolves vs. dogs classification, where a model needs to classify whether an image
 contains a wolf or a dog, and can learn to do it by the background instead of the actual animal - in the dataset
-all the wolves were photographed in the snow and therefore had a white background while all the dogs were photographed in the
-grass and therefore had a green background.
+most of the wolves were photographed in the snow and therefore had a white background while all the dogs were
+photographed in the grass and therefore had a green background.
 
 The check is based on calculating the predictive power score (PPS) of each image
 property. For more details you can read here `how the PPS is calculated
