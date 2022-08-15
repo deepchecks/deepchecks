@@ -5,7 +5,7 @@
 Property Label Correlation
 **************************
 
-This notebook provides an overview for using and understanding the "Property Label Correlation Change" check.
+This notebook provides an overview for using and understanding the "Property Label Correlation" check.
 
 **Structure:**
 
@@ -24,9 +24,9 @@ aspect ratio and more. This is a critical problem, that will likely stay hidden
 without this check (as it won't pop up when comparing model performance on train
 and test).
 
-A famous example is the case of dogs vs. dogs classification, where a model needs to classify whether an image
+A famous example is the case of wolfs vs. dogs classification, where a model needs to classify whether an image
 contains a wolf or a dog, and can learn to do it by the background instead of the actual animal - in the dataset
-all the wolves were pictured in the snow and therefore had a white background while all the dogs were pictured in the
+all the wolves were photographed in the snow and therefore had a white background while all the dogs were photographed in the
 grass and therefore had a green background.
 
 The check is based on calculating the predictive power score (PPS) of each image
@@ -36,8 +36,8 @@ property. For more details you can read here `how the PPS is calculated
 What is a problematic result?
 -----------------------------
 
-Image properties with a high predictive score - can indicate that there is a bias in the dataset, as a single property
-can predict the label successfully, using simple classic ML algorithms.
+Image properties with a high predictive score can indicate that there is a bias in the dataset, as a single property
+can predict the label successfully using simple classic ML algorithms.
 
 This means that a deep learning algorithm may accidentally learn these properties instead of more accurate complex
 abstractions. For example, in the dataset of wolves and dogs photographs, the brightness of the image may be used to
