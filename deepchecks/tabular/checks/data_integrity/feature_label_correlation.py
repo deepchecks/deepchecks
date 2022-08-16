@@ -51,9 +51,9 @@ class FeatureLabelCorrelation(SingleDatasetCheck):
 
     def __init__(
         self,
-        ppscore_params=None,
+        ppscore_params: t.Optional[t.Dict[t.Any, t.Any]] = None,
         n_top_features: int = 5,
-        random_state: int = None,
+        random_state: t.Optional[int] = None,
         **kwargs
     ):
         super().__init__(**kwargs)
