@@ -13,9 +13,9 @@
 from typing import Optional, Tuple, Union
 
 from deepchecks.nlp.base_checks import TrainTestCheck, SingleDatasetCheck
-from deepchecks.nlp.context import TNLPPred, Context
+from deepchecks.nlp.context import TTextPred, Context
 
-from deepchecks.nlp.dataset import NLPData
+from deepchecks.nlp.text_data import TextData
 
 from deepchecks.core import DatasetKind
 from deepchecks.core.check_result import CheckFailure
@@ -36,25 +36,25 @@ class Suite(BaseSuite):
 
     def run(
         self,
-        train: Union[NLPData, None] = None,
-        test: Union[NLPData, None] = None,
+        train: Union[TextData, None] = None,
+        test: Union[TextData, None] = None,
         with_display: bool = True,
-        train_predictions: Optional[TNLPPred] = None,
-        test_predictions: Optional[TNLPPred] = None,
+        train_predictions: Optional[TTextPred] = None,
+        test_predictions: Optional[TTextPred] = None,
     ) -> SuiteResult:
         """Run all checks.
 
         Parameters
         ----------
-        train: Union[NLPData, None] , default: None
-            NLPData object, representing data an estimator was fitted on
-        test: Union[NLPData, None] , default: None
-            NLPData object, representing data an estimator predicts on
+        train: Union[TextData, None] , default: None
+            TextData object, representing data an estimator was fitted on
+        test: Union[TextData, None] , default: None
+            TextData object, representing data an estimator predicts on
         with_display : bool , default: True
             flag that determines if checks will calculate display (redundant in some checks).
-        train_predictions: Union[TNLPPred, None] , default: None
+        train_predictions: Union[TTextPred, None] , default: None
             predictions on train dataset
-        test_predictions: Union[TNLPPred, None] , default: None
+        test_predictions: Union[TTextPred, None] , default: None
             predictions on test dataset
 
         Returns

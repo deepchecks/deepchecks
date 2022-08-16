@@ -15,7 +15,7 @@ import typing as t
 import numpy as np
 
 from deepchecks.nlp.task_type import TaskType
-from deepchecks.nlp.dataset import NLPData
+from deepchecks.nlp.text_data import TextData
 
 from deepchecks.core import CheckFailure, CheckResult, DatasetKind
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
@@ -24,13 +24,13 @@ from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupport
 
 __all__ = [
     'Context',
-    'TNLPPred'
+    'TTextPred'
 ]
 
 
 TClassPred = np.array
 TTokenPred = t.Sequence[t.Sequence[t.Tuple[str, int, int, float]]]
-TNLPPred = t.Union[TClassPred, TTokenPred]
+TTextPred = t.Union[TClassPred, TTokenPred]
 
 
 class Context:
@@ -38,34 +38,34 @@ class Context:
 
     Parameters
     ----------
-    train: Union[NLPData, None] , default: None
-        NLPData object, representing data an estimator was fitted on
-    test: Union[NLPData, None] , default: None
-        NLPData object, representing data an estimator predicts on
+    train: Union[TextData, None] , default: None
+        TextData object, representing data an estimator was fitted on
+    test: Union[TextData, None] , default: None
+        TextData object, representing data an estimator predicts on
     with_display : bool , default: True
         flag that determines if checks will calculate display (redundant in some checks).
-    train_predictions: Union[TNLPPred, None] , default: None
+    train_predictions: Union[TTextPred, None] , default: None
         predictions on train dataset
-    test_predictions: Union[TNLPPred, None] , default: None
+    test_predictions: Union[TTextPred, None] , default: None
         predictions on test dataset
     """
 
     def __init__(
         self,
-        train: t.Union[NLPData, None] = None,
-        test: t.Union[NLPData, None] = None,
+        train: t.Union[TextData, None] = None,
+        test: t.Union[TextData, None] = None,
         with_display: bool = True,
-        train_predictions: t.Optional[TNLPPred] = None,
-        test_predictions: t.Optional[TNLPPred] = None,
+        train_predictions: t.Optional[TTextPred] = None,
+        test_predictions: t.Optional[TTextPred] = None,
     ):
         # Validations
         if train is not None:
-            train = NLPData.cast_to_dataset(train)
+            train = TextData.cast_to_dataset(train)
         if test is not None:
-            test = NLPData.cast_to_dataset(test)
+            test = TextData.cast_to_dataset(test)
         # If both dataset, validate they fit each other
         if train and test:
-            if test.has_label() and train.has_label() and not NLPData.datasets_share_label(train, test):
+            if test.has_label() and train.has_label() and not TextData.datasets_share_label(train, test):
                 raise DatasetValidationError('train and test must share the same label and task type')
         if test and not train:
             raise DatasetValidationError('Can\'t initialize context with only test. if you have single dataset, '
@@ -89,7 +89,7 @@ class Context:
     # Validations note: We know train & test fit each other so all validations can be run only on train
 
     @staticmethod
-    def _validate_prediction(dataset: NLPData, dataset_type: DatasetKind, prediction: TNLPPred,
+    def _validate_prediction(dataset: TextData, dataset_type: DatasetKind, prediction: TTextPred,
                              eps: float = 1e-3):
         """Validate prediction for given dataset."""
         if dataset.task_type == TaskType.TEXT_CLASSIFICATION:
@@ -148,14 +148,14 @@ class Context:
         return self._with_display
 
     @property
-    def train(self) -> NLPData:
+    def train(self) -> TextData:
         """Return train if exists, otherwise raise error."""
         if self._train is None:
             raise DeepchecksNotSupportedError('Check is irrelevant for Datasets without train dataset')
         return self._train
 
     @property
-    def test(self) -> NLPData:
+    def test(self) -> TextData:
         """Return test if exists, otherwise raise error."""
         if self._test is None:
             raise DeepchecksNotSupportedError('Check is irrelevant for Datasets without test dataset')

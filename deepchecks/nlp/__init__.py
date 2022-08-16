@@ -16,8 +16,8 @@ try:
     import datasets  # noqa: F401
     import seqeval  # noqa: F401
 except ImportError as error:
-    raise ImportError("datasets (HuggingFace) or seqeval are not installed. Install requirments specified in nlp-requirements.txt "
-                      "in order to use deepchecks.nlp functionalities.") from error
+    raise ImportError("datasets (HuggingFace) or seqeval are not installed. Install requirments specified"
+                      " in nlp-requirements.txt in order to use deepchecks.nlp functionalities.") from error
 
 
 __all__ = [

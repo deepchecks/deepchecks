@@ -17,19 +17,19 @@ import datasets
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.nlp.task_type import TaskType
 
-__all__ = ['NLPData']
+__all__ = ['TextData']
 
 DEFAULT_LABEL_NAME = 'label'
 
 
-TDataset = t.TypeVar('TDataset', bound='NLPData')
+TDataset = t.TypeVar('TDataset', bound='TextData')
 TSingleLabel = t.Tuple[int, str]
 TClassLabel = t.Sequence[t.Union[TSingleLabel, t.Tuple[TSingleLabel]]]
 TTokenLabel = t.Sequence[t.Sequence[t.Tuple[str, int, int]]]
-TNLPLabel = t.Union[TClassLabel, TTokenLabel]
+TTextLabel = t.Union[TClassLabel, TTokenLabel]
 
 
-class NLPData:
+class TextData:
     """
     Dataset wraps HuggingFace/datasets Dataset object together with ML related metadata.
 
@@ -92,7 +92,7 @@ class NLPData:
     def __init__(
             self,
             raw_text: t.Sequence[str],
-            label: t.Optional[TNLPLabel] = None,
+            label: t.Optional[TTextLabel] = None,
             task_type: str = None,
             label_name: t.Optional[str] = None,
     ):
@@ -130,7 +130,7 @@ class NLPData:
         Encode label as a ClassLabel object
         """
         if self._is_multilabel:
-            set_of_labels = set().union(*[set(l) for l in self._dataset[self._label_name]])
+            set_of_labels = set().union(*[set(label_entry) for label_entry in self._dataset[self._label_name]])
             sorted_labels = sorted(list(set_of_labels))
             self._dataset = self._dataset.cast_column(self.label_name,
                                                       datasets.Sequence(datasets.ClassLabel(names=sorted_labels)))
@@ -145,7 +145,7 @@ class NLPData:
         if not all(isinstance(x, str) for x in raw_text):
             raise DeepchecksValueError('raw_text must be a Sequence of strings')
 
-    def _validate_and_process_label(self, label: t.Optional[TNLPLabel], raw_text: t.Sequence[str]):
+    def _validate_and_process_label(self, label: t.Optional[TTextLabel], raw_text: t.Sequence[str]):
         """Validate and process label to accepted formats."""
         # If label is not set, create an empty label of nulls
         if label is None:
@@ -384,9 +384,9 @@ class NLPData:
     #         a stratified fashion, using this as class labels.
     #     Returns
     #     -------
-    #     NLPData
+    #     TextData
     #         Dataset containing train split data.
-    #     NLPData
+    #     TextData
     #         Dataset containing test split data.
     #     """
     #     if isinstance(stratify, bool):
@@ -423,12 +423,12 @@ class NLPData:
         return self._label_name
 
     @property
-    def label(self) -> TNLPLabel:
+    def label(self) -> TTextLabel:
         """Return the label defined in the dataset.
 
         Returns
         -------
-        TNLPLabel
+        TTextLabel
         """
         return self._dataset[self.label_name]
 
@@ -480,7 +480,7 @@ class NLPData:
         return self.num_classes > 0
 
     @classmethod
-    def cast_to_dataset(cls, obj: t.Any) -> 'NLPData':
+    def cast_to_dataset(cls, obj: t.Any) -> 'TextData':
         """Verify Dataset or transform to Dataset.
 
         Function verifies that provided value is a non-empty instance of Dataset,
@@ -495,7 +495,7 @@ class NLPData:
         Raises
         ------
         DeepchecksValueError
-            if the provided value is not a NLPData instance;
+            if the provided value is not a TextData instance;
             if the provided value cannot be transformed into Dataset instance;
         """
         if not isinstance(obj, cls.__class__):
@@ -516,18 +516,18 @@ class NLPData:
     #     return obj.copy(obj.data)
 
     @classmethod
-    def datasets_share_label(cls, *datasets: 'NLPData') -> bool:
+    def datasets_share_label(cls, *datasets: 'TextData') -> bool:
         """Verify that all provided datasets share same label name and task types.
 
         Parameters
         ----------
-        datasets : List[NLPData]
-            list of NLPData to validate
+        datasets : List[TextData]
+            list of TextData to validate
 
         Returns
         -------
         bool
-            True if all NLPData share same label names and task types, otherwise False
+            True if all TextData share same label names and task types, otherwise False
 
         Raises
         ------
@@ -538,7 +538,7 @@ class NLPData:
         assert len(datasets) > 1, "'datasets' must contains at least two items"
 
         label_name = datasets[0].label_name
-        task_type = datasets[0].task_type
+        task_type = datasets[0].task_typeF
 
         for ds in datasets[1:]:
             if ds.label_name != label_name:
