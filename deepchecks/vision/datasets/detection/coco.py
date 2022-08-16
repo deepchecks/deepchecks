@@ -134,9 +134,8 @@ def load_dataset(
             root=str(coco_dir),
             name=dataset_name,
             train=train,
-            transforms=A.Compose([
-                A.NoOp()
-            ],
+            transforms=A.Compose(
+                [A.NoOp()],
                 bbox_params=A.BboxParams(format='coco')
             )
         ),

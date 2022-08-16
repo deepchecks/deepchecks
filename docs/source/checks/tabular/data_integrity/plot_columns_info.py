@@ -4,17 +4,32 @@
 
 Columns Info
 ************
-Imports
-=======
+
+This notebooks provides an overview for using and understanding the columns info check.
+
+**Structure:**
+
+* `What are columns info <#what-are-columns-info>`__
+* `Generating data <#generating-data>`__
+* `Run the check <#running-columns-info-check>`__
+
 """
 
 #%%
+# What are columns info
+# ===============
+# The ``ColumnsInfo`` check returns the role and logical type of each column (e.g. date, categorical, numerical etc.).
 
+
+#%%
+# Imports
+# =======
 import numpy as np
 import pandas as pd
 
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.checks import ColumnsInfo
+
 
 #%%
 # Generating data
@@ -31,7 +46,7 @@ df = pd.DataFrame.from_dict(data)
 dataset = Dataset(df, label='label', datetime_name='date', index_name='index', features=['a', 'b'], cat_features=['a'])
 
 #%%
-# Running columns_info check
+# Running columns info check
 # ==========================
 
 check = ColumnsInfo()

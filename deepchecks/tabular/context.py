@@ -199,6 +199,7 @@ class Context:
         if test and not train:
             raise DatasetValidationError('Can\'t initialize context with only test. if you have single dataset, '
                                          'initialize it as train')
+        self._calculated_importance = feature_importance is not None or model is None
         if model is None and \
            not pd.Series([y_pred_train, y_pred_test, y_proba_train, y_proba_test]).isna().all():
             model = _DummyModel(train=train, test=test,
@@ -216,7 +217,6 @@ class Context:
         self._feature_importance_force_permutation = feature_importance_force_permutation
         self._feature_importance = feature_importance
         self._feature_importance_timeout = feature_importance_timeout
-        self._calculated_importance = feature_importance is not None
         self._importance_type = None
         self._validated_model = False
         self._task_type = None

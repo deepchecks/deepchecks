@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 import pathlib
+from collections import OrderedDict
 from hashlib import md5
 
 import numpy as np
@@ -31,6 +32,8 @@ from deepchecks.vision.datasets.detection.coco import LABEL_MAP as coco_labels
 from deepchecks.vision.datasets.detection.coco import COCOData, CocoDataset
 from deepchecks.vision.datasets.detection.coco import load_dataset as load_coco_dataset
 from deepchecks.vision.datasets.detection.coco import load_model as load_yolov5_model
+from deepchecks.vision.datasets.segmentation.segmentation_coco import load_dataset as load_segmentation_coco_dataset
+from deepchecks.vision.datasets.segmentation.segmentation_coco import load_model as load_segmentation_coco_model
 from deepchecks.vision.vision_data import TaskType
 from tests.vision.assets.coco_detections_dict import coco_detections_dict
 from tests.vision.assets.mnist_predictions_dict import mnist_predictions_dict
@@ -64,6 +67,9 @@ __all__ = ['device',
            'coco_train_custom_task',
            'mnist_dataset_train_torch',
            'coco_train_visiondata_torch',
+           'segmentation_coco_train_visiondata',
+           'segmentation_coco_test_visiondata',
+           'trained_segmentation_deeplabv3_mobilenet_model'
            ]
 
 
@@ -372,3 +378,45 @@ def run_update_loop(dataset: VisionData):
     for i, batch in enumerate(context.train):
         batch = Batch(batch, context, DatasetKind.TRAIN, i)
         dataset.update_cache(batch)
+
+
+@pytest.fixture(scope='session')
+def segmentation_coco_train_visiondata():
+    return load_segmentation_coco_dataset(train=True, object_type='VisionData', shuffle=False, test_mode=True)
+
+
+@pytest.fixture(scope='session')
+def segmentation_coco_test_visiondata():
+    return load_segmentation_coco_dataset(train=False, object_type='VisionData', shuffle=False, test_mode=True)
+
+
+@pytest.fixture(scope='session')
+def trained_segmentation_deeplabv3_mobilenet_model():
+    class MockDeepLab:
+        """Class of DeepLabV3MobileNet model that returns cached predictions."""
+
+        def __init__(self, real_model):
+            self.real_model = real_model
+            self._cache = {}
+
+        def __call__(self, batch):
+            results = []
+            for img in batch:
+                img_to_hash = ((img+img.min()) / img.max() * 255).type(torch.uint8)
+                img_to_hash = torch.transpose(img_to_hash, 0, 2)
+                hash_key = _hash_image(img_to_hash)
+                if self._cache.get(hash_key) is not None:
+                    results.append(self._cache[hash_key])
+                else:
+                    # results.append(self.real_model(torch.stack([img]))[0])
+                    res = self.real_model(img.unsqueeze(0))['out'].squeeze(0)
+                    results.append(res)
+                    self._cache[hash_key] = res
+
+            return OrderedDict([('out', torch.stack(results))])
+
+        def to(self, device):  # pylint: disable=redefined-outer-name,unused-argument
+            return self
+
+    model = load_segmentation_coco_model()
+    return MockDeepLab(model)
