@@ -24,7 +24,7 @@ from deepchecks.core.errors import (DeepchecksBaseError, DeepchecksNotImplemente
                                     ValidationError)
 from deepchecks.utils.logger import get_logger
 from deepchecks.vision.batch_wrapper import Batch
-from deepchecks.vision.task_type import TaskType
+from deepchecks.core.task_type import TaskType
 from deepchecks.vision.utils.image_functions import ImageInfo
 from deepchecks.vision.utils.transformations import get_transforms_handler
 

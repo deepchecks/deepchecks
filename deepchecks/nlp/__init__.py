@@ -8,16 +8,20 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""The task type module containing the TaskType enum."""
-from enum import Enum
+"""Package for nlp functionality."""
+from .base_checks import SingleDatasetCheck, TrainTestCheck
+from .suite import Suite
 
-__all__ = ['TaskType']
+try:
+    import datasets  # noqa: F401
+    import seqeval  # noqa: F401
+except ImportError as error:
+    raise ImportError("datasets or seqeval are not installed. Please install datasets and seqeval "
+                      "in order to use deepchecks.nlp functionalities.") from error
 
 
-class TaskType(Enum):
-    """Enum containing supported task types."""
-
-    CLASSIFICATION = 'classification'
-    OBJECT_DETECTION = 'object_detection'
-    SEMANTIC_SEGMENTATION = 'semantic_segmentation'
-    OTHER = 'other'
+__all__ = [
+    "SingleDatasetCheck",
+    "TrainTestCheck",
+    "Suite",
+]
