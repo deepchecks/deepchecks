@@ -19,9 +19,10 @@ from deepchecks.core import CheckResult
 from deepchecks.core.check_utils.class_performance_utils import (
     get_condition_class_performance_imbalance_ratio_less_than, get_condition_test_performance_greater_than,
     get_condition_train_test_relative_degradation_less_than)
-from deepchecks.core.checks import DatasetKind, ReduceMixin
+from deepchecks.core.checks import CheckConfig, DatasetKind, ReduceMixin
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.tabular.metric_utils import MULTICLASS_SCORERS_NON_AVERAGE
+from deepchecks.utils.docref import doclink
 from deepchecks.utils.plot import colors
 from deepchecks.utils.strings import format_percent
 
@@ -83,7 +84,7 @@ class TrainTestPerformance(TrainTestCheck, ReduceMixin):
                  reduce: Union[Callable, str] = 'mean',
                  **kwargs):
         super().__init__(**kwargs)
-        self.user_scorers = scorers
+        self.scorers = scorers
         self.reduce = reduce
 
     def run_logic(self, context: Context) -> CheckResult:
@@ -91,7 +92,7 @@ class TrainTestPerformance(TrainTestCheck, ReduceMixin):
         train_dataset = context.train
         test_dataset = context.test
         model = context.model
-        scorers = context.get_scorers(self.user_scorers, use_avg_defaults=False)
+        scorers = context.get_scorers(self.scorers, use_avg_defaults=False)
         datasets = {'Train': train_dataset, 'Test': test_dataset}
 
         results = []
@@ -144,6 +145,31 @@ class TrainTestPerformance(TrainTestCheck, ReduceMixin):
             header='Train Test Performance',
             display=figs
         )
+
+    def config(self, include_version: bool = True) -> CheckConfig:
+        """Return check configuration."""
+        name = type(self).__name__
+
+        if callable(self.reduce):
+            raise ValueError(
+                f'Serialization of "{name}" check instance is not supported '
+                'if custom user defined callable was passed to the "reduce" parameter '
+                f'during instance initialization'
+            )
+
+        if isinstance(self.scorers, dict):
+            for k, v in self.scorers.items():
+                if not isinstance(v, str):
+                    reference = doclink(
+                        'tabular-builtin-metrics',
+                        template='For a list of built-in scorers please refer to {link}'
+                    )
+                    raise ValueError(
+                        'Only built-in scorers are allowed when serializing check instances. '
+                        f'{reference}. Scorer name: {k}'
+                    )
+
+        return super().config(include_version=include_version)
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return the values of the metrics for the test dataset in {metric: value} format."""

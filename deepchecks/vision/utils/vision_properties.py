@@ -81,7 +81,7 @@ def validate_properties(properties: List[Dict[str, Any]]):
             )
             continue
 
-        property_name = image_property.get('name') or f'#{index}'
+        image_property['name'] = property_name = image_property.get('name') or f'#{index}'
         difference = sorted(set(expected_keys).difference(set(image_property.keys())))
 
         if len(difference) > 0:

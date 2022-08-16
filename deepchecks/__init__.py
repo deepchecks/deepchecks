@@ -9,12 +9,22 @@
 # ----------------------------------------------------------------------------
 #
 """Deepchecks."""
-import os
-import pathlib
 import sys
 import types
 import warnings
 from importlib._bootstrap import _init_module_attrs
+
+try:
+    from importlib.metadata import version
+except ImportError:
+    # NOTE:
+    # 'importlib.metadata' was added to python>=3.8
+    # for versions that are <3.8 we need to install
+    # 'importlib_metadata' package
+    from importlib_metadata import version
+
+# NOTE: it is here, before other import, in order to omit circular import error
+__version__ = version('deepchecks')
 
 import matplotlib
 import plotly.io as pio
@@ -72,16 +82,6 @@ if 'notebook_connected' in pio_backends:
     pio.renderers.default = '+'.join(pio_backends)
 
 
-# Set version info
-try:
-    MODULE_DIR = pathlib.Path(__file__).absolute().parent
-    with open(os.path.join(MODULE_DIR, 'VERSION'), 'r', encoding='utf-8') as f:
-        __version__ = f.read().strip()
-except:  # pylint: disable=bare-except # noqa
-    # If version file can't be found, leave version empty
-    __version__ = ''
-
-
 # Send an import event if not disabled
 validate_latest_version()
 
@@ -99,6 +99,9 @@ warnings.filterwarnings(
 # Code below is a temporary hack that exists only to provide backward compatibility
 # and will be removed in the next versions.
 
+# TODO:
+# python (>=3.7) provides an ability to modify module attribute access by
+# implementing '__getattr__' function on the module level scope
 
 __original_module__ = sys.modules[__name__]
 
