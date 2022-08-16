@@ -33,7 +33,7 @@ class NLPData:
     """
     Dataset wraps HuggingFace/datasets Dataset object together with ML related metadata.
 
-    The Dataset class is containing additional data and methods intended for easily accessing
+    The Dataset class contains additional data and methods intended for easily accessing
     metadata relevant for the training or validating of an ML models.
 
     Parameters
