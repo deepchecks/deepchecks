@@ -12,6 +12,7 @@
 # pylint: disable-all
 from hamcrest import all_of, calling, contains_exactly, equal_to, has_items, has_length, has_property, is_, raises
 
+from deepchecks import __version__
 from deepchecks.core import ConditionResult
 from deepchecks.core.checks import BaseCheck
 from deepchecks.core.errors import DeepchecksValueError
@@ -158,12 +159,12 @@ def test_params():
 def test_config():
     check = DummyCheck(param2=5).config()
 
-    assert_that(check,
-                equal_to(
-                    {'class_name': 'DummyCheck',
-                     'params': {'param1': 1,
-                                'param2': 5},
-                     'module_name': DummyCheck.__module__}))
+    assert_that(check, equal_to({
+        'module_name': f'{DummyCheck.__module__}',
+        'class_name': 'DummyCheck',
+        'version': __version__,
+        'params': {'param1': 1, 'param2': 5},
+    }))
 
     assert_that(BaseCheck.from_config(check), instance_of(DummyCheck))
 
