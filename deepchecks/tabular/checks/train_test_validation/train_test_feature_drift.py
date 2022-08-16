@@ -81,15 +81,15 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceMixin):
     ignore_na: bool, default True
         For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
         separate category. For numerical columns we always ignore nones.
-    aggregation_method: str, default: "l2_combination"
+    aggregation_method: str, default: "l2_weighted"
         argument for the reduce_output functionality, decides how to aggregate the drift scores for a
         collective score. The collective score value is between 0 and 1 for all methods other than l2_combination.
         Possible values are:
         'weighted': Weighted mean based on feature importance, provides a robust estimation on how
         much the drift will affect the model's performance.
-        'l2_combination': L2 norm over the combination of drift scores and feature importance, minus the
-         L2 norm of feature importance alone, specifically, ||FI + DRIFT|| - ||FI||. This method, which returns a
-         value between 0 and sqrt(n_features), was found to be most correlated with different models' performances.
+        'l2_weighted': L2 norm over the combination of drift scores and feature importance, minus the
+         L2 norm of feature importance alone, specifically, ||FI + DRIFT|| - ||FI||. This method returns a
+         value between 0 and sqrt(n_features).
         'mean': Mean of all drift scores.
         'none': No averaging. Return a dict with a drift score for each feature.
         'max': Maximum of all the features drift scores.
@@ -113,7 +113,7 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceMixin):
             show_categories_by: str = 'largest_difference',
             categorical_drift_method='cramer_v',
             ignore_na: bool = True,
-            aggregation_method='l2_combination',
+            aggregation_method='l2_weighted',
             n_samples: int = 100_000,
             random_state: int = 42,
             max_num_categories: int = None,  # Deprecated
@@ -260,15 +260,15 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceMixin):
             return {'Max Drift Score': np.max(drift_values)}
 
         feature_importance = [col['Importance'] for col in check_result.value.values()]
-        if self.aggregation_method in ['weighted', 'l2_combination'] and None in feature_importance:
+        if self.aggregation_method in ['weighted', 'l2_weighted'] and None in feature_importance:
             get_logger().warning(
                     'Failed to calculate feature importance to all features, using uniform mean instead.')
             return {'Mean Drift Score': np.mean(drift_values)}
         elif self.aggregation_method == 'weighted':
             return {'Weighted Drift Score': np.sum(np.array(drift_values) * np.array(feature_importance))}
-        elif self.aggregation_method == 'l2_combination':
+        elif self.aggregation_method == 'l2_weighted':
             sum_drift_fi = np.array(drift_values) + np.array(feature_importance)
-            return {'L2 Combined Drift Score': np.linalg.norm(sum_drift_fi) - np.linalg.norm(feature_importance)}
+            return {'L2 Weighted Drift Score': np.linalg.norm(sum_drift_fi) - np.linalg.norm(feature_importance)}
         else:
             raise DeepchecksValueError(f'Unknown aggregation method: {self.aggregation_method}')
 
