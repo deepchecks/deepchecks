@@ -97,7 +97,7 @@ The process of calculating the PPS is the following:
 # =============
 # In this example we will run the check on the dataset of wolves vs. dogs.
 # For example purposes we picked 10 images of dogs and 10 images of wolves out of the full dataset.
-# The original data was downloaded from https://www.kaggle.com/datasets/harishvutukuri/dogs-vs-wolves.
+# The original data was downloaded from https://www.kaggle.com/datasets/harishvutukuri/dogs-vs-wolves, which is licensed under `DbCL v1.0 <https://opendatacommons.org/licenses/dbcl/1-0/>`__.
 
 from deepchecks.vision.checks import PropertyLabelCorrelation
 from deepchecks.vision.simple_classification_data import classification_dataset_from_directory
