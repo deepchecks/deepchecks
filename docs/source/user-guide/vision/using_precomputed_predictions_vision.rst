@@ -14,7 +14,7 @@ Passing pre-computed predictions is a simple alternative to using a model in inf
 It is specifically recommended to use this option if your model object is unavailable locally (for example if placed on
 a separate prediction server) or if the predicting process is computationally expensive or time consuming.
 
-The predictions should be passed to the train_predictions, test_predictions, or both arguments of the suite/check's run
+The predictions should be passed to the ``train_predictions``, ``test_predictions``, or both arguments of the suite/check's run
 method in the appropriate format.
 
 Pre-computed Predictions Format
