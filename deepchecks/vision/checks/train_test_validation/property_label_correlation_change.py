@@ -20,13 +20,13 @@ from deepchecks.core.check_utils.feature_label_correlation_utils import (get_fea
                                                                          get_feature_label_correlation_per_class)
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import ModelValidationError
+from deepchecks.utils.dataframes import is_float_column
 from deepchecks.utils.dict_funcs import get_dict_entry_by_value
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Context, TrainTestCheck
 from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.utils.image_properties import default_image_properties
-from deepchecks.vision.utils.property_label_correlation_utils import (calc_properties_for_property_label_correlation,
-                                                                      is_float_column)
+from deepchecks.vision.utils.property_label_correlation_utils import calc_properties_for_property_label_correlation
 from deepchecks.vision.vision_data import TaskType
 
 __all__ = ['PropertyLabelCorrelationChange']

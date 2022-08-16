@@ -13,14 +13,14 @@ import typing as t
 
 import numpy as np
 import pandas as pd
-from pandas.core.dtypes.common import is_integer_dtype, is_numeric_dtype
+from pandas.core.dtypes.common import is_float_dtype, is_integer_dtype, is_numeric_dtype
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.validation import ensure_hashable_or_mutable_sequence
 
 __all__ = ['validate_columns_exist', 'select_from_dataframe', 'un_numpy', 'generalized_corrwith',
-           'floatify_dataframe', 'floatify_series', 'default_fill_na_per_column_type']
+           'floatify_dataframe', 'floatify_series', 'default_fill_na_per_column_type', 'is_float_column']
 
 
 def default_fill_na_per_column_type(df: pd.DataFrame, cat_features: t.Union[pd.Series, t.List]) -> pd.DataFrame:
@@ -204,3 +204,22 @@ def generalized_corrwith(x1: pd.DataFrame, x2: pd.DataFrame, method: t.Callable)
     """
     corr_results = x2.apply(lambda col: x1.corrwith(col, method=method))
     return corr_results
+
+
+def is_float_column(col: pd.Series) -> bool:
+    """Check if a column must be a float - meaning does it contain fractions.
+
+    Parameters
+    ----------
+    col : pd.Series
+        The column to check.
+
+    Returns
+    -------
+    bool
+        True if the column is float, False otherwise.
+    """
+    if not is_float_dtype(col):
+        return False
+
+    return (col.round() != col).any()
