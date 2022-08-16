@@ -16,7 +16,7 @@ import torch
 
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksProcessError
-from deepchecks.core.task_type import TaskType
+from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.utils.vision_properties import (PropertiesInputType, calc_vision_properties,
                                                        static_prop_to_cache_format, validate_properties)
 

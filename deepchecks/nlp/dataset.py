@@ -15,7 +15,7 @@ import typing as t
 import datasets
 
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
-from deepchecks.core.task_type import TaskType
+from deepchecks.nlp.task_type import TaskType
 
 __all__ = ['NLPData']
 
@@ -34,7 +34,7 @@ class NLPData:
     Dataset wraps HuggingFace/datasets Dataset object together with ML related metadata.
 
     The Dataset class contains additional data and methods intended for easily accessing
-    metadata relevant for the training or validating of an ML models.
+    metadata relevant for the training or validating of ML models.
 
     Parameters
     ----------
@@ -103,7 +103,7 @@ class NLPData:
                 raise DeepchecksValueError('task_type must be set when label is provided')
             self._task_type = None
         elif task_type == 'text_classification':
-            self._task_type = TaskType.CLASSIFICATION
+            self._task_type = TaskType.TEXT_CLASSIFICATION
         elif task_type == 'token_classification':
             self._task_type = TaskType.TOKEN_CLASSIFICATION
         else:
@@ -157,7 +157,7 @@ class NLPData:
         if not len(label) == len(raw_text):
             raise DeepchecksValueError('label must be the same length as raw_text')
 
-        if self.task_type == TaskType.CLASSIFICATION:
+        if self.task_type == TaskType.TEXT_CLASSIFICATION:
             if all(isinstance(x, collections.abc.Sequence) for x in label):
                 self._is_multilabel = True
                 multilabel_error = 'multilabel was identified. It must be a Sequence of Sequences of ints or strings.'

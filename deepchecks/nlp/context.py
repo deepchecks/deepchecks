@@ -14,7 +14,7 @@ import typing as t
 
 import numpy as np
 
-from deepchecks.core.task_type import TaskType
+from deepchecks.nlp.task_type import TaskType
 from deepchecks.nlp.dataset import NLPData
 
 from deepchecks.core import CheckFailure, CheckResult, DatasetKind
@@ -92,7 +92,7 @@ class Context:
     def _validate_prediction(dataset: NLPData, dataset_type: DatasetKind, prediction: TNLPPred,
                              eps: float = 1e-3):
         """Validate prediction for given dataset."""
-        if dataset.task_type == TaskType.CLASSIFICATION:
+        if dataset.task_type == TaskType.TEXT_CLASSIFICATION:
             if not isinstance(prediction, np.ndarray):
                 raise ValidationError(f'Check requires classification for {dataset_type} to be a numpy array')
             pred_shape = prediction.shape
