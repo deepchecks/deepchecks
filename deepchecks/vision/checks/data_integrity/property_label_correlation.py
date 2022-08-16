@@ -33,7 +33,7 @@ pps_url = 'https://docs.deepchecks.com/en/stable/checks_gallery/vision/' \
           'train_test_validation/plot_feature_label_correlation_change.html'
 pps_html = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
 
-FLC = TypeVar('FLC', bound='PropertyLabelCorrelation')
+PLC = TypeVar('PLC', bound='PropertyLabelCorrelation')
 
 
 class PropertyLabelCorrelation(SingleDatasetCheck):
@@ -160,7 +160,7 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
 
         return CheckResult(value=s_ppscore.to_dict(), display=display, header='Property Label Correlation')
 
-    def add_condition_property_pps_less_than(self: FLC, threshold: float = 0.8) -> FLC:
+    def add_condition_property_pps_less_than(self: PLC, threshold: float = 0.8) -> PLC:
         """
         Add condition that will check that pps of the specified properties is less than the threshold.
 

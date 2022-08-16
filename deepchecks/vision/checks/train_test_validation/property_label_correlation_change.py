@@ -36,7 +36,7 @@ pps_url = 'https://docs.deepchecks.com/en/stable/checks_gallery/vision/' \
 pps_html = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
 
 
-FLC = TypeVar('FLC', bound='PropertyLabelCorrelationChange')
+PLC = TypeVar('PLC', bound='PropertyLabelCorrelationChange')
 
 
 # FeatureLabelCorrelationChange
@@ -197,8 +197,8 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
 
         return CheckResult(value=ret_value, display=display, header='Feature Label Correlation Change')
 
-    def add_condition_property_pps_difference_less_than(self: FLC, threshold: float = 0.2,
-                                                        include_negative_diff: bool = False) -> FLC:
+    def add_condition_property_pps_difference_less_than(self: PLC, threshold: float = 0.2,
+                                                        include_negative_diff: bool = False) -> PLC:
         """Add new condition.
 
         Add condition that will check that difference between train
@@ -268,7 +268,7 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
         return self.add_condition(f'Train-Test properties\' Predictive Power Score difference is less than '
                                   f'{format_number(threshold)}', condition)
 
-    def add_condition_property_pps_in_train_less_than(self: FLC, threshold: float = 0.2) -> FLC:
+    def add_condition_property_pps_in_train_less_than(self: PLC, threshold: float = 0.2) -> PLC:
         """Add new condition.
 
         Add condition that will check that train dataset property pps is less than X. If per_class is True, the
