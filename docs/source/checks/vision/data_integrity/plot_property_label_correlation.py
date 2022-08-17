@@ -38,7 +38,7 @@ What is a problematic result?
 -----------------------------
 
 Image properties with a high predictive score can indicate that there is a bias in the dataset, as a single property
-can predict the label successfully using simple classic ML algorithms.
+can be used to predict the label successfully (e.g. using simple classic ML algorithms).
 
 This means that a deep learning algorithm may accidentally learn these properties instead of more accurate complex
 abstractions. For example, in the dataset of wolves and dogs photographs, the brightness of the image may be used to
