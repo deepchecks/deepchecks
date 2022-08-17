@@ -7,7 +7,9 @@ Some checks, mainly the ones related to model evaluation, require model predicti
 In deepchecks, predictions are passed to the suite / check ``run`` method in one of the following ways:
 
 * Implementing an ``infer_on_batch`` methods in the
-  :doc:`VisionData object </user-guide/vision/data-classes/VisionData>`,
+  :doc:`VisionData object </user-guide/vision/data-classes/VisionData>`, or one of the child classes:
+  :doc:`ClassificationData </user-guide/vision/data-classes/ClassificationData>`,
+  :doc:`DetectionData </user-guide/vision/data-classes/DetectionData>`
   that allows the checks to compute the predictions.
 * Passing the pre-computed predictions as a parameter to the check's ``run``.
 
@@ -20,7 +22,13 @@ suite/check's ``run`` method in the appropriate format.
 
 Pre-computed Predictions Format
 -------------------------------
-The expected format is a dictionary of {sample index (int): sample predictions (tensor or list of tensors)}
+The expected format is a dictionary of ``{sample index (int): sample predictions (tensor or list of tensors)}``
+The accepted sample predictions format is according to the task:
+
+* Classification: a tensor of shape (N_classes)
+* Object Detection: a list of tensors, where each tensor is a bounding box in the format
+  [x, y, w, h, confidence, class_id], where x and y are the coordinates of the top left corner, and x, y, w, h are in
+  pixels.
 
 Code Example
 ------------
