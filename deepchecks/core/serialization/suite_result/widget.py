@@ -204,13 +204,13 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         else:
             section_id = f'{output_id}-section-{get_random_string()}'
             section_anchor = HTML(value=f'<span id="{form_output_anchor(section_id)}"></span>')
-            
+
             serialized_results = [
                 select_serializer(it).serialize(output_id=section_id, **kwargs)
                 for it in results
                 if it.display  # we do not form full-output for the check results without display
             ]
-            
+
             if callable(summary_creation_method):
                 children = (
                     summary_creation_method(results=results, output_id=section_id, **kwargs),
@@ -222,7 +222,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                     *join(serialized_results, HTML(value=CommonHtml.light_hr)),
                 )
 
-            
+
             accordion = normalize_widget_style(Accordion(
                 children=(VBox(children=children),),
                 _titles={'0': title},
