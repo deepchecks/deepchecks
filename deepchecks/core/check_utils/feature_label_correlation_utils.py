@@ -141,7 +141,7 @@ def get_feature_label_correlation(train_df: pd.DataFrame, train_label_name: Opti
     fig = get_pps_figure(per_class=False, n_of_features=len(sorted_order_for_display))
     fig.add_trace(pd_series_to_trace(s_pps_train_to_display, 'train'))
     fig.add_trace(pd_series_to_trace_with_diff(s_pps_test_to_display, 'test', -s_difference_to_display))
-    fig.update_layout(uniformtext_minsize=10, uniformtext_mode='show')
+    fig.update_layout(uniformtext_minsize=10, uniformtext_mode='show', overwrite=True)
 
     # display only if not all scores are above min_pps_to_show
     display = [fig] if any(s_pps_train > min_pps_to_show) or any(s_pps_test > min_pps_to_show) else None
@@ -238,6 +238,7 @@ def get_feature_label_correlation_per_class(train_df: pd.DataFrame, train_label_
             fig.update_layout(title=f'{feature}: Predictive Power Score (PPS) Per Class')
             fig.add_trace(pd_series_to_trace(s_train_to_display, 'train'))
             fig.add_trace(pd_series_to_trace_with_diff(s_test_to_display, 'test', -s_difference_to_display))
+            fig.update_layout(uniformtext_minsize=10, uniformtext_mode='show', overwrite=True)
             display.append(fig)
 
     return ret_value, display
