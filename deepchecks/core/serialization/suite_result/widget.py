@@ -222,7 +222,6 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                     *join(serialized_results, HTML(value=CommonHtml.light_hr)),
                 )
 
-
             accordion = normalize_widget_style(Accordion(
                 children=(VBox(children=children),),
                 _titles={'0': title},
