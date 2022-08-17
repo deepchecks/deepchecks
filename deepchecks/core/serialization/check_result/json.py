@@ -79,7 +79,7 @@ class CheckResultSerializer(JsonSerializer['check_types.CheckResult']):
 
     def prepare_condition_results(self) -> t.List[t.Dict[t.Any, t.Any]]:
         """Serialize condition results into json."""
-        if self.value.have_conditions:
+        if self.value.have_conditions():
             df = aggregate_conditions(self.value, include_icon=False)
             return df.data.to_dict(orient='records')
         else:

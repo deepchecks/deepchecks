@@ -154,7 +154,7 @@ def test_multiclass_proba(iris_split_dataset_and_model_rf):
          'Method': equal_to('Earth Mover\'s Distance')}
     ))
 
-    assert_that(result.display, has_length(equal_to(4)))
+    assert_that(result.display, has_length(5))
 
 
 def test_binary_proba_condition_fail_threshold(drifted_data_and_model):

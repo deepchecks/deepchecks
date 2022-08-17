@@ -22,10 +22,10 @@ from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
 from deepchecks.utils.dict_funcs import get_dict_entry_by_value
 from deepchecks.utils.distribution.plot import drift_score_bar_traces, feature_distribution_traces
 from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
-from deepchecks.utils.strings import format_number, format_percent
+from deepchecks.utils.strings import format_number
 
 __all__ = ['calc_drift_and_plot', 'get_drift_method', 'SUPPORTED_CATEGORICAL_METHODS', 'SUPPORTED_NUMERIC_METHODS',
-           'drift_condition']
+           'drift_condition', 'get_drift_plot_sidenote']
 
 
 PSI_MIN_PERCENTAGE = 0.01
@@ -292,17 +292,9 @@ def calc_drift_and_plot(train_column: pd.Series,
         # Should never reach here
         raise DeepchecksValueError(f'Unsupported column type for drift: {column_type}')
 
-    all_categories = list(set(train_column).union(set(test_column)))
-    add_footnote = column_type == 'categorical' and len(all_categories) > max_num_categories_for_display
-
-    if not add_footnote:
-        fig = make_subplots(rows=2, cols=1, vertical_spacing=0.2, shared_yaxes=False, shared_xaxes=False,
-                            row_heights=[0.1, 0.9],
-                            subplot_titles=[f'Drift Score ({scorer_name})', 'Distribution Plot'])
-    else:
-        fig = make_subplots(rows=3, cols=1, vertical_spacing=0.2, shared_yaxes=False, shared_xaxes=False,
-                            row_heights=[0.1, 0.8, 0.1],
-                            subplot_titles=[f'Drift Score ({scorer_name})', 'Distribution Plot'])
+    fig = make_subplots(rows=2, cols=1, vertical_spacing=0.2, shared_yaxes=False, shared_xaxes=False,
+                        row_heights=[0.1, 0.9],
+                        subplot_titles=[f'Drift Score ({scorer_name})', 'Distribution Plot'])
 
     fig.add_traces(bar_traces, rows=1, cols=1)
     fig.update_xaxes(bar_x_axis, row=1, col=1)
@@ -310,23 +302,6 @@ def calc_drift_and_plot(train_column: pd.Series,
     fig.add_traces(dist_traces, rows=2, cols=1)
     fig.update_xaxes(dist_x_axis, row=2, col=1)
     fig.update_yaxes(dist_y_axis, row=2, col=1)
-
-    if add_footnote:
-        param_to_print_dict = {
-            'train_largest': 'largest categories (by train)',
-            'test_largest': 'largest categories (by test)',
-            'largest_difference': 'largest difference between categories'
-        }
-        train_data_percents = dist_traces[0].y.sum()
-        test_data_percents = dist_traces[1].y.sum()
-
-        fig.add_annotation(
-            x=0, y=-0.2, showarrow=False, xref='paper', yref='paper', xanchor='left',
-            text=f'* Showing the top {max_num_categories_for_display} {param_to_print_dict[show_categories_by]} out of '
-                 f'total {len(all_categories)} categories.'
-                 f'<br>Shown data is {format_percent(train_data_percents)} of train data and '
-                 f'{format_percent(test_data_percents)} of test data.'
-        )
 
     fig.update_layout(
         legend=dict(
@@ -338,6 +313,34 @@ def calc_drift_and_plot(train_column: pd.Series,
         bargroupgap=0)
 
     return score, scorer_name, fig
+
+
+def get_drift_plot_sidenote(max_num_categories_for_display: int, show_categories_by: str) -> str:
+    """
+    Return a sidenote for the drift score plots regarding the number of categories shown in discrete distributions.
+
+    Parameters
+    ----------
+    max_num_categories_for_display: int, default: 10
+        Max number of categories to show in plot.
+    show_categories_by: str, default: 'largest_difference'
+        Specify which categories to show for categorical features' graphs, as the number of shown categories is limited
+        by max_num_categories_for_display. Possible values:
+        - 'train_largest': Show the largest train categories.
+        - 'test_largest': Show the largest test categories.
+        - 'largest_difference': Show the largest difference between categories.
+    Returns
+    -------
+    str
+        sidenote for the drift score plots regarding the number of categories shown in discrete distributions.
+    """
+    param_to_print_dict = {
+        'train_largest': 'largest categories (by train)',
+        'test_largest': 'largest categories (by test)',
+        'largest_difference': 'categories with largest difference between train and test'
+    }
+    return f'For discrete distribution plots, ' \
+           f'showing the top {max_num_categories_for_display} {param_to_print_dict[show_categories_by]}.'
 
 
 def drift_condition(max_allowed_categorical_score: float,
