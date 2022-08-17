@@ -58,8 +58,9 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceMixin):
     n_top_columns : int , optional
         amount of columns to show ordered by feature importance (date, index, label are first)
     sort_feature_by : str , default: feature importance
-        Indicates how features will be sorted. Can be either "feature importance"
-        or "drift score"
+        Indicates how features will be sorted. Can be either "feature importance", "drift score" or
+        "drift + importance". In the case of "drift + importance", the features will be sorted by the sum of the drift
+         score and the feature importance.
     margin_quantile_filter: float, default: 0.025
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
@@ -134,10 +135,12 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceMixin):
         self.max_num_categories_for_drift = max_num_categories_for_drift
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
-        if sort_feature_by in {'feature importance', 'drift score'}:
+        if sort_feature_by in {'feature importance', 'drift score', 'drift + importance'}:
             self.sort_feature_by = sort_feature_by
         else:
-            raise DeepchecksValueError('sort_feature_by must be either "feature importance" or "drift score"')
+            raise DeepchecksValueError(
+                '"sort_feature_by must be either "feature importance", "drift score" or "drift + importance"'
+            )
         self.n_top_columns = n_top_columns
         self.categorical_drift_method = categorical_drift_method
         self.ignore_na = ignore_na
@@ -229,11 +232,18 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceMixin):
             if self.sort_feature_by == 'feature importance' and feature_importance is not None:
                 features_order = [feat for feat in features_order if feat in train_dataset.features]
                 columns_order = features_order[:self.n_top_columns]
+            elif self.sort_feature_by == 'drift + importance' and feature_importance is not None:
+                feature_columns = [feat for feat in features_order if feat in train_dataset.features]
+                feature_columns.sort(key=lambda col: values_dict[col]['Drift score'] + values_dict[col]['Importance'],
+                                     reverse=True)
+                columns_order = feature_columns[:self.n_top_columns]
             else:
                 columns_order = sorted(values_dict.keys(), key=lambda col: values_dict[col]['Drift score'],
                                        reverse=True)[:self.n_top_columns]
 
             sorted_by = self.sort_feature_by if feature_importance is not None else 'drift score'
+            if sorted_by == 'drift + importance':
+                sorted_by = 'the sum of the drift score and the feature importance'
 
             headnote = [f"""<span>
                 The Drift score is a measure for the difference between two distributions, in this check - the test
