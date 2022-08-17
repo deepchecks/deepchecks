@@ -65,7 +65,8 @@ def _create_static_properties(train: VisionData, test: VisionData, image_propert
                             label = label.cpu().detach().numpy()
                             bbox = label[1:]
                             # make sure image is not out of bounds
-                            if round(bbox[2]) + min(round(bbox[0]), 0) <= 0 or round(bbox[3]) <= 0 + min(round(bbox[1]), 0):
+                            if round(bbox[2]) + min(round(bbox[0]), 0) <= 0 or \
+                                    round(bbox[3]) <= 0 + min(round(bbox[1]), 0):
                                 continue
                             class_id = int(label[0])
                             targets.append(vision_data.label_id_to_name(class_id))
@@ -76,11 +77,11 @@ def _create_static_properties(train: VisionData, test: VisionData, image_propert
                             bbox = label[1:]
                             # make sure image is not out of bounds
                             if round(bbox[2]) + min(round(bbox[0]), 0) <= 0 or \
-                                round(bbox[3]) <= 0 + min(round(bbox[1]), 0):
+                                    round(bbox[3]) <= 0 + min(round(bbox[1]), 0):
                                 continue
                             targets += []
                             imgs.append(crop_image(img, *bbox))
-                        count+=len(imgs)
+                        count += len(imgs)
                         bbox_props_list.append(calc_vision_properties(imgs, image_properties))
                     bbox_props = {k: [dic[k] for dic in bbox_props_list] for k in bbox_props_list[0]}
                     static_bbox_prop = vision_props_to_static_format(indexes, bbox_props)
@@ -120,7 +121,6 @@ def test_object_detection_missing_key(coco_train_visiondata, coco_test_visiondat
         raises(KeyError)
 
 
-
 def test_train_test_condition_pps_diff_fail_per_class(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
     train, test = coco_train_visiondata, coco_test_visiondata
@@ -132,7 +132,7 @@ def test_train_test_condition_pps_diff_fail_per_class(coco_train_visiondata, coc
     condition_value = 0.3
     check = PropertyLabelCorrelationChange(per_class=True, random_state=42
                                            ).add_condition_property_pps_difference_less_than(condition_value)
-
+    train.batch_to_images = None  # make sure it doesn't use images
     # Act
     result = check.run(train_dataset=train,
                        test_dataset=test, device=device, train_properties=train_props, test_properties=test_props)
