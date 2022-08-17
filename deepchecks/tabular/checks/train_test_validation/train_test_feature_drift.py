@@ -57,10 +57,11 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceMixin):
         columns variable.
     n_top_columns : int , optional
         amount of columns to show ordered by feature importance (date, index, label are first)
-    sort_feature_by : str , default: feature importance
-        Indicates how features will be sorted. Can be either "feature importance", "drift score" or
-        "drift + importance". In the case of "drift + importance", the features will be sorted by the sum of the drift
-         score and the feature importance.
+    sort_feature_by : str , default: "drift + importance"
+        Indicates how features will be sorted. Possible values:
+        - "feature importance":  sort features by feature importance.
+        - "drift score": sort features by drift score.
+        - "drift + importance": sort features by the sum of the drift score and the feature importance.
     margin_quantile_filter: float, default: 0.025
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
@@ -107,7 +108,7 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceMixin):
             columns: Union[Hashable, List[Hashable], None] = None,
             ignore_columns: Union[Hashable, List[Hashable], None] = None,
             n_top_columns: int = 5,
-            sort_feature_by: str = 'feature importance',
+            sort_feature_by: str = 'drift + importance',
             margin_quantile_filter: float = 0.025,
             max_num_categories_for_drift: int = 10,
             max_num_categories_for_display: int = 10,
