@@ -9,7 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Contain functions for handling function in checks."""
-from inspect import signature
+from functools import lru_cache
+from inspect import Signature, signature
 from typing import Any, Callable, Dict
 
 __all__ = ['run_available_kwargs', 'initvars']
@@ -27,14 +28,15 @@ def run_available_kwargs(func: Callable, **kwargs):
 
 def initvars(
     obj: object,
-    show_defaults: bool = False
+    include_defaults: bool = False,
+    include_kwargs: bool = False,
 ) -> Dict[Any, Any]:
     """Return object __dict__ variables that was passed throw constructor (__init__ method).
 
     Parameters
     ----------
     obj : object
-    show_defaults : bool, default False
+    include_defaults : bool, default False
         wherether to include vars with default value or not
 
     Returns
@@ -42,16 +44,31 @@ def initvars(
     Dict[Any, Any] subset of the obj __dict__
     """
     assert hasattr(obj, '__init__')
-    params = signature(obj.__init__).parameters
+    state = {k: v for k, v in obj.__dict__.items() if not k.startswith('_')}
+    signature = extract_signature(obj.__init__)  # pylint: disable=redefined-outer-name
+    bind = signature.bind(**state)
 
-    if show_defaults is True:
-        return {
+    if include_defaults is True:
+        bind.apply_defaults()
+        arguments = bind.arguments
+    else:
+        arguments = {
             k: v
-            for k, v in vars(obj).items()
-            if k in params
+            for k, v in bind.arguments.items()
+            if signature.parameters[k].default is not v
         }
-    return {
-        k: v
-        for k, v in vars(obj).items()
-        if k in params and v != params[k].default
-    }
+
+    if not include_kwargs:
+        arguments.pop('kwargs', None)
+
+    return arguments
+
+
+@lru_cache(maxsize=None)
+def extract_signature(obj: Callable[..., Any]) -> Signature:
+    """Extract signature object from a callable instance.
+
+    Getting a callable signature is a heavy and not cheap op
+    therefore we are caching it.
+    """
+    return signature(obj)
