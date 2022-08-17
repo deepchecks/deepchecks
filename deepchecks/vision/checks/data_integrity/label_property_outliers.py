@@ -72,9 +72,13 @@ class LabelPropertyOutliers(AbstractPropertyOutliers):
             raise DeepchecksProcessError(f'task type {data.task_type} does not have default label '
                                          f'properties defined.')
 
-    def get_relevant_data(self, batch: Batch):
-        """Get the data on which the check calculates outliers for."""
-        return batch.labels
+    def update(self, context, batch: Batch, dataset_kind):
+        """Aggregate image properties from batch."""
+        for single_property in self.properties_list:
+            prop_name = single_property['name']
+            property_values = single_property['method'](batch.labels)
+            self._ensure_property_shape(property_values, len(batch), prop_name)
+            self._properties_results[prop_name].extend(property_values)
 
     def draw_image(self, data: VisionData, sample_index: int, index_of_value_in_sample: int,
                    num_properties_in_sample: int) -> np.ndarray:

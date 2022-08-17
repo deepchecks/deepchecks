@@ -11,12 +11,14 @@
 """Contains code for BatchWrapper."""
 from operator import itemgetter
 from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Tuple, TypeVar, cast
+import numpy as np
 
 import torch
 
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.vision.task_type import TaskType
+from deepchecks.vision.utils.image_functions import crop_image
 from deepchecks.vision.utils.vision_properties import (PropertiesInputType, calc_vision_properties,
                                                        static_prop_to_cache_format, validate_properties)
 
@@ -106,7 +108,19 @@ class Batch:
         props_to_cache = static_prop_to_cache_format(dict(zip(indexes, props)))
         return props_to_cache
 
-    def vision_properties(self, raw_data: List, properties_list: List[Dict], input_type: PropertiesInputType):
+    def _get_cropped_images(self):
+        imgs = []
+        for img, labels in zip(self.images, self.labels):
+            for label in labels:
+                label = label.cpu().detach().numpy()
+                bbox = label[1:]
+                # make sure image is not out of bounds
+                if round(bbox[2]) + min(round(bbox[0]), 0) <= 0 or round(bbox[3] <= 0) + min(round(bbox[1]), 0):
+                    continue
+                imgs.append(crop_image(img, *bbox))
+        return imgs
+
+    def vision_properties(self, properties_list: List[Dict], input_type: PropertiesInputType):
         """Calculate and cache the properties for the batch according to the property input type."""
         properties_list = validate_properties(properties_list)
         # if there are no cached properties at all, calculate all the properties on the list,
@@ -115,20 +129,15 @@ class Batch:
             if self._context.static_properties is not None:
                 self._vision_properties_cache = self._do_static_prop()
             else:
-                self._vision_properties_cache[input_type.value] = calc_vision_properties(raw_data, properties_list)
-            result_dict = self._vision_properties_cache[input_type.value]
+                data = self._get_cropped_images() if input_type == PropertiesInputType.BBOXES else self.images
+                self._vision_properties_cache[input_type.value] = calc_vision_properties(data, properties_list)
         else:
             properties_to_calc = [p for p in properties_list if p['name'] not in
                                   self._vision_properties_cache[input_type.value].keys()]
-            self._vision_properties_cache[input_type.value].update(
-                                                                calc_vision_properties(raw_data, properties_to_calc))
-            property_names_to_return = [p['name'] for p in properties_list]
-            result_dict = {k: self._vision_properties_cache[input_type.value][k] for k in property_names_to_return}
-        # validate properties length
-        static_prop_lens = [len(pr) for pr in result_dict.values()]
-        if any([(p != len(raw_data) and p != 1) for p in static_prop_lens]):  # pylint: disable=use-a-generator
-            raise DeepchecksProcessError('The properties should have the same length as the raw data')
-        return result_dict
+            if len(properties_to_calc) > 0:
+                data = self._get_cropped_images() if input_type == PropertiesInputType.BBOXES else self.images
+                self._vision_properties_cache[input_type.value].update(calc_vision_properties(data, properties_to_calc))
+        return self._vision_properties_cache[input_type.value]
 
 
 T = TypeVar('T')

@@ -122,30 +122,27 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
         else:
             properties_results = self._test_properties
 
-        imgs = []
         target = []
 
         if dataset.task_type == TaskType.OBJECT_DETECTION:
-            for img, labels in zip(batch.images, batch.labels):
+            for labels in batch.labels:
                 for label in labels:
                     label = label.cpu().detach().numpy()
                     bbox = label[1:]
-                    cropped_img = crop_image(img, *bbox)
-                    if cropped_img.shape[0] == 0 or cropped_img.shape[1] == 0:
+                    # make sure image is not out of bounds
+                    if round(bbox[2]) + min(round(bbox[0]), 0) <= 0 or round(bbox[3] <= 0) + min(round(bbox[1]), 0):
                         continue
                     class_id = int(label[0])
-                    imgs += [cropped_img]
-                    target += [dataset.label_id_to_name(class_id)]
+                    target.append(dataset.label_id_to_name(class_id))
             property_type = PropertiesInputType.BBOXES
         else:
-            for img, classes_ids in zip(batch.images, dataset.get_classes(batch.labels)):
-                imgs += [img] * len(classes_ids)
-                target += list(map(dataset.label_id_to_name, classes_ids))
+            for classes_ids in dataset.get_classes(batch.labels):
+                target.append(dataset.label_id_to_name(classes_ids[0]))
             property_type = PropertiesInputType.IMAGES
 
         properties_results['target'] += target
 
-        data_for_properties = batch.vision_properties(imgs, self.image_properties, property_type)
+        data_for_properties = batch.vision_properties(self.image_properties, property_type)
 
         for prop_name, property_values in data_for_properties.items():
             properties_results[prop_name].extend(property_values)
