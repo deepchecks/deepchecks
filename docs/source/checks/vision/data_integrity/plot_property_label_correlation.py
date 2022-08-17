@@ -15,14 +15,16 @@ This notebook provides an overview for using and understanding the "Property Lab
 
 What is the purpose of the check?
 =================================
-The check estimates for every image property (such as brightness, contrast etc.)
-its ability to predict the label by itself.
+The check estimates for every `image property </user-guide/vision/vision_properties>`__
+(such as brightness, contrast etc.) its ability to predict the label by itself.
 
-This check can help find a potential bias in the dataset, that might lead to shortcut learning - the labels being
-strongly correlated with simple image properties such as color, brightness, aspect ratio and more. This is a critical
-problem, because the model is likely to learn this property instead of the actual visual characteristics of each class,
-as it's easier to do so. In this case, the model will show high performance on images taken in similar conditions, but
-will fail in the wild, where the simple properties don't hold true.
+This check can help find a potential bias in the dataset - the labels being strongly correlated with simple image
+properties such as color, brightness, aspect ratio and more.
+
+This is a critical problem, sometimes referred to as shortcut learning, where the model is likely to learn this property
+instead of the actual visual characteristics of each class, as it's easier to do so. In this case, the model will show
+high performance on images taken in similar conditions, but will fail in the wild, where the simple properties don't
+hold true.
 This kind of correlation will likely stay hidden without this check until tested in the wild.
 
 A famous example is the case of wolves vs. dogs classification, where a model needs to classify whether an image
@@ -45,7 +47,7 @@ abstractions. For example, in the dataset of wolves and dogs photographs, the br
 predict the label "wolf" easily.
 
 
-How do we calculate for different vision tasks?
+How do we calculate for the predictive power different vision tasks?
 -----------------------------------------------
 
 * For classification tasks, this check uses PPS to predict the class by image properties.
