@@ -10,6 +10,7 @@
 #
 """Module for calculating the properties used in Vision checks."""
 import warnings
+from itertools import chain
 from enum import Enum
 
 __all__ = ['PropertiesInputType', 'validate_properties']
@@ -138,6 +139,9 @@ def static_prop_to_cache_format(static_props: STATIC_PROPERTIES_FORMAT) -> PROPE
 
     for input_type in input_types:
         for prop_name in list(static_props[indices[0]][input_type].keys()):
-            props_cache[input_type][prop_name] = [static_props[index][input_type][prop_name] for index in indices]
+            prop_vals = [static_props[index][input_type][prop_name] for index in indices]
+            if input_type == PropertiesInputType.BBOXES.value:
+                prop_vals = list(chain.from_iterable(prop_vals))
+            props_cache[input_type][prop_name] = prop_vals
 
     return props_cache

@@ -10,7 +10,7 @@
 #
 """Module for base vision context."""
 from operator import itemgetter
-from typing import Dict, Mapping, Optional, Sequence, Union
+from typing import Dict, List, Mapping, Optional, Sequence, Union
 
 import torch
 from ignite.metrics import Metric
@@ -22,7 +22,7 @@ from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotImpleme
 from deepchecks.utils.logger import get_logger
 from deepchecks.vision._shared_docs import docstrings
 from deepchecks.vision.task_type import TaskType
-from deepchecks.vision.utils.vision_properties import STATIC_PROPERTIES_FORMAT
+from deepchecks.vision.utils.vision_properties import STATIC_PROPERTIES_FORMAT, PropertiesInputType
 from deepchecks.vision.vision_data import VisionData
 
 __all__ = ['Context']
@@ -93,11 +93,11 @@ class Context:
                         msg = None
                     except DeepchecksNotImplementedError:
                         msg = f'infer_on_batch() was not implemented in {dataset_type} ' \
-                           f'dataset, some checks will not run'
+                            f'dataset, some checks will not run'
                     except ValidationError as ex:
                         msg = f'infer_on_batch() was not implemented correctly in the {dataset_type} dataset, the ' \
-                           f'validation has failed with the error: {ex}. To test your prediction formatting use the ' \
-                           'function `vision_data.validate_prediction(batch, model, device)`'
+                            f'validation has failed with the error: {ex}. To test your prediction formatting use the ' \
+                            'function `vision_data.validate_prediction(batch, model, device)`'
 
                     if msg:
                         self._prediction_formatter_error[dataset_type] = msg
@@ -132,9 +132,9 @@ class Context:
                                                          [train_properties, test_properties]):
                 if dataset is not None:
                     try:
-                        props = itemgetter(*list(dataset.data_loader.batch_sampler)[0])(properties)
+                        # TODO: add validation
                         msg = None
-                        self._static_properties[dataset_type] = props
+                        self._static_properties[dataset_type] = properties
                     except ValidationError as ex:
                         msg = f'the properties given were not in a correct format in the {dataset_type} dataset, ' \
                             f'the validation has failed with the error: {ex}.'
@@ -195,6 +195,14 @@ class Context:
     def static_properties(self) -> Dict:
         """Return the static_predictions."""
         return self._static_properties
+
+    @property
+    def static_properties_input_types(self) -> List[PropertiesInputType]:
+        """Return the available static_predictions input types."""
+        if not self._static_properties:
+            return []
+        indices = list(self._static_properties.keys())
+        return list(self._static_properties[indices[0]].keys())
 
     @property
     def model_name(self):

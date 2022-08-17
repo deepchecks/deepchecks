@@ -143,7 +143,6 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
         properties_results['target'] += target
 
         data_for_properties = batch.vision_properties(self.image_properties, property_type)
-
         for prop_name, property_values in data_for_properties.items():
             properties_results[prop_name].extend(property_values)
 

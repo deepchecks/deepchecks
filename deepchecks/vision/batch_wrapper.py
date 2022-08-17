@@ -105,6 +105,7 @@ class Batch:
         props = self._context.static_properties[self._dataset_kind]
         dataset = self._context.get_data_by_kind(self._dataset_kind)
         indexes = list(dataset.data_loader.batch_sampler)[self.batch_index]
+        props = itemgetter(*indexes)(props)
         props_to_cache = static_prop_to_cache_format(dict(zip(indexes, props)))
         return props_to_cache
 
@@ -136,7 +137,9 @@ class Batch:
         # if there are no cached properties at all, calculate all the properties on the list,
         # else calculate only those that were not yet calculated.
         if self._vision_properties_cache[input_type.value] is None:
-            if self._context.static_properties is not None:
+            if (input_type in [PropertiesInputType.BBOXES, PropertiesInputType.IMAGES] or
+                input_type in self._context.static_properties_input_types) \
+                and self._context.static_properties is not None:
                 self._vision_properties_cache = self._do_static_prop()
             else:
                 data = self._get_relevant_data(input_type)

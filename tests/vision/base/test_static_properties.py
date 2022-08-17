@@ -10,15 +10,20 @@
 #
 #
 
+from copy import copy
 import numpy as np
-from hamcrest import assert_that, calling, close_to, contains_exactly, raises
+from hamcrest import assert_that, calling, close_to, contains_exactly, equal_to, raises
+from deepchecks.vision.utils.image_properties import default_image_properties
 
-from deepchecks.core.errors import DeepchecksProcessError
-from deepchecks.vision.checks import ImagePropertyOutliers, LabelPropertyOutliers, PropertyLabelCorrelationChange
+from deepchecks.vision.checks import ImagePropertyOutliers, PropertyLabelCorrelationChange
+from deepchecks.vision.detection_data import DetectionData
+from deepchecks.vision.utils.image_functions import crop_image
 from deepchecks.vision.utils.image_properties import aspect_ratio
-from deepchecks.vision.utils.label_prediction_properties import DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES
-from deepchecks.vision.utils.vision_properties import PropertiesInputType, calc_vision_properties
+from deepchecks.vision.utils.vision_properties import calc_vision_properties
 from deepchecks.vision.vision_data import VisionData
+
+from tests.vision.checks.train_test_validation.property_label_correlation_change_test import get_coco_batch_to_images_with_bias_one_class
+from tests.base.utils import equal_condition_result
 
 
 def rand_prop(batch):
@@ -30,11 +35,11 @@ def mean_prop(batch):
 
 
 def label_prop(batch):
-    return [int(np.log(int(x)+1)) for x in batch]
+    return [int(np.log(int(x) + 1)) for x in batch]
 
 
 def filter_bbox_prop(batch):
-    return [[1,2] for x in batch[0:5]]
+    return [[1, 2] for x in batch[0:5]]
 
 
 def vision_props_to_static_format(indexes, vision_props):
@@ -42,23 +47,47 @@ def vision_props_to_static_format(indexes, vision_props):
     return index_properties
 
 
-def _create_static_properties(train: VisionData, test: VisionData, image_properties, label_properties):
+def _create_static_properties(train: VisionData, test: VisionData, image_properties):
     static_props = []
     for vision_data in [train, test]:
         if vision_data is not None:
             static_prop = {}
             for i, batch in enumerate(vision_data):
-                image_props = calc_vision_properties(vision_data.batch_to_images(batch), image_properties)
-                label_props = calc_vision_properties(vision_data.batch_to_labels(batch), label_properties)
-                bbox_props = {"dummy_prop": [[1]] * len(batch[0])}
-
                 indexes = list(vision_data.data_loader.batch_sampler)[i]
+                image_props = calc_vision_properties(vision_data.batch_to_images(batch), image_properties)
                 static_image_prop = vision_props_to_static_format(indexes, image_props)
-                static_label_prop = vision_props_to_static_format(indexes, label_props)
-                static_bbox_prop = vision_props_to_static_format(indexes, bbox_props)
-                static_prop.update({k: {'images': static_image_prop[k], 'labels': static_label_prop[k],
-                                        'bounding_boxes': static_bbox_prop[k]} for k in indexes})
-
+                if isinstance(vision_data, DetectionData):
+                    bbox_props_list = []
+                    count = 0
+                    targets = []
+                    for labels in vision_data.batch_to_labels(batch):
+                        for label in labels:
+                            label = label.cpu().detach().numpy()
+                            bbox = label[1:]
+                            # make sure image is not out of bounds
+                            if round(bbox[2]) + min(round(bbox[0]), 0) <= 0 or round(bbox[3]) <= 0 + min(round(bbox[1]), 0):
+                                continue
+                            class_id = int(label[0])
+                            targets.append(vision_data.label_id_to_name(class_id))
+                    for img, labels in zip(vision_data.batch_to_images(batch), vision_data.batch_to_labels(batch)):
+                        imgs = []
+                        for label in labels:
+                            label = label.cpu().detach().numpy()
+                            bbox = label[1:]
+                            # make sure image is not out of bounds
+                            if round(bbox[2]) + min(round(bbox[0]), 0) <= 0 or \
+                                round(bbox[3]) <= 0 + min(round(bbox[1]), 0):
+                                continue
+                            targets += []
+                            imgs.append(crop_image(img, *bbox))
+                        count+=len(imgs)
+                        bbox_props_list.append(calc_vision_properties(imgs, image_properties))
+                    bbox_props = {k: [dic[k] for dic in bbox_props_list] for k in bbox_props_list[0]}
+                    static_bbox_prop = vision_props_to_static_format(indexes, bbox_props)
+                    static_prop.update({k: {'images': static_image_prop[k],
+                                            'bounding_boxes': static_bbox_prop[k]} for k in indexes})
+                else:
+                    static_prop.update({k: {'images': static_image_prop[k]} for k in indexes})
         else:
             static_prop = None
         static_props.append(static_prop)
@@ -71,40 +100,49 @@ def test_image_properties_outliers(mnist_dataset_train, mnist_dataset_test):
                         {'name': 'mean brightness', 'method': mean_prop, 'output_type': 'numerical'},
                         ]
 
-    label_properties = [{'name': 'log', 'method': label_prop, 'output_type': 'numerical'}]
-    train_props, test_props = _create_static_properties(mnist_dataset_train, mnist_dataset_test,
-                                                        image_properties, label_properties)
-    check_results = ImagePropertyOutliers().run(mnist_dataset_train,train_properties=train_props)
+    train_props, _ = _create_static_properties(mnist_dataset_train, mnist_dataset_test,
+                                               image_properties)
+    check_results = ImagePropertyOutliers().run(mnist_dataset_train, train_properties=train_props)
     assert_that(check_results.value.keys(), contains_exactly('random', 'mean brightness'))
-    assert_that(check_results.value['mean brightness']['lower_limit'], close_to(13.87, 0.001))
+    assert_that(check_results.value['mean brightness']['lower_limit'], close_to(6.487, 0.001))
 
 
-def test_object_detection(coco_train_visiondata, coco_test_visiondata):
+def test_object_detection_missing_key(coco_train_visiondata, coco_test_visiondata):
     image_properties = [{'name': 'aspect_ratio', 'method': aspect_ratio, 'output_type': 'numerical'}]
-    label_properties = DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES
     train_props, test_props = _create_static_properties(coco_train_visiondata, coco_test_visiondata,
-                                                        image_properties, label_properties)
+                                                        image_properties)
 
     # assert error is raised if no bbox properties passed in a check that calls bbox properties
     assert_that(calling(PropertyLabelCorrelationChange().run)
                 .with_args(
         train_dataset=coco_train_visiondata, test_dataset=coco_test_visiondata,
         train_properties=train_props, test_properties=test_props)), \
-    raises(KeyError)
-
-    # assert that label properties also work for bboxes
-    check_results = LabelPropertyOutliers().run(coco_train_visiondata, train_properties=train_props)
-    assert_that(check_results.value.keys(),
-                contains_exactly(
-                    'Samples Per Class', 'Bounding Box Area (in pixels)', 'Number of Bounding Boxes Per Image'))
+        raises(KeyError)
 
 
-def test_filtered_object_detection(coco_train_visiondata, coco_test_visiondata):
-    image_properties = [{'name': 'aspect_ratio', 'method': aspect_ratio, 'output_type': 'numerical'}]
-    label_properties = [{'name': 'filter', 'method': rand_prop, 'output_type': 'numerical'}]
-    train_props, test_props = _create_static_properties(coco_train_visiondata, coco_test_visiondata,
-                                                        image_properties, label_properties)
-    check = PropertyLabelCorrelationChange()
-    assert_that(calling(check.run).with_args(coco_train_visiondata, coco_test_visiondata, train_properties=train_props,
-                                             test_properties=test_props),
-                raises(DeepchecksProcessError, 'The properties should have the same length as the raw data'))
+
+def test_train_test_condition_pps_diff_fail_per_class(coco_train_visiondata, coco_test_visiondata, device):
+    # Arrange
+    train, test = coco_train_visiondata, coco_test_visiondata
+    image_properties = default_image_properties
+    train = copy(train)
+    train.batch_to_images = get_coco_batch_to_images_with_bias_one_class(train.batch_to_labels)
+    train_props, test_props = _create_static_properties(train, coco_test_visiondata,
+                                                        image_properties)
+    condition_value = 0.3
+    check = PropertyLabelCorrelationChange(per_class=True, random_state=42
+                                           ).add_condition_property_pps_difference_less_than(condition_value)
+
+    # Act
+    result = check.run(train_dataset=train,
+                       test_dataset=test, device=device, train_properties=train_props, test_properties=test_props)
+    condition_result, *_ = check.conditions_decision(result)
+    print(result.value)
+    # Assert
+    assert_that(condition_result, equal_condition_result(
+        is_pass=False,
+        name=f'Train-Test properties\' Predictive Power Score difference is less than {condition_value}',
+        details='Properties and classes with PPS difference above threshold: {\'RMS Contrast\': {\'clock\': \'0.83\'}, '
+                '\'Brightness\': {\'clock\': \'0.5\', \'teddy bear\': \'0.5\'}, \'Mean Blue Relative Intensity\': '
+                '{\'clock\': \'0.33\'}}'
+    ))
