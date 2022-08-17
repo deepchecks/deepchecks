@@ -20,7 +20,7 @@ from deepchecks.core import CheckResult
 from deepchecks.core.checks import ReduceMixin
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
-from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition
+from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition, get_drift_plot_sidenote
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.typing import Hashable
 
@@ -231,15 +231,15 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceMixin):
 
             sorted_by = self.sort_feature_by if feature_importance is not None else 'drift score'
 
-            headnote = f"""<span>
+            headnote = [f"""<span>
                 The Drift score is a measure for the difference between two distributions, in this check - the test
                 and train distributions.<br> The check shows the drift score and distributions for the features, sorted
                 by {sorted_by} and showing only the top {self.n_top_columns} features, according to {sorted_by}.
-                <br>If available, the plot titles also show the feature importance (FI) rank.
-            </span>"""
+            </span>""", get_drift_plot_sidenote(self.max_num_categories_for_display, self.show_categories_by),
+                        'If available, the plot titles also show the feature importance (FI) rank']
 
-            displays = [headnote] + [displays_dict[col] for col in columns_order
-                                     if col in train_dataset.cat_features + train_dataset.numerical_features]
+            displays = headnote + [displays_dict[col] for col in columns_order
+                                   if col in train_dataset.cat_features + train_dataset.numerical_features]
         else:
             displays = None
 

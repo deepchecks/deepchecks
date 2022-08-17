@@ -63,7 +63,7 @@ def test_drift_with_model_n_top(drifted_data_and_model):
              'Importance': close_to(0, 0.01)}
         ),
     }))
-    assert_that(result.display, has_length(equal_to(2)))
+    assert_that(result.display, has_length(4))
 
 def test_drift_with_nulls(drifted_data_with_nulls):
     # Arrange

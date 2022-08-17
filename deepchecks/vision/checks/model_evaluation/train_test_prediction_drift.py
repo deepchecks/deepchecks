@@ -18,7 +18,7 @@ import pandas as pd
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.checks import CheckConfig, ReduceMixin
 from deepchecks.core.errors import DeepchecksNotSupportedError
-from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition
+from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition, get_drift_plot_sidenote
 from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.utils.label_prediction_properties import (DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES,
                                                                  DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES,
@@ -94,6 +94,19 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
     categorical_drift_method: str, default: "cramer_v"
         decides which method to use on categorical variables. Possible values are:
         "cramer_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+    aggregation_method: str, default: "max"
+        Argument for the reduce_output functionality, decides how to aggregate the drift scores of different properties
+        for object detection or drift scores per class for classification when use_probabilities is enabled.
+        Possible values are:
+        'max': Maximum of all the class drift scores.
+        'weighted': Weighted mean based on the class sizes in the train data set. Relevant only for classification.
+        'mean': Mean of all drift scores.
+        'none': No averaging. Return a dict with a drift score for each class.
+    use_probabilities: bool, default: 'False'
+        For classification task, controls whether to compute drift on the predicted probabilities or the predicted
+        classes. For other tasks this parameter may be ignored.
+        If True, compute drift on each class probability independently. Otherwise, compute categorical
+        drift on the predicted class.
     max_num_categories: int, default: None
         Deprecated. Please use max_num_categories_for_drift and max_num_categories_for_display instead
     """
@@ -106,6 +119,8 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
             categorical_drift_method: str = 'cramer_v',
+            aggregation_method: str = 'max',
+            use_probabilities: bool = False,
             max_num_categories: int = None,  # Deprecated
             **kwargs
     ):
@@ -129,6 +144,8 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
 
         self._train_prediction_properties = None
         self._test_prediction_properties = None
+        self.aggregation_method = aggregation_method
+        self.use_probabilities = use_probabilities
 
     def initialize_run(self, context: Context):
         """Initialize run.
@@ -220,13 +237,13 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
             columns_order = sorted(prediction_properties_names, key=lambda col: values_dict[col]['Drift score'],
                                    reverse=True)
 
-            headnote = '<span>' \
-                'The Drift score is a measure for the difference between two distributions. ' \
-                'In this check, drift is measured ' \
-                f'for the distribution of the following prediction properties: {prediction_properties_names}.' \
-                '</span>'
+            headnote = ['<span>'
+                        'The Drift score is a measure for the difference between two distributions. '
+                        'In this check, drift is measured for the distribution of the following '
+                        f'prediction properties: {prediction_properties_names}. </span>',
+                        get_drift_plot_sidenote(self.max_num_categories_for_display, self.show_categories_by)]
 
-            displays = [headnote] + [displays_dict[col] for col in columns_order]
+            displays = headnote + [displays_dict[col] for col in columns_order]
         else:
             displays = None
 
