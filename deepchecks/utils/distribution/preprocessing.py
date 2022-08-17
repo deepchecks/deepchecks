@@ -113,7 +113,8 @@ class ScaledNumerics(TransformerMixin, BaseEstimator):
 
 
 def preprocess_2_cat_cols_to_same_bins(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series],
-                                       max_num_categories: int = None, sort_by: str = 'difference'
+                                       min_category_size_ratio: float = 0.01, max_num_categories: int = None,
+                                       sort_by: str = 'difference'
                                        ) -> Tuple[np.ndarray, np.ndarray, List]:
     """
     Preprocess distributions to the same bins.
@@ -129,6 +130,8 @@ def preprocess_2_cat_cols_to_same_bins(dist1: Union[np.ndarray, pd.Series], dist
         list of values from the first distribution.
     dist2: Union[np.ndarray, pd.Series]
         list of values from the second distribution.
+    min_category_size_ratio: float, default 0.01
+        minimum size ration for categories. Categories size ratio than this number are binned into an "Other" category.
     max_num_categories: int, default: None
         max number of allowed categories. If there are more categories than this number, categories are ordered by
         magnitude and all the smaller categories are binned into an "Other" category.
@@ -141,10 +144,9 @@ def preprocess_2_cat_cols_to_same_bins(dist1: Union[np.ndarray, pd.Series], dist
         Specify how categories should be sorted, affecting which categories will get into the "Other" category.
         Possible values:
         - 'dist1': Sort by the largest dist1 categories.
+        - 'dist2': Sort by the largest dist2 categories.
         - 'difference': Sort by the largest difference between categories.
         > Note that this parameter has no effect if max_num_categories = None or there are not enough unique categories.
-
-
     Returns
     -------
     dist1_percents
@@ -156,13 +158,14 @@ def preprocess_2_cat_cols_to_same_bins(dist1: Union[np.ndarray, pd.Series], dist
 
     """
     all_categories = list(set(dist1).union(set(dist2)))
-
     if max_num_categories is not None and len(all_categories) > max_num_categories:
         dist1_counter = Counter(dist1)
         dist2_counter = Counter(dist2)
 
         if sort_by == 'dist1':
             sort_by_counter = dist1_counter
+        elif sort_by == 'dist2':
+            sort_by_counter = dist2_counter
         elif sort_by == 'difference':
             sort_by_counter = Counter({key: abs(dist1_counter[key] - dist2_counter[key])
                                        for key in set(dist1_counter.keys()).union(dist2_counter.keys())})
@@ -176,16 +179,28 @@ def preprocess_2_cat_cols_to_same_bins(dist1: Union[np.ndarray, pd.Series], dist
         dist1_counter[OTHER_CATEGORY_NAME] = len(dist1) - sum(dist1_counter.values())
         dist2_counter = {k: dist2_counter[k] for k in categories_list}
         dist2_counter[OTHER_CATEGORY_NAME] = len(dist2) - sum(dist2_counter.values())
-        categories_list.append(OTHER_CATEGORY_NAME)
 
     else:
-        dist1_counter = Counter(dist1)
-        dist2_counter = Counter(dist2)
-        categories_list = all_categories
+        dist1_counter = dict(Counter(dist1))
+        dist1_counter[OTHER_CATEGORY_NAME] = 0
+        dist2_counter = dict(Counter(dist2))
+        dist2_counter[OTHER_CATEGORY_NAME] = 0
+
+    for cat in all_categories:
+        if cat not in dist1_counter.keys() or dist1_counter[cat] < len(dist1) * min_category_size_ratio:
+            num_in_dist1 = dist1_counter.pop(cat) if cat in dist1_counter.keys() else 0
+            dist1_counter[OTHER_CATEGORY_NAME] = dist1_counter[OTHER_CATEGORY_NAME] + num_in_dist1
+            num_in_dist2 = dist2_counter.pop(cat) if cat in dist2_counter.keys() else 0
+            dist2_counter[OTHER_CATEGORY_NAME] = dist2_counter[OTHER_CATEGORY_NAME] + num_in_dist2
+
+    if dist1_counter[OTHER_CATEGORY_NAME] == 0 and dist2_counter[OTHER_CATEGORY_NAME] == 0:
+        dist1_counter.pop(OTHER_CATEGORY_NAME)
+        dist2_counter.pop(OTHER_CATEGORY_NAME)
 
     # create an array from counters; this also aligns both counts to the same index
+    categories_list = list(dist1_counter.keys())
     dist1_counts = np.array([dist1_counter[k] for k in categories_list])
-    dist2_counts = np.array([dist2_counter[k] for k in categories_list])
+    dist2_counts = np.array([dist2_counter[k] if k in dist2_counter.keys() else 0 for k in categories_list])
 
     return dist1_counts, dist2_counts, categories_list
 

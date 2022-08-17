@@ -51,9 +51,11 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
         disproportionally. This filter is applied to both distributions, in both margins.
-    max_num_categories_for_drift: int, default: 10
-        Only for categorical columns. Max number of allowed categories. If there are more,
-        they are binned into an "Other" category. If None, there is no limit.
+    max_num_categories_for_drift: int, default: None
+        Only for discrete properties. Max number of allowed categories. If there are more,
+        they are binned into an "Other" category. This limit applies for both drift calculation and distribution plots.
+    min_category_size_ratio: float, default 0.01
+        minimum size ration for categories. Categories size ratio than this number are binned into an "Other" category.
     max_num_categories_for_display: int, default: 10
         Max number of categories to show in plot.
     show_categories_by: str, default: 'largest_difference'
@@ -75,7 +77,8 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
     def __init__(
             self,
             margin_quantile_filter: float = 0.025,
-            max_num_categories_for_drift: int = 10,
+            max_num_categories_for_drift: int = None,
+            min_category_size_ratio: float = 0.01,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
             categorical_drift_method='cramer_v',
@@ -94,6 +97,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
             max_num_categories_for_drift = max_num_categories_for_drift or max_num_categories
             max_num_categories_for_display = max_num_categories_for_display or max_num_categories
         self.max_num_categories_for_drift = max_num_categories_for_drift
+        self.min_category_size_ratio = min_category_size_ratio
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
         self.categorical_drift_method = categorical_drift_method
@@ -118,6 +122,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
             column_type='categorical' if train_dataset.label_type != TaskType.REGRESSION else 'numerical',
             margin_quantile_filter=self.margin_quantile_filter,
             max_num_categories_for_drift=self.max_num_categories_for_drift,
+            min_category_size_ratio=self.min_category_size_ratio,
             max_num_categories_for_display=self.max_num_categories_for_display,
             show_categories_by=self.show_categories_by,
             categorical_drift_method=self.categorical_drift_method,

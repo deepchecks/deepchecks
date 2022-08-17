@@ -166,7 +166,8 @@ def test_with_drift_classification_cramer(mnist_dataset_train, mnist_dataset_tes
 def test_with_drift_object_detection(coco_train_visiondata, coco_test_visiondata, mock_trained_yolov5_object_detection,
                                      device):
     # Arrange
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI')
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI', max_num_categories_for_drift=10,
+                                     min_category_size_ratio=0)
 
     # Act
     result = check.run(coco_train_visiondata, coco_test_visiondata, mock_trained_yolov5_object_detection, device=device)
@@ -190,7 +191,8 @@ def test_with_drift_object_detection(coco_train_visiondata, coco_test_visiondata
 def test_with_drift_object_detection_change_max_cat(coco_train_visiondata, coco_test_visiondata,
                                                     mock_trained_yolov5_object_detection, device):
     # Arrange
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI', max_num_categories_for_drift=100)
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI', max_num_categories_for_drift=100,
+                                     min_category_size_ratio=0)
 
     # Act
     result = check.run(coco_train_visiondata, coco_test_visiondata, mock_trained_yolov5_object_detection, device=device)
@@ -198,7 +200,7 @@ def test_with_drift_object_detection_change_max_cat(coco_train_visiondata, coco_
     # Assert
     assert_that(result.value, has_entries(
         {'Samples Per Class': has_entries(
-            {'Drift score': close_to(0.48, 0.01),
+            {'Drift score': close_to(0.67, 0.01),
              'Method': equal_to('PSI')}
         ), 'Bounding Box Area (in pixels)': has_entries(
             {'Drift score': close_to(0.012, 0.001),
