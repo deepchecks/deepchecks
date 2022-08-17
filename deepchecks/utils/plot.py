@@ -21,8 +21,8 @@ __all__ = ['create_colorbar_barchart_for_check', 'shifted_color_map',
            'create_confusion_matrix_figure', 'colors', 'hex_to_rgba']
 
 
-colors = {'Train': '#00008b',  # dark blue
-          'Test': '#69b3a2',
+colors = {'Train': '#69b3a2',  # green
+          'Test': '#00008b',   # dark blue
           'Baseline': '#b287a3',
           'Generated': '#2191FB'}
 # iterable for displaying colors on metrics
