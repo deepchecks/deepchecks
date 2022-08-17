@@ -32,7 +32,7 @@ SDP = TypeVar('SDP', bound='SingleDatasetPerformance')
 
 
 class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
-    """Summarize given model performance on the train and test datasets based on selected scorers.
+    """Summarize given model performance on a dataset based on selected scorers.
 
     Parameters
     ----------
