@@ -5,29 +5,35 @@
 Percent Of Nulls
 ****************
 
-This page provides an overview for using the "Percent Of Nulls" check.
+This notebook provides an overview for using the Percent Of Nulls check.
 
 **Structure:**
 
-* `Check Description <#check-description>`__
-* `Run check <#run-the-check>`__
+* `What is Percent Of Nulls <#what-are-percent-of-nulls>`__
+* `Generate data <#generate-data>`__
+* `Run the check <#run-the-check>`__
 * `Define a condition <#define-a-condition>`__
 
 
-Check Description
+What is Percent Of Nulls
 =================
 
-'Percent Of Nulls' check calculates percent of 'null' values for each column 
-of provided to it dataset and displays result as a bar chart.
+The ``PercentOfNulls`` check calculates percent of ``null`` values for each column
+and displays the result as a bar chart.
 """
+
 #%%
-# Run the Check
+# Generate data
 # =========
 import numpy as np
 import pandas as pd
 from deepchecks.tabular.checks.data_integrity import PercentOfNulls
 
 df = pd.DataFrame({'foo': [1, 2, None, np.nan], 'bar': [None, 1, 2, 3]})
+
+#%%
+# Run the Check
+# =========
 result = PercentOfNulls().run(df)
 result.show()
 

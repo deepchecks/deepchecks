@@ -5,7 +5,7 @@
 Feature Feature Correlation
 ***************************
 
-This notebooks provides an overview for using and understanding the feature-feature correlation check.
+This notebook provides an overview for using and understanding the feature-feature correlation check.
 
 This check computes the pairwise correlations between the features, potentially spotting pairs of features that are
 highly correlated.
