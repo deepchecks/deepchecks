@@ -130,7 +130,7 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
                     label = label.cpu().detach().numpy()
                     bbox = label[1:]
                     # make sure image is not out of bounds
-                    if round(bbox[2]) + min(round(bbox[0]), 0) <= 0 or round(bbox[3] <= 0) + min(round(bbox[1]), 0):
+                    if round(bbox[2]) + min(round(bbox[0]), 0) <= 0 or round(bbox[3]) <= 0 + min(round(bbox[1]), 0):
                         continue
                     class_id = int(label[0])
                     target.append(dataset.label_id_to_name(class_id))

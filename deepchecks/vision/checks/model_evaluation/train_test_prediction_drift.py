@@ -169,11 +169,11 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         else:
             raise DeepchecksNotSupportedError(f'Unsupported dataset kind {dataset_kind}')
 
-        for prediction_property in self.prediction_properties:
-            # Flatten the properties since I don't care in this check about the property-per-sample coupling
-            properties_results[prediction_property['name']] += properties_flatten(
-                prediction_property['method'](batch.predictions)
-            )
+        batch_properties = batch.vision_properties(self.prediction_properties, PropertiesInputType.PREDICTIONS)
+
+        for prop_name, prop_value in batch_properties.items():
+            # Flatten the properties since we don't care in this check about the property-per-sample coupling
+            properties_results[prop_name] += properties_flatten(prop_value)
 
     def compute(self, context: Context) -> CheckResult:
         """Calculate drift on prediction properties samples that were collected during update() calls.

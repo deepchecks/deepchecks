@@ -64,7 +64,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
 
     def __init__(self,
                  properties_list: t.List[t.Dict[str, t.Any]] = None,
-                 property_input_type: PropertiesInputType = PropertiesInputType.IMAGES,
+                 property_input_type: PropertiesInputType = PropertiesInputType.OTHER,
                  n_show_top: int = 5,
                  iqr_percentiles: t.Tuple[int, int] = (25, 75),
                  iqr_scale: float = 1.5,
@@ -94,7 +94,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         batch_properties = batch.vision_properties(self.properties_list, self.property_input_type)
 
         for prop_name, property_values in batch_properties.items():
-            self._ensure_property_shape(property_values, len(batch), prop_name)
+            _ensure_property_shape(property_values, len(batch), prop_name)
             self._properties_results[prop_name].extend(property_values)
 
     def compute(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
@@ -215,7 +215,6 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
 
         return CheckResult(result, display=display)
 
-
     @abstractmethod
     def draw_image(self, data: VisionData, sample_index: int, index_of_value_in_sample: int,
                    num_properties_in_sample: int) -> np.ndarray:
@@ -239,26 +238,26 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         """Return default properties to run in the check."""
         pass
 
-    @staticmethod
-    def _ensure_property_shape(property_values, data_length, prop_name):
-        """Validate the result of the property."""
-        if len(property_values) != data_length:
-            raise DeepchecksProcessError(f'Properties are expected to return value per image but instead got'
-                                        f' {len(property_values)} values for {data_length} images for property '
-                                        f'{prop_name}')
 
-        # If the first item is list validate all items are list of numbers
-        if isinstance(property_values[0], t.Sequence):
-            if any((not isinstance(x, t.Sequence) for x in property_values)):
-                raise DeepchecksProcessError(f'Property result is expected to be either all lists or all scalars but'
-                                            f' got mix for property {prop_name}')
-            if any((not _is_list_of_numbers(x) for x in property_values)):
-                raise DeepchecksProcessError(f'For outliers, properties are expected to be only numeric types but'
-                                            f' found non-numeric value for property {prop_name}')
-        # If first value is not list, validate all items are numeric
-        elif not _is_list_of_numbers(property_values):
+def _ensure_property_shape(property_values, data_len, prop_name):
+    """Validate the result of the property."""
+    if len(property_values) != data_len:
+        raise DeepchecksProcessError(f'Properties are expected to return value per image but instead got'
+                                     f' {len(property_values)} values for {data_len} images for property '
+                                     f'{prop_name}')
+
+    # If the first item is list validate all items are list of numbers
+    if isinstance(property_values[0], t.Sequence):
+        if any((not isinstance(x, t.Sequence) for x in property_values)):
+            raise DeepchecksProcessError(f'Property result is expected to be either all lists or all scalars but'
+                                         f' got mix for property {prop_name}')
+        if any((not _is_list_of_numbers(x) for x in property_values)):
             raise DeepchecksProcessError(f'For outliers, properties are expected to be only numeric types but'
-                                        f' found non-numeric value for property {prop_name}')
+                                         f' found non-numeric value for property {prop_name}')
+    # If first value is not list, validate all items are numeric
+    elif not _is_list_of_numbers(property_values):
+        raise DeepchecksProcessError(f'For outliers, properties are expected to be only numeric types but'
+                                     f' found non-numeric value for property {prop_name}')
 
 
 def _is_list_of_numbers(l):

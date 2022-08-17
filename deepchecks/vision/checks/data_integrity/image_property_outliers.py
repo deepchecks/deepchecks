@@ -56,14 +56,6 @@ class ImagePropertyOutliers(AbstractPropertyOutliers):
                          n_show_top=n_show_top, iqr_percentiles=iqr_percentiles,
                          iqr_scale=iqr_scale, **kwargs)
 
-    def update(self, context, batch: Batch, dataset_kind):
-        """Aggregate image properties from batch."""
-        batch_properties = batch.vision_properties(self.properties_list, self.property_input_type)
-
-        for prop_name, property_values in batch_properties.items():
-            self._ensure_property_shape(property_values, len(batch), prop_name)
-            self._properties_results[prop_name].extend(property_values)
-
     def draw_image(self, data: VisionData, sample_index: int, index_of_value_in_sample: int,
                    num_properties_in_sample: int) -> np.ndarray:
         """Return an image to show as output of the display.

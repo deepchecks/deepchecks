@@ -115,10 +115,20 @@ class Batch:
                 label = label.cpu().detach().numpy()
                 bbox = label[1:]
                 # make sure image is not out of bounds
-                if round(bbox[2]) + min(round(bbox[0]), 0) <= 0 or round(bbox[3] <= 0) + min(round(bbox[1]), 0):
+                if round(bbox[2]) + min(round(bbox[0]), 0) <= 0 or round(bbox[3]) <= 0 + min(round(bbox[1]), 0):
                     continue
                 imgs.append(crop_image(img, *bbox))
         return imgs
+
+    def _get_relevant_data(self, input_type: PropertiesInputType):
+        if input_type == PropertiesInputType.BBOXES:
+            return self._get_cropped_images()
+        if input_type == PropertiesInputType.IMAGES:
+            return self.images
+        if input_type == PropertiesInputType.LABELS:
+            return self.labels
+        if input_type == PropertiesInputType.PREDICTIONS:
+            return self.predictions
 
     def vision_properties(self, properties_list: List[Dict], input_type: PropertiesInputType):
         """Calculate and cache the properties for the batch according to the property input type."""
@@ -129,13 +139,13 @@ class Batch:
             if self._context.static_properties is not None:
                 self._vision_properties_cache = self._do_static_prop()
             else:
-                data = self._get_cropped_images() if input_type == PropertiesInputType.BBOXES else self.images
+                data = self._get_relevant_data(input_type)
                 self._vision_properties_cache[input_type.value] = calc_vision_properties(data, properties_list)
         else:
             properties_to_calc = [p for p in properties_list if p['name'] not in
                                   self._vision_properties_cache[input_type.value].keys()]
             if len(properties_to_calc) > 0:
-                data = self._get_cropped_images() if input_type == PropertiesInputType.BBOXES else self.images
+                data = self._get_relevant_data(input_type)
                 self._vision_properties_cache[input_type.value].update(calc_vision_properties(data, properties_to_calc))
         return self._vision_properties_cache[input_type.value]
 
