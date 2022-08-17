@@ -26,6 +26,7 @@ from sklearn.preprocessing import OrdinalEncoder
 
 from deepchecks.tabular import Dataset
 from deepchecks.utils.dataframes import floatify_dataframe
+from deepchecks.utils.distribution.drift import get_drift_plot_sidenote
 from deepchecks.utils.distribution.plot import drift_score_bar_traces, feature_distribution_traces
 from deepchecks.utils.distribution.rare_category_encoder import RareCategoryEncoder
 from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none
@@ -108,6 +109,7 @@ def run_whole_dataset_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
             build_drift_plot(score),
             '<h3>Main features contributing to drift</h3>',
             N_TOP_MESSAGE % n_top_columns,
+            get_drift_plot_sidenote(max_num_categories_for_display, show_categories_by),
             *(
                 display_dist(
                     train_sample_df[feature],
@@ -173,44 +175,8 @@ def display_dist(
         show_categories_by=show_categories_by
     )
 
-    all_categories = list(set(train_column).union(set(test_column)))
-    add_footnote = column_name in cat_features and len(all_categories) > max_num_categories
-
-    if not add_footnote:
-        fig = go.Figure()
-        fig.add_traces(dist_traces)
-    else:
-
-        if show_categories_by == 'train_largest':
-            categories_order_description = 'largest categories (by train)'
-        elif show_categories_by == 'test_largest':
-            categories_order_description = 'largest categories (by test)'
-        elif show_categories_by == 'largest_difference':
-            categories_order_description = 'largest difference between categories'
-        else:
-            raise ValueError(f'Unsupported "show_categories_by" value - {show_categories_by}')
-
-        train_data_percents = dist_traces[0].y.sum()
-        test_data_percents = dist_traces[1].y.sum()
-
-        annotation = (
-            f'* Showing the top {max_num_categories} {categories_order_description} out of '
-            f'total {len(all_categories)} categories.'
-            f'<br>Shown data is {format_percent(train_data_percents)} of train data and '
-            f'{format_percent(test_data_percents)} of test data.'
-        )
-
-        fig = (
-            go.Figure()
-            .add_traces(dist_traces)
-            .add_annotation(
-                x=0, y=-0.4,
-                showarrow=False,
-                xref='paper',
-                yref='paper',
-                xanchor='left',
-                text=annotation)
-        )
+    fig = go.Figure()
+    fig.add_traces(dist_traces)
 
     return fig.update_layout(go.Layout(
         title=title,

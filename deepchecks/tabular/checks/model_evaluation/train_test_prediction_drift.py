@@ -22,7 +22,7 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERIC_METHODS,
-                                                 calc_drift_and_plot)
+                                                 calc_drift_and_plot, get_drift_plot_sidenote)
 
 __all__ = ['TrainTestPredictionDrift']
 
@@ -177,9 +177,9 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
                 train_column=pd.Series(train_prediction[:, class_idx].flatten()),
                 test_column=pd.Series(test_prediction[:, class_idx].flatten()),
                 value_name='model predictions' if not proba_drift else
-                           f'predicted probabilities for class {class_name}',
+                f'predicted probabilities for class {class_name}',
                 column_type='categorical' if (context.task_type != TaskType.REGRESSION) and (not proba_drift)
-                            else 'numerical',
+                else 'numerical',
                 margin_quantile_filter=self.margin_quantile_filter,
                 max_num_categories_for_drift=self.max_num_categories_for_drift,
                 max_num_categories_for_display=self.max_num_categories_for_display,
@@ -190,15 +190,15 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
             )
 
         if context.with_display:
-            headnote = f"""<span>
+            headnote = [f"""<span>
                 The Drift score is a measure for the difference between two distributions, in this check - the test
                 and train distributions.<br> The check shows the drift score and distributions for the predicted
                 {'class probabilities' if proba_drift else 'classes'}.
-            </span>"""
+            </span>""", get_drift_plot_sidenote(self.max_num_categories_for_display, self.show_categories_by)]
 
             # sort classes by their drift score
-            displays = [headnote] + [x for _, x in sorted(zip(drift_score_dict.values(), drift_display_dict.values()),
-                                                          reverse=True)][:self.max_classes_to_display]
+            displays = headnote + [x for _, x in sorted(zip(drift_score_dict.values(), drift_display_dict.values()),
+                                                        reverse=True)][:self.max_classes_to_display]
         else:
             displays = None
 

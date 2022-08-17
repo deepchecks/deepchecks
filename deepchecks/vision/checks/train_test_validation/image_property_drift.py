@@ -19,14 +19,13 @@ from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
 from deepchecks.utils.dict_funcs import get_dict_entry_by_value
-from deepchecks.utils.distribution.drift import calc_drift_and_plot
+from deepchecks.utils.distribution.drift import calc_drift_and_plot, get_drift_plot_sidenote
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.utils.image_properties import default_image_properties, get_column_type
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
 
 __all__ = ['ImagePropertyDrift']
-
 
 TImagePropertyDrift = t.TypeVar('TImagePropertyDrift', bound='ImagePropertyDrift')
 
@@ -115,10 +114,10 @@ class ImagePropertyDrift(TrainTestCheck):
         self._test_properties = defaultdict(list)
 
     def update(
-        self,
-        context: Context,
-        batch: Batch,
-        dataset_kind: DatasetKind
+            self,
+            context: Context,
+            batch: Batch,
+            dataset_kind: DatasetKind
     ):
         """Calculate image properties for train or test batch."""
         if dataset_kind == DatasetKind.TRAIN:
@@ -209,16 +208,16 @@ class ImagePropertyDrift(TrainTestCheck):
             columns_order = sorted(properties, key=lambda col: drifts.get(col, 0), reverse=True)
             properties_to_display = [p for p in properties if p in drifts]
 
-            headnote = '<span>' \
-                       'The Drift score is a measure for the difference between two distributions. ' \
-                       'In this check, drift is measured ' \
-                       f'for the distribution of the following image properties: {properties_to_display}.<br>' \
-                       '</span>'
-            if not_enough_samples:
-                headnote += f'<span>The following image properties do not have enough samples to calculate drift ' \
-                            f'score: {not_enough_samples}</span>'
+            headnote = ['<span> The Drift score is a measure for the difference between two distributions. '
+                        'In this check, drift is measured for the distribution '
+                        f'of the following image properties: {properties_to_display}.</span>',
+                        get_drift_plot_sidenote(self.max_num_categories_for_display, self.show_categories_by)]
 
-            displays = [headnote] + [figures[col] for col in columns_order if col in figures]
+            if not_enough_samples:
+                headnote.append(f'<span>The following image properties do not have enough samples to calculate drift '
+                                f'score: {not_enough_samples}</span>')
+
+            displays = headnote + [figures[col] for col in columns_order if col in figures]
         else:
             displays = []
 
@@ -229,8 +228,8 @@ class ImagePropertyDrift(TrainTestCheck):
         )
 
     def add_condition_drift_score_less_than(
-        self: TImagePropertyDrift,
-        max_allowed_drift_score: float = 0.1
+            self: TImagePropertyDrift,
+            max_allowed_drift_score: float = 0.1
     ) -> TImagePropertyDrift:
         """
         Add condition - require drift score to be less than a certain threshold.
