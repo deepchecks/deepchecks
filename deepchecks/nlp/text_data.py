@@ -31,56 +31,23 @@ TTextLabel = t.Union[TClassLabel, TTokenLabel]
 
 class TextData:
     """
-    Dataset wraps HuggingFace/datasets Dataset object together with ML related metadata.
+    TextData wraps together the raw text data and the labels for the nlp task.
 
-    The Dataset class contains additional data and methods intended for easily accessing
+    The TextData class contains additional data and methods intended for easily accessing
     metadata relevant for the training or validating of ML models.
 
     Parameters
     ----------
-    df : Any
-        An object that can be casted to a pandas DataFrame
-         - containing data relevant for the training or validating of a ML models.
-    label : t.Union[Hashable, pd.Series, pd.DataFrame, np.ndarray] , default: None
-        label column provided either as a string with the name of an existing column in the DataFrame or a label
-        object including the label data (pandas Series/DataFrame or a numpy array) that will be concatenated to the
-        data in the DataFrame. in case of label data the following logic is applied to set the label name:
-        - Series: takes the series name or 'target' if name is empty
-        - DataFrame: expect single column in the dataframe and use its name
-        - numpy: use 'target'
-    features : t.Optional[t.Sequence[Hashable]] , default: None
-        List of names for the feature columns in the DataFrame.
-    cat_features : t.Optional[t.Sequence[Hashable]] , default: None
-        List of names for the categorical features in the DataFrame. In order to disable categorical.
-        features inference, pass cat_features=[]
-    index_name : t.Optional[Hashable] , default: None
-        Name of the index column in the dataframe. If set_index_from_dataframe_index is True and index_name
-        is not None, index will be created from the dataframe index level with the given name. If index levels
-        have no names, an int must be used to select the appropriate level by order.
-    set_index_from_dataframe_index : bool , default: False
-        If set to true, index will be created from the dataframe index instead of dataframe columns (default).
-        If index_name is None, first level of the index will be used in case of a multilevel index.
-    datetime_name : t.Optional[Hashable] , default: None
-        Name of the datetime column in the dataframe. If set_datetime_from_dataframe_index is True and datetime_name
-        is not None, date will be created from the dataframe index level with the given name. If index levels
-        have no names, an int must be used to select the appropriate level by order.
-    set_datetime_from_dataframe_index : bool , default: False
-        If set to true, date will be created from the dataframe index instead of dataframe columns (default).
-        If datetime_name is None, first level of the index will be used in case of a multilevel index.
-    convert_datetime : bool , default: True
-        If set to true, date will be converted to datetime using pandas.to_datetime.
-    datetime_args : t.Optional[t.Dict] , default: None
-        pandas.to_datetime args used for conversion of the datetime column.
-        (look at https://pandas.pydata.org/docs/reference/api/pandas.to_datetime.html for more documentation)
-    max_categorical_ratio : float , default: 0.01
-        The max ratio of unique values in a column in order for it to be inferred as a
-        categorical feature.
-    max_categories : int , default: None
-        The maximum number of categories in a column in order for it to be inferred as a categorical
-        feature. if None, uses is_categorical default inference mechanism.
-    label_type : str , default: None
-        Used to assume target model type if not found on model. Values ('classification_label', 'regression_label')
-        If None then label type is inferred from label using is_categorical logic.
+    raw_text : t.Sequence[str]
+        The raw text data, a sequence of strings representing the raw text of each sample.
+    label : t.Optional[TTextLabel], default: None
+        The label for the text data. Can be either a text_classification label or a token_classification label.
+        If None, the label is not set.
+    task_type : str, default: None
+        The task type for the text data. Can be either 'text_classification' or 'token_classification'. Must be set if
+        label is provided.
+    label_name : t.Optional[str], default: None
+        The name of the label column. If None, the label column name is 'label'.
     """
 
     _dataset: datasets.Dataset
@@ -551,7 +518,3 @@ class TextData:
     def len_when_sampled(self, n_samples: int):
         """Return number of samples in the sampled dataframe this dataset is sampled with n_samples samples."""
         return min(len(self), n_samples)
-
-    def is_sampled(self, n_samples: int):
-        """Return True if the dataset number of samples will decrease when sampled with n_samples samples."""
-        return len(self) > n_samples
