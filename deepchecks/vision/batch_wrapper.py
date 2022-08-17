@@ -11,12 +11,10 @@
 """Contains code for BatchWrapper."""
 from operator import itemgetter
 from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Tuple, TypeVar, cast
-import numpy as np
 
 import torch
 
 from deepchecks.core import DatasetKind
-from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.utils.image_functions import crop_image
 from deepchecks.vision.utils.vision_properties import (PropertiesInputType, calc_vision_properties,
@@ -138,8 +136,8 @@ class Batch:
         # else calculate only those that were not yet calculated.
         if self._vision_properties_cache[input_type.value] is None:
             if (input_type in [PropertiesInputType.BBOXES, PropertiesInputType.IMAGES] or
-                input_type in self._context.static_properties_input_types) \
-                and self._context.static_properties is not None:
+                    input_type in self._context.static_properties_input_types) \
+                    and self._context.static_properties is not None:
                 self._vision_properties_cache = self._do_static_prop()
             else:
                 data = self._get_relevant_data(input_type)

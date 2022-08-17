@@ -10,8 +10,8 @@
 #
 """Module for calculating the properties used in Vision checks."""
 import warnings
-from itertools import chain
 from enum import Enum
+from itertools import chain
 
 __all__ = ['PropertiesInputType', 'validate_properties']
 
