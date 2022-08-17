@@ -28,7 +28,7 @@ __all__ = [
 ]
 
 
-TClassPred = np.array
+TClassPred = t.Sequence[t.Sequence[float]]
 TTokenPred = t.Sequence[t.Sequence[t.Tuple[str, int, int, float]]]
 TTextPred = t.Union[TClassPred, TTokenPred]
 
@@ -92,17 +92,21 @@ class Context:
     def _validate_prediction(dataset: TextData, dataset_type: DatasetKind, prediction: TTextPred,
                              eps: float = 1e-3):
         """Validate prediction for given dataset."""
+        classification_format_error = f'Check requires classification for {dataset_type} to be a sequence '\
+                                      f'of sequences that can be cast to a 2D numpy array of shape'\
+                                      f' (n_samples, n_classes)'
         if dataset.task_type == TaskType.TEXT_CLASSIFICATION:
-            if not isinstance(prediction, np.ndarray):
-                raise ValidationError(f'Check requires classification for {dataset_type} to be a numpy array')
+            try:
+                prediction = np.ndarray(prediction, dtype='float')
+            except ValueError as e:
+                raise ValidationError(classification_format_error) from e
             pred_shape = prediction.shape
             if len(pred_shape) != 2:
-                raise ValidationError(f'Check requires classification predictions for {dataset_type.value} dataset '
-                                      f'to be a 2D tensor')
+                raise ValidationError(classification_format_error)
             n_classes = dataset.num_classes
             if pred_shape[1] != n_classes:
                 raise ValidationError(f'Check requires classification predictions for {dataset_type.value} dataset '
-                                      f'to have {n_classes} columns')
+                                      f'to have {n_classes} columns, same as the number of classes')
             if pred_shape[0] != dataset.n_samples:
                 raise ValidationError(f'Check requires classification predictions for {dataset_type.value} dataset '
                                       f'to have {dataset.n_samples} rows, same as dataset')
