@@ -17,7 +17,7 @@ from deepchecks.core.checks import ReduceMixin
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERIC_METHODS,
-                                                 calc_drift_and_plot)
+                                                 calc_drift_and_plot, get_drift_plot_sidenote)
 
 __all__ = ['TrainTestLabelDrift']
 
@@ -128,12 +128,10 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
         values_dict = {'Drift score': drift_score, 'Method': method}
 
         if context.with_display:
-            headnote = """<span>
+            displays = ["""<span>
                 The Drift score is a measure for the difference between two distributions, in this check - the test
                 and train distributions.<br> The check shows the drift score and distributions for the label.
-            </span>"""
-
-            displays = [headnote, display]
+            </span>""", get_drift_plot_sidenote(self.max_num_categories_for_display, self.show_categories_by), display]
         else:
             displays = None
 

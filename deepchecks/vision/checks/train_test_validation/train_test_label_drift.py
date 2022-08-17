@@ -18,7 +18,7 @@ import pandas as pd
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.checks import CheckConfig, ReduceMixin
 from deepchecks.core.errors import DeepchecksNotSupportedError
-from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition
+from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition, get_drift_plot_sidenote
 from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.utils.label_prediction_properties import (DEFAULT_CLASSIFICATION_LABEL_PROPERTIES,
                                                                  DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES,
@@ -215,13 +215,12 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
             columns_order = sorted(label_properties_names, key=lambda col: values_dict[col]['Drift score'],
                                    reverse=True)
 
-            headnote = '<span>' \
-                'The Drift score is a measure for the difference between two distributions. ' \
-                'In this check, drift is measured ' \
-                f'for the distribution of the following label properties: {label_properties_names}.' \
-                '</span>'
+            headnote = ['<span> The Drift score is a measure for the difference between two distributions. '
+                        'In this check, drift is measured for the distribution of the '
+                        f'following label properties: {label_properties_names}.</span>',
+                        get_drift_plot_sidenote(self.max_num_categories_for_display, self.show_categories_by)]
 
-            displays = [headnote] + [displays_dict[col] for col in columns_order]
+            displays = headnote + [displays_dict[col] for col in columns_order]
         else:
             displays = None
 

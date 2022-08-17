@@ -187,15 +187,15 @@ class CheckResult(BaseCheckResult, DisplayableResult):
         int
             priority of the check result.
         """
-        if not self.have_conditions:
+        if not self.have_conditions():
             return 5
 
         for c in self.conditions_results:
-            if c.is_pass is False and c.category == ConditionCategory.FAIL:
+            if c.is_pass() is False and c.category == ConditionCategory.FAIL:
                 return 1
-            if c.is_pass is False and c.category == ConditionCategory.WARN:
+            if c.is_pass() is False and c.category == ConditionCategory.WARN:
                 return 2
-            if c.is_pass is False and c.category == ConditionCategory.ERROR:
+            if c.is_pass() is False and c.category == ConditionCategory.ERROR:
                 return 3
 
         return 4

@@ -43,7 +43,7 @@ __all__ = [
     'N_TOP_MESSAGE'
 ]
 
-N_TOP_MESSAGE = '* showing only the top %s columns, you can change it using n_top_columns param'
+N_TOP_MESSAGE = 'Showing only the top %s columns, you can change it using n_top_columns param'
 
 
 def calculate_feature_importance_or_none(
