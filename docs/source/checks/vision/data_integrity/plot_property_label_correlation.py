@@ -15,7 +15,7 @@ This notebook provides an overview for using and understanding the "Property Lab
 
 What is the purpose of the check?
 =================================
-The check estimates for every `image property </user-guide/vision/vision_properties>`__
+The check estimates for every :doc:`image property </user-guide/vision/vision_properties>`
 (such as brightness, contrast etc.) its ability to predict the label by itself.
 
 This check can help find a potential bias in the dataset - the labels being strongly correlated with simple image
@@ -47,8 +47,8 @@ abstractions. For example, in the dataset of wolves and dogs photographs, the br
 predict the label "wolf" easily.
 
 
-How do we calculate for the predictive power different vision tasks?
------------------------------------------------
+How do we calculate the predictive power for different vision tasks?
+-------------------------------------------------------------------------
 
 * For classification tasks, this check uses PPS to predict the class by image properties.
 * For object detection tasks, this check uses PPS to predict the class of each
