@@ -15,7 +15,6 @@ from deepchecks import Context
 from deepchecks.core import DatasetKind
 from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.task_type import TaskType
-from deepchecks.vision.utils.image_functions import crop_image
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
 
 
@@ -26,7 +25,6 @@ def calc_properties_for_property_label_correlation(
 
     Intended for the checks PropertyLabelCorrelation and PropertyLabelCorrelationChange.
     """
-
     dataset = context.get_data_by_kind(dataset_kind)
 
     target = []
