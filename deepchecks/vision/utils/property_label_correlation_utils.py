@@ -26,29 +26,30 @@ def calc_properties_for_property_label_correlation(
 
     Intended for the checks PropertyLabelCorrelation and PropertyLabelCorrelationChange.
     """
-    imgs = []
-    target = []
 
     dataset = context.get_data_by_kind(dataset_kind)
 
+    target = []
+
     if dataset.task_type == TaskType.OBJECT_DETECTION:
-        for img, labels in zip(batch.images, batch.labels):
+        for labels in batch.labels:
             for label in labels:
                 label = label.cpu().detach().numpy()
                 bbox = label[1:]
-                cropped_img = crop_image(img, *bbox)
-                if cropped_img.shape[0] == 0 or cropped_img.shape[1] == 0:
+                # make sure image is not out of bounds
+                if round(bbox[2]) + min(round(bbox[0]), 0) <= 0 or round(bbox[3]) <= 0 + min(round(bbox[1]), 0):
                     continue
                 class_id = int(label[0])
-                imgs += [cropped_img]
-                target += [dataset.label_id_to_name(class_id)]
-        property_type = PropertiesInputType.BBOXES
+                target.append(dataset.label_id_to_name(class_id))
+        property_type = PropertiesInputType.PARTIAL_IMAGES
     else:
-        for img, classes_ids in zip(batch.images, dataset.get_classes(batch.labels)):
-            imgs += [img] * len(classes_ids)
-            target += list(map(dataset.label_id_to_name, classes_ids))
+        for classes_ids in dataset.get_classes(batch.labels):
+            if len(classes_ids) == 0:
+                target.append(None)
+            else:
+                target.append(dataset.label_id_to_name(classes_ids[0]))
         property_type = PropertiesInputType.IMAGES
 
-    data_for_properties = batch.vision_properties(imgs, image_properties, property_type)
+    data_for_properties = batch.vision_properties(image_properties, property_type)
 
     return data_for_properties, target
