@@ -230,21 +230,20 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceMixin):
             displays_dict[column] = display
 
         if context.with_display:
+            sorted_by = self.sort_feature_by
             if self.sort_feature_by == 'feature importance' and feature_importance is not None:
-                features_order = [feat for feat in features_order if feat in train_dataset.features]
+                features_order = [feat for feat in features_order if feat in values_dict]
                 columns_order = features_order[:self.n_top_columns]
             elif self.sort_feature_by == 'drift + importance' and feature_importance is not None:
-                feature_columns = [feat for feat in features_order if feat in train_dataset.features]
+                feature_columns = [feat for feat in features_order if feat in values_dict]
                 feature_columns.sort(key=lambda col: values_dict[col]['Drift score'] + values_dict[col]['Importance'],
                                      reverse=True)
                 columns_order = feature_columns[:self.n_top_columns]
+                sorted_by = 'the sum of the drift score and the feature importance'
             else:
                 columns_order = sorted(values_dict.keys(), key=lambda col: values_dict[col]['Drift score'],
                                        reverse=True)[:self.n_top_columns]
-
-            sorted_by = self.sort_feature_by if feature_importance is not None else 'drift score'
-            if sorted_by == 'drift + importance':
-                sorted_by = 'the sum of the drift score and the feature importance'
+                sorted_by = 'drift score'
 
             headnote = [f"""<span>
                 The Drift score is a measure for the difference between two distributions, in this check - the test

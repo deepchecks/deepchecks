@@ -71,7 +71,7 @@ def test_drift_with_different_sort(drifted_data_and_model):
     train, test, model = drifted_data_and_model
 
     # Act
-    check = TrainTestFeatureDrift(categorical_drift_method='PSI')
+    check = TrainTestFeatureDrift(categorical_drift_method='PSI', sort_feature_by='feature importance')
     result = check.run(train, test, model)
     fi_display = result.display
 
