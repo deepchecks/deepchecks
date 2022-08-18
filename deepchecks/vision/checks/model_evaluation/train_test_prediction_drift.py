@@ -80,11 +80,12 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
         disproportionally. This filter is applied to both distributions, in both margins.
+    min_category_size_ratio: float, default 0.01
+        minimum size ratio for categories. Categories with size ratio lower than this number are binned
+        into an "Other" category.
     max_num_categories_for_drift: int, default: None
         Only for discrete properties. Max number of allowed categories. If there are more,
         they are binned into an "Other" category. This limit applies for both drift calculation and distribution plots.
-    min_category_size_ratio: float, default 0.01
-        minimum size ration for categories. Categories size ratio than this number are binned into an "Other" category.
     max_num_categories_for_display: int, default: 10
         Max number of categories to show in plot.
     show_categories_by: str, default: 'largest_difference'

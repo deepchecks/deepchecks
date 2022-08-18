@@ -56,8 +56,8 @@ def get_drift_method(result_dict: Dict):
 
 
 def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series],
-              min_category_size_ratio: float = 0.01, max_num_categories: int = None,
-              sort_by: str = 'difference') -> float:
+              min_category_size_ratio: float = 0, max_num_categories: int = None,
+              sort_by: str = 'dist1') -> float:
     """Calculate the Cramer's V statistic.
 
     For more on Cramer's V, see https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V
@@ -72,7 +72,8 @@ def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.S
     dist2 : Union[np.ndarray, pd.Series]
         array of numerical values to compare dist1 to.
     min_category_size_ratio: float, default 0.01
-        minimum size ration for categories. Categories size ratio than this number are binned into an "Other" category.
+        minimum size ratio for categories. Categories with size ratio lower than this number are binned
+        into an "Other" category.
     max_num_categories: int, default: None
         max number of allowed categories. If there are more categories than this number, categories are ordered by
         magnitude and all the smaller categories are binned into an "Other" category.
@@ -81,7 +82,7 @@ def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.S
         categories are kept by name and which are binned to the "Other" category) is done by default according to the
         values of dist1, which is treated as the "expected" distribution. This behavior can be changed by using the
         sort_by parameter.
-    sort_by: str, default: 'difference'
+    sort_by: str, default: 'dist1'
         Specify how categories should be sorted, affecting which categories will get into the "Other" category.
         Possible values:
         - 'dist1': Sort by the largest dist1 categories.
@@ -117,7 +118,7 @@ def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.S
 
 
 def psi(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series],
-        min_category_size_ratio: float = 0.01, max_num_categories: int = None, sort_by: str = 'difference') -> float:
+        min_category_size_ratio: float = 0, max_num_categories: int = None, sort_by: str = 'dist1') -> float:
     """
     Calculate the PSI (Population Stability Index).
 
@@ -130,7 +131,8 @@ def psi(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series]
     dist2 : Union[np.ndarray, pd.Series]
         array of numerical values to compare dist1 to.
     min_category_size_ratio: float, default 0.01
-        minimum size ration for categories. Categories size ratio than this number are binned into an "Other" category.
+        minimum size ratio for categories. Categories with size ratio lower than this number are binned
+        into an "Other" category.
     max_num_categories: int, default: None
         max number of allowed categories. If there are more categories than this number, categories are ordered by
         magnitude and all the smaller categories are binned into an "Other" category.
@@ -139,7 +141,7 @@ def psi(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series]
         categories are kept by name and which are binned to the "Other" category) is done by default according to the
         values of dist1, which is treated as the "expected" distribution. This behavior can be changed by using the
         sort_by parameter.
-    sort_by: str, default: 'difference'
+    sort_by: str, default: 'dist1'
         Specify how categories should be sorted, affecting which categories will get into the "Other" category.
         Possible values:
         - 'dist1': Sort by the largest dist1 categories.
@@ -251,10 +253,11 @@ def calc_drift_and_plot(train_column: pd.Series,
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
         disproportionally. This filter is applied to both distributions, in both margins.
+    min_category_size_ratio: float, default 0.01
+        minimum size ratio for categories. Categories with size ratio lower than this number are binned
+        into an "Other" category.
     max_num_categories_for_drift: int, default: None
         Max number of allowed categories. If there are more, they are binned into an "Other" category.
-    min_category_size_ratio: float, default 0.01
-        minimum size ration for categories. Categories size ratio than this number are binned into an "Other" category.
     max_num_categories_for_display: int, default: 10
         Max number of categories to show in plot.
     show_categories_by: str, default: 'largest_difference'
