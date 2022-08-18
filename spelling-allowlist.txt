@@ -112,3 +112,4 @@ conf
 deserialization
 coco128
 callables
+rstrip
