@@ -120,7 +120,7 @@ class Batch:
         return imgs
 
     def _get_relevant_data_for_properties(self, input_type: PropertiesInputType):
-        if input_type == PropertiesInputType.PARTIAL_IMAGESES:
+        if input_type == PropertiesInputType.PARTIAL_IMAGES:
             return self._get_cropped_images()
         if input_type == PropertiesInputType.IMAGES:
             return self.images

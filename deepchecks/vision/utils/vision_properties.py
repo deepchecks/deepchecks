@@ -25,7 +25,7 @@ class PropertiesInputType(Enum):
     """Enum containing supported task types."""
 
     IMAGES = 'images'
-    PARTIAL_IMAGESES = 'partial_images'
+    PARTIAL_IMAGES = 'partial_images'
     LABELS = 'labels'
     PREDICTIONS = 'predictions'
 
@@ -139,7 +139,7 @@ def static_prop_to_cache_format(static_props: STATIC_PROPERTIES_FORMAT) -> PROPE
     for input_type in input_types:
         for prop_name in list(static_props[indices[0]][input_type].keys()):
             prop_vals = [static_props[index][input_type][prop_name] for index in indices]
-            if input_type == PropertiesInputType.PARTIAL_IMAGESES.value:
+            if input_type == PropertiesInputType.PARTIAL_IMAGES.value:
                 prop_vals = list(chain.from_iterable(prop_vals))
             props_cache[input_type][prop_name] = prop_vals
 
