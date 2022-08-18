@@ -46,6 +46,8 @@ Vision
     vision/data-classes/index
     vision/vision_properties
     vision/custom_check_templates
+    vision/using_precomputed_predictions_vision
+
 
 .. _user_guide__integrations:
 
