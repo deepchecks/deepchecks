@@ -14,7 +14,6 @@ import typing as t
 import numpy as np
 
 from deepchecks.core.errors import DeepchecksProcessError
-from deepchecks.vision import Batch
 from deepchecks.vision.checks.data_integrity.abstract_property_outliers import AbstractPropertyOutliers
 from deepchecks.vision.utils import label_prediction_properties
 from deepchecks.vision.utils.image_functions import draw_bboxes
@@ -71,10 +70,6 @@ class LabelPropertyOutliers(AbstractPropertyOutliers):
         else:
             raise DeepchecksProcessError(f'task type {data.task_type} does not have default label '
                                          f'properties defined.')
-
-    def get_relevant_data(self, batch: Batch):
-        """Get the data on which the check calculates outliers for."""
-        return batch.labels
 
     def draw_image(self, data: VisionData, sample_index: int, index_of_value_in_sample: int,
                    num_properties_in_sample: int) -> np.ndarray:

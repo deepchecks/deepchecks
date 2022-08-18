@@ -153,7 +153,8 @@ def test_incorrect_properties_count_exception(mnist_dataset_train, device):
     check = ImagePropertyOutliers(image_properties=image_properties)
     # Act - Assert check raise exception
     assert_that(calling(check.run).with_args(mnist_dataset_train, device=device),
-                raises(DeepchecksProcessError, 'The properties should have the same length as the raw data'))
+                raises(DeepchecksProcessError, 'Properties are expected to return value per image but instead got 65 '
+                                               'values for 64 images for property test'))
 
 
 def test_property_with_nones(mnist_dataset_train, device):

@@ -84,7 +84,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         """Update the bins by the image properties."""
         predictions = [tens.detach() for tens in batch.predictions]
         labels = [tens.detach() for tens in batch.labels]
-        properties_results = batch.vision_properties(batch.images, self.image_properties, PropertiesInputType.IMAGES)
+        properties_results = batch.vision_properties(self.image_properties, PropertiesInputType.IMAGES)
 
         samples_for_bin: t.List = self._state['samples_for_binning']
         bins = self._state['bins']
