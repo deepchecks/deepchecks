@@ -114,7 +114,6 @@ class Context:
                         if dataset.task_type == TaskType.CLASSIFICATION:
                             preds = torch.stack(preds)
                         dataset.validate_inferred_batch_predictions(preds)
-                        msg = None
                         self._static_predictions[dataset_kind] = predictions
                     except ValidationError as ex:
                         msg = f'the predictions given were not in a correct format in the {dataset_kind} dataset, ' \
@@ -132,7 +131,6 @@ class Context:
                                                          [train_properties, test_properties]):
                 if dataset is not None:
                     try:
-                        msg = None
                         self._static_properties[dataset_kind] = properties
                         # make sure input types are within allowed input types
                         for input_type in self.static_properties_input_types(dataset_kind):
