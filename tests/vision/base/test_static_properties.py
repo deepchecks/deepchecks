@@ -112,6 +112,8 @@ def test_object_detection_missing_key(coco_train_visiondata, coco_test_visiondat
     image_properties = [{'name': 'aspect_ratio', 'method': aspect_ratio, 'output_type': 'numerical'}]
     train_props, test_props = _create_static_properties(coco_train_visiondata, coco_test_visiondata,
                                                         image_properties)
+    coco_train_visiondata = copy(coco_train_visiondata)
+    coco_train_visiondata.batch_to_images = coco_train_visiondata
 
     # assert error is raised if no bbox properties passed in a check that calls bbox properties
     assert_that(calling(PropertyLabelCorrelationChange().run)

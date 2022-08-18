@@ -192,17 +192,16 @@ class Context:
         return self._static_predictions
 
     @property
-    def static_properties(self) -> Dict:
+    def static_properties(self) -> STATIC_PROPERTIES_FORMAT:
         """Return the static_predictions."""
         return self._static_properties
 
-    @property
-    def static_properties_input_types(self) -> List[PropertiesInputType]:
+    def static_properties_input_types(self, dataset_kind: DatasetKind) -> List[PropertiesInputType]:
         """Return the available static_predictions input types."""
-        if not self._static_properties:
+        if not self.static_properties:
             return []
-        indices = list(self._static_properties.keys())
-        return list(self._static_properties[indices[0]].keys())
+        indices = list(self.static_properties[dataset_kind].keys())
+        return list(self.static_properties[dataset_kind][indices[0]].keys())
 
     @property
     def model_name(self):
