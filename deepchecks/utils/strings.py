@@ -462,6 +462,9 @@ def split_by_order(s: str, separators: t.Iterable[str], keep: bool = True) -> t.
 
 def truncate_zero_percent(ratio: float, floating_point: int):
     """Display ratio as percent without trailing zeros."""
+    if floating_point == 0:  # if 0, then rstrip('0') will strip 0s from the integer part of the percent.
+        return f'{ratio * 100:.{floating_point}f}' + '%'
+
     return f'{ratio * 100:.{floating_point}f}'.rstrip('0').rstrip('.') + '%'
 
 
