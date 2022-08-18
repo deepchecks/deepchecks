@@ -52,7 +52,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         - 'categorical' - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
         For more on image / label properties, see the :ref:`property guide </user-guide/vision/vision_properties.rst>`
-    property_input_type: PropertiesInputType, default: PropertiesInputType.OTHER
+    property_input_type: PropertiesInputType, default: PropertiesInputType.IMAGES
         The type of input to the properties, required for caching the results after first calculation.
     n_show_top : int , default: 5
         number of outliers to show from each direction (upper limit and bottom limit)
@@ -64,7 +64,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
 
     def __init__(self,
                  properties_list: t.List[t.Dict[str, t.Any]] = None,
-                 property_input_type: PropertiesInputType = PropertiesInputType.OTHER,
+                 property_input_type: PropertiesInputType = PropertiesInputType.IMAGES,
                  n_show_top: int = 5,
                  iqr_percentiles: t.Tuple[int, int] = (25, 75),
                  iqr_scale: float = 1.5,

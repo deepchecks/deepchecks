@@ -133,7 +133,7 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
                         continue
                     class_id = int(label[0])
                     target.append(dataset.label_id_to_name(class_id))
-            property_type = PropertiesInputType.BBOXES
+            property_type = PropertiesInputType.PARTIAL_IMAGESES
         else:
             for classes_ids in dataset.get_classes(batch.labels):
                 if len(classes_ids) == 0:

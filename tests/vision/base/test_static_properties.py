@@ -87,7 +87,7 @@ def _create_static_properties(train: VisionData, test: VisionData, image_propert
                     bbox_props = {k: [dic[k] for dic in bbox_props_list] for k in bbox_props_list[0]}
                     static_bbox_prop = vision_props_to_static_format(indexes, bbox_props)
                     static_prop.update({k: {'images': static_image_prop[k],
-                                            'bounding_boxes': static_bbox_prop[k]} for k in indexes})
+                                            'partial_images': static_bbox_prop[k]} for k in indexes})
                 else:
                     static_prop.update({k: {'images': static_image_prop[k]} for k in indexes})
         else:
@@ -130,6 +130,22 @@ def test_object_detection_missing_key(coco_train_visiondata, coco_test_visiondat
         train_properties=train_props, test_properties=test_props)), \
         raises(DeepchecksValueError, 'bad batch images')
 
+
+def test_object_detection_bad_prop(coco_train_visiondata, coco_test_visiondata):
+    image_properties = [{'name': 'aspect_ratio', 'method': aspect_ratio, 'output_type': 'numerical'}]
+    _, test_props = _create_static_properties(coco_train_visiondata, coco_test_visiondata,
+                                                        image_properties, calc_bbox=False)
+    # make sure it doesn't use images
+    coco_train_visiondata = copy(coco_train_visiondata)
+    coco_train_visiondata.batch_to_images = None
+    coco_train_visiondata._image_formatter_error = 'bad batch images'
+
+    # assert error is raised if bad properties passed in a check that calls bbox properties
+    assert_that(calling(PropertyLabelCorrelationChange().run)
+                .with_args(
+        train_dataset=coco_train_visiondata, test_dataset=coco_test_visiondata,
+        train_properties={'0': {'ahhh': 0, 'partial_images': [1, 2]}}, test_properties=test_props)), \
+        raises(DeepchecksValueError, 'bad batch images')
 
 def test_train_test_condition_pps_diff_fail_per_class(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
