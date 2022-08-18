@@ -86,7 +86,9 @@ def test_object_detection_without_bias(coco_train_visiondata, device):
 
 
 def test_object_detection_with_bias(coco_train_visiondata, device):
-    coco_train_visiondata.batch_to_images = get_coco_batch_to_images_with_bias(coco_train_visiondata.batch_to_labels)
-    result = PropertyLabelCorrelation().run(coco_train_visiondata, device=device)
+    coco_train_visiondata_copy = coco_train_visiondata.copy()
+    coco_train_visiondata_copy.batch_to_images = \
+        get_coco_batch_to_images_with_bias(coco_train_visiondata_copy.batch_to_labels)
+    result = PropertyLabelCorrelation().run(coco_train_visiondata_copy, device=device)
     assert_that(result.value, has_entries({'Brightness': close_to(0.0459, 0.005), 'Area': close_to(0.0, 0.005)}))
 
