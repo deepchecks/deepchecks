@@ -10,7 +10,7 @@
 #
 """Module containing the single dataset performance check."""
 from numbers import Number
-from typing import Callable, Dict, List, TypeVar, Union, cast
+from typing import TYPE_CHECKING, Callable, Dict, List, TypeVar, Union, cast
 
 import pandas as pd
 
@@ -19,7 +19,11 @@ from deepchecks.core.checks import ReduceMixin
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context
 from deepchecks.tabular.base_checks import SingleDatasetCheck
+from deepchecks.utils.docref import doclink
 from deepchecks.utils.strings import format_number
+
+if TYPE_CHECKING:
+    from deepchecks.core.checks import CheckConfig
 
 __all__ = ['SingleDatasetPerformance']
 
@@ -41,13 +45,13 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
                  scorers: Union[List[str], Dict[str, Union[str, Callable]]] = None,
                  **kwargs):
         super().__init__(**kwargs)
-        self.user_scorers = scorers
+        self.scorers = scorers
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
         dataset = context.get_data_by_kind(dataset_kind)
         model = context.model
-        scorers = context.get_scorers(self.user_scorers, use_avg_defaults=False)
+        scorers = context.get_scorers(self.scorers, use_avg_defaults=False)
 
         results = []
         classes = dataset.classes
@@ -69,6 +73,24 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
             display = []
 
         return CheckResult(results_df, header='Single Dataset Performance', display=display)
+
+    def config(
+        self,
+        include_version: bool = True
+    ) -> 'CheckConfig':
+        """Return check configuration."""
+        if isinstance(self.scorers, dict):
+            for k, v in self.scorers.items():
+                if not isinstance(v, str):
+                    reference = doclink(
+                        'tabular-builtin-metrics',
+                        template='For a list of built-in scorers please refer to {link}'
+                    )
+                    raise ValueError(
+                        'Only built-in scorers are allowed when serializing check instances. '
+                        f'{reference}. Scorer name: {k}'
+                    )
+        return super().config(include_version=include_version)
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return the values of the metrics for the dataset provided in a {metric: value} format."""

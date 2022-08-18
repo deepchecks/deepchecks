@@ -63,7 +63,7 @@ def test_drift_with_model_n_top(drifted_data_and_model):
              'Importance': close_to(0, 0.01)}
         ),
     }))
-    assert_that(result.display, has_length(equal_to(2)))
+    assert_that(result.display, has_length(4))
 
 def test_drift_with_nulls(drifted_data_with_nulls):
     # Arrange
@@ -200,6 +200,18 @@ def test_weighted_aggregation_drift_with_model(drifted_data_and_model):
     # Assert
     assert_that(aggregated_result.keys(), has_item('Weighted Drift Score'))
     assert_that(aggregated_result['Weighted Drift Score'], close_to(0.1195, 0.01))
+
+
+def test_l2_aggregation_drift_with_model(drifted_data_and_model):
+    # Arrange
+    train, test, model = drifted_data_and_model
+    check = TrainTestFeatureDrift(categorical_drift_method='PSI', aggregation_method='l2_weighted')
+
+    # Act
+    aggregated_result = check.run(train, test, model).reduce_output()
+    # Assert
+    assert_that(aggregated_result.keys(), has_item('L2 Weighted Drift Score'))
+    assert_that(aggregated_result['L2 Weighted Drift Score'], close_to(0.232, 0.01))
 
 
 def test_none_aggregation_drift_with_model(drifted_data_and_model):

@@ -17,6 +17,7 @@ header:
   paths-ignore:
     - '**/*.ipynb'
     - '.pylintrc'
+    - 'VERSION'
     - 'LICENSE'
     - 'deepchecks/VERSION'
     - 'deepchecks.egg-info/PKG-INFO'

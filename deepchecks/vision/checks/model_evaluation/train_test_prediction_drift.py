@@ -16,9 +16,9 @@ from typing import Any, Dict, List
 import pandas as pd
 
 from deepchecks.core import CheckResult, DatasetKind
-from deepchecks.core.checks import ReduceMixin
+from deepchecks.core.checks import CheckConfig, ReduceMixin
 from deepchecks.core.errors import DeepchecksNotSupportedError
-from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition
+from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition, get_drift_plot_sidenote
 from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.utils.label_prediction_properties import (DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES,
                                                                  DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES,
@@ -220,17 +220,27 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
             columns_order = sorted(prediction_properties_names, key=lambda col: values_dict[col]['Drift score'],
                                    reverse=True)
 
-            headnote = '<span>' \
-                'The Drift score is a measure for the difference between two distributions. ' \
-                'In this check, drift is measured ' \
-                f'for the distribution of the following prediction properties: {prediction_properties_names}.' \
-                '</span>'
+            headnote = ['<span>'
+                        'The Drift score is a measure for the difference between two distributions. '
+                        'In this check, drift is measured for the distribution of the following '
+                        f'prediction properties: {prediction_properties_names}. </span>',
+                        get_drift_plot_sidenote(self.max_num_categories_for_display, self.show_categories_by)]
 
-            displays = [headnote] + [displays_dict[col] for col in columns_order]
+            displays = headnote + [displays_dict[col] for col in columns_order]
         else:
             displays = None
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Prediction Drift')
+
+    def config(self, include_version: bool = True) -> CheckConfig:
+        """Return check configuration."""
+        # NOTE: prediction_properties if passed always contain callables
+        if self.prediction_properties is not None:
+            raise ValueError(
+                'Serialization of check instances with provided '
+                '"prediction_properties" parameter is not supported'
+            )
+        return super().config(include_version=include_version)
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return prediction drift score per prediction property."""

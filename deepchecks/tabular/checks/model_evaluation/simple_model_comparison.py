@@ -11,7 +11,7 @@
 """Module containing simple comparison check."""
 import warnings
 from collections import defaultdict
-from typing import Callable, Dict, Hashable, List
+from typing import TYPE_CHECKING, Callable, Dict, Hashable, List
 
 import numpy as np
 import pandas as pd
@@ -26,9 +26,13 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.distribution.preprocessing import ScaledNumerics
+from deepchecks.utils.docref import doclink
 from deepchecks.utils.metrics import get_gain
 from deepchecks.utils.simple_models import ClassificationUniformModel, RandomModel, RegressionUniformModel
 from deepchecks.utils.strings import format_percent
+
+if TYPE_CHECKING:
+    from deepchecks.core.checks import CheckConfig
 
 __all__ = ['SimpleModelComparison']
 
@@ -117,7 +121,7 @@ class SimpleModelComparison(TrainTestCheck):
         **kwargs
     ):
         super().__init__(**kwargs)
-        self.user_scorers = alternative_scorers
+        self.alternative_scorers = alternative_scorers
         self.max_gain = max_gain
         self.max_depth = max_depth
         self.random_state = random_state
@@ -167,8 +171,8 @@ class SimpleModelComparison(TrainTestCheck):
         model = context.model
 
         # If user defined scorers used them, else use a single scorer
-        if self.user_scorers:
-            scorers = context.get_scorers(self.user_scorers, use_avg_defaults=False)
+        if self.alternative_scorers:
+            scorers = context.get_scorers(self.alternative_scorers, use_avg_defaults=False)
         else:
             scorers = [context.get_single_scorer(use_avg_defaults=False)]
 
@@ -280,6 +284,21 @@ class SimpleModelComparison(TrainTestCheck):
                             'scorers_perfect': scorers_perfect,
                             'classes': classes
                             }, display=fig)
+
+    def config(self, include_version: bool = True) -> 'CheckConfig':
+        """Return check instance config."""
+        if self.alternative_scorers is not None:
+            for k, v in self.alternative_scorers.items():
+                if callable(v):
+                    reference = doclink(
+                        'tabular-builtin-metrics',
+                        template='For a list of built-in scorers please refer to {link}. '
+                    )
+                    raise ValueError(
+                        'Only built-in scorers are allowed when serializing check instances. '
+                        f'{reference}Scorer name: {k}'
+                    )
+        return super().config(include_version)
 
     def _create_simple_model(self, train_ds: Dataset, task_type: TaskType):
         """Create a simple model of given type (random/constant/tree) to the given dataset.

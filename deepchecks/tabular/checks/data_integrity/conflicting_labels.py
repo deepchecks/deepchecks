@@ -118,7 +118,7 @@ class ConflictingLabels(SingleDatasetCheck):
             display = [
                 'Each row in the table shows an example of a data sample '
                 'and the its observed labels as found in the dataset. '
-                f'Showing top {self.n_to_show} of {display.shape[0]}',
+                f'Showing top {display.shape[0]} of {len(display_samples)}',
                 display
             ]
 
