@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Test functions of the train test drift."""
-from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_item, has_length
+from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_item, has_length, is_not
 
 from deepchecks.tabular.checks import TrainTestFeatureDrift
 from tests.base.utils import equal_condition_result
@@ -64,6 +64,30 @@ def test_drift_with_model_n_top(drifted_data_and_model):
         ),
     }))
     assert_that(result.display, has_length(4))
+
+
+def test_drift_with_different_sort(drifted_data_and_model):
+    # Arrange
+    train, test, model = drifted_data_and_model
+
+    # Act
+    check = TrainTestFeatureDrift(categorical_drift_method='PSI', sort_feature_by='feature importance')
+    result = check.run(train, test, model)
+    fi_display = result.display
+
+    check = TrainTestFeatureDrift(categorical_drift_method='PSI', sort_feature_by='drift + importance')
+    result = check.run(train, test, model)
+    sum_display = result.display
+
+    check = TrainTestFeatureDrift(categorical_drift_method='PSI', sort_feature_by='drift + importance')
+    result = check.run(train, test)
+    no_model_drift_display = result.display
+
+    # Assert
+    assert_that(fi_display[0], is_not(equal_to(sum_display[0])))
+    assert_that(sum_display[0], is_not(equal_to(no_model_drift_display[0])))
+    assert_that(fi_display[0], is_not(equal_to(no_model_drift_display[0])))
+
 
 def test_drift_with_nulls(drifted_data_with_nulls):
     # Arrange
