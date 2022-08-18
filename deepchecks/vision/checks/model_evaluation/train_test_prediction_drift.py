@@ -169,8 +169,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         else:
             raise DeepchecksNotSupportedError(f'Unsupported dataset kind {dataset_kind}')
 
-        batch_properties = batch.vision_properties(
-            batch.predictions, self.prediction_properties, PropertiesInputType.PREDICTIONS)
+        batch_properties = batch.vision_properties(self.prediction_properties, PropertiesInputType.PREDICTIONS)
 
         for prop_name, prop_value in batch_properties.items():
             # Flatten the properties since we don't care in this check about the property-per-sample coupling
