@@ -134,8 +134,7 @@ class ImagePropertyDrift(TrainTestCheck):
                 f'Internal Error - Should not reach here! unknown dataset_kind: {dataset_kind}'
             )
 
-        all_classes_properties = batch.vision_properties(
-            batch.images, self.image_properties, PropertiesInputType.IMAGES)
+        all_classes_properties = batch.vision_properties(self.image_properties, PropertiesInputType.IMAGES)
 
         if self.classes_to_display:
             # use only images belonging (or containing an annotation belonging) to one of the classes in
