@@ -13,6 +13,7 @@
 from copy import copy
 import numpy as np
 from hamcrest import assert_that, calling, close_to, contains_exactly, equal_to, raises
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.utils.image_properties import default_image_properties
 
 from deepchecks.vision.checks import ImagePropertyOutliers, PropertyLabelCorrelationChange
@@ -47,7 +48,7 @@ def vision_props_to_static_format(indexes, vision_props):
     return index_properties
 
 
-def _create_static_properties(train: VisionData, test: VisionData, image_properties):
+def _create_static_properties(train: VisionData, test: VisionData, image_properties, calc_bbox=True):
     static_props = []
     for vision_data in [train, test]:
         if vision_data is not None:
@@ -56,7 +57,7 @@ def _create_static_properties(train: VisionData, test: VisionData, image_propert
                 indexes = list(vision_data.data_loader.batch_sampler)[i]
                 image_props = calc_vision_properties(vision_data.batch_to_images(batch), image_properties)
                 static_image_prop = vision_props_to_static_format(indexes, image_props)
-                if isinstance(vision_data, DetectionData):
+                if isinstance(vision_data, DetectionData) and calc_bbox:
                     bbox_props_list = []
                     count = 0
                     targets = []
@@ -103,6 +104,11 @@ def test_image_properties_outliers(mnist_dataset_train, mnist_dataset_test):
 
     train_props, _ = _create_static_properties(mnist_dataset_train, mnist_dataset_test,
                                                image_properties)
+    # make sure it doesn't use images
+    mnist_dataset_train = copy(mnist_dataset_train)
+    mnist_dataset_train.batch_to_images = None
+    mnist_dataset_train._image_formatter_error = 'bad batch images'
+
     check_results = ImagePropertyOutliers().run(mnist_dataset_train, train_properties=train_props)
     assert_that(check_results.value.keys(), contains_exactly('random', 'mean brightness'))
     assert_that(check_results.value['mean brightness']['lower_limit'], close_to(6.487, 0.001))
@@ -111,16 +117,18 @@ def test_image_properties_outliers(mnist_dataset_train, mnist_dataset_test):
 def test_object_detection_missing_key(coco_train_visiondata, coco_test_visiondata):
     image_properties = [{'name': 'aspect_ratio', 'method': aspect_ratio, 'output_type': 'numerical'}]
     train_props, test_props = _create_static_properties(coco_train_visiondata, coco_test_visiondata,
-                                                        image_properties)
+                                                        image_properties, calc_bbox=False)
+    # make sure it doesn't use images
     coco_train_visiondata = copy(coco_train_visiondata)
-    coco_train_visiondata.batch_to_images = coco_train_visiondata
+    coco_train_visiondata.batch_to_images = None
+    coco_train_visiondata._image_formatter_error = 'bad batch images'
 
     # assert error is raised if no bbox properties passed in a check that calls bbox properties
     assert_that(calling(PropertyLabelCorrelationChange().run)
                 .with_args(
         train_dataset=coco_train_visiondata, test_dataset=coco_test_visiondata,
         train_properties=train_props, test_properties=test_props)), \
-        raises(KeyError)
+        raises(DeepchecksValueError, 'bad batch images')
 
 
 def test_train_test_condition_pps_diff_fail_per_class(coco_train_visiondata, coco_test_visiondata, device):
@@ -134,7 +142,9 @@ def test_train_test_condition_pps_diff_fail_per_class(coco_train_visiondata, coc
     condition_value = 0.3
     check = PropertyLabelCorrelationChange(per_class=True, random_state=42
                                            ).add_condition_property_pps_difference_less_than(condition_value)
-    train.batch_to_images = None  # make sure it doesn't use images
+    # make sure it doesn't use images
+    train.batch_to_images = None
+    train._image_formatter_error = 'bad batch images'
     # Act
     result = check.run(train_dataset=train,
                        test_dataset=test, device=device, train_properties=train_props, test_properties=test_props)
