@@ -61,8 +61,11 @@ def test_classification_without_bias(mnist_dataset_train, device):
 
 
 def test_classification_with_bias(mnist_dataset_train, device):
-    mnist_dataset_train.batch_to_images = mnist_batch_to_images_with_bias
-    result = PropertyLabelCorrelation().add_condition_property_pps_less_than(0.2).run(mnist_dataset_train, device=device)
+    mnist_dataset_train_copy = mnist_dataset_train.copy()
+    mnist_dataset_train_copy.batch_to_images = mnist_dataset_train_copy
+    result = PropertyLabelCorrelation().add_condition_property_pps_less_than(0.2).run(
+        mnist_dataset_train_copy, device=device
+    )
     # assert check result
     assert_that(result.value, has_entries({'Brightness': close_to(0.234, 0.005), 'Area': close_to(0.0, 0.005)}))
     # assert condition
