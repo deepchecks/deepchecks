@@ -165,7 +165,6 @@ def test_train_test_condition_pps_diff_fail_per_class(coco_train_visiondata, coc
     result = check.run(train_dataset=train,
                        test_dataset=test, device=device, train_properties=train_props, test_properties=test_props)
     condition_result, *_ = check.conditions_decision(result)
-    print(result.value)
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
