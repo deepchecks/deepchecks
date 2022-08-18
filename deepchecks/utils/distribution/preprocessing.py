@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module of preprocessing functions."""
+import copy
 import warnings
 # pylint: disable=invalid-name,unused-argument
 from collections import Counter
@@ -158,11 +159,10 @@ def preprocess_2_cat_cols_to_same_bins(dist1: Union[np.ndarray, pd.Series], dist
         list of all categories that the percentages represent.
 
     """
-    all_categories = list(set(dist1).union(set(dist2)))
+    categories_list = list(set(dist1).union(set(dist2)))
     dist1_counter, dist2_counter = Counter(dist1), Counter(dist2)
-    dist1_counter[OTHER_CATEGORY_NAME], dist2_counter[OTHER_CATEGORY_NAME] = 0, 0
 
-    if max_num_categories is not None and len(all_categories) > max_num_categories:
+    if max_num_categories is not None and len(categories_list) > max_num_categories:
         if sort_by == 'dist1':
             sort_by_counter = dist1_counter
         elif sort_by == 'dist2':
@@ -181,19 +181,19 @@ def preprocess_2_cat_cols_to_same_bins(dist1: Union[np.ndarray, pd.Series], dist
         dist2_counter = Counter({k: dist2_counter[k] for k in categories_list})
         dist2_counter[OTHER_CATEGORY_NAME] = len(dist2) - sum(dist2_counter.values())
 
-    categories_list = all_categories + [OTHER_CATEGORY_NAME]
-    for cat in all_categories:
-        if cat not in dist1_counter.keys() or dist1_counter[cat] < len(dist1) * min_category_size_ratio:
+    for cat in copy.deepcopy(categories_list):
+        if dist1_counter[cat] < len(dist1) * min_category_size_ratio:
             dist1_counter[OTHER_CATEGORY_NAME] += dist1_counter[cat]
             dist2_counter[OTHER_CATEGORY_NAME] += dist2_counter[cat]
             categories_list.remove(cat)
 
-    if dist1_counter[OTHER_CATEGORY_NAME] == 0 and dist2_counter[OTHER_CATEGORY_NAME] == 0:
-        categories_list.remove(OTHER_CATEGORY_NAME)
+    if dist1_counter[OTHER_CATEGORY_NAME] > min_category_size_ratio or \
+            dist2_counter[OTHER_CATEGORY_NAME] > min_category_size_ratio:
+        categories_list.append(OTHER_CATEGORY_NAME)
 
     # aligns both counts to the same index
     dist1_counts = np.array([dist1_counter[k] for k in categories_list])
-    dist2_counts = np.array([dist2_counter[k] if k in dist2_counter.keys() else 0 for k in categories_list])
+    dist2_counts = np.array([dist2_counter[k] for k in categories_list])
     return dist1_counts, dist2_counts, categories_list
 
 

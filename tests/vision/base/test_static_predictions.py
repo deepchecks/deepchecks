@@ -256,7 +256,7 @@ def test_train_test_prediction_with_drift_object_detection_change_max_cat(coco_t
     # Assert
     assert_that(result.value, has_entries(
         {'Samples Per Class': has_entries(
-            {'Drift score': close_to(0.67, 0.01),
+            {'Drift score': close_to(0.48, 0.01),
              'Method': equal_to('PSI')}
         ), 'Bounding Box Area (in pixels)': has_entries(
             {'Drift score': close_to(0.012, 0.001),

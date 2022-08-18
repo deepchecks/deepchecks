@@ -10,7 +10,7 @@
 #
 """Common utilities for distribution checks."""
 from numbers import Number
-from typing import Callable, Dict, Hashable, Optional, Tuple, Union
+from typing import Callable, Dict, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -222,7 +222,7 @@ def earth_movers_distance(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.n
 
 def calc_drift_and_plot(train_column: pd.Series,
                         test_column: pd.Series,
-                        value_name: Hashable,
+                        value_name: str,
                         column_type: str,
                         plot_title: Optional[str] = None,
                         margin_quantile_filter: float = 0.025,
@@ -243,7 +243,7 @@ def calc_drift_and_plot(train_column: pd.Series,
         column from train dataset
     test_column: pd.Series
         same column from test dataset
-    value_name: Hashable
+    value_name: str
         title of the x axis, if plot_title is None then also the title of the whole plot.
     column_type: str
         type of column (either "numerical" or "categorical")
@@ -332,8 +332,7 @@ def calc_drift_and_plot(train_column: pd.Series,
         dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(
             train_dist, test_dist, value_name, is_categorical=True,
             max_num_categories=max_num_categories_for_display,
-            show_categories_by=show_categories_by
-        )
+            show_categories_by=show_categories_by)
     else:
         # Should never reach here
         raise DeepchecksValueError(f'Unsupported column type for drift: {column_type}')
