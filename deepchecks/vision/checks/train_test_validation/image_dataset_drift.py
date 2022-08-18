@@ -108,7 +108,7 @@ class ImageDatasetDrift(TrainTestCheck):
         else:
             properties_results = self._test_properties
 
-        data_for_properties = batch.vision_properties(batch.images, self.image_properties, PropertiesInputType.IMAGES)
+        data_for_properties = batch.vision_properties(self.image_properties, PropertiesInputType.IMAGES)
 
         for prop_name, prop_value in data_for_properties.items():
             properties_results[prop_name].extend(prop_value)
