@@ -9,9 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Test functions of the VISION train test label drift."""
-from hamcrest import assert_that, calling, close_to, equal_to, greater_than, has_entries, has_length, raises
+from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_length
 
-from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks import TrainTestLabelDrift
 from tests.base.utils import equal_condition_result
 
@@ -108,7 +107,7 @@ def test_with_drift_classification_cramer(mnist_dataset_train, mnist_dataset_tes
 
 def test_with_drift_object_detection(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
-    check = TrainTestLabelDrift(categorical_drift_method='PSI')
+    check = TrainTestLabelDrift(categorical_drift_method='PSI', max_num_categories=10, min_category_size_ratio=0)
 
     # Act
     result = check.run(coco_train_visiondata, coco_test_visiondata, device=device)
@@ -132,7 +131,7 @@ def test_with_drift_object_detection(coco_train_visiondata, coco_test_visiondata
 
 def test_with_drift_object_detection_without_display(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
-    check = TrainTestLabelDrift(categorical_drift_method='PSI')
+    check = TrainTestLabelDrift(categorical_drift_method='PSI', max_num_categories=10, min_category_size_ratio=0)
 
     # Act
     result = check.run(coco_train_visiondata, coco_test_visiondata,
@@ -220,30 +219,22 @@ def test_with_drift_object_detection_change_max_cat(coco_train_visiondata, coco_
 
 
 def test_display_changes_but_values_dont_for_diff_display_params(coco_train_visiondata, coco_test_visiondata, device):
-    def assert_func(result):
-        assert_that(result.value, has_entries(
-            {'Samples Per Class': has_entries(
-                {'Drift score': close_to(0.37, 0.01),
-                 'Method': equal_to('PSI')}
-            ), 'Bounding Box Area (in pixels)': has_entries(
-                {'Drift score': close_to(0.013, 0.001),
-                 'Method': equal_to('Earth Mover\'s Distance')}
-            ), 'Number of Bounding Boxes Per Image': has_entries(
-                {'Drift score': close_to(0.051, 0.001),
-                 'Method': equal_to('Earth Mover\'s Distance')}
-            )
-            }
-        ))
-
     # Arrange and assert
-    check = TrainTestLabelDrift(categorical_drift_method='PSI',
+    check = TrainTestLabelDrift(categorical_drift_method='PSI', min_category_size_ratio=0,
                                 max_num_categories_for_display=20, show_categories_by='test_largest')
     result = check.run(coco_train_visiondata, coco_test_visiondata, device=device)
-    assert_func(result)
-
-    check = TrainTestLabelDrift(categorical_drift_method='PSI', show_categories_by='largest_difference')
-    result = check.run(coco_train_visiondata, coco_test_visiondata, device=device)
-    assert_func(result)
+    assert_that(result.value, has_entries(
+        {'Samples Per Class': has_entries(
+            {'Drift score': close_to(0.635, 0.01),
+             'Method': equal_to('PSI')}
+        ), 'Bounding Box Area (in pixels)': has_entries(
+            {'Drift score': close_to(0.013, 0.001),
+             'Method': equal_to('Earth Mover\'s Distance')}
+        ), 'Number of Bounding Boxes Per Image': has_entries(
+            {'Drift score': close_to(0.051, 0.001),
+             'Method': equal_to('Earth Mover\'s Distance')}
+        )
+        }))
 
 
 def test_with_drift_object_detection_alternative_properties(coco_train_visiondata, coco_test_visiondata, device):
