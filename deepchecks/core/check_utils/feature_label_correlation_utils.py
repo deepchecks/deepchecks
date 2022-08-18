@@ -136,7 +136,6 @@ def get_feature_label_correlation(train_df: pd.DataFrame, train_label_name: Opti
     sorted_order_for_display = np.abs(s_difference).sort_values(ascending=False).head(n_show_top).index
     s_pps_train_to_display = s_pps_train[sorted_order_for_display]
     s_pps_test_to_display = s_pps_test[sorted_order_for_display]
-    s_difference_to_display = s_difference[sorted_order_for_display]
 
     fig = get_pps_figure(per_class=False, n_of_features=len(sorted_order_for_display))
     fig.add_trace(pd_series_to_trace(s_pps_train_to_display, 'train'))
@@ -231,7 +230,6 @@ def get_feature_label_correlation_per_class(train_df: pd.DataFrame, train_label_
 
             s_train_to_display = s_train[sorted_order_for_display]
             s_test_to_display = s_test[sorted_order_for_display]
-            s_difference_to_display = s_difference[sorted_order_for_display]
 
             fig = get_pps_figure(per_class=True, n_of_features=len(sorted_order_for_display))
             fig.update_layout(title=f'{feature}: Predictive Power Score (PPS) Per Class')
