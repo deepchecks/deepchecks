@@ -30,7 +30,7 @@ from deepchecks.vision.utils.property_label_correlation_utils import calc_proper
 __all__ = ['PropertyLabelCorrelation']
 
 pps_url = 'https://docs.deepchecks.com/en/stable/checks_gallery/vision/' \
-          'train_test_validation/plot_feature_label_correlation_change.html'
+          'train_test_validation/plot_property_label_correlation_change.html'
 pps_html = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
 
 PLC = TypeVar('PLC', bound='PropertyLabelCorrelation')
