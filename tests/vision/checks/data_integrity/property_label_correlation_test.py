@@ -62,7 +62,7 @@ def test_classification_without_bias(mnist_dataset_train, device):
 
 def test_classification_with_bias(mnist_dataset_train, device):
     mnist_dataset_train_copy = mnist_dataset_train.copy()
-    mnist_dataset_train_copy.batch_to_images = mnist_dataset_train_copy
+    mnist_dataset_train_copy.batch_to_images = mnist_batch_to_images_with_bias
     result = PropertyLabelCorrelation().add_condition_property_pps_less_than(0.2).run(
         mnist_dataset_train_copy, device=device
     )
@@ -79,8 +79,8 @@ def test_classification_with_alternative_properties(mnist_dataset_train, device)
     alt_props = [{'name': 'med', 'method': med_prop, 'output_type': 'numerical'},
                  {'name': 'mean', 'method': mean_prop, 'output_type': 'numerical'}]
     result = PropertyLabelCorrelation(image_properties=alt_props).run(mnist_dataset_train, device=device)
-    assert_that(result.value.keys(), contains_exactly('med', 'mean'))
-    assert_that(result.value['med'], close_to(1.0, 0.005))
+    assert_that(result.value.keys(), contains_exactly('mean', 'med'))
+    assert_that(result.value['med'], close_to(0.0, 0.005))
 
 
 def test_object_detection_without_bias(coco_train_visiondata, device):
