@@ -77,14 +77,17 @@ class ReduceMixin(abc.ABC):
 
 
 class ReduceMetricClassMixin(ReduceMixin):
+    """Extend ReduceMixin to identify metric checks."""
     ...
 
 
 class ReduceFeatureMixin(ReduceMixin):
+    """Extend ReduceMixin to identify checks that output features."""
     ...
 
 
 class ReduceClassMixin(ReduceMixin):
+    """Extend ReduceMixin to identify checks that output classes."""
     ...
 
 

@@ -16,7 +16,7 @@ from typing import Any, Dict, List
 import pandas as pd
 
 from deepchecks.core import CheckResult, DatasetKind
-from deepchecks.core.checks import CheckConfig, ReduceMixin
+from deepchecks.core.checks import CheckConfig, ReduceClassMixin
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition, get_drift_plot_sidenote
 from deepchecks.vision import Batch, Context, TrainTestCheck
@@ -30,7 +30,7 @@ from deepchecks.vision.vision_data import TaskType
 __all__ = ['TrainTestPredictionDrift']
 
 
-class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
+class TrainTestPredictionDrift(TrainTestCheck, ReduceClassMixin):
     """
     Calculate prediction drift between train dataset and test dataset, using statistical measures.
 
