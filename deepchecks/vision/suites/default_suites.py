@@ -23,7 +23,7 @@ from deepchecks.vision import Suite
 from deepchecks.vision.checks import (ClassPerformance, ConfusionMatrixReport,  # SimilarImageLeakage,
                                       HeatmapComparison, ImageDatasetDrift, ImagePropertyDrift, ImagePropertyOutliers,
                                       ImageSegmentPerformance, LabelPropertyOutliers, MeanAveragePrecisionReport,
-                                      MeanAverageRecallReport, ModelErrorAnalysis, NewLabels,
+                                      MeanAverageRecallReport, ModelErrorAnalysis, NewLabels, PropertyLabelCorrelation,
                                       PropertyLabelCorrelationChange, SimpleModelComparison, TrainTestLabelDrift,
                                       TrainTestPredictionDrift)
 
@@ -304,7 +304,8 @@ def data_integrity(image_properties: List[Dict[str, Any]] = None,
     return Suite(
         'Data Integrity Suite',
         ImagePropertyOutliers(**kwargs),
-        LabelPropertyOutliers(**kwargs)
+        LabelPropertyOutliers(**kwargs),
+        PropertyLabelCorrelation(**kwargs)
     )
 
 
