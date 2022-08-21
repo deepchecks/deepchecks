@@ -15,7 +15,7 @@ import typing as t
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.nlp.task_type import TaskType
 
-__all__ = ['TextData']
+__all__ = ['TextData', 'TTokenLabel', 'TClassLabel', 'TTextLabel']
 
 DEFAULT_LABEL_NAME = 'label'
 
