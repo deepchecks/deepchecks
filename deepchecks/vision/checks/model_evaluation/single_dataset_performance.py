@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Union
 from ignite.metrics import Metric
 
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
-from deepchecks.core.checks import ReduceMixin
+from deepchecks.core.checks import ReduceMetricClassMixin
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.docref import doclink
@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 __all__ = ['SingleDatasetPerformance']
 
 
-class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
+class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
     """Calculate performance metrics of a given model on a given dataset.
 
     Parameters

@@ -76,6 +76,18 @@ class ReduceMixin(abc.ABC):
         raise NotImplementedError('Must implement reduce_output function')
 
 
+class ReduceMetricClassMixin(ReduceMixin):
+    ...
+
+
+class ReduceFeatureMixin(ReduceMixin):
+    ...
+
+
+class ReduceClassMixin(ReduceMixin):
+    ...
+
+
 class BaseCheck(abc.ABC):
     """Base class for check."""
 

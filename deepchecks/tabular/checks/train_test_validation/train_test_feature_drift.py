@@ -17,7 +17,7 @@ from typing import Dict, List, Union
 import numpy as np
 
 from deepchecks.core import CheckResult
-from deepchecks.core.checks import ReduceMixin
+from deepchecks.core.checks import ReduceFeatureMixin
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
 from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition, get_drift_plot_sidenote
@@ -27,7 +27,7 @@ from deepchecks.utils.typing import Hashable
 __all__ = ['TrainTestFeatureDrift']
 
 
-class TrainTestFeatureDrift(TrainTestCheck, ReduceMixin):
+class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
     """
     Calculate drift between train dataset and test dataset per feature, using statistical measures.
 
