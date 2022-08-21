@@ -10,7 +10,7 @@
 #
 """Module for base vision context."""
 from operator import itemgetter
-from typing import Dict, Mapping, Optional, Sequence, Union
+from typing import Dict, List, Mapping, Optional, Sequence, Union
 
 import torch
 from ignite.metrics import Metric
@@ -22,7 +22,7 @@ from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotImpleme
 from deepchecks.utils.logger import get_logger
 from deepchecks.vision._shared_docs import docstrings
 from deepchecks.vision.task_type import TaskType
-from deepchecks.vision.utils.vision_properties import STATIC_PROPERTIES_FORMAT
+from deepchecks.vision.utils.vision_properties import STATIC_PROPERTIES_FORMAT, PropertiesInputType
 from deepchecks.vision.vision_data import VisionData
 
 __all__ = ['Context']
@@ -86,26 +86,26 @@ class Context:
                 raise DatasetValidationError('Model is not in evaluation state. Please set model training '
                                              'parameter to False or run model.eval() before passing it.')
 
-            for dataset, dataset_type in zip([train, test], [DatasetKind.TRAIN, DatasetKind.TEST]):
+            for dataset, dataset_kind in zip([train, test], [DatasetKind.TRAIN, DatasetKind.TEST]):
                 if dataset is not None:
                     try:
                         dataset.validate_prediction(next(iter(dataset.data_loader)), model, self._device)
                         msg = None
                     except DeepchecksNotImplementedError:
-                        msg = f'infer_on_batch() was not implemented in {dataset_type} ' \
-                           f'dataset, some checks will not run'
+                        msg = f'infer_on_batch() was not implemented in {dataset_kind} ' \
+                            f'dataset, some checks will not run'
                     except ValidationError as ex:
-                        msg = f'infer_on_batch() was not implemented correctly in the {dataset_type} dataset, the ' \
-                           f'validation has failed with the error: {ex}. To test your prediction formatting use the ' \
-                           'function `vision_data.validate_prediction(batch, model, device)`'
+                        msg = f'infer_on_batch() was not implemented correctly in the {dataset_kind} dataset, the ' \
+                            f'validation has failed with the error: {ex}. To test your prediction formatting use the ' \
+                            'function `vision_data.validate_prediction(batch, model, device)`'
 
                     if msg:
-                        self._prediction_formatter_error[dataset_type] = msg
+                        self._prediction_formatter_error[dataset_kind] = msg
                         get_logger().warning(msg)
 
         elif train_predictions is not None or test_predictions is not None:
             self._static_predictions = {}
-            for dataset, dataset_type, predictions in zip([train, test],
+            for dataset, dataset_kind, predictions in zip([train, test],
                                                           [DatasetKind.TRAIN, DatasetKind.TEST],
                                                           [train_predictions, test_predictions]):
                 if dataset is not None:
@@ -114,30 +114,31 @@ class Context:
                         if dataset.task_type == TaskType.CLASSIFICATION:
                             preds = torch.stack(preds)
                         dataset.validate_inferred_batch_predictions(preds)
-                        msg = None
-                        self._static_predictions[dataset_type] = predictions
+                        self._static_predictions[dataset_kind] = predictions
                     except ValidationError as ex:
-                        msg = f'the predictions given were not in a correct format in the {dataset_type} dataset, ' \
+                        msg = f'the predictions given were not in a correct format in the {dataset_kind} dataset, ' \
                             f'the validation has failed with the error: {ex}. To test your prediction formatting' \
                             ' use the function `vision_data.validate_inferred_batch_predictions(predictions)`'
-
-                    if msg:
-                        self._prediction_formatter_error[dataset_type] = msg
+                        self._prediction_formatter_error[dataset_kind] = msg
                         get_logger().warning(msg)
+
         self._static_properties = None
+
         if train_properties is not None or test_properties is not None:
             self._static_properties = {}
-            for dataset, dataset_type, properties in zip([train, test],
+            for dataset, dataset_kind, properties in zip([train, test],
                                                          [DatasetKind.TRAIN, DatasetKind.TEST],
                                                          [train_properties, test_properties]):
                 if dataset is not None:
                     try:
-                        props = itemgetter(*list(dataset.data_loader.batch_sampler)[0])(properties)
-                        msg = None
-                        self._static_properties[dataset_type] = props
-                    except ValidationError as ex:
-                        msg = f'the properties given were not in a correct format in the {dataset_type} dataset, ' \
+                        self._static_properties[dataset_kind] = properties
+                        # make sure input types are within allowed input types
+                        for input_type in self.static_properties_input_types(dataset_kind):
+                            PropertiesInputType(input_type)  # will throw value error if not allowed type
+                    except ValueError as ex:
+                        msg = f'the properties given were not in a correct format in the {dataset_kind} dataset, ' \
                             f'the validation has failed with the error: {ex}.'
+                        get_logger().warning(msg)
 
         # The copy does 2 things: Sample n_samples if parameter exists, and shuffle the data.
         # we shuffle because the data in VisionData is set to be sampled in a fixed order (in the init), so if the user
@@ -192,9 +193,16 @@ class Context:
         return self._static_predictions
 
     @property
-    def static_properties(self) -> Dict:
+    def static_properties(self) -> STATIC_PROPERTIES_FORMAT:
         """Return the static_predictions."""
         return self._static_properties
+
+    def static_properties_input_types(self, dataset_kind: DatasetKind) -> List[PropertiesInputType]:
+        """Return the available static_predictions input types."""
+        if not self.static_properties:
+            return []
+        indices = list(self.static_properties[dataset_kind].keys())
+        return list(self.static_properties[dataset_kind][indices[0]].keys())
 
     @property
     def model_name(self):

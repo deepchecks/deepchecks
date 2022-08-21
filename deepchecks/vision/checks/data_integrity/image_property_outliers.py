@@ -13,7 +13,7 @@ import typing as t
 
 import numpy as np
 
-from deepchecks.vision import Batch, VisionData
+from deepchecks.vision import VisionData
 from deepchecks.vision.checks.data_integrity.abstract_property_outliers import AbstractPropertyOutliers
 from deepchecks.vision.utils.image_properties import default_image_properties
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
@@ -55,10 +55,6 @@ class ImagePropertyOutliers(AbstractPropertyOutliers):
         super().__init__(properties_list=image_properties, property_input_type=PropertiesInputType.IMAGES,
                          n_show_top=n_show_top, iqr_percentiles=iqr_percentiles,
                          iqr_scale=iqr_scale, **kwargs)
-
-    def get_relevant_data(self, batch: Batch):
-        """Get the data on which the check calculates outliers for."""
-        return batch.images
 
     def draw_image(self, data: VisionData, sample_index: int, index_of_value_in_sample: int,
                    num_properties_in_sample: int) -> np.ndarray:
