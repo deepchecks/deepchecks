@@ -35,6 +35,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
     def run(
         self,
         dataset: TextData,
+        model=None,  # pylint: disable=unused-argument
         with_display: bool = True,
         predictions: Optional[TTextPred] = None,
     ) -> CheckResult:
@@ -44,6 +45,8 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         ----------
         dataset: TextData
             Dataset representing data an estimator was fitted on
+        model: object, default: None
+            Dummy model object for compatibility with SingleDatasetBaseCheck
         with_display : bool , default: True
             flag that determines if checks will calculate display (redundant in some checks).
         predictions: Union[TTextPred, None] , default: None
@@ -51,7 +54,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         """
         assert self.context_type is not None
         context = self.context_type(  # pylint: disable=not-callable
-            train=dataset,
+            train_dataset=dataset,
             with_display=with_display,
             train_predictions=predictions
         )
@@ -68,15 +71,16 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
 class TrainTestCheck(TrainTestBaseCheck):
     """Parent class for checks that compare two datasets.
 
-    The class checks train dataset and test dataset for model training and test.
+    The class checks train dataset and test_dataset dataset for model training and test_dataset.
     """
 
     context_type = Context
 
     def run(
         self,
-        train: TextData,
-        test: TextData,
+        train_dataset: TextData,
+        test_dataset: TextData,
+        model=None,  # pylint: disable=unused-argument
         with_display: bool = True,
         train_predictions: Optional[TTextPred] = None,
         test_predictions: Optional[TTextPred] = None,
@@ -85,21 +89,23 @@ class TrainTestCheck(TrainTestBaseCheck):
 
         Parameters
         ----------
-        train: Union[TextData, None] , default: None
+        train_dataset: Union[TextData, None] , default: None
             TextData object, representing data an estimator was fitted on
-        test: Union[TextData, None] , default: None
+        test_dataset: Union[TextData, None] , default: None
             TextData object, representing data an estimator predicts on
+        model: object, default: None
+            Dummy model object for compatibility with TrainTestBaseCheck
         with_display : bool , default: True
             flag that determines if checks will calculate display (redundant in some checks).
         train_predictions: Union[TTextPred, None] , default: None
             predictions on train dataset
         test_predictions: Union[TTextPred, None] , default: None
-            predictions on test dataset
+            predictions on test_dataset dataset
         """
         assert self.context_type is not None
         context = self.context_type(  # pylint: disable=not-callable
-            train=train,
-            test=test,
+            train_dataset=train_dataset,
+            test_dataset=test_dataset,
             train_predictions=train_predictions,
             test_predictions=test_predictions,
             with_display=with_display,

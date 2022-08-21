@@ -38,9 +38,9 @@ class Context:
 
     Parameters
     ----------
-    train: Union[TextData, None] , default: None
+    train_dataset: Union[TextData, None] , default: None
         TextData object, representing data an estimator was fitted on
-    test: Union[TextData, None] , default: None
+    test_dataset: Union[TextData, None] , default: None
         TextData object, representing data an estimator predicts on
     with_display : bool , default: True
         flag that determines if checks will calculate display (redundant in some checks).
@@ -52,41 +52,41 @@ class Context:
 
     def __init__(
         self,
-        train: t.Union[TextData, None] = None,
-        test: t.Union[TextData, None] = None,
+        train_dataset: t.Union[TextData, None] = None,
+        test_dataset: t.Union[TextData, None] = None,
         with_display: bool = True,
         train_predictions: t.Optional[TTextPred] = None,
         test_predictions: t.Optional[TTextPred] = None,
     ):
         # Validations
-        if train is not None:
-            train = TextData.cast_to_dataset(train)
-        if test is not None:
-            test = TextData.cast_to_dataset(test)
+        if train_dataset is not None:
+            train_dataset = TextData.cast_to_dataset(train_dataset)
+        if test_dataset is not None:
+            test_dataset = TextData.cast_to_dataset(test_dataset)
         # If both dataset, validate they fit each other
-        if train and test:
-            if test.has_label() and train.has_label() and not TextData.datasets_share_label(train, test):
-                raise DatasetValidationError('train and test must share the same label and task type')
-        if test and not train:
-            raise DatasetValidationError('Can\'t initialize context with only test. if you have single dataset, '
-                                         'initialize it as train')
+        if train_dataset and test_dataset:
+            if test_dataset.has_label() and train_dataset.has_label() and not TextData.datasets_share_label(train_dataset, test_dataset):
+                raise DatasetValidationError('train_dataset and test_dataset must share the same label and task type')
+        if test_dataset and not train_dataset:
+            raise DatasetValidationError('Can\'t initialize context with only test_dataset. if you have single dataset, '
+                                         'initialize it as train_dataset')
 
         if train_predictions is not None or test_predictions is not None:
             self._static_predictions = {}
-            for dataset, dataset_type, predictions in zip([train, test],
+            for dataset, dataset_type, predictions in zip([train_dataset, test_dataset],
                                                           [DatasetKind.TRAIN, DatasetKind.TEST],
                                                           [train_predictions, test_predictions]):
                 if dataset is not None:
                     self._validate_prediction(dataset, dataset_type, predictions)
                     self._static_predictions[dataset_type] = predictions
 
-        self._train = train
-        self._test = test
+        self._train = train_dataset
+        self._test = test_dataset
         self._validated_model = False
         self._task_type = None
         self._with_display = with_display
 
-    # Validations note: We know train & test fit each other so all validations can be run only on train
+    # Validations note: We know train_dataset & test_dataset fit each other so all validations can be run only on train_dataset
 
     @staticmethod
     def _validate_prediction(dataset: TextData, dataset_type: DatasetKind, prediction: TTextPred,
@@ -153,31 +153,31 @@ class Context:
 
     @property
     def train(self) -> TextData:
-        """Return train if exists, otherwise raise error."""
+        """Return train_dataset if exists, otherwise raise error."""
         if self._train is None:
-            raise DeepchecksNotSupportedError('Check is irrelevant for Datasets without train dataset')
+            raise DeepchecksNotSupportedError('Check is irrelevant for Datasets without train_dataset dataset')
         return self._train
 
     @property
     def test(self) -> TextData:
-        """Return test if exists, otherwise raise error."""
+        """Return test_dataset if exists, otherwise raise error."""
         if self._test is None:
-            raise DeepchecksNotSupportedError('Check is irrelevant for Datasets without test dataset')
+            raise DeepchecksNotSupportedError('Check is irrelevant for Datasets without test_dataset dataset')
         return self._test
 
 
     @property
     def task_type(self) -> TaskType:
-        """Return task type if model & train & label exists. otherwise, raise error."""
+        """Return task type if model & train_dataset & label exists. otherwise, raise error."""
         if self._task_type is None:
             if self._train is not None and self._test is not None:
                 if self._train.task_type != self._test.task_type:
-                    raise DatasetValidationError('train and test have different task types')
+                    raise DatasetValidationError('train_dataset and test_dataset have different task types')
             self._task_type = self.train.task_type
         return self._task_type
 
     def have_test(self):
-        """Return whether there is test dataset defined."""
+        """Return whether there is test_dataset dataset defined."""
         return self._test is not None
 
     def assert_task_type(self, *expected_types: TaskType):
@@ -234,12 +234,12 @@ class Context:
                               f'{dataset.len_when_sampled(n_samples)} samples out of {len(dataset)}.'
             else:
                 if self._train is not None and self._train.is_sampled(n_samples):
-                    message += f'Running on {self._train.len_when_sampled(n_samples)} <b>train</b> data samples ' \
+                    message += f'Running on {self._train.len_when_sampled(n_samples)} <b>train_dataset</b> data samples ' \
                                f'out of {len(self._train)}.'
                 if self._test is not None and self._test.is_sampled(n_samples):
                     if message:
                         message += ' '
-                    message += f'Running on {self._test.len_when_sampled(n_samples)} <b>test</b> data samples ' \
+                    message += f'Running on {self._test.len_when_sampled(n_samples)} <b>test_dataset</b> data samples ' \
                                f'out of {len(self._test)}.'
 
             if message:
