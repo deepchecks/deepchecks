@@ -33,8 +33,7 @@ __all__ = [
     'SingleDatasetBaseCheck',
     'TrainTestBaseCheck',
     'ModelOnlyBaseCheck',
-    'ReduceMixin',
-    'CheckConfig'
+    'ReduceMixin'
 ]
 
 

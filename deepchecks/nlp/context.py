@@ -202,6 +202,13 @@ class Context:
         else:
             raise DeepchecksValueError(f'Unexpected dataset kind {kind}')
 
+    def get_predictions_by_kind(self, kind: DatasetKind):
+        """Return the relevant predictions by given kind."""
+        if kind in [DatasetKind.TRAIN, DatasetKind.TEST]:
+            return self._static_predictions[kind]
+        else:
+            raise DeepchecksValueError(f'Unexpected dataset kind {kind}')
+
     def finalize_check_result(self, check_result, check, kind: DatasetKind = None):
         """Run final processing on a check result which includes validation, conditions processing and sampling\
         footnote."""

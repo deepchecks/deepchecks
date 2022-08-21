@@ -12,8 +12,6 @@
 import collections
 import typing as t
 
-import datasets
-
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.nlp.task_type import TaskType
 
@@ -27,6 +25,7 @@ TSingleLabel = t.Tuple[int, str]
 TClassLabel = t.Sequence[t.Union[TSingleLabel, t.Tuple[TSingleLabel]]]
 TTokenLabel = t.Sequence[t.Sequence[t.Tuple[str, int, int]]]
 TTextLabel = t.Union[TClassLabel, TTokenLabel]
+TTextDataset = t.Dict[str, t.Union[t.Sequence[str], t.Sequence[TTextLabel]]]
 
 
 class TextData:
@@ -50,11 +49,12 @@ class TextData:
         The name of the label column. If None, the label column name is 'label'.
     """
 
-    _dataset: datasets.Dataset
+    _dataset: TTextDataset
     _task_type: t.Optional[TaskType]
     _has_label: bool
     _label_name: str
     _is_multilabel: bool = False
+    _classes: t.Optional[t.List[t.Union[str, int]]] = None
 
     def __init__(
             self,
@@ -89,20 +89,7 @@ class TextData:
         self._validate_text(raw_text)
         label = self._validate_and_process_label(label, raw_text)
         # Create dataset
-        self._dataset = datasets.Dataset.from_dict({'text': raw_text, self._label_name: label})
-        self.encode_label()
-
-    def encode_label(self):
-        """
-        Encode label as a ClassLabel object
-        """
-        if self._is_multilabel:
-            set_of_labels = set().union(*[set(label_entry) for label_entry in self._dataset[self._label_name]])
-            sorted_labels = sorted(list(set_of_labels))
-            self._dataset = self._dataset.cast_column(self.label_name,
-                                                      datasets.Sequence(datasets.ClassLabel(names=sorted_labels)))
-        else:
-            self._dataset = self._dataset.class_encode_column(self._label_name)
+        self._dataset = {'text': raw_text, self._label_name: label}
 
     @staticmethod
     def _validate_text(raw_text: t.Sequence[str]):
@@ -116,7 +103,10 @@ class TextData:
         """Validate and process label to accepted formats."""
         # If label is not set, create an empty label of nulls
         if label is None:
+            self._has_label = False
             return [None] * len(raw_text)
+
+        self._has_label = True
 
         if not isinstance(label, collections.abc.Sequence):
             raise DeepchecksValueError('label must be a Sequence')
@@ -146,10 +136,6 @@ class TextData:
                         isinstance(x[0], str) and isinstance(x[1], int) and isinstance(x[2], int) for x in sample_label
                 ):
                     raise DeepchecksValueError(token_class_error)
-
-            # Process Token Classification label
-            # TODO: Dataset can't process a tuple of different types (str, int, int). Need to convert it to something
-            #       it can store
 
         return label
 
@@ -264,8 +250,8 @@ class TextData:
     #     )
 
     @property
-    def dataset(self) -> datasets.Dataset:
-        """Return the huggingface Dataset contain the task data."""
+    def dataset(self) -> TTextDataset:
+        """Return the dict contain the task data."""
         return self._dataset
 
     #
@@ -306,7 +292,7 @@ class TextData:
         int
             Number of samples in dataset
         """
-        return self._dataset.num_rows
+        return len(self._dataset)
 
     def __len__(self):
         """Return number of samples in the dataset."""
@@ -400,7 +386,7 @@ class TextData:
         return self._dataset[self.label_name]
 
     @property
-    def classes(self) -> t.Tuple[str, ...]:
+    def classes(self) -> t.Optional[t.List[t.Union[str, int]]]:
         """Return the classes from label column in list. if no label column defined, return empty list.
 
         Returns
@@ -408,22 +394,32 @@ class TextData:
         t.Tuple[str, ...]
             Classes
         """
-        if self._is_multilabel:
-            return self._dataset.features[self.label_name].feature.names
-        return self._dataset.features[self.label_name].names
+        if self._classes is None and self.has_label():
+            if self.task_type == TaskType.TEXT_CLASSIFICATION:
+                if self._is_multilabel:
+                    label_set = set().union(*[set(label_entry) for label_entry in self._dataset[self._label_name]])
+                else:
+                    label_set = set(self._dataset[self._label_name])
+            elif self.task_type == TaskType.TOKEN_CLASSIFICATION:
+                label_set = set().union(*[
+                    set().union(*[set(label_entry[0]) for label_entry in sample_labels])
+                    for sample_labels in self._dataset[self._label_name]
+                    ])
+            else:
+                raise DeepchecksValueError(f'Task type {self.task_type} is not supported.')
+            self._classes = sorted(list(label_set))
+        return self._classes
 
     @property
     def num_classes(self) -> int:
-        """Return the number of classes from label column. if no label column defined, return 0.
+        """Return the number of classes from label. if no label defined, return 0.
 
         Returns
         -------
         int
             Number of classes
         """
-        if self._is_multilabel:
-            return self._dataset.features[self.label_name].feature.num_classes
-        return self._dataset.features[self.label_name].num_classes
+        return 0 if self._classes is None else len(self.classes)
 
     @property
     def is_multilabel(self) -> bool:
@@ -444,7 +440,7 @@ class TextData:
         bool
            True if label was set.
         """
-        return self.num_classes > 0
+        return self._has_label
 
     @classmethod
     def cast_to_dataset(cls, obj: t.Any) -> 'TextData':
@@ -505,7 +501,7 @@ class TextData:
         assert len(datasets) > 1, "'datasets' must contains at least two items"
 
         label_name = datasets[0].label_name
-        task_type = datasets[0].task_typeF
+        task_type = datasets[0].task_type
 
         for ds in datasets[1:]:
             if ds.label_name != label_name:
