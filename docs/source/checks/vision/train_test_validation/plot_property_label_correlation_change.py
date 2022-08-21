@@ -16,10 +16,10 @@ This notebook provides an overview for using and understanding the "Property Lab
 
 What is the purpose of the check?
 =================================
-The check estimates for every image property (such as brightness, contrast etc.)
-its ability to predict the label by itself. This check can help find:
+The check estimates for every image :doc:`image property </user-guide/vision/vision_properties>`
+(such as brightness, contrast etc.) its ability to predict the label by itself. This check can help find:
 
-* A potential bias in one or both datasets, that leads to the the labels being
+* A potential bias in one or both datasets, that leads to the labels being
   strongly correlated with simple image properties such as color, brightness,
   aspect ratio and more. This is a critical problem, that will likely stay hidden
   without this check (as it won't pop up when comparing model performance on train

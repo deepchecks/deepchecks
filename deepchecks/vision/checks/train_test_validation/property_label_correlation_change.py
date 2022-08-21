@@ -8,25 +8,25 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module contains the simple feature distribution check."""
+"""Module contains the property label correlation change check."""
 from collections import defaultdict
 from typing import Any, Dict, Hashable, List, Optional, TypeVar, Union
 
 import numpy as np
 import pandas as pd
-from pandas.core.dtypes.common import is_float_dtype
 
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.check_utils.feature_label_correlation_utils import (get_feature_label_correlation,
                                                                          get_feature_label_correlation_per_class)
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import ModelValidationError
+from deepchecks.utils.dataframes import is_float_column
 from deepchecks.utils.dict_funcs import get_dict_entry_by_value
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Context, TrainTestCheck
 from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.utils.image_properties import default_image_properties
-from deepchecks.vision.utils.vision_properties import PropertiesInputType
+from deepchecks.vision.utils.property_label_correlation_utils import calc_properties_for_property_label_correlation
 from deepchecks.vision.vision_data import TaskType
 
 __all__ = ['PropertyLabelCorrelationChange']
@@ -36,7 +36,7 @@ pps_url = 'https://docs.deepchecks.com/en/stable/checks_gallery/vision/' \
 pps_html = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
 
 
-FLC = TypeVar('FLC', bound='PropertyLabelCorrelationChange')
+PLC = TypeVar('PLC', bound='PropertyLabelCorrelationChange')
 
 
 # FeatureLabelCorrelationChange
@@ -114,37 +114,16 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
 
     def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Calculate image properties for train or test batches."""
-        dataset = context.get_data_by_kind(dataset_kind)
-
         if dataset_kind == DatasetKind.TRAIN:
             properties_results = self._train_properties
         else:
             properties_results = self._test_properties
 
-        target = []
-
-        if dataset.task_type == TaskType.OBJECT_DETECTION:
-            for labels in batch.labels:
-                for label in labels:
-                    label = label.cpu().detach().numpy()
-                    bbox = label[1:]
-                    # make sure image is not out of bounds
-                    if round(bbox[2]) + min(round(bbox[0]), 0) <= 0 or round(bbox[3]) <= 0 + min(round(bbox[1]), 0):
-                        continue
-                    class_id = int(label[0])
-                    target.append(dataset.label_id_to_name(class_id))
-            property_type = PropertiesInputType.PARTIAL_IMAGES
-        else:
-            for classes_ids in dataset.get_classes(batch.labels):
-                if len(classes_ids) == 0:
-                    target.append(None)
-                else:
-                    target.append(dataset.label_id_to_name(classes_ids[0]))
-            property_type = PropertiesInputType.IMAGES
+        data_for_properties, target = calc_properties_for_property_label_correlation(
+            context, batch, dataset_kind, self.image_properties)
 
         properties_results['target'] += target
 
-        data_for_properties = batch.vision_properties(self.image_properties, property_type)
         for prop_name, property_values in data_for_properties.items():
             properties_results[prop_name].extend(property_values)
 
@@ -165,7 +144,7 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
         # For the known task types (object detection, classification), classification is always selected.
         col_dtype = 'object'
         if context.train.task_type == TaskType.OTHER:
-            if self.is_float_column(df_train['target']) or self.is_float_column(df_test['target']):
+            if is_float_column(df_train['target']) or is_float_column(df_test['target']):
                 col_dtype = 'float'
         elif context.train.task_type not in (TaskType.OBJECT_DETECTION, TaskType.CLASSIFICATION):
             raise ModelValidationError(
@@ -218,27 +197,8 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
 
         return CheckResult(value=ret_value, display=display, header='Feature Label Correlation Change')
 
-    @staticmethod
-    def is_float_column(col: pd.Series) -> bool:
-        """Check if a column must be a float - meaning does it contain fractions.
-
-        Parameters
-        ----------
-        col : pd.Series
-            The column to check.
-
-        Returns
-        -------
-        bool
-            True if the column is float, False otherwise.
-        """
-        if not is_float_dtype(col):
-            return False
-
-        return (col.round() != col).any()
-
-    def add_condition_property_pps_difference_less_than(self: FLC, threshold: float = 0.2,
-                                                        include_negative_diff: bool = False) -> FLC:
+    def add_condition_property_pps_difference_less_than(self: PLC, threshold: float = 0.2,
+                                                        include_negative_diff: bool = False) -> PLC:
         """Add new condition.
 
         Add condition that will check that difference between train
@@ -308,7 +268,7 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
         return self.add_condition(f'Train-Test properties\' Predictive Power Score difference is less than '
                                   f'{format_number(threshold)}', condition)
 
-    def add_condition_property_pps_in_train_less_than(self: FLC, threshold: float = 0.2) -> FLC:
+    def add_condition_property_pps_in_train_less_than(self: PLC, threshold: float = 0.2) -> PLC:
         """Add new condition.
 
         Add condition that will check that train dataset property pps is less than X. If per_class is True, the
