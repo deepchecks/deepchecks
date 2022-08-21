@@ -13,7 +13,7 @@ import abc
 from typing import Optional
 
 
-from deepchecks.nlp.context import TTextPred, Context
+from deepchecks.nlp.context import TTextPred, Context, TTextProba
 from deepchecks.nlp.text_data import TextData
 
 from deepchecks.core.check_result import CheckResult
@@ -38,6 +38,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         model=None,  # pylint: disable=unused-argument
         with_display: bool = True,
         predictions: Optional[TTextPred] = None,
+        probabilities: Optional[TTextProba] = None,
     ) -> CheckResult:
         """Run check.
 
@@ -51,12 +52,15 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
             flag that determines if checks will calculate display (redundant in some checks).
         predictions: Union[TTextPred, None] , default: None
             predictions on dataset
+        probabilities: Union[TTextProba, None] , default: None
+            probabilities on dataset
         """
         assert self.context_type is not None
         context = self.context_type(  # pylint: disable=not-callable
             train_dataset=dataset,
             with_display=with_display,
-            train_predictions=predictions
+            train_pred=predictions,
+            train_proba=probabilities,
         )
         result = self.run_logic(context, dataset_kind=DatasetKind.TRAIN)
         context.finalize_check_result(result, self, DatasetKind.TRAIN)
@@ -84,6 +88,8 @@ class TrainTestCheck(TrainTestBaseCheck):
         with_display: bool = True,
         train_predictions: Optional[TTextPred] = None,
         test_predictions: Optional[TTextPred] = None,
+        train_probabilities: Optional[TTextProba] = None,
+        test_probabilities: Optional[TTextProba] = None,
     ) -> CheckResult:
         """Run check.
 
@@ -101,13 +107,19 @@ class TrainTestCheck(TrainTestBaseCheck):
             predictions on train dataset
         test_predictions: Union[TTextPred, None] , default: None
             predictions on test_dataset dataset
+        train_probabilities: Union[TTextProba, None] , default: None
+            probabilities on train dataset
+        test_probabilities: Union[TTextProba, None] , default: None
+            probabilities on test_dataset dataset
         """
         assert self.context_type is not None
         context = self.context_type(  # pylint: disable=not-callable
             train_dataset=train_dataset,
             test_dataset=test_dataset,
-            train_predictions=train_predictions,
-            test_predictions=test_predictions,
+            train_pred=train_predictions,
+            test_pred=test_predictions,
+            train_proba=train_probabilities,
+            test_proba=test_probabilities,
             with_display=with_display,
         )
         result = self.run_logic(context)

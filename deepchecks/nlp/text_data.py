@@ -11,6 +11,10 @@
 """The dataset module containing the tabular Dataset class and its functions."""
 import collections
 import typing as t
+from operator import itemgetter
+
+import numpy as np
+import pandas as pd
 
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.nlp.task_type import TaskType
@@ -25,7 +29,7 @@ TSingleLabel = t.Tuple[int, str]
 TClassLabel = t.Sequence[t.Union[TSingleLabel, t.Tuple[TSingleLabel]]]
 TTokenLabel = t.Sequence[t.Sequence[t.Tuple[str, int, int]]]
 TTextLabel = t.Union[TClassLabel, TTokenLabel]
-TTextDataset = t.Dict[str, t.Union[t.Sequence[str], t.Sequence[TTextLabel]]]
+TTextDataset = t.Dict[str, t.Union[t.Sequence[str], t.Sequence[TTextLabel], t.Sequence[int]]]
 
 
 class TextData:
@@ -47,6 +51,10 @@ class TextData:
         label is provided.
     label_name : t.Optional[str], default: None
         The name of the label column. If None, the label column name is 'label'.
+    dataset_name : t.Optional[str], default: None
+        The name of the dataset. If None, the dataset name will be defined when running it within a check.
+    index: t.Optional[t.Sequence[int]], default: None
+        The index of the samples. If None, the index is set to np.arange(len(raw_text)).
     """
 
     _dataset: TTextDataset
@@ -55,6 +63,7 @@ class TextData:
     _label_name: str
     _is_multilabel: bool = False
     _classes: t.Optional[t.List[t.Union[str, int]]] = None
+    name: t.Optional[str] = None
 
     def __init__(
             self,
@@ -62,6 +71,8 @@ class TextData:
             label: t.Optional[TTextLabel] = None,
             task_type: str = None,
             label_name: t.Optional[str] = None,
+            dataset_name: t.Optional[str] = None,
+            index: t.Optional[t.Sequence[int]] = None,
     ):
 
         # Require explicitly setting task type if label is provided
@@ -88,8 +99,25 @@ class TextData:
 
         self._validate_text(raw_text)
         label = self._validate_and_process_label(label, raw_text)
+
+        if index is None:
+            index = np.arange(len(raw_text))
+        elif len(index) != len(raw_text):
+            raise DeepchecksValueError('index must be the same length as raw_text')
+
         # Create dataset
-        self._dataset = {'text': raw_text, self._label_name: label}
+        self._dataset = {'text': raw_text, self._label_name: label, 'index': index}
+
+        # Set dataset name
+        if dataset_name is None:
+            self.name = f'text_{self._label_name}'
+        else:
+            self.name = dataset_name
+
+        if dataset_name is not None:
+            if not isinstance(dataset_name, str):
+                raise DeepchecksNotSupportedError(f'dataset_name {dataset_name} is not supported, must be a str')
+        self.name = dataset_name
 
     @staticmethod
     def _validate_text(raw_text: t.Sequence[str]):
@@ -254,34 +282,58 @@ class TextData:
         """Return the dict contain the task data."""
         return self._dataset
 
-    #
-    # def sample(self: TDataset, n_samples: int, replace: bool = False, random_state: t.Optional[int] = None,
-    #            drop_na_label: bool = False) -> TDataset:
-    #     """Create a copy of the dataset object, with the internal dataframe being a sample of the original dataframe.
-    #
-    #     Parameters
-    #     ----------
-    #     n_samples : int
-    #         Number of samples to draw.
-    #     replace : bool, default: False
-    #         Whether to sample with replacement.
-    #     random_state : t.Optional[int] , default None
-    #         Random state.
-    #     drop_na_label : bool, default: False
-    #         Whether to take sample only from rows with exiting label.
-    #
-    #     Returns
-    #     -------
-    #     Dataset
-    #         instance of the Dataset with sampled internal dataframe.
-    #     """
-    #     if drop_na_label and self.has_label():
-    #         valid_idx = self.data[self.label_name].notna()
-    #         data_to_sample = self.data[valid_idx]
-    #     else:
-    #         data_to_sample = self.data
-    #     n_samples = min(n_samples, len(data_to_sample))
-    #     return self.copy(data_to_sample.sample(n_samples, replace=replace, random_state=random_state))
+    def copy(self: TDataset, new_data: TTextDataset) -> TDataset:
+        """Create a copy of this Dataset with new data.
+
+        Parameters
+        ----------
+        new_data (TTextDataset): new data from which new dataset will be created
+
+        Returns
+        -------
+        Dataset
+            new dataset instance
+        """
+        cls = type(self)
+        return cls(new_data['text'], new_data[self._label_name], self._task_type.value, self._label_name, self.name,
+                   new_data['index'])
+
+    def sample(self: TDataset, n_samples: int, replace: bool = False, random_state: t.Optional[int] = None,
+               drop_na_label: bool = False) -> TDataset:
+        """Create a copy of the dataset object, with the internal data being a sample of the original data.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples to draw.
+        replace : bool, default: False
+            Whether to sample with replacement.
+        random_state : t.Optional[int] , default None
+            Random state.
+        drop_na_label : bool, default: False
+            Whether to take sample only from rows with exiting label.
+
+        Returns
+        -------
+        Dataset
+            instance of the Dataset with sampled internal dataframe.
+        """
+        samples = self.index
+        if drop_na_label and self.has_label():
+            samples = samples[pd.notnull(self._dataset[self.label_name])]
+        n_samples = min(n_samples, len(samples))
+
+        np.random.seed(random_state)
+        sample_idx = np.random.choice(samples, n_samples, replace=replace)
+        if len(sample_idx) > 1:
+            data_to_sample = {'text': list(itemgetter(*sample_idx)(self._dataset['text'])),
+                              self.label_name: list(itemgetter(*sample_idx)(self._dataset[self.label_name])),
+                              'index': sample_idx}
+        else:
+            data_to_sample = {'text': [self._dataset['text'][sample_idx[0]]],
+                              self.label_name: [self._dataset[self.label_name][sample_idx[0]]],
+                              'index': sample_idx}
+        return self.copy(data_to_sample)
 
     @property
     def n_samples(self) -> int:
@@ -384,6 +436,17 @@ class TextData:
         TTextLabel
         """
         return self._dataset[self.label_name]
+
+    @property
+    def index(self) -> t.Sequence[int]:
+        """Return sequence of sample indices.
+
+        Returns
+        -------
+        t.Sequence[int]
+            Sequence of sample indices.
+        """
+        return self._dataset['index']
 
     @property
     def classes(self) -> t.Optional[t.List[t.Union[str, int]]]:
@@ -514,3 +577,7 @@ class TextData:
     def len_when_sampled(self, n_samples: int):
         """Return number of samples in the sampled dataframe this dataset is sampled with n_samples samples."""
         return min(len(self), n_samples)
+
+    def is_sampled(self, n_samples: int):
+        """Return True if the dataset number of samples will decrease when sampled with n_samples samples."""
+        return len(self) > n_samples
