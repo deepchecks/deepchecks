@@ -85,6 +85,10 @@ class ReduceFeatureMixin(ReduceMixin):
     """Extend ReduceMixin to identify checks that output features."""
     ...
 
+class ReducePropertyMixin(ReduceMixin):
+    """Extend ReduceMixin to identify checks that output properties."""
+    ...
+
 
 class ReduceClassMixin(ReduceMixin):
     """Extend ReduceMixin to identify checks that output classes."""

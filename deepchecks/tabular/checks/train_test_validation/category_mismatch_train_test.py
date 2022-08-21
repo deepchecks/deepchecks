@@ -14,7 +14,7 @@ from typing import Dict, List, Union
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
-from deepchecks.core.checks import ReduceMixin
+from deepchecks.core.checks import ReduceFeatureMixin
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.tabular.utils.messages import get_condition_passed_message
 from deepchecks.utils.dataframes import select_from_dataframe
@@ -24,7 +24,7 @@ from deepchecks.utils.typing import Hashable
 __all__ = ['CategoryMismatchTrainTest']
 
 
-class CategoryMismatchTrainTest(TrainTestCheck, ReduceMixin):
+class CategoryMismatchTrainTest(TrainTestCheck, ReduceFeatureMixin):
     """Find new categories in the test set.
 
     Parameters

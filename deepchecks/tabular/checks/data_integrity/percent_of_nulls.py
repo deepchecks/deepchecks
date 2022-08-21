@@ -14,7 +14,7 @@ import typing as t
 import plotly.express as px
 
 from deepchecks.core.check_result import CheckResult
-from deepchecks.core.checks import DatasetKind, ReduceMixin
+from deepchecks.core.checks import DatasetKind, ReduceFeatureMixin
 from deepchecks.core.condition import ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.strings import format_list, format_percent
@@ -26,7 +26,7 @@ __all__ = ['PercentOfNulls']
 TPercentOfNulls = t.TypeVar('TPercentOfNulls', bound='PercentOfNulls')
 
 
-class PercentOfNulls(SingleDatasetCheck, ReduceMixin):
+class PercentOfNulls(SingleDatasetCheck, ReduceFeatureMixin):
     """Percent of 'Null' values in each column.
 
     Parameters
