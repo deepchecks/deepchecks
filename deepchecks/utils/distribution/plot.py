@@ -134,7 +134,8 @@ def feature_distribution_traces(
     is_categorical: bool = False,
     max_num_categories: int = 10,
     show_categories_by: CategoriesSortingKind = 'largest_difference',
-    quantile_cut: float = 0.02
+    quantile_cut: float = 0.02,
+    dataset_names: Tuple[str] = ('Train', 'Test')
 ) -> Tuple[List[go.Trace], Dict, Dict]:
     """Create traces for comparison between train and test column.
 
@@ -157,7 +158,9 @@ def feature_distribution_traces(
         - 'test_largest': Show the largest test categories.
         - 'largest_difference': Show the largest difference between categories.
     quantile_cut : float , default: 0.02
-        in which quantile to cut the edges of the plot
+        In which quantile to cut the edges of the plot.
+    dataset_names: tuple, default: ('Train', 'Test)
+        The names to show in the display for the first and second datasets.
 
     Returns
     -------
@@ -172,7 +175,8 @@ def feature_distribution_traces(
     """
     if is_categorical:
         traces, y_layout = _create_distribution_bar_graphs(train_column, test_column,
-                                                           max_num_categories, show_categories_by)
+                                                           max_num_categories, show_categories_by,
+                                                           dataset_names=dataset_names)
 
         # NOTE:
         # the range, in this case, is needed to fix a problem with
@@ -197,7 +201,8 @@ def feature_distribution_traces(
         # If there are less than 20 total unique values, draw bar graph
         train_test_uniques = np.unique(np.concatenate([train_uniques, test_uniques]))
         if train_test_uniques.size < MAX_NUMERICAL_UNIQUE_FOR_BARS:
-            traces, y_layout = _create_distribution_bar_graphs(train_column, test_column, 20, show_categories_by)
+            traces, y_layout = _create_distribution_bar_graphs(train_column, test_column, 20, show_categories_by,
+                                                               dataset_names=dataset_names)
             x_range = (x_range[0] - 5, x_range[1] + 5)
             xaxis_layout = dict(ticks='outside', tickmode='array', tickvals=train_test_uniques, range=x_range)
             return traces, xaxis_layout, y_layout
@@ -231,11 +236,11 @@ def feature_distribution_traces(
                 y=_create_bars_data_for_mixed_kde_plot(train_uniques_counts, np.max(test_density)),
                 width=[bars_width] * train_uniques.size,
                 marker=dict(color=colors['Train']),
-                name='Train Dataset',
+                name=dataset_names[0] + ' Dataset',
             ))
         else:
             traces.extend(_create_distribution_scatter_plot(xs, train_density, mean_train_column, median_train_column,
-                                                            is_train=True))
+                                                            is_train=True, dataset_names=dataset_names))
 
         if test_uniques.size <= MAX_NUMERICAL_UNIQUES_FOR_SINGLE_DIST_BARS:
             traces.append(go.Bar(
@@ -245,11 +250,11 @@ def feature_distribution_traces(
                 marker=dict(
                     color=colors['Test']
                 ),
-                name='Test Dataset',
+                name=dataset_names[1] + ' Dataset',
             ))
         else:
             traces.extend(_create_distribution_scatter_plot(xs, test_density, mean_test_column, median_test_column,
-                                                            is_train=False))
+                                                            is_train=False, dataset_names=dataset_names))
 
         xaxis_layout = dict(fixedrange=False,
                             range=x_range_to_show,
@@ -265,17 +270,18 @@ def _create_bars_data_for_mixed_kde_plot(counts: np.ndarray, max_kde_value: floa
     return counts * normalize_factor
 
 
-def _create_distribution_scatter_plot(xs, ys, mean, median, is_train):
+def _create_distribution_scatter_plot(xs, ys, mean, median, is_train, dataset_names: Tuple[str] = ('Train', 'Test')):
     traces = []
-    name = 'Train' if is_train else 'Test'
+    name = dataset_names[0] if is_train else dataset_names[1]
+    train_or_test = 'Train' if is_train else 'Test'
     traces.append(go.Scatter(x=xs, y=ys, fill='tozeroy', name=f'{name} Dataset',
-                             line_color=colors[name], line_shape='spline'))
+                             line_color=colors[train_or_test], line_shape='spline'))
     y_mean_index = np.argmax(xs == mean)
     traces.append(go.Scatter(x=[mean, mean], y=[0, ys[y_mean_index]], name=f'{name} Mean',
-                             line=dict(color=colors[name], dash='dash'), mode='lines+markers'))
+                             line=dict(color=colors[train_or_test], dash='dash'), mode='lines+markers'))
     y_median_index = np.argmax(xs == median)
     traces.append(go.Scatter(x=[median, median], y=[0, ys[y_median_index]], name=f'{name} Median',
-                             line=dict(color=colors[name]), mode='lines'))
+                             line=dict(color=colors[train_or_test]), mode='lines'))
     return traces
 
 
@@ -283,7 +289,8 @@ def _create_distribution_bar_graphs(
         train_column: t.Union[np.ndarray, pd.Series],
         test_column: t.Union[np.ndarray, pd.Series],
         max_num_categories: int,
-        show_categories_by: CategoriesSortingKind
+        show_categories_by: CategoriesSortingKind,
+        dataset_names: Tuple[str] = ('Train', 'Test')
 ) -> t.Tuple[t.Any, t.Any]:
     """
     Create distribution bar graphs.
@@ -291,7 +298,7 @@ def _create_distribution_bar_graphs(
     Returns
     -------
     Tuple[Any, Any]:
-        a tuple instance with figues traces, yaxis layout
+        a tuple instance with figures traces, yaxis layout
     """
     expected, actual, categories_list = preprocess_2_cat_cols_to_same_bins(
         dist1=train_column,
@@ -344,13 +351,13 @@ def _create_distribution_bar_graphs(
             x=cat_df.index,
             y=cat_df['Train dataset'],
             marker=dict(color=colors['Train']),
-            name='Train Dataset',
+            name=dataset_names[0] + ' Dataset',
         ),
         go.Bar(
             x=cat_df.index,
             y=cat_df['Test dataset'],
             marker=dict(color=colors['Test']),
-            name='Test Dataset',
+            name=dataset_names[1] + ' Dataset',
         )
     ]
 

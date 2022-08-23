@@ -233,7 +233,9 @@ def calc_drift_and_plot(train_column: pd.Series,
                         categorical_drift_method: str = 'cramer_v',
                         ignore_na: bool = True,
                         min_samples: int = 10,
-                        with_display: bool = True) -> Tuple[float, str, Callable]:
+                        with_display: bool = True,
+                        dataset_names: Tuple[str] = ('Train', 'Test')
+                        ) -> Tuple[float, str, Callable]:
     """
     Calculate drift score per column.
 
@@ -276,6 +278,8 @@ def calc_drift_and_plot(train_column: pd.Series,
         Minimum number of samples for each column in order to calculate draft
     with_display: bool, default: True
         flag that determines if function will calculate display.
+    dataset_names: tuple, default: ('Train', 'Test)
+        The names to show in the display for the first and second datasets.
     Returns
     -------
     Tuple[float, str, Callable]
@@ -310,7 +314,8 @@ def calc_drift_and_plot(train_column: pd.Series,
             return score, scorer_name, None
 
         bar_traces, bar_x_axis, bar_y_axis = drift_score_bar_traces(score)
-        dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(train_dist, test_dist, value_name)
+        dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(train_dist, test_dist, value_name,
+                                                                            dataset_names=dataset_names)
 
     elif column_type == 'categorical':
         sort_by = 'difference' if show_categories_by == 'largest_difference' else \
@@ -330,9 +335,10 @@ def calc_drift_and_plot(train_column: pd.Series,
 
         bar_traces, bar_x_axis, bar_y_axis = drift_score_bar_traces(score, bar_max=1)
         dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(
-            train_dist, test_dist, value_name, is_categorical=True,
-            max_num_categories=max_num_categories_for_display,
-            show_categories_by=show_categories_by)
+                                                                train_dist, test_dist, value_name, is_categorical=True,
+                                                                max_num_categories=max_num_categories_for_display,
+                                                                show_categories_by=show_categories_by,
+                                                                dataset_names=dataset_names)
     else:
         # Should never reach here
         raise DeepchecksValueError(f'Unsupported column type for drift: {column_type}')
