@@ -11,6 +11,7 @@
 """Utils module containing utilities for nlp checks working with scorers."""
 
 import typing as t
+
 from deepchecks.nlp.text_data import TextData
 from deepchecks.tabular.metric_utils import DeepcheckScorer
 from deepchecks.utils.typing import ClassificationModel

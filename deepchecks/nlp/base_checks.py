@@ -12,14 +12,10 @@
 import abc
 from typing import Optional
 
-
-from deepchecks.nlp.context import TTextPred, Context, TTextProba
-from deepchecks.nlp.text_data import TextData
-
 from deepchecks.core.check_result import CheckResult
-from deepchecks.core.checks import (DatasetKind, SingleDatasetBaseCheck,
-                                    TrainTestBaseCheck)
-
+from deepchecks.core.checks import DatasetKind, SingleDatasetBaseCheck, TrainTestBaseCheck
+from deepchecks.nlp.context import Context, TTextPred, TTextProba
+from deepchecks.nlp.text_data import TextData
 
 __all__ = [
     'SingleDatasetCheck',

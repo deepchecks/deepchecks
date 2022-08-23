@@ -21,3 +21,10 @@ def text_classification_dataset_mock():
                     [0, 0, 1],
                     task_type='text_classification')
 
+
+@pytest.fixture(scope='session')
+def text_multilabel_dataset_mock():
+    """Mock for a text classification dataset"""
+    return TextData(['I think therefore I am', 'I am therefore I think', 'I am'],
+                    [[0, 0, 1], [1, 1, 0], [0, 1, 0]],
+                    task_type='text_classification')

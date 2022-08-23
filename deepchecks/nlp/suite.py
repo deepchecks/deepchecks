@@ -12,15 +12,13 @@
 # pylint: disable=broad-except
 from typing import Optional, Tuple, Union
 
-from deepchecks.nlp.base_checks import TrainTestCheck, SingleDatasetCheck
-from deepchecks.nlp.context import TTextPred, Context
-
-from deepchecks.nlp.text_data import TextData
-
 from deepchecks.core import DatasetKind
 from deepchecks.core.check_result import CheckFailure
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.core.suite import BaseSuite, SuiteResult
+from deepchecks.nlp.base_checks import SingleDatasetCheck, TrainTestCheck
+from deepchecks.nlp.context import Context, TTextPred
+from deepchecks.nlp.text_data import TextData
 from deepchecks.utils.ipython import create_progress_bar
 
 __all__ = ['Suite']

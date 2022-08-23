@@ -15,15 +15,13 @@ from operator import itemgetter
 
 import numpy as np
 
-from deepchecks.nlp.metric_utils.scorers import init_validate_scorers
-from deepchecks.nlp.task_type import TaskType
-from deepchecks.tabular.utils.task_type import TaskType as TabularTaskType
-from deepchecks.nlp.text_data import TextData, TTextLabel
-
 from deepchecks.core import CheckFailure, CheckResult, DatasetKind
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
                                     ModelValidationError, ValidationError)
-
+from deepchecks.nlp.metric_utils.scorers import init_validate_scorers
+from deepchecks.nlp.task_type import TaskType
+from deepchecks.nlp.text_data import TextData, TTextLabel
+from deepchecks.tabular.utils.task_type import TaskType as TabularTaskType
 
 __all__ = [
     'Context',
@@ -32,8 +30,7 @@ __all__ = [
 ]
 
 from deepchecks.tabular.metric_utils import DeepcheckScorer, get_default_scorers
-
-from deepchecks.tabular.utils.validation import ensure_predictions_shape, ensure_predictions_proba
+from deepchecks.tabular.utils.validation import ensure_predictions_proba, ensure_predictions_shape
 from deepchecks.utils.typing import BasicModel
 
 TClassPred = t.Union[t.Sequence[t.Union[str, int]], t.Sequence[t.Sequence[t.Union[str, int]]]]
@@ -164,7 +161,7 @@ class _DummyModel(BasicModel):
                 raise ValidationError(f'Check requires classification predictions for {dataset.name} dataset '
                                       f'to have {dataset.n_samples} rows, same as dataset')
             if dataset.is_multilabel:
-                if np.array_equal(prediction, prediction.astype(bool)):
+                if not np.array_equal(prediction, prediction.astype(bool)):
                     raise ValidationError(f'Check requires classification predictions for {dataset.name} dataset '
                                           f'to be either 0 or 1')
         elif dataset.task_type == TaskType.TOKEN_CLASSIFICATION:

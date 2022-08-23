@@ -460,7 +460,7 @@ class TextData:
         if self._classes is None and self.has_label():
             if self.task_type == TaskType.TEXT_CLASSIFICATION:
                 if self._is_multilabel:
-                    label_set = set().union(*[set(label_entry) for label_entry in self._dataset[self._label_name]])
+                    label_set = list(range(len(self._dataset[self._label_name][0])))
                 else:
                     label_set = set(self._dataset[self._label_name])
             elif self.task_type == TaskType.TOKEN_CLASSIFICATION:
@@ -482,7 +482,7 @@ class TextData:
         int
             Number of classes
         """
-        return 0 if self._classes is None else len(self.classes)
+        return 0 if (self.classes is None) else len(self.classes)
 
     @property
     def is_multilabel(self) -> bool:

@@ -17,8 +17,8 @@ import pandas as pd
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.checks import ReduceMixin
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.nlp.context import Context
 from deepchecks.nlp.base_checks import SingleDatasetCheck
+from deepchecks.nlp.context import Context
 from deepchecks.nlp.metric_utils.scorers import infer_on_text_data
 from deepchecks.utils.docref import doclink
 from deepchecks.utils.strings import format_number
