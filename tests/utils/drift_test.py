@@ -82,3 +82,11 @@ def test_cramers_v_with_nones():
     res = cramers_v(dist1=dist1, dist2=dist2)
     assert_that(res, close_to(0.3, 0.01))
 
+
+def test_cramers_v_min_category_ratio():
+    dist1 = np.array(['a'] * 200 + ['b'] * 800 + ['c'] * 10 + ['d'] * 10)
+    dist2 = np.array(['a'] * 400 + ['b'] * 620)
+    res = cramers_v(dist1=dist1, dist2=dist2, min_category_size_ratio=0)
+    assert_that(res, close_to(0.228, 0.01))
+    res_min_cat_ratio = cramers_v(dist1=dist1, dist2=dist2, min_category_size_ratio=0.1)
+    assert_that(res_min_cat_ratio, close_to(0.229, 0.01))

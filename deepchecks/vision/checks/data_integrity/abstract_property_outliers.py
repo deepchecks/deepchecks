@@ -52,7 +52,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         - 'categorical' - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
         For more on image / label properties, see the :ref:`property guide </user-guide/vision/vision_properties.rst>`
-    property_input_type: PropertiesInputType, default: PropertiesInputType.OTHER
+    property_input_type: PropertiesInputType, default: PropertiesInputType.IMAGES
         The type of input to the properties, required for caching the results after first calculation.
     n_show_top : int , default: 5
         number of outliers to show from each direction (upper limit and bottom limit)
@@ -64,7 +64,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
 
     def __init__(self,
                  properties_list: t.List[t.Dict[str, t.Any]] = None,
-                 property_input_type: PropertiesInputType = PropertiesInputType.OTHER,
+                 property_input_type: PropertiesInputType = PropertiesInputType.IMAGES,
                  n_show_top: int = 5,
                  iqr_percentiles: t.Tuple[int, int] = (25, 75),
                  iqr_scale: float = 1.5,
@@ -91,11 +91,10 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
 
     def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Aggregate image properties from batch."""
-        raw_data = self.get_relevant_data(batch)
-        batch_properties = batch.vision_properties(raw_data, self.properties_list, self.property_input_type)
+        batch_properties = batch.vision_properties(self.properties_list, self.property_input_type)
 
         for prop_name, property_values in batch_properties.items():
-            _ensure_property_shape(property_values, raw_data, prop_name)
+            _ensure_property_shape(property_values, len(batch), prop_name)
             self._properties_results[prop_name].extend(property_values)
 
     def compute(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
@@ -217,11 +216,6 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         return CheckResult(result, display=display)
 
     @abstractmethod
-    def get_relevant_data(self, batch: Batch):
-        """Get the data on which the check calculates outliers."""
-        pass
-
-    @abstractmethod
     def draw_image(self, data: VisionData, sample_index: int, index_of_value_in_sample: int,
                    num_properties_in_sample: int) -> np.ndarray:
         """Return an image to show as output of the display.
@@ -245,11 +239,11 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         pass
 
 
-def _ensure_property_shape(property_values, data, prop_name):
+def _ensure_property_shape(property_values, data_len, prop_name):
     """Validate the result of the property."""
-    if len(property_values) != len(data):
+    if len(property_values) != data_len:
         raise DeepchecksProcessError(f'Properties are expected to return value per image but instead got'
-                                     f' {len(property_values)} values for {len(data)} images for property '
+                                     f' {len(property_values)} values for {data_len} images for property '
                                      f'{prop_name}')
 
     # If the first item is list validate all items are list of numbers

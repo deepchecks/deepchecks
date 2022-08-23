@@ -10,7 +10,7 @@
 #
 """Common utilities for distribution checks."""
 from numbers import Number
-from typing import Callable, Dict, Hashable, Optional, Tuple, Union
+from typing import Callable, Dict, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -26,7 +26,6 @@ from deepchecks.utils.strings import format_number
 
 __all__ = ['calc_drift_and_plot', 'get_drift_method', 'SUPPORTED_CATEGORICAL_METHODS', 'SUPPORTED_NUMERIC_METHODS',
            'drift_condition', 'get_drift_plot_sidenote']
-
 
 PSI_MIN_PERCENTAGE = 0.01
 SUPPORTED_CATEGORICAL_METHODS = ['Cramer\'s V', 'PSI']
@@ -56,7 +55,9 @@ def get_drift_method(result_dict: Dict):
     return cat_method, num_method
 
 
-def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series]) -> float:
+def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series],
+              min_category_size_ratio: float = 0, max_num_categories: int = None,
+              sort_by: str = 'dist1') -> float:
     """Calculate the Cramer's V statistic.
 
     For more on Cramer's V, see https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V
@@ -70,13 +71,32 @@ def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.S
         array of numerical values.
     dist2 : Union[np.ndarray, pd.Series]
         array of numerical values to compare dist1 to.
+    min_category_size_ratio: float, default 0.01
+        minimum size ratio for categories. Categories with size ratio lower than this number are binned
+        into an "Other" category.
+    max_num_categories: int, default: None
+        max number of allowed categories. If there are more categories than this number, categories are ordered by
+        magnitude and all the smaller categories are binned into an "Other" category.
+        If max_num_categories=None, there is no limit.
+        > Note that if this parameter is used, the ordering of categories (and by extension, the decision which
+        categories are kept by name and which are binned to the "Other" category) is done by default according to the
+        values of dist1, which is treated as the "expected" distribution. This behavior can be changed by using the
+        sort_by parameter.
+    sort_by: str, default: 'dist1'
+        Specify how categories should be sorted, affecting which categories will get into the "Other" category.
+        Possible values:
+        - 'dist1': Sort by the largest dist1 categories.
+        - 'dist2': Sort by the largest dist2 categories.
+        - 'difference': Sort by the largest difference between categories.
+        > Note that this parameter has no effect if max_num_categories = None or there are not enough unique categories.
     Returns
     -------
     float
         the bias-corrected Cramer's V value of the 2 distributions.
 
     """
-    dist1_counts, dist2_counts, _ = preprocess_2_cat_cols_to_same_bins(dist1=dist1, dist2=dist2)
+    dist1_counts, dist2_counts, _ = preprocess_2_cat_cols_to_same_bins(dist1, dist2, min_category_size_ratio,
+                                                                       max_num_categories, sort_by)
     contingency_matrix = pd.DataFrame([dist1_counts, dist2_counts])
 
     # If columns have the same single value in both (causing division by 0), return 0 drift score:
@@ -92,12 +112,13 @@ def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.S
     phi2 = chi2 / n
     r, k = contingency_matrix.shape
     phi2corr = max(0, phi2 - ((k - 1) * (r - 1)) / (n - 1))
-    rcorr = r - ((r - 1)**2) / (n - 1)
-    kcorr = k - ((k - 1)**2) / (n - 1)
+    rcorr = r - ((r - 1) ** 2) / (n - 1)
+    kcorr = k - ((k - 1) ** 2) / (n - 1)
     return np.sqrt(phi2corr / min((kcorr - 1), (rcorr - 1)))
 
 
-def psi(expected_percents: np.ndarray, actual_percents: np.ndarray):
+def psi(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series],
+        min_category_size_ratio: float = 0, max_num_categories: int = None, sort_by: str = 'dist1') -> float:
     """
     Calculate the PSI (Population Stability Index).
 
@@ -105,21 +126,41 @@ def psi(expected_percents: np.ndarray, actual_percents: np.ndarray):
 
     Parameters
     ----------
-    expected_percents: np.ndarray
-        array of percentages of each value in the expected distribution.
-    actual_percents: : np.ndarray
-        array of percentages of each value in the actual distribution.
+    dist1 : Union[np.ndarray, pd.Series]
+        array of numerical values.
+    dist2 : Union[np.ndarray, pd.Series]
+        array of numerical values to compare dist1 to.
+    min_category_size_ratio: float, default 0.01
+        minimum size ratio for categories. Categories with size ratio lower than this number are binned
+        into an "Other" category.
+    max_num_categories: int, default: None
+        max number of allowed categories. If there are more categories than this number, categories are ordered by
+        magnitude and all the smaller categories are binned into an "Other" category.
+        If max_num_categories=None, there is no limit.
+        > Note that if this parameter is used, the ordering of categories (and by extension, the decision which
+        categories are kept by name and which are binned to the "Other" category) is done by default according to the
+        values of dist1, which is treated as the "expected" distribution. This behavior can be changed by using the
+        sort_by parameter.
+    sort_by: str, default: 'dist1'
+        Specify how categories should be sorted, affecting which categories will get into the "Other" category.
+        Possible values:
+        - 'dist1': Sort by the largest dist1 categories.
+        - 'dist2': Sort by the largest dist2 categories.
+        - 'difference': Sort by the largest difference between categories.
+        > Note that this parameter has no effect if max_num_categories = None or there are not enough unique categories.
     Returns
     -------
     psi
         The PSI score
-
     """
+    expected_counts, actual_counts, _ = preprocess_2_cat_cols_to_same_bins(dist1, dist2, min_category_size_ratio,
+                                                                           max_num_categories, sort_by)
+    size_expected, size_actual = sum(expected_counts), sum(actual_counts)
     psi_value = 0
-    for i in range(len(expected_percents)):
+    for i in range(len(expected_counts)):
         # In order for the value not to diverge, we cap our min percentage value
-        e_perc = max(expected_percents[i], PSI_MIN_PERCENTAGE)
-        a_perc = max(actual_percents[i], PSI_MIN_PERCENTAGE)
+        e_perc = max(expected_counts[i] / size_expected, PSI_MIN_PERCENTAGE)
+        a_perc = max(actual_counts[i] / size_actual, PSI_MIN_PERCENTAGE)
         value = (e_perc - a_perc) * np.log(e_perc / a_perc)
         psi_value += value
 
@@ -181,11 +222,12 @@ def earth_movers_distance(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.n
 
 def calc_drift_and_plot(train_column: pd.Series,
                         test_column: pd.Series,
-                        value_name: Hashable,
+                        value_name: str,
                         column_type: str,
                         plot_title: Optional[str] = None,
                         margin_quantile_filter: float = 0.025,
-                        max_num_categories_for_drift: int = 10,
+                        max_num_categories_for_drift: int = None,
+                        min_category_size_ratio: float = 0.01,
                         max_num_categories_for_display: int = 10,
                         show_categories_by: str = 'largest_difference',
                         categorical_drift_method: str = 'cramer_v',
@@ -201,7 +243,7 @@ def calc_drift_and_plot(train_column: pd.Series,
         column from train dataset
     test_column: pd.Series
         same column from test dataset
-    value_name: Hashable
+    value_name: str
         title of the x axis, if plot_title is None then also the title of the whole plot.
     column_type: str
         type of column (either "numerical" or "categorical")
@@ -211,7 +253,10 @@ def calc_drift_and_plot(train_column: pd.Series,
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
         disproportionally. This filter is applied to both distributions, in both margins.
-    max_num_categories_for_drift: int, default: 10
+    min_category_size_ratio: float, default 0.01
+        minimum size ratio for categories. Categories with size ratio lower than this number are binned
+        into an "Other" category.
+    max_num_categories_for_drift: int, default: None
         Max number of allowed categories. If there are more, they are binned into an "Other" category.
     max_num_categories_for_display: int, default: 10
         Max number of categories to show in plot.
@@ -238,10 +283,13 @@ def calc_drift_and_plot(train_column: pd.Series,
         numerical, PSI for categorical)
         graph comparing the two distributions (density for numerical, stack bar for categorical)
     """
+    if min_category_size_ratio < 0 or min_category_size_ratio > 1:
+        raise DeepchecksValueError(
+            f'min_category_size_ratio expected a value in range [0, 1], instead got {min_category_size_ratio}.')
+
     if column_type == 'categorical' and ignore_na is False:
         train_dist = np.array(train_column.values).reshape(-1)
         test_dist = np.array(test_column.values).reshape(-1)
-
     else:
         train_dist = np.array(train_column.dropna().values).reshape(-1)
         test_dist = np.array(test_column.dropna().values).reshape(-1)
@@ -262,19 +310,17 @@ def calc_drift_and_plot(train_column: pd.Series,
             return score, scorer_name, None
 
         bar_traces, bar_x_axis, bar_y_axis = drift_score_bar_traces(score)
-
         dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(train_dist, test_dist, value_name)
+
     elif column_type == 'categorical':
+        sort_by = 'difference' if show_categories_by == 'largest_difference' else \
+            ('dist1' if show_categories_by == 'train_largest' else 'dist2')
         if categorical_drift_method.lower() in ['cramer_v', 'cramers_v']:
             scorer_name = 'Cramer\'s V'
-            score = cramers_v(dist1=train_dist, dist2=test_dist)
+            score = cramers_v(train_dist, test_dist, min_category_size_ratio, max_num_categories_for_drift, sort_by)
         elif categorical_drift_method.lower() == 'psi':
             scorer_name = 'PSI'
-            expected, actual, _ = \
-                preprocess_2_cat_cols_to_same_bins(dist1=train_dist, dist2=test_dist,
-                                                   max_num_categories=max_num_categories_for_drift)
-            expected_percents, actual_percents = expected / len(train_column), actual / len(test_column)
-            score = psi(expected_percents=expected_percents, actual_percents=actual_percents)
+            score = psi(train_dist, test_dist, min_category_size_ratio, max_num_categories_for_drift, sort_by)
         else:
             raise ValueError('Excpected categorical_drift_method to be one '
                              f'of [cramer_v, PSI], recieved: {categorical_drift_method}')
@@ -286,8 +332,7 @@ def calc_drift_and_plot(train_column: pd.Series,
         dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(
             train_dist, test_dist, value_name, is_categorical=True,
             max_num_categories=max_num_categories_for_display,
-            show_categories_by=show_categories_by
-        )
+            show_categories_by=show_categories_by)
     else:
         # Should never reach here
         raise DeepchecksValueError(f'Unsupported column type for drift: {column_type}')
@@ -363,6 +408,7 @@ def drift_condition(max_allowed_categorical_score: float,
     allowed_num_subjects_exceeding_threshold: int, default: 0
         Determines the number of properties with drift score above threshold needed to fail the condition.
     """
+
     def condition(result: dict):
         cat_method, num_method = get_drift_method(result)
         cat_drift_props = {prop: d['Drift score'] for prop, d in result.items()

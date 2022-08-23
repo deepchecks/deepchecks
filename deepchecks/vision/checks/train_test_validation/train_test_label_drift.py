@@ -74,10 +74,12 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
         disproportionally. This filter is applied to both distributions, in both margins.
-    max_num_categories_for_drift: int, default: 10
+    min_category_size_ratio: float, default 0.01
+        minimum size ratio for categories. Categories with size ratio lower than this number are binned
+        into an "Other" category.
+    max_num_categories_for_drift: int, default: None
         Only for discrete properties. Max number of allowed categories. If there are more,
-        they are binned into an "Other" category. If max_num_categories=None, there is no limit. This limit applies
-        for both drift calculation and for distribution plots.
+        they are binned into an "Other" category. This limit applies for both drift calculation and distribution plots.
     max_num_categories_for_display: int, default: 10
         Max number of categories to show in plot.
     show_categories_by: str, default: 'largest_difference'
@@ -97,7 +99,8 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
             self,
             label_properties: List[Dict[str, Any]] = None,
             margin_quantile_filter: float = 0.025,
-            max_num_categories_for_drift: int = 10,
+            max_num_categories_for_drift: int = None,
+            min_category_size_ratio: float = 0.01,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
             categorical_drift_method='cramer_v',
@@ -116,6 +119,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
             max_num_categories_for_display = max_num_categories_for_display or max_num_categories
 
         self.max_num_categories_for_drift = max_num_categories_for_drift
+        self.min_category_size_ratio = min_category_size_ratio
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
         self.categorical_drift_method = categorical_drift_method
@@ -165,7 +169,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
         else:
             raise DeepchecksNotSupportedError(f'Unsupported dataset kind {dataset_kind}')
 
-        batch_properties = batch.vision_properties(batch.labels, self.label_properties, PropertiesInputType.LABELS)
+        batch_properties = batch.vision_properties(self.label_properties, PropertiesInputType.LABELS)
 
         for prop_name, prop_value in batch_properties.items():
             # Flatten the properties since we don't care in this check about the property-per-sample coupling
@@ -200,6 +204,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
                 column_type=get_column_type(output_type),
                 margin_quantile_filter=self.margin_quantile_filter,
                 max_num_categories_for_drift=self.max_num_categories_for_drift,
+                min_category_size_ratio=self.min_category_size_ratio,
                 max_num_categories_for_display=self.max_num_categories_for_display,
                 show_categories_by=self.show_categories_by,
                 categorical_drift_method=self.categorical_drift_method,
