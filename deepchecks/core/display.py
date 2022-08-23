@@ -16,7 +16,8 @@ import io
 import pathlib
 import sys
 import typing as t
-from multiprocessing import Process
+from contextlib import contextmanager
+from multiprocessing import Process, get_all_start_methods, get_start_method, set_start_method
 
 import plotly.io as pio
 from IPython.core.display import display, display_html
@@ -247,11 +248,9 @@ def display_in_gui(result: DisplayableResult):
             'or use "result.save_as_html()" to save result'
         )
     else:
-        filename = t.cast(str, result.save_as_html('deepchecks-report.html'))
-        filepath = pathlib.Path(filename).absolute()
 
-        def app(filename: str):
-            filepath = pathlib.Path(filename)
+        def app(filename: t.Union[str, pathlib.Path], exit_after: bool = True):
+            filepath = pathlib.Path(filename) if isinstance(filename, str) else filename
             try:
                 app = QApplication.instance()
                 if app is None:
@@ -262,11 +261,37 @@ def display_in_gui(result: DisplayableResult):
                 web.setGeometry(0, 0, 1200, 1200)
                 web.load(QUrl.fromLocalFile(str(filepath)))
                 web.show()
-                sys.exit(app.exec_())
+                exit_code = app.exec_()
+                if exit_after:
+                    sys.exit(exit_code)
             finally:
                 filepath.unlink()
 
-        Process(target=app, args=(str(filepath),)).start()
+        filename = t.cast(str, result.save_as_html('deepchecks-report.html'))
+        filepath = pathlib.Path(filename).absolute()
+
+        if 'fork' in get_all_start_methods():
+            with switch_start_method('fork'):
+                Process(target=app, args=(str(filepath),)).start()
+        else:
+            # NOTE:
+            # it stops code execution until user does not close QtApp window.
+            # *Not sure*, but, if it is executed within jupyter kernel it
+            # might cause kernel restart. Kernel stops producing 'heartbeat'
+            # events and jupyter server decides that the kernel did 'fail'
+            # and restarts it.
+            #
+            # 'fork' process creation method is not supported only by windows
+            app(filepath, False)
+
+
+@contextmanager
+def switch_start_method(name: str):
+    """Switch process creation method."""
+    original = t.cast(str, get_start_method())
+    set_start_method(name)
+    yield
+    set_start_method(original)
 
 
 def get_result_name(result) -> str:
