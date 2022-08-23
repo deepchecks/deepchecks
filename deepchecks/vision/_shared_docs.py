@@ -28,8 +28,6 @@ device : Union[str, torch.device], default: 'cpu'
     processing unit for use
 random_state : int
     A seed to set for pseudo-random functions
-n_samples : Optional[int], default: None
-    number of samples
 with_display : bool , default: True
     flag that determines if checks will calculate display (redundant in some checks).
 train_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] , default None

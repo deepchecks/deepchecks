@@ -34,10 +34,10 @@ def test_no_drift_grayscale(mnist_dataset_train, device):
     check = ImageDatasetDrift(categorical_drift_method='PSI')
 
     # Act
-    result = check.run(train, test, random_state=42, device=device, n_samples=None)
+    result = check.run(train, test, random_state=42, device=device, n_samples=10000)
     # Assert
     assert_that(result.value, has_entries({
-        'domain_classifier_auc': close_to(0.479, 0.001),
+        'domain_classifier_auc': close_to(0.467, 0.001),
         'domain_classifier_drift_score': equal_to(0),
         'domain_classifier_feature_importance': has_entries({
             'Brightness': equal_to(0),
@@ -56,10 +56,10 @@ def test_no_drift_grayscale_cramer(mnist_dataset_train, device):
     check = ImageDatasetDrift(categorical_drift_method='cramer_v')
 
     # Act
-    result = check.run(train, test, random_state=42, device=device, n_samples=None)
+    result = check.run(train, test, random_state=42, device=device, n_samples=10000)
     # Assert
     assert_that(result.value, has_entries({
-        'domain_classifier_auc': close_to(0.479, 0.001),
+        'domain_classifier_auc': close_to(0.467, 0.001),
         'domain_classifier_drift_score': equal_to(0),
         'domain_classifier_feature_importance': has_entries({
             'Brightness': equal_to(0),
