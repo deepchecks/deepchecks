@@ -117,12 +117,12 @@ class _DummyModel:
         for feature_df in self.feature_df_list:
             # If all indices are found than test for equality
             if set(data.index).issubset(set(feature_df.index)):
-                # If equal than data is valid, can return
-                if feature_df.loc[data.index].fillna('').equals(data.fillna('')):
+                # If data indices are part of feature_df, compare the actual data of a statistically significant portion
+                sample_data = np.unique(np.random.choice(data.index, 30))
+                if feature_df.loc[sample_data].equals(data.loc[sample_data]):
                     return
                 else:
-                    raise DeepchecksValueError('Data that has not been seen before passed for inference with static '
-                                               'predictions. Pass a real model to resolve this')
+                    break
         raise DeepchecksValueError('Data with indices that has not been seen before passed for inference with static '
                                    'predictions. Pass a real model to resolve this')
 
