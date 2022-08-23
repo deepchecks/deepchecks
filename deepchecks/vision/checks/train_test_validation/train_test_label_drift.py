@@ -187,6 +187,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
         values_dict = OrderedDict()
         displays_dict = OrderedDict()
         label_properties_names = [x['name'] for x in self.label_properties]
+        dataset_names = (context.train.name, context.test.name)
         for label_prop in self.label_properties:
             name = label_prop['name']
             output_type = label_prop['output_type']
@@ -209,6 +210,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
                 show_categories_by=self.show_categories_by,
                 categorical_drift_method=self.categorical_drift_method,
                 with_display=context.with_display,
+                dataset_names=dataset_names
             )
             values_dict[name] = {
                 'Drift score': value,
