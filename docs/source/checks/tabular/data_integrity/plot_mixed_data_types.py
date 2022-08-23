@@ -5,7 +5,7 @@
 Mixed Data Types
 ****************
 
-This notebooks provides an overview for using and understanding the mixed data types check.
+This notebook provides an overview for using and understanding the mixed data types check.
 
 **Structure:**
 
