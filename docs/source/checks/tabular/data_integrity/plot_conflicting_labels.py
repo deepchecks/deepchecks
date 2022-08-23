@@ -5,7 +5,7 @@
 Conflicting Labels
 ******************
 
-This notebooks provides an overview for using and understanding the conflicting labels check.
+This notebook provides an overview for using and understanding the conflicting labels check.
 
 **Structure:**
 
