@@ -116,7 +116,8 @@ class Dataset:
             datetime_args: t.Optional[t.Dict] = None,
             max_categorical_ratio: float = 0.01,
             max_categories: int = None,
-            label_type: str = None
+            label_type: str = None,
+            dataset_name: t.Optional[str] = None
     ):
 
         if len(df) == 0:
@@ -246,6 +247,7 @@ class Dataset:
         self._max_categories = max_categories
 
         self._classes = None
+        self.name = dataset_name
 
         if self._label_name in self.features:
             raise DeepchecksValueError(f'label column {self._label_name} can not be a feature column')
@@ -439,7 +441,7 @@ class Dataset:
                    index_name=index, set_index_from_dataframe_index=self._set_index_from_dataframe_index,
                    datetime_name=date, set_datetime_from_dataframe_index=self._set_datetime_from_dataframe_index,
                    convert_datetime=self._convert_datetime, max_categorical_ratio=self._max_categorical_ratio,
-                   max_categories=self._max_categories, label_type=label_type)
+                   max_categories=self._max_categories, label_type=label_type, dataset_name=self.name)
 
     def sample(self: TDataset, n_samples: int, replace: bool = False, random_state: t.Optional[int] = None,
                drop_na_label: bool = False) -> TDataset:

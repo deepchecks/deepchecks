@@ -175,8 +175,12 @@ class Context:
             raise DeepchecksValueError('At least one dataset (or model) must be passed to the method!')
         if train is not None:
             train = Dataset.cast_to_dataset(train)
+            if train.name is None:
+                train.name = 'Train'
         if test is not None:
             test = Dataset.cast_to_dataset(test)
+            if test.name is None:
+                test.name = 'Test'
         # If both dataset, validate they fit each other
         if train and test:
             if test.has_label() and train.has_label() and not Dataset.datasets_share_label(train, test):
