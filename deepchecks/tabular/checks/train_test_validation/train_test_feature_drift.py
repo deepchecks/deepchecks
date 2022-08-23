@@ -83,7 +83,7 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
     ignore_na: bool, default True
         For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
         separate category. For numerical columns we always ignore nones.
-    aggregation_method: str, default: "l2_weighted"
+    aggregation_method: str, default: 'l2_weighted'
         argument for the reduce_output functionality, decides how to aggregate the drift scores for a
         collective score. The collective score value is between 0 and 1 for all methods other than l2_combination.
         Possible values are:

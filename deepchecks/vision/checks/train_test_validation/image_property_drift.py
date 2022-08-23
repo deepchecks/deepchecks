@@ -16,6 +16,7 @@ from collections import defaultdict
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
+from deepchecks.core.checks import ReducePropertyMixin
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
 from deepchecks.utils.dict_funcs import get_dict_entry_by_value
@@ -30,7 +31,7 @@ __all__ = ['ImagePropertyDrift']
 TImagePropertyDrift = t.TypeVar('TImagePropertyDrift', bound='ImagePropertyDrift')
 
 
-class ImagePropertyDrift(TrainTestCheck):
+class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
     """
     Calculate drift between train dataset and test dataset per image property, using statistical measures.
 
@@ -69,6 +70,12 @@ class ImagePropertyDrift(TrainTestCheck):
         containing an annotation belonging) to one of these classes. If None, samples from all classes are displayed.
     min_samples: int, default: 30
         Minimum number of samples needed in each dataset needed to calculate the drift.
+    aggregation_method: str, default: 'max'
+        argument for the reduce_output functionality, decides how to aggregate the individual properties drift scores
+        for a collective score between 0 and 1. Possible values are:
+        'mean': Mean of all properties scores.
+        'none': No averaging. Return a dict with a drift score for each property.
+        'max': Maximum of all the properties drift scores.
     max_num_categories: int, default: None
         Deprecated. Please use max_num_categories_for_drift and max_num_categories_for_display instead
     """
@@ -82,6 +89,7 @@ class ImagePropertyDrift(TrainTestCheck):
             show_categories_by: str = 'largest_difference',
             classes_to_display: t.Optional[t.List[str]] = None,
             min_samples: int = 30,
+            aggregation_method: str = 'max',
             max_num_categories: int = None,  # Deprecated
             **kwargs
     ):
@@ -101,6 +109,7 @@ class ImagePropertyDrift(TrainTestCheck):
         self.show_categories_by = show_categories_by
         self.classes_to_display = classes_to_display
         self.min_samples = min_samples
+        self.aggregation_method = aggregation_method
 
         self._train_properties = None
         self._test_properties = None
@@ -225,6 +234,17 @@ class ImagePropertyDrift(TrainTestCheck):
             display=displays,
             header='Image Property Drift'
         )
+
+    def reduce_output(self, check_result: CheckResult) -> t.Dict[str, float]:
+        """Return prediction drift score per prediction property."""
+        if self.aggregation_method == 'max':
+            return {'Max Drift Score': max(check_result.value.values())}
+        elif self.aggregation_method == 'mean':
+            return {'Mean Drift Score': sum(check_result.value.values()) / len(check_result.value.values())}
+        elif self.aggregation_method == 'none':
+            return check_result.value
+        else:
+            raise DeepchecksValueError(f'Unknown aggregation method {self.aggregation_method}.')
 
     def add_condition_drift_score_less_than(
             self: TImagePropertyDrift,
