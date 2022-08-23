@@ -5,7 +5,7 @@
 Identifier Label Correlation
 ****************************
 
-This notebooks provides an overview for using and understanding the identifier-label correlation check.
+This notebook provides an overview for using and understanding the identifier-label correlation check.
 
 This check computes the Predictive Power Score (`PPS
 <https://docs.deepchecks.com/en/stable/checks_gallery/tabular/train_test_validation/plot_feature_label_correlation_change.html#how-is-the-predictive-power-score-pps-calculated>`__)

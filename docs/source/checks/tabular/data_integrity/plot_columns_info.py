@@ -5,7 +5,7 @@
 Columns Info
 ************
 
-This notebooks provides an overview for using and understanding the columns info check.
+This notebook provides an overview for using and understanding the columns info check.
 
 **Structure:**
 
