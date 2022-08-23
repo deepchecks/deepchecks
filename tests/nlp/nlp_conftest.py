@@ -8,9 +8,16 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module importing all nlp checks."""
+"""Fixtures for testing the nlp package"""
+import pytest
 
-from deepchecks.nlp.checks.model_evaluation.single_dataset_performance import SingleDatasetPerformance
+from deepchecks.nlp.text_data import TextData
 
-__all__ = ['SingleDatasetPerformance']
+
+@pytest.fixture(scope='session')
+def text_classification_dataset_mock():
+    """Mock for a text classification dataset"""
+    return TextData(['I think therefore I am', 'I am therefore I think', 'I am'],
+                    [0, 0, 1],
+                    task_type='text_classification')
 

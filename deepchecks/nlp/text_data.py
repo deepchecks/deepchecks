@@ -524,8 +524,8 @@ class TextData:
             if the provided value is not a TextData instance;
             if the provided value cannot be transformed into Dataset instance;
         """
-        if not isinstance(obj, cls.__class__):
-            raise DeepchecksValueError(f'{obj} is not a {cls.__class__.__name__} instance')
+        if not isinstance(obj, cls):
+            raise DeepchecksValueError(f'{obj} is not a {cls.__name__} instance')
         return obj
 
     #     if isinstance(obj, pd.DataFrame):

@@ -8,9 +8,6 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module importing all nlp checks."""
+"""Module containing metrics utils for nlp tasks."""
 
-from deepchecks.nlp.checks.model_evaluation.single_dataset_performance import SingleDatasetPerformance
-
-__all__ = ['SingleDatasetPerformance']
-
+__all__ = []

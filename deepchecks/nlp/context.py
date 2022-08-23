@@ -14,9 +14,10 @@ import typing as t
 from operator import itemgetter
 
 import numpy as np
-import pandas as pd
 
+from deepchecks.nlp.metric_utils.scorers import init_validate_scorers
 from deepchecks.nlp.task_type import TaskType
+from deepchecks.tabular.utils.task_type import TaskType as TabularTaskType
 from deepchecks.nlp.text_data import TextData, TTextLabel
 
 from deepchecks.core import CheckFailure, CheckResult, DatasetKind
@@ -30,9 +31,10 @@ __all__ = [
     'TTextProba'
 ]
 
-from deepchecks.tabular.metric_utils import DeepcheckScorer
+from deepchecks.tabular.metric_utils import DeepcheckScorer, get_default_scorers
 
 from deepchecks.tabular.utils.validation import ensure_predictions_shape, ensure_predictions_proba
+from deepchecks.utils.typing import BasicModel
 
 TClassPred = t.Union[t.Sequence[t.Union[str, int]], t.Sequence[t.Sequence[t.Union[str, int]]]]
 TClassProba = t.Sequence[t.Sequence[float]]
@@ -41,7 +43,7 @@ TTextPred = t.Union[TClassPred, TTokenPred]
 TTextProba = t.Union[TClassProba]
 
 
-class _DummyModel:
+class _DummyModel(BasicModel):
     """Dummy model class used for inference with static predictions from the user.
 
     Parameters
@@ -89,14 +91,14 @@ class _DummyModel:
             raise DeepchecksNotSupportedError('For token classification probabilities should be part of the token'
                                               ' prediction annotation and not passed to the proba argument')
 
-        for dataset, y_pred, y_proba, dataset_kind in zip([train, test],
-                                                          [y_pred_train, y_pred_test],
-                                                          [y_proba_train, y_proba_test]):
+        for dataset, y_pred, y_proba in zip([train, test],
+                                            [y_pred_train, y_pred_test],
+                                            [y_proba_train, y_proba_test]):
             if dataset is not None:
                 if y_pred is not None:
-                    self._validate_prediction(dataset, dataset_kind, y_pred)
+                    self._validate_prediction(dataset, y_pred)
                 if y_proba is not None:
-                    self._validate_proba(dataset, dataset_kind, y_proba)
+                    self._validate_proba(dataset, y_proba)
 
                 if dataset.task_type == TaskType.TEXT_CLASSIFICATION:
                     if (y_pred is None) and (y_proba is not None) and\
@@ -149,7 +151,9 @@ class _DummyModel:
 
         if dataset.task_type == TaskType.TEXT_CLASSIFICATION:
             try:
-                prediction = np.ndarray(prediction, dtype='float')
+                prediction = np.array(prediction, dtype='float')
+                if not dataset.is_multilabel:
+                    prediction = prediction.reshape((-1, 1))
             except ValueError as e:
                 raise ValidationError(classification_format_error) from e
             pred_shape = prediction.shape
@@ -383,3 +387,34 @@ class Context:
                            f'Note - data sampling: {message} Sample size can be controlled with the "n_samples" '
                            'parameter.</i></p>')
                 check_result.display.append(message)
+
+    def get_scorers(self,
+                    scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]], t.List[str]] = None,
+                    use_avg_defaults=True) -> t.List[DeepcheckScorer]:
+        """Return initialized & validated scorers in a given priority.
+
+        If receive `scorers` use them,
+        Else if user defined global scorers use them,
+        Else use default scorers.
+
+        Parameters
+        ----------
+        scorers : Union[List[str], Dict[str, Union[str, Callable]]], default: None
+            List of scorers to use. If None, use default scorers.
+            Scorers can be supplied as a list of scorer names or as a dictionary of names and functions.
+        use_avg_defaults : bool, default True
+            If no scorers were provided, for classification, determines whether to use default scorers that return
+            an averaged metric, or default scorers that return a metric per class.
+        Returns
+        -------
+        List[DeepcheckScorer]
+            A list of initialized & validated scorers.
+        """
+        if self.task_type == TaskType.TEXT_CLASSIFICATION:
+            scorers = scorers or get_default_scorers(TabularTaskType.MULTICLASS, use_avg_defaults)
+        elif self.task_type == TaskType.TOKEN_CLASSIFICATION:
+            scorers = []  # TODO: Complete that
+        else:
+            raise DeepchecksValueError(f'Task type must be either {TaskType.TEXT_CLASSIFICATION} or '
+                                       f'{TaskType.TOKEN_CLASSIFICATION} but received {self.task_type}')
+        return init_validate_scorers(scorers)
