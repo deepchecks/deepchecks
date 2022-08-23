@@ -21,8 +21,6 @@ from deepchecks.nlp.task_type import TaskType
 
 __all__ = ['TextData', 'TTokenLabel', 'TClassLabel', 'TTextLabel']
 
-DEFAULT_LABEL_NAME = 'label'
-
 
 TDataset = t.TypeVar('TDataset', bound='TextData')
 TSingleLabel = t.Tuple[int, str]
@@ -100,7 +98,8 @@ class TextData:
         # Set dataset name
         if dataset_name is not None:
             if not isinstance(dataset_name, str):
-                raise DeepchecksNotSupportedError(f'dataset_name {dataset_name} is not supported, must be a str')
+                raise DeepchecksNotSupportedError(f'dataset_name type {type(dataset_name)} is not supported, must be a'
+                                                  f' str')
         self.name = dataset_name
 
     @staticmethod
@@ -164,8 +163,7 @@ class TextData:
             new dataset instance
         """
         cls = type(self)
-        return cls(raw_text, label, self._task_type.value, self._label_name, self.name,
-                   index)
+        return cls(raw_text, label, self._task_type.value, self.name, index)
 
     def sample(self: TDataset, n_samples: int, replace: bool = False, random_state: t.Optional[int] = None,
                drop_na_label: bool = False) -> TDataset:
@@ -195,11 +193,11 @@ class TextData:
         np.random.seed(random_state)
         sample_idx = np.random.choice(samples, n_samples, replace=replace)
         if len(sample_idx) > 1:
-            data_to_sample = {'text': list(itemgetter(*sample_idx)(self._text)),
+            data_to_sample = {'raw_text': list(itemgetter(*sample_idx)(self._text)),
                               'label': list(itemgetter(*sample_idx)(self._label)),
                               'index': sample_idx}
         else:
-            data_to_sample = {'text': [self._text[sample_idx[0]]],
+            data_to_sample = {'raw_text': [self._text[sample_idx[0]]],
                               'label': [self._label[sample_idx[0]]],
                               'index': sample_idx}
         return self.copy(**data_to_sample)

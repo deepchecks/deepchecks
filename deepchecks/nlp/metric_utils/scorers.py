@@ -30,6 +30,11 @@ def init_validate_scorers(scorers: t.Union[t.Mapping[str, t.Union[str, t.Callabl
     ----------
     scorers : Mapping[str, Union[str, Callable]]
         dict of scorers names to scorer sklearn_name/function or a list without a name
+
+    Returns
+    -------
+    t.List[DeepcheckScorer]
+        A list of initialized scorers
     """
     if isinstance(scorers, t.Mapping):
         scorers: t.List[DeepcheckScorer] = [DeepcheckScorer(scorer, name) for name, scorer in scorers.items()]

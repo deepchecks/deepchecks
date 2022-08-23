@@ -12,7 +12,6 @@
 from .base_checks import SingleDatasetCheck, TrainTestCheck
 from .suite import Suite
 
-
 __all__ = [
     "SingleDatasetCheck",
     "TrainTestCheck",

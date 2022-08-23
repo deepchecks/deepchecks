@@ -56,7 +56,7 @@ class Suite(BaseSuite):
             predictions on train dataset
         test_predictions: Union[TTextPred, None] , default: None
             predictions on test dataset
-                train_probabilities: Union[TTextProba, None] , default: None
+        train_probabilities: Union[TTextProba, None] , default: None
             probabilities on train dataset
         test_probabilities: Union[TTextProba, None] , default: None
             probabilities on test_dataset dataset
