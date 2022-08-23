@@ -10,7 +10,7 @@
 #
 """Module importing all nlp checks."""
 
-from deepchecks.nlp.checks.model_evaluation.single_dataset_performance import SingleDatasetPerformance
+from deepchecks.nlp.checks.model_evaluation import SingleDatasetPerformance
 
 __all__ = ['SingleDatasetPerformance']
 

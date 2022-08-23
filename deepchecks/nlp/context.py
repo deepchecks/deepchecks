@@ -263,7 +263,7 @@ class Context:
         # If both dataset, validate they fit each other
         if train_dataset and test_dataset:
             if test_dataset.has_label() and train_dataset.has_label() and not \
-                    TextData.datasets_share_label(train_dataset, test_dataset):
+                    TextData.datasets_share_task_type(train_dataset, test_dataset):
                 raise DatasetValidationError('train_dataset and test_dataset must share the same label and task type')
             if train_dataset.name == test_dataset.name:
                 raise DatasetValidationError('train_dataset and test_dataset must have different names')

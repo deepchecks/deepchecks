@@ -27,13 +27,13 @@ def test_run_with_scorer(text_classification_dataset_mock):
     assert_that(result.value.values[0][-1], close_to(0.666, 0.001))
 
 
-def test_run_with_scorer_multilabel(text_multilabel_dataset_mock):
+def test_run_with_scorer_multilabel(text_multilabel_classification_dataset_mock):
     """Test that the check runs with a scorer override"""
     # Arrange
     check = SingleDatasetPerformance(scorers=['f1_macro'])
 
     # Act
-    result = check.run(text_multilabel_dataset_mock,
+    result = check.run(text_multilabel_classification_dataset_mock,
                        predictions=[[0, 0, 1], [1, 0, 1], [0, 1, 0]])
 
     # Assert
