@@ -19,14 +19,13 @@ from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
 from deepchecks.utils.dict_funcs import get_dict_entry_by_value
-from deepchecks.utils.distribution.drift import calc_drift_and_plot
+from deepchecks.utils.distribution.drift import calc_drift_and_plot, get_drift_plot_sidenote
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.utils.image_properties import default_image_properties, get_column_type
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
 
 __all__ = ['ImagePropertyDrift']
-
 
 TImagePropertyDrift = t.TypeVar('TImagePropertyDrift', bound='ImagePropertyDrift')
 
@@ -54,9 +53,12 @@ class ImagePropertyDrift(TrainTestCheck):
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
         disproportionally. This filter is applied to both distributions, in both margins.
-    max_num_categories_for_drift: int, default: 10
+    min_category_size_ratio: float, default 0.01
+        minimum size ratio for categories. Categories with size ratio lower than this number are binned
+        into an "Other" category.
+    max_num_categories_for_drift: int, default: None
         Only for discrete properties. Max number of allowed categories. If there are more,
-        they are binned into an "Other" category. If None, there is no limit.
+        they are binned into an "Other" category. This limit applies for both drift calculation and distribution plots.
     max_num_categories_for_display: int, default: 10
         Max number of categories to show in plot.
     show_categories_by: str, default: 'largest_difference'
@@ -78,7 +80,8 @@ class ImagePropertyDrift(TrainTestCheck):
             self,
             image_properties: t.List[t.Dict[str, t.Any]] = None,
             margin_quantile_filter: float = 0.025,
-            max_num_categories_for_drift: int = 10,
+            max_num_categories_for_drift: int = None,
+            min_category_size_ratio: float = 0.01,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
             classes_to_display: t.Optional[t.List[str]] = None,
@@ -98,6 +101,7 @@ class ImagePropertyDrift(TrainTestCheck):
             max_num_categories_for_drift = max_num_categories_for_drift or max_num_categories
             max_num_categories_for_display = max_num_categories_for_display or max_num_categories
         self.max_num_categories_for_drift = max_num_categories_for_drift
+        self.min_category_size_ratio = min_category_size_ratio
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
         self.classes_to_display = classes_to_display
@@ -115,10 +119,10 @@ class ImagePropertyDrift(TrainTestCheck):
         self._test_properties = defaultdict(list)
 
     def update(
-        self,
-        context: Context,
-        batch: Batch,
-        dataset_kind: DatasetKind
+            self,
+            context: Context,
+            batch: Batch,
+            dataset_kind: DatasetKind
     ):
         """Calculate image properties for train or test batch."""
         if dataset_kind == DatasetKind.TRAIN:
@@ -130,8 +134,7 @@ class ImagePropertyDrift(TrainTestCheck):
                 f'Internal Error - Should not reach here! unknown dataset_kind: {dataset_kind}'
             )
 
-        all_classes_properties = batch.vision_properties(
-            batch.images, self.image_properties, PropertiesInputType.IMAGES)
+        all_classes_properties = batch.vision_properties(self.image_properties, PropertiesInputType.IMAGES)
 
         if self.classes_to_display:
             # use only images belonging (or containing an annotation belonging) to one of the classes in
@@ -194,6 +197,7 @@ class ImagePropertyDrift(TrainTestCheck):
                     column_type=get_column_type(single_property['output_type']),
                     margin_quantile_filter=self.margin_quantile_filter,
                     max_num_categories_for_drift=self.max_num_categories_for_drift,
+                    min_category_size_ratio=self.min_category_size_ratio,
                     max_num_categories_for_display=self.max_num_categories_for_display,
                     show_categories_by=self.show_categories_by,
                     min_samples=self.min_samples,
@@ -209,16 +213,16 @@ class ImagePropertyDrift(TrainTestCheck):
             columns_order = sorted(properties, key=lambda col: drifts.get(col, 0), reverse=True)
             properties_to_display = [p for p in properties if p in drifts]
 
-            headnote = '<span>' \
-                       'The Drift score is a measure for the difference between two distributions. ' \
-                       'In this check, drift is measured ' \
-                       f'for the distribution of the following image properties: {properties_to_display}.<br>' \
-                       '</span>'
-            if not_enough_samples:
-                headnote += f'<span>The following image properties do not have enough samples to calculate drift ' \
-                            f'score: {not_enough_samples}</span>'
+            headnote = ['<span> The Drift score is a measure for the difference between two distributions. '
+                        'In this check, drift is measured for the distribution '
+                        f'of the following image properties: {properties_to_display}.</span>',
+                        get_drift_plot_sidenote(self.max_num_categories_for_display, self.show_categories_by)]
 
-            displays = [headnote] + [figures[col] for col in columns_order if col in figures]
+            if not_enough_samples:
+                headnote.append(f'<span>The following image properties do not have enough samples to calculate drift '
+                                f'score: {not_enough_samples}</span>')
+
+            displays = headnote + [figures[col] for col in columns_order if col in figures]
         else:
             displays = []
 
@@ -229,8 +233,8 @@ class ImagePropertyDrift(TrainTestCheck):
         )
 
     def add_condition_drift_score_less_than(
-        self: TImagePropertyDrift,
-        max_allowed_drift_score: float = 0.1
+            self: TImagePropertyDrift,
+            max_allowed_drift_score: float = 0.1
     ) -> TImagePropertyDrift:
         """
         Add condition - require drift score to be less than a certain threshold.

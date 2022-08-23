@@ -171,29 +171,19 @@ def feature_distribution_traces(
         general layout
     """
     if is_categorical:
-        n_of_categories = len(set(train_column).union(test_column))
-        range_max = (
-            max_num_categories
-            if n_of_categories > max_num_categories
-            else n_of_categories
-        )
-        traces, y_layout = _create_distribution_bar_graphs(
-            train_column,
-            test_column,
-            max_num_categories,
-            show_categories_by
-        )
-        xaxis_layout = dict(
-            type='category',
-            # NOTE:
-            # the range, in this case, is needed to fix a problem with
-            # too wide bars when there are only one or two of them`s on
-            # the plot, plus it also centralizes them`s on the plot
-            # The min value of the range (range(min. max)) is bigger because
-            # otherwise bars will not be centralized on the plot, they will
-            # appear on the left part of the plot (that is probably because of zero)
-            range=(-3, range_max + 2)
-        )
+        traces, y_layout = _create_distribution_bar_graphs(train_column, test_column,
+                                                           max_num_categories, show_categories_by)
+
+        # NOTE:
+        # the range, in this case, is needed to fix a problem with
+        # too wide bars when there are only one or two of them`s on
+        # the plot, plus it also centralizes them`s on the plot
+        # The min value of the range (range(min. max)) is bigger because
+        # otherwise bars will not be centralized on the plot, they will
+        # appear on the left part of the plot (that is probably because of zero)
+        range_max = max_num_categories if len(set(train_column).union(test_column)) > max_num_categories \
+            else len(set(train_column).union(test_column))
+        xaxis_layout = dict(type='category', range=(-3, range_max + 2))
         return traces, xaxis_layout, y_layout
     else:
         train_uniques, train_uniques_counts = np.unique(train_column, return_counts=True)
@@ -290,10 +280,10 @@ def _create_distribution_scatter_plot(xs, ys, mean, median, is_train):
 
 
 def _create_distribution_bar_graphs(
-    train_column: t.Union[np.ndarray, pd.Series],
-    test_column: t.Union[np.ndarray, pd.Series],
-    max_num_categories: int,
-    show_categories_by: CategoriesSortingKind
+        train_column: t.Union[np.ndarray, pd.Series],
+        test_column: t.Union[np.ndarray, pd.Series],
+        max_num_categories: int,
+        show_categories_by: CategoriesSortingKind
 ) -> t.Tuple[t.Any, t.Any]:
     """
     Create distribution bar graphs.
@@ -305,7 +295,7 @@ def _create_distribution_bar_graphs(
     """
     expected, actual, categories_list = preprocess_2_cat_cols_to_same_bins(
         dist1=train_column,
-        dist2=test_column
+        dist2=test_column,
     )
 
     expected_percents, actual_percents = expected / len(train_column), actual / len(test_column)
@@ -330,9 +320,7 @@ def _create_distribution_bar_graphs(
         key=sort_func,
         reverse=True
     )
-    expected_percents, actual_percents, categories_list = zip(
-        *distribution[:max_num_categories]
-    )
+    expected_percents, actual_percents, categories_list = zip(*distribution[:max_num_categories])
 
     # fixes plotly widget bug with numpy values by converting them to native values
     # https://github.com/plotly/plotly.py/issues/3470

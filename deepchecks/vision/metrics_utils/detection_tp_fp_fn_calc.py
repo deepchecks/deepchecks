@@ -62,7 +62,6 @@ class TpFpFn(Metric, MetricMixin):
         """Reset metric state."""
         super().reset()
         self._evals = defaultdict(lambda: {"tp": 0, "fp": 0, "fn": 0})
-        self._i = 0
 
     @reinit__is_reduced
     def update(self, output):
@@ -76,7 +75,6 @@ class TpFpFn(Metric, MetricMixin):
                 ground_truth = ground_truth.cpu().detach()
 
             self._group_detections(detected, ground_truth)
-            self._i += 1
 
     @sync_all_reduce("_evals")
     def compute(self):

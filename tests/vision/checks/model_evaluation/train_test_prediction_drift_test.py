@@ -103,6 +103,33 @@ def test_with_drift_classification(mnist_dataset_train, mnist_dataset_test, mock
         }
     ))
 
+
+def test_with_drift_segmentation(segmentation_coco_train_visiondata, segmentation_coco_test_visiondata,
+                                 trained_segmentation_deeplabv3_mobilenet_model, device):
+    # Arrange
+    train, test = segmentation_coco_train_visiondata, segmentation_coco_test_visiondata
+    model = trained_segmentation_deeplabv3_mobilenet_model
+    check = TrainTestPredictionDrift()
+
+    # Act
+    result = check.run(train, test, model,
+                       device=device)
+    # Assert
+    assert_that(result.value, has_entries(
+        {'Samples Per Class': has_entries(
+            {'Drift score': equal_to(0),
+             'Method': equal_to('Cramer\'s V')}
+        ), 'Number of Classes Per Image': has_entries(
+            {'Drift score': equal_to(0),
+             'Method': equal_to('Earth Mover\'s Distance')}
+        ), 'Segment Area (in pixels)': has_entries(
+            {'Drift score': close_to(0.03, 0.01),
+             'Method': equal_to('Earth Mover\'s Distance')}
+        )
+        }
+    ))
+
+
 def test_reduce_with_drift_classification(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_test
@@ -139,7 +166,8 @@ def test_with_drift_classification_cramer(mnist_dataset_train, mnist_dataset_tes
 def test_with_drift_object_detection(coco_train_visiondata, coco_test_visiondata, mock_trained_yolov5_object_detection,
                                      device):
     # Arrange
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI')
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI', max_num_categories_for_drift=10,
+                                     min_category_size_ratio=0)
 
     # Act
     result = check.run(coco_train_visiondata, coco_test_visiondata, mock_trained_yolov5_object_detection, device=device)
@@ -163,7 +191,8 @@ def test_with_drift_object_detection(coco_train_visiondata, coco_test_visiondata
 def test_with_drift_object_detection_change_max_cat(coco_train_visiondata, coco_test_visiondata,
                                                     mock_trained_yolov5_object_detection, device):
     # Arrange
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI', max_num_categories_for_drift=100)
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI', max_num_categories_for_drift=100,
+                                     min_category_size_ratio=0)
 
     # Act
     result = check.run(coco_train_visiondata, coco_test_visiondata, mock_trained_yolov5_object_detection, device=device)

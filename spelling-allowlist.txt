@@ -108,3 +108,8 @@ astype
 nullable
 hashable
 SimilarImageLeakage
+conf
+deserialization
+coco128
+callables
+rstrip

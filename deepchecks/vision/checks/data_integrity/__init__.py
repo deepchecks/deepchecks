@@ -11,8 +11,10 @@
 """Module containing the data integrity checks in the vision package."""
 from .image_property_outliers import ImagePropertyOutliers
 from .label_property_outliers import LabelPropertyOutliers
+from .property_label_correlation import PropertyLabelCorrelation
 
 __all__ = [
     'ImagePropertyOutliers',
-    'LabelPropertyOutliers'
+    'LabelPropertyOutliers',
+    'PropertyLabelCorrelation'
 ]

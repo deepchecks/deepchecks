@@ -16,12 +16,13 @@ from typing import Any, Dict, List
 import pandas as pd
 
 from deepchecks.core import CheckResult, DatasetKind
-from deepchecks.core.checks import ReduceMixin
+from deepchecks.core.checks import CheckConfig, ReduceMixin
 from deepchecks.core.errors import DeepchecksNotSupportedError
-from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition
+from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition, get_drift_plot_sidenote
 from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.utils.label_prediction_properties import (DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES,
                                                                  DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES,
+                                                                 DEFAULT_SEMANTIC_SEGMENTATION_PREDICTION_PROPERTIES,
                                                                  get_column_type, properties_flatten)
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
 from deepchecks.vision.vision_data import TaskType
@@ -79,9 +80,12 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
         disproportionally. This filter is applied to both distributions, in both margins.
-    max_num_categories_for_drift: int, default: 10
-        Only for categorical columns. Max number of allowed categories. If there are more,
-        they are binned into an "Other" category. If None, there is no limit.
+    min_category_size_ratio: float, default 0.01
+        minimum size ratio for categories. Categories with size ratio lower than this number are binned
+        into an "Other" category.
+    max_num_categories_for_drift: int, default: None
+        Only for discrete properties. Max number of allowed categories. If there are more,
+        they are binned into an "Other" category. This limit applies for both drift calculation and distribution plots.
     max_num_categories_for_display: int, default: 10
         Max number of categories to show in plot.
     show_categories_by: str, default: 'largest_difference'
@@ -101,7 +105,8 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
             self,
             prediction_properties: List[Dict[str, Any]] = None,
             margin_quantile_filter: float = 0.025,
-            max_num_categories_for_drift: int = 10,
+            max_num_categories_for_drift: int = None,
+            min_category_size_ratio: float = 0.01,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
             categorical_drift_method: str = 'cramer_v',
@@ -123,6 +128,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
             max_num_categories_for_drift = max_num_categories_for_drift or max_num_categories
             max_num_categories_for_display = max_num_categories_for_display or max_num_categories
         self.max_num_categories_for_drift = max_num_categories_for_drift
+        self.min_category_size_ratio = min_category_size_ratio
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
 
@@ -149,6 +155,8 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
                 self.prediction_properties = DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES
             elif task_type == TaskType.OBJECT_DETECTION:
                 self.prediction_properties = DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES
+            elif task_type == TaskType.SEMANTIC_SEGMENTATION:
+                self.prediction_properties = DEFAULT_SEMANTIC_SEGMENTATION_PREDICTION_PROPERTIES
             else:
                 raise NotImplementedError('Check must receive either prediction_properties or '
                                           'run on Classification or Object Detection class')
@@ -166,8 +174,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         else:
             raise DeepchecksNotSupportedError(f'Unsupported dataset kind {dataset_kind}')
 
-        batch_properties = batch.vision_properties(
-            batch.predictions, self.prediction_properties, PropertiesInputType.PREDICTIONS)
+        batch_properties = batch.vision_properties(self.prediction_properties, PropertiesInputType.PREDICTIONS)
 
         for prop_name, prop_value in batch_properties.items():
             # Flatten the properties since we don't care in this check about the property-per-sample coupling
@@ -202,6 +209,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
                 column_type=get_column_type(output_type),
                 margin_quantile_filter=self.margin_quantile_filter,
                 max_num_categories_for_drift=self.max_num_categories_for_drift,
+                min_category_size_ratio=self.min_category_size_ratio,
                 max_num_categories_for_display=self.max_num_categories_for_display,
                 show_categories_by=self.show_categories_by,
                 categorical_drift_method=self.categorical_drift_method,
@@ -217,17 +225,27 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
             columns_order = sorted(prediction_properties_names, key=lambda col: values_dict[col]['Drift score'],
                                    reverse=True)
 
-            headnote = '<span>' \
-                'The Drift score is a measure for the difference between two distributions. ' \
-                'In this check, drift is measured ' \
-                f'for the distribution of the following prediction properties: {prediction_properties_names}.' \
-                '</span>'
+            headnote = ['<span>'
+                        'The Drift score is a measure for the difference between two distributions. '
+                        'In this check, drift is measured for the distribution of the following '
+                        f'prediction properties: {prediction_properties_names}. </span>',
+                        get_drift_plot_sidenote(self.max_num_categories_for_display, self.show_categories_by)]
 
-            displays = [headnote] + [displays_dict[col] for col in columns_order]
+            displays = headnote + [displays_dict[col] for col in columns_order]
         else:
             displays = None
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Prediction Drift')
+
+    def config(self, include_version: bool = True) -> CheckConfig:
+        """Return check configuration."""
+        # NOTE: prediction_properties if passed always contain callables
+        if self.prediction_properties is not None:
+            raise ValueError(
+                'Serialization of check instances with provided '
+                '"prediction_properties" parameter is not supported'
+            )
+        return super().config(include_version=include_version)
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return prediction drift score per prediction property."""

@@ -11,6 +11,7 @@
 """Module for calculating the properties used in Vision checks."""
 import warnings
 from enum import Enum
+from itertools import chain
 
 __all__ = ['PropertiesInputType', 'validate_properties']
 
@@ -24,10 +25,9 @@ class PropertiesInputType(Enum):
     """Enum containing supported task types."""
 
     IMAGES = 'images'
-    BBOXES = 'bounding_boxes'
+    PARTIAL_IMAGES = 'partial_images'
     LABELS = 'labels'
     PREDICTIONS = 'predictions'
-    OTHER = 'other'
 
 
 def calc_vision_properties(raw_data: List, properties_list: List) -> Dict[str, list]:
@@ -81,7 +81,7 @@ def validate_properties(properties: List[Dict[str, Any]]):
             )
             continue
 
-        property_name = image_property.get('name') or f'#{index}'
+        image_property['name'] = property_name = image_property.get('name') or f'#{index}'
         difference = sorted(set(expected_keys).difference(set(image_property.keys())))
 
         if len(difference) > 0:
@@ -138,6 +138,9 @@ def static_prop_to_cache_format(static_props: STATIC_PROPERTIES_FORMAT) -> PROPE
 
     for input_type in input_types:
         for prop_name in list(static_props[indices[0]][input_type].keys()):
-            props_cache[input_type][prop_name] = [static_props[index][input_type][prop_name] for index in indices]
+            prop_vals = [static_props[index][input_type][prop_name] for index in indices]
+            if input_type == PropertiesInputType.PARTIAL_IMAGES.value:
+                prop_vals = list(chain.from_iterable(prop_vals))
+            props_cache[input_type][prop_name] = prop_vals
 
     return props_cache

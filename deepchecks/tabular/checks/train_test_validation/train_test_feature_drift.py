@@ -20,7 +20,7 @@ from deepchecks.core import CheckResult
 from deepchecks.core.checks import ReduceMixin
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
-from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition
+from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition, get_drift_plot_sidenote
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.typing import Hashable
 
@@ -57,16 +57,21 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceMixin):
         columns variable.
     n_top_columns : int , optional
         amount of columns to show ordered by feature importance (date, index, label are first)
-    sort_feature_by : str , default: feature importance
-        Indicates how features will be sorted. Can be either "feature importance"
-        or "drift score"
+    sort_feature_by : str , default: "drift + importance"
+        Indicates how features will be sorted. Possible values:
+        - "feature importance":  sort features by feature importance.
+        - "drift score": sort features by drift score.
+        - "drift + importance": sort features by the sum of the drift score and the feature importance.
     margin_quantile_filter: float, default: 0.025
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
         disproportionally. This filter is applied to both distributions, in both margins.
-    max_num_categories_for_drift: int, default: 10
-        Only for categorical columns. Max number of allowed categories. If there are more,
-        they are binned into an "Other" category. If None, there is no limit.
+    min_category_size_ratio: float, default 0.01
+        minimum size ratio for categories. Categories with size ratio lower than this number are binned
+        into an "Other" category.
+    max_num_categories_for_drift: int, default: None
+        Only for categorical features. Max number of allowed categories. If there are more,
+        they are binned into an "Other" category. This limit applies for both drift calculation and distribution plots.
     max_num_categories_for_display: int, default: 10
         Max number of categories to show in plot.
     show_categories_by: str, default: 'largest_difference'
@@ -81,11 +86,15 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceMixin):
     ignore_na: bool, default True
         For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
         separate category. For numerical columns we always ignore nones.
-    aggregation_method: str, default: "weighted"
+    aggregation_method: str, default: "l2_weighted"
         argument for the reduce_output functionality, decides how to aggregate the drift scores for a
-        collective score. Possible values are:
+        collective score. The collective score value is between 0 and 1 for all methods other than l2_combination.
+        Possible values are:
         'weighted': Weighted mean based on feature importance, provides a robust estimation on how
         much the drift will affect the model's performance.
+        'l2_weighted': L2 norm over the combination of drift scores and feature importance, minus the
+         L2 norm of feature importance alone, specifically, ||FI + DRIFT|| - ||FI||. This method returns a
+         value between 0 and sqrt(n_features).
         'mean': Mean of all drift scores.
         'none': No averaging. Return a dict with a drift score for each feature.
         'max': Maximum of all the features drift scores.
@@ -102,14 +111,15 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceMixin):
             columns: Union[Hashable, List[Hashable], None] = None,
             ignore_columns: Union[Hashable, List[Hashable], None] = None,
             n_top_columns: int = 5,
-            sort_feature_by: str = 'feature importance',
+            sort_feature_by: str = 'drift + importance',
             margin_quantile_filter: float = 0.025,
-            max_num_categories_for_drift: int = 10,
+            max_num_categories_for_drift: int = None,
+            min_category_size_ratio: float = 0.01,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
             categorical_drift_method='cramer_v',
             ignore_na: bool = True,
-            aggregation_method='weighted',
+            aggregation_method='l2_weighted',
             n_samples: int = 100_000,
             random_state: int = 42,
             max_num_categories: int = None,  # Deprecated
@@ -128,12 +138,15 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceMixin):
             max_num_categories_for_drift = max_num_categories_for_drift or max_num_categories
             max_num_categories_for_display = max_num_categories_for_display or max_num_categories
         self.max_num_categories_for_drift = max_num_categories_for_drift
+        self.min_category_size_ratio = min_category_size_ratio
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
-        if sort_feature_by in {'feature importance', 'drift score'}:
+        if sort_feature_by in {'feature importance', 'drift score', 'drift + importance'}:
             self.sort_feature_by = sort_feature_by
         else:
-            raise DeepchecksValueError('sort_feature_by must be either "feature importance" or "drift score"')
+            raise DeepchecksValueError(
+                '"sort_feature_by must be either "feature importance", "drift score" or "drift + importance"'
+            )
         self.n_top_columns = n_top_columns
         self.categorical_drift_method = categorical_drift_method
         self.ignore_na = ignore_na
@@ -208,6 +221,7 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceMixin):
                 plot_title=plot_title,
                 margin_quantile_filter=self.margin_quantile_filter,
                 max_num_categories_for_drift=self.max_num_categories_for_drift,
+                min_category_size_ratio=self.min_category_size_ratio,
                 max_num_categories_for_display=self.max_num_categories_for_display,
                 show_categories_by=self.show_categories_by,
                 categorical_drift_method=self.categorical_drift_method,
@@ -222,23 +236,30 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceMixin):
             displays_dict[column] = display
 
         if context.with_display:
+            sorted_by = self.sort_feature_by
             if self.sort_feature_by == 'feature importance' and feature_importance is not None:
+                features_order = [feat for feat in features_order if feat in values_dict]
                 columns_order = features_order[:self.n_top_columns]
+            elif self.sort_feature_by == 'drift + importance' and feature_importance is not None:
+                feature_columns = [feat for feat in features_order if feat in values_dict]
+                feature_columns.sort(key=lambda col: values_dict[col]['Drift score'] + values_dict[col]['Importance'],
+                                     reverse=True)
+                columns_order = feature_columns[:self.n_top_columns]
+                sorted_by = 'the sum of the drift score and the feature importance'
             else:
                 columns_order = sorted(values_dict.keys(), key=lambda col: values_dict[col]['Drift score'],
                                        reverse=True)[:self.n_top_columns]
+                sorted_by = 'drift score'
 
-            sorted_by = self.sort_feature_by if feature_importance is not None else 'drift score'
-
-            headnote = f"""<span>
+            headnote = [f"""<span>
                 The Drift score is a measure for the difference between two distributions, in this check - the test
                 and train distributions.<br> The check shows the drift score and distributions for the features, sorted
                 by {sorted_by} and showing only the top {self.n_top_columns} features, according to {sorted_by}.
-                <br>If available, the plot titles also show the feature importance (FI) rank.
-            </span>"""
+            </span>""", get_drift_plot_sidenote(self.max_num_categories_for_display, self.show_categories_by),
+                        'If available, the plot titles also show the feature importance (FI) rank']
 
-            displays = [headnote] + [displays_dict[col] for col in columns_order
-                                     if col in train_dataset.cat_features + train_dataset.numerical_features]
+            displays = headnote + [displays_dict[col] for col in columns_order
+                                   if col in train_dataset.cat_features + train_dataset.numerical_features]
         else:
             displays = None
 
@@ -254,14 +275,17 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceMixin):
             return {'Mean Drift Score': np.mean(drift_values)}
         elif self.aggregation_method == 'max':
             return {'Max Drift Score': np.max(drift_values)}
-        elif self.aggregation_method == 'weighted':
-            feature_importance = [col['Importance'] for col in check_result.value.values()]
-            if any(importance is None for importance in feature_importance):
-                get_logger().warning(
+
+        feature_importance = [col['Importance'] for col in check_result.value.values()]
+        if self.aggregation_method in ['weighted', 'l2_weighted'] and None in feature_importance:
+            get_logger().warning(
                     'Failed to calculate feature importance to all features, using uniform mean instead.')
-                return {'Mean Drift Score': np.mean(drift_values)}
-            else:
-                return {'Weighted Drift Score': np.sum(np.array(drift_values) * np.array(feature_importance))}
+            return {'Mean Drift Score': np.mean(drift_values)}
+        elif self.aggregation_method == 'weighted':
+            return {'Weighted Drift Score': np.sum(np.array(drift_values) * np.array(feature_importance))}
+        elif self.aggregation_method == 'l2_weighted':
+            sum_drift_fi = np.array(drift_values) + np.array(feature_importance)
+            return {'L2 Weighted Drift Score': np.linalg.norm(sum_drift_fi) - np.linalg.norm(feature_importance)}
         else:
             raise DeepchecksValueError(f'Unknown aggregation method: {self.aggregation_method}')
 

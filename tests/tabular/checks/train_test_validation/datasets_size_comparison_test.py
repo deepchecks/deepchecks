@@ -35,7 +35,7 @@ def test_test_dataset_size_check_with_condition_that_should_pass(iris_split_data
     check_result = check.run(train, test, model)
     condition_result, *_ = check_result.conditions_results
 
-    assert_that(actual=condition_result, matcher=equal_condition_result( # type: ignore
+    assert_that(condition_result, matcher=equal_condition_result( # type: ignore
         is_pass=True,
         name='Test dataset size is greater or equal to 10',
         details='Test dataset contains 50 samples',
@@ -50,7 +50,7 @@ def test_test_dataset_size_check_with_condition_that_should_not_pass(iris_split_
     check_result = check.run(train, test, model)
     condition_result, *_ = check_result.conditions_results
 
-    assert_that(actual=condition_result, matcher=equal_condition_result( # type: ignore
+    assert_that(condition_result, matcher=equal_condition_result( # type: ignore
         is_pass=False,
         name='Test dataset size is greater or equal to 10000',
         details='Test dataset contains 50 samples',
@@ -65,7 +65,7 @@ def test_test_dataset_size_check_with_size_ratio_condition_that_should_pass(iris
     check_result = check.run(train, test, model)
     condition_result, *_ = check_result.conditions_results
 
-    assert_that(actual=condition_result, matcher=equal_condition_result( # type: ignore
+    assert_that(condition_result, matcher=equal_condition_result( # type: ignore
         is_pass=True,
         name='Test-Train size ratio is greater than 0.2',
         details='Test-Train size ratio is 0.5',
@@ -80,7 +80,7 @@ def test_test_dataset_size_check_with_size_ratio_condition_that_should_not_pass(
     check_result = check.run(train, test, model)
     condition_result, *_ = check_result.conditions_results
 
-    assert_that(actual=condition_result, matcher=equal_condition_result( # type: ignore
+    assert_that(condition_result, matcher=equal_condition_result( # type: ignore
         is_pass=False,
         name='Test-Train size ratio is greater than 0.8',
         details=r'Test-Train size ratio is 0.5',

@@ -22,7 +22,7 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERIC_METHODS,
-                                                 calc_drift_and_plot)
+                                                 calc_drift_and_plot, get_drift_plot_sidenote)
 
 __all__ = ['TrainTestPredictionDrift']
 
@@ -65,9 +65,13 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
         disproportionally. This filter is applied to both distributions, in both margins.
-    max_num_categories_for_drift: int, default: 10
-        Only for categorical columns. Max number of allowed categories. If there are more,
-        they are binned into an "Other" category. If None, there is no limit.
+    min_category_size_ratio: float, default 0.01
+        minimum size ratio for categories. Categories with size ratio lower than this number are binned
+        into an "Other" category.
+    max_num_categories_for_drift: int, default: None
+        Only relevant if drift is calculated for classification predictions. Max number of allowed categories.
+        If there are more,
+        they are binned into an "Other" category. This limit applies for both drift calculation and distribution plots.
     max_num_categories_for_display: int, default: 10
         Max number of categories to show in plot.
     show_categories_by: str, default: 'largest_difference'
@@ -101,7 +105,8 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
             self,
             drift_mode: str = 'auto',
             margin_quantile_filter: float = 0.025,
-            max_num_categories_for_drift: int = 10,
+            max_num_categories_for_drift: int = None,
+            min_category_size_ratio: float = 0.01,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
             categorical_drift_method: str = 'cramer_v',
@@ -127,6 +132,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
             max_num_categories_for_drift = max_num_categories_for_drift or max_num_categories
             max_num_categories_for_display = max_num_categories_for_display or max_num_categories
         self.max_num_categories_for_drift = max_num_categories_for_drift
+        self.min_category_size_ratio = min_category_size_ratio
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
         self.categorical_drift_method = categorical_drift_method
@@ -177,11 +183,12 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
                 train_column=pd.Series(train_prediction[:, class_idx].flatten()),
                 test_column=pd.Series(test_prediction[:, class_idx].flatten()),
                 value_name='model predictions' if not proba_drift else
-                           f'predicted probabilities for class {class_name}',
+                f'predicted probabilities for class {class_name}',
                 column_type='categorical' if (context.task_type != TaskType.REGRESSION) and (not proba_drift)
-                            else 'numerical',
+                else 'numerical',
                 margin_quantile_filter=self.margin_quantile_filter,
                 max_num_categories_for_drift=self.max_num_categories_for_drift,
+                min_category_size_ratio=self.min_category_size_ratio,
                 max_num_categories_for_display=self.max_num_categories_for_display,
                 show_categories_by=self.show_categories_by,
                 categorical_drift_method=self.categorical_drift_method,
@@ -190,15 +197,15 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
             )
 
         if context.with_display:
-            headnote = f"""<span>
+            headnote = [f"""<span>
                 The Drift score is a measure for the difference between two distributions, in this check - the test
                 and train distributions.<br> The check shows the drift score and distributions for the predicted
                 {'class probabilities' if proba_drift else 'classes'}.
-            </span>"""
+            </span>""", get_drift_plot_sidenote(self.max_num_categories_for_display, self.show_categories_by)]
 
             # sort classes by their drift score
-            displays = [headnote] + [x for _, x in sorted(zip(drift_score_dict.values(), drift_display_dict.values()),
-                                                          reverse=True)][:self.max_classes_to_display]
+            displays = headnote + [x for _, x in sorted(zip(drift_score_dict.values(), drift_display_dict.values()),
+                                                        reverse=True)][:self.max_classes_to_display]
         else:
             displays = None
 

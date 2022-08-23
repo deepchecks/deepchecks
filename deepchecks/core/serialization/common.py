@@ -262,7 +262,6 @@ def create_failures_dataframe(
             )
             error_types = (
                 errors.DatasetValidationError,
-                errors.ModelValidationError,
                 errors.DeepchecksProcessError,
             )
             if isinstance(it.exception, error_types):

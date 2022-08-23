@@ -10,7 +10,7 @@
 #
 """Module containing a check for computing a scalar performance metric for a single dataset."""
 from numbers import Number
-from typing import Any, Callable, Dict, List, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Union
 
 from ignite.metrics import Metric
 
@@ -18,8 +18,12 @@ from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.checks import ReduceMixin
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.utils.docref import doclink
 from deepchecks.vision import Batch, Context, SingleDatasetCheck
 from deepchecks.vision.metrics_utils.scorers import get_scorers_dict, metric_results_to_df
+
+if TYPE_CHECKING:
+    from deepchecks.core.checks import CheckConfig
 
 __all__ = ['SingleDatasetPerformance']
 
@@ -59,6 +63,24 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
         result_df = metric_results_to_df(results_dict, context.get_data_by_kind(dataset_kind))
         display = result_df if context.with_display else None
         return CheckResult(result_df, header='Single Dataset Performance', display=display)
+
+    def config(
+        self,
+        include_version: bool = True
+    ) -> 'CheckConfig':
+        """Return check configuration."""
+        if isinstance(self.scorers, dict):
+            for k, v in self.scorers.items():
+                if not isinstance(v, str):
+                    reference = doclink(
+                        'vision-builtin-metrics',
+                        template='For a list of built-in scorers please refer to {link}. ',
+                    )
+                    raise ValueError(
+                        'Only built-in scorers are allowed when serializing check instances. '
+                        f'{reference}Scorer name: {k}'
+                    )
+        return super().config(include_version=include_version)
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return the values of the metrics for the dataset provided in a {metric: value} format."""
