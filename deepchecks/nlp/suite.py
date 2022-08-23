@@ -17,7 +17,7 @@ from deepchecks.core.check_result import CheckFailure
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.nlp.base_checks import SingleDatasetCheck, TrainTestCheck
-from deepchecks.nlp.context import Context, TTextPred
+from deepchecks.nlp.context import Context, TTextPred, TTextProba
 from deepchecks.nlp.text_data import TextData
 from deepchecks.utils.ipython import create_progress_bar
 
@@ -34,19 +34,21 @@ class Suite(BaseSuite):
 
     def run(
         self,
-        train: Union[TextData, None] = None,
-        test: Union[TextData, None] = None,
+        train_dataset: Union[TextData, None] = None,
+        test_dataset: Union[TextData, None] = None,
         with_display: bool = True,
         train_predictions: Optional[TTextPred] = None,
         test_predictions: Optional[TTextPred] = None,
+        train_probabilities: Optional[TTextProba] = None,
+        test_probabilities: Optional[TTextProba] = None,
     ) -> SuiteResult:
         """Run all checks.
 
         Parameters
         ----------
-        train: Union[TextData, None] , default: None
+        train_dataset: Union[TextData, None] , default: None
             TextData object, representing data an estimator was fitted on
-        test: Union[TextData, None] , default: None
+        test_dataset: Union[TextData, None] , default: None
             TextData object, representing data an estimator predicts on
         with_display : bool , default: True
             flag that determines if checks will calculate display (redundant in some checks).
@@ -54,6 +56,10 @@ class Suite(BaseSuite):
             predictions on train dataset
         test_predictions: Union[TTextPred, None] , default: None
             predictions on test dataset
+                train_probabilities: Union[TTextProba, None] , default: None
+            probabilities on train dataset
+        test_probabilities: Union[TTextProba, None] , default: None
+            probabilities on test_dataset dataset
 
         Returns
         -------
@@ -61,10 +67,12 @@ class Suite(BaseSuite):
             All results by all initialized checks
         """
         context = Context(
-            train=train,
-            test=test,
-            train_predictions=train_predictions,
-            test_predictions=test_predictions,
+            train_dataset=train_dataset,
+            test_dataset=test_dataset,
+            train_pred=train_predictions,
+            test_pred=test_predictions,
+            train_proba=train_probabilities,
+            test_proba=test_probabilities,
             with_display=with_display,
         )
 
@@ -80,7 +88,7 @@ class Suite(BaseSuite):
             try:
                 progress_bar.set_postfix({'Check': check.name()}, refresh=False)
                 if isinstance(check, TrainTestCheck):
-                    if train is not None and test is not None:
+                    if train_dataset is not None and test_dataset is not None:
                         check_result = check.run_logic(context)
                         context.finalize_check_result(check_result, check)
                         results.append(check_result)
@@ -88,29 +96,29 @@ class Suite(BaseSuite):
                         msg = 'Check is irrelevant if not supplied with both train and test datasets'
                         results.append(Suite._get_unsupported_failure(check, msg))
                 elif isinstance(check, SingleDatasetCheck):
-                    if train is not None:
+                    if train_dataset is not None:
                         # In case of train & test, doesn't want to skip test if train fails. so have to explicitly
                         # wrap it in try/except
                         try:
                             check_result = check.run_logic(context, dataset_kind=DatasetKind.TRAIN)
                             context.finalize_check_result(check_result, check, DatasetKind.TRAIN)
                             # In case of single dataset not need to edit the header
-                            if test is not None:
+                            if test_dataset is not None:
                                 check_result.header = f'{check_result.get_header()} - Train Dataset'
                         except Exception as exp:
                             check_result = CheckFailure(check, exp, ' - Train Dataset')
                         results.append(check_result)
-                    if train is not None:
+                    if train_dataset is not None:
                         try:
                             check_result = check.run_logic(context, dataset_kind=DatasetKind.TEST)
                             context.finalize_check_result(check_result, check, DatasetKind.TEST)
                             # In case of single dataset not need to edit the header
-                            if train is not None:
+                            if train_dataset is not None:
                                 check_result.header = f'{check_result.get_header()} - Test Dataset'
                         except Exception as exp:
                             check_result = CheckFailure(check, exp, ' - Test Dataset')
                         results.append(check_result)
-                    if train is None and test is None:
+                    if train_dataset is None and test_dataset is None:
                         msg = 'Check is irrelevant if dataset is not supplied'
                         results.append(Suite._get_unsupported_failure(check, msg))
                 else:

@@ -126,4 +126,3 @@ class TrainTestCheck(TrainTestBaseCheck):
     def run_logic(self, context) -> CheckResult:
         """Run check."""
         raise NotImplementedError()
-

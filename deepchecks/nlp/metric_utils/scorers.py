@@ -39,7 +39,7 @@ def init_validate_scorers(scorers: t.Union[t.Mapping[str, t.Union[str, t.Callabl
 
 
 def infer_on_text_data(scorer: DeepcheckScorer, model: ClassificationModel, data: TextData):
-    """Infer using DeepcheckScorer on nlp TextData using a nlp context _DummyModel"""
+    """Infer using DeepcheckScorer on nlp TextData using a nlp context _DummyModel."""
     y_true = data.label
     y_pred = model.predict(data)
     if hasattr(model, 'predict_proba'):

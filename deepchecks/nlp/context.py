@@ -20,7 +20,7 @@ from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupport
                                     ModelValidationError, ValidationError)
 from deepchecks.nlp.metric_utils.scorers import init_validate_scorers
 from deepchecks.nlp.task_type import TaskType
-from deepchecks.nlp.text_data import TextData, TTextLabel
+from deepchecks.nlp.text_data import TextData
 from deepchecks.tabular.utils.task_type import TaskType as TabularTaskType
 
 __all__ = [
@@ -83,7 +83,7 @@ class _DummyModel(BasicModel):
         predictions = {}
         probas = {}
 
-        if ((y_proba_train is not None) or (y_proba_test is not None)) and\
+        if ((y_proba_train is not None) or (y_proba_test is not None)) and \
                 (train.task_type == TaskType.TOKEN_CLASSIFICATION):
             raise DeepchecksNotSupportedError('For token classification probabilities should be part of the token'
                                               ' prediction annotation and not passed to the proba argument')
@@ -98,7 +98,7 @@ class _DummyModel(BasicModel):
                     self._validate_proba(dataset, y_proba)
 
                 if dataset.task_type == TaskType.TEXT_CLASSIFICATION:
-                    if (y_pred is None) and (y_proba is not None) and\
+                    if (y_pred is None) and (y_proba is not None) and \
                             (dataset.task_type == TaskType.TEXT_CLASSIFICATION):
                         if dataset.is_multilabel:
                             y_pred = np.array(y_proba) > 0.5
@@ -129,11 +129,11 @@ class _DummyModel(BasicModel):
 
     def _predict(self, data: TextData) -> TTextPred:
         """Predict on given data by the data indexes."""
-        return list(itemgetter(*data.index)(self.predictions[data.name]))
+        return list(itemgetter(*data.index)(self.predictions[data.name]))  # pylint: disable=unsubscriptable-object
 
     def _predict_proba(self, data: TextData) -> TTextProba:
         """Predict probabilities on given data by the data indexes."""
-        return list(itemgetter(*data.index)(self.probas))
+        return list(itemgetter(*data.index)(self.probas[data.name]))  # pylint: disable=unsubscriptable-object
 
     def fit(self, *args, **kwargs):
         """Just for python 3.6 (sklearn validates fit method)."""
@@ -246,14 +246,14 @@ class Context:
     """
 
     def __init__(
-        self,
-        train_dataset: t.Union[TextData, None] = None,
-        test_dataset: t.Union[TextData, None] = None,
-        with_display: bool = True,
-        train_pred: t.Optional[TTextPred] = None,
-        test_pred: t.Optional[TTextPred] = None,
-        train_proba: t.Optional[TTextProba] = None,
-        test_proba: t.Optional[TTextProba] = None
+            self,
+            train_dataset: t.Union[TextData, None] = None,
+            test_dataset: t.Union[TextData, None] = None,
+            with_display: bool = True,
+            train_pred: t.Optional[TTextPred] = None,
+            test_pred: t.Optional[TTextPred] = None,
+            train_proba: t.Optional[TTextProba] = None,
+            test_proba: t.Optional[TTextProba] = None
     ):
         # Validations
         if train_dataset is not None:
@@ -371,13 +371,13 @@ class Context:
                               f'{dataset.len_when_sampled(n_samples)} samples out of {len(dataset)}.'
             else:
                 if self._train is not None and self._train.is_sampled(n_samples):
-                    message += f'Running on {self._train.len_when_sampled(n_samples)} <b>train_dataset</b> data samples ' \
-                               f'out of {len(self._train)}.'
+                    message += f'Running on {self._train.len_when_sampled(n_samples)} <b>train_dataset</b> data ' \
+                               f'samples out of {len(self._train)}.'
                 if self._test is not None and self._test.is_sampled(n_samples):
                     if message:
                         message += ' '
-                    message += f'Running on {self._test.len_when_sampled(n_samples)} <b>test_dataset</b> data samples ' \
-                               f'out of {len(self._test)}.'
+                    message += f'Running on {self._test.len_when_sampled(n_samples)} <b>test_dataset</b> data ' \
+                               f'samples out of {len(self._test)}.'
 
             if message:
                 message = ('<p style="font-size:0.9em;line-height:1;"><i>'

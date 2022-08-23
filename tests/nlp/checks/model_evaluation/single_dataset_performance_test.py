@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 
-from hamcrest import assert_that, close_to, equal_to, has_length
+from hamcrest import assert_that, close_to
 
 from deepchecks.nlp.checks.model_evaluation.single_dataset_performance import SingleDatasetPerformance
 
