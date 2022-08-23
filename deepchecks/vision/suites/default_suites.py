@@ -33,7 +33,6 @@ __all__ = ['train_test_validation', 'model_evaluation', 'full_suite', 'integrity
 def train_test_validation(n_top_show: int = 5,
                           label_properties: List[Dict[str, Any]] = None,
                           image_properties: List[Dict[str, Any]] = None,
-                          sample_size: int = None,
                           random_state: int = None,
                           **kwargs) -> Suite:
     """Suite for validating correctness of train-test split, including distribution, \
@@ -83,8 +82,6 @@ def train_test_validation(n_top_show: int = 5,
         - 'categorical' - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
         For more on image / label properties, see the :ref:`vision_properties_guide`.
-    sample_size : int , default: None
-        Number of samples to use for checks that sample data. If none, using the default sample_size per check.
     random_state: int, default: None
         Random seed for all checks.
     **kwargs : dict
@@ -99,7 +96,7 @@ def train_test_validation(n_top_show: int = 5,
     Examples
     --------
     >>> from deepchecks.vision.suites import train_test_validation
-    >>> suite = train_test_validation(n_top_show=3, sample_size=100)
+    >>> suite = train_test_validation(n_top_show=3)
     >>> result = suite.run()
     >>> result.show()
 
