@@ -146,8 +146,13 @@ class Context:
         # from the same VisionData object), and if there is a random_state the shuffle will always have same result
         if train:
             train = train.copy(shuffle=True, n_samples=n_samples, random_state=random_state)
+            if train.name == None:
+                train.name = 'Train'
+
         if test:
             test = test.copy(shuffle=True, n_samples=n_samples, random_state=random_state)
+            if test.name == None:
+                test.name = 'Test'
 
         self._train = train
         self._test = test
@@ -157,6 +162,7 @@ class Context:
         self._model_name = model_name
         self._with_display = with_display
         self.random_state = random_state
+
 
     # Properties
     # Validations note: We know train & test fit each other so all validations can be run only on train

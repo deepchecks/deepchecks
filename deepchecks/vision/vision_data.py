@@ -50,6 +50,8 @@ class VisionData:
         A dictionary mapping class ids to their names.
     transform_field : str, default: 'transforms'
         Name of transforms field in the dataset which holds transformations of both data and label.
+    dataset_name: str, optional
+        Name of the dataset to use in the displays instead of "Train" or "Test".
     """
 
     def __init__(
@@ -57,7 +59,8 @@ class VisionData:
         data_loader: DataLoader,
         num_classes: Optional[int] = None,
         label_map: Optional[Dict[int, str]] = None,
-        transform_field: Optional[str] = 'transforms'
+        transform_field: Optional[str] = 'transforms',
+        dataset_name: Optional[str] = None
     ):
         # Create data loader that uses IndicesSequentialSampler, which always return batches in the same order
         self._data_loader, self._sampler = self._get_data_loader_sequential(data_loader)
@@ -68,6 +71,7 @@ class VisionData:
         self._image_formatter_error = None
         self._label_formatter_error = None
         self._get_classes_error = None
+        self.name = dataset_name
 
         batch = next(iter(self._data_loader))
         try:
