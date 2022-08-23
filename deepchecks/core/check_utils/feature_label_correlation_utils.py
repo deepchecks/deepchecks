@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing common feature label correlation (PPS) utils."""
-from typing import Optional
+from typing import Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -52,27 +52,25 @@ def get_pps_figure(per_class: bool, n_of_features: int):
     return fig
 
 
-def pd_series_to_trace(s_pps: pd.Series, name: str):
+def pd_series_to_trace(s_pps: pd.Series, train_or_test: str, name: str):
     """Create bar plotly bar trace out of pandas Series."""
-    name = name.capitalize() if name else None
     return go.Bar(x=s_pps.index,
                   y=s_pps,
                   name=name,
-                  marker_color=colors.get(name),
+                  marker_color=colors.get(train_or_test),
                   text='<b>' + s_pps.round(2).astype(str) + '</b>',
                   textposition='outside'
                   )
 
 
-def pd_series_to_trace_with_diff(s_pps: pd.Series, name: str, diffs: pd.Series):
+def pd_series_to_trace_with_diff(s_pps: pd.Series, train_or_test: str, name: str, diffs: pd.Series):
     """Create bar plotly bar trace out of pandas Series, with difference shown in percentages."""
     diffs_text = '(' + diffs.apply(format_percent, floating_point=0, add_positive_prefix=True) + ')'
     text = diffs_text + '<br>' + s_pps.round(2).astype(str)
-    name = name.capitalize() if name else None
     return go.Bar(x=s_pps.index,
                   y=s_pps,
                   name=name,
-                  marker_color=colors.get(name),
+                  marker_color=colors.get(train_or_test),
                   text='<b>' + text + '</b>',
                   textposition='outside'
                   )
@@ -84,7 +82,9 @@ def get_feature_label_correlation(train_df: pd.DataFrame, train_label_name: Opti
                                   n_show_top: int,
                                   min_pps_to_show: float = 0.05,
                                   random_state: int = None,
-                                  with_display: bool = True):
+                                  with_display: bool = True,
+                                  dataset_names: Tuple[str] = ('Train', 'Test')
+                                  ):
     """
     Calculate the PPS for train, test and difference for feature label correlation checks.
 
@@ -110,6 +110,8 @@ def get_feature_label_correlation(train_df: pd.DataFrame, train_label_name: Opti
             Minimum PPS to show a class in the graph
         random_state: int, default None
             Random state for the ppscore.predictors function
+        dataset_names: tuple, default: ('Train', 'Test)
+            The names to show in the display for the first and second datasets.
 
     Returns:
         CheckResult
@@ -138,8 +140,8 @@ def get_feature_label_correlation(train_df: pd.DataFrame, train_label_name: Opti
     s_pps_test_to_display = s_pps_test[sorted_order_for_display]
 
     fig = get_pps_figure(per_class=False, n_of_features=len(sorted_order_for_display))
-    fig.add_trace(pd_series_to_trace(s_pps_train_to_display, 'train'))
-    fig.add_trace(pd_series_to_trace(s_pps_test_to_display, 'test'))
+    fig.add_trace(pd_series_to_trace(s_pps_train_to_display, 'Train', dataset_names[0]))
+    fig.add_trace(pd_series_to_trace(s_pps_test_to_display, 'Test', dataset_names[1]))
 
     # display only if not all scores are above min_pps_to_show
     display = [fig] if any(s_pps_train > min_pps_to_show) or any(s_pps_test > min_pps_to_show) else None
@@ -153,7 +155,9 @@ def get_feature_label_correlation_per_class(train_df: pd.DataFrame, train_label_
                                             n_show_top: int,
                                             min_pps_to_show: float = 0.05,
                                             random_state: int = None,
-                                            with_display: bool = True):
+                                            with_display: bool = True,
+                                            dataset_names: Tuple[str] = ('Train', 'Test')
+                                            ):
     """
     Calculate the PPS for train, test and difference for feature label correlation checks per class.
 
@@ -179,6 +183,8 @@ def get_feature_label_correlation_per_class(train_df: pd.DataFrame, train_label_
             Minimum PPS to show a class in the graph
         random_state: int, default None
             Random state for the ppscore.predictors function
+        dataset_names: tuple, default: ('Train', 'Test)
+            The names to show in the display for the first and second datasets.
 
     Returns:
         CheckResult
@@ -233,8 +239,8 @@ def get_feature_label_correlation_per_class(train_df: pd.DataFrame, train_label_
 
             fig = get_pps_figure(per_class=True, n_of_features=len(sorted_order_for_display))
             fig.update_layout(title=f'{feature}: Predictive Power Score (PPS) Per Class')
-            fig.add_trace(pd_series_to_trace(s_train_to_display, 'train'))
-            fig.add_trace(pd_series_to_trace(s_test_to_display, 'test'))
+            fig.add_trace(pd_series_to_trace(s_train_to_display, 'Train', dataset_names[0]))
+            fig.add_trace(pd_series_to_trace(s_test_to_display, 'Test', dataset_names[1]))
             display.append(fig)
 
     return ret_value, display
