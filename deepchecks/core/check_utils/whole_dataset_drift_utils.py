@@ -10,7 +10,7 @@
 #
 """Module containing common WholeDatasetDriftCheck (domain classifier drift) utils."""
 import warnings
-from typing import Container, List
+from typing import Container, List, Tuple
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -39,7 +39,9 @@ def run_whole_dataset_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
                             random_state: int, test_size: float, n_top_columns: int, min_feature_importance: float,
                             max_num_categories_for_display: int, show_categories_by: str,
                             min_meaningful_drift_score: float,
-                            with_display: bool):
+                            with_display: bool,
+                            dataset_names: Tuple[str] = ('Train', 'Test')
+                            ):
     """Calculate whole dataset drift."""
     train_sample_df = train_dataframe.sample(sample_size, random_state=random_state)[numerical_features + cat_features]
     test_sample_df = test_dataframe.sample(sample_size, random_state=random_state)[numerical_features + cat_features]
@@ -117,7 +119,8 @@ def run_whole_dataset_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
                     top_fi,
                     cat_features,
                     max_num_categories_for_display,
-                    show_categories_by)
+                    show_categories_by,
+                    dataset_names)
                 for feature in top_fi.index
             )
         ]
@@ -159,7 +162,8 @@ def display_dist(
         fi: pd.Series,
         cat_features: Container[str],
         max_num_categories: int,
-        show_categories_by: str
+        show_categories_by: str,
+        dataset_names: Tuple[str] = ('Train', 'Test')
 ):
     """Create a distribution comparison plot for the given columns."""
     column_name = train_column.name or ''
@@ -172,7 +176,8 @@ def display_dist(
         column_name,
         is_categorical=column_name in cat_features,
         max_num_categories=max_num_categories,
-        show_categories_by=show_categories_by
+        show_categories_by=show_categories_by,
+        dataset_names=dataset_names
     )
 
     fig = go.Figure()
