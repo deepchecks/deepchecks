@@ -165,21 +165,20 @@ class AveragePrecisionRecall(Metric, MetricMixin):
         scores = {}
         matched = {}
         n_gts = {}
-        for min_iou in self.iou_thresholds:
-            for top_n_detections in self.max_detections_per_class:
-                for area_size in self.area_ranges_names:
-                    # sort list of dts and chop by max dets
-                    top_detections_idx = sorted_confidence_ids[:top_n_detections]
-                    ious = orig_ious[top_detections_idx]
-                    ground_truth_to_ignore = [self._is_ignore_area(gt_area, area_size) for gt_area in ground_truth_area]
+        for top_n_detections in self.max_detections_per_class:
+            for area_size in self.area_ranges_names:
+                # sort list of dts and chop by max dets
+                top_detections_idx = sorted_confidence_ids[:top_n_detections]
+                ious = orig_ious[top_detections_idx]
+                ground_truth_to_ignore = [self._is_ignore_area(gt_area, area_size) for gt_area in ground_truth_area]
 
-                    # sort gts by ignore last
-                    gt_sort = np.argsort(ground_truth_to_ignore, kind="stable")
-                    ground_truths = [orig_gt[idx] for idx in gt_sort]
-                    ground_truth_to_ignore = [ground_truth_to_ignore[idx] for idx in gt_sort]
+                # sort gts by ignore last
+                gt_sort = np.argsort(ground_truth_to_ignore, kind="stable")
+                ground_truths = [orig_gt[idx] for idx in gt_sort]
+                ground_truth_to_ignore = [ground_truth_to_ignore[idx] for idx in gt_sort]
 
-                    ious = ious[:, gt_sort]
-
+                ious = ious[:, gt_sort]
+                for min_iou in self.iou_thresholds:
                     detection_matches = \
                         self._get_best_matches(top_detections_idx, min_iou, ground_truths, ground_truth_to_ignore, ious)
 
