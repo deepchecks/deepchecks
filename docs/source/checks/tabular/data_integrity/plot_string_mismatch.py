@@ -5,7 +5,7 @@
 String Mismatch
 ***************
 
-This page provides an overview for using and understanding the "String Mismatch" check.
+This notebook provides an overview for using and understanding the "String Mismatch" check.
 
 **Structure:**
 
