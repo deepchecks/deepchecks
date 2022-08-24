@@ -16,7 +16,7 @@ import pandas as pd
 import plotly.graph_objects as go
 
 import deepchecks.ppscore as pps
-from deepchecks.utils.plot import colors
+from deepchecks.utils.plot import DEFAULT_DATASET_NAMES, colors
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
 
@@ -83,7 +83,7 @@ def get_feature_label_correlation(train_df: pd.DataFrame, train_label_name: Opti
                                   min_pps_to_show: float = 0.05,
                                   random_state: int = None,
                                   with_display: bool = True,
-                                  dataset_names: Tuple[str] = ('Train', 'Test')
+                                  dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES
                                   ):
     """
     Calculate the PPS for train, test and difference for feature label correlation checks.
@@ -110,7 +110,7 @@ def get_feature_label_correlation(train_df: pd.DataFrame, train_label_name: Opti
             Minimum PPS to show a class in the graph
         random_state: int, default None
             Random state for the ppscore.predictors function
-        dataset_names: tuple, default: ('Train', 'Test)
+        dataset_names: tuple, default: DEFAULT_DATASET_NAMES
             The names to show in the display for the first and second datasets.
 
     Returns:
@@ -140,8 +140,8 @@ def get_feature_label_correlation(train_df: pd.DataFrame, train_label_name: Opti
     s_pps_test_to_display = s_pps_test[sorted_order_for_display]
 
     fig = get_pps_figure(per_class=False, n_of_features=len(sorted_order_for_display))
-    fig.add_trace(pd_series_to_trace(s_pps_train_to_display, 'Train', dataset_names[0]))
-    fig.add_trace(pd_series_to_trace(s_pps_test_to_display, 'Test', dataset_names[1]))
+    fig.add_trace(pd_series_to_trace(s_pps_train_to_display, DEFAULT_DATASET_NAMES[0], dataset_names[0]))
+    fig.add_trace(pd_series_to_trace(s_pps_test_to_display, DEFAULT_DATASET_NAMES[1], dataset_names[1]))
 
     # display only if not all scores are above min_pps_to_show
     display = [fig] if any(s_pps_train > min_pps_to_show) or any(s_pps_test > min_pps_to_show) else None
@@ -156,7 +156,7 @@ def get_feature_label_correlation_per_class(train_df: pd.DataFrame, train_label_
                                             min_pps_to_show: float = 0.05,
                                             random_state: int = None,
                                             with_display: bool = True,
-                                            dataset_names: Tuple[str] = ('Train', 'Test')
+                                            dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES
                                             ):
     """
     Calculate the PPS for train, test and difference for feature label correlation checks per class.
@@ -183,7 +183,7 @@ def get_feature_label_correlation_per_class(train_df: pd.DataFrame, train_label_
             Minimum PPS to show a class in the graph
         random_state: int, default None
             Random state for the ppscore.predictors function
-        dataset_names: tuple, default: ('Train', 'Test)
+        dataset_names: tuple, default: DEFAULT_DATASET_NAMES
             The names to show in the display for the first and second datasets.
 
     Returns:
@@ -239,8 +239,8 @@ def get_feature_label_correlation_per_class(train_df: pd.DataFrame, train_label_
 
             fig = get_pps_figure(per_class=True, n_of_features=len(sorted_order_for_display))
             fig.update_layout(title=f'{feature}: Predictive Power Score (PPS) Per Class')
-            fig.add_trace(pd_series_to_trace(s_train_to_display, 'Train', dataset_names[0]))
-            fig.add_trace(pd_series_to_trace(s_test_to_display, 'Test', dataset_names[1]))
+            fig.add_trace(pd_series_to_trace(s_train_to_display, DEFAULT_DATASET_NAMES[0], dataset_names[0]))
+            fig.add_trace(pd_series_to_trace(s_test_to_display, DEFAULT_DATASET_NAMES[1], dataset_names[1]))
             display.append(fig)
 
     return ret_value, display
