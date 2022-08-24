@@ -27,6 +27,8 @@ from deepchecks.utils.decorators import deprecate_kwarg
 from deepchecks.utils.features import calculate_feature_importance_or_none
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.typing import BasicModel
+from deepchecks.utils.plot import DEFAULT_DATASET_NAMES
+
 
 __all__ = [
     'Context', '_DummyModel'
@@ -176,11 +178,11 @@ class Context:
         if train is not None:
             train = Dataset.cast_to_dataset(train)
             if train.name is None:
-                train.name = 'Train'
+                train.name = DEFAULT_DATASET_NAMES[0]
         if test is not None:
             test = Dataset.cast_to_dataset(test)
             if test.name is None:
-                test.name = 'Test'
+                test.name = DEFAULT_DATASET_NAMES[1]
         # If both dataset, validate they fit each other
         if train and test:
             if test.has_label() and train.has_label() and not Dataset.datasets_share_label(train, test):

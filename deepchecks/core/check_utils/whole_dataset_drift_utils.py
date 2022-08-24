@@ -15,6 +15,8 @@ from typing import Container, List, Tuple
 import pandas as pd
 import plotly.graph_objects as go
 
+from deepchecks.utils.plot import DEFAULT_DATASET_NAMES
+
 with warnings.catch_warnings():
     warnings.simplefilter('ignore')
     from sklearn.experimental import enable_hist_gradient_boosting  # noqa # pylint: disable=unused-import
@@ -40,7 +42,7 @@ def run_whole_dataset_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
                             max_num_categories_for_display: int, show_categories_by: str,
                             min_meaningful_drift_score: float,
                             with_display: bool,
-                            dataset_names: Tuple[str] = ('Train', 'Test')
+                            dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES
                             ):
     """Calculate whole dataset drift."""
     train_sample_df = train_dataframe.sample(sample_size, random_state=random_state)[numerical_features + cat_features]
@@ -163,7 +165,7 @@ def display_dist(
         cat_features: Container[str],
         max_num_categories: int,
         show_categories_by: str,
-        dataset_names: Tuple[str] = ('Train', 'Test')
+        dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES
 ):
     """Create a distribution comparison plot for the given columns."""
     column_name = train_column.name or ''

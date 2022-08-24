@@ -22,6 +22,7 @@ from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
 from deepchecks.utils.dict_funcs import get_dict_entry_by_value
 from deepchecks.utils.distribution.plot import drift_score_bar_traces, feature_distribution_traces
 from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
+from deepchecks.utils.plot import DEFAULT_DATASET_NAMES
 from deepchecks.utils.strings import format_number
 
 __all__ = ['calc_drift_and_plot', 'get_drift_method', 'SUPPORTED_CATEGORICAL_METHODS', 'SUPPORTED_NUMERIC_METHODS',
@@ -234,7 +235,7 @@ def calc_drift_and_plot(train_column: pd.Series,
                         ignore_na: bool = True,
                         min_samples: int = 10,
                         with_display: bool = True,
-                        dataset_names: Tuple[str] = ('Train', 'Test')
+                        dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES
                         ) -> Tuple[float, str, Callable]:
     """
     Calculate drift score per column.
@@ -278,7 +279,7 @@ def calc_drift_and_plot(train_column: pd.Series,
         Minimum number of samples for each column in order to calculate draft
     with_display: bool, default: True
         flag that determines if function will calculate display.
-    dataset_names: tuple, default: ('Train', 'Test)
+    dataset_names: tuple, default: DEFAULT_DATASET_NAMES
         The names to show in the display for the first and second datasets.
     Returns
     -------

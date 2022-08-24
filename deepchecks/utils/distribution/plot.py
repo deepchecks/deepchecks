@@ -26,7 +26,7 @@ from typing import Dict, List, Tuple
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.dataframes import un_numpy
 from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
-from deepchecks.utils.plot import colors
+from deepchecks.utils.plot import colors, DEFAULT_DATASET_NAMES
 
 # For numerical plots, below this number of unique values we draw bar plots, else KDE
 MAX_NUMERICAL_UNIQUE_FOR_BARS = 20
@@ -135,7 +135,7 @@ def feature_distribution_traces(
     max_num_categories: int = 10,
     show_categories_by: CategoriesSortingKind = 'largest_difference',
     quantile_cut: float = 0.02,
-    dataset_names: Tuple[str] = ('Train', 'Test')
+    dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES
 ) -> Tuple[List[go.Trace], Dict, Dict]:
     """Create traces for comparison between train and test column.
 
@@ -159,7 +159,7 @@ def feature_distribution_traces(
         - 'largest_difference': Show the largest difference between categories.
     quantile_cut : float , default: 0.02
         In which quantile to cut the edges of the plot.
-    dataset_names: tuple, default: ('Train', 'Test)
+    dataset_names: tuple, default: DEFAULT_DATASET_NAMES
         The names to show in the display for the first and second datasets.
 
     Returns
@@ -235,7 +235,7 @@ def feature_distribution_traces(
                 x=train_uniques,
                 y=_create_bars_data_for_mixed_kde_plot(train_uniques_counts, np.max(test_density)),
                 width=[bars_width] * train_uniques.size,
-                marker=dict(color=colors['Train']),
+                marker=dict(color=colors[DEFAULT_DATASET_NAMES[0]]),
                 name=dataset_names[0] + ' Dataset',
             ))
         else:
@@ -248,7 +248,7 @@ def feature_distribution_traces(
                 y=_create_bars_data_for_mixed_kde_plot(test_uniques_counts, np.max(train_density)),
                 width=[bars_width] * test_uniques.size,
                 marker=dict(
-                    color=colors['Test']
+                    color=colors[DEFAULT_DATASET_NAMES[1]]
                 ),
                 name=dataset_names[1] + ' Dataset',
             ))
@@ -270,10 +270,11 @@ def _create_bars_data_for_mixed_kde_plot(counts: np.ndarray, max_kde_value: floa
     return counts * normalize_factor
 
 
-def _create_distribution_scatter_plot(xs, ys, mean, median, is_train, dataset_names: Tuple[str] = ('Train', 'Test')):
+def _create_distribution_scatter_plot(xs, ys, mean, median, is_train,
+                                      dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES):
     traces = []
     name = dataset_names[0] if is_train else dataset_names[1]
-    train_or_test = 'Train' if is_train else 'Test'
+    train_or_test = DEFAULT_DATASET_NAMES[0] if is_train else DEFAULT_DATASET_NAMES[1]
     traces.append(go.Scatter(x=xs, y=ys, fill='tozeroy', name=f'{name} Dataset',
                              line_color=colors[train_or_test], line_shape='spline'))
     y_mean_index = np.argmax(xs == mean)
@@ -290,7 +291,7 @@ def _create_distribution_bar_graphs(
         test_column: t.Union[np.ndarray, pd.Series],
         max_num_categories: int,
         show_categories_by: CategoriesSortingKind,
-        dataset_names: Tuple[str] = ('Train', 'Test')
+        dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES
 ) -> t.Tuple[t.Any, t.Any]:
     """
     Create distribution bar graphs.
@@ -350,13 +351,13 @@ def _create_distribution_bar_graphs(
         go.Bar(
             x=cat_df.index,
             y=cat_df['Train dataset'],
-            marker=dict(color=colors['Train']),
+            marker=dict(color=colors[DEFAULT_DATASET_NAMES[0]]),
             name=dataset_names[0] + ' Dataset',
         ),
         go.Bar(
             x=cat_df.index,
             y=cat_df['Test dataset'],
-            marker=dict(color=colors['Test']),
+            marker=dict(color=colors[DEFAULT_DATASET_NAMES[1]]),
             name=dataset_names[1] + ' Dataset',
         )
     ]

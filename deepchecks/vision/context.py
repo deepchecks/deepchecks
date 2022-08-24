@@ -24,6 +24,7 @@ from deepchecks.vision._shared_docs import docstrings
 from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.utils.vision_properties import STATIC_PROPERTIES_FORMAT, PropertiesInputType
 from deepchecks.vision.vision_data import VisionData
+from deepchecks.utils.plot import DEFAULT_DATASET_NAMES
 
 __all__ = ['Context']
 
@@ -147,12 +148,12 @@ class Context:
         if train:
             train = train.copy(shuffle=True, n_samples=n_samples, random_state=random_state)
             if train.name == None:
-                train.name = 'Train'
+                train.name = DEFAULT_DATASET_NAMES[0]
 
         if test:
             test = test.copy(shuffle=True, n_samples=n_samples, random_state=random_state)
             if test.name == None:
-                test.name = 'Test'
+                test.name = DEFAULT_DATASET_NAMES[1]
 
         self._train = train
         self._test = test
