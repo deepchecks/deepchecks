@@ -24,7 +24,6 @@ from deepchecks.core.condition import Condition, ConditionCategory, ConditionRes
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.function import initvars
 from deepchecks.utils.strings import get_docs_summary, split_camel_case
-
 from . import common
 
 __all__ = [
@@ -84,7 +83,18 @@ class ReduceMetricClassMixin(ReduceMixin):
 
 
 class ReduceFeatureMixin(ReduceMixin):
-    """Extend ReduceMixin to identify checks that output result per feature."""
+    """Extend ReduceMixin to identify checks that output result per feature.
+
+    Reduce method in subclasses should include the following aggregation options:
+    'weighted': Weighted mean based on feature importance, provides a robust estimation on how
+    much the drift will affect the model's performance.
+    'l2_weighted': L2 norm over the combination of drift scores and feature importance, minus the
+    L2 norm of feature importance alone, specifically, ||FI + DRIFT|| - ||FI||. This method returns a
+    value between 0 and sqrt(n_features).
+    'mean': Mean of all drift scores.
+    'none': No averaging. Return a dict with a drift score for each feature.
+    'max': Maximum of all the features drift scores.
+    """
 
 
 class ReducePropertyMixin(ReduceMixin):
