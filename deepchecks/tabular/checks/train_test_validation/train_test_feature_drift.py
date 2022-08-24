@@ -227,6 +227,7 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceMixin):
                 categorical_drift_method=self.categorical_drift_method,
                 ignore_na=self.ignore_na,
                 with_display=context.with_display,
+                dataset_names=(train_dataset.name, test_dataset.name)
             )
             values_dict[column] = {
                 'Drift score': value,
