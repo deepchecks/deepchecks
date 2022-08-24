@@ -592,12 +592,6 @@ class Dataset:
 
         return categorical_columns
 
-    @staticmethod
-    def validate_dataset_name(dataset_name):
-        if not (isinstance(dataset_name, str) or (dataset_name is None)):
-            raise DeepchecksValueError('The dataset_name parameter accepts a string or None.')
-        return dataset_name
-
     def is_categorical(self, col_name: Hashable) -> bool:
         """Check if a column is considered a category column in the dataset object.
 
