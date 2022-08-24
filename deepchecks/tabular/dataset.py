@@ -542,9 +542,9 @@ class Dataset:
                         and label_col.nunique() > warning_for_infer_TaskType_from_label_nunique:
                     get_logger().warning(
                         'Attributes such as "label_type" are not mandatory, but in a case of ordinal integers, '
-                        'the task type can be inferred '
-                        ' both as multiclass and regression, so it\'s recommended to declare directly.'
-                        ' Auto inferring label type as multiclass. '
+                        'the task type can be inferred both as multiclass and regression, '
+                        'so it\'s recommended to declare directly. '
+                        'Auto inferring label type as multiclass.'
                     )
                 return TaskType.MULTICLASS
             else:
