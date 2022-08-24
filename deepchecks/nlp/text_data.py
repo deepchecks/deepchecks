@@ -21,6 +21,7 @@ from deepchecks.nlp.task_type import TaskType
 
 __all__ = ['TextData', 'TTokenLabel', 'TClassLabel', 'TTextLabel']
 
+from deepchecks.utils.logger import get_logger
 
 TDataset = t.TypeVar('TDataset', bound='TextData')
 TSingleLabel = t.Tuple[int, str]
@@ -43,9 +44,23 @@ class TextData:
     label : t.Optional[TTextLabel], default: None
         The label for the text data. Can be either a text_classification label or a token_classification label.
         If None, the label is not set.
+        - text_classification label - For text classification the accepted label format differs between multilabel and
+          single label cases. For single label data, the label should be passed as a sequence of labels, with one entry
+          per sample that can be either a string or an integer. For multilabel data, the label should be passed as a
+          sequence of sequences, with the sequence for each sample being a binary vector, representing the presence of
+          the i-th label in that sample.
+        - token_classification label - For token classification the accepted label format is a sequence of sequences,
+          with the inner sequence containing tuples in the following format: (class_name, span_start, span_end).
+          span_start and span_end are the start and end character indices of the token within the text, as it was
+          passed to the raw_text argument. Each upper level sequence contains a sequence of tokens for each sample.
     task_type : str, default: None
         The task type for the text data. Can be either 'text_classification' or 'token_classification'. Must be set if
         label is provided.
+    classes:  t.Optional[t.Sequence[str]], default: None
+        The class names for the multilabel text classification task. May be set to define names for the classes in
+        multilabel tasks, as the label input is a binary matrix that cannot convey the class names. Length must match
+        the number of classes in the label, which is the number of columns for multilabel labels. Order of classes in
+        this input must match order of classes as returned by model predictions to ensure they are presented correctly.
     dataset_name : t.Optional[str], default: None
         The name of the dataset. If None, the dataset name will be defined when running it within a check.
     index: t.Optional[t.Sequence[int]], default: None
@@ -66,6 +81,7 @@ class TextData:
             raw_text: t.Sequence[str],
             label: t.Optional[TTextLabel] = None,
             task_type: str = None,
+            classes: t.Optional[t.Sequence[str]] = None,
             dataset_name: t.Optional[str] = None,
             index: t.Optional[t.Sequence[int]] = None,
     ):
@@ -85,7 +101,7 @@ class TextData:
 
         self._validate_text(raw_text)
         self._text = raw_text
-        self._validate_and_set_label(label, raw_text)
+        self._validate_and_set_label(label, raw_text, classes)
 
         if index is None:
             index = np.arange(len(raw_text))
@@ -110,7 +126,8 @@ class TextData:
         if not all(isinstance(x, str) for x in raw_text):
             raise DeepchecksValueError('raw_text must be a Sequence of strings')
 
-    def _validate_and_set_label(self, label: t.Optional[TTextLabel], raw_text: t.Sequence[str]):
+    def _validate_and_set_label(self, label: t.Optional[TTextLabel], raw_text: t.Sequence[str],
+                                classes: t.Optional[t.Sequence[str]]):
         """Validate and process label to accepted formats."""
         # If label is not set, create an empty label of nulls
         if label is None:
@@ -128,9 +145,12 @@ class TextData:
         if self.task_type == TaskType.TEXT_CLASSIFICATION:
             if all((isinstance(x, collections.abc.Sequence) and not isinstance(x, str)) for x in label):
                 self._is_multilabel = True
-                multilabel_error = 'multilabel was identified. It must be a Sequence of Sequences of ints or strings.'
-                if not all(all(isinstance(y, (int, str)) for y in x) for x in label):
+                multilabel_error = 'multilabel was identified. It must be a Sequence of Sequences of 0 or 1.'
+                if not all(all(y in (0, 1) for y in x) for x in label):
                     raise DeepchecksValueError(multilabel_error)
+                if any(len(label[0]) != len(label[i]) for i in range(len(label))):
+                    raise DeepchecksValueError('All multilabel entries must be of the same length, which is the number'
+                                               ' of classes.')
             elif not all(isinstance(x, (str, int)) for x in label):
                 raise DeepchecksValueError('label must be a Sequence of strings or ints or a Sequence of Sequences'
                                            'of strings or ints (for multilabel classification)')
@@ -150,7 +170,26 @@ class TextData:
 
         self._label = label
 
-    def copy(self: TDataset, raw_text: t.Sequence[str], label: TTextLabel, index: t.Sequence[int] = None) -> TDataset:
+        # Validate classes argument
+        if classes is not None:
+            if not isinstance(classes, collections.abc.Sequence):
+                raise DeepchecksValueError('classes must be a Sequence of class names')
+            if not all(isinstance(x, (str, int)) for x in classes):
+                raise DeepchecksValueError('classes must be a Sequence of class names that are strings or ints')
+            if not self._is_multilabel:
+                get_logger().warning(
+                    'Classes were set for a non-multilabel task. The classes will override the classes present in the '
+                    'label for displays, but the same effect can be achieved by passing the intended labels in the '
+                    'label argument.'
+                )
+            found_classes = self.classes
+            if len(found_classes) != len(classes):
+                raise DeepchecksValueError('classes must be the same length as the number of classes in the label')
+
+            self._classes = list(classes)
+
+    def copy(self: TDataset, raw_text: t.Optional[t.Sequence[str]] = None, label: t.Optional[TTextLabel] = None,
+             index: t.Optional[t.Sequence[int]] = None) -> TDataset:
         """Create a copy of this Dataset with new data.
 
         Parameters
@@ -163,7 +202,13 @@ class TextData:
             new dataset instance
         """
         cls = type(self)
-        return cls(raw_text, label, self._task_type.value, self.name, index)
+        if raw_text is None:
+            raw_text = self.text
+        if label is None:
+            label = self.label
+        if index is None:
+            index = self.index
+        return cls(raw_text, label, self._task_type.value, self.classes, self.name, index)
 
     def sample(self: TDataset, n_samples: int, replace: bool = False, random_state: t.Optional[int] = None,
                drop_na_label: bool = False) -> TDataset:
