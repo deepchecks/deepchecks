@@ -23,7 +23,7 @@ from deepchecks.core.checks import CheckConfig, DatasetKind, ReduceMixin
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.tabular.metric_utils import MULTICLASS_SCORERS_NON_AVERAGE
 from deepchecks.utils.docref import doclink
-from deepchecks.utils.plot import colors, DEFAULT_DATASET_NAMES
+from deepchecks.utils.plot import DEFAULT_DATASET_NAMES, colors
 from deepchecks.utils.strings import format_percent
 
 __all__ = ['TrainTestPerformance']

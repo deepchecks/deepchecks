@@ -26,9 +26,8 @@ from deepchecks.tabular.utils.validation import (ensure_predictions_proba, ensur
 from deepchecks.utils.decorators import deprecate_kwarg
 from deepchecks.utils.features import calculate_feature_importance_or_none
 from deepchecks.utils.logger import get_logger
-from deepchecks.utils.typing import BasicModel
 from deepchecks.utils.plot import DEFAULT_DATASET_NAMES
-
+from deepchecks.utils.typing import BasicModel
 
 __all__ = [
     'Context', '_DummyModel'

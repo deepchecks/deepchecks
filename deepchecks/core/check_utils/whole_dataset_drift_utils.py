@@ -15,8 +15,6 @@ from typing import Container, List, Tuple
 import pandas as pd
 import plotly.graph_objects as go
 
-from deepchecks.utils.plot import DEFAULT_DATASET_NAMES
-
 with warnings.catch_warnings():
     warnings.simplefilter('ignore')
     from sklearn.experimental import enable_hist_gradient_boosting  # noqa # pylint: disable=unused-import
@@ -32,6 +30,7 @@ from deepchecks.utils.distribution.drift import get_drift_plot_sidenote
 from deepchecks.utils.distribution.plot import drift_score_bar_traces, feature_distribution_traces
 from deepchecks.utils.distribution.rare_category_encoder import RareCategoryEncoder
 from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none
+from deepchecks.utils.plot import DEFAULT_DATASET_NAMES
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
 
