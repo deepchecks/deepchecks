@@ -164,7 +164,6 @@ class Context:
         self._with_display = with_display
         self.random_state = random_state
 
-
     # Properties
     # Validations note: We know train & test fit each other so all validations can be run only on train
 
