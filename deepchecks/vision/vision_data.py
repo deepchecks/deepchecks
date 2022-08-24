@@ -113,6 +113,11 @@ class VisionData:
         self._classes_indices = None
         self._current_index = None
 
+        if isinstance(dataset_name, str) or (dataset_name is None):
+            self.name = dataset_name
+        else:
+            raise DeepchecksValueError('The dataset_name parameter accepts a string or None.')
+
     @classmethod
     def from_dataset(
         cls: Type[VD],

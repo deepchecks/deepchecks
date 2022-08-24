@@ -247,7 +247,11 @@ class Dataset:
         self._max_categories = max_categories
 
         self._classes = None
-        self.name = dataset_name
+
+        if isinstance(dataset_name, str) or (dataset_name is None):
+            self.name = dataset_name
+        else:
+            raise DeepchecksValueError('The dataset_name parameter accepts a string or None.')
 
         if self._label_name in self.features:
             raise DeepchecksValueError(f'label column {self._label_name} can not be a feature column')
@@ -587,6 +591,12 @@ class Dataset:
         get_logger().warning(message)
 
         return categorical_columns
+
+    @staticmethod
+    def validate_dataset_name(dataset_name):
+        if not (isinstance(dataset_name, str) or (dataset_name is None)):
+            raise DeepchecksValueError('The dataset_name parameter accepts a string or None.')
+        return dataset_name
 
     def is_categorical(self, col_name: Hashable) -> bool:
         """Check if a column is considered a category column in the dataset object.
