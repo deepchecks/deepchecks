@@ -27,6 +27,19 @@ def test_run_with_scorer(text_classification_dataset_mock):
     assert_that(result.value.values[0][-1], close_to(0.666, 0.001))
 
 
+def test_run_default_scorer_string_class(text_classification_string_class_dataset_mock):
+    """Test that the check runs with a scorer override"""
+    # Arrange
+    check = SingleDatasetPerformance()
+
+    # Act
+    result = check.run(text_classification_string_class_dataset_mock,
+                       predictions=['wise', 'wise', 'meh'])
+
+    # Assert
+    assert_that(result.value.values[0][-1], close_to(0.666, 0.001))
+
+
 def test_run_with_scorer_multilabel(text_multilabel_classification_dataset_mock):
     """Test that the check runs with a scorer override"""
     # Arrange

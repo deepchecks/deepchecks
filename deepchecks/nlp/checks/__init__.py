@@ -13,4 +13,3 @@
 from deepchecks.nlp.checks.model_evaluation import SingleDatasetPerformance
 
 __all__ = ['SingleDatasetPerformance']
-
