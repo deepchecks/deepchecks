@@ -132,7 +132,9 @@ class WholeDatasetDrift(TrainTestCheck):
             max_num_categories_for_display=self.max_num_categories_for_display,
             show_categories_by=self.show_categories_by,
             min_meaningful_drift_score=self.min_meaningful_drift_score,
-            with_display=context.with_display)
+            with_display=context.with_display,
+            dataset_names=(train_dataset.name, test_dataset.name)
+        )
 
         if displays:
             displays.insert(0, headnote)
