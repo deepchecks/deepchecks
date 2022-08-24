@@ -9,10 +9,14 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the keyword drift check."""
+from deepchecks import CheckResult
+from deepchecks.core import DatasetKind
 from deepchecks.nlp.base_checks import TrainTestBaseCheck
-from typing import Union, List
+from typing import Union, List, Any
+from deepchecks.nlp.context import Context
 
 __all__ = ['KeywordFrequencyDrift']
+
 
 class KeywordFrequencyDrift(TrainTestBaseCheck):
     """
@@ -40,3 +44,9 @@ class KeywordFrequencyDrift(TrainTestBaseCheck):
         self.top_n_to_show = top_n_to_show
         self.top_n_method = top_n_method
         self.drift_method = drift_method
+
+    def run_logic(self, context: Context) -> CheckResult:
+        pass
+    
+
+
