@@ -25,7 +25,7 @@ from deepchecks import __version__
 from deepchecks.core import check_result as check_types
 from deepchecks.core.checks import BaseCheck, CheckConfig  # pylint: disable=unused-import # is used for type checking
 from deepchecks.core.display import DisplayableResult, save_as_html
-from deepchecks.core.errors import DeepchecksValueError, DeepchecksNotSupportedError
+from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.core.serialization.abc import HTMLFormatter
 from deepchecks.core.serialization.suite_result.html import SuiteResultSerializer as SuiteResultHtmlSerializer
 from deepchecks.core.serialization.suite_result.ipython import SuiteResultSerializer as SuiteResultIPythonSerializer
