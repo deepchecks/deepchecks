@@ -98,24 +98,26 @@ class _DummyModel(BasicModel):
                     self._validate_proba(dataset, y_proba)
 
                 if dataset.task_type == TaskType.TEXT_CLASSIFICATION:
-                    if (y_pred is None) and (y_proba is not None) and \
-                            (dataset.task_type == TaskType.TEXT_CLASSIFICATION):
+                    if (y_pred is None) and (y_proba is not None):
                         if dataset.is_multilabel:
                             y_pred = np.array(y_proba) > 0.5
                         else:
                             y_pred = np.argmax(np.array(y_proba), axis=-1)
-                    else:
+
+                    if y_pred is not None:
                         y_pred = np.array(y_pred)
                         if len(y_pred.shape) > 1 and y_pred.shape[1] == 1:
                             y_pred = y_pred[:, 0]
                         ensure_predictions_shape(y_pred, dataset.text)
 
-                y_pred_dict = dict(zip(dataset.index, y_pred))
-                predictions[dataset.name] = y_pred_dict
-                if y_proba is not None:
-                    ensure_predictions_proba(y_proba, y_pred)
-                    y_proba_dict = dict(zip(dataset.index, y_proba))
-                    probas[dataset.name] = y_proba_dict
+                    if y_proba is not None:
+                        ensure_predictions_proba(y_proba, y_pred)
+                        y_proba_dict = dict(zip(dataset.index, y_proba))
+                        probas[dataset.name] = y_proba_dict
+
+                if y_pred is not None:
+                    y_pred_dict = dict(zip(dataset.index, y_pred))
+                    predictions[dataset.name] = y_pred_dict
 
         self.predictions = predictions if predictions else None
         self.probas = probas if probas else None
@@ -148,9 +150,11 @@ class _DummyModel(BasicModel):
 
         if dataset.task_type == TaskType.TEXT_CLASSIFICATION:
             try:
-                prediction = np.array(prediction, dtype='float')
+                prediction = np.array(prediction)
                 if not dataset.is_multilabel:
-                    prediction = prediction.reshape((-1, 1))
+                    prediction = prediction.reshape((-1, 1))  # Multiclass (not multilabel) Prediction can be a string
+                else:
+                    prediction = prediction.astype(float)  # Multilabel prediction is a binary matrix
             except ValueError as e:
                 raise ValidationError(classification_format_error) from e
             pred_shape = prediction.shape
@@ -201,7 +205,7 @@ class _DummyModel(BasicModel):
                                       f' (n_samples, n_classes)'
         if dataset.task_type == TaskType.TEXT_CLASSIFICATION:
             try:
-                prediction = np.ndarray(prediction, dtype='float')
+                prediction = np.array(prediction, dtype='float')
             except ValueError as e:
                 raise ValidationError(classification_format_error) from e
             pred_shape = prediction.shape
@@ -219,7 +223,7 @@ class _DummyModel(BasicModel):
                     raise ValidationError(f'Check requires classification probabilities for {dataset.name} '
                                           f'dataset to be between 0 and 1')
             else:
-                if any(abs(prediction.sum(dim=1) - 1) > eps):
+                if any(abs(prediction.sum(axis=1) - 1) > eps):
                     raise ValidationError(f'Check requires classification probabilities for {dataset.name} '
                                           f'dataset to be probabilities and sum to 1 for each row')
 
@@ -274,7 +278,7 @@ class Context:
         if any(x is not None for x in (train_pred, test_pred, train_proba, test_proba)):
             self._model = _DummyModel(train=train_dataset, test=test_dataset,
                                       y_pred_train=train_pred, y_pred_test=test_pred,
-                                      y_proba_test=train_proba, y_proba_train=test_proba)
+                                      y_proba_train=train_proba, y_proba_test=test_proba)
         else:
             self._model = None
 

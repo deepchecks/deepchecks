@@ -14,7 +14,6 @@ from typing import Optional, Tuple, Union
 
 from deepchecks.core import DatasetKind
 from deepchecks.core.check_result import CheckFailure
-from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.nlp.base_checks import SingleDatasetCheck, TrainTestCheck
 from deepchecks.nlp.context import Context, TTextPred, TTextProba
@@ -127,7 +126,3 @@ class Suite(BaseSuite):
                 results.append(CheckFailure(check, exp))
 
         return SuiteResult(self.name, results)
-
-    @classmethod
-    def _get_unsupported_failure(cls, check, msg):
-        return CheckFailure(check, DeepchecksNotSupportedError(msg))

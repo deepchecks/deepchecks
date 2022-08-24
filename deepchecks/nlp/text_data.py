@@ -126,7 +126,7 @@ class TextData:
             raise DeepchecksValueError('label must be the same length as raw_text')
 
         if self.task_type == TaskType.TEXT_CLASSIFICATION:
-            if all(isinstance(x, collections.abc.Sequence) for x in label):
+            if all((isinstance(x, collections.abc.Sequence) and not isinstance(x, str)) for x in label):
                 self._is_multilabel = True
                 multilabel_error = 'multilabel was identified. It must be a Sequence of Sequences of ints or strings.'
                 if not all(all(isinstance(y, (int, str)) for y in x) for x in label):
