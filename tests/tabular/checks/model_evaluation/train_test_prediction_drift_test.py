@@ -143,7 +143,8 @@ def test_drift_max_drift_score_condition_pass_threshold(drifted_data_and_model):
 def test_multiclass_proba(iris_split_dataset_and_model_rf):
     # Arrange
     train, test, model = iris_split_dataset_and_model_rf
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI', drift_mode='proba')
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI', max_num_categories=10, min_category_size_ratio=0,
+                                     drift_mode='proba')
 
     # Act
     result = check.run(train, test, model)
@@ -183,7 +184,8 @@ def test_binary_proba_condition_fail_threshold(drifted_data_and_model):
 def test_multiclass_proba_reduce_aggregations(iris_split_dataset_and_model_rf):
     # Arrange
     train, test, model = iris_split_dataset_and_model_rf
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI', drift_mode='proba', aggregation_method='weighted'
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI', max_num_categories=10, min_category_size_ratio=0,
+                                     drift_mode='proba', aggregation_method='weighted'
                                      ).add_condition_drift_score_less_than(max_allowed_numeric_score=0.05)
 
     # Act

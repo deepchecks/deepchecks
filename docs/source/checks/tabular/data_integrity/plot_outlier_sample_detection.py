@@ -5,7 +5,7 @@
 Outlier Sample Detection
 ************************
 
-This notebooks provides an overview for using and understanding the Outlier Sample Detection check.
+This notebook provides an overview for using and understanding the Outlier Sample Detection check.
 
 **Structure:**
 

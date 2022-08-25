@@ -63,8 +63,6 @@ class ImageDatasetDrift(TrainTestCheck):
         - 'train_largest': Show the largest train categories.
         - 'test_largest': Show the largest test categories.
         - 'largest_difference': Show the largest difference between categories.
-    sample_size : int , default: 10_000
-        Max number of rows to use from each dataset for the training and evaluation of the domain classifier.
     test_size : float , default: 0.3
         Fraction of the combined datasets to use for the evaluation of the domain classifier.
     min_meaningful_drift_score : float , default 0.05
@@ -76,7 +74,6 @@ class ImageDatasetDrift(TrainTestCheck):
             image_properties: List[Dict[str, Any]] = None,
             n_top_properties: int = 3,
             min_feature_importance: float = 0.05,
-            sample_size: int = 10_000,
             test_size: float = 0.3,
             min_meaningful_drift_score: float = 0.05,
             max_num_categories_for_display: int = 10,
@@ -88,7 +85,6 @@ class ImageDatasetDrift(TrainTestCheck):
 
         self.n_top_properties = n_top_properties
         self.min_feature_importance = min_feature_importance
-        self.sample_size = sample_size
         self.test_size = test_size
         self.min_meaningful_drift_score = min_meaningful_drift_score
         self._train_properties = None
@@ -127,7 +123,7 @@ class ImageDatasetDrift(TrainTestCheck):
         df_train = pd.DataFrame(self._train_properties)
         df_test = pd.DataFrame(self._test_properties)
 
-        sample_size = min(self.sample_size, df_train.shape[0], df_test.shape[0])
+        sample_size = min(df_train.shape[0], df_test.shape[0])
 
         headnote = """
         <span>

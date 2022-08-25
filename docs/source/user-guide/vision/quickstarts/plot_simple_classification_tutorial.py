@@ -15,6 +15,14 @@ how to run all checks that do not require a model on a simple classification tas
 This is ideal, for example, when receiving a new dataset for a classification task. Running these checks on the dataset
 before even starting with training will give you a quick idea of how the dataset looks like and what potential issues
 it contains.
+
+.. code-block:: bash
+
+    # Before we start, if you don't have deepchecks vision package installed yet, run:
+    import sys
+    !{sys.executable} -m pip install "deepchecks[vision]" --quiet --upgrade # --user
+
+    # or install using pip from your python environment
 """
 
 #%%

@@ -5,7 +5,7 @@
 Data Duplicates
 ***************
 
-This notebooks provides an overview for using and understanding the data duplicates check:
+This notebook provides an overview for using and understanding the data duplicates check:
 
 **Structure:**
 

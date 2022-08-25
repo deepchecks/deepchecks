@@ -112,18 +112,16 @@ class _DummyModel:
             self.predict_proba = self._predict_proba
 
     def _validate_data(self, data: pd.DataFrame):
-        # Validate only up to 100 samples
         data = data.sample(min(100, len(data)))
         for feature_df in self.feature_df_list:
-            # If all indices are found than test for equality
+            # If all indices are found than test for equality in actual data (statistically significant portion)
             if set(data.index).issubset(set(feature_df.index)):
-                # If equal than data is valid, can return
-                if feature_df.loc[data.index].fillna('').equals(data.fillna('')):
+                sample_data = np.unique(np.random.choice(data.index, 30))
+                if feature_df.loc[sample_data].equals(data.loc[sample_data]):
                     return
                 else:
-                    raise DeepchecksValueError('Data that has not been seen before passed for inference with static '
-                                               'predictions. Pass a real model to resolve this')
-        raise DeepchecksValueError('Data with indices that has not been seen before passed for inference with static '
+                    break
+        raise DeepchecksValueError('Data that has not been seen before passed for inference with static '
                                    'predictions. Pass a real model to resolve this')
 
     def _predict(self, data: pd.DataFrame):
