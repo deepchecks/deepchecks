@@ -55,7 +55,7 @@ class KeywordFrequencyDrift(TrainTestBaseCheck):
             self.drift_method = cramers_v
         else:
             raise DeepchecksValueError('drift_method must be one of: PSI, cramer_v')
-        self.stem_func = PorterStemmer.stem
+        self.stem_func = PorterStemmer().stem
         self.token_pattern = r'[a-z]{2,}'
 
         self.top_n_words = None
@@ -69,9 +69,9 @@ class KeywordFrequencyDrift(TrainTestBaseCheck):
                                      token_pattern=self.token_pattern)
         vectorizer.fit(all_data)
         train_freqs = vectorizer.transform(train_dataset.text)
-        mean_train_freqs = np.mean(train_freqs, axis=0).reshape(-1)
+        mean_train_freqs = np.array(np.mean(train_freqs, axis=0)).reshape(-1)
         test_freqs = vectorizer.transform(test_dataset.text)
-        mean_test_freqs = np.mean(test_freqs, axis=0).reshape(-1)
+        mean_test_freqs = np.array(np.mean(test_freqs, axis=0)).reshape(-1)
         word_freq_diff = np.abs(mean_train_freqs - mean_test_freqs)
 
         drift_score = self.drift_method(mean_test_freqs, mean_train_freqs, from_freqs=True)
