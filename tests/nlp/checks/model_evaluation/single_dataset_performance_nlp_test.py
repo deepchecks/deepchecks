@@ -10,7 +10,7 @@
 #
 """Test for the nlp SingleDatasetPerformance check"""
 
-from hamcrest import assert_that, close_to, calling, raises
+from hamcrest import assert_that, close_to, calling, raises, equal_to
 
 from deepchecks.core.errors import DeepchecksValueError, ValidationError
 from deepchecks.nlp.checks.model_evaluation.single_dataset_performance import SingleDatasetPerformance
@@ -90,3 +90,18 @@ def test_run_with_scorer_multilabel(text_multilabel_classification_dataset_mock)
 
     # Assert
     assert_that(result.value.values[0][-1], close_to(0.777, 0.001))
+
+
+def test_run_with_scorer_multilabel_class_names(text_multilabel_classification_dataset_mock):
+    # Arrange
+    text_multilabel_classification_dataset_mock_copy = text_multilabel_classification_dataset_mock.copy()
+    text_multilabel_classification_dataset_mock_copy._classes = ['a', 'b', 'c']
+    check = SingleDatasetPerformance(scorers=['f1_per_class'])
+
+    # Act
+    result = check.run(text_multilabel_classification_dataset_mock_copy,
+                       predictions=[[0, 0, 1], [1, 0, 1], [0, 1, 0]])
+
+    # Assert
+    assert_that(result.value.values[0][-1], close_to(1.0, 0.001))
+    assert_that(result.value.values[0][0], equal_to('a'))

@@ -14,6 +14,7 @@ from typing import Optional
 
 from deepchecks.core.check_result import CheckResult
 from deepchecks.core.checks import DatasetKind, SingleDatasetBaseCheck, TrainTestBaseCheck
+from deepchecks.nlp._shared_docs import docstrings
 from deepchecks.nlp.context import Context, TTextPred, TTextProba
 from deepchecks.nlp.text_data import TextData
 
@@ -28,6 +29,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
 
     context_type = Context
 
+    @docstrings
     def run(
         self,
         dataset: TextData,
@@ -50,6 +52,8 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
             predictions on dataset
         probabilities: Union[TTextProba, None] , default: None
             probabilities on dataset
+
+        {prediction_formats:2*indent}
         """
         assert self.context_type is not None
         context = self.context_type(  # pylint: disable=not-callable
@@ -76,6 +80,7 @@ class TrainTestCheck(TrainTestBaseCheck):
 
     context_type = Context
 
+    @docstrings
     def run(
         self,
         train_dataset: TextData,
@@ -107,6 +112,8 @@ class TrainTestCheck(TrainTestBaseCheck):
             probabilities on train dataset
         test_probabilities: Union[TTextProba, None] , default: None
             probabilities on test_dataset dataset
+
+        {prediction_formats:2*indent}
         """
         assert self.context_type is not None
         context = self.context_type(  # pylint: disable=not-callable

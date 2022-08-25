@@ -85,8 +85,10 @@ class _DummyModel(BasicModel):
 
         if ((y_proba_train is not None) or (y_proba_test is not None)) and \
                 (train.task_type == TaskType.TOKEN_CLASSIFICATION):
-            raise DeepchecksNotSupportedError('For token classification probabilities should be part of the token'
-                                              ' prediction annotation and not passed to the proba argument')
+            raise DeepchecksNotSupportedError('For token classification probabilities should be provided as the 4th'
+                                              'element in the token annotation tuples within the predictions argument '
+                                              'of the rum method, while the probabilities argument of the run method'
+                                              ' should be left empty.')
 
         for dataset, y_pred, y_proba in zip([train, test],
                                             [y_pred_train, y_pred_test],
@@ -100,7 +102,7 @@ class _DummyModel(BasicModel):
                 if dataset.task_type == TaskType.TEXT_CLASSIFICATION:
                     if (y_pred is None) and (y_proba is not None):
                         if dataset.is_multilabel:
-                            y_pred = np.array(y_proba) > 0.5
+                            y_pred = (np.array(y_proba) > 0.5) * 1
                         else:
                             y_pred = np.argmax(np.array(y_proba), axis=-1)
 
@@ -139,91 +141,106 @@ class _DummyModel(BasicModel):
 
     def fit(self, *args, **kwargs):
         """Just for python 3.6 (sklearn validates fit method)."""
+        pass
 
     @staticmethod
     def _validate_prediction(dataset: TextData, prediction: TTextPred):
         """Validate prediction for given dataset."""
+
+        if not isinstance(prediction, collections.abc.Sequence):
+            ValidationError(f'Check requires predictions for {dataset.name} to be a sequence')
+        if len(prediction) != dataset.n_samples:
+            raise ValidationError(f'Check requires predictions for {dataset.name} to have '
+                                  f'{dataset.n_samples} rows, same as dataset')
+
+        if dataset.task_type == TaskType.TEXT_CLASSIFICATION:
+            _DummyModel._validate_classification_prediction(dataset, prediction)
+        elif dataset.task_type == TaskType.TOKEN_CLASSIFICATION:
+            _DummyModel._validate_token_classification_prediction(dataset, prediction)
+
+    @staticmethod
+    def _validate_classification_prediction(dataset: TextData, prediction: TTextPred):
+        """Validate prediction for given text classification dataset."""
         classification_format_error = f'Check requires classification for {dataset.name} to be ' \
                                       f'either a sequence that can be cast to a 1D numpy array of shape' \
                                       f' (n_samples,), or a sequence of sequences that can be cast to a 2D ' \
                                       f'numpy array of shape (n_samples, n_classes) for the multilabel case.'
 
-        if dataset.task_type == TaskType.TEXT_CLASSIFICATION:
-            try:
-                prediction = np.array(prediction)
-                if not dataset.is_multilabel:
-                    prediction = prediction.reshape((-1, 1))  # Multiclass (not multilabel) Prediction can be a string
-                else:
-                    prediction = prediction.astype(float)  # Multilabel prediction is a binary matrix
-            except ValueError as e:
-                raise ValidationError(classification_format_error) from e
-            pred_shape = prediction.shape
-            n_classes = dataset.num_classes
-            if dataset.is_multilabel and len(pred_shape) != 1 and pred_shape[1] != n_classes:
-                raise ValidationError(classification_format_error)
-            if pred_shape[0] != dataset.n_samples:
-                raise ValidationError(f'Check requires classification predictions for {dataset.name} dataset '
-                                      f'to have {dataset.n_samples} rows, same as dataset')
+        try:
+            prediction = np.array(prediction)
             if dataset.is_multilabel:
-                if not np.array_equal(prediction, prediction.astype(bool)):
-                    raise ValidationError(f'Check requires classification predictions for {dataset.name} dataset '
-                                          f'to be either 0 or 1')
-        elif dataset.task_type == TaskType.TOKEN_CLASSIFICATION:
-            if not isinstance(prediction, collections.abc.Sequence):
-                ValidationError(f'Check requires token classification for {dataset.name} to be a sequence')
-            if len(prediction) != dataset.n_samples:
-                raise ValidationError(f'Check requires token classification for {dataset.name} to have '
-                                      f'{dataset.n_samples} rows, same as dataset')
-            if not all(isinstance(pred, collections.abc.Sequence) for pred in prediction):
-                raise ValidationError(f'Check requires token classification for {dataset.name} to be a sequence '
-                                      f'of sequences')
-            for sample_pred in prediction:
-                for token_pred in sample_pred:
-                    if len(token_pred) != 4:
-                        raise ValidationError(f'Check requires token classification for {dataset.name} to have '
-                                              f'4 entries')
-                    if dataset.has_label() and (token_pred[0] not in dataset.classes):
-                        raise ValidationError(f'Check requires token classification for {dataset.name} to have '
-                                              f'classes in {dataset.classes}, which are the labels in the dataset. '
-                                              f'Found class {token_pred[0]}. Classes are defined by the first entry in '
-                                              f'the token prediction tuples')
-                    if not isinstance(token_pred[1], int) or not isinstance(token_pred[2], int):
-                        raise ValidationError(f'Check requires token classification for {dataset.name} to have '
-                                              f'int indices representing the start and end of the token, at the second'
-                                              f'and third entry in the token prediction tuples')
-                    if not isinstance(token_pred[3], float) or (token_pred[3] < 0. or token_pred[3] > 1.):
-                        raise ValidationError(f'Check requires token classification for {dataset.name} to have '
-                                              f'probabilities between 0 and 1, at the fourth entry in the token '
-                                              f'prediction tuples')
+                prediction = prediction.astype(float)  # Multilabel prediction is a binary matrix
+            else:
+                prediction = prediction.reshape((-1, 1))  # Multiclass (not multilabel) Prediction can be a string
+        except ValueError as e:
+            raise ValidationError(classification_format_error) from e
+        pred_shape = prediction.shape
+        n_classes = dataset.num_classes
+        if dataset.is_multilabel:
+            if len(pred_shape) != 1 and pred_shape[1] != n_classes:
+                raise ValidationError(classification_format_error)
+            if not np.array_equal(prediction, prediction.astype(bool)):
+                raise ValidationError(f'Check requires classification predictions for {dataset.name} dataset '
+                                      f'to be either 0 or 1')
 
     @staticmethod
-    def _validate_proba(dataset: TextData, prediction: TTextProba,
+    def _validate_token_classification_prediction(dataset: TextData, prediction: TTextPred):
+        """Validate prediction for given token classification dataset."""
+        if not all(isinstance(pred, collections.abc.Sequence) for pred in prediction):
+            raise ValidationError(f'Check requires token classification for {dataset.name} to be a sequence '
+                                  f'of sequences')
+        for sample_pred in prediction:
+            for token_pred in sample_pred:
+                if len(token_pred) != 4:
+                    raise ValidationError(f'Check requires token classification for {dataset.name} to have '
+                                          f'4 entries')
+                if dataset.has_label() and (token_pred[0] not in dataset.classes):
+                    raise ValidationError(f'Check requires token classification for {dataset.name} to have '
+                                          f'classes in {dataset.classes}, which are the labels in the dataset. '
+                                          f'Found class {token_pred[0]}. Classes are defined by the first entry in '
+                                          f'the token prediction tuples')
+                if not isinstance(token_pred[1], int) or not isinstance(token_pred[2], int):
+                    raise ValidationError(f'Check requires token classification for {dataset.name} to have '
+                                          f'int indices representing the start and end of the token, at the second'
+                                          f'and third entry in the token prediction tuples')
+                if not token_pred[1] < token_pred[2]:
+                    raise ValidationError(f'Check requires token classification for {dataset.name} to have '
+                                          f'token span start before span end')
+                if not isinstance(token_pred[3], float) or (token_pred[3] < 0. or token_pred[3] > 1.):
+                    raise ValidationError(f'Check requires token classification for {dataset.name} to have '
+                                          f'probabilities between 0 and 1, at the fourth entry in the token '
+                                          f'prediction tuples')
+
+    @staticmethod
+    def _validate_proba(dataset: TextData, probabilities: TTextProba,
                         eps: float = 1e-3):
-        """Validate predicted probabilites for given dataset."""
+        """Validate predicted probabilities for given dataset."""
         classification_format_error = f'Check requires classification probabilities for {dataset.name} to be a ' \
                                       f'sequence of sequences that can be cast to a 2D numpy array of shape' \
                                       f' (n_samples, n_classes)'
+
+        if len(probabilities) != dataset.n_samples:
+            raise ValidationError(f'Check requires classification probabilities for {dataset.name} dataset '
+                                  f'to have {dataset.n_samples} rows, same as dataset')
+
         if dataset.task_type == TaskType.TEXT_CLASSIFICATION:
             try:
-                prediction = np.array(prediction, dtype='float')
+                probabilities = np.array(probabilities, dtype='float')
             except ValueError as e:
                 raise ValidationError(classification_format_error) from e
-            pred_shape = prediction.shape
-            if len(pred_shape) != 2:
+            proba_shape = probabilities.shape
+            if len(proba_shape) != 2:
                 raise ValidationError(classification_format_error)
             n_classes = dataset.num_classes
-            if pred_shape[1] != n_classes:
+            if proba_shape[1] != n_classes:
                 raise ValidationError(f'Check requires classification probabilities for {dataset.name} dataset '
                                       f'to have {n_classes} columns, same as the number of classes')
-            if pred_shape[0] != dataset.n_samples:
-                raise ValidationError(f'Check requires classification probabilities for {dataset.name} dataset '
-                                      f'to have {dataset.n_samples} rows, same as dataset')
             if dataset.is_multilabel:
-                if (prediction > 1).any() or (prediction < 0).any():
+                if (probabilities > 1).any() or (probabilities < 0).any():
                     raise ValidationError(f'Check requires classification probabilities for {dataset.name} '
                                           f'dataset to be between 0 and 1')
             else:
-                if any(abs(prediction.sum(axis=1) - 1) > eps):
+                if any(abs(probabilities.sum(axis=1) - 1) > eps):
                     raise ValidationError(f'Check requires classification probabilities for {dataset.name} '
                                           f'dataset to be probabilities and sum to 1 for each row')
 

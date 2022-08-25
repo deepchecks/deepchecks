@@ -15,6 +15,7 @@ from typing import Optional, Tuple, Union
 from deepchecks.core import DatasetKind
 from deepchecks.core.check_result import CheckFailure
 from deepchecks.core.suite import BaseSuite, SuiteResult
+from deepchecks.nlp._shared_docs import docstrings
 from deepchecks.nlp.base_checks import SingleDatasetCheck, TrainTestCheck
 from deepchecks.nlp.context import Context, TTextPred, TTextProba
 from deepchecks.nlp.text_data import TextData
@@ -31,6 +32,7 @@ class Suite(BaseSuite):
         """Return tuple of supported check types of this suite."""
         return TrainTestCheck, SingleDatasetCheck
 
+    @docstrings
     def run(
         self,
         train_dataset: Union[TextData, None] = None,
@@ -59,6 +61,8 @@ class Suite(BaseSuite):
             probabilities on train dataset
         test_probabilities: Union[TTextProba, None] , default: None
             probabilities on test_dataset dataset
+
+        {prediction_formats:2*indent}
 
         Returns
         -------
