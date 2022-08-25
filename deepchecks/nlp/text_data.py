@@ -80,7 +80,7 @@ class TextData:
             self,
             raw_text: t.Sequence[str],
             label: t.Optional[TTextLabel] = None,
-            task_type: str = None,
+            task_type: t.Optional[str] = None,
             classes: t.Optional[t.Sequence[str]] = None,
             dataset_name: t.Optional[str] = None,
             index: t.Optional[t.Sequence[int]] = None,
@@ -88,7 +88,7 @@ class TextData:
 
         # Require explicitly setting task type if label is provided
         if task_type is None:
-            if self.label is not None:
+            if label is not None:
                 raise DeepchecksValueError('task_type must be set when label is provided')
             self._task_type = None
         elif task_type == 'text_classification':
