@@ -19,7 +19,8 @@ def test_text_data_init():
     """Test the TextData object initialization"""
     text_data = TextData(["Hello world"])
     assert_that(text_data.text, calling(str))
-    assert_that(text_data.text, "Hello world")
+    assert_that(text_data.text, 'Hello world')
+
 
 def test_init_no_text():
     """Test the TextData object when no text is provided"""

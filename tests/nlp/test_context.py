@@ -11,42 +11,18 @@
 """Test for the Context & _DummyModel creation process"""
 from hamcrest import assert_that, calling, raises
 
-from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.nlp.text_data import TextData
+from deepchecks.core.errors import ValidationError
+from deepchecks.nlp import Suite
 
 
-def test_init_no_text():
-    """Test the TextData object when no text is provided"""
-
-    # Act & Assert
-    assert_that(
-        calling(TextData).with_args([1]),
-        raises(DeepchecksValueError, 'raw_text must be a Sequence of strings')
-    )
-
-
-def test_init_mismatched_task_type():
-    """Test the TextData object when the task type does not match the label format"""
+def test_wrong_class_prediction_format(text_classification_dataset_mock):
 
     # Arrange
-    label = [1, 2, 3]
-    text = ['a', 'b', 'c']
+    emtpy_suite = Suite('Empty Suite')
 
     # Act & Assert
-    assert_that(
-        calling(TextData).with_args(text, label, task_type='token_classification'),
-        raises(DeepchecksValueError,
-               r'label must be a Sequence of Sequences of \(str, int, int\) tuples, where the string is the token '
-               r'label, the first int is the start of the token span in the raw text and the second int is the end of '
-               r'the token span.')
-    )
-
-    # Arrange
-    label = [[('PER', 3, 5), ('ORG', 5, 7)], [('ORG', 13, 15), ('GEO', 23, 25)], []]
-
-    # Act & Assert
-    assert_that(
-        calling(TextData).with_args(text, label, task_type='text_classification'),
-        raises(DeepchecksValueError,
-               r'multilabel was identified. It must be a Sequence of Sequences of 0 or 1.')
+    assert_that(calling(emtpy_suite.run).with_args(
+        train_dataset=text_classification_dataset_mock,
+        train_predictions=[0, 0, 1, 1]),
+        raises(ValidationError, 'Check requires predictions for train to have 3 rows, same as dataset')
     )
