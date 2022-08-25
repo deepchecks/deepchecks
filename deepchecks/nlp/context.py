@@ -171,12 +171,14 @@ class _DummyModel(BasicModel):
                 prediction = prediction.astype(float)  # Multilabel prediction is a binary matrix
             else:
                 prediction = prediction.reshape((-1, 1))  # Multiclass (not multilabel) Prediction can be a string
+                if prediction.shape[0] != dataset.n_samples:
+                    raise ValidationError(classification_format_error)
         except ValueError as e:
             raise ValidationError(classification_format_error) from e
         pred_shape = prediction.shape
         n_classes = dataset.num_classes
         if dataset.is_multilabel:
-            if len(pred_shape) != 1 and pred_shape[1] != n_classes:
+            if len(pred_shape) == 1 or pred_shape[1] != n_classes:
                 raise ValidationError(classification_format_error)
             if not np.array_equal(prediction, prediction.astype(bool)):
                 raise ValidationError(f'Check requires classification predictions for {dataset.name} dataset '
