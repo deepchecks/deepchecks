@@ -50,8 +50,7 @@ def calculate_feature_importance(
     >>> iris_train_dataset, iris_test_dataset = load_data()
     >>> iris_model = load_fitted_model()
     >>> fi = calculate_feature_importance(model=iris_model, dataset=iris_train_dataset)
-    >>> result = UnusedFeatures().run(train_dataset=iris_train_dataset, test_dataset=iris_test_dataset,
-    ...                               model=iris_model, feature_importance=fi)
+    >>> result = UnusedFeatures().run(iris_test_dataset, model=iris_model, feature_importance=fi)
 
     Parameters
     ----------
