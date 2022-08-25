@@ -12,6 +12,7 @@
 import pytest
 
 from deepchecks.nlp.text_data import TextData
+from nltk.corpus import movie_reviews
 
 
 @pytest.fixture(scope='session')
@@ -36,3 +37,12 @@ def text_multilabel_classification_dataset_mock():
     return TextData(['I think therefore I am', 'I am therefore I think', 'I am'],
                     [[0, 0, 1], [1, 1, 0], [0, 1, 0]],
                     task_type='text_classification')
+
+
+@pytest.fixture(scope='session')
+def movie_reviews_data():
+    sentences = [' '.join(x) for x in movie_reviews.sents()]
+    split_idx = int(len(sentences)/2)
+    train_data = sentences[:split_idx]
+    test_data = sentences[split_idx:]
+    return train_data, test_data

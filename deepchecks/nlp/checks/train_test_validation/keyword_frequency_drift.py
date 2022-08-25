@@ -61,10 +61,8 @@ class KeywordFrequencyDrift(TrainTestBaseCheck):
         self.top_n_words = None
         self.top_n_diffs = None
 
-    def run_logic(self, context: Context) -> CheckResult:
+    def run(self, train_dataset, test_dataset, model=None, **kwargs) -> CheckResult:
         """Run check."""
-        train_dataset = context.train
-        test_dataset = context.test
         all_data = list(train_dataset.text) + list(test_dataset.text)
 
         vectorizer = TfidfVectorizer(input='content', strip_accents='ascii', preprocessor=self.stem_func,
