@@ -17,8 +17,8 @@ import numpy as np
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
-from deepchecks.core.checks import ReduceMixin
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.core.reduce_classes import ReduceMixin
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERIC_METHODS,

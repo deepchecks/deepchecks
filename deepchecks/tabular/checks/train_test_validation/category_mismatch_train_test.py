@@ -11,16 +11,13 @@
 """The data_sample_leakage_report check module."""
 from typing import Dict, List, Union
 
-import numpy as np
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
-from deepchecks.core.checks import ReduceFeatureMixin
-from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.core.reduce_classes import ReduceFeatureMixin
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.tabular.utils.messages import get_condition_passed_message
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.logger import get_logger
 from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.utils.typing import Hashable
 
@@ -88,8 +85,8 @@ class CategoryMismatchTrainTest(TrainTestCheck, ReduceFeatureMixin):
 
         # After filtering the columns drop cat features that don't exist anymore
         cat_features = set(cat_features).intersection(set(train_df.columns))
-        feature_importance = context.feature_importance if context.feature_importance \
-            else pd.Series(index=list(cat_features), dtype=object)
+        feature_importance = pd.Series(index=list(cat_features), dtype=object) if context.feature_importance is None \
+            else context.feature_importance
 
         result_data = []
         n_test_samples = test_dataset.n_samples
@@ -141,28 +138,10 @@ class CategoryMismatchTrainTest(TrainTestCheck, ReduceFeatureMixin):
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return an aggregated drift score based on aggregation method defined."""
-        new_categories_ratios = check_result.value['Percent of new categories in sample']
-        if self.aggregation_method == 'none':
-            return dict(zip(list(check_result.value.index), new_categories_ratios))
-        elif self.aggregation_method == 'mean':
-            return {'Mean New Categories Ratio': np.mean(new_categories_ratios)}
-        elif self.aggregation_method == 'max':
-            return {'Max New Categories Ratio': np.max(new_categories_ratios)}
-
         feature_importance = check_result.value['Feature importance'] if 'Feature importance' \
                                                                          in check_result.value.columns else None
-        if self.aggregation_method in ['weighted', 'l2_weighted'] and feature_importance is None:
-            get_logger().warning(
-                'Failed to calculate feature importance to all features, using uniform mean instead.')
-            return {'Mean New Categories Ratio': np.mean(new_categories_ratios)}
-        elif self.aggregation_method == 'weighted':
-            return {
-                'Weighted New Categories Ratio': np.sum(np.array(new_categories_ratios) * np.array(feature_importance))}
-        elif self.aggregation_method == 'l2_weighted':
-            sum_drift_fi = np.array(new_categories_ratios) + np.array(feature_importance)
-            return {'L2 New Categories Ratio': np.linalg.norm(sum_drift_fi) - np.linalg.norm(feature_importance)}
-        else:
-            raise DeepchecksValueError(f'Unknown aggregation method: {self.aggregation_method}')
+        values = check_result.value['Percent of new categories in sample']
+        return self.feature_reduce(self.aggregation_method, values, feature_importance, 'New Categories Ratio')
 
     def add_condition_new_categories_less_or_equal(self, max_new: int = 0):
         """Add condition - require column's number of different new categories to be less or equal to threshold.

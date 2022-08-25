@@ -11,17 +11,19 @@
 """Module with 'PercentOfNulls' check."""
 import typing as t
 
+import pandas as pd
 import plotly.express as px
 
 from deepchecks.core.check_result import CheckResult
-from deepchecks.core.checks import DatasetKind, ReduceFeatureMixin
+from deepchecks.core.checks import DatasetKind
 from deepchecks.core.condition import ConditionCategory, ConditionResult
+from deepchecks.core.reduce_classes import ReduceFeatureMixin
 from deepchecks.tabular import Context, SingleDatasetCheck
-from deepchecks.utils.strings import format_list, format_percent
+from deepchecks.tabular.utils.messages import get_condition_passed_message
+from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['PercentOfNulls']
-
 
 TPercentOfNulls = t.TypeVar('TPercentOfNulls', bound='PercentOfNulls')
 
@@ -37,17 +39,35 @@ class PercentOfNulls(SingleDatasetCheck, ReduceFeatureMixin):
     ignore_columns : Union[Hashable, List[Hashable]] , default: None
         List of columns to ignore, if none given checks
         based on columns variable.
+    max_features_to_show : int , default: 5
+        maximum features with to show, showing top features based on percent of nulls.
+    aggregation_method: str, default: 'max'
+        argument for the reduce_output functionality, decides how to aggregate the drift scores for a
+        collective score. The collective score value is between 0 and 1 for all methods other than l2_combination.
+        Possible values are:
+        'weighted': Weighted mean based on feature importance, provides a robust estimation on how
+        much the drift will affect the model's performance.
+        'l2_weighted': L2 norm over the combination of drift scores and feature importance, minus the
+         L2 norm of feature importance alone, specifically, ||FI + DRIFT|| - ||FI||. This method returns a
+         value between 0 and sqrt(n_features).
+        'mean': Mean of all drift scores.
+        'none': No averaging. Return a dict with a drift score for each feature.
+        'max': Maximum of all the features drift scores.
     """
 
     def __init__(
-        self,
-        columns: t.Union[Hashable, t.List[Hashable], None] = None,
-        ignore_columns: t.Union[Hashable, t.List[Hashable], None] = None,
-        **kwargs
+            self,
+            columns: t.Union[Hashable, t.List[Hashable], None] = None,
+            ignore_columns: t.Union[Hashable, t.List[Hashable], None] = None,
+            max_features_to_show: int = 5,
+            aggregation_method='max',
+            **kwargs
     ):
         super().__init__(**kwargs)
         self.columns = columns
         self.ignore_columns = ignore_columns
+        self.max_features_to_show = max_features_to_show
+        self.aggregation_method = aggregation_method
 
     def run_logic(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
         """Run check logic."""
@@ -55,35 +75,40 @@ class PercentOfNulls(SingleDatasetCheck, ReduceFeatureMixin):
         dataset = dataset.select(self.columns, self.ignore_columns, keep_label=False)
         data = dataset.features_columns
 
-        l = len(data)
-        n_of_nulls = [data[c].isna().sum() for c in data.columns]
-        percent_of_nulls = [it / l for it in n_of_nulls]
+        feature_importance = context.feature_importance if context.feature_importance \
+            else pd.Series(index=list(data.columns), dtype=object)
 
-        display = (
-            [px.bar(x=data.columns, y=percent_of_nulls, title='Percent Of Nulls', range_y=(0, 1))]
-            if sum(n_of_nulls) > 0 and context.with_display is True
-            else None
-        )
+        result_data = [[col, data[col].isna().sum(), feature_importance[col]] for col in data.columns]
+        result_data = pd.DataFrame(data=result_data,
+                                   columns=['Column',
+                                            'Percent of nulls in sample',
+                                            'Feature importance']).set_index(['Column'])
+        result_data['Percent of nulls in sample'] = result_data['Percent of nulls in sample'] / dataset.n_samples
+        result_data.sort_values(by='Percent of nulls in sample')
+        if any(feature_importance.isna()):
+            result_data.drop('Feature importance', axis=1, inplace=True)
+
+        if context.with_display and max(result_data['Percent of nulls in sample']) > 0:
+            display = (
+                [px.bar(x=data.columns, y=result_data['Percent of nulls in sample'],
+                        title='Percent Of Nulls', range_y=(0, 1))])
+        else:
+            display = None
+
         return CheckResult(
-            value=dict(zip(data.columns, percent_of_nulls)),
+            value=result_data,
             display=display,
             header='PercentOfNulls'
         )
 
     def reduce_output(self, check_result: CheckResult) -> t.Dict[str, float]:
-        """Reduce check result value.
+        """Return an aggregated drift score based on aggregation method defined."""
+        feature_importance = check_result.value['Feature importance'] if 'Feature importance' \
+                                                                         in check_result.value.columns else None
+        values = check_result.value['Percent of nulls in sample']
+        return self.feature_reduce(self.aggregation_method, values, feature_importance, 'Null Ratio')
 
-        Returns
-        -------
-        Dict[str, float]
-            percent of nulls in each columns
-        """
-        return check_result.value
-
-    def add_condition_percent_of_nulls_not_greater_than(
-        self: TPercentOfNulls,
-        threshold: float = 0.05
-    ) -> TPercentOfNulls:
+    def add_condition_percent_of_nulls_not_greater_than(self, threshold: float = 0.05) -> TPercentOfNulls:
         """Add condition - percent of null values in each column is not greater than the threshold.
 
         Parameters
@@ -91,20 +116,21 @@ class PercentOfNulls(SingleDatasetCheck, ReduceFeatureMixin):
         threshold : float , default: 0.05
             Maximum threshold allowed.
         """
-        def condition(result: t.Dict[str, float]) -> ConditionResult:
-            columns = [k for k, v in result.items() if v > threshold]
-            if len(columns) == 0:
-                category = ConditionCategory.PASS
-                details = ''
+
+        def condition(result: pd.DataFrame) -> ConditionResult:
+            failing = result[result['Percent of nulls in sample'] > threshold][
+                'Percent of nulls in sample'].apply(format_percent)
+            if len(failing) > 0:
+                return ConditionResult(ConditionCategory.FAIL,
+                                       f'Found {len(failing)} columns with ratio '
+                                       f'of nulls above threshold: \n{dict(failing)}')
             else:
-                category = ConditionCategory.FAIL
-                details = (
-                    'Columns with percent of null values greater than '
-                    f'{format_percent(threshold)}: {format_list(columns)}'
-                )
-            return ConditionResult(category, details)
+                details = get_condition_passed_message(len(result))
+                if any(result['Percent of nulls in sample'] > 0):
+                    features_with_null = result[result['Percent of nulls in sample'] > 0]
+                    value_for_print = dict(features_with_null['Percent of nulls in sample'].apply(format_percent)[:5])
+                    details += f'. Top columns with null ratio: \n{value_for_print}'
+                return ConditionResult(ConditionCategory.PASS, details)
 
         return self.add_condition(
-            f'Percent of null values in each column is not greater than {format_percent(threshold)}',
-            condition
-        )
+            f'Percent of null values in each column is not greater than {format_percent(threshold)}', condition)

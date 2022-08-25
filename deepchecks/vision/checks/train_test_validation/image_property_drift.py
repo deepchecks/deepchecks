@@ -16,9 +16,9 @@ from collections import defaultdict
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
-from deepchecks.core.checks import ReducePropertyMixin
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
+from deepchecks.core.reduce_classes import ReducePropertyMixin
 from deepchecks.utils.dict_funcs import get_dict_entry_by_value
 from deepchecks.utils.distribution.drift import calc_drift_and_plot, get_drift_plot_sidenote
 from deepchecks.utils.strings import format_number
@@ -237,14 +237,7 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
 
     def reduce_output(self, check_result: CheckResult) -> t.Dict[str, float]:
         """Return prediction drift score per prediction property."""
-        if self.aggregation_method == 'max':
-            return {'Max Drift Score': max(check_result.value.values())}
-        elif self.aggregation_method == 'mean':
-            return {'Mean Drift Score': sum(check_result.value.values()) / len(check_result.value.values())}
-        elif self.aggregation_method == 'none':
-            return check_result.value
-        else:
-            raise DeepchecksValueError(f'Unknown aggregation method {self.aggregation_method}.')
+        return self.property_reduce(self.aggregation_method, pd.Series(check_result.value), 'Drift Score')
 
     def add_condition_drift_score_less_than(
             self: TImagePropertyDrift,

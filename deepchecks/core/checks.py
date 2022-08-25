@@ -24,6 +24,7 @@ from deepchecks.core.condition import Condition, ConditionCategory, ConditionRes
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.function import initvars
 from deepchecks.utils.strings import get_docs_summary, split_camel_case
+
 from . import common
 
 __all__ = [
@@ -31,11 +32,7 @@ __all__ = [
     'BaseCheck',
     'SingleDatasetBaseCheck',
     'TrainTestBaseCheck',
-    'ModelOnlyBaseCheck',
-    'ReduceMixin',
-    'ReduceFeatureMixin',
-    'ReducePropertyMixin',
-    'ReduceMetricClassMixin'
+    'ModelOnlyBaseCheck'
 ]
 
 
@@ -57,48 +54,6 @@ class CheckConfig(TypedDict):
     class_name: str
     version: NotRequired[str]
     params: Dict[Any, Any]
-
-
-class ReduceMixin(abc.ABC):
-    """Mixin for reduce_output function."""
-
-    def reduce_output(self, check_result: 'check_types.CheckResult') -> Dict[str, float]:
-        """Return the check result as a reduced dict. Being Used for monitoring.
-
-        Parameters
-        ----------
-        check_result : CheckResult
-            The check result.
-
-        Returns
-        -------
-        Dict[str, float]
-            reduced dictionary in format {str: float} (i.e {'AUC': 0.1}), based on the check's original returned value
-        """
-        raise NotImplementedError('Must implement reduce_output function')
-
-
-class ReduceMetricClassMixin(ReduceMixin):
-    """Extend ReduceMixin to for performance checks."""
-
-
-class ReduceFeatureMixin(ReduceMixin):
-    """Extend ReduceMixin to identify checks that output result per feature.
-
-    Reduce method in subclasses should include the following aggregation options:
-    'weighted': Weighted mean based on feature importance, provides a robust estimation on how
-    much the drift will affect the model's performance.
-    'l2_weighted': L2 norm over the combination of drift scores and feature importance, minus the
-    L2 norm of feature importance alone, specifically, ||FI + DRIFT|| - ||FI||. This method returns a
-    value between 0 and sqrt(n_features).
-    'mean': Mean of all drift scores.
-    'none': No averaging. Return a dict with a drift score for each feature.
-    'max': Maximum of all the features drift scores.
-    """
-
-
-class ReducePropertyMixin(ReduceMixin):
-    """Extend ReduceMixin to identify checks that output result per property."""
 
 
 class BaseCheck(abc.ABC):

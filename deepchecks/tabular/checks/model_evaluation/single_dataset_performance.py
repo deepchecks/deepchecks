@@ -15,8 +15,8 @@ from typing import TYPE_CHECKING, Callable, Dict, List, TypeVar, Union, cast
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
-from deepchecks.core.checks import ReduceMetricClassMixin
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.core.reduce_classes import ReduceMetricClassMixin
 from deepchecks.tabular import Context
 from deepchecks.tabular.base_checks import SingleDatasetCheck
 from deepchecks.utils.docref import doclink
