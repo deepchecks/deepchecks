@@ -128,11 +128,10 @@ class TextData:
                                 classes: t.Optional[t.Sequence[str]]):
         """Validate and process label to accepted formats."""
         # If label is not set, create an empty label of nulls
+        self._has_label = True
         if label is None:
             self._has_label = False
-            self._label = [None] * len(raw_text)
-
-        self._has_label = True
+            label = [None] * len(raw_text)
 
         if not isinstance(label, collections.abc.Sequence):
             raise DeepchecksValueError('label must be a Sequence')
