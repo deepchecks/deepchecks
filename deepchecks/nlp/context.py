@@ -18,8 +18,10 @@ import numpy as np
 from deepchecks.core.context import BaseContext
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
                                     ModelValidationError, ValidationError)
+from deepchecks.nlp.metric_utils.scorers import init_validate_scorers
 from deepchecks.nlp.task_type import TaskType
 from deepchecks.nlp.text_data import TextData
+from deepchecks.tabular.utils.task_type import TaskType as TabularTaskType
 
 __all__ = [
     'Context',
@@ -27,6 +29,7 @@ __all__ = [
     'TTextProba'
 ]
 
+from deepchecks.tabular.metric_utils import DeepcheckScorer, get_default_scorers
 from deepchecks.tabular.utils.validation import ensure_predictions_proba, ensure_predictions_shape
 from deepchecks.utils.typing import BasicModel
 
@@ -273,6 +276,8 @@ class Context(BaseContext):
             test_proba: t.Optional[TTextProba] = None
     ):
         # Validations
+        if train_dataset is None and test_dataset is None:
+            raise DatasetValidationError('Check must be given at least one dataset')
         if train_dataset is not None:
             train_dataset = TextData.cast_to_dataset(train_dataset)
         if test_dataset is not None:
@@ -339,3 +344,37 @@ class Context(BaseContext):
                 f"but received model of type '{self.task_type.value.lower()}'"  # pylint: disable=inconsistent-quotes
             )
         return True
+
+    def get_scorers(self,
+                    scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]], t.List[str]] = None,
+                    use_avg_defaults=True) -> t.List[DeepcheckScorer]:
+        """Return initialized & validated scorers in a given priority.
+
+        If receive `scorers` use them,
+        Else if user defined global scorers use them,
+        Else use default scorers.
+
+        Parameters
+        ----------
+        scorers : Union[List[str], Dict[str, Union[str, Callable]]], default: None
+            List of scorers to use. If None, use default scorers.
+            Scorers can be supplied as a list of scorer names or as a dictionary of names and functions.
+        use_avg_defaults : bool, default True
+            If no scorers were provided, for classification, determines whether to use default scorers that return
+            an averaged metric, or default scorers that return a metric per class.
+        Returns
+        -------
+        List[DeepcheckScorer]
+            A list of initialized & validated scorers.
+        """
+        if self.task_type == TaskType.TEXT_CLASSIFICATION:
+            if self.train.num_classes > 2:
+                scorers = scorers or get_default_scorers(TabularTaskType.MULTICLASS, use_avg_defaults)
+            else:
+                scorers = scorers or get_default_scorers(TabularTaskType.BINARY, use_avg_defaults)
+        elif self.task_type == TaskType.TOKEN_CLASSIFICATION:
+            scorers = []  # TODO: Complete that
+        else:
+            raise DeepchecksValueError(f'Task type must be either {TaskType.TEXT_CLASSIFICATION} or '
+                                       f'{TaskType.TOKEN_CLASSIFICATION} but received {self.task_type}')
+        return init_validate_scorers(scorers)
