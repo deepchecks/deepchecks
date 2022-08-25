@@ -57,7 +57,8 @@ def get_drift_method(result_dict: Dict):
 
 def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series],
               min_category_size_ratio: float = 0, max_num_categories: int = None,
-              sort_by: str = 'dist1') -> float:
+              sort_by: str = 'dist1',
+              from_freqs: bool = False) -> float:
     """Calculate the Cramer's V statistic.
 
     For more on Cramer's V, see https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V
@@ -89,14 +90,19 @@ def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.S
         - 'dist2': Sort by the largest dist2 categories.
         - 'difference': Sort by the largest difference between categories.
         > Note that this parameter has no effect if max_num_categories = None or there are not enough unique categories.
+    from_freqs: bool, default: False
+        Whether the data is already in the form of frequencies.
     Returns
     -------
     float
         the bias-corrected Cramer's V value of the 2 distributions.
 
     """
-    dist1_counts, dist2_counts, _ = preprocess_2_cat_cols_to_same_bins(dist1, dist2, min_category_size_ratio,
-                                                                       max_num_categories, sort_by)
+    if from_freqs:
+        dist1_counts, dist2_counts = dist1, dist2
+    else:
+        dist1_counts, dist2_counts, _ = preprocess_2_cat_cols_to_same_bins(dist1, dist2, min_category_size_ratio,
+                                                                           max_num_categories, sort_by)
     contingency_matrix = pd.DataFrame([dist1_counts, dist2_counts])
 
     # If columns have the same single value in both (causing division by 0), return 0 drift score:
@@ -118,7 +124,8 @@ def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.S
 
 
 def psi(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series],
-        min_category_size_ratio: float = 0, max_num_categories: int = None, sort_by: str = 'dist1') -> float:
+        min_category_size_ratio: float = 0, max_num_categories: int = None, sort_by: str = 'dist1',
+        from_freqs: bool = True) -> float:
     """
     Calculate the PSI (Population Stability Index).
 
@@ -153,8 +160,11 @@ def psi(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series]
     psi
         The PSI score
     """
-    expected_counts, actual_counts, _ = preprocess_2_cat_cols_to_same_bins(dist1, dist2, min_category_size_ratio,
-                                                                           max_num_categories, sort_by)
+    if from_freqs:
+        expected_counts, actual_counts = dist1, dist2
+    else:
+        expected_counts, actual_counts, _ = preprocess_2_cat_cols_to_same_bins(dist1, dist2, min_category_size_ratio,
+                                                                               max_num_categories, sort_by)
     size_expected, size_actual = sum(expected_counts), sum(actual_counts)
     psi_value = 0
     for i in range(len(expected_counts)):
