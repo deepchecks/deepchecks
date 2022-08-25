@@ -140,13 +140,13 @@ class DetectionData(VisionData):
             If batch_to_labels not implemented
         """
         labels = self.batch_to_labels(batch)
-        if not isinstance(labels, list):
-            raise ValidationError('Check requires object detection label to be a list with an entry for each '
+        if not isinstance(labels, Sequence):
+            raise ValidationError('Check requires object detection label to be a sequence with an entry for each '
                                   'sample')
         if len(labels) == 0:
-            raise ValidationError('Check requires object detection label to be a non-empty list')
+            raise ValidationError('Check requires object detection label to be a non-empty sequence')
         if not isinstance(labels[0], torch.Tensor):
-            raise ValidationError('Check requires object detection label to be a list of torch.Tensor')
+            raise ValidationError('Check requires object detection label to be a sequence of torch.Tensor')
         sample_idx = 0
         # Find a non empty tensor to validate
         while labels[sample_idx].shape[0] == 0:
@@ -154,9 +154,9 @@ class DetectionData(VisionData):
             if sample_idx == len(labels):
                 return  # No labels to validate
         if len(labels[sample_idx].shape) != 2:
-            raise ValidationError('Check requires object detection label to be a list of 2D tensors')
+            raise ValidationError('Check requires object detection label to be a sequence of 2D tensors')
         if labels[sample_idx].shape[1] != 5:
-            raise ValidationError('Check requires object detection label to be a list of 2D tensors, when '
+            raise ValidationError('Check requires object detection label to be a sequence of 2D tensors, when '
                                   'each row has 5 columns: [class_id, x, y, width, height]')
         if torch.min(labels[sample_idx]) < 0:
             raise ValidationError('Found one of coordinates to be negative, check requires object detection '

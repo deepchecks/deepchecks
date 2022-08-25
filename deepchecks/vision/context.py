@@ -112,7 +112,7 @@ class Context:
                     try:
                         preds = itemgetter(*list(dataset.data_loader.batch_sampler)[0])(predictions)
                         if dataset.task_type == TaskType.CLASSIFICATION:
-                            preds = torch.stack(preds)
+                            preds = torch.stack([preds]) if isinstance(preds, torch.Tensor) else torch.stack(preds)
                         dataset.validate_inferred_batch_predictions(preds)
                         self._static_predictions[dataset_kind] = predictions
                     except ValidationError as ex:

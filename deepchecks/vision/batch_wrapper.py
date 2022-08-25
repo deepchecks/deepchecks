@@ -61,7 +61,7 @@ class Batch:
         indexes = list(dataset.data_loader.batch_sampler)[self.batch_index]
         preds = itemgetter(*indexes)(preds)
         if dataset.task_type == TaskType.CLASSIFICATION:
-            return torch.stack(preds)
+            return torch.stack([preds]) if isinstance(preds, torch.Tensor) else torch.stack(preds)
         return preds
 
     @property
