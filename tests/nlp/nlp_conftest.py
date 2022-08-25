@@ -43,6 +43,6 @@ def text_multilabel_classification_dataset_mock():
 def movie_reviews_data():
     sentences = [' '.join(x) for x in movie_reviews.sents()]
     split_idx = int(len(sentences)/2)
-    train_data = sentences[:split_idx]
-    test_data = sentences[split_idx:]
+    train_data = TextData(sentences[:split_idx])
+    test_data = TextData(sentences[split_idx:])
     return train_data, test_data
