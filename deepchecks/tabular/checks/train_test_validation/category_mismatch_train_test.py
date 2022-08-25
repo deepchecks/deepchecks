@@ -119,7 +119,7 @@ class CategoryMismatchTrainTest(TrainTestCheck, ReduceFeatureMixin):
                                             'New categories in column',
                                             'Feature importance']).set_index(['Column'])
         result_data.sort_values(by='Percent of new categories in sample')
-        if any(feature_importance.isna()):
+        if all(feature_importance.isna()):
             result_data.drop('Feature importance', axis=1, inplace=True)
 
         if context.with_display:

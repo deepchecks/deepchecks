@@ -85,7 +85,7 @@ class PercentOfNulls(SingleDatasetCheck, ReduceFeatureMixin):
                                             'Feature importance']).set_index(['Column'])
         result_data['Percent of nulls in sample'] = result_data['Percent of nulls in sample'] / dataset.n_samples
         result_data.sort_values(by='Percent of nulls in sample')
-        if any(feature_importance.isna()):
+        if all(feature_importance.isna()):
             result_data.drop('Feature importance', axis=1, inplace=True)
 
         if context.with_display and max(result_data['Percent of nulls in sample']) > 0:

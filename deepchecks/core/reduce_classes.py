@@ -52,7 +52,7 @@ class ReduceMetricClassMixin(ReduceMixin):
 class ReduceFeatureMixin(ReduceMixin):
     """Extend ReduceMixin to identify checks that output result per feature.
 
-    Should implement the feature_reduce function and all the reduce options it supports.
+    Should implement the feature_reduce function and all the aggregation methods it supports.
     """
 
     @staticmethod
@@ -93,7 +93,7 @@ class ReduceFeatureMixin(ReduceMixin):
 class ReducePropertyMixin(ReduceMixin):
     """Extend ReduceMixin to identify checks that output result per property.
 
-    Should implement the property_reduce function and all the reduce options it supports.
+    Should implement the property_reduce function and all the aggregation methods it supports.
     """
 
     @staticmethod
