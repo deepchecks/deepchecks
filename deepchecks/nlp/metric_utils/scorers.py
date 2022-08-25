@@ -17,7 +17,7 @@ from deepchecks.tabular.metric_utils import DeepcheckScorer
 from deepchecks.utils.typing import ClassificationModel
 
 __all__ = [
-    'infer_on_text_data',
+    'init_validate_scorers',
     'infer_on_text_data'
 ]
 

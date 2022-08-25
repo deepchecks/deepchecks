@@ -108,10 +108,8 @@ class TextData:
         elif len(index) != len(raw_text):
             raise DeepchecksValueError('index must be the same length as raw_text')
 
-        # Create dataset
         self._index = index
 
-        # Set dataset name
         if dataset_name is not None:
             if not isinstance(dataset_name, str):
                 raise DeepchecksNotSupportedError(f'dataset_name type {type(dataset_name)} is not supported, must be a'

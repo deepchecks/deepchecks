@@ -42,8 +42,28 @@ _shared_docstrings = {'prediction_formats': """
           format: (class_name, span_start, span_end, class_probability). span_start and span_end are the start and end
           character indices  of the token within the text, as it was passed to the raw_text argument. Each upper level
           sequence contains a sequence of tokens for each sample.
-        - probabilities - No probabilities should be passed for Token Classification tasks. Values passed to the
-          probabilities argument will be ignored. 
+        - probabilities - No probabilities should be passed for Token Classification tasks. Passing probabilities will 
+          result in an error.
+          
+        Examples
+        --------
+        
+        **Text Classification**
+
+        *Single Class Predictions*
+        
+        >>> predictions = ['class_1', 'class_1', 'class_2']
+        >>> probabilities = [[0.2, 0.8], [0.5, 0.5], [0.3, 0.7]]
+        
+        *Multilabel Predictions*
+        
+        >>> predictions = [[0, 0, 1], [0, 1, 1]]
+        >>> probabilities = [[0.2, 0.3, 0.8], [0.4, 0.9, 0.6]]
+        
+        **Token Classification**
+        
+        >>> predictions = [('class_1', 0, 2, 0.5), ('class_2', 7, 10, 0.8)]
+        
 """.strip('\n')}
 
 docstrings = Substitution(**_shared_docstrings)
