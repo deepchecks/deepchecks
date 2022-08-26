@@ -17,7 +17,7 @@ import pathlib
 import sys
 import typing as t
 from contextlib import contextmanager
-from multiprocessing import Process, get_all_start_methods, get_start_method, set_start_method
+from multiprocessing import Process, get_all_start_methods, get_start_method, set_start_method, get_context
 
 import plotly.io as pio
 from IPython.core.display import display, display_html
@@ -271,8 +271,8 @@ def display_in_gui(result: DisplayableResult):
         filepath = pathlib.Path(filename).absolute()
 
         if 'fork' in get_all_start_methods():
-            with switch_start_method('fork'):
-                Process(target=app, args=(str(filepath),)).start()
+            ctx = get_context('fork')
+            ctx.Process(target=app, args=(str(filepath),)).start()
         else:
             # NOTE:
             # it stops code execution until user does not close QtApp window.
@@ -283,15 +283,6 @@ def display_in_gui(result: DisplayableResult):
             #
             # 'fork' process creation method is not supported only by windows
             app(filepath, False)
-
-
-@contextmanager
-def switch_start_method(name: str):
-    """Switch process creation method."""
-    original = t.cast(str, get_start_method())
-    set_start_method(name)
-    yield
-    set_start_method(original)
 
 
 def get_result_name(result) -> str:
