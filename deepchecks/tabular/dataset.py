@@ -537,7 +537,7 @@ class Dataset:
         return self.copy(train_df), self.copy(test_df)
 
     @staticmethod
-    def _infer_label_type(label_col: pd.Series, infer_task_type_from_label_nunique: int=10):
+    def _infer_label_type(label_col: pd.Series, infer_task_type_from_label_nunique: int = 10):
         if is_categorical(label_col, max_categorical_ratio=0.05):
             if label_col.nunique(dropna=True) > 2:
                 if infer_dtype(label_col) == 'integer' \
