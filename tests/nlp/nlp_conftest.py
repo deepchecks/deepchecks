@@ -9,6 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Fixtures for testing the nlp package"""
+import random
+
 import pytest
 
 from deepchecks.nlp.text_data import TextData
@@ -42,7 +44,23 @@ def text_multilabel_classification_dataset_mock():
 @pytest.fixture(scope='session')
 def movie_reviews_data():
     sentences = [' '.join(x) for x in movie_reviews.sents()]
+    random.seed(42)
+    random.shuffle(sentences)
     split_idx = int(len(sentences)/2)
     train_data = TextData(sentences[:split_idx])
     test_data = TextData(sentences[split_idx:])
     return train_data, test_data
+
+
+@pytest.fixture(scope='session')
+def movie_reviews_data_positive():
+    pos_sentences = [' '.join(x) for x in movie_reviews.sents(categories='pos')]
+    pos_data = TextData(pos_sentences)
+    return pos_data
+
+
+@pytest.fixture(scope='session')
+def movie_reviews_data_negative():
+    neg_sentences = [' '.join(x) for x in movie_reviews.sents(categories='neg')]
+    neg_data = TextData(neg_sentences)
+    return neg_data
