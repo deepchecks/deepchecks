@@ -95,23 +95,26 @@ class KeywordFrequencyDrift(TrainTestCheck):
         else:
             raise DeepchecksValueError('top_n_method must be one of: top_diff, top_freq or a list of keywords')
 
-        self.top_n_words = np.take(np.array(vocab), top_n_idxs)
-        self.top_n_diffs = np.take(word_freq_diff, top_n_idxs)
+        top_n_words = np.take(np.array(vocab), top_n_idxs)
+        top_n_diffs = np.take(word_freq_diff, top_n_idxs)
 
         if context.with_display:
             train_to_show = max_train_freqs[top_n_idxs]
             test_to_show = max_test_freqs[top_n_idxs]
-            display = word_counts_drift_plot(train_to_show, test_to_show, self.top_n_words)
+            display = word_counts_drift_plot(train_to_show, test_to_show, top_n_words)
         else:
             display = None
-        return CheckResult(value=drift_score, display=display, header='Keyword Frequency Drift')
+
+        result = {'drift_score': drift_score, 'top_n_diffs': dict(zip(top_n_words, top_n_diffs))}
+        return CheckResult(value=result, display=display, header='Keyword Frequency Drift')
 
 
     def add_condition_drift_score_less_than(self, threshold: float):
         """
         Add condition - require drift score to be less than the threshold.
         """
-        def condition(drift_score) -> ConditionResult:
+        def condition(value) -> ConditionResult:
+            drift_score = value['drift_score']
             if drift_score < threshold:
                 details = f'The drift score {format_number(drift_score)} is less than the threshold {format_number(threshold)}'
                 return ConditionResult(ConditionCategory.FAIL, details)
@@ -119,3 +122,10 @@ class KeywordFrequencyDrift(TrainTestCheck):
                 details = f'The drift score {format_number(drift_score)} is not less than the threshold {format_number(threshold)}'
                 return ConditionResult(ConditionCategory.FAIL, details)
         return self.add_condition(f'Drift Score is Less Than {format_number(threshold)}', condition)
+
+    def add_condition_top_n_differences_less_than(self, threshold: float):
+        """
+        Add condition - require the absolute differences between the counts of train and the test to be less than the
+        threshold for all of the top n keywords.
+        """
+        pass
