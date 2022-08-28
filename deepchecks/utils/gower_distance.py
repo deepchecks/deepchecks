@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module for calculating distance matrix via Gower method."""
-from typing import Any, Hashable, List
+from typing import Hashable, List
 
 import numpy as np
 import pandas as pd
@@ -78,7 +78,8 @@ def calculate_nearest_neighbors_distances(data: pd.DataFrame, cat_cols: List[Has
         Number of neighbors to return. For example, for n=2 for each sample returns the distances to the two closest
         samples in the dataset.
     samples_to_calc_neighbors_for: List[Any], default None
-        List of indexes in data to calculate its nearest neighbors. If None, calculates for all given data samples.
+        List of samples for which to calculate nearest neighbors. If None, calculates for all given samples in data.
+        These samples do not have to exist in data, but must share all relevant features.
     Returns
     -------
     numpy.ndarray
@@ -123,8 +124,10 @@ def calculate_nearest_neighbors_distances(data: pd.DataFrame, cat_cols: List[Has
     for i in range(num_indices_to_calc):  # TODO: parallelize this loop
         numeric_sample_i = numeric_samples_to_calc_neighbors_for[i, :]
         cat_sample_i = cat_samples_to_calc_neighbors_for[i, :]
-        dist_to_sample_i = _calculate_distances_to_sample(numeric_sample_i,cat_sample_i , cat_data, numeric_data, numeric_feature_ranges,
-                                                          num_features)
+        dist_to_sample_i = _calculate_distances_to_sample(
+            categorical_sample=cat_sample_i, numeric_sample=numeric_sample_i, cat_data=cat_data,
+            numeric_data=numeric_data, numeric_feature_ranges=numeric_feature_ranges, num_features=num_features
+        )
         # sort to find the closest samples (including self)
         min_dist_indexes = np.argpartition(dist_to_sample_i, num_neighbors)[:num_neighbors]
         min_dist_indexes_ordered = sorted(min_dist_indexes, key=lambda x, arr=dist_to_sample_i: arr[x], reverse=False)
@@ -135,19 +138,21 @@ def calculate_nearest_neighbors_distances(data: pd.DataFrame, cat_cols: List[Has
     return np.nan_to_num(distances, nan=np.nan, posinf=np.nan, neginf=np.nan), indexes
 
 
-def _calculate_distances_to_sample(numeric_sample: np.ndarray, categorical_sample , cat_data: np.ndarray, numeric_data: np.ndarray,
-                                   numeric_feature_ranges: np.ndarray, num_features: int):
+def _calculate_distances_to_sample(categorical_sample: np.ndarray, numeric_sample: np.ndarray, cat_data: np.ndarray,
+                                   numeric_data: np.ndarray, numeric_feature_ranges: np.ndarray, num_features: int):
     """
     Calculate Gower's distance between a single sample to the rest of the samples in the dataset.
 
     Parameters
     ----------
-    sample_index
-        The index of the sample to compare to the rest of the samples.
+    categorical_sample
+        The categorical features part of the sample to compare to the rest of the samples.
+    numeric_sample
+        The numeric features part of the sample to compare to the rest of the samples.
     cat_data
         The categorical features part of the dataset(after preprocessing).
     numeric_data
-        The numerical features part of the dataset(after preprocessing).
+        The numeric features part of the dataset(after preprocessing).
     numeric_feature_ranges
         The range sizes of each numerical feature.
     num_features
