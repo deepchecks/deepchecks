@@ -19,7 +19,7 @@ from deepchecks.core.context import BaseContext
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
                                     ModelValidationError, ValidationError)
 from deepchecks.nlp.metric_utils.scorers import init_validate_scorers
-from deepchecks.nlp.metric_utils.token_classification import get_default_token_scorers
+from deepchecks.nlp.metric_utils.token_classification import get_default_token_scorers, SpanAligner
 from deepchecks.nlp.task_type import TaskType
 from deepchecks.nlp.text_data import TextData
 from deepchecks.tabular.utils.task_type import TaskType as TabularTaskType
@@ -346,7 +346,8 @@ class Context(BaseContext):
 
     def get_scorers(self,
                     scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]], t.List[str]] = None,
-                    use_avg_defaults=True) -> t.List[DeepcheckScorer]:
+                    use_avg_defaults=True,
+                    span_aligner: t.Optional[SpanAligner] = None) -> t.List[DeepcheckScorer]:
         """Return initialized & validated scorers in a given priority.
 
         If receive `scorers` use them,
@@ -358,9 +359,11 @@ class Context(BaseContext):
         scorers : Union[List[str], Dict[str, Union[str, Callable]]], default: None
             List of scorers to use. If None, use default scorers.
             Scorers can be supplied as a list of scorer names or as a dictionary of names and functions.
-        use_avg_defaults : bool, default True
+        use_avg_defaults : bool, default: True
             If no scorers were provided, for classification, determines whether to use default scorers that return
             an averaged metric, or default scorers that return a metric per class.
+        span_aligner: t.Optional[SpanAligner], default: None
+            A SpanAligner object for processing the raw token classification annotations to the seqeval accepted format
         Returns
         -------
         List[DeepcheckScorer]
@@ -372,7 +375,7 @@ class Context(BaseContext):
             else:
                 scorers = scorers or get_default_scorers(TabularTaskType.BINARY, use_avg_defaults)
         elif self.task_type == TaskType.TOKEN_CLASSIFICATION:
-            scorers = get_default_token_scorers(scorers, use_avg_defaults)
+            scorers = get_default_token_scorers(scorers, span_aligner, use_avg_defaults)
         else:
             raise DeepchecksValueError(f'Task type must be either {TaskType.TEXT_CLASSIFICATION} or '
                                        f'{TaskType.TOKEN_CLASSIFICATION} but received {self.task_type}')

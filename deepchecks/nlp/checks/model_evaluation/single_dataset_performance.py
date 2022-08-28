@@ -19,6 +19,7 @@ from deepchecks.core.check_utils.single_dataset_performance_base import BaseSing
 from deepchecks.nlp.base_checks import SingleDatasetCheck
 from deepchecks.nlp.context import Context
 from deepchecks.nlp.metric_utils.scorers import infer_on_text_data
+from deepchecks.nlp.metric_utils.token_classification import SpanAligner
 from deepchecks.nlp.task_type import TaskType
 from deepchecks.nlp.text_data import TextData
 
@@ -48,15 +49,15 @@ class SingleDatasetPerformance(SingleDatasetCheck, BaseSingleDatasetPerformance)
         """Run check."""
         dataset = context.get_data_by_kind(dataset_kind)
         model = context.model
-        scorers = context.get_scorers(self.scorers, use_avg_defaults=False)
+        span_aligner = SpanAligner()
+        scorers = context.get_scorers(self.scorers, use_avg_defaults=False, span_aligner=span_aligner)
 
         results = []
-        if dataset.task_type == TaskType.TOKEN_CLASSIFICATION:
-            classes = sorted(list(set(dataset.classes).union(TextData.get_tokens(model.predict(dataset)))))
-        else:
-            classes = dataset.classes
+        classes = dataset.classes
         for scorer in scorers:
             scorer_value = infer_on_text_data(scorer, model, dataset)
+            if dataset.task_type == TaskType.TOKEN_CLASSIFICATION:
+                classes = span_aligner.classes
             if isinstance(scorer_value, Number):
                 results.append([pd.NA, scorer.name, scorer_value])
             else:
