@@ -28,15 +28,15 @@ Dataset Shape:
 
        * - Property
          - Value
-        * - Samples Total
+       * - Samples Total
          - 48842
-        * - Dimensionality
+       * - Dimensionality
          - 14
-        * - Features
+       * - Features
          - real, string
-        * - Targets
+       * - Targets
          - 2
-        * - Samples per class
+       * - Samples per class
          - '>50K' - 23.93%, '<=50K' - 76.07%
 
 Description:
