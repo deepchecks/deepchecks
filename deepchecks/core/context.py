@@ -122,6 +122,3 @@ class BaseContext(ABC):
                            f'Note - data sampling: {message} Sample size can be controlled with the "n_samples" '
                            'parameter.</i></p>')
                 check_result.display.append(message)
-
-
-
