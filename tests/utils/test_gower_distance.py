@@ -34,8 +34,8 @@ def test_calc_for_only_certain_samples():
                          'col2': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1000]},
                         index=list('abcdefghijklmn'))
     # Act
-    dist, _ = gower_distance.calculate_nearest_neighbors_distances(data, ['col1'], ['col2'], 5,
-                                                                   indices_to_calc_neighbors_for=['c', 'd', 'n'])
+    dist, _ = gower_distance.calculate_nearest_neighbors_distances(
+        data, ['col1'], ['col2'], 5, samples_to_calc_neighbors_for=data.loc[['c', 'd', 'n']])
     # Assert
     assert_that(dist[0], contains_exactly(0, 0, 0, 0, 0))
     assert_that(dist[1], contains_exactly(0, 0.5, 0.5, 0.5, 0.5))
