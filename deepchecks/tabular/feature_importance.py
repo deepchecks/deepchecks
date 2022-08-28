@@ -47,7 +47,7 @@ def calculate_feature_importance(
     >>> from deepchecks.tabular.feature_importance import calculate_feature_importance
     >>> from deepchecks.tabular.datasets.classification.iris import load_data, load_fitted_model
     >>> from deepchecks.tabular.checks import UnusedFeatures
-    >>> iris_train_dataset, iris_test_dataset = load_data()
+    >>> _, iris_test_dataset = load_data()
     >>> iris_model = load_fitted_model()
     >>> fi = calculate_feature_importance(model=iris_model, dataset=iris_train_dataset)
     >>> result = UnusedFeatures().run(iris_test_dataset, model=iris_model, feature_importance=fi)
