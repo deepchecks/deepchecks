@@ -9,8 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the keyword drift check."""
-from deepchecks import CheckResult
+from deepchecks import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.core import DatasetKind
+from deepchecks.utils.strings import format_number
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.distribution.drift import word_counts_drift_plot
 from deepchecks.nlp.base_checks import TrainTestCheck
@@ -106,5 +107,15 @@ class KeywordFrequencyDrift(TrainTestCheck):
         return CheckResult(value=drift_score, display=display, header='Keyword Frequency Drift')
 
 
-
-
+    def add_condition_drift_score_less_than(self, threshold: float):
+        """
+        Add condition - require drift score to be less than the threshold.
+        """
+        def condition(drift_score) -> ConditionResult:
+            if drift_score < threshold:
+                details = f'The drift score {format_number(drift_score)} is less than the threshold {format_number(threshold)}'
+                return ConditionResult(ConditionCategory.FAIL, details)
+            else:
+                details = f'The drift score {format_number(drift_score)} is not less than the threshold {format_number(threshold)}'
+                return ConditionResult(ConditionCategory.FAIL, details)
+        return self.add_condition(f'Drift Score is Less Than {format_number(threshold)}', condition)
