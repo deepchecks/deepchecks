@@ -272,7 +272,7 @@ class CocoSegmentationDataset(VisionDataset):
     def load_or_download(cls, root: Path, train: bool, test_mode: bool) -> 'CocoSegmentationDataset':
         """Load or download the coco128 dataset with segment annotations."""
         extract_dir = root / 'coco128segments'
-        coco_dir = root / 'coco128segments' / 'coco128'
+        coco_dir = root / 'coco128segments' / 'coco128-seg'
         folder = 'train2017'
 
         if not coco_dir.exists():
