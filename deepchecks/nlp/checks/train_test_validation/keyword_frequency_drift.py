@@ -117,7 +117,7 @@ class KeywordFrequencyDrift(TrainTestCheck):
             drift_score = value['drift_score']
             if drift_score < threshold:
                 details = f'The drift score {format_number(drift_score)} is less than the threshold {format_number(threshold)}'
-                return ConditionResult(ConditionCategory.FAIL, details)
+                return ConditionResult(ConditionCategory.PASS, details)
             else:
                 details = f'The drift score {format_number(drift_score)} is not less than the threshold {format_number(threshold)}'
                 return ConditionResult(ConditionCategory.FAIL, details)
@@ -128,4 +128,15 @@ class KeywordFrequencyDrift(TrainTestCheck):
         Add condition - require the absolute differences between the counts of train and the test to be less than the
         threshold for all of the top n keywords.
         """
-        pass
+        def condition(value) -> ConditionResult:
+            diffs = value['top_n_diffs']
+            keywords_failed = [k for k,v in diffs.items() if v >= threshold]
+
+            if len(keywords_failed) == 0:
+                details = 'Passed for all of the top N keywords'
+                return ConditionResult(ConditionCategory.PASS, details)
+            else:
+                details = f'Failed for the keywords: {keywords_failed}'
+                return ConditionResult(ConditionCategory.FAIL, details)
+        return self.add_condition(f'Diffrences between the frequencies of the top N keywords are less than '
+                                  f'{format_number(threshold)}', condition)

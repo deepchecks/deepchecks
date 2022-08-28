@@ -22,3 +22,14 @@ def test_drift_score_condition_fail(movie_reviews_data_positive, movie_reviews_d
         is_pass=False,
         details='The drift score 0.58 is not less than the threshold 0.5',
         name='Drift Score is Less Than 0.5'))
+
+
+def test_top_n_diff_condition_fail(movie_reviews_data_positive, movie_reviews_data_negative):
+    result = KeywordFrequencyDrift(top_n_to_show=5, drift_method='PSI').add_condition_top_n_differences_less_than(0.2)\
+        .run(movie_reviews_data_positive, movie_reviews_data_negative)
+
+    expected_keywords = ['yessssss', 'lucent', 'riiiiight', 'hmmmmm', 'hullo']
+    assert_that(result.conditions_results[0], equal_condition_result(
+        is_pass=False,
+        details=f'Failed for the keywords: {expected_keywords}',
+        name='Diffrences between the frequencies of the top N keywords are less than 0.2'))
