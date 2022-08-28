@@ -12,7 +12,8 @@
 from deepchecks import CheckResult
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.nlp.base_checks import TrainTestBaseCheck
+from deepchecks.utils.distribution.drift import word_counts_drift_plot
+from deepchecks.nlp.base_checks import TrainTestCheck
 from deepchecks.utils.distribution.drift import cramers_v, psi
 from typing import Union, List, Any
 from deepchecks.nlp.context import Context
@@ -23,7 +24,7 @@ import numpy as np
 __all__ = ['KeywordFrequencyDrift']
 
 
-class KeywordFrequencyDrift(TrainTestBaseCheck):
+class KeywordFrequencyDrift(TrainTestCheck):
     """
     Computes the keywords' frequencies drift between the train and the test datasets.
 
@@ -61,8 +62,10 @@ class KeywordFrequencyDrift(TrainTestBaseCheck):
         self.top_n_words = None
         self.top_n_diffs = None
 
-    def run(self, train_dataset, test_dataset, model=None, **kwargs) -> CheckResult:
+    def run_logic(self, context: Context) -> CheckResult:
         """Run check."""
+        train_dataset = context.train
+        test_dataset = context.test
         all_data = list(train_dataset.text) + list(test_dataset.text)
 
         vectorizer = TfidfVectorizer(input='content', strip_accents='ascii', preprocessor=self.stem_func,
@@ -82,16 +85,25 @@ class KeywordFrequencyDrift(TrainTestBaseCheck):
         vocab = vectorizer.get_feature_names_out()
 
         if isinstance(self.top_n_method, List):
-            top_n_idxs = [idx for word, idx in enumerate(vocab) if word in self.top_n_method]
+            top_n_idxs = [idx for idx, word in enumerate(vocab) if word in self.top_n_method]
         elif self.top_n_method == 'top_diff':
-            top_n_idxs = np.argsort(word_freq_diff)[:self.top_n_to_show]
+            top_n_idxs = np.argsort(word_freq_diff)[-self.top_n_to_show:]
         elif self.top_n_method == 'top_freq':
             max_freqs = np.maximum(max_train_freqs, max_test_freqs)
-            top_n_idxs = np.argsort(max_freqs)[:self.top_n_to_show]
+            top_n_idxs = np.argsort(max_freqs, )[-self.top_n_to_show:]
         else:
             raise DeepchecksValueError('top_n_method must be one of: top_diff, top_freq or a list of keywords')
 
         self.top_n_words = np.take(np.array(vocab), top_n_idxs)
         self.top_n_diffs = np.take(word_freq_diff, top_n_idxs)
 
-        return CheckResult(drift_score, header='Keyword Frequency Drift')
+        if context.with_display:
+            train_to_show = max_train_freqs[top_n_idxs]
+            test_to_show = max_test_freqs[top_n_idxs]
+            display = word_counts_drift_plot(train_to_show, test_to_show, self.top_n_words)
+        else:
+            display = None
+
+
+        return CheckResult(value=drift_score, display=display, header='Keyword Frequency Drift')
+

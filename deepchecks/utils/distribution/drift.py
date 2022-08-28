@@ -10,17 +10,18 @@
 #
 """Common utilities for distribution checks."""
 from numbers import Number
-from typing import Callable, Dict, Optional, Tuple, Union
+from typing import Callable, Dict, Optional, Tuple, Union, List
 
 import numpy as np
 import pandas as pd
 from plotly.subplots import make_subplots
+import plotly.graph_objects as go
 from scipy.stats import chi2_contingency, wasserstein_distance
 
 from deepchecks.core import ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
 from deepchecks.utils.dict_funcs import get_dict_entry_by_value
-from deepchecks.utils.distribution.plot import drift_score_bar_traces, feature_distribution_traces
+from deepchecks.utils.distribution.plot import drift_score_bar_traces, feature_distribution_traces, word_counts_bar_traces
 from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
 from deepchecks.utils.strings import format_number
 
@@ -453,3 +454,12 @@ def drift_condition(max_allowed_categorical_score: float,
             return ConditionResult(ConditionCategory.PASS, details)
 
     return condition
+
+def word_counts_drift_plot(
+        train_column: Union[np.ndarray, pd.Series],
+        test_column: Union[np.ndarray, pd.Series],
+        keyword_list: List
+):
+    fig = go.Figure()
+    fig.add_traces(word_counts_bar_traces(train_column, test_column, keyword_list))
+    return fig
