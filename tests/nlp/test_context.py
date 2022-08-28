@@ -11,42 +11,107 @@
 """Test for the Context & _DummyModel creation process"""
 from hamcrest import assert_that, calling, raises
 
-from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.nlp.text_data import TextData
+from deepchecks.core.errors import ValidationError
+from deepchecks.nlp import Suite
+
+CLASSIFICATION_ERROR_FORMAT = r'Check requires classification for train to be ' \
+                              r'either a sequence that can be cast to a 1D numpy array of shape' \
+                              r' \(n_samples,\), or a sequence of sequences that can be cast to a 2D ' \
+                              r'numpy array of shape \(n_samples, n_classes\) for the multilabel case.'
 
 
-def test_init_no_text():
-    """Test the TextData object when no text is provided"""
-
-    # Act & Assert
-    assert_that(
-        calling(TextData).with_args([1]),
-        raises(DeepchecksValueError, 'raw_text must be a Sequence of strings')
-    )
-
-
-def test_init_mismatched_task_type():
-    """Test the TextData object when the task type does not match the label format"""
+def test_wrong_prediction_format(text_classification_dataset_mock):
 
     # Arrange
-    label = [1, 2, 3]
-    text = ['a', 'b', 'c']
+    emtpy_suite = Suite('Empty Suite')
 
     # Act & Assert
-    assert_that(
-        calling(TextData).with_args(text, label, task_type='token_classification'),
-        raises(DeepchecksValueError,
-               r'label must be a Sequence of Sequences of \(str, int, int\) tuples, where the string is the token '
-               r'label, the first int is the start of the token span in the raw text and the second int is the end of '
-               r'the token span.')
+    assert_that(calling(emtpy_suite.run).with_args(
+        train_dataset=text_classification_dataset_mock,
+        train_predictions=[0, 0, 1, 1]),
+        raises(ValidationError, 'Check requires predictions for train to have 3 rows, same as dataset')
     )
+
+    assert_that(calling(emtpy_suite.run).with_args(
+        train_dataset=text_classification_dataset_mock,
+        train_predictions=[[0, 1], [1, 1], [0, 0]]),
+        raises(ValidationError, CLASSIFICATION_ERROR_FORMAT)
+    )
+
+    assert_that(calling(emtpy_suite.run).with_args(
+        train_dataset=text_classification_dataset_mock,
+        train_probabilities=[[0.3, 0.5, 0.2], [0.3, 0.5, 0.2]]),
+        raises(ValidationError, 'Check requires classification probabilities for train dataset to have 3 rows,'
+                                ' same as dataset')
+    )
+
+    assert_that(calling(emtpy_suite.run).with_args(
+        train_dataset=text_classification_dataset_mock,
+        train_probabilities=[[1, 1, 1], [0, 0, 0], [0.5, 0.5, 0.5]]),
+        raises(ValidationError, 'Check requires classification probabilities for train dataset to have 2 columns, '
+                                'same as the number of classes')
+    )
+
+    assert_that(calling(emtpy_suite.run).with_args(
+        train_dataset=text_classification_dataset_mock,
+        train_probabilities=[[1, 1], [0, 0], [0.5, 0.2]]),
+        raises(ValidationError, 'Check requires classification probabilities for train dataset to be probabilities and'
+                                ' sum to 1 for each row')
+    )
+
+    # Run with no error
+    emtpy_suite.run(
+        train_dataset=text_classification_dataset_mock,
+        train_predictions=[1, 1, 1],
+        train_probabilities=[[0.9, 0.1], [1, 0], [0.5, 0.5]])
+
+
+def test_wrong_multilabel_prediction_format(text_multilabel_classification_dataset_mock):
 
     # Arrange
-    label = [[('PER', 3, 5), ('ORG', 5, 7)], [('ORG', 13, 15), ('GEO', 23, 25)], []]
+    emtpy_suite = Suite('Empty Suite')
 
     # Act & Assert
-    assert_that(
-        calling(TextData).with_args(text, label, task_type='text_classification'),
-        raises(DeepchecksValueError,
-               r'multilabel was identified. It must be a Sequence of Sequences of 0 or 1.')
+    assert_that(calling(emtpy_suite.run).with_args(
+        train_dataset=text_multilabel_classification_dataset_mock,
+        train_predictions=[0, 0, 1, 1]),
+        raises(ValidationError, 'Check requires predictions for train to have 3 rows, same as dataset')
     )
+
+    assert_that(calling(emtpy_suite.run).with_args(
+        train_dataset=text_multilabel_classification_dataset_mock,
+        train_predictions=[0, 1, 1]),
+        raises(ValidationError, CLASSIFICATION_ERROR_FORMAT)
+    )
+
+    assert_that(calling(emtpy_suite.run).with_args(
+        train_dataset=text_multilabel_classification_dataset_mock,
+        train_predictions=[[0], [0, 1], 1]),
+        raises(ValidationError, CLASSIFICATION_ERROR_FORMAT)
+    )
+
+    assert_that(calling(emtpy_suite.run).with_args(
+        train_dataset=text_multilabel_classification_dataset_mock,
+        train_probabilities=[[0.3, 0.5, 0.2], [0.3, 0.5, 0.2]]),
+        raises(ValidationError, 'Check requires classification probabilities for train dataset to have 3 rows,'
+                                ' same as dataset')
+    )
+
+    assert_that(calling(emtpy_suite.run).with_args(
+        train_dataset=text_multilabel_classification_dataset_mock,
+        train_probabilities=[[1, 1], [0, 0], [0.5, 0.5]]),
+        raises(ValidationError, 'heck requires classification probabilities for train dataset to have 3 columns, '
+                                'same as the number of classes')
+    )
+
+    assert_that(calling(emtpy_suite.run).with_args(
+        train_dataset=text_multilabel_classification_dataset_mock,
+        train_probabilities=[[1, 1.2, 1], [0, 0, 0.3], [0.5, 0.2, 0.9]]),
+        raises(ValidationError, 'Check requires classification probabilities for train dataset to be between 0 and 1')
+    )
+
+    # Run with no error
+    emtpy_suite.run(
+        train_dataset=text_multilabel_classification_dataset_mock,
+        train_predictions=[[1, 1, 0], [0, 0, 1], [1, 1, 1]],
+        train_probabilities=[[0.9, 0.8, 0.3], [0.9, 0.8, 0.3], [0.9, 0.8, 0.3]])

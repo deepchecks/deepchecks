@@ -15,7 +15,7 @@ from operator import itemgetter
 
 import numpy as np
 
-from deepchecks.core import CheckFailure, CheckResult, DatasetKind
+from deepchecks.core.context import BaseContext
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
                                     ModelValidationError, ValidationError)
 from deepchecks.nlp.metric_utils.scorers import init_validate_scorers
@@ -146,7 +146,6 @@ class _DummyModel(BasicModel):
     @staticmethod
     def _validate_prediction(dataset: TextData, prediction: TTextPred):
         """Validate prediction for given dataset."""
-
         if not isinstance(prediction, collections.abc.Sequence):
             ValidationError(f'Check requires predictions for {dataset.name} to be a sequence')
         if len(prediction) != dataset.n_samples:
@@ -172,12 +171,14 @@ class _DummyModel(BasicModel):
                 prediction = prediction.astype(float)  # Multilabel prediction is a binary matrix
             else:
                 prediction = prediction.reshape((-1, 1))  # Multiclass (not multilabel) Prediction can be a string
+                if prediction.shape[0] != dataset.n_samples:
+                    raise ValidationError(classification_format_error)
         except ValueError as e:
             raise ValidationError(classification_format_error) from e
         pred_shape = prediction.shape
         n_classes = dataset.num_classes
         if dataset.is_multilabel:
-            if len(pred_shape) != 1 and pred_shape[1] != n_classes:
+            if len(pred_shape) == 1 or pred_shape[1] != n_classes:
                 raise ValidationError(classification_format_error)
             if not np.array_equal(prediction, prediction.astype(bool)):
                 raise ValidationError(f'Check requires classification predictions for {dataset.name} dataset '
@@ -245,7 +246,7 @@ class _DummyModel(BasicModel):
                                           f'dataset to be probabilities and sum to 1 for each row')
 
 
-class Context:
+class Context(BaseContext):
     """Contains all the data + properties the user has passed to a check/suite, and validates it seamlessly.
 
     Parameters
@@ -277,6 +278,8 @@ class Context:
             test_proba: t.Optional[TTextProba] = None
     ):
         # Validations
+        if train_dataset is None and test_dataset is None:
+            raise DatasetValidationError('Check must be given at least one dataset')
         if train_dataset is not None:
             train_dataset = TextData.cast_to_dataset(train_dataset)
         if test_dataset is not None:
@@ -306,30 +309,16 @@ class Context:
         self._with_display = with_display
 
     @property
-    def with_display(self) -> bool:
-        """Return the with_display flag."""
-        return self._with_display
-
-    @property
-    def train(self) -> TextData:
-        """Return train_dataset if exists, otherwise raise error."""
-        if self._train is None:
-            raise DeepchecksNotSupportedError('Check is irrelevant for Datasets without train_dataset dataset')
-        return self._train
-
-    @property
-    def test(self) -> TextData:
-        """Return test_dataset if exists, otherwise raise error."""
-        if self._test is None:
-            raise DeepchecksNotSupportedError('Check is irrelevant for Datasets without test_dataset dataset')
-        return self._test
-
-    @property
     def model(self) -> _DummyModel:
         """Return model if exists, otherwise raise error."""
         if self._model is None:
             raise DeepchecksNotSupportedError('Check is irrelevant without providing predictions')
         return self._model
+
+    @property
+    def model_name(self) -> str:
+        """Return the name of the model."""
+        return 'Pre-computed predictions'
 
     @property
     def task_type(self) -> TaskType:
@@ -358,54 +347,6 @@ class Context:
             )
         return True
 
-    def get_data_by_kind(self, kind: DatasetKind):
-        """Return the relevant Dataset by given kind."""
-        if kind == DatasetKind.TRAIN:
-            return self.train
-        elif kind == DatasetKind.TEST:
-            return self.test
-        else:
-            raise DeepchecksValueError(f'Unexpected dataset kind {kind}')
-
-    def finalize_check_result(self, check_result, check, kind: DatasetKind = None):
-        """Run final processing on a check result which includes validation, conditions processing and sampling\
-        footnote."""
-        # Validate the check result type
-        if isinstance(check_result, CheckFailure):
-            return
-        if not isinstance(check_result, CheckResult):
-            raise DeepchecksValueError(f'Check {check.name()} expected to return CheckResult but got: '
-                                       + type(check_result).__name__)
-
-        # Set reference between the check result and check
-        check_result.check = check
-        # Calculate conditions results
-        check_result.process_conditions()
-        # Add sampling footnote if needed
-        if hasattr(check, 'n_samples'):
-            n_samples = getattr(check, 'n_samples')
-            message = ''
-            if kind:
-                dataset = self.get_data_by_kind(kind)
-                if dataset.is_sampled(n_samples):
-                    message = f'Data is sampled from the original dataset, running on ' \
-                              f'{dataset.len_when_sampled(n_samples)} samples out of {len(dataset)}.'
-            else:
-                if self._train is not None and self._train.is_sampled(n_samples):
-                    message += f'Running on {self._train.len_when_sampled(n_samples)} <b>train_dataset</b> data ' \
-                               f'samples out of {len(self._train)}.'
-                if self._test is not None and self._test.is_sampled(n_samples):
-                    if message:
-                        message += ' '
-                    message += f'Running on {self._test.len_when_sampled(n_samples)} <b>test_dataset</b> data ' \
-                               f'samples out of {len(self._test)}.'
-
-            if message:
-                message = ('<p style="font-size:0.9em;line-height:1;"><i>'
-                           f'Note - data sampling: {message} Sample size can be controlled with the "n_samples" '
-                           'parameter.</i></p>')
-                check_result.display.append(message)
-
     def get_scorers(self,
                     scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]], t.List[str]] = None,
                     use_avg_defaults=True) -> t.List[DeepcheckScorer]:
@@ -429,7 +370,10 @@ class Context:
             A list of initialized & validated scorers.
         """
         if self.task_type == TaskType.TEXT_CLASSIFICATION:
-            scorers = scorers or get_default_scorers(TabularTaskType.MULTICLASS, use_avg_defaults)
+            if self.train.num_classes > 2:
+                scorers = scorers or get_default_scorers(TabularTaskType.MULTICLASS, use_avg_defaults)
+            else:
+                scorers = scorers or get_default_scorers(TabularTaskType.BINARY, use_avg_defaults)
         elif self.task_type == TaskType.TOKEN_CLASSIFICATION:
             scorers = []  # TODO: Complete that
         else:
