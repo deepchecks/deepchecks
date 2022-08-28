@@ -49,6 +49,7 @@ class Dataset:
         label column provided either as a string with the name of an existing column in the DataFrame or a label
         object including the label data (pandas Series/DataFrame or a numpy array) that will be concatenated to the
         data in the DataFrame. in case of label data the following logic is applied to set the label name:
+        
         - Series: takes the series name or 'target' if name is empty
         - DataFrame: expect single column in the dataframe and use its name
         - numpy: use 'target'

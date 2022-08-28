@@ -20,12 +20,12 @@ How deepchecks detects outliers
 Outlier Sample Detection searches for outliers samples (jointly across all features) using the LoOP algorithm.
 The LoOP algorithm is a robust method for detecting outliers in a dataset across multiple variables by comparing
 the density in the area of a sample with the densities in the areas of its nearest neighbors
-(see `link <https://www.dbs.ifi.lmu.de/Publikationen/Papers/LoOP1649.pdf>`_ for further details).
+(see the `LoOp paper <https://www.dbs.ifi.lmu.de/Publikationen/Papers/LoOP1649.pdf>`__ for further details).
 
 LoOP relies on a distance matrix. In our implementation we use the Gower distance that averages the distances
 per feature between samples. For numeric features it calculates the absolute distance divided by the range of the
-feature and for categorical features it is an indicator whether the values are the same
-(see `link <https://www.jstor.org/stable/2528823>`_ for further details).
+feature and for categorical features it is an indicator for whether the values are the same
+(see `link <https://www.jstor.org/stable/2528823>`__ for further details).
 """
 
 # %%

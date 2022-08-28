@@ -24,7 +24,7 @@ The typical ML task in this dataset is to build a model that determines whether 
 Dataset Shape:
     .. list-table:: Dataset Shape
        :widths: 50 50
-        :header-rows: 1
+       :header-rows: 1
 
        * - Property
          - Value

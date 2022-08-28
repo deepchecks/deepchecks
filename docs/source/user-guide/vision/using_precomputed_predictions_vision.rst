@@ -1,8 +1,8 @@
 .. _using_precomputed_predictions:
 
-=============================
+=================================
 Using Pre-computed Predictions
-=============================
+=================================
 Some checks, mainly the ones related to model evaluation, require model predictions in order to run.
 In deepchecks, predictions are passed to the suite / check ``run`` method in one of the following ways:
 

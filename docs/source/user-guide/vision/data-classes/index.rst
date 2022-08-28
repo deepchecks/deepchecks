@@ -32,9 +32,9 @@ What Do You Need to Implement?
 Generally, all you need to do is to implement a data class that inherits from one of the supported classes in the
 vision module, and just implement there 3 functions:
 
-    - `batch_to_images`: Returns a list of images in the correct format from a batch of data.
-    - `batch_to_labels`: Returns a list of labels in the correct format from a batch of data.
-    - `infer_on_batch`: Returns a list of a model's predictions in the correct format from a batch of data.
+- ``batch_to_images``: Returns a list of images in the correct format from a batch of data.
+- ``batch_to_labels``: Returns a list of labels in the correct format from a batch of data.
+- ``infer_on_batch``: Returns a list of a model's predictions in the correct format from a batch of data.
 
 Please see specific examples in the :doc:`VisionData </user-guide/vision/data-classes/VisionData>`,
 :doc:`ClassificationData </user-guide/vision/data-classes/ClassificationData>`,
@@ -53,5 +53,5 @@ Use this function like so:
     dataset = MyDataset(my_dataloader)
     validate_extractors(dataset, model)
 
-For more info about the classes validation see the guide
-:doc:`formatters_validation </user-guide/vision/auto_tutorials/plot_extractors_validating>`
+For more info about the classes validation see the following tutorial about how to
+:doc:`/user-guide/vision/auto_tutorials/plot_extractors_validating`.

@@ -15,24 +15,23 @@ _shared_docs = {}
 
 
 _shared_docs['additional_context_params'] = """
-model_name: str , default: ''
+model_name : str , default: ''
     The name of the model
 scorers : Optional[Mapping[str, Metric]] , default: None
     dict of scorers names to a Metric
 scorers_per_class : Optional[Mapping[str, Metric]] , default: None
     dict of scorers for classification without averaging of the classes.
-    See <a href=
-    "https://scikit-learn.org/stable/modules/model_evaluation.html#from-binary-to-multiclass-and-multilabel">
-    scikit-learn docs</a>
+    See `scikit-learn 
+    docs <https://scikit-learn.org/stable/modules/model_evaluation.html#from-binary-to-multiclass-and-multilabel>`__.
 device : Union[str, torch.device], default: 'cpu'
     processing unit for use
 random_state : int
     A seed to set for pseudo-random functions
 with_display : bool , default: True
     flag that determines if checks will calculate display (redundant in some checks).
-train_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] , default None
+train_predictions : Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] , default None
     Dictionary of the model prediction over the train dataset (keys are the indexes).
-test_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] , default None
+test_predictions : Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] , default None
     Dictionary of the model prediction over the test dataset (keys are the indexes).
 """.strip('\n')
 

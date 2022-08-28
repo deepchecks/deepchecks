@@ -62,27 +62,32 @@ def train_test_validation(n_top_show: int = 5,
 
     Parameters
     ----------
-    n_top_show: int, default: 5
+    n_top_show : int, default: 5
         Number of images to show for checks that show images.
     label_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
-        Each property is a dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
+        Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
         representing attributes of said method. 'output_type' must be one of:
-        - 'numeric' - for continuous ordinal outputs.
-        - 'categorical' - for discrete, non-ordinal outputs. These can still be numbers,
+
+        - ``'numeric'`` - for continuous ordinal outputs.
+        - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
-        For more on image / label properties, see the :ref:`vision_properties_guide`.
-        - 'class_id' - for properties that return the class_id. This is used because these
-          properties are later matched with the VisionData.label_map, if one was given.
+        - ``'class_id'`` - for properties that return the class_id. This is used because these
+          properties are later matched with the ``VisionData.label_map``, if one was given.
+
+        For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
+
     image_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
-        Each property is a dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
+        Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
         representing attributes of said method. 'output_type' must be one of:
-        - 'numeric' - for continuous ordinal outputs.
-        - 'categorical' - for discrete, non-ordinal outputs. These can still be numbers,
+
+        - ``'numeric'`` - for continuous ordinal outputs.
+        - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
-        For more on image / label properties, see the :ref:`vision_properties_guide`.
-    random_state: int, default: None
+
+        For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
+    random_state : int, default: None
         Random seed for all checks.
     **kwargs : dict
         additional arguments to pass to the checks.
@@ -97,11 +102,12 @@ def train_test_validation(n_top_show: int = 5,
     --------
     >>> from deepchecks.vision.suites import train_test_validation
     >>> suite = train_test_validation(n_top_show=3)
-    >>> result = suite.run()
+    >>> result = suite.run(n_samples=800)
     >>> result.show()
 
     See Also
     --------
+    
     :ref:`vision_classification_tutorial`
     :ref:`vision_detection_tutorial`
     """
@@ -164,22 +170,26 @@ def model_evaluation(alternative_metrics: Dict[str, Metric] = None,
         Slices for small/medium/large buckets. (For object detection tasks only)
     image_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
-        Each property is a dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
+        Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
         representing attributes of said method. 'output_type' must be one of:
-        - 'numeric' - for continuous ordinal outputs.
-        - 'categorical' - for discrete, non-ordinal outputs. These can still be numbers,
+
+        - ``'numeric'`` - for continuous ordinal outputs.
+        - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
-        For more on image / label properties, see the :ref:`vision_properties_guide`.
+
+        For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
     prediction_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
-        Each property is a dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
+        Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
         representing attributes of said method. 'output_type' must be one of:
-        - 'numeric' - for continuous ordinal outputs.
-        - 'categorical' - for discrete, non-ordinal outputs. These can still be numbers,
+
+        - ``'numeric'`` - for continuous ordinal outputs.
+        - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
-        For more on image / label properties, see the :ref:`vision_properties_guide`.
-        - 'class_id' - for properties that return the class_id. This is used because these
-          properties are later matched with the VisionData.label_map, if one was given.
+        - ``'class_id'`` - for properties that return the class_id. This is used because these
+          properties are later matched with the ``VisionData.label_map``, if one was given.
+
+        For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
     random_state : int, default: 42
         random seed for all checks.
     **kwargs : dict
@@ -257,22 +267,28 @@ def data_integrity(image_properties: List[Dict[str, Any]] = None,
     ----------
     image_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
-        Each property is a dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
+        Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
         representing attributes of said method. 'output_type' must be one of:
-        - 'numeric' - for continuous ordinal outputs.
-        - 'categorical' - for discrete, non-ordinal outputs. These can still be numbers,
+
+        - ``'numeric'`` - for continuous ordinal outputs.
+        - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
-        For more on image / label properties, see the :ref:`vision_properties_guide`
+
+        For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
     n_show_top : int , default: 5
         number of samples to show from each direction (upper limit and bottom limit)
     label_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
-        Each property is a dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
+        Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
         representing attributes of said method. 'output_type' must be one of:
-        - 'numeric' - for continuous ordinal outputs.
-        - 'categorical' - for discrete, non-ordinal outputs. These can still be numbers,
+
+        - ``'numeric'`` - for continuous ordinal outputs.
+        - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
-        For more on image / label properties, see the :ref:`vision_properties_guide`
+        - ``'class_id'`` - for properties that return the class_id. This is used because these
+          properties are later matched with the ``VisionData.label_map``, if one was given.
+
+        For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
     **kwargs : dict
         additional arguments to pass to the checks.
 

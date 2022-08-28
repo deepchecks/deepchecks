@@ -21,9 +21,12 @@ validating data splits, evaluating your model and comparing between different mo
 .. admonition:: Join Our Community 👋
    :class: tip
 
-   In addition to perusing the documentation, please feel free to
-   ask questions on our `Slack Community <https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg>`_,
-   or to post a issue or start a discussion on `Github <https://github.com/deepchecks/deepchecks/issues>`_.
+   In addition to perusing the documentation, feel free to:
+
+   - Ask questions on our `Slack Community <https://www.deepchecks.com/slack>`__,
+   - Post an issue or start a discussion on `Github Issues <https://github.com/deepchecks/deepchecks/issues>`__.
+
+   To support us, please give us a star ⭐️ on `Github <https://github.com/deepchecks/deepchecks>`__, it really means a lot for open source projects!
 
 
 💻 Installation
@@ -104,7 +107,7 @@ Check out our :doc:`/checks_gallery/tabular` to see all the available checks for
 They are checks for different phases in the ML workflow:
 
 - Data Integrity
-- Train-Test Validation (Distribution and Methodology Checks)
+- Train-Test Validation (Distribution, Drift and Methodology Checks)
 - Model Performance Evaluation
 
 
@@ -133,13 +136,14 @@ subset** of the following:
 
 
 
-👀 Viewing Check and Suite Results
-=====================================
+👀 Viewing and Saving the Results
+====================================
 
-The package's output can be consumed in various formats:
+The package's check and suite results can be consumed in various formats. Check out the folloing guides for more info about:
 
-- Viewed inline in Jupyter (default behavior)
-- :doc:`Exported as an HTML Report / JSON / Sent to W&B </user-guide/general/exporting_results/examples/index>`
+- :doc:`Viewing the results when working with Jupyter or with other IDE's </user-guide/general/showing_results>`
+- :doc:`Saving an HTML report of the results </user-guide/general/export_save_results>`
+- :doc:`Exporting the results (to json, or for sending the results to other tools) </user-guide/general/export_save_results>`
 
 
 

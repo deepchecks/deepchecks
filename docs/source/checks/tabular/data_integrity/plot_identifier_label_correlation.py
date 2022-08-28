@@ -7,8 +7,8 @@ Identifier Label Correlation
 
 This notebook provides an overview for using and understanding the identifier-label correlation check.
 
-This check computes the Predictive Power Score (`PPS
-<https://docs.deepchecks.com/en/stable/checks_gallery/tabular/train_test_validation/plot_feature_label_correlation_change.html#how-is-the-predictive-power-score-pps-calculated>`__)
+This check computes the Predictive Power Score (:ref:`PPS
+<plot_tabular_feature_label_correlation_change__how_is_the_predictive_power_score_pps_calculated>`)
 meaning, the ability of a unique identifier (index or datetime) column to predict the label.
 
 High predictive score could indicate a problem in the data collection pipeline, and even though the identifier column
@@ -34,6 +34,7 @@ from deepchecks.tabular.checks import IdentifierLabelCorrelation
 
 #%%
 # Generate Data
+# ===============
 
 np.random.seed(42)
 df = pd.DataFrame(np.random.randn(100, 3), columns=['x1', 'x2', 'x3'])
