@@ -1,1 +1,1 @@
-# seqeval>=1.0.0
+seqeval>=1.0.0
