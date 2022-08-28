@@ -103,7 +103,8 @@ class KeywordFrequencyDrift(TrainTestCheck):
             display = word_counts_drift_plot(train_to_show, test_to_show, self.top_n_words)
         else:
             display = None
-
-
         return CheckResult(value=drift_score, display=display, header='Keyword Frequency Drift')
+
+
+
 
