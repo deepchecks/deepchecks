@@ -19,6 +19,7 @@ from deepchecks.core.context import BaseContext
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
                                     ModelValidationError, ValidationError)
 from deepchecks.nlp.metric_utils.scorers import init_validate_scorers
+from deepchecks.nlp.metric_utils.token_classification import get_default_token_scorers
 from deepchecks.nlp.task_type import TaskType
 from deepchecks.nlp.text_data import TextData
 from deepchecks.tabular.utils.task_type import TaskType as TabularTaskType
@@ -26,7 +27,8 @@ from deepchecks.tabular.utils.task_type import TaskType as TabularTaskType
 __all__ = [
     'Context',
     'TTextPred',
-    'TTextProba'
+    'TTextProba',
+    'TTokenPred'
 ]
 
 from deepchecks.tabular.metric_utils import DeepcheckScorer, get_default_scorers
@@ -195,11 +197,6 @@ class _DummyModel(BasicModel):
                 if len(token_pred) != 4:
                     raise ValidationError(f'Check requires token classification for {dataset.name} to have '
                                           f'4 entries')
-                if dataset.has_label() and (token_pred[0] not in dataset.classes):
-                    raise ValidationError(f'Check requires token classification for {dataset.name} to have '
-                                          f'classes in {dataset.classes}, which are the labels in the dataset. '
-                                          f'Found class {token_pred[0]}. Classes are defined by the first entry in '
-                                          f'the token prediction tuples')
                 if not isinstance(token_pred[1], int) or not isinstance(token_pred[2], int):
                     raise ValidationError(f'Check requires token classification for {dataset.name} to have '
                                           f'int indices representing the start and end of the token, at the second'
@@ -375,7 +372,7 @@ class Context(BaseContext):
             else:
                 scorers = scorers or get_default_scorers(TabularTaskType.BINARY, use_avg_defaults)
         elif self.task_type == TaskType.TOKEN_CLASSIFICATION:
-            scorers = []  # TODO: Complete that
+            scorers = get_default_token_scorers(scorers, use_avg_defaults)
         else:
             raise DeepchecksValueError(f'Task type must be either {TaskType.TEXT_CLASSIFICATION} or '
                                        f'{TaskType.TOKEN_CLASSIFICATION} but received {self.task_type}')

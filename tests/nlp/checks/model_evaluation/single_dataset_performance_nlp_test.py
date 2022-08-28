@@ -105,3 +105,46 @@ def test_run_with_scorer_multilabel_class_names(text_multilabel_classification_d
     # Assert
     assert_that(result.value.values[0][-1], close_to(1.0, 0.001))
     assert_that(result.value.values[0][0], equal_to('a'))
+
+
+def test_run_with_scorer_token(text_token_classification_dataset_mock):
+    # Arrange
+    check = SingleDatasetPerformance(scorers=['token_f1_macro'])
+
+    # Act
+    result = check.run(text_token_classification_dataset_mock,
+                       predictions=[[('B-PER', 0, 4, 0.5)],
+                                    [('B-PER', 0, 4, 0.7), ('B-GEO', 14, 19, 0.8), ('B-GEO', 25, 30, 0.9)],
+                                    []])
+
+    # Assert
+    assert_that(result.value.values[0][-1], close_to(0.833, 0.001))
+
+    # Act
+    result = check.run(text_token_classification_dataset_mock,
+                       predictions=[[('B-PER', 0, 4, 0.5)],
+                                    [('B-PER', 0, 4, 0.7), ('B-GEO', 14, 20, 0.8), ('B-GEO', 25, 30, 0.9)],
+                                    []])
+
+    # Assert
+    assert_that(result.value.values[0][-1], close_to(1, 0.001))
+
+
+def test_run_with_scorer_token_per_class(text_token_classification_dataset_mock):
+
+    # Arrange
+    check = SingleDatasetPerformance(scorers=['token_recall_per_class'])
+
+    # Act
+    result = check.run(text_token_classification_dataset_mock,
+                       predictions=[[('B-PER', 0, 4, 0.5)],
+                                    [('B-PER', 0, 4, 0.7), ('B-GEO', 14, 20, 0.8), ('B-DATE', 25, 30, 0.9)],
+                                    [('B-GEO', 14, 19, 0.8)]])
+
+    # Assert
+    assert_that(result.value.values[0][-1], close_to(0., 0.001))
+    assert_that(result.value.values[0][0], equal_to('B-DATE'))
+    assert_that(result.value.values[1][-1], close_to(0.5, 0.001))
+    assert_that(result.value.values[1][0], equal_to('B-GEO'))
+    assert_that(result.value.values[2][-1], close_to(1., 0.001))
+    assert_that(result.value.values[2][0], equal_to('B-PER'))

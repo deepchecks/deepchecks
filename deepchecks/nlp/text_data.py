@@ -318,14 +318,20 @@ class TextData:
                 else:
                     label_set = set(self._label)
             elif self.task_type == TaskType.TOKEN_CLASSIFICATION:
-                label_set = set().union(*[
-                    set().union(*[set(label_entry[0]) for label_entry in sample_labels])
-                    for sample_labels in self._label
-                    ])
+                label_set = self.get_tokens(self._label)
             else:
                 raise DeepchecksValueError(f'Task type {self.task_type} is not supported.')
             self._classes = sorted(list(label_set))
         return self._classes
+
+    @staticmethod
+    def get_tokens(token_annotations: t.Sequence[t.Sequence[t.Tuple[str, int, int, t.Any]]]) -> t.Set[str]:
+        """Return the token strings from token classification labels or predictions."""
+        return set().union(*[
+            set().union(*[{annotation[0]} for annotation in sample_annotation])
+            for sample_annotation in token_annotations
+        ])
+
 
     @property
     def num_classes(self) -> int:
