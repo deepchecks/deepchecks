@@ -277,7 +277,7 @@ class CocoSegmentationDataset(VisionDataset):
 
         if not coco_dir.exists():
             url = 'https://ultralytics.com/assets/coco128-segments.zip'
-            md5 = 'e29ec06014d1e06b58b6ffe651c0b34f'
+            md5 = '570e4a7516a4ec4e510bcd32a6aa5a82'
 
             with open(os.devnull, 'w', encoding='utf8') as f, contextlib.redirect_stdout(f):
                 download_and_extract_archive(
