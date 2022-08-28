@@ -107,7 +107,7 @@ def train_test_validation(n_top_show: int = 5,
 
     See Also
     --------
-    
+
     :ref:`vision_classification_tutorial`
     :ref:`vision_detection_tutorial`
     """

@@ -70,7 +70,7 @@ class ImagePropertyDrift(TrainTestCheck):
         - 'train_largest': Show the largest train categories.
         - 'test_largest': Show the largest test categories.
         - 'largest_difference': Show the largest difference between categories.
-        
+
     classes_to_display : Optional[List[float]], default: None
         List of classes to display. The distribution of the properties would include only samples belonging (or
         containing an annotation belonging) to one of these classes. If None, samples from all classes are displayed.

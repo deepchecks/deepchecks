@@ -46,7 +46,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
     - distribution of classes
 
     For object detection:
-    
+
     - distribution of classes
     - distribution of bounding box areas
     - distribution of number of bounding boxes per image
@@ -93,7 +93,6 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
         - 'train_largest': Show the largest train categories.
         - 'test_largest': Show the largest test categories.
         - 'largest_difference': Show the largest difference between categories.
-
     categorical_drift_method : str, default: "cramer_v"
         decides which method to use on categorical variables. Possible values are:
         "cramer_v" for Cramer's V, "PSI" for Population Stability Index (PSI).

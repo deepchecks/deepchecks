@@ -21,8 +21,8 @@ scorers : Optional[Mapping[str, Metric]] , default: None
     dict of scorers names to a Metric
 scorers_per_class : Optional[Mapping[str, Metric]] , default: None
     dict of scorers for classification without averaging of the classes.
-    See `scikit-learn 
-    docs <https://scikit-learn.org/stable/modules/model_evaluation.html#from-binary-to-multiclass-and-multilabel>`__.
+    See `scikit-learn docs
+    <https://scikit-learn.org/stable/modules/model_evaluation.html#from-binary-to-multiclass-and-multilabel>`__.
 device : Union[str, torch.device], default: 'cpu'
     processing unit for use
 random_state : int
