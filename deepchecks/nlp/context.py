@@ -306,6 +306,10 @@ class Context(BaseContext):
             test_dataset = TextData.cast_to_dataset(test_dataset)
         # If both dataset, validate they fit each other
         if train_dataset and test_dataset:
+            if train_dataset.name is None:
+                train_dataset.name = 'Train'
+            if test_dataset.name is None:
+                test_dataset.name = 'Test'
             if test_dataset.has_label() and train_dataset.has_label() and not \
                     TextData.datasets_share_task_type(train_dataset, test_dataset):
                 raise DatasetValidationError('train_dataset and test_dataset must share the same label and task type')
