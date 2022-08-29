@@ -121,22 +121,36 @@ class _DummyModel(BasicModel):
                     y_pred_dict = dict(zip(dataset.index, y_pred))
                     predictions[dataset.name] = y_pred_dict
 
-        self.predictions = predictions if predictions else None
-        self.probas = probas if probas else None
+        self.predictions = predictions
+        self.probas = probas
         self.validate_data_on_predict = validate_data_on_predict
 
-        if self.predictions is not None:
+        if self.predictions:
             self.predict = self._predict
+            self._prediction_indices = \
+                {name: set(data_preds.keys()) for name, data_preds in self.predictions.items()}
 
-        if self.probas is not None:
+        if self.probas:
             self.predict_proba = self._predict_proba
+            self._proba_indices = \
+                {name: set(data_proba.keys()) for name, data_proba in self.probas.items()}
 
     def _predict(self, data: TextData) -> TTextPred:
         """Predict on given data by the data indexes."""
+        if self.validate_data_on_predict:
+            data_indices = set(np.random.choice(data.index, min(100, len(data.index)), replace=False))
+            if not data_indices.issubset(self._prediction_indices[data.name]):
+                raise DeepchecksValueError('Data that has not been seen before passed for inference with pre computed '
+                                           'predictions.')
         return list(itemgetter(*data.index)(self.predictions[data.name]))  # pylint: disable=unsubscriptable-object
 
     def _predict_proba(self, data: TextData) -> TTextProba:
         """Predict probabilities on given data by the data indexes."""
+        if self.validate_data_on_predict:
+            data_indices = set(np.random.choice(data.index, min(100, len(data.index)), replace=False))
+            if not data_indices.issubset(self._proba_indices[data.name]):
+                raise DeepchecksValueError('Data that has not been seen before passed for inference with pre computed '
+                                           'probabilities.')
         return list(itemgetter(*data.index)(self.probas[data.name]))  # pylint: disable=unsubscriptable-object
 
     def fit(self, *args, **kwargs):
@@ -265,6 +279,10 @@ class Context(BaseContext):
         probabilities on train dataset
     test_proba: Union[TTextProba, None] , default: None
         probabilities on test dataset
+    random_state : int, default 42
+        A seed to set for pseudo-random functions, primarily sampling.
+    n_samples: int, default: 10_000
+        The number of samples to use within the checks.
     """
 
     def __init__(
@@ -275,7 +293,9 @@ class Context(BaseContext):
             train_pred: t.Optional[TTextPred] = None,
             test_pred: t.Optional[TTextPred] = None,
             train_proba: t.Optional[TTextProba] = None,
-            test_proba: t.Optional[TTextProba] = None
+            test_proba: t.Optional[TTextProba] = None,
+            random_state: int = 42,
+            n_samples: t.Optional[int] = 10_000
     ):
         # Validations
         if train_dataset is None and test_dataset is None:
@@ -304,6 +324,11 @@ class Context(BaseContext):
 
         self._train = train_dataset
         self._test = test_dataset
+        if n_samples is not None and self._train is not None:
+            self._train = self._train.sample(n_samples, random_state=random_state)
+        if n_samples is not None and self._test is not None:
+            self._test = self._test.sample(n_samples, random_state=random_state)
+
         self._validated_model = False
         self._task_type = None
         self._with_display = with_display
