@@ -9,10 +9,11 @@
 # ----------------------------------------------------------------------------
 #
 """Test for the Context & _DummyModel creation process"""
-from hamcrest import assert_that, calling, raises
+from hamcrest import assert_that, calling, raises, close_to
 
 from deepchecks.core.errors import ValidationError
 from deepchecks.nlp import Suite
+from deepchecks.nlp.checks import SingleDatasetPerformance
 
 CLASSIFICATION_ERROR_FORMAT = r'Check requires classification for train to be ' \
                               r'either a sequence that can be cast to a 1D numpy array of shape' \
@@ -115,3 +116,18 @@ def test_wrong_multilabel_prediction_format(text_multilabel_classification_datas
         train_dataset=text_multilabel_classification_dataset_mock,
         train_predictions=[[1, 1, 0], [0, 0, 1], [1, 1, 1]],
         train_probabilities=[[0.9, 0.8, 0.3], [0.9, 0.8, 0.3], [0.9, 0.8, 0.3]])
+
+
+def test_sampling(text_classification_dataset_mock):
+    # Arrange
+    check = SingleDatasetPerformance(scorers=['recall_macro'])
+
+    # Act
+    result = check.run(text_classification_dataset_mock,
+                       predictions=[0, 1, 1])
+    result_sampled = check.run(text_classification_dataset_mock,
+                               predictions=[0, 1, 1], n_samples=2)
+
+    # Assert
+    assert_that(result.value.values[0][-1], close_to(0.75, 0.001))
+    assert_that(result_sampled.value.values[0][-1], close_to(0.25, 0.001))

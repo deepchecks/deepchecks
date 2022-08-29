@@ -179,25 +179,12 @@ class TextData:
                     'label for displays, but the same effect can be achieved by passing the intended labels in the '
                     'label argument.'
                 )
-            found_classes = self.classes
-            if len(found_classes) != len(classes):
-                raise DeepchecksValueError('classes must be the same length as the number of classes in the label')
 
             self._classes = list(classes)
 
     def copy(self: TDataset, raw_text: t.Optional[t.Sequence[str]] = None, label: t.Optional[TTextLabel] = None,
              index: t.Optional[t.Sequence[int]] = None) -> TDataset:
-        """Create a copy of this Dataset with new data.
-
-        Parameters
-        ----------
-        new_data (TTextDataset): new data from which new dataset will be created
-
-        Returns
-        -------
-        Dataset
-            new dataset instance
-        """
+        """Create a copy of this Dataset with new data."""
         cls = type(self)
         if raw_text is None:
             raw_text = self.text
@@ -205,7 +192,10 @@ class TextData:
             label = self.label
         if index is None:
             index = self.index
-        return cls(raw_text, label, self._task_type.value, self.classes, self.name, index)
+        get_logger().disabled = True  # Make sure we won't get the warning for setting class in the non multilabel case
+        new_copy = cls(raw_text, label, self._task_type.value, self.classes, self.name, index)
+        get_logger().disabled = False
+        return new_copy
 
     def sample(self: TDataset, n_samples: int, replace: bool = False, random_state: t.Optional[int] = None,
                drop_na_label: bool = False) -> TDataset:
