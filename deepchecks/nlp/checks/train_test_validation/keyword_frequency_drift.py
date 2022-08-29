@@ -9,6 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the keyword drift check."""
+import functools
+
 from deepchecks import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.core import DatasetKind
 from deepchecks.utils.strings import format_number
@@ -19,8 +21,10 @@ from deepchecks.utils.distribution.drift import cramers_v, psi
 from typing import Union, List, Any
 from deepchecks.nlp.context import Context
 from sklearn.feature_extraction.text import TfidfVectorizer
-from nltk.stem.porter import PorterStemmer
+from nltk.stem.lancaster import LancasterStemmer
+from nltk import word_tokenize
 import numpy as np
+import re
 
 __all__ = ['KeywordFrequencyDrift']
 
@@ -57,7 +61,7 @@ class KeywordFrequencyDrift(TrainTestCheck):
             self.drift_method = cramers_v
         else:
             raise DeepchecksValueError('drift_method must be one of: PSI, cramer_v')
-        self.stem_func = PorterStemmer().stem
+        self.stem_func = _tokenize
         self.token_pattern = r'[a-z]{2,}'
 
         self.top_n_words = None
@@ -67,15 +71,19 @@ class KeywordFrequencyDrift(TrainTestCheck):
         """Run check."""
         train_dataset = context.train
         test_dataset = context.test
-        all_data = list(train_dataset.text) + list(test_dataset.text)
+        # all_data = list(train_dataset.text) + list(test_dataset.text)
 
-        vectorizer = TfidfVectorizer(input='content', strip_accents='ascii', preprocessor=self.stem_func,
-                                     token_pattern=self.token_pattern)
+        tokenized_train = [_tokenize(x) for x in train_dataset.text]
+        tokenized_test = [_tokenize(x) for x in test_dataset.text]
+        all_data = tokenized_train + tokenized_test
+
+        vectorizer = TfidfVectorizer(input='content', strip_accents='ascii', tokenizer=_identity_tokenizer, min_df=2,
+                                     preprocessor=_identity_tokenizer)
         vectorizer.fit(all_data)
-        train_freqs = vectorizer.transform(train_dataset.text)
+        train_freqs = vectorizer.transform(tokenized_train)
         max_train_freqs = np.array(train_freqs.max(axis=0).todense()).reshape(-1)
 
-        test_freqs = vectorizer.transform(test_dataset.text)
+        test_freqs = vectorizer.transform(tokenized_test)
         max_test_freqs = np.array(test_freqs.max(axis=0).todense()).reshape(-1)
         word_freq_diff = np.abs(max_train_freqs - max_test_freqs)
 
@@ -108,7 +116,6 @@ class KeywordFrequencyDrift(TrainTestCheck):
         result = {'drift_score': drift_score, 'top_n_diffs': dict(zip(top_n_words, top_n_diffs))}
         return CheckResult(value=result, display=display, header='Keyword Frequency Drift')
 
-
     def add_condition_drift_score_less_than(self, threshold: float):
         """
         Add condition - require drift score to be less than the threshold.
@@ -140,3 +147,19 @@ class KeywordFrequencyDrift(TrainTestCheck):
                 return ConditionResult(ConditionCategory.FAIL, details)
         return self.add_condition(f'Diffrences between the frequencies of the top N keywords are less than '
                                   f'{format_number(threshold)}', condition)
+
+
+def _tokenize(text):
+    token_pattern = r'[a-z]{2,}'
+    tokens = word_tokenize(text)
+    stems = [_stem(item) for item in tokens if re.match(token_pattern, item)]
+    return stems
+
+
+def _identity_tokenizer(text):
+    return text
+
+
+@functools.lru_cache(maxsize=65536)
+def _stem(word):
+    return LancasterStemmer().stem(word)
