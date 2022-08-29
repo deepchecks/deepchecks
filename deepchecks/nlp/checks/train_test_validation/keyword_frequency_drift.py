@@ -60,7 +60,7 @@ class KeywordFrequencyDrift(TrainTestCheck):
         elif drift_method == 'cramer_v':
             self.drift_method = cramers_v
         else:
-            raise DeepchecksValueError('drift_method must be one of: PSI, cramer_v')
+            raise DeepchecksValueError(f'drift_method must be one of: PSI, cramer_v, found {drift_method}')
         self.stem_func = _tokenize
         self.token_pattern = r'[a-z]{2,}'
 
