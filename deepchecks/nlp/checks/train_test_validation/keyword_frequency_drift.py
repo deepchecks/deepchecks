@@ -37,9 +37,10 @@ class KeywordFrequencyDrift(TrainTestCheck):
     top_n_to_show: int, default: 20
         How many words will be displayed in the graph.
     top_n_method: Union[str, List[str]], default: 'top_diff'
-        Decides which method will be used to select the top n words to show. Possible values are:
-        "top_diff" for the top difference between train and test, "top_freq" for the top absolute frequencies, or a list
-        of keywords in which case the words on the list are shown and the "top_n_to_show" parameter is ignored.
+        Decides which method will be used to select the top n words to show. Possible values:
+        - 'top_diff': Show the words with the largest difference between train and test.
+        - 'top_freq': Show the words with the largest absolute frequencies,
+        - A list of keywords in which case the words on the list are shown and the "top_n_to_show" parameter is ignored.
     drift_method: str, default: "cramer_v"
         Decides which method will be used for drift calculation. Possible values are:
         "cramer_v" for Cramer's V, "PSI" for Population Stability Index (PSI).

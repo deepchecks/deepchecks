@@ -1,5 +1,5 @@
 from deepchecks.nlp.checks import KeywordFrequencyDrift
-from hamcrest import assert_that, close_to, contains_exactly
+from hamcrest import assert_that, close_to, contains_exactly, equal_to
 from tests.base.utils import equal_condition_result
 
 
@@ -10,10 +10,10 @@ def test_with_defaults_no_drift(movie_reviews_data):
 
 
 def test_with_keywords(movie_reviews_data_positive, movie_reviews_data_negative):
-    keywords_list = ['blech', 'great', 'amaz', 'good', 'bad']
+    keywords_list = ['good', 'bad', 'cartoon', 'recommend']
     result = KeywordFrequencyDrift(top_n_method=keywords_list).run(movie_reviews_data_positive, movie_reviews_data_negative)
     assert_that(result.value['drift_score'], close_to(0.399, 0.05))
-    assert_that(result.display[0].data[0].x.tolist(), contains_exactly('amaz', 'bad', 'blech', 'good'))
+    assert_that(result.display[0].data[0].x.tolist(), contains_exactly('bad', 'cartoon', 'good', 'recommend'))
 
 
 def test_drift_score_condition(movie_reviews_data_positive, movie_reviews_data_negative):
@@ -23,11 +23,11 @@ def test_drift_score_condition(movie_reviews_data_positive, movie_reviews_data_n
         .run(movie_reviews_data_positive, movie_reviews_data_negative)
     assert_that(result.conditions_results[0], equal_condition_result(
         is_pass=False,
-        details='The drift score 0.4 is not less than the threshold 0.3',
+        details='The drift score 0.44 is not less than the threshold 0.3',
         name='Drift Score is Less Than 0.3'))
     assert_that(result.conditions_results[1], equal_condition_result(
         is_pass=True,
-        details='The drift score 0.4 is less than the threshold 0.8',
+        details='The drift score 0.44 is less than the threshold 0.8',
         name='Drift Score is Less Than 0.8'))
 
 
@@ -37,7 +37,7 @@ def test_top_n_diff_condition(movie_reviews_data_positive, movie_reviews_data_ne
         .add_condition_top_n_differences_less_than(1.1)\
         .run(movie_reviews_data_positive, movie_reviews_data_negative)
 
-    expected_keywords = ['awwwww', 'wafflemovy', 'erotic', 'bah', 'rabl']
+    expected_keywords = ['phew', 'eeeewwwww', 'ugh', 'yowz', 'shud']
     assert_that(result.conditions_results[0], equal_condition_result(
         is_pass=False,
         details=f'Failed for the keywords: {expected_keywords}',
