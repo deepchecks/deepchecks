@@ -458,6 +458,7 @@ def drift_condition(max_allowed_categorical_score: float,
 
     return condition
 
+
 def word_counts_drift_plot(
         train_column: Union[np.ndarray, pd.Series],
         test_column: Union[np.ndarray, pd.Series],

@@ -363,6 +363,7 @@ def _create_distribution_bar_graphs(
 
     return traces, yaxis_layout
 
+
 def word_counts_bar_traces(
         train_column: t.Union[np.ndarray, pd.Series],
         test_column: t.Union[np.ndarray, pd.Series],
