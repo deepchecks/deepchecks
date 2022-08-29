@@ -537,16 +537,15 @@ class Dataset:
         return self.copy(train_df), self.copy(test_df)
 
     @staticmethod
-    def _infer_label_type(label_col: pd.Series, infer_task_type_from_label_nunique: int = 10):
+    def _infer_label_type(label_col: pd.Series):
         if is_categorical(label_col, max_categorical_ratio=0.05):
             if label_col.nunique(dropna=True) > 2:
                 if infer_dtype(label_col) == 'integer' \
-                        and label_col.nunique() > infer_task_type_from_label_nunique:
+                        and label_col.nunique() > 10:
                     get_logger().warning(
-                        'Attributes such as "label_type" are not mandatory, but in a case of ordinal integers, '
-                        'the task type can be inferred both as multiclass and regression, '
-                        'so it\'s recommended to declare directly. '
-                        'Auto inferring label type as multiclass.'
+                        'Integer label has many unique values. In this case, deepchecks automatically '
+                        'infers label to be multiclass. If your label is a regression label and not multiclass, '
+                        'please use "label_type=\'regression_label\'" when initializing your Dataset.'
                     )
                 return TaskType.MULTICLASS
             else:
