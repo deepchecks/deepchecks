@@ -7,8 +7,6 @@ def test_with_defaults_no_drift(movie_reviews_data):
     train_data, test_data = movie_reviews_data
     result = KeywordFrequencyDrift().run(train_data, test_data)
     assert_that(result.value['drift_score'], close_to(0.301, 0.05))
-    # result.save_as_html('/Users/solyarkoni/Documents/results/1.html')
-    # print(result.value['drift_score'])
 
 
 def test_with_keywords(movie_reviews_data_positive, movie_reviews_data_negative):
@@ -16,8 +14,6 @@ def test_with_keywords(movie_reviews_data_positive, movie_reviews_data_negative)
     result = KeywordFrequencyDrift(top_n_method=keywords_list).run(movie_reviews_data_positive, movie_reviews_data_negative)
     assert_that(result.value['drift_score'], close_to(0.399, 0.05))
     assert_that(result.display[0].data[0].x.tolist(), contains_exactly('amaz', 'bad', 'blech', 'good'))
-    # result.save_as_html('/Users/solyarkoni/Documents/results/2.html')
-    # print(result.value['drift_score'])
 
 
 def test_drift_score_condition(movie_reviews_data_positive, movie_reviews_data_negative):

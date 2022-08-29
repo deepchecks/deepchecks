@@ -10,21 +10,20 @@
 #
 """Module containing the keyword drift check."""
 import functools
-
-from deepchecks import CheckResult, ConditionResult, ConditionCategory
-from deepchecks.core import DatasetKind
-from deepchecks.utils.strings import format_number
-from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.utils.distribution.drift import word_counts_drift_plot
-from deepchecks.nlp.base_checks import TrainTestCheck
-from deepchecks.utils.distribution.drift import cramers_v, psi
-from typing import Union, List, Any
-from deepchecks.nlp.context import Context
-from sklearn.feature_extraction.text import TfidfVectorizer
-from nltk.stem.lancaster import LancasterStemmer
-from nltk import word_tokenize
-import numpy as np
 import re
+from typing import List, Union
+
+import numpy as np
+from nltk import word_tokenize
+from nltk.stem.lancaster import LancasterStemmer
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+from deepchecks import CheckResult, ConditionCategory, ConditionResult
+from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.nlp.base_checks import TrainTestCheck
+from deepchecks.nlp.context import Context
+from deepchecks.utils.distribution.drift import cramers_v, psi, word_counts_drift_plot
+from deepchecks.utils.strings import format_number
 
 __all__ = ['KeywordFrequencyDrift']
 
@@ -61,17 +60,11 @@ class KeywordFrequencyDrift(TrainTestCheck):
             self.drift_method = cramers_v
         else:
             raise DeepchecksValueError(f'drift_method must be one of: PSI, cramer_v, found {drift_method}')
-        self.stem_func = _tokenize
-        self.token_pattern = r'[a-z]{2,}'
-
-        self.top_n_words = None
-        self.top_n_diffs = None
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check."""
         train_dataset = context.train
         test_dataset = context.test
-        # all_data = list(train_dataset.text) + list(test_dataset.text)
 
         tokenized_train = [_tokenize(x) for x in train_dataset.text]
         tokenized_test = [_tokenize(x) for x in test_dataset.text]
@@ -123,10 +116,12 @@ class KeywordFrequencyDrift(TrainTestCheck):
         def condition(value) -> ConditionResult:
             drift_score = value['drift_score']
             if drift_score < threshold:
-                details = f'The drift score {format_number(drift_score)} is less than the threshold {format_number(threshold)}'
+                details = f'The drift score {format_number(drift_score)} is less than the threshold ' \
+                          f'{format_number(threshold)}'
                 return ConditionResult(ConditionCategory.PASS, details)
             else:
-                details = f'The drift score {format_number(drift_score)} is not less than the threshold {format_number(threshold)}'
+                details = f'The drift score {format_number(drift_score)} is not less than the threshold ' \
+                          f'{format_number(threshold)}'
                 return ConditionResult(ConditionCategory.FAIL, details)
         return self.add_condition(f'Drift Score is Less Than {format_number(threshold)}', condition)
 
@@ -137,7 +132,7 @@ class KeywordFrequencyDrift(TrainTestCheck):
         """
         def condition(value) -> ConditionResult:
             diffs = value['top_n_diffs']
-            keywords_failed = [k for k,v in diffs.items() if v >= threshold]
+            keywords_failed = [k for k, v in diffs.items() if v >= threshold]
 
             if len(keywords_failed) == 0:
                 details = 'Passed for all of the top N keywords'

@@ -10,23 +10,24 @@
 #
 """Common utilities for distribution checks."""
 from numbers import Number
-from typing import Callable, Dict, Optional, Tuple, Union, List
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
-from plotly.subplots import make_subplots
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 from scipy.stats import chi2_contingency, wasserstein_distance
 
 from deepchecks.core import ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
 from deepchecks.utils.dict_funcs import get_dict_entry_by_value
-from deepchecks.utils.distribution.plot import drift_score_bar_traces, feature_distribution_traces, word_counts_bar_traces
+from deepchecks.utils.distribution.plot import (drift_score_bar_traces, feature_distribution_traces,
+                                                word_counts_bar_traces)
 from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
 from deepchecks.utils.strings import format_number
 
 __all__ = ['calc_drift_and_plot', 'get_drift_method', 'SUPPORTED_CATEGORICAL_METHODS', 'SUPPORTED_NUMERIC_METHODS',
-           'drift_condition', 'get_drift_plot_sidenote']
+           'drift_condition', 'get_drift_plot_sidenote', 'word_counts_drift_plot', 'cramers_v', 'psi']
 
 PSI_MIN_PERCENTAGE = 0.01
 SUPPORTED_CATEGORICAL_METHODS = ['Cramer\'s V', 'PSI']
