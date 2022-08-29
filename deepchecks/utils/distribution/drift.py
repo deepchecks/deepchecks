@@ -157,6 +157,8 @@ def psi(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series]
         - 'dist2': Sort by the largest dist2 categories.
         - 'difference': Sort by the largest difference between categories.
         > Note that this parameter has no effect if max_num_categories = None or there are not enough unique categories.
+    from_freqs: bool, default: False
+        Whether the data is already in the form of frequencies.
     Returns
     -------
     psi

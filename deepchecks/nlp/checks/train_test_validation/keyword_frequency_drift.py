@@ -32,6 +32,15 @@ class KeywordFrequencyDrift(TrainTestCheck):
     """
     Computes the keywords' frequencies drift between the train and the test datasets.
 
+    Drift is a change in the distribution of the data over time. In this check, we look at the distribution of the
+    keywords' TF-IDF scores.
+    For more information about TF-IDF see https://en.wikipedia.org/wiki/Tf%E2%80%93idf.
+
+    To calculate the drift score we use the Cramer's V.
+    See https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V
+    We also support Population Stability Index (PSI).
+    See https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf.
+
     Parameters
     ----------
     top_n_to_show: int, default: 20
