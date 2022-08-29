@@ -133,7 +133,7 @@ class KeywordFrequencyDrift(TrainTestCheck):
     def add_condition_top_n_differences_less_than(self, threshold: float):
         """
         Add condition - require the absolute differences between the counts of train and the test to be less than the
-        threshold for all of the top n keywords.
+        threshold for all the top n keywords.
         """
         def condition(value) -> ConditionResult:
             diffs = value['top_n_diffs']
@@ -145,7 +145,7 @@ class KeywordFrequencyDrift(TrainTestCheck):
             else:
                 details = f'Failed for the keywords: {keywords_failed}'
                 return ConditionResult(ConditionCategory.FAIL, details)
-        return self.add_condition(f'Diffrences between the frequencies of the top N keywords are less than '
+        return self.add_condition(f'Differences between the frequencies of the top N keywords are less than '
                                   f'{format_number(threshold)}', condition)
 
 
