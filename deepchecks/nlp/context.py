@@ -73,12 +73,6 @@ class _DummyModel(BasicModel):
                  y_proba_train: TTextProba = None,
                  validate_data_on_predict: bool = True):
         """Initialize dummy model."""
-        if train is not None:
-            if train.name is None:
-                train.name = 'train'
-        if test is not None:
-            if test.name is None:
-                test.name = 'test'
 
         predictions = {}
         probas = {}

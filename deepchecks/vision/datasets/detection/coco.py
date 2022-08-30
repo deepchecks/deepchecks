@@ -293,7 +293,7 @@ def download_coco128_from_ultralytics(path: Path):
     """Download coco from ultralytics using torchvision download_and_extract_archive."""
     coco_dir = path / 'coco128'
     url = 'https://ultralytics.com/assets/coco128.zip'
-    md5 = '90faf47c90d1cfa5161c4298d890df55'
+    md5 = '9122f91a86e530be76c52f47d2b32bbf'
 
     with open(os.devnull, 'w', encoding='utf8') as f, contextlib.redirect_stdout(f):
         download_and_extract_archive(

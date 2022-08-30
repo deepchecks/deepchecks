@@ -50,7 +50,7 @@ def test_run_with_scorer_proba_too_many_classes(text_classification_dataset_mock
     assert_that(
         calling(check.run).with_args(text_classification_dataset_mock,
                                      probabilities=[[0.1, 0.4, 0.5], [0.9, 0.05, 0.05], [0.9, 0.01, 0.09]]),
-        raises(ValidationError, 'Check requires classification probabilities for train dataset to have 2 columns, '
+        raises(ValidationError, 'Check requires classification probabilities for None dataset to have 2 columns, '
                                 'same as the number of classes')
     )
 
