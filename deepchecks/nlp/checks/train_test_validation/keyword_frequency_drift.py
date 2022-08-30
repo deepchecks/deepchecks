@@ -81,19 +81,19 @@ class KeywordFrequencyDrift(TrainTestCheck):
         all_data = tokenized_train + tokenized_test
 
         vectorizer = TfidfVectorizer(input='content', strip_accents='ascii', tokenizer=_identity_tokenizer, min_df=2,
-                                     preprocessor=_identity_tokenizer, binary=True)
+                                     preprocessor=_identity_tokenizer)
         vectorizer.fit(all_data)
         train_freqs = vectorizer.transform(tokenized_train)
-        mean_train_freqs = np.array(train_freqs.mean(axis=0)).reshape(-1)
+        max_train_freqs = np.array(train_freqs.max(axis=0).todense()).reshape(-1)
 
         test_freqs = vectorizer.transform(tokenized_test)
-        mean_test_freqs = np.array(test_freqs.mean(axis=0)).reshape(-1)
-        word_freq_diff = np.abs(mean_train_freqs - mean_test_freqs)
+        max_test_freqs = np.array(test_freqs.max(axis=0).todense()).reshape(-1)
+        word_freq_diff = np.abs(max_train_freqs - max_test_freqs)
 
-        mean_train_counts = mean_train_freqs * test_dataset.n_samples
-        mean_test_counts = mean_test_freqs * test_dataset.n_samples
+        max_train_counts = max_train_freqs * test_dataset.n_samples
+        max_test_counts = max_test_freqs * test_dataset.n_samples
 
-        drift_score = self.drift_method(mean_train_counts, mean_test_counts, from_freqs=True)
+        drift_score = self.drift_method(max_train_counts, max_test_counts, from_freqs=True)
         vocab = vectorizer.get_feature_names_out()
 
         if isinstance(self.top_n_method, List):
@@ -101,7 +101,7 @@ class KeywordFrequencyDrift(TrainTestCheck):
         elif self.top_n_method == 'top_diff':
             top_n_idxs = np.argsort(word_freq_diff)[-self.top_n_to_show:]
         elif self.top_n_method == 'top_freq':
-            max_freqs = np.maximum(mean_train_freqs, mean_test_freqs)
+            max_freqs = np.maximum(max_train_freqs, max_test_freqs)
             top_n_idxs = np.argsort(max_freqs, )[-self.top_n_to_show:]
         else:
             raise DeepchecksValueError('top_n_method must be one of: top_diff, top_freq or a list of keywords')
@@ -111,8 +111,8 @@ class KeywordFrequencyDrift(TrainTestCheck):
 
         if context.with_display:
             dataset_names = (train_dataset.name, test_dataset.name)
-            train_to_show = mean_train_freqs[top_n_idxs]
-            test_to_show = mean_test_freqs[top_n_idxs]
+            train_to_show = max_train_freqs[top_n_idxs]
+            test_to_show = max_test_freqs[top_n_idxs]
             display = word_counts_drift_plot(train_to_show, test_to_show, top_n_words, dataset_names)
         else:
             display = None

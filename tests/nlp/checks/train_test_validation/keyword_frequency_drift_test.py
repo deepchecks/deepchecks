@@ -16,6 +16,12 @@ def test_with_keywords(movie_reviews_data_positive, movie_reviews_data_negative)
     assert_that(result.display[0].data[0].x.tolist(), contains_exactly('bad', 'cartoon', 'good', 'recommend'))
 
 
+def test_top_freqs(movie_reviews_data_positive, movie_reviews_data_negative):
+    result = KeywordFrequencyDrift(top_n_method='top_freq')\
+        .run(movie_reviews_data_positive, movie_reviews_data_negative)
+    assert_that(result.value['drift_score'], close_to(0.399, 0.05))
+
+
 def test_drift_score_condition(movie_reviews_data_positive, movie_reviews_data_negative):
     result = KeywordFrequencyDrift()\
         .add_condition_drift_score_less_than(0.3)\
