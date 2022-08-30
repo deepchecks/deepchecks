@@ -302,8 +302,12 @@ class Context(BaseContext):
             raise DatasetValidationError('Check must be given at least one dataset')
         if train_dataset is not None:
             train_dataset = TextData.cast_to_dataset(train_dataset)
+            if train_dataset.name is None:
+                train_dataset.name = 'Train'
         if test_dataset is not None:
             test_dataset = TextData.cast_to_dataset(test_dataset)
+            if test_dataset.name is None:
+                test_dataset.name = 'Test'
         # If both dataset, validate they fit each other
         if train_dataset and test_dataset:
             if test_dataset.has_label() and train_dataset.has_label() and not \
