@@ -81,7 +81,7 @@ class KeywordFrequencyDrift(TrainTestCheck):
         all_data = tokenized_train + tokenized_test
 
         vectorizer = TfidfVectorizer(input='content', strip_accents='ascii', tokenizer=_identity_tokenizer, min_df=2,
-                                     preprocessor=_identity_tokenizer)
+                                     preprocessor=_identity_tokenizer, binary=True)
         vectorizer.fit(all_data)
         train_freqs = vectorizer.transform(tokenized_train)
         max_train_freqs = np.array(train_freqs.max(axis=0).todense()).reshape(-1)
