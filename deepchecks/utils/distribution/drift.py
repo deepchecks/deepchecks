@@ -462,8 +462,9 @@ def drift_condition(max_allowed_categorical_score: float,
 def word_counts_drift_plot(
         train_column: Union[np.ndarray, pd.Series],
         test_column: Union[np.ndarray, pd.Series],
-        keyword_list: List
+        keyword_list: List,
+        dataset_names: Tuple[str, str] = ('Train', 'Test')
 ):
     fig = go.Figure()
-    fig.add_traces(word_counts_bar_traces(train_column, test_column, keyword_list))
+    fig.add_traces(word_counts_bar_traces(train_column, test_column, keyword_list, dataset_names))
     return fig

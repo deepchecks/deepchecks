@@ -367,7 +367,8 @@ def _create_distribution_bar_graphs(
 def word_counts_bar_traces(
         train_column: t.Union[np.ndarray, pd.Series],
         test_column: t.Union[np.ndarray, pd.Series],
-        keyword_list: t.List
+        keyword_list: t.List,
+        dataset_names: t.Tuple[str, str]
 ):
 
     traces = [
@@ -375,14 +376,14 @@ def word_counts_bar_traces(
             x=keyword_list,
             y=train_column,
             marker=dict(color=colors['Train']),
-            name='Train Dataset',
+            name=dataset_names[0] + ' Dataset',
             hovertext=keyword_list
         ),
         go.Bar(
             x=keyword_list,
             y=test_column,
             marker=dict(color=colors['Test']),
-            name='Test Dataset',
+            name=dataset_names[1] + ' Dataset',
             hovertext=keyword_list
         )
     ]
