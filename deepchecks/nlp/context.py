@@ -313,8 +313,8 @@ class Context(BaseContext):
             if test_dataset.has_label() and train_dataset.has_label() and not \
                     TextData.datasets_share_task_type(train_dataset, test_dataset):
                 raise DatasetValidationError('train_dataset and test_dataset must share the same label and task type')
-            # if train_dataset.name == test_dataset.name:
-            #     raise DatasetValidationError('train_dataset and test_dataset must have different names')
+            if train_dataset.name == test_dataset.name:
+                raise DatasetValidationError('train_dataset and test_dataset must have different names')
         if test_dataset and not train_dataset:
             raise DatasetValidationError('Can\'t initialize context with only test_dataset. if you have single '
                                          'dataset, initialize it as train_dataset')

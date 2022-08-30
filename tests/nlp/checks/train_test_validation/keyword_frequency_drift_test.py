@@ -29,11 +29,11 @@ def test_drift_score_condition(movie_reviews_data_positive, movie_reviews_data_n
         .run(movie_reviews_data_positive, movie_reviews_data_negative)
     assert_that(result.conditions_results[0], equal_condition_result(
         is_pass=False,
-        details='The drift score 0.44 is not less than the threshold 0.3',
+        details='The drift score 0.43 is not less than the threshold 0.3',
         name='Drift Score is Less Than 0.3'))
     assert_that(result.conditions_results[1], equal_condition_result(
         is_pass=True,
-        details='The drift score 0.44 is less than the threshold 0.8',
+        details='The drift score 0.43 is less than the threshold 0.8',
         name='Drift Score is Less Than 0.8'))
 
 
@@ -43,7 +43,7 @@ def test_top_n_diff_condition(movie_reviews_data_positive, movie_reviews_data_ne
         .add_condition_top_n_differences_less_than(1.1)\
         .run(movie_reviews_data_positive, movie_reviews_data_negative)
 
-    expected_keywords = ['phew', 'eeeewwwww', 'ugh', 'yowz', 'shud']
+    expected_keywords = ['ooooooooh', 'kewl', 'shud', 'yowz', 'sf']
     assert_that(result.conditions_results[0], equal_condition_result(
         is_pass=False,
         details=f'Failed for the keywords: {expected_keywords}',
