@@ -141,7 +141,7 @@ class CocoInstanceSegmentationDataset(VisionDataset):
 
     @classmethod
     def load_or_download(cls, root: Path, train: bool) -> 'CocoInstanceSegmentationDataset':
-        coco_dir = root / 'coco128'
+        coco_dir = root / 'coco128segments' / 'coco128-seg'
         folder = 'train2017'
 
         if not coco_dir.exists():
