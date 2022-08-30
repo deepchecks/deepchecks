@@ -77,8 +77,8 @@ def calculate_nearest_neighbors_distances(data: pd.DataFrame, cat_cols: List[Has
     num_neighbors: int
         Number of neighbors to return. For example, for n=2 for each sample returns the distances to the two closest
         samples in the dataset.
-    samples_to_calc_neighbors_for: List[Any], default None
-        List of samples for which to calculate nearest neighbors. If None, calculates for all given samples in data.
+    samples_to_calc_neighbors_for: pd.DataFrame, default None
+        Samples for which to calculate nearest neighbors. If None, calculates for all given samples in data.
         These samples do not have to exist in data, but must share all relevant features.
     Returns
     -------
