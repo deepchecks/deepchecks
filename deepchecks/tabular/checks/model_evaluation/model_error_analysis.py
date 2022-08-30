@@ -65,7 +65,7 @@ class ModelErrorAnalysis(TrainTestCheck):
     Notes
     -----
     Scorers are a convention of sklearn to evaluate a model.
-    `See scorers documentation <https://scikit-learn.org/stable/modules/model_evaluation.html#scoring>`_
+    `See scorers documentation <https://scikit-learn.org/stable/modules/model_evaluation.html#scoring>`__
     A scorer is a function which accepts (model, X, y_true) and returns a float result which is the score.
     For every scorer higher scores are better than lower scores.
 

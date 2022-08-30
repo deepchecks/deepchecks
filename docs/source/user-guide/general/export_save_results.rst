@@ -134,8 +134,8 @@ View the Output Display from the JSON
 
 The serialized JSON can be used to reproduce the run in other Python scopes. The full display output 
 can be viewed by using the :func:`deepchecks.utils.json_utils.from_json` function
-(which calls :meth:`deepchecks.SuiteResult.from_json` for a Suite's result 
-or :meth:`deepchecks.CheckResult.from_json` for a Check's result).
+(which calls :meth:`deepchecks.core.SuiteResult.from_json` for a Suite's result 
+or :meth:`deepchecks.core.CheckResult.from_json` for a Check's result).
 
 
 .. code-block:: python

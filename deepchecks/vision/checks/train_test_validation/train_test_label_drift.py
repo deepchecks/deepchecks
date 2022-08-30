@@ -42,9 +42,11 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
 
     There are default properties per task:
     For classification:
+
     - distribution of classes
 
     For object detection:
+
     - distribution of classes
     - distribution of bounding box areas
     - distribution of number of bounding boxes per image
@@ -62,36 +64,39 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
     ----------
     label_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
-        Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
+        Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
         representing attributes of said method. 'output_type' must be one of:
-        - 'numeric' - for continuous ordinal outputs.
-        - 'categorical' - for discrete, non-ordinal outputs. These can still be numbers,
+
+        - ``'numeric'`` - for continuous ordinal outputs.
+        - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
-        For more on image / label properties, see the :ref:`property guide </user-guide/vision/vision_properties.rst>`
-        - 'class_id' - for properties that return the class_id. This is used because these
-          properties are later matched with the VisionData.label_map, if one was given.
-    margin_quantile_filter: float, default: 0.025
+        - ``'class_id'`` - for properties that return the class_id. This is used because these
+          properties are later matched with the ``VisionData.label_map``, if one was given.
+
+        For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
+    margin_quantile_filter : float, default: 0.025
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
         disproportionally. This filter is applied to both distributions, in both margins.
-    min_category_size_ratio: float, default 0.01
+    min_category_size_ratio : float, default 0.01
         minimum size ratio for categories. Categories with size ratio lower than this number are binned
         into an "Other" category.
-    max_num_categories_for_drift: int, default: None
+    max_num_categories_for_drift : int, default: None
         Only for discrete properties. Max number of allowed categories. If there are more,
         they are binned into an "Other" category. This limit applies for both drift calculation and distribution plots.
     max_num_categories_for_display: int, default: 10
         Max number of categories to show in plot.
-    show_categories_by: str, default: 'largest_difference'
+    show_categories_by : str, default: 'largest_difference'
         Specify which categories to show for categorical features' graphs, as the number of shown categories is limited
         by max_num_categories_for_display. Possible values:
+
         - 'train_largest': Show the largest train categories.
         - 'test_largest': Show the largest test categories.
         - 'largest_difference': Show the largest difference between categories.
-    categorical_drift_method: str, default: "cramer_v"
+    categorical_drift_method : str, default: "cramer_v"
         decides which method to use on categorical variables. Possible values are:
         "cramer_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
-    max_num_categories: int, default: None
+    max_num_categories : int, default: None
         Deprecated. Please use max_num_categories_for_drift and max_num_categories_for_display instead
     """
 

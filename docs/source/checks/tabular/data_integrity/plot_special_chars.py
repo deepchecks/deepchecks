@@ -16,7 +16,7 @@ This notebook provides an overview for using and understanding the Special Chara
 
 # %%
 # What is the Special Characters check
-# ===============
+# ======================================
 # The ``SpecialCharacters`` check search in column[s] for values that contains only special characters.
 
 
@@ -28,7 +28,7 @@ from deepchecks.tabular.checks import SpecialCharacters
 
 #%%
 # Generate Data
-# =========
+# ==============
 data = {'col1': [' ', '!', '"', '#', '$', '%', '&', '\'','(', ')',
                  '*', '+', ',', '-', '.', '/', ':', ';', '<', '=', 
                  '>', '?', '@', '[', ']', '\\', '^', '_', '`', '{',
@@ -49,5 +49,5 @@ dataframe = pd.DataFrame(data=data)
 
 #%%
 # Run the check
-# =========
+# ===============
 SpecialCharacters().run(dataframe)

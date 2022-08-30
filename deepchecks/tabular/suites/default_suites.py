@@ -287,8 +287,6 @@ def model_evaluation(alternative_scorers: Dict[str, Callable] = None,
              - :class:`~deepchecks.tabular.checks.model_evaluation.TrainTestPredictionDrift`
            * - :ref:`plot_tabular_simple_model_comparison`
              - :class:`~deepchecks.tabular.checks.model_evaluation.SimpleModelComparison`
-           * - :ref:`plot_tabular_model_error_analysis`
-             - :class:`~deepchecks.tabular.checks.model_evaluation.ModelErrorAnalysis`
            * - :ref:`plot_tabular_calibration_score`
              - :class:`~deepchecks.tabular.checks.model_evaluation.CalibrationScore`
            * - :ref:`plot_tabular_regression_systematic_error`
@@ -314,7 +312,7 @@ def model_evaluation(alternative_scorers: Dict[str, Callable] = None,
     n_top_columns : int , optional
         number of columns to show ordered by feature importance (date, index, label are first) (check dependent)
     n_samples : int , default: 1_000_000
-        number of samples to use for checks that sample data. If none, using the default n_samples per check.
+        number of samples to use for checks that sample data. If none, use the default n_samples per check.
     random_state : int, default: 42
         random seed for all checks.
     n_to_show : int , default: 5

@@ -60,12 +60,14 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
     ----------
     image_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
-        Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
+        Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
         representing attributes of said method. 'output_type' must be one of:
-        - 'numeric' - for continuous ordinal outputs.
-        - 'categorical' - for discrete, non-ordinal outputs. These can still be numbers,
+
+        - ``'numeric'`` - for continuous ordinal outputs.
+        - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
-        For more on image / label properties, see the :ref:`property guide </user-guide/vision/vision_properties.rst>`
+
+        For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
     n_top_properties: int, default: 5
         Number of features to show, sorted by the magnitude of difference in PPS
     random_state: int, default: None
