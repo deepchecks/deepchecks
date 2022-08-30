@@ -15,8 +15,8 @@ from typing import TYPE_CHECKING, Callable, Dict, List, TypeVar, Union, cast
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
-from deepchecks.core.checks import ReduceMixin
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.core.reduce_classes import ReduceMetricClassMixin
 from deepchecks.tabular import Context
 from deepchecks.tabular.base_checks import SingleDatasetCheck
 from deepchecks.utils.docref import doclink
@@ -31,7 +31,7 @@ __all__ = ['SingleDatasetPerformance']
 SDP = TypeVar('SDP', bound='SingleDatasetPerformance')
 
 
-class SingleDatasetPerformance(SingleDatasetCheck, ReduceMixin):
+class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
     """Summarize given model performance on the train and test datasets based on selected scorers.
 
     Parameters

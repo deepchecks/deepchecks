@@ -16,8 +16,9 @@ from typing import Any, Dict, List
 import pandas as pd
 
 from deepchecks.core import CheckResult, DatasetKind
-from deepchecks.core.checks import CheckConfig, ReduceMixin
+from deepchecks.core.checks import CheckConfig
 from deepchecks.core.errors import DeepchecksNotSupportedError
+from deepchecks.core.reduce_classes import ReducePropertyMixin
 from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition, get_drift_plot_sidenote
 from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.utils.label_prediction_properties import (DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES,
@@ -30,7 +31,7 @@ from deepchecks.vision.vision_data import TaskType
 __all__ = ['TrainTestPredictionDrift']
 
 
-class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
+class TrainTestPredictionDrift(TrainTestCheck, ReducePropertyMixin):
     """
     Calculate prediction drift between train dataset and test dataset, using statistical measures.
 
@@ -101,6 +102,12 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
     categorical_drift_method: str, default: "cramer_v"
         decides which method to use on categorical variables. Possible values are:
         "cramer_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+    aggregation_method: str, default: 'none'
+        argument for the reduce_output functionality, decides how to aggregate the individual properties drift scores
+        for a collective score between 0 and 1. Possible values are:
+        'mean': Mean of all properties scores.
+        'none': No averaging. Return a dict with a drift score for each property.
+        'max': Maximum of all the properties drift scores.
     max_num_categories: int, default: None
         Deprecated. Please use max_num_categories_for_drift and max_num_categories_for_display instead
     """
@@ -114,6 +121,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
             categorical_drift_method: str = 'cramer_v',
+            aggregation_method: str = 'none',
             max_num_categories: int = None,  # Deprecated
             **kwargs
     ):
@@ -135,6 +143,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         self.min_category_size_ratio = min_category_size_ratio
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
+        self.aggregation_method = aggregation_method
 
         self._train_prediction_properties = None
         self._test_prediction_properties = None
@@ -253,8 +262,9 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return prediction drift score per prediction property."""
-        drift_values = [predict_property['Drift score'] for predict_property in check_result.value.values()]
-        return dict(zip(list(check_result.value.keys()), drift_values))
+        value_per_property = {name: predict_property['Drift score'] for name, predict_property in
+                              check_result.value.items()}
+        return self.property_reduce(self.aggregation_method, pd.Series(value_per_property), 'Drift Score')
 
     def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.15,
                                             max_allowed_numeric_score: float = 0.075,
