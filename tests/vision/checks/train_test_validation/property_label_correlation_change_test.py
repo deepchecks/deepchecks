@@ -290,8 +290,7 @@ def test_train_test_condition_pps_train_fail(coco_train_visiondata, coco_test_vi
         name=f'Train properties\' Predictive Power Score is less than {condition_value}',
         details=(
             'Properties in train dataset with PPS above threshold: '
-            '{\'Mean Red Relative Intensity\': \'0.11\', '
-            '\'Aspect Ratio\': \'0.09\'}'
+            '{\'Mean Red Relative Intensity\': \'0.11\'}'
         )
     ))
 
