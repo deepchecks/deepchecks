@@ -26,6 +26,7 @@ from deepchecks.vision._shared_docs import docstrings
 from deepchecks.vision.base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
 from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.context import Context
+from deepchecks.vision.utils.vision_properties import STATIC_PROPERTIES_FORMAT
 from deepchecks.vision.vision_data import VisionData
 
 __all__ = ['Suite']
@@ -53,6 +54,8 @@ class Suite(BaseSuite):
         n_samples: Optional[int] = None,
         train_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
         test_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
+        train_properties: Optional[STATIC_PROPERTIES_FORMAT] = None,
+        test_properties: Optional[STATIC_PROPERTIES_FORMAT] = None,
         model_name: str = '',
     ) -> SuiteResult:
         """Run all checks.
@@ -95,6 +98,8 @@ class Suite(BaseSuite):
                     with_display=with_display,
                     train_predictions=train_predictions,
                     test_predictions=test_predictions,
+                    train_properties=train_properties,
+                    test_properties=test_properties,
                     model_name=model_name
                 )
 
