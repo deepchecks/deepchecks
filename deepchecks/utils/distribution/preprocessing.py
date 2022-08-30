@@ -159,8 +159,10 @@ def preprocess_2_cat_cols_to_same_bins(dist1: Union[np.ndarray, pd.Series], dist
         list of all categories that the percentages represent.
 
     """
-    categories_list = list(set(dist1).union(set(dist2)))
     dist1_counter, dist2_counter = Counter(dist1), Counter(dist2)
+    len1 = len(dist1)
+    len2 = len(dist2)
+    categories_list = list(set(dist1_counter.keys()) | (set(dist2_counter.keys())))
 
     if max_num_categories is not None and len(categories_list) > max_num_categories:
         if sort_by == 'dist1':
@@ -177,12 +179,12 @@ def preprocess_2_cat_cols_to_same_bins(dist1: Union[np.ndarray, pd.Series], dist
         categories_list = [x[0] for x in sorted(sort_by_counter.items(), key=lambda x: (-x[1], x[0]))][
                           :max_num_categories]
         dist1_counter = Counter({k: dist1_counter[k] for k in categories_list})
-        dist1_counter[OTHER_CATEGORY_NAME] = len(dist1) - sum(dist1_counter.values())
+        dist1_counter[OTHER_CATEGORY_NAME] = len1 - sum(dist1_counter.values())
         dist2_counter = Counter({k: dist2_counter[k] for k in categories_list})
-        dist2_counter[OTHER_CATEGORY_NAME] = len(dist2) - sum(dist2_counter.values())
+        dist2_counter[OTHER_CATEGORY_NAME] = len2 - sum(dist2_counter.values())
 
     for cat in copy.deepcopy(categories_list):
-        if dist1_counter[cat] < len(dist1) * min_category_size_ratio:
+        if dist1_counter[cat] < len1 * min_category_size_ratio:
             dist1_counter[OTHER_CATEGORY_NAME] += dist1_counter[cat]
             dist2_counter[OTHER_CATEGORY_NAME] += dist2_counter[cat]
             categories_list.remove(cat)
