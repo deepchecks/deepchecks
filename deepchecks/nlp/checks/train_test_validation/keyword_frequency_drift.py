@@ -111,9 +111,14 @@ class KeywordFrequencyDrift(TrainTestCheck):
 
         if context.with_display:
             dataset_names = (train_dataset.name, test_dataset.name)
+            headnote = f"""<span>
+                    The Drift score is a measure for the difference between two distributions, in this check - the 
+                    {dataset_names[0]} and {dataset_names[1]} distributions.<br> The check shows the differences between 
+                    the TF-IDF scores for the keywords in the {dataset_names[0]} and {dataset_names[1]} datasets. 
+                    </span>"""
             train_to_show = max_train_freqs[top_n_idxs]
             test_to_show = max_test_freqs[top_n_idxs]
-            display = word_counts_drift_plot(train_to_show, test_to_show, top_n_words, dataset_names)
+            display = [headnote, word_counts_drift_plot(train_to_show, test_to_show, top_n_words, dataset_names)]
         else:
             display = None
 
