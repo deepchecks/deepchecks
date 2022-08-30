@@ -141,6 +141,7 @@ class CocoInstanceSegmentationDataset(VisionDataset):
 
     @classmethod
     def load_or_download(cls, root: Path, train: bool) -> 'CocoInstanceSegmentationDataset':
+        extract_dir = root / 'coco128segments'
         coco_dir = root / 'coco128segments' / 'coco128-seg'
         folder = 'train2017'
 
@@ -151,7 +152,7 @@ class CocoInstanceSegmentationDataset(VisionDataset):
                 download_and_extract_archive(
                     url,
                     download_root=str(root),
-                    extract_root=str(root)
+                    extract_root=str(extract_dir)
                 )
 
             try:
