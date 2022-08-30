@@ -156,7 +156,7 @@ requirements: $(ENV)
 	@if [ -x "$$(command -v nvidia-smi)" ]; \
 	then \
 		$(PIP) install -q\
-		 	"torch==1.10.1+cu111" "torchvision==0.11.2+cu111" \
+		 	"torch==1.10.2+cu111" "torchvision==0.11.3+cu111" \
 		 	 -f https://s3.amazonaws.com/pytorch/whl/torch_stable.html; \
 	elif [ $(OS) = "Linux" ]; \
 	then \
@@ -164,7 +164,7 @@ requirements: $(ENV)
 			"torch==1.10.2+cpu" "torchvision==0.11.3+cpu" \
 			-f https://s3.amazonaws.com/pytorch/whl/torch_stable.html; \
 	else \
-		$(PIP) install -q torch "torchvision==0.11.2"; \
+		$(PIP) install -q torch "torchvision==0.11.3"; \
 	fi;
 
 	@$(PIP) install -U pip
