@@ -11,9 +11,10 @@ Each check enables you to inspect a specific aspect of your data and
 models. They are the basic building block of the deepchecks package,
 covering all kinds of common issues, such as:
 
-- :doc:`/checks_gallery/tabular/model_evaluation/plot_model_error_analysis`
-- :doc:`/checks_gallery/tabular/data_integrity/plot_conflicting_labels`
+- :doc:`/checks_gallery/tabular/model_evaluation/plot_weak_segments_performance`
+- :doc:`/checks_gallery/tabular/train_test_validation/plot_train_test_feature_drift`
 - :doc:`/checks_gallery/tabular/train_test_validation/plot_date_train_test_leakage_overlap`
+- :doc:`/checks_gallery/tabular/data_integrity/plot_conflicting_labels`
 
 Each check can have two types of results:
 

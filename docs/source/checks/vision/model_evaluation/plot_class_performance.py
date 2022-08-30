@@ -71,14 +71,18 @@ result
 
 #%%
 # If you have a GPU, you can speed up this check by calling:
-# .. code:: python
-#       check.run(train_ds, test_ds, mnist_model, device=<your GPU>)
+#
+# .. code-block:: python
+#
+#    check.run(train_ds, test_ds, mnist_model, device=<your GPU>)
 #
 
 #%%
 # To display the results in an IDE like PyCharm, you can use the following code:
-
-#  result.show_in_window()
+#
+# .. code-block:: python
+#
+#    result.show_in_window()
 #%%
 # The result will be displayed in a new window.
 

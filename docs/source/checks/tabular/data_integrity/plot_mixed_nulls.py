@@ -16,7 +16,7 @@ This notebook provides an overview for using and understanding the Mixed Nulls c
 
 #%%
 # What are Mixed Nulls
-# ===============
+# ======================
 # The ``MixedNulls`` check search for various types of null values, including string representations of null.
 
 
