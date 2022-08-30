@@ -87,17 +87,22 @@ class TextData:
     ):
 
         # Require explicitly setting task type if label is provided
-        if task_type is None:
+        if task_type in [None, 'other']:
             if label is not None:
-                raise DeepchecksValueError('task_type must be set when label is provided')
-            self._task_type = None
+                if isinstance(label, t.Sequence):
+                    if pd.notnull(label).any():
+                        raise DeepchecksValueError('task_type must be set when label is provided')
+                else:
+                    raise DeepchecksValueError('task_type must be set when label is provided')
+
+            self._task_type = TaskType.OTHER
         elif task_type == 'text_classification':
             self._task_type = TaskType.TEXT_CLASSIFICATION
         elif task_type == 'token_classification':
             self._task_type = TaskType.TOKEN_CLASSIFICATION
         else:
             raise DeepchecksNotSupportedError(f'task_type {task_type} is not supported, must be one of '
-                                              f'text_classification, token_classification')
+                                              f'text_classification, token_classification, other')
 
         self._validate_text(raw_text)
         self._text = raw_text
