@@ -128,7 +128,7 @@ def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.S
 
 def psi(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series],
         min_category_size_ratio: float = 0, max_num_categories: int = None, sort_by: str = 'dist1',
-        from_freqs: bool = True) -> float:
+        from_freqs: bool = False) -> float:
     """
     Calculate the PSI (Population Stability Index).
 
