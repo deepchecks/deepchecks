@@ -1,4 +1,4 @@
-Suites
+suites
 ======
 
 .. automodule:: deepchecks.vision.suites

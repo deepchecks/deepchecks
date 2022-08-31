@@ -3,7 +3,7 @@
 Test Your Deepchecks Vision Data Class
 ================================================
 
-"Data Classes" are used to transform the structure of your data to the
+:doc:`Data Classes </user-guide/vision/data-classes/index>` are used to transform the structure of your data to the
 structure required for deepchecks. To help ensure they work
 as intended, deepchecks has built-in helper functions for
 validating their structure. This guide will demonstrate how to use this helper function

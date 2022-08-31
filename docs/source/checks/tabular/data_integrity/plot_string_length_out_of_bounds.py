@@ -16,7 +16,7 @@ This notebook provides an overview for using and understanding the String Length
 
 # %%
 # What is String Length Out Of Bounds
-# ===============
+# ======================================
 # The ``StringLengthOutOfBounds`` check detects strings with length that is much longer/shorter
 # than the identified "normal" string lengths.
 
@@ -28,7 +28,7 @@ from deepchecks.tabular.checks import StringLengthOutOfBounds
 from deepchecks.tabular import Dataset
 #%%
 # Generate Data
-# =========
+# ===============
 col1 = ["deepchecks123", "deepchecks456"]*40
 col1.append("ab")
 col1.append("cd")
@@ -45,7 +45,7 @@ df = Dataset(df, cat_features=[])
 
 #%%
 # Run the check
-# =========
+# ================
 StringLengthOutOfBounds().run(df)
 
 

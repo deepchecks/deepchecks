@@ -28,8 +28,8 @@ Deepchecks uses your model's feature importance for 2 main reasons:
 
 * Help you find issues with your model or data, as in the check :doc:`UnusedFeatures </checks_gallery/tabular/model_evaluation/plot_unused_features>`
 * Prioritize the display according to the most relevant information the check has found (for instance, if deepchecks found drift in many features,
-as in the check :doc:`TrainTestFeatureDrift </checks_gallery/tabular/train_test_validation/plot_train_test_feature_drift>`,
-it would only display the features with the highest importance)
+  as in the check :doc:`TrainTestFeatureDrift </checks_gallery/tabular/train_test_validation/plot_train_test_feature_drift>`,
+  it would only display the features with the highest importance)
 
 
 .. note::
@@ -73,7 +73,7 @@ Deepchecks Calculates the Feature Importance for You
 ----------------------------------------------------
 
 If there's no built-in feature importance in the model or the user has not supplied feature importance data of their
-own, deepchecks will calculate feature importance using scikit-learn's `permutation_importance <https://scikit-learn.org/stable/modules/generated/sklearn.inspection.permutation_importance.html>`_.
+own, deepchecks will calculate feature importance using scikit-learn's `permutation_importance <https://scikit-learn.org/stable/modules/generated/sklearn.inspection.permutation_importance.html>`__.
 
 You can also force this action by using the ``feature_importance_force_permutation`` parameter in the ``run``
 function, available in all checks and suites.

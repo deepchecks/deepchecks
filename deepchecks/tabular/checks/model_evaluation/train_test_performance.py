@@ -19,7 +19,8 @@ from deepchecks.core import CheckResult
 from deepchecks.core.check_utils.class_performance_utils import (
     get_condition_class_performance_imbalance_ratio_less_than, get_condition_test_performance_greater_than,
     get_condition_train_test_relative_degradation_less_than)
-from deepchecks.core.checks import CheckConfig, DatasetKind, ReduceMixin
+from deepchecks.core.checks import CheckConfig, DatasetKind
+from deepchecks.core.reduce_classes import ReduceMixin
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.tabular.metric_utils import MULTICLASS_SCORERS_NON_AVERAGE
 from deepchecks.utils.docref import doclink
@@ -47,7 +48,7 @@ class TrainTestPerformance(TrainTestCheck, ReduceMixin):
     Notes
     -----
     Scorers are a convention of sklearn to evaluate a model.
-    `See scorers documentation <https://scikit-learn.org/stable/modules/model_evaluation.html#scoring>`_
+    `See scorers documentation <https://scikit-learn.org/stable/modules/model_evaluation.html#scoring>`__
     A scorer is a function which accepts (model, X, y_true) and returns a float result which is the score.
     For every scorer higher scores are better than lower scores.
 

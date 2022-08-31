@@ -68,12 +68,14 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
     ----------
     image_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
-        Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
+        Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
         representing attributes of said method. 'output_type' must be one of:
-        - 'numeric' - for continuous ordinal outputs.
-        - 'categorical' - for discrete, non-ordinal outputs. These can still be numbers,
+
+        - ``'numeric'`` - for continuous ordinal outputs.
+        - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
-        For more on image / label properties, see the :ref:`property guide </user-guide/vision/vision_properties.rst>`
+
+        For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
     per_class : bool, default: True
         boolean that indicates whether the results of this check should be calculated for all classes or per class in
         label. If True, the conditions will be run per class as well.

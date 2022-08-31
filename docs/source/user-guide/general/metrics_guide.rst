@@ -99,6 +99,7 @@ or `your own implementation <#custom-metrics>`__.
     :language: python
     :lines: 11-18
     :tab-width: 0
+
 List of Supported Strings
 =========================
 
