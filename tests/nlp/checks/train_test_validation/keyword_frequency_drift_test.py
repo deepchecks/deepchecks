@@ -1,3 +1,15 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
+"""Module for testing the keyword frequency drift check"""
+
 from deepchecks.nlp.checks import KeywordFrequencyDrift
 from hamcrest import assert_that, close_to, contains_exactly, equal_to
 from tests.base.utils import equal_condition_result
