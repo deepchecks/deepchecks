@@ -472,6 +472,7 @@ def word_counts_drift_plot(
         keyword_list: List,
         dataset_names: Tuple[str, str] = DEFAULT_DATASET_NAMES
 ):
+    """Plot the difference between word counts or word frequencies."""
     fig = go.Figure()
     fig.add_traces(word_counts_bar_traces(train_column, test_column, keyword_list, dataset_names))
     return fig

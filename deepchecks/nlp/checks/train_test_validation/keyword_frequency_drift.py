@@ -112,9 +112,9 @@ class KeywordFrequencyDrift(TrainTestCheck):
         if context.with_display:
             dataset_names = (train_dataset.name, test_dataset.name)
             headnote = f"""<span>
-                    The Drift score is a measure for the difference between two distributions, in this check - the 
-                    {dataset_names[0]} and {dataset_names[1]} distributions.<br> The check shows the differences between 
-                    the TF-IDF scores for the keywords in the {dataset_names[0]} and {dataset_names[1]} datasets. 
+                    The Drift score is a measure for the difference between two distributions, in this check - the
+                    {dataset_names[0]} and {dataset_names[1]} distributions.<br> The check shows the differences between
+                    the TF-IDF scores for the keywords in the {dataset_names[0]} and {dataset_names[1]} datasets.
                     </span>"""
             train_to_show = max_train_freqs[top_n_idxs]
             test_to_show = max_test_freqs[top_n_idxs]
@@ -126,9 +126,7 @@ class KeywordFrequencyDrift(TrainTestCheck):
         return CheckResult(value=result, display=display, header='Keyword Frequency Drift')
 
     def add_condition_drift_score_less_than(self, threshold: float):
-        """
-        Add condition - require drift score to be less than the threshold.
-        """
+        """Add condition - require drift score to be less than the threshold."""
         def condition(value) -> ConditionResult:
             drift_score = value['drift_score']
             if drift_score < threshold:
@@ -142,9 +140,10 @@ class KeywordFrequencyDrift(TrainTestCheck):
         return self.add_condition(f'Drift Score is Less Than {format_number(threshold)}', condition)
 
     def add_condition_top_n_differences_less_than(self, threshold: float):
-        """
-        Add condition - require the absolute differences between the counts of train and the test to be less than the
-        threshold for all the top n keywords.
+        """Add condition - require no big change in the frequency of top keywords.
+
+        The condition requires that the absolute differences between the counts of train and the test to be less than
+        the threshold for all the top n keywords.
         """
         def condition(value) -> ConditionResult:
             diffs = value['top_n_diffs']

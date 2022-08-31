@@ -73,7 +73,6 @@ class _DummyModel(BasicModel):
                  y_proba_train: TTextProba = None,
                  validate_data_on_predict: bool = True):
         """Initialize dummy model."""
-
         predictions = {}
         probas = {}
 
