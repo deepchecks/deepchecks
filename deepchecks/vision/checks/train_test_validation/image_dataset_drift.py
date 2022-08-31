@@ -145,6 +145,7 @@ class ImageDatasetDrift(TrainTestCheck):
             else:
                 categorical_features.append(prop['name'])
 
+        dataset_names = (context.train.name, context.test.name)
         values_dict, displays = run_whole_dataset_drift(
             train_dataframe=df_train, test_dataframe=df_test, numerical_features=numeric_features,
             cat_features=categorical_features, sample_size=sample_size, random_state=context.random_state,
@@ -152,7 +153,8 @@ class ImageDatasetDrift(TrainTestCheck):
             min_feature_importance=self.min_feature_importance,
             max_num_categories_for_display=self.max_num_categories_for_display,
             show_categories_by=self.show_categories_by, min_meaningful_drift_score=self.min_meaningful_drift_score,
-            with_display=context.with_display
+            with_display=context.with_display,
+            dataset_names=dataset_names
         )
 
         if displays:

@@ -146,6 +146,8 @@ class SimilarImageLeakage(TrainTestCheck):
                 html = HTML_TEMPLATE.format(
                     count=len(similar_indices['test']),
                     n_of_images=len(display_indices),
+                    train_name=context.train.name,
+                    test_name=context.test.name,
                     train_images=''.join(display_images['train']),
                     test_images=''.join(display_images['test']),
                 )
@@ -196,7 +198,7 @@ Total number of test samples with similar images in train: {count}
         align-items: center;
         padding: 2rem;
         width: max-content;">
-    <h5>Train</h5>{train_images}
-    <h5>Test</h5>{test_images}
+    <h5>{train_name}</h5>{train_images}
+    <h5>{test_name}</h5>{test_images}
 </div>
 """

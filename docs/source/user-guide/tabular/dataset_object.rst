@@ -21,6 +21,7 @@ The common properties are:
 - **features** - Specifies the columns used by model for training.
   Used for defining only a subset of the columns in the data as features. If not supplied then
   all of the columns that aren't explicitly specified as ``label``, ``date``, or ``index`` are considered to be features.
+- **name** - The dataset name to present in the displays instead of Train or Test.
 
 The Dataset's metadata properties are all optional. Check out the API Reference for more details.
 
