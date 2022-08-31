@@ -135,7 +135,7 @@ def feature_distribution_traces(
     max_num_categories: int = 10,
     show_categories_by: CategoriesSortingKind = 'largest_difference',
     quantile_cut: float = 0.02,
-    dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES
+    dataset_names: Tuple[str, str] = DEFAULT_DATASET_NAMES
 ) -> Tuple[List[go.Trace], Dict, Dict]:
     """Create traces for comparison between train and test column.
 
@@ -291,7 +291,7 @@ def _create_distribution_bar_graphs(
         test_column: t.Union[np.ndarray, pd.Series],
         max_num_categories: int,
         show_categories_by: CategoriesSortingKind,
-        dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES
+        dataset_names: Tuple[str, str] = DEFAULT_DATASET_NAMES
 ) -> t.Tuple[t.Any, t.Any]:
     """
     Create distribution bar graphs.
@@ -383,14 +383,14 @@ def word_counts_bar_traces(
         go.Bar(
             x=keyword_list,
             y=train_column,
-            marker=dict(color=colors['Train']),
+            marker=dict(color=colors[DEFAULT_DATASET_NAMES[0]]),
             name=dataset_names[0] + ' Dataset',
             hovertext=keyword_list
         ),
         go.Bar(
             x=keyword_list,
             y=test_column,
-            marker=dict(color=colors['Test']),
+            marker=dict(color=colors[DEFAULT_DATASET_NAMES[1]]),
             name=dataset_names[1] + ' Dataset',
             hovertext=keyword_list
         )
