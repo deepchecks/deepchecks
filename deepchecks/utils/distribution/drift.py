@@ -10,22 +10,24 @@
 #
 """Common utilities for distribution checks."""
 from numbers import Number
-from typing import Callable, Dict, Optional, Tuple, Union
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
+import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from scipy.stats import chi2_contingency, wasserstein_distance
 
 from deepchecks.core import ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
 from deepchecks.utils.dict_funcs import get_dict_entry_by_value
-from deepchecks.utils.distribution.plot import drift_score_bar_traces, feature_distribution_traces
+from deepchecks.utils.distribution.plot import (drift_score_bar_traces, feature_distribution_traces,
+                                                word_counts_bar_traces)
 from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
 from deepchecks.utils.strings import format_number
 
 __all__ = ['calc_drift_and_plot', 'get_drift_method', 'SUPPORTED_CATEGORICAL_METHODS', 'SUPPORTED_NUMERIC_METHODS',
-           'drift_condition', 'get_drift_plot_sidenote']
+           'drift_condition', 'get_drift_plot_sidenote', 'word_counts_drift_plot', 'cramers_v', 'psi']
 
 PSI_MIN_PERCENTAGE = 0.01
 SUPPORTED_CATEGORICAL_METHODS = ['Cramer\'s V', 'PSI']
@@ -57,7 +59,8 @@ def get_drift_method(result_dict: Dict):
 
 def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series],
               min_category_size_ratio: float = 0, max_num_categories: int = None,
-              sort_by: str = 'dist1') -> float:
+              sort_by: str = 'dist1',
+              from_freqs: bool = False) -> float:
     """Calculate the Cramer's V statistic.
 
     For more on Cramer's V, see https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V
@@ -89,14 +92,19 @@ def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.S
         - 'dist2': Sort by the largest dist2 categories.
         - 'difference': Sort by the largest difference between categories.
         > Note that this parameter has no effect if max_num_categories = None or there are not enough unique categories.
+    from_freqs: bool, default: False
+        Whether the data is already in the form of frequencies.
     Returns
     -------
     float
         the bias-corrected Cramer's V value of the 2 distributions.
 
     """
-    dist1_counts, dist2_counts, _ = preprocess_2_cat_cols_to_same_bins(dist1, dist2, min_category_size_ratio,
-                                                                       max_num_categories, sort_by)
+    if from_freqs:
+        dist1_counts, dist2_counts = dist1, dist2
+    else:
+        dist1_counts, dist2_counts, _ = preprocess_2_cat_cols_to_same_bins(dist1, dist2, min_category_size_ratio,
+                                                                           max_num_categories, sort_by)
     contingency_matrix = pd.DataFrame([dist1_counts, dist2_counts])
 
     # If columns have the same single value in both (causing division by 0), return 0 drift score:
@@ -118,7 +126,8 @@ def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.S
 
 
 def psi(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series],
-        min_category_size_ratio: float = 0, max_num_categories: int = None, sort_by: str = 'dist1') -> float:
+        min_category_size_ratio: float = 0, max_num_categories: int = None, sort_by: str = 'dist1',
+        from_freqs: bool = True) -> float:
     """
     Calculate the PSI (Population Stability Index).
 
@@ -148,13 +157,18 @@ def psi(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series]
         - 'dist2': Sort by the largest dist2 categories.
         - 'difference': Sort by the largest difference between categories.
         > Note that this parameter has no effect if max_num_categories = None or there are not enough unique categories.
+    from_freqs: bool, default: False
+        Whether the data is already in the form of frequencies.
     Returns
     -------
     psi
         The PSI score
     """
-    expected_counts, actual_counts, _ = preprocess_2_cat_cols_to_same_bins(dist1, dist2, min_category_size_ratio,
-                                                                           max_num_categories, sort_by)
+    if from_freqs:
+        expected_counts, actual_counts = dist1, dist2
+    else:
+        expected_counts, actual_counts, _ = preprocess_2_cat_cols_to_same_bins(dist1, dist2, min_category_size_ratio,
+                                                                               max_num_categories, sort_by)
     size_expected, size_actual = sum(expected_counts), sum(actual_counts)
     psi_value = 0
     for i in range(len(expected_counts)):
@@ -443,3 +457,14 @@ def drift_condition(max_allowed_categorical_score: float,
             return ConditionResult(ConditionCategory.PASS, details)
 
     return condition
+
+
+def word_counts_drift_plot(
+        train_column: Union[np.ndarray, pd.Series],
+        test_column: Union[np.ndarray, pd.Series],
+        keyword_list: List,
+        dataset_names: Tuple[str, str] = ('Train', 'Test')
+):
+    fig = go.Figure()
+    fig.add_traces(word_counts_bar_traces(train_column, test_column, keyword_list, dataset_names))
+    return fig

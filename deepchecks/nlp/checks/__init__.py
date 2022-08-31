@@ -11,5 +11,6 @@
 """Module importing all nlp checks."""
 
 from deepchecks.nlp.checks.model_evaluation import SingleDatasetPerformance
+from deepchecks.nlp.checks.train_test_validation import KeywordFrequencyDrift
 
-__all__ = ['SingleDatasetPerformance']
+__all__ = ['SingleDatasetPerformance', 'KeywordFrequencyDrift']
