@@ -1,11 +1,12 @@
 .. _vision_properties_guide:
+
 ===============
 Data Properties
 ===============
 
 Properties are one-dimension values that are extracted from either the images, labels or predictions. For example, an
 image property is **brightness**, and a label property is **bounding box area** (for detection tasks).
-Deepchecks includes :ref:`built-in properties<Deepchecks' Built-in Properties>` and supports implementing your own
+Deepchecks includes :ref:`built-in properties <Deepchecks' Built-in Properties>` and supports implementing your own
 properties.
 
 What Are Properties Used For?
@@ -38,6 +39,9 @@ Deepchecks' Built-in Properties
 We divide the properties by the data that they are based on: images, labels or predictions.
 You can either use the built-in properties or implement your own ones and pass them to the relevant checks.
 
+Image Properties
+------------------
+
 The built-in image properties are:
 
 ==============================  ==========
@@ -56,6 +60,9 @@ Mean Blue Relative Intensity    Mean over all pixels of the blue channel, scaled
                                 comparison to the other channels [b / (r + g + b)].
 ==============================  ==========
 
+Label & Prediction Properties
+-------------------------------
+
 The built-in label & predictions properties are:
 
 ===================================  ==========
@@ -71,14 +78,14 @@ Property Structure
 
 All property types have a similar structure, which is a dictionary with 3 keys:
 
-- `name` - The name of the property
-- `method` - The callable function that calculates the property's value. It accepts the relevant data and returns
-the values list.
-- `output_type` - Relates to the method's return values list, and is one of the following:
+- ``name`` - The name of the property
+- ``method`` - The callable function that calculates the property's value. It accepts the relevant data and returns
+  the values list.
+- ``output_type`` - Relates to the method's return values list, and is one of the following:
 
-  - `continuous` - For numeric values with continuous nature
-  - `discrete` - For numeric values with discrete nature or non-numeric values
-  - `class_id` - Means the output is of class ids. In this case we will try to translate the ids into their
+  - ``continuous`` - For numeric values with continuous nature
+  - ``discrete`` - For numeric values with discrete nature or non-numeric values
+  - ``class_id`` - Means the output is of class ids. In this case we will try to translate the ids into their
     corresponding class labels.
 
 Each dictionary is a single property, and the checks accepts a list of those dictionaries. For example:
@@ -95,7 +102,7 @@ Each dictionary is a single property, and the checks accepts a list of those dic
 
 
 The Method's Input
-~~~~~~~~~~~~~~~~~~
+----------------------
 
 Each property is built for the specific data type that it runs on, and receives its deepchecks-expected format,
 as demonstrated in :doc:`Deepchecks' format </user-guide/vision/data-classes/index>`.
@@ -103,7 +110,7 @@ Note that prediction and label-based properties are not interchangeable due to t
 they calculate similar values.
 
 The Method's Output
-~~~~~~~~~~~~~~~~~~~
+----------------------
 
 Each property function must return a sequence in the same length as the length of the input object. This is used later
 in order to couple each sample to its right properties values. In image properties we expect each image to generate a
@@ -118,7 +125,7 @@ Properties Demonstration
 We will demonstrate the 3 drift checks (for each property type) and implement the properties to pass to it.
 
 Image Property
-~~~~~~~~~~~~~~
+-----------------
 
 .. code-block:: python
 
@@ -149,7 +156,8 @@ Image Property
 
 
 Label Property
-~~~~~~~~~~~~~~
+----------------
+
 For label property the input varies according to the task type you are running. In this example we implement
 properties which apply to the Detection task type.
 
@@ -176,7 +184,8 @@ properties which apply to the Detection task type.
 
 
 Prediction Property
-~~~~~~~~~~~~~~~~~~~
+---------------------
+
 Prediction property's input, like label property, also varies by the task type you are running. In this example we
 implement properties which apply to the Detection task type.
 

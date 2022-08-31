@@ -10,7 +10,7 @@ to display your own graph using deepchecks' suite.
 * `Check Structure <#check-structure>`__
 * `Write a Basic Check <#write-a-basic-check>`__
 * `Check Display <#check-display>`__
-* :doc:`Custom Check Templates </user-guide/tabular/custom_check_templates>`
+* :ref:`tabular__custom_check_templates`
 
 
 Check Structure
@@ -22,8 +22,8 @@ Each check consists of 3 main parts:
 * Conditions
 
 This guide will demonstrate how to implement a Check with a return value and
-display, for adding a condition see `working with conditions <../../../user-guide/general/customizations/examples/plot_configure_check_conditions.html>`__,
-or have a look at the examples in `custom_check_templates <../../../user-guide/tabular/custom_check_templates.html>`__.
+display, for adding a condition see :doc:`working with conditions </user-guide/general/customizations/examples/plot_configure_check_conditions>`,
+or have a look at the examples in :ref:`tabular__custom_check_templates` guide..
 
 Write a Basic Check
 ===================
@@ -49,8 +49,8 @@ the context object, which has the following optional members:
 - **model**: the model
 
 When writing your run_logic() function, you can access the train and test datasets using the context object.
-For more examples of using the Context object for different types of base checks, see the
-`Custom Check Templates <../../../user-guide/tabular/custom_check_templates.html>`__ guide.
+For more examples of using the Context object for different types of base checks, see the 
+:ref:`tabular__custom_check_templates` guide.
 
 Check Example
 -------------

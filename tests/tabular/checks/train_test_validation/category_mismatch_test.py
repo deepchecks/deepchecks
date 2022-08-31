@@ -11,7 +11,7 @@
 """Contains unit tests for the new_category_train_validation check"""
 
 import pandas as pd
-from hamcrest import assert_that, calling, equal_to, greater_than, has_items, has_length, raises
+from hamcrest import assert_that, calling, equal_to, greater_than, has_items, has_length, raises, close_to
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.checks.train_test_validation import CategoryMismatchTrainTest
@@ -43,7 +43,7 @@ def test_no_new_category():
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
-    assert_that(result, equal_to({'new_categories': {'col1': {}}, 'test_count': 4}))
+    assert_that(max(result['Number of new categories']), equal_to(0))
 
 
 def test_new_category():
@@ -53,11 +53,13 @@ def test_new_category():
     test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1']), cat_features=['col1'])
 
     # Arrange
-    check = CategoryMismatchTrainTest()
+    check = CategoryMismatchTrainTest(aggregation_method="none")
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
     # Assert
-    assert_that(result.value, equal_to({'new_categories': {'col1': {'d': 1}}, 'test_count': 4}))
+    assert_that(max(result.value['Number of new categories']), equal_to(1))
+    assert_that(max(result.value['Percent of new categories in sample']), equal_to(0.25))
+    assert_that(result.reduce_output()['col1'], equal_to(0.25))
     assert_that(result.display, has_length(greater_than(0)))
 
 
@@ -72,7 +74,9 @@ def test_new_category_without_display():
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset, with_display=False)
     # Assert
-    assert_that(result.value, equal_to({'new_categories': {'col1': {'d': 1}}, 'test_count': 4}))
+    assert_that(max(result.value['Number of new categories']), equal_to(1))
+    assert_that(max(result.value['Percent of new categories in sample']), equal_to(0.25))
+    assert_that(result.reduce_output()['Max New Categories Ratio'], equal_to(0.25))
     assert_that(result.display, has_length(0))
 
 
@@ -87,7 +91,7 @@ def test_missing_category():
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
-    assert_that(result, equal_to({'new_categories': {'col1': {}}, 'test_count': 3}))
+    assert_that(max(result['Number of new categories']), equal_to(0))
 
 
 def test_missing_new_category():
@@ -101,7 +105,8 @@ def test_missing_new_category():
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
-    assert_that(result, equal_to({'new_categories': {'col1': {'e': 1}}, 'test_count': 4}))
+    assert_that(max(result['Number of new categories']), equal_to(1))
+    assert_that(max(result['Percent of new categories in sample']), equal_to(0.25))
 
 
 def test_multiple_categories():
@@ -116,7 +121,10 @@ def test_multiple_categories():
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
-    assert_that(result, equal_to({'new_categories': {'col1': {'e': 1}, 'col2': {}}, 'test_count': 4}))
+    assert_that(max(result['Number of new categories']), equal_to(1))
+    assert_that(max(result['Percent of new categories in sample']), equal_to(0.25))
+    assert_that(result['Number of new categories']['col2'], equal_to(0))
+    assert_that(result['Percent of new categories in sample']['col2'], equal_to(0))
 
 
 def test_ignore_column():
@@ -131,7 +139,8 @@ def test_ignore_column():
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
-    assert_that(result, equal_to({'new_categories': {'col2': {}}, 'test_count': 4}))
+    assert_that(max(result['Number of new categories']), equal_to(0))
+    assert_that(max(result['Percent of new categories in sample']), equal_to(0))
 
 
 def test_specific_column():
@@ -146,7 +155,9 @@ def test_specific_column():
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
-    assert_that(result, equal_to({'new_categories': {'col1': {'e': 1}}, 'test_count': 4}))
+    assert_that(max(result['Number of new categories']), equal_to(1))
+    assert_that(max(result['Percent of new categories in sample']), equal_to(0.25))
+    assert_that(result, has_length(1))
 
 
 def test_nan(df_with_single_nans_in_different_rows, df_with_single_nan_in_col):
@@ -162,15 +173,16 @@ def test_nan(df_with_single_nans_in_different_rows, df_with_single_nan_in_col):
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
-    assert_that(result, equal_to({'new_categories': {'col1': {}, 'col2': {5: 1}}, 'test_count': 11}))
+    assert_that(max(result['Number of new categories']), equal_to(1))
+    assert_that(max(result['Percent of new categories in sample']), close_to(0.09, 0.01))
+    assert_that(result['New categories in column']['col2'], equal_to([5]))
 
 
 def test_condition_categories_fail():
     train_data = {'col1': ['a', 'b', 'c', 'd'], 'col2': ['a', 'b', 'c', 'd']}
     test_data = {'col1': ['a', 'b', 'c', 'e'], 'col2': ['a', 'b', 'c', 'd']}
     train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1', 'col2']), cat_features=['col1', 'col2'])
-    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']),
-                           cat_features=['col1', 'col2'])
+    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']), cat_features=['col1', 'col2'])
 
     # Arrange
     check = CategoryMismatchTrainTest().add_condition_new_categories_less_or_equal(0)
@@ -180,8 +192,7 @@ def test_condition_categories_fail():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details='Found 1 out of 2 columns with number of new categories above threshold:'
-                                       '\n{\'col1\': 1}',
+                               details='Found 1 columns with number of new categories above threshold: \n{\'col1\': 1}',
                                name='Number of new category values is less or equal to 0')
     ))
 
@@ -190,8 +201,7 @@ def test_condition_categories_pass():
     train_data = {'col1': ['a', 'b', 'c', 'd'], 'col2': ['a', 'b', 'c', 'd']}
     test_data = {'col1': ['a', 'b', 'c', 'e'], 'col2': ['a', 'b', 'c', 'd']}
     train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1', 'col2']), cat_features=['col1', 'col2'])
-    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']),
-                           cat_features=['col1', 'col2'])
+    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']), cat_features=['col1', 'col2'])
 
     # Arrange
     check = CategoryMismatchTrainTest().add_condition_new_categories_less_or_equal(1)
@@ -201,7 +211,7 @@ def test_condition_categories_pass():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               details='Passed for 2 relevant columns. Top columns with new categories count:\n'
+                               details='Passed for 2 relevant columns. Top columns with new categories count: \n'
                                        '{\'col1\': 1}',
                                name='Number of new category values is less or equal to 1')
     ))
@@ -211,8 +221,7 @@ def test_condition_count_fail():
     train_data = {'col1': ['a', 'b', 'c', 'd'], 'col2': ['a', 'b', 'c', 'd']}
     test_data = {'col1': ['a', 'b', 'c', 'e'], 'col2': ['a', 'b', 'c', 'd']}
     train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1', 'col2']), cat_features=['col1', 'col2'])
-    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']),
-                           cat_features=['col1', 'col2'])
+    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']), cat_features=['col1', 'col2'])
 
     # Arrange
     check = CategoryMismatchTrainTest().add_condition_new_category_ratio_less_or_equal(0.1)
@@ -223,7 +232,7 @@ def test_condition_count_fail():
     assert_that(result, has_items(
         equal_condition_result(
             is_pass=False,
-            details='Found 1 out of 2 columns with ratio of new category samples above threshold:'
+            details='Found 1 columns with ratio of new categories above threshold: '
                     '\n{\'col1\': \'25%\'}',
             name='Ratio of samples with a new category is less or equal to 10%')
     ))
@@ -233,8 +242,7 @@ def test_condition_count_pass():
     train_data = {'col1': ['a', 'b', 'c', 'd'], 'col2': ['a', 'b', 'c', 'd']}
     test_data = {'col1': ['a', 'b', 'c', 'e'], 'col2': ['a', 'b', 'c', 'd']}
     train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1', 'col2']), cat_features=['col1', 'col2'])
-    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']),
-                           cat_features=['col1', 'col2'])
+    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']), cat_features=['col1', 'col2'])
 
     # Arrange
     check = CategoryMismatchTrainTest().add_condition_new_category_ratio_less_or_equal(0.3)
@@ -244,7 +252,7 @@ def test_condition_count_pass():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               details='Passed for 2 relevant columns. Top columns with new categories ratio:\n'
-                                       '{\'col1\': \'25%\', \'col2\': \'0%\'}',
+                               details='Passed for 2 relevant columns. Top columns with new categories ratio: '
+                                       '\n{\'col1\': \'25%\'}',
                                name='Ratio of samples with a new category is less or equal to 30%')
     ))

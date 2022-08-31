@@ -117,7 +117,7 @@ suite_result.show()
 # Let's try and fix the overfitting issue found in the model.
 #
 # Fix the Model and Re-run a Single Check
-# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 from deepchecks.tabular.checks import TrainTestPerformance
 
