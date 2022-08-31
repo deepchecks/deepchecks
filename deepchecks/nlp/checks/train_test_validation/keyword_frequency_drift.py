@@ -88,7 +88,7 @@ class KeywordFrequencyDrift(TrainTestCheck):
 
         test_freqs = vectorizer.transform(tokenized_test)
         max_test_freqs = np.array(test_freqs.max(axis=0).todense()).reshape(-1)
-        word_freq_diff = np.abs(max_train_freqs - max_test_freqs)
+        word_freq_diff = max_train_freqs - max_test_freqs
 
         max_train_counts = max_train_freqs * test_dataset.n_samples
         max_test_counts = max_test_freqs * test_dataset.n_samples
@@ -99,7 +99,7 @@ class KeywordFrequencyDrift(TrainTestCheck):
         if isinstance(self.top_n_method, List):
             top_n_idxs = [idx for idx, word in enumerate(vocab) if word in self.top_n_method]
         elif self.top_n_method == 'top_diff':
-            top_n_idxs = np.argsort(word_freq_diff)[-self.top_n_to_show:]
+            top_n_idxs = np.argsort(np.abs(word_freq_diff))[-self.top_n_to_show:]
         elif self.top_n_method == 'top_freq':
             max_freqs = np.maximum(max_train_freqs, max_test_freqs)
             top_n_idxs = np.argsort(max_freqs, )[-self.top_n_to_show:]
@@ -148,7 +148,7 @@ class KeywordFrequencyDrift(TrainTestCheck):
         """
         def condition(value) -> ConditionResult:
             diffs = value['top_n_diffs']
-            keywords_failed = [k for k, v in diffs.items() if v >= threshold]
+            keywords_failed = [k for k, v in diffs.items() if abs(v) >= threshold]
 
             if len(keywords_failed) == 0:
                 details = 'Passed for all of the top N keywords'
