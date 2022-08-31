@@ -23,13 +23,13 @@ from sklearn.preprocessing import OrdinalEncoder, RobustScaler
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.tabular import Context, Dataset, TrainTestCheck
+from deepchecks.tabular import Context, Dataset, SingleDatasetCheck
 from deepchecks.utils.function import run_available_kwargs
 
 __all__ = ['UnusedFeatures']
 
 
-class UnusedFeatures(TrainTestCheck):
+class UnusedFeatures(SingleDatasetCheck):
     """Detect features that are nearly unused by the model.
 
     The check uses feature importance (either internally computed in appropriate models or calculated by permutation
@@ -72,12 +72,20 @@ class UnusedFeatures(TrainTestCheck):
         self.n_top_unused_to_show = n_top_unused_to_show
         self.random_state = random_state
 
-    def run_logic(self, context: Context) -> CheckResult:
-        """Run check."""
-        if context.have_test():
-            dataset = context.test
-        else:
-            dataset = context.train
+    def run_logic(self, context: Context, dataset_kind) -> CheckResult:
+        """Run check.
+
+        Returns
+        -------
+        CheckResult
+            value is dictionary of 2 values:
+                used features : list
+                    A list of features that are considered important.
+                unused features : dict
+                    A dictionary of features that are considered unimportant. The dictionary contains two keys:
+                    'high variance' and 'low variance'. Each key contains a list of features.
+        """
+        dataset = context.get_data_by_kind(dataset_kind)
         _ = context.model  # validate model
 
         feature_importance = context.feature_importance

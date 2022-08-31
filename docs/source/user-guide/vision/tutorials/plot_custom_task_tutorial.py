@@ -141,19 +141,18 @@ class CocoInstanceSegmentationDataset(VisionDataset):
 
     @classmethod
     def load_or_download(cls, root: Path, train: bool) -> 'CocoInstanceSegmentationDataset':
-        coco_dir = root / 'coco128'
+        extract_dir = root / 'coco128segments'
+        coco_dir = root / 'coco128segments' / 'coco128-seg'
         folder = 'train2017'
 
         if not coco_dir.exists():
             url = 'https://ultralytics.com/assets/coco128-segments.zip'
-            md5 = 'e29ec06014d1e06b58b6ffe651c0b34f'
 
             with open(os.devnull, 'w', encoding='utf8') as f, contextlib.redirect_stdout(f):
                 download_and_extract_archive(
                     url,
                     download_root=str(root),
-                    extract_root=str(root),
-                    md5=md5
+                    extract_root=str(extract_dir)
                 )
 
             try:

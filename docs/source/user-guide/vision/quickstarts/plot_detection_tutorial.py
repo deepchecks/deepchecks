@@ -18,6 +18,14 @@ An object detection tasks usually consists of two parts:
 
 The common output of an object detection model is a list of bounding boxes around the objects, and
 their classes.
+
+.. code-block:: bash
+
+    # Before we start, if you don't have deepchecks vision package installed yet, run:
+    import sys
+    !{sys.executable} -m pip install "deepchecks[vision]" --quiet --upgrade # --user
+
+    # or install using pip from your python environment
 """
 
 #%%

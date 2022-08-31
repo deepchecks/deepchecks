@@ -131,9 +131,12 @@ for more details.
 
     <a href="https://scikit-learn.org/stable/glossary.html#term-array-like" target="_blank">array-like</a>
 
+
 .. |permutation importance| raw:: html
 
     <a href="https://scikit-learn.org/stable/modules/permutation_importance.html" target="_blank">sklearn permutation_importance</a>
 
+
 .. |scikit-learn API conventions| raw:: html
+
     <a href="https://scikit-learn.org/stable/developers/develop.html" target="_blank">scikit-learn API conventions</a>

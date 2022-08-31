@@ -13,8 +13,8 @@ import warnings
 from typing import Dict
 
 from deepchecks.core import CheckResult, ConditionResult
-from deepchecks.core.checks import ReduceMixin
 from deepchecks.core.condition import ConditionCategory
+from deepchecks.core.reduce_classes import ReduceMixin
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERIC_METHODS,
                                                  calc_drift_and_plot, get_drift_plot_sidenote)

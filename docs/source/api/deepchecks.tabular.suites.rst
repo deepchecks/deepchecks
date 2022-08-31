@@ -1,4 +1,4 @@
-Suites
+suites
 ======
 
 .. automodule:: deepchecks.tabular.suites

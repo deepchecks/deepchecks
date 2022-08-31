@@ -32,8 +32,7 @@ __all__ = [
     'BaseCheck',
     'SingleDatasetBaseCheck',
     'TrainTestBaseCheck',
-    'ModelOnlyBaseCheck',
-    'ReduceMixin'
+    'ModelOnlyBaseCheck'
 ]
 
 
@@ -55,25 +54,6 @@ class CheckConfig(TypedDict):
     class_name: str
     version: NotRequired[str]
     params: Dict[Any, Any]
-
-
-class ReduceMixin(abc.ABC):
-    """Mixin for reduce_output function."""
-
-    def reduce_output(self, check_result: 'check_types.CheckResult') -> Dict[str, float]:
-        """Return the check result as a reduced dict. Being Used for monitoring.
-
-        Parameters
-        ----------
-        check_result : CheckResult
-            The check result.
-
-        Returns
-        -------
-        Dict[str, float]
-            reduced dictionary in format {str: float} (i.e {'AUC': 0.1}), based on the check's original returned value
-        """
-        raise NotImplementedError('Must implement reduce_output function')
 
 
 class BaseCheck(abc.ABC):
@@ -178,18 +158,18 @@ class BaseCheck(abc.ABC):
         return json.dumps(conf, indent=indent)
 
     def from_json(
-        self,
-        conf: str,
-        version_unmatch: 'common.VersionUnmatchAction' = 'warn'
+            self,
+            conf: str,
+            version_unmatch: 'common.VersionUnmatchAction' = 'warn'
     ) -> Self:
         """Deserialize check instance from JSON string."""
         check_conf = json.loads(conf)
         return self.from_config(check_conf, version_unmatch=version_unmatch)
 
     def _prepare_config(
-        self,
-        params: Dict[str, Any],
-        include_version: bool = True
+            self,
+            params: Dict[str, Any],
+            include_version: bool = True
     ) -> CheckConfig:
         module_name, type_name = common.importable_name(self)
         conf = CheckConfig(
@@ -230,9 +210,9 @@ class BaseCheck(abc.ABC):
 
     @classmethod
     def from_config(
-        cls: Type[Self],
-        conf: CheckConfig,
-        version_unmatch: 'common.VersionUnmatchAction' = 'warn'
+            cls: Type[Self],
+            conf: CheckConfig,
+            version_unmatch: 'common.VersionUnmatchAction' = 'warn'
     ) -> Self:
         """Return check object from a CheckConfig object.
 

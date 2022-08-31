@@ -16,7 +16,7 @@ This notebook provides an overview for using and understanding the Is Single Val
 
 # %%
 # What is the Is Single Value check
-# ===============
+# ====================================
 # The ``IsSingleValue`` check checks if there are columns which have only a single unique
 # value in all rows.
 
