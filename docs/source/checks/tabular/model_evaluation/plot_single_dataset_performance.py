@@ -3,7 +3,7 @@
 .. _plot_tabular_single_dataset_performance:
 
 Single Dataset Performance
-**********************
+*****************************
 This notebooks provides an overview for using and understanding single dataset performance check.
 
 **Structure:**
@@ -21,7 +21,7 @@ This check is designed for evaluating a model's performance on a labeled dataset
 Scorers are a convention of sklearn to evaluate a model,
 it is a function which accepts (model, X, y_true) and returns a float result which is the score.
 A sklearn convention is that higher scores are better than lower scores. For additional details `see scorers
-documentation <https://scikit-learn.org/stable/modules/model_evaluation.html#scoring>`_.
+documentation <https://scikit-learn.org/stable/modules/model_evaluation.html#scoring>`__
 
 The default scorers that are used are F1, Percision, and Recall for Classification
 and Negative Root Mean Square Error, Negative Mean Absolute Error, and R2 for Regression.

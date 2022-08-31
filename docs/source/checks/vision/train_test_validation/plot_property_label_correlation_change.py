@@ -3,7 +3,7 @@
 .. _plot_vision_feature_label_correlation_change:
 
 Property Label Correlation Change
-********************************
+***********************************
 
 This notebook provides an overview for using and understanding the "Property Label Correlation Change" check.
 
