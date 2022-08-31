@@ -249,7 +249,7 @@ def calc_drift_and_plot(train_column: pd.Series,
                         ignore_na: bool = True,
                         min_samples: int = 10,
                         with_display: bool = True,
-                        dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES
+                        dataset_names: Tuple[str, str] = DEFAULT_DATASET_NAMES
                         ) -> Tuple[float, str, Callable]:
     """
     Calculate drift score per column.
@@ -470,7 +470,7 @@ def word_counts_drift_plot(
         train_column: Union[np.ndarray, pd.Series],
         test_column: Union[np.ndarray, pd.Series],
         keyword_list: List,
-        dataset_names: Tuple[str, str] = ('Train', 'Test')
+        dataset_names: Tuple[str, str] = DEFAULT_DATASET_NAMES
 ):
     fig = go.Figure()
     fig.add_traces(word_counts_bar_traces(train_column, test_column, keyword_list, dataset_names))
