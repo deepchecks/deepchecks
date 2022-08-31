@@ -9,17 +9,17 @@
 # ----------------------------------------------------------------------------
 #
 """Contains unit tests for the single dataset performance report check."""
+import warnings
 from typing import List
-
-from hamcrest import assert_that, calling, close_to, has_entries, has_items, has_length, instance_of, raises
-from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
-from sklearn.model_selection import train_test_split
 
 from deepchecks.core import ConditionResult
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError, ModelValidationError
 from deepchecks.tabular.checks import SingleDatasetPerformance
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.metric_utils.scorers import DEFAULT_REGRESSION_SCORERS, MULTICLASS_SCORERS_NON_AVERAGE
+from hamcrest import assert_that, calling, close_to, has_entries, has_items, has_length, instance_of, raises
+from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
+from sklearn.model_selection import train_test_split
 from tests.base.utils import equal_condition_result
 
 
@@ -155,6 +155,18 @@ def test_regression(diabetes_split_dataset_and_model):
     for metric in DEFAULT_REGRESSION_SCORERS.keys():
         metric_col = result.loc[result['Metric'] == metric]
         assert_that(metric_col['Value'].iloc[0], instance_of(float))
+
+
+def test_regression_positive_scorers(diabetes_split_dataset_and_model):
+    # Arrange
+    train, test, model = diabetes_split_dataset_and_model
+    check = SingleDatasetPerformance(scorers=['mse', 'rmse', 'absolute_mean_squared_error'])
+    # Act
+    result = check.run(test, model).value
+    # Assert
+    assert_that(result['Value'].iloc[0], close_to(3296, 1))
+    assert_that(result['Value'].iloc[0], close_to(result['Value'].iloc[1] ** 2, 0.001))
+    assert_that(result['Value'].iloc[2], close_to(45, 1))
 
 
 def test_regression_reduced(diabetes_split_dataset_and_model):

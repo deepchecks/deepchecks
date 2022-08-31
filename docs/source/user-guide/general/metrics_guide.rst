@@ -21,8 +21,8 @@ Controlling the metrics helps you shape the checks and suites according to the s
 
 Default Metrics
 ===============
-All of the checks that evaluate model performance, such as `SingleDatasetPerformance
-</checks_gallery/vision/model_evaluation/plot_single_dataset_performance>`, come with default metrics.
+All of the checks that evaluate model performance, such as
+doc:`SingleDatasetPerformance </checks_gallery/vision/model_evaluation/plot_single_dataset_performance>`, come with default metrics.
 
 The default metrics by task type are:
 
@@ -49,9 +49,14 @@ Multiclass classification per class:
 
 Regression:
 
-*   Negative RMSE (negative RMSE so that the convention that greater is better is kept) 'neg_rmse'
+*   Negative RMSE 'neg_rmse'
 *   Negative MAE 'neg_mae'
 *   R2 'r2'
+
+.. Note::
+    Deepchecks follow the convention that greater metric value represent better performance.
+    Therefore, it is recommended to only use metrics that follow
+    this convention, for example, Negative MAE instead of MAE.
 
 Vision
 ______
@@ -66,9 +71,12 @@ Object detection:
 *   Mean average precision 'average_precision_per_class'
 *   Mean average recall  'average_recall_per_class'
 
-To run a check with the default metrics, run it without passing any value to the "scorer" parameter. For example:
+Running a Check with Default Metrics
+____________________________________
 
-:doc:`ClassPerformance </checks_gallery/vision/model_evaluation/plot_class_performance>`:
+To run a check with the default metrics, run it without passing any value to the "scorer"
+parameter. We will demonstrate it using the
+:doc:`ClassPerformance </checks_gallery/vision/model_evaluation/plot_class_performance>` check:
 
 .. literalinclude:: ../../../../examples/examples_metrics_guide.py
     :language: python
@@ -90,10 +98,7 @@ The metrics in the dict can be some of the existing:
 *   `Scikit-learn Scorers <https://scikit-learn.org/stable/modules/model_evaluation.html>`__ for both vision and tabular.
     A Scikit-learn Scorer is a function that accepts the parameters: (model, x, y_true), and returns a score with the
     convention that higher is better.
-
-or `your own implementation <#custom-metrics>`__.
-
-:doc:`ClassPerformance </checks_gallery/vision/model_evaluation/plot_class_performance>`:
+*  `Your own implementation <#custom-metrics>`__.
 
 .. literalinclude:: ../../../../examples/examples_metrics_guide.py
     :language: python
@@ -107,7 +112,9 @@ In addition to the strings listed below, all Sklearn `scorer strings
 <https://scikit-learn.org/stable/modules/model_evaluation.html#the-scoring-parameter-defining-model-evaluation-rules>`__
 apply.
 
-.. list-table:: Supported Strings
+Regression
+__________
+.. list-table::
    :widths: 25 75 75
    :header-rows: 1
 
@@ -116,16 +123,38 @@ apply.
      - Comments
    * - 'neg_rmse'
      - negative root mean squared error
-     - scikit-learn
+     - higher value represents better performance
    * - 'neg_mae'
      - negative mean absolute error
-     - scikit-learn
+     - higher value represents better performance
+   * - 'rmse'
+     - root mean squared error
+     -
+   * - 'mae'
+     - mean absolute error
+     -
+   * - 'abs_mse'
+     - absolute_mean_squared_error
+     -
+   * - 'r2'
+     - R2 score
+     -
+
+Classification
+______________
+.. list-table::
+   :widths: 25 75 75
+   :header-rows: 1
+
+   * - String
+     - Metric
+     - Comments
    * - 'accuracy'
      - classification accuracy
      - scikit-learn
    * - ‘roc_auc’
      - Area Under the Receiver Operating Characteristic Curve (ROC AUC) - binary
-     - scikit-learn, for multiclass options check
+     - for multiclass options check
        `scikit-learn's documentation <https://scikit-learn.org/stable/modules/model_evaluation.html>`__
    * - 'f1'
      - F-1 - binary
@@ -154,13 +183,23 @@ apply.
    * - 'recall' , 'sensitivity'
      - recall (sensitivity)
      - suffixes apply as with 'f1'
+
+
+Object Detection
+________________
+.. list-table::
+   :widths: 25 75 75
+   :header-rows: 1
+
+   * - String
+     - Metric
+     - Comments
    * - 'average_precision_per_class'
      - average precision for object detection
-     - only for object detection
+     -
    * - 'average_recall_per_class'
      - average recall for object detection
-     - only for object detection
-
+     -
 
 Custom Metrics
 ==============
