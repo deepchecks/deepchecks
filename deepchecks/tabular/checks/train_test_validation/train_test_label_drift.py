@@ -13,8 +13,8 @@ import warnings
 from typing import Dict
 
 from deepchecks.core import CheckResult, ConditionResult
-from deepchecks.core.checks import ReduceMixin
 from deepchecks.core.condition import ConditionCategory
+from deepchecks.core.reduce_classes import ReduceMixin
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERIC_METHODS,
                                                  calc_drift_and_plot, get_drift_plot_sidenote)
@@ -129,6 +129,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
             categorical_drift_method=self.categorical_drift_method,
             ignore_na=self.ignore_na,
             with_display=context.with_display,
+            dataset_names=(train_dataset.name, test_dataset.name)
         )
 
         values_dict = {'Drift score': drift_score, 'Method': method}
